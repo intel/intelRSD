@@ -1,0 +1,469 @@
+<HTML>
+<META charset="utf-8"/>
+<TITLE>China Rack</TITLE>
+<HEAD>
+<script type="text/javascript" src="/res/jquery.js"></script>
+<script type="text/javascript" src="/res/json2.js"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+<!----------------------RackInfo BEGIN--------------------------------------------//-->	
+			$('#button_getRackInfo').click(function () {
+				$.ajax({
+					url: $('#text_getRackInfo').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getRackInfo", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getRackInfo", JSON.stringify(er), "ERR");
+					}
+				});
+			});
+			$('#button_putRackInfo').click(function () {
+				$.ajax({
+					url: $('#text_putRackInfo').val(),
+					type: "PUT",
+					dataType: "json",
+					data: $('#textarea_putRackInfo').val(),
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_putRackInfo", JSON.stringify(data), "OK");
+						},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_putRackInfo", JSON.stringify(er), "ERR");
+					}
+				});
+			});
+<!----------------------RackInfo END--------------------------------------------//-->	
+<!----------------------PowerzoneCollections BEGIN--------------------------------------------//-->	
+			$('#button_getPowerzoneCollections').click(function () {
+				$.ajax({
+					url: $('#text_getPowerzoneCollections').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getPowerzoneCollections", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getPowerzoneCollections", JSON.stringify(er), "ERR");
+					}
+				});
+			});
+<!----------------------PowerzoneCollections END--------------------------------------------//-->	
+<!----------------------PowerzoneById BEGIN--------------------------------------------//-->	
+			$('#button_getPowerzoneById').click(function () {
+				$.ajax({
+					url: $('#text_getPowerzoneById').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getPowerzoneById", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getPowerzoneById", JSON.stringify(er), "ERR");
+					}
+				});
+			});			
+<!----------------------PowerzoneById END--------------------------------------------//-->	
+<!----------------------PowerzonePsuCollections BEGIN--------------------------------------------//-->	
+			$('#button_getPowerzonePsuCollections').click(function () {
+				$.ajax({
+					url: $('#text_getPowerzonePsuCollections').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getPowerzonePsuCollections", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getPowerzonePsuCollections", JSON.stringify(er), "ERR");
+					}
+				});
+			});
+<!----------------------PowerzonePsuCollections END--------------------------------------------//-->	
+<!----------------------PowerzonePsuById BEGIN--------------------------------------------//-->	
+			$('#button_getPowerzonePsuById').click(function () {
+				$.ajax({
+					url: $('#text_getPowerzonePsuById').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getPowerzonePsuById", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getPowerzonePsuById", JSON.stringify(er), "ERR");
+					}
+				});
+			});		
+
+			$('#button_actionPowerzonePsuById').click(function () {
+				$.ajax({
+					url: $('#text_actionPowerzonePsuById').val(),
+					type: "PUT",
+					dataType: "json",
+					data: $('#textarea_actionPowerzonePsuById').val(),
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_actionPowerzonePsuById", JSON.stringify(data), "OK");
+						},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_actionPowerzonePsuById", JSON.stringify(er), "ERR");
+					}
+				});
+			});			
+<!----------------------PowerzonePsuById END--------------------------------------------//-->	
+<!----------------------CoolingzoneCollections BEGIN--------------------------------------------//-->	
+			$('#button_getCoolingzoneCollections').click(function () {
+				$.ajax({
+					url: $('#text_getCoolingzoneCollections').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getCoolingzoneCollections", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getCoolingzoneCollections", JSON.stringify(er), "ERR");
+					}
+				});
+			});
+<!----------------------CoolingzoneCollections END--------------------------------------------//-->	
+<!----------------------CoolingzoneById BEGIN--------------------------------------------//-->	
+			$('#button_getCoolingzoneById').click(function () {
+				$.ajax({
+					url: $('#text_getCoolingzoneById').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getCoolingzoneById", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getCoolingzoneById", JSON.stringify(er), "ERR");
+					}
+				});
+			});			
+<!----------------------CoolingzoneById END--------------------------------------------//-->	
+<!----------------------FanCollections BEGIN--------------------------------------------//-->	
+			$('#button_getFanCollections').click(function () {
+				$.ajax({
+					url: $('#text_getFanCollections').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getFanCollections", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getFanCollections", JSON.stringify(er), "ERR");
+					}
+				});
+			});
+<!----------------------FanCollections END--------------------------------------------//-->	
+<!----------------------FanById BEGIN--------------------------------------------//-->	
+			$('#button_getFanById').click(function () {
+				$.ajax({
+					url: $('#text_getFanById').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getFanById", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getFanById", JSON.stringify(er), "ERR");
+					}
+				});
+			});			
+<!----------------------FanById END--------------------------------------------//-->
+<!----------------------SystemCollections BEGIN--------------------------------------------//-->	
+			$('#button_getSystemCollections').click(function () {
+				$.ajax({
+					url: $('#text_getSystemCollections').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getSystemCollections", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getSystemCollections", JSON.stringify(er), "ERR");
+					}
+				});
+			});
+<!----------------------SystemCollections END--------------------------------------------//-->	
+<!----------------------SystemByUuid BEGIN--------------------------------------------//-->	
+			$('#button_getSystemByUuid').click(function () {
+				$.ajax({
+					url: $('#text_getSystemByUuid').val(),
+					type: "GET",
+					dataType: "json",
+					success: function (data) {
+						alert(JSON.stringify(data));
+						update_textarea("textarea_getSystemByUuid", JSON.stringify(data), "OK");
+					},
+					error: function (er) {
+						alert(JSON.stringify(er));
+						update_textarea("textarea_getSystemByUuid", JSON.stringify(er), "ERR");
+					}
+				});
+			});			
+<!----------------------SystemByUuid END--------------------------------------------//-->
+			
+			
+	});
+
+<!----------------------js function to update textarea--------------------------------------------//-->		
+function update_textarea(id, str, result){
+	document.getElementById(id).innerHTML=str;
+	if("OK"==result)
+	{
+		document.getElementById(id).style.background="#238E68";
+	}
+	else if("ERR"==result)
+	{
+		document.getElementById(id).style.background="#8E2323";
+	}
+	document.getElementById(id).style.color="white";
+}
+
+
+	
+</script>
+</HEAD>
+<BODY>
+<!----------------------RackInfo BEGIN--------------------------------------------//-->	
+<h4>RackInfo：</h4>
+	<input type="text" size="30" id="text_getRackInfo" name="text_getRackInfo" value="/v1/rack"><BR>
+	<input type="button" id="button_getRackInfo" value="getRackInfo" /><BR>
+	<input type="text" size="30" id="text_putRackInfo" name="text_putRackInfo" value="/v1/rack"><BR>
+	<input type="button" id="button_putRackInfo" value="putRackInfo"/><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+  <th>put/post</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getRackInfo" name="textarea_getRackInfo" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+  <td>	
+	<textarea cols="70" rows="10" id="textarea_putRackInfo" name="textarea_putRackInfo">
+	{
+		"description": "for storage pool",	
+		"RackPUID": 1,
+		"PodDCUID": "pod2.jf5.intel.com",
+		"GeoTag": "Oregon-JF4",
+		"PODMAddress" : "podm2.pod1.jf5.intel.com"
+	}
+	</textarea>
+  </td>
+</tr>
+</table>
+<!----------------------RackInfo END--------------------------------------------//-->	
+
+<!----------------------PowerzoneCollections BEGIN--------------------------------------------//-->	
+<h4>PowerzoneCollections：</h4>
+	<input type="text" size="30" id="text_getPowerzoneCollections" name="text_getPowerzoneCollections" value="/v1/rack/powerzones"><BR>
+	<input type="button" id="button_getPowerzoneCollections" value="getPowerzoneCollections" /><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getPowerzoneCollections" name="textarea_getPowerzoneCollections" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+</tr>
+</table>
+<!----------------------PowerzoneCollections END--------------------------------------------//-->	
+
+<!----------------------PowerzoneById BEGIN--------------------------------------------//-->	
+<h4>PowerzoneById：</h4>
+	<input type="text" size="30" id="text_getPowerzoneById" name="text_getPowerzoneById" value="/v1/rack/powerzones/1"><BR>
+	<input type="button" id="button_getPowerzoneById" value="getPowerzoneById" /><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getPowerzoneById" name="textarea_getPowerzoneById" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+</tr>
+</table>
+<!----------------------PowerzoneById END--------------------------------------------//-->	
+<!----------------------PowerzonePsuCollections BEGIN--------------------------------------------//-->	
+<h4>PowerzonePsuCollections：</h4>
+	<input type="text" size="30" id="text_getPowerzonePsuCollections" name="text_getPowerzonePsuCollections" value="/v1/rack/powerzones/1/psus"><BR>
+	<input type="button" id="button_getPowerzonePsuCollections" value="getPowerzonePsuCollections" /><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getPowerzonePsuCollections" name="textarea_getPowerzonePsuCollections" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+</tr>
+</table>
+<!----------------------PowerzonePsuCollections END--------------------------------------------//-->	
+<!----------------------PowerzonePsuById BEGIN--------------------------------------------//-->	
+<h4>PowerzonePsuById：</h4>
+	<input type="text" size="30" id="text_getPowerzonePsuById" name="text_getPowerzonePsuById" value="/v1/rack/powerzones/1/psus/1"><BR>
+	<input type="button" id="button_getPowerzonePsuById" value="getPowerzonePsuById" /><BR>
+	<input type="text" size="40" id="text_actionPowerzonePsuById" name="text_actionPowerzonePsuById" value="/v1/rack/powerzones/1/psus/1/action"><BR>
+	<input type="button" id="button_actionPowerzonePsuById" value="actionPowerzonePsuById"/><BR>	
+<table border="1">
+<tr>
+  <th>get</th>
+  <th>action</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getPowerzonePsuById" name="textarea_getPowerzonePsuById" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+  <td>	
+	<textarea cols="70" rows="10" id="textarea_actionPowerzonePsuById" name="textarea_actionPowerzonePsuById">
+	{
+		"RequestEnabledState" : 2
+	}
+
+	</textarea>
+  </td>  
+</tr>
+</table>
+<!----------------------PowerzonePsuById END--------------------------------------------//-->	
+<!----------------------CoolingzoneCollections BEGIN--------------------------------------------//-->	
+<h4>CoolingzoneCollections：</h4>
+	<input type="text" size="30" id="text_getCoolingzoneCollections" name="text_getCoolingzoneCollections" value="/v1/rack/coolingzones"><BR>
+	<input type="button" id="button_getCoolingzoneCollections" value="getCoolingzoneCollections" /><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getCoolingzoneCollections" name="textarea_getCoolingzoneCollections" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+</tr>
+</table>
+<!----------------------CoolingzoneCollections END--------------------------------------------//-->	
+<!----------------------CoolingzoneById BEGIN--------------------------------------------//-->	
+<h4>CoolingzoneById：</h4>
+	<input type="text" size="30" id="text_getCoolingzoneById" name="text_getCoolingzoneById" value="/v1/rack/coolingzones/1"><BR>
+	<input type="button" id="button_getCoolingzoneById" value="getCoolingzoneById" /><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getCoolingzoneById" name="textarea_getCoolingzoneById" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+</tr>
+</table>
+<!----------------------CoolingzoneById END--------------------------------------------//-->	
+<!----------------------FanCollections BEGIN--------------------------------------------//-->	
+<h4>FanCollections：</h4>
+	<input type="text" size="30" id="text_getFanCollections" name="text_getFanCollections" value="/v1/rack/coolingzones/1/fans"><BR>
+	<input type="button" id="button_getFanCollections" value="getFanCollections" /><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getFanCollections" name="textarea_getFanCollections" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+</tr>
+</table>
+<!----------------------FanCollections END--------------------------------------------//-->	
+<!----------------------FanById BEGIN--------------------------------------------//-->	
+<h4>FanById：</h4>
+	<input type="text" size="30" id="text_getFanById" name="text_getFanById" value="/v1/rack/coolingzones/1/fans/1"><BR>
+	<input type="button" id="button_getFanById" value="getFanById" /><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getFanById" name="textarea_getFanById" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+</tr>
+</table>
+<!----------------------FanById END--------------------------------------------//-->	
+<!----------------------SystemCollections BEGIN--------------------------------------------//-->	
+<h4>SystemCollections：</h4>
+	<input type="text" size="30" id="text_getSystemCollections" name="text_getSystemCollections" value="/v1/rack/systems"><BR>
+	<input type="button" id="button_getSystemCollections" value="getSystemCollections" /><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getSystemCollections" name="textarea_getSystemCollections" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+</tr>
+</table>
+<!----------------------SystemCollections END--------------------------------------------//-->	
+<!----------------------SystemByUuid BEGIN--------------------------------------------//-->	
+<h4>SystemByUuid：</h4>
+	<input type="text" size="30" id="text_getSystemByUuid" name="text_getSystemByUuid" value="/v1/rack/systems/1"><BR>
+	<input type="button" id="button_getSystemByUuid" value="getSystemByUuid" /><BR>
+<table border="1">
+<tr>
+  <th>get</th>
+</tr>
+<tr>
+  <td>
+		<textarea cols="70" rows="10" id="textarea_getSystemByUuid" name="textarea_getSystemByUuid" readonly="readonly" disabled="disabled" style="background:#CDCDCD" >
+			response will be printed here!
+		</textarea>	
+  </td>
+</tr>
+</table>
+<!----------------------SystemByUuid END--------------------------------------------//-->
+
+	
+</BODY>
+</HTML>

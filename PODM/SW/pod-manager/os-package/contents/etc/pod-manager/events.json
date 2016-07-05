@@ -1,0 +1,9 @@
+{
+  "EventSubscriptionIntervalSeconds" : 90,
+  "NetworkInterfaceNameForEventsFromPsme" : "eth0.4094",
+  "NetworkInterfaceNameForEventsFromRss" : "eth0.4093",
+  "NetworkInterfaceNameForEventsFromRmm" : "eth0.4094",
+  "PodManagerIpAddressForEventsFromRmm" : null,
+  "PodManagerIpAddressForEventsFromRss" : null,
+  "PodManagerIpAddressForEventsFromPsme" : null
+}

@@ -1,0 +1,286 @@
+#!/bin/sh
+
+# Copyright (c) 2015-2016 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# TEMPLATE FILE CONSTANTS
+NETWORK_INTERFACE_JSON_TEMPLATE="/etc/pod-manager/network_interface_json.template"
+NETWORK_SERVICE_JSON_TEMPLATE="/etc/pod-manager/network_service_json.template"
+
+# NETWORK SERVICE TEMPLATE DATA PLACEHOLDERS
+SERVICE_NAME_PLCHLDR='\${NAME}'
+SERVICE_DESCRIPTION_PLCHLDR='\${DESCRIPTION}'
+SERVICE_STATE_PLCHLDR='\${STATE}'
+SERVICE_HEALTH_PLCHLDR='\${HEALTH}'
+SERVICE_HOST_NAME_PLCHLDR='\${HOST_NAME}'
+SERVICE_FQDN_PLCHLDR='\${FQDN}'
+SERVICE_HTTP_ENABLED_PLCHLDR='\${HTTP_ENABLED}'
+SERVICE_HTTP_PORT_PLCHLDR='\${HTTP_PORT}'
+SERVICE_HTTPS_ENABLED_PLCHLDR='\${HTTPS_ENABLED}'
+SERVICE_HTTPS_PORT_PLCHLDR='\${HTTPS_PORT}'
+SERVICE_IPMI_ENABLED_PLCHLDR='\${IPMI_ENABLED}'
+SERVICE_SSH_ENABLED_PLCHLDR='\${SSH_ENABLED}'
+SERVICE_SNMP_ENABLED_PLCHLDR='\${SNMP_ENABLED}'
+SERVICE_VIRTUAL_MEDIA_ENABLED_PLCHLDR='\${VIRTUAL_MEDIA_ENABLED}'
+SERVICE_SSDP_ENABLED_PLCHLDR='\${SSDP_ENABLED}'
+SERVICE_TELNET_ENABLED_PLCHLDR='\${TELNET_ENABLED}'
+SERVICE_KVMIP_ENABLED_PLCHLDR='\${KVMIP_ENABLED}'
+
+# NETWORK INTERFACE TEMPLATE DATA PLACEHOLDERS
+IFACE_NAME_PLCHLDR='\${NAME}'
+IFACE_DESCRIPTION_PLCHLDR='\${DESCRIPTION}'
+IFACE_STATE_PLCHLDR='\${STATE}'
+IFACE_HEALTH_PLCHLDR='\${HEALTH}'
+IFACE_FACTORY_MAC_ADDRESS_PLCHLDR='\${FACTORY_MAC_ADDRESS}'
+IFACE_MAC_ADDRESS_PLCHLDR='\${MAC_ADDRESS}'
+IFACE_LINK_TECHNOLOGY_PLCHLDR='\${LINK_TECHNOLOGY}'
+IFACE_SPEED_MBPS_PLCHLDR='\${SPEED_MBPS}'
+IFACE_AUTOSENSE_PLCHLDR='\${AUTOSENSE}'
+IFACE_FULL_DUPLEX_PLCHLDR='\${FULL_DUPLEX}'
+IFACE_FRAME_SIZE_PLCHLDR='\${FRAME_SIZE}'
+IFACE_ENABLED_PLCHLDR='\${IFACE_ENABLED}'
+IFACE_HOST_NAME_PLCHLDR='\${HOST_NAME}'
+IFACE_FQDN_PLCHLDR='\${FQDN}'
+IFACE_MAX_IPV6_STATIC_ADDRESSES_PLCHLDR='\${MAX_IPV6_STATIC_ADDRESSES}'
+IFACE_VLAN_ENABLE_PLCHLDR='\${VLAN_ENABLE}'
+IFACE_VLAN_ID_PLCHLDR='\${VLAN_ID}'
+IFACE_IPV4_ADDRESS_PLCHLDR='\${IPV4_ADDRESS}'
+IFACE_IPV4_SUBNET_MASK_PLCHLDR='\${IPV4_SUBNET_MASK}'
+IFACE_IPV4_GATEWAY_PLCHLDR='\${IPV4_GATEWAY}'
+
+# Returns argument enclosed in quotes
+encloseInQuotes() {
+    echo "\"${1}\""
+}
+
+# Returns argument enclosed in quotes or null (without quotes) if empty string or no argument passed
+encloseInQuotesOrNullIfEmpty() {
+    if [ -z "${1}" ]; then
+        echo "null"
+    else
+        encloseInQuotes "${1}"
+    fi
+}
+
+# Returns argument or null if no argument provided
+nullIfEmpty() {
+    if [ -z "${1}" ]; then
+        echo "null"
+    else
+        echo "${1}"
+    fi
+}
+
+# Replace placeholder with actual value in target file. When error occurs, it quits w error code 1 (one)
+replacePlaceholdersInFile() {
+    PLACEHOLDER_TEMPLATE="${1}"
+    PLACEHOLDER_VALUE="${2}"
+    FILE_TO_UPDATE="${3}"
+
+    PARAM="s/${PLACEHOLDER_TEMPLATE}/${PLACEHOLDER_VALUE}/g"
+    sed -i "${PARAM}" ${FILE_TO_UPDATE}  1>&2
+}
+
+# Replace placeholder with actual nullable value in target file.
+replacePlaceholdersInFileWithNullableValue() {
+    replacePlaceholdersInFile "${1}" "`nullIfEmpty "${2}"`" "${3}"
+}
+
+# Replace placeholder with actual nullable string (enclosed in quotes) in target file.
+replacePlaceholdersInFileWithNullableString() {
+    replacePlaceholdersInFile "${1}" "`encloseInQuotesOrNullIfEmpty "${2}"`" "${3}"
+}
+
+# Replace placeholder with actual string (enclosed in quotes) in target file.
+replacePlaceholdersInFileWithNonNullableString() {
+    replacePlaceholdersInFile "${1}" "`encloseInQuotes "${2}"`" "${3}"
+}
+
+# Method filling NetworkService Template with data obtained from system
+fillNetworkServiceTemplate() {
+    TARGET_FILE_NAME="${1}"
+
+    SERVICE_NAME="Manager Network Service"
+    replacePlaceholdersInFileWithNonNullableString "${SERVICE_NAME_PLCHLDR}" "${SERVICE_NAME}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_DESCRIPTION="Manager Network Service Status"
+    replacePlaceholdersInFileWithNonNullableString "${SERVICE_DESCRIPTION_PLCHLDR}" "${SERVICE_DESCRIPTION}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_STATE="Enabled"
+    replacePlaceholdersInFileWithNonNullableString "${SERVICE_STATE_PLCHLDR}" "${SERVICE_STATE}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_HEALTH="OK"
+    replacePlaceholdersInFileWithNonNullableString "${SERVICE_HEALTH_PLCHLDR}" "${SERVICE_HEALTH}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_HOST_NAME=`hostname`
+    replacePlaceholdersInFileWithNullableString "${SERVICE_HOST_NAME_PLCHLDR}" "${SERVICE_HOST_NAME}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_FQDN=`hostname -f`
+    replacePlaceholdersInFileWithNullableString "${SERVICE_FQDN_PLCHLDR}" "${SERVICE_FQDN}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_HTTP_ENABLED="true"
+    replacePlaceholdersInFile "${SERVICE_HTTP_ENABLED_PLCHLDR}" "${SERVICE_HTTP_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_HTTP_PORT="8080"
+    replacePlaceholdersInFile "${SERVICE_HTTP_PORT_PLCHLDR}" "${SERVICE_HTTP_PORT}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_HTTPS_ENABLED="true"
+    replacePlaceholdersInFile "${SERVICE_HTTPS_ENABLED_PLCHLDR}" "${SERVICE_HTTPS_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_HTTPS_PORT="8443"
+    replacePlaceholdersInFile "${SERVICE_HTTPS_PORT_PLCHLDR}" "${SERVICE_HTTPS_PORT}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_IPMI_ENABLED="false"
+    replacePlaceholdersInFile "${SERVICE_IPMI_ENABLED_PLCHLDR}" "${SERVICE_IPMI_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_SSH_ENABLED="false"
+    replacePlaceholdersInFile "${SERVICE_SSH_ENABLED_PLCHLDR}" "${SERVICE_SSH_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_SNMP_ENABLED="false"
+    replacePlaceholdersInFile "${SERVICE_SNMP_ENABLED_PLCHLDR}" "${SERVICE_SNMP_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_VIRTUAL_MEDIA_ENABLED="false"
+    replacePlaceholdersInFile "${SERVICE_VIRTUAL_MEDIA_ENABLED_PLCHLDR}" "${SERVICE_VIRTUAL_MEDIA_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_SSDP_ENABLED="false"
+    replacePlaceholdersInFile "${SERVICE_SSDP_ENABLED_PLCHLDR}" "${SERVICE_SSDP_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_TELNET_ENABLED="false"
+    replacePlaceholdersInFile "${SERVICE_TELNET_ENABLED_PLCHLDR}" "${SERVICE_TELNET_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+
+    SERVICE_KVMIP_ENABLED="false"
+    replacePlaceholdersInFile "${SERVICE_KVMIP_ENABLED_PLCHLDR}" "${SERVICE_KVMIP_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+}
+
+# Returns 0 exit code if kernel version string obtained from /proc/version contains string passed as argument
+check_os_distribution() {
+    grep "${1}" /proc/version 2>&1 > /dev/null
+}
+
+# Method filling NetworkInterface Template with data obtained from system
+fillNetworkInterfaceTemplate() {
+    TARGET_FILE_NAME="${1}"
+    INTERFACE_NAME="${2}"
+
+    replacePlaceholdersInFileWithNonNullableString "${IFACE_NAME_PLCHLDR}" "${INTERFACE_NAME}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_DESCRIPTION="Management Network Interface"
+    replacePlaceholdersInFileWithNonNullableString "${IFACE_DESCRIPTION_PLCHLDR}" "${IFACE_DESCRIPTION}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_STATE="Enabled"
+    replacePlaceholdersInFileWithNonNullableString "${IFACE_STATE_PLCHLDR}" "${IFACE_STATE}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_HEALTH="OK"
+    replacePlaceholdersInFileWithNonNullableString "${IFACE_HEALTH_PLCHLDR}" "${IFACE_HEALTH}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_MAC=`cat /sys/class/net/${INTERFACE_NAME}/address`
+
+    IFACE_FACTORY_MAC_ADDRESS="${IFACE_MAC}"
+    replacePlaceholdersInFileWithNullableString "${IFACE_FACTORY_MAC_ADDRESS_PLCHLDR}" "${IFACE_FACTORY_MAC_ADDRESS}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_MAC_ADDRESS="${IFACE_MAC}"
+    replacePlaceholdersInFileWithNonNullableString "${IFACE_MAC_ADDRESS_PLCHLDR}" "${IFACE_MAC_ADDRESS}" "${TARGET_FILE_NAME}" 1>&2
+
+    SYS_IFACE_LINK_TECHNOLOGY=`cat /sys/class/net/${INTERFACE_NAME}/type 2>/dev/null`
+    if [ "${SYS_IFACE_LINK_TECHNOLOGY}" = "1" ]; then
+        IFACE_LINK_TECHNOLOGY="Ethernet"
+    fi
+    replacePlaceholdersInFileWithNullableString "${IFACE_LINK_TECHNOLOGY_PLCHLDR}" "${IFACE_LINK_TECHNOLOGY}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_SPEED_MBPS=`cat /sys/class/net/${INTERFACE_NAME}/speed 2>/dev/null`
+    replacePlaceholdersInFileWithNullableValue "${IFACE_SPEED_MBPS_PLCHLDR}" "${IFACE_SPEED_MBPS}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_AUTOSENSE="true"
+    replacePlaceholdersInFileWithNullableValue "${IFACE_AUTOSENSE_PLCHLDR}" "${IFACE_AUTOSENSE}" "${TARGET_FILE_NAME}" 1>&2
+
+    SYS_IFACE_DUPLEX=`cat /sys/class/net/${INTERFACE_NAME}/duplex 2>/dev/null`
+    if [ "${SYS_IFACE_DUPLEX}" = "full" ]; then
+        IFACE_FULL_DUPLEX="true"
+    elif [ "${SYS_IFACE_DUPLEX}" = "half" ]; then
+        IFACE_FULL_DUPLEX="false"
+    fi
+    replacePlaceholdersInFileWithNullableValue "${IFACE_FULL_DUPLEX_PLCHLDR}" "${IFACE_FULL_DUPLEX}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_FRAME_SIZE=`cat /sys/class/net/${INTERFACE_NAME}/mtu`
+    if [ -z "${IFACE_FRAME_SIZE}" ]; then
+        IFACE_FRAME_SIZE=0
+    fi
+    replacePlaceholdersInFileWithNullableValue "${IFACE_FRAME_SIZE_PLCHLDR}" "${IFACE_FRAME_SIZE}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_ENABLED=`cat /sys/class/net/${INTERFACE_NAME}/operstate`
+    if [ "${IFACE_ENABLED}" = "up"  ]; then
+        IFACE_ENABLED="true"
+    else
+        IFACE_ENABLED="false"
+    fi
+    replacePlaceholdersInFileWithNullableValue "${IFACE_ENABLED_PLCHLDR}" "${IFACE_ENABLED}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_HOST_NAME=`hostname`
+    replacePlaceholdersInFileWithNullableString "${IFACE_HOST_NAME_PLCHLDR}" "${IFACE_HOST_NAME}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_FQDN=`hostname -f`
+    replacePlaceholdersInFileWithNullableString "${IFACE_FQDN_PLCHLDR}" "${IFACE_FQDN}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_MAX_IPV6_STATIC_ADDRESSES="1"
+    replacePlaceholdersInFileWithNullableValue "${IFACE_MAX_IPV6_STATIC_ADDRESSES_PLCHLDR}" "${IFACE_MAX_IPV6_STATIC_ADDRESSES}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_VLAN_ENABLE="false"
+    replacePlaceholdersInFileWithNullableValue "${IFACE_VLAN_ENABLE_PLCHLDR}" "${IFACE_VLAN_ENABLE}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_VLAN_ID="null"
+    replacePlaceholdersInFileWithNullableValue "${IFACE_VLAN_ID_PLCHLDR}" "${IFACE_VLAN_ID}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_IPV4_ADDRES_WITH_CIDR=`ip -4 address show dev "${INTERFACE_NAME}" | grep "inet" |awk '{print $2}'`
+    IFACE_IPV4_ADDRESS=`echo "${IFACE_IPV4_ADDRES_WITH_CIDR}" | cut -d '/' -f 1`
+    replacePlaceholdersInFileWithNonNullableString "${IFACE_IPV4_ADDRESS_PLCHLDR}" "${IFACE_IPV4_ADDRESS}" "${TARGET_FILE_NAME}" 1>&2
+
+    if check_os_distribution "centos"; then
+        IFACE_IPV4_SUBNET_MASK=`ipcalc --netmask "${IFACE_IPV4_ADDRES_WITH_CIDR}" | cut -d '=' -f2`
+    else
+        IFACE_IPV4_SUBNET_MASK=`ifconfig "${INTERFACE_NAME}" | grep --only-matching "Mask:[0-9.]*" | cut -d ':' -f2`
+    fi
+    replacePlaceholdersInFileWithNonNullableString "${IFACE_IPV4_SUBNET_MASK_PLCHLDR}" "${IFACE_IPV4_SUBNET_MASK}" "${TARGET_FILE_NAME}" 1>&2
+
+    IFACE_IPV4_GATEWAY=`ip route show dev "${INTERFACE_NAME}" | grep default | awk '{print $3}'`
+    replacePlaceholdersInFileWithNullableString "${IFACE_IPV4_GATEWAY_PLCHLDR}" "${IFACE_IPV4_GATEWAY}" "${TARGET_FILE_NAME}" 1>&2
+}
+
+#---------------#
+#  Main script  #
+#---------------#
+
+# OUTPUT LOCATION CONSTANT
+OUTPUT_FOLDER="/tmp/pod-manager/config"
+USER_NAME="podm"
+
+# Check if required folder exists
+if [ ! -e ${OUTPUT_FOLDER} ]; then
+    mkdir -p ${OUTPUT_FOLDER}
+fi
+
+if cp ${NETWORK_SERVICE_JSON_TEMPLATE} ${OUTPUT_FOLDER}"/network-service.json.tmp"; then
+    fillNetworkServiceTemplate ${OUTPUT_FOLDER}"/network-service.json.tmp"
+    mv ${OUTPUT_FOLDER}"/network-service.json.tmp" ${OUTPUT_FOLDER}"/network-service.json"
+fi
+
+AVAILABLE_INTERFACES=`ls /sys/class/net`
+for INTERFACE in ${AVAILABLE_INTERFACES}
+do
+    if cp ${NETWORK_INTERFACE_JSON_TEMPLATE} ${OUTPUT_FOLDER}"/interface-${INTERFACE}.json.tmp"; then
+        fillNetworkInterfaceTemplate ${OUTPUT_FOLDER}"/interface-${INTERFACE}.json.tmp" "${INTERFACE}"
+        mv ${OUTPUT_FOLDER}"/interface-${INTERFACE}.json.tmp" ${OUTPUT_FOLDER}"/interface-${INTERFACE}.json"
+    fi
+done
+
+chown -R ${USER_NAME}:${USER_NAME} ${OUTPUT_FOLDER}

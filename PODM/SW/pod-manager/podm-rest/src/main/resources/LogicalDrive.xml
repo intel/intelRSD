@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.1.0.0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="Manager.xml">
+    <edmx:Include Namespace="Manager.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="PhysicalDrive.xml">
+    <edmx:Include Namespace="PhysicalDrive.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RemoteTarget.xml">
+    <edmx:Include Namespace="RemoteTarget.1.0.0"/>
+  </edmx:Reference>
+
+
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="LogicalDrive.1.0.0">
+
+      <EntityType Name="LogicalDrive" BaseType="Resource.1.0.0.Resource">
+        <Property Name="Type" Type="LogicalDrive.1.0.0.Type"/>
+        <Property Name="Mode" Type="LogicalDrive.1.0.0.Mode"/>
+        <Property Name="Protected" Type="Edm.Boolean"/>
+        <Property Name="CapacityGiB" Type="Edm.Single"/>
+        <Property Name="Image" Type="Edm.String"/>
+        <Property Name="Bootable" Type="Edm.Boolean"/>
+        <Property Name="Snapshot" Type="Edm.Boolean"/>
+
+        <Property Name="Status" Type="Resource.Status"/>
+
+        <Property Name="Links" Type="LogicalDrive.1.0.0.Links" Nullable="false"/>
+      </EntityType>
+
+      <EnumType Name="Mode">
+        <Member Name="PV"/>
+        <Member Name="LV"/>
+        <Member Name="LVG"/>
+        <Member Name="OSD"/>
+        <Member Name="Pool"/>
+        <Member Name="RAID0"/>
+        <Member Name="RAID1"/>
+        <Member Name="RAID10"/>
+        <Member Name="RAID5"/>
+        <Member Name="RAID6"/>
+        <Member Name="RAID50"/>
+        <Member Name="RAID60"/>
+        <Member Name="JBOD"/>
+        <Member Name="BlockDevice"/>
+        <Member Name="LogicalDrive"/>
+      </EnumType>
+
+      <EnumType Name="Type">
+        <Member Name="Generic"/>
+        <Member Name="LVM"/>
+        <Member Name="CEPH"/>
+        <Member Name="RSTe"/>
+        <Member Name="MDRAID"/>
+      </EnumType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+        <NavigationProperty Name="LogicalDrives" Type="Collection(LogicalDrive.1.0.0.LogicalDrive)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="PhysicalDrives" Type="Collection(PhysicalDrive.1.0.0.PhysicalDrive)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="MasterDrive" Type="LogicalDrive.1.0.0.LogicalDrive">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="UsedBy" Type="Collection(LogicalDrive.1.0.0.LogicalDrive)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Targets" Type="Collection(RemoteTarget.1.0.0.RemoteTarget)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

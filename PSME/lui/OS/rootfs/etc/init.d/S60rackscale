@@ -1,0 +1,15 @@
+#! /bin/sh
+case "$1" in
+	start|"")
+		. /usr/bin/psme-gen-serv-cert.sh --srv-cert=/etc/psme/certs/server.crt --srv-key=/etc/psme/certs/server.key
+		export PYTHONPATH="/opt/intel/rackscale/"
+		python /usr/bin/fill_psme_hardware_list.py
+		python /usr/bin/rackscale_setup_dd.py
+		;;
+	stop)
+		dhcpcd --release $(ifconfig | grep 4088 | cut -d " " -f 1)
+		;;
+	*)
+		exit 1
+		;;
+esac

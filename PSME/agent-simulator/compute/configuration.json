@@ -1,0 +1,37 @@
+{
+    "agent": {
+        "vendor" : "Intel Corporation",
+        "capabilities" : [
+            "Compute",
+            "Chassis"
+        ]
+    },
+    "server": {
+	"ipv4": "localhost",
+        "port": 7777
+    },
+    "registration": {
+        "ipv4": "localhost",
+        "port": 8383,
+        "interval": 3
+    },
+    "assetConfiguration" : {
+        "input"  : "deep_discovery.xml",
+        "schema" : "deep_discovery.xsd"
+    },
+    "logger" : {
+        "agent" : {
+            "level" : "WARNING",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type" : "STDOUT"
+                }
+            ]
+        }
+    }
+}

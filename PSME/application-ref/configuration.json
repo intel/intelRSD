@@ -1,0 +1,58 @@
+{
+    "server": {
+        "network-interface-name" : "enp0s20f0.4094",
+        "connectors" : [
+            {
+                "use-ssl" : true,
+                "certs-directory" : "/etc/psme/certs",
+                "port": 8443,
+                "thread-mode" : "select",
+                "thread-pool-size" : 10,
+                "client-cert-required" : true
+            },
+            {
+                "use-ssl" : false,
+                "port": 8888,
+                "redirect-port" : 8443,
+                "thread-mode" : "select"
+            }
+        ]
+    },
+    "event-service" : {
+        "delivery-retry-attempts" : 3,
+        "delivery-retry-interval-seconds" : 60
+    },
+    "rmm-present" : true,
+    "registration": {
+        "port": 8383,
+        "minDelay": 3
+    },
+    "commands": {
+        "generic": "Registration"
+    },
+    "eventing" : {
+        "address": "localhost",
+        "port" : 5567,
+        "poll-interval-sec" : 20
+    },
+    "rest-server" : {
+        "storage-service-mode" : false
+    },
+    "service-uuid-file" : "/etc/psme/service_uuid.json",
+    "subscription-config-file" : "/tmp/subscriptions",
+    "logger" : {
+        "app" : {
+            "level" : "INFO",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                 {
+                    "type" : "STDOUT"
+                 }
+            ]
+        }
+    }
+}

@@ -1,0 +1,15 @@
+#!/bin/bash
+# By Jack Zark Yinger
+if [ -z "$1" ]; then
+	echo -e "\nusage:\ncppReset <tray number>\nTrays are numbered 1-8 top to bottom\n"
+	exit
+fi
+if (($1 >= 1 && $1 <= 4)); then
+    tray=$(($1*2-1))
+	ipmitool -I lanplus -H 1.1.1.1 -U admin -P admin raw 0x38 0x01 $tray
+elif (($1 >= 5 && $1 <= 8)); then                             
+    tray=$((($1-4)*2-1))
+	ipmitool -I lanplus -H 1.1.1.2 -U admin -P admin raw 0x38 0x01 $tray
+else
+	echo -e "\nusage:\ncppReset <tray number>\nTrays are numbered 1-8 top to bottom\n"
+fi

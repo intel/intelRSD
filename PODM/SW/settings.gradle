@@ -1,0 +1,96 @@
+/*
+ * Copyright (c) 2015 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+rootProject.name = 'SW'
+
+include 'pod-manager'
+include 'pod-manager-common'
+include 'pod-manager-networking'
+
+include 'pod-manager-common/config'
+rootProject.children.find { it.name == 'pod-manager-common/config' }.name = 'config'
+
+include 'pod-manager-common/enterprise-utils'
+rootProject.children.find { it.name == 'pod-manager-common/enterprise-utils' }.name = 'enterprise-utils'
+
+include 'pod-manager-common/logger'
+rootProject.children.find { it.name == 'pod-manager-common/logger' }.name = 'logger'
+
+include 'pod-manager-common/orientdb-rar'
+rootProject.children.find { it.name == 'pod-manager-common/orientdb-rar' }.name = 'orientdb-rar'
+
+include 'pod-manager-common/security'
+rootProject.children.find { it.name == 'pod-manager-common/security' }.name = 'security'
+
+include 'pod-manager-common/serialization'
+rootProject.children.find { it.name == 'pod-manager-common/serialization' }.name = 'serialization'
+
+include 'pod-manager-common/vault-decrypter'
+rootProject.children.find { it.name == 'pod-manager-common/vault-decrypter' }.name = 'vault-decrypter'
+
+include 'pod-manager-common/types'
+rootProject.children.find { it.name == 'pod-manager-common/types' }.name = 'types'
+
+include 'pod-manager-common/utils'
+rootProject.children.find { it.name == 'pod-manager-common/utils' }.name = 'utils'
+
+include 'pod-manager/podm-actions'
+rootProject.children.find { it.name == 'pod-manager/podm-actions' }.name = 'podm-actions'
+
+include 'pod-manager/podm-assembly'
+rootProject.children.find { it.name == 'pod-manager/podm-assembly' }.name = 'podm-assembly'
+
+include 'pod-manager/podm-business-api'
+rootProject.children.find { it.name == 'pod-manager/podm-business-api' }.name = 'podm-business-api'
+
+include 'pod-manager/podm-business-entities'
+rootProject.children.find { it.name == 'pod-manager/podm-business-entities' }.name = 'podm-business-entities'
+
+include 'pod-manager/podm-business-services'
+rootProject.children.find { it.name == 'pod-manager/podm-business-services' }.name = 'podm-business-services'
+
+include 'pod-manager/podm-mappers'
+rootProject.children.find { it.name == 'pod-manager/podm-mappers' }.name = 'podm-mappers'
+
+include 'pod-manager/podm-repositories'
+rootProject.children.find { it.name == 'pod-manager/podm-repositories' }.name = 'podm-repositories'
+
+include 'pod-manager/podm-repository-api'
+rootProject.children.find { it.name == 'pod-manager/podm-repository-api' }.name = 'podm-repository-api'
+
+include 'pod-manager/podm-rest'
+rootProject.children.find { it.name == 'pod-manager/podm-rest' }.name = 'podm-rest'
+
+include 'pod-manager/podm-external-services-api'
+rootProject.children.find { it.name == 'pod-manager/podm-external-services-api' }.name = 'podm-external-services-api'
+
+include 'pod-manager/podm-external-services'
+rootProject.children.find { it.name == 'pod-manager/podm-external-services' }.name = 'podm-external-services'
+
+include 'pod-manager/podm-discovery'
+rootProject.children.find { it.name == 'pod-manager/podm-discovery' }.name = 'podm-discovery'
+
+include 'pod-manager/podm-services-detection'
+rootProject.children.find { it.name == 'pod-manager/podm-services-detection' }.name = 'podm-services-detection'
+
+include 'pod-manager/podm-eventing'
+rootProject.children.find { it.name == 'pod-manager/podm-eventing' }.name = 'podm-eventing'
+
+include 'pod-manager/ipxe-supplier'
+rootProject.children.find { it.name == 'pod-manager/ipxe-supplier' }.name = 'ipxe-supplier'
+
+include 'pod-manager/podm-db-schema-creation'
+rootProject.children.find { it.name == 'pod-manager/podm-db-schema-creation' }.name = 'podm-db-schema-creation'

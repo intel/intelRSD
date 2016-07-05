@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.--> 
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="http://docs.oasis-open.org/odata/odata/v4.0/cs01/vocabularies/Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="http://docs.oasis-open.org/odata/odata/v4.0/cs01/vocabularies/Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="OData.Measures"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/Resource.xml">
+    <edmx:Include Namespace="Resource.1.0.0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/Event.xml">
+    <edmx:Include Namespace="Event"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/EventDestinationCollection.xml">
+    <edmx:Include Namespace="EventDestinationCollection"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EventService">
+
+      <EntityType Name="EventService" BaseType="Resource.1.0.0.Resource">
+        <Annotation Term="OData.Description" String="This is the schema definition for the Event Service. It represents the properties for the service itself and has links to the actual list of subscriptions."/>
+      </EntityType>
+
+      <Action Name="SubmitTestEvent" IsBound="true">
+        <Annotation Term="OData.Description" String="The SubmitTestEvent action causes a test event to be added to the event service.  This message should then be sent to any appropriate ListenerDestination targets."/>
+        <Annotation Term="OData.LongDescription" String="This defines the name of the custom action supported when used in conjunction with a POST operation to this resource. When issued, this operation will perform a reset of the manager."/>
+        <Parameter Name="EventService" Type="EventService.1.0.0.Actions"/>
+        <Parameter Name="EventType" Type="Event.1.0.0.EventType" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the type of event to be added."/>
+          <Annotation Term="OData.LongDescription" String="This defines the property name for which the following allowable values apply."/>
+        </Parameter>
+        <Parameter Name="EventId" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the ID of event to be added."/>
+          <Annotation Term="OData.LongDescription" String="This property has the same semantics as the EventId property in the Event schema for Redfish."/>
+        </Parameter>
+        <Parameter Name="EventTimestamp" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the time stamp of event to be added."/>
+          <Annotation Term="OData.LongDescription" String="This property has the same semantics as the EventId property in the Event schema for Redfish."/>
+        </Parameter>
+        <Parameter Name="Severity" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the Severity of event to be added."/>
+          <Annotation Term="OData.LongDescription" String="This property has the same semantics as the Severity property in the Event schema for Redfish."/>
+        </Parameter>
+        <Parameter Name="Message" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the human readable message of event to be added."/>
+          <Annotation Term="OData.LongDescription" String="This property has the same semantics as the Message property in the Event schema for Redfish."/>
+        </Parameter>
+        <Parameter Name="MessageId" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the message ID of event to be added."/>
+          <Annotation Term="OData.LongDescription" String="This property has the same semantics as the MessageId property in the Event schema for Redfish."/>
+        </Parameter>
+        <Parameter Name="MessageArgs" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the array of message arguments of the event to be added."/>
+          <Annotation Term="OData.LongDescription" String="This property has the same semantics as the MessageArgs property in the Event schema for Redfish."/>
+        </Parameter>
+        <Parameter Name="OriginOfCondition" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the OriginOfCondition property of event to be added."/>
+          <Annotation Term="OData.LongDescription" String="This property has the same semantics as the OriginOfCondition property in the Event schema for Redfish."/>
+        </Parameter>
+      </Action>
+
+    </Schema>
+    
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EventService.1.0.0">
+
+      <!-- This schema defines an event service and its respective properties.-->
+      <EntityType Name="EventService" BaseType="EventService.EventService">
+        <Property Name="ServiceEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Description" String="This indicates whether this service is enabled."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a boolean indicating whether this service is enabled."/>
+        </Property> 
+        <Property Name="DeliveryRetryAttempts" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This is the number of attempts an event posting is retried before the subscription is terminated."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the number of retrys attempted for any given event to the subscription destination before the subscription is terminated."/>
+        </Property>
+        <Property Name="DeliveryRetryIntervalSeconds" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="OData.Measures.Unit" String="Seconds"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This represents the number of seconds between retry attempts for sending any given Event"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the interval in seconds between the retry attempts for any given event to the subscription destination."/>
+        </Property>
+        <Property Name="EventTypesForSubscription" Type="Collection(Event.1.0.0.EventType)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This is the types of Events that can be subscribed to."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the types of events that subscriptions can subscribe to.  The semantics associated with the enumerations values are defined in the Redfish specification."/>
+        </Property>
+        <Property Name="Actions" Type="EventService.1.0.0.Actions" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="The Actions object contains the available custom actions on this resource."/>
+        </Property>
+        <NavigationProperty Name="Subscriptions" Type="EventDestinationCollection.EventDestinationCollection" ContainsTarget="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This is a reference to a collection of Event Destination resources."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall contain the link to a collection of type EventDestinationCollection."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <Property Name="Status" Type="Resource.Status"/>
+      </EntityType>
+
+      <ComplexType Name="Actions">
+        <Annotation Term="OData.AdditionalProperties" Bool="False"/>
+        <Property Name="Oem" Type="EventService.1.0.0.OemActions"/>
+      </ComplexType>
+      
+      <ComplexType Name="OemActions">
+        <Annotation Term="OData.AdditionalProperties" Bool="True"/>
+      </ComplexType>
+
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

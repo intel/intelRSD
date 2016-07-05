@@ -1,0 +1,60 @@
+# Copyright (c) 2015 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet manual
+
+auto eth0.4091
+iface eth0.4091 inet static
+        address 10.1.0.1
+        netmask 255.255.248.0
+	post-up ifconfig eth0.4091 mtu 1000
+
+auto eth0.4090
+iface eth0.4090 inet dhcp
+	post-up ifconfig eth0.4090 mtu 1000
+
+auto eth0.4093
+iface eth0.4093 inet static
+	address 10.2.0.1
+	netmask 255.255.255.0
+	vlan-raw-device eth0
+	post-up ifconfig eth0.4093 mtu 1000
+
+auto eth0.4094
+iface eth0.4094 inet static
+	address 10.3.0.1
+	netmask 255.255.252.0
+	vlan-raw-device eth0
+	post-up ifconfig eth0.4094 mtu 1000
+
+auto eth0.4092
+iface eth0.4092 inet static
+	address 1.1.1.254
+	netmask 255.255.255.0
+	vlan-raw-device eth0
+
+auto eth0.4088
+iface eth0.4088 inet static
+	address 10.5.0.1
+	netmask 255.255.255.0
+	vlan-raw-device eth0
+	post-up ifconfig eth0.4088 mtu 1000

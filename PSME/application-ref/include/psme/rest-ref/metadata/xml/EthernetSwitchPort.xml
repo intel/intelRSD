@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.1.0.0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="Manager.xml">
+    <edmx:Include Namespace="Manager.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Chassis.xml">
+    <edmx:Include Namespace="Chassis.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="VLanNetworkInterfaceCollection.xml">
+    <edmx:Include Namespace="VLanNetworkInterfaceCollection"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="VLanNetworkInterface.xml">
+    <edmx:Include Namespace="VLanNetworkInterface.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitch.xml">
+    <edmx:Include Namespace="EthernetSwitch.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetInterface.xml">
+    <edmx:Include Namespace="EthernetInterface.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="IPAddresses.xml">
+    <edmx:Include Namespace="IPAddresses.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitchACL.xml">
+    <edmx:Include Namespace="EthernetSwitchACL.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitchStaticMACCollection.xml">
+    <edmx:Include Namespace="EthernetSwitchStaticMACCollection"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitchPort">
+
+      <EntityType Name="EthernetSwitchPort" BaseType="Resource.1.0.0.Resource">
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitchPort.1.0.0">
+
+      <EntityType Name="EthernetSwitchPort" BaseType="EthernetSwitchPort.EthernetSwitchPort">
+        <Property Name="PortId" Type="Edm.String"/>
+        <Property Name="LinkType" Type="EthernetSwitchPort.1.0.0.LinkType"/>
+        <Property Name="OperationalState" Type="EthernetSwitchPort.1.0.0.OperationalState"/>
+        <Property Name="AdministrativeState" Type="EthernetSwitchPort.1.0.0.AdministrativeState"/>
+        <Property Name="LinkSpeedMbps" Type="Edm.Int64"/>
+        <Property Name="NeighborInfo" Type="EthernetSwitchPort.1.0.0.NeighborInfo"/>
+        <Property Name="NeighborMAC" Type="EthernetInterface.1.0.0.MACAddress"/>
+        <Property Name="FrameSize" Type="Edm.Int64"/>
+        <Property Name="Autosense" Type="Edm.Boolean"/>
+        <Property Name="FullDuplex" Type="Edm.Boolean"/>
+        <Property Name="MACAddress" Type="EthernetInterface.1.0.0.MACAddress"/>
+        <Property Name="IPv4Addresses" Type="Collection(IPAddresses.1.0.0.IPv4Address)" Nullable="false"/>
+        <Property Name="IPv6Addresses" Type="Collection(IPAddresses.1.0.0.IPv6Address)" Nullable="false"/>
+        <Property Name="PortClass" Type="EthernetSwitchPort.1.0.0.PortClass"/>
+        <Property Name="PortMode" Type="EthernetSwitchPort.1.0.0.PortMode"/>
+        <Property Name="PortType" Type="EthernetSwitchPort.1.0.0.PortType"/>
+
+        <Property Name="Status" Type="Resource.Status"/>
+
+        <NavigationProperty Name="VLANs" Type="VLanNetworkInterfaceCollection.VLanNetworkInterfaceCollection" ContainsTarget="true">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="StaticMACs" Type="EthernetSwitchStaticMACCollection.EthernetSwitchStaticMACCollection" ContainsTarget="true">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+
+        <Property Name="Links" Type="EthernetSwitchPort.1.0.0.Links" Nullable="false"/>
+      </EntityType>
+
+      <EnumType Name="LinkType">
+        <Member Name="Ethernet"/>
+        <Member Name="PCIe"/>
+        <Member Name="Unknown"/>
+      </EnumType>
+
+      <EnumType Name="OperationalState">
+        <Member Name="Up"/>
+        <Member Name="Down"/>
+        <Member Name="Unknown"/>
+      </EnumType>
+
+      <EnumType Name="AdministrativeState">
+        <Member Name="Up"/>
+        <Member Name="Down"/>
+        <Member Name="None"/>
+      </EnumType>
+
+      <EnumType Name="PortClass">
+        <Member Name="Physical"/>
+        <Member Name="Logical"/>
+        <Member Name="Reserved"/>
+      </EnumType>
+
+      <EnumType Name="PortMode">
+        <Member Name="LinkAggregationStatic"/>
+        <Member Name="LinkAggregationDynamic"/>
+        <Member Name="Unknown"/>
+      </EnumType>
+
+      <EnumType Name="PortType">
+        <Member Name="Upstream"/>
+        <Member Name="Downstream"/>
+        <Member Name="MeshPort"/>
+        <Member Name="Unknown"/>
+      </EnumType>
+
+      <ComplexType Name="NeighborInfo">
+        <Property Name="SwitchId" Type="Edm.String"/>
+        <Property Name="PortId" Type="Edm.String"/>
+        <Property Name="CableId" Type="Edm.String"/>
+      </ComplexType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+        <NavigationProperty Name="PrimaryVLAN" Type="VLanNetworkInterface.1.0.0.VLanNetworkInterface">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Switch" Type="EthernetSwitch.1.0.0.EthernetSwitch">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="MemberOfPort" Type="EthernetSwitchPort.1.0.0.EthernetSwitchPort">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="PortMembers" Type="Collection(EthernetSwitchPort.1.0.0.EthernetSwitchPort)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="ActiveACLs" Type="Collection(EthernetSwitchACL.1.0.0.EthernetSwitchACL)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

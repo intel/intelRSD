@@ -1,0 +1,10 @@
+#!/bin/bash
+function killservice()
+{   
+    pgrep -x $1 > /dev/null 
+    if [ $? -eq 0 ]
+    then
+        killall -9 -q $1 & > /dev/null
+    fi
+}
+rm -f /etc/rcS.d/S101rmm

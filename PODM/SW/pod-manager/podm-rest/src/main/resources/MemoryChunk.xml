@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource.1.0.0"/>
+    <edmx:Include Namespace="Resource"/>
+  </edmx:Reference>
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="MemoryChunk">
+      <EntityType Name="MemoryChunk" BaseType="Resource.1.0.0.Resource">
+        <Annotation Term="OData.Description" String="This is the schema definition of a DIMMs and its configuration. "/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+      </EntityType>
+    </Schema>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="MemoryChunk.1.0.0">
+      <EntityType Name="MemoryChunk" BaseType="MemoryChunk.MemoryChunk">
+        <Annotation Term="OData.Description" String="This is the schema definition for definition of a DIMM and its configuration"/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="MemoryChunkName" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Name for the memory chunk"/>
+          <Annotation Term="OData.LongDescription" String="Name for the memory chunk."/>
+        </Property>
+        <Property Name="MemoryChunkUID" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Unique ID for this memory chunk"/>
+          <Annotation Term="OData.LongDescription" String="Unique ID for this memory chunk."/>
+        </Property>
+        <Property Name="MemoryChunkSizeMiB" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Size of the memory chunk in MiB"/>
+          <Annotation Term="OData.LongDescription" String="Size of the memory chunk in MiB."/>
+        </Property>
+        <Property Name="AddressRangeType" Type="MemoryChunk.1.0.0.AddressRangeType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Memory type of this memory chunk"/>
+          <Annotation Term="OData.LongDescription" String="Memory type of this memory chunk."/>
+        </Property>
+        <Property Name="InterleaveSets" Type="Collection(MemoryChunk.1.0.0.InterleaveSet)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Interleave set representing the memory chunk"/>
+          <Annotation Term="OData.LongDescription" String="Interleave set representing the memory chunk."/>
+        </Property>
+        <Property Name="IsMirrorEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Mirror Enabled status"/>
+          <Annotation Term="OData.LongDescription" String="Mirror enabled status."/>
+        </Property>
+        <Property Name="IsSpare" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Spare enabled status"/>
+          <Annotation Term="OData.LongDescription" String="Spare enabled status."/>
+        </Property>
+        <Property Name="Status" Type="Resource.Status" />
+      </EntityType>
+      <EnumType Name="AddressRangeType">
+        <Member Name="Volatile">
+          <Annotation Term="OData.Description" String="Volatile memory"/>
+        </Member>
+        <Member Name="Byte Accessible Persistent">
+          <Annotation Term="OData.Description" String="Byte accessible persistent memory"/>
+        </Member>
+        <Member Name="Block">
+          <Annotation Term="OData.Description" String="Block accesible memory"/>
+        </Member>
+      </EnumType>
+      <ComplexType Name="InterleaveSet">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="@odata.id" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="url of the DIMM"/>
+          <Annotation Term="OData.LongDescription" String="url of the DIMM."/>
+        </Property>
+        <Property Name="RegionId" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="DIMM region identifier"/>
+          <Annotation Term="OData.LongDescription" String="DIMM region identifier."/>
+        </Property>
+        <Property Name="OffsetMiB" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Offset with in the DIMM that corresponds to the starting of this memory region in MiB"/>
+          <Annotation Term="OData.LongDescription" String="Offset with in the DIMM that corresponds to the starting of this memory region in MiB."/>
+        </Property>
+        <Property Name="SizeMiB" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Size of this memory region in MiB"/>
+          <Annotation Term="OData.LongDescription" String="Size of this memory region in MiB."/>
+        </Property>
+        <Property Name="MemoryLevel" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Memory level for multi-level memory tier"/>
+          <Annotation Term="OData.LongDescription" String="Memory level for multi-level memory tier, example 1 for near memory of 2LM and 2 for far memory of 2LM."/>
+        </Property>
+        <Annotation Term="OData.Description" String="Interleave set information."/>
+      </ComplexType>
+      <ComplexType Name="Oem">
+        <Annotation Term="OData.AdditionalProperties" Bool="true"/>
+        <Annotation Term="OData.Description" String="Oem extensions."/>
+      </ComplexType>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

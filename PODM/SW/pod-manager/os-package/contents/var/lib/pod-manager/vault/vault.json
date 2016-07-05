@@ -1,0 +1,8 @@
+{
+  "KEYSTORE_URL":"/var/lib/pod-manager/vault/vault.jks",
+  "KEYSTORE_PASSWORD":"MASK-2cv7zY/.uq4eoPFph3yQHK",
+  "KEYSTORE_ALIAS":"vault-pod-manager",
+  "SALT":"87654321",
+  "ITERATION_COUNT":"33",
+  "ENC_FILE_DIR":"/var/lib/pod-manager/vault/"
+}

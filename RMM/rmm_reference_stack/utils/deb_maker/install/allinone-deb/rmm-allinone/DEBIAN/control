@@ -1,0 +1,7 @@
+Package: rmm-allinone
+Version: 
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: guanglin.shen <guanglingx.shen@intel.com>
+Description: rmm in one package

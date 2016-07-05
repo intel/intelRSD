@@ -1,0 +1,16 @@
+# Build Instructions
+
+To perform the build you need to have Java Development Kit installed and to run the following command:
+
+$ ./gradlew buildDeb
+
+Or alternatively if you have Gradle installed in your path
+
+$ gradle buildDeb
+
+The resulting debian package should appear on the following path:
+[projectRoot]/pod-manager/build/distributions/pod-manager-webapp-[version]_all.deb
+
+Alternatively if you only need war archive it should appear on the following path:
+[projectRoot]/pod-manager/podm-rest/build/libs/pod-manager-[version]-rest.war
+

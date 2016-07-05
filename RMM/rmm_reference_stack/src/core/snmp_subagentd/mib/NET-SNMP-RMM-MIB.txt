@@ -1,0 +1,138 @@
+NET-SNMP-RMM-MIB DEFINITIONS ::= BEGIN
+
+--
+-- RMM MIB objects for agent module rmm implementations
+--
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32,
+    NOTIFICATION-TYPE                       FROM SNMPv2-SMI
+    SnmpAdminString                         FROM SNMP-FRAMEWORK-MIB
+    Intel                                   FROM NET-INTEL-MIB
+    RowStatus, StorageType                  FROM SNMPv2-TC
+    InetAddressType, InetAddress            FROM INET-ADDRESS-MIB
+;
+
+
+products MODULE-IDENTITY
+    LAST-UPDATED "201506010000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	"Rmm MIB objects for agent module rmm implementations"
+    REVISION     "201506010000Z"
+    DESCRIPTION
+	"Corrected notification rmm definitions"
+    REVISION     "201506010000Z"
+    DESCRIPTION
+	"First draft"
+    ::= { Intel 3 }
+	
+rsa MODULE-IDENTITY
+    LAST-UPDATED "201506010000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	"Rmm MIB objects for agent module rmm implementations"
+    REVISION     "201506010000Z"
+    DESCRIPTION
+	"Corrected notification rmm definitions"
+    REVISION     "201506010000Z"
+    DESCRIPTION
+	"First draft"
+    ::= { products 1 }
+
+rack-management MODULE-IDENTITY
+    LAST-UPDATED "201506010000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	"Rmm MIB objects for agent module rmm implementations"
+    REVISION     "201506010000Z"
+    DESCRIPTION
+	"Corrected notification rmm definitions"
+    REVISION     "201506010000Z"
+    DESCRIPTION
+	"First draft"
+    ::= { rsa 1 }
+
+
+rack MODULE-IDENTITY
+    LAST-UPDATED "201506010000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	"Rmm MIB objects for agent module rmm implementations"
+    REVISION     "201506010000Z"
+    DESCRIPTION
+	"Corrected notification rmm definitions"
+    REVISION     "201506010000Z"
+    DESCRIPTION
+	"First draft"
+    ::= { rack-management 3 }
+--
+-- top level structure
+--
+
+
+intelSnmpRmmNotifications OBJECT IDENTIFIER ::= { rack 1 }
+intelSnmpRmmNotificationPrefix  OBJECT IDENTIFIER
+                                  ::= { intelSnmpRmmNotifications 0 }
+intelSnmpRmmNotificationObjects OBJECT IDENTIFIER
+                                  ::= { intelSnmpRmmNotifications 2 }
+
+--
+--  Rmm Notifications
+--
+
+intelSnmpRmmMsgId OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  accessible-for-notify
+    STATUS      current
+    DESCRIPTION
+        "Message id for rmm"
+::= { intelSnmpRmmNotificationObjects 1 }
+
+intelSnmpRmmMsgStr OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  accessible-for-notify
+    STATUS      current
+    DESCRIPTION
+        "For message string"
+::= { intelSnmpRmmNotificationObjects 2 }
+
+intelSnmpRmmNotification NOTIFICATION-TYPE
+    OBJECTS     { intelSnmpRmmMsgId }
+    STATUS      current
+    DESCRIPTION
+        "An rmm notification, used to illustrate the
+         definition and generation of trap and inform PDUs
+         (including the use of both standard and additional
+         varbinds in the notification payload).
+         This notification will typically be sent every
+	 30 seconds, using the code found in the rmm module
+             agent/mibgroup/rmms/notification.c"
+::= { intelSnmpRmmNotificationPrefix 1 }
+
+
+END

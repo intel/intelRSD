@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.1.0.0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="PhysicalContext.xml">
+    <edmx:Include Namespace="PhysicalContext.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Redundancy.xml">
+    <edmx:Include Namespace="Redundancy"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RackLocation.xml">
+    <edmx:Include Namespace="RackLocation"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ThermalZone.1.0.0">
+
+      <EntityType Name="ThermalZone" BaseType="Resource.1.0.0.Resource">
+        <Property Name="Status" Type="Resource.Status"/>
+        <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
+        <Property Name="Presence" Type="Edm.String"/>
+        <Property Name="DesiredSpeedPWM" Type="Edm.Decimal"/>
+        <Property Name="DesiredSpeedRPM" Type="Edm.Decimal"/>
+        <Property Name="MaxFansSupported" Type="Edm.Int64"/>
+        <Property Name="NumberOfFansPresent" Type="Edm.Int64"/>
+        <Property Name="VolumetricAirflow" Type="Edm.Decimal"/>
+        <Property Name="Temperatures" Type="Collection(ThermalZone.1.0.0.TemperatureSensor)" Nullable="false"/>
+        <Property Name="Fans" Type="Collection(ThermalZone.1.0.0.Fan)" Nullable="false"/>
+        <Property Name="Actions" Type="ThermalZone.1.0.0.Actions" Nullable="false"/>
+        <Property Name="Links" Type="ThermalZone.1.0.0.Links" Nullable="false"/>
+
+      </EntityType>
+
+      <ComplexType Name="TemperatureSensor">
+        <Property Name="Name" Type="Edm.String"/>
+        <Property Name="Status" Type="Resource.Status"/>
+        <Property Name="ReadingCelsius" Type="Edm.Decimal"/>
+        <Property Name="PhysicalContext" Type="PhysicalContext.1.0.0.PhysicalContext"/>
+      </ComplexType>
+
+      <ComplexType Name="Fan">
+      <Property Name="Name" Type="Edm.String"/>
+        <Property Name="Status" Type="Resource.Status"/>
+        <Property Name="ReadingRPM" Type="Edm.Decimal"/>
+        <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
+      </ComplexType>
+
+      <ComplexType Name="Actions">
+      </ComplexType>
+
+        <ComplexType Name="Links">
+      </ComplexType>
+
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

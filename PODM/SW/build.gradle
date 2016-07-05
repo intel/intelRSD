@@ -1,0 +1,238 @@
+/*
+ * Copyright (c) 2015 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: "distribution"
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.9'
+}
+
+repositories {
+    mavenCentral()
+}
+
+def readBuildVersion() {
+    def buildVersion = '0.99'
+    File versionFile = new File('VERSION')
+    if (versionFile.exists()) {
+        buildVersion = versionFile.readLines().first()
+    }
+    buildVersion
+}
+
+def buildVersion = readBuildVersion()
+def reportsDir = new File(rootDir, 'reports')
+def checkstyleReportsDir =  new File(reportsDir, 'checkstyle')
+
+allprojects {
+    apply plugin: 'idea'
+    version = buildVersion
+}
+
+println 'Build version: ' + version
+
+project.ext {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+
+    // library versions
+    checkstyleVer = '6.14'
+    hamcrestVer = '1.3'
+    mockitoVer = '1.9.5'
+    orientRarVer = '0.3.0'
+    testNgVer = '6.8.21'
+    blueprintsApiVer = '2.6.0'
+    wildflyVer = '9.0.2.Final'
+    commonsValVer = '1.4.1'
+    commonsLangVer = '2.4'
+    commonsCollectionsVer = '3.2.1'
+    commonsIoVer = '2.1'
+    orientDbVer = '2.1.5'
+
+    JAVA_EE_API_DEPENDENCY = "javax:javaee-api:7.0"
+
+    JACKSON_VERSION = "2.6.3"
+    JACKSON_CORE_DEPENDENCY = "com.fasterxml.jackson.core:jackson-core:$JACKSON_VERSION"
+    JACKSON_DATABIND_DEPENDENCY = "com.fasterxml.jackson.core:jackson-databind:$JACKSON_VERSION"
+    JACKSON_ANNOTATIONS_DEPENDENCY = "com.fasterxml.jackson.core:jackson-annotations:$JACKSON_VERSION"
+    JACKSON_PROVIDER_DEPENDENCY = "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:$JACKSON_VERSION"
+    JACKSON_JSR310_DEPENDENCY = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$JACKSON_VERSION"
+
+    GUAVA_DEPENDENCY = 'com.google.guava:guava:18.0'
+
+    APACHE_COMMONS_VALIDATOR = "commons-validator:commons-validator:$commonsValVer";
+    APACHE_COMMONS_LANG = "commons-lang:commons-lang:$commonsLangVer";
+    APACHE_COMMONS_COLLECTIONS = "commons-collections:commons-collections:$commonsCollectionsVer";
+    APACHE_COMMONS_IO = "commons-io:commons-io:$commonsIoVer";
+
+    RESTEASY_VERSION = '3.0.14.Final'
+    RESTEASY_CLIENT_DEPENDENCY = "org.jboss.resteasy:resteasy-client:$RESTEASY_VERSION"
+    RESTEASY_JACKSON2_PROVIDER = "org.jboss.resteasy:resteasy-jackson2-provider:$RESTEASY_VERSION"
+    RESTEASY_JAXRS_DEPENDENCY = "org.jboss.resteasy:resteasy-jaxrs:$RESTEASY_VERSION"
+
+    SLF4J_DEPENDENCY = "org.slf4j:slf4j-api:1.7.10"
+    LOGBACK_DEPENDENCY = "ch.qos.logback:logback-classic:1.1.1"
+    ORIENTDB_RAR_API = "org.ops4j.orient:orient-ra-api:$orientRarVer"
+
+    MODEL_MAPPER_DEPENDENCY = 'org.modelmapper:modelmapper:0.7.5'
+
+
+}
+
+idea.project.languageLevel = JavaVersion.VERSION_1_8
+
+configure (subprojects - project(':pod-manager-common')) {
+
+    apply plugin: 'java'
+    apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
+
+    repositories {
+        mavenCentral()
+        maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
+        maven { url 'http://repository.jboss.org/nexus/content/repositories/deprecated' }
+        maven { url 'http://repo.jfrog.org/artifactory/repo' }
+    }
+
+    checkstyle {
+        configFile = new File(rootDir, 'config/checkstyle/checkstyle.xml')
+        configProperties.checkstyleConfigDir = configFile.parentFile
+    }
+
+    def subprojectName = name
+
+    tasks {
+        checkstyleMain {
+            reports {
+                xml {
+                    destination new File(checkstyleReportsDir, subprojectName + '-main.xml')
+                }
+            }
+        }
+
+        checkstyleTest {
+            reports {
+                xml {
+                    destination new File(checkstyleReportsDir, subprojectName + '-test.xml')
+                }
+            }
+        }
+    }
+
+    dependencies {
+        checkstyle "com.puppycrawl.tools:checkstyle:$checkstyleVer"
+
+        testCompile "org.testng:testng:$testNgVer"
+        testCompile "org.hamcrest:hamcrest-all:$hamcrestVer"
+        testCompile "org.mockito:mockito-all:$mockitoVer"
+        testCompile SLF4J_DEPENDENCY
+    }
+
+    compileJava {
+        options.debug = false
+        options.debugOptions.debugLevel = ""
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+            xml.destination "${reportsDir}/jacoco/${subprojectName}.xml"
+            csv.enabled false
+        }
+    }
+
+    build.dependsOn jacocoTestReport
+
+    test {
+        useTestNG() {
+            excludeGroups "integration"
+        }
+
+        reports.junitXml.destination = "$reportsDir/allTests"
+
+        testLogging {
+            showStandardStreams = false
+            //event to log on gradle output
+            events = [ "skipped", "passed", "failed" ]
+            exceptionFormat = "full"
+            showExceptions = true
+            showCauses = true
+            showStackTraces = false
+        }
+    }
+}
+
+/**
+ * podm-rest is configured at this point because all projects
+ * have to be aware that this project produces war artifact
+ */
+configure (project(':podm-rest')) {
+    apply plugin:'war'
+}
+
+task gatherSrc << {
+    def prefix = project.uri("").toString()
+    def buildDir = project.buildDir.toString()
+
+    project.subprojects.each { subproject ->
+        def srcPath = subproject.uri("").toString().replaceFirst(prefix, "")
+        def dstPath = buildDir + "/" + project.name + "/" + srcPath
+
+        copy {
+            from srcPath
+            into dstPath
+            exclude "*.iml", ".idea/", "**/build/**"
+        }
+    }
+
+    copy {
+        from (".")
+        into buildDir + "/" + project.name
+        include "*.gradle", "gradlew*", "README", "LICENSE"
+        // It intentionally omits gradle.properties from resulting tgz package
+    }
+
+    copy {
+        from ("gradle")
+        into buildDir + "/" + project.name + "/gradle"
+    }
+
+    copy {
+        from ("config")
+        into buildDir + "/" + project.name + "/config"
+    }
+
+    copy {
+        from ("node_scripts")
+        into buildDir + "/" + project.name + "/node_scripts"
+    }
+
+    copy {
+        from ("external")
+        into buildDir + "/" + project.name + "/external"
+    }
+}
+
+task srcTar(type: Tar, dependsOn: gatherSrc) {
+    baseName = "podm-sources"
+
+    from(project.buildDir.toString() + "/" + project.name)
+    into("podm-sources/" + project.name)
+
+    compression = Compression.GZIP
+    extension = "tar.gz"
+
+    outputs.upToDateWhen { false }
+}

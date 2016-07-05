@@ -1,0 +1,24 @@
+{
+  "Name": ${NAME},
+  "Description": ${DESCRIPTION},
+  "State": ${STATE},
+  "Health": ${HEALTH},
+  "FactoryMacAddress": ${FACTORY_MAC_ADDRESS},
+  "MacAddress": ${MAC_ADDRESS},
+  "LinkTechnology": ${LINK_TECHNOLOGY},
+  "SpeedMbps": ${SPEED_MBPS},
+  "Autosense": ${AUTOSENSE},
+  "FullDuplex": ${FULL_DUPLEX},
+  "FrameSize": ${FRAME_SIZE},
+  "HostName": ${HOST_NAME},
+  "FQDN": ${FQDN},
+  "MaxIPv6StaticAddresses": ${MAX_IPV6_STATIC_ADDRESSES},
+  "VLANEnable": ${VLAN_ENABLE},
+  "VLANId": ${VLAN_ID},
+  "InterfaceEnabled" : ${IFACE_ENABLED},
+  "IPv4Address": {
+      "Address": ${IPV4_ADDRESS},
+      "SubnetMask": ${IPV4_SUBNET_MASK},
+      "Gateway": ${IPV4_GATEWAY}
+   }
+}

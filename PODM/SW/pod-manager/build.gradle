@@ -1,0 +1,213 @@
+/*
+ * Copyright (c) 2015 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id "nebula.os-package" version "2.2.6"
+}
+
+configurations {
+    zipBinary { transitive = false }
+    logback { transitive = false }
+}
+
+dependencies {
+    zipBinary("org.wildfly:wildfly-dist:$wildflyVer") {
+        artifact {
+            name = 'wildfly-dist'
+            type = 'zip'
+        }
+    }
+
+    zipBinary("com.orientechnologies:orientdb-community:$orientDbVer") {
+        artifact {
+            name = 'orientdb-community'
+            classifier = 'distribution'
+            type = 'zip'
+        }
+    }
+
+    logback('ch.qos.logback:logback-classic:1.1.1') {
+        artifact {
+            name = 'logback-classic'
+            type = 'jar'
+        }
+    }
+
+    logback('ch.qos.logback:logback-core:1.1.1') {
+        artifact {
+            name = 'logback-core'
+            type = 'jar'
+        }
+    }
+}
+
+
+task extractDependencies << {
+    copy {
+        from {
+            configurations.zipBinary.collect { zipTree(it) }
+        }
+
+        // workaround for 'permission denied' exception when running subsequent build without clean
+        eachFile { file ->
+            if (file.mode == 0444) {
+                file.mode = 0644
+            }
+        }
+
+        into buildDir
+    }
+
+    def buildDirStr = buildDir.toString()
+
+    assert file(buildDirStr + "/wildfly-$wildflyVer").exists()
+    assert file(buildDirStr + "/orientdb-community-$orientDbVer").exists()
+
+    copy {
+        from "os-package/config/logback.xml"
+        from "os-package/config/standalone.xml"
+        from "os-package/config/application-users.properties"
+        from "os-package/config/application-roles.properties"
+        into buildDirStr + "/wildfly-$wildflyVer" + "/standalone/configuration/"
+    }
+
+    copy {
+        from "os-package/config/wildfly.conf"
+        from "os-package/config/wildfly-init-debian.sh"
+        into buildDirStr + "/wildfly-$wildflyVer" + "/bin/init.d/"
+    }
+
+    copy {
+        from "os-package/config/standalone.sh"
+        from "os-package/config/standalone.conf"
+        into buildDirStr + "/wildfly-$wildflyVer" + "/bin/"
+    }
+
+
+    def modulesDir = buildDirStr + "/wildfly-$wildflyVer/modules/system/layers/base"
+    def destinationDir = new File(modulesDir + "/ch/qos/logback/main/")
+    destinationDir.mkdirs()
+
+    def psmeUpdateDir = new File(buildDirStr + "/wildfly-$wildflyVer/psme-update")
+    psmeUpdateDir.mkdir()
+
+    def discoveryDir = new File(buildDirStr + "/wildfly-$wildflyVer/discovery")
+    discoveryDir.mkdir()
+
+
+    copy {
+        from {
+            configurations.logback.collect { it }
+        }
+        from "os-package/modules/system/layers/base/org/ch/qos/logback/main/module.xml"
+
+        into destinationDir.getCanonicalPath()
+    }
+
+    copy {
+        from "os-package/modules/system/layers/base/org/jboss/logging/main/module.xml"
+        into "$modulesDir/org/jboss/logging/main"
+    }
+
+    copy {
+        from "os-package/modules/system/layers/base/org/slf4j/main/module.xml"
+        into "$modulesDir/org/slf4j/main"
+    }
+
+    copy {
+        from "os-package/config/orientdb-server-config.xml"
+        into buildDirStr + "/orientdb-community-$orientDbVer/config"
+    }
+
+    copy {
+        from "os-package/config/server.sh"
+        into buildDirStr + "/orientdb-community-$orientDbVer/bin"
+    }
+
+    // Delete all example databases provided by OrientDB
+    delete buildDirStr + "/orientdb-community-$orientDbVer/databases"
+
+    copy {
+        from "os-package/databases/"
+        into buildDirStr + "/orientdb-community-$orientDbVer/databases"
+    }
+
+    copy {
+        from project(":orientdb-rar").buildDir.toString() + "/libs/orient-rar-$orientRarVer" + ".rar"
+        into buildDirStr + "/wildfly-$wildflyVer" + "/standalone/deployments"
+    }
+}
+
+extractDependencies.dependsOn ":orientdb-rar:rar"
+
+buildDeb.dependsOn extractDependencies
+buildDeb.dependsOn ":vault-decrypter:jar"
+buildDeb.dependsOn ":podm-db-schema-creation:jar"
+
+buildDeb {
+    user = 'podm'
+    packageName = 'pod-manager'
+    release = '1'
+    os = LINUX
+
+    requires 'openjdk-8-jre-headless'
+
+    breaks 'pod-manager-webapp'
+    breaks 'pod-manager-servers'
+    breaks 'pod-manager-base'
+    replaces 'pod-manager-webapp'
+    replaces 'pod-manager-servers'
+    replaces 'pod-manager-base'
+
+    from(project.buildDir.toString() + "/wildfly-$wildflyVer") {
+        createDirectoryEntry = true
+        into '/opt/pod-manager/wildfly'
+    }
+
+    from(project.buildDir.toString() + "/orientdb-community-$orientDbVer") {
+        createDirectoryEntry = true
+        into '/opt/pod-manager/orientdb'
+    }
+
+    from project(":vault-decrypter").jar.outputs.files.getFiles().each{ file ->
+        into '/usr/lib/pod-manager/'
+        rename("vault-(.*).jar", "vault-decrypter.jar")
+    }
+
+    from project(":podm-db-schema-creation").jar.outputs.files.getFiles().each{ file ->
+        into '/usr/lib/pod-manager/'
+        rename("podm-db-schema-creation-(.*).jar", "db-schema-creation.jar")
+    }
+
+    from(project(':podm-rest').tasks.war) {
+        addParentDirs = false
+        into '/opt/pod-manager/wildfly/standalone/deployments'
+    }
+
+    from('os-package/contents') {
+        user = 'root'
+        into '/'
+    }
+
+    configurationFile = "/etc/pod-manager/events.json\n" +
+                        "/etc/pod-manager/discovery.json\n" +
+                        "/etc/pod-manager/allocation.json\n" +
+                        "/etc/pod-manager/service-connection.json\n"
+
+    preInstall file('os-package/scripts/deb/preinstall.sh')
+    postInstall file('os-package/scripts/deb/postinstall.sh')
+    preUninstall file('os-package/scripts/deb/preuninstall.sh')
+}

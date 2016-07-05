@@ -1,0 +1,51 @@
+/*!
+ * @copyright
+ * Copyright (c) 2015-2016 Intel Corporation
+ *
+ * @copyright
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * @copyright
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * @copyright
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * @file version.hpp
+ *
+ * @brief Declaration of Version class
+ * */
+
+#include <string>
+
+namespace psme {
+namespace app {
+
+/*! @brief Class representing current version of the PSME rest application */
+class Version {
+public:
+    /*! @brief Major number */
+    static constexpr unsigned int MAJOR = @VER_MAJOR@;
+    /*! @brief Minor number */
+    static constexpr unsigned int MINOR = @VER_MINOR@;
+    /*! @brief Build number */
+    static constexpr unsigned int BUILD = @VER_BUILD@;
+    /*! @brief Hotfix number */
+    static constexpr unsigned int HOTFIX = @VER_HOTFIX@;
+
+    /*!
+     * @brief Converts version to string
+     * @return Current version as string
+     * */
+    static std::string to_string();
+};
+
+}
+}

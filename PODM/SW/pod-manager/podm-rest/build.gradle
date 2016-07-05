@@ -1,0 +1,65 @@
+/*
+ * Copyright (c) 2015 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin:'war'
+
+dependencies {
+    compile (project(':podm-actions')) { transitive = false }
+    compile (project(':podm-assembly')) { transitive = false }
+    compile (project(':podm-business-services')) { transitive = false }
+    compile (project(':podm-business-entities')) { transitive = false }
+    compile (project(':podm-repository-api')) { transitive = false }
+    compile (project(':podm-repositories')) { transitive = false }
+    compile (project(':podm-mappers')) { transitive = false }
+    compile (project(':logger')) { transitive = false }
+    compile (project(':utils')) { transitive = false }
+    compile (project(':types')) { transitive = false }
+    compile (project(':enterprise-utils')) { transitive = false }
+    compile (project(':config')) { transitive = false }
+    compile (project(':podm-external-services-api')) { transitive = false }
+    compile (project(':podm-external-services')) { transitive = false }
+    compile (project(':podm-business-api')) { transitive = false }
+    compile (project(':podm-services-detection')) { transitive = false }
+    compile (project(':security')) { transitive = false }
+    compile (project(':serialization')) { transitive = false }
+    compile (project(':podm-discovery')) { transitive = false }
+    compile (project(':podm-eventing')) { transitive = false }
+    compile (project(':ipxe-supplier')) { transitive = false }
+
+    compile ("$MODEL_MAPPER_DEPENDENCY") { transitive = false }
+    compile "$GUAVA_DEPENDENCY"
+    compile ("$JACKSON_JSR310_DEPENDENCY") { transitive = true }
+    compile ("$JACKSON_PROVIDER_DEPENDENCY") { transitive = true }
+    compile "$APACHE_COMMONS_VALIDATOR"
+    compile "$APACHE_COMMONS_LANG"
+    compile "$APACHE_COMMONS_IO"
+
+    providedCompile "$JAVA_EE_API_DEPENDENCY"
+    providedCompile ("$RESTEASY_JAXRS_DEPENDENCY") { transitive = false }
+}
+
+war {
+    archiveName = "pod-manager-$version-rest.war"
+
+    manifest {
+        attributes 'Implementation-Title': project.archivesBaseName
+        attributes 'Implementation-Vendor': 'Intel'
+        attributes 'Implementation-Version': version
+        attributes 'Specification-Title': project.archivesBaseName
+        attributes 'Specification-Vendor': 'Intel'
+        attributes 'Specification-Version': version
+    }
+}

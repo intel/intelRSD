@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.--> 
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+  <edmx:Reference Uri="http://docs.oasis-open.org/odata/odata/v4.0/cs01/vocabularies/Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="http://docs.oasis-open.org/odata/odata/v4.0/cs01/vocabularies/Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="OData.Measures"/>
+  </edmx:Reference>
+
+  <edmx:Reference Uri="http://docs.oasis-open.org/odata/odata/v4.0/cs01/vocabularies/Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/Resource.xml">
+    <edmx:Include Namespace="Resource.1.0.0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/PhysicalContext.xml">
+    <edmx:Include Namespace="PhysicalContext.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/Redundancy.xml">
+    <edmx:Include Namespace="Redundancy"/>
+  </edmx:Reference>
+  
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Thermal">
+
+      <EntityType Name="Thermal" BaseType="Resource.1.0.0.Resource">
+        <Annotation Term="OData.Description" String="This is the schema definition for the Thermal properties.  It represents the properties for Temperature and Cooling."/>
+        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a thermal metrics resource for a Redfish implementation."/>
+      </EntityType>
+      
+      <EntityType Name="Temperature" BaseType="Resource.1.0.0.ReferenceableMember"/>
+      
+      <EntityType Name="Fan" BaseType="Resource.1.0.0.ReferenceableMember"/>
+
+    </Schema>
+    
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Thermal.1.0.0">
+
+      <EntityType Name="Thermal" BaseType="Thermal.Thermal">
+        <NavigationProperty Name="Temperatures" Type="Collection(Thermal.1.0.0.Temperature)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This is the definition for temperature sensors."/>
+          <Annotation Term="OData.LongDescription" String="These properties shall be the definition for temperature sensors for a Redfish implementation."/>
+          <Annotation Term="OData.AutoExpand"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Fans" Type="Collection(Thermal.1.0.0.Fan)" Nullable="false" ContainsTarget="True">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This is the definition for fans."/>
+          <Annotation Term="OData.LongDescription" String="These properties shall be the definition for fans for a Redfish implementation."/>
+          <Annotation Term="OData.AutoExpand"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Redundancy" Type="Collection(Redundancy.Redundancy)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This structure is used to show redundancy for fans.  The Component ids will reference the members of the redundancy groups."/>
+          <Annotation Term="OData.LongDescription" String="The values of the properties in this array shall be used to show redundancy for fans and other elements in this resource.  The use of IDs within these arrays shall reference the members of the redundancy groups."/>
+          <Annotation Term="OData.AutoExpand"/>
+        </NavigationProperty>
+        <Property Name="Status" Type="Resource.Status"/>
+      </EntityType>
+
+      <EntityType Name="Temperature" BaseType="Thermal.Temperature">
+        <Property Name="Name" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Temperature sensor name."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the name of the temperature sensor."/>
+        </Property>
+        <Property Name="SensorNumber" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="A numerical identifier to represent the temperature sensor"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a numerical identifier for this temperature sensor that is unique within this resource. "/>
+        </Property>
+        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+        <Property Name="ReadingCelsius" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Temperature"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the current value of the temperature sensor's reading."/>
+          <Annotation Term="OData.Measures.Unit" String="Celsius"/>
+        </Property>
+        <Property Name="UpperThresholdNonCritical" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Above normal range"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingCelsius is above the normal range but is not critical. The units shall be the same units as the related ReadingCelsius propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="Celsius"/>
+        </Property>
+        <Property Name="UpperThresholdCritical" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Above normal range but not yet fatal."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingCelsius is above the normal range but is not yet fatal. The units shall be the same units as the related ReadingCelsius propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="Celsius"/>
+        </Property>
+        <Property Name="UpperThresholdFatal" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Above normal range and is fatal"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingCelsius is above the normal range and is fatal. The units shall be the same units as the related ReadingCelsius propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="Celsius"/>
+        </Property>
+        <Property Name="LowerThresholdNonCritical" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Below normal range"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingCelsius is below the normal range but is not critical. The units shall be the same units as the related ReadingCelsius propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="Celsius"/>
+        </Property>
+        <Property Name="LowerThresholdCritical" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Below normal range but not yet fatal."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingCelsius is below the normal range but is not yet fatal. The units shall be the same units as the related ReadingCelsius propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="Celsius"/>
+        </Property>
+        <Property Name="LowerThresholdFatal" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Below normal range and is fatal"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingCelsius is below the normal range and is fatal. The units shall be the same units as the related ReadingCelsius propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="Celsius"/>
+        </Property>
+        <Property Name="MinReadingRangeTemp" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Minimum value for ReadingCelsius"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the lowest possible value for ReadingCelsius. The units shall be the same units as the related ReadingCelsius propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="Celsius"/>
+        </Property>
+        <Property Name="MaxReadingRangeTemp" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Maximum value for ReadingCelsius"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the lowest possible value for ReadingCelsius. The units shall be the same units as the related ReadingCelsius propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="Celsius"/>
+        </Property>
+        <Property Name="PhysicalContext" Type="PhysicalContext.1.0.0.PhysicalContext" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Describes the area or device to which this temperature measurement applies."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a description of the affected device or region within the chassis to which this temperature measurement applies."/>
+        </Property>
+        <NavigationProperty Name="RelatedItem" Type="Collection(Resource.Item)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Describes the areas or devices to which this temperature measurement applies."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall the array of IDs of areas or devices to which this temperature measurement applies."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </EntityType>
+
+      <EntityType Name="Fan" BaseType="Thermal.Fan">
+        <Property Name="FanName" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Name of the fan"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the name of the fan."/>
+        </Property>
+        <Property Name="PhysicalContext" Type="PhysicalContext.1.0.0.PhysicalContext" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Describes the area or device associated with this fan."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a description of the affected device or region within the chassis to which this fan is associated."/>
+        </Property>
+        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+        <Property Name="ReadingRPM" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Current fan speed in RPM"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the current value of the fan sensor's reading."/>
+          <Annotation Term="OData.Measures.Unit" String="RPM"/>
+        </Property>
+        <Property Name="UpperThresholdNonCritical" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Above normal range"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingRPM is above the normal range but is not critical. The units shall be the same units as the related ReadingRPM propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="RPM"/>
+        </Property>
+        <Property Name="UpperThresholdCritical" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Above normal range but not yet fatal"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingRPM is above the normal range but is not yet fatal. The units shall be the same units as the related ReadingRPM propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="RPM"/>
+        </Property>
+        <Property Name="UpperThresholdFatal" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Above normal range and is fatal"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingRPM is above the normal range and is fatal. The units shall be the same units as the related ReadingRPM propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="RPM"/>
+        </Property>
+        <Property Name="LowerThresholdNonCritical" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Below normal range"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingRPM is below the normal range but is not critical. The units shall be the same units as the related ReadingRPM propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="RPM"/>
+        </Property>
+        <Property Name="LowerThresholdCritical" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Below normal range but not yet fatal"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingRPM is below the normal range but is not yet fatal. The units shall be the same units as the related ReadingRPM propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="RPM"/>
+        </Property>
+        <Property Name="LowerThresholdFatal" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Below normal range and is fatal"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the ReadingRPM is below the normal range and is fatal. The units shall be the same units as the related ReadingRPM propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="RPM"/>
+        </Property>
+        <Property Name="MinReadingRange" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Minimum value for ReadingRPM"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the lowest possible value for ReadingRPM. The units shall be the same units as the related ReadingRPM propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="RPM"/>
+        </Property>
+        <Property Name="MaxReadingRange" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="Maximum value for ReadingRPM"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the lowest possible value for ReadingRPM. The units shall be the same units as the related ReadingRPM propoerty."/>
+          <Annotation Term="OData.Measures.Unit" String="RPM"/>
+        </Property>
+        <NavigationProperty Name="RelatedItem" Type="Collection(Resource.Item)" Nullable="false">
+          <Annotation Term="OData.Description" String="The ID(s) of the resources serviced with this fan"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be an array of IDs containing pointers consistent with JSON pointer syntax to the resource that are being serviced by this fan."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Redundancy" Type="Collection(Redundancy.Redundancy)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This structure is used to show redundancy for fans.  The Component ids will reference the members of the redundancy groups."/>
+          <Annotation Term="OData.LongDescription" String="The values of the properties in this array shall be used to show redundancy for fans and other elements in this resource.  The use of IDs within these arrays shall reference the members of the redundancy groups."/>
+          <Annotation Term="OData.AutoExpand"/>
+        </NavigationProperty>
+      </EntityType>
+
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

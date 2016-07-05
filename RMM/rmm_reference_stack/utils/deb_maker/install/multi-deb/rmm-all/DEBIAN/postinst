@@ -1,0 +1,11 @@
+#!/bin/bash
+function killservice()
+{   
+    pgrep -x $1 > /dev/null 
+    if [ $? -eq 0 ]
+    then
+        killall -9 -q $1 & > /dev/null
+    fi
+}
+ln -s /etc/init.d/rmm /etc/rcS.d/S101rmm
+/usr/local/bin/rmm_post_install

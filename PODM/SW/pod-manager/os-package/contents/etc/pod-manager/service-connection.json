@@ -1,0 +1,14 @@
+{
+  "SslEnabledForRmm" : true,
+  "SslPortForRmm" : 8091,
+  "DefaultPortForRmm" : 8090,
+  "SslEnabledForPsme" : true,
+  "SslPortForPsme" : 8443,
+  "DefaultPortForPsme" : 8888,
+  "SslEnabledForRss" : true,
+  "SslPortForRss" : 8443,
+  "DefaultPortForRss" : 8888,
+  "SslEnabledForLui" : true,
+  "SslPortForLui" : 8443,
+  "DefaultPortForLui" : 8888
+}

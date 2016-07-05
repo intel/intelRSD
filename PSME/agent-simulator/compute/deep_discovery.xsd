@@ -1,0 +1,432 @@
+<?xml version="1.0"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:element name="manager">
+    <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element ref="manager"/>
+            <xs:element ref="chassis"/>
+            <xs:element ref="ComputeSystem"/>
+            <xs:element ref="serialConsole"/>
+            <xs:element type="xs:string" name="guid" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="model" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="type" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="ipv4Address" minOccurs="0" maxOccurs="1"/>
+        </xs:choice>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="chassis">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:string" name="type" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="locationOffset" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="parentId" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="ComputeSystem">
+    <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element ref="fruInfo" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="processor" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="storageController" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="dimm" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="networkInterface" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="pciDevice" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="usbDevice" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element type="xs:unsignedInt" name="location" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="sku" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="assetTag" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="indicatorLed" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="biosVersion" minOccurs="0" maxOccurs="1"/>
+        </xs:choice>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="fruInfo">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:string" name="partNumber" minOccurs="0"/>
+            <xs:element type="xs:string" name="modelNumber" minOccurs="0"/>
+            <xs:element type="xs:string" name="manufacturer" minOccurs="0"/>
+            <xs:element type="xs:string" name="serialNumber" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="ipv6Address">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:string" name="address" minOccurs="0"/>
+            <xs:element ref="addressOrigin" minOccurs="0"/>
+            <xs:element ref="addressState" minOccurs="0"/>
+            <xs:element type="xs:unsignedInt" name="prefixLength" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="ipv4Address">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:string" name="address" minOccurs="0"/>
+            <xs:element type="xs:string" name="subnetMask" minOccurs="0"/>
+            <xs:element type="xs:string" name="gateway" minOccurs="0"/>
+            <xs:element ref="addressOrigin" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="dimmLocation">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:unsignedInt" name="socket" minOccurs="0"/>
+            <xs:element type="xs:unsignedInt" name="controller" minOccurs="0"/>
+            <xs:element type="xs:unsignedInt" name="channel" minOccurs="0"/>
+            <xs:element type="xs:unsignedInt" name="slot" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="region">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:string" name="regionId" minOccurs="0"/>
+            <xs:element type="xs:string" name="memoryType" minOccurs="0"/>
+            <xs:element type="xs:unsignedInt" name="offsetMB" minOccurs="0"/>
+            <xs:element type="xs:unsignedInt" name="sizeMB" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="processor">
+    <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element ref="cpuid" minOccurs="0"/>
+            <xs:element type="xs:string" name="socket" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="processorType" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="totalThreads" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="enabledThreads" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="totalCores" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="enabledCores" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="maxSpeedMHz" minOccurs="0"/>
+            <xs:element type="xs:string" name="instructionSet" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="capability" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element type="xs:string" name="processorArchitecture" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="model" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="modelName" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="manufacturer" minOccurs="0" maxOccurs="1"/>
+        </xs:choice>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="cpuid">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:string" name="vendorId" minOccurs="0"/>
+            <xs:element type="xs:unsignedInt" name="family" minOccurs="0"/>
+            <xs:element type="xs:unsignedInt" name="step" minOccurs="0"/>
+            <xs:element type="xs:string" name="microcodeInfo" minOccurs="0"/>
+            <xs:element type="xs:unsignedInt" name="model" minOccurs="0"/>
+            <xs:element type="xs:unsignedLong" name="numericId" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="addressState">
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Preferred"/>
+            <xs:enumeration value="Deprecated"/>
+            <xs:enumeration value="Tentative"/>
+            <xs:enumeration value="Failed"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="addressOrigin">
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="DHCP"/>
+            <xs:enumeration value="Static"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="model">
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="E3"/>
+            <xs:enumeration value="E5"/>
+            <xs:enumeration value="E7"/>
+            <xs:enumeration value="X3"/>
+            <xs:enumeration value="X5"/>
+            <xs:enumeration value="X7"/>
+            <xs:enumeration value="I3"/>
+            <xs:enumeration value="I5"/>
+            <xs:enumeration value="I7"/>
+            <xs:enumeration value="Unknown"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="instructionsSet">
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="x86"/>
+            <xs:enumeration value="x86_64"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="serialConsole">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:unsignedInt" name="bitrate" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="dataBits" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="stopBits" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="maxSessions" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:boolean" name="enabled" minOccurs="1" maxOccurs="1"/>
+            <xs:element type="xs:string" name="signalType" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="parity" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="flowControl" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="pinOut" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="dimm">
+    <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="status" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="memoryType" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="dimmType" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="moduleType" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="dimmMedia" minOccurs="0" maxOccurs="4"/>
+            <xs:element type="xs:string" name="memoryModes" minOccurs="0" maxOccurs="5"/>
+            <xs:element type="xs:double" name="capacityMB" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="dataWidthBits" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="busWidthBits" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="fruInfo" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="firmwareRevision" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="firmwareApiVersion" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="functionClasses" minOccurs="0" maxOccurs="3"/>
+            <xs:element type="xs:string" name="vendorID" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="deviceID" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="operatingSpeedMHz" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="allowedSpeedsMHz" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element type="xs:double" name="voltageVolt" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:double" name="minimumVoltageVolt" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:double" name="maximumVoltageVolt" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="deviceLocator" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="dimmLocation" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:unsignedInt" name="rankCount" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="errorCorrection" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="region" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:choice>
+    </xs:complexType>
+</xs:element>
+
+
+<xs:element name="storageController">
+    <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element ref="status" minOccurs="0"/>
+            <xs:element ref="interface" minOccurs="0"/>
+            <xs:element ref="drive" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element type="xs:string" name="busInfo" maxOccurs="1" minOccurs="0"/>
+        </xs:choice>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="drive">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:unsignedInt" name="capacityGB" minOccurs="0"/>
+            <xs:element ref="type" minOccurs="0"/>
+            <xs:element ref="fruInfo" minOccurs="0"/>
+            <xs:element ref="interface" minOccurs="0"/>
+            <xs:element ref="rpm" minOccurs="0"/>
+            <xs:element type="xs:string" name="physicalId" maxOccurs="1" minOccurs="0"/>
+            <xs:element type="xs:string" name="firmwareVersion" maxOccurs="1" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="pciDevice">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:string" name="vendorId" minOccurs="0"/>
+            <xs:element type="xs:string" name="deviceId" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="usbDevice">
+    <xs:complexType>
+        <xs:all>
+            <xs:element type="xs:string" name="vendorId" minOccurs="0"/>
+            <xs:element type="xs:string" name="deviceId" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="networkInterface">
+    <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element type="xs:string" name="macAddress" minOccurs="0"/>
+            <xs:element type="xs:string" name="factoryMacAddress" minOccurs="0"/>
+            <xs:element ref="speedMbps" minOccurs="0"/>
+            <xs:element ref="frameSize" minOccurs="0"/>
+            <xs:element ref="autoSense" minOccurs="0"/>
+            <xs:element ref="fullDuplex" minOccurs="0"/>
+            <xs:element ref="ipv4Address" minOccurs="0"/>
+            <xs:element ref="ipv6Address" minOccurs="0"/>
+            <xs:element ref="fullDuplex" minOccurs="0"/>
+        </xs:choice>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="status">
+    <xs:complexType>
+        <xs:all>
+            <xs:element ref="state" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="health"/>
+        </xs:all>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="state">
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Enabled"/>
+            <xs:enumeration value="Disabled"/>
+            <xs:enumeration value="Offline"/>
+            <xs:enumeration value="InTest"/>
+            <xs:enumeration value="Starting"/>
+            <xs:enumeration value="Absent"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="health">
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="OK"/>
+            <xs:enumeration value="Warning"/>
+            <xs:enumeration value="Critical"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="interface">
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="PCIe"/>
+            <xs:enumeration value="SAS"/>
+            <xs:enumeration value="SATA"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="type">
+    <xs:simpleType>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="HDD"/>
+            <xs:enumeration value="SSD"/>
+            <xs:enumeration value="NVMe"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="rpm">
+    <xs:simpleType>
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:length value="0"/>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:unsignedInt"/>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="speedMbps">
+    <xs:simpleType>
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:length value="0"/>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:unsignedInt"/>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="frameSize">
+    <xs:simpleType>
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:length value="0"/>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:unsignedInt"/>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+</xs:element>
+<xs:element name="autoSense">
+    <xs:simpleType>
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:length value="0"/>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:boolean"/>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="fullDuplex">
+    <xs:simpleType>
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:length value="0"/>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:boolean"/>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+</xs:element>
+
+<xs:element name="vlanEnable">
+    <xs:simpleType>
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:length value="0"/>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:boolean"/>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+</xs:element>
+
+</xs:schema>

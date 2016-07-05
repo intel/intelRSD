@@ -1,0 +1,2 @@
+# If need to remove the support for RMCP+, to modify the file "rmcp+.h"
+# Undefine "IPMI20_SUPPORT" or make it not equal to "1".

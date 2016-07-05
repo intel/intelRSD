@@ -1,0 +1,38 @@
+{
+    "agent": {
+        "vendor" : "Intel Corporation",
+        "capabilities" : [ "Chassis" ]
+    },
+    "server": {
+        "port": 7780
+    },
+    "certs": {
+        "ca" : "/etc/psme/certs/ca.crt"
+    },
+    "registration": {
+        "ipv4": "localhost",
+        "port": 8383,
+        "interval": 3
+    },
+    "chassis": {
+        "size": 2,
+        "locationOffset": 1,
+        "parentId": 1,
+        "platform" : "Platform"
+    },
+    "logger" : {
+        "agent" : {
+            "level" : "DEBUG",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type" : "STDOUT"
+                }
+            ]
+        }
+    }
+}

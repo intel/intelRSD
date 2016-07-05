@@ -1,0 +1,299 @@
+{
+    "title": "PSME Rest Server",
+    "description": "Detailed JSON schema documentation used for PSME REST server configuration file. Configuration file is pure JSON format.",
+    "name": "/",
+    "type": "object",
+    "properties": {
+        "server": {
+          "description": "Information about REST server communication. Port numbers, addresses.",
+          "name": "server",
+          "type": "object",
+          "properties": {
+            "network-interface-name": {
+                "description": "Name of the network interface used to send and receive packets.",
+                "name": "network-interface-name",
+                "type": "string"
+            },
+            "connectors": {
+              "description": "Connectors server listens on",
+              "name": "connectors",
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "use-ssl": {
+                      "description": "Indicates if connection should be over ssl",
+                      "name": "use-ssl",
+                      "type": "boolean"
+                    },
+                    "certs-directory": {
+                        "description": "Path to directory containing files for ssl connector.",
+                        "name": "certs-directory",
+                        "type": "string"
+                    },
+                    "port": {
+                      "description": "Port on which connector listens on",
+                      "name": "port",
+                      "type": "integer"
+                    },
+                    "redirect-port": {
+                      "description": "In case of http connector traffic may be redirected to secured connection when accessing secured resources",
+                      "name": "redirect-port",
+                      "type": "integer"
+                    },
+                    "thread-mode": {
+                      "description": "Enumeration of available threading modes of connector",
+                      "name": "thread-mode",
+                      "type": "string",
+                      "enum": ["select", "thread-per-connection"]
+                    },
+                    "thread-pool-size": {
+                      "description": "Thread pool size used by connector in SELECT thread-mode. THREAD_PER_CONNECTION does not use this property.",
+                      "name": "thrad-pool-size",
+                      "type": "integer"
+                    },
+                    "client-cert-required": {
+                      "description": "Client is required to send certificate when connecting",
+                      "name": "client-cert-required",
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            },
+            "security": {
+              "description": "Allow to specify which resources should be secured",
+              "name": "security",
+              "type": "object",
+              "properties": {
+                "non-ssl-allowed": {
+                  "description": "List of resources available on non-ssl connectors. \"*\" indicates all resources",
+                  "name": "non-ssl-allowed",
+                  "type": "array",
+                  "items": {
+                    "description": "Resource path ex. /rest/v1/",
+                    "type": "string"
+                  }
+                },
+                "ssl-allowed": {
+                  "description": "List of resources available on ssl connectors. \"*\" indicates all resources",
+                  "name": "ssl-allowed",
+                  "type": "array",
+                  "items": {
+                    "description": "Resource path ex. /rest/v1/",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": [
+            "network-interface-name",
+            "connectors"
+          ]
+        },
+        "event-service": {
+            "description": "Configuration of EventService.",
+            "name": "event-service",
+            "type": "object",
+            "properties": {
+                "delivery-retry-attempts": {
+                    "description": "This is the number of attempts an event posting is retried before the subscription is terminated.",
+                    "name": "delivery-retry-attempts",
+                    "type": "integer"
+                },
+                "delivery-retry-interval-seconds": {
+                    "description": "This represents the number of seconds between retry attempts for sending any given Event.",
+                    "name": "delivery-retry-interval-seconds",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "delivery-retry-attempts",
+                "delivery-retry-interval-seconds"
+            ]
+        },
+        "rmm-present" :  {
+            "description": "Indicates RMM dependency.",
+            "name": "rmm-present",
+            "type": "boolean"
+        },
+        "registration": {
+            "description": "Configuration for the agent registration process.",
+            "name": "registration",
+            "type": "object",
+            "properties": {
+                "port": {
+                    "description": "Port number used by agents to register.",
+                    "name": "port",
+                    "type": "integer"
+                },
+                "minDelay": {
+                    "description": "Minimum delay between heart-beat checks.",
+                    "name": "minDelay",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "port",
+                "minDelay"
+            ]
+        },
+        "commands": {
+            "description": "Configuration which implementation of the commands use to communicate with server.",
+            "name": "commands",
+            "type": "object",
+            "properties": {
+                "generic": {
+                    "description": "Generic command. Implementation based only on POSIX sockets.",
+                    "name": "generic",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "generic"
+            ]
+        },
+        "eventing": {
+            "description": "Eventing feature configuration.",
+            "name": "eventing",
+            "type": "object",
+            "properties": {
+                "address": {
+                    "description": "URL of the listening address used for eventing.",
+                    "name": "address",
+                    "type": "string"
+                },
+                "port": {
+                    "description": "Listen port number used for eventing.",
+                    "name": "port",
+                    "type": "integer"
+                },
+                "poll-interval-sec": {
+                    "description": "Delay between polling tries. Busy waiting interval.",
+                    "name": "poll-interval-sec",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "enabled",
+                "address",
+                "port",
+                "poll-interval-sec"
+            ]
+        },
+        "rest-server": {
+            "description": "General PSME REST server configuration.",
+            "name": "rest-server",
+            "type": "object",
+            "properties": {
+                "storage-service-mode": {
+                    "description": "Enabling Storage Service Mode. This is needed when REST is running on Storage Module.",
+                    "name": "storage-service-mode",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "storage-service-mode"
+            ]
+        },
+        "service-uuid-file": {
+            "description": "Path to service uuid file.",
+            "name": "service-uuid-file",
+            "type": "string"
+        },
+        "subscription-config-file": {
+            "description": "Path to subscription config file.",
+            "name": "subscription-config-file",
+            "type": "string"
+        },
+        "metadata-file": {
+            "description": "Path to metadata file.",
+            "name": "metadata-file",
+            "type": "string"
+        },
+        "logger": {
+            "description": "Configuration of the logger used for PSME REST server.",
+            "name": "logger",
+            "type": "object",
+            "properties": {
+                "app": {
+                    "description": "Container for REST application settings.",
+                    "name": "app",
+                    "type": "object",
+                    "properties": {
+                        "level": {
+                            "description": "Choose one of the 7 severity levels. For more info check man syslog.",
+                            "name": "level",
+                            "type": "string"
+                        },
+                        "timeformat": {
+                            "description": "Define format used for timestamps in log file.",
+                            "name": "timeformat",
+                            "type": "string"
+                        },
+                        "color": {
+                            "description": "Enable or disable colors in log file.",
+                            "name": "color",
+                            "type": "boolean"
+                        },
+                        "output": {
+                            "description": "Turn on, off logging.",
+                            "name": "output",
+                            "type": "boolean"
+                        },
+                        "tagging": {
+                            "description": "Turn on/turn off tagging in application.",
+                            "name": "tagging",
+                            "type": "boolean"
+                        },
+                        "moredebug": {
+                            "description": "Enable/disable additional debug info in log file.",
+                            "name": "moredebug",
+                            "type": "boolean"
+                        },
+                        "streams": {
+                            "description": "Configuration of output methods for logger.",
+                            "name": "streams",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "description": "Choose one of the output methods. Like FILE of STDOUT.",
+                                        "name": "type",
+                                        "type": "string"
+                                    },
+                                    "file": {
+                                        "description": "Path to the file, if stream type is set to FILE.",
+                                        "name": "file",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "required": [
+                "app"
+            ]
+        }
+    },
+    "required": [
+        "server",
+        "rmm-present",
+        "registration",
+        "commands",
+        "eventing",
+        "rest-server",
+        "service-uuid-file",
+        "subscription-config-file"
+        "metadata-file",
+        "logger"
+    ]
+}

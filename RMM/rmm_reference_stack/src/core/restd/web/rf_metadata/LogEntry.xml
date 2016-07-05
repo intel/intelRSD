@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.--> 
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/Resource.xml">
+    <edmx:Include Namespace="Resource.1.0.0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+    <edmx:Include Namespace="Validation.1.0.0" Alias="Validation"/>
+  </edmx:Reference>
+  
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="LogEntry">
+
+      <EntityType Name="LogEntry" BaseType="Resource.1.0.0.Resource">
+        <Annotation Term="OData.Description" String="This resource represents the log record format for logs.  It is designed to be used for SEL logs from IPMI as well as Event Logs and OEM specific logs.  The EntryType field indicates the type of log and there are other properties dependent on it's value."/>
+        <Annotation Term="OData.LongDescription" String="This resource shall represent the log format for log services in a Redfish implementation."/>
+      </EntityType>
+      
+    </Schema>
+    
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="LogEntry.1.0.0">
+         
+      <EntityType Name="LogEntry" BaseType="LogEntry.LogEntry">
+        <Property Name="Severity" Type="LogEntry.1.0.0.EventSeverity">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This is the severity of the log entry."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the severity of the condition resulting in the log entry, as defined in the Status section of the Redfish specificaiton."/>
+        </Property>
+        <Property Name="Created" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="The time the log entry was created."/>
+		  <Annotation Term="OData.LongDescription" String="The value of this property shall be the time at which the log entry was created."/>
+        </Property>
+        <Property Name="EntryType" Type="LogEntry.1.0.0.LogEntryType" Nullable="false">
+          <Annotation Term="Redfish.RequiredOnCreate"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="his is the type of log entry."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent the type of LogEntry.  If the resource represents an IPMI SEL log entry, the value shall be SEL.  If the resource represents an Event log, the value shall be Event.  If the resource represents an OEM log format, the value shall be Oem."/>
+          <Annotation Term="Redfish.Required"/>
+        </Property>
+        <Property Name="OemRecordFormat" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="If the entry type is Oem, this will contain more information about the record format from the Oem."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall represent the OEM specific format of the Entry.  This property shall be required if the value of EntryType is Oem"/>
+        </Property>
+        <Property Name="EntryCode" Type="LogEntry.1.0.0.LogEntryCode">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="If the EntryType is SEL, this will have the entry code for the log entry."/>
+          <Annotation Term="OData.LongDescription" String="This property shall be present if the EntryType value is SEL.  These enumerations are the values from table 42-1 and 42-2 of the IPMI specification"/>
+        </Property>
+        <Property Name="SensorType" Type="LogEntry.1.0.0.SensorType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="If the EntryType is SEL, this will have the sensor type that the log entry pertains to."/>
+          <Annotation Term="OData.LongDescription" String="This property shall be present if the EntryType value is SEL."/>
+        </Property>
+        <Property Name="SensorNumber" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This property decodes from EntryType:  If it is SEL, it is the sensor number; if Event then the count of events.  Otherwise, it is Oem specific."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the EntityInstance from IPMI spec if EntryType is SEL, the count of events if EntryType is Event and OEM Specific if the EntryType is OEM."/>
+        </Property>
+        <Property Name="Message" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This property decodes from EntryType:  If it is Event then it is a message string.  Otherwise, it is SEL or Oem specific.  In most cases, this will be the actual Log Entry."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the Message property of the event if the EntryType is Event, the Description if EntryType is SEL and OEM Specific if the EntryType is OEM."/>
+        </Property>
+        <Property Name="MessageId" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This property decodes from EntryType:  If it is Event then it is a message id.  Otherwise, it is SEL or Oem specific.  This value is only used for registries - for more information, see the specification."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall the MessageId property of the event if the EntryType is Event, the EventData if EntryType is SEL and OEM Specific if the EntryType is OEM.  The format of this property shall be as defined in the Redfish specification."/>
+        </Property>
+        <Property Name="MessageArgs" Type="Collection(Edm.String)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="The values of this property shall be any arguments for the message."/>
+          <Annotation Term="OData.LongDescription" String="This contains message arguments to be substituted into the message included or in the message looked up via a registry."/>
+        </Property>
+        <Property Name="Links" Type="LogEntry.1.0.0.Links" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="The links object contains the links to other resources that are related to this resource."/>
+        </Property>
+      </EntityType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+        <NavigationProperty Name="OriginOfCondition" Type="Resource.Item">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="This is the URI of the resource that caused the log entry"/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be an href that references the resource for which the log is associated."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <!-- This is the severity of the log entry. -->
+      <EnumType Name="EventSeverity">
+        <Member Name="OK"/>
+        <Member Name="Warning"/>
+        <Member Name="Critical"/>
+      </EnumType>
+
+      <!-- This is the type of log entry. -->
+      <EnumType Name="LogEntryType">
+        <Member Name="Event"/>
+        <Member Name="SEL"/>
+        <Member Name="Oem"/>
+      </EnumType>
+
+      <!-- This is the type of log entry. -->
+      <EnumType Name="LogEntryCode">
+        <Member Name="Assert"/>
+        <Member Name="Deassert"/>
+        <Member Name="Lower Non-critical - going low"/>
+        <Member Name="Lower Non-critical - going high"/>
+        <Member Name="Lower Critical - going low"/>
+        <Member Name="Lower Critical - going high"/>
+        <Member Name="Lower Non-recoverable - going low"/>
+        <Member Name="Lower Non-recoverable - going high"/>
+        <Member Name="Upper Non-critical - going low"/>
+        <Member Name="Upper Non-critical - going high"/>
+        <Member Name="Upper Critical - going low"/>
+        <Member Name="Upper Critical - going high"/>
+        <Member Name="Upper Non-recoverable - going low"/>
+        <Member Name="Upper Non-recoverable - going high"/>
+        <Member Name="Transition to Idle"/>
+        <Member Name="Transition to Active"/>
+        <Member Name="Transition to Busy"/>
+        <Member Name="State Deasserted"/>
+        <Member Name="State Asserted"/>
+        <Member Name="Predictive Failure deasserted"/>
+        <Member Name="Predictive Failure asserted"/>
+        <Member Name="Limit Not Exceeded"/>
+        <Member Name="Limit Exceeded"/>
+        <Member Name="Performance Met"/>
+        <Member Name="Performance Lags"/>
+        <Member Name="Transition to OK"/>
+        <Member Name="Transition to Non-Critical from OK"/>
+        <Member Name="Transition to Critical from less severe"/>
+        <Member Name="Transition to Non-recoverable from less severe"/>
+        <Member Name="Transition to Non-Critical from more severe"/>
+        <Member Name="Transition to Critical from Non-recoverable"/>
+        <Member Name="Transition to Non-recoverable"/>
+        <Member Name="Monitor"/>
+        <Member Name="Informational"/>
+        <Member Name="Device Removed / Device Absent"/>
+        <Member Name="Device Inserted / Device Present"/>
+        <Member Name="Device Disabled"/>
+        <Member Name="Device Enabled"/>
+        <Member Name="Transition to Running"/>
+        <Member Name="Transition to In Test"/>
+        <Member Name="Transition to Power Off"/>
+        <Member Name="Transition to On Line"/>
+        <Member Name="Transition to Off Line"/>
+        <Member Name="Transition to Off Duty"/>
+        <Member Name="Transition to Degraded"/>
+        <Member Name="Transition to Power Save"/>
+        <Member Name="Install Error"/>
+        <Member Name="Fully Redundant"/>
+        <Member Name="Redundancy Lost"/>
+        <Member Name="Redundancy Degraded"/>
+        <Member Name="Non-redundant:Sufficient Resources from Redundant"/>
+        <Member Name="Non-redundant:Sufficient Resources from Insufficient Resources"/>
+        <Member Name="Non-redundant:Insufficient Resources"/>
+        <Member Name="Redundancy Degraded from Fully Redundant"/>
+        <Member Name="Redundancy Degraded from Non-redundant"/>
+        <Member Name="D0 Power State"/>
+        <Member Name="D1 Power State"/>
+        <Member Name="D2 Power State"/>
+        <Member Name="D3 Power State"/>
+      </EnumType>
+
+      <EnumType Name="SensorType">
+        <Member Name="Platform Security Violation Attempt"/>
+        <Member Name="Temperature"/>
+        <Member Name="Voltage"/>
+        <Member Name="Current"/>
+        <Member Name="Fan"/>
+        <Member Name="Physical Chassis Security"/>
+        <Member Name="Processor"/>
+        <Member Name="Power Supply / Converter"/>
+        <Member Name="PowerUnit"/>
+        <Member Name="CoolingDevice"/>
+        <Member Name="Other Units-based Sensor"/>
+        <Member Name="Memory"/>
+        <Member Name="Drive Slot/Bay"/>
+        <Member Name="POST Memory Resize"/>
+        <Member Name="System Firmware Progress"/>
+        <Member Name="Event Logging Disabled"/>
+        <Member Name="System Event"/>
+        <Member Name="Critical Interrupt"/>
+        <Member Name="Button/Switch"/>
+        <Member Name="Module/Board"/>
+        <Member Name="Microcontroller/Coprocessor"/>
+        <Member Name="Add-in Card"/>
+        <Member Name="Chassis"/>
+        <Member Name="ChipSet"/>
+        <Member Name="Other FRU"/>
+        <Member Name="Cable/Interconnect"/>
+        <Member Name="Terminator"/>
+        <Member Name="SystemBoot/Restart"/>
+        <Member Name="Boot Error"/>
+        <Member Name="BaseOSBoot/InstallationStatus"/>
+        <Member Name="OS Stop/Shutdown"/>
+        <Member Name="Slot/Connector"/>
+        <Member Name="System ACPI PowerState"/>
+        <Member Name="Watchdog"/>
+        <Member Name="Platform Alert"/>
+        <Member Name="Entity Presence"/>
+        <Member Name="Monitor ASIC/IC"/>
+        <Member Name="LAN"/>
+        <Member Name="Management Subsystem Health"/>
+        <Member Name="Battery"/>
+        <Member Name="Session Audit"/>
+        <Member Name="Version Change"/>
+        <Member Name="FRUState"/>
+      </EnumType>
+
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

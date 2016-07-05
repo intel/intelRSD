@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.1.0.0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="Manager.xml">
+    <edmx:Include Namespace="Manager"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="ComputerSystem.xml">
+    <edmx:Include Namespace="ComputerSystem.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="PhysicalDrive.xml">
+    <edmx:Include Namespace="PhysicalDrive.1.0.0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="DeviceCollection.xml">
+    <edmx:Include Namespace="DeviceCollection"/>
+  </edmx:Reference>
+
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Adapter.1.0.0">
+
+      <EntityType Name="Adapter" BaseType="Resource.1.0.0.Resource">
+        <Property Name="Interface" Type="PhysicalDrive.1.0.0.Interface"/>
+        <Property Name="Manufacturer" Type="Edm.String"/>
+        <Property Name="Model" Type="Edm.String"/>
+        <Property Name="BusInfo" Type="Edm.String"/>
+        <Property Name="Status" Type="Resource.Status"/>
+
+        <NavigationProperty Name="Devices" Type="DeviceCollection.DeviceCollection" Nullable="false">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+
+        <Property Name="Links" Type="Adapter.1.0.0.Links" Nullable="false"/>
+      </EntityType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+        <NavigationProperty Name="ContainedBy" Type="ComputerSystem.1.0.0.ComputerSystem">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

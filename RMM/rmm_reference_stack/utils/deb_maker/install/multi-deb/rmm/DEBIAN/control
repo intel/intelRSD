@@ -1,0 +1,8 @@
+Package: rmm
+Version: 
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: rmm-base
+Maintainer: guanglin.shen <guanglingx.shen@intel.com>
+Description: rmm application/API

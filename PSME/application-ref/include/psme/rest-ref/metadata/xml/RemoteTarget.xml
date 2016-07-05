@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.1.0.0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="LogicalDrive.xml">
+    <edmx:Include Namespace="LogicalDrive.1.0.0"/>
+  </edmx:Reference>
+
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="RemoteTarget.1.0.0">
+
+      <EntityType Name="RemoteTarget" BaseType="Resource.1.0.0.Resource">
+        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+        <Property Name="Type" Type="Edm.String"/>
+        <Property Name="Addresses" Type="Collection(RemoteTarget.1.0.0.Address)" Nullable="false"/>
+        <Property Name="Initiator" Type="Collection(RemoteTarget.1.0.0.Address)" Nullable="false"/>
+
+        <Property Name="Links" Type="RemoteTarget.1.0.0.Links" Nullable="false"/>
+      </EntityType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+      </ComplexType>
+
+      <ComplexType Name="Address">
+        <Property Name="iSCSI" Type="RemoteTarget.1.0.0.ISCSIAddress"/>
+      </ComplexType>
+
+      <ComplexType Name="ISCSIAddress">
+        <Property Name="TargetLUN" Type="Collection(RemoteTarget.1.0.0.TargetLUN)" Nullable="false"/>
+        <Property Name="TargetIQN" Type="Edm.String" Nullable="false"/>
+        <Property Name="TargetPortalIP" Type="Edm.String" Nullable="false"/>
+        <Property Name="TargetPortalPort" Type="Edm.Int64" Nullable="false"/>
+      </ComplexType>
+
+      <ComplexType Name="TargetLUN">
+        <Property Name="LUN" Type="Edm.Int64" Nullable="false"/>
+        <NavigationProperty Name="LogicalDrive" Type="LogicalDrive.1.0.0.LogicalDrive" Nullabe="false">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="Initiator">
+        <Property Name="iSCSI" Type="RemoteTarget.1.0.0.iSCSIInitiator" Nullabe="false"/>
+      </ComplexType>
+
+      <ComplexType Name="iSCSIInitiator">
+        <Property Name="InitiatorIQN" Type="Edm.String"/>
+      </ComplexType>
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

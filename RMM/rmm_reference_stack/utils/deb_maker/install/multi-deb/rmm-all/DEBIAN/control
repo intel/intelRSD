@@ -1,0 +1,8 @@
+Package: rmm-all
+Version: 
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: rmm-api,rmm-consolecontrol
+Maintainer: guanglin.shen <guanglingx.shen@intel.com>
+Description: all-package to install all rmm functionality, version requirements will be here as well.

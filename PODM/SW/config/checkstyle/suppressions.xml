@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+
+<!--
+  ~ Copyright (c) 2015 Intel Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+
+<suppressions>
+    <!-- ClassFanOutComplexity, think twice! -->
+    <suppress checks="ClassFanOutComplexity" files="/BaseResource.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/BootSourceOverrideInvoker.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/Chassis.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ComposedNode.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ComposedNodeReader.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ComposedNodeServiceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ComputerSystem.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ComputerSystemAllocationStrategy.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ComputerSystemJson.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ComputerSystemMatcher.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ComputerSystemResource.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ComputerSystemResourceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/Contexts.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/DbSchemaCreator.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/Memory.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/MemoryServiceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/DeepDiscoveryRunner.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/DomainObjectGraphMapper.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/DomainObjectMultiMapper.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/DomainObjectRepository.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetInterfaceMapper.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPort.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortObtainer.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortActionsInvoker.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortActionsService.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortDto.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortJson.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortResource.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortResourceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortVlanActionsInvoker.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetInterfaceServiceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/JsonProvider.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/Manager.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ManagerServiceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/NewRemoteDriveAssemblyTask.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/PodManagerEthernetInterfaceDiscoveryHandler.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/PowerZoneServiceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/RemoteTargetServiceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ServiceRootResource.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/RequestValidationFilter.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/ThermalZoneServiceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/VlanAllocator.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/VlanNodeAssemblyTask.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/WebClientImpl.java"/>
+
+    <!-- DomainObjects and DTO's with builder are treated more leniently -->
+    <suppress checks="MethodCount" files="/Adapter.java"/>
+    <suppress checks="MethodCount" files="/BaseResource.java"/>
+    <suppress checks="MethodCount" files="/Chassis.java"/>
+    <suppress checks="MethodCount" files="/ChassisDto.java"/>
+    <suppress checks="MethodCount" files="/ChassisResource.java"/>
+    <suppress checks="MethodCount" files="/ChassisResourceImpl.java"/>
+    <suppress checks="MethodCount" files="/ComposedNode.java"/>
+    <suppress checks="MethodCount" files="/ComposedNodeDto.java"/>
+    <suppress checks="MethodCount" files="/ComputerSystem.java"/>
+    <suppress checks="MethodCount" files="/ComputerSystemDto.java"/>
+    <suppress checks="MethodCount" files="/ComputerSystemResource.java"/>
+    <suppress checks="MethodCount" files="/ComputerSystemResourceImpl.java"/>
+    <suppress checks="MethodCount" files="/Contexts.java"/>
+    <suppress checks="MethodCount" files="/Device.java"/>
+    <suppress checks="MethodCount" files="/DeviceDto.java"/>
+    <suppress checks="MethodCount" files="/Memory.java"/>
+    <suppress checks="MethodCount" files="/MemoryDto.java"/>
+    <suppress checks="MethodCount" files="/MemoryResource.java"/>
+    <suppress checks="MethodCount" files="/MemoryResourceImpl.java"/>
+    <suppress checks="MethodCount" files="/DomainObject.java"/>
+    <suppress checks="MethodCount" files="/EthernetInterface.java"/>
+    <suppress checks="MethodCount" files="/EthernetInterfaceDto.java"/>
+    <suppress checks="MethodCount" files="/EthernetInterfaceResource.java"/>
+    <suppress checks="MethodCount" files="/EthernetInterfaceResourceImpl.java"/>
+    <suppress checks="MethodCount" files="/EthernetSwitch.java"/>
+    <suppress checks="MethodCount" files="/EthernetSwitchDto.java"/>
+    <suppress checks="MethodCount" files="/EthernetSwitchPort.java"/>
+    <suppress checks="MethodCount" files="/EthernetSwitchPortDto.java"/>
+    <suppress checks="MethodCount" files="/EthernetSwitchPortResource.java"/>
+    <suppress checks="MethodCount" files="/EthernetSwitchPortResourceImpl.java"/>
+    <suppress checks="MethodCount" files="/EthernetSwitchPortVlan.java"/>
+    <suppress checks="MethodCount" files="/ExternalService.java"/>
+    <suppress checks="MethodCount" files="/LogicalDrive.java"/>
+    <suppress checks="MethodCount" files="/LogicalDriveDto.java"/>
+    <suppress checks="MethodCount" files="/LogicalDriveResource.java"/>
+    <suppress checks="MethodCount" files="/LogicalDriveResourceImpl.java"/>
+    <suppress checks="MethodCount" files="/Manager.java"/>
+    <suppress checks="MethodCount" files="/ManagerDto.java"/>
+    <suppress checks="MethodCount" files="/ManagerResource.java"/>
+    <suppress checks="MethodCount" files="/ManagerResourceImpl.java"/>
+    <suppress checks="MethodCount" files="/MemoryChunk.java"/>
+    <suppress checks="MethodCount" files="/NetworkProtocol.java"/>
+    <suppress checks="MethodCount" files="/NetworkProtocolDto.java"/>
+    <suppress checks="MethodCount" files="/NetworkProtocolResource.java"/>
+    <suppress checks="MethodCount" files="/NetworkProtocolResourceImpl.java"/>
+    <suppress checks="MethodCount" files="/NetworkParametersReader.java"/>
+    <suppress checks="MethodCount" files="/NetworkServiceDto.java"/>
+    <suppress checks="MethodCount" files="/PhysicalDrive.java"/>
+    <suppress checks="MethodCount" files="/PhysicalDriveDto.java"/>
+    <suppress checks="MethodCount" files="/PowerSupply.java"/>
+    <suppress checks="MethodCount" files="/PowerZone.java"/>
+    <suppress checks="MethodCount" files="/Processor.java"/>
+    <suppress checks="MethodCount" files="/ProcessorDto.java"/>
+    <suppress checks="MethodCount" files="/ProcessorResourceImpl.java"/>
+    <suppress checks="MethodCount" files="/RemoteTarget.java"/>
+    <suppress checks="MethodCount" files="/SimpleStorage.java"/>
+    <suppress checks="MethodCount" files="/SimpleStorageDevice.java"/>
+    <suppress checks="MethodCount" files="/StorageService.java"/>
+    <suppress checks="MethodCount" files="/ThermalZone.java"/>
+    <suppress checks="MethodCount" files="/ThermalZoneDto.java"/>
+
+    <!-- Method length - consider dividing into more logical parts -->
+    <suppress checks="MethodLength" files="/ChassisDto.java"/>
+    <suppress checks="MethodLength" files="/ChassisServiceImpl.java"/>
+    <suppress checks="MethodLength" files="/ComposedNodeDto.java"/>
+    <suppress checks="MethodLength" files="/ComposedNodeDtoJsonSerializer.java"/>
+    <suppress checks="MethodLength" files="/ComputerSystemDto.java"/>
+    <suppress checks="MethodLength" files="/ComputerSystemServiceImpl.java"/>
+    <suppress checks="MethodLength" files="/MemoryDto.java"/>
+    <suppress checks="MethodLength" files="/MemoryDtoSerializer.java"/>
+    <suppress checks="MethodLength" files="/MemoryServiceImpl.java"/>
+    <suppress checks="MethodLength" files="/EthernetSwitchPortDto.java"/>
+    <suppress checks="MethodLength" files="/EthernetSwitchPortDtoJsonSerializer.java"/>
+    <suppress checks="MethodLength" files="/EthernetSwitchPortServiceImpl.java"/>
+    <suppress checks="MethodLength" files="/LogicalDriveDtoJsonSerializer.java"/>
+    <suppress checks="MethodLength" files="/ODataContextProvider.java"/>
+    <suppress checks="MethodLength" files="/SystemDtoJsonSerializer.java"/>
+
+    <!-- Executable Statement Count - consider extracting some methods -->
+    <suppress checks="ExecutableStatementCount" files="/ChassisDto.java"/>
+    <suppress checks="ExecutableStatementCount" files="/ComposedNodeDto.java"/>
+    <suppress checks="ExecutableStatementCount" files="/ComposedNodeDtoJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/ComputerSystemCollectorTest.java"/>
+    <suppress checks="ExecutableStatementCount" files="/ComputerSystemDto.java"/>
+    <suppress checks="ExecutableStatementCount" files="/DeviceDtoJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/MemoryDto.java"/>
+    <suppress checks="ExecutableStatementCount" files="/MemoryDtoSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/EthernetInterfaceDto.java"/>
+    <suppress checks="ExecutableStatementCount" files="/EthernetInterfaceJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/EthernetSwitchJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/EthernetSwitchPortDto.java"/>
+    <suppress checks="ExecutableStatementCount" files="/EthernetSwitchPortDtoJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/LogicalDriveDto.java"/>
+    <suppress checks="ExecutableStatementCount" files="/LogicalDriveDtoJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/ManagerDto.java"/>
+    <suppress checks="ExecutableStatementCount" files="/ManagerDtoJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/PowerZoneDtoJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/ProcessorDto.java"/>
+    <suppress checks="ExecutableStatementCount" files="/ProcessorDtoJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/SystemDtoJsonSerializer.java"/>
+    <suppress checks="ExecutableStatementCount" files="/ThermalZoneDtoJsonSerializer.java"/>
+
+    <suppress checks="ParameterNumber" files="/JsonProvider.java"/>
+
+    <suppress checks="IllegalCatch" files="/DiscoveryRunner.java"/>
+    <suppress checks="IllegalCatch" files="/NodeAssemblyTaskGroup.java"/>
+    <suppress checks="IllegalCatch" files="/RetryInvoker.java"/>
+
+    <suppress checks="UncommentedMainCheck" files="/VaultDecrypterMain.java"/>
+    <suppress checks="UncommentedMainCheck" files="/DbSchemaCreator.java"/>
+
+    <!-- Suppression for JSON templates in REST layer -->
+    <suppress checks="VisibilityModifier" files="json/.*Json.java$"/>
+
+    <suppress checks="AnonInnerLength" files="/EnumeratedType.java"/>
+
+    <!-- Exclude OrientDb connector sources -->
+    <suppress files="org.ops4j.orient.*" checks=".*" />
+
+    <!-- Test classes specific style configuration -->
+    <suppress checks="EmptyBlock" files="test/java"/>
+    <suppress checks="MagicNumber" files="test/java"/>
+    <suppress checks="MethodName" files="test/java"/>
+    <suppress checks="MethodLength" files="test/java"/>
+    <suppress checks="MethodCount" files="test/java"/>
+    <suppress checks="AnonInnerLength" files="test/java"/>
+    <suppress checks="ClassFanOutComplexity" files="test/java"/>
+    <suppress checks="ParameterNumber" files="test/java"/>
+
+</suppressions>

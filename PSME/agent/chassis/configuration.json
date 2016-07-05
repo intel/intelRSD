@@ -1,0 +1,80 @@
+{
+    "agent": {
+        "vendor": "Intel Corporation",
+        "capabilities" : ["Chassis"]
+    },
+    "server": {
+        "port": 7780
+    },
+    "registration": {
+        "ipv4": "localhost",
+        "port": 8383,
+        "interval": 3
+    },
+    "cyMux": {
+        "port": 5623
+    },
+    "managers": [
+         {
+         "slot" : 1,
+         "chassis" : {
+             "size": 4,
+             "locationOffset": 1,
+             "networkInterface": "enp0s20f0.4094",
+             "parentId" : 1,
+             "platform" : "BDCR",
+             "type": "Drawer"
+         },
+         "serialConsoleEnabled": true,
+         "managers" : [
+             {
+                 "ipv4" : "1.1.2.1",
+                 "username" : "put_username_hash_here",
+                 "password" : "put_password_hash_here",
+                 "port" : 623,
+                 "slot" : 1,
+                 "serialConsoleEnabled": true
+             },
+             {
+                 "ipv4" : "1.1.2.2",
+                 "username" : "put_username_hash_here",
+                 "password" : "put_password_hash_here",
+                 "port" : 623,
+                 "slot" : 2,
+                 "serialConsoleEnabled": true
+             },
+             {
+                 "ipv4" : "1.1.2.3",
+                 "username" : "put_username_hash_here",
+                 "password" : "put_password_hash_here",
+                 "port" : 623,
+                 "slot" : 3,
+                 "serialConsoleEnabled": true
+             },
+             {
+                 "ipv4" : "1.1.2.4",
+                 "username" : "put_username_hash_here",
+                 "password" : "put_password_hash_here",
+                 "port" : 623,
+                 "slot" : 4,
+                 "serialConsoleEnabled": true
+             }
+         ]
+       }
+    ],
+    "logger" : {
+        "agent" : {
+            "level" : "INFO",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type" : "STDOUT"
+                }
+            ]
+        }
+    }
+}
