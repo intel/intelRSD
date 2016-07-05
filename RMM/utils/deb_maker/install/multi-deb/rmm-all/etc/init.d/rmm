@@ -1,0 +1,254 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          rmm          
+# Required-Start:    $all
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: Run all of rmm service if it exist
+### END INIT INFO
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+
+
+IPMID_DAEMON=/usr/local/bin/IPMIModule
+IPMID_NAME=IPMIModule
+MEMDB_DAEMON=/usr/local/bin/Memdbd
+MEMDB_NAME=Memdbd
+REST_DAEMON=/usr/local/bin/Restd
+REST_NAME=Restd
+STUNNEL_DAEMON=/usr/local/bin/stunnel
+STUNNEL_NAME=stunnel
+STUNNEL_DAEMON_OPTS='/etc/stunnel/stunnel.conf'
+ASSETD_DAEMON=/usr/local/bin/Assetd
+ASSETD_NAME=Assetd
+ASSETM_DAEMON=/usr/local/bin/AssetModule
+ASSETM_NAME=AssetModule
+PTASD_DAEMON=/usr/local/bin/ptasd
+PTASD_NAME=ptasd
+RMMLOG_DAEMON=/usr/local/bin/RMMLogd
+RMMLOG_NAME=RMMLogd
+UPGRADE_DAEMON=/usr/local/bin/Upgraded
+UPGRADE_NAME=Upgraded
+REDFISH_DAEMON=/usr/local/bin/Redfishd
+REDFISH_NAME=Redfishd
+SSA_DAEMON=/usr/local/bin/SNMPSubagentd
+SSA_NAME=SNMPSubagentd
+REGISTERD_DAEMON=/usr/local/bin/Registerd
+REGISTERD_NAME=Registerd
+SNMPD_DAEMON=/usr/local/bin/snmpd
+SNMPD_NAME=snmpd
+SNMPD_DAEMON_OPTS='-f -Lo -c /etc/snmp/snmpd.conf -C --rwcommunity=public --master=agentx'
+
+test -x $IPMID_DAEMON || exit 0
+test -x $MEMDB_DAEMON || exit 0
+test -x $REST_DAEMON || exit 0
+test -x $ASSETM_DAEMON || exit 0
+test -x $ASSETD_DAEMON || exit 0
+test -x $UPGRADE_DAEMON || exit 0
+test -x $RMMLOG_DAEMON || exit 0
+test -x $REGISTERD_DAEMON || exit 0
+test -x $SSA_DAEMON || exit 0
+test -x $SNMPD_DAEMON || exit 0
+
+force_kill() {
+	pid=`ps axu|grep $1|grep -v grep|awk '{print $2}'`
+	if [ $pid ]
+	then
+		kill -9 $pid
+	fi
+}
+
+permission_check() {
+    uid=`id|awk '{print $1}'|awk -F= '{print $2}'|awk -F\( '{print $1}'`
+    if [ $uid -eq 0 ]; then
+        return
+    else
+        echo "Operation not permitted"
+        exit 0
+    fi
+}
+
+start_daemon() {
+    if [ -s /var/run/$2.pid ]; then
+        RUNNING=$(cat /var/run/$2.pid)
+        if [ -d /proc/$RUNNING ]; then
+            lname=$(readlink /proc/$RUNNING/exe)
+            pname=`echo $lname|/usr/bin/awk -F '[ ;]+' '{print $1}'`
+            if [ $pname = $1 ]; then
+                echo "$2 already is running"
+                return;
+            fi
+        fi
+    fi
+   
+    echo -n "Starting daemon server: $2 \n"
+    start-stop-daemon --start --quiet --make-pidfile --pidfile /var/run/$2.pid --background --exec $1
+}
+
+start_daemon_with_param() {
+    if [ -s /var/run/$2.pid ]; then
+        RUNNING=$(cat /var/run/$2.pid)
+        if [ -d /proc/$RUNNING ]; then
+            lname=$(readlink /proc/$RUNNING/exe)
+            pname=`echo $lname|/usr/bin/awk -F '[ ;]+' '{print $1}'`
+            if [ $pname = $1 ]; then
+                echo "$2 already is running"
+                return;
+            fi
+        fi
+    fi
+   
+    echo -n "Starting daemon server: $2 \n"
+    start-stop-daemon --start --quiet --make-pidfile --pidfile /var/run/$2.pid --background --exec $1 -- $3
+}
+
+start_daemon_no_pid() {
+    if [ -s /var/run/$2.pid ]; then
+        RUNNING=$(cat /var/run/$2.pid)
+        if [ -d /proc/$RUNNING ]; then
+            lname=$(readlink /proc/$RUNNING/exe)
+            pname=`echo $lname|/usr/bin/awk -F '[ ;]+' '{print $1}'`
+            if [ $pname = $1 ]; then
+                echo "$2 already is running"
+                return;
+            fi
+        fi
+    fi
+   
+    echo -n "Starting daemon server: $2 \n"
+    start-stop-daemon --start --quiet --make-pidfile --pidfile --background --exec $1 -- $3
+}
+
+
+stop_daemon() {
+    if [ -s /var/run/$2.pid ]; then
+        RUNNING=$(cat /var/run/$2.pid)
+        if [ -d /proc/$RUNNING ]; then
+            if [ $(readlink /proc/$RUNNING/exe) = $1 ]; then
+                echo -n "Stopping daemon server: $2\n"
+                start-stop-daemon --stop --oknodo --quiet --pidfile /var/run/$2.pid --exec $1 
+                if [ -f /var/run/$2.pid ]
+                then
+                    rm -f /var/run/$2.pid
+                fi
+                return;
+            fi
+        fi
+    fi
+	force_kill $2
+    echo "$2 is not running"
+}
+
+stop_daemon_no_output() {
+    if [ -s /var/run/$2.pid ]; then
+        RUNNING=$(cat /var/run/$2.pid)
+        if [ -d /proc/$RUNNING ]; then
+	    kill $RUNNING
+            if [ -f /var/run/$2.pid ]
+            then
+                rm -f /var/run/$2.pid
+            fi
+            return;
+        fi
+    fi
+	force_kill $2
+}
+
+
+get_status(){
+    if [ -s /var/run/$2.pid ]; then
+        RUNNING=$(cat /var/run/$2.pid)
+        if [ -d /proc/$RUNNING ]; then
+            lname=$(readlink /proc/$RUNNING/exe)
+            pname=`echo $lname|/usr/bin/awk -F '[ ;]+' '{print $1}'`
+            if [ $pname = $1 ]; then
+                echo "$2 is running"
+                return;
+            fi
+        fi
+
+        # No such PID, or executables don't match
+        echo "$2 is not running."
+    else
+        if [ -f /var/run/$2.pid ]
+        then 
+            rm -f /var/run/$2.pid
+        fi
+            echo "$2 is not running."
+    fi
+}
+
+do_start() {
+    start_daemon_with_param $SNMPD_DAEMON $SNMPD_NAME $SNMPD_DAEMON_OPTS;
+    start_daemon $RMMLOG_DAEMON $RMMLOG_NAME;
+    start_daemon $IPMID_DAEMON $IPMID_NAME;
+    start_daemon $MEMDB_DAEMON $MEMDB_NAME;
+    start_daemon $REDFISH_DAEMON $REDFISH_NAME;
+    start_daemon $SSA_DAEMON $SSA_NAME;
+    start_daemon $REGISTERD_DAEMON $REGISTERD_NAME;
+    start_daemon $ASSETD_DAEMON $ASSETD_NAME;
+    start_daemon $PTASD_DAEMON $PTASD_NAME;
+    start_daemon $ASSETM_DAEMON $ASSETM_NAME;
+    start_daemon $REST_DAEMON $REST_NAME;
+	start_daemon_no_pid $STUNNEL_DAEMON $STUNNEL_NAME $STUNNEL_DAEMON_OPTS;
+
+    stop_daemon_no_output $UPGRADE_DAEMON $UPGRADE_NAME;
+    start_daemon $UPGRADE_DAEMON $UPGRADE_NAME;
+}
+
+do_stop() {
+	stop_daemon $STUNNEL_DAEMON $STUNNEL_NAME;
+    stop_daemon $REST_DAEMON $REST_NAME;
+    stop_daemon $SNMPD_DAEMON $SNMPD_NAME
+    stop_daemon $IPMID_DAEMON $IPMID_NAME;
+    stop_daemon $MEMDB_DAEMON $MEMDB_NAME;
+    stop_daemon $REGISTERD_DAEMON $REGISTERD_NAME;
+    stop_daemon $PTASD_DAEMON $PTASD_NAME;
+    stop_daemon $ASSETM_DAEMON $ASSETM_NAME;
+    stop_daemon $ASSETD_DAEMON $ASSETD_NAME;
+    stop_daemon $REDFISH_DAEMON $REDFISH_NAME;
+    stop_daemon $SSA_DAEMON $SSA_NAME;
+    stop_daemon $RMMLOG_DAEMON $RMMLOG_NAME;
+}
+
+do_status(){
+    get_status $SNMPD_DAEMON $SNMPD_NAME
+    get_status $IPMID_DAEMON $IPMID_NAME;
+    get_status $MEMDB_DAEMON $MEMDB_NAME;
+    get_status $REST_DAEMON $REST_NAME;
+    get_status $REGISTERD_DAEMON $REGISTERD_NAME;
+    get_status $PTASD_DAEMON $PTASD_NAME;
+    get_status $ASSETM_DAEMON $ASSETM_NAME;
+    get_status $ASSETD_DAEMON $ASSETD_NAME;
+    get_status $RMMLOG_DAEMON $RMMLOG_NAME;
+    get_status $REDFISH_DAEMON $REDFISH_NAME;
+    get_status $SSA_DAEMON $SSA_NAME;
+	get_status $STUNNEL_DAEMON $STUNNEL_NAME;
+    get_status $UPGRADE_DAEMON $UPGRADE_NAME;
+}
+
+case "$1" in
+    start)
+        permission_check
+        do_start
+        ;;
+    restart|reload|force-reload)
+        permission_check
+        do_stop
+        do_start
+        ;;
+    stop)
+        permission_check
+        do_stop
+        ;;
+    status)
+        permission_check
+        do_status
+        ;;
+
+    *)
+        echo "Usage: $0 start|stop|status" >&2
+        exit 3
+        ;;
+esac

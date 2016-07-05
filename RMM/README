@@ -1,0 +1,45 @@
+Openssl declaration
+-------------------
+This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/)
+This product includes cryptographic software written by Eric Young (eay@cryptsoft.com).  
+This product includes software written by Tim Hudson (tjh@cryptsoft.com).
+
+
+How to Build
+------------
+For x86
+	$ cd utils
+	$ ./rmm_release.sh
+
+For arm
+	$ cd utils
+	$ ./rmm_release.sh arm
+
+All output files are generated under build directory.
+
+
+How to install
+--------------
+For x86
+	After running rmm_release.sh, a few deb files are generated and packed into a tarball, For example:
+		build/release/rsa-rmm-1.0.0.5732.tar.gz
+	You can extract deb files from it and install them to your RMM linux system by running command like:
+		$ cd rsa-rmm-1.0.0.5732
+		$ sudo dpkg -i *.deb
+
+For arm
+	You should copy needed executable binaries and libraries to your target system from below directories:
+		build/bin
+		build/lib
+
+
+How to start/stop RMM
+---------------------
+For x86
+	$ sudo service rmm start
+		or
+	$ sudo service rmm stop
+
+For arm
+	You should write a script to run all needed executable files.
+

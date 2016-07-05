@@ -1,0 +1,1 @@
+ADD_SUBDIRECTORY(asset_module_stub)

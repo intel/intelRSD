@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+
+<!-- This Page is Management BackPlane section------>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>API Validation</title>
+<!-- Loading Bootstrap-->
+<link href="./res/flatUI/dist/css/vendor/bootstrap.min.css" rel="stylesheet">
+<!-- Loading Flat UI-->
+<link href="./res/flatUI/dist/css/flat-ui.min.css" rel="stylesheet">
+<link href="./res/flatUI/docs/assets/css/demo.css" rel="stylesheet">
+<link rel="shortcut icon" href="./res/intel.png"> 
+<script src="./res/flatUI/dist/js/vendor/jquery.min.js"></script>
+<script src="./res/flatUI/dist/js/vendor/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+var platform
+$(window).load(function(){
+	var systemdata;
+	$("#choosembp").click(function(){
+		$.ajax({
+			url:'/v1/rack/MBPCollection',
+			type:"GET",
+			dataType:"json",
+			cache:"false",
+			beforeSend:function(XMLHttpRequest){ 
+				XMLHttpRequest.setRequestHeader("If-Modified-Since","0")},
+			success:function(data){
+				systemdata = data;
+				$("#mbpNumber").empty();
+				var optionNum = data.Mbps.length;
+				for(var i=1; i<=optionNum; i++){
+					var id =data['Mbps'][i-1].ID;
+					$("#mbpNumber").append("<option value='" + i + "'>" + id + "</option>");
+				}
+				$("#choosembpModal").modal('show');
+			},
+			error:function(er){
+				alert("Sorry! Get Information Error!");
+			}
+		});
+	});
+	
+	$("#choosembpsubmit").click(function(){
+		$("#choosembpModal").modal('hide');
+		$.ajax({
+			url:'/v1/rack/MBPCollection/' + systemdata['Mbps'][$("#mbpNumber").val()-1].ID,
+			type:'GET',
+			dataType:'json',
+			success:function(data){
+				$("#mbpID").val(data['ID']);
+				$("#mbpUUID").val(data['UUID']);
+				$("#mbpName").val(data['Name']);
+				$("#mbpdesc").val(data['Description']);
+				$("#mbpCreatedDate").val(data['CreatedDate']);
+				$("#mbpupdatedDate").val(data['UpdatedDate']);
+				$("#mbpMBPID").val(data['MBPID']);
+				$("#mbploc").val(JSON.stringify(data['RackLocation']));
+				$("#mbpfirmwareState").val(data['FirmwareState']);
+				$("#mbpMBPHWAddress").val(data['MBPHWAddress']);
+				$("#mbpMBPIPAddress").val(data['MBPIPAddress']);
+				$("#mbpassetTag").val(data['AssetTag']);
+				$("#mbptextarea").val(JSON.stringify(data['AvailableActions']));
+				$("#mbpfruInfoserialNumber").val(data.FRUInfo.SerialNumber);
+				$("#mbpfrumanufacture").val(data.FRUInfo.Manufacture);
+				$("#mbpfrumodel").val(data.FRUInfo.ModelNumber);
+				$("#mbpfrupartNumber").val(data.FRUInfo.PartNumber);
+				$("#mbpfruFirmwareVersion").val(data.FRUInfo.FirmwareRevision);
+				$("#mbpupdate").attr("class","btn btn-primary btn-lg");
+			},
+			error:function(){
+				alert("Get Information Error!");
+			}
+		});
+	});
+	
+	$("#mbpUpdatesubmit").click(function(){
+		$("#mbpupdateModal").modal('hide');
+		var jsondata = '{"Description":$("#mbpdescriptionupdate").val(),"AssetTag":$("#mbpassetTagupdate").val()}';
+		jsondata = eval('(' + jsondata + ')');
+		$.ajax({
+			url:'/v1/rack/MBPCollection/' + $("#mbpID").val(),
+			type:'PUT',
+			dataType:'json',
+			data:JSON.stringify(jsondata),
+			success:function(data){
+				$("#mbpID").val(data['ID']);
+				$("#mbpUUID").val(data['UUID']);
+				$("#mbpName").val(data['Name']);
+				$("#mbpdesc").val(data['Description']);
+				$("#mbpCreatedDate").val(data['CreatedDate']);
+				$("#mbpupdatedDate").val(data['UpdatedDate']);
+				$("#mbpMBPID").val(data['MBPID']);
+				$("#mbploc").val(JSON.stringify(data['RackLocation']));
+				$("#mbpfirmwareState").val(data['FirmwareState']);
+				$("#mbpMBPHWAddress").val(data['MBPHWAddress']);
+				$("#mbpMBPIPAddress").val(data['MBPIPAddress']);
+				$("#mbpassetTag").val(data['AssetTag']);
+				$("#mbptextarea").val(JSON.stringify(data['AvailableActions']));
+				$("#mbpfruInfoserialNumber").val(data.FRUInfo.SerialNumber);
+				$("#mbpfrumanufacture").val(data.FRUInfo.Manufacture);
+				$("#mbpfrumodel").val(data.FRUInfo.ModelNumber);
+				$("#mbpfrupartNumber").val(data.FRUInfo.PartNumber);
+				$("#mbpfruFirmwareVersion").val(data.FRUInfo.FirmwareRevision);
+			},
+			error:function(){
+				alert("Get Information Error!");
+			}
+		});
+	});
+	
+	
+	$("#mbpupdate").click(function(){
+		$("#mbpdescriptionupdate").val($("#mbpdesc").val());
+		$("#mbpassetTagupdate").val($("#mbpassetTag").val());	
+	});
+
+/*	
+	$("#mbpReset").click(function(){
+			var jsondata= '{\"Action\":\"Reset\",\"ResetType\":\"soft\"}';
+			$.ajax({
+				url:'/rack/mbps/' + $("#mbpID").val(),
+				type:"POST",
+				dataType:"json",
+				contentType:"application/json",
+				data:'{"Action":"Reset","ResetType":"soft"}',
+				error:function(){
+					alert("Reset Error!")
+				},
+				success:function(data){
+					alert("success!")
+				}
+			});
+		});
+*/	
+	$("#mbpReset").click(function(){
+		$.ajax({
+			url:'/v1/rack/platform',
+			type:"GET",
+			dataType:"json",
+			cache:"false",
+			beforeSend:function(XMLHttpRequest){ 
+				XMLHttpRequest.setRequestHeader("If-Modified-Since","0")},
+			success:function(data){
+					platform = data['Platform'];
+			},
+			error:function(er){
+				alert("Sorry! Get Information Error!");
+			}
+		});
+		$("#mbpResetModal").modal('show');
+	});
+	
+	$("#mbpResetSubmit").click(function(){
+		var jsondata= '{"Action":$("#resetAction").val(),"TargetTray": parseInt($("#targetTray").val()),"TargetIndex":parseInt($("#targetIndex").val())}';
+		jsondata = eval("(" + jsondata +")");
+			$.ajax({
+				url:'/v1/rack/MBPCollection/' + $("#mbpID").val(),
+				type:"POST",
+				dataType:"json",
+				contentType:"application/json",
+				data:JSON.stringify(jsondata),
+				error:function(){
+					alert("Take Action Error!")
+				},
+				success:function(data){
+					alert("success!")
+				}
+			});
+			$("#mbpResetModal").modal('hide');
+		});
+
+	var Version;		
+	$("#submit").click(function(){
+			var reader= new FileReader();
+			var file= document.getElementById("uploadfile");
+			var VersionNo;
+			reader.readAsBinaryString(file.files[0]);
+			reader.onload = function(e) {
+				var binaryString = e.target.Result;
+				var base64String = btoa(binaryString); 
+
+				$.ajax({
+					url:'/v1/rack/MBPCollection/' + $("#mbpID").val(),
+					type: "POST",
+					dataType: "json",
+					data: "{" + '"Action"' + ":" + '"Update"' + "," + '"Image"' + ":" + '"' + base64String + '"' + "}",
+					success: function (data) {
+						if(data['Result']=="Updating"){
+							Version = data['new image rev'];
+							setTimeout(function() {QueryVersion()}, 1000);
+						}
+						else if(data['Result'] == "unmatched version" || data['Result']=="invalid version")
+						{
+							alert("Unmatched Version or invalid Version!");
+						}
+					},
+					error: function (er) {
+						QueryVersion();
+					}
+				});
+			};
+	});
+	
+/*query the version per 3s,and timeout if more than 2 minutes*/
+    var QueryTimeout=0;
+    var timesum;
+    function QueryVersion(){
+      $.ajax({
+        url:'/v1/rack/MBPCollection/' + $("#mbpID").val(),
+        type:"GET",
+        dataType:"json",
+        error:function(XMLHttpRequest, textStatus, errorThrown){
+				if(textStatus =="error"){
+					QueryTimeout++;
+					if(QueryTimeout != 40){
+						alert(QueryTimeout);
+						timesum = setTimeout(function(){QueryVersion()},3000);
+					} else {
+						alert("update failed!");
+				}
+			}
+        },
+        success:function(data){
+			if (data['ID'] == $("#mbpID").val()) {
+				QueryTimeout = 0;
+				var api_ver=data.FRUInfo.FirmwareRevision;
+				if(api_ver.length != 0){
+					location.reload();
+					alert("update success!");
+				} else
+					alert("update failed!");
+			} else {
+				if(QueryTimeout != 40){
+					timesum = setTimeout(function(){QueryVersion()},3000);
+				} else {
+					alert("update failed!");
+				}
+			}
+		}
+      });
+    };
+	
+	
+
+		
+	$.ajax({
+		url:'/v1/rack/MBPCollection',
+		type:"GET",
+		dataType:"json",
+		cache:"false",
+		beforeSend:function(XMLHttpRequest){ 
+			XMLHttpRequest.setRequestHeader("If-Modified-Since","0")},
+		success:function(data){
+			systemdata = data;
+			$("#mbpNumber").empty();
+			var optionNum = data.Mbps.length;
+			for(var i=1; i<=optionNum; i++){
+				var id =data['Mbps'][i-1].ID;
+				$("#mbpNumber").append("<option value='" + i + "'>" + id + "</option>");
+			}
+			$("#choosembpModal").modal('show');
+		},
+		error:function(er){
+			alert("Sorry! Get Information Error!");
+		}
+	});
+	
+	
+	
+}) //end of $(window).load()
+</script>
+
+<script>
+function on_action_sel(obj)
+{
+	if (obj.value == 'Reset') {
+		$("#targetIndex").empty();
+		if (platform == 'bdc-r')
+			$("#SelectTray").hide();
+		$("#targetIndex").append("<option value=0>Soft</option>");
+	} else {
+		$("#targetIndex").empty();
+		if (platform == 'bdc-r')
+			$("#SelectTray").show();
+		$("#targetIndex").append("<option value=0>MMP</option>");
+		$("#targetIndex").append("<option value=1>Sled1</option>");
+		$("#targetIndex").append("<option value=2>Sled2</option>");
+		$("#targetIndex").append("<option value=3>Sled3</option>");
+		$("#targetIndex").append("<option value=4>Sled4</option>");
+		$("#targetIndex").append("<option value=5>CPP</option>");
+	}
+}
+
+</script>
+</head>
+
+
+<style type="text/css">
+#logo {
+	width:100px;
+	float:right;
+	padding-right: 20px;
+	padding-bottom: 50px;
+}
+
+input {
+width:100%;
+border=1px;
+border-bottom-style:none;
+border-top-style:none;
+border-right-style:none;
+border-left-style:none;
+}
+</style>
+
+<body style="padding-left:20px; padding-right:20px; padding-bottom:50px">
+<div class="page-header" ALIGN="center">
+    <img id="logo" src="./res/intel.png" class="img-rounded" />
+	<h3 ALIGN="center">RMM Restful API Validation</h3>
+</div>
+
+<!---system table e.g.(Rack Subsystem,Power Subsystem, CoolingzoneSubsystem,ComputerSubsystem, CM Subsystem, Management BackPlane) -->
+<div class="row demo-row">
+<div class="col-xs-12">
+<nav class="navbar navbar-inverse navbar-embossed" role="navigation">
+<div class="navbar-header">
+<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-01"></button>
+</div>
+
+<div class="collapse navbar-collapse" id="navbar-collapse-01">
+  <ul class="nav navbar-nav navbar-left">
+ <li><a href="./RMM.html">Rack SubSystem</a></li>
+    <li><a href="./powersystem.html">Power SubSystem</a></li>
+    <li><a href="./thermalzonesystem.html">ThermalZone Subsystem</a></li>
+    <li><a href="./Drawer.html" >Drawer</a></li>
+    <!--<li><a href="./ComputerModule.html">Computer Module</a></li>-->
+    <li class="active"><a href="./mbpsystem.html">Management Backplane</a></li>
+  </ul>
+</div>
+</nav><!-- /navbar -->
+</div>
+</div> <!-- /row -->
+ 
+ <h4>Management BackPlane Display</h4>
+ 
+<button style="margin-bottom:10px" id="choosembp" class="btn btn-primary btn-lg">Choose MBP</button>
+<br />
+<!-- (ChooseSystemModal) -->
+			<div class="modal fade" id="choosembpModal" tabindex="-1" role="dialog"  aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+				<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+					<h4 class="modal-title" id="myModalLabel">Which mbp do U want to display</h4>
+				</div>
+				
+				 <div class="modal-body">
+				<select id="mbpNumber"class="form-control" style="width:200px" >
+				</select>
+				</div>
+				
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="choosembpsubmit">Submit</button>
+				</div>
+				</div><!-- /.modal-content -->
+				</div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
+
+
+<table class="table table-bordered">
+	<tbody>
+		<tr>
+         <td>mbp_id:</td>
+		 <td><input type="text" id="mbpID"  readonly="readonly"></td>
+		 <td>uuid:</td>
+		 <td><input type="text" id="mbpUUID" style="width:100%" readonly="readonly"></td>
+        </tr>
+		
+		<tr>
+         <td>name:</td>
+		 <td><input type="text" id="mbpName"  readonly="readonly"></td>
+		 <td>description:</td>
+		 <td><input type="text" id="mbpdesc"  readonly="readonly"></td>
+        </tr>
+		
+		<tr>
+		 <td>createdDate:</td>
+		 <td><input type="text" id="mbpCreatedDate"  readonly="readonly"></td>
+		 <td>updatedDate:</td>
+		 <td><input type="text" id="mbpupdatedDate"  readonly="readonly"></td>
+		</tr>
+
+		<tr>
+		 <td>MBPID:</td>
+		 <td><input type="text" id="mbpMBPID"  readonly="readonly"></td>
+		 <td>rackLocation:</td>
+		 <td><input type="text" id="mbploc" style="width:100%"  readonly="readonly"></td>
+		</tr>
+		
+		<tr>
+		 <td>MBPHWAddress:</td>
+		 <td><input type="text" id="mbpMBPHWAddress" style="width:100%"  readonly="readonly"></td>
+		 <td>MBPIPAddress:</td>
+		 <td><input type="text" id="mbpMBPIPAddress" style="width:100%" readonly="readonly"></td>
+		</tr>
+		
+		<tr>
+			<td>assetTag:</td>
+			<td><input type="text" id="mbpassetTag"  readonly="readonly"></td>
+			<td>firmwareState:</td>
+			<td><input type="text" id="mbpfirmwareState"  readonly="readonly"></td>
+		</tr>
+		
+		<tr>
+			<td colspan=2 ALIGN="center">FRUInfo.</td>
+			<td colspan=2 ALIGN="center">availableActions:</td>
+		</tr>
+		<tr>
+			<td>serialNumber:</td>
+			<td><input type="text" id="mbpfruInfoserialNumber" readonly="readonly"/></td>
+			<td rowspan=5 colspan=2><textarea style="background-color:BFCEDC;resize:none;width:100%;height:100%" id="mbptextarea" readonly="readonly" WRAP="virtual"></textarea>
+		</tr>
+		<tr>
+			<td>manufacture:</td>
+			<td><input type="text" id="mbpfrumanufacture" readonly="readonly"/></td>
+		</tr>
+		<tr>
+			<td>modelNumber:</td>
+			<td><input type="text" id="mbpfrumodel" readonly="readonly"/></td>
+		</tr>
+		<tr>
+			<td>partNumber:</td>
+			<td><input type="text" id="mbpfrupartNumber" readonly="readonly"/></td>
+		</tr>
+		<tr>
+			<td>firmwareVersion:</td>
+			<td><input type="text" id="mbpfruFirmwareVersion" readonly="readonly"/></td>
+		</tr>
+		</tbody>
+		</table>	    
+	<div>
+		<button id="mbpupdate" class="btn btn-primary btn-lg disabled" data-toggle="modal" data-target="#mbpupdateModal">Update Info.</button>
+		<button id="mbpReset" class="btn btn-lg btn-primary">Action</button></td>
+	</div>
+<div class="modal fade" id="mbpupdateModal" tabindex="-1" role="dialog" 
+   aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" 
+               data-dismiss="modal" aria-hidden="true">
+                  &times;
+            </button>
+            <h4 class="modal-title" id="myModalLabel">
+               MBP Info. Update Panel
+            </h4>
+         </div>
+         <div class="modal-body">
+           <table class="table table-bordered">
+			<tbody>
+				<tr>
+					<td>description:</td>
+					<td><input type="text" id="mbpdescriptionupdate" style="border:1px solid #bbbbbb" ></td>
+				</tr>
+				<tr>
+					<td>assetTag:</td>
+					<td><input type="text" id="mbpassetTagupdate" style="border:1px solid #bbbbbb"></td>
+				</tr>
+			</tbody>
+			</table>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-default" 
+               data-dismiss="modal">Cancel
+            </button>
+            <button type="button" id="mbpUpdatesubmit" class="btn btn-primary">
+               Submit
+            </button>
+         </div>
+      </div><!-- /.modal-content -->
+</div><!-- /.modal -->
+</div>
+
+<!-- (ChooseSystemModal) -->
+<div class="modal fade" id="mbpResetModal" tabindex="-1" role="dialog"  aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+	<div class="modal-content">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+		<h4 class="modal-title" id="myModalLabel">MBP Action Panel</h4>
+	</div>
+	
+	 <div class="modal-body">
+	 Action:  <select id="resetAction"class="form-control" style="width:200px" onchange="on_action_sel(this)">
+		<option value="Reset" >Reset</option>
+		<option value="SetUartTarget" >SetUartTarget</option>
+	</select><br />
+<div hidden id="SelectTray">
+	targetTray:  <select id="targetTray"class="form-control" style="width:200px">
+					<option value=0>Tray1</option>
+					<option value=1>Tray2</option>
+					<option value=2>Tray3</option>
+					<option value=3>Tray4</option>
+	</select><br />
+</div>
+	targetIndex:  <select id="targetIndex"class="form-control" style="width:200px">
+					<option value=0>Soft</option>
+	</select>
+
+	</div>
+	
+	<div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+		<button type="button" class="btn btn-primary" id="mbpResetSubmit">Submit</button>
+	</div>
+	</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+</tbody>
+</table>
+
+<legend style="clear:both;margin-top:50px" ><b>Firmware Update</b></legend>
+<input style="margin-bottom:5px;width=150px" type="file"  id="uploadfile" name="uploadfile" /><button style="margin-bottom:20px;width:150px" type="button" id="submit" value="submit" />submit<BR />
+
+</body>
+</html>

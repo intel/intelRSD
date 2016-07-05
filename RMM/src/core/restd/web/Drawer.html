@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<!-- This Page is drawer section-->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>API Validation</title>
+	<!-- Loading Bootstrap-->
+    <link href="./res/flatUI/dist/css/vendor/bootstrap.min.css" rel="stylesheet">
+
+  
+    <!-- Loading Flat UI-->
+    <link href="./res/flatUI/dist/css/flat-ui.min.css" rel="stylesheet">
+    <link href="./res/flatUI/docs/assets/css/demo.css" rel="stylesheet">
+	
+	<link rel="shortcut icon" href="./res/intel.png"> 
+	
+	<script src="./res/flatUI/dist/js/vendor/jquery.min.js"></script>
+    <script src="./res/flatUI/dist/js/vendor/bootstrap.min.js"></script>
+<script type="text/javascript">
+
+$(window).load(function(){
+	var drawerdata;
+
+	$("#choosedrawer").click(function(){
+		$.ajax({
+			url:'/v1/rack/DrawerCollection',
+			type:"GET",
+			dataType:"json",
+			cache:"false",
+			beforeSend:function(XMLHttpRequest){ 
+				XMLHttpRequest.setRequestHeader("If-Modified-Since","0")},
+			success:function(data){
+				drawerdata=data;
+				$("#DrawersNumber").empty();
+				var optionNum=data.Drawers.length;
+				for(var i=1;i<=optionNum;i++){
+					var id = data.Drawers[i-1].ID;  
+					$("#DrawersNumber").append("<option value='"+ id +"'>"+ id +"</option>");
+				}
+				$("#ChoosedrawerModal").modal('show');
+			},
+			error:function(er){
+				alert("Sorry! Get Information Error!");
+			}
+		});
+		});
+
+	$("#choosedrawersubmit").click(function(){
+		$("#ChoosedrawerModal").modal('hide');
+		$.ajax({
+			url:'/v1/rack/DrawerCollection/' + $("#DrawersNumber").val(),
+			type:'GET',
+			dataType:'json',
+			success:function(data){
+				$("#drawerID").val(data['ID']);
+				$("#drawerRackUUID").val(data.Location.Rack);
+				$("#drawerName").val(data['Name']);
+				$("#drawerdesc").val(data['Description']);
+				$("#drawerCreatedDate").val(data['CreatedDate']);
+				$("#drawerupdatedDate").val(data['UpdatedDate']);
+				$("#drawerTrayRUID").val(data['TrayRUID']);
+				$("#drawerTrayPUID").val(data['TrayPUID']);
+					
+				$("#drawerPod").val(data.Location.POD);
+				$("#drawerRack").val(data.Location.Rack);
+				$("#draweruLocation").val(data.Location.ULocation);
+				$("#draweruHeight").val(data.Location.UHeight);
+				$("#drawerxLocation").val(data.Location.XLocation);		
+				$("#drawerRackUnits").val(data.Location.RackUnits);
+		
+				if(data['ThermalState'] == 0)
+					$("#drawerthermalState").val("Off");
+				else if(data['ThermalState'] == 1)
+					$("#drawerthermalState").val("Cold");
+				else if(data['ThermalState'] == 2)
+					$("#drawerthermalState").val("Cool");
+				else if(data['ThermalState'] == 3)
+					$("#drawerthermalState").val("Warm");
+				else if(data['ThermalState'] == 4)
+					$("#drawerthermalState").val("Hot");
+				else if(data['ThermalState'] == 5)
+					$("#drawerthermalState").val("Hotter");
+				else if(data['ThermalState'] == 6)
+					$("#drawerthermalState").val("Warning");
+				else if(data['ThermalState'] == 7)
+					$("#drawerthermalState").val("Critical State");
+				
+				$("#drawerPowerConsumedWatts").val(data.PowerAndThermal.PowerConsumedWatts);
+				$("#drawerPresentTemperature").val(data.PowerAndThermal.PresentTemperature);
+				$("#drawerRMMPresent").val(data['RMMPresent']);
+				$("#drawerRackSupportsDisaggregatedPowerCooling").val(data['RackSupportsDisaggregatedPowerCooling']);
+
+				$("#drawerupdate").attr('class','btn btn-primary btn-block btn-lg');
+				$("#drawerHardReset").attr('class','btn btn-primary btn-block btn-lg');
+				$("#drawerSoftReset").attr('class','btn btn-primary btn-block btn-lg');
+
+			},
+			error:function(){
+				alert("Get Information Error!");
+			}
+		});
+	});
+			
+	$("#drawerdescupdatesubmit").click(function(){
+		$("#drawerupdateModal").modal('hide');
+		var jsondata = '{"Description":$("#drawerdescupdate").val()}';
+			jsondata =eval("(" + jsondata + ")");
+		$.ajax({
+			url:'/v1/rack/DrawerCollection/' + $("#drawerID").val(),
+			type:"PUT",
+			dataType:"json",
+			cache:"false",
+			data:JSON.stringify(jsondata),
+			beforeSend:function(XMLHttpRequest){ 
+				XMLHttpRequest.setRequestHeader("If-Modified-Since","0")},
+			success:function(data){
+				$("#drawerID").val(data['ID']);
+				$("#drawerRackUUID").val(data.Location.Rack);
+				$("#drawerName").val(data['Name']);
+				$("#drawerdesc").val(data['Description']);
+				$("#drawerCreatedDate").val(data['CreatedDate']);
+				$("#drawerupdatedDate").val(data['UpdatedDate']);
+				$("#drawerTrayRUID").val(data['TrayRUID']);
+				$("#drawerTrayPUID").val(data['TrayPUID']);
+				$("#drawerPod").val(data.Location.POD);
+				$("#drawerRack").val(data.Location.Rack);
+				$("#draweruLocation").val(data.Location.ULocation);
+				$("#draweruHeight").val(data.Location.UHeight);
+				$("#drawerxLocation").val(data.Location.XLocation);
+				$("#drawerRackUnits").val(data.Location.RackUnits);
+				
+				if(data['ThermalState'] == 0)
+					$("#drawerthermalState").val("Off");
+				else if(data['ThermalState'] == 1)
+					$("#drawerthermalState").val("Cold");
+				else if(data['ThermalState'] == 2)
+					$("#drawerthermalState").val("Cool");
+				else if(data['ThermalState'] == 3)
+					$("#drawerthermalState").val("Warm");
+				else if(data['ThermalState'] == 4)
+					$("#drawerthermalState").val("Hot");
+				else if(data['ThermalState'] == 5)
+					$("#drawerthermalState").val("Hotter");
+				else if(data['ThermalState'] == 6)
+					$("#drawerthermalState").val("Warning");
+				else if(data['ThermalState'] == 7)
+					$("#drawerthermalState").val("Critical State");
+				
+				
+				$("#drawerPowerConsumedWatts").val(data.PowerAndThermal.PowerConsumedWatts);
+				$("#drawerPresentTemperature").val(data.PowerAndThermal.PresentTemperature);
+				$("#drawerRMMPresent").val(data['RMMPresent']);
+				$("#drawerRackSupportsDisaggregatedPowerCooling").val(data['RackSupportsDisaggregatedPowerCooling']);
+			},
+			error:function(er){
+				alert("Sorry! Get Information Error!");
+			}
+		});
+		});
+
+	$("#drawerHardReset").click(function(){
+		$.ajax({
+			url:'/v1/rack/DrawerCollection/' + $("#drawerID").val(),
+			type:"POST",
+			dataType:"json",
+			contentType:'application/json',
+			data:'{"Action":"Reset","ResetType":"Hard"}',
+			error:function(){
+				alert("Drawer Hard Reset Error!")
+			},
+			success:function(data){
+				alert("Drawer Hard Reset success!")
+			}
+		})
+	})
+
+	$("#drawerSoftReset").click(function(){
+		$.ajax({
+			url:'/v1/rack/DrawerCollection/' + $("#drawerID").val(),
+			type:"POST",
+			dataType:"json",
+			contentType:'application/json',
+			data:'{"Action":"Reset","ResetType":"Soft"}',
+			error:function(){
+				alert("Drawer Soft Reset Error!")
+			},
+			success:function(data){
+				alert("Drawer Soft Reset success!")
+			}
+		})
+	})
+
+	$("#drawerupdate").click(function(){
+		$("#drawerupdateModal").modal('show');
+		$("#drawerdescupdate").val($("#drawerdesc").val());
+	});
+	
+	$.ajax({
+		url:'/v1/rack/DrawerCollection',
+		type:"GET",
+		dataType:"json",
+		cache:"false",
+		beforeSend:function(XMLHttpRequest){ 
+			XMLHttpRequest.setRequestHeader("If-Modified-Since","0")},
+		success:function(data){
+			systemdata=data;
+			$("#DrawersNumber").empty();
+			var optionNum=data.Drawers.length;
+			for(var i=1;i<=optionNum;i++){
+				var id =data.Drawers[i-1].ID;
+				$("#DrawersNumber").append("<option value='"+ id +"'>"+ id +"</option>");
+			}
+			$("#ChoosedrawerModal").modal('show');
+		},
+		error:function(er){
+			alert("Sorry! Get Information Error!");
+		}
+	});
+			
+})
+</script>
+
+<script>
+$.fn.inputLimit = function () {
+	$(this).keypress(function (event) {
+		var eventObj = event || e;
+		var keyCode = eventObj.keyCode || eventObj.which;
+		if ((keyCode == 32) || (keyCode == 45) || (keyCode == 46) || (keyCode == 95) || (keyCode >= 48 && keyCode <= 57) || (keyCode >= 65 && keyCode <= 90) || (keyCode >= 97 && keyCode <= 122)) {
+			var length = this.value.toString().length;
+			if(length <= 60) {
+				return true;
+			} else {
+				alert("Too many inputs.");
+				return false;
+			}
+		} else {
+			alert("Wrong input.");
+			return false;
+		}
+	}).focus(function () {
+		this.style.imeMode = 'disabled';
+	}).bind("paste", function () {
+		alert("Doesn't support copy&paste.");
+		return false;
+	});
+};
+
+$().ready(function() { 
+		$("#systemdescupdate").inputLimit(); 
+	}); 
+</script>
+
+
+</head>
+
+
+
+<style type="text/css">
+#logo {
+	width:100px;
+	float:right;
+	padding-right: 20px;
+	padding-bottom: 50px;
+}
+
+td {
+	text-align:center;
+}
+
+
+input {
+width:100%;
+border=1px;
+border-bottom-style:none;
+border-top-style:none;
+border-right-style:none;
+border-left-style:none;
+}
+</style>
+
+<body style="padding-left:20px; padding-right:20px; padding-bottom:50px">
+<div class="page-header" ALIGN="center">
+    <img id="logo" src="./res/intel.png"/ class="img-rounded" />
+	<h3>RMM Restful API Validation</h3>
+</div>
+
+
+<div class="row demo-row">
+<div class="col-xs-12">
+<nav class="navbar navbar-inverse navbar-embossed" role="navigation">
+<div class="navbar-header">
+<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-01">             
+</button>
+</div>
+<div class="collapse navbar-collapse" id="navbar-collapse-01">
+  <ul class="nav navbar-nav navbar-left">
+     <li><a href="./RMM.html" >Rack SubSystem</a></li>
+	 <li><a href="./powersystem.html">Power SubSystem</a></li>
+	 <li><a href="./thermalzonesystem.html">ThermalZone Subsystem</a></li>
+	 <li class="active"><a href="">Drawer</a></li>
+	 <!--<li><a href="./ComputerModule.html">Computer Module</a></li>-->
+	 <li><a href="./mbpsystem.html">Management Backplane</a></li>
+</ul>
+</div>
+</nav><!-- /navbar -->
+</div>
+</div> <!-- /row -->
+
+
+<h4>Drawer Display</h4>
+<button style="margin-bottom:10px;width:200px" id="choosedrawer" class="btn btn-primary btn-lg">Choose Drawer</button>
+<br />
+<!--ChoosedrawerModal-->
+			<div class="modal fade" id="ChoosedrawerModal" tabindex="-1" role="dialog"  aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+				<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+					<h4 class="modal-title" id="myModalLabel">Which drawer do U want to display</h4>
+				</div>
+				 <div class="modal-body">
+				<select id="DrawersNumber"class="form-control" style="width:200px" >
+				</select>
+				
+				
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="choosedrawersubmit">Submit</button>
+				</div>
+				</div><!-- /.modal-content -->
+				</div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
+
+
+<table class="table table-bordered">
+	<tbody>
+		<tr>
+			<td><B>Info.Name</B></td>
+			<td><B>Value</B></td>
+	        <td><B>Info.Name</B></td>
+            <td><B>Value</B></td>
+		</tr>
+
+		<tr>
+			<td>drawer_id:</td>
+			<td><input type="text" id="drawerID"  readonly="readonly"></td>
+			<td>rackUUID:</td>
+			<td><input type="text" id="drawerRackUUID" style="width:100%" readonly="readonly"></td>
+        </tr>
+		
+		<tr>
+			<td>name:</td>
+			<td><input type="text" id="drawerName"  readonly="readonly"></td>
+			<td>description:</td>
+			<td><input type="text" id="drawerdesc"  readonly="readonly"></td>
+        </tr>
+
+		<tr>
+			<td>createdDate:</td>
+			<td><input type="text" id="drawerCreatedDate" style="width:100%" readonly="readonly"></td>
+			<td>updatedDate:</td>
+			<td><input type="text" id="drawerupdatedDate" style="width:100%" readonly="readonly"></td>
+		</tr>
+
+		
+		<tr>
+			<td>trayPUID:</td>
+			<td><input type="text" id="drawerTrayPUID"  readonly="readonly"></td>
+			<td>trayRUID:</td>
+			<td><input type="text" id="drawerTrayRUID"  readonly="readonly"></td>
+		</tr>
+		
+		<tr>
+			<td COLSPAN=2 Align="center">location:</td>
+			<td>RMMPresent:</td>
+            <td><input type="text" id="drawerRMMPresent"  readonly="readonly"></td>
+		</tr>
+		
+		<tr>
+			<td>pod:</td>
+            <td><input type="text" id="drawerPod"  readonly="readonly"></td>
+			<td>rackSupportsDisaggregatedPowerCooling:</td>
+            <td><input type="text" id="drawerRackSupportsDisaggregatedPowerCooling"  readonly="readonly"></td>
+		</tr>
+		
+		<tr>
+			<td>rack:</td>
+            <td><input type="text" id="drawerRack"  readonly="readonly"></td>
+			<td>thermalState:</td>
+	        <td><input type="text" id="drawerthermalState"  readonly="readonly"></td>		
+		</tr>
+
+		<tr>
+			<td>uLocation:</td>
+            <td><input type="text" id="draweruLocation"  readonly="readonly"></td>
+			<td COLSPAN=2 Align="center">powerAndThermal</td>
+		</tr>
+		
+		<tr>
+			<td>uHeight:</td>
+            <td><input type="text" id="draweruHeight"  readonly="readonly"></td>
+			<td>powerConsumedWatts:</td>
+            <td><input type="text" id="drawerPowerConsumedWatts"  readonly="readonly"></td>
+		</tr>	
+
+		<tr>
+			<td>rackUnits:</td>
+			<td><input type="text" id="drawerRackUnits"  readonly="readonly"></td>
+			<td>presentTemperature:</td>
+            <td><input type="text" id="drawerPresentTemperature"  readonly="readonly"></td>
+		</tr>
+
+		<tr>
+			<td>xLocation:</td>
+			<td><input type="text" id="drawerxLocation"  readonly="readonly"></td>
+		</tr>
+		</tbody>
+	</table>
+
+<fieldset style="clear:both" BORDER="50px">
+	<legend><B>Drawer Operation</B></legend>
+	<div class="col-xs-3" style="width:250px">
+		<button id="drawerupdate" class="btn btn-primary btn-block btn-lg disabled" data-toggle="modal">Update Info.</button>
+	</div>
+	<div class="col-xs-3" style="width:250px">
+		<button id="drawerHardReset" class="btn btn-primary btn-block btn-lg disabled" data-toggle="modal">Hard Reset</button>
+	</div>
+	<div class="col-xs-3" style="width:250px">
+		<button id="drawerSoftReset" class="btn btn-primary btn-block btn-lg disabled" data-toggle="modal">Soft Reset</button>
+	</div>
+
+
+
+</fieldset>
+<!--Modal_1-->
+<div class="modal fade" id="drawerupdateModal" tabindex="-1" role="dialog"  aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+					<h4 class="modal-title" id="myModalLabel">drawer update Info. Panel</h4>
+			</div>
+			<div class="modal-body">
+				<table class="table table-bordered">
+					<tr>
+						<td>description:</td>
+						<td><input type="text" id="drawerdescupdate" style="border:1px solid #bbbbbb" /></td>
+					<tr>
+				</table>
+			</div>
+				<div class="modal-footer">
+					<button type="button"  class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" id="drawerdescupdatesubmit" class="btn btn-primary">Submit</button>
+				</div>
+			</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->	
+</body>
+</html>

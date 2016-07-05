@@ -1,0 +1,793 @@
+ipmi_module JSON RPC packet example:
+====================================
+port to other RMM module(asset_module): 24010
+====================================
+
+open serial:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>,
+		"serial_flag": <serial_flag>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<serial_flag>: 
+	0x01-open serial port
+	0x03-close serial port
+<raw_data_in_hex_string_format> in req:
+	serial device name in hex format, e.g., /dev/pts/41 --> 2f6465762f7074732f3431
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1-4]-serial device fd
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 1,
+	"method": "serial_op_req",
+	"params": {
+		"rsp_type": "UDP",
+		"netfn": "48",
+		"cmd": "1",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "11",
+		"data": "2f6465762f7074732f3431",
+		"serial_flag": "1"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 1,
+	"result": {
+		"data_len": "5",
+		"data": "0007000000"
+	}
+}
+
+get device ID:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"serial_flag": <serial_flag>,
+		"serial_fd": <serial_fd>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<serial_flag>: 
+	0x02-serial port command
+<serial_fd>: 
+	serial device fd in string format
+<raw_data_in_hex_string_format> in resp:
+	get device ID response, ref to IPMI get device ID response.
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 2,
+	"method": "serial_cmd_req",
+	"params": {
+		"rsp_type": "UDP",
+		"netfn": "6",
+		"cmd": "1",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "0",
+		"serial_flag": "2",
+		"serial_fd": "7"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 2,
+	"result": {
+		"data_len": "16",
+		"data": "002101792102bf5701006f000011bd17"
+	}
+}
+
+get LAN configure:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id":  <id>,
+	"method": <method>,
+	"params": {
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>,
+		"serial_flag": <serial_flag>,
+		"serial_fd": <serial_fd>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id":  <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<serial_flag>: 
+	0x02-serial port command
+<serial_fd>: 
+	serial device fd in string format
+<raw_data_in_hex_string_format> in req:
+	00000000.
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1-4]-IP address.
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 3,
+	"method": "serial_cmd_req",
+	"params": {
+		"rsp_type": "UDP",
+		"netfn": "12",
+		"cmd": "2",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "4",
+		"data": "01030000",
+		"serial_flag": "2",
+		"serial_fd": "7"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 3,
+	"result": {
+		"data_len": "6",
+		"data": "00210aefa332"
+	}
+}
+
+set default PWM:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>,
+		"serial_flag": <serial_flag>,
+		"serial_fd": <serial_fd>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<serial_flag>: 
+	0x02-serial port command
+<serial_fd>: 
+	serial device fd in string format
+<raw_data_in_hex_string_format> in req:
+	byte[0]-fan mask, 0xff-all fans
+	byte[1]-percent value, 0x28-40%
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 4,
+	"method": "serial_cmd_req",
+	"params": {
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "7",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "2",
+		"data": "ff28",
+		"serial_flag": "2",
+		"serial_fd": "7"
+	}
+}
+
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 4,
+	"result": {
+		"data_len": "1",
+		"data": "00"
+	}
+}
+
+chassis present:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"target_ip": <target_ip>,
+		"target_port": <target_port>,
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1]-chassis present, bit[7]/bit[5]/bit[3]/bit[1]-chassis[4][3][2][1]
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 5,
+	"method": "rmcp_req",
+	"params": {
+		"target_ip": "10.239.163.50",
+		"target_port": "623",
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "2",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "0"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 5,
+	"result": {
+		"data_len": "2",
+		"data": "0040"
+	}
+}
+
+FAN present:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"target_ip": <target_ip>,
+		"target_port": <target_port>,
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1]-FAN present, bit[7]/bit[6]/bit[5]bit[4]/bit[3]/bit[2]/bit[1]/bit[0]-fan[8][7][6][5][4][3][2][1]
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 6,
+	"method": "rmcp_req",
+	"params": {
+		"target_ip": "10.239.163.50",
+		"target_port": "623",
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "5",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "0"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 6,
+	"result": {
+		"data_len": "2",
+		"data": "003f"
+	}
+}
+
+powerzone present:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"target_ip": <target_ip>,
+		"target_port": <target_port>,
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1]-powerzone present, bit[7]/bit[6]/bit[5]bit[4]/bit[3]/bit[2]/bit[1]/bit[0]-powerzone[8][7][6][5][4][3][2][1]
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 7,
+	"method": "rmcp_req",
+	"params": {
+		"target_ip": "10.239.163.50",
+		"target_port": "623",
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "10",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "0"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 7,
+	"result": {
+		"data_len": "2",
+		"data": "0001"
+	}
+}
+
+PSU present:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"target_ip": <target_ip>,
+		"target_port": <target_port>,
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1]-PSU present, bit[7]/bit[6]/bit[5]bit[4]/bit[3]/bit[2]/bit[1]/bit[0]-fan[8][7][6][5][4][3][2][1]
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 8,
+	"method": "rmcp_req",
+	"params": {
+		"target_ip": "10.239.163.50",
+		"target_port": "623",
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "11",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "0"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 8,
+	"result": {
+		"data_len": "2",
+		"data": "0003"
+	}
+}
+
+get alert:
+------------------------------------
+
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 9,
+	"method": "rmcp_req",
+	"params": {
+		"target_ip": "10.239.163.50",
+		"target_port": "623",
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "3",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "0"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 9,
+	"result": {
+		"data_len": "2",
+		"data": "0001"
+	}
+}
+
+FAN tach_meter:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"target_ip": <target_ip>,
+		"target_port": <target_port>,
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1]-fan 1 high 8 
+	byte[2]-fan 1 low 8
+	byte[3]-fan 2 high 8 
+	byte[4]-fan 2 low 8
+	byte[5]-fan 3 high 8 
+	byte[6]-fan 3 low 8
+	byte[7]-fan 4 high 8 
+	byte[8]-fan 4 low 8
+	byte[9]-fan 5 high 8 
+	byte[10]-fan 5 low 8
+	byte[11]-fan 6 high 8
+	byte[12]-fan 6 low 8 
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 10,
+	"method": "rmcp_req",
+	"params": {
+		"target_ip": "10.239.163.50",
+		"target_port": "623",
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "8",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "0"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 10,
+	"result": {
+		"data_len": "13",
+		"data": "00000300030003000300030003"
+	}
+}
+
+get PSU power input:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"target_ip": <target_ip>,
+		"target_port": <target_port>,
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1]- high 8 
+	byte[2]- low 8
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 11,
+	"method": "rmcp_req",
+	"params": {
+		"target_ip": "10.239.163.50",
+		"target_port": "623",
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "37",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "1",
+		"data": "00"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 11,
+	"result": {
+		"data_len": "3",
+		"data": "000200"
+	}
+}
+
+get PSU current output:
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"target_ip": <target_ip>,
+		"target_port": <target_port>,
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1]- high 8 
+	byte[2]- low 8
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 13,
+	"method": "rmcp_req",
+	"params": {
+		"target_ip": "10.239.163.50",
+		"target_port": "623",
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "33",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "1",
+		"data": "00"
+	}
+}.
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 13,
+	"result": {
+		"data_len": "3",
+		"data": "000100"
+	}
+}
+
+get PSU attributes(serial number, manufacture, model, firmware version, node id):
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"target_ip": <target_ip>,
+		"target_port": <target_port>,
+		"rsp_type": "UDP",
+		"netfn": <netfn>,
+		"cmd": <ipmi_command>,
+		"name": <username>,
+		"password": <password>,
+		"data_len": <raw_data_length>, 
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"data_len": <raw_data_length>,
+		"data": <raw_data_in_hex_string_format>
+	}
+}
+<raw_data_in_hex_string_format> in req:
+	byte[1]: 
+		02-read_block
+			0x9e-get serial number
+			0x99-get manufacture
+			0x9a-get model
+			0x9b-get firmware version
+		01-read_word
+		03-write_byte
+<raw_data_in_hex_string_format> in resp:
+	byte[0]-CC
+	byte[1~]-for different command
+	
+for example:
+req:
+{
+	"json_rpc": "2.0",
+	"id": 15,
+	"method": "rmcp_req",
+	"params": {
+		"target_ip": "10.239.163.50",
+		"target_port": "623",
+		"rsp_type": "UDP",
+		"netfn": "56",
+		"cmd": "14",
+		"name": "admin",
+		"password": "admin",
+		"data_len": "3",
+		"data": "00029e"
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": 15,
+	"result": {
+		"data_len": "16",
+		"data": "00485357313432323030363238574445"
+	}
+}
+

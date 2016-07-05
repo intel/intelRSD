@@ -1,0 +1,25 @@
+NET-INTEL-MIB DEFINITIONS ::= BEGIN
+
+--
+-- Top-level infrastructure of the Net-SNMP project enterprise MIB tree
+--
+
+IMPORTS
+    MODULE-IDENTITY, enterprises FROM SNMPv2-SMI;
+
+Intel MODULE-IDENTITY
+    LAST-UPDATED "201506010000Z"
+    ORGANIZATION "www.intel.com"
+    CONTACT-INFO    
+	 "postal:   
+
+     email:    @intel.com"
+    DESCRIPTION
+	"Top-level infrastructure of intel project enterprise MIB tree"
+    REVISION     "201506010000Z"
+    DESCRIPTION
+	"First draft"
+    ::= { enterprises 343}
+
+
+END

@@ -1,0 +1,247 @@
+
+asset_module JSON RPC packet example:
+====================================
+port to receive command from RMM assetd: 24072
+====================================
+
+"on_register":
+------------------------------------
+format:
+req:
+{
+        "json_rpc": "2.0",
+        "id": <id>,
+        "method": "on_register",
+        "params": {
+                "version": <version>,
+                "vendor": <vendor>,
+                "reg_name": <reg_name>,
+                "ipv4address": <ip>,
+                "port": <port>,
+                "cap_mbp": [
+                        {
+                                "name": <cap_name>
+                        }
+                ],
+                "cap_psu": [
+                        {
+                                "name": <cap_name>
+                        }
+                ],
+                "cap_fan": [
+                        {
+                                "name": <cap_name>
+                        }
+                ],
+                "cap_drawer": [
+                        {
+                                "name": <cap_name>
+                        }
+                ]
+        }
+}
+resp:
+{
+    "id": <id>,
+    "json_rpc": "2.0",
+    "result": {
+        "ipv4address": <ip>,
+        "version": <version>,
+        "port": <port>
+    }
+}
+<cap_name>:
+        "Reset"
+        "SetUartTarget"
+        "Update"
+        "RequestStateChange"
+        "SetDesiredSpeed"
+
+for example:
+req:
+{
+    "id": 1,
+    "json_rpc": "2.0",
+    "method": "on_register",
+    "params": {
+        "version": "1.3",
+        "port": 24072,
+        "ipv4address": "10.239.163.50",
+        "vendor": "Intel",
+        "reg_name": "asset_module",
+        "capabilities": [
+            {
+                "name": {
+                    "cap_mbp": [
+                        {
+                            "name": "Reset"
+                        },
+                        {
+                            "name": "SetUartTarget"
+                        },
+                        {
+                            "name": "Update"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": {
+                    "cap_psu": [
+                        {
+                            "name": "RequestStateChange"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": {
+                    "cap_fan": [
+                        {
+                            "name": "RequestStateChange"
+                        },
+                        {
+                            "name": "SetDesiredSpeed"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": {
+                    "cap_drawer": [
+                        {
+                            "name": "Reset"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
+resp:
+{
+    "id": 1,
+    "json_rpc": "2.0",
+    "result": {
+        "ipv4address": "10.239.163.50",
+        "version": "1.3",
+        "port": 24072
+    }
+}
+
+"do_action":
+------------------------------------
+format:
+req:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"method": <method>,
+	"params": {
+		"action": <action>,
+		"attributes": [
+			{
+				"name": <attribute_name>,
+				"value": {
+					"number": <attribute_value>
+				}
+			}
+		]
+	}
+}
+resp:
+{
+	"json_rpc": "2.0",
+	"id": <id>,
+	"result": {
+		"ret_code": <return_code>
+	}
+}
+
+for example:
+req:
+{
+    "params": {
+        "component": "a4d40bb7-12f7-4317-b606-d95623f5f23b",
+        "fan_pwm": 5000
+    },
+    "id": 4,
+    "json_rpc": "2.0",
+    "method": "set_fan_pwm"
+}
+resp:
+{
+    "id": 4,
+    "json_rpc": "2.0",
+    "result": {}
+}
+
+req:
+{
+    "params": {
+        "psu_enable_state": 3,
+        "component": "a4d40bb7-12f7-4317-b606-d95623f5f23b"
+    },
+    "id": 6,
+    "json_rpc": "2.0",
+    "method": "post_psu_by_node_id"
+}
+resp:
+{
+    "id": 6,
+    "json_rpc": "2.0",
+    "result": {}
+}
+
+req:
+{
+    "params": {
+        "component": "eb5f851c-f43b-4b07-a6cc-794f76ab7573",
+        "target_idx": 1
+    },
+    "id": 3,
+    "json_rpc": "2.0",
+    "method": "uart_switch"
+}
+resp:
+{
+    "id": 3,
+    "json_rpc": "2.0",
+    "result": {}
+}
+
+req:
+{
+    "params": {
+        "component": "16d34c6f-7529-4fb8-a1d8-a963e5a3bdc1",
+        "peripheral_id": 0
+    },
+    "id": 7,
+    "json_rpc": "2.0",
+    "method": "hard_reset"
+}
+resp:
+{
+    "id": 7,
+    "json_rpc": "2.0",
+    "result": {}
+}
+
+for example:
+req:
+{
+    "params": {
+        "component": "a4d40bb7-12f7-4317-b606-d95623f5f23b"
+    },
+    "id": 5,
+    "json_rpc": "2.0",
+    "method": "get_fan_pwm_by_id"
+}
+resp:
+{
+    "id": 5,
+    "json_rpc": "2.0",
+    "result": {
+        "fan_pwm": "0   RPM"
+    }
+}

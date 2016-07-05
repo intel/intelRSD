@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.--> 
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="http://docs.oasis-open.org/odata/odata/v4.0/cs01/vocabularies/Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="http://redfish.dmtf.org/schemas/v1/RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+  </edmx:Reference>
+  
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="SerialInterface">
+
+      <EntityType Name="SerialInterface" BaseType="Resource.1.0.0.Resource">
+        <Annotation Term="OData.Description" String="This schema defines an asynchronous serial interface resource."/>
+        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent serial resources as part of the Redfish specification."/>
+      </EntityType>
+      
+    </Schema>
+    
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="SerialInterface.1.0.0">
+
+      <EntityType Name="SerialInterface" BaseType="SerialInterface.SerialInterface">
+        <Annotation Term="OData.Description" String="This schema defines an asynchronous serial interface resource."/>
+        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent serial resources as part of the Redfish specification."/>
+        <Property Name="InterfaceEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Description" String="This indicates whether this interface is enabled."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a boolean indicating whether this interface is enabled."/>
+        </Property>
+        <Property Name="SignalType" Type="SerialInterface.1.0.0.SignalType" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="The type of signal used for the communication connection - RS232 or RS485."/>
+          <Annotation Term="OData.LongDescription" String="This property shall indicate the type of serial signalling that will be utilized for the serial connection."/>
+        </Property>
+        <Property Name="BitRate" Type="SerialInterface.1.0.0.BitRate" Nullable="false">
+          <Annotation Term="OData.Description" String="The receive and transmit rate of data flow, typically in bits-per-second (bps), over the serial connection."/>
+          <Annotation Term="OData.LongDescription" String="This property shall indicate the transmit and receive speed of the serial connection."/>
+        </Property>
+        <Property Name="Parity" Type="SerialInterface.1.0.0.Parity" Nullable="false">
+          <Annotation Term="OData.Description" String="The type of parity used by the sender and receiver in order to detect errors over the serial connection."/>
+          <Annotation Term="OData.LongDescription" String="This property shall indicate parity information for a serial connection."/>
+        </Property>
+        <Property Name="DataBits" Type="SerialInterface.1.0.0.DataBits" Nullable="false">
+          <Annotation Term="OData.Description" String="The number of data bits that will follow the start bit over the serial connection."/>
+          <Annotation Term="OData.LongDescription" String="This property shall indicate number of data bits for the serial connection."/>
+        </Property>
+        <Property Name="StopBits" Type="SerialInterface.1.0.0.StopBits" Nullable="false">
+          <Annotation Term="OData.Description" String="The period of time before the next start bit is transmitted."/>
+          <Annotation Term="OData.LongDescription" String="This property shall indicate the stop bits for the serial connection."/>
+        </Property>
+        <Property Name="FlowControl" Type="SerialInterface.1.0.0.FlowControl" Nullable="false">
+          <Annotation Term="OData.Description" String="The type of flow control, if any, that will be imposed on the serial connection."/>
+          <Annotation Term="OData.LongDescription" String="This property shall indicate the flow control mechanism for the serial connection."/>
+        </Property>
+        <Property Name="ConnectorType" Type="SerialInterface.1.0.0.ConnectorType" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="The type of connector used for this interface."/>
+          <Annotation Term="OData.LongDescription" String="This property shall indicate the type of phyiscal connector used for this serial connection."/>
+        </Property>  
+        <Property Name="PinOut" Type="SerialInterface.1.0.0.PinOut" >
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
+          <Annotation Term="OData.Description" String="The physical pin configuration needed for a serial connector."/>
+          <Annotation Term="OData.LongDescription" String="This property shall indicate the physical pin out for the serial connection."/>
+        </Property>
+      </EntityType>
+
+      <EnumType Name="SignalType">
+        <Member Name="Rs232"/>
+        <Member Name="Rs485"/>
+      </EnumType>
+
+      <EnumType Name="BitRate">
+        <Member Name="1200"/>
+        <Member Name="2400"/>
+        <Member Name="4800"/>
+        <Member Name="9600"/>
+        <Member Name="19200"/>
+        <Member Name="38400"/>
+        <Member Name="57600"/>
+        <Member Name="115200"/>
+        <Member Name="230400"/>
+      </EnumType>
+
+      <EnumType Name="Parity">
+        <Member Name="None"/>
+        <Member Name="Even"/>
+        <Member Name="Odd"/>
+        <Member Name="Mark"/>
+        <Member Name="Space"/>
+      </EnumType>
+
+      <EnumType Name="DataBits">
+        <Member Name="5"/>
+        <Member Name="6"/>
+        <Member Name="7"/>
+        <Member Name="8"/>
+      </EnumType>
+
+      <EnumType Name="StopBits">
+        <Member Name="1"/>
+        <Member Name="2"/>
+      </EnumType>
+
+      <EnumType Name="FlowControl">
+        <Member Name="None">
+          <Annotation Term="OData.Description" String="No flow control imposed"/>
+        </Member>
+        <Member Name="Software">
+          <Annotation Term="OData.Description" String="XON/XOFF in-band flow control imposed"/>
+        </Member>
+        <Member Name="Hardware">
+          <Annotation Term="OData.Description" String="Out of band flow control imposed"/>
+        </Member>
+      </EnumType>
+
+      <EnumType Name="PinOut">
+        <Member Name="Cisco"/>
+        <Member Name="Cyclades"/>
+        <Member Name="Digi"/>
+      </EnumType>
+
+      <EnumType Name="ConnectorType">
+        <Member Name="RJ45"/>
+        <Member Name="RJ11"/>
+        <Member Name="DB9 Female"/>
+        <Member Name="DB9 Male"/>
+        <Member Name="DB25 Female"/>
+        <Member Name="DB25 Male"/>
+        <Member Name="USB"/>
+        <Member Name="mUSB"/>
+        <Member Name="uUSB"/>
+      </EnumType>
+      
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
