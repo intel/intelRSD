@@ -41,7 +41,7 @@ chown -R USER_NAME /opt/vts/
 chown -R USER_NAME /var/log/vts
 ```
 ## Configuration
-* VTS framework configuration
+* VTS framework configuration:
     * Open file /etc/vts/configuration.ini
     * Following flags can be edited:
         * __SQL_CONNECTION_STRING__ - defines database to be used by VTS - set flag following instructions http://docs.sqlalchemy.org/en/latest/core/engines.html (can require installing additional packages)
@@ -114,7 +114,7 @@ vts version
 * VTS is not testing PATCH request on properties that are not marked as READ/WRITE or READONLY
 
 ### Warnings for current release
-VTS testing is based on metadata. Due to metadata errors VTS is not testing HTTP PATCH request on following properties:
+VTS testing is based on metadata. Due to metadata errors VTS is not testing HTTP PATCH request on the following properties:
    * On Ethernet Switch Ports:
       * AdministrativeState
       * LinkSpeedMbps
