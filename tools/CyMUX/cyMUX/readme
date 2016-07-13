@@ -1,0 +1,3 @@
+1. Copy the Cypress library file "libcyusbserial.so" from CyUSBSerial_SDK_Linux/linux/library to /usr/local/lib
+2. Edit ~/.bashrc and add "export LD_LIBRARY_PATH=/usr/local/lib"
+3. Type "make" to build.

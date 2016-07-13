@@ -1,0 +1,11 @@
+cyMUX
+cytool
+test_client
+test_responder
+*\.o
+*\.so
+*\.so.1
+*\.vpj
+/Debug
+/Release
+/.dep

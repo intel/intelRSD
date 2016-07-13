@@ -1,0 +1,25 @@
+Dependencies that need to be installed
+libusb-1.0
+
+To run the regression tests, you will need http://www.eyrie.org/~eagle/software/c-tap-harness/
+
+
+To Build
+
+    make
+
+Installing library on Fedora x86_64 target:
+
+    install -m 755 libcyusbserial.so.1 /usr/lib64
+    ln -sf libcyusbserial.so.1 /usr/lib64/libcyusbserial.so
+
+Installing library on Ubuntu x86_64 target:
+
+    install -m 755 libcyusbserial.so.1 /usr/lib
+    ln -sf libcyusbserial.so.1 /usr/lib/libcyusbserial.so
+
+Installing binaries:
+
+    install -m 755 cyMUX cytool /usr/bin
+
+cyMUX should be run as a service during start up.

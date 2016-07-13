@@ -1,0 +1,10 @@
+[Unit]
+Description=Software multiplexing daemon for access to Cypress USB to I2C part
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/cyMUX -v 5
+
+[Install]
+WantedBy=multi-user.target
+
