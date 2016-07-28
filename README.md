@@ -57,9 +57,3 @@ Follow these steps before using the Intel® Rack Scale Design Solution:
 
 
 10. Provide feedback by clicking the *Issues* link in this GitHub repo.
-
-
-
-## Pull Requests
-
-Unfortunately, **_we are not upstreaming contributions to the master branch just yet._** There are plans for this in the future. Once the process is established we will post information about it.
