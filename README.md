@@ -6,7 +6,7 @@ More detailed information can be found [here](http://intel.com/intelRSD).
 
 ## _Disclaimer_
 
-This code is reference software only and is not feature complete. It should not be used in commercial products at this time. Intel® makes no claims for the quality or completeness of this code.
+This code is reference software only and is not feature complete. Intel® makes no claims for the quality or completeness of this code.
 
 
 ## Getting Started
