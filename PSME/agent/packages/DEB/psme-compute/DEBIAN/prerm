@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ -f /etc/ONPSS_VERSION ]; then
+	mv /etc/psme/psme-compute-configuration.json /etc/psme/bdc_r_configuration.json
+	mv /etc/psme/psme-compute-bdc-a-configuration.json /etc/psme/psme-compute-configuration.json
+fi
+
+service psme-compute stop
+if [ -f /etc/init/psme-compute.conf ]; then
+        rm /etc/init/psme-compute.conf
+fi

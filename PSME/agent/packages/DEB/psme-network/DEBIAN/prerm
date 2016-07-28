@@ -1,0 +1,5 @@
+#!/bin/bash
+service psme-network stop
+if [ -f /etc/init/psme-network.conf ]; then
+        rm /etc/init/psme-network.conf
+fi

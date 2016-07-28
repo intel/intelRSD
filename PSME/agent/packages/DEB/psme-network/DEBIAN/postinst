@@ -1,0 +1,16 @@
+#!/bin/bash
+
+chmod 600 /etc/psme/psme-network-configuration.json
+chmod 700 /usr/bin/psme-network
+
+cat <<EOF >/etc/init/psme-network.conf
+description "Managing psme-network"
+author "RackScale"
+start on (started networking)
+stop on shutdown
+exec /usr/bin/psme-network /etc/psme/psme-network-configuration.json
+EOF
+
+if [ -f /usr/lib/libossp-uuid++.so.16 ] && [ ! -f /usr/lib/libuuid++.so.16 ]; then
+        ln -s /usr/lib/libossp-uuid++.so.16 /usr/lib/libuuid++.so.16
+fi

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+chmod 600 /etc/psme/psme-rest-server-configuration.json
+chmod 700 /usr/bin/psme-rest-server
+chmod 700 /usr/bin/psme-gen-serv-cert.sh
+
+mkdir -p /etc/psme/certs
+
+#creates service for psme-rest-server
+cat <<EOF >/etc/init/psme-rest-server.conf
+description "Managing psme-rest-server"
+author "RackScale"
+start on (started networking)
+stop on shutdown
+
+pre-start script
+  /usr/bin/psme-gen-serv-cert.sh --srv-cert=/etc/psme/certs/server.crt --srv-key=/etc/psme/certs/server.key
+end script
+
+exec /usr/bin/psme-rest-server /etc/psme/psme-rest-server-configuration.json
+EOF
+
+#creates symlinks for libraries
+if [ -f /usr/lib/libossp-uuid++.so.16 ] && [ ! -f /usr/lib/libuuid++.so.16 ]; then
+        ln -s /usr/lib/libossp-uuid++.so.16 /usr/lib/libuuid++.so.16
+fi
+
+if [ -f /usr/lib/x86_64-linux-gnu/libcurl.so.4 ] && [ ! -f /usr/local/lib/libcurl.so ]; then
+        ln -s /usr/lib/x86_64-linux-gnu/libcurl.so.4 /usr/local/lib/libcurl.so
+        ldconfig
+fi

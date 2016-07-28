@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ -f /etc/ONPSS_VERSION ]; then
+	mv /etc/psme/psme-compute-intel-configuration.json /etc/psme/bdc_r_intel_configuration.json
+	mv /etc/psme/psme-compute-bdc-a-intel-configuration.json
+    /etc/psme/psme-compute-intel-configuration.json
+fi
+
+service psme-compute-intel stop
+if [ -f /etc/init/psme-compute-intel.conf ]; then
+        rm /etc/init/psme-compute-intel.conf
+fi

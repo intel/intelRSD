@@ -1,0 +1,33 @@
+#!/bin/bash
+
+chmod 600 /etc/psme/psme-storage-configuration.json
+chmod 700 /usr/bin/psme-storage
+
+cat <<EOF >/etc/init/psme-storage.conf
+description "Managing psme-storage"
+author "RackScale"
+start on (started networking and started tgt)
+stop on shutdown
+pre-start script
+	TIMEOUT=60
+	until [ $TIMEOUT -eq 0 ]; do
+			if tgtadm --op show --mode sys --name State | grep -q "State: ready"; then
+					exit 0;
+			fi
+			TIMEOUT=$((TIMEOUT-1))
+			sleep 1
+	done
+	exit 1;
+end script
+
+exec /usr/bin/psme-storage /etc/psme/psme-storage-configuration.json
+EOF
+
+if [ -f /usr/lib/libossp-uuid++.so.16 ] && [ ! -f /usr/lib/libuuid++.so.16 ]; then
+        ln -s /usr/lib/libossp-uuid++.so.16 /usr/lib/libuuid++.so.16
+fi
+
+if [ -f /usr/lib/x86_64-linux-gnu/libcurl.so.4 ] && [ ! -f /usr/local/lib/libcurl.so ]; then
+        ln -s /usr/lib/x86_64-linux-gnu/libcurl.so.4 /usr/local/lib/libcurl.so
+        ldconfig
+fi

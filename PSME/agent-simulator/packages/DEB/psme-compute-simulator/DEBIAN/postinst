@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cat <<EOF >/etc/init/psme-compute-simulator.conf
+description "Managing psme-compute-simulator"
+author "RSA"
+start on (started networking)
+stop on shutdown
+exec /usr/bin/psme-compute-simulator /etc/psme/psme-compute-simulator-configuration.json
+EOF
+
+if [ -f /usr/lib/libossp-uuid++.so.16 ] && [ ! -f /usr/lib/libuuid++.so.16 ]; then
+        ln -s /usr/lib/libossp-uuid++.so.16 /usr/lib/libuuid++.so.16
+fi
+
