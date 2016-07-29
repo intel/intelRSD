@@ -26,7 +26,7 @@ Follow these steps before using the Intel® Rack Scale Design Solution:
 2. Read fully the following documents:
   * [Intel® Rack Scale Design Pooled System Management Engine (PSME) User Guide](http://www.intel.com/content/www/us/en/architecture-and-technology/rack-scale-design/psme-user-guide.html)
   * [Intel® Rack Scale Design Pod Manager (PODM) User Guide](http://www.intel.com/content/www/us/en/architecture-and-technology/rack-scale-design/pod-manager-user-guide.html)
-  * [Intel® Rack Scale Design Rack Managment Module (RMM) Software User Guide](http://www.intel.com/content/www/us/en/architecture-and-technology/rack-scale-design/rack-management-module-installation-guide.html)
+  * [Intel® Rack Scale Design Rack Managment Module (RMM) Software User Guide](http://www.intel.com/content/www/us/en/architecture-and-technology/rack-scale-design/software-rack-management-module-guide.html)
              
        These documents are a great starting point for understanding the core components and how to set up your hardware and software components.
 
