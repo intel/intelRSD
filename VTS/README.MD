@@ -3,9 +3,10 @@
 ## Installation
 1. Download source code
 2. Enter directory:
-```
-cd VTS/sources
-```
+
+	```
+	cd VTS/sources
+	```
 3. Install all system dependencies:
      * On Ubuntu by typing:
      ```
@@ -18,28 +19,34 @@ cd VTS/sources
      yum install -y python-pip python-setuptools git python-lxml python-dev
      ```
 4. Create VTS egg:
-```
-python setup.py bdist_egg
-```
+
+	```
+	python setup.py bdist_egg
+	```
 5. Install VTS egg by typing (easy_install requires correctly configured connection to public repositories (proxy, routes, etc)):
-```
-easy_install vts.egg
-```
+
+	 ```
+	easy_install vts.egg
+	```
 6. Copy the configuration.ini file to location /etc/vts/configuration.ini:
-```
-mkdir -p /etc/vts/
-cp configuration.ini /etc/vts/
-```
+
+	```
+	mkdir -p /etc/vts/
+	cp configuration.ini /etc/vts/
+	```
 7. Copy test scripts to /opt/vts/tests:
-```
-mkdir -p /opt/vts/tests/
-cp -r tests_packages/* /opt/vts/tests/
-```
+
+    ```
+    mkdir -p /opt/vts/tests/
+    cp -r tests_packages/* /opt/vts/tests/
+    ```
 8. If VTS files have been created using a root account, their ownership has to be changed to the user that will be executing VTS:
-```
-chown -R USER_NAME /opt/vts/
-chown -R USER_NAME /var/log/vts
-```
+
+    ```
+    chown -R USER_NAME /opt/vts/
+    chown -R USER_NAME /var/log/vts
+    ```
+    
 ## Configuration
 * VTS framework configuration:
     * Open file /etc/vts/configuration.ini
