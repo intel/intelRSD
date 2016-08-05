@@ -15,8 +15,8 @@
      ```
      * On Redhat based systems by typing:
      ```
-     yum update -y
-     yum install -y python-pip python-setuptools git python-lxml python-dev
+     dnf update -y
+     dnf install -y python-pip python-setuptools git python-lxml python-dev
      ```
 4. Create VTS egg:
 
