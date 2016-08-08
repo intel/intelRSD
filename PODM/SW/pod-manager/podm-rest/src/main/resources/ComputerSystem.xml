@@ -74,7 +74,7 @@
           <Annotation Term="OData.Description" String="Contains links to other resources that are related to this resource."/>
         </Property>
         <Property Name="AssetTag" Type="Edm.String">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The user definable tag that can be used to track this computer system for inventory or other client purposes"/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall contain the value of the asset tag of the system."/>
         </Property>
@@ -113,7 +113,7 @@
           <Annotation Term="OData.LongDescription" String="The value of this property shall be the host name for this system, as reported by the operating system or hypervisor.  This value is typically provided to the Manager by a service running in the host operating system."/>
         </Property>
         <Property Name="IndicatorLED" Type="ComputerSystem.1.0.0.IndicatorLED">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The state of the indicator LED, used to identify the system"/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall contain the indicator light state for the indicator light associated with this system."/>
         </Property>

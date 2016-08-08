@@ -45,6 +45,7 @@
 
       <ComplexType Name="Actions">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
       </ComplexType>
 
       <Action Name="Allocate" IsBound="true">
@@ -56,6 +57,7 @@
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="AllocationComposedNodeRequest">
        <ComplexType Name="AllocationComposedNodeRequest">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Name" Type="Edm.String"/>
         <Property Name="Description" Type="Edm.String"/>
         <Property Name="Processors" Type="Collection(AllocationComposedNodeRequest.Processor)"/>
@@ -66,11 +68,13 @@
       </ComplexType>
 
       <ComplexType Name="Processor">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Model" Type="Edm.String"/>
         <Property Name="TotalCores" Type="Edm.Int32"/>
         <Property Name="AchievableSpeedMHz" Type="Edm.Int32"/>
         <Property Name="InstructionSet" Type="Edm.String"/>
         <ComplexType Name="Oem">
+            <Annotation Term="OData.AdditionalProperties" Bool="false"/>
             <Property Name="Brand" Type="BrandType"/>
         </ComplexType>
         <NavigationProperty Name="Resource" Type="Processor.1.0.0.Processor">
@@ -82,6 +86,7 @@
       </ComplexType>
 
       <ComplexType Name="Memory">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="CapacityMiB" Type="Edm.Int32"/>
         <Property Name="DimmDeviceType" Type="Memory.1.0.0.MemoryDeviceType"/>
         <Property Name="SpeedMHz" Type="Edm.Int64"/>
@@ -96,6 +101,7 @@
       </ComplexType>
 
       <ComplexType Name="EthernetInterface">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="SpeedMbps" Type="Edm.Int32"/>
         <Property Name="PrimaryVLAN" Type="Edm.Int32"/>
         <Property Name="VLANs" Type="Collection(AllocationComposedNodeRequest.VLAN)"/>
@@ -109,11 +115,13 @@
       </ComplexType>
 
       <ComplexType Name="VLAN">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="VLANId" Type="Edm.Int32"/>
         <Property Name="Tagged" Type="Edm.Boolean"/>
       </ComplexType>
 
       <ComplexType Name="LocalDrive">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="CapacityGiB" Type="Edm.Single"/>
         <Property Name="Type" Type="Edm.String"/>
         <Property Name="MinRPM" Type="Edm.Int32"/>
@@ -129,9 +137,11 @@
       </ComplexType>
 
       <ComplexType Name="RemoteDrive">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="CapacityGiB" Type="Edm.Single"/>
         <Property Name="iSCSIAddress" Type="Edm.String"/>
         <ComplexType Name="Master">
+            <Annotation Term="OData.AdditionalProperties" Bool="false"/>
             <Property Name="Type" Type="MasterType"/>
         </ComplexType>
         <NavigationProperty Name="Resource" Type="LogicalDrive.1.0.0.LogicalDrive">

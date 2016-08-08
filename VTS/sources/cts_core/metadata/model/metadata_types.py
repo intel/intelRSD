@@ -34,6 +34,7 @@ MEMBER = "member"
 PROPERTY = "property"
 UNDERLYING_TYPE = "underlyingtype"
 NAVIGATION_PROPERTY = "navigationproperty"
+BASE_TYPE = "basetype"
 
 
 class Type:
@@ -65,12 +66,26 @@ class EnumType(Type):
 class ComplexType(Type):
     def __init__(self, namespace_name, type_soup):
         Type.__init__(self, namespace_name, type_soup)
+        try:
+            self.base_type = Commons.parse_type_name(type_soup[BASE_TYPE], namespace_name)
+        except KeyError:
+            pass
 
         self.type = ValueTypesCategory.COMPLEX_TYPE
         self.properties = [Property(namespace_name, property_soup) for property_soup in
                            type_soup.find_all(PROPERTY, recursive=False)]
         self.navigation_properties = [NavigationProperty(namespace_name, property_soup) for property_soup in
                                       type_soup.find_all(NAVIGATION_PROPERTY, recursive=False)]
+
+        self.additional_items = True
+        self.set_additional_items()
+
+    def set_additional_items(self):
+        self.additional_items = True
+        for annotation in self.annotations:
+            if annotation.term == "OData.AdditionalProperties":
+                self.additional_items = (annotation.value.lower() == "true")
+                return
 
 
 class TypeDefinition(Type):

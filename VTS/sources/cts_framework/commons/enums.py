@@ -22,6 +22,7 @@
  * @section DESCRIPTION
 """
 
+
 class RequestStatus:
     SUCCESS = "success"
     FAILED = "failed"
@@ -34,10 +35,14 @@ class HttpMethods:
 
 class ReturnCodes:
     OK = 200
-    NO_CONTENT = 204
     CREATED = 201
+    NO_CONTENT = 204
     BAD_REQUEST = 400
+    UNAUTHORIZED = 401
+    FORBIDDEN = 403
     METHOD_NOT_ALLOWED = 405
+    UNPROCESSABLE_ENTITY = 422
+    NOT_IMPLEMENTED = 501
 
 
 class ResourceTypes:
@@ -49,3 +54,4 @@ class LoggingLevel:
     WARNING = "WARNING"
     MESSAGE = "MESSAGE"
     DEBUG = "DEBUG"
+    RAW = "RAW"

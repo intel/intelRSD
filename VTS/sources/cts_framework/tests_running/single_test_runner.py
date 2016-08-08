@@ -68,8 +68,7 @@ class SingleTestRunner:
         test_case_thread = multiprocessing.Process(target=self._run_test_case, args=(queue,))
         test_case_thread.start()
         try:
-            timeout = self.test_case.test_case_details.timeout if self.test_case.test_case_details.timeout else 60
-            test_case_thread.join(timeout=timeout)
+            test_case_thread.join()
             status = queue.get(timeout=1)
         except Queue.Empty:
             test_case_thread.terminate()

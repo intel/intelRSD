@@ -22,6 +22,8 @@
  * @section DESCRIPTION
 """
 
+import traceback
+
 from cts_core.metadata_validation.get.validators.type_validator import ComplexTypeValidator
 
 
@@ -50,7 +52,9 @@ class MetadataGetValidator:
             return False
 
         print "MESSAGE:: validating resource %s" % api_resource.odata_id
+        self.validate_additional_items(entity_details, api_resource)
         for property_description in entity_details.properties + entity_details.navigation_properties:
+
             status = self._validate_property(api_resource, property_description) and status
 
         print "MESSAGE:: validating resource %s ended" % api_resource.odata_id
@@ -62,6 +66,23 @@ class MetadataGetValidator:
             complex_type_validator = ComplexTypeValidator(None, self._metadata_container)
             status = complex_type_validator.validate_property(property_description, api_resource.body)
         except Exception:
-            print "WARNING:: Unexpected exception while handling %s" % api_resource.odata_id
+            print "ERROR:: Unexpected exception %s while handling %s" % (api_resource.odata_id, traceback.format_exc())
             status = False
+        return status
+
+    def validate_additional_items(self, entity_details, api_resource):
+        if entity_details.additional_items:
+            return True
+
+        allowable_keys = [property_description.name for property_description in
+                          entity_details.properties + entity_details.navigation_properties]
+
+        status = True
+        for key in api_resource.body.keys():
+            if key not in allowable_keys and "@" not in key and "#" not in key:
+                print "ERROR:: " + \
+                      "entity %s does not allow for additional keys, key %s is not specified in metadata for that entity" % (
+                          api_resource.odata_id, key)
+                status = False
+
         return status

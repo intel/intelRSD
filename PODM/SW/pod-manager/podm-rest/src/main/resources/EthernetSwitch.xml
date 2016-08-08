@@ -28,22 +28,58 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitch.1.0.0">
 
       <EntityType Name="EthernetSwitch" BaseType="Resource.1.0.0.Resource">
-        <Property Name="SwitchId" Type="Edm.String"/>
-        <Property Name="Manufacturer" Type="Edm.String"/>
-        <Property Name="Model" Type="Edm.String"/>
-        <Property Name="ManufacturingDate" Type="Edm.String"/>
-        <Property Name="SerialNumber" Type="Edm.String"/>
-        <Property Name="PartNumber" Type="Edm.String"/>
-        <Property Name="FirmwareName" Type="Edm.String"/>
-        <Property Name="FirmwareVersion" Type="Edm.String"/>
-        <Property Name="Role" Type="Edm.String"/>
-        <Property Name="MaxACLNumber" Type="Edm.Int32"/>
+        <Property Name="SwitchId" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Unique switch Id (within drawer) used to identify in switch hierarchy discovery."/>
+          <Annotation Term="OData.LongDescription" String="Unique switch Id (within drawer) used to identify in switch hierarchy discovery." />
+        </Property>
+        <Property Name="Manufacturer" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch manufacturer name"/>
+          <Annotation Term="OData.LongDescription" String="Switch manufacturer name" />
+        </Property>
+        <Property Name="Model" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch model"/>
+          <Annotation Term="OData.LongDescription" String="Switch model" />
+        </Property>
+        <Property Name="ManufacturingDate" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Manufacturing date"/>
+          <Annotation Term="OData.LongDescription" String="Manufacturing date" />
+        </Property>
+        <Property Name="SerialNumber" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Switch serial numberSS"/>
+          <Annotation Term="OData.LongDescription" String="Switch serial number" />
+        </Property>
+        <Property Name="PartNumber" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch part number"/>
+          <Annotation Term="OData.LongDescription" String="Switch part number" />
+        </Property>
+        <Property Name="FirmwareName" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch firmware name"/>
+          <Annotation Term="OData.LongDescription" String="Switch firmware name" />
+        </Property>
+        <Property Name="FirmwareVersion" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch firmware version"/>
+          <Annotation Term="OData.LongDescription" String="Switch firmware version" />
+        </Property>
+        <Property Name="Role" Type="Edm.String">
+          <Annotation Term="OData.Description" String=""/>
+          <Annotation Term="OData.LongDescription" String="" />
+        </Property>
+        <Property Name="MaxACLNumber" Type="Edm.Int32">
+          <Annotation Term="OData.Description" String="Role of switch"/>
+          <Annotation Term="OData.LongDescription" String="Role of switch" />
+        </Property>
         <Property Name="Status" Type="Resource.Status"/>
 
         <NavigationProperty Name="Ports" Type="EthernetSwitchPortCollection.EthernetSwitchPortCollection" ContainsTarget="true">
+          <Annotation Term="OData.Description" String="Collection of switch ports"/>
+          <Annotation Term="OData.LongDescription" String="Collection of switch ports" />
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="ACLs" Type="EthernetSwitchACLCollection.EthernetSwitchACLCollection" ContainsTarget="true">
+          <Annotation Term="OData.Description" String="Collection of switch access control list"/>
+          <Annotation Term="OData.LongDescription" String="Collection of switch access control list" />
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <Property Name="Links" Type="EthernetSwitch.1.0.0.Links" Nullable="false"/>

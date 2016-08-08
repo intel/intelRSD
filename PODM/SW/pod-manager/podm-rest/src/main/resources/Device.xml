@@ -27,7 +27,9 @@
 
       <EntityType Name="Device" BaseType="Resource.1.0.0.Resource">
         <Property Name="Interface" Type="PhysicalDrive.1.0.0.Interface"/>
-        <Property Name="CapacityGiB" Type="Edm.Single"/>
+        <Property Name="CapacityGiB" Type="Edm.Single">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
         <Property Name="Type" Type="PhysicalDrive.1.0.0.Type"/>
         <Property Name="RPM" Type="Edm.Int32"/>
         <Property Name="Manufacturer" Type="Edm.String"/>

@@ -52,4 +52,4 @@ class BaseTypeValidator(BaseValidator):
         if not variable_path:
             variable_path = []
 
-        self.variable_path = "::".join([i for i in variable_path if i])
+        self.variable_path = "->".join([i for i in variable_path if i])

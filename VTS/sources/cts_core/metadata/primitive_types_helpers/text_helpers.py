@@ -46,8 +46,10 @@ class StringHelper(BasePrimitiveTypeHelper):
 
     def generate_value(self, avoided_value):
         if not self.REGEX:
-            return "Example String Value"
-        return rstr.xeger(self.REGEX)
+            return ["Example String Value"]
+
+        return [rstr.xeger(self.REGEX)]
+
 
 class DateHelper(StringHelper):
     EDM_TYPE_NAME = ".".join([EDM, "Date"])

@@ -58,6 +58,7 @@ class ExecuteTestScriptsAction(Action):
         for configuration_file in configuration_files:
             test_cases_configuration.update_configuration(**self.get_configuration_from_file(configuration_file))
 
+
         test_run = TestRun()
 
         test_cases_container = tests_manager.read_tests_information()
@@ -72,6 +73,10 @@ class ExecuteTestScriptsAction(Action):
                                                                                test_cases_names=configuration.test_cases)
         else:
             requested_test_cases = test_cases_container.filter_test_cases(packages_names=[configuration.package])
+
+        if not requested_test_cases:
+            print "Test cases not found"
+            exit(1)
 
         test_run.add_tests_configuration_group(requested_test_cases, test_cases_configuration)
 
@@ -88,5 +93,8 @@ class ExecuteTestScriptsAction(Action):
         for section_name in file_config.sections():
             for param_name, param_value in file_config.items(section_name):
                 config[param_name] = param_value
+
+        if not config:
+            print "incorrect configuration file %s" % configuration_file
 
         return config

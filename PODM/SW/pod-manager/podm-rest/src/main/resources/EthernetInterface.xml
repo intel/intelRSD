@@ -129,6 +129,10 @@
           <Annotation Term="OData.LongDescription" String="The value of this property shall reference a collection of VLAN resources. If this property is used, the VLANEnabled and VLANId property shall not be used."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
+	<Property Name="Links" Type="EthernetInterface.1.0.0.Links" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Contains links to other resources that are related to this resource."/>
+        </Property>
       </EntityType>
 
       <!--Strongly typed property for MACAddress-->
@@ -155,6 +159,9 @@
           <Annotation Term="Validation.Minimum" Int="0"/>
           <Annotation Term="Validation.Maximum" Int="100"/>
         </Property>
+      </ComplexType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
       </ComplexType>
 
     </Schema>

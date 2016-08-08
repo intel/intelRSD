@@ -36,6 +36,9 @@
   <edmx:Reference Uri="PowerZoneCollection.xml">
     <edmx:Include Namespace="PowerZoneCollection"/>
   </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitch.xml">
+    <edmx:Include Namespace="EthernetSwitch.1.0.0"/>
+  </edmx:Reference>
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis">
@@ -154,6 +157,7 @@
           <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resource that represents the chassis that contains this chassis and shall be of type Chassis."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
+        <NavigationProperty Name="Switches" Type="Collection(EthernetSwitch.1.0.0.EthernetSwitch)"/>
         <NavigationProperty Name="Contains" Type="Collection(Chassis.Chassis)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="An array of references to any other chassis that this chassis has in it."/>

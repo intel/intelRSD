@@ -42,13 +42,18 @@
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Contains links to other resources that are related to this resource."/>
         </Property>
+        <Property Name="Actions" Type="ComposedNode.1.0.0.Actions" Nullable="false"/>
+        <Property Name="Status" Type="Resource.Status"/>
+        <Property Name="ComposedNodeState" Type="ComposedNode.1.0.0.ComposedNodeState">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
         <Property Name="SystemType" Type="ComposedNode.1.0.0.SystemType" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The type of computer system represented by this resource."/>
           <Annotation Term="OData.LongDescription" String="An enumeration that indicates the kind of system that this resource represents."/>
         </Property>
         <Property Name="AssetTag" Type="Edm.String">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The user definable tag that can be used to track this computer system for inventory or other client purposes"/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall contain the value of the asset tag of the system."/>
         </Property>
@@ -111,7 +116,7 @@
       </EntityType>
 
       <ComplexType Name="Links" BaseType="Resource.Links">
-        <NavigationProperty Name="ComputerSystems" Type="Collection(ComputerSystem.1.0.0.ComputerSystem)">
+        <NavigationProperty Name="ComputerSystem" Type="ComputerSystem.1.0.0.ComputerSystem">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String=""/>
           <Annotation Term="OData.LongDescription" String=""/>
@@ -167,9 +172,26 @@
         </Member>
       </EnumType>
 
+      <EnumType Name="ComposedNodeState">
+        <Member Name="Allocating"/>
+        <Member Name="Allocated"/>
+        <Member Name="Assembling"/>
+        <Member Name="PoweredOn"/>
+        <Member Name="PoweredOff"/>
+        <Member Name="Failed"/>
+      </EnumType>
+
       <ComplexType Name="Actions">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
       </ComplexType>
+      
+      <Action Name="Reset" IsBound="true">
+        <Parameter Name="ComposedNode" Type="ComposedNode.1.0.0.Actions"/>
+        <Parameter Name="ResetType" Type="Resource.ResetType"/>
+      </Action>
+      <Action Name="Assemble" IsBound="true">
+        <Parameter Name="ComposedNode" Type="ComposedNode.1.0.0.Actions"/>
+      </Action>
     </Schema>
 
 </edmx:DataServices>

@@ -45,7 +45,7 @@
         <Annotation Term="Redfish.DynamicPropertyPatterns">
           <Collection>
             <Record>
-              <PropertyValue Property="Pattern" String="([a-zA-Z0-9]+(\\.[a-z]{2,})?|EID:[0-9]+)(:.+)?"/>
+              <PropertyValue Property="Pattern" String="[A-Za-z0-9_.:]+"/>
               <PropertyValue Property="Type" String="Resource.OemObject"/>
             </Record>
           </Collection>
@@ -124,6 +124,9 @@
         </Member>
         <Member Name="Absent">
           <Annotation Term="OData.Description" String="This function or resource is not present or not detected"/>
+        </Member>
+        <Member Name="UnavailableOffline">
+          <Annotation Term="OData.Description" String="This function or resource is present but cannot be used"/>
         </Member>
       </EnumType>
 

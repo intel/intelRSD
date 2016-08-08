@@ -53,11 +53,12 @@ class ApiCaller:
         resource = self._links_factory.get_resource_link(odata_id)
 
         try:
-            params, kwargs = self.build_request_params(resource, payload)
+            url, kwargs = self.build_request_params(resource, payload)
             requests_method = {HttpMethods.GET: requests.get, HttpMethods.PATCH: requests.patch}[http_method]
 
-            print "DEBUG::about to send request %s using parameters %s" % (http_method, ", ".join(
-                [str(param) for param in params] + ["%s: %s" % (str(key), str(value)) for key, value in kwargs.iteritems()]))
+            print "DEBUG::\n%s %s\n\trequest parameters {\n\t\t%s\n\t}" % (http_method, url, "\n\t\t".join(
+                ["%s: %s" % (str(key), str(value)) for key, value in kwargs.iteritems()])
+                )
 
             try:
                 # Try to suppress user warnings
@@ -65,17 +66,26 @@ class ApiCaller:
             except:
                 pass
 
-            response = requests_method(*params, **kwargs)
-            status = RequestStatus.SUCCESS if response.status_code in acceptable_return_codes else RequestStatus.FAILED
-            status_code, headers = response.status_code, response.headers
+            response = requests_method(url, **kwargs)
+            if response.status_code in [ReturnCodes.UNAUTHORIZED, ReturnCodes.FORBIDDEN] and response.status_code not in acceptable_return_codes:
+                raise TestCaseFatalErrorFlag("API refuses provided authentication")
 
-            content = response.text if response.status_code != ReturnCodes.NO_CONTENT else "No content"
-            print "DEBUG::request %s on resource %s returned content %s" % (http_method, resource, content)
+            status = RequestStatus.SUCCESS if response.status_code in acceptable_return_codes else RequestStatus.FAILED
+
+            status_code, headers = response.status_code, response.headers
 
             if response.status_code in [ReturnCodes.NO_CONTENT, ReturnCodes.CREATED]:
                 response_body = dict()
             else:
                 response_body = response.json()
+
+            pretty_response = json.dumps(response_body, indent=4).replace("\n", "\n\t\t") if response.status_code != ReturnCodes.NO_CONTENT else "No content"
+
+            print "RAW::\n\tresponse\n\t\t%s\n" % (pretty_response)
+            print "RAW::\n\tSTATUS_CODE: %d, ACCEPTABLE: %s\n" % (response.status_code, str(acceptable_return_codes))
+            if RequestStatus.SUCCESS != status:
+                print "RAW::\n\t[WARNING] - %s %s\n" % (http_method, url)
+
 
         except requests.RequestException as err:
             raise TestCaseFatalErrorFlag("Error: %s occurred when accessing resource %s" % (err.message, odata_id))
@@ -105,16 +115,16 @@ class ApiCaller:
 
         try:
             if strtobool(self._config_property_reader.UseSSL):
-                params = HTTPS + resource
+                url = HTTPS + resource
             else:
-                params = HTTP + resource
+                url = HTTP + resource
         except ValueNotFound:
-            params = HTTP + resource
+            url = HTTP + resource
 
         if payload:
             kwargs["data"] = json.dumps(payload)
 
-        return [params], kwargs
+        return url, kwargs
 
     def read_certificate(self, certificate_file):
         try:

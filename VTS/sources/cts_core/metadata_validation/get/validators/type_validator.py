@@ -34,7 +34,10 @@ class TypeValidator(PropertyValidator):
         if not variable_path:
             variable_path = []
 
-        self.variable_path = "::".join([i for i in variable_path + [property_description.name] if i])
+        if not isinstance(variable_path, list):
+            variable_path = [variable_path]
+
+        self.variable_path = "->".join([str(i) for i in variable_path + [property_description.name] if i is not None])
 
     def verify_property(self, property_value):
         if self._property_description.is_collection:
@@ -120,16 +123,44 @@ class TypesDefinitionValidator(BaseTypeValidator):
 
 class ComplexTypeValidator(BaseTypeValidator):
     def validate(self, property_type, property_value):
+        status = True
+        try:
+            requested_property_type = property_value["odata.type"]
+            if not self._metadata_container.types.compare_types(property_type, requested_property_type):
+                print "ERROR::not compatible types %s and %s for value %s" % (property_type, requested_property_type,
+                                                                              str(property_value))
+                status = False
+
+            property_type = requested_property_type
+        except KeyError:
+            # complex type is not defining self as different type
+            pass
+
         try:
             complex_type_description = self._metadata_container.types[property_type]
         except KeyError:
             print "ERROR:: Unknown type " + str(property_type)
             return False
 
-        status = True
+        status = self.validate_additional_items(complex_type_description, property_value) and status
 
         for property_description in complex_type_description.properties:
-            status = status and self.validate_property(property_description, property_value)
+            status = self.validate_property(property_description, property_value) and status
+
+        return status
+
+    def validate_additional_items(self, complex_type_description, property_value):
+        if complex_type_description.additional_items:
+            return True
+
+        allowable_keys = [property_description.name for property_description in
+                          complex_type_description.properties + complex_type_description.navigation_properties]
+
+        status = True
+        for key in property_value.keys():
+            if key not in allowable_keys and "@" not in key and "#" not in key:
+                print "ERROR:: Unexpected key %s in property %s" % (key, self.variable_path)
+                status = False
 
         return status
 

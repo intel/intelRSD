@@ -37,6 +37,8 @@ class BasePrimitiveTypeHelper:
         if self.PYTHON_BASE_TYPE == float and type(value) == int:
             # int is also kind of float
             value = float(value)
+        elif self.PYTHON_BASE_TYPE == unicode and type(value) == str:
+            value = unicode(value)
 
         if type(value) != self.PYTHON_BASE_TYPE:
             return False
