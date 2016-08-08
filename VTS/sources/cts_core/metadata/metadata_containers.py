@@ -67,7 +67,7 @@ class TypesContainer(Container):
 
     def get_base_type(self, type_name):
         if self.get_type_category(type_name) == ValueTypesCategory.TYPE_DEFINITION:
-            return self.get_base_type(self[type_name.base_type])
+            return self.get_base_type(self[type_name].base_type)
         else:
             return type_name
 
@@ -82,6 +82,15 @@ class TypesContainer(Container):
             annotations += self.get_type_annotations(self[type_name].base_type)
 
         return annotations
+
+    def compare_types(self, base_type, extended_type):
+        if base_type == extended_type:
+            return True
+        else:
+            try:
+                return self.compare_types(base_type, self[extended_type].base_type)
+            except:
+                return False
 
 
 class ActionsContainer(Container):

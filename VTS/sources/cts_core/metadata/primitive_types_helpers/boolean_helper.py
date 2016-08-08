@@ -32,7 +32,4 @@ class BooleanHelper(BasePrimitiveTypeHelper):
     PYTHON_BASE_TYPE = bool
 
     def generate_value(self, avoided_value=None):
-        if avoided_value is None:
-            return bool(randint(0,1))
-
-        return not avoided_value
+        return [False, True]

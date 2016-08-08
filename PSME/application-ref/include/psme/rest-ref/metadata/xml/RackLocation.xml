@@ -12,6 +12,7 @@
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="RackLocation">
         <ComplexType Name="RackLocation">
+            <Annotation Term="OData.AdditionalProperties" Bool="false"/>
             <Property Name="RackUnits" Type="RackLocation.RackLocationUnit"/>
             <Property Name="XLocation" Type="Edm.Int64"/>
             <Property Name="ULocation" Type="Edm.Int64"/>

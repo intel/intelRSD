@@ -22,8 +22,6 @@
  * @section DESCRIPTION
 """
 
-from random import randint
-
 from cts_core.metadata.primitive_types_helpers.base_primitive_type_helper import BasePrimitiveTypeHelper
 
 
@@ -35,10 +33,10 @@ class NumberHelper(BasePrimitiveTypeHelper):
         self.MAXIMUM_VALUE = None
 
     def _validate_range(self, value):
-        if not self.MINIMUM_VALUE is None and value < self.MINIMUM_VALUE:
+        if self.MINIMUM_VALUE is not None and value < self.MINIMUM_VALUE:
             return False
 
-        if not self.MAXIMUM_VALUE is None and value > self.MAXIMUM_VALUE:
+        if self.MAXIMUM_VALUE is not None and value > self.MAXIMUM_VALUE:
             return False
 
         return True
@@ -50,21 +48,21 @@ class NumberHelper(BasePrimitiveTypeHelper):
         return self._validate_range(value)
 
     def generate_value(self, avoided_value=None, minimum=None, maximum=None):
-        if minimum is None:
-            if self.MINIMUM_VALUE is None:
-                minimum = -10000
-            else:
-                minimum = self.MINIMUM_VALUE
-        if maximum is None:
-            if self.MAXIMUM_VALUE is None:
-                maximum = 10000
-            else:
-                maximum = self.MAXIMUM_VALUE
+        try:
+            minimum = int(minimum)
+        except (ValueError, TypeError):
+            minimum = -10000 if self.MINIMUM_VALUE is None else self.MINIMUM_VALUE
 
-        if avoided_value is None or not (minimum <= avoided_value <= maximum):
-            return randint(minimum, maximum)
+        try:
+            maximum = int(maximum)
+        except (ValueError, TypeError):
+            maximum = 10000 if self.MAXIMUM_VALUE is None else self.MAXIMUM_VALUE
+
+        if type(avoided_value) == float:
+            middle_point = (minimum + maximum) / 2 + 2
+        elif type(avoided_value) == int:
+            middle_point = int(minimum + maximum) / 2 + 2
         else:
-            if (avoided_value - minimum) > (maximum - avoided_value):
-                return randint(minimum, avoided_value - 1)
-            else:
-                return randint(avoided_value + 1, maximum)
+            middle_point = 1
+
+        return list({i for i in [minimum, middle_point, avoided_value, maximum] if i is not None})

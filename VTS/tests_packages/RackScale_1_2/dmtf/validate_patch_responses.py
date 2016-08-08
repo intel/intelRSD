@@ -60,7 +60,6 @@ class ValidatePatchResponses(TestCase):
                                         is_required=False, parameter_default_value=None)]
 
     def run(self):
-        print self.configuration.__dict__
         metadata_manager = MetadataManager(self.configuration)
         metadata_manager.load_files()
         metadata_container = metadata_manager.load_metadata_properties()
@@ -69,7 +68,4 @@ class ValidatePatchResponses(TestCase):
         discovery_container = api_explorer.process_with_resource(DiscoveryContainer())
         discovery_container.keys()
         status = MetadataPatchValidator(metadata_container, self.configuration).validate(discovery_container)
-        if status:
-            self.set_status_passed()
-        else:
-            self.set_status_failed()
+        self.set_status(status)

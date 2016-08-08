@@ -42,6 +42,7 @@
         <Annotation Term="OData.Description" String="This is the schema definition for definition of a Memory and its configuration" />
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
 
+        <Property Name="Status" Type="Resource.Status"/>
         <Property Name="MemoryType" Type="Memory.1.0.0.MemoryType">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read" />
           <Annotation Term="OData.Description" String="The type of Memory" />

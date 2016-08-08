@@ -26,6 +26,7 @@ from glob import glob
 
 from cts_core.metadata.metadata_containers import NamespacesSoupsContainer, EntitiesContainer, TypesContainer, TermsContainer, \
     ActionsContainer, MetadataContainer
+from cts_core.metadata.metadata_enums import ValueTypesCategory
 from cts_core.metadata.model.action import Action
 from cts_core.metadata.model.entity import Entity
 from cts_core.metadata.model.metadata_types import ComplexType
@@ -79,6 +80,29 @@ class MetadataManager:
             metadata_container.terms.update(self.load_terms(namespace_name, namespace_soup))
             metadata_container.actions.update(self.load_actions(namespace_name, namespace_soup))
 
+        # types inheritance
+        analyzed_complex_types = []
+        loop_did_any_affect = True
+        complex_types = {type_name: type_description for type_name, type_description in metadata_container.types.iteritems() if
+                         type_description.type == ValueTypesCategory.COMPLEX_TYPE}
+        while loop_did_any_affect:
+            loop_did_any_affect = False
+            for type_name, type_description in complex_types.iteritems():
+                if type_name in analyzed_complex_types:
+                    continue
+                try:
+                    if type_description.base_type in analyzed_complex_types and type_description.name not in analyzed_complex_types:
+                        metadata_container.types[type_name].annotations += metadata_container.types[type_description.base_type].annotations
+                        metadata_container.types[type_name].properties += metadata_container.types[type_description.base_type].properties
+                        metadata_container.types[type_name].navigation_properties += metadata_container.types[type_description.base_type].navigation_properties
+                        analyzed_complex_types.append(type_name)
+                        loop_did_any_affect = True
+                        metadata_container.types[type_name].set_additional_items()
+                    elif type_description.base_type not in metadata_container.types.keys():
+                        analyzed_complex_types.append(type_name)
+                except AttributeError:
+                    analyzed_complex_types.append(type_name)
+
         analyzed_entities = self.analyze_entities(not_analyzed_entities)
         metadata_container.entities = analyzed_entities
 
@@ -131,13 +155,13 @@ class MetadataManager:
 
     def load_types(self, namespace_name, namespace_soup):
         types = TypesContainer()
-        for type_soup in namespace_soup.find_all(ENUM_TYPE):
-            enum_type = EnumType(namespace_name, type_soup)
-            types[enum_type.name] = enum_type
-
         for type_soup in namespace_soup.find_all(COMPLEX_TYPE):
             complex_type = ComplexType(namespace_name, type_soup)
             types[complex_type.name] = complex_type
+
+        for type_soup in namespace_soup.find_all(ENUM_TYPE):
+            enum_type = EnumType(namespace_name, type_soup)
+            types[enum_type.name] = enum_type
 
         for type_soup in namespace_soup.find_all(TYPE_DEFINITION):
             type_definition = TypeDefinition(namespace_name, type_soup)

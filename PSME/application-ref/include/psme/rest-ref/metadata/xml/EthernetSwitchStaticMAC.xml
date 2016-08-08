@@ -27,8 +27,12 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitchStaticMAC.1.0.0">
 
       <EntityType Name="EthernetSwitchStaticMAC" BaseType="EthernetSwitchStaticMAC.EthernetSwitchStaticMAC">
-        <Property Name="VlanId" Type="Edm.Int32"/>
-        <Property Name="MACAddress" Type="EthernetInterface.1.0.0.MACAddress"/>
+        <Property Name="VLANId" Type="Edm.Int32">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+        </Property>
+        <Property Name="MACAddress" Type="EthernetInterface.1.0.0.MACAddress">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+        </Property>
       </EntityType>
 
     </Schema>

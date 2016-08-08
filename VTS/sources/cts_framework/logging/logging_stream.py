@@ -71,7 +71,7 @@ class LoggingStream:
             return
         try:
             message_level = {i: i for i in [LoggingLevel.DEBUG, LoggingLevel.ERROR, LoggingLevel.WARNING,
-                                            LoggingLevel.MESSAGE]}[msg.split("::")[0].upper()]
+                                            LoggingLevel.MESSAGE, LoggingLevel.RAW]}[msg.split("::")[0].upper()]
             message_text = "".join(msg.split("::")[1:])
             self.save_current_message()
             self.current_message = message_text
@@ -109,8 +109,16 @@ class LoggingStream:
         :param message: message text
         """
         if self.html_file_handle:
-            self.html_file_handle.write("<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n" %
-                                        (message_datetime, message_level, message.replace("\n", "<br>")))
+            message = message.replace("[PASSED]", "<p style=\"background-color:green;color:white;\">[PASSED]</p>")
+            message = message.replace("[FAILED]", "<p style=\"background-color:red;color:white;\">[FAILED]</p>")
+            message = message.replace("[WARNING]", "<p style=\"background-color:orange;color:white;\">[WARNING]</p>")
+
+            if LoggingLevel.RAW == message_level:
+                self.html_file_handle.write("<tr><td></td><td></td><td><pre>%s</pre></td></tr>\n" %
+                                            (message.replace("\n", "<br>")))
+            else:
+                self.html_file_handle.write("<tr><td>%s</td><td>%s</td><td><pre>%s</pre></td></tr>\n" %
+                                            (message_datetime, message_level, message.replace("\n", "<br>")))
             self.html_file_handle.flush()
 
     def log_csv_message(self, message_level, message_datetime, message):
@@ -123,7 +131,10 @@ class LoggingStream:
         :param message: message text
         """
         if self.csv_file_handle:
-            self.csv_file_handle.write("%s\t%s\t%s\n" % (message_datetime, message_level, message))
+            if LoggingLevel.RAW == message_level:
+                self.csv_file_handle.write("%s\n" % message)
+            else:
+                self.csv_file_handle.write("%s\t%s\t%s\n" % (message_datetime, message_level, message))
             self.csv_file_handle.flush()
 
     def log_db_message(self, message_level, message_datetime, message):
@@ -147,8 +158,10 @@ class LoggingStream:
         :param message_datetime: message datetime
         :param message: message text
         """
-        print >> sys.stderr, "log tag%s [%s] [%s]\n%s\n%s\n%s\n" % (self.tag, message_datetime, message_level, "=" * 25, message,
-                                                     "=" * 25)
+        if LoggingLevel.RAW == message_level:
+            print >> sys.stderr, "%s\n" % message
+        else:
+            print >> sys.stderr, "log tag%s [%s] [%s]\n%s\n%s\n" % (self.tag, message_datetime, message_level, "=" * 25, message)
 
     def enable_stream(self):
         if not self.system_stdout == self:

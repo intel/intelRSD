@@ -28,14 +28,13 @@ from cts_core.metadata.primitive_types_helpers.number_helper import NumberHelper
 
 class FloatingNumberHelper(NumberHelper):
     PYTHON_BASE_TYPE = float
+    FLOATING_POINT_PRECISION = None
 
     def __init__(self):
         NumberHelper.__init__(self)
 
-        self.FLOATING_POINT_PRECISION = None
-
     def _validate_precision(self, value):
-        if not self.FLOATING_POINT_PRECISION is None:
+        if self.FLOATING_POINT_PRECISION is not None:
             value = str(value)
             if "." in value:
                 floating_part = value.split(".")[1]
@@ -52,20 +51,17 @@ class FloatingNumberHelper(NumberHelper):
 
 class DoubleHelper(FloatingNumberHelper):
     def __init__(self):
-        FloatingNumberHelper.__init__(self)
-
         self.FLOATING_POINT_PRECISION = 15
+        FloatingNumberHelper.__init__(self)
 
 
 class SingleHelper(FloatingNumberHelper):
     def __init__(self):
-        FloatingNumberHelper.__init__(self)
-
         self.FLOATING_POINT_PRECISION = 7
+        FloatingNumberHelper.__init__(self)
 
 
 class DecimalHelper(FloatingNumberHelper):
     def __init__(self):
-        FloatingNumberHelper.__init__(self)
-
         self.FLOATING_POINT_PRECISION = 3
+        FloatingNumberHelper.__init__(self)

@@ -18,5 +18,5 @@
 
 set (VER_MAJOR 1)
 set (VER_MINOR 2)
-set (VER_HOTFIX 78)
+set (VER_HOTFIX 79)
 set (VER_BUILD 404)

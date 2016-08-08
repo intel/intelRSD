@@ -27,13 +27,41 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="LogicalDrive.1.0.0">
 
       <EntityType Name="LogicalDrive" BaseType="Resource.1.0.0.Resource">
-        <Property Name="Type" Type="LogicalDrive.1.0.0.Type"/>
-        <Property Name="Mode" Type="LogicalDrive.1.0.0.Mode"/>
-        <Property Name="Protected" Type="Edm.Boolean"/>
-        <Property Name="CapacityGiB" Type="Edm.Single"/>
-        <Property Name="Image" Type="Edm.String"/>
-        <Property Name="Bootable" Type="Edm.Boolean"/>
-        <Property Name="Snapshot" Type="Edm.Boolean"/>
+        <Property Name="Type" Type="LogicalDrive.1.0.0.Type">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Type of volume"/>
+          <Annotation Term="OData.LongDescription" String="Type of volume" />
+        </Property>
+        <Property Name="Mode" Type="LogicalDrive.1.0.0.Mode">
+        <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        <Annotation Term="OData.Description" String="Mode defines how the logical drive is built on top of underlying physical/logical drives. The value shall correspond to the logical drive type."/>
+        <Annotation Term="OData.LongDescription" String="Mode defines how the logical drive is built on top of underlying physical/logical drives. The value shall correspond to the logical drive type." />
+      </Property>
+        <Property Name="Protected" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Write (modify) protection state."/>
+          <Annotation Term="OData.LongDescription" String="Write (modify) protection state." />
+        </Property>
+        <Property Name="CapacityGiB" Type="Edm.Single">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Drive capacity in GibiBytes."/>
+          <Annotation Term="OData.LongDescription" String="Drive capacity in GibiBytes." />
+        </Property>
+        <Property Name="Image" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Image name."/>
+          <Annotation Term="OData.LongDescription" String="Image name." />
+        </Property>
+        <Property Name="Bootable" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Specify if target is bootable."/>
+          <Annotation Term="OData.LongDescription" String="Specify if target is bootable." />
+        </Property>
+        <Property Name="Snapshot" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Indicates if the logical drive should be created as a snapshot of the source master drive, or should be created as a full copy of an image from the source master drive."/>
+          <Annotation Term="OData.LongDescription" String="Indicates if the logical drive should be created as a snapshot of the source master drive, or should be created as a full copy of an image from the source master drive." />
+        </Property>
 
         <Property Name="Status" Type="Resource.Status"/>
 

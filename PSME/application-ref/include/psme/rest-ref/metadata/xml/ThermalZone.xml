@@ -44,6 +44,7 @@
       </EntityType>
 
       <ComplexType Name="TemperatureSensor">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Name" Type="Edm.String"/>
         <Property Name="Status" Type="Resource.Status"/>
         <Property Name="ReadingCelsius" Type="Edm.Decimal"/>
@@ -51,16 +52,19 @@
       </ComplexType>
 
       <ComplexType Name="Fan">
-      <Property Name="Name" Type="Edm.String"/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Name" Type="Edm.String"/>
         <Property Name="Status" Type="Resource.Status"/>
         <Property Name="ReadingRPM" Type="Edm.Decimal"/>
         <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
       </ComplexType>
 
       <ComplexType Name="Actions">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
       </ComplexType>
 
-        <ComplexType Name="Links">
+      <ComplexType Name="Links">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
       </ComplexType>
 
     </Schema>

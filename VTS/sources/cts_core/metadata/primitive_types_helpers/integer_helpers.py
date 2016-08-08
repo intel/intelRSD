@@ -25,7 +25,6 @@ from cts_core.metadata.primitive_types_helpers.base_primitive_type_helper import
 from cts_core.metadata.primitive_types_helpers.number_helper import NumberHelper
 
 
-
 class IntegerHelper(NumberHelper):
     def __init__(self):
         NumberHelper.__init__(self)
@@ -44,7 +43,7 @@ class ByteHelper(IntegerHelper):
 
 
 class Int16Helper(IntegerHelper):
-    EDM_TYPE_NAME =  ".".join([EDM, "Int16"])
+    EDM_TYPE_NAME = ".".join([EDM, "Int16"])
 
     def __init__(self):
         IntegerHelper.__init__(self)

@@ -23,12 +23,23 @@
 """
 
 class ResultStatus:
-    PASSED = "Passed"
     FAILED = "Failed"
-    UNKNOWN = "Unknown"
+    TIMEOUT = "Timeout"
     BLOCKED = "Blocked"
+    UNKNOWN = "Unknown"
+    PASSED_WITH_WARNING = "Passed with warning"
+    SKIPPED = "Skipped"
+    PASSED = "Passed"
+
     NOT_RUN = "Not Run"
     WAITING = "Waiting"
     RUNNING = "Running"
-    TIMEOUT = "Timeout"
-    SKIPPED = "Skipped"
+
+    @staticmethod
+    def join_statuses(status_1, status_2):
+        for status in [ResultStatus.FAILED, ResultStatus.TIMEOUT, ResultStatus.BLOCKED, ResultStatus.UNKNOWN,
+                       ResultStatus.PASSED_WITH_WARNING, ResultStatus.SKIPPED, ResultStatus.PASSED]:
+            if status in [status_1, status_2]:
+                return status
+
+        return ResultStatus.UNKNOWN

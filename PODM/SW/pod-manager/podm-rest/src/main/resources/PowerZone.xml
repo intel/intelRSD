@@ -46,6 +46,7 @@
       </EntityType>
 
       <ComplexType Name="PowerSupply">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Name" Type="Edm.String"/>
         <Property Name="Status" Type="Resource.Status"/>
         <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
@@ -59,9 +60,11 @@
       </ComplexType>
 
       <ComplexType Name="Links">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
       </ComplexType>
 
       <ComplexType Name="Actions">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
       </ComplexType>
 
     </Schema>

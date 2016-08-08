@@ -45,14 +45,26 @@ class Entity:
             self.base_type = None
         self.abstract = entity_soup.get(ABSTRACT, False)
         self.annotation = [Annotation(annotation_soup) for annotation_soup in
-                            entity_soup.find_all(ANNOTATION, recursive=False)]
+                           entity_soup.find_all(ANNOTATION, recursive=False)]
         self.properties = [Property(namespace_name, property_soup) for property_soup in
                            entity_soup.find_all(PROPERTY, recursive=False)]
         self.navigation_properties = [NavigationProperty(namespace_name, navigation_property_soup) for
                                       navigation_property_soup in
                                       entity_soup.find_all(NAVIGATION_PROPERTY, recursive=False)]
 
+        self.additional_items = True
+        self.set_additional_items()
+
     def base_entity_on(self, base_entity):
-        self.annotation += base_entity.annotation
+        # make sure of annotations order
+        self.annotation = self.annotation + base_entity.annotation
         self.properties += base_entity.properties
         self.navigation_properties += base_entity.navigation_properties
+        self.set_additional_items()
+
+    def set_additional_items(self):
+        self.additional_items = True
+        for annotation in self.annotation:
+            if annotation.term == "OData.AdditionalProperties":
+                self.additional_items = (annotation.value.lower() == "true")
+                return
