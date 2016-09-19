@@ -103,7 +103,7 @@ void Multiplexer::use_before(RequestHandler plugin) {
 }
 
 void Multiplexer::use_after(RequestHandler plugin) {
-    m_plugin_pre_handlers.emplace_back(plugin);
+    m_plugin_post_handlers.emplace_back(plugin);
 }
 
 void Multiplexer::register_handler(MethodsHandler::UPtr handler, AccessType access_type) {
