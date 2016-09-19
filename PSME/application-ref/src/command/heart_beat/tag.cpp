@@ -28,4 +28,4 @@
 
 #include "psme/command/heart_beat/tag.hpp"
 
-const char* psme::command::heart_beat::TAG = "Registration";
+const char* psme::command::heart_beat::TAG = "Reqistration";
