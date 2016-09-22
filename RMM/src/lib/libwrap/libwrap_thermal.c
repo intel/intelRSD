@@ -802,35 +802,25 @@ result_t libwrap_get_tzone_coll(collections_t* tzone, uint32 *number, int8 *host
 	return get_thermalzone_collection(tzone, number, host);
 }
 
+
 static input_attr_t patch_tz_attrs[] = {
-	{"Description",         NULL}
 };
 
-result_t libwrap_update_put_tzone_info(json_t *req, put_tzone_t *put_info)
-{
-	result_t rs = RESULT_OK;
-	json_t *obj = NULL;
-	int32  i = 0;
-	uint32 ary_size = sizeof(patch_tz_attrs)/sizeof(input_attr_t);
 
-	if ((req == NULL) || (put_info == NULL))
+result_t libwrap_update_put_tzone_info(json_t* req, put_tzone_t* put_info) {
+	int32 i = 0;
+	uint32 ary_size = sizeof(patch_tz_attrs) / sizeof(input_attr_t);
+
+	if ((req == NULL) || (put_info == NULL)) {
 		return RESULT_NONE_POINTER;
+	}
 
-	for (i = 0; i < ary_size; i++)
+	for (i = 0; i < ary_size; i++) {
 		patch_tz_attrs[i].value = NULL;
+	}
 
-	if (libwrap_check_input_attrs(patch_tz_attrs, ary_size, req, NULL) != RESULT_OK)
+	if (libwrap_check_input_attrs(patch_tz_attrs, ary_size, req, NULL) != RESULT_OK) {
 		return RESULT_JSON_ARR_ERR;
-
-	obj = libwrap_get_attr_json(patch_tz_attrs, ary_size, "Description");
-	if (obj) {
-		int8 *input = NULL;
-		input = json_string_value(obj);
-		if (input && check_str_len(input, REST_DESC_LEN)) {
-			strncpy_safe(put_info->descr, input, REST_DESC_LEN, REST_DESC_LEN - 1);
-		} else {
-			return RESULT_JSON_ARR_ERR;
-		}
 	}
 
 	return RESULT_OK;

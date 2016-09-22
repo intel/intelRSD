@@ -42,7 +42,7 @@ class ValidatePatchResponses(TestCase):
                                         parameter_description="Path to directory containing metadata",
                                         parameter_type=str, is_required=True, parameter_default_value=None),
         TestCase.ConfigurationParameter(parameter_name="UseSSL",
-                                        parameter_description="defines if CTS shall use ssl to communiacte with api",
+                                        parameter_description="defines if VTS shall use ssl to communiacte with api",
                                         parameter_type=bool, is_required=False, parameter_default_value=False),
         TestCase.ConfigurationParameter(parameter_name="CertificateCertFile",
                                         parameter_description="Path to file with certificate in PEM format",

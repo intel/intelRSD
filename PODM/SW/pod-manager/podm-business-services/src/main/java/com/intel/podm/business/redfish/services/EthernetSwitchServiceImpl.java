@@ -64,7 +64,7 @@ public class EthernetSwitchServiceImpl implements EthernetSwitchService {
                 .firmwareVersion(aSwitch.getFirmwareVersion())
                 .role(aSwitch.getRole())
                 .status(aSwitch.getStatus())
-                .chassis(toContext(aSwitch.getChassis()))
+                .chassis(aSwitch.getChassis() != null ? toContext(aSwitch.getChassis()) : null)
                 .managedBy(asManagerContexts(aSwitch.getManagers()))
                 .build();
     }

@@ -31,12 +31,12 @@ public class SimpleStorageJson extends BaseJson {
     public String id;
     public String name;
     public String description;
-    @JsonProperty("UEFIDevicePath")
+    @JsonProperty("UefiDevicePath")
     public String uefiDevicePath;
     public Status status;
     public List<SimpleStorageDeviceJson> devices = new ArrayList<>();
 
     public SimpleStorageJson() {
-        super("#SimpleStorage.1.0.0.SimpleStorage");
+        super("#SimpleStorage.1.1.0.SimpleStorage");
     }
 }

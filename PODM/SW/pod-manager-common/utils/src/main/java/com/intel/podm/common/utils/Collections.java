@@ -37,4 +37,8 @@ public final class Collections {
                 .map(selectedClass::cast)
                 .collect(toList());
     }
+
+    public static boolean nullOrEmpty(Collection collection) {
+        return collection == null || collection.isEmpty();
+    }
 }

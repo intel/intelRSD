@@ -109,13 +109,13 @@ bool HotswapManager::check_physical_volumes_state(const SubmoduleUniquePtr& subm
         const string& logical_drive_mode = ld->get_mode();
         if ((0 == logical_drive_mode.compare(agent_framework::generic::LogicalDrive::LvmTypes::PHYSICAL_VOLUME))
                             && (ld->get_device_path() == (*hd_removed).get_device_path())) {
-            if (ld->get_status().get_state() == lvm::attribute::STATE_OFFLINE &&
+            if (ld->get_status().get_state() == lvm::attribute::STATE_STANDBY_OFFLINE &&
                     ld->get_status().get_health() == lvm::attribute::HEALTH_CRITICAL_STATUS) {
                 break;
             }
-            ld->set_status({lvm::attribute::STATE_OFFLINE, lvm::attribute::HEALTH_CRITICAL_STATUS});
+            ld->set_status({lvm::attribute::STATE_STANDBY_OFFLINE, lvm::attribute::HEALTH_CRITICAL_STATUS});
             ld->remove_hard_drive(hd_removed);
-            log_debug(GET_LOGGER("storage-agent"), "Physical Volume in Critical and Offline state: " << ld->get_name());
+            log_debug(GET_LOGGER("storage-agent"), "Physical Volume in Critical and StandbyOffline state: " << ld->get_name());
             agent::storage::hotswap_event::send_event(ld->get_uuid(), ::agent_framework::model::enums::Component::LogicalDrive,
                         ::agent_framework::eventing::Notification::Update, submodule->get_name());
             pv_found = true;

@@ -42,7 +42,7 @@ public class StatusTest {
                 {new Status(ENABLED, OK, OK), "State=Enabled,Health=OK,HealthRollup=OK" },
                 {new Status(DISABLED, null, Critical), "State=Disabled,HealthRollup=Critical"},
                 {new Status(ABSENT, Warning, null), "State=Absent,Health=Warning"},
-                {new Status(OFFLINE, null, null), "State=Offline"},
+                {new Status(OFFLINE, null, null), "State=UnavailableOffline"},
                 {new Status(null, null, null), null},
                 {new Status(null, Warning, OK), "Health=Warning,HealthRollup=OK"}
         };

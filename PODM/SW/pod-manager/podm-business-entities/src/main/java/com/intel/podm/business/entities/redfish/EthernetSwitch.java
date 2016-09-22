@@ -34,7 +34,6 @@ import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
 import static com.intel.podm.business.entities.base.DomainObjectLink.MANAGED_BY;
 import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
 import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.single;
 import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
@@ -154,7 +153,7 @@ public class EthernetSwitch extends DomainObject implements Discoverable, Manage
     }
 
     public Chassis getChassis() {
-        return single(getLinked(CONTAINED_BY, Chassis.class));
+        return singleOrNull(getLinked(CONTAINED_BY, Chassis.class));
     }
 
     public void addPort(EthernetSwitchPort port) {

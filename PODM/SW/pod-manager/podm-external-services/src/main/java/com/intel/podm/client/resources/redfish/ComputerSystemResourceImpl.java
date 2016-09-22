@@ -43,7 +43,11 @@ import static com.intel.podm.common.types.DiscoveryState.BASIC;
 
 @OdataTypes({
         "#ComputerSystem.1.0.0.ComputerSystem",
-        "#ComputerSystem.1.0.1.ComputerSystem"
+        "#ComputerSystem.1.0.1.ComputerSystem",
+        "#ComputerSystem.1.1.0.ComputerSystem",
+        "#ComputerSystem.v1_0_0.ComputerSystem",
+        "#ComputerSystem.v1_0_1.ComputerSystem",
+        "#ComputerSystem.v1_1_0.ComputerSystem"
 })
 public class ComputerSystemResourceImpl extends ExternalServiceResourceImpl implements ComputerSystemResource, LuiComputerSystemResource {
     @JsonProperty("UUID")

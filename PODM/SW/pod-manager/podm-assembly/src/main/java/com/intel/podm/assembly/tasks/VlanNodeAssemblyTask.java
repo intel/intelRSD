@@ -19,7 +19,9 @@ package com.intel.podm.assembly.tasks;
 import com.intel.podm.actions.ActionException;
 import com.intel.podm.assembly.VlanAllocator;
 import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.EthernetInterfaceDao;
+import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
@@ -35,6 +37,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
@@ -55,6 +58,9 @@ public class VlanNodeAssemblyTask extends NodeAssemblyTask {
     @Inject
     private EthernetInterfaceDao ethernetInterfaceDao;
 
+    @Inject
+    private EthernetSwitchPortDao ethernetSwitchPortDao;
+
     @Override
     @Transactional(REQUIRES_NEW)
     public void run() {
@@ -65,7 +71,13 @@ public class VlanNodeAssemblyTask extends NodeAssemblyTask {
         Optional<List<RequestedEthernetInterface.Vlan>> requestedVlans = requestedInterface.getVlans();
         EthernetInterface ethernetInterface = ethernetInterfaceDao.find(availableInterfaceId);
 
-        Optional<EthernetSwitchPort> associatedSwitchPort = ofNullable(ethernetInterface.getNeighborSwitchPort());
+        Optional<EthernetSwitchPort> associatedSwitchPort = empty();
+
+        try {
+            associatedSwitchPort = ofNullable(ethernetSwitchPortDao.getEnabledAndHealthyEthernetSwitchPortByNeighborMac(ethernetInterface.getMacAddress()));
+        } catch (NonUniqueResultException e) {
+            logger.e("Could not get Switch Port associated with Ethernet Interface '{}'.", ethernetInterface, e);
+        }
 
         createRequestedVlansOnAssociatedSwitchPort(requestedVlans.orElseThrow(this::illegalStateException),
                 associatedSwitchPort.orElseThrow(this::illegalStateException));

@@ -29,7 +29,10 @@ import com.intel.podm.client.resources.ODataId;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@OdataTypes("#ServiceRoot.1.0.0.ServiceRoot")
+@OdataTypes({
+        "#ServiceRoot.1.0.0.ServiceRoot",
+        "#ServiceRoot.v1_0_0.ServiceRoot"
+})
 public class RackscaleServiceRootResourceImpl extends ExternalServiceResourceImpl implements RackscaleServiceRootResource {
     @JsonProperty("UUID")
     private UUID uuid;

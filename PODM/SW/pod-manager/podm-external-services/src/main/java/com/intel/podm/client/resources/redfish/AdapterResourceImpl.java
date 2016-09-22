@@ -28,7 +28,10 @@ import com.intel.podm.client.resources.ODataId;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.StorageControllerInterface;
 
-@OdataTypes("#Adapter.1.0.0.Adapter")
+@OdataTypes({
+        "#Adapter.1.0.0.Adapter",
+        "#Adapter.v1_0_0.Adapter"
+})
 public class AdapterResourceImpl extends ExternalServiceResourceImpl implements AdapterResource, LuiAdapterResource {
     @JsonProperty("Interface")
     private StorageControllerInterface scInterface;

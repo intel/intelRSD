@@ -81,7 +81,7 @@ ENUM(CollectionName, uint32_t, None, AuthorizationCertificates, Processors,
 /*!
  * @brief ENUM State for attribute class Status State member
  */
-ENUM(State, uint32_t, Enabled, Disabled, Offline, InTest, Starting, Absent);
+ENUM(State, uint32_t, Enabled, Disabled, StandbyOffline, InTest, Starting, Absent);
 
 /*!
  * @brief ENUM Health for attribute class Status Health member

@@ -42,7 +42,7 @@
       </ComplexType>
 
       <ComplexType Name="ISCSIAddress">
-        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="OData.AdditionalProperties" Bool="true"/>
         <Property Name="TargetLUN" Type="Collection(RemoteTarget.1.0.0.TargetLUN)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Target Logical Unit"/>

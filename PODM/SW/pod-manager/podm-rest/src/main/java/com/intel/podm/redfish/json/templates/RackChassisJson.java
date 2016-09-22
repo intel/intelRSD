@@ -31,6 +31,6 @@ public final class RackChassisJson extends BaseJson {
     public ODataId thermalZones;
 
     public RackChassisJson() {
-        super("#Chassis.1.0.0.Chassis");
+        super("#Chassis.1.2.0.Chassis");
     }
 }

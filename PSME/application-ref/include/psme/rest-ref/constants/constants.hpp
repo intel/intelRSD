@@ -187,11 +187,11 @@ namespace Manager {
     extern const char MANAGER_FOR_CHASSIS[];
     extern const char MANAGER_FOR_SERVERS[];
     extern const char MANAGER_FOR_SWITCHES[];
-    extern const char MANAGER_LOCATION[];
     extern const char MANAGER_FOR_SERVICES[];
     extern const char MANAGER_FOR_REMOTE_TARGETS[];
     extern const char MANAGER_FOR_LOGICAL_DRIVES[];
     extern const char MANAGER_FOR_PHYSICAL_DRIVES[];
+    extern const char MANAGER_IN_CHASSIS[];
     extern const char NETWORK_PROTOCOL[];
     extern const char ETHERNET_INTERFACES[];
 }

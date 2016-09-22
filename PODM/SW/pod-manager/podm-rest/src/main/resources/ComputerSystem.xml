@@ -323,6 +323,12 @@
         <Member Name="SDCard">
            <Annotation Term="OData.Description" String="Boot from an SD Card"/>
         </Member>
+        <Member Name="UefiHttp">
+          <Annotation Term="OData.Description" String="Boot from a UEFI HTTP network location"/>
+        </Member>
+        <Member Name="RemoteDrive">
+          <Annotation Term="OData.Description" String="Boot from a remote drive (e.g. iSCSI)"/>
+        </Member>
       </EnumType>
 
       <EnumType Name="BootSourceOverrideEnabled">

@@ -46,7 +46,7 @@ void StateThreadEntry::next_state() {
     auto sw_status = m_manager->get_sw_status();
 
     if (enums::State::ENABLED == m_state_machine.get_state() ||
-        enums::State::OFFLINE == m_state_machine.get_state() ||
+        enums::State::STANDBY_OFFLINE == m_state_machine.get_state() ||
         enums::State::UNKNOWN == m_state_machine.get_state() ) {
         m_starting_counter = STARTING_INTERVALS_MAX_NUMBER;
     }

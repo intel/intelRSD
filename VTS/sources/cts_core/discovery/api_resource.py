@@ -34,3 +34,9 @@ class ApiResource:
         self.odata_type = self.odata_type.replace("#", "") if self.odata_type else self.odata_type
         self.expected_odata_type = expected_odata_type
         self.body = json_body
+
+        if (not self.odata_id):
+            print "WARNING:: @odata.id not present in %s. Setting 'None'." % json_body
+
+        if (not self.odata_type):
+            print "WARNING:: @odata.type not present in %s. Setting 'None'." % json_body

@@ -35,7 +35,7 @@ void ModuleStateEnabled::enter_state(StateMachineTransition& transition,
     case enums::State::ENABLED:
         transition.set_transition(enums::Transition::IDLE);
         break;
-    case enums::State::OFFLINE:
+    case enums::State::STANDBY_OFFLINE:
         transition.set_transition(enums::Transition::WENT_DOWN);
         break;
     case enums::State::ABSENT:

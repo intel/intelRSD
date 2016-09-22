@@ -30,7 +30,7 @@ namespace {
 std::array<const char*, 5> g_state_names = {{
     "Unknown",
     "Enabled",
-    "Offline",
+    "StandbyOffline",
     "Absent",
     "Starting"
 }};

@@ -288,6 +288,8 @@ result_t libwrap_pack_mbpc_to_json(json_t *output, struct rest_uri_param *param)
 	json_t *managerfor = NULL;
 	json_t *links = NULL;
 	json_t *mbp_obj = NULL;
+	json_t *oem_obj = NULL;
+	json_t *rsa_obj = NULL;
 	int8 odata[REST_MAX_ODATA_LEN] = {0};
 	int8 uuid[UUID_LEN]= {};
 	int8 fw_ver[REST_RACK_STRING_LEN] = {};
@@ -428,11 +430,26 @@ result_t libwrap_pack_mbpc_to_json(json_t *output, struct rest_uri_param *param)
 		return RESULT_MALLOC_ERR;
 	}
 
+	oem_obj = json_object();
+	if (oem_obj == NULL) {
+		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
+		return RESULT_MALLOC_ERR;
+	}
+
+	rsa_obj = json_object();
+	if (rsa_obj == NULL) {
+		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
+		return RESULT_MALLOC_ERR;
+	}
+
 	add_json_integer(links, RMM_JSON_MANAGERFORMBP_ODATA_COUNT, 1);
 	snprintf_s_si(odata_id_str, ODATA_ID_LEN, "%s%d", "/redfish/v1/Chassis/Rack/MBPs/", mbp_lid);
 	add_json_string(mbp_obj, RMM_JSON_ODATA_ID, odata_id_str);
 	json_array_add(managerfor, mbp_obj);
-	json_object_add(links, RMM_JSON_MAGAGER_FOR_MBP, managerfor);
+
+	json_object_add(rsa_obj, RMM_JSON_MAGAGER_FOR_MBP, managerfor);
+	json_object_add(oem_obj, RMM_JSON_OEM_INTEL_RSA, rsa_obj);
+	json_object_add(links, RMM_JSON_OEM, oem_obj);
 	json_object_add(output, RMM_JSON_RF_LINKS, links);
 
 	return RESULT_OK;

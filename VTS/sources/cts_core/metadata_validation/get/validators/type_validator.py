@@ -25,7 +25,11 @@ from cts_core.metadata.metadata_enums import ValueTypesCategory
 from cts_core.metadata_validation.get.validators.enum_type_validator import EnumTypeValidator
 from cts_core.metadata_validation.get.validators.primitive_types_validator import PrimitiveTypeValidator
 from cts_core.metadata_validation.get.validators.validator import BaseTypeValidator, PropertyValidator
+from cts_framework.commons.test_status_override import TestStatusOverride
+from cts_framework.tests_helpers.result_status import ResultStatus
 
+
+ALLOWABLE = "@Redfish.AllowableValues"
 
 class TypeValidator(PropertyValidator):
     def __init__(self, property_description, metadata_container, variable_path=None):
@@ -125,7 +129,13 @@ class ComplexTypeValidator(BaseTypeValidator):
     def validate(self, property_type, property_value):
         status = True
         try:
-            requested_property_type = property_value["odata.type"]
+            requested_property_type = property_value["@odata.type"]
+            try:
+                if requested_property_type.startswith("#"):
+                    requested_property_type = requested_property_type[1:]
+            except:
+                pass
+
             if not self._metadata_container.types.compare_types(property_type, requested_property_type):
                 print "ERROR::not compatible types %s and %s for value %s" % (property_type, requested_property_type,
                                                                               str(property_value))
@@ -150,17 +160,34 @@ class ComplexTypeValidator(BaseTypeValidator):
         return status
 
     def validate_additional_items(self, complex_type_description, property_value):
-        if complex_type_description.additional_items:
-            return True
-
         allowable_keys = [property_description.name for property_description in
                           complex_type_description.properties + complex_type_description.navigation_properties]
 
         status = True
         for key in property_value.keys():
             if key not in allowable_keys and "@" not in key and "#" not in key:
-                print "ERROR:: Unexpected key %s in property %s" % (key, self.variable_path)
-                status = False
+                if not complex_type_description.additional_items:
+                    print "ERROR:: Unexpected key %s in property %s" % (key, self.variable_path)
+                    status = False
+                else:
+                    property_body = property_value[key]
+                    try:
+                        property_type = property_body["@odata.type"]
+                        property_type = property_type.replace("#", "") if property_type else property_type
+                    except:
+                        property_type = None
+
+                    if property_type:
+                        validation_status = TypesDispatcher.dispatch_type_validation(self._metadata_container,
+                                                                                     property_type,
+                                                                                     property_body,
+                                                                                     key,
+                                                                                     variable_path=[self.variable_path])
+                        if not validation_status:
+                            print "ERROR:: Validation of additional property %s -> %s [@odata.type = %s] failed" \
+                                  % (self.variable_path, key, property_type)
+                        status = status and validation_status
+
 
         return status
 
@@ -181,5 +208,32 @@ class ComplexTypeValidator(BaseTypeValidator):
             print "DEBUG:: %s " % traceback.format_exc()
             status = False
             print "ERROR:: During field " + str(property_description.name) + " validation unkown error occured."
+
+        #check @Redfish.AllowableValues
+        try:
+            property_value = complex_type_body[property_description.name]
+            allowable_values_property = property_description.name + ALLOWABLE
+            allowable_values = complex_type_body[allowable_values_property]
+
+            # is property value on "allowable values" list?
+            if not property_value in allowable_values:
+                print "WARNING::Property {variable_path} has value {property_value} that is not on the {allowable_values_property} list" \
+                    .format(property_value=property_value, allowable_values_property=allowable_values_property,
+                            variable_path=self.variable_path)
+                TestStatusOverride.set_status(ResultStatus.PASSED_WITH_WARNING)
+
+            # allowable list should contain only legal values
+            for value in allowable_values:
+                validator = TypeValidator(property_description, self._metadata_container,
+                                          variable_path=[allowable_values_property])
+                is_allowed_value_legal = validator.verify_property(value)
+
+                if not is_allowed_value_legal:
+                    print "ERROR::Property {allowable_values_property} contains illegal value {value}".format(
+                        allowable_values_property=allowable_values_property, value=value)
+
+                status = is_allowed_value_legal and status
+        except KeyError:
+            pass
 
         return status

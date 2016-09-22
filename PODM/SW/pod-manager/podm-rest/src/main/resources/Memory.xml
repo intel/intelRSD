@@ -19,6 +19,7 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource.1.0.0"  />
+    <edmx:Include Namespace="Resource"  />
   </edmx:Reference>
   <edmx:Reference Uri="Org.OData.Measures.V1.xml">
     <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>

@@ -33,7 +33,10 @@ import com.intel.podm.common.types.Status;
 
 import java.util.List;
 
-@OdataTypes("#Processor.1.0.0.Processor")
+@OdataTypes({
+        "#Processor.1.0.0.Processor",
+        "#Processor.v1_0_0.Processor"
+})
 public class ProcessorResourceImpl extends ExternalServiceResourceImpl implements ProcessorResource, LuiProcessorResource {
     @JsonProperty("Socket")
     private String socket;

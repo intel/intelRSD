@@ -57,10 +57,11 @@ json::Value make_prototype() {
 
     r[Common::FIRMWARE_VERSION] = json::Value::Type::NIL;
     r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::LINKS][Common::ODATA_TYPE] = "#Manager.1.1.0.Links";
     r[Common::LINKS][Manager::MANAGER_FOR_CHASSIS] = json::Value::Type::ARRAY;
     r[Common::LINKS][Manager::MANAGER_FOR_SERVERS] = json::Value::Type::ARRAY;
     r[Common::LINKS][Manager::MANAGER_FOR_SWITCHES] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Manager::MANAGER_LOCATION] = json::Value::Type::NIL;
+    r[Common::LINKS][Manager::MANAGER_IN_CHASSIS] = json::Value::Type::NIL;
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "Intel.Oem.Manager";
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_SERVICES] = json::Value::Type::ARRAY;
 
@@ -79,12 +80,12 @@ void fill_links(const agent_framework::model::Manager& manager, json::Value& r){
                                         .append(chassis_id).build();
         r[Common::LINKS][constants::Manager::MANAGER_FOR_CHASSIS].push_back(std::move(link));
     }
-    // chassis managed by the manager is at the same time the chassis manager is located in
+    // chassis managed by the manager is at the same time the chassis that the manager is located in
     for (auto chassis_id : chassis_ids) {
-        r[Common::LINKS][constants::Manager::MANAGER_LOCATION] = json::Value::Type::OBJECT;
-        r[Common::LINKS][constants::Manager::MANAGER_LOCATION][Common::ODATA_ID] = psme::rest::endpoint::PathBuilder(app::rest::constants::PathParam::BASE_URL)
-                                        .append(constants::Root::CHASSIS)
-                                        .append(chassis_id).build();
+        r[Common::LINKS][constants::Manager::MANAGER_IN_CHASSIS][Common::ODATA_ID] =
+            psme::rest::endpoint::PathBuilder(app::rest::constants::PathParam::BASE_URL)
+            .append(constants::Root::CHASSIS)
+            .append(chassis_id).build();
     }
 
     // find all systems managed by this manager

@@ -57,8 +57,8 @@ json::Value make_prototype() {
 
     r[DimmConfig::FUNCTION_CLASSES] = json::Value::Type::ARRAY;
 
-    r[Common::VENDOR_ID] = json::Value::Type::NIL;
-    r[Common::DEVICE_ID] = json::Value::Type::NIL;
+    r[DimmConfig::VENDOR_ID] = json::Value::Type::NIL;
+    r[DimmConfig::DEVICE_ID] = json::Value::Type::NIL;
     r[DimmConfig::RANK_COUNT] =json::Value::Type::NIL;
     r[DimmConfig::DEVICE_LOCATOR] = json::Value::Type::NIL;
 
@@ -183,8 +183,8 @@ void endpoint::DimmConfig::get(const server::Request& req, server::Response& res
             push_back(std::move(link_elem));
     }
 
-    r[Common::VENDOR_ID] = dimm.get_vendor_id();
-    r[Common::DEVICE_ID] = dimm.get_device_id();
+    r[constants::DimmConfig::VENDOR_ID] = dimm.get_vendor_id();
+    r[constants::DimmConfig::DEVICE_ID] = dimm.get_device_id();
     r[constants::DimmConfig::RANK_COUNT] = dimm.get_rank_count();
     r[constants::DimmConfig::DEVICE_LOCATOR] = dimm.get_device_locator();
 

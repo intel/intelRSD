@@ -23,21 +23,19 @@ import com.intel.podm.client.api.resources.redfish.EthernetSwitchPortVlanResourc
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.common.types.Status;
 
-@OdataTypes("#VLanNetworkInterface.1.0.0.VLanNetworkInterface")
+@OdataTypes({
+        "#VLanNetworkInterface.1.0.0.VLanNetworkInterface",
+        "#VLanNetworkInterface.1.0.1.VLanNetworkInterface",
+        "#VLanNetworkInterface.v1_0_0.VLanNetworkInterface",
+        "#VLanNetworkInterface.v1_0_1.VLanNetworkInterface"
+})
 public class EthernetSwitchPortVlanResourceImpl extends ExternalServiceResourceImpl implements EthernetSwitchPortVlanResource {
-    @JsonProperty("Status")
-    private Status status;
     @JsonProperty("VLANEnable")
     private Boolean vlanEnable;
     @JsonProperty("VLANId")
     private Integer vlanId;
     @JsonProperty("Oem")
     private Oem oem = new Oem();
-
-    @Override
-    public Status getStatus() {
-        return status;
-    }
 
     @Override
     public Boolean getVlanEnable() {
@@ -54,6 +52,11 @@ public class EthernetSwitchPortVlanResourceImpl extends ExternalServiceResourceI
         return oem.rackScaleOem.tagged;
     }
 
+    @Override
+    public Status getStatus() {
+        return oem.rackScaleOem.status;
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static final class Oem {
         @JsonProperty("Intel_RackScale")
@@ -63,6 +66,8 @@ public class EthernetSwitchPortVlanResourceImpl extends ExternalServiceResourceI
         private static class RackScaleOem {
             @JsonProperty("Tagged")
             private Boolean tagged;
+            @JsonProperty("Status")
+            private Status status;
         }
     }
 }

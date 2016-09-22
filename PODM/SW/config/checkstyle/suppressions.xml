@@ -53,10 +53,12 @@
     <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortResourceImpl.java"/>
     <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortVlanActionsInvoker.java"/>
     <suppress checks="ClassFanOutComplexity" files="/EthernetInterfaceServiceImpl.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/EthernetSwitchPortServiceImpl.java"/>
     <suppress checks="ClassFanOutComplexity" files="/JsonProvider.java"/>
     <suppress checks="ClassFanOutComplexity" files="/Manager.java"/>
     <suppress checks="ClassFanOutComplexity" files="/ManagerServiceImpl.java"/>
     <suppress checks="ClassFanOutComplexity" files="/NewRemoteDriveAssemblyTask.java"/>
+    <suppress checks="ClassFanOutComplexity" files="/NodeDisassembler.java"/>
     <suppress checks="ClassFanOutComplexity" files="/PodManagerEthernetInterfaceDiscoveryHandler.java"/>
     <suppress checks="ClassFanOutComplexity" files="/PowerZoneServiceImpl.java"/>
     <suppress checks="ClassFanOutComplexity" files="/RemoteTargetServiceImpl.java"/>
@@ -136,6 +138,8 @@
     <suppress checks="MethodLength" files="/ComposedNodeDtoJsonSerializer.java"/>
     <suppress checks="MethodLength" files="/ComputerSystemDto.java"/>
     <suppress checks="MethodLength" files="/ComputerSystemServiceImpl.java"/>
+    <suppress checks="MethodLength" files="/EthernetInterfaceDto.java"/>
+    <suppress checks="MethodLength" files="/EthernetInterfaceServiceImpl.java"/>
     <suppress checks="MethodLength" files="/MemoryDto.java"/>
     <suppress checks="MethodLength" files="/MemoryDtoSerializer.java"/>
     <suppress checks="MethodLength" files="/MemoryServiceImpl.java"/>
@@ -178,6 +182,8 @@
 
     <suppress checks="UncommentedMainCheck" files="/VaultDecrypterMain.java"/>
     <suppress checks="UncommentedMainCheck" files="/DbSchemaCreator.java"/>
+    <suppress checks="AbbreviationAsWordInName" files="/MemoryResourceImpl.java"/>
+
 
     <!-- Suppression for JSON templates in REST layer -->
     <suppress checks="VisibilityModifier" files="json/.*Json.java$"/>

@@ -19,7 +19,9 @@ package com.intel.podm.common.types;
 public enum State implements EnumeratedType {
     ENABLED("Enabled"),
     DISABLED("Disabled"),
-    OFFLINE("Offline"),
+    OFFLINE("UnavailableOffline"),
+    STANDBY_SPARE("StandbySpare"),
+    STANDBY_OFFLINE("StandbyOffline"),
     IN_TEST("InTest"),
     STARTING("Starting"),
     ABSENT("Absent");

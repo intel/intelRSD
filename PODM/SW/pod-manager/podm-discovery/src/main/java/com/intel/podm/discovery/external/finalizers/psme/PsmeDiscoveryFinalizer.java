@@ -18,33 +18,23 @@ package com.intel.podm.discovery.external.finalizers.psme;
 
 import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.redfish.Chassis;
-import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
-import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.business.entities.redfish.components.ComposedNodeUpdater;
-import com.intel.podm.common.logger.Logger;
 import com.intel.podm.discovery.external.StorageGuard;
 import com.intel.podm.discovery.external.finalizers.DiscoveryFinalizer;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import static com.intel.podm.common.types.ChassisType.DRAWER;
 import static com.intel.podm.common.types.ServiceType.PSME;
 import static com.intel.podm.common.utils.Collections.filterByType;
 import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.toList;
 
 @Dependent
 public class PsmeDiscoveryFinalizer extends DiscoveryFinalizer {
-
-    @Inject
-    private Logger logger;
-
     @Inject
     private StorageGuard storageGuard;
 
@@ -57,9 +47,6 @@ public class PsmeDiscoveryFinalizer extends DiscoveryFinalizer {
     @Inject
     private DrawerChassisLocationGuard drawerLocationGuard;
 
-    @Inject
-    private SwitchPortToEthernetInterfaceLinker switchPortToEthernetInterfaceLinker;
-
     public PsmeDiscoveryFinalizer() {
         super(PSME);
     }
@@ -70,16 +57,6 @@ public class PsmeDiscoveryFinalizer extends DiscoveryFinalizer {
         protectStorageComputerSystems(discoveredDomainObjects);
         assureSingularParentForDrawers(discoveredDomainObjects);
         composedNodeUpdater.updateRelatedComposedNodes(discoveredDomainObjects);
-
-        Collection<ComputerSystem> computerSystems = filterByType(discoveredDomainObjects, ComputerSystem.class);
-
-        List<EthernetInterface> ethernetInterfaces = computerSystems
-                .stream()
-                .flatMap(computerSystem -> computerSystem.getEthernetInterfaces().stream())
-                .collect(toList());
-
-        switchPortToEthernetInterfaceLinker.link(ethernetInterfaces,
-                filterByType(discoveredDomainObjects, EthernetSwitchPort.class));
     }
 
     private void linkDrawersToDomainModel(Set<DomainObject> discoveredDomainObjects) {

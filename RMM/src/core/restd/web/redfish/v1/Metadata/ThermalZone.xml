@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?> 
+<?xml version="1.0" encoding="UTF-8"?>
 <edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
   <edmx:Reference Uri="Org.OData.Core.V1.xml">
     <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
@@ -11,7 +11,7 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.1.0.0" />
+    <edmx:Include Namespace="Resource.1.0.0"/>
   </edmx:Reference>
   <edmx:Reference Uri="PhysicalContext.xml">
     <edmx:Include Namespace="PhysicalContext.1.0.0"/>
@@ -22,17 +22,20 @@
   <edmx:Reference Uri="RackLocation.xml">
     <edmx:Include Namespace="RackLocation"/>
   </edmx:Reference>
-  
+
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ThermalZone">
       <EntityType Name="ThermalZone" BaseType="Resource.1.0.0.Resource">
-        <Annotation Term="OData.Description" String="This is the schema definition for the thermal zone.  It represents the properties for thermal zone."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a thermal zone resource for a Redfish implementation."/>
+        <Annotation Term="OData.Description"
+                    String="This is the schema definition for the thermal zone.  It represents the properties for thermal zone."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent a thermal zone resource for a Redfish implementation."/>
       </EntityType>
 
       <EntityType Name="Temperature" BaseType="Resource.1.0.0.ReferenceableMember">
-        <Annotation Term="OData.Description" String="Details of a temperature sensor associated with this system or device"/>
+        <Annotation Term="OData.Description"
+                    String="Details of a temperature sensor associated with this system or device"/>
       </EntityType>
 
       <EntityType Name="Fan" BaseType="Resource.1.0.0.ReferenceableMember">
@@ -42,47 +45,96 @@
       <Action Name="SetDesiredSpeedPWM" IsBound="true">
         <Parameter Name="ThermalZone" Type="ThermalZone.1.0.0.Actions"/>
         <Parameter Name="DesiredSpeedPWM" Type="Edm.Decimal"/>
-          <Annotation Term="OData.Description" String="This is the desired fan PWM of thermal zone."/>
-          <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
+        <Annotation Term="OData.Description" String="This is the desired fan PWM of thermal zone."/>
+        <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
         <Annotation Term="OData.Description" String="This action is used to change the fan speed of the thermal zone."/>
-        <Annotation Term="OData.LongDescription" String="This defines the name of the custom action supported on this resource."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This defines the name of the custom action supported on this resource."/>
       </Action>
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ThermalZone.1.0.0">
 
       <EntityType Name="ThermalZone" BaseType="Resource.1.0.0.Resource">
-        <Property Name="Status" Type="Resource.Status"/>
-        <Property Name="UUID" Type="Resource.UUID"/>
-        <Property Name="CreatedDate" Type="Edm.DateTimeOffset"/>
-        <Property Name="UpdatedDate" Type="Edm.DateTimeOffset"/>
-        <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
-        <Property Name="Presence" Type="Edm.String"/>
-        <Property Name="DesiredSpeedPWM" Type="Edm.Decimal"/>
-        <Property Name="DesiredSpeedRPM" Type="Edm.Decimal"/>
-        <Property Name="MaxFansSupported" Type="Edm.Int64"/>
-        <Property Name="NumberOfFansPresent" Type="Edm.Int64"/>
-        <Property Name="VolumetricAirflow" Type="Edm.Decimal"/>
-        <Property Name="Temperatures" Type="Collection(ThermalZone.1.0.0.Temperature)" Nullable="false"/>
-        <Property Name="Fans" Type="Collection(ThermalZone.1.0.0.Fan)" Nullable="false"/>
-        <Property Name="Actions" Type="ThermalZone.1.0.0.Actions" Nullable="false"/>
+        <Property Name="Status" Type="Resource.Status" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="UUID" Type="Resource.UUID" Nullable="true"/>
+        <Property Name="CreatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="UpdatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="RackLocation" Type="RackLocation.RackLocation" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="Presence" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="DesiredSpeedPWM" Type="Edm.Decimal" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="DesiredSpeedRPM" Type="Edm.Decimal" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="MaxFansSupported" Type="Edm.Int64" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="NumberOfFansPresent" Type="Edm.Int64" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="VolumetricAirflow" Type="Edm.Decimal" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="Temperatures" Type="Collection(ThermalZone.1.0.0.Temperature)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="Fans" Type="Collection(ThermalZone.1.0.0.Fan)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="Actions" Type="ThermalZone.1.0.0.Actions" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
       </EntityType>
-      
+
       <EntityType Name="Temperature" BaseType="ThermalZone.Temperature">
-        <Property Name="Name" Type="Edm.String"/>
-        <Property Name="Status" Type="Resource.Status"/>
-        <Property Name="ReadingCelsius" Type="Edm.Decimal"/>
-        <Property Name="PhysicalContext" Type="PhysicalContext.1.0.0.PhysicalContext"/>
+        <Property Name="Name" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="Status" Type="Resource.Status" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="ReadingCelsius" Type="Edm.Decimal" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="PhysicalContext" Type="PhysicalContext.1.0.0.PhysicalContext" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
       </EntityType>
 
       <EntityType Name="Fan" BaseType="ThermalZone.Fan">
-        <Property Name="Name" Type="Edm.String"/>
-        <Property Name="Status" Type="Resource.Status"/>
-        <Property Name="UUID" Type="Resource.UUID"/>
-        <Property Name="CreatedDate" Type="Edm.DateTimeOffset"/>
-        <Property Name="UpdatedDate" Type="Edm.DateTimeOffset"/>
-        <Property Name="ReadingRPM" Type="Edm.Decimal"/>
-        <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
+        <Property Name="Name" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="Status" Type="Resource.Status" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="UUID" Type="Resource.UUID" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="CreatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="UpdatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="ReadingRPM" Type="Edm.Decimal" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="RackLocation" Type="RackLocation.RackLocation" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
       </EntityType>
 
       <ComplexType Name="Actions">

@@ -18,6 +18,8 @@ package com.intel.podm.assembly;
 
 import com.intel.podm.actions.ActionException;
 import com.intel.podm.actions.ResetActionInvoker;
+import com.intel.podm.business.entities.NonUniqueResultException;
+import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
@@ -38,6 +40,9 @@ import static javax.transaction.Transactional.TxType.MANDATORY;
 public class NodeDisassembler {
     @Inject
     private Logger logger;
+
+    @Inject
+    private EthernetSwitchPortDao ethernetSwitchPortDao;
 
     @Inject
     private ResetActionInvoker actionInvoker;
@@ -71,9 +76,14 @@ public class NodeDisassembler {
 
     private void cleanUpEthernetInterfaces(ComputerSystem computerSystem) {
         for (EthernetInterface ethernetInterface : computerSystem.getEthernetInterfaces()) {
-            EthernetSwitchPort neighborSwitchPort = ethernetInterface.getNeighborSwitchPort();
-            if (neighborSwitchPort != null) {
-                removeVlansFromPort(neighborSwitchPort);
+            try {
+                EthernetSwitchPort neighborSwitchPort =
+                        ethernetSwitchPortDao.getEnabledAndHealthyEthernetSwitchPortByNeighborMac(ethernetInterface.getMacAddress());
+                if (neighborSwitchPort != null) {
+                    removeVlansFromPort(neighborSwitchPort);
+                }
+            } catch (NonUniqueResultException e) {
+                logger.e("Could not clean up Ethernet Interface '{}'.", ethernetInterface, e);
             }
         }
     }

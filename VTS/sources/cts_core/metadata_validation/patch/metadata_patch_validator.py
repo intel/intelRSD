@@ -123,8 +123,11 @@ class MetadataPatchValidator:
 
             status, status_code, response_body, headers = self._api_caller.perform_call(
                 api_resource.odata_id, http_method=HttpMethods.PATCH, payload=data,
-                acceptable_return_codes=[ReturnCodes.OK, ReturnCodes.NO_CONTENT, ReturnCodes.METHOD_NOT_ALLOWED,
-                                         ReturnCodes.UNPROCESSABLE_ENTITY, ReturnCodes.NOT_IMPLEMENTED])
+                acceptable_return_codes=[ReturnCodes.OK,
+                                         ReturnCodes.NO_CONTENT,
+                                         ReturnCodes.METHOD_NOT_ALLOWED,
+                                         ReturnCodes.UNPROCESSABLE_ENTITY,
+                                         ReturnCodes.NOT_IMPLEMENTED])
 
             if status != RequestStatus.SUCCESS:
                 print "WARNING:: Changing field %s value from %s to %s failed with wrong status code %s" % \
@@ -132,8 +135,7 @@ class MetadataPatchValidator:
                 # change FAIL to WARNING
                 overall_property_status = ResultStatus.join_statuses(overall_property_status, ResultStatus.PASSED_WITH_WARNING)
 
-            if status_code in [ReturnCodes.OK, ReturnCodes.METHOD_NOT_ALLOWED, ReturnCodes.UNPROCESSABLE_ENTITY,
-                               ReturnCodes.NOT_IMPLEMENTED]:
+            if status_code not in [ReturnCodes.NO_CONTENT]:
                 print "WARNING::entity %s did not proceed patch request - responded with status code %s" % (api_resource.odata_id,
                                                                                                             status_code)
                 patch_applied = False
@@ -204,9 +206,14 @@ class MetadataPatchValidator:
 
         status, status_code, response_body, headers = self._api_caller.perform_call(
             api_resource.odata_id, http_method=HttpMethods.PATCH, payload=data,
-            acceptable_return_codes=[ReturnCodes.OK, ReturnCodes.METHOD_NOT_ALLOWED, ReturnCodes.NOT_IMPLEMENTED])
+            acceptable_return_codes=[ReturnCodes.OK,
+                                     ReturnCodes.METHOD_NOT_ALLOWED,
+                                     ReturnCodes.NOT_IMPLEMENTED,
+                                     ReturnCodes.FORBIDDEN])
 
-        if status != RequestStatus.SUCCESS:
+        # 403 - Forbidden was added to acceptable_return_codes to prevent VTS from stopping PATCH testing when it
+        # occurs
+        if status != RequestStatus.SUCCESS or ReturnCodes.FORBIDDEN == status_code:
             print "WARNING::patching property %s value from %s to %s failed with wrong status code %s" % \
                   ("->".join([str(path) for path in variable_path]), current_value, new_value, str(status_code))
             # change FAIL to WARNING
@@ -214,9 +221,12 @@ class MetadataPatchValidator:
 
         status, status_code, response_body, headers = self._api_caller.get_resource(api_resource.odata_id)
         try:
-            if current_value != self.get_value_from_body_path(variable_path, response_body):
-                print "ERROR::Property %s value has changed. Not expected." % "->".join([str(path) for path in variable_path])
-                return ResultStatus.FAILED
+            value_post = self.get_value_from_body_path(variable_path, response_body)
+            if current_value != value_post:
+                print "WARNING::Read-only property %s has changed from %s to %s. Not expected." % \
+                      ("->".join([str(path) for path in variable_path]),
+                       current_value, value_post)
+                return ResultStatus.PASSED_WITH_WARNING
         except KeyError:
             print "WARNING::Property %s not present." % "->".join([str(path) for path in variable_path])
             return ResultStatus.join_statuses(ResultStatus.PASSED, overall_property_status)

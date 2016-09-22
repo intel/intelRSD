@@ -16,24 +16,38 @@
 
 package com.intel.podm.business.entities.dao;
 
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.common.types.net.MacAddress;
 
 import javax.enterprise.context.Dependent;
 import javax.transaction.Transactional;
+import java.util.List;
 
 import static com.intel.podm.business.entities.redfish.EthernetInterface.MAC_ADDRESS;
-import static com.intel.podm.business.entities.redfish.EthernetInterface.VLAN_ID;
+import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 @Transactional(MANDATORY)
 public class EthernetInterfaceDao extends Dao<EthernetInterface> {
-    public EthernetInterface getEthernetInterfaceByMacAddress(MacAddress macAddress) {
-        return repository.getSingleByProperty(EthernetInterface.class, MAC_ADDRESS, macAddress);
-    }
+    public EthernetInterface getEnabledAndHealthyEthernetInterfaceByMacAddress(MacAddress macAddress) throws NonUniqueResultException {
+        if (macAddress == null) {
+            return null;
+        }
 
-    public EthernetInterface getEthernetInterfaceByVlanId(int vlanId) {
-        return repository.getSingleByProperty(EthernetInterface.class, VLAN_ID, vlanId);
+        List<EthernetInterface> ethernetInterfaces = repository.getAllByProperty(EthernetInterface.class, MAC_ADDRESS, macAddress).stream()
+                .filter(EthernetInterface::isEnabledAndHealthy)
+                .collect(toList());
+
+        try {
+            return singleOrNull(ethernetInterfaces);
+        } catch (IllegalStateException e) {
+            throw new NonUniqueResultException(
+                    format("Couldn't find single, enabled and healthy Ethernet Interface with MAC Address: '%s'. Found %d Ethernet Interfaces.",
+                            macAddress, ethernetInterfaces.size()));
+        }
     }
 }

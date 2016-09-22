@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.intel.podm.business.dto.redfish.attributes.ExtendedInfoDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV4AddressDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV6AddressDto;
 import com.intel.podm.business.services.context.Context;
@@ -58,6 +59,7 @@ public final class EthernetSwitchPortDto {
     private final Context memberOfPort;
     private final List<Context> portMembers;
     private final Context neighborInterface;
+    private final List<ExtendedInfoDto> neighborInterfaceExtendedInfo;
 
     private EthernetSwitchPortDto(Builder builder) {
         id = builder.id;
@@ -85,6 +87,7 @@ public final class EthernetSwitchPortDto {
         memberOfPort = builder.memberOfPort;
         portMembers = builder.portMembers;
         neighborInterface = builder.neighborInterface;
+        neighborInterfaceExtendedInfo = builder.neighborInterfaceExtendedInfo;
     }
 
     public static Builder newBuilder() {
@@ -191,6 +194,10 @@ public final class EthernetSwitchPortDto {
         return neighborInterface;
     }
 
+    public List<ExtendedInfoDto> getNeighborInterfaceExtendedInfo() {
+        return neighborInterfaceExtendedInfo;
+    }
+
     public static final class Builder {
         private Id id;
         private String name;
@@ -216,6 +223,7 @@ public final class EthernetSwitchPortDto {
         private Context memberOfPort;
         private List<Context> portMembers;
         private Context neighborInterface;
+        private List<ExtendedInfoDto> neighborInterfaceExtendedInfo;
         private Context switchContext;
 
         private Builder() {
@@ -338,6 +346,11 @@ public final class EthernetSwitchPortDto {
 
         public Builder neighborInterface(Context val) {
             neighborInterface = val;
+            return this;
+        }
+
+        public Builder neighborInterfaceExtendedInfo(List<ExtendedInfoDto> val) {
+            neighborInterfaceExtendedInfo = val;
             return this;
         }
 

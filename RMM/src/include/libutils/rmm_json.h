@@ -108,7 +108,7 @@
 #define RMM_JSON_RF_STATUS_HEALTH       "Health"
 #define RMM_JSON_RF_SERVICE_ENABLED     "ServiceEnabled"
 #define RMM_JSON_RF_DELIVERY_RETRY      "DeliveryRetryAttempts"
-#define RMM_JSON_RF_DELIVERY_RETRY_INTERVAL "DeliveryRetryIntervalInSeconds"
+#define RMM_JSON_RF_DELIVERY_RETRY_INTERVAL "DeliveryRetryIntervalSeconds"
 
 /*Chassis*/
 #define RMM_JSON_CHASSIS                "Chassis"
@@ -360,7 +360,7 @@
 #define RMM_JSON_MANAGER_VLANS              "VLANs"
 
 #define RMM_JSON_OEM_RSA                    "RackScale"
-#define RMM_JSON_OEM_INTEL_RSA              "Intel:RackScale"
+#define RMM_JSON_OEM_INTEL_RSA              "Intel_RackScale"
 #define RMM_JSON_OEM_POST_ACTIONS           "Actions/Oem"
 
 #endif

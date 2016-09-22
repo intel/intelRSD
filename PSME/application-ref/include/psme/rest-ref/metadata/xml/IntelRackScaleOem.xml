@@ -31,16 +31,16 @@
   </edmx:Reference>
 
   <edmx:DataServices>
-    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Intel.RackScale">
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Intel.Oem">
 
      <ComplexType Name="Chassis" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-        <Property Name="Location" Type="Intel.RackScale.Location" />
+        <Property Name="Location" Type="Intel.Oem.Location" />
      </ComplexType>
 
      <ComplexType Name="RackChassis" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-        <Property Name="Location" Type="Intel.RackScale.Location" />
+        <Property Name="Location" Type="Intel.Oem.Location" />
         <Property Name="RMMPresent" Type="Edm.Boolean"/>
         <Property Name="RackSupportsDisaggregatedPowerCooling" Type="Edm.Boolean"/>
         <Property Name="UUID" Type="Resource.UUID"/>
@@ -59,7 +59,7 @@
         </Property>
     </ComplexType>
 
-    <ComplexType Name="ManagerLinks" BaseType="Resource.OemObject">
+    <ComplexType Name="Manager" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <NavigationProperty Name="ManagerForServices" Type="Collection(StorageService.1.0.0.StorageService)"/>
     </ComplexType>
@@ -67,11 +67,11 @@
     <ComplexType Name="ComputerSystem" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <NavigationProperty Name="Adapters" Type="AdapterCollection.AdapterCollection" Nullable="false"/>
-        <Property Name="PciDevices" Type="Collection(Intel.RackScale.PciDevice)" Nullable="false">
+        <Property Name="PciDevices" Type="Collection(Intel.Oem.PciDevice)" Nullable="false">
             <Annotation Term="OData.Description" String="This indicates array of PCI devices present in computer system"/>
             <Annotation Term="OData.LongDescription" String="This indicates array of PCI devices present in computer system" />
         </Property>
-        <Property Name="DiscoveryState" Type="Intel.RackScale.DiscoveryState" >
+        <Property Name="DiscoveryState" Type="Intel.Oem.DiscoveryState" >
             <Annotation Term="OData.Description" String="This indicates computer system discovery state"/>
             <Annotation Term="OData.LongDescription" String="This property shall represent discovery state of this interface" />
         </Property>
@@ -126,8 +126,8 @@
      </ComplexType>
 
      <ComplexType Name="Processor" BaseType="Resource.OemObject">
-        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-        <Property Name="Brand" Type="Intel.RackScale.ProcessorBrand">
+        <Annotation Term="OData.AdditionalProperties" Bool="true"/>
+        <Property Name="Brand" Type="Intel.Oem.ProcessorBrand">
              <Annotation Term="OData.Description" String="This indicates processor brand"/>
              <Annotation Term="OData.LongDescription" String="This property shall represent the brand of processor" />
          </Property>
@@ -149,11 +149,20 @@
         <Member Name="I5"/>
         <Member Name="I7"/>
      </EnumType>
-     
+
         <ComplexType Name="ServiceRoot" BaseType="Resource.OemObject">
-            <Annotation Term="OData.AdditionalProperties" Bool="false"/>
             <Property Name="ApiVersion" Type="Edm.String" Nullable="false"/>
         </ComplexType>
+        
+        <ComplexType Name="VLanNetworkInterface" BaseType="Resource.OemObject">
+            <Property Name="Status" Type="Resource.Status"/>
+            <Property Name="Tagged" Type="Edm.Boolean">
+                <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+                <Annotation Term="OData.Description" String="This indicates if VLAN is tagged (as defined in IEEE 802.1Q)."/>
+                <Annotation Term="OData.LongDescription" String="This indicates if VLAN is tagged (as defined in IEEE 802.1Q)." />
+            </Property>
+        </ComplexType>
+
      </Schema>
   </edmx:DataServices>
 </edmx:Edmx>

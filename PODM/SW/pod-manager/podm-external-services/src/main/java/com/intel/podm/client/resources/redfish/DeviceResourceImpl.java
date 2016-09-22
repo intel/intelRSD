@@ -30,7 +30,10 @@ import com.intel.podm.common.types.StorageControllerInterface;
 
 import java.math.BigDecimal;
 
-@OdataTypes("#Device.1.0.0.Device")
+@OdataTypes({
+        "#Device.1.0.0.Device",
+        "#Device.v1_0_0.Device"
+})
 public class DeviceResourceImpl extends ExternalServiceResourceImpl implements DeviceResource, LuiDeviceResource {
     @JsonProperty("Interface")
     private StorageControllerInterface storageControllerInterface;

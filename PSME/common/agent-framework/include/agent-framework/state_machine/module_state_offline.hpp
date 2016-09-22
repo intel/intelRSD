@@ -40,7 +40,7 @@ public:
     /*!
      * @brief Class default constructor.
      */
-    ModuleStateOffline() : ModuleState(enums::State::OFFLINE) {}
+    ModuleStateOffline() : ModuleState(enums::State::STANDBY_OFFLINE) {}
 
     /*!
      * @brief Class destructor.

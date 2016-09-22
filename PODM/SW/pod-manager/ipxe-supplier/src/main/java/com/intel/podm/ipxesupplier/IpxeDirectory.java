@@ -16,6 +16,7 @@
 
 package com.intel.podm.ipxesupplier;
 
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.EthernetInterfaceDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
@@ -51,9 +52,9 @@ public class IpxeDirectory {
         EthernetInterface ethernetInterface;
 
         try {
-            ethernetInterface = ethernetInterfaceDao.getEthernetInterfaceByMacAddress(macAddress);
-        } catch (IllegalStateException ise) {
-            throw new AssetNotFoundException("Error appeared while finding Ethernet Interfaces for MAC Address: " + macAddress, ise);
+            ethernetInterface = ethernetInterfaceDao.getEnabledAndHealthyEthernetInterfaceByMacAddress(macAddress);
+        } catch (NonUniqueResultException e) {
+            throw new AssetNotFoundException("Error appeared while finding Ethernet Interfaces for MAC Address: " + macAddress, e);
         }
 
         if (ethernetInterface == null) {

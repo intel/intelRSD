@@ -49,7 +49,7 @@ json::Value make_prototype() {
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitches/"
         "Members/__SWITCH_ID__/ACLs/Members/__ACL_ID__/Rules/Members/$entity";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#ACLRule.1.0.0.ACLRule";
+    r[Common::ODATA_TYPE] = "#EthernetSwitchACLRule.1.0.0.EthernetSwitchACLRule";
 
     r[Common::ID] = json::Value::Type::NIL;
     r[Common::NAME] = "ACL Rule";

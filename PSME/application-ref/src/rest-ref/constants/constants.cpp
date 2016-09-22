@@ -183,11 +183,11 @@ namespace Manager {
      const char MANAGER_FOR_CHASSIS[] = "ManagerForChassis";
      const char MANAGER_FOR_SERVERS[] = "ManagerForServers";
      const char MANAGER_FOR_SWITCHES[] = "ManagerForSwitches";
-     const char MANAGER_LOCATION[] = "ManagerInChassis";
      const char MANAGER_FOR_SERVICES[] = "ManagerForServices";
      const char MANAGER_FOR_REMOTE_TARGETS[] = "ManagerForRemoteTargets";
      const char MANAGER_FOR_LOGICAL_DRIVES[] = "ManagerForLogicalDrives";
      const char MANAGER_FOR_PHYSICAL_DRIVES[] = "ManagerForPhysicalDrives";
+     const char MANAGER_IN_CHASSIS[] = "ManagerInChassis";
      const char NETWORK_PROTOCOL[] = "NetworkProtocol";
      const char ETHERNET_INTERFACES[] = "EthernetInterfaces";
 }

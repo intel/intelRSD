@@ -16,27 +16,32 @@
 
 package com.intel.podm.client.resources.redfish;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.redfish.MemoryResource;
+import com.intel.podm.client.api.resources.redfish.LuiMemoryResource;
 import com.intel.podm.client.api.resources.redfish.MemoryLocationObject;
 import com.intel.podm.client.api.resources.redfish.MemoryRegionObject;
-import com.intel.podm.client.api.resources.redfish.LuiMemoryResource;
+import com.intel.podm.client.api.resources.redfish.MemoryResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.common.types.BaseModuleType;
+import com.intel.podm.common.types.ErrorCorrection;
 import com.intel.podm.common.types.MemoryDeviceType;
 import com.intel.podm.common.types.MemoryMedia;
-import com.intel.podm.common.types.ErrorCorrection;
+import com.intel.podm.common.types.MemoryType;
 import com.intel.podm.common.types.OperatingMemoryMode;
 import com.intel.podm.common.types.Status;
-import com.intel.podm.common.types.MemoryType;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-@OdataTypes("#Memory.1.0.0.Memory")
+@OdataTypes({
+        "#Memory.1.0.0.Memory",
+        "#Memory.v1_0_0.Memory"
+})
 public class MemoryResourceImpl extends ExternalServiceResourceImpl implements MemoryResource, LuiMemoryResource {
     @JsonProperty("MemoryType")
     private MemoryType memoryType;
@@ -79,10 +84,9 @@ public class MemoryResourceImpl extends ExternalServiceResourceImpl implements M
 
     @JsonProperty("FunctionClasses")
     private List<String> functionClasses;
-    @JsonProperty("VendorId")
+
     private String vendorId;
 
-    @JsonProperty("DeviceId")
     private String deviceId;
 
     @JsonProperty("RankCount")
@@ -97,7 +101,6 @@ public class MemoryResourceImpl extends ExternalServiceResourceImpl implements M
     @JsonProperty("Status")
     private Status status;
 
-    @JsonProperty("OperatingSpeedMHz")
     private Integer operatingSpeedMhz;
 
     @JsonProperty("Regions")
@@ -111,6 +114,36 @@ public class MemoryResourceImpl extends ExternalServiceResourceImpl implements M
 
     @JsonProperty("Oem")
     private Oem oem = new Oem();
+
+    @JsonSetter("OperatingSpeedMhz")
+    public void setOperatingSpeedMhz(Integer operatingSpeedMhz) {
+        this.operatingSpeedMhz = operatingSpeedMhz;
+    }
+
+    @JsonSetter("OperatingSpeedMHz")
+    public void setOperatingSpeedMHz(Integer operatingSpeedMhz) {
+        this.operatingSpeedMhz = operatingSpeedMhz;
+    }
+
+    @JsonSetter("VendorId")
+    public void setVendorId(String vendorId) {
+        this.vendorId = vendorId;
+    }
+
+    @JsonSetter("VendorID")
+    public void setVendorID(String vendorId) {
+        this.vendorId = vendorId;
+    }
+
+    @JsonSetter("DeviceId")
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    @JsonSetter("DeviceID")
+    public void setDeviceID(String deviceId) {
+        this.deviceId = deviceId;
+    }
 
     @Override
     public MemoryType getMemoryType() {
@@ -188,11 +221,13 @@ public class MemoryResourceImpl extends ExternalServiceResourceImpl implements M
     }
 
     @Override
+    @JsonGetter("vendorId")
     public String getVendorId() {
         return vendorId;
     }
 
     @Override
+    @JsonGetter("deviceId")
     public String getDeviceId() {
         return deviceId;
     }
@@ -218,6 +253,7 @@ public class MemoryResourceImpl extends ExternalServiceResourceImpl implements M
     }
 
     @Override
+    @JsonGetter("operatingSpeedMhz")
     public Integer getOperatingSpeedMhz() {
         return operatingSpeedMhz;
     }

@@ -23,7 +23,10 @@ import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.common.types.AddressRangeType;
 import com.intel.podm.common.types.Status;
 
-@OdataTypes("#MemoryChunk.1.0.0.MemoryChunk")
+@OdataTypes({
+        "#MemoryChunk.1.0.0.MemoryChunk",
+        "#MemoryChunk.v1_0_0.MemoryChunk"
+})
 public class MemoryChunkResourceImpl extends ExternalServiceResourceImpl implements MemoryChunkResource {
     @JsonProperty("MemoryChunkName")
     private String memoryChunkName;

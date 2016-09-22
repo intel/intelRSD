@@ -30,7 +30,10 @@ import java.util.Set;
 import static java.util.Collections.emptySet;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@OdataTypes("#EventService.1.0.0.EventService")
+@OdataTypes({
+        "#EventService.1.0.0.EventService",
+        "#EventService.v1_0_0.EventService"
+})
 public class EventServiceResourceImpl extends ExternalServiceResourceImpl implements EventServiceResource {
 
     @JsonProperty("EventTypesForSubscription")

@@ -17,12 +17,13 @@
 package com.intel.podm.redfish.json.templates.attributes;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.common.types.Status;
 
 @JsonPropertyOrder({
         "name", "status", "rackLocation", "serialNumber", "manufacturer",
-        "model", "partNumber", "firmwareVersion", "powerCapacityWatts", "lastPowerOutputWatts"
+        "modelNumber", "partNumber", "firmwareRevision", "powerCapacityWatts", "lastPowerOutputWatts"
 })
 public class PowerSupplyJson {
     public String name;
@@ -30,7 +31,9 @@ public class PowerSupplyJson {
     public RackLocationAttributeJson rackLocation;
     public String serialNumber;
     public String manufacturer;
+    @JsonProperty("ModelNumber")
     public String model;
+    @JsonProperty("FirmwareRevision")
     public String firmwareVersion;
     public String partNumber;
     public Integer powerCapacityWatts;

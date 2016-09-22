@@ -35,7 +35,10 @@ import java.util.List;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static java.util.Collections.emptyList;
 
-@OdataTypes("#LogicalDrive.1.0.0.LogicalDrive")
+@OdataTypes({
+        "#LogicalDrive.1.0.0.LogicalDrive",
+        "#LogicalDrive.v1_0_0.LogicalDrive"
+})
 public class LogicalDriveResourceImpl extends ExternalServiceResourceImpl implements LogicalDriveResource {
     @JsonProperty("Type")
     private LogicalDriveType type;

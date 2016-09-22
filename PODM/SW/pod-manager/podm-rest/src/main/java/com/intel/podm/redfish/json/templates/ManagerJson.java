@@ -65,7 +65,7 @@ public class ManagerJson extends BaseJson {
     public final Object oem = new Object();
 
     public ManagerJson() {
-        super("#Manager.1.0.0.Manager");
+        super("#Manager.1.1.0.Manager");
     }
 
     @JsonPropertyOrder({"serviceEnabled", "maxConcurrentSessions", "connectTypesSupported"})
@@ -92,8 +92,11 @@ public class ManagerJson extends BaseJson {
         public final List<GraphicalConnectType> connectTypesSupported = newArrayList();
     }
 
-    @JsonPropertyOrder({"managedComputerSystems", "managedChassisCollection", "managerInChassis", "managedEthernetSwitches", "oem"})
+    @JsonPropertyOrder({"@odata.type", "managedComputerSystems", "managedChassisCollection", "managerInChassis", "managedEthernetSwitches", "oem"})
     public static final class Links {
+        @JsonProperty("@odata.type")
+        public String oDataType = "#Manager.1.1.0.Links";
+
         @JsonProperty("ManagerForServers")
         public Collection<ODataId> managedComputerSystems = newArrayList();
 

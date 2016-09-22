@@ -40,7 +40,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
         "@odata.context", "@odata.id", "@odata.type", "name", "id", "description", "memoryType", "memoryDeviceType", "baseModuleType",
         "memoryMedia", "capacityMib", "dataWidthBits", "busWidthBits", "manufacturer", "serialNumber", "partNumber",
         "allowedSpeedsMhz", "firmwareRevision", "firmwareApiVersion", "functionClasses", "vendorId", "deviceId",
-        "rankCount", "deviceLocator", "memoryLocation", "errorCorrection", "status", "operatingSpeedMHz", "regions",
+        "rankCount", "deviceLocator", "memoryLocation", "errorCorrection", "status", "operatingSpeedMhz", "regions",
         "operatingMemoryModes", "metrics", "oem"})
 @JsonInclude(ALWAYS)
 public class MemoryJson extends BaseJson {
@@ -64,16 +64,16 @@ public class MemoryJson extends BaseJson {
     public String firmwareRevision;
     public String firmwareApiVersion;
     public Collection<String> functionClasses = new ArrayList<>();
-    @JsonProperty("VendorId")
+    @JsonProperty("VendorID")
     public String vendorId;
-    @JsonProperty("DeviceId")
+    @JsonProperty("DeviceID")
     public String deviceId;
     public Integer rankCount;
     public String deviceLocator;
     public MemoryLocationJson memoryLocation;
     public ErrorCorrection errorCorrection;
     public Status status;
-    @JsonProperty("OperatingSpeedMHz")
+    @JsonProperty("OperatingSpeedMhz")
     public Integer operatingSpeedMhz;
     public List<MemoryRegionJson> regions = new ArrayList<>();
     public List<OperatingMemoryMode> operatingMemoryModes = new ArrayList<>();

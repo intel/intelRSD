@@ -157,7 +157,7 @@ static json_t *rack_patch(struct rest_uri_param *param)
 
 	rs = libwrap_update_put_rack_info(req, &put_rack_info);
 	if (rs != RESULT_OK) {
-		update_response_info(param, HTTP_BAD_REQUEST);
+		update_response_info(param, HTTP_FORBIDDEN);
 		HTTPD_ERR("libwrap_update_put_rack_info fail, result is %d\n", rs);
 		json_free(req);
 		return NULL;

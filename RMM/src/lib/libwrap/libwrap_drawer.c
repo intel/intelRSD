@@ -325,7 +325,8 @@ end:
 result_t libwrap_pack_drawer_to_json(json_t *output, drawer_member_t *drawer_member, struct rest_uri_param *param)
 {
 	json_t *loc = NULL;
-	json_t *power_thermal = NULL;
+	json_t *oem_links = NULL;
+	json_t *rsa_links = NULL;
 	json_t *oem = NULL;
 	json_t *rsa = NULL;
 	json_t *links = NULL;
@@ -374,9 +375,23 @@ result_t libwrap_pack_drawer_to_json(json_t *output, drawer_member_t *drawer_mem
 		return RESULT_MALLOC_ERR;
 	}
 
+	oem_links = json_object();
+	if (oem_links == NULL) {
+		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
+		return RESULT_MALLOC_ERR;
+	}
+
+	rsa_links = json_object();
+	if (rsa_links == NULL) {
+		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
+		return RESULT_MALLOC_ERR;
+	}
+
 	snprintf_s_s(odata_id_str, ODATA_ID_LEN, "%s", "/redfish/v1/Chassis/Rack");
 	add_json_string(containedby, RMM_JSON_ODATA_ID, odata_id_str);
-	json_object_add(links, RMM_JSON_CONTAINEDBY, containedby);
+	json_object_add(rsa_links, RMM_JSON_CONTAINEDBY, containedby);
+	json_object_add(oem_links, RMM_JSON_OEM_INTEL_RSA, rsa_links);
+	json_object_add(links, RMM_JSON_OEM, oem_links);
 	json_object_add(output, RMM_JSON_RF_LINKS, links);
 
 	return RESULT_OK;

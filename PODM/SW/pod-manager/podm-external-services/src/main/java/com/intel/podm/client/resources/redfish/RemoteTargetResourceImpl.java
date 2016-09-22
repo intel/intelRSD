@@ -34,7 +34,10 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-@OdataTypes("#RemoteTarget.1.0.0.RemoteTarget")
+@OdataTypes({
+        "#RemoteTarget.1.0.0.RemoteTarget",
+        "#RemoteTarget.v1_0_0.RemoteTarget"
+})
 public class RemoteTargetResourceImpl extends ExternalServiceResourceImpl implements RemoteTargetResource {
 
     @JsonProperty("Status")

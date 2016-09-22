@@ -30,6 +30,7 @@ import com.intel.podm.common.types.PortType;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.net.MacAddress;
 import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.rest.representation.json.templates.RedfishErrorResponseJson.ExtendedInfoJson;
 
 import java.util.List;
 
@@ -94,6 +95,8 @@ public class EthernetSwitchPortJson extends BaseJson {
         @JsonProperty("Intel_RackScale")
         public RackScaleOem rackScaleOem;
 
+        @JsonInclude(NON_NULL)
+        @JsonPropertyOrder({"odataType", "neighborInterface", "neighborInterfaceExtendedInfo"})
         public static class RackScaleOem {
             @JsonProperty("@odata.type")
             public String odataType;
@@ -101,9 +104,13 @@ public class EthernetSwitchPortJson extends BaseJson {
             @JsonProperty("NeighborInterface")
             public ODataId neighborInterface;
 
-            public RackScaleOem(ODataId neighborInterface) {
+            @JsonProperty("NeighborInterface@Message.ExtendedInfo")
+            public List<ExtendedInfoJson> neighborInterfaceExtendedInfo;
+
+            public RackScaleOem(ODataId neighborInterface, List<ExtendedInfoJson> neighborInterfaceExtendedInfo) {
                 this.odataType = "#Intel.Oem.EthernetSwitchPort";
                 this.neighborInterface = neighborInterface;
+                this.neighborInterfaceExtendedInfo = neighborInterfaceExtendedInfo;
             }
         }
     }

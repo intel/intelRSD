@@ -47,9 +47,6 @@ json::Value make_prototype() {
     r[Common::ID] = json::Value::Type::NIL;
     r[Common::NAME] = "VLAN Network Interface";
     r[Common::DESCRIPTION] = "VLAN Network Interface description";
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
     r[Vlan::VLAN_ENABLE] = json::Value::Type::NIL;
     r[Vlan::VLAN_ID] = json::Value::Type::NIL;
 
@@ -57,6 +54,9 @@ json::Value make_prototype() {
     rs[Common::ODATA_TYPE] =
         "#Intel.Oem.VLanNetworkInterface";
     rs[::Vlan::TAGGED] = json::Value::Type::NIL;
+    rs[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
+    rs[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
+    rs[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
     r[Common::OEM][Common::RACKSCALE] = std::move(rs);
 
     return r;
@@ -79,7 +79,7 @@ void endpoint::VlanNetworkInterface::get(const server::Request& req, server::Res
         <agent_framework::model::Switch>(req.params[PathParam::ETHERNET_SWITCH_ID]).via
         <agent_framework::model::SwitchPort>(req.params[PathParam::SWITCH_PORT_ID]).get();
 
-    endpoint::utils::status_to_json(vlan, r);
+    endpoint::utils::status_to_json(vlan, r[Common::OEM][Common::RACKSCALE]);
 
     r[Vlan::VLAN_ENABLE] =  vlan.get_vlan_enable();
     r[Vlan::VLAN_ID] = vlan.get_vlan_id();

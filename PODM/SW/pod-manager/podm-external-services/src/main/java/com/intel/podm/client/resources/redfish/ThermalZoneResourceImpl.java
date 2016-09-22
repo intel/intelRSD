@@ -35,7 +35,8 @@ import java.util.UUID;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @OdataTypes({
         "#Thermal.1.0.0.Thermal",
-        "http://rackscale.intel.com/schema#Intel.Oem.ThermalZone"
+        "http://rackscale.intel.com/schema#Intel.Oem.ThermalZone",
+        "#Thermal.v1_0_0.Thermal"
 })
 public class ThermalZoneResourceImpl extends ExternalServiceResourceImpl implements ThermalZoneResource {
     @JsonProperty("UUID")

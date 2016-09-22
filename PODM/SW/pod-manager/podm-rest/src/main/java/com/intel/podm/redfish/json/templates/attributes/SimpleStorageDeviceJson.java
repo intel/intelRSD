@@ -16,13 +16,16 @@
 
 package com.intel.podm.redfish.json.templates.attributes;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.common.types.Status;
 
 import java.math.BigDecimal;
 
-@JsonPropertyOrder({"name", "manufacturer", "model", "status", "capacityBytes"})
+@JsonPropertyOrder({"@odata.type", "name", "manufacturer", "model", "status", "capacityBytes"})
 public class SimpleStorageDeviceJson {
+    @JsonProperty("@odata.type")
+    public final String oDataType = "#SimpleStorage.1.1.0.Device";
     public String name;
     public String manufacturer;
     public String model;
