@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.intel.podm.business.dto.redfish.attributes.ExtendedInfoDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV4AddressDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV6AddressDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV6AddressPolicyDto;
@@ -50,6 +51,7 @@ public final class EthernetInterfaceDto {
     private final List<IpV6AddressDto> ipv6StaticAddresses;
     private final List<IpV6AddressPolicyDto> ipV6AddressesPolicyTable;
     private Context neighborPort;
+    private List<ExtendedInfoDto> neighborPortExtendedInfo;
 
     private EthernetInterfaceDto(Builder builder) {
         id = builder.id;
@@ -75,6 +77,7 @@ public final class EthernetInterfaceDto {
         ipv6StaticAddresses = builder.ipv6StaticAddresses;
         ipV6AddressesPolicyTable = builder.ipV6AddressesPolicyTable;
         neighborPort = builder.neighborPort;
+        neighborPortExtendedInfo = builder.neighborPortExtendedInfo;
     }
 
     public static Builder newBuilder() {
@@ -173,6 +176,10 @@ public final class EthernetInterfaceDto {
         return neighborPort;
     }
 
+    public List<ExtendedInfoDto> getNeighborPortExtendedInfo() {
+        return neighborPortExtendedInfo;
+    }
+
     public static final class Builder {
         private Id id;
         private String name;
@@ -197,6 +204,7 @@ public final class EthernetInterfaceDto {
         private List<IpV6AddressDto> ipv6StaticAddresses;
         private List<IpV6AddressPolicyDto> ipV6AddressesPolicyTable;
         private Context neighborPort;
+        private List<ExtendedInfoDto> neighborPortExtendedInfo;
 
         private Builder() {
         }
@@ -313,6 +321,11 @@ public final class EthernetInterfaceDto {
 
         public Builder neighborPort(Context val) {
             neighborPort = val;
+            return this;
+        }
+
+        public Builder neighborPortExtendedInfo(List<ExtendedInfoDto> val) {
+            neighborPortExtendedInfo = val;
             return this;
         }
 

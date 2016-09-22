@@ -40,7 +40,7 @@ import static java.util.Collections.emptyList;
 
 @OdataTypes({
         "#EthernetInterface.1.0.0.EthernetInterface",
-        "#EthernetInterface.1.0.1.EthernetInterface"
+        "#EthernetInterface.v1_0_0.EthernetInterface"
 })
 public class EthernetInterfaceResourceImpl extends ExternalServiceResourceImpl implements EthernetInterfaceResource, LuiEthernetInterfaceResource {
     @JsonProperty ("FQDN")

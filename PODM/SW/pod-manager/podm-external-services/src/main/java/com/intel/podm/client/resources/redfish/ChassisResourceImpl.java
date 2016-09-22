@@ -39,7 +39,15 @@ import static java.util.Objects.isNull;
 
 @OdataTypes({
         "#Chassis.1.0.0.Chassis",
-        "#Chassis.1.0.1.Chassis"
+        "#Chassis.1.0.1.Chassis",
+        "#Chassis.1.1.0.Chassis",
+        "#Chassis.1.1.2.Chassis",
+        "#Chassis.1.2.0.Chassis",
+        "#Chassis.v1_0_0.Chassis",
+        "#Chassis.v1_0_1.Chassis",
+        "#Chassis.v1_1_0.Chassis",
+        "#Chassis.v1_1_2.Chassis",
+        "#Chassis.v1_2_0.Chassis"
 })
 public class ChassisResourceImpl extends ExternalServiceResourceImpl implements ChassisResource {
     @JsonProperty("ChassisType")

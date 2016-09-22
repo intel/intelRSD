@@ -44,11 +44,11 @@ public class EthernetSwitchPortVlanDtoJsonSerializer extends DtoJsonSerializer<E
         vlanJson.id = dto.getId();
         vlanJson.name = dto.getName();
         vlanJson.description = dto.getDescription();
-        vlanJson.status = dto.getStatus();
         vlanJson.vlanEnable = dto.getVlanEnable();
         vlanJson.vlanId = dto.getVlanId();
         vlanJson.oem.rackScaleOem.oDataType = "#Intel.Oem.VLanNetworkInterface";
         vlanJson.oem.rackScaleOem.tagged = Objects.equals(TRUE, dto.getTagged());
+        vlanJson.oem.rackScaleOem.status = dto.getStatus();
 
         return vlanJson;
     }

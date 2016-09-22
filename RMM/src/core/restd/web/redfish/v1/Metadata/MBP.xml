@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.--> 
+/<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
 <edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
 
   <edmx:Reference Uri="Org.OData.Core.V1.xml">
@@ -13,81 +13,110 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.1.0.0" />
+    <edmx:Include Namespace="Resource.1.0.0"/>
   </edmx:Reference>
   <edmx:Reference Uri="RackLocation.xml">
     <edmx:Include Namespace="RackLocation"/>
   </edmx:Reference>
-    
+
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="MBP">
       <EntityType Name="MBP" BaseType="Resource.1.0.0.Resource">
-        <Annotation Term="OData.Description" String="This is the schema definition for the MBP.  It represents the properties for MBP."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a MBP resource for a Redfish implementation."/>
+        <Annotation Term="OData.Description"
+                    String="This is the schema definition for the MBP.  It represents the properties for MBP."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent a MBP resource for a Redfish implementation."/>
       </EntityType>
 
       <Action Name="SetUartTarget" IsBound="true">
         <Parameter Name="MBP" Type="MBP.1.0.0.Actions"/>
         <Parameter Name="TargetTray" Type="Edm.Demical"/>
-          <Annotation Term="OData.Description" String="This is the target tray to be performed."/>
-          <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
+        <Annotation Term="OData.Description" String="This is the target tray to be performed."/>
+        <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
         <Parameter Name="TargetComponent" Type="Edm.String"/>
-          <Annotation Term="OData.Description" String="This is the target componet of uart switch."/>
-          <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
+        <Annotation Term="OData.Description" String="This is the target componet of uart switch."/>
+        <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
         <Annotation Term="OData.Description" String="This action is used to change the uart of the MBP."/>
-        <Annotation Term="OData.LongDescription" String="This defines the name of the custom action supported on this resource."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This defines the name of the custom action supported on this resource."/>
       </Action>
-	  
-	  <Action Name="Update" IsBound="true">
+
+      <Action Name="Update" IsBound="true">
         <Parameter Name="MBP" Type="MBP.1.0.0.Actions"/>
         <Parameter Name="Image" Type="Edm.String"/>
-          <Annotation Term="OData.Description" String="This is the image string for MBP update"/>
-          <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
+        <Annotation Term="OData.Description" String="This is the image string for MBP update"/>
+        <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
         <Annotation Term="OData.Description" String="This action is used to update the firmware of the MBP."/>
-        <Annotation Term="OData.LongDescription" String="This defines the name of the custom action supported on this resource."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This defines the name of the custom action supported on this resource."/>
       </Action>
-    </Schema>    
+    </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="MBP.1.0.0">
 
       <EntityType Name="MBP" BaseType="MBP.MBP">
-        <Property Name="UUID" Type="Resource.UUID"/>
-        <Property Name="CreatedDate" Type="Edm.DateTimeOffset"/>
-        <Property Name="UpdatedDate" Type="Edm.DateTimeOffset"/>
-        <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
-        <Property Name="MBPHWAddress" Type="Edm.String"/>
-        <Property Name="MBPIPAddress" Type="Edm.String"/>
-        <Property Name="FirmwareState" Type="Edm.String"/>
-        <Property Name="AssetTag" Type="Edm.String"/>
-        <Property Name="SerialNumber" Type="Edm.String"/>
-        <Property Name="Manufacturer" Type="Edm.String"/>
-		<Property Name="Model" Type="Edm.String"/>
-		<Property Name="PartNumber" Type="Edm.String"/>
-		<Property Name="Links" Type="MBP.1.0.0.Links" Nullable="false">
+        <Property Name="UUID" Type="Resource.UUID" Nullable="true">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The links object contains the links to other resources that are related to this resource."/>
+        </Property>
+        <Property Name="CreatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="UpdatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="RackLocation" Type="RackLocation.RackLocation" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="MBPHWAddress" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="MBPIPAddress" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="FirmwareState" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="AssetTag" Type="Edm.String"/>
+        <Property Name="SerialNumber" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="Manufacturer" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="Model" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="PartNumber" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="Links" Type="MBP.1.0.0.Links" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="The links object contains the links to other resources that are related to this resource."/>
         </Property>
         <Property Name="Actions" Type="MBP.1.0.0.Actions" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property> 
+        </Property>
       </EntityType>
 
       <ComplexType Name="Actions">
         <Annotation Term="OData.AdditionalProperties" Bool="False"/>
       </ComplexType>
-	  	  
+
       <ComplexType Name="Links" BaseType="Resource.Links">
         <NavigationProperty Name="ManagedBy" Type="Collection(Manager.Manager)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="An array of references to the managers contained in this chassis."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resource that manages this chassis and shall reference a resource of type Manager."/>
+          <Annotation Term="OData.Description"
+                      String="An array of references to the managers contained in this chassis."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resource that manages this chassis and shall reference a resource of type Manager."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </ComplexType>
 
     </Schema>
 
-</edmx:DataServices>
+  </edmx:DataServices>
 </edmx:Edmx>
 

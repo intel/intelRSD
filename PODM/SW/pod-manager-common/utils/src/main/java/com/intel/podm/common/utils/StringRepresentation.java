@@ -88,8 +88,12 @@ public final class StringRepresentation {
     }
 
     public static String fromList(List<?> listToJoin) {
+        return fromList(listToJoin, ELEMENT_SEPARATOR);
+    }
+
+    public static String fromList(List<?> listToJoin, String separator) {
         return Joiner
-                .on(ELEMENT_SEPARATOR)
+                .on(separator)
                 .join(listToJoin);
     }
 }

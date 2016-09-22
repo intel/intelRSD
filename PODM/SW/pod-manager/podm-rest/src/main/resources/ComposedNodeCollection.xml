@@ -45,7 +45,6 @@
 
       <ComplexType Name="Actions">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
       </ComplexType>
 
       <Action Name="Allocate" IsBound="true">

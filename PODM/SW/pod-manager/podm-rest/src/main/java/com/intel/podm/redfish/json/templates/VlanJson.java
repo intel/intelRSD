@@ -23,13 +23,12 @@ import com.intel.podm.common.types.Status;
 
 @JsonPropertyOrder({
         "@odata.context", "@odata.id", "@odata.type", "id", "name",
-        "description", "status", "vlanEnable", "vlanId", "oem"
+        "description", "vlanEnable", "vlanId", "oem"
 })
 public class VlanJson extends BaseJson {
     public Id id;
     public String name;
     public String description;
-    public Status status;
     @JsonProperty("VLANEnable")
     public Boolean vlanEnable;
     @JsonProperty("VLANId")
@@ -37,18 +36,19 @@ public class VlanJson extends BaseJson {
     public VlanOem oem = new VlanOem();
 
     public VlanJson() {
-        super("#VLanNetworkInterface.1.0.0.VLanNetworkInterface");
+        super("#VLanNetworkInterface.1.0.1.VLanNetworkInterface");
     }
 
     public static class VlanOem {
         @JsonProperty("Intel_RackScale")
         public RackScaleOem rackScaleOem = new RackScaleOem();
 
-        @JsonPropertyOrder({"oDataType", "tagged"})
+        @JsonPropertyOrder({"oDataType", "tagged", "status"})
         public static class RackScaleOem {
             @JsonProperty("@odata.type")
             public String oDataType;
             public Boolean tagged;
+            public Status status;
         }
     }
 }

@@ -41,7 +41,7 @@ public class SystemDtoJsonSerializer extends DtoJsonSerializer<ComputerSystemDto
 
     @Override
     protected ComputerSystemJson translate(ComputerSystemDto dto) {
-        ComputerSystemJson computerSystemJson = new ComputerSystemJson("#ComputerSystem.1.0.0.ComputerSystem");
+        ComputerSystemJson computerSystemJson = new ComputerSystemJson("#ComputerSystem.1.1.0.ComputerSystem");
         ODataId oDataId = oDataId(context.getRequestPath());
 
         computerSystemJson.oDataId = oDataId;

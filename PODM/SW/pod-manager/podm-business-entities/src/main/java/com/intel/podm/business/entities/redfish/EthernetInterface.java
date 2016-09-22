@@ -40,7 +40,6 @@ import static com.intel.podm.business.entities.base.DomainObjectLink.IPV6_ADDRES
 import static com.intel.podm.business.entities.base.DomainObjectLink.IPV6_STATIC_ADDRESS;
 import static com.intel.podm.business.entities.base.DomainObjectLink.IP_ADDRESS;
 import static com.intel.podm.business.entities.base.DomainObjectLink.NAME_SERVER;
-import static com.intel.podm.business.entities.base.DomainObjectLink.NEIGHBOR_SWITCH_PORT;
 import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
 import static com.intel.podm.business.entities.base.DomainObjectProperties.booleanProperty;
 import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
@@ -275,15 +274,5 @@ public class EthernetInterface extends DomainObject implements Discoverable, Sta
 
     public ComputerSystem getComputerSystem() {
         return singleOrNull(getLinked(CONTAINED_BY, ComputerSystem.class));
-    }
-
-    public EthernetSwitchPort getNeighborSwitchPort() {
-        return singleOrNull(getLinked(NEIGHBOR_SWITCH_PORT, EthernetSwitchPort.class));
-    }
-
-    public void unlinkEthernetSwitchPort() {
-        for (EthernetSwitchPort switchPort : getLinked(NEIGHBOR_SWITCH_PORT, EthernetSwitchPort.class)) {
-            unlink(NEIGHBOR_SWITCH_PORT, switchPort);
-        }
     }
 }

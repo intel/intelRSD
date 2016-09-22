@@ -16,6 +16,7 @@
 
 package com.intel.podm.discovery.external.matchers;
 
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.EthernetInterfaceDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
@@ -61,17 +62,16 @@ public class ComputerSystemFinder {
                 .orElseThrow(
                         () -> {
                             String msg = fromList(macAddresses);
-                            return new IllegalStateException(format("ComputerSystem has not been found for mac addresses '%s'", msg)
-                            );
+                            return new IllegalStateException(format("Computer System has not been found for MAC addresses '%s'", msg));
                         });
     }
 
 
     private EthernetInterface findEthernetInterface(MacAddress macAddress) {
         try {
-            return ethernetInterfaceDao.getEthernetInterfaceByMacAddress(macAddress);
-        } catch (IllegalStateException e) {
-            logger.w("Found more than one EthernetInterface with MAC address: {}", macAddress);
+            return ethernetInterfaceDao.getEnabledAndHealthyEthernetInterfaceByMacAddress(macAddress);
+        } catch (NonUniqueResultException e) {
+            logger.w("Found more than one Ethernet Interface with MAC address '{}'", macAddress);
             return null;
         }
     }

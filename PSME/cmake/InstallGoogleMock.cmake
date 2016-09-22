@@ -25,23 +25,13 @@ function(install_google_mock_framework)
     include(ConfigurationPackage OPTIONAL)
 
     set(GMOCK_SOURCE_PACKAGE
-        "https://googlemock.googlecode.com/files/gmock-1.7.0.zip"
+        "https://github.com/google/googlemock/archive/release-1.7.0.zip"
     )
-
-    find_library(gmock_library gmock
-        PATHS ${CMAKE_BINARY_DIR}/lib
-    )
-    find_path(gmock_include "gmock/gmock.h"
-        PATHS ${CMAKE_BINARY_DIR}/include
-    )
-
-    if (gmock_library AND gmock_include)
-        return()
-    endif()
 
     set(download_dir ${CMAKE_CURRENT_LIST_DIR}/../third_party)
     set(source_package ${GMOCK_SOURCE_PACKAGE})
-    get_filename_component(source_package_name ${source_package} NAME)
+    get_filename_component(source_package_fname ${source_package} NAME)
+    set(source_package_name "googlemock-${source_package_fname}")
     string(REGEX REPLACE ".zip" "" source_dir ${source_package_name})
     set(source_dir ${CMAKE_BINARY_DIR}/${source_dir})
     set(binary_dir ${source_dir}/build)

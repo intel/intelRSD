@@ -360,14 +360,13 @@ int32 put_prepare_str(const json_t *req, int8 *output, int32 len, const int8 *na
 }
 
 static input_attr_t patch_rack_attrs[] = {
-	{"Description",               NULL},
 	{"AssetTag",                  NULL},
 	{"Oem",                       NULL},
-	{"Oem.Intel:RackScale",             NULL},
-	{"Oem.Intel:RackScale.RackPUID",    NULL},
-	{"Oem.Intel:RackScale.PODDCUID",    NULL},
-	{"Oem.Intel:RackScale.GeoTag",      NULL},
-	{"Oem.Intel:RackScale.PODMAddress", NULL}
+	{"Oem.Intel_RackScale",             NULL},
+	{"Oem.Intel_RackScale.RackPUID",    NULL},
+	{"Oem.Intel_RackScale.PODDCUID",    NULL},
+	{"Oem.Intel_RackScale.GeoTag",      NULL},
+	{"Oem.Intel_RackScale.PODMAddress", NULL}
 };
 
 result_t libwrap_update_put_rack_info(json_t *req, put_rack_info_t *put_info)
@@ -386,17 +385,6 @@ result_t libwrap_update_put_rack_info(json_t *req, put_rack_info_t *put_info)
 	if (libwrap_check_input_attrs(patch_rack_attrs, ary_size, req, NULL) != RESULT_OK)
 		return RESULT_JSON_ARR_ERR;
 
-	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Description");
-	if (obj) {
-		int8 *input = NULL;
-		input = json_string_value(obj);
-		if (input && check_str_len(input, REST_DESC_LEN)) {
-			strncpy_safe(put_info->descr, input, REST_DESC_LEN, REST_DESC_LEN - 1);
-		} else {
-			return RESULT_JSON_ARR_ERR;
-		}
-	}
-
 	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "AssetTag");
 	if (obj) {
 		int8 *input = NULL;
@@ -408,7 +396,7 @@ result_t libwrap_update_put_rack_info(json_t *req, put_rack_info_t *put_info)
 		}
 	}
 
-	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Oem.Intel:RackScale.PODDCUID");
+	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Oem.Intel_RackScale.PODDCUID");
 	if (obj) {
 		int8 *input = NULL;
 		input = json_string_value(obj);
@@ -419,7 +407,7 @@ result_t libwrap_update_put_rack_info(json_t *req, put_rack_info_t *put_info)
 		}
 	}
 
-	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Oem.Intel:RackScale.GeoTag");
+	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Oem.Intel_RackScale.GeoTag");
 	if (obj) {
 		int8 *input = NULL;
 		input = json_string_value(obj);
@@ -430,7 +418,7 @@ result_t libwrap_update_put_rack_info(json_t *req, put_rack_info_t *put_info)
 		}
 	}
 
-	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Oem.Intel:RackScale.PODMAddress");
+	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Oem.Intel_RackScale.PODMAddress");
 	if (obj) {
 		int8 *input = NULL;
 		input = json_string_value(obj);
@@ -441,7 +429,7 @@ result_t libwrap_update_put_rack_info(json_t *req, put_rack_info_t *put_info)
 		}
 	}
 
-	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Oem.Intel:RackScale.RackPUID");
+	obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Oem.Intel_RackScale.RackPUID");
 	if (obj) {
 		int64 input;
 		input = json_integer_value(obj);

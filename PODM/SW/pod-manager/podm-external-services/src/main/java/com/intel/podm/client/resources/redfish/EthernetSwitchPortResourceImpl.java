@@ -38,7 +38,11 @@ import com.intel.podm.common.types.net.MacAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-@OdataTypes("#EthernetSwitchPort.1.0.0.EthernetSwitchPort")
+@OdataTypes({
+        "#EthernetSwitchPort.1.0.0.EthernetSwitchPort",
+        "#EthernetSwitchPort.v1_0_0.EthernetSwitchPort"
+})
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public class EthernetSwitchPortResourceImpl extends ExternalServiceResourceImpl implements EthernetSwitchPortResource {
     @JsonProperty("PortId")
     private String portId;

@@ -19,54 +19,67 @@ package com.intel.podm.business.redfish.services;
 import com.intel.podm.business.EntityNotFoundException;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.dto.redfish.EthernetInterfaceDto;
+import com.intel.podm.business.dto.redfish.EthernetInterfaceDto.Builder;
+import com.intel.podm.business.dto.redfish.attributes.ExtendedInfoDto;
+import com.intel.podm.business.entities.NonUniqueResultException;
+import com.intel.podm.business.entities.dao.EthernetInterfaceDao;
 import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.entities.redfish.properties.NameServer;
-import com.intel.podm.business.redfish.Contexts;
 import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.EthernetInterfaceService;
+import com.intel.podm.common.logger.Logger;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_INTERFACES;
+import static com.intel.podm.business.redfish.Contexts.getAsIdList;
+import static com.intel.podm.business.redfish.Contexts.toContext;
+import static com.intel.podm.common.utils.StringRepresentation.fromList;
 import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Transactional(REQUIRED)
 public class EthernetInterfaceServiceImpl implements EthernetInterfaceService {
-
     @Inject
     private DomainObjectTreeTraverser traverser;
+
+    @Inject
+    private EthernetInterfaceDao ethernetInterfaceDao;
+
+    @Inject
+    private EthernetSwitchPortDao ethernetSwitchPortDao;
 
     @Inject
     private IpAddressDtoTranslateHelper dtoHelper;
 
     @Inject
-    private EthernetSwitchPortDao switchPortDao;
+    private Logger logger;
 
     @Override
     public CollectionDto getEthernetInterfacesCollectionForComputerSystem(Context systemContext) throws EntityNotFoundException {
         ComputerSystem system = (ComputerSystem) traverser.traverse(systemContext);
-        return new CollectionDto(ETHERNET_INTERFACES, Contexts.getAsIdList(system.getEthernetInterfaces()));
+        return new CollectionDto(ETHERNET_INTERFACES, getAsIdList(system.getEthernetInterfaces()));
     }
 
     @Override
     public CollectionDto getEthernetInterfacesCollectionForManager(Context managerContext) throws EntityNotFoundException {
         Manager manager = (Manager) traverser.traverse(managerContext);
-        return new CollectionDto(ETHERNET_INTERFACES, Contexts.getAsIdList(manager.getEthernetInterfaces()));
+        return new CollectionDto(ETHERNET_INTERFACES, getAsIdList(manager.getEthernetInterfaces()));
     }
 
     @Override
     public EthernetInterfaceDto getEthernetInterface(Context ethernetInterfaceContext) throws EntityNotFoundException {
         EthernetInterface ethernetInterface = (EthernetInterface) traverser.traverse(ethernetInterfaceContext);
-        EthernetSwitchPort neighborPort = ethernetInterface.getNeighborSwitchPort();
-        return EthernetInterfaceDto.newBuilder()
+
+        Builder ethernetInterfaceBuilder = EthernetInterfaceDto.newBuilder()
                 .id(ethernetInterface.getId()).name(ethernetInterface.getName())
                 .interfaceEnabled(ethernetInterface.getInterfaceEnabled())
                 .speedMbps(ethernetInterface.getSpeedMbps()).mtuSize(ethernetInterface.getMtuSize())
@@ -81,9 +94,38 @@ public class EthernetInterfaceServiceImpl implements EthernetInterfaceService {
                 .ipv6Addresses(dtoHelper.translateIpV6AddressesToDto(ethernetInterface.getIpV6Addresses()))
                 .ipv6StaticAddresses(dtoHelper.translateIpV6AddressesToDto(ethernetInterface.getIpV6StaticAddresses()))
                 .ipV6AddressesPolicyTable(dtoHelper.translateIpV6Policies(ethernetInterface.getIpV6AddressesPolicyTable()))
-                .maxIPv6StaticAddresses(ethernetInterface.getMaxIPv6StaticAddresses())
-                .neighborPort(neighborPort != null ? Contexts.toContext(neighborPort) : null)
-                .build();
+                .maxIPv6StaticAddresses(ethernetInterface.getMaxIPv6StaticAddresses());
+
+        return fillNeighborSwitchPortPart(ethernetInterfaceBuilder, ethernetInterface).build();
+    }
+
+    private Builder fillNeighborSwitchPortPart(Builder ethernetInterfaceBuilder, EthernetInterface ethernetInterface) {
+        EthernetSwitchPort neighborPort = null;
+        List<String> errors = new ArrayList<>();
+
+        try {
+            neighborPort = ethernetSwitchPortDao.getEnabledAndHealthyEthernetSwitchPortByNeighborMac(ethernetInterface.getMacAddress());
+        } catch (NonUniqueResultException e) {
+            errors.add("Couldn't match neighbor Ethernet Switch Port. " + e.getMessage());
+        }
+        try {
+            ethernetInterfaceDao.getEnabledAndHealthyEthernetInterfaceByMacAddress(ethernetInterface.getMacAddress());
+        } catch (NonUniqueResultException e) {
+            errors.add("There are different Ethernet Interfaces with the same MAC Address. " + e.getMessage());
+        }
+
+        if (errors.isEmpty()) {
+            ethernetInterfaceBuilder.neighborPort(neighborPort != null ? toContext(neighborPort) : null);
+        } else {
+            List<ExtendedInfoDto> extendedInfoList = errors.stream()
+                    .map(error -> ExtendedInfoDto.newExtendedInfoDto().message(error).build())
+                    .collect(toList());
+
+            ethernetInterfaceBuilder.neighborPortExtendedInfo(extendedInfoList);
+            logger.e(fromList(errors, "\n"));
+        }
+
+        return ethernetInterfaceBuilder;
     }
 
     private List<String> getNameServers(EthernetInterface ethernetInterface) {

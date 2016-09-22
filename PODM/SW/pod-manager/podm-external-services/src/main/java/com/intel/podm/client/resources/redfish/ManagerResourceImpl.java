@@ -33,7 +33,16 @@ import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 
-@OdataTypes("#Manager.1.0.0.Manager")
+@OdataTypes({
+        "#Manager.1.0.0.Manager",
+        "#Manager.1.0.1.Manager",
+        "#Manager.1.0.2.Manager",
+        "#Manager.1.1.0.Manager",
+        "#Manager.v1_0_0.Manager",
+        "#Manager.v1_0_1.Manager",
+        "#Manager.v1_0_2.Manager",
+        "#Manager.v1_1_0.Manager"
+})
 public class ManagerResourceImpl extends ExternalServiceResourceImpl implements ManagerResource {
     @JsonProperty("UUID")
     private UUID uuid;
@@ -167,6 +176,7 @@ public class ManagerResourceImpl extends ExternalServiceResourceImpl implements 
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static final class Links {
+
         @JsonProperty("ManagerForServers")
         private List<ODataId> managerForServers;
 

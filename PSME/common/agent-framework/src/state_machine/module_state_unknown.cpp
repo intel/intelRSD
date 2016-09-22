@@ -36,7 +36,7 @@ void ModuleStateUnknown::enter_state(StateMachineTransition& transition,
         transition.set_transition(
                 enums::Transition::DISCOVERY_UP);
         break;
-    case enums::State::OFFLINE:
+    case enums::State::STANDBY_OFFLINE:
         transition.set_transition(
                 enums::Transition::DISCOVERY_DOWN);
         break;

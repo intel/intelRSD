@@ -18,9 +18,11 @@ package com.intel.podm.allocation.mappers.ethernetinterface;
 
 import com.intel.podm.allocation.mappers.Sorter;
 import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.Id;
 
 import javax.enterprise.context.Dependent;
@@ -38,7 +40,10 @@ import static java.util.Optional.ofNullable;
 @Dependent
 public class EthernetInterfacesAllocationMapper {
     @Inject
-    EthernetSwitchPortDao ethernetSwitchPortDao;
+    private EthernetSwitchPortDao ethernetSwitchPortDao;
+
+    @Inject
+    private Logger logger;
 
     public Map<EthernetInterface, RequestedEthernetInterface> map(List<EthernetInterface> availableInterfaces,
                                                                   List<RequestedEthernetInterface> requestedInterfaces) {
@@ -102,7 +107,12 @@ public class EthernetInterfacesAllocationMapper {
 
     private boolean vlansConstraintsAreSatisfied(RequestedEthernetInterface requestedEthernetInterface, EthernetInterface availableInterface) {
         if (requestedEthernetInterface.getVlans().isPresent()) {
-            return availableInterface.getNeighborSwitchPort() != null;
+            try {
+                return ethernetSwitchPortDao.getEnabledAndHealthyEthernetSwitchPortByNeighborMac(availableInterface.getMacAddress()) != null;
+            } catch (NonUniqueResultException e) {
+                logger.e("Could not use Ethernet Interface '{}' for allocation.", availableInterface, e);
+                return false;
+            }
         }
 
         return true;

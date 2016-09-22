@@ -236,52 +236,43 @@ result_t libwrap_pack_mbp_to_json(json_t *output, mbp_member_t *mbp_member, stru
 	return RESULT_OK;
 }
 
+
 static input_attr_t patch_mbp_attrs[] = {
-	{"Description",         NULL},
-	{"AssetTag",            NULL}
+    {"AssetTag", NULL}
 };
 
-result_t libwrap_update_put_mbp_info(json_t *req, put_mbp_t *put_info)
-{
-	result_t rs = RESULT_OK;
-	json_t *obj = NULL;
-	int32  i = 0;
-	uint32 ary_size = sizeof(patch_mbp_attrs)/sizeof(input_attr_t);
 
-	if ((req == NULL) || (put_info == NULL))
-		return RESULT_NONE_POINTER;
+result_t libwrap_update_put_mbp_info(json_t* req, put_mbp_t* put_info) {
+    json_t* obj = NULL;
+    int32 i = 0;
+    uint32 ary_size = sizeof(patch_mbp_attrs) / sizeof(input_attr_t);
 
-	for (i = 0; i < ary_size; i++)
-		patch_mbp_attrs[i].value = NULL;
+    if ((req == NULL) || (put_info == NULL)) {
+        return RESULT_NONE_POINTER;
+    }
 
-	if (libwrap_check_input_attrs(patch_mbp_attrs, ary_size, req, NULL) != RESULT_OK)
-		return RESULT_JSON_ARR_ERR;
+    for (i = 0; i < ary_size; i++) {
+        patch_mbp_attrs[i].value = NULL;
+    }
 
-	obj = libwrap_get_attr_json(patch_mbp_attrs, ary_size, "Description");
-	if (obj) {
-		int8 *input = NULL;
-		input = json_string_value(obj);
-		if (input && check_str_len(input, REST_DESC_LEN)) {
-			strncpy_safe(put_info->descr, input, REST_DESC_LEN, REST_DESC_LEN - 1);
-		} else {
-			return RESULT_JSON_ARR_ERR;
-		}
-	}
+    if (libwrap_check_input_attrs(patch_mbp_attrs, ary_size, req, NULL) != RESULT_OK) {
+        return RESULT_JSON_ARR_ERR;
+    }
 
-	obj = libwrap_get_attr_json(patch_mbp_attrs, ary_size, "AssetTag");
-	if (obj) {
-		int8 *input = NULL;
-		input = json_string_value(obj);
-		if (input && check_str_len(input, REST_ASSET_TAG_LEN)) {
-			strncpy_safe(put_info->asset_tag, input, REST_ASSET_TAG_LEN, REST_ASSET_TAG_LEN - 1);
-		} else {
-			return RESULT_JSON_ARR_ERR;
-		}
-	}
+    obj = libwrap_get_attr_json(patch_mbp_attrs, ary_size, "AssetTag");
+    if (obj) {
+        int8* input = NULL;
+        input = json_string_value(obj);
+        if (input && check_str_len(input, REST_ASSET_TAG_LEN)) {
+            strncpy_safe(put_info->asset_tag, input, REST_ASSET_TAG_LEN, REST_ASSET_TAG_LEN - 1);
+        }
+        else {
+            return RESULT_JSON_ARR_ERR;
+        }
+    }
 
-	return RESULT_OK;
+    return RESULT_OK;
 }
-
 
 
 result_t libwrap_pre_put_mbp(int idx, put_mbp_t *put_mbp_info)

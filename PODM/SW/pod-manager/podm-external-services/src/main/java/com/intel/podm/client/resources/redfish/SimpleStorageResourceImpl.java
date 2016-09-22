@@ -27,7 +27,9 @@ import java.util.List;
 
 @OdataTypes({
         "#SimpleStorage.1.0.0.SimpleStorage",
-        "#SimpleStorage.1.1.0.SimpleStorage"
+        "#SimpleStorage.1.1.0.SimpleStorage",
+        "#SimpleStorage.v1_0_0.SimpleStorage",
+        "#SimpleStorage.v1_1_0.SimpleStorage"
 })
 public class SimpleStorageResourceImpl extends ExternalServiceResourceImpl implements SimpleStorageResource {
     @JsonProperty("UEFIDevicePath")

@@ -138,7 +138,7 @@ TEST_F(StateMachineTest, PositiveTransitionFromUnknownToDown) {
 
     ASSERT_EQ(state_machine->get_transition(),
             enums::Transition::DISCOVERY_DOWN);
-    ASSERT_EQ(state_machine->get_state(), enums::State::OFFLINE);
+    ASSERT_EQ(state_machine->get_state(), enums::State::STANDBY_OFFLINE);
 }
 
 TEST_F(StateMachineTest, PositiveTransitiontoMissingWhenStatusUnknown) {
@@ -232,7 +232,7 @@ TEST_F(StateMachineTest, PositiveTransitionStayInDown) {
 
     ASSERT_EQ(state_machine->get_transition(),
             enums::Transition::IDLE);
-    ASSERT_EQ(state_machine->get_state(), enums::State::OFFLINE);
+    ASSERT_EQ(state_machine->get_state(), enums::State::STANDBY_OFFLINE);
 }
 
 /* UP */
@@ -264,7 +264,7 @@ TEST_F(StateMachineTest, PositiveTransitionFromUpToDown) {
 
     ASSERT_EQ(state_machine->get_transition(),
             enums::Transition::WENT_DOWN);
-    ASSERT_EQ(state_machine->get_state(), enums::State::OFFLINE);
+    ASSERT_EQ(state_machine->get_state(), enums::State::STANDBY_OFFLINE);
 }
 
 TEST_F(StateMachineTest, PositiveTransitionStayInUp) {

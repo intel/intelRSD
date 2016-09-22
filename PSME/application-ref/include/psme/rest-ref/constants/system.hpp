@@ -118,6 +118,8 @@ namespace DimmConfig {
     extern const char OPERATING_MEMORY_MODES[];
     extern const char METRICS[];
     extern const char VOLTAGE_VOLT[];
+    extern const char VENDOR_ID[];
+    extern const char DEVICE_ID[];
 }
 
 namespace Processor {

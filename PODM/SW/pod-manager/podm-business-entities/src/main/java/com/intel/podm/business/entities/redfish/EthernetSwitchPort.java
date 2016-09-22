@@ -42,7 +42,6 @@ import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINED_B
 import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
 import static com.intel.podm.business.entities.base.DomainObjectLink.IP_ADDRESS;
 import static com.intel.podm.business.entities.base.DomainObjectLink.MEMBER_OF_PORT;
-import static com.intel.podm.business.entities.base.DomainObjectLink.NEIGHBOR_ETHERNET_INTERFACE;
 import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
 import static com.intel.podm.business.entities.base.DomainObjectLink.PORT_MEMBERS;
 import static com.intel.podm.business.entities.base.DomainObjectLink.PRIMARY_VLAN;
@@ -289,19 +288,5 @@ public class EthernetSwitchPort extends DomainObject implements Discoverable, St
     @Override
     public ExternalService getService() {
         return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
-    }
-
-    public void linkEthernetInterface(EthernetInterface ethernetInterface) {
-        link(NEIGHBOR_ETHERNET_INTERFACE, ethernetInterface);
-    }
-
-    public void unlinkEthernetInterfaces() {
-        for (EthernetInterface ethernetInterface : getLinked(NEIGHBOR_ETHERNET_INTERFACE, EthernetInterface.class)) {
-            unlink(NEIGHBOR_ETHERNET_INTERFACE, ethernetInterface);
-        }
-    }
-
-    public EthernetInterface getNeighborInterface() {
-        return singleOrNull(getLinked(NEIGHBOR_ETHERNET_INTERFACE, EthernetInterface.class));
     }
 }

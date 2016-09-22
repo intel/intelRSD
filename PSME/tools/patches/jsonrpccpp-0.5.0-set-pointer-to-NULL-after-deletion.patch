@@ -1,0 +1,24 @@
+From dbfa2f4e09d9ed418c68b55c4f1d9c3820961e35 Mon Sep 17 00:00:00 2001
+From: Hubert Sokolowski <hubert.sokolowski@intel.com>
+Date: Thu, 9 Jun 2016 11:54:38 +0200
+Subject: [PATCH] set pointer to NULL after deletion
+
+---
+ src/jsonrpccpp/server/connectors/httpserver.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/jsonrpccpp/server/connectors/httpserver.cpp b/src/jsonrpccpp/server/connectors/httpserver.cpp
+index bb494c4..9cda12d 100644
+--- a/src/jsonrpccpp/server/connectors/httpserver.cpp
++++ b/src/jsonrpccpp/server/connectors/httpserver.cpp
+@@ -167,6 +167,7 @@ int HttpServer::callback(void *cls, MHD_Connection *connection, const char *url,
+         client_connection->server->SendResponse("Not allowed HTTP Method", client_connection);
+     }
+     delete client_connection;
++    *con_cls = NULL;
+ 
+     return MHD_YES;
+ }
+-- 
+2.5.0
+

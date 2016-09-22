@@ -80,10 +80,7 @@ public enum DomainObjectLink implements Link {
 
     /** Chassis */
     COMPUTER_SYSTEM("computerSystemLink", OUT),
-    CHASSIS("computerSystemLink", IN),
-
-    NEIGHBOR_ETHERNET_INTERFACE("neighbor", OUT),
-    NEIGHBOR_SWITCH_PORT("neighbor", IN);
+    CHASSIS("computerSystemLink", IN);
 
     private final String label;
     private final Direction direction;

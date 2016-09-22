@@ -52,7 +52,7 @@ public class ChassisJson extends BaseJson {
     public ChassisLinksJson links = new ChassisLinksJson();
 
     public ChassisJson() {
-        super("#Chassis.1.0.0.Chassis");
+        super("#Chassis.1.2.0.Chassis");
     }
 
     public static class ChassisOem {

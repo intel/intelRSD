@@ -17,9 +17,11 @@
 package com.intel.podm.client.api.resources.redfish;
 
 import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.net.MacAddress;
 
 public interface LuiEthernetInterfaceResource extends ExternalServiceResource {
+    Status getStatus();
     Boolean getInterfaceEnabled();
     MacAddress getMacAddress();
     Integer getSpeedMbps();

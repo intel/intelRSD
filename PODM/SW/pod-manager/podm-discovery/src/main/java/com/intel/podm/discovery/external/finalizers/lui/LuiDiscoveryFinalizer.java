@@ -18,12 +18,9 @@ package com.intel.podm.discovery.external.finalizers.lui;
 
 import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.EthernetInterface;
-import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.discovery.external.deep.DeepDiscoveryFinalizer;
 import com.intel.podm.discovery.external.finalizers.DiscoveryFinalizer;
-import com.intel.podm.discovery.external.finalizers.psme.SwitchPortToEthernetInterfaceLinker;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -36,12 +33,8 @@ import static com.intel.podm.common.utils.Collections.filterByType;
 
 @Dependent
 public class LuiDiscoveryFinalizer extends DiscoveryFinalizer {
-
     @Inject
     DeepDiscoveryFinalizer deepDiscoveryFinalizer;
-
-    @Inject
-    private SwitchPortToEthernetInterfaceLinker switchPortToEthernetInterfaceLinker;
 
     public LuiDiscoveryFinalizer() {
         super(LUI);
@@ -56,13 +49,8 @@ public class LuiDiscoveryFinalizer extends DiscoveryFinalizer {
             throw new IllegalStateException("LUI service should have exactly one Computer System resource");
         }
 
-        ComputerSystem computerSystem = computerSystems.iterator().next();
-
-        ExternalService externalService = computerSystem.getService();
-        if (externalService != null && PSME.equals(externalService.getServiceType())) {
-            switchPortToEthernetInterfaceLinker.link(filterByType(discoveredDomainObjects, EthernetInterface.class),
-                externalService.getOwned(EthernetSwitchPort.class));
-        } else {
+        ExternalService externalService = computerSystems.iterator().next().getService();
+        if (externalService == null || !PSME.equals(externalService.getServiceType())) {
             throw new IllegalStateException("ComputerSystem should be associated with single PSME external service");
         }
     }

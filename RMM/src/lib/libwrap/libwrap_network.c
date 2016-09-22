@@ -622,7 +622,6 @@ result_t libwrap_pack_manager_vlan_json(json_t *result, mngr_vlan_t *vlan)
 		add_json_string(status, RMM_JSON_MANAGER_STATE, RMM_JSON_STATE_ENABLED);
 		add_json_string(status, RMM_JSON_MANAGER_HEALTH, "OK");
 	}
-	json_object_add(result, RMM_JSON_STATUS, status);
 
 	add_json_bool(result, RMM_JSON_MANAGER_VLAN_ENABLE, vlan->enable);
 	add_json_integer(result, RMM_JSON_MANAGER_VLAN_ID, vlan->vlan_id);
@@ -634,6 +633,7 @@ result_t libwrap_pack_manager_vlan_json(json_t *result, mngr_vlan_t *vlan)
 			add_json_string(rsa, RMM_JSON_ODATA_TYPE, vlan->oem.odata_type);
 			add_json_bool(rsa, RMM_JSON_MANAGER_VLAN_TAGGED, vlan->oem.tagged);
 		}
+		json_object_add(rsa, RMM_JSON_STATUS, status);
 		json_object_add(oem, RMM_JSON_OEM_INTEL_RSA, rsa);
 		json_object_add(result, RMM_JSON_OEM, oem);
 	}

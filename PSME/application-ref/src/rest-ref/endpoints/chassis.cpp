@@ -57,6 +57,7 @@ json::Value make_prototype() {
     rs[Common::LOCATION][Chassis::PARENT_ID] = json::Value::Type::NIL;
     r[Common::OEM][Common::RACKSCALE] = std::move(rs);
 
+    r[Common::LINKS][Common::ODATA_TYPE] = "#Chassis.1.2.0.Links";
     r[Common::LINKS][Chassis::CONTAINS] = json::Value::Type::ARRAY;
     r[Common::LINKS][Common::CONTAINED_BY] = json::Value::Type::NIL;
     r[Common::LINKS][Chassis::COMPUTER_SYSTEMS] = json::Value::Type::ARRAY;

@@ -170,7 +170,7 @@ void StateMachineAction::execute(const std::string& module,
 
     bool presence = (state == State::STARTING
                   || state == State::ENABLED
-                  || state == State::OFFLINE);
+                  || state == State::STANDBY_OFFLINE);
 
     {
         ComputeComponents::get_instance()->
@@ -196,9 +196,9 @@ void StateMachineAction::execute(const std::string& module,
             break;
 
         case State::ABSENT:
-        case State::OFFLINE:
+        case State::STANDBY_OFFLINE:
             log_debug(GET_LOGGER("agent"), "\tAction: Removing systems for manager");
-            update_status(module, model::enums::State::Offline);
+            update_status(module, model::enums::State::StandbyOffline);
             remove_systems(module);
             break;
 

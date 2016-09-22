@@ -109,7 +109,7 @@ namespace DimmConfig {
      const char CHANNEL[] = "Channel";
      const char SLOT[] = "Slot";
      const char ERROR_CORRECTION[] = "ErrorCorrection";
-     const char OPERATING_SPEED_MHZ[] = "OperatingSpeedMHz";
+     const char OPERATING_SPEED_MHZ[] = "OperatingSpeedMhz";
      const char REGIONS[] = "Regions";
      const char REGION_ID[] = "RegionId";
      const char MEMORY_TYPE[] = "MemoryClassification";
@@ -118,6 +118,8 @@ namespace DimmConfig {
      const char OPERATING_MEMORY_MODES[] = "OperatingMemoryModes";
      const char METRICS[] = "Metrics";
      const char VOLTAGE_VOLT[] = "VoltageVolt";
+     const char VENDOR_ID[] = "VendorID";
+     const char DEVICE_ID[] = "DeviceID";
 }
 
 namespace Processor {

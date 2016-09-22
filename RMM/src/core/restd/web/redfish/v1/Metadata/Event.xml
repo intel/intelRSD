@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.--> 
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
 <edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
 
   <edmx:Reference Uri="Org.OData.Core.V1.xml">
@@ -10,26 +10,30 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.1.0.0" />
+    <edmx:Include Namespace="Resource.1.0.0"/>
   </edmx:Reference>
-  
+
   <edmx:DataServices>
- 
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Event">
 
       <EntityType Name="Event" BaseType="Resource.1.0.0.Resource">
-        <Annotation Term="OData.Description" String="This is the schema definition for Events.  It represents the properties for the events themselves and not subscriptions or any other resource."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent an event for a Redfish implementation."/>
+        <Annotation Term="OData.Description"
+                    String="This is the schema definition for Events.  It represents the properties for the events themselves and not subscriptions or any other resource."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent an event for a Redfish implementation."/>
       </EntityType>
 
-      </Schema>
-    
+    </Schema>
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Event.1.0.0">
 
       <EntityType Name="Event" BaseType="Event.Event">
-        <NavigationProperty Name="Events" Type="Collection(Event.1.0.0.EventRecord)" >
-          <Annotation Term="OData.Description" String="Each event in this array has a set of properties that describe the event.  Since this is an array, more than one event can be sent simultaneously."/>
-    		  <Annotation Term="OData.LongDescription" String="The value of this resource shall be an array of Event objects used to represent the occurrence of one or more events."/>
+        <NavigationProperty Name="Events" Type="Collection(Event.1.0.0.EventRecord)">
+          <Annotation Term="OData.Description"
+                      String="Each event in this array has a set of properties that describe the event.  Since this is an array, more than one event can be sent simultaneously."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this resource shall be an array of Event objects used to represent the occurrence of one or more events."/>
           <Annotation Term="Redfish.Required"/>
           <Annotation Term="Redfish.AutoExpand"/>
         </NavigationProperty>
@@ -116,52 +120,66 @@
       <EntityType Name="EventRecord" BaseType="Resource.1.0.0.ReferenceableMember">
         <Property Name="EventType" Type="Event.1.0.0.EventType" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="This indicates the type of event sent, according to the definitions in the EventService."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the type of event as defined in the EventService schema."/>
+          <Annotation Term="OData.Description"
+                      String="This indicates the type of event sent, according to the definitions in the EventService."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall indicate the type of event as defined in the EventService schema."/>
           <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="EventId" Type="Edm.String" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="This is a unique instance identifier of an event."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate a unique identifier for the event, the format of which is implementation dependent."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall indicate a unique identifier for the event, the format of which is implementation dependent."/>
         </Property>
         <Property Name="EventTimestamp" Type="Edm.DateTimeOffset" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="This is time the event occurred."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the time the event occurred where the value shall be consistent with the Redfish service time that is also used for the values of the Modified property."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall indicate the time the event occurred where the value shall be consistent with the Redfish service time that is also used for the values of the Modified property."/>
         </Property>
         <Property Name="Severity" Type="Edm.String" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="This is the severity of the event."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be the severity of the event, as defined in the Status section of the Redfish specification."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the severity of the event, as defined in the Status section of the Redfish specification."/>
         </Property>
         <Property Name="Message" Type="Edm.String" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="This is the human readable message, if provided."/>
-          <Annotation Term="OData.LongDescription" String="This property shall contain an optional human readable message."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain an optional human readable message."/>
         </Property>
         <Property Name="MessageId" Type="Edm.String" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="This is the key for this message which can be used to look up the message in a message registry."/>
-          <Annotation Term="OData.LongDescription" String="This property shall be a key into message registry as described in the Redfish specification."/>
+          <Annotation Term="OData.Description"
+                      String="This is the key for this message which can be used to look up the message in a message registry."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall be a key into message registry as described in the Redfish specification."/>
           <Annotation Term="Validation.Pattern" String="^[A-Za-z0-9]+\\.\\d+\\.\\d+.[A-Za-z0-9.]+$"/>
           <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="MessageArgs" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="This array of message arguments are substituted for the arguments in the message when looked up in the message registry."/>
-          <Annotation Term="OData.LongDescription" String="This property has the same semantics as the MessageArgs property in the Event schema for Redfish."/>
+          <Annotation Term="OData.Description"
+                      String="This array of message arguments are substituted for the arguments in the message when looked up in the message registry."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property has the same semantics as the MessageArgs property in the Event schema for Redfish."/>
         </Property>
         <Property Name="Context" Type="Edm.String" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="A context can be supplied at subscription time.  This property is the context value supplied by the subscriber."/>
-          <Annotation Term="OData.LongDescription" String="This property shall contain a client supplied context for the Event Destination to which this event is being sent."/>
+          <Annotation Term="OData.Description"
+                      String="A context can be supplied at subscription time.  This property is the context value supplied by the subscriber."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain a client supplied context for the Event Destination to which this event is being sent."/>
         </Property>
         <NavigationProperty Name="OriginOfCondition" Type="Resource.Item" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="This indicates the resource that originated the condition that caused the event to be generated."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall contain a pointer consistent with JSON pointer syntax to the resource that caused the event to be generated."/>
-		      <Annotation Term="Redfish.AutoExpandReferences"/>
+          <Annotation Term="OData.Description"
+                      String="This indicates the resource that originated the condition that caused the event to be generated."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall contain a pointer consistent with JSON pointer syntax to the resource that caused the event to be generated."/>
+          <Annotation Term="Redfish.AutoExpandReferences"/>
         </NavigationProperty>
       </EntityType>
 

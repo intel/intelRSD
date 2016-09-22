@@ -38,7 +38,7 @@ namespace enums {
 /*!
 * @brief ENUM States of State Machine
 */
-ENUM(State, uint32_t, UNKNOWN, ENABLED, OFFLINE, ABSENT, STARTING);
+ENUM(State, uint32_t, UNKNOWN, ENABLED, STANDBY_OFFLINE, ABSENT, STARTING);
 }
 
 class StateMachineTransition;

@@ -25,11 +25,16 @@ import javax.enterprise.context.Dependent;
 public class LuiEthernetInterfaceMapper extends LuiMapper<LuiEthernetInterfaceResource, EthernetInterface> {
     public LuiEthernetInterfaceMapper() {
         super(LuiEthernetInterfaceResource.class, EthernetInterface.class);
+        addIgnoredProperty("status");
     }
 
     @Override
     protected void performNotAutomatedMapping(LuiEthernetInterfaceResource source, EthernetInterface target) {
         target.setName(source.getName());
         target.setDescription(source.getDescription());
+
+        if (target.getStatus() == null) {
+            target.setStatus(source.getStatus());
+        }
     }
 }

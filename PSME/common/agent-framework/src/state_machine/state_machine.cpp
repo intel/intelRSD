@@ -44,7 +44,7 @@ StateMachine::StateMachine() :
         {enums::State::UNKNOWN, std::make_shared<ModuleStateUnknown>()},
         {enums::State::ABSENT, std::make_shared<ModuleStateAbsent>()},
         {enums::State::ENABLED, std::make_shared<ModuleStateEnabled>()},
-        {enums::State::OFFLINE, std::make_shared<ModuleStateOffline>()},
+        {enums::State::STANDBY_OFFLINE, std::make_shared<ModuleStateOffline>()},
         {enums::State::STARTING, std::make_shared<ModuleStateStarting>()}
     }{}
 
@@ -90,7 +90,7 @@ StateMachine::get_next_state(const status::ModuleStatus::Status hw_status,
     }
 
     if (is_offline_state(hw_status, sw_status)) {
-        return enums::State::OFFLINE;
+        return enums::State::STANDBY_OFFLINE;
     }
 
     return enums::State::ABSENT;

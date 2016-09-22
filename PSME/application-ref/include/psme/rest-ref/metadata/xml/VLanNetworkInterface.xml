@@ -35,7 +35,6 @@
           <Annotation Term="OData.Description" String="This indicates the VLAN identifier for this VLAN."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be used to indicate the VLAN identifier for this VLAN."/>
         </Property>
-        <Property Name="Status" Type="Resource.Status"/>
         </EntityType>
 
       <ComplexType Name="VLAN">

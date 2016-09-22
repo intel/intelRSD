@@ -30,9 +30,10 @@ import static java.util.EnumSet.noneOf;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @OdataTypes({
-    "#EventService.1.0.0.EventDestination",
-    "#EventDestination.1.0.0.EventDestination",
-    "#EventServiceSubscription.1.0.0.EventServiceSubscription"
+        "#EventService.1.0.0.EventDestination",
+        "#EventDestination.1.0.0.EventDestination",
+        "#EventServiceSubscription.1.0.0.EventServiceSubscription",
+        "#EventDestination.v1_0_0.EventDestination"
 })
 public class EventSubscriptionResourceImpl extends ExternalServiceResourceImpl implements EventSubscriptionResource {
 

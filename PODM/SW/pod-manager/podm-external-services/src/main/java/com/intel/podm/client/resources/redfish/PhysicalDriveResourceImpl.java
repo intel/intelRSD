@@ -26,7 +26,10 @@ import com.intel.podm.common.types.StorageControllerInterface;
 
 import java.math.BigDecimal;
 
-@OdataTypes("#PhysicalDrive.1.0.0.PhysicalDrive")
+@OdataTypes({
+        "#PhysicalDrive.1.0.0.PhysicalDrive",
+        "#PhysicalDrive.v1_0_0.PhysicalDrive"
+})
 public class PhysicalDriveResourceImpl extends ExternalServiceResourceImpl implements PhysicalDriveResource {
     @JsonProperty ("Interface")
     private StorageControllerInterface controllerInterface;

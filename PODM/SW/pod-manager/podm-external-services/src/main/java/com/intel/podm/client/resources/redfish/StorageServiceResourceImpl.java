@@ -30,7 +30,10 @@ import com.intel.podm.common.types.Status;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@OdataTypes("#StorageService.1.0.0.StorageService")
+@OdataTypes({
+        "#StorageService.1.0.0.StorageService",
+        "#StorageService.v1_0_0.StorageService"
+})
 public final class StorageServiceResourceImpl extends ExternalServiceResourceImpl implements StorageServiceResource {
     @JsonProperty("Status")
     private Status status;

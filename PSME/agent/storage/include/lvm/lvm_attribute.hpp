@@ -41,7 +41,7 @@ static constexpr const char* STATE_ENABLED = "Enabled";
 /*! @brief Lvm state */
 static constexpr const char* STATE_DISABLED = "Disabled";
 /*! @brief Lvm state */
-static constexpr const char* STATE_OFFLINE = "Offline";
+static constexpr const char* STATE_STANDBY_OFFLINE = "StandbyOffline";
 
 /*! @brief Default flag for lvm handle */
 static constexpr const std::uint32_t FLAGS = 0;

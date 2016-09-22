@@ -20,15 +20,21 @@ import com.intel.podm.business.dto.redfish.EthernetInterfaceDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV4AddressDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV6AddressDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV6AddressPolicyDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.redfish.json.templates.EthernetInterfaceJson;
+import com.intel.podm.redfish.json.templates.EthernetInterfaceJson.IpV6AddressPolicyJson;
+import com.intel.podm.redfish.json.templates.EthernetInterfaceJson.Ipv4AddressJson;
+import com.intel.podm.redfish.json.templates.EthernetInterfaceJson.Ipv6AddressJson;
 import com.intel.podm.redfish.json.templates.EthernetInterfaceJson.Links.Oem.RackScaleOem;
-import com.intel.podm.rest.odataid.ODataIds;
 import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.rest.representation.json.templates.RedfishErrorResponseJson.ExtendedInfoJson;
 
 import java.util.List;
 
+import static com.intel.podm.common.utils.Collections.nullOrEmpty;
 import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
 import static com.intel.podm.rest.odataid.ODataId.oDataId;
+import static com.intel.podm.rest.odataid.ODataIds.oDataIdFromContext;
 import static java.net.URI.create;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
@@ -59,15 +65,25 @@ public class EthernetInterfaceJsonSerializer extends DtoJsonSerializer<EthernetI
         ifaceJson.macAddress = dto.getMacAddress();
         handleVlans(dto, ifaceJson);
         ifaceJson.nameServers = dto.getNameServers();
-        if (dto.getNeighborPort() != null) {
-            ifaceJson.links.oem.rackScaleOem = new RackScaleOem(ODataIds.oDataIdFromContext(dto.getNeighborPort()));
-        }
+        handleNeighborPort(dto, ifaceJson);
         handleIpAddresses(dto, ifaceJson);
         return ifaceJson;
     }
 
     private void handleVlans(EthernetInterfaceDto dto, EthernetInterfaceJson ifaceJson) {
         ifaceJson.vlans = oDataId(create(ifaceJson.oDataId + "/VLANs"));
+    }
+
+    private void handleNeighborPort(EthernetInterfaceDto dto, EthernetInterfaceJson ifaceJson) {
+        Context neighborPortContext = dto.getNeighborPort();
+        List<ExtendedInfoJson> neighborPortExtendedInfoJson =
+                nullOrEmpty(dto.getNeighborPortExtendedInfo()) ? null : dto.getNeighborPortExtendedInfo().stream()
+                        .map(extendedInfo -> new ExtendedInfoJson(extendedInfo.getMessageId(), extendedInfo.getMessage()))
+                        .collect(toList());
+
+        if (neighborPortContext != null || neighborPortExtendedInfoJson != null) {
+            ifaceJson.links.oem.rackScaleOem = new RackScaleOem(oDataIdFromContext(neighborPortContext), neighborPortExtendedInfoJson);
+        }
     }
 
     private void handleIpAddresses(EthernetInterfaceDto dto, EthernetInterfaceJson ifaceJson) {
@@ -79,10 +95,10 @@ public class EthernetInterfaceJsonSerializer extends DtoJsonSerializer<EthernetI
         ifaceJson.ipv6DefaultGateway = dto.getIpv6DefaultGateway();
     }
 
-    private List<EthernetInterfaceJson.IpV6AddressPolicyJson> mapToIpV6AddressesPolicyTable(List<IpV6AddressPolicyDto> policies) {
+    private List<IpV6AddressPolicyJson> mapToIpV6AddressesPolicyTable(List<IpV6AddressPolicyDto> policies) {
         return isNull(policies) ? emptyList() : policies.stream()
                 .map(policy -> {
-                    EthernetInterfaceJson.IpV6AddressPolicyJson policiesJson = new EthernetInterfaceJson.IpV6AddressPolicyJson();
+                    IpV6AddressPolicyJson policiesJson = new IpV6AddressPolicyJson();
                     policiesJson.label = policy.getLabel();
                     policiesJson.precedence = policy.getPrecedence();
                     policiesJson.prefix = policy.getPrefix();
@@ -90,10 +106,10 @@ public class EthernetInterfaceJsonSerializer extends DtoJsonSerializer<EthernetI
                 }).collect(toList());
     }
 
-    static List<EthernetInterfaceJson.Ipv6AddressJson> mapToIpv6Addresses(List<IpV6AddressDto> ipv6Addresses) {
+    static List<Ipv6AddressJson> mapToIpv6Addresses(List<IpV6AddressDto> ipv6Addresses) {
         return isNull(ipv6Addresses) ? emptyList() : ipv6Addresses.stream()
                 .map(ipv6AddressDto -> {
-                    EthernetInterfaceJson.Ipv6AddressJson ipv6AddressJson = new EthernetInterfaceJson.Ipv6AddressJson();
+                    Ipv6AddressJson ipv6AddressJson = new Ipv6AddressJson();
                     ipv6AddressJson.address = ipv6AddressDto.getAddress();
                     ipv6AddressJson.addressState = ipv6AddressDto.getAddressState();
                     ipv6AddressJson.prefixLength = ipv6AddressDto.getPrefixLength();
@@ -103,10 +119,10 @@ public class EthernetInterfaceJsonSerializer extends DtoJsonSerializer<EthernetI
     }
 
 
-    static List<EthernetInterfaceJson.Ipv4AddressJson> mapToIpv4Addresses(List<IpV4AddressDto> ipv4Addresses) {
+    static List<Ipv4AddressJson> mapToIpv4Addresses(List<IpV4AddressDto> ipv4Addresses) {
         return isNull(ipv4Addresses) ? emptyList() : ipv4Addresses.stream()
                 .map(ipv4AddressDto -> {
-                    EthernetInterfaceJson.Ipv4AddressJson ipv4AddressJson = new EthernetInterfaceJson.Ipv4AddressJson();
+                    Ipv4AddressJson ipv4AddressJson = new Ipv4AddressJson();
                     ipv4AddressJson.address = ipv4AddressDto.getAddress();
                     ipv4AddressJson.gateway = ipv4AddressDto.getGateway();
                     ipv4AddressJson.subnetMask = ipv4AddressDto.getSubnetMask();

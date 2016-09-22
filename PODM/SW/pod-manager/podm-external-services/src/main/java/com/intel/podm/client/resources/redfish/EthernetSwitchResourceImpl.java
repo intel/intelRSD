@@ -29,7 +29,10 @@ import com.intel.podm.common.types.Status;
 
 import java.util.List;
 
-@OdataTypes("#EthernetSwitch.1.0.0.EthernetSwitch")
+@OdataTypes({
+        "#EthernetSwitch.1.0.0.EthernetSwitch",
+        "#EthernetSwitch.v1_0_0.EthernetSwitch"
+})
 public class EthernetSwitchResourceImpl extends ExternalServiceResourceImpl implements EthernetSwitchResource {
     @JsonProperty("SwitchId")
     private String switchId;

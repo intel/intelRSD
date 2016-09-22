@@ -24,9 +24,10 @@ import com.intel.podm.common.types.NotifyIpV6Scope;
 import com.intel.podm.common.types.Status;
 
 @OdataTypes({
-    "#ManagerNetworkProtocol.1.0.0.ManagerNetworkProtocol",
-    "#ManagerNetworkService.1.0.0.ManagerNetworkService",
-    "#NetworkService.1.0.0.NetworkService"
+        "#ManagerNetworkProtocol.1.0.0.ManagerNetworkProtocol",
+        "#ManagerNetworkService.1.0.0.ManagerNetworkService",
+        "#NetworkService.1.0.0.NetworkService",
+        "#ManagerNetworkProtocol.v1_0_0.ManagerNetworkProtocol"
 })
 public class NetworkProtocolResourceImpl extends ExternalServiceResourceImpl implements NetworkProtocolResource {
     @JsonProperty ("Status")

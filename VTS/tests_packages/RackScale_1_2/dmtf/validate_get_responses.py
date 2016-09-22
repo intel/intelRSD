@@ -27,6 +27,8 @@ from cts_core.discovery.discovery_container import DiscoveryContainer
 from cts_core.metadata.metadata_manager import MetadataManager
 from cts_core.metadata_validation.get.metadata_get_validator import MetadataGetValidator
 from cts_framework.tests_helpers  import TestCase
+from cts_framework.commons.test_status_override import TestStatusOverride
+from cts_framework.tests_helpers.result_status import ResultStatus
 
 
 class ValidateGetResponses(TestCase):
@@ -40,7 +42,7 @@ class ValidateGetResponses(TestCase):
                                         parameter_description="Path to directory containing metadata",
                                         parameter_type=str, is_required=True, parameter_default_value=None),
         TestCase.ConfigurationParameter(parameter_name="UseSSL",
-                                        parameter_description="defines if CTS shall use ssl to communiacte with api",
+                                        parameter_description="defines if VTS shall use ssl to communiacte with api",
                                         parameter_type=bool, is_required=False, parameter_default_value=False),
         TestCase.ConfigurationParameter(parameter_name="CertificateCertFile",
                                         parameter_description="Path to file with certificate in PEM format",
@@ -58,6 +60,8 @@ class ValidateGetResponses(TestCase):
                                         is_required=False, parameter_default_value=None)]
 
     def run(self):
+        TestStatusOverride.reset()
+
         metadata_manager = MetadataManager(self.configuration)
         metadata_manager.load_files()
         metadata_container = metadata_manager.load_metadata_properties()
@@ -68,7 +72,8 @@ class ValidateGetResponses(TestCase):
 
         status = MetadataGetValidator(metadata_container).validate(discovery_container)
 
+
         if status:
-            self.set_status_passed()
+            self.set_status(TestStatusOverride.get_joined_status(ResultStatus.PASSED))
         else:
             self.set_status_failed()

@@ -671,6 +671,7 @@ typedef struct listener_base {
 typedef struct evt_listeners {
 	int8 copy_right[COPY_RIGHT_LEN];
 	int8 odata_context[CONTEXT_LEN];
+	int8 odata_id[ODATA_ID_LEN];
 	int8 odata_type[ODATA_TYPE_LEN];
 	int8 name[NAME_LEN];
 	int64 num;

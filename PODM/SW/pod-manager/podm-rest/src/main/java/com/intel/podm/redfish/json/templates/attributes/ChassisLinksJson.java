@@ -16,14 +16,17 @@
 
 package com.intel.podm.redfish.json.templates.attributes;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.rest.odataid.ODataId;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-@JsonPropertyOrder({"contains", "containedBy", "computerSystems", "switches", "managedBy", "managersInChassis", "oem"})
+@JsonPropertyOrder({"@odata.type", "contains", "containedBy", "computerSystems", "switches", "managedBy", "managersInChassis", "oem"})
 public final class ChassisLinksJson {
+    @JsonProperty("@odata.type")
+    public String oDataType = "#Chassis.1.2.0.Links";
     public Collection<ODataId> contains = new ArrayList<>();
     public ODataId containedBy;
     public Collection<ODataId> computerSystems = new ArrayList<>();

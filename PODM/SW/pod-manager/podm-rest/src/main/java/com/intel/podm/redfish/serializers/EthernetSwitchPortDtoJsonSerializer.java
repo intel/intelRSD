@@ -22,9 +22,11 @@ import com.intel.podm.redfish.json.templates.EthernetSwitchPortJson;
 import com.intel.podm.redfish.json.templates.EthernetSwitchPortJson.Oem.RackScaleOem;
 import com.intel.podm.rest.odataid.ODataId;
 import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.rest.representation.json.templates.RedfishErrorResponseJson.ExtendedInfoJson;
 
 import java.util.List;
 
+import static com.intel.podm.common.utils.Collections.nullOrEmpty;
 import static com.intel.podm.redfish.serializers.EthernetInterfaceJsonSerializer.mapToIpv4Addresses;
 import static com.intel.podm.redfish.serializers.EthernetInterfaceJsonSerializer.mapToIpv6Addresses;
 import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
@@ -33,6 +35,7 @@ import static com.intel.podm.rest.odataid.ODataIds.oDataIdFromContext;
 import static com.intel.podm.rest.odataid.ODataIds.oDataIdsCollection;
 import static java.net.URI.create;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 public class EthernetSwitchPortDtoJsonSerializer extends DtoJsonSerializer<EthernetSwitchPortDto> {
 
@@ -67,18 +70,28 @@ public class EthernetSwitchPortDtoJsonSerializer extends DtoJsonSerializer<Ether
         port.neighborInfo = dto.getNeighborInfo();
         port.administrativeState = dto.getAdministrativeState();
         port.vlans = oDataId(create(oDataId + "/VLANs"));
-        if (dto.getNeighborInterface() != null) {
-            port.links.oem.rackScaleOem = new RackScaleOem(oDataIdFromContext(dto.getNeighborInterface()));
-        }
         mapLinks(dto, port);
         return port;
     }
 
     private void mapLinks(EthernetSwitchPortDto dto, EthernetSwitchPortJson port) {
+        handleNeighborInterface(dto, port);
         port.links.primaryVlan = oDataIdFromContext(dto.getPrimaryVlan());
         port.links.switchLink = oDataIdFromContext(dto.getSwitchContext());
         port.links.portMembers = mapToPortMembers(dto.getPortMembers());
         port.links.memberOfPort = oDataIdFromContext(dto.getMemberOfPort());
+    }
+
+    private void handleNeighborInterface(EthernetSwitchPortDto dto, EthernetSwitchPortJson port) {
+        Context neighborInterfaceContext = dto.getNeighborInterface();
+        List<ExtendedInfoJson> neighborInterfaceExtendedInfoJson =
+                nullOrEmpty(dto.getNeighborInterfaceExtendedInfo()) ? null : dto.getNeighborInterfaceExtendedInfo().stream()
+                        .map(extendedInfo -> new ExtendedInfoJson(extendedInfo.getMessageId(), extendedInfo.getMessage()))
+                        .collect(toList());
+
+        if (neighborInterfaceContext != null || neighborInterfaceExtendedInfoJson != null) {
+            port.links.oem.rackScaleOem = new RackScaleOem(oDataIdFromContext(neighborInterfaceContext), neighborInterfaceExtendedInfoJson);
+        }
     }
 
     private List<ODataId> mapToPortMembers(List<Context> portMembers) {

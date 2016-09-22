@@ -9,33 +9,50 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.1.0.0" />
+    <edmx:Include Namespace="Resource.1.0.0"/>
   </edmx:Reference>
-    <edmx:Reference Uri="StorageService.xml">
-    <edmx:Include Namespace="StorageService.1.0.0" />
+  <edmx:Reference Uri="StorageService.xml">
+    <edmx:Include Namespace="StorageService.1.0.0"/>
   </edmx:Reference>
 
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Intel.RackScale">
-      
-     <ComplexType Name="Chassis" BaseType="Resource.OemObject">
-        <Property Name="Location" Type="Intel.RackScale.Location" />
-     </ComplexType>
-     
-     <ComplexType Name="RackChassis" BaseType="Resource.OemObject">	
-        <Property Name="UUID" Type="Resource.UUID"/>
-        <Property Name="CreatedDate" Type="Edm.DateTimeOffset"/>
-        <Property Name="UpdatedDate" Type="Edm.DateTimeOffset"/>
-        <Property Name="ApiVersion" Type="Edm.String"/>
+
+      <ComplexType Name="Chassis" BaseType="Resource.OemObject">
+        <Property Name="Location" Type="Intel.RackScale.Location"/>
+      </ComplexType>
+
+      <ComplexType Name="RackChassis" BaseType="Resource.OemObject">
+        <Property Name="UUID" Type="Resource.UUID" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="CreatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="UpdatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="ApiVersion" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
         <Property Name="RackPUID" Type="Edm.Decimal"/>
         <Property Name="PODDCUID" Type="Edm.String"/>
         <Property Name="PODMAddress" Type="Edm.String"/>
         <Property Name="GeoTag" Type="Edm.String"/>
-        <Property Name="RackDCUID" Type="Edm.String"/>
-        <Property Name="RackSupportsDisaggregatedPowerCooling" Type="Edm.Boolean"/>
-        <Property Name="DrawerPresence" Type="Edm.String"/>
-        <Property Name="MBPPresence" Type="Edm.String"/>
-        <NavigationProperty Name="ThermalZones" Type="ThermalZoneCollection.ThermalZoneCollection" ContainsTarget="true">
+        <Property Name="RackDCUID" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="RackSupportsDisaggregatedPowerCooling" Type="Edm.Boolean" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="DrawerPresence" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="MBPPresence" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <NavigationProperty Name="ThermalZones" Type="ThermalZoneCollection.ThermalZoneCollection"
+                            ContainsTarget="true">
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="PowerZones" Type="PowerZoneCollection.PowerZoneCollection" ContainsTarget="true">
@@ -44,63 +61,78 @@
         <NavigationProperty Name="MBPs" Type="MPBCollection.MBPCollection" ContainsTarget="true">
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
-		
+
         <Action Name="DrawerReset" IsBound="true">
-        <Property Name="Target" Type="Edm.String"/>
+          <Property Name="Target" Type="Edm.String"/>
           <Annotation Term="OData.Description" String="This is the Link to invoke action."/>
           <Annotation Term="OData.LongDescription" String="This defines the Link for invoking the action."/>
-        <Parameter Name="TargetIndex" Type="Edm.Decimal"/>
+          <Parameter Name="TargetIndex" Type="Edm.Decimal"/>
           <Annotation Term="OData.Description" String="This is the target index of Drawer."/>
           <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
-        <Parameter Name="ResetType" Type="Resource.ResetType">
-          <Annotation Term="OData.Description" String="This is the type of reset to be performed."/>
-          <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
-        </Parameter>
-        <Annotation Term="OData.Description" String="This action is used to reset the chassis. This action resets the chassis, not Systems or other contained resources, although side effects may occur which affect those resources."/>
-        <Annotation Term="OData.LongDescription" String="This defines the name of the custom action supported on this resource."/>
-      </Action>
-	  
-     </ComplexType>
-	 
-     <ComplexType Name="DrawerChassis" BaseType="Resource.OemObject">	
-        <Property Name="DrawerRUID" Type="Edm.Decimal"/>
-        <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
-     </ComplexType>
+          <Parameter Name="ResetType" Type="Resource.ResetType">
+            <Annotation Term="OData.Description" String="This is the type of reset to be performed."/>
+            <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
+          </Parameter>
+          <Annotation Term="OData.Description"
+                      String="This action is used to reset the chassis. This action resets the chassis, not Systems or other contained resources, although side effects may occur which affect those resources."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This defines the name of the custom action supported on this resource."/>
+        </Action>
 
-    <ComplexType Name="Location">
-        <Property Name="Id" Type="Edm.String"/>
+      </ComplexType>
+
+      <ComplexType Name="DrawerChassis" BaseType="Resource.OemObject">
+        <Property Name="DrawerRUID" Type="Edm.Decimal" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <Property Name="RackLocation" Type="RackLocation.RackLocation" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
+        <NavigationProperty Name="ContainedBy" Type="Collection(Chassis.1.0.0.Chassis)" Nullable="false"/>
+      </ComplexType>
+
+      <ComplexType Name="Location">
+        <Property Name="Id" Type="Edm.String" Nullable="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        </Property>
         <Property Name="ParentId" Type="Edm.String"/>
-    </ComplexType>
-    
-    <ComplexType Name="ManagerLinks" BaseType="Resource.OemObject">
-        <NavigationProperty Name="ManagerForServices" Type="Collection(StorageService.1.0.0.StorageService)" Nullable="false"/>
-    </ComplexType>
-    
-    <ComplexType Name="ComputerSystem" BaseType="Resource.OemObject">
+      </ComplexType>
+
+      <ComplexType Name="ManagerLinks" BaseType="Resource.OemObject">
+        <NavigationProperty Name="ManagerForServices" Type="Collection(StorageService.1.0.0.StorageService)"
+                            Nullable="false"/>
+        <NavigationProperty Name="ManagerForMBP" Type="Collection(MBP.1.0.0.MBP)" Nullable="false"/>
+      </ComplexType>
+
+      <ComplexType Name="VLanStatus" BaseType="Resource.OemObject">
+        <Property name="Status" Type="Resource.Status" Nullable="true"/>
+      </ComplexType>
+
+      <ComplexType Name="ComputerSystem" BaseType="Resource.OemObject">
         <NavigationProperty Name="Adapters" Type="AdapterCollection.AdapterCollection" Nullable="false"/>
         <Property Name="PciDevices" Type="Collection(Intel.RackScale.PciDevice)" Nullable="false"/>
-        <Property Name="DiscoveryState" Type="Intel.RackScale.DiscoveryState" />
+        <Property Name="DiscoveryState" Type="Intel.RackScale.DiscoveryState"/>
         <Property Name="ProcessorSockets" Type="Edm.Int64"/>
         <Property Name="MemorySockets" Type="Edm.Int64"/>
-     </ComplexType>
-     
-     <ComplexType Name="Intel.RackScale.PciDevice">
+      </ComplexType>
+
+      <ComplexType Name="Intel.RackScale.PciDevice">
         <Property Name="VendorId" Type="Edm.String"/>
         <Property Name="DeviceId" Type="Edm.String"/>
-     </ComplexType>
-     
-     <EnumType Name="DiscoveryState">
+      </ComplexType>
+
+      <EnumType Name="DiscoveryState">
         <Member Name="None"/>
         <Member Name="Basic"/>
         <Member Name="DeepInProgress"/>
         <Member Name="Deep"/>
         <Member Name="DeepFailed"/>
-     </EnumType>
-     
-     <Action Name="StartDeepDiscovery" IsBound="true">
+      </EnumType>
+
+      <Action Name="StartDeepDiscovery" IsBound="true">
         <Parameter Name="ComputerSystem" Type="ComputerSystem.1.0.0.Actions.Oem"/>
-     </Action>
-     
+      </Action>
+
     </Schema>
   </edmx:DataServices>
 </edmx:Edmx>

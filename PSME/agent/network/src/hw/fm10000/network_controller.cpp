@@ -165,6 +165,7 @@ void NetworkController::init_switch_ports(const std::string& switch_uuid) {
                 port->set_port_class(PortClass::Physical);
                 port->set_port_mode(PortMode::Unknown);
                 port->set_vlan_enable(true);
+                port->set_status({State::Enabled, Health::OK});
             }
             else {
                 log_debug(GET_LOGGER("fm10000"), "Adding port " +

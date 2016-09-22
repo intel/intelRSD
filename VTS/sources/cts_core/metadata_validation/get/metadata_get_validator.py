@@ -25,6 +25,7 @@
 import traceback
 
 from cts_core.metadata_validation.get.validators.type_validator import ComplexTypeValidator
+from cts_core.metadata_validation.get.validators.type_validator import TypesDispatcher
 
 
 class MetadataGetValidator:
@@ -71,18 +72,36 @@ class MetadataGetValidator:
         return status
 
     def validate_additional_items(self, entity_details, api_resource):
-        if entity_details.additional_items:
-            return True
-
         allowable_keys = [property_description.name for property_description in
                           entity_details.properties + entity_details.navigation_properties]
 
         status = True
         for key in api_resource.body.keys():
             if key not in allowable_keys and "@" not in key and "#" not in key:
-                print "ERROR:: " + \
-                      "entity %s does not allow for additional keys, key %s is not specified in metadata for that entity" % (
-                          api_resource.odata_id, key)
-                status = False
+                if not entity_details.additional_items:
+                    print "ERROR:: " + \
+                          "entity %s does not allow for additional keys, key %s is not specified in metadata for that entity" % (
+                              api_resource.odata_id, key)
+                    status = False
+                else:
+                    property_body = api_resource.body[key]
+                    try:
+                        property_type = property_body["@odata.type"]
+                        property_type = property_type.replace("#", "") if property_type else property_type
+                    except:
+                        property_type = None
+
+                    if property_type:
+                        validation_status = TypesDispatcher.dispatch_type_validation(self._metadata_container,
+                                                                                     property_type,
+                                                                                     property_body,
+                                                                                     key,
+                                                                                     variable_path=[
+                                                                                         api_resource.odata_id, key])
+                        if not validation_status:
+                            print "ERROR:: Validation of additional property %s -> %s [@odata.type = %s] failed" \
+                                  % (api_resource.odata_id, key, property_type)
+                        status = status and validation_status
+
 
         return status

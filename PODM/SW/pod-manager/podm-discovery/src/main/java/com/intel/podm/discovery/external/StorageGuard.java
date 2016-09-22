@@ -16,6 +16,7 @@
 
 package com.intel.podm.discovery.external;
 
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.EthernetInterfaceDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
@@ -67,7 +68,12 @@ public class StorageGuard {
     }
 
     private ComputerSystem getAssociatedComputerSystemByMacAddress(MacAddress macAddress) {
-        EthernetInterface iface = ethernetInterfaceDao.getEthernetInterfaceByMacAddress(macAddress);
+        EthernetInterface iface;
+        try {
+            iface = ethernetInterfaceDao.getEnabledAndHealthyEthernetInterfaceByMacAddress(macAddress);
+        } catch (NonUniqueResultException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
         return (iface != null) ? iface.getComputerSystem() : null;
     }
 
