@@ -99,7 +99,6 @@ find_package(NL3)
 find_package(Sysfs)
 find_package(UDEV)
 find_package(UUID)
-find_package(LLDP)
 find_package(Fm10kd)
 
 # Enable google testing

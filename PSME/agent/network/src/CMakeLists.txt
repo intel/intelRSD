@@ -63,6 +63,7 @@ if (NL3_FOUND)
     add_library(network-hw-api-fm10000
         $<TARGET_OBJECTS:api-fm10000>
         $<TARGET_OBJECTS:hw-fm10000>
+        $<TARGET_OBJECTS:api-fm10000-lldp>
     )
 
     add_library(network-discovery-fm10000

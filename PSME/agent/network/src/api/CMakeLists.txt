@@ -79,3 +79,5 @@ if (NL3_FOUND)
     add_subdirectory(dcrp)
     add_library(api-fm10000 OBJECT ${BDC_R_SOURCES})
 endif()
+
+add_subdirectory(lldp)
