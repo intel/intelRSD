@@ -24,6 +24,7 @@ cp -p %{SOURCEURL0}/etc/psme/psme-network-configuration.json ./etc/psme/
 cp -p %{SOURCEURL0}/etc/psme/enp0s20f0-vlans-create ./etc/psme/
 cp -p %{SOURCEURL0}/etc/psme/enp0s20f0-vlans-delete ./etc/psme/
 cp -p %{SOURCEURL0}/etc/psme/dcrpini ./etc/psme/
+cp -p %{SOURCEURL0}/etc/psme/lldpad-conf ./etc/psme/
 cp -p %{SOURCEURL0}/etc/psme/mesh_ports.sh ./etc/psme/
 cp -p %{SOURCEURL0}/etc/psme/mesh_vlans.sh ./etc/psme/
 cp -p %{SOURCEURL0}/etc/systemd/network/00-sw0p33.link ./etc/systemd/network/
@@ -46,6 +47,7 @@ cp -p %{SOURCEURL0}/etc/systemd/network/sw0p41.network ./etc/systemd/network/
 cp -p %{SOURCEURL0}/etc/systemd/network/sw0p41.swport ./etc/systemd/network/
 cp -p %{SOURCEURL0}/etc/systemd/network/sw0p43.network ./etc/systemd/network/
 cp -p %{SOURCEURL0}/etc/systemd/network/sw0p43.swport ./etc/systemd/network/
+cp -p %{SOURCEURL0}/usr/lib/systemd/system/lldpad-conf.service ./usr/lib/systemd/system/
 cp -p %{SOURCEURL0}/usr/lib/systemd/system/psme-enp0s20f0-vlans.service ./usr/lib/systemd/system/
 
 %post
@@ -64,6 +66,8 @@ else
 fi
 systemctl daemon-reload
 systemctl enable dcrpd
+systemctl enable lldpad
+systemctl enable lldpad-conf
 
 cat <<EOF >/lib/systemd/system/psme-network.service
 [Unit]
@@ -98,6 +102,8 @@ systemctl enable psme-network
 %preun
 systemctl stop psme-network
 systemctl stop dcrpd
+systemctl stop lldpad-conf
+systemctl stop lldpad
 
 %postun
 dcrpserv=/usr/lib/systemd/system/dcrpd.service
@@ -110,6 +116,8 @@ if [ "$1" == 0 ]; then
 	if [ -f /lib/systemd/system/psme-network.service ]; then
 	    rm /lib/systemd/system/psme-network.service
 	fi
+	systemctl disable lldpad
+	systemctl disable lldpad-conf
 	systemctl disable dcrpd
 #check if DCRP was configured with the setup script
 	dcrppre=`awk '/ExecStartPre=/{print "1"}' $dcrpserv`
@@ -133,6 +141,7 @@ rm -rf %{buildroot}
 %attr(700,root,root) /etc/psme/enp0s20f0-vlans-create
 %attr(700,root,root) /etc/psme/enp0s20f0-vlans-delete
 %attr(700,root,root) /etc/psme/dcrpini
+%attr(700,root,root) /etc/psme/lldpad-conf
 %attr(700,root,root) /etc/psme/mesh_ports.sh
 %attr(700,root,root) /etc/psme/mesh_vlans.sh
 /etc/systemd/network/*

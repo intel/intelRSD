@@ -41,6 +41,10 @@
 #include "logger/logger_factory.hpp"
 #include "agent-framework/exceptions/exception.hpp"
 
+#include "api/lldp/client.hpp"
+#include "api/lldp/port_desc_tlv.hpp"
+#include "api/lldp/exceptions/api_error.hpp"
+
 #include "hw/fm10000/network_controller_manager.hpp"
 #include "hw/fm10000/network_controller.hpp"
 
@@ -147,6 +151,8 @@ void SwitchPortInfo::get_switch_port_attribute(PortAttributeType attr,
             value.set(uint32_t(get_default_vlan_id()));
             break;
         case NEIGHBORINFO:
+            value.set(get_neigh_port_identifier());
+            break;
         case STATUS:
         case PORTTYPE:
         case PORTMODE:
@@ -423,4 +429,38 @@ SwitchPortInfo::VlanInfoList SwitchPortInfo::get_vlans() const {
         vlans.emplace_back(uint32_t(vlan_info.get_vlan_id()), vlan_info.get_tagged());
     }
     return vlans;
+}
+
+string SwitchPortInfo::get_neigh_port_identifier() const {
+    string neighbor_port{};
+    api::lldp::Client lldp_client{get_port_identifier()};
+    try {
+        /* get neighbor port information */
+        auto tlv = lldp_client.get_neighbor_tlv<api::lldp::PortDescTlv>();
+        neighbor_port = tlv.get_ifname();
+    }
+    catch (const api::lldp::exception::ApiError& e) {
+        if (api::lldp::exception::ErrCode::NO_INFO == e.code()) {
+            log_debug(GET_LOGGER("network-agent"),
+                "Neighbor information is not available on port "
+                + get_port_identifier());
+            /* check LLDP admin mode */
+            auto lldp_mode = lldp_client.get_mode();
+            if (api::lldp::Client::Mode::DISABLED == lldp_mode) {
+                log_warning(GET_LOGGER("network-agent"),
+                    "Enabling LLDP on port " + get_port_identifier());
+                /* try to enable LLDP on given interface */
+                lldp_client.set_mode(api::lldp::Client::Mode::RXTX);
+            }
+        }
+        else if (api::lldp::exception::ErrCode::NO_CONNECTION == e.code()) {
+            log_warning(GET_LOGGER("network-agent"),
+                string("LLDP agent connection is closed ") + e.what());
+        }
+        else {
+            /* throw an API exception */
+            throw;
+        }
+    }
+    return neighbor_port;
 }

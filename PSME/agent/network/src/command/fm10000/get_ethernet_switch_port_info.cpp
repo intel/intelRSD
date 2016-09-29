@@ -117,6 +117,15 @@ public:
         if (!switch_identifier.empty()) {
             neighbor_info.set_switch_identifier(switch_identifier);
         }
+        /* get neighbor port identifier */
+        if (PortType::MeshPort == port.get_port_type()) {
+            SwitchPortInfo::PortAttributeValue value{};
+            SwitchPortInfo port_info(port.get_port_identifier());
+            port_info.get_switch_port_attribute(SwitchPortInfo::NEIGHBORINFO, value);
+            if (!value.get_string().empty()) {
+                neighbor_info.set_port_identifier(string(value));
+            }
+        }
         /* update port neighbor info */
         port.set_neighbor_info(neighbor_info);
     }

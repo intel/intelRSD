@@ -1,10 +1,10 @@
-IF(NOT (EXISTS "${ROOT_DIR}/src/deps/openssl/openssl-1.0.1i.tar.gz"))
+IF(NOT (EXISTS "${ROOT_DIR}/src/deps/openssl/openssl-1.0.1u.tar.gz"))
     message(STATUS "Dependent library checking ...
-        -- Doesn't find openssl-1.0.1i.tar.gz
+        -- Doesn't find openssl-1.0.1u.tar.gz
         -- Please manually download and install it to directory ${ROOT_DIR}/src/deps/openssl/
-        -- Reference download site: http://www.openssl.org/source/old/1.0.1/openssl-1.0.1i.tar.gz")
-    message(FATAL_ERROR "Missing openssl-1.0.1i.tar.gz")
-ENDIF(NOT (EXISTS "${ROOT_DIR}/src/deps/openssl/openssl-1.0.1i.tar.gz"))
+        -- Reference download site: http://www.openssl.org/source/old/1.0.1/openssl-1.0.1u.tar.gz")
+    message(FATAL_ERROR "Missing openssl-1.0.1u.tar.gz")
+ENDIF(NOT (EXISTS "${ROOT_DIR}/src/deps/openssl/openssl-1.0.1u.tar.gz"))
 
 IF(ARM)
   SET (OPENSSL_HOST linux-generic32 no-asm shared)
@@ -15,7 +15,7 @@ ENDIF()
 ExternalProject_Add(openssl
   INSTALL_DIR ${PROJECT_BINARY_DIR}
   PREFIX ${PROJECT_BINARY_DIR}/ssl_build
-  URL ${CMAKE_SOURCE_DIR}/src/deps/openssl/openssl-1.0.1i.tar.gz
+  URL ${CMAKE_SOURCE_DIR}/src/deps/openssl/openssl-1.0.1u.tar.gz
   SOURCE_DIR ${PROJECT_BINARY_DIR}/ssl
   CONFIGURE_COMMAND ${PROJECT_BINARY_DIR}/ssl/Configure -fPIC ${OPENSSL_HOST} no-shared --prefix=${PROJECT_BINARY_DIR}/ssl_build --openssldir=${PROJECT_BINARY_DIR}/ssl_build
   BUILD_COMMAND make

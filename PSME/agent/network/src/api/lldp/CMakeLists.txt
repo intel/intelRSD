@@ -16,10 +16,26 @@
 #
 # </license_header>
 
-if (NOT DEFINED BUILD_BRANCH)
-    set (BUILD_BRANCH MAN)
-    set (VER_MAJOR 1)
-    set (VER_MINOR 2)
-    set (VER_BUILD 404)
-    set (VER_HOTFIX 97)
-endif()
+set(LLDP_SOURCES
+    exceptions/api_error.cpp
+    command_message_header.cpp
+    tlv_id_message_header.cpp
+    tlv_message_header.cpp
+    message_header.cpp
+    tlv_payload.cpp
+    br_score_message_header.cpp
+    arg_value_message_header.cpp
+    arg_message_header.cpp
+    port_desc_tlv.cpp
+    interface.cpp
+    response.cpp
+    request.cpp
+    client.cpp
+)
+
+set_source_files_properties(
+    interface.cpp
+    COMPILE_FLAGS "-Wno-strict-aliasing")
+
+
+add_library(api-fm10000-lldp OBJECT ${LLDP_SOURCES})
