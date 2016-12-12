@@ -307,10 +307,14 @@
 
 #define TFTP_SERVER_PATH            "/srv/tftp"
 
-#define RACK_OEM_ODATA_TYPE         "http://rackscale.intel.com/schema#Intel.Oem.RackChassis"
+#define RACK_OEM_ODATA_TYPE                         "#Intel.Oem.RmmRackChassis"
+#define DRAWER_OEM_ODATA_TYPE 	                    "#Intel.Oem.RmmDrawerChassis"
+#define POWER_SUPPLY_OEM_ODATA_TYPE 	            "#RmmPowerZone.PowerSupply"
+#define THERMAL_ZONE_OEM_ODATA_TYPE 	            "#Intel.Oem.RmmThermalZone"
+#define POWER_ZONE_OEM_ODATA_TYPE 	                "#Intel.Oem.RmmPowerZone"
+#define VLAN_NETWORK_INTERFACE_ZONE_OEM_ODATA_TYPE 	"#VLanNetworkInterface.1.0.0.VLanNetworkInterface"
 
-
-typedef enum{
+typedef enum {
 	ACT_RESET   = 0,
 	ACT_UPDATE  = 1,
 	ACT_DEFAULT = 2,

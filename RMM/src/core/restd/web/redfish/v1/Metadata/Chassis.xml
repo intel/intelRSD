@@ -26,10 +26,10 @@
     <edmx:Include Namespace="LogServiceCollection"/>
   </edmx:Reference>
   <edmx:Reference Uri="ThermalZoneCollection.xml">
-    <edmx:Include Namespace="ThermalZoneCollection"/>
+    <edmx:Include Namespace="RmmThermalZoneCollection"/>
   </edmx:Reference>
   <edmx:Reference Uri="PowerZoneCollection.xml">
-    <edmx:Include Namespace="PowerZoneCollection"/>
+    <edmx:Include Namespace="RmmPowerZoneCollection"/>
   </edmx:Reference>
 
   <edmx:DataServices>

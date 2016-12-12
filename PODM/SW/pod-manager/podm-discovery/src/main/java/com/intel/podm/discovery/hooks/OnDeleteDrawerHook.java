@@ -20,16 +20,16 @@ import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.hooks.OnDeleteHook;
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.common.types.ServiceType;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.intel.podm.common.types.ChassisType.DRAWER;
 import static com.intel.podm.common.types.ChassisType.RACK;
+import static com.intel.podm.common.types.ServiceType.PSME;
 import static com.intel.podm.common.types.ServiceType.RMM;
-import static java.util.Objects.nonNull;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
@@ -49,15 +49,15 @@ public class OnDeleteDrawerHook implements OnDeleteHook {
         Chassis drawerChassis = (Chassis) domainObject;
         Chassis parentChassis = drawerChassis.getContainedBy();
 
-        checkState(nonNull(parentChassis), "Drawer must have exact one parent Chassis.");
-
         if (rackShouldBeDeleted(parentChassis)) {
             genericDao.remove(parentChassis);
         }
     }
 
     private boolean rackShouldBeDeleted(Chassis parentChassis) {
-        return parentChassis.is(RACK) && rackContainsLessThanTwoDrawers(parentChassis)
+        return parentChassis != null
+                && parentChassis.is(RACK)
+                && rackContainsLessThanTwoDrawers(parentChassis)
                 && rackIsNotOwnedByRmmService(parentChassis);
     }
 
@@ -66,6 +66,11 @@ public class OnDeleteDrawerHook implements OnDeleteHook {
     }
 
     private boolean rackIsNotOwnedByRmmService(Chassis rackChassis) {
-        return rackChassis.getService() == null || !RMM.equals(rackChassis.getService().getServiceType());
+        if (rackChassis.getService() == null) {
+            return true;
+        }
+
+        ServiceType rackChassisOrigin = rackChassis.getService().getServiceType();
+        return !(RMM.equals(rackChassisOrigin) || PSME.equals(rackChassisOrigin));
     }
 }

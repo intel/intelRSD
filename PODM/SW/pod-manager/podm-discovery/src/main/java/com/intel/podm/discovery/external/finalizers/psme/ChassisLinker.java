@@ -18,6 +18,7 @@ package com.intel.podm.discovery.external.finalizers.psme;
 
 import com.intel.podm.business.entities.dao.ChassisDao;
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.common.logger.Logger;
 import com.intel.podm.discovery.external.finders.RackChassisFinder;
 
 import javax.enterprise.context.Dependent;
@@ -28,39 +29,44 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.intel.podm.common.types.ChassisType.DRAWER;
 import static com.intel.podm.common.types.ChassisType.POD;
+import static com.intel.podm.common.types.ChassisType.RACK;
 import static com.intel.podm.common.utils.IterableHelper.single;
 
 @Dependent
-public class DrawerChassisLinker {
+public class ChassisLinker {
     @Inject
     private ChassisDao chassisDao;
 
     @Inject
     private RackChassisFinder rackFinder;
 
-    public void linkToDomainModel(Chassis drawerChassis) {
-        checkArgument(drawerChassis.is(DRAWER), "Only chassis of type drawer is accepted as an argument.");
+    @Inject
+    private Logger logger;
 
-        if (drawerShouldBeLinkedToPod(drawerChassis.getLocationParentId())) {
-            linkToPod(drawerChassis);
-        } else {
-            linkToRack(drawerChassis);
+    public void linkToDomainModel(Chassis topLevelChassis) {
+        checkArgument(topLevelChassis.is(DRAWER) || topLevelChassis.is(RACK),
+                "Only chassis of type DRAWER or RACK is accepted as an argument");
+        logger.i("Linking {}:{} to domain model.", topLevelChassis.getChassisType(), topLevelChassis.getLocationId());
+
+        if (chassisShouldBeLinkedToPod(topLevelChassis)) {
+            linkToPod(topLevelChassis);
+        } else  {
+            linkToRack(topLevelChassis);
         }
-
     }
 
-    private void linkToRack(Chassis drawerChassis) {
-        if (drawerIsAlreadyLinkedToRack(drawerChassis)) {
+    private void linkToRack(Chassis chassis) {
+        if (chassisIsAlreadyLinkedToRack(chassis)) {
             return;
         }
 
-        if (drawerIsAlreadyLinkedToPod(drawerChassis)) {
+        if (chassisIsAlreadyLinkedToPod(chassis)) {
             Chassis pod = single(chassisDao.getAllByChassisType(POD));
-            pod.unlinkContainedChassis(drawerChassis);
+            pod.unlinkContainedChassis(chassis);
         }
 
-        Chassis rackChassis = rackFinder.findAnyOrCreate(drawerChassis.getLocationParentId());
-        rackChassis.contain(drawerChassis);
+        Chassis rackChassis = rackFinder.findAnyOrCreate(chassis.getLocationParentId());
+        rackChassis.contain(chassis);
     }
 
     private void linkToPod(Chassis drawerChassis) {
@@ -69,11 +75,11 @@ public class DrawerChassisLinker {
         drawerChassis.setLocationParentId(pod.getLocationId());
     }
 
-    private boolean drawerShouldBeLinkedToPod(String drawerParentLocationId) {
-        return drawerParentLocationId == null;
+    private boolean chassisShouldBeLinkedToPod(Chassis chassis) {
+        return chassis.getLocationParentId() == null || chassis.is(RACK);
     }
 
-    private boolean drawerIsAlreadyLinkedToPod(Chassis drawerChassis) {
+    private boolean chassisIsAlreadyLinkedToPod(Chassis drawerChassis) {
         Chassis pod = single(chassisDao.getAllByChassisType(POD));
 
         return  pod.getContainedChassis().stream()
@@ -83,7 +89,7 @@ public class DrawerChassisLinker {
                 .isPresent();
     }
 
-    private boolean drawerIsAlreadyLinkedToRack(Chassis drawerChassis) {
+    private boolean chassisIsAlreadyLinkedToRack(Chassis drawerChassis) {
         return rackFinder.findByLocation(drawerChassis.getLocationParentId()).stream()
                 .map(Chassis::getContainedChassis)
                 .flatMap(Collection::stream)

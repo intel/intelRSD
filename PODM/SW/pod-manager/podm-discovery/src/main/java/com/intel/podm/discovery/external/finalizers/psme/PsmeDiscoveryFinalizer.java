@@ -26,12 +26,16 @@ import com.intel.podm.discovery.external.finalizers.DiscoveryFinalizer;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.intel.podm.common.types.ChassisType.DRAWER;
+import static com.intel.podm.common.types.ChassisType.RACK;
 import static com.intel.podm.common.types.ServiceType.PSME;
 import static com.intel.podm.common.utils.Collections.filterByType;
 import static java.util.Objects.isNull;
+import static java.util.stream.Collectors.toSet;
 
 @Dependent
 public class PsmeDiscoveryFinalizer extends DiscoveryFinalizer {
@@ -39,7 +43,7 @@ public class PsmeDiscoveryFinalizer extends DiscoveryFinalizer {
     private StorageGuard storageGuard;
 
     @Inject
-    private DrawerChassisLinker drawerChassisLinker;
+    private ChassisLinker chassisLinker;
 
     @Inject
     private ComposedNodeUpdater composedNodeUpdater;
@@ -53,16 +57,25 @@ public class PsmeDiscoveryFinalizer extends DiscoveryFinalizer {
 
     @Override
     public void finalize(Set<DomainObject> discoveredDomainObjects, ExternalService service) {
-        linkDrawersToDomainModel(discoveredDomainObjects);
+        linkToDomainModel(discoveredDomainObjects);
         protectStorageComputerSystems(discoveredDomainObjects);
         assureSingularParentForDrawers(discoveredDomainObjects);
         composedNodeUpdater.updateRelatedComposedNodes(discoveredDomainObjects);
     }
 
-    private void linkDrawersToDomainModel(Set<DomainObject> discoveredDomainObjects) {
-        filterByType(discoveredDomainObjects, Chassis.class).stream()
-                .filter(chassis -> chassis.is(DRAWER))
-                .forEach(drawerChassisLinker::linkToDomainModel);
+    Collection<Chassis> getTopLevelChassis(Set<DomainObject> discoveredDomainObjects) {
+        return filterByType(discoveredDomainObjects, Chassis.class).stream()
+            .filter(chassis -> chassis.is(DRAWER) || chassis.is(RACK))
+            .filter(chassis ->
+                chassis.getContainedBy() == null
+                || !Objects.equals(chassis.getContainedBy().getService(), chassis.getService())
+            )
+            .collect(toSet());
+    }
+
+    private void linkToDomainModel(Set<DomainObject> discoveredDomainObjects) {
+        Collection<Chassis> topLevelChassis = getTopLevelChassis(discoveredDomainObjects);
+        topLevelChassis.forEach(chassisLinker::linkToDomainModel);
     }
 
     private void protectStorageComputerSystems(Set<DomainObject> discoveredDomainObjects) {
@@ -84,7 +97,5 @@ public class PsmeDiscoveryFinalizer extends DiscoveryFinalizer {
     private boolean byAssociatedComputerSystemsThatNeedsProtection(EthernetInterface ethernetInterface) {
         return ethernetInterface.getMacAddress() != null && storageGuard.isAssociatedWithProtectedStorage(ethernetInterface.getMacAddress());
     }
-
-
 
 }

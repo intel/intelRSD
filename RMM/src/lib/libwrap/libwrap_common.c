@@ -343,7 +343,7 @@ result_t gen_odata_type(const rest_uri_param_t *param, int8 *output, int32 len, 
 	memset(output, 0, len);
 
 	if (redfish == FALSE)
-		snprintf_s_s(output, len, "http://rackscale.intel.com/schema#Intel.Oem.%s", (int8 *)name);
+		snprintf_s_s(output, len, "#Intel.Oem.%s", (int8 *)name);
 	else
 		snprintf_s_ss(output, len, "#%s.1.0.0.%s", (int8 *)name, (int8 *)name);
 

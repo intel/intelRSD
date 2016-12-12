@@ -57,6 +57,8 @@ import java.util.List;
     "#ThermalZoneCollection.ThermalZoneCollection",
     "#PowerZoneCollection.PowerZoneCollection",
     "#ManagerCollection.1.0.0.ManagerCollection",
+    "#Intel.Oem.RmmPowerZoneCollection",
+    "#Intel.Oem.RmmThermalZoneCollection",
     // TODO: to be removed - only for RMM integration
     "http://rackscale.intel.com/schema#Intel.Oem.PowerZoneCollection",
     // TODO: to be removed - only for RMM integration

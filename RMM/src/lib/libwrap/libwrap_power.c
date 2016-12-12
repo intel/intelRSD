@@ -92,7 +92,7 @@ result_t libwrap_pack_pzone_to_json(json_t *output, pzone_member_t *pzone_member
 
 	add_odata_context(output, param);
 	add_odata_id(output, param);
-	add_odata_type(output, "http://rackscale.intel.com/schema#Intel.Oem.PowerZone");
+	add_odata_type(output, POWER_ZONE_OEM_ODATA_TYPE);
 
 	int32 presence_len = 0;
 
@@ -266,7 +266,7 @@ result_t libwrap_pack_pzone_to_json(json_t *output, pzone_member_t *pzone_member
 					}
 
 						/* "@odata.type" */
-						add_json_string(power_supply, RMM_JSON_ODATA_TYPE, "http://rackscale.intel.com/schema#Intel.Oem.PowerSupply");
+					    add_json_string(power_supply, RMM_JSON_ODATA_TYPE, POWER_SUPPLY_OEM_ODATA_TYPE);
 
 						bzero(attr_str, sizeof(attr_str));
 						get_db_info_string(DB_RMM, psu_node_id, PSU_UUID_STR, attr_str, REST_RACK_STRING_LEN);
@@ -275,7 +275,7 @@ result_t libwrap_pack_pzone_to_json(json_t *output, pzone_member_t *pzone_member
 						loc = json_object();
 						if (loc != NULL) {
 							add_json_string(loc, RMM_JSON_RACK_UNITS, RMM_JSON_RACK_UNITS_OU);
-							
+
 							bzero(attr_str, sizeof(attr_str));
 							get_db_info_string(DB_RMM, psu_node_id, U_LOC, attr_str, REST_RACK_STRING_LEN);
 							add_loc_info(loc, (uint32)atoi((const char *)attr_str), RMM_JSON_ULOC);

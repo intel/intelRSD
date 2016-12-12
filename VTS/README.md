@@ -5,8 +5,10 @@
 ### Install prerequisites
  * On Ubuntu systems:
 
+     ```apt-get -y update
      ```
-     apt-get -y update
+
+     ```
      apt-get -y install python-pip python-setuptools git python-lxml python-dev
      ```
 
@@ -14,6 +16,9 @@
 
      ```
      dnf update -y
+     ```
+
+     ```
      dnf install -y python-pip python-setuptools git python-lxml python-devel redhat-rpm-config
      ```
 
@@ -24,6 +29,7 @@
 	```
 
 2. Download source code
+
 3. Enter directory:
 
 	```
@@ -35,21 +41,29 @@
 	```
 	python setup.py bdist_egg
 	```
+
 5. Install VTS egg by typing (easy_install requires correctly configured connection to public repositories (proxy, routes, etc)):
 
 	```
 	[sudo] easy_install dist/*.egg
 	```
+
 6. Copy the configuration.ini file to location /etc/vts/configuration.ini:
 
 	```
 	[sudo] mkdir -p /etc/vts/
+	```
+
+	```
 	[sudo] cp configuration.ini /etc/vts/
 	```
+
 7. Copy test scripts to /opt/vts/tests:
 
     ```
     [sudo] mkdir -p /opt/vts/tests/
+    ```
+    ```
     [sudo] cp -r tests_packages/* /opt/vts/tests/
     ```
 
@@ -63,6 +77,9 @@
 
     ```
     [sudo] chown -R USER_NAME /opt/vts/
+    ```
+
+    ```
     [sudo] chown -R USER_NAME /var/log/vts
     ```
 
@@ -80,26 +97,36 @@
     ```
     tar -zxvf VTS_PACKAGE.tar.gz
     ```
+
 4. Enter extracted directory:
 
     ```
     cd VTS_PACKAGE
     ```
+
 5. Install vts egg (easy_install requires correctly configured connection to public repositories: proxy, routes, etc)
 
     ```
     [sudo] easy_install Vts*.egg
     ```
+
 6. Copy the configuration.ini file to location /etc/vts/configuration.ini:
 
 	```
 	[sudo] mkdir -p /etc/vts/
+	```
+
+	```
 	[sudo] cp configuration.ini /etc/vts/
 	```
+	
 7. Copy test scripts to /opt/vts/tests:
 
     ```
     [sudo] mkdir -p /opt/vts/tests/
+    ```
+
+    ```
     [sudo] cp -r tests_packages/* /opt/vts/tests/
     ```
 
@@ -113,6 +140,9 @@
 
     ```
     [sudo] chown -R USER_NAME /opt/vts/
+    ```
+
+    ```
     [sudo] chown -R USER_NAME /var/log/vts
     ```
 
@@ -121,11 +151,12 @@
 * VTS framework configuration
     *  Open file /etc/vts/configuration.ini
     * Following flags can be edited:
-        * __SQL_CONNECTION_STRING__ - defines database to be used by vts
+        * __SQL_CONNECTION_STRING__ - defines database to be used by vts 
+	   set flag following instructions 
+	   http://docs.sqlalchemy.org/en/latest/core/engines.html 
+	   (can require installing additional packages)
 
-            set flag following instructions
-            http://docs.sqlalchemy.org/en/latest/core/engines.html
-            (can require installing additional packages)
+        * __REPORTS_DIRECTORY__ - defines directory for vts to keep logs from vts runs - vts requires r/w permission to store logs.
 * DMTF metadata tests configuration:
     *  create config_file.ini with flags:
         *  __ApiEndpoint__ - endpoint to API in format ip:port
@@ -141,26 +172,29 @@
     ```
     vts tests list
     ```
-* To filter by package name:
+
+* To show all available test suites add flag -s type:
 
     ```
-    vts tests list -p RackScale_1_2
+    vts tests list -s
     ```
-* To filter by package and test suite names:
+
+* To show all available test cases add flag -t type:
 
     ```
-    vts tests list -p RackScale_1_2 -s dmtf
+    vts tests list -t
     ```
-* To filter by package,test suite and test case names:
+
+* To filter available test suites by package name type:
 
     ```
-    vts tests list -p RackScale_1_2 -s dmtf -t validate_get_responses
+    vts tests list -p RSA_1_2 -s
     ```
-* To generate sample configuration file for test case:
+
+* To filter available test cases by package and test suite name type:
 
     ```
-    vts tests generate_config PACKAGE_NAME TEST_SCRIPT_NAME \
-    -o output_file_with_configuration.ini
+    vts tests list -p RSA_1_2 -s dmtf -t
     ```
 
 ### Execution
@@ -169,45 +203,44 @@
     ```
     vts execute tests --package RackScale_1_2 --config_files config_file.ini
     ```
+    
 * To execute only tests for metadata compliance:
 
     ```
     vts execute tests --package RackScale_1_2 --test_suites dmtf \
+    ```
+
+    ```
     --config_files config_file.ini
     ```
-* To execute only test validating get responses compliance with provided metadata:
+    
+* To execute only test validating get responses compliance with provided metadata type:
 
     ```
-    vts execute tests --package RackScale_1_2 --test_scripts validate_get_responses \
+    vts execute tests --package RackScale_1_2 --test_cases ValidateGetResponses \
+    ```
+
+    ```
     --config_files config_file.ini
     ```
-* To set timeout for each script executed add flag -T --timeout"
-
-    ```
-    vts execute tests --package RackScale_1_2 --config_files config_file.ini \
-    -T timeout_in_seconds
-    ```
-
+    
 ### Tests results browsing
-* To list all tests executions:
+* To list all tests executions type:
 
     ```
     vts status list
     ```
-* To show detailed information about specified execution:
+
+* To show detailed information about specified execution type:
 
     ```
     vts status show RUN_ID
     ```
-* To delete result from VTS database:
+    
+* To delete result from VTS database type:
 
     ```
     vts status delete RUN_ID
-    ```
-* To save results to file:
-
-    ```
-    vts status dump RUN_ID --output_format [html/csv/text]
     ```
 
 ### Additional options
@@ -216,3 +249,4 @@
     ```
     vts version
     ```
+
