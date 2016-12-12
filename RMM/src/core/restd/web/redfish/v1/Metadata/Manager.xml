@@ -4,6 +4,12 @@
   <edmx:Reference Uri="Org.OData.Core.V1.xml">
     <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
   </edmx:Reference>
+  <edmx:Reference Uri="Chassis.xml">
+    <edmx:Include Namespace="Chassis"/>
+  </edmx:Reference>
+    <edmx:Reference Uri="Redundancy.xml">
+        <edmx:Include Namespace="Redundancy"/>
+    </edmx:Reference>
   <edmx:Reference Uri="RedfishExtensions.xml">
     <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
     <edmx:Include Namespace="Validation.1.0.0" Alias="Validation"/>
@@ -13,7 +19,7 @@
     <edmx:Include Namespace="Resource.1.0.0"/>
   </edmx:Reference>
   <edmx:Reference Uri="EthernetInterfaceCollection.xml">
-    <edmx:Include Namespace="EthernetInterfaceCollection"/>
+    <edmx:Include Namespace="EthernetInterfaceCollection.1.0.0"/>
   </edmx:Reference>
   <edmx:Reference Uri="ManagerNetworkProtocol.xml">
     <edmx:Include Namespace="ManagerNetworkProtocol"/>
@@ -141,14 +147,6 @@
       </ComplexType>
 
       <ComplexType Name="Links" BaseType="Resource.Links">
-        <NavigationProperty Name="ManagerForServers" Type="Collection(ComputerSystem.ComputerSystem)">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description"
-                      String="This property is an array of references to the systems that this manager has control over."/>
-          <Annotation Term="OData.LongDescription"
-                      String="This property shall contain an array of references to ComputerSystem resources of which this Manager instance has control."/>
-          <Annotation Term="OData.AutoExpandReferences"/>
-        </NavigationProperty>
         <NavigationProperty Name="ManagerForChassis" Type="Collection(Chassis.Chassis)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"

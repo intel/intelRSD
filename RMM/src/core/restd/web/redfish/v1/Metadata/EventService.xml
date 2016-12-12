@@ -29,55 +29,6 @@
                     String="This is the schema definition for the Event Service. It represents the properties for the service itself and has links to the actual list of subscriptions."/>
       </EntityType>
 
-      <Action Name="SubmitTestEvent" IsBound="true">
-        <Annotation Term="OData.Description"
-                    String="The SubmitTestEvent action causes a test event to be added to the event service.  This message should then be sent to any appropriate ListenerDestination targets."/>
-        <Annotation Term="OData.LongDescription"
-                    String="This defines the name of the custom action supported when used in conjunction with a POST operation to this resource. When issued, this operation will perform a reset of the manager."/>
-        <Parameter Name="EventService" Type="EventService.1.0.0.Actions"/>
-        <Parameter Name="EventType" Type="Event.1.0.0.EventType" Nullable="false">
-          <Annotation Term="OData.Description" String="This is the type of event to be added."/>
-          <Annotation Term="OData.LongDescription"
-                      String="This defines the property name for which the following allowable values apply."/>
-        </Parameter>
-        <Parameter Name="EventId" Type="Edm.String" Nullable="false">
-          <Annotation Term="OData.Description" String="This is the ID of event to be added."/>
-          <Annotation Term="OData.LongDescription"
-                      String="This property has the same semantics as the EventId property in the Event schema for Redfish."/>
-        </Parameter>
-        <Parameter Name="EventTimestamp" Type="Edm.DateTimeOffset" Nullable="false">
-          <Annotation Term="OData.Description" String="This is the time stamp of event to be added."/>
-          <Annotation Term="OData.LongDescription"
-                      String="This property has the same semantics as the EventId property in the Event schema for Redfish."/>
-        </Parameter>
-        <Parameter Name="Severity" Type="Edm.String" Nullable="false">
-          <Annotation Term="OData.Description" String="This is the Severity of event to be added."/>
-          <Annotation Term="OData.LongDescription"
-                      String="This property has the same semantics as the Severity property in the Event schema for Redfish."/>
-        </Parameter>
-        <Parameter Name="Message" Type="Edm.String" Nullable="false">
-          <Annotation Term="OData.Description" String="This is the human readable message of event to be added."/>
-          <Annotation Term="OData.LongDescription"
-                      String="This property has the same semantics as the Message property in the Event schema for Redfish."/>
-        </Parameter>
-        <Parameter Name="MessageId" Type="Edm.String" Nullable="false">
-          <Annotation Term="OData.Description" String="This is the message ID of event to be added."/>
-          <Annotation Term="OData.LongDescription"
-                      String="This property has the same semantics as the MessageId property in the Event schema for Redfish."/>
-        </Parameter>
-        <Parameter Name="MessageArgs" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="OData.Description"
-                      String="This is the array of message arguments of the event to be added."/>
-          <Annotation Term="OData.LongDescription"
-                      String="This property has the same semantics as the MessageArgs property in the Event schema for Redfish."/>
-        </Parameter>
-        <Parameter Name="OriginOfCondition" Type="Edm.String" Nullable="false">
-          <Annotation Term="OData.Description" String="This is the OriginOfCondition property of event to be added."/>
-          <Annotation Term="OData.LongDescription"
-                      String="This property has the same semantics as the OriginOfCondition property in the Event schema for Redfish."/>
-        </Parameter>
-      </Action>
-
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EventService.1.0.0">
@@ -131,12 +82,12 @@
       </EntityType>
 
       <ComplexType Name="Actions">
-        <Annotation Term="OData.AdditionalProperties" Bool="False"/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Oem" Type="EventService.1.0.0.OemActions"/>
       </ComplexType>
 
       <ComplexType Name="OemActions">
-        <Annotation Term="OData.AdditionalProperties" Bool="True"/>
+        <Annotation Term="OData.AdditionalProperties" Bool="true"/>
       </ComplexType>
 
     </Schema>

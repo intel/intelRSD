@@ -592,7 +592,7 @@ result_t libwrap_manager_vlan_init(mngr_vlan_t *vlan, int32 inf_id, int32 vlan_i
 	vlan->enable = true;
 	vlan->vlan_id = inf_id_map.list[inf_id - 1].vlan_id[vlan_idx - 1];
 	vlan->oem.tagged = false;
-	snprintf_s_s(vlan->oem.odata_type, ODATA_TYPE_LEN, "%s", "http://rsa.intel.com/Schema#RSA.VLanNetworkInterface");
+	snprintf_s_s(vlan->oem.odata_type, ODATA_TYPE_LEN, "%s", VLAN_NETWORK_INTERFACE_ZONE_OEM_ODATA_TYPE);
 
 	return RESULT_OK;
 }

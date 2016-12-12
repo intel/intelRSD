@@ -202,7 +202,10 @@ public class ChassisResourceImpl extends ExternalServiceResourceImpl implements 
         private LocationObjectImpl location = new LocationObjectImpl();
     }
 
-    @OdataTypes("http://rackscale.intel.com/schema#Intel.Oem.RackChassis")
+    @OdataTypes({
+        "http://rackscale.intel.com/schema#Intel.Oem.RackChassis",
+        "#Intel.Oem.RmmRackChassis"
+    })
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static final class RackScaleRackChassisOemImpl extends OemVendorImpl implements RackScaleRackChassisOem {
         @JsonProperty("UUID")

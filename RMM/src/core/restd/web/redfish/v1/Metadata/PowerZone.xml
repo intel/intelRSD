@@ -1,145 +1,149 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
 <edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
 
-  <edmx:Reference Uri="Org.OData.Core.V1.xml">
-    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="Org.OData.Measures.V1.xml">
-    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="RedfishExtensions.xml">
-    <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
-    <edmx:Include Namespace="Validation.1.0.0" Alias="Validation"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="Resource.xml">
-    <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.1.0.0"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="PhysicalContext.xml">
-    <edmx:Include Namespace="PhysicalContext.1.0.0"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="Redundancy.xml">
-    <edmx:Include Namespace="Redundancy"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="RackLocation.xml">
-    <edmx:Include Namespace="RackLocation"/>
-  </edmx:Reference>
+    <edmx:Reference Uri="Org.OData.Core.V1.xml">
+        <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="Org.OData.Measures.V1.xml">
+        <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="RedfishExtensions.xml">
+        <edmx:Include Namespace="RedfishExtensions.1.0.0" Alias="Redfish"/>
+        <edmx:Include Namespace="Validation.1.0.0" Alias="Validation"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="Resource.xml">
+        <edmx:Include Namespace="Resource"/>
+        <edmx:Include Namespace="Resource.1.0.0"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="PhysicalContext.xml">
+        <edmx:Include Namespace="PhysicalContext.1.0.0"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="Redundancy.xml">
+        <edmx:Include Namespace="Redundancy"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="RackLocation.xml">
+        <edmx:Include Namespace="RackLocation"/>
+    </edmx:Reference>
 
-  <edmx:DataServices>
+    <edmx:DataServices>
 
-    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="PowerZone">
-      <EntityType Name="PowerZone" BaseType="Resource.1.0.0.Resource">
-        <Annotation Term="OData.Description"
-                    String="This is the schema definition for the power zone.  It represents the properties for power zone."/>
-        <Annotation Term="OData.LongDescription"
-                    String="This resource shall be used to represent a power zone resource for a Redfish implementation."/>
-      </EntityType>
+        <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="RmmPowerZone">
+            <EntityType Name="RmmPowerZone" BaseType="Resource.1.0.0.Resource">
+                <Annotation Term="OData.Description"
+                            String="This is the schema definition for the power zone.  It represents the properties for power zone."/>
+                <Annotation Term="OData.LongDescription"
+                            String="This resource shall be used to represent a power zone resource for a Redfish implementation."/>
+            </EntityType>
 
-      <EntityType Name="PowerSupply" BaseType="Resource.1.0.0.ReferenceableMember">
-        <Annotation Term="OData.Description"
-                    String="Details of a power supplies associated with this system or device"/>
-      </EntityType>
+            <EntityType Name="PowerSupply" BaseType="Resource.1.0.0.ReferenceableMember">
+                <Annotation Term="OData.Description"
+                            String="Details of a power supplies associated with this system or device"/>
+            </EntityType>
 
-      <Action Name="RequestStateChange" IsBound="true">
-        <Parameter Name="PowerZone" Type="PowerZone.1.0.0.Actions"/>
-        <Parameter Name="TargetIndex" Type="Edm.Decimal"/>
-        <Annotation Term="OData.Description" String="This is the target index of Power supply."/>
-        <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
-        <Parameter Name="EnabledState" Type="Edm.String">
-          <Annotation Term="OData.Description" String="This is the type of stateChange to be performed."/>
-          <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
-        </Parameter>
-        <Annotation Term="OData.Description" String="This action is used to change the state of the power zone."/>
-        <Annotation Term="OData.LongDescription"
-                    String="This defines the name of the custom action supported on this resource."/>
-      </Action>
-    </Schema>
+            <Action Name="RequestStateChange" IsBound="true">
+                <Annotation Term="OData.Description"
+                            String="This action is used to change the state of the power zone."/>
+                <Annotation Term="OData.LongDescription"
+                            String="This defines the name of the custom action supported on this resource."/>
 
-    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="PowerZone.1.0.0">
+                <Parameter Name="PowerZone" Type="RmmPowerZone.1.0.0.Actions"/>
+                <Parameter Name="TargetIndex" Type="Edm.Decimal">
+                    <Annotation Term="OData.Description" String="This is the target index of Power supply."/>
+                    <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
+                </Parameter>
 
-      <EntityType Name="PowerZone" BaseType="Resource.1.0.0.Resource">
-        <Property Name="Status" Type="Resource.Status" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="UUID" Type="Resource.UUID" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="CreatedDate" Type="Edm.DateTimeOffset" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="UpdatedDate" Type="Edm.DateTimeOffset" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="RackLocation" Type="RackLocation.RackLocation" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="MaxPSUsSupported" Type="Edm.Int64" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="Presence" Type="Edm.String" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="NumberOfPSUsPresent" Type="Edm.Int64" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="PowerConsumedWatts" Type="Edm.Decimal" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="PowerOutputWatts" Type="Edm.Decimal" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="PowerCapacityWatts" Type="Edm.Decimal" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="PowerSupplies" Type="Collection(PowerZone.1.0.0.PowerSupply)" Nullable="false">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="Actions" Type="PowerZone.1.0.0.Actions" Nullable="false">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-      </EntityType>
+                <Parameter Name="EnabledState" Type="Edm.String">
+                    <Annotation Term="OData.Description" String="This is the type of stateChange to be performed."/>
+                    <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
+                </Parameter>
+            </Action>
+        </Schema>
 
-      <EntityType Name="PowerSupply" BaseType="PowerZone.PowerSupply">
-        <Property Name="Name" Type="Edm.String" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="Status" Type="Resource.Status" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="UUID" Type="Resource.UUID" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="RackLocation" Type="RackLocation.RackLocation" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="SerialNumber" Type="Edm.String" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="Manufacturer" Type="Edm.String" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="Model" Type="Edm.String" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="PartNumber" Type="Edm.String" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="FirmwareVersion" Type="Edm.String" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="PowerCapacityWatts" Type="Edm.Decimal" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-        <Property Name="LastPowerOutputWatts" Type="Edm.Decimal" Nullable="true">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-        </Property>
-      </EntityType>
+        <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="RmmPowerZone.1.0.0">
 
-      <ComplexType Name="Actions">
-        <Annotation Term="OData.AdditionalProperties" Bool="False"/>
-      </ComplexType>
-    </Schema>
+            <EntityType Name="RmmPowerZone" BaseType="Resource.1.0.0.Resource">
+                <Property Name="Status" Type="Resource.Status" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="UUID" Type="Resource.UUID" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="CreatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="UpdatedDate" Type="Edm.DateTimeOffset" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="RackLocation" Type="RackLocation.RackLocation" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="MaxPSUsSupported" Type="Edm.Int64" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="Presence" Type="Edm.String" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="NumberOfPSUsPresent" Type="Edm.Int64" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="PowerConsumedWatts" Type="Edm.Decimal" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="PowerOutputWatts" Type="Edm.Decimal" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="PowerCapacityWatts" Type="Edm.Decimal" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <NavigationProperty Name="PowerSupplies" Type="Collection(RmmPowerZone.1.0.0.PowerSupply)" ContainsTarget="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </NavigationProperty>
+                <Property Name="Actions" Type="RmmPowerZone.1.0.0.Actions" Nullable="false">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+            </EntityType>
 
-  </edmx:DataServices>
+            <EntityType Name="PowerSupply" BaseType="RmmPowerZone.PowerSupply">
+                <Property Name="Name" Type="Edm.String" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="Status" Type="Resource.Status" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="UUID" Type="Resource.UUID" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="RackLocation" Type="RackLocation.RackLocation" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="SerialNumber" Type="Edm.String" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="Manufacturer" Type="Edm.String" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="Model" Type="Edm.String" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="PartNumber" Type="Edm.String" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="FirmwareVersion" Type="Edm.String" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="PowerCapacityWatts" Type="Edm.Decimal" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+                <Property Name="LastPowerOutputWatts" Type="Edm.Decimal" Nullable="true">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                </Property>
+            </EntityType>
+
+            <ComplexType Name="Actions">
+                <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+            </ComplexType>
+        </Schema>
+
+    </edmx:DataServices>
 </edmx:Edmx>
 

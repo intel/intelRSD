@@ -151,7 +151,7 @@ result_t libwrap_pack_tzone_to_json(json_t *output, tzone_member_t *tzone_member
 	pack_odata_head(output, param, RMM_JSON_ODATA_TYPE_TZONE, FALSE);
 
 	/* "@odata.type" */
-	add_json_string(output, RMM_JSON_ODATA_TYPE, "http://rackscale.intel.com/schema#Intel.Oem.Thermal");
+	add_json_string(output, RMM_JSON_ODATA_TYPE, THERMAL_ZONE_OEM_ODATA_TYPE);
 
 	/* "Id": "1" */
 	snprintf_s_i(id_str, sizeof(id_str), "%d", tzone_member->be.id);

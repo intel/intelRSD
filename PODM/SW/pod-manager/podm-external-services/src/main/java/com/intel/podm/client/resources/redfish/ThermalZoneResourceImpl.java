@@ -35,6 +35,7 @@ import java.util.UUID;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @OdataTypes({
         "#Thermal.1.0.0.Thermal",
+        "#Intel.Oem.RmmThermalZone",
         "http://rackscale.intel.com/schema#Intel.Oem.ThermalZone",
         "#Thermal.v1_0_0.Thermal"
 })

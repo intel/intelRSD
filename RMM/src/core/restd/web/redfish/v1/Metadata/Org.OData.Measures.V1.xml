@@ -4,7 +4,7 @@
      Committee Specification 01
      14 August 2013
      Copyright (c) OASIS Open 2013. All Rights Reserved.
-     Source: http://docs.oasis-open.org/odata/odata/v4.0/cs01/vocabularies/
+     Source:
 -->
 <edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
   <edmx:Reference Uri="Org.OData.Core.V1.xml">

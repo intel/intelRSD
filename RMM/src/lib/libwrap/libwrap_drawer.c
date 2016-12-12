@@ -345,7 +345,7 @@ result_t libwrap_pack_drawer_to_json(json_t *output, drawer_member_t *drawer_mem
 	if (oem != NULL) {
 		rsa = json_object();
 		if (rsa != NULL) {
-			add_json_string(rsa, RMM_JSON_ODATA_TYPE, "http://rackscale.intel.com/schema#Intel.Oem.DrawerChassis");
+			add_json_string(rsa, RMM_JSON_ODATA_TYPE, DRAWER_OEM_ODATA_TYPE);
 			add_json_integer(rsa, RMM_JSON_DRAWER_RUID, drawer_member->tray_ruid);
 			loc = json_object();
 			if (loc == NULL) {

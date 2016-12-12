@@ -30,6 +30,7 @@ import com.intel.podm.common.types.Status;
 @OdataTypes({
         "#PowerZone.1.0.0.PowerZone",
         "http://rackscale.intel.com/schema#Intel.Oem.PowerZone",
+        "#Intel.Oem.RmmPowerZone",
         "#PowerZone.v1_0_0.PowerZone"
 })
 public class PowerZoneResourceImpl extends ExternalServiceResourceImpl implements PowerZoneResource {

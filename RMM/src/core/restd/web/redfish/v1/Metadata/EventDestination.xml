@@ -39,7 +39,6 @@
         <Property Name="EventTypes" Type="Collection(Event.1.0.0.EventType)" Nullable="false">
           <Annotation Term="Redfish.RequiredOnCreate"/>
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"
                       String="This property shall contain the types of events that shall be sent to the desination."/>
         </Property>

@@ -22,7 +22,7 @@
     <edmx:Include Namespace="VLanNetworkInterface.1.0.0"/>
   </edmx:Reference>
   <edmx:Reference Uri="VLanNetworkInterfaceCollection.xml">
-    <edmx:Include Namespace="VLanNetworkInterfaceCollection"/>
+    <edmx:Include Namespace="VLanNetworkInterfaceCollection.1.0.0"/>
   </edmx:Reference>
 
   <edmx:DataServices>
