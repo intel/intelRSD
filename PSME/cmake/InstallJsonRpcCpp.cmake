@@ -94,12 +94,6 @@ function(install_jsonrpccpp)
             message(FATAL_ERROR "Error occurs when configure project")
         endif()
 
-        # Patch to fix a bug causing coredump in httpserver.cpp in version 0.5.0
-        execute_process(
-            COMMAND patch ${source_dir}/src/jsonrpccpp/server/connectors/httpserver.cpp
-            -i ${CMAKE_CURRENT_LIST_DIR}/../tools/patches/jsonrpccpp-0.5.0-set-pointer-to-NULL-after-deletion.patch
-        )
-
         execute_process(
             COMMAND ${CMAKE_COMMAND} --build ${binary_dir} --target all
                 -- ${BUILD_EXTRA_ARGS}
