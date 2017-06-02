@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ from include.libs.udevadm.udevadm import Udevadm
 class FruInfoManager(FruInfoManager_abstract):
     @classmethod
     def set_fields(cls, fru_info, data, context=None):
-        if context == ManagersTypes.DIMM_MANAGER:
+        if context == ManagersTypes.MEMORY_MANAGER:
             fru_info.serialNumber = str(data[XML_SERIAL])
             fru_info.manufacturer = str(data[XML_VENDOR])
             fru_info.partNumber = str(data[XML_PRODUCT])

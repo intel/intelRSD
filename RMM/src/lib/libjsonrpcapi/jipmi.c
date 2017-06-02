@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -328,9 +328,10 @@ int libjipmi_init(unsigned short async_listen_port)
 
 	if (pthread_create(&tid, NULL, libjipmi_time_thread, NULL) != 0) {
 		printf("Failed to create libjipmi time thread!\n");
+		close(fd);
 		return -1;
 	}
-	
+
 	async_jipmi_fd = fd;
 	user_port = htons(async_listen_port);
 
@@ -338,12 +339,16 @@ int libjipmi_init(unsigned short async_listen_port)
 	jipmi_port = rmm_cfg_get_port(IPMIJSONRPC_SERVER_PORT);
 	if(jipmi_port == 0) {
 		printf("Get json rpc ipmi port from rmm config fail....\n");
+		close(fd);
+		async_jipmi_fd = -1;
 		return -1;
 	}
 	sync_jipmi_fd= udp_connect(INADDR_LOOPBACK, jipmi_port);
 	if (sync_jipmi_fd < 0)
 	{
 		printf("Connect json rpc ipmi port failed...\n");
+		close(fd);
+		async_jipmi_fd = -1;
 		return -1;
 	}
 
@@ -530,9 +535,10 @@ static void jipmi_set_base_info(jrpc_param_t *param, int *i, jipmi_msg_t *req)
 	param[*i].value_type = JSON_STRING;
 	*i += 1;
 
-	if (atoi(req->data_len)) {
+	int data_len = atoi(req->data_len);
+	if ((0 < data_len) && (IPMI_MAX_DATA_LENGTH >= data_len)) {
 		/*base64_encode(req->base64data, req->data, atoi(req->data_len));*/
-		buf2hexstr((const char *)req->data, atoi(req->data_len), req->base64data);
+		buf2hexstr((const char *)req->data, data_len, req->base64data);
 		param[*i].value = (void *)&(req->base64data);
 		param[*i].name = STR_DATA;
 		param[*i].value_type = JSON_STRING;

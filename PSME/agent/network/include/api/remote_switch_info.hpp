@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +19,8 @@
  *
  */
 
-#ifndef AGENT_NETWORK_REMOTE_SWITCH_INFO_HPP
-#define AGENT_NETWORK_REMOTE_SWITCH_INFO_HPP
-
-#include "agent-framework/module-ref/model/remote_switch.hpp"
+#pragma once
+#include "agent-framework/module/model/remote_ethernet_switch.hpp"
 
 namespace agent {
 namespace network {
@@ -56,7 +54,7 @@ public:
      */
     virtual void fill_response_with_switch_info(const std::string& id,
                                                 agent_framework::model::
-                                                RemoteSwitch& response) = 0;
+                                                RemoteEthernetSwitch& response) = 0;
 
     /*!
      * @brief Get remote switch identifier on a specified port.
@@ -71,4 +69,3 @@ public:
 }
 }
 }
-#endif /* AGENT_NETWORK_REMOTE_SWITCH_INFO_HPP */

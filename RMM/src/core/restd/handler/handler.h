@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@
 
 #define PZONE_COLL_URL                   "/Chassis/Rack/PowerZones"
 #define PZONE_URL                        "/Chassis/Rack/PowerZones/{zone_id}"
+#define PZONE_POINTER_URL                "/Chassis/Rack/PowerZones/{zone_id}/PowerZone"
 
 //#define PSU_COLL_URL                     "/Rack/powerZoneCollection/{zone_id}/PSUCollection"
 //#define PSU_URL                          "/Rack/powerZoneCollection/{zone_id}/PSUCollection/{psu_id}"
@@ -67,8 +68,7 @@
 #define TZONE_URL                        "/Chassis/Rack/ThermalZones/{zone_id}"
 #define TZONE_ACTION_SET_PWM_URL         "/Chassis/Rack/ThermalZones/{zone_id}/Actions/ThermalZone.SetDesiredSpeedPWM"
 
-//#define FAN_COLL_URL                     "/Rack/thermalZoneCollection/{zone_id}/FanCollection"
-//#define FAN_URL                          "/Rack/thermalZoneCollection/{zone_id}/FanCollection/{fan_id}"
+#define TZONE_POINTER_URL                "/Chassis/Rack/ThermalZones/{zone_id}/ThermalZone"
 
 //#define DRAWER_COLL_URL                  "/Chassis/Drawers"
 #define DRAWER1_URL                       "/Chassis/Drawer1"
@@ -114,7 +114,7 @@ extern void register_drawer_handler(void);
 extern void register_pzone_handler(void);
 extern void register_psu_handler(void);
 extern void register_tzone_handler(void);
-//extern void register_fan_handler(void);
+extern void register_fan_handler(void);
 
 extern void put_prepare_int(const json_t *elem, uint32 *output, const int8 *name);
 extern int32 get_asset_idx(const struct rest_uri_param *param, const int8 *name, int32 type);

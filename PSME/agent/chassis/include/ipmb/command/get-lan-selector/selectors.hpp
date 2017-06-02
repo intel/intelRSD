@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,12 +22,9 @@
  * @section DESCRIPTION
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_COMMAND_GET_LAN_SELECTOR_SELECTORS_HPP
-#define AGENT_CHASSIS_IPMB_COMMAND_GET_LAN_SELECTOR_SELECTORS_HPP
-
+#pragma once
 #include "invalid_selector.hpp"
 #include "ip_selector.hpp"
 #include "mask_selector.hpp"
 #include "source_selector.hpp"
 
-#endif

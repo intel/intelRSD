@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,32 @@
 
 package com.intel.podm.client.reader;
 
-import com.intel.podm.client.CachedWebClient;
-import com.intel.podm.client.WebClientImpl;
-import com.intel.podm.client.api.WebClient;
+import com.intel.podm.client.WebClientBuilder;
 import com.intel.podm.client.api.reader.ExternalServiceReader;
 import com.intel.podm.client.api.reader.ExternalServiceReaderFactory;
 
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import java.net.URI;
 
 @Dependent
 public final class ExternalServiceReaderFactoryImpl implements ExternalServiceReaderFactory {
 
+    @Inject
+    private WebClientBuilder webClientBuilder;
+
     @Override
-    public ExternalServiceReader createExternalServiceReader(URI baseUri) {
-        WebClient webClient = WebClientImpl.createRetryable(baseUri);
-        return new ExternalServiceReaderImpl(CachedWebClient.createRetryable(new CachedWebClient(webClient)));
+    public ExternalServiceReader createExternalServiceReaderWithCacheAndRetries(URI baseUri) {
+        return new ExternalServiceReaderImpl(webClientBuilder.newInstance(baseUri)
+            .cachable()
+            .retryable()
+            .build()
+        );
     }
 
+    @Override
+    public ExternalServiceReader createExternalServiceReader(URI baseUri) {
+        return new ExternalServiceReaderImpl(webClientBuilder.newInstance(baseUri)
+            .build());
+    }
 }

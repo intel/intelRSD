@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ jar {
 dependencies {
     checkstyle "com.puppycrawl.tools:checkstyle:6.1"
     compile "ch.qos.logback:logback-classic:1.1.1"
-    compile 'org.picketbox:jbosssx:4.9.3.Final'
-    compile 'org.picketbox:jboss-security-spi:4.9.3.Final'
+    compile group: 'org.picketbox', name: 'picketbox', version: '4.9.4.Final'
     compile 'org.jboss.logging:jboss-logging:3.3.0.Final'
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    compile 'com.beust:jcommander:1.48'
 }

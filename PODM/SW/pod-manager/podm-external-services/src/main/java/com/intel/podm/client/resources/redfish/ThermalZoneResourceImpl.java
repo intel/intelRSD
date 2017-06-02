@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.api.resources.redfish.FanResource;
@@ -29,15 +28,14 @@ import com.intel.podm.client.resources.redfish.properties.RackLocationObjectImpl
 import com.intel.podm.client.resources.redfish.properties.TemperatureResourceImpl;
 import com.intel.podm.common.types.Status;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @OdataTypes({
-        "#Thermal.1.0.0.Thermal",
-        "#Intel.Oem.RmmThermalZone",
-        "http://rackscale.intel.com/schema#Intel.Oem.ThermalZone",
-        "#Thermal.v1_0_0.Thermal"
+    "#ThermalZone" + OdataTypes.VERSION_PATTERN + "ThermalZone",
+    "http://rackscale\\.intel\\.com/schema#Intel\\.Oem\\.ThermalZone",
+    "#Intel\\.Oem\\.RmmThermalZone"
 })
 public class ThermalZoneResourceImpl extends ExternalServiceResourceImpl implements ThermalZoneResource {
     @JsonProperty("UUID")
@@ -57,11 +55,11 @@ public class ThermalZoneResourceImpl extends ExternalServiceResourceImpl impleme
     @JsonProperty("VolumetricAirflow")
     private Integer volumetricAirflow;
     @JsonProperty("Temperatures")
-    private List<TemperatureResourceImpl> temperatureResources;
+    private List<TemperatureResourceImpl> temperatures = new ArrayList<>();
     @JsonProperty("Status")
     private Status status;
     @JsonProperty("Fans")
-    private List<FanResourceImpl> fans;
+    private List<FanResourceImpl> fans = new ArrayList<>();
 
     @Override
     public String getPresence() {
@@ -100,7 +98,7 @@ public class ThermalZoneResourceImpl extends ExternalServiceResourceImpl impleme
 
     @Override
     public List<TemperatureResource> getTemperatures() {
-        return (List) temperatureResources;
+        return (List) temperatures;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.intel.podm.discovery.external.finders;
 
 import com.intel.podm.business.entities.dao.ChassisDao;
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.common.types.ChassisType;
 import com.intel.podm.common.types.Health;
@@ -27,10 +26,12 @@ import com.intel.podm.common.types.Status;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
 import static com.intel.podm.common.types.ChassisType.RACK;
+import static com.intel.podm.common.types.Id.id;
 import static com.intel.podm.common.utils.IterableHelper.single;
 import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
@@ -42,9 +43,6 @@ public class RackChassisFinder {
 
     @Inject
     private ChassisDao chassisDao;
-
-    @Inject
-    private GenericDao genericDao;
 
     /**
      * Finds or creates rack with given location id
@@ -70,13 +68,18 @@ public class RackChassisFinder {
         Chassis rackChassis = chassisDao.create();
         Chassis podChassis = single(chassisDao.getAllByChassisType(ChassisType.POD));
 
-        podChassis.contain(rackChassis);
+        podChassis.addContainedChassis(rackChassis);
         rackChassis.setLocationParentId(podChassis.getLocationId());
         rackChassis.setLocationId(locationId);
+        rackChassis.setId(id(encodeBase64(locationId)));
         rackChassis.setChassisType(RACK);
         rackChassis.setName(DEFAULT_RACK_NAME);
         rackChassis.setStatus(new Status(State.ENABLED, Health.OK, null));
 
         return rackChassis;
+    }
+
+    private String encodeBase64(String locationId) {
+        return Base64.getEncoder().withoutPadding().encodeToString(locationId.getBytes());
     }
 }

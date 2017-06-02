@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.EntityNotFoundException;
-import com.intel.podm.business.EntityOperationException;
+import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.dto.redfish.ComposedNodeDto;
-import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.ComposedNodeService;
-import com.intel.podm.redfish.json.templates.actions.OverrideBootSourceJson;
+import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.business.services.redfish.RemovalService;
+import com.intel.podm.business.services.redfish.UpdateService;
+import com.intel.podm.common.types.redfish.RedfishComputerSystem;
+import com.intel.podm.redfish.json.templates.actions.ComputerSystemPartialRepresentation;
+import com.intel.podm.redfish.json.templates.actions.constraints.ComposedNodeConstraint;
 
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
@@ -30,55 +32,45 @@ import javax.ws.rs.PATCH;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.common.types.redfish.ResourceNames.COMPOSED_NODES_RESOURCE_NAME;
 import static com.intel.podm.redfish.OptionsResponseBuilder.newDefaultOptionsResponseBuilder;
-import static com.intel.podm.rest.error.PodmExceptions.internalServerError;
-import static com.intel.podm.rest.error.PodmExceptions.invalidPayload;
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
-import static com.intel.podm.rest.resources.ResourceNames.COMPOSED_NODES_RESOURCE_NAME;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.ok;
 
 @Produces(APPLICATION_JSON)
 public class ComposedNodeResource extends BaseResource {
     @Inject
-    private ComposedNodeService service;
+    private ReaderService<ComposedNodeDto> readerService;
+
+    @Inject
+    private RemovalService<ComposedNodeDto> nodeRemovalService;
+
+    @Inject
+    private UpdateService<RedfishComputerSystem> computerSystemUpdateService;
 
     @GET
     @Override
     public ComposedNodeDto get() {
-        return getOrThrow(() -> service.getComposedNode(getCurrentContext()));
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
     }
 
     @DELETE
     @Override
-    public Response delete() {
-        try {
-            service.deleteComposedNode(getCurrentContext());
-            service.terminateComposedNodeTasks(getCurrentContext());
-        } catch (EntityNotFoundException e) {
-            throw notFound();
-        } catch (EntityOperationException e) {
-            throw internalServerError("The specified node could not be disassembled", e.getMessage());
-        }
-
+    public Response delete() throws TimeoutException, BusinessApiException {
+        nodeRemovalService.perform(getCurrentContext());
         return noContent().build();
     }
 
     @PATCH
-    public void overrideBootSource(OverrideBootSourceJson json) {
-        validate(json);
+    @Produces(APPLICATION_JSON)
+    public Response overrideBootSource(@ComposedNodeConstraint ComputerSystemPartialRepresentation representation)
+        throws TimeoutException, BusinessApiException {
 
-        Context context = getCurrentContext();
-        try {
-            service.overrideBootSource(context, json.boot.bootSourceType, json.boot.bootSourceState);
-        } catch (EntityNotFoundException e) {
-            throw notFound();
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            throw invalidPayload(e.getMessage());
-        } catch (EntityOperationException e) {
-            throw internalServerError("Error during overriding boot source", e.getMessage());
-        }
+        computerSystemUpdateService.perform(getCurrentContext(), representation);
+        return ok(get()).build();
     }
 
     @Path(COMPOSED_NODES_RESOURCE_NAME)
@@ -91,17 +83,11 @@ public class ComposedNodeResource extends BaseResource {
         return getResource(ComposedNodeActionsResource.class);
     }
 
-    private void validate(OverrideBootSourceJson json) {
-        if (json == null || json.boot == null || json.boot.bootSourceType == null || json.boot.bootSourceState == null) {
-            throw invalidPayload("Mandatory BootSourceType and/or BootSourceState is missing.");
-        }
-    }
-
     @Override
     protected Response createOptionsResponse() {
         return newDefaultOptionsResponseBuilder()
-                .addDeleteMethod()
-                .addPatchMethod()
-                .buildResponse();
+            .addDeleteMethod()
+            .addPatchMethod()
+            .buildResponse();
     }
 }

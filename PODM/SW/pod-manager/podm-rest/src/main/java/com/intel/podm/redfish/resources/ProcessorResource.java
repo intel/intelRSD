@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.services.redfish.ProcessorService;
+import com.intel.podm.business.dto.redfish.ProcessorDto;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
@@ -27,10 +28,10 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 public class ProcessorResource extends BaseResource {
 
     @Inject
-    private ProcessorService service;
+    private ReaderService<ProcessorDto> readerService;
 
     @Override
     public Object get() {
-        return getOrThrow(() -> service.getProcessor(getCurrentContext()));
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
     }
 }

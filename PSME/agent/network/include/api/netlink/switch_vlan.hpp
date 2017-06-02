@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Netlink Vlan functionality.
  * */
 
-#ifndef AGENT_NETWORK_NETLINK_SWITCH_VLAN_HPP
-#define AGENT_NETWORK_NETLINK_SWITCH_VLAN_HPP
-
+#pragma once
 #include "network_config.hpp"
 #include "api/switch_vlan.hpp"
 
@@ -74,5 +72,4 @@ public:
 }
 }
 }
-#endif /* AGENT_NETWORK_NETLINK_SWITCH_VLAN_HPP */
 

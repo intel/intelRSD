@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,14 @@ package com.intel.podm.client.api.actions;
 import com.intel.podm.client.api.ExternalServiceApiActionException;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
-import com.intel.podm.common.types.BootSourceState;
-import com.intel.podm.common.types.BootSourceType;
-import com.intel.podm.common.types.actions.ResetType;
+import com.intel.podm.common.types.actions.ComputerSystemUpdateDefinition;
 
 import java.net.URI;
 
-public interface ComputerSystemResourceActions {
-    ComputerSystemResource bootSourceOverride(URI computerSystemUri, BootSourceType type, BootSourceState state)
+public interface ComputerSystemResourceActions extends AutoCloseable {
+    ComputerSystemResource update(URI computerSystemUri, ComputerSystemUpdateDefinition computerSystemUpdateDefinition)
             throws ExternalServiceApiActionException, ExternalServiceApiReaderException;
 
-    void reset(URI computerSystemUri, ResetType resetType) throws ExternalServiceApiActionException;
+    @Override
+    void close();
 }

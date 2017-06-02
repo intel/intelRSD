@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,11 @@
 
 package com.intel.podm.allocation;
 
-import com.intel.podm.allocation.validation.Violations;
+import com.intel.podm.business.Violations;
+import com.intel.podm.business.ViolationsDisclosingException;
 
-public class CompositionException extends Exception {
+public abstract class CompositionException extends Exception implements ViolationsDisclosingException {
     private final Violations violations;
-
-    public CompositionException(Throwable throwable) {
-        super(throwable);
-        this.violations = new Violations();
-    }
 
     public CompositionException(String s, Throwable throwable) {
         super(s, throwable);

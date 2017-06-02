@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.ComposedNodeCollectionDto;
 import com.intel.podm.redfish.json.templates.ComposedNodeCollectionJson;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
 
 import java.util.stream.Collectors;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.appendOdataId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 
 public class ComposedNodeCollectionDtoJsonSerializer extends DtoJsonSerializer<ComposedNodeCollectionDto> {
 
@@ -38,14 +39,14 @@ public class ComposedNodeCollectionDtoJsonSerializer extends DtoJsonSerializer<C
 
         ComposedNodeCollectionJson composedNodeCollectionJson = new ComposedNodeCollectionJson(oData.getODataType());
 
-        ODataId oDataId = oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         composedNodeCollectionJson.oDataContext = getContextFromId(oDataId);
         composedNodeCollectionJson.oDataId = oDataId;
         composedNodeCollectionJson.name = oData.getName();
         composedNodeCollectionJson.members.addAll(composedNodeCollectionDto.getMembers().stream()
-                .map(id -> oDataId(composedNodeCollectionJson.oDataId, id))
-                .collect(Collectors.toList()));
-        composedNodeCollectionJson.actions.allocateActionJson.target = composedNodeCollectionJson.oDataId + "/Actions/Allocate";
+            .map(id -> appendOdataId(composedNodeCollectionJson.oDataId, id))
+            .collect(Collectors.toList()));
+        composedNodeCollectionJson.actions.allocate.target = composedNodeCollectionJson.oDataId + "/Actions/Allocate";
 
         return composedNodeCollectionJson;
     }

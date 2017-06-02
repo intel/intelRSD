@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,26 +25,29 @@
 #include "agent-framework/state_machine/module_state_absent.hpp"
 #include "agent-framework/state_machine/state_machine_transition.hpp"
 
+
+
 using namespace agent_framework::state_machine;
+
 
 void ModuleStateAbsent::enter_state(StateMachineTransition& transition,
                                     enums::State next_state) {
     switch (next_state) {
-    case enums::State::UNKNOWN:
-        break;
-    case enums::State::ENABLED:
-        transition.set_transition(enums::Transition::INSERTION);
-        break;
-    case enums::State::STANDBY_OFFLINE:
-        break;
-    case enums::State::ABSENT:
-        transition.set_transition(enums::Transition::IDLE);
-        break;
-    case enums::State::STARTING:
-        transition.set_transition(enums::Transition::INSERTION);
-        break;
-    default:
-        break;
+        case enums::State::UNKNOWN:
+            break;
+        case enums::State::ENABLED:
+            transition.set_transition(enums::Transition::INSERTION);
+            break;
+        case enums::State::UNAVAILABLE_OFFLINE:
+            break;
+        case enums::State::ABSENT:
+            transition.set_transition(enums::Transition::IDLE);
+            break;
+        case enums::State::STARTING:
+            transition.set_transition(enums::Transition::SLOW_INSERTION);
+            break;
+        default:
+            break;
     }
 }
 

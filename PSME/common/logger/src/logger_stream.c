@@ -1,30 +1,21 @@
 /*!
- * @section LICENSE
+ * @brief Logger stream implementation
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
  *
- * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
+ * @header{Files}
  * @file logger_stream.c
- *
- * @brief Logger stream implementation
- * */
+ */
 
 #include "logger/stream.h"
 #include "logger_stream_instance.h"
@@ -67,7 +58,7 @@
 
 #define buffer_color(_dst, _options, _color)\
     do{\
-        if (true == _options.option.color) {\
+        if (options.option.color) {\
             buffer_write(_dst, _color);\
         }\
     }while(0)
@@ -227,7 +218,7 @@ int logger_stream_destroy(struct logger_stream *inst) {
 int logger_stream_start(struct logger_stream *inst) {
     logger_assert(NULL != inst);
 
-    if (true == inst->is_running) {
+    if (inst->is_running) {
         return LOGGER_SUCCESS;
     }
 
@@ -313,7 +304,7 @@ static inline bool logger_is_newline_found(const char *str) {
 static inline void logger_stream_set_color(struct logger_stream *const inst,
         union logger_options *options,
         const char *const color) {
-    if (true == options->option.color) {
+    if (options->option.color) {
         logger_stream_write_string(inst, color);
     }
 }
@@ -323,18 +314,13 @@ static void logger_stream_write_message(struct logger_stream *inst,
     logger_assert(NULL != inst);
     logger_assert(NULL != msg);
 
-    /* Log level filter by stream */
-    if (false ==  inst->options.option.output_enable) return;
-    if (inst->options.option.level < msg->options.option.level) {
-        return;
-    }
-
     int err;
     struct tm *timeval;
     const char *color;
     time_t time_seconds;
     long int time_nanoseconds;
     size_t str_size;
+    int multiline;
 
     union logger_options options = {.raw = 0};
     options.raw = inst->options.raw & msg->options.raw;
@@ -385,7 +371,7 @@ static void logger_stream_write_message(struct logger_stream *inst,
     }
 
     /* Write log level tag to the stream */
-    if (true == options.option.color) {
+    if (options.option.color) {
         color = logger_color_by_level(msg->options.option.level);
         str_size = strnlen_s(color, RSIZE_MAX_STR);
         memcpy_s(buffer_ptr, (rsize_t)(LOGGER_BUFFER_SIZE - (buffer_ptr - buffer)), color, str_size);
@@ -403,7 +389,7 @@ static void logger_stream_write_message(struct logger_stream *inst,
     logger_stream_write(inst, buffer, (size_t)(buffer_ptr - buffer));
 
     /* Write message ID tag */
-    if (true == options.option.tagging) {
+    if (options.option.tagging) {
         if (NULL != msg->tag) {
             logger_stream_write_string(inst, msg->tag);
 
@@ -412,17 +398,28 @@ static void logger_stream_write_message(struct logger_stream *inst,
         }
     }
 
+    multiline = logger_is_newline_found(msg->message);
+    if (!multiline) {
+        logger_stream_write_string(inst, msg->message);
+    }
+
     /* Write more debug information to the stream */
-    if (true ==  options.option.more_debug) {
+    if (options.option.more_debug) {
+        const char* sep = " ";
+        if (multiline) {
+            sep = "";
+        }
+
         /* Color for debug information */
-        if (true ==  options.option.color) {
+        if (options.option.color) {
             color = COLOR_YELLOW_NORMAL;
         } else {
             color = "";
         }
 
         char *debug_buffer = NULL;
-        int size = snprintf(NULL, 0, "%s[%s:%s:%d] ",
+        int size = snprintf(NULL, 0, "%s%s[%s:%s:%d] ",
+                sep,
                 color,
                 msg->file_name,
                 msg->function_name,
@@ -430,7 +427,8 @@ static void logger_stream_write_message(struct logger_stream *inst,
         if (size > 0) {
             debug_buffer = logger_memory_alloc((size_t)size + 1);
             if (NULL != debug_buffer) {
-                snprintf(debug_buffer, (size_t)size, "%s[%s:%s:%d] ",
+                snprintf(debug_buffer, (size_t)size, "%s%s[%s:%s:%d] ",
+                         sep,
                          color,
                          msg->file_name,
                          msg->function_name,
@@ -439,15 +437,14 @@ static void logger_stream_write_message(struct logger_stream *inst,
                 logger_memory_free(debug_buffer);
             }
         }
+        logger_stream_set_color(inst, &options, COLOR_DEFAULT);
     }
+    logger_stream_write_string(inst, "\n");
 
-    /* Color for log message */
-    logger_stream_set_color(inst, &options, COLOR_DEFAULT);
-
-    /* Write main log message to the stream */
-    logger_stream_write_string(inst, msg->message);
-    if (!logger_is_newline_found(msg->message)) {
-        logger_stream_write_string(inst, "\n");
+    /* Write multiline message to the stream: it has new line as very last character */
+    /* WARNING. It doesn't follow syslog pattern, journalctl will not show such messages properly! */
+    if (multiline) {
+        logger_stream_write_string(inst, msg->message);
     }
 }
 

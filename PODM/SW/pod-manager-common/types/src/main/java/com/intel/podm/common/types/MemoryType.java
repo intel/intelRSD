@@ -8,7 +8,7 @@ public enum MemoryType implements EnumeratedType {
 
     private final String value;
 
-    MemoryType(final String value) {
+    MemoryType(String value) {
         this.value = value;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,24 @@
 
 package com.intel.podm.business.entities.dao;
 
+
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 
 import javax.enterprise.context.Dependent;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.net.URI;
 import java.util.List;
 
-import static com.intel.podm.business.entities.redfish.base.Discoverable.SOURCE_URI;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 @Transactional(MANDATORY)
 public class RemoteTargetDao extends Dao<RemoteTarget> {
     public List<RemoteTarget> getAllBySourceUri(URI sourceUri) {
-        return repository.getAllByProperty(RemoteTarget.class, SOURCE_URI, sourceUri);
+        TypedQuery<RemoteTarget> query =
+                entityManager.createNamedQuery(RemoteTarget.GET_REMOTE_TARGET_BY_SOURCE_URI, RemoteTarget.class);
+        query.setParameter("sourceUri", sourceUri);
+        return query.getResultList();
     }
 }

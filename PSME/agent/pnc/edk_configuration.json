@@ -1,0 +1,130 @@
+{
+    "agent": {
+        "vendor" : "Intel Corporation",
+        "capabilities" : [ "Pnc" ]
+    },
+    "server": {
+        "port": 7781
+    },
+    "registration": {
+        "ipv4": "localhost",
+        "port": 8383,
+        "interval": 3
+    },
+    "managers" : [
+        {
+            "chassis": {
+                "locationOffset": 1,
+                "networkInterface": "eth0",
+                "parentId": 1,
+                "type": "Enclosure",
+                "platform" : "EDK"
+            },
+            "i2c": {
+                "interface":"GAS",
+                "username" : "put_username_hash_here",
+                "password" : "put_password_hash_here",
+                "port" : 623,
+                "ipv4" : "put_ipmi_ip_here"
+            },
+            "PCIePorts": [
+                {
+                    "PortId": "0",
+                    "TwiPort": 3,
+                    "TwiChannel": 1
+                },
+                {
+                    "PortId": "2",
+                    "TwiPort": 3,
+                    "TwiChannel": 2
+                },
+                {
+                    "PortId": "4",
+                    "TwiPort": 3,
+                    "TwiChannel": 4
+                },
+                {
+                    "PortId": "6",
+                    "TwiPort": 3,
+                    "TwiChannel": 8
+                },
+                {
+                    "PortId": "8",
+                    "TwiPort": 3,
+                    "TwiChannel": 16
+                },
+                {
+                    "PortId": "10",
+                    "TwiPort": 3,
+                    "TwiChannel": 32
+                },
+                {
+                    "PortId": "12",
+                    "TwiPort": 3,
+                    "TwiChannel": 64
+                },
+                {
+                    "PortId": "14",
+                    "TwiPort": 3,
+                    "TwiChannel": 128
+                },
+                {
+                    "PortId": "24",
+                    "TwiPort": 4,
+                    "TwiChannel": 1
+                },
+                {
+                    "PortId": "26",
+                    "TwiPort": 4,
+                    "TwiChannel": 2
+                },
+                {
+                    "PortId": "28",
+                    "TwiPort": 4,
+                    "TwiChannel": 4
+                },
+                {
+                    "PortId": "30",
+                    "TwiPort": 4,
+                    "TwiChannel": 8
+                },
+                {
+                    "PortId": "32",
+                    "TwiPort": 4,
+                    "TwiChannel": 16
+                },
+                {
+                    "PortId": "34",
+                    "TwiPort": 4,
+                    "TwiChannel": 32
+                },
+                {
+                    "PortId": "36",
+                    "TwiPort": 4,
+                    "TwiChannel": 64
+                },
+                {
+                    "PortId": "38",
+                    "TwiPort": 4,
+                    "TwiChannel": 128
+                }
+            ]
+        }
+    ],
+    "service-uuid-file" : "/var/opt/psme/pnc-service-uuid.json",
+    "logger" : {
+        "agent" : {
+            "level" : "DEBUG",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type" : "STDOUT"
+                }
+            ]
+        }
+    }
+}

@@ -8,7 +8,7 @@ public enum ErrorCorrection implements EnumeratedType {
 
     private final String value;
 
-    ErrorCorrection(final String value) {
+    ErrorCorrection(String value) {
         this.value = value;
     }
 

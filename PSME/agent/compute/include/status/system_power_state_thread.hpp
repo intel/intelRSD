@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief Declaration of System power state thread class
  * */
 
-#ifndef AGENT_COMPUTE_STATUS_SYSTEM_POWER_STATE_THREAD_HPP
-#define AGENT_COMPUTE_STATUS_SYSTEM_POWER_STATE_THREAD_HPP
+#pragma once
 #include "agent-framework/logger_ext.hpp"
 #include <thread>
 #include <memory>
@@ -80,5 +79,3 @@ using SystemPowerStateThreadUniquePtr = std::unique_ptr<SystemPowerStateThread>;
 }
 }
 }
-#endif /* AGENT_COMPUTE_STATUS_SYSTEM_POWER_STATE_THREAD_HPP
-*/

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,57 +20,86 @@
  *
  * @file include/ipmi/ipmitool/management_controller.hpp
  *
- * @brief Implementation of IPMI interface using ipmitool sources. Sends
- * synchronus messages to MC.
+ * @brief Implementation of IPMI interface using ipmitool sources.
+ * Sends synchronous messages to ManagementController.
  * */
 
-#ifndef AGENT_IPMI_IPMITOOL_MANAGEMENT_CONTROLLER_HPP
-#define AGENT_IPMI_IPMITOOL_MANAGEMENT_CONTROLLER_HPP
+#pragma once
 
 #include "ipmi/management_controller.hpp"
-extern "C" {
-    struct ipmi_intf;
-}
 
 namespace ipmi {
 namespace manager {
 namespace ipmitool {
 
 /*!
- * @brief Implementation of ManagementController interface basing on ipmitool
- * application source code solutions.
+ * @brief Implementation of ManagementController interface.
+ * Based on ipmitool application source code solutions.
  */
 class ManagementController: public ipmi::ManagementController {
 public:
 
-    /*!
-     * @brief Default constructor.
-     */
-    ManagementController() = default;
+    /*! @brief Default constructor. */
+    ManagementController() : ipmi::ManagementController() { }
 
-    /*!
-     * @brief Removed copy constructor.
-     */
-    ManagementController(const ManagementController&) = delete;
+    ManagementController(const ManagementController&) = default;
+    ManagementController& operator=(const ManagementController&) = default;
 
     /*!
      * @brief Default destructor.
      */
     virtual ~ManagementController() = default;
 
-    virtual void send(const Request& request, Response& response);
+    void send(const Request& request, Response& response) override;
+
+    /*! Sets ipmi interface type
+     * @param[in] ipmi_interface_type Type of ipmi interface
+     */
+    void set_ipmi_interface_type(const std::string& ipmi_interface_type) {
+        m_ipmi_interface_type = ipmi_interface_type;
+    }
+
+    /*! Gets ipmi interface type
+     * @return Type of ipmi interface
+     */
+    const std::string& get_ipmi_interface_type() const {
+        return m_ipmi_interface_type;
+    }
 
 private:
-    // Currently sending each IPMI command may take up to 8 seconds (8 tries, 1 second timeout each)
-    // This should be adjusted to comply with higher layers timeouts.
-    // By default it was set to 4 tries, 15 seconds each - however in case of problems it would take
-    // 60s to finish, which is way too long.
-    std::uint32_t m_timeout_seconds{1};
-    int m_retry_no{8};
-    void init_interface(ipmi_intf* interface);
+    std::string m_ipmi_interface_type{"lan"};
 };
+
+/*! Represents IPMI interface to Management Controller */
+class IpmiInterface {
+public:
+    using UPtr = std::unique_ptr<IpmiInterface>;
+
+    /*! Destructor */
+    virtual ~IpmiInterface();
+
+    /*! Opens connection to MC */
+    virtual void open() = 0;
+
+    /*! Closes connection to MC */
+    virtual void close() = 0;
+
+    /*! Sends IPMI request to MC
+     * @param[in] request IPMI request
+     * @param[out] response IPMI response
+     */
+    virtual void send(const Request& request, Response& response) = 0;
+
+    /*! Sends message to keep IPMI session alive. */
+    virtual int send_keep_alive() = 0;
+};
+
+/*!
+ * IpmiInterface factory function.
+ * @return IpmiInterface instance.
+ */
+IpmiInterface::UPtr create_ipmi_interface(const ManagementController& mc);
 
 }
 }
 }
-#endif	/* AGENT_IPMI_OPENIPMI_MANAGEMENT_CONTROLLER_HPP */

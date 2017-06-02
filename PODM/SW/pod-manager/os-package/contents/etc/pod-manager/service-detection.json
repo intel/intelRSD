@@ -1,0 +1,21 @@
+{
+  "EnabledProtocols": ["DHCP", "SSDP"],
+  "NumberOfRetriesForFailedServiceCheck": 5,
+  "FailedEndpointRecheckIntervalInSeconds": 300,
+  "ServiceTypeMapping" : {
+    "PSME" : "PSME Service Root",
+    "RSS" : "RSS Service Root",
+    "LUI" : "LUI Service Root",
+    "RMM" : "Root Service"
+  },
+  "Protocols" : {
+    "SSDP": {
+      "AnnouncementFrequencyInSeconds": 600,
+      "MX": 5,
+      "Subnets": ["0.0.0.0/0"]
+    },
+    "DHCP": {
+      "FilesCheckIntervalInSeconds": 10
+    }
+  }
+}

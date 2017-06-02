@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief Set iSCSI Field Command Declaration.
  * */
 
-#ifndef IPMI_COMMAND_SDV_SET_ISCSI_FIELD_HPP
-#define	IPMI_COMMAND_SDV_SET_ISCSI_FIELD_HPP
+#pragma once
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
@@ -38,13 +37,13 @@ namespace request {
 /*!
  * @brief Request message for IPMI Set iSCSI Field.
  */
-class SetIscsiField: public Request {
+class SetIscsiField : public Request {
 public:
 
     /*!
      * @brief Represents field instance type. Need to be specific before send write request to field.
      */
-    enum class FieldInstance: uint8_t {
+    enum class FieldInstance : std::uint8_t {
         BOOT_PRIORITY = 0x01,
         INITIATOR_NAME = 0x02,
         INITIATOR_DHCP = 0x03,
@@ -97,19 +96,19 @@ public:
      * @brief Sets data to be send. Must be compatible with set FieldInstance.
      * @param data vector of data to be send.
      */
-    void set_data(const vector<uint8_t> & data) {
+    void set_data(const std::vector<std::uint8_t>& data) {
         m_data = data;
     }
 
     // TODO: Added specialized methods to set specific kind of fields.
 
-    virtual void pack(vector<uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const;
 
 private:
     FieldInstance m_field_instance_type{FieldInstance::UNKNOWN};
-    vector<uint8_t> m_data{};
+    std::vector<std::uint8_t> m_data{};
 
-    void append_vector(vector<uint8_t> & output, const vector<uint8_t>& input) const;
+    void append_vector(std::vector<std::uint8_t>& output, const std::vector<std::uint8_t>& input) const;
 
 };
 
@@ -143,16 +142,16 @@ public:
      * @brief Returns maximum number of data bytes possible for field.
      * @return maximum number of possible bytes for field.
      */
-    uint8_t get_field_max_bytes() const {
+    std::uint8_t get_field_max_bytes() const {
         return m_field_max_byte_no;
     }
 
-    virtual void unpack(const vector<uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data);
 
 private:
-    uint8_t m_field_max_byte_no{0};
-    static constexpr size_t OFFSET_MAX_BYTES_NUMBER = 1;
-    static constexpr size_t RESPONSE_SIZE = 2;
+    std::uint8_t m_field_max_byte_no{0};
+    static constexpr std::size_t OFFSET_MAX_BYTES_NUMBER = 1;
+    static constexpr std::size_t RESPONSE_SIZE = 2;
 };
 
 }
@@ -160,4 +159,3 @@ private:
 }
 }
 }
-#endif	/* IPMI_COMMAND_SDV_SET_ISCSI_FIELD_HPP */

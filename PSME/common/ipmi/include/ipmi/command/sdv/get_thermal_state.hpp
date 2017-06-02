@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief Get Thermal State request and response.
  * */
 
-#ifndef IPMI_COMMAND_SDV_GET_THERMAL_STATE_HPP
-#define IPMI_COMMAND_SDV_GET_THERMAL_STATE_HPP
+#pragma once
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
@@ -33,14 +32,6 @@
 #include <string>
 #include <vector>
 #include <map>
-
-using std::size_t;
-using std::uint8_t;
-using std::uint16_t;
-using std::vector;
-using std::string;
-using std::to_string;
-using std::map;
 
 namespace ipmi {
 namespace command {
@@ -51,7 +42,7 @@ namespace request {
 /*!
  * @brief Sends thermal state request to BMC.
  * */
-class GetThermalState: public Request {
+class GetThermalState : public Request {
 public:
 
     /*!
@@ -70,7 +61,7 @@ public:
      */
     virtual ~GetThermalState();
 
-    virtual void pack(vector<uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const;
 
 };
 
@@ -81,10 +72,10 @@ namespace response {
 /*!
  * @brief Gets SLED Thermal state.
  */
-class GetThermalState: public Response {
+class GetThermalState : public Response {
 public:
 
-    enum THERMAL_STATE: uint8_t {
+    enum THERMAL_STATE : std::uint8_t {
         POWERED_OFF,
         BELOW_NORMAL,
         NORMAL,
@@ -120,13 +111,13 @@ public:
     }
 
 
-    virtual void unpack(const vector<uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data);
 
 private:
     THERMAL_STATE m_thermal_state{};
 
-    static constexpr size_t RESPONSE_SIZE = 1;
-    static constexpr size_t OFFSET_THERMAL_STATE = 1;
+    static constexpr std::size_t RESPONSE_SIZE = 1;
+    static constexpr std::size_t OFFSET_THERMAL_STATE = 1;
 
 };
 
@@ -134,5 +125,4 @@ private:
 }
 }
 }
-#endif	/* IPMI_COMMAND_SDV_GET_THERMAL_STATE_HPP */
 

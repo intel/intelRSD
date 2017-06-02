@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,7 @@
  * @brief GetDrawerPower IPMI command handler for IPMB.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_COMMAND_GET_DRAWER_POWER_HPP
-#define AGENT_CHASSIS_IPMB_COMMAND_GET_DRAWER_POWER_HPP
-
+#pragma once
 #include "ipmb/command/command.hpp"
 #include "ipmb/command/drawer_power_response.hpp"
 
@@ -66,4 +64,3 @@ private:
 }
 }
 
-#endif

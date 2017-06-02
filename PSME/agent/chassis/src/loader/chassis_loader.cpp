@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,12 +23,18 @@
  *
  * */
 
-
 #include "loader/chassis_loader.hpp"
 #include "configuration/configuration.hpp"
 #include "logger/logger_factory.hpp"
-#include "agent-framework/module-ref/chassis_manager.hpp"
+
+#include "agent-framework/module/chassis_components.hpp"
+#include "agent-framework/module/common_components.hpp"
 #include "agent-framework/version.hpp"
+
+#include <chrono>
+#include <thread>
+
+
 
 using namespace agent::chassis::loader;
 using namespace agent_framework::generic;
@@ -40,19 +46,30 @@ using namespace agent_framework::model::attribute;
 
 namespace {
 #ifdef ENABLE_CONFIGURATION_ENCRYPTION
-    inline std::string decrypt_value(const std::string& value) {
-        return configuration::Configuration::get_instance().decrypt_value(value);
-    }
+
+
+inline std::string decrypt_value(const std::string& value) {
+    return configuration::Configuration::get_instance().decrypt_value(value);
+}
+
+
 #else
-    inline std::string decrypt_value(const std::string& value) {
+inline std::string decrypt_value(const std::string& value) {
     return value;
 }
 #endif
 }
 
-using ChassisComponents = agent_framework::module::ChassisManager;
+using agent_framework::module::ChassisComponents;
+using agent_framework::module::CommonComponents;
 
-ChassisLoader::~ChassisLoader() {}
+std::mutex ChassisLoader::m_mutex{};
+std::condition_variable ChassisLoader::m_cv{};
+std::atomic<bool> ChassisLoader::m_is_loaded{false};
+
+
+ChassisLoader::~ChassisLoader() { }
+
 
 class LoadManagers {
 public:
@@ -64,6 +81,7 @@ public:
         }
     }
 
+
     void read_managers(const std::string& parent, const json::Value& json) {
         for (const auto& elem : json["managers"].as_array()) {
             auto manager = make_manager(parent, elem);
@@ -71,49 +89,51 @@ public:
         }
     }
 
+
     void generate_blade_chassis() {
-        auto drawer_manager_keys = ChassisComponents::get_instance()->
-                get_module_manager().get_keys("");
-        auto blade_manager_keys = ChassisComponents::get_instance()->
-                get_module_manager().get_keys(drawer_manager_keys.front());
+        auto drawer_manager_keys = CommonComponents::get_instance()->
+            get_module_manager().get_keys("");
+        auto blade_manager_keys = CommonComponents::get_instance()->
+            get_module_manager().get_keys(drawer_manager_keys.front());
 
         for (const auto& key: blade_manager_keys) {
             Chassis chassis{key};
             chassis.set_type(enums::ChassisType::Module);
-            ChassisComponents ::get_instance()->
-                    get_chassis_manager().add_entry(chassis);
+            CommonComponents::get_instance()->
+                get_chassis_manager().add_entry(chassis);
 
             Psu psu{chassis.get_uuid()};
-            ChassisComponents ::get_instance()->
-                    get_psu_manager().add_entry(psu);
+            ChassisComponents::get_instance()->
+                get_psu_manager().add_entry(psu);
 
             PowerZone power_zone{chassis.get_uuid()};
-            ChassisComponents ::get_instance()->
-                    get_power_zone_manager().add_entry(power_zone);
+            ChassisComponents::get_instance()->
+                get_power_zone_manager().add_entry(power_zone);
 
             ThermalZone thermal_zone{chassis.get_uuid()};
-            ChassisComponents ::get_instance()->
-                    get_thermal_zone_manager().add_entry(thermal_zone);
+            ChassisComponents::get_instance()->
+                get_thermal_zone_manager().add_entry(thermal_zone);
 
             Fan fan{chassis.get_uuid()};
-            ChassisComponents ::get_instance()->
-                    get_fan_manager().add_entry(fan);
+            ChassisComponents::get_instance()->
+                get_fan_manager().add_entry(fan);
         }
     }
+
 
 private:
     void read_manager(Manager& manager, const json::Value& json) {
 
         log_debug(GET_LOGGER("agent"), "Adding manager:" << manager.get_uuid());
-        ChassisComponents::get_instance()->
-                get_module_manager().add_entry(manager);
+        CommonComponents::get_instance()->
+            get_module_manager().add_entry(manager);
 
         if (json["chassis"].is_object()) {
             auto chassis = make_chassis(manager.get_uuid(), json["chassis"]);
             log_debug(GET_LOGGER("agent"), "Adding chassis:" << chassis.get_uuid()
                                            << " to manager " << manager.get_uuid());
-            ChassisComponents ::get_instance()->
-                    get_chassis_manager().add_entry(chassis);
+            CommonComponents::get_instance()->
+                get_chassis_manager().add_entry(chassis);
         }
         if (json["managers"].is_array()) {
             log_debug(GET_LOGGER("agent"), "Adding children managers to manager:" << manager.get_uuid());
@@ -126,14 +146,15 @@ private:
 
         //Chassis collection is added only to top level manager.
         manager.add_collection(attribute::Collection(
-                enums::CollectionName::Chassis,
-                enums::CollectionType::Chassis,
-                "slotMask"
+            enums::CollectionName::Chassis,
+            enums::CollectionType::Chassis,
+            "slotMask"
         ));
 
         make_manager_internals(manager, json);
         return manager;
     }
+
 
     Manager make_manager(const std::string& parent, const json::Value& json) {
         Manager manager{parent};
@@ -141,8 +162,9 @@ private:
         return manager;
     }
 
+
     void make_manager_internals(Manager& manager, const json::Value& json) {
-        manager.set_firmware_version(Version::to_string());
+        manager.set_firmware_version(Version::VERSION_STRING);
         manager.set_slot(uint8_t(json["slot"].as_uint()));
 
         try {
@@ -150,8 +172,8 @@ private:
             // right now the enums cannot be compared
             // statically, that is without creating both
             // instances of them.
-            if(json["chassis"].is_object() &&
-               "Drawer" == json["chassis"]["type"].as_string()) {
+            if (json["chassis"].is_object() &&
+                "Drawer" == json["chassis"]["type"].as_string()) {
                 manager.set_manager_type(
                     enums::ManagerInfoType::EnclosureManager);
             }
@@ -164,8 +186,8 @@ private:
             connection_data.set_username(decrypt_value(json["username"].as_string()));
             connection_data.set_password(decrypt_value(json["password"].as_string()));
             log_debug(GET_LOGGER("agent"), "Manager connection data loaded. Ip="
-                                             << connection_data.get_ip_address()
-                                             << ", port=" << connection_data.get_port());
+                                           << connection_data.get_ip_address()
+                                           << ", port=" << connection_data.get_port());
             manager.set_connection_data(connection_data);
         }
         catch (std::runtime_error& e) {
@@ -174,8 +196,8 @@ private:
         }
 
         manager.set_status({
-                                   agent_framework::model::enums::State::Enabled,
-                                   agent_framework::model::enums::Health::OK
+                               agent_framework::model::enums::State::Enabled,
+                               agent_framework::model::enums::Health::OK
                            });
 
         attribute::SerialConsole serial{};
@@ -191,13 +213,20 @@ private:
 
     }
 
+
     Chassis make_chassis(const std::string& parent, const json::Value& json) {
         Chassis chassis{parent};
         try {
             chassis.set_type(enums::ChassisType::from_string(json["type"].as_string()));
             chassis.set_size(json["size"].as_uint());
             chassis.set_location_offset(json["locationOffset"].as_uint());
-            chassis.set_parent_id_as_uint(json["parentId"].as_uint());
+            const auto& parent_id_json = json["parentId"];
+            if (parent_id_json.is_uint()) { // for backward compatibility
+                chassis.set_parent_id(std::to_string(parent_id_json.as_uint()));
+            }
+            else {
+                chassis.set_parent_id(parent_id_json.as_string());
+            }
         }
         catch (const std::runtime_error& e) {
             log_error(GET_LOGGER("agent"), "Invalid chassis configuration.");
@@ -212,8 +241,8 @@ private:
         }
 
         chassis.set_status({
-                                   agent_framework::model::enums::State::Enabled,
-                                   agent_framework::model::enums::Health::OK
+                               agent_framework::model::enums::State::Enabled,
+                               agent_framework::model::enums::Health::OK
                            });
 
         return chassis;
@@ -221,16 +250,26 @@ private:
 
 };
 
+
 bool ChassisLoader::load(const json::Value& json) {
     try {
         LoadManagers lm{};
         lm.read_managers(json);
         lm.generate_blade_chassis();
+        m_is_loaded = true;
     }
     catch (const json::Value::Exception& e) {
         log_error(GET_LOGGER("discovery"),
                   "Load agent configuration failed: " << e.what());
-        return false;
     }
-    return true;
+
+    m_cv.notify_all();
+
+    return m_is_loaded;
+}
+
+
+void ChassisLoader::wait_for_complete() {
+    std::unique_lock<std::mutex> lock{m_mutex};
+    m_cv.wait(lock, []{return true == ChassisLoader::m_is_loaded;});
 }

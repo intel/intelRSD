@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,150 +16,190 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.common.types.DriveType;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.MediaType;
 import com.intel.podm.common.types.StorageControllerInterface;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.util.Collection;
+import javax.persistence.Column;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.USED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.decimalProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.single;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class PhysicalDrive extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<StorageControllerInterface> CONTROLLER_INTERFACE =
-            enumProperty("controllerInterface", StorageControllerInterface.class);
-    public static final DomainObjectProperty<BigDecimal> CAPACITY_GIB = decimalProperty("capacityGib");
-    public static final DomainObjectProperty<DriveType> TYPE = enumProperty("type", DriveType.class);
-    public static final DomainObjectProperty<Integer> RPM = integerProperty("rpm");
-    public static final DomainObjectProperty<String> MANUFACTURER = stringProperty("manufacturer");
-    public static final DomainObjectProperty<String> MODEL = stringProperty("model");
-    public static final DomainObjectProperty<String> SERIAL_NUMBER = stringProperty("serialNumber");
+@javax.persistence.Entity
+@Table(name = "physical_drive", indexes = @Index(name = "idx_physical_drive_entity_id", columnList = "entity_id", unique = true))
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class PhysicalDrive extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "storage_controller_interface")
+    @Enumerated(STRING)
+    private StorageControllerInterface storageControllerInterface;
+
+    @Column(name = "capacity_gib")
+    private Float capacityGib;
+
+    @Column(name = "type")
+    @Enumerated(STRING)
+    private MediaType type;
+
+    @Column(name = "rpm")
+    private Integer rpm;
+
+    @Column(name = "manufacturer")
+    private String manufacturer;
+
+    @Column(name = "model")
+    private String model;
+
+    @Column(name = "serial_number")
+    private String serialNumber;
+
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "physical_drive_logical_drive",
+        joinColumns = {@JoinColumn(name = "physical_drive_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "logical_drive_id", referencedColumnName = "id")})
+    private Set<LogicalDrive> logicalDrives = new HashSet<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "storage_service_id")
+    private StorageService storageService;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public StorageControllerInterface getControllerInterface() {
-        return getProperty(CONTROLLER_INTERFACE);
+        return storageControllerInterface;
     }
 
     public void setControllerInterface(StorageControllerInterface storageControllerInterface) {
-        setProperty(CONTROLLER_INTERFACE, storageControllerInterface);
+        this.storageControllerInterface = storageControllerInterface;
     }
 
-    public BigDecimal getCapacityGib() {
-        return getProperty(CAPACITY_GIB);
+    public Float getCapacityGib() {
+        return capacityGib;
     }
 
-    public void setCapacityGib(BigDecimal capacityGib) {
-        setProperty(CAPACITY_GIB, capacityGib);
+    public void setCapacityGib(Float capacityGib) {
+        this.capacityGib = capacityGib;
     }
 
-    public DriveType getType() {
-        return getProperty(TYPE);
+    public MediaType getType() {
+        return type;
     }
 
-    public void setType(DriveType driveType) {
-        setProperty(TYPE, driveType);
+    public void setType(MediaType type) {
+        this.type = type;
     }
 
     public Integer getRpm() {
-        return getProperty(RPM);
+        return rpm;
     }
 
     public void setRpm(Integer rpm) {
-        setProperty(RPM, rpm);
+        this.rpm = rpm;
     }
 
     public String getManufacturer() {
-        return getProperty(MANUFACTURER);
+        return manufacturer;
     }
 
     public void setManufacturer(String manufacturer) {
-        setProperty(MANUFACTURER, manufacturer);
+        this.manufacturer = manufacturer;
     }
 
     public String getModel() {
-        return getProperty(MODEL);
+        return model;
     }
 
     public void setModel(String model) {
-        setProperty(MODEL, model);
+        this.model = model;
     }
 
     public String getSerialNumber() {
-        return getProperty(SERIAL_NUMBER);
+        return serialNumber;
     }
 
     public void setSerialNumber(String serialNumber) {
-        setProperty(SERIAL_NUMBER, serialNumber);
+        this.serialNumber = serialNumber;
     }
 
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
+    public Set<LogicalDrive> getLogicalDrives() {
+        return logicalDrives;
     }
 
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
+    public void addLogicalDrive(LogicalDrive logicalDrive) {
+        requiresNonNull(logicalDrive, "logicalDrive");
+
+        logicalDrives.add(logicalDrive);
+        if (!logicalDrive.getPhysicalDrives().contains(this)) {
+            logicalDrive.addPhysicalDrive(this);
+        }
     }
 
-    public Collection<LogicalDrive> getUsedBy() {
-        return getLinked(USED_BY, LogicalDrive.class);
+    public void unlinkLogicalDrive(LogicalDrive logicalDrive) {
+        if (logicalDrives.contains(logicalDrive)) {
+            logicalDrives.remove(logicalDrive);
+            if (logicalDrive != null) {
+                logicalDrive.unlinkPhysicalDrive(this);
+            }
+        }
     }
 
     public StorageService getStorageService() {
-        return single(getLinked(CONTAINED_BY, StorageService.class));
+        return storageService;
+    }
+
+    public void setStorageService(StorageService storageService) {
+        if (!Objects.equals(this.storageService, storageService)) {
+            unlinkStorageService(this.storageService);
+            this.storageService = storageService;
+            if (storageService != null && !storageService.getPhysicalDrives().contains(this)) {
+                storageService.addPhysicalDrive(this);
+            }
+        }
+    }
+
+    public void unlinkStorageService(StorageService storageService) {
+        if (Objects.equals(this.storageService, storageService)) {
+            this.storageService = null;
+            if (storageService != null) {
+                storageService.unlinkPhysicalDrive(this);
+            }
+        }
     }
 
     @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
+    public void preRemove() {
+        unlinkCollection(logicalDrives, this::unlinkLogicalDrive);
+        unlinkStorageService(storageService);
     }
 
     @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, storageService);
     }
 }

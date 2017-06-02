@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.intel.podm.business.dto.redfish.attributes;
 
 import com.intel.podm.common.types.GeneralConnectType;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public final class ConsoleDto {
@@ -50,7 +52,7 @@ public final class ConsoleDto {
     public static final class Builder {
         private Boolean serviceEnabled;
         private Integer maxConcurrentSessions;
-        private List<GeneralConnectType> connectTypesSupported;
+        private List<GeneralConnectType> connectTypesSupported = new ArrayList<>();
 
         private Builder() {
         }
@@ -65,8 +67,8 @@ public final class ConsoleDto {
             return this;
         }
 
-        public Builder connectTypesSupported(List<GeneralConnectType> connectTypesSupported) {
-            this.connectTypesSupported = connectTypesSupported;
+        public Builder connectTypesSupported(Collection<GeneralConnectType> connectTypesSupported) {
+            this.connectTypesSupported.addAll(connectTypesSupported);
             return this;
         }
 

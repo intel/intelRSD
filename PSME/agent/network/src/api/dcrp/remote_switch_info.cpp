@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,21 +24,13 @@
 
 #include "api/dcrp/remote_switch_info.hpp"
 
-#include "agent-framework/module-ref/network_manager.hpp"
-#include "agent-framework/module-ref/model/remote_switch.hpp"
-
+#include "agent-framework/module/network_components.hpp"
 
 #include <safe-string/safe_lib.hpp>
-
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <linux/if_ether.h>
 #include <unistd.h>
-#include <cstring>
-#include <exception>
-#include <sstream>
-#include <vector>
 
 #define ATTRIBUTE_PACKED __attribute__((packed))
 
@@ -57,8 +49,8 @@ using std::vector;
 using std::string;
 
 RemoteSwitchInfo::RemoteSwitchInfo(const std::string& uuid) {
-    auto network_manager = NetworkManager::get_instance();
-    auto& neighbor_manager = network_manager->get_remote_switch_manager();
+    auto network_components = NetworkComponents::get_instance();
+    auto& neighbor_manager = network_components->get_remote_switch_manager();
     neighbor_manager.get_entry(uuid);
 }
 
@@ -93,23 +85,9 @@ void RemoteSwitchInfo::load_neighbor_switches_id(const string& parent_uuid) {
     }
 }
 
-string RemoteSwitchInfo::get_local_node_id() {
-    Pointer buffer(nullptr);
-    uint32_t bsize = 0;
-
-    auto status = process_command("GetNodeId", buffer, bsize);
-    if (status) {
-        throw std::runtime_error("GetNodeId command failed.");
-    }
-    if (0 == bsize) {
-        throw std::runtime_error("GetNodeId command result is unexpected");
-    }
-    return buffer.get();
-}
-
 namespace {
     void read_next_hops(const char* buffer, uint32_t bsize,
-                        const switch_info& sinfo, RemoteSwitch& neighbor) {
+                        const switch_info& sinfo, RemoteEthernetSwitch& neighbor) {
         const char* ptr = buffer + sizeof(sinfo);
         for (uint32_t i = 0; i < sinfo.num_nexthop; i++) {
             // skip hop type (4 bytes), we don't need it
@@ -128,8 +106,22 @@ namespace {
     }
 }
 
+string RemoteSwitchInfo::get_local_node_id() {
+    Pointer buffer(nullptr);
+    uint32_t bsize = 0;
+
+    auto status = process_command("GetNodeId", buffer, bsize);
+    if (status) {
+        throw std::runtime_error("GetNodeId command failed.");
+    }
+    if (0 == bsize) {
+        throw std::runtime_error("GetNodeId command result is unexpected");
+    }
+    return buffer.get();
+}
+
 void RemoteSwitchInfo::fill_response_with_switch_info(const string& id,
-                                                      RemoteSwitch& neighbor) {
+                                                      RemoteEthernetSwitch& neighbor) {
     Pointer buffer(nullptr);
     uint32_t bsize = 0;
     switch_info sinfo{};
@@ -234,8 +226,8 @@ string RemoteSwitchInfo::get_neighbor_on_port(const string& switch_uuid,
                                               const string& port_identifier)
 {
     // get all neighbors of our local switch
-    auto network_manager = NetworkManager::get_instance();
-    auto& neighbor_manager = network_manager->get_remote_switch_manager();
+    auto network_components = NetworkComponents::get_instance();
+    auto& neighbor_manager = network_components->get_remote_switch_manager();
     load_neighbor_switches_id(switch_uuid);
     for (const auto& uuid : neighbor_manager.get_keys()) {
         auto neighbor = neighbor_manager.get_entry(uuid);
@@ -253,8 +245,8 @@ string RemoteSwitchInfo::get_neighbor_on_port(const string& switch_uuid,
 
 void RemoteSwitchInfo::add_switch_to_neighbor_manager(const string& parent_uuid,
                                                       const string& identifier){
-    auto network_manager = NetworkManager::get_instance();
-    auto& neighbor_manager = network_manager->get_remote_switch_manager();
+    auto network_components = NetworkComponents::get_instance();
+    auto& neighbor_manager = network_components->get_remote_switch_manager();
 
     bool found = false;
     for (const auto& uuid : neighbor_manager.get_keys()) {
@@ -265,15 +257,15 @@ void RemoteSwitchInfo::add_switch_to_neighbor_manager(const string& parent_uuid,
         }
     }
     if (!found) {
-        RemoteSwitch neighbor(parent_uuid);
+        RemoteEthernetSwitch neighbor(parent_uuid);
         neighbor.set_switch_identifier(identifier);
         neighbor_manager.add_entry(neighbor);
     }
 }
 
 void RemoteSwitchInfo::remove_unknown_neighbors(const vector<string>& new_neighbors) {
-    auto network_manager = NetworkManager::get_instance();
-    auto& neighbor_manager = network_manager->get_remote_switch_manager();
+    auto network_components = NetworkComponents::get_instance();
+    auto& neighbor_manager = network_components->get_remote_switch_manager();
     vector<string> unknown_neighbors;
 
     for (const auto& uuid : neighbor_manager.get_keys()) {

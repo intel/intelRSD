@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@
 #include "libcfg/platform.h"
 //#include "libsecurec/safe_lib.h"
 
+#include "libredfish/messages.h"
+#include "libredfish/mr_def.h"
 
 #ifndef MR_GENFILE
 #include "libredfish/mr_def.h"
@@ -57,7 +59,7 @@ int32 rf_get_args_count(const int8 *buf, int8 **args)
 	int32 i = 0;
 	int8 *ptr;
 
-	strncpy(tmp, buf, sizeof(tmp) - 1);
+	strncpy_safe(tmp, buf, sizeof(tmp), sizeof(tmp) - 1);
 	p = strtok_r(tmp, split, &ptr);
 	while (p != NULL) {
 		args[i] = strdup(p);
@@ -119,32 +121,15 @@ static void str_replace(int8 *target, int32 max_len, int8 *old, int8 *str_new)
 		return;
 	}
 
-	strncpy(buffer, target, beg_of_substr - target);
+	strncpy_safe(buffer, target, beg_of_substr - target+1, beg_of_substr - target);
 	buffer[beg_of_substr-target] = '\0';
 
 	snprintf_s_ss(buffer + (beg_of_substr - target), max_len - (beg_of_substr - target), "%s%s", str_new, beg_of_substr + strlen(old));
 	target[0] = '\0';
-	strncpy(target, buffer, max_len - 1);
+	strncpy_safe(target, buffer, max_len, max_len - 1);
 	free(buffer);
 
 	return str_replace(target, max_len, old, str_new);
-}
-
-static int32 get_json_int(json_t *jobj, int8 *name)
-{
-	json_t *mjobj = json_object_get(jobj, name);
-
-	if (mjobj == NULL) {
-		return INVAILD_IDX;
-	}
-
-	int64 id = json_integer_value(mjobj);
-
-	if (-1 == id) {
-		return INVAILD_IDX;
-	}
-
-	return id;
 }
 
 static int8 *get_json_str(json_t *jobj, int8 *name)
@@ -167,25 +152,19 @@ static void load_json_str_value(int8 *dest, int32 max_len, json_t *jobj, int8 *n
 
 	if (data == NULL)
 		return;
-	strncpy(dest, data, max_len - 1);
+	strncpy_safe(dest, data, max_len, max_len - 1);
 }
 
-/*For example: Convert json array [number, string, number] to int array [1,2,1]*/
-static void param_type_parse(json_t *jobj, int32 *types)
+/*For example: Convert string array {"number", "string", "number"} to int array [1,2,1]*/
+static void param_type_parse(char*const str_types[], unsigned short length,
+			     int32 *types)
 {
-	int32 size = json_array_size(jobj);
 	int32 index = 0;
-	int8 *tmp = NULL;
 
-	for (index = 0; index < size; index++) {
-		tmp = json_string_value(json_array_get(jobj, index));
-		if (tmp == NULL) {
-			printf("param_type_parse get json_array_get[%d] failed.\n", index);
-			return;
-		}
-		if (strncmp(TYPE_STR, tmp, strlen(TYPE_STR)) == 0)
+	for (index = 0; index < length; index++) {
+		if (strncmp(TYPE_STR, str_types[index], strlen(TYPE_STR)) == 0)
 			types[index] = TYPE_STR_ID;
-		else if (strncmp(TYPE_INT, tmp, strlen(TYPE_INT)) == 0)
+		else if (strncmp(TYPE_INT, str_types[index], strlen(TYPE_INT)) == 0)
 			types[index] = TYPE_INT_ID;
 		else
 			printf("param_type_parse error happened.\n");
@@ -214,44 +193,43 @@ static struct oem *oem_parse(json_t *jobj)
 	return poem_header;
 }
 #endif
-static struct mr_message *msg_parse(json_t *jobj)
+static struct mr_message *msg_parse()
 {
-	struct mr_message	*pmsg			= NULL;
+	struct mr_message	*pmsg		= NULL;
 	struct mr_message	*pmsg_header	= NULL;
-	struct json_t		*jmsg_body		= NULL;
-	struct json_t		*tmp			= NULL;
-	int32				sn				= 1;
-	json_pair_t *pair;
-	json_object_t *obj = json_to_object(jobj);
+	enum MessageType	sn		= 0;
 
-	for (pair = obj->next; pair != NULL; pair = pair->next) {
+	while (NULL != static_messages[sn].desc &&
+	       NULL != static_messages[sn].msg &&
+	       NULL != static_messages[sn].severity) {
 		if (pmsg == NULL) {
 			pmsg = (struct mr_message *)malloc(sizeof(struct mr_message));
-			if (pmsg == NULL)
-				continue;
-            memset(pmsg, 0, sizeof(struct mr_message));
+			if (pmsg == NULL) {
+				printf("Failed to allocated memory.\n");
+				break;
+			}
+			memset(pmsg, 0, sizeof(struct mr_message));
 			pmsg_header = pmsg;
 		} else {
 			pmsg->pnext = (struct mr_message *)malloc(sizeof(struct mr_message));
-			if (pmsg->pnext == NULL)
-				continue;
+			if (pmsg->pnext == NULL) {
+				printf("Failed to allocated memory.\n");
+				break;
+			}
 			memset(pmsg->pnext, 0, sizeof(struct mr_message));
 			pmsg = pmsg->pnext;
 		}
 
-		strncpy(pmsg->msg_sn_str, pair->name, MAX_IDENTITY_SIZE - 1);
+		strncpy_safe(pmsg->msg_sn_str, static_messages[sn].name, MAX_IDENTITY_SIZE, MAX_IDENTITY_SIZE - 1);
 		pmsg->msg_sn = sn;
-		pmsg->index = get_json_int(pair->value, "_ArgPos");
-		load_json_str_value(pmsg->desc,		MAX_SEVERITY_SIZE, pair->value, "Description");
-		load_json_str_value(pmsg->msg,			MAX_MESSAGE_SIZE, pair->value, "Message");
-		load_json_str_value(pmsg->severity,	MAX_SEVERITY_SIZE, pair->value, "Severity");
-		pmsg->num_of_args = (int32)json_integer_value(json_object_get(pair->value, "NumberOfArgs"));
-		param_type_parse(json_object_get(pair->value, "ParamTypes"), pmsg->types);
+		pmsg->index = 0;
+		strncpy_safe(pmsg->desc, static_messages[sn].desc,MAX_DESCRIPTION_SIZE, MAX_DESCRIPTION_SIZE-1);
+		strncpy_safe(pmsg->msg, static_messages[sn].msg, MAX_MESSAGE_SIZE, MAX_MESSAGE_SIZE-1);
+		strncpy_safe(pmsg->severity, static_messages[sn].severity,MAX_SEVERITY_SIZE, MAX_SEVERITY_SIZE-1);
+		pmsg->num_of_args = static_messages[sn].num_of_args;
+		param_type_parse(static_messages[sn].types,
+				 static_messages[sn].num_of_args, pmsg->types);
 
-		/*
-		load_json_str_value(pmsg->resolution,  MAX_LSTR_SIZE, pair->value, "Resolution");
-		pmsg->oem_msg = oem_parse(json_object_get(pair->value, "Oem"));
-		*/
 		sn++;
 	}
 
@@ -260,8 +238,7 @@ static struct mr_message *msg_parse(json_t *jobj)
 
 static void msg_reg_parse(json_t *jobj, struct message_registry *mr)
 {
-	json_t *oem_json = NULL;
-	json_t *mjobj = NULL;
+
 	load_json_str_value(mr->odata_context,		MAX_NAME_SIZE, jobj, "@odata.context");
 	load_json_str_value(mr->odata_id,	MAX_MODIFIED_SIZE, jobj, "@odata.id");
 	load_json_str_value(mr->odata_type,		MAX_TYPE_SIZE, jobj, "@odata.type");
@@ -270,34 +247,24 @@ static void msg_reg_parse(json_t *jobj, struct message_registry *mr)
 	load_json_str_value(mr->ver,		MAX_VERSION_SIZE, jobj, "RegistryVersion");
 	load_json_str_value(mr->entity,	MAX_ENTITY_SIZE, jobj, "OwningEntity");
 
-	mjobj = json_object_get(jobj, "Messages");
-	if (mjobj == NULL){
-		printf("fail to get json Message field.\n");
-		return;
-	}
-	mr->msg_header = msg_parse(mjobj);
-/*
-	oem_json = json_object_get(jobj, "Oem");;
-	if (oem_json == NULL) {
-		printf("fail to get json Oem field.\n");
-		return;
-	}
-	mr->oem_data	= oem_parse(oem_json);
-*/
+	mr->msg_header = msg_parse();
 }
 
-static struct message_registry *mr_init(int8 *data)
-{
-	struct message_registry *mr = (struct message_registry *)malloc(sizeof(struct message_registry));
-
-	json_t *obj = json_parse(data);
+static struct message_registry *mr_init(int8 *data) {
+	struct message_registry* mr = NULL;
+	json_t* obj = json_parse(data);
 
 	if (!obj) {
 		printf("Json parse error...");
 		return NULL;
 	}
 
-	msg_reg_parse(obj, mr);
+	mr = (struct message_registry*) malloc(sizeof(struct message_registry));
+
+	if (mr) {
+		msg_reg_parse(obj, mr);
+	}
+	json_free(obj);
 	return mr;
 }
 
@@ -310,7 +277,6 @@ int32 msg_reg_get_args_format(int8 *msg_args_fmt, int32 max_len, int32 msg_sn)
 	struct mr_message *pmsg		= NULL;
 	int32	index				= 0;
 	va_list args;
-	int32	ret;
 	int8	tmp[256]			= {0};
 
 	if (!g_mr)
@@ -332,7 +298,7 @@ int32 msg_reg_get_args_format(int8 *msg_args_fmt, int32 max_len, int32 msg_sn)
 					printf("error message type: %d\n", pmsg->types[index]);
 			}
 
-			strncpy(msg_args_fmt, tmp, max_len - 1);
+			strncpy_safe(msg_args_fmt, tmp, max_len, max_len - 1);
 			return RF_SUCCESS;
 		}
 		pmsg = pmsg->pnext;
@@ -500,7 +466,6 @@ int32 msg_reg_get_msg_format(int8 *msg_fmt, int32 len, int32 msg_sn)
 	struct mr_message *pmsg		= NULL;
 	int32 index					= 0;
 	va_list args;
-	int32 ret;
 
 	if (!g_mr)
 		return RF_NOT_INIT;
@@ -508,7 +473,7 @@ int32 msg_reg_get_msg_format(int8 *msg_fmt, int32 len, int32 msg_sn)
 	pmsg = g_mr->msg_header;
 	while (pmsg) {
 		if (msg_sn == pmsg->msg_sn) {
-			strncpy(msg_fmt, pmsg->msg, len - 1);
+			strncpy_safe(msg_fmt, pmsg->msg, len, len - 1);
 			break;
 		}
 		pmsg = pmsg->pnext;

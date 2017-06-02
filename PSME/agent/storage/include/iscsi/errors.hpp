@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,7 @@
  * @brief TGT Errors interface
 */
 
-#ifndef ISCSI_TGT_ERRORS_HPP
-#define	ISCSI_TGT_ERRORS_HPP
-
+#pragma once
 #include <cstdint>
 #include <string>
 
@@ -77,7 +75,7 @@ public:
     static std::string get_error_message(const Errors::Types error);
 
     /*!
-     * @brief Throws a exception for given error code
+     * @brief Throws an exception for given error code
      * @param ec Error code
      * @param message Additional message to log
      * */
@@ -85,7 +83,7 @@ public:
                                 const std::string& message = {});
 
     /*!
-     * @brief Throws a exception for given error type
+     * @brief Throws an exception for given error type
      * @param error Error type
      * @param message Additional message to log
      * */
@@ -99,4 +97,3 @@ public:
 }
 }
 
-#endif	/* ISCSI_TGT_ERRORS_HPP */

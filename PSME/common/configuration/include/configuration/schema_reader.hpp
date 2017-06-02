@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,7 @@
  * @brief SchemaReader interface
  * */
 
-#ifndef CONFIGURATION_SCHEMA_READER_HPP
-#define CONFIGURATION_SCHEMA_READER_HPP
-
+#pragma once
 #include <memory>
 
 namespace json { class Value; }
@@ -62,4 +60,3 @@ private:
 
 }
 
-#endif /* CONFIGURATION_SCHEMA_READER_HPP */

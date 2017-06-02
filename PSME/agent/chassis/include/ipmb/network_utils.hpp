@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,7 @@
  * @section DESCRIPTION
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_NETWORK_UTILS_HPP_JKRQWNBQ
-#define AGENT_CHASSIS_IPMB_NETWORK_UTILS_HPP_JKRQWNBQ
-
+#pragma once
 #include <string>
 #include <vector>
 
@@ -67,5 +65,4 @@ std::string bytes_to_addr(const NetworkBytes& bytes);
 }
 }
 
-#endif /* end of include guard: AGENT_CHASSIS_IPMB_NETWORK_UTILS_HPP_JKRQWNBQ */
 

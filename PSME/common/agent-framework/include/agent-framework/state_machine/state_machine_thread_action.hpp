@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,10 @@
  * @brief StateMachine thread.
  * */
 
-#ifndef AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_THREAD_ACTION_HPP
-#define AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_THREAD_ACTION_HPP
-
+#pragma once
 #include "agent-framework/state_machine/module_state.hpp"
 #include "agent-framework/state_machine/state_machine_transition.hpp"
+#include "agent-framework/state_machine/state_thread_entry.hpp"
 
 /*! Psme namespace */
 namespace agent_framework {
@@ -34,6 +33,8 @@ namespace state_machine {
 
 class StateMachineThreadAction {
 public:
+    using StateThreadEntrySharedPtr = std::shared_ptr<StateThreadEntry>;
+
     StateMachineThreadAction() = default;
     StateMachineThreadAction(const StateMachineThreadAction&) = default;
     StateMachineThreadAction& operator=(const StateMachineThreadAction&) = default;
@@ -43,12 +44,11 @@ public:
     /*! Default destructor. */
     virtual ~StateMachineThreadAction();
 
-    virtual void execute(const std::string& uuid,
-                         const enums::State state,
-                         const enums::Transition trans);
+    virtual void execute(StateThreadEntrySharedPtr entry);
+protected:
+    std::mutex m_mutex{};
 };
 
 }
 }
-#endif /* AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_THREAD_HPP */
 

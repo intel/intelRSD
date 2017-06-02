@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/module-ref/network_manager.hpp"
+#include "agent-framework/module/network_components.hpp"
 #include "agent-framework/command-ref/registry.hpp"
 #include "agent-framework/command-ref/network_commands.hpp"
 
@@ -33,7 +33,7 @@ using namespace agent_framework;
 namespace {
     void get_static_mac_info(const GetPortStaticMacInfo::Request& request,
                              GetPortStaticMacInfo::Response& response) {
-        auto network_manager = NetworkManager::get_instance();
+        auto network_manager = NetworkComponents::get_instance();
         auto& static_mac_manager = network_manager->get_static_mac_manager();
 
         response = static_mac_manager.get_entry(request.get_uuid());

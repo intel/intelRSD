@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,26 @@
 package com.intel.podm.business.services.context;
 
 import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.redfish.NavigationProperty;
 
 import java.util.Objects;
 
+import static com.intel.podm.common.utils.Contracts.requires;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
 import static java.util.Objects.hash;
 
 /**
  * Represents path to Entity located in Entity Tree.
  */
-public final class Context {
+public final class Context implements NavigationProperty {
     private final Id id;
     private final ContextType type;
     private final Context parent;
 
     private Context(Id id, ContextType type, Context parent) {
-        if (id == null) {
-            throw new IllegalArgumentException("id should not be null");
-        }
-
-        if (type == null) {
-            throw new IllegalArgumentException("type should not be null");
-        }
+        requiresNonNull(id, "id");
+        requiresNonNull(type, "type");
 
         this.id = id;
         this.type = type;
@@ -62,17 +60,9 @@ public final class Context {
     }
 
     public Context child(Id id, ContextType type) {
-        if (id == null) {
-            throw new IllegalArgumentException("id should not be null");
-        }
-
-        if (type == null) {
-            throw new IllegalArgumentException("type should not be null");
-        }
-
-        if (!type.getPossibleParents().contains(this.type)) {
-            throw new IllegalArgumentException();
-        }
+        requiresNonNull(id, "id");
+        requiresNonNull(type, "type");
+        requires(type.getPossibleParents().contains(this.type), "type cannot be child");
 
         return new Context(id, type, this);
     }
@@ -106,14 +96,26 @@ public final class Context {
     }
 
     public static boolean isAcceptableChildOf(ContextType childType, Context parent) {
-        if (childType == null) {
-            throw new IllegalArgumentException("childType must not be null");
-        }
+        requiresNonNull(childType, "childType");
 
         if (parent == null) {
             return childType.getPossibleParents().isEmpty();
         }
 
         return childType.getPossibleParents().contains(parent.getType());
+    }
+
+    public static boolean hasParentOfTypeOnTopOf(Context context, ContextType possibleParentType) {
+        requiresNonNull(context, "context");
+
+        if (context.getParent() == null) {
+            return possibleParentType == null;
+        }
+
+        if (context.getParent().getType() == possibleParentType) {
+            return true;
+        }
+
+        return hasParentOfTypeOnTopOf(context.getParent(), possibleParentType);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package com.intel.podm.assembly.tasks;
 
 import com.intel.podm.actions.ActionException;
 import com.intel.podm.assembly.VlanAllocator;
-import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
 import com.intel.podm.business.entities.NonUniqueResultException;
-import com.intel.podm.business.entities.dao.EthernetInterfaceDao;
 import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
 import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
+import com.intel.podm.common.enterprise.utils.logger.TimeMeasured;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.Id;
 
@@ -36,14 +36,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.intel.podm.business.services.redfish.requests.RequestedNode.EthernetInterface.Vlan;
+import static com.intel.podm.common.utils.Contracts.requires;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Dependent
 public class VlanNodeAssemblyTask extends NodeAssemblyTask {
-    private RequestedEthernetInterface requestedInterface;
+    private RequestedNode.EthernetInterface requestedInterface;
     private Id availableInterfaceId;
 
     @Inject
@@ -56,20 +57,18 @@ public class VlanNodeAssemblyTask extends NodeAssemblyTask {
     private GenericDao genericDao;
 
     @Inject
-    private EthernetInterfaceDao ethernetInterfaceDao;
-
-    @Inject
     private EthernetSwitchPortDao ethernetSwitchPortDao;
 
     @Override
     @Transactional(REQUIRES_NEW)
+    @TimeMeasured(tag = "[AssemblyTask]")
     public void run() {
         final String exceptionMessage = "Null value is not allowed for this method.";
-        checkArgument(requestedInterface != null, exceptionMessage);
-        checkArgument(availableInterfaceId != null, exceptionMessage);
+        requires(requestedInterface != null, exceptionMessage);
+        requires(availableInterfaceId != null, exceptionMessage);
 
-        Optional<List<RequestedEthernetInterface.Vlan>> requestedVlans = requestedInterface.getVlans();
-        EthernetInterface ethernetInterface = ethernetInterfaceDao.find(availableInterfaceId);
+        Optional<List<Vlan>> requestedVlans = requestedInterface.getVlans();
+        EthernetInterface ethernetInterface = genericDao.find(EthernetInterface.class, availableInterfaceId);
 
         Optional<EthernetSwitchPort> associatedSwitchPort = empty();
 
@@ -80,38 +79,45 @@ public class VlanNodeAssemblyTask extends NodeAssemblyTask {
         }
 
         createRequestedVlansOnAssociatedSwitchPort(requestedVlans.orElseThrow(this::illegalStateException),
-                associatedSwitchPort.orElseThrow(this::illegalStateException));
+            associatedSwitchPort.orElseThrow(this::illegalStateException));
+    }
+
+    @Override
+    @Transactional(REQUIRES_NEW)
+    public UUID getServiceUuid() {
+        ComposedNode node = genericDao.find(ComposedNode.class, nodeId);
+        return getComputerSystemFromNode(node).getService().getUuid();
     }
 
     public void setAvailableInterfaceId(Id availableInterfaceId) {
         this.availableInterfaceId = availableInterfaceId;
     }
 
-    public void setRequestedInterface(RequestedEthernetInterface requestedEthernetInterface) {
+    public void setRequestedInterface(RequestedNode.EthernetInterface requestedEthernetInterface) {
         this.requestedInterface = requestedEthernetInterface;
     }
 
-    private void createRequestedVlansOnAssociatedSwitchPort(List<RequestedEthernetInterface.Vlan> requestedVlans, EthernetSwitchPort associatedSwitchPort) {
+    private void createRequestedVlansOnAssociatedSwitchPort(List<RequestedNode.EthernetInterface.Vlan> requestedVlans,
+                                                            EthernetSwitchPort associatedSwitchPort) {
         ComposedNode node = genericDao.find(ComposedNode.class, nodeId);
 
         UUID computerSystemUuid = getComputerSystemFromNode(node).getUuid();
         logger.d("Running for Node: {}, Computer system: {}", node.getId(), computerSystemUuid);
-        Id associatedSwitchPortId = associatedSwitchPort.getId();
         try {
-            vlanAllocator.removeUnnecessaryVlans(associatedSwitchPortId, requestedVlans);
-            vlanAllocator.createNecessaryVlans(associatedSwitchPortId, requestedVlans);
+            vlanAllocator.removeUnnecessaryVlans(associatedSwitchPort, requestedVlans);
+            vlanAllocator.createNecessaryVlans(associatedSwitchPort, requestedVlans);
 
             if (requestedInterface.getPrimaryVlan() != null) {
-                vlanAllocator.changePrimaryVlan(associatedSwitchPortId, requestedInterface.getPrimaryVlan());
+                vlanAllocator.changePrimaryVlan(associatedSwitchPort, requestedInterface.getPrimaryVlan());
             }
             logger.d("Finished for Node: {}, Computer system: {}", node.getId(), computerSystemUuid);
         } catch (ActionException e) {
             logger.e("Error when creating VLANs for Node: {}, Computer system: {}, switch port: {}, details: {}, API error: {}",
-                    node.getId(),
-                    computerSystemUuid,
-                    associatedSwitchPortId,
-                    e.getMessage(),
-                    e.getErrorResponse());
+                node.getId(),
+                computerSystemUuid,
+                associatedSwitchPort.getId(),
+                e.getMessage(),
+                e.getErrorResponse());
             throw new RuntimeException(e);
         }
     }

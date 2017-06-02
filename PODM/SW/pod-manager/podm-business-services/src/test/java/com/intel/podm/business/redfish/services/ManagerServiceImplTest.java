@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,17 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.business.dto.redfish.ManagerDto;
 import com.intel.podm.business.dto.redfish.attributes.ConsoleDto;
 import com.intel.podm.business.dto.redfish.attributes.GraphicalConsoleDto;
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.business.entities.redfish.embeddables.CommandShell;
+import com.intel.podm.business.entities.redfish.embeddables.GraphicalConsole;
 import com.intel.podm.business.entities.redfish.Manager;
-import com.intel.podm.business.entities.redfish.properties.Console;
-import com.intel.podm.business.entities.redfish.properties.GraphicalConsole;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.entities.redfish.embeddables.SerialConsole;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.GeneralConnectType;
 import com.intel.podm.common.types.GraphicalConnectType;
@@ -40,11 +42,14 @@ import static com.intel.podm.common.types.Health.OK;
 import static com.intel.podm.common.types.Id.id;
 import static com.intel.podm.common.types.ManagerType.BMC;
 import static com.intel.podm.common.types.State.ENABLED;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:ExecutableStatementCount"})
 public class ManagerServiceImplTest {
     public static final ManagerType TYPE = BMC;
 
@@ -59,15 +64,17 @@ public class ManagerServiceImplTest {
     private static final GraphicalConnectType GRAPHICAL_CONSOLE_CONNECT_TYPE_SUPPORTED = KVMIP;
 
     @Test
-    public void translationTest() throws EntityNotFoundException {
+    public void translationTest() throws ContextResolvingException {
         ManagerServiceImpl service = new ManagerServiceImpl();
 
         Context managerContext = contextOf(id(1), MANAGER);
         Manager mockedManager = createManagerProvider();
-        service.traverser = mock(DomainObjectTreeTraverser.class);
+        service.traverser = mock(EntityTreeTraverser.class);
         when(service.traverser.traverse(managerContext)).thenReturn(mockedManager);
+        service.unknownOemTranslator = mock(UnknownOemTranslator.class);
+        when(service.unknownOemTranslator.translateUnknownOemToDtos(any(), any())).thenReturn(emptyList());
 
-        ManagerDto dto = service.getManager(managerContext);
+        ManagerDto dto = service.getResource(managerContext);
 
         assertEquals(dto.getName(), NAME);
         assertEquals(dto.getFirmwareVersion(), FIRMWARE_VERSION);
@@ -103,32 +110,43 @@ public class ManagerServiceImplTest {
         when(manager.getStatus()).thenReturn(STATUS);
         when(manager.getManagerType()).thenReturn(TYPE);
         when(manager.getModel()).thenReturn(MODEL);
-        when(manager.getManagerInChassis()).thenReturn(chassis);
+        when(manager.getInChassisManager()).thenReturn(chassis);
 
-        Console console = createConsole();
         GraphicalConsole graphicalConsole = createGraphicalConsole();
+        SerialConsole serialConsole = createSerialConsole();
+        CommandShell commandShell = createCommandShell();
+
         when(manager.getGraphicalConsole()).thenReturn(graphicalConsole);
-        when(manager.getSerialConsole()).thenReturn(console);
-        when(manager.getCommandShell()).thenReturn(console);
+        when(manager.getSerialConsole()).thenReturn(serialConsole);
+        when(manager.getCommandShell()).thenReturn(commandShell);
 
         return manager;
     }
 
-    private Console createConsole() {
-        Console console = mock(Console.class);
-        when(console.isServiceEnabled()).thenReturn(CONSOLE_ENABLED);
-        when(console.getMaxConcurrentSessions()).thenReturn(CONSOLE_MAX_CONCURRENT_SESSIONS);
-        when(console.getConnectTypesSupported()).thenReturn(singletonList(CONSOLE_CONNECT_TYPE_SUPPORTED));
+    private GraphicalConsole createGraphicalConsole() {
+        GraphicalConsole graphicalConsole = mock(GraphicalConsole.class);
+        when(graphicalConsole.isServiceEnabled()).thenReturn(CONSOLE_ENABLED);
+        when(graphicalConsole.getMaxConcurrentSessions()).thenReturn(CONSOLE_MAX_CONCURRENT_SESSIONS);
+        when(graphicalConsole.getConnectTypesSupported()).thenReturn(singletonList(GRAPHICAL_CONSOLE_CONNECT_TYPE_SUPPORTED));
 
-        return console;
+        return graphicalConsole;
     }
 
-    private GraphicalConsole createGraphicalConsole() {
-        GraphicalConsole console = mock(GraphicalConsole.class);
-        when(console.isServiceEnabled()).thenReturn(CONSOLE_ENABLED);
-        when(console.getMaxConcurrentSessions()).thenReturn(CONSOLE_MAX_CONCURRENT_SESSIONS);
-        when(console.getConnectTypesSupported()).thenReturn(singletonList(GRAPHICAL_CONSOLE_CONNECT_TYPE_SUPPORTED));
+    private SerialConsole createSerialConsole() {
+        SerialConsole serialConsole = mock(SerialConsole.class);
+        when(serialConsole.isServiceEnabled()).thenReturn(CONSOLE_ENABLED);
+        when(serialConsole.getMaxConcurrentSessions()).thenReturn(CONSOLE_MAX_CONCURRENT_SESSIONS);
+        when(serialConsole.getConnectTypesSupported()).thenReturn(singletonList(CONSOLE_CONNECT_TYPE_SUPPORTED));
 
-        return console;
+        return serialConsole;
+    }
+
+    private CommandShell createCommandShell() {
+        CommandShell commandShell = mock(CommandShell.class);
+        when(commandShell.isServiceEnabled()).thenReturn(CONSOLE_ENABLED);
+        when(commandShell.getMaxConcurrentSessions()).thenReturn(CONSOLE_MAX_CONCURRENT_SESSIONS);
+        when(commandShell.getConnectTypesSupported()).thenReturn(singletonList(CONSOLE_CONNECT_TYPE_SUPPORTED));
+
+        return commandShell;
     }
 }

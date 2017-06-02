@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,64 +16,62 @@
 
 package com.intel.podm.mappers.redfish;
 
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.Manager;
-import com.intel.podm.business.entities.redfish.properties.Console;
-import com.intel.podm.business.entities.redfish.properties.GraphicalConsole;
-import com.intel.podm.client.api.resources.redfish.ConsoleObject;
-import com.intel.podm.client.api.resources.redfish.GraphicalConsoleObject;
 import com.intel.podm.client.api.resources.redfish.ManagerResource;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
+import com.intel.podm.mappers.subresources.SimpleTypeMapper;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
+import static java.util.Optional.ofNullable;
+
 @Dependent
-public class ManagerMapper extends DomainObjectMapper<ManagerResource, Manager> {
+public class ManagerMapper extends EntityMapper<ManagerResource, Manager> {
 
     @Inject
-    private GenericDao genericDao;
+    private SimpleTypeMapper simpleTypeMapper;
 
     public ManagerMapper() {
         super(ManagerResource.class, Manager.class);
-        registerProvider(Console.class, this::provideConsole);
-        registerProvider(GraphicalConsole.class, this::provideGraphicalConsole);
-    }
-
-    private Console provideConsole(ConsoleObject consoleObject) {
-        Console console;
-        if (consoleObject.equals(source.getCommandShell())) {
-            console = target.getCommandShell();
-        } else if (consoleObject.equals(source.getSerialConsole())) {
-            console = target.getSerialConsole();
-        } else {
-            throw new RuntimeException("Unknown console: " + consoleObject);
-        }
-
-        if (console == null) {
-            console = genericDao.create(Console.class);
-        }
-
-        return console;
-    }
-
-    private GraphicalConsole provideGraphicalConsole(GraphicalConsoleObject graphicalConsoleObject) {
-        GraphicalConsole graphicalConsole;
-        if (graphicalConsoleObject.equals(source.getGraphicalConsole())) {
-            graphicalConsole = target.getGraphicalConsole();
-        } else {
-            throw new RuntimeException("Unknown graphical console: " + graphicalConsoleObject);
-        }
-
-        if (graphicalConsole == null) {
-            graphicalConsole = genericDao.create(GraphicalConsole.class);
-        }
-
-        return graphicalConsole;
+        ignoredProperties("connectTypesSupported");
     }
 
     @Override
-    protected void performNotAutomatedMapping(ManagerResource source, Manager target) {
-        super.performNotAutomatedMapping(source, target);
+    protected void performNotAutomatedMapping(ManagerResource sourceManager, Manager targetManager) {
+        super.performNotAutomatedMapping(sourceManager, targetManager);
+        mapSerialConsole(source, target);
+        mapGraphicalConsole(source, target);
+        mapCommandShell(source, target);
+    }
+
+    private void mapCommandShell(ManagerResource source, Manager target) {
+        ofNullable(source.getCommandShell()).ifPresent(console ->
+            simpleTypeMapper.map(
+                console.getConnectTypesSupported(),
+                target.getCommandShell().getConnectTypesSupported(),
+                target.getCommandShell()::addConnectTypesSupported
+            )
+        );
+    }
+
+    private void mapGraphicalConsole(ManagerResource source, Manager target) {
+        ofNullable(source.getGraphicalConsole()).ifPresent(console ->
+            simpleTypeMapper.map(
+                console.getConnectTypesSupported(),
+                target.getGraphicalConsole().getConnectTypesSupported(),
+                target.getGraphicalConsole()::addConnectTypesSupported
+            )
+        );
+    }
+
+    private void mapSerialConsole(ManagerResource source, Manager target) {
+        ofNullable(source.getSerialConsole()).ifPresent(console ->
+            simpleTypeMapper.map(
+                console.getConnectTypesSupported(),
+                target.getSerialConsole().getConnectTypesSupported(),
+                target.getSerialConsole()::addConnectTypesSupported
+            )
+        );
     }
 }

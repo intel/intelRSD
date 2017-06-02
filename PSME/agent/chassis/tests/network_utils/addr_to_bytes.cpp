@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,6 @@
 
 #include "gtest/gtest.h"
 #include "ipmb/network_utils.hpp"
-
 
 using namespace std;
 using namespace agent::chassis::ipmb::network_utils;
@@ -121,15 +120,3 @@ TEST(BadIpAddressToBytes, testAddrToBytes) {
         FAIL() << "Invalid exception has been thrown. Should throw invalid_argument";
     }
 }
-
-//TEST(emptyStringToBytes, testAddrToBytes) {
-//    string ip = "";
-//
-//    auto byte_vector = addr_to_bytes(ip);
-//
-//    ASSERT_EQ(IP_BYTE_COUNT, byte_vector.size()) << "Proper IP address should be converted to vector of 4 bytes.";
-//    ASSERT_EQ(10, byte_vector[0]) << "First byte should be 10.";
-//    ASSERT_EQ(20, byte_vector[1]) << "Second byte should be 20.";
-//    ASSERT_EQ(30, byte_vector[2]) << "Third byte should be 30.";
-//    ASSERT_EQ(40, byte_vector[3]) << "Fourth byte should be 40.,";
-//}

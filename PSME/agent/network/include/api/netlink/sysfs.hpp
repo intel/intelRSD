@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Get switch port attribute via sysfs.
  * */
 
-#ifndef AGENT_NETWORK_NETLINK_SYSFS_HPP
-#define AGENT_NETWORK_NETLINK_SYSFS_HPP
-
+#pragma once
 #include <memory>
 #include <map>
 #include <vector>
@@ -175,4 +173,3 @@ private:
 }
 }
 
-#endif /* AGENT_NETWORK_NETLINK_SYSFS_HPP */

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@
 cmake_minimum_required(VERSION 2.8)
 project("PSME Compute Simulator" C CXX)
 
-set(VALGRIND_SUPPRESSIONS
-    ${CMAKE_CURRENT_SOURCE_DIR}/valgrind/jsonrpccpp.supp
-)
+if (NOT LIBXMLPP_FOUND)
+    message(WARNING "Simulator not compiled:: LIBXML not found (should be Fedora Linux)")
+    return()
+endif()
 
 set(PSME_COMPUTE_SIMULATOR_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(PSME_COMPUTE_SIMULATOR_LIBRARIES

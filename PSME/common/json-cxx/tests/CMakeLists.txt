@@ -28,6 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 if (NOT GTEST_FOUND)
+    message(WARNING "Tests not enabled")
     return()
 endif()
 
@@ -42,5 +43,12 @@ add_gtest(json json-cxx
 
 target_link_libraries(${test_target}
     json-cxx
-    ${SAFESTRING_LIBRARIES}
+    safe-string
+)
+
+add_custom_target(unittest_json-cxx
+                  make
+)
+add_custom_target(unittest_json-cxx_run
+                  ctest --output-on-failure
 )

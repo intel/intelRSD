@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,22 @@ int str2int(const char *str)
 	return tmp;
 }
 
+int64 str2int64(const char* str) {
+    if (NULL == str) {
+        return 0;
+    }
+    char* end;
+    rsize_t len = strnlen_s(str, RSIZE_MAX_STR);
+    int64 value = strtoll(str, &end, 10);
+    if (ERANGE == errno || (end && len > (end - str))) {
+        value = 0;
+        if (ERANGE == errno) {
+            errno = 0;
+        }
+    }
+    return value;
+}
+
 static int gen_uuid(char *uuid_str, unsigned int mode)
 {
 	char *str;
@@ -136,7 +152,7 @@ int get_stunnel_ports(int *https_port)
 	}
 
 	rc = fread(buf, STUNNEL_CONF_MAX_LENGTH - 1, 1, fp);
-	if (rc < 0) {
+	if (ferror(fp)) {
 		goto out;
 	}
 	p = strstr(buf, "accept");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,17 @@
 
 package com.intel.podm.templates.requestednode;
 
-import com.intel.podm.business.dto.redfish.RequestedLocalDrive;
-
 import java.util.List;
 
-public class RequestedNodeWithLocalDrives extends TestRequestedNode {
-    final List<RequestedLocalDrive> drives;
+public class RequestedNodeWithLocalDrives extends RequestedNodeBuilder {
+    final List<LocalDrive> drives;
 
-    public RequestedNodeWithLocalDrives(List<RequestedLocalDrive> drives) {
+    public RequestedNodeWithLocalDrives(List<LocalDrive> drives) {
         this.drives = drives;
     }
 
     @Override
-    public List<RequestedLocalDrive> getLocalDrives() {
+    public List<LocalDrive> getLocalDrives() {
         return drives;
     }
 }

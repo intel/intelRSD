@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,27 +26,25 @@
  * @brief Switch port parameters
  * */
 
-#include "netlink/socket.hpp"
-#include "netlink/message.hpp"
 #include "netlink/utils.hpp"
+#include "netlink/nl_exception.hpp"
+#include "netlink/nl_exception_invalid_input.hpp"
 #include "api/netlink/switch_port_info.hpp"
 #include "api/netlink/vlan_message.hpp"
 #include "api/netlink/port_message.hpp"
 #include "api/netlink/port_attribute_message.hpp"
 #include "api/netlink/add_lag_port_message.hpp"
 #include "api/netlink/del_lag_port_message.hpp"
+#include "api/netlink/get_port_state_message.hpp"
+#include "api/netlink/set_port_state_message.hpp"
 #include "api/netlink/ethtool.hpp"
 #include "api/netlink/sysfs.hpp"
 #include "network_config.hpp"
 #include "logger/logger_factory.hpp"
 #include "agent-framework/exceptions/exception.hpp"
-
 #include "api/lldp/client.hpp"
 #include "api/lldp/port_desc_tlv.hpp"
 #include "api/lldp/exceptions/api_error.hpp"
-
-#include "hw/fm10000/network_controller_manager.hpp"
-#include "hw/fm10000/network_controller.hpp"
 
 #include <sstream>
 #include <net/if.h>
@@ -54,7 +52,6 @@
 using namespace netlink_base;
 using namespace agent::network;
 using namespace agent::network::api::netlink;
-using namespace agent::network::hw::fm10000;
 
 const char SwitchPortInfo::CPU_PORT[] = "sw0p0";
 
@@ -67,43 +64,40 @@ SwitchPortInfo::SwitchPortInfo(const PortIdentifier& port) :
 SwitchPortInfo::~SwitchPortInfo() {}
 
 void SwitchPortInfo::get_switch_port_link_state() {
-    Socket socket{};
-    Message message{get_port_identifier()};
+    GetPortStateMessage msg{get_port_identifier()};
 
-    /* connect to the netlink */
-    socket.connect();
-    message.set_type(RTM_GETLINK);
-    message.set_flags(NLM_F_REQUEST);
-    socket.send_rtnl_message(message);
-    socket.receive_link_state(message);
-    set_link_state(message.get_link_state());
-    set_operational_state(message.get_operational_state());
+    try {
+        msg.send();
+    }
+    catch (const NlException& error) {
+        THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
+              "Failed getting " + get_port_identifier() + " port state." +
+              "Error message: " + error.what());
+    }
+    set_link_state(msg.get_link_state());
+    set_operational_state(msg.get_operational_state());
 }
 
 void SwitchPortInfo::set_switch_port_link_state() {
-    Socket socket{};
-    Message message{get_port_identifier()};
-
     if (State::Unknown == get_link_state_enum()) {
         THROW(agent_framework::exceptions::Fm10000Error, "network",
-              "unknown port state");
+              "Unknown port state");
     }
-
-    socket.connect();
-    message.set_type(RTM_SETLINK);
-    message.set_flags(NLM_F_REPLACE|NLM_F_REQUEST|NLM_F_ACK);
-    message.set_link_state(get_link_state_enum());
-    socket.send_rtnl_message(message);
+    try {
+        SetPortStateMessage msg{get_port_identifier(), get_link_state_enum()};
+        msg.send();
+    }
+    catch (const NlException& error) {
+        THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
+              "Failed setting " + get_port_identifier() + " port state." +
+              "Error message: " + error.what());
+    }
 }
 
 void SwitchPortInfo::set_switch_port_attr(SwAttr swattr, SwAttrValue value) {
-    Socket socket{};
     PortAttributeMessage message{get_port_identifier()};
-
-    socket.connect();
     message.set_attribute(swattr, value);
-    socket.send_message(message);
-    socket.receive_message(message);
+    message.send();
 }
 
 uint32_t SwitchPortInfo::get_switch_port_speed() {
@@ -180,8 +174,7 @@ void SwitchPortInfo::get_switch_port_attribute(PortAttributeType attr,
 }
 
 void SwitchPortInfo::set_switch_port_attribute(PortAttributeType attr,
-                                               const PortAttributeValue& value
-                                               ) {
+                                               const PortAttributeValue& value) {
     try {
         switch (attr) {
             case LINKSPEEDMBPS:
@@ -225,10 +218,15 @@ void SwitchPortInfo::set_switch_port_attribute(PortAttributeType attr,
                 throw std::runtime_error("unknown port attribute");
         }
     }
+    catch (NlExceptionInvalidInput&) {
+        THROW(agent_framework::exceptions::InvalidValue, "network-agent",
+              std::string("Failed setting port attribute on switch port ")
+              + get_port_identifier() + ". Invalid argument.");
+    }
     catch (std::runtime_error& error) {
         THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
               std::string("Cannot set port attribute on port ")
-              + get_port_identifier() + ". Error message: " + error.what());
+              + get_port_identifier() + ". Error message: " + error.what() + ".");
     }
 }
 
@@ -244,11 +242,8 @@ bool SwitchPortInfo::get_switch_port_autoneg() {
 
 void SwitchPortInfo::get_switch_vlan_list() {
     VlanList vlist{};
-    Socket socket;
-    socket.connect();
     InfoVlanPortMessage vlan_msg;
-    socket.send_message(vlan_msg);
-    socket.receive_message(vlan_msg);
+    vlan_msg.send();
     for (const auto& vlan_info : vlan_msg.get_vlan_list(get_port_identifier())) {
         vlist.push_back(std::to_string(int(vlan_info.get_vlan_id())));
     }
@@ -256,26 +251,20 @@ void SwitchPortInfo::get_switch_vlan_list() {
 }
 
 void SwitchPortInfo::get_switch_port_default_vid() {
-    Socket socket;
-    socket.connect();
     InfoVlanPortMessage vlan_msg;
-    socket.send_message(vlan_msg);
-    socket.receive_message(vlan_msg);
+    vlan_msg.send();
     for (const auto& vlan_info : vlan_msg.get_vlan_list(get_port_identifier())) {
         if (vlan_info.get_pvid()) {
-            set_default_vlan_id(vlan_info.get_vlan_id());
+            set_default_vlan_id(SwitchPortInfo::VlanId(vlan_info.get_vlan_id()));
             return;
         }
     }
 }
 
 void SwitchPortInfo::set_switch_port_default_vid(VlanId pvid) {
-    Socket socket;
-    socket.connect();
     bool valid_pvid{false};
-    InfoVlanPortMessage vlan_msg;
-    socket.send_message(vlan_msg);
-    socket.receive_message(vlan_msg);
+    InfoVlanPortMessage vlan_msg{};
+    vlan_msg.send();
     /* check if given pvid is valid */
     for (const auto& vlan_info : vlan_msg.get_vlan_list(get_port_identifier())) {
         if (pvid == vlan_info.get_vlan_id()) {
@@ -284,14 +273,12 @@ void SwitchPortInfo::set_switch_port_default_vid(VlanId pvid) {
     }
     if (valid_pvid) {
         /* change PVID on the port */
-        AddVlanPortMessage add_vlan_msg(get_port_identifier(), pvid, true);
-        add_vlan_msg.set_pvid(true);
-        socket.send_message(add_vlan_msg);
-        socket.receive_message(add_vlan_msg);
+        AddVlanPortMessage add_vlan_msg(get_port_identifier(), pvid, true, true);
+        add_vlan_msg.send();
     }
     else {
-        THROW(agent_framework::exceptions::InvalidParameters, "fm10000",
-              "PVID " + std::to_string(int(pvid)) + " not valid");
+        THROW(agent_framework::exceptions::InvalidValue, "fm10000",
+              "PVID " + std::to_string(int(pvid)) + " not valid.");
     }
 }
 
@@ -301,46 +288,34 @@ string SwitchPortInfo::get_switch_port_mac_address() {
 
 void SwitchPortInfo::add_member(const PortIdentifier& port, const PortIdentifier& member)
 {
-    Socket socket;
-
     try {
-        socket.connect();
-
         AddLagPortMessage lag_msg(port, member);
-        socket.send_message(lag_msg);
-        socket.receive_message(lag_msg);
+        lag_msg.send();
     }
-    catch (const std::runtime_error& error) {
+    catch (const NlException& error) {
         THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
-              "Failed adding member " + member + " to a LAG port " + port + ". Error message: " + error.what());
+              "Failed adding member " + member + " to a LAG port " + port +
+              ". Error message: " + error.what());
     }
 }
 
 void SwitchPortInfo::remove_member(const PortIdentifier& member)
 {
-    Socket socket;
-
     try {
-        socket.connect();
-
         DelLagPortMessage lag_msg(member);
-        socket.send_message(lag_msg);
-        socket.receive_message(lag_msg);
+        lag_msg.send();
     }
-    catch (const std::runtime_error& error) {
+    catch (const NlException& error) {
         THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
-              "Failed deleting member from a LAG port " + member + ". Error message: " + error.what());
+              "Failed deleting member from a LAG port " + member +
+              ". Error message: " + error.what());
     }
 }
 
 bool SwitchPortInfo::vlan_exists(VlanId vid) const {
-    Socket socket;
-
     try {
-        socket.connect();
         InfoVlanPortMessage msg;
-        socket.send_message(msg);
-        socket.receive_message(msg);
+        msg.send();
         for (const auto& vlan_info : msg.get_vlan_list(get_port_identifier())) {
             if (vlan_info.get_vlan_id() == vid) {
                 return true;
@@ -357,14 +332,11 @@ bool SwitchPortInfo::vlan_exists(VlanId vid) const {
 
 SwitchPortInfo::PortList SwitchPortInfo::get_port_members() const {
     SysFs sysfs{};
-    Socket socket{};
     PortList members{};
     try {
-        socket.connect();
         for (const auto& port : sysfs.get_port_list()) {
             PortMessage port_msg{port};
-            socket.send_message(port_msg);
-            socket.receive_message(port_msg);
+            port_msg.send();
             if (port_msg.is_member()
                 && port_msg.get_master() == get_port_identifier()) {
                 members.push_back(port);
@@ -379,12 +351,9 @@ SwitchPortInfo::PortList SwitchPortInfo::get_port_members() const {
 }
 
 bool SwitchPortInfo::is_member() const {
-    Socket socket{};
     PortMessage port_msg{get_port_identifier()};
     try {
-        socket.connect();
-        socket.send_message(port_msg);
-        socket.receive_message(port_msg);
+        port_msg.send();
     }
     catch (const std::runtime_error& error) {
         THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
@@ -394,32 +363,26 @@ bool SwitchPortInfo::is_member() const {
 }
 
 SwitchPortInfo::PortIdentifier SwitchPortInfo::get_master_port() const {
-    Socket socket{};
     PortMessage port_msg{get_port_identifier()};
     try {
-        socket.connect();
-        socket.send_message(port_msg);
-        socket.receive_message(port_msg);
+        port_msg.send();
     }
     catch (const std::runtime_error& error) {
         THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
               std::string("Failed to get port info") + get_port_identifier() + ". Error message: " + error.what());
     }
     if (!port_msg.is_member()) {
-        THROW(agent_framework::exceptions::InvalidParameters, "fm10000",
-              std::string("Port is not a memeber :") + get_port_identifier());
+        THROW(agent_framework::exceptions::InvalidValue, "fm10000",
+              "Port is not a member of " + get_port_identifier());
     }
     return PortIdentifier{port_msg.get_master()};
 }
 
 SwitchPortInfo::VlanInfoList SwitchPortInfo::get_vlans() const {
-    Socket socket{};
     VlanInfoList vlans{};
     InfoVlanPortMessage vlan_msg{};
     try {
-        socket.connect();
-        socket.send_message(vlan_msg);
-        socket.receive_message(vlan_msg);
+        vlan_msg.send();
     }
     catch (const std::runtime_error& error) {
         THROW(agent_framework::exceptions::Fm10000Error, "fm10000",

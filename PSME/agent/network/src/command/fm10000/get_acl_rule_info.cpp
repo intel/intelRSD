@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/module-ref/network_manager.hpp"
+#include "agent-framework/module/network_components.hpp"
 #include "agent-framework/command-ref/registry.hpp"
 #include "agent-framework/command-ref/network_commands.hpp"
 #include "api/acl.hpp"
@@ -35,7 +35,7 @@ using namespace agent::network;
 namespace {
     void get_acl_rule_info(const GetAclRuleInfo::Request& request,
                            GetAclRuleInfo::Response& response) {
-        auto network_manager = NetworkManager::get_instance();
+        auto network_manager = NetworkComponents::get_instance();
         auto& acl_rule_manager = network_manager->get_acl_rule_manager();
 
         response = acl_rule_manager.get_entry(request.get_uuid());

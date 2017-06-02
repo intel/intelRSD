@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1175,8 +1175,10 @@ static unsigned char *ipmi20_lan_plus_build_cmd_br(struct ipmi_session *sess,
 													  buf + sizeof(rmcp),
 													  buf_len - sizeof(rmcp),
 													  auth_code);
-			if (20 != auth_code_len)
+			if (20 != auth_code_len) {
+				free(buf);
 				return NULL;
+			}
 
 			memcpy_s(buf + buf_len, 12, auth_code, 12);
 			buf_len += 12;
@@ -1308,8 +1310,10 @@ static unsigned char *ipmi20_lan_plus_build_cmd(struct ipmi_session *sess,
 													  buf + sizeof(rmcp),
 													  buf_len - sizeof(rmcp),
 													  auth_code);
-			if (20 != auth_code_len)
+			if (20 != auth_code_len) {
+				free(buf);
 				return NULL;
+			}
 
 			memcpy_s(buf + buf_len, 12, auth_code, 12);
 			buf_len += 12;

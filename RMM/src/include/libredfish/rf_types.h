@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,6 +111,7 @@
 #define RF_EVENT_LISTENER_MEMBER_STR	"/Members/Subscriptions/Members/$entity"
 #define RF_EVENT_ODATA_TYPE_DEST_COLL	"#EventDestinationCollection.EventDestinationCollection"
 #define RF_EVENT_ODATA_TYPE_DEST		"#EventDestination.1.0.0.EventDestination"
+#define RF_EVENT_ODATA_ID_DEST_COLL 	"/redfish/v1/EventService/Subscriptions/"
 
 
 #define RF_COPY_RIGHT					"Copyright(c) 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved."

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,65 +16,57 @@
 
 package com.intel.podm.actions;
 
-import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
-import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
+import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActions;
-import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActionsFactory;
+import com.intel.podm.client.api.actions.EthernetSwitchPortVlanResourceActions;
+import com.intel.podm.client.api.actions.EthernetSwitchPortVlanResourceActionsFactory;
 import com.intel.podm.client.api.resources.redfish.EthernetSwitchPortVlanResource;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
-import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.mappers.redfish.EthernetSwitchPortVlanMapper;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.transaction.Transactional;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.net.URI.create;
-import static javax.transaction.Transactional.TxType.REQUIRED;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
-@Interceptors(RetryOnRollbackInterceptor.class)
 public class EthernetSwitchPortVlanObtainer {
     @Inject
     private EthernetSwitchPortVlanMapper mapper;
 
     @Inject
-    private EthernetSwitchPortResourceActionsFactory resourceActionsFactory;
+    private EthernetSwitchPortVlanResourceActionsFactory actionsFactory;
 
     @Inject
-    private EthernetSwitchPortDao ethernetSwitchPortDao;
+    private ExternalServiceDao externalServiceDao;
 
-    @Transactional(REQUIRED)
-    public EthernetSwitchPortVlan discoverNewEthernetSwitchPortVlan(EthernetSwitchPort port, URI vlanUri) throws ExternalServiceApiReaderException {
-        return discoverVlan(port, vlanUri);
+    @Transactional(MANDATORY)
+    public Set<EthernetSwitchPortVlan> discoverEthernetSwitchPortVlans(ExternalService service, Set<URI> vlanUris) throws ExternalServiceApiReaderException {
+        Set<EthernetSwitchPortVlan> vlans = new HashSet<>();
+        for (URI vlanUri: vlanUris) {
+            vlans.add(discoverEthernetSwitchPortVlan(service, vlanUri));
+        }
+        return vlans;
     }
 
-    @NumberOfRetriesOnRollback(3)
-    @Transactional(REQUIRES_NEW)
-    public EthernetSwitchPortVlan discoverEthernetSwitchPortVlan(Id portId, URI vlanUri) throws ExternalServiceApiReaderException {
-        EthernetSwitchPort port = ethernetSwitchPortDao.getOrThrow(portId);
-        return discoverVlan(port, vlanUri);
-    }
-
-    private EthernetSwitchPortVlan discoverVlan(EthernetSwitchPort port, URI vlanUri) throws ExternalServiceApiReaderException {
-        ExternalService service = port.getService();
+    @Transactional(MANDATORY)
+    public EthernetSwitchPortVlan discoverEthernetSwitchPortVlan(ExternalService service, URI vlanUri) throws ExternalServiceApiReaderException {
         if (service == null) {
             throw new IllegalStateException("There is no Service associated with selected switch port");
         }
 
-        EthernetSwitchPortResourceActions switchPortActions = resourceActionsFactory.create(service.getBaseUri());
-        EthernetSwitchPortVlanResource psmeVlan = switchPortActions.getVlan(vlanUri);
-        URI relativeUri = create(vlanUri.getPath());
-        EthernetSwitchPortVlan target = service.findOrCreate(relativeUri, EthernetSwitchPortVlan.class);
-        mapper.map(psmeVlan, target);
-        port.addVlan(target);
-        return target;
+        try (EthernetSwitchPortVlanResourceActions switchPortVlanActions = actionsFactory.create(service.getBaseUri())) {
+            EthernetSwitchPortVlanResource psmeVlan = switchPortVlanActions.getVlan(vlanUri);
+            URI relativeUri = create(vlanUri.getPath());
+            EthernetSwitchPortVlan target = externalServiceDao.findOrCreateEntity(service, relativeUri, EthernetSwitchPortVlan.class);
+            mapper.map(psmeVlan, target);
+            return target;
+        }
     }
 }

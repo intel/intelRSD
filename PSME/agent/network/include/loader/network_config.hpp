@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +21,10 @@
  * @file network_config.hpp
  * @brief Network config class
  * */
-#ifndef AGENT_NETWORK_LOADER_NETWORK_CONFIG_HPP
-#define AGENT_NETWORK_LOADER_NETWORK_CONFIG_HPP
 
+#pragma once
 #include "agent-framework/generic/singleton.hpp"
-#include "agent-framework/module-ref/enum/enum_builder.hpp"
+#include "agent-framework/module/enum/enum_builder.hpp"
 #include <mutex>
 #include <map>
 
@@ -48,13 +47,15 @@ public:
 
     /*!
      * @brief Add port and its ethmode to internal map
+     *
      * @param[in] port_identifier Port identifier
      * @param[in] mode Port ethernet mode
      * */
     void add_port_ethmode(const std::string& port_identifier, const EthMode mode);
 
-    /*
+    /*!
      * @brief Get port ethernet mode
+     *
      * @param[in] port_identifier Port identifier
      * @return Port ethernet mode
      * */
@@ -62,40 +63,48 @@ public:
 
     /*!
      * @brief Add port and its autoneg to internal map
+     *
      * @param[in] port_identifier Port identifier
      * @param[in] autoneg Port autoneg
      * */
     void add_port_autoneg(const std::string& port_identifier, const AutoNeg autoneg);
 
-    /*
+    /*!
      * @brief Get port aotoneg
+     *
      * @param[in] port_identifier Port identifier
+     *
      * @return Port aotoneg
      * */
     const AutoNeg get_port_autoneg(const std::string& port_identifier);
 
     /*!
      * @brief Add switch and its mgmt port name
+     *
      * @param[in] switch_identifier Switch identifier
      * @param[in] mgmt_port Mgmt port
      * */
     void add_switch_mgmt_port(const std::string& switch_identifier, const std::string& mgmt_port);
 
-    /*
+    /*!
      * @brief Get switch mgmt port name
+     *
      * @param[in] switch_identifier Switch identifier
+     *
      * @return Switch mgmt port name
      * */
     const std::string& get_switch_mgmt_port(const std::string& switch_identifier);
 
     /*!
      * @brief Add public vlan to internal map
+     *
      * @param[in] vlan_id Vlan id
      * */
     void add_public_vlan(uint32_t vlan_id);
 
-    /*
+    /*!
      * @brief Get public vlan list
+     *
      * @return Public vlan list
      * */
     std::vector<uint32_t> get_public_vlans();
@@ -105,12 +114,30 @@ public:
      * */
     virtual ~NetworkConfig();
 
+    /*!
+     * @brief Save ACL name for given UUID.
+     *
+     * @param[in] uuid UUID of the ACL.
+     * @param[in] name ACL name.
+     * */
+    void add_acl_name(const std::string& uuid, const std::string& name);
+
+    /*!
+     * @brief Get ACL name for given ACL UUID if exist.
+     *
+     * @param[in] uuid UUID of the ACL.
+     *
+     * @return ACL name if found in the map, UUID if not.
+     * */
+    const std::string& get_acl_name(const std::string& uuid);
+
 private:
     std::mutex m_mutex{};
     std::vector<uint32_t> m_public_vlans{};
     std::map<std::string, EthMode> m_port_eth_mode_map{};
     std::map<std::string, AutoNeg> m_port_autoneg_map{};
     std::map<std::string, std::string> m_switch_mgmt_map{};
+    std::map<std::string, std::string> m_acl_map{};
     const std::string DEFAULT_MGMT_PORT{"None"};
 };
 
@@ -118,4 +145,3 @@ private:
 }
 }
 
-#endif /* AGENT_NETWORK_LOADER_NETWORK_CONFIG_HPP */

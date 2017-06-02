@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ set(SOURCES
     state_machine_action.cpp
     system_power_state_thread.cpp
     system_boot_options_thread.cpp
+    gpio/gpio_status.cpp
+    icmp/icmp.cpp
+    smbios/smbios_checksum.cpp
 )
 
 set_source_files_properties(module_software_status.cpp PROPERTIES COMPILE_FLAGS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYST
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT_VLAN;
-import static com.intel.podm.business.services.context.ContextType.MEMORY_CHUNK;
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR;
 import static com.intel.podm.common.types.Id.id;
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
-import static org.testng.collections.Lists.newArrayList;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName"})
 public class ContextBuilderTest {
     @Test(dataProvider = "correctPathParamsForContextBuilding")
     public void whenBuildingPodContext_shouldReturnCorrectContext(Collection<Param> params, Context expectedContext) {
@@ -78,19 +78,15 @@ public class ContextBuilderTest {
     public Object[][] correctPathParamsForContextBuilding() {
         return new Object[][] {
                 {
-                        newArrayList(param("{computerSystemId}", id(1))),
+                        asList(param("{computerSystemId}", id(1))),
                         contextOf(id(1), COMPUTER_SYSTEM)
                 },
                 {
-                        newArrayList(param("{computerSystemId}", id(1)), param("{processorId}", id(2))),
+                        asList(param("{computerSystemId}", id(1)), param("{processorId}", id(2))),
                         contextOf(id(1), COMPUTER_SYSTEM).child(id(2), PROCESSOR)
                 },
                 {
-                        newArrayList(param("{computerSystemId}", id(2)), param("{memoryChunkId}", id(3))),
-                        contextOf(id(2), COMPUTER_SYSTEM).child(id(3), MEMORY_CHUNK)
-                },
-                {
-                        newArrayList(
+                        asList(
                                 param("{ethernetSwitchId}", id(2)),
                                 param("{ethernetSwitchPortId}", id(3)),
                                 param("{ethernetSwitchPortVlanId}", id(4))

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,13 @@
  * @section DESCRIPTION
 */
 
+#include "agent-framework/module/enum/storage.hpp"
 #include "iscsi/target_parser.hpp"
 #include "iscsi/tokenizer.hpp"
 #include <regex>
 
 using namespace agent::storage::iscsi::tgt;
+using namespace agent_framework::model;
 
 namespace {
 std::string &ltrim(std::string &s) {
@@ -46,6 +48,14 @@ std::string &rtrim(std::string &s) {
 std::string &trim(std::string &s) {
     return ltrim(rtrim(s));
 }
+
+
+std::string& remove_excess(std::string& s) {
+    s.erase(std::find_if(s.begin(), s.end(),
+                         std::ptr_fun<int, int>(std::isspace)),
+            s.end());
+    return s;
+}
 }
 
 class TargetParser::Impl {
@@ -61,10 +71,11 @@ public:
 
     TargetDataSVec parse(const std::string& text) {
         TargetDataSVec targets_data{};
+
         Tokenizer tokens{text, "\n"};
         while (tokens.next_token()) {
             const auto& token = tokens.get_token();
-            if (is_null_terminator(token)) {
+            if (token.empty()) {
                 continue;
             }
 
@@ -83,6 +94,10 @@ public:
             if (Section::ACL == m_section) {
                 acl_counter++;
                 check_acl_initiator(token);
+            }
+
+            if (Section::ACCOUNT == m_section) {
+                check_chap_data(token);
             }
 
         }
@@ -152,8 +167,20 @@ public:
         }
     }
 
-    bool is_null_terminator(const std::string& text) {
-        return 1 == text.size() && ('\0' == text[0]);
+
+    void check_chap_data(const std::string& text) {
+        if (m_target_data && !std::regex_match(text, m_account_section_re)) {
+            if (std::regex_match(text, m_mutual_username_re)) {
+                auto username = text;
+                m_target_data->set_mutual_chap_username(remove_excess(trim(username)));
+                m_target_data->set_authentication_method(enums::TargetAuthenticationMethod::Mutual);
+            }
+            else {
+                auto username = text;
+                m_target_data->set_chap_username(trim(username));
+                m_target_data->set_authentication_method(enums::TargetAuthenticationMethod::OneWay);
+            }
+        }
     }
 
 private:
@@ -174,7 +201,7 @@ private:
                         R"((([1]?\d)?\d|2[0-4]\d|25[0-5]))|([\da-fA-F]{1,4})"
                         R"("(\:[\da-fA-F]{1,4}){7})|(([\da-fA-F]{1,4}:){0,5})"
                         R"(::([\da-fA-F]{1,4}:){0,5}[\da-fA-F]{1,4}).*)"};
-
+    std::regex m_mutual_username_re{R"(.*\(outgoing\).*)"};
     std::regex m_system_section_re{R"(.*System information:.*)"};
     std::regex m_lun_section_re{R"(.*LUN information:.*)"};
     std::regex m_account_section_re{R"(.*Account information:.*)"};

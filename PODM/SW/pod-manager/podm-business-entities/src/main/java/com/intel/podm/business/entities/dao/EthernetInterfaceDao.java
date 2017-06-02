@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.common.types.net.MacAddress;
 
 import javax.enterprise.context.Dependent;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
 
-import static com.intel.podm.business.entities.redfish.EthernetInterface.MAC_ADDRESS;
+import static com.intel.podm.business.entities.redfish.EthernetInterface.GET_ETHERNET_INTERFACE_BY_MAC_ADDRESS;
 import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -38,7 +39,10 @@ public class EthernetInterfaceDao extends Dao<EthernetInterface> {
             return null;
         }
 
-        List<EthernetInterface> ethernetInterfaces = repository.getAllByProperty(EthernetInterface.class, MAC_ADDRESS, macAddress).stream()
+        TypedQuery<EthernetInterface> query = entityManager.createNamedQuery(GET_ETHERNET_INTERFACE_BY_MAC_ADDRESS, EthernetInterface.class);
+        query.setParameter("macAddress", macAddress);
+
+        List<EthernetInterface> ethernetInterfaces = query.getResultList().stream()
                 .filter(EthernetInterface::isEnabledAndHealthy)
                 .collect(toList());
 

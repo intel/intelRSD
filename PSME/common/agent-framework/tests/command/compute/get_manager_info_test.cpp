@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +22,12 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/compute/get_manager_info.hpp"
-#include "agent-framework/command/compute/json/get_manager_info.hpp"
+#include "agent-framework/module/constants/compute.hpp"
+#include "agent-framework/command-ref/compute_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model::literals;
 using namespace agent_framework::model;
 
@@ -56,19 +55,18 @@ static constexpr uint32_t TEST_STOP_BITS = 2;
 static constexpr bool TEST_CONSOLE_ENABLED = false;
 
 
-class GetManagerInfo : public compute::GetManagerInfo {
+class MyGetManagerInfo {
 private:
     std::string m_manager{};
 public:
-    GetManagerInfo(const std::string& manager) { m_manager = manager; }
+    MyGetManagerInfo(const std::string& manager) { m_manager = manager; }
 
-    using compute::GetManagerInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        const auto& manager_uuid = request.get_component();
+    void execute(const GetManagerInfo::Request& request,
+                 GetManagerInfo::Response& response) {
+        const auto& manager_uuid = request.get_uuid();
 
         if (manager_uuid != m_manager) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
         agent_framework::model::Manager manager{};
@@ -90,35 +88,27 @@ public:
         console.set_flow_control(TEST_FLOW_CONTROL);
         console.set_pin_out(TEST_PIN_OUT);
         console.set_enabled(TEST_CONSOLE_ENABLED);
-	    manager.set_serial_console(console);
-
-        response.set_manager(manager);
+        manager.set_serial_console(console);
+        response = manager;
     }
 
-    virtual ~GetManagerInfo();
+    virtual ~MyGetManagerInfo();
 };
 
-GetManagerInfo::~GetManagerInfo() { }
+MyGetManagerInfo::~MyGetManagerInfo() { }
 
-class GetManagerInfoTest : public ::testing::Test {
-public:
-    virtual ~GetManagerInfoTest();
-};
-
-GetManagerInfoTest::~GetManagerInfoTest() { }
-
-TEST_F(GetManagerInfoTest, PositiveExecute) {
-    compute::json::GetManagerInfo command_json;
-    GetManagerInfo* command = new GetManagerInfo("TestModuleId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetManagerInfoTest, PositiveExecute) {
+    MyGetManagerInfo command{"TestModuleId"};
+    GetManagerInfo::Request request{""};
+    GetManagerInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Manager::MANAGER] = "TestModuleId";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetManagerInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::Manager::FIRMWARE_VERSION].isString());
@@ -184,16 +174,15 @@ TEST_F(GetManagerInfoTest, PositiveExecute) {
     }
 }
 
-TEST_F(GetManagerInfoTest, NegativeModuleNotFound) {
-    compute::json::GetManagerInfo command_json;
-    GetManagerInfo* command = new GetManagerInfo("TestModuleId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetManagerInfoTest, NegativeModuleNotFound) {
+    MyGetManagerInfo command{"TestModuleId"};
+    GetManagerInfo::Request request{""};
+    GetManagerInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Manager::MANAGER] = "OtherTestModuleId";
 
-    EXPECT_THROW(command_json.method(params, result), exception::NotFound);
+    EXPECT_NO_THROW(request = GetManagerInfo::Request::from_json(params));
+    EXPECT_THROW(command.execute(request, response), std::runtime_error);
 }

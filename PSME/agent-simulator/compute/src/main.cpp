@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,22 +22,21 @@
  * @section DESCRIPTION
 */
 
-#include "agent-framework/logger_loader.hpp"
 #include "logger/logger_factory.hpp"
-#include "agent-framework/module-ref/compute_manager.hpp"
+#include "agent-framework/logger_loader.hpp"
+
+#include "agent-framework/module/compute_components.hpp"
+#include "agent-framework/module/common_components.hpp"
 #include "agent-framework/registration/amc_connection_manager.hpp"
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
 #include "agent-framework/state_machine/state_machine.hpp"
 #include "agent-framework/state_machine/state_machine_thread.hpp"
 
-#include "agent-framework/command/command.hpp"
-#include "agent-framework/command/command_factory.hpp"
-#include "agent-framework/command/command_json.hpp"
-#include "agent-framework/command/command_json_server.hpp"
+#include "agent-framework/command-ref/command_server.hpp"
 
-#include "loader/compute_loader.hpp"
 #include "asset_configuration/asset_configuration.hpp"
+#include "loader/compute_loader.hpp"
 
 #include "configuration/configuration.hpp"
 #include "configuration/configuration_validator.hpp"
@@ -46,11 +45,7 @@
 #include "agent-framework/eventing/events_queue.hpp"
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
-
 #include <csignal>
-#include <cstdio>
-#include <memory>
-#include <iostream>
 
 using namespace std;
 using namespace agent_framework;
@@ -58,18 +53,12 @@ using namespace agent_framework::generic;
 using namespace logger_cpp;
 using namespace configuration;
 
-using command::Command;
-using command::CommandFactory;
-using command::CommandJson;
-using command::CommandJsonServer;
-
 using agent::generic::DEFAULT_CONFIGURATION;
 using agent::generic::DEFAULT_VALIDATOR_JSON;
 using agent::generic::DEFAULT_ENV_FILE;
 using agent::generic::DEFAULT_FILE;
 
 static constexpr unsigned int DEFAULT_SERVER_PORT = 7777;
-static constexpr const char COMMANDS_IMPLEMENTATION[] = "Simulator";
 const json::Value& init_configuration(int argc, const char** argv);
 bool check_configuration(const json::Value& json);
 
@@ -110,7 +99,6 @@ int main(int argc, const char *argv[]) {
         return -2;
     }
 
-
     try {
         server_port = configuration["server"]["port"].as_uint();
     } catch (const json::Value::Exception& e) {
@@ -125,28 +113,12 @@ int main(int argc, const char *argv[]) {
     amc_connection.start();
 
     /* Initialize command server */
-    auto& commands_factory = CommandFactory::get_instance();
-    try {
-        server_port = configuration["server"]["port"].as_uint();
-        auto agent_type = configuration["agent"]["capabilities"].as_array();
-        commands_factory.add_commands(agent_type.front().as_string(), COMMANDS_IMPLEMENTATION);
-    }
-    catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("agent"), "Invalid agent configuration: " << e.what());
-        return -10;
-    }
-    auto commands_initialization =
-        commands_factory.create_initialization();
-    auto commands = commands_factory.create();
-
-
     jsonrpc::HttpServer http_server((int(server_port)));
-    CommandJsonServer server(http_server);
-
-    server.add(commands);
+    agent_framework::command_ref::CommandServer server(http_server);
+    server.add(command_ref::Registry::get_instance()->get_commands());
     server.start();
 
-    for (const auto& elem : agent_framework::module::ComputeManager::get_instance()->
+    for (const auto& elem : agent_framework::module::CommonComponents::get_instance()->
             get_module_manager().get_keys("")) {
         ::agent_framework::eventing::EventData edat;
         edat.set_component(elem);
@@ -164,11 +136,7 @@ int main(int argc, const char *argv[]) {
     server.stop();
     amc_connection.stop();
     event_dispatcher.stop();
-    commands_initialization.clear();
     agent::AssetConfiguration::cleanup();
-    command::Command::Map::cleanup();
-    command::CommandJson::Map::cleanup();
-    command::CommandFactory::cleanup();
     Configuration::cleanup();
     LoggerFactory::cleanup();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package com.intel.podm.allocation.strategy;
 
-import com.intel.podm.allocation.validation.Violations;
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
+import com.intel.podm.business.Violations;
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.RemoteTargetIscsiAddressDao;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
-import com.intel.podm.business.entities.redfish.properties.RemoteTargetIscsiAddress;
+import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -30,21 +31,29 @@ public class ExistingRemoteDriveResourcesFinder {
     @Inject
     private RemoteTargetIscsiAddressDao remoteTargetIscsiAddressDao;
 
-    public ExistingRemoteDriveAllocationResources find(RequestedRemoteDrive requested) {
+    public ExistingRemoteDriveAllocationResources find(RequestedNode.RemoteDrive requested) {
         ExistingRemoteDriveAllocationResources resources = new ExistingRemoteDriveAllocationResources();
 
-        RemoteTargetIscsiAddress target = remoteTargetIscsiAddressDao.getRemoteTargetIscsiAddressByTargetIqn(requested.getIscsiAddress());
+        RemoteTargetIscsiAddress target = getRemoteTargetIscsiAddressByTargetIqn(requested);
 
         if (target == null) {
             throw new IllegalStateException("Specified remote target should be available.");
         }
 
-        if (target.getRemoteTarget().isAllocated()) {
+        if (target.getRemoteTarget().getMetadata().isAllocated()) {
             resources.addViolation("Specified remote target (" + requested.getIscsiAddress() + ") is currently in use.");
         }
 
         resources.setRemoteTarget(target.getRemoteTarget());
         return resources;
+    }
+
+    private RemoteTargetIscsiAddress getRemoteTargetIscsiAddressByTargetIqn(RequestedNode.RemoteDrive requested) {
+        try {
+            return remoteTargetIscsiAddressDao.getRemoteTargetIscsiAddressByTargetIqn(requested.getIscsiAddress());
+        } catch (NonUniqueResultException e) {
+            return null;
+        }
     }
 
     static class ExistingRemoteDriveAllocationResources {

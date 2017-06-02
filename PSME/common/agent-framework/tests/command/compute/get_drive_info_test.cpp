@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +22,12 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/compute/get_drive_info.hpp"
-#include "agent-framework/command/compute/json/get_drive_info.hpp"
+#include "agent-framework/module/constants/compute.hpp"
+#include "agent-framework/command-ref/compute_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model;
 using namespace agent_framework::model::literals;
 
@@ -36,26 +35,25 @@ static constexpr char TEST_SERIAL[] = "TestSerialNumber";
 static constexpr char TEST_MANUFACTURER[] = "TestManufacturer";
 static constexpr char TEST_MODEL[] = "TestModelNumber";
 static constexpr char TEST_PART[] = "TestPartNumber";
-static constexpr enums::DriveInterface TEST_INTERFACE{enums::DriveInterface::PCIe};
-static constexpr enums::DriveType TEST_TYPE{enums::DriveType::NVMe};
+static constexpr enums::StorageProtocol TEST_INTERFACE{enums::StorageProtocol::SATA};
+static constexpr enums::DriveType TEST_TYPE{enums::DriveType::HDD};
 static constexpr int TEST_CAPACITY = 2048;
 
-class GetDriveInfo : public compute::GetDriveInfo {
+class MyGetDriveInfo {
 private:
     std::string m_drive{};
 public:
-    GetDriveInfo(
+    MyGetDriveInfo(
         const std::string& drive) {
         m_drive = drive;
         }
 
-    using compute::GetDriveInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        const auto& drive_uuid = request.get_drive();
+    void execute(const GetDriveInfo::Request& request,
+                 GetDriveInfo::Response& response) {
+        const auto& drive_uuid = request.get_uuid();
 
         if (drive_uuid != m_drive) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
         agent_framework::model::Drive drive{};
@@ -68,33 +66,26 @@ public:
           TEST_SERIAL, TEST_MANUFACTURER, TEST_MODEL, TEST_PART));
         drive.set_oem(agent_framework::model::attribute::Oem());
 
-	response.set_drive(drive);
+        response = drive;
     }
 
-    virtual ~GetDriveInfo();
+    virtual ~MyGetDriveInfo();
 };
 
-GetDriveInfo::~GetDriveInfo() { }
+MyGetDriveInfo::~MyGetDriveInfo() { }
 
-class GetDriveInfoTest : public ::testing::Test {
-public:
-    virtual ~GetDriveInfoTest();
-};
-
-GetDriveInfoTest::~GetDriveInfoTest() { }
-
-TEST_F(GetDriveInfoTest, PositiveExecute) {
-    compute::json::GetDriveInfo command_json;
-    GetDriveInfo* command = new GetDriveInfo("TestDriveId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetDriveInfoTest, PositiveExecute) {
+    MyGetDriveInfo command{"TestDriveId"};
+    GetDriveInfo::Request request{""};
+    GetDriveInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Drive::DRIVE] = "TestDriveId";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetDriveInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::Drive::INTERFACE].isString());
@@ -120,16 +111,15 @@ TEST_F(GetDriveInfoTest, PositiveExecute) {
     ASSERT_EQ(result[FruInfo::FRU_INFO][FruInfo::PART], TEST_PART);
 }
 
-TEST_F(GetDriveInfoTest, NegativeModuleNotFound) {
-    compute::json::GetDriveInfo command_json;
-    GetDriveInfo* command = new GetDriveInfo("TestDriveId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetDriveInfoTest, NegativeModuleNotFound) {
+    MyGetDriveInfo command{"TestDriveId"};
+    GetDriveInfo::Request request{""};
+    GetDriveInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Drive::DRIVE] = "OtherTestDriveId";
 
-    EXPECT_THROW(command_json.method(params, result), exception::NotFound);
+    EXPECT_NO_THROW(request = GetDriveInfo::Request::from_json(params));
+    EXPECT_THROW(command.execute(request, response), std::runtime_error);
 }

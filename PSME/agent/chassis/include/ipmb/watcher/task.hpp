@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,7 @@
  * @brief IPMB watcher task.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_WATCHER_TASK_HPP
-#define AGENT_CHASSIS_IPMB_WATCHER_TASK_HPP
-
+#pragma once
 #include <memory>
 
 /*! Agent namspace */
@@ -52,4 +50,3 @@ using TaskSPtr = std::shared_ptr<Task>;
 }
 }
 
-#endif /* AGENT_CHASSIS_IPMB_WATCHER_TASK_HPP */

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,35 +21,16 @@ set(SOURCES
     logger_ext.cpp
     logger_loader.cpp
     signal.cpp
+    service_uuid.cpp
 )
-
-add_subdirectory(action)
-add_subdirectory(exceptions)
-add_subdirectory(threading)
-add_subdirectory(command)
-add_subdirectory(command-ref)
-add_subdirectory(module)
-add_subdirectory(module-ref)
-add_subdirectory(state_machine)
-add_subdirectory(status)
-add_subdirectory(eventing)
-add_subdirectory(client)
-add_subdirectory(registration)
-add_subdirectory(discovery)
-add_subdirectory(validators)
 
 add_library(agent-framework STATIC ${SOURCES}
     $<TARGET_OBJECTS:discovery>
     $<TARGET_OBJECTS:module>
-    $<TARGET_OBJECTS:module-ref>
     $<TARGET_OBJECTS:state_machine>
     $<TARGET_OBJECTS:status>
     $<TARGET_OBJECTS:command>
     $<TARGET_OBJECTS:command-ref>
-    $<TARGET_OBJECTS:command-compute>
-    $<TARGET_OBJECTS:command-network>
-    $<TARGET_OBJECTS:command-storage>
-    $<TARGET_OBJECTS:command-chassis>
     $<TARGET_OBJECTS:eventing>
     $<TARGET_OBJECTS:threading>
     $<TARGET_OBJECTS:client>
@@ -57,22 +38,16 @@ add_library(agent-framework STATIC ${SOURCES}
     $<TARGET_OBJECTS:agent-action>
     $<TARGET_OBJECTS:exceptions>
     $<TARGET_OBJECTS:validators>
+    $<TARGET_OBJECTS:tree-stability>
 )
 
 target_link_libraries(agent-framework
     jsonrpccpp-common
+    jsoncpp
     md5
 )
 
-add_library(agent-commands STATIC
-   $<TARGET_OBJECTS:command-compute-json>
-   $<TARGET_OBJECTS:command-network-json>
-   $<TARGET_OBJECTS:command-storage-json>
-   $<TARGET_OBJECTS:command-chassis-json>
-)
-
 install(TARGETS
-    agent-commands
     agent-framework
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
@@ -86,3 +61,18 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU|Clang)
         COMPILE_FLAGS "-Wno-old-style-cast"
     )
 endif()
+
+add_subdirectory(action)
+add_subdirectory(exceptions)
+add_subdirectory(threading)
+add_subdirectory(command)
+add_subdirectory(command-ref)
+add_subdirectory(module)
+add_subdirectory(state_machine)
+add_subdirectory(status)
+add_subdirectory(eventing)
+add_subdirectory(client)
+add_subdirectory(registration)
+add_subdirectory(discovery)
+add_subdirectory(validators)
+add_subdirectory(tree_stability)

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,9 +68,8 @@ void logger_buffer_fwrite(struct logger_buffer *inst, const char *fmt, ...);
  * @param[in]   fmt     Format string like printf
  * @param[in]   args    Variadic variables like vprintf
  * */
-LOGGER_PRINTF_FORMAT(2, 0)
 void logger_buffer_vwrite(struct logger_buffer *inst,
-        const char *fmt, va_list args);
+        const char *fmt, va_list args) LOGGER_PRINTF_FORMAT(2, 0);
 
 /*!
  * @brief Write vector to buffer. Good to split and join log information.

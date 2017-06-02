@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,24 +36,29 @@ SwitchPortInfo::SwitchPortInfo(uint8_t switch_id, uint8_t port_index)
     : m_switch_id(switch_id), m_index(port_index) {}
 
 SwitchPortInfo::PortAttributeType
-SwitchPortInfo::get_port_attribute_type(const std::string& attr_name) {
+SwitchPortInfo::get_port_attribute_type(const std::string& attr_name, const Json::Value& value) {
     auto attr_iter = m_attribute_map.find(attr_name);
     if (attr_iter != m_attribute_map.end()) {
         return attr_iter->second;
     }
-    THROW(agent_framework::exceptions::Fm10000Error,
-          "network",
-          std::string("unsupported port attribute ")
-          + attr_name);
+
+    THROW(UnsupportedField, "network-agent", "Unsupported port attribute.", attr_name, value);
 }
 
-void SwitchPortInfo::PortAttributeValue::set_value_from_json(const Json::Value&
-                                                             attribute_value) {
+void SwitchPortInfo::PortAttributeValue::set_value_from_json(
+                                    const Json::Value& attribute_value) {
     if (attribute_value.isBool()) {
         set(attribute_value.asBool());
     }
     else if (attribute_value.isNumeric()) {
-        set(attribute_value.asUInt());
+        try {
+            set(attribute_value.asUInt());
+        }
+        catch(...) {
+            THROW(InvalidValue, "network-agent",
+                  "Json attribute value is not a valid 32-bit value. "
+                  "FM10000 API expects 32-bit values.");
+        }
     }
     else if (attribute_value.isString()) {
         set(attribute_value.asString());
@@ -67,8 +72,8 @@ void SwitchPortInfo::PortAttributeValue::set(bool value) {
 
 bool SwitchPortInfo::PortAttributeValue::get_bool() const {
     if (m_type != PortAttributeValue::BOOL) {
-        THROW(Fm10000Error, "network",
-            "Unexpected port attribute type (Boolean is expected)");
+        THROW(Fm10000Error, "network-agent",
+            "Unexpected port attribute type (boolean is expected).");
     }
     return m_bool;
 }
@@ -80,8 +85,8 @@ void SwitchPortInfo::PortAttributeValue::set(uint32_t value) {
 
 uint32_t SwitchPortInfo::PortAttributeValue::get_number() const {
     if (m_type != PortAttributeValue::NUMBER) {
-        THROW(Fm10000Error, "network",
-            "Unexpected port attribute type (Number is expected)");
+        THROW(Fm10000Error, "network-agent",
+            "Unexpected port attribute type (number is expected).");
     }
     return m_number;
 }
@@ -94,7 +99,7 @@ void SwitchPortInfo::PortAttributeValue::set(const std::string& value) {
 const std::string& SwitchPortInfo::PortAttributeValue::get_string() const {
     if (m_type != PortAttributeValue::STRING) {
         THROW(Fm10000Error, "network",
-            "Unexpected port attribute type (String is expected)");
+            "Unexpected port attribute type (string is expected).");
     }
     return m_string;
 }

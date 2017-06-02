@@ -1,0 +1,1064 @@
+create table boot_boot_source_override_mode_supported (
+	boot_id int8 not null,
+	boot_source_override_mode_supported text,
+	boot_source_override_mode_supported_order int4 not null,
+	primary key (boot_id,boot_source_override_mode_supported_order)
+);
+
+create table boot_boot_source_override_supported (
+	boot_id int8 not null,
+	boot_source_override_supported text,
+	boot_source_override_supported_order int4 not null,
+	primary key (boot_id,boot_source_override_supported_order)
+);
+
+create table chassis (
+	asset_tag text,
+	chassis_type text,
+	entity_id text,
+	indicator_led text,
+	location_id text,
+	location_parent_id text,
+	manufacturer text,
+	model text,
+	part_number text,
+	geo_tag text,
+	rack_supports_disaggregated_power_cooling boolean,
+	rack_uuid text,
+	serial_number text,
+	sku text,
+	id int8 not null,
+	parent_chassis_id int8,
+	power_id int8,
+	thermal_id int8,
+	primary key (id)
+);
+
+create table chassis_computer_system (
+	chassis_id int8 not null,
+	computer_system_id int8 not null,
+	primary key (chassis_id,computer_system_id)
+);
+
+create table chassis_fabric_switch (
+	chassis_id int8 not null,
+	switch_id int8 not null,
+	primary key (chassis_id,switch_id)
+);
+
+create table chassis_manager (
+	chassis_id int8 not null,
+	manager_id int8 not null,
+	primary key (chassis_id,manager_id)
+);
+
+create table chassis_pcie_device (
+	chassis_id int8 not null,
+	pcie_device_id int8 not null,
+	primary key (chassis_id,pcie_device_id)
+);
+
+create table command_shell_connect_type_supported (
+	command_shell_id int8 not null,
+	connect_type_supported text,
+	connect_type_supported_order int4 not null,
+	primary key (command_shell_id,connect_type_supported_order)
+);
+
+create table composed_node (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	associated_compute_service_uuid text,
+	associated_computer_system_uuid text,
+	associated_remote_target_iqn text,
+	associated_storage_service_uuid text,
+	composed_node_state text,
+	description text,
+	eligible_for_recovery boolean,
+	entity_id bigserial not null,
+	name text,
+	number_of_requested_drives int4,
+	remote_drive_capacity_gib numeric,
+	status text,
+	computer_system_id int8,
+	primary key (id)
+);
+
+create table computer_system (
+	asset_tag text,
+	bios_version text,
+	boot_source_override_enabled text,
+	boot_source_override_mode text,
+	boot_source_override_target text,
+	discovery_state text,
+	entity_id text,
+	host_name text,
+	indicator_led text,
+	manufacturer text,
+	memory_sockets int4,
+	memory_status text,
+	model text,
+	part_number text,
+	power_state text,
+	processor_model text,
+	processor_socket int4,
+	processor_status text,
+	processors_count int4,
+	serial_number text,
+	sku text,
+	system_type text,
+	total_system_memory_gib numeric,
+	uuid text,
+	id int8 not null,
+	computer_system_metadata_id int8,
+	primary key (id)
+);
+
+create table computer_system_allowable_reset_type (
+	computer_system_id int8 not null,
+	allowable_reset_type text,
+	allowable_reset_type_order int4 not null,
+	primary key (computer_system_id,allowable_reset_type_order)
+);
+
+create table computer_system_manager (
+	computer_system_id int8 not null,
+	manager_id int8 not null,
+	primary key (computer_system_id,manager_id)
+);
+
+create table computer_system_metadata (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	allocated boolean,
+	deep_discovery_state text,
+	task_uuid text,
+	primary key (id)
+);
+
+create table computer_system_pci_device (
+	computer_system_id int8 not null,
+	device_id text,
+	vendor_id text,
+	pci_device_order int4 not null,
+	primary key (computer_system_id,pci_device_order)
+);
+
+create table computer_system_pcie_connection_id (
+	computer_system_id int8 not null,
+	pcie_connection_id text,
+	pcie_connection_id_order int4 not null,
+	primary key (computer_system_id,pcie_connection_id_order)
+);
+
+create table connected_entity (
+	entity_id text,
+	entity_role int4,
+	entity_type int4,
+	pci_class_code text,
+	pci_function_number int4,
+	device_id text,
+	subsystem_id text,
+	subsystem_vendor_id text,
+	vendor_id text,
+	id int8 not null,
+	endpoint_id int8,
+	drive_id int8,
+	primary key (id)
+);
+
+create table connected_entity_identifiers (
+	identifiers_id int8 not null,
+	durable_name text,
+	durable_name_format text
+);
+
+create table discoverable_entity (
+	discriminator_class text not null,
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	description text,
+	name text,
+	uri text,
+	status text,
+	external_service_id int8,
+	primary key (id)
+);
+
+create table drive (
+	asset_tag text,
+	block_size_bytes int4,
+	capable_speed_gbs numeric,
+	capacity_bytes int8,
+	drive_erased boolean,
+	encryption_ability text,
+	encryption_status text,
+	entity_id text,
+	erase_on_detach boolean,
+	failure_predicted boolean,
+	firmware_version text,
+	hotspare_type text,
+	indicator_led text,
+	manufacturer text,
+	media_type text,
+	model text,
+	negotiated_speed_gbs numeric,
+	part_number text,
+	predicted_media_life_left_percent numeric,
+	protocol text,
+	revision text,
+	rotation_speed_rpm numeric,
+	serial_number text,
+	sku text,
+	status_indicator text,
+	id int8 not null,
+	chassis_id int8,
+	composed_node_id int8,
+	drive_metadata_id int8,
+	pcie_device_function_id int8,
+	storage_id int8,
+	primary key (id)
+);
+
+create table drive_identifiers (
+	identifiers_id int8 not null,
+	durable_name text,
+	durable_name_format text,
+	drive_identifiers_order int4 not null,
+	primary key (identifiers_id,drive_identifiers_order)
+);
+
+create table drive_location (
+	drive_id int8 not null,
+	info text,
+	info_format text,
+	drive_location_order int4 not null,
+	primary key (drive_id,drive_location_order)
+);
+
+create table drive_metadata (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	allocated boolean,
+	primary key (id)
+);
+
+create table endpoint (
+	entity_id text,
+	host_reservation_memory_bytes int4,
+	device_id text,
+	subsystem_id text,
+	subsystem_vendor_id text,
+	vendor_id text,
+	endpoint_protocol text,
+	id int8 not null,
+	computer_system_id int8,
+	fabric_id int8,
+	zone_id int8,
+	primary key (id)
+);
+
+create table endpoint_identifiers (
+	identifiers_id int8 not null,
+	durable_name text,
+	durable_name_format text
+);
+
+create table entity_related_items (
+	item_owner_id int8 not null,
+	item_id int8 not null,
+	primary key (item_owner_id,item_id)
+);
+
+create table ethernet_interface (
+	autoneg boolean,
+	entity_id text,
+	fqdn text,
+	full_duplex boolean,
+	hostname text,
+	ip_ipv6_default_gateway text,
+	interface_enabled boolean,
+	mac_address text,
+	max_ipv6_static_addresses int4,
+	mtu_size int4,
+	permanent_mac_address text,
+	speed_mbps int4,
+	vlan_enable boolean,
+	vlan_id int4,
+	id int8 not null,
+	computer_system_id int8,
+	primary key (id)
+);
+
+create table ethernet_interface_ipv4_address (
+	ethernet_interface_id int8 not null,
+	address text,
+	address_origin text,
+	gateway text,
+	oem text,
+	subnet_mask text,
+	ipv4_address_order int4 not null,
+	primary key (ethernet_interface_id,ipv4_address_order)
+);
+
+create table ethernet_interface_ipv6_address (
+	ethernet_interface_id int8 not null,
+	address text,
+	address_origin text,
+	address_state text,
+	oem text,
+	prefix_length int4,
+	ipv6_address_order int4 not null,
+	primary key (ethernet_interface_id,ipv6_address_order)
+);
+
+create table ethernet_interface_ipv6_address_policy (
+	ethernet_interface_id int8 not null,
+	label int4,
+	precedence int4,
+	prefix text,
+	ipv6_address_policy_order int4 not null,
+	primary key (ethernet_interface_id,ipv6_address_policy_order)
+);
+
+create table ethernet_interface_ipv6_static_address (
+	ethernet_interface_id int8 not null,
+	address text,
+	address_origin text,
+	address_state text,
+	oem text,
+	prefix_length int4,
+	ipv6_static_address_order int4 not null,
+	primary key (ethernet_interface_id,ipv6_static_address_order)
+);
+
+create table ethernet_interface_manager (
+	ethernet_interface_id int8 not null,
+	manager_id int8 not null,
+	primary key (ethernet_interface_id,manager_id)
+);
+
+create table ethernet_interface_name_server (
+	ethernet_interface_id int8 not null,
+	name_server text,
+	name_server_order int4 not null,
+	primary key (ethernet_interface_id,name_server_order)
+);
+
+create table ethernet_interface_pcie_functions (
+	ethernet_interface_id int8 not null,
+	pcie_function_id int8 not null,
+	primary key (ethernet_interface_id,pcie_function_id)
+);
+
+create table ethernet_switch (
+	entity_id text,
+	firmware_name text,
+	firmware_version text,
+	manufacturer text,
+	manufacturing_date text,
+	model text,
+	part_number text,
+	role text,
+	serial_number text,
+	switch_id text,
+	id int8 not null,
+	chassis_id int8,
+	primary key (id)
+);
+
+create table ethernet_switch_manager (
+	ethernet_switch_id int8 not null,
+	manager_id int8 not null,
+	primary key (ethernet_switch_id,manager_id)
+);
+
+create table ethernet_switch_port (
+	administrative_state text,
+	autosense boolean,
+	entity_id text,
+	frame_size int4,
+	full_duplex boolean,
+	link_speed_gbps int4,
+	link_type text,
+	mac_address text,
+	neighbor_info text,
+	neighbor_mac text,
+	operational_state text,
+	port_class text,
+	port_id text,
+	port_mode text,
+	port_type text,
+	id int8 not null,
+	ethernet_switch_id int8,
+	member_of_port_id int8,
+	primary_vlan_id int8,
+	primary key (id)
+);
+
+create table ethernet_switch_port_ipv4_address (
+	ethernet_interface_id int8 not null,
+	address text,
+	address_origin text,
+	gateway text,
+	oem text,
+	subnet_mask text,
+	ipv4_address_order int4 not null,
+	primary key (ethernet_interface_id,ipv4_address_order)
+);
+
+create table ethernet_switch_port_ipv6_address (
+	ethernet_interface_id int8 not null,
+	address text,
+	address_origin text,
+	address_state text,
+	oem text,
+	prefix_length int4,
+	ipv6_address_order int4 not null,
+	primary key (ethernet_interface_id,ipv6_address_order)
+);
+
+create table ethernet_switch_port_vlan (
+	entity_id text,
+	tagged boolean,
+	vlan_enable boolean,
+	vlan_id int4,
+	id int8 not null,
+	ethernet_interface_id int8,
+	ethernet_switch_port_id int8,
+	primary key (id)
+);
+
+create table event_subscription (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	description text,
+	destination text,
+	entity_id bigserial not null,
+	name text,
+	protocol text,
+	subscription_context text,
+	primary key (id)
+);
+
+create table event_subscription_event_type (
+	event_type_id int8 not null,
+	event_type text,
+	event_type_order int4 not null,
+	primary key (event_type_id,event_type_order)
+);
+
+create table event_subscription_origin_resources (
+	event_type_id int8 not null,
+	origin_resources text,
+	origin_resources_order int4 not null,
+	primary key (event_type_id,origin_resources_order)
+);
+
+create table external_service (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	uri text,
+	entity_id bigserial not null,
+	is_reachable boolean,
+	service_type text,
+	unreachable_since timestamp,
+	uuid text,
+	primary key (id)
+);
+
+create table fabric (
+	entity_id text,
+	fabric_type text,
+	max_zones int4,
+	id int8 not null,
+	primary key (id)
+);
+
+create table fan (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	name text,
+	rack_unit text,
+	u_height int4,
+	u_location int4,
+	x_location int4,
+	reading_rpm int4,
+	status text,
+	thermal_zone_id int8,
+	primary key (id)
+);
+
+create table graphical_console_connect_type_supported (
+	graphical_console_id int8 not null,
+	connect_type_supported text,
+	connect_type_supported_order int4 not null,
+	primary key (graphical_console_id,connect_type_supported_order)
+);
+
+create table logical_drive (
+	bootable boolean,
+	capacity_gib numeric,
+	entity_id text,
+	image text,
+	mode text,
+	snapshot boolean,
+	type text,
+	write_protected boolean,
+	id int8 not null,
+	composed_node_id int8,
+	master_drive_id int8,
+	storage_service_id int8,
+	primary key (id)
+);
+
+create table logical_drive_logical_drive (
+	used_by_logical_drive_id int8 not null,
+	used_logical_drive_id int8 not null,
+	primary key (used_by_logical_drive_id,used_logical_drive_id)
+);
+
+create table manager (
+	command_shell_max_concurrent_sessions int4,
+	command_shell_service_enabled boolean,
+	entity_id text,
+	firmware_version text,
+	graphical_console_max_concurrent_sessions int4,
+	graphical_console_service_enabled boolean,
+	manager_type text,
+	model text,
+	power_state text,
+	serial_console_max_concurrent_sessions int4,
+	serial_console_service_enabled boolean,
+	service_entry_point_uuid text,
+	uuid text,
+	id int8 not null,
+	in_chassis_manager_id int8,
+	primary key (id)
+);
+
+create table memory (
+	base_module_type text,
+	bus_width_bits int4,
+	capacity_mib int4,
+	data_width_bits int4,
+	device_id text,
+	device_locator text,
+	entity_id text,
+	error_correction text,
+	firmware_api_version text,
+	firmware_revision text,
+	manufacturer text,
+	memory_device_type text,
+	channel int4,
+	memory_controller int4,
+	slot int4,
+	socket int4,
+	memory_type text,
+	operating_speed_mhz int4,
+	part_number text,
+	rank_count int4,
+	serial_number text,
+	vendor_id text,
+	voltage_volt numeric,
+	id int8 not null,
+	computer_system_id int8,
+	primary key (id)
+);
+
+create table memory_allowed_speed_mhz (
+	computer_system_id int8 not null,
+	allowed_speed_mhz int4,
+	allowed_speed_mhz_order int4 not null,
+	primary key (computer_system_id,allowed_speed_mhz_order)
+);
+
+create table memory_function_class (
+	memory_id int8 not null,
+	function_class text,
+	function_class_order int4 not null,
+	primary key (memory_id,function_class_order)
+);
+
+create table memory_memory_media (
+	memory_id int8 not null,
+	memory_media text,
+	memory_media_order int4 not null,
+	primary key (memory_id,memory_media_order)
+);
+
+create table memory_operating_memory_mode (
+	memory_id int8 not null,
+	operating_memory_mode text,
+	operating_memory_mode_order int4 not null,
+	primary key (memory_id,operating_memory_mode_order)
+);
+
+create table memory_region (
+	memory_id int8 not null,
+	memory_type text,
+	offset_mib int4,
+	region_id text,
+	size_mib int4,
+	memory_region_order int4 not null,
+	primary key (memory_id,memory_region_order)
+);
+
+create table network_device_function (
+	device_enabled boolean,
+	entity_id text,
+	mac_address text,
+	authentication_method text,
+	chap_secret text,
+	chap_username text,
+	initiator_default_gateway text,
+	initiator_ip_address text,
+	initiator_name text,
+	initiator_netmask text,
+	ip_address_type text,
+	ip_mask_dns_via_dhcp boolean,
+	mutual_chap_secret text,
+	mutual_chap_username text,
+	primary_dns text,
+	primary_lun int4,
+	primary_target_ip_address text,
+	primary_target_name text,
+	primary_target_tcp_port int4,
+	primary_vlan_enable boolean,
+	primary_vlan_id int4,
+	router_advertisement_enabled boolean,
+	secondary_dns text,
+	secondary_lun int4,
+	secondary_target_ip_address text,
+	secondary_target_name text,
+	secondary_target_tcp_port int4,
+	secondary_vlan_enable boolean,
+	secondary_vlan_id int4,
+	target_info_via_dhcp boolean,
+	id int8 not null,
+	network_interface_id int8,
+	primary key (id)
+);
+
+create table network_interface (
+	entity_id text,
+	status text,
+	id int8 not null,
+	computer_system_id int8,
+	primary key (id)
+);
+
+create table network_protocol (
+	entity_id text,
+	fqdn text,
+	hostname text,
+	http_port int4,
+	http_protocol_enabled boolean,
+	https_port int4,
+	https_protocol_enabled boolean,
+	ipmi_port int4,
+	ipmi_protocol_enabled boolean,
+	kvm_ip_port int4,
+	kvm_ip_protocol_enabled boolean,
+	snmp_port int4,
+	snmp_protocol_enabled boolean,
+	notify_ip_v6_scope text,
+	ssdp_notify_multicast_interval_seconds int4,
+	ssdp_notify_ttl int4,
+	ssdp_port int4,
+	ssdp_protocol_enabled boolean,
+	ssh_port int4,
+	ssh_protocol_enabled boolean,
+	telnet_port int4,
+	telnet_protocol_enabled boolean,
+	virtual_media_port int4,
+	virtual_media_protocol_enabled boolean,
+	id int8 not null,
+	manager_id int8,
+	primary key (id)
+);
+
+create table pcie_device (
+	asset_tag text,
+	device_type text,
+	entity_id text,
+	firmware_version text,
+	manufacturer text,
+	model text,
+	part_number text,
+	serial_number text,
+	sku text,
+	id int8 not null,
+	computer_system_id int8,
+	primary key (id)
+);
+
+create table pcie_device_function (
+	class_code text,
+	device_class text,
+	device_id text,
+	entity_id text,
+	function_id int4,
+	function_type text,
+	revision_id text,
+	subsystem_id text,
+	subsystem_vendor_id text,
+	vendor_id text,
+	id int8 not null,
+	computer_system_id int8,
+	pcie_device_id int8,
+	primary key (id)
+);
+
+create table physical_drive (
+	capacity_gib float4,
+	entity_id text,
+	manufacturer text,
+	model text,
+	rpm int4,
+	serial_number text,
+	storage_controller_interface text,
+	type text,
+	id int8 not null,
+	storage_service_id int8,
+	primary key (id)
+);
+
+create table physical_drive_logical_drive (
+	physical_drive_id int8 not null,
+	logical_drive_id int8 not null,
+	primary key (physical_drive_id,logical_drive_id)
+);
+
+create table port (
+	current_speed_gbps int8,
+	entity_id text,
+	max_speed_gbps int8,
+	port_id text,
+	port_protocol text,
+	port_type text,
+	width int8,
+	id int8 not null,
+	fabric_switch_id int8,
+	primary key (id)
+);
+
+create table port_allowable_reset_type (
+	port_id int8 not null,
+	allowable_reset_type text,
+	allowable_reset_type_order int4 not null,
+	primary key (port_id,allowable_reset_type_order)
+);
+
+create table port_endpoints (
+	endpoint_id int8 not null,
+	port_id int8 not null,
+	primary key (endpoint_id,port_id)
+);
+
+create table port_pcie_connection_id (
+	port_id int8 not null,
+	pcie_connection_id text,
+	pcie_connection_id_order int4 not null,
+	primary key (port_id,pcie_connection_id_order)
+);
+
+create table power (
+	entity_id text,
+	id int8 not null,
+	chassis_id int8,
+	primary key (id)
+);
+
+create table power_control (
+	entity_id text,
+	member_id text,
+	oem text,
+	power_allocated_watts int4,
+	power_available_watts int4,
+	power_capacity_watts int4,
+	power_consumed_watts int4,
+	correction_in_ms int4,
+	limit_exception text,
+	limit_in_watts int4,
+	average_consumed_watts int4,
+	interval_in_min int4,
+	max_consumed_watts int4,
+	min_consumed_watts int4,
+	power_requested_watts int4,
+	id int8 not null,
+	power_id int8,
+	primary key (id)
+);
+
+create table power_supply (
+	entity_id text,
+	firmware_version text,
+	indicator_led text,
+	last_power_output_watts numeric,
+	line_input_voltage numeric,
+	line_input_voltage_type text,
+	manufacturer text,
+	member_id text,
+	model text,
+	oem text,
+	part_number text,
+	power_capacity_watts numeric,
+	power_supply_type text,
+	serial_number text,
+	spare_part_number text,
+	id int8 not null,
+	power_id int8,
+	primary key (id)
+);
+
+create table power_supply_input_range (
+	power_supply_id int8 not null,
+	input_type text,
+	maximum_frequency_hz numeric,
+	maximum_voltage numeric,
+	minimum_frequency_hz numeric,
+	minimum_voltage numeric,
+	oem text,
+	output_wattage numeric,
+	input_range_order int4 not null,
+	primary key (power_supply_id,input_range_order)
+);
+
+create table power_voltage (
+	entity_id text,
+	lower_threshold_critical numeric,
+	lower_threshold_fatal numeric,
+	lower_threshold_non_critical numeric,
+	max_reading_range numeric,
+	member_id text,
+	min_reading_range numeric,
+	physical_context text,
+	reading_volts numeric,
+	sensor_number int4,
+	upper_threshold_critical numeric,
+	upper_threshold_fatal numeric,
+	upper_threshold_non_critical numeric,
+	id int8 not null,
+	power_id int8,
+	primary key (id)
+);
+
+create table power_zone (
+	entity_id text,
+	max_psus_supported int4,
+	number_of_psus_present int4,
+	power_capacity_watts int4,
+	power_consumed_watts int4,
+	power_output_watts int4,
+	presence text,
+	rack_unit text,
+	u_height int4,
+	u_location int4,
+	x_location int4,
+	id int8 not null,
+	chassis_id int8,
+	primary key (id)
+);
+
+create table power_zone_power_supply (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	firmware_revision text,
+	last_power_output_watts int4,
+	manufacturer text,
+	model_number text,
+	name text,
+	part_number text,
+	power_capacity_watts int4,
+	rack_unit text,
+	u_height int4,
+	u_location int4,
+	x_location int4,
+	serial_number text,
+	status text,
+	power_zone_id int8,
+	primary key (id)
+);
+
+create table processor (
+	brand text,
+	entity_id text,
+	instruction_set text,
+	manufacturer text,
+	max_speed_mhz int4,
+	model text,
+	processor_architecture text,
+	effective_family text,
+	effective_model text,
+	identification_registers text,
+	microcode_info text,
+	step text,
+	vendor_id text,
+	processor_type text,
+	socket text,
+	total_cores int4,
+	total_threads int4,
+	id int8 not null,
+	computer_system_id int8,
+	primary key (id)
+);
+
+create table processor_capability (
+	processor_id int8 not null,
+	capability text,
+	capability_order int4 not null,
+	primary key (processor_id,capability_order)
+);
+
+create table redundancy (
+	entity_id text,
+	max_num_supported int4,
+	member_id text,
+	min_num_needed int4,
+	mode text,
+	redundancy_enabled boolean,
+	id int8 not null,
+	redundancy_owner_id int8,
+	primary key (id)
+);
+
+create table redundancy_member (
+	redundancy_id int8 not null,
+	member_id int8 not null,
+	primary key (redundancy_id,member_id)
+);
+
+create table remote_target (
+	entity_id text,
+	iscsi_initiator_iqn text,
+	type text,
+	id int8 not null,
+	composed_node_id int8,
+	remote_target_metadata_id int8,
+	storage_service_id int8,
+	primary key (id)
+);
+
+create table remote_target_iscsi_address (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	mutual_username text,
+	type text,
+	username text,
+	target_iqn text,
+	target_portal_ip text,
+	target_portal_port int4,
+	remote_target_id int8,
+	primary key (id)
+);
+
+create table remote_target_iscsi_address_target_lun (
+	remote_target_iscsi_address_id int8 not null,
+	target_lun int4,
+	target_lun_order int4 not null,
+	primary key (remote_target_iscsi_address_id,target_lun_order)
+);
+
+create table remote_target_logical_drive (
+	remote_target_id int8 not null,
+	logical_drive_id int8 not null,
+	primary key (remote_target_id,logical_drive_id)
+);
+
+create table remote_target_metadata (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	allocated boolean,
+	primary key (id)
+);
+
+create table serial_console_connect_type_supported (
+	serial_console_id int8 not null,
+	connect_type_supported text,
+	connect_type_supported_order int4 not null,
+	primary key (serial_console_id,connect_type_supported_order)
+);
+
+create table simple_storage (
+	entity_id text,
+	uefi_device_path text,
+	id int8 not null,
+	computer_system_id int8,
+	primary key (id)
+);
+
+create table simple_storage_device (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	capacity_bytes numeric,
+	entity_id bigserial not null,
+	manufacturer text,
+	model text,
+	name text,
+	oem text,
+	status text,
+	simple_storage_id int8,
+	primary key (id)
+);
+
+create table storage (
+	entity_id text,
+	id int8 not null,
+	chassis_id int8,
+	computer_system_id int8,
+	primary key (id)
+);
+
+create table storage_controller (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	asset_tag text,
+	entity_id bigserial not null,
+	firmware_version text,
+	manufacturer text,
+	member_id text,
+	model text,
+	part_number text,
+	serial_number text,
+	sku text,
+	speed_gbps numeric,
+	status text,
+	storage_id int8,
+	storage_adapter_id int8,
+	primary key (id)
+);
+
+create table storage_controller_identifiers (
+	storage_controller_id int8 not null,
+	durable_name text,
+	durable_name_format text,
+	storage_controller_identifiers_order int4 not null,
+	primary key (storage_controller_id,storage_controller_identifiers_order)
+);
+
+create table storage_controller_pcie_functions (
+	ethernet_interface_id int8 not null,
+	pcie_function_id int8 not null,
+	primary key (ethernet_interface_id,pcie_function_id)
+);
+
+create table storage_controller_supported_controller_protocol (
+	storage_controller_id int8 not null,
+	supported_controller_protocol text,
+	supported_controller_protocol_order int4 not null,
+	primary key (storage_controller_id,supported_controller_protocol_order)
+);
+

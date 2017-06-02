@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,9 +27,26 @@
  * */
 
 #include "configuration/validators/type.hpp"
-#include "json/json.hpp"
+#include <json/json.hpp>
+#include <map>
 
 using namespace configuration;
+
+namespace {
+
+static std::map<std::string, std::string> g_types = {
+    {"string", "string"},
+    {"int", "integer"},
+    {"uint", "unsigned integer"},
+    {"bool", "boolean"},
+    {"array", "array"},
+    {"null", "null"},
+    {"object", "object"},
+    {"double", "double precision number"},
+    {"number", "numeric"}
+};
+
+}
 
 bool TypeValidator::is_valid(const json::Value& value) const {
     if ("string" == m_type) {
@@ -72,5 +89,5 @@ bool TypeValidator::is_valid(const json::Value& value) const {
 }
 
 std::string TypeValidator::get_error() const {
-    return "is not valid type " + m_type + ".";
+    return "Field value is not valid " + ::g_types[m_type] + " type.";
 }

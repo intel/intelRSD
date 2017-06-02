@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,17 @@
 
 package com.intel.podm.templates.requestednode;
 
-import com.intel.podm.business.dto.redfish.RequestedMemory;
-
 import java.util.List;
 
-public class RequestedNodeWithMemoryModules extends TestRequestedNode {
-    private final List<RequestedMemory> memoryModules;
+public class RequestedNodeWithMemoryModules extends RequestedNodeBuilder {
+    private final List<Memory> memoryModules;
 
-    public RequestedNodeWithMemoryModules(List<RequestedMemory> memoryModules) {
+    public RequestedNodeWithMemoryModules(List<Memory> memoryModules) {
         this.memoryModules = memoryModules;
     }
 
     @Override
-    public List<RequestedMemory> getMemoryModules() {
+    public List<Memory> getMemoryModules() {
         return memoryModules;
     }
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,30 +23,41 @@
  * @brief Declaration of Not Implemented interface
  * */
 
-#ifndef AGENT_FRAMEWORK_EXCEPTIONS_NOT_IMPLEMENTED_HPP
-#define AGENT_FRAMEWORK_EXCEPTIONS_NOT_IMPLEMENTED_HPP
+#pragma once
 
-#include "agent-framework/exceptions/exception_base.hpp"
+
+
+#include "agent-framework/exceptions/gami_exception.hpp"
+
+
 
 namespace agent_framework {
 namespace exceptions {
 
 /*! @brief Not Implemented exception class */
-class NotImplemented final : public ExceptionBase {
+class NotImplemented final : public GamiException {
 public:
+
     /*!
      * @brief Constructor
      *
      * @param[in] msg Error message
      */
     explicit NotImplemented(const std::string& msg) :
-             ExceptionBase{ErrorCode::NOT_IMPLEMENTED, msg} {}
+        GamiException(ErrorCode::NOT_IMPLEMENTED, msg) {}
+
 
     NotImplemented(const NotImplemented&) = default;
+
+
     NotImplemented& operator=(const NotImplemented&) = default;
 
+
     NotImplemented(NotImplemented&&) = default;
+
+
     NotImplemented& operator=(NotImplemented&&) = default;
+
 
     /*! @brief Destructor */
     ~NotImplemented();
@@ -55,4 +66,3 @@ public:
 } // namespace exceptions
 } // namespace agent_framework
 
-#endif	/* AGENT_FRAMEWORK_EXCEPTIONS_NOT_IMPLEMENTED_HPP */

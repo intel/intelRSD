@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@ import com.intel.podm.business.dto.redfish.ProcessorDto;
 import com.intel.podm.business.dto.redfish.attributes.ProcessorIdDto;
 import com.intel.podm.redfish.json.templates.ProcessorJson;
 import com.intel.podm.redfish.json.templates.ProcessorJson.ProcessorIdJson;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataContextProvider;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
-import static com.intel.podm.rest.odataid.ODataIds.oDataIdFromContext;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 
-public class ProcessorDtoJsonSerializer extends DtoJsonSerializer<ProcessorDto> {
+@SuppressWarnings({"checkstyle:ExecutableStatementCount"})
+public class ProcessorDtoJsonSerializer extends BaseDtoJsonSerializer<ProcessorDto> {
     protected ProcessorDtoJsonSerializer() {
         super(ProcessorDto.class);
     }
@@ -35,9 +35,9 @@ public class ProcessorDtoJsonSerializer extends DtoJsonSerializer<ProcessorDto> 
     @Override
     protected ProcessorJson translate(ProcessorDto dto) {
         ProcessorJson processorJson = new ProcessorJson();
-        ODataId oDataId = oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         processorJson.oDataId = oDataId;
-        processorJson.oDataContext = getContextFromId(oDataId);
+        processorJson.oDataContext = ODataContextProvider.getContextFromId(oDataId);
         processorJson.id = dto.getId();
         processorJson.name = dto.getName();
         processorJson.description = dto.getDescription();
@@ -72,7 +72,6 @@ public class ProcessorDtoJsonSerializer extends DtoJsonSerializer<ProcessorDto> 
     private void fillOem(ProcessorDto dto, ProcessorJson processorJson) {
         processorJson.oem.rackScaleOem.brand = dto.getBrand();
         processorJson.oem.rackScaleOem.odataType = "#Intel.Oem.Processor";
-        processorJson.oem.rackScaleOem.containedBy = oDataIdFromContext(dto.getContainedBy());
         processorJson.oem.rackScaleOem.capabilities.addAll(dto.getCapabilities());
     }
 

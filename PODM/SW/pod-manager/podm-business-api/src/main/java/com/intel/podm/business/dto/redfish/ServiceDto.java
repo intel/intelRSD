@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,83 +16,114 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
 import java.util.List;
+import java.util.Set;
 
-public final class ServiceDto {
-    private final Id id;
+public final class ServiceDto extends BaseDto implements RedfishResource {
+    private final String id;
     private final String name;
     private final String description;
+    private final List<UnknownOemDto> unknownOems;
     private final Status status;
-    private final List<Context> managedBy;
+    private final Links links;
 
     private ServiceDto(Builder builder) {
         id = builder.id;
         name = builder.name;
         description = builder.description;
+        unknownOems = builder.unknownOems;
         status = builder.status;
-        managedBy = builder.managedBy;
+        links = new Links(builder.managedBy);
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public Status getStatus() {
         return status;
     }
 
-    public List<Context> getManagedBy() {
-        return managedBy;
+    @Override
+    public Links getLinks() {
+        return links;
+    }
+
+    public static final class Links implements RedfishResource.Links {
+        private final Set<Context> managedBy;
+
+        public Links(Set<Context> managedBy) {
+            this.managedBy = managedBy;
+        }
+
+        public Set<Context> getManagedBy() {
+            return managedBy;
+        }
     }
 
     public static final class Builder {
-        private Id id;
+        private String id;
         private String name;
         private String description;
+        private List<UnknownOemDto> unknownOems;
         private Status status;
-        private List<Context> managedBy;
+        private Set<Context> managedBy;
 
         private Builder() {
         }
 
-        public Builder id(Id val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder description(String val) {
-            description = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 
-        public Builder managedBy(List<Context> val) {
-            managedBy = val;
+        public Builder status(Status status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder managedBy(Set<Context> managedBy) {
+            this.managedBy = managedBy;
             return this;
         }
 

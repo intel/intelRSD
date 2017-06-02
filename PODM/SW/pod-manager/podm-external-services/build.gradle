@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@ dependencies {
     compile project(":podm-external-services-api")
     compile project(":security")
     compile project(":serialization")
+    compile project(":config")
     compile "$RESTEASY_CLIENT_DEPENDENCY"
     compile "$RESTEASY_JACKSON2_PROVIDER"
     compile "$JACKSON_ANNOTATIONS_DEPENDENCY"
     compile "$JACKSON_JSR310_DEPENDENCY"
+
+    testCompile project(path: ':utils', configuration: 'testOutput')
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package com.intel.podm.discovery.external.deep;
 
 import com.intel.podm.actions.ActionException;
-import com.intel.podm.actions.BootSourceOverrideInvoker;
+import com.intel.podm.actions.ComputerSystemUpdateInvoker;
 import com.intel.podm.actions.ResetActionInvoker;
 import com.intel.podm.business.entities.dao.ComputerSystemDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
+import com.intel.podm.common.types.actions.ComputerSystemUpdateDefinition;
 import com.intel.podm.common.types.Id;
 
 import javax.enterprise.context.Dependent;
@@ -29,13 +30,14 @@ import javax.transaction.Transactional;
 
 import static com.intel.podm.common.types.BootSourceState.ONCE;
 import static com.intel.podm.common.types.BootSourceType.PXE;
+import static com.intel.podm.common.types.BootSourceMode.LEGACY;
 import static java.lang.String.format;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Dependent
 public class DeepDiscoveryInvoker {
     @Inject
-    private BootSourceOverrideInvoker bootSourceOverrideInvoker;
+    private ComputerSystemUpdateInvoker computerSystemUpdateInvoker;
 
     @Inject
     private ResetActionInvoker resetActionInvoker;
@@ -52,7 +54,8 @@ public class DeepDiscoveryInvoker {
 
         try {
             resetActionInvoker.powerOff(computerSystem);
-            bootSourceOverrideInvoker.overrideBootSource(computerSystem, PXE, ONCE);
+            ComputerSystemUpdateDefinition computerSystemUpdateDefinition = new ComputerSystemUpdateDefinition(LEGACY, PXE, ONCE);
+            computerSystemUpdateInvoker.updateComputerSystem(computerSystem, computerSystemUpdateDefinition);
             resetActionInvoker.powerOn(computerSystem);
         } catch (ActionException e) {
             throw new DeepDiscoveryException(format("Starting deep discovery failed for ComputerSystem %s", computerSystem.getUuid()), e);

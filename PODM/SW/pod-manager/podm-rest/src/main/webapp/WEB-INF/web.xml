@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015 Intel Corporation
+  ~ Copyright (c) 2015-2017 Intel Corporation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,34 +16,37 @@
   -->
 
 <web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5">
-  <filter>
-    <filter-name>URLValidator</filter-name>
-    <filter-class>
-        com.intel.podm.rest.RequestValidationFilter
-    </filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>URLValidator</filter-name>
-    <url-pattern>*</url-pattern>
-  </filter-mapping>
-  <security-constraint>
-    <web-resource-collection>
-        <web-resource-name>PodM Secured Channel</web-resource-name>
-        <url-pattern>/redfish/v1/Chassis/*</url-pattern>
-        <url-pattern>/redfish/v1/Services/*</url-pattern>
-        <url-pattern>/redfish/v1/Systems/*</url-pattern>
-        <url-pattern>/redfish/v1/Managers/*</url-pattern>
-        <url-pattern>/redfish/v1/EventService/*</url-pattern>
-        <url-pattern>/redfish/v1/Nodes/*</url-pattern>
-        <url-pattern>/redfish/v1/EthernetSwitches/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>admin</role-name>
-    </auth-constraint>
-    <user-data-constraint>
-      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
-    </user-data-constraint>
-  </security-constraint>
+    <filter>
+        <filter-name>URLValidator</filter-name>
+        <filter-class>
+            com.intel.podm.rest.RequestValidationFilter
+        </filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>URLValidator</filter-name>
+        <url-pattern>*</url-pattern>
+    </filter-mapping>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>PodM Secured Channel</web-resource-name>
+            <url-pattern>/redfish/v1/Chassis/*</url-pattern>
+            <url-pattern>/redfish/v1/Services/*</url-pattern>
+            <url-pattern>/redfish/v1/Systems/*</url-pattern>
+            <url-pattern>/redfish/v1/Managers/*</url-pattern>
+            <url-pattern>/redfish/v1/EventService/*</url-pattern>
+            <url-pattern>/redfish/v1/Nodes/*</url-pattern>
+            <url-pattern>/redfish/v1/EthernetSwitches/*</url-pattern>
+            <url-pattern>/redfish/v1/PCIeSwitches/*</url-pattern>
+            <url-pattern>/redfish/v1/Devices/*</url-pattern>
+            <url-pattern>/redfish/v1/Fabrics/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>admin</role-name>
+        </auth-constraint>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
 
     <error-page>
         <error-code>400</error-code>

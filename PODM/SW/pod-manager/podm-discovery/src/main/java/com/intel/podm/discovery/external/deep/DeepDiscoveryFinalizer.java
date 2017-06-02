@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.DONE;
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.FAILED;
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.RUNNING;
+import static com.intel.podm.common.types.DeepDiscoveryState.DONE;
+import static com.intel.podm.common.types.DeepDiscoveryState.FAILED;
+import static com.intel.podm.common.types.DeepDiscoveryState.RUNNING;
+import static com.intel.podm.common.types.DiscoveryState.DEEP;
 import static com.intel.podm.common.types.DiscoveryState.DEEP_FAILED;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
@@ -46,7 +47,6 @@ import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 @Dependent
 @Interceptors(RetryOnRollbackInterceptor.class)
 public class DeepDiscoveryFinalizer {
-
     @Inject
     private Logger logger;
 
@@ -58,12 +58,15 @@ public class DeepDiscoveryFinalizer {
 
     @Transactional(REQUIRED)
     public void finalizeSuccessfulDeepDiscovery(Id computerSystemId) {
-        Optional<ComputerSystem> computerSystem = computerSystemDao.tryFind(computerSystemId);
-        if (!computerSystem.isPresent()) {
+        Optional<ComputerSystem> computerSystemOption = computerSystemDao.tryFind(computerSystemId);
+
+        if (computerSystemOption.isPresent()) {
+            ComputerSystem computerSystem = computerSystemOption.get();
+            deallocateComputerSystem(computerSystem);
+            computerSystem.setDiscoveryState(DEEP);
+        } else {
             logger.w("ComputerSystem {} has been removed during deep discovery", computerSystemId);
-            return;
         }
-        deallocateComputerSystem(computerSystem.get());
     }
 
     @NumberOfRetriesOnRollback(3)
@@ -76,21 +79,23 @@ public class DeepDiscoveryFinalizer {
         }
         ComputerSystem computerSystem = optionalComputerSystem.get();
 
-        if (Objects.equals(taskUuid, computerSystem.getTaskUuid()) && computerSystem.isInAnyOfStates(RUNNING)) {
+        if (Objects.equals(taskUuid, computerSystem.getMetadata().getTaskUuid()) && computerSystem.getMetadata().isInAnyOfStates(RUNNING)) {
             deallocateComputerSystem(computerSystem);
             computerSystem.setDiscoveryState(DEEP_FAILED);
-            computerSystem.setDeepDiscoveryState(FAILED);
-            logger.w("Deep discovery timed out for ComputerSystem {}", computerSystem.getUuid());
+            computerSystem.getMetadata().setDeepDiscoveryState(FAILED);
+            logger.w("Deep discovery timed out for ComputerSystem {}, [ service: {}, path: {} ]",
+                    computerSystem.getId(), computerSystem.getService().getBaseUri(), computerSystem.getSourceUri());
         }
     }
 
     private void deallocateComputerSystem(ComputerSystem computerSystem) {
-        computerSystem.setAllocated(false);
-        computerSystem.setDeepDiscoveryState(DONE);
+        computerSystem.getMetadata().setAllocated(false);
+        computerSystem.getMetadata().setDeepDiscoveryState(DONE);
         try {
             resetActionInvoker.shutdownGracefully(computerSystem);
         } catch (ActionException e) {
-            logger.e("ComputerSystem {} graceful shutdown failed", computerSystem.getUuid());
+            logger.e("Graceful shutdown failed for ComputerSystem {} , [ service: {}, path: {} ]",
+                    computerSystem.getId(), computerSystem.getService().getBaseUri(), computerSystem.getSourceUri());
         }
     }
 }

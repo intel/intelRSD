@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/module-ref/chassis_manager.hpp"
+#include "agent-framework/module/common_components.hpp"
 #include "ipmb/command/ini-parser/INI.h"
 #include "ipmb/network_utils.hpp"
 
@@ -33,14 +33,13 @@ extern "C" {
 #include <netdb.h>
 }
 
-using ChassisComponents = agent_framework::module::ChassisManager;
-
 namespace agent {
 namespace chassis {
 namespace ipmb {
 namespace network_utils {
 
-using namespace agent::chassis::ipmb::network_utils;
+using agent_framework::module::CommonComponents;
+
 
 std::string get_ip(const std::string& interface) {
     struct ifaddrs* ifaddr{nullptr};
@@ -82,15 +81,15 @@ std::string get_ip(const std::string& interface) {
 }
 
 std::string get_network_interface() {
-    auto drawer_manager_keys = ChassisComponents::get_instance()->get_module_manager().get_keys("");
+    auto drawer_manager_keys = CommonComponents::get_instance()->get_module_manager().get_keys("");
     if (!drawer_manager_keys.size()) {
         throw std::runtime_error("Cannot get chassis network interface name.");
     }
 
-    auto chassis_keys = ChassisComponents::get_instance()->
+    auto chassis_keys = CommonComponents::get_instance()->
             get_chassis_manager().get_keys(drawer_manager_keys.front());
 
-    auto chassis = ChassisComponents::get_instance()->
+    auto chassis = CommonComponents::get_instance()->
             get_chassis_manager().get_entry_reference(chassis_keys.front());
 
     return chassis->get_network_interface();
@@ -185,7 +184,7 @@ int netmask_bits(const std::string& netmask) {
         throw std::runtime_error{"Invalid netmask address"};
     }
 
-    auto mask = ntohl(addr.s_addr);
+    auto mask = (ntohl)(addr.s_addr);
     auto maskbits = 32;
     for (; (mask & (1L << (32 - maskbits)))== 0; maskbits--);
 

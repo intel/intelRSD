@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,46 @@
 
 package com.intel.podm.discovery.external.finalizers;
 
-import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.common.types.ServiceType;
+import com.intel.podm.business.entities.redfish.base.Entity;
 
-import java.util.Objects;
+import javax.annotation.PostConstruct;
+import javax.ejb.Lock;
+import javax.ejb.Singleton;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
-public abstract class DiscoveryFinalizer {
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
+import static javax.ejb.LockType.READ;
 
-    private final ServiceType serviceType;
+@Singleton
+public class DiscoveryFinalizer {
+    @Inject
+    private Instance<ServiceTypeSpecializedDiscoveryFinalizer> discoveryFinalizers;
 
-    public DiscoveryFinalizer(ServiceType serviceType) {
-        this.serviceType = serviceType;
+    private Collection<ServiceTypeSpecializedDiscoveryFinalizer> finalizers;
+
+    @Lock(READ)
+    public void finalizeDiscovery(Set<Entity> discoveredEntities, ExternalService service) {
+        service.markAsReachable();
+
+        findFinalizer(service)
+            .ifPresent(f -> f.finalize(discoveredEntities, service));
     }
 
-    public final boolean isAppropriateForServiceType(ServiceType serviceType) {
-        return Objects.equals(serviceType, this.serviceType);
+    private Optional<ServiceTypeSpecializedDiscoveryFinalizer> findFinalizer(ExternalService service) {
+        return finalizers
+            .stream()
+            .filter(discoveryFinalizer -> discoveryFinalizer.isAppropriateForServiceType(service.getServiceType()))
+            .findAny();
     }
 
-    public abstract void finalize(Set<DomainObject> discoveredDomainObjects, ExternalService service);
+    @PostConstruct
+    private void init() {
+        finalizers = stream(discoveryFinalizers.spliterator(), false).collect(toList());
+    }
 }

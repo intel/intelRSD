@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,19 +149,19 @@ int memdb_log(memdb_integer db_name, const char *file,
 
 		cnt = snprintf_s_si(buf, sizeof(buf), "%s %d", cur_time, action);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld", node->node_id);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld", node->parent->node_id);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld\n", node->type);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 		break;
 	case MEMDB_LOG_DESTROY_NODE:
 		node = (struct node *)param;
@@ -169,11 +169,11 @@ int memdb_log(memdb_integer db_name, const char *file,
 
 		cnt = snprintf_s_si(buf, sizeof(buf), "%s %d", cur_time, action);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld\n", node->node_id);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		break;
 	case MEMDB_LOG_SET_ATTR:
@@ -184,27 +184,27 @@ int memdb_log(memdb_integer db_name, const char *file,
 
 		cnt = snprintf_s_si(buf, sizeof(buf), "%s %d", cur_time, action);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld", attr->node->node_id);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld", attr->cookie);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld", attr->type);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld", attr->namelen);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld [name:]", attr->datalen);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		memcpy_s(buf + cnt, sizeof(buf)-cnt, attr->name, attr->namelen);
 		cnt += attr->namelen;
@@ -224,15 +224,15 @@ int memdb_log(memdb_integer db_name, const char *file,
 
 		cnt = snprintf_s_si(buf, sizeof(buf), "%s %d", cur_time, action);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld", attr->node->node_id);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		cnt += snprintf_s_ll(buf+cnt, sizeof(buf)-cnt, " %lld [name:]", attr->namelen);
 		if (cnt < 0)
-			return -1;
+			goto err_memdb_log_fail;
 
 		memcpy_s(buf + cnt, sizeof(buf)-cnt, attr->name, attr->namelen);
 		cnt += attr->namelen;
@@ -255,6 +255,10 @@ int memdb_log(memdb_integer db_name, const char *file,
 	close(fd);
 	var_memdb_log_ok = 1;
 	return 0;
+
+err_memdb_log_fail:
+	close(fd);
+	return -1;
 
 err:
 	close(fd);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,65 +16,25 @@
 
 package com.intel.podm.discovery.external;
 
-import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.common.logger.Logger;
-import com.intel.podm.services.detection.ServiceChecker;
-import com.intel.podm.services.detection.ServiceEndpoint;
-import com.intel.podm.services.detection.ServiceEndpointChecker;
+import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
+import com.intel.podm.common.synchronization.TaskCoordinator;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.transaction.Transactional;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
-import static javax.transaction.Transactional.TxType.REQUIRED;
-
 @ApplicationScoped
-@Transactional(REQUIRED)
 public class ExternalServiceAvailabilityChecker {
+    @Inject
+    private BeanFactory beanFactory;
 
     @Inject
-    private Logger logger;
-
-    @Inject
-    private ExternalServiceRepository serviceRepository;
-
-    @Inject
-    private ServiceEndpointChecker serviceEndpointChecker;
-
-    @Inject
-    private ServiceChecker serviceChecker;
+    private TaskCoordinator taskCoordinator;
 
     public void verifyServiceAvailabilityByUuid(UUID serviceUuid) {
-        serviceChecker.filterKnownEndpoints(serviceRepository.getAllServiceUuids());
-        Set<ServiceEndpoint> endpointsToCheck = new HashSet<>();
-        ServiceEndpoint endpoint = serviceChecker.getServiceEndpointForUuid(serviceUuid);
-        if (endpoint != null) {
-            endpointsToCheck.add(endpoint);
-        } else {
-            logger.w("UUID {} is not a known endpoint in service detection module", serviceUuid);
-        }
+        ExternalServiceAvailabilityCheckerTask task = beanFactory.create(ExternalServiceAvailabilityCheckerTask.class);
+        task.setServiceUuid(serviceUuid);
 
-        ServiceEndpoint storedEndpoint = getFromExternalServiceRepository(serviceUuid);
-        if (storedEndpoint != null) {
-            endpointsToCheck.add(storedEndpoint);
-        } else {
-            logger.w("UUID {} is not present in external service repository", serviceUuid);
-        }
-
-        triggerCheckOnServices(endpointsToCheck);
-   }
-
-    private void triggerCheckOnServices(Set<ServiceEndpoint> endpointsToCheck) {
-        endpointsToCheck.forEach(serviceEndpointChecker::triggerCheckIfServiceStillExist);
-    }
-
-    private ServiceEndpoint getFromExternalServiceRepository(UUID externalServiceUuid) {
-        ExternalService service = serviceRepository.findOrNull(externalServiceUuid);
-        return (service != null)
-            ? new ServiceEndpoint(service.getServiceType(), service.getUuid(), service.getBaseUri(), service.getMacAddress())
-            : null;
+        taskCoordinator.registerAsync(serviceUuid, task);
     }
 }

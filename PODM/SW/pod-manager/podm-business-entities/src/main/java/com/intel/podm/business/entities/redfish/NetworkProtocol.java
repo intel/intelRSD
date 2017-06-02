@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,279 +16,331 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.NotifyIpV6Scope;
-import com.intel.podm.common.types.Status;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
+import javax.persistence.Column;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import java.util.Objects;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.booleanProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.REQUIRED;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(REQUIRED)
-public class NetworkProtocol extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<String> HOST_NAME = stringProperty("hostName");
-    public static final DomainObjectProperty<String> FQDN = stringProperty("fqdn");
-    public static final DomainObjectProperty<Boolean> HTTP_PROTOCOL_ENABLED = booleanProperty("httpProtocolEnabled");
-    public static final DomainObjectProperty<Integer> HTTP_PORT = integerProperty("httpPort");
-    public static final DomainObjectProperty<Boolean> HTTPS_PROTOCOL_ENABLED = booleanProperty("httpsProtocolEnabled");
-    public static final DomainObjectProperty<Integer> HTTPS_PORT = integerProperty("httpsPort");
-    public static final DomainObjectProperty<Boolean> IPMI_PROTOCOL_ENABLED = booleanProperty("ipmiProtocolEnabled");
-    public static final DomainObjectProperty<Integer> IPMI_PORT = integerProperty("ipmiPort");
-    public static final DomainObjectProperty<Boolean> SSH_PROTOCOL_ENABLED = booleanProperty("sshProtocolEnabled");
-    public static final DomainObjectProperty<Integer> SSH_PORT = integerProperty("sshPort");
-    public static final DomainObjectProperty<Boolean> SNMP_PROTOCOL_ENABLED = booleanProperty("snmpProtocolEnabled");
-    public static final DomainObjectProperty<Integer> SNMP_PORT = integerProperty("snmpPort");
-    public static final DomainObjectProperty<Boolean> VIRTUAL_MEDIA_PROTOCOL_ENABLED = booleanProperty("virtualMediaProtocolEnabled");
-    public static final DomainObjectProperty<Integer> VIRTUAL_MEDIA_PORT = integerProperty("virtualMediaPort");
-    public static final DomainObjectProperty<Boolean> SSDP_PROTOCOL_ENABLED = booleanProperty("ssdpProtocolEnabled");
-    public static final DomainObjectProperty<Integer> SSDP_PORT = integerProperty("ssdpPort");
-    public static final DomainObjectProperty<NotifyIpV6Scope> SSDP_NOTIFY_IP_V_6_SCOPE = enumProperty("ssdpNotifyIpV6Scope", NotifyIpV6Scope.class);
-    public static final DomainObjectProperty<Integer> SSDP_NOTIFY_MULTICAST_INTERVAL_SECONDS = integerProperty("ssdpNotifyMulticastIntervalSeconds");
-    public static final DomainObjectProperty<Integer> SSDP_NOTIFY_TTL = integerProperty("ssdpNotifyTtl");
-    public static final DomainObjectProperty<Boolean> TELNET_PROTOCOL_ENABLED = booleanProperty("telnetProtocolEnabled");
-    public static final DomainObjectProperty<Integer> TELNET_PORT = integerProperty("telnetPort");
-    public static final DomainObjectProperty<Boolean> KVM_IP_PROTOCOL_ENABLED = booleanProperty("kvmIpProtocolEnabled");
-    public static final DomainObjectProperty<Integer> KVM_IP_PORT = integerProperty("kvmIpPort");
+@javax.persistence.Entity
+@Table(name = "network_protocol", indexes = @Index(name = "idx_network_protocol_entity_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class NetworkProtocol extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "kvm_ip_port")
+    private Integer kvmIpPort;
+
+    @Column(name = "kvm_ip_protocol_enabled")
+    private Boolean kvmIpProtocolEnabled;
+
+    @Column(name = "telnet_port")
+    private Integer telnetPort;
+
+    @Column(name = "telnet_protocol_enabled")
+    private Boolean telnetProtocolEnabled;
+
+    @Column(name = "ssdp_notify_ttl")
+    private Integer ssdpNotifyTtl;
+
+    @Column(name = "ssdp_notify_multicast_interval_seconds")
+    private Integer ssdpNotifyMulticastIntervalSeconds;
+
+    @Column(name = "notify_ip_v6_scope")
+    @Enumerated(STRING)
+    private NotifyIpV6Scope ssdpNotifyIpV6Scope;
+
+    @Column(name = "ssdp_port")
+    private Integer ssdpPort;
+
+    @Column(name = "ssdp_protocol_enabled")
+    private Boolean ssdpProtocolEnabled;
+
+    @Column(name = "virtual_media_port")
+    private Integer virtualMediaPort;
+
+    @Column(name = "virtual_media_protocol_enabled")
+    private Boolean virtualMediaProtocolEnabled;
+
+    @Column(name = "snmp_port")
+    private Integer snmpPort;
+
+    @Column(name = "snmp_protocol_enabled")
+    private Boolean snmpProtocolEnabled;
+
+    @Column(name = "ssh_port")
+    private Integer sshPort;
+
+    @Column(name = "ssh_protocol_enabled")
+    private Boolean sshProtocolEnabled;
+
+    @Column(name = "ipmi_port")
+    private Integer ipmiPort;
+
+    @Column(name = "ipmi_protocol_enabled")
+    private Boolean ipmiProtocolEnabled;
+
+    @Column(name = "http_port")
+    private Integer httpPort;
+
+    @Column(name = "http_protocol_enabled")
+    private Boolean httpProtocolEnabled;
+
+    @Column(name = "https_port")
+    private Integer httpsPort;
+
+    @Column(name = "https_protocol_enabled")
+    private Boolean httpsProtocolEnabled;
+
+    @Column(name = "hostname")
+    private String hostname;
+
+    @Column(name = "fqdn")
+    private String fqdn;
+
+    @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "manager_id")
+    private Manager manager;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public Integer getKvmIpPort() {
-        return getProperty(KVM_IP_PORT);
+        return kvmIpPort;
     }
 
     public void setKvmIpPort(Integer kvmIpPort) {
-        setProperty(KVM_IP_PORT, kvmIpPort);
+        this.kvmIpPort = kvmIpPort;
     }
 
     public Boolean getKvmIpProtocolEnabled() {
-        return getProperty(KVM_IP_PROTOCOL_ENABLED);
+        return kvmIpProtocolEnabled;
     }
 
     public void setKvmIpProtocolEnabled(Boolean kvmIpProtocolEnabled) {
-        setProperty(KVM_IP_PROTOCOL_ENABLED, kvmIpProtocolEnabled);
+        this.kvmIpProtocolEnabled = kvmIpProtocolEnabled;
     }
 
     public Integer getTelnetPort() {
-        return getProperty(TELNET_PORT);
+        return telnetPort;
     }
 
     public void setTelnetPort(Integer telnetPort) {
-        setProperty(TELNET_PORT, telnetPort);
+        this.telnetPort = telnetPort;
     }
 
     public Boolean getTelnetProtocolEnabled() {
-        return getProperty(TELNET_PROTOCOL_ENABLED);
+        return telnetProtocolEnabled;
     }
 
     public void setTelnetProtocolEnabled(Boolean telnetProtocolEnabled) {
-        setProperty(TELNET_PROTOCOL_ENABLED, telnetProtocolEnabled);
+        this.telnetProtocolEnabled = telnetProtocolEnabled;
     }
 
     public Integer getSsdpNotifyTtl() {
-        return getProperty(SSDP_NOTIFY_TTL);
+        return ssdpNotifyTtl;
     }
 
     public void setSsdpNotifyTtl(Integer ssdpNotifyTtl) {
-        setProperty(SSDP_NOTIFY_TTL, ssdpNotifyTtl);
+        this.ssdpNotifyTtl = ssdpNotifyTtl;
     }
 
     public Integer getSsdpNotifyMulticastIntervalSeconds() {
-        return getProperty(SSDP_NOTIFY_MULTICAST_INTERVAL_SECONDS);
+        return ssdpNotifyMulticastIntervalSeconds;
     }
 
     public void setSsdpNotifyMulticastIntervalSeconds(Integer ssdpNotifyMulticastIntervalSeconds) {
-        setProperty(SSDP_NOTIFY_MULTICAST_INTERVAL_SECONDS, ssdpNotifyMulticastIntervalSeconds);
+        this.ssdpNotifyMulticastIntervalSeconds = ssdpNotifyMulticastIntervalSeconds;
     }
 
     public NotifyIpV6Scope getSsdpNotifyIpV6Scope() {
-        return getProperty(SSDP_NOTIFY_IP_V_6_SCOPE);
+        return ssdpNotifyIpV6Scope;
     }
 
     public void setSsdpNotifyIpV6Scope(NotifyIpV6Scope ssdpNotifyIpV6Scope) {
-        setProperty(SSDP_NOTIFY_IP_V_6_SCOPE, ssdpNotifyIpV6Scope);
+        this.ssdpNotifyIpV6Scope = ssdpNotifyIpV6Scope;
     }
 
     public Integer getSsdpPort() {
-        return getProperty(SSDP_PORT);
+        return ssdpPort;
     }
 
     public void setSsdpPort(Integer ssdpPort) {
-        setProperty(SSDP_PORT, ssdpPort);
+        this.ssdpPort = ssdpPort;
     }
 
     public Boolean getSsdpProtocolEnabled() {
-        return getProperty(SSDP_PROTOCOL_ENABLED);
+        return ssdpProtocolEnabled;
     }
 
     public void setSsdpProtocolEnabled(Boolean ssdpProtocolEnabled) {
-        setProperty(SSDP_PROTOCOL_ENABLED, ssdpProtocolEnabled);
+        this.ssdpProtocolEnabled = ssdpProtocolEnabled;
     }
 
     public Integer getVirtualMediaPort() {
-        return getProperty(VIRTUAL_MEDIA_PORT);
+        return virtualMediaPort;
     }
 
     public void setVirtualMediaPort(Integer virtualMediaPort) {
-        setProperty(VIRTUAL_MEDIA_PORT, virtualMediaPort);
+        this.virtualMediaPort = virtualMediaPort;
     }
 
     public Boolean getVirtualMediaProtocolEnabled() {
-        return getProperty(VIRTUAL_MEDIA_PROTOCOL_ENABLED);
+        return virtualMediaProtocolEnabled;
     }
 
     public void setVirtualMediaProtocolEnabled(Boolean virtualMediaProtocolEnabled) {
-        setProperty(VIRTUAL_MEDIA_PROTOCOL_ENABLED, virtualMediaProtocolEnabled);
+        this.virtualMediaProtocolEnabled = virtualMediaProtocolEnabled;
     }
 
     public Integer getSnmpPort() {
-        return getProperty(SNMP_PORT);
+        return snmpPort;
     }
 
     public void setSnmpPort(Integer snmpPort) {
-        setProperty(SNMP_PORT, snmpPort);
+        this.snmpPort = snmpPort;
     }
 
     public Boolean getSnmpProtocolEnabled() {
-        return getProperty(SNMP_PROTOCOL_ENABLED);
+        return snmpProtocolEnabled;
     }
 
     public void setSnmpProtocolEnabled(Boolean snmpProtocolEnabled) {
-        setProperty(SNMP_PROTOCOL_ENABLED, snmpProtocolEnabled);
+        this.snmpProtocolEnabled = snmpProtocolEnabled;
     }
 
     public Integer getSshPort() {
-        return getProperty(SSH_PORT);
+        return sshPort;
     }
 
     public void setSshPort(Integer sshPort) {
-        setProperty(SSH_PORT, sshPort);
+        this.sshPort = sshPort;
     }
 
     public Boolean getSshProtocolEnabled() {
-        return getProperty(SSH_PROTOCOL_ENABLED);
+        return sshProtocolEnabled;
     }
 
     public void setSshProtocolEnabled(Boolean sshProtocolEnabled) {
-        setProperty(SSH_PROTOCOL_ENABLED, sshProtocolEnabled);
+        this.sshProtocolEnabled = sshProtocolEnabled;
     }
 
     public Integer getIpmiPort() {
-        return getProperty(IPMI_PORT);
+        return ipmiPort;
     }
 
     public void setIpmiPort(Integer ipmiPort) {
-        setProperty(IPMI_PORT, ipmiPort);
+        this.ipmiPort = ipmiPort;
     }
 
     public Boolean getIpmiProtocolEnabled() {
-        return getProperty(IPMI_PROTOCOL_ENABLED);
+        return ipmiProtocolEnabled;
     }
 
     public void setIpmiProtocolEnabled(Boolean ipmiProtocolEnabled) {
-        setProperty(IPMI_PROTOCOL_ENABLED, ipmiProtocolEnabled);
-    }
-
-    public Integer getHttpsPort() {
-        return getProperty(HTTPS_PORT);
-    }
-
-    public void setHttpsPort(Integer httpsPort) {
-        setProperty(HTTPS_PORT, httpsPort);
-    }
-
-    public Boolean getHttpsProtocolEnabled() {
-        return getProperty(HTTPS_PROTOCOL_ENABLED);
-    }
-
-    public void setHttpsProtocolEnabled(Boolean httpsProtocolEnabled) {
-        setProperty(HTTPS_PROTOCOL_ENABLED, httpsProtocolEnabled);
+        this.ipmiProtocolEnabled = ipmiProtocolEnabled;
     }
 
     public Integer getHttpPort() {
-        return getProperty(HTTP_PORT);
+        return httpPort;
     }
 
     public void setHttpPort(Integer httpPort) {
-        setProperty(HTTP_PORT, httpPort);
+        this.httpPort = httpPort;
     }
 
     public Boolean getHttpProtocolEnabled() {
-        return getProperty(HTTP_PROTOCOL_ENABLED);
+        return httpProtocolEnabled;
     }
 
     public void setHttpProtocolEnabled(Boolean httpProtocolEnabled) {
-        setProperty(HTTP_PROTOCOL_ENABLED, httpProtocolEnabled);
+        this.httpProtocolEnabled = httpProtocolEnabled;
     }
 
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
+    public Integer getHttpsPort() {
+        return httpsPort;
     }
 
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
+    public void setHttpsPort(Integer httpsPort) {
+        this.httpsPort = httpsPort;
+    }
+
+    public Boolean getHttpsProtocolEnabled() {
+        return httpsProtocolEnabled;
+    }
+
+    public void setHttpsProtocolEnabled(Boolean httpsProtocolEnabled) {
+        this.httpsProtocolEnabled = httpsProtocolEnabled;
     }
 
     public String getHostName() {
-        return getProperty(HOST_NAME);
+        return hostname;
     }
 
     public void setHostName(String hostName) {
-        setProperty(HOST_NAME, hostName);
+        this.hostname = hostName;
     }
 
     public String getFqdn() {
-        return getProperty(FQDN);
+        return fqdn;
     }
 
     public void setFqdn(String fqdn) {
-        setProperty(FQDN, fqdn);
+        this.fqdn = fqdn;
+    }
+
+    public Manager getManager() {
+        return manager;
+    }
+
+    public void setManager(Manager manager) {
+        if (!Objects.equals(this.manager, manager)) {
+            unlinkManager(this.manager);
+            this.manager = manager;
+            if (manager != null && !this.equals(manager.getNetworkProtocol())) {
+                manager.setNetworkProtocol(this);
+            }
+        }
+    }
+
+    public void unlinkManager(Manager manager) {
+        if (Objects.equals(this.manager, manager)) {
+            this.manager = null;
+            if (manager != null) {
+                manager.unlinkNetworkProtocol(this);
+            }
+        }
     }
 
     @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
+    public void preRemove() {
+        unlinkManager(manager);
     }
 
     @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public boolean containedBy(Entity possibleParent) {
+        return false;
     }
 }

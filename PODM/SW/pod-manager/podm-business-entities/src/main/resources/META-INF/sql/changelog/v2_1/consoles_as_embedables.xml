@@ -1,0 +1,211 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2017 Intel Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="
+                    http://www.liquibase.org/xml/ns/dbchangelog
+                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <!-- new columns for manager -->
+    <changeSet author="podm (generated)" id="1490869402315-1">
+        <addColumn tableName="manager">
+            <column name="command_shell_max_concurrent_sessions" type="int4"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-2">
+        <addColumn tableName="manager">
+            <column name="command_shell_service_enabled" type="bool"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-3">
+        <addColumn tableName="manager">
+            <column name="graphical_console_max_concurrent_sessions" type="int4"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-4">
+        <addColumn tableName="manager">
+            <column name="graphical_console_service_enabled" type="bool"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-5">
+        <addColumn tableName="manager">
+            <column name="serial_console_max_concurrent_sessions" type="int4"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-6">
+        <addColumn tableName="manager">
+            <column name="serial_console_service_enabled" type="bool"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- remove constraints/indexes for *connect_type_supported tables -->
+    <changeSet author="podm (generated)" id="1490869402315-7">
+        <dropForeignKeyConstraint baseTableName="graphical_console_connect_type_supported" constraintName="fk_5v1h7ihd2032vxkk8m6j7c8y2"/>
+    </changeSet>
+    <changeSet author="podm" id="1490869402315-8">
+        <dropPrimaryKey tableName="graphical_console_connect_type_supported" constraintName="graphical_console_connect_type_supported_pkey"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-9">
+        <dropForeignKeyConstraint baseTableName="serial_console_connect_type_supported" constraintName="fk_l2dih1yqlnjj3m7ugbdv72ewm"/>
+    </changeSet>
+    <changeSet author="podm" id="1490869402315-10">
+        <dropPrimaryKey  tableName="serial_console_connect_type_supported" constraintName="serial_console_connect_type_supported_pkey"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-11">
+        <dropForeignKeyConstraint baseTableName="command_shell_connect_type_supported" constraintName="fk_p27rh6q8nu69iohinyk1pxl51"/>
+    </changeSet>
+    <changeSet author="podm" id="1490869402315-12">
+        <dropPrimaryKey tableName="command_shell_connect_type_supported" constraintName="command_shell_connect_type_supported_pkey"/>
+    </changeSet>
+
+    <!-- migrate data for serial console-->
+    <changeSet author="podm" id="1490869402315-13A">
+        <sql>
+            UPDATE manager m
+            SET (serial_console_max_concurrent_sessions, serial_console_service_enabled) = (
+                SELECT max_concurrent_sessions, service_enabled
+                FROM serial_console sc
+                WHERE m.serial_console_id = sc.id
+            );
+        </sql>
+    </changeSet>
+    <changeSet author="podm" id="1490869402315-13B">
+        <sql>
+            UPDATE serial_console_connect_type_supported cts
+            SET serial_console_id = (
+            SELECT id
+            FROM manager m
+            WHERE m.serial_console_id=cts.serial_console_id
+            );
+        </sql>
+    </changeSet>
+
+    <!-- migrate data for graphical console-->
+    <changeSet author="podm" id="1490869402315-14A">
+        <sql>
+            UPDATE manager m
+            SET (graphical_console_max_concurrent_sessions, graphical_console_service_enabled) = (
+                    SELECT max_concurrent_sessions, service_enabled
+                    FROM graphical_console gc
+                    WHERE m.graphical_console_id = gc.id
+            );
+        </sql>
+    </changeSet>
+    <changeSet author="podm" id="1490869402315-14B">
+        <sql>
+            UPDATE graphical_console_connect_type_supported cts
+            SET graphical_console_id = (
+                SELECT id
+                FROM manager m
+                WHERE m.graphical_console_id=cts.graphical_console_id
+            );
+        </sql>
+    </changeSet>
+
+    <!-- migrate data for command shell-->
+    <changeSet author="podm" id="1490869402315-15A" >
+        <sql>
+            UPDATE manager m
+            SET (command_shell_max_concurrent_sessions, command_shell_service_enabled) = (
+                SELECT max_concurrent_sessions, service_enabled
+                FROM command_shell cs
+                WHERE m.command_shell_id = cs.id
+            );
+        </sql>
+    </changeSet>
+    <changeSet author="podm" id="1490869402315-15B" >
+        <sql>
+            UPDATE command_shell_connect_type_supported cts
+            SET command_shell_id = (
+                SELECT id
+                FROM manager m
+                WHERE m.command_shell_id=cts.command_shell_id
+            );
+        </sql>
+    </changeSet>
+
+    <!-- create new constraints for *connect_type_supported tables -->
+    <changeSet author="podm (generated)" id="1490869402315-16">
+        <addForeignKeyConstraint
+                baseColumnNames="graphical_console_id"
+                baseTableName="graphical_console_connect_type_supported"
+                constraintName="fk_5v1h7ihd2032vxkk8m6j7c8y2"
+                referencedColumnNames="id"
+                referencedTableName="manager"/>
+    </changeSet>
+    <changeSet id="1490869402315-17" author="podm">
+        <addPrimaryKey tableName="serial_console_connect_type_supported"
+                       constraintName="serial_console_connect_type_supported_pkey"
+                       columnNames="serial_console_id, connect_type_supported_order"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-18">
+        <addForeignKeyConstraint baseColumnNames="serial_console_id"
+                                 baseTableName="serial_console_connect_type_supported"
+                                 constraintName="fk_l2dih1yqlnjj3m7ugbdv72ewm"
+                                 referencedColumnNames="id"
+                                 referencedTableName="manager"/>
+    </changeSet>
+    <changeSet id="1490869402315-19" author="podm">
+        <addPrimaryKey tableName="graphical_console_connect_type_supported"
+                       constraintName="graphical_console_connect_type_supported_pkey"
+                       columnNames="graphical_console_id, connect_type_supported_order"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-20">
+        <addForeignKeyConstraint baseColumnNames="command_shell_id"
+                                 baseTableName="command_shell_connect_type_supported"
+                                 constraintName="fk_p27rh6q8nu69iohinyk1pxl51"
+                                 referencedColumnNames="id"
+                                 referencedTableName="manager"/>
+    </changeSet>
+    <changeSet id="1490869402315-21" author="podm">
+        <addPrimaryKey tableName="command_shell_connect_type_supported"
+                       constraintName="command_shell_connect_type_supported_pkey"
+                       columnNames="command_shell_id, connect_type_supported_order"/>
+    </changeSet>
+
+    <!-- drop old manager constraints and columns -->
+    <changeSet author="podm (generated)" id="1490869402315-22">
+        <dropForeignKeyConstraint baseTableName="manager" constraintName="fk_6dxlt0o2cwchu69axymtcqb7d"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-23">
+        <dropForeignKeyConstraint baseTableName="manager" constraintName="fk_jb5iprnlxcplh1gwh0jlikjos"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-24">
+        <dropForeignKeyConstraint baseTableName="manager" constraintName="fk_pxtaph468mj2yuxfnrlr291a4"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-25">
+        <dropColumn columnName="command_shell_id" tableName="manager"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-26">
+        <dropColumn columnName="graphical_console_id" tableName="manager"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-27">
+        <dropColumn columnName="serial_console_id" tableName="manager"/>
+    </changeSet>
+
+    <!-- drop old console tables -->
+    <changeSet author="podm (generated)" id="1490869402315-28">
+        <dropTable tableName="command_shell"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-29">
+        <dropTable tableName="graphical_console"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1490869402315-30">
+        <dropTable tableName="serial_console"/>
+    </changeSet>
+</databaseChangeLog>

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
  *
  * @file iscsi_error.cpp
  *
- * @brie ISCSI Error implementation
+ * @brief iSCSI Error implementation
  * */
 
 #include "agent-framework/exceptions/iscsi_error.hpp"

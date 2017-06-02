@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,11 +17,16 @@
 # </license_header>
 
 # Add internal libraries & includes
+add_subdirectory(include)
+add_subdirectory(md5)
 add_subdirectory(base64)
-add_subdirectory(json-cxx)
 add_subdirectory(ipmi)
 add_subdirectory(logger)
-add_subdirectory(pca95xx)
+add_subdirectory(json-cxx)
 add_subdirectory(configuration)
 add_subdirectory(agent-framework)
 add_subdirectory(netlink)
+add_subdirectory(smbios)
+add_subdirectory(fru_eeprom)
+add_subdirectory(net)
+add_subdirectory(ssdp)

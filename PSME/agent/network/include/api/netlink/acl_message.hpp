@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,12 +25,13 @@
 
 #pragma once
 /* Internal headers */
-#include "netlink/message.hpp"
+#include "netlink/nl_message.hpp"
 
 /* C/C++ standard headers */
 #include <string>
 #include <vector>
 #include <map>
+#include <netlink/genl/genl.h>
 
 namespace agent {
 namespace network {
@@ -38,7 +39,7 @@ namespace api {
 namespace netlink {
 
 /*! ACL Message class */
-class AclMessage: public netlink_base::Message {
+class AclMessage: public netlink_base::NlMessage {
 public:
     using Strings = std::vector<std::string>;
     using MapOfStrings = std::map<std::string, Strings>;
@@ -141,20 +142,18 @@ public:
     virtual ~AclMessage();
 
     /*!
-     * @brief Prepare ACL netlink message.
+     * @brief Prepare message to be sent.
      *
-     * @return Netlink message ready to be sent.
+     * @param[out] msg Netlink message.
      * */
-    Pointer prepare_netlink_msg() const;
+    void prepare_message(struct nl_msg* msg) override;
 
     /*!
      * @brief Parse received netlink message and store results in message.
      *
      * @param[in] msg Netlink message.
-     *
-     * @return ACL command status or NL_ERR if something failed.
      * */
-    int parse_reply(nl_msg* msg);
+    void process_message(struct nl_msg* msg) override;
 
     /*!
      * @brief Parse ACL list in message.

@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ enum AM_ACTIONS {
 	AMACTION_MBP_UART_SWITCH,
 	AMACTION_PSME_SOFT_RESET,
 	AMACTION_SET_RACK_PUID,
+        AMACTION_SET_RACK_LOCATION_ID,
 	MAX_ACTION
 };
 
@@ -44,7 +45,8 @@ static action_map_t am_action_map[] = {
 	{AMACTION_MBP_FW_UPDATE, "mbp_fw_update"},
 	{AMACTION_MBP_UART_SWITCH, JRPC_ACTION_UART_SWITCH},
 	{AMACTION_PSME_SOFT_RESET, JRPC_ACTION_PSME_SOFT_RESET},
-	{AMACTION_SET_RACK_PUID, JRPC_ACTION_SET_PUID}
+	{AMACTION_SET_RACK_PUID, JRPC_ACTION_SET_PUID},
+        {AMACTION_SET_RACK_LOCATION_ID, JRPC_ACTION_SET_RACK_LOCATION_ID}
 	};
 
 

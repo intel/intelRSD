@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,47 +16,45 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- *
- * @file discovery_manager.hpp
- *
- * @brief Initial discovery implementation.
  * */
 
-#ifndef AGENT_COMPUTE_DISCOVERY_DISCOVERYMANAGER_HPP
-#define	AGENT_COMPUTE_DISCOVERY_DISCOVERYMANAGER_HPP
+#pragma once
 
 #include "agent-framework/discovery/discovery.hpp"
 
 #include <memory>
 
 namespace ipmi {
-    class ManagementController;
+class ManagementController;
 }
 
 namespace agent {
 namespace compute {
-
 namespace discovery {
 
 /*!
- * @brief Implementation of initial discovery. Gets component id, translates it
- * to IP and port number. After that performs discovery of the module.
+ * @brief Implementation of initial discovery.
+ *
+ * Gets component id, translates it to IP and port number.
+ * After that performs discovery of the module.
  */
-class DiscoveryManager final : public ::agent_framework::discovery::Discovery {
+class DiscoveryManager : public ::agent_framework::discovery::Discovery {
 private:
     std::unique_ptr<ipmi::ManagementController> m_mc;
 
 public:
 
     /*!
-     *  @brief Default constructor.
-     *  Initializes ipmitool based implementation of ManagementController
+     * @brief Default constructor.
+     * Initializes ipmitool based implementation of ManagementController
      */
     DiscoveryManager();
 
     /*!
-     * @brief Sets the ipmi::ManagementController implementation.
+     * @brief Constructor.
+     * Sets the ipmi::ManagementController implementation.
+     *
+     * @param mc Unique pointer of IPMI management controller
      */
     DiscoveryManager(std::unique_ptr<ipmi::ManagementController>& mc);
 
@@ -64,12 +62,19 @@ public:
     /*!
      * @brief Default destructor.
      */
-     ~DiscoveryManager();
+    ~DiscoveryManager();
 
-    void discovery(const std::string& module) override;
+    virtual void discovery(const std::string& module) override;
+
+protected:
+
+    /* Returns std::tuple<status, region data stored in std::vector> */
+    std::tuple<bool, std::vector<std::uint8_t>> read_mdr_data(std::uint16_t bytes_to_read);
+
+    /* Returns std::tuple<status, region size to read> */
+    std::tuple<bool, std::uint16_t> get_mdr_data_region();
 };
 
 }
 }
 }
-#endif	/* DISCOVERYMANAGER_HPP */

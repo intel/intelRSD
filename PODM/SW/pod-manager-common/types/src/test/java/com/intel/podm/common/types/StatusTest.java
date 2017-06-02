@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,47 +16,51 @@
 
 package com.intel.podm.common.types;
 
-import com.google.common.collect.ImmutableMap;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.intel.podm.common.types.Health.Critical;
+import static com.intel.podm.common.types.Health.CRITICAL;
 import static com.intel.podm.common.types.Health.OK;
-import static com.intel.podm.common.types.Health.Warning;
+import static com.intel.podm.common.types.Health.WARNING;
 import static com.intel.podm.common.types.State.ABSENT;
 import static com.intel.podm.common.types.State.DISABLED;
 import static com.intel.podm.common.types.State.ENABLED;
-import static com.intel.podm.common.types.State.OFFLINE;
+import static com.intel.podm.common.types.State.UNAVAILABLE_OFFLINE;
 import static com.intel.podm.common.types.Status.fromString;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
+@SuppressWarnings({"checkstyle:MethodName", "checkstyle:MethodCount"})
 public class StatusTest {
 
     @DataProvider(name = "statusStrings")
     private static Object[][] statusStrings() {
         return new Object[][] {
                 {new Status(ENABLED, OK, OK), "State=Enabled,Health=OK,HealthRollup=OK" },
-                {new Status(DISABLED, null, Critical), "State=Disabled,HealthRollup=Critical"},
-                {new Status(ABSENT, Warning, null), "State=Absent,Health=Warning"},
-                {new Status(OFFLINE, null, null), "State=UnavailableOffline"},
+                {new Status(DISABLED, null, CRITICAL), "State=Disabled,HealthRollup=CRITICAL"},
+                {new Status(ABSENT, WARNING, null), "State=Absent,Health=WARNING"},
+                {new Status(UNAVAILABLE_OFFLINE, null, null), "State=UnavailableOffline"},
                 {new Status(null, null, null), null},
-                {new Status(null, Warning, OK), "Health=Warning,HealthRollup=OK"}
+                {new Status(null, WARNING, OK), "Health=WARNING,HealthRollup=OK"}
         };
     }
 
-
     @Test
     public void fromNullString_ShouldReturnNull() {
-        assertNull(fromString(null));
+        Status expected = new Status(null, null, null);
+        Status status = fromString(null);
+        assertEquals(status, expected);
     }
 
     @Test
     public void fromEmptyString_ShouldThrow() {
-        assertNull(fromString(""));
+        Status expected = new Status(null, null, null);
+        Status status = fromString("");
+        assertEquals(status, expected);
     }
 
     @Test
@@ -100,25 +104,32 @@ public class StatusTest {
         assertEquals(status, expected);
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = ".*State value is incorrect.*")
-    public void fromStringWithWrongState_ShouldThrowWithProperMessage() {
+    @Test
+    public void fromStringWithWrongState_ShouldReturnNullState() {
         String statusString = "State=Online";
 
-        fromString(statusString);
+        Status status = fromString(statusString);
+        assertNull(status.getState());
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = ".*Health value is incorrect.*")
-    public void fromStringWithWrongHealthValue_ShouldThrowWithProperMessage() {
+    @Test
+    public void fromStringWithWrongHealthValue_ShouldReturnHealthNull() {
         String statusString = "State=Enabled,Health=OKAY,HealthRollup=OK";
 
-        fromString(statusString);
+        Status status = fromString(statusString);
+        assertNotNull(status.getState());
+        assertNotNull(status.getHealthRollup());
+        assertNull(status.getHealth());
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = ".*Health value is incorrect.*")
-    public void fromStringWithWrongHealthRollupValue_ShouldThrowWithProperMessage() {
+    @Test
+    public void fromStringWithWrongHealthRollupValue_ShouldReturnHealthRollupNull() {
         String statusString = "State=Enabled,Health=OK,HealthRollup=OKAY";
 
-        fromString(statusString);
+        Status status = fromString(statusString);
+        assertNotNull(status.getState());
+        assertNotNull(status.getHealth());
+        assertNull(status.getHealthRollup());
     }
 
     @Test(dataProvider = "statusStrings")
@@ -134,10 +145,10 @@ public class StatusTest {
 
     @Test
     public void fromMapWithMissingState_ShouldReturnProperInstance() {
-        Map<String, String> map = new ImmutableMap.Builder().
-                put("Health", "OK").
-                put("HealthRollup", "OK").
-                build();
+        Map<String, String> map = new HashMap<String, String>() { {
+            put("Health", "OK");
+            put("HealthRollup", "OK");
+        } };
         Status expected = new Status(null, OK, OK);
         Status status = Status.fromMap(map);
         assertEquals(status, expected);
@@ -146,8 +157,17 @@ public class StatusTest {
     @Test
     public void fromEmptyMap_ShouldReturnNull() {
         Map<String, String> map = new HashMap<>();
+        Status expected = new Status(null, null, null);
         Status status = Status.fromMap(map);
+        assertEquals(status, expected);
+    }
 
-        assertNull(status);
+    @Test
+    public void fromStateLegacyOffline_ShouldReturnStateUnavailableOffline() {
+        String statusString = "State=Offline";
+        Status expected = new Status(UNAVAILABLE_OFFLINE, null, null);
+
+        Status status = fromString(statusString);
+        assertEquals(status, expected);
     }
 }

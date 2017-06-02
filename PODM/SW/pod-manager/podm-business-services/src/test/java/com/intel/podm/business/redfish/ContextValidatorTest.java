@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName"})
 public class ContextValidatorTest {
-
     /**
      * NUll parent context may be acceptable in some cases by design but it should not be considered as valid context in general.
      * If you need such functionality like checking whether context is valid or null, please provide new method "isValidOrNull".
@@ -83,9 +83,9 @@ public class ContextValidatorTest {
         ContextValidator sut = new ContextValidator();
         sut.genericDao = mock(GenericDao.class);
 
-        sut.contextTypeToDomainObjectMapper = mock(ContextTypeToDomainObjectMapper.class);
-        when(sut.contextTypeToDomainObjectMapper.get(PROCESSOR)).thenReturn((Class) Processor.class);
-        when(sut.contextTypeToDomainObjectMapper.get(MANAGER)).thenReturn((Class) Manager.class);
+        sut.contextTypeToEntityMapper = mock(ContextTypeToEntityMapper.class);
+        when(sut.contextTypeToEntityMapper.get(PROCESSOR)).thenReturn((Class) Processor.class);
+        when(sut.contextTypeToEntityMapper.get(MANAGER)).thenReturn((Class) Manager.class);
 
         return sut;
     }

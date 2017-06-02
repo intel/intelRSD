@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,14 +26,15 @@
  * @brief SchemaProperty interface
  * */
 
-#ifndef CONFIGURATION_SCHEMA_PROPERTY_HPP
-#define CONFIGURATION_SCHEMA_PROPERTY_HPP
+#pragma once
 
 #include "schema_errors.hpp"
 #include <vector>
 #include <memory>
 
-namespace json { class Value; }
+namespace json {
+class Value;
+}
 
 namespace configuration {
 
@@ -61,6 +62,7 @@ public:
     /*!
      * @brief Construct SchemaProperty object for given name
      * @param path Property path
+     * @param mandatory Property is mandatory
      */
     explicit SchemaProperty(const std::string& path, bool mandatory);
 
@@ -72,37 +74,42 @@ public:
 
     /*!
      * @brief Validate given JSON object
-     * @param value JSON object
-     * @return Error object
-     */
-    SchemaErrors::Error validate(const json::Value& value) const;
+     * @param[in] value JSON object
+     * @param errors Collection of errors
+     * */
+    void validate(const json::Value& value, SchemaErrors& errors) const;
 
     /*!
      * @brief Return number of validator assigned to property
      * @return Number of validators
-     */
-    std::size_t validator_count() const { return m_validators.size(); }
+     * */
+    std::size_t validator_count() const {
+        return m_validators.size();
+    }
 
     /*!
      * @brief Get property path
      * @return Property path
      */
-    const std::string& get_path() const { return m_path; }
+    const std::string& get_path() const {
+        return m_path;
+    }
 
     /*!
-     * @brief Get property name
-     * @return Property name
+     * @brief Is property mandatory
+     * @return Property mandatory
      */
-    bool is_mandatory() const { return m_mandatory; }
+    bool is_mandatory() const {
+        return m_mandatory;
+    }
 
 private:
-    /*! validator list type */
-    using validators_t = std::vector<ValidatorJsonSPtr>;
+    /*! Validator list type */
+    using Validators = std::vector<ValidatorJsonSPtr>;
 
-    std::string m_path;
-    bool m_mandatory;
-    validators_t m_validators{};
+    std::string m_path{};
+    bool m_mandatory{};
+    Validators m_validators{};
 };
 }
 
-#endif /* CONFIGURATION_SCHEMA_PROPERTY_HPP */

@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ int fill_array_elem(json_t *array, char *attr_name, void *value_ptr, json_type t
 		default:
 			return -1;
 	}
-	
+
 	json_object_add(elem, JRPC_ACTION_ATTR_NAME, json_string(attr_name));
 	json_object_add(elem, JRPC_ACTION_VALUE, obj);
 
@@ -225,6 +225,25 @@ result_t am_set_rack_puid(int64 puid)
 
 	fill_array_elem(attr_array, JRPC_RACK_PUID, &puid, JSON_INTEGER);
 	fill_jrpc_action_pkg(&req_pkg, AMACTION_SET_RACK_PUID, attr_array);
+
+	rc = send_msg_to_asset_module(&req_pkg, &rsp_pkg, DO_ACTION);
+
+	jrpc_req_pkg_free(&req_pkg);
+	jrpc_rsp_pkg_free(&rsp_pkg);
+
+	return rc;
+}
+
+result_t am_set_rack_location_id(char* rack_location_id)
+{
+	int rc = -1;
+	jrpc_req_pkg_t req_pkg = {};
+	jrpc_rsp_pkg_t rsp_pkg = {};
+
+	json_t *attr_array = json_array();
+
+	fill_array_elem(attr_array, JRPC_RACK_LOCATION_ID, rack_location_id, JSON_STRING);
+	fill_jrpc_action_pkg(&req_pkg, AMACTION_SET_RACK_LOCATION_ID, attr_array);
 
 	rc = send_msg_to_asset_module(&req_pkg, &rsp_pkg, DO_ACTION);
 

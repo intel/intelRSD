@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,36 @@
 
 package com.intel.podm.allocation.strategy.matcher;
 
-import com.intel.podm.business.dto.redfish.RequestedMemory;
-import com.intel.podm.business.dto.redfish.RequestedNode;
-import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Memory;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
+import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.templates.requestednode.RequestedNodeWithMemoryModules;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.intel.podm.business.entities.redfish.ComputerSystem.MemoryModuleFromMemorySummary.GIB_TO_MIB_RATIO;
 import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.ContextType.MEMORY;
+import static com.intel.podm.common.types.Id.id;
 import static com.intel.podm.common.types.MemoryDeviceType.DDR3;
 import static com.intel.podm.common.types.MemoryDeviceType.SDRAM;
-import static com.intel.podm.common.types.Id.id;
 import static com.intel.podm.templates.assets.MemoryModulesCreation.createAvailableMemory;
 import static com.intel.podm.templates.assets.MemoryModulesCreation.createRequestedMemory;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName", "checkstyle:MethodCount"})
 public class MemoryMatcherTest {
+    private static final BigDecimal TOTAL_SYSTEM_MEMORY_GIB = new BigDecimal(8);
     private MemoryMatcher memoryMatcher;
 
     @BeforeClass
@@ -53,13 +56,13 @@ public class MemoryMatcherTest {
     @Test
     public void whenRequestingMoreThanAvailable_shouldNotMatch() {
         RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(
-                createRequestedMemory(DDR3, 500, 200, 10, "Intel", contextOf(id(1), MEMORY)),
-                createRequestedMemory(SDRAM, 500, 200, 10, "Intel", contextOf(id(2), MEMORY))
+                createRequestedMemory(DDR3, 500, 200, new BigDecimal(10), "Intel", contextOf(id(1), MEMORY)),
+                createRequestedMemory(SDRAM, 500, 200, new BigDecimal(10), "Intel", contextOf(id(2), MEMORY))
         ));
 
-        List<Memory> availableMemoryModules = asList(
+        Set<Memory> availableMemoryModules = new HashSet<>(singletonList(
                 createAvailableMemory(DDR3, 500, 200, 10, "Intel", id(1))
-        );
+        ));
 
         assertFalse(memoryMatcher.matches(requestedNode, createComputerSystemWithMemoryModules(availableMemoryModules)));
     }
@@ -67,16 +70,16 @@ public class MemoryMatcherTest {
     @Test
     public void whenRequestingMultipleMemoryModulesWithSatisfiedAvailable_shouldMatch() {
         RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(
-                createRequestedMemory(DDR3, 400, 200, 300, "Intel", contextOf(id(4), MEMORY)),
-                createRequestedMemory(SDRAM, 400, 200, 400, "Intel", contextOf(id(1), MEMORY))
+                createRequestedMemory(DDR3, 400, 200, new BigDecimal(300), "Intel", contextOf(id(4), MEMORY)),
+                createRequestedMemory(SDRAM, 400, 200, new BigDecimal(400), "Intel", contextOf(id(1), MEMORY))
         ));
 
-        List<Memory> availableMemoryModules = asList(
+        Set<Memory> availableMemoryModules = new HashSet<>(asList(
                 createAvailableMemory(SDRAM, 400, 200, 400, "Intel", id(1)),
                 createAvailableMemory(DDR3, 400, 200, 150, "Intel", id(2)),
                 createAvailableMemory(DDR3, 400, 200, 350, "Intel", id(3)),
                 createAvailableMemory(DDR3, 400, 200, 300, "Intel", id(4))
-        );
+        ));
 
         assertTrue(memoryMatcher.matches(requestedNode, createComputerSystemWithMemoryModules(availableMemoryModules)));
     }
@@ -149,7 +152,7 @@ public class MemoryMatcherTest {
     @Test
     public void whenAtLeastSizeGibRequestIsSatisfied_shouldMatch() {
         shouldMatch(
-                createRequestedMemory(null, null, null, 100, null),
+                createRequestedMemory(null, null, null, new BigDecimal(100), null),
                 createAvailableMemory(null, null, null, 101, null)
         );
     }
@@ -157,7 +160,7 @@ public class MemoryMatcherTest {
     @Test
     public void whenAtLeastSizeGibRequestIsNotSatisfied_shouldNotMatch() {
         shouldNotMatch(
-                createRequestedMemory(null, null, null, 100, null),
+                createRequestedMemory(null, null, null, new BigDecimal(100), null),
                 createAvailableMemory(null, null, null, 99, null)
         );
     }
@@ -196,28 +199,26 @@ public class MemoryMatcherTest {
 
     @Test
     public void whenNoMemoryModulesAndTotalSystemMemoryIsPresentAndIsSatisfied_shouldMatch() {
-        int totalSystemMemoryGiB = 8;
-        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(totalSystemMemoryGiB);
-        RequestedNode requestedNode = new RequestedNodeWithMemoryModules(
-                asList(createRequestedMemory(null, null, null, totalSystemMemoryGiB * GIB_TO_MIB_RATIO, null)));
+        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(TOTAL_SYSTEM_MEMORY_GIB);
+        RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(createRequestedMemory(null, null, null,
+                    TOTAL_SYSTEM_MEMORY_GIB.multiply(GIB_TO_MIB_RATIO), null)));
 
         assertEquals(memoryMatcher.matches(requestedNode, computerSystemWithMemoryModules), true);
     }
 
     @Test
     public void whenNoMemoryModulesAndTotalSystemMemoryIsPresentAndNotSatisfied_shouldNotMatch() {
-        int totalSystemMemoryGiB = 8;
-        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(totalSystemMemoryGiB);
+        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(TOTAL_SYSTEM_MEMORY_GIB);
 
-        RequestedNode requestedNode = new RequestedNodeWithMemoryModules(
-                asList(createRequestedMemory(null, null, null, totalSystemMemoryGiB * GIB_TO_MIB_RATIO + 1, null)));
+        RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(createRequestedMemory(null, null, null,
+                    TOTAL_SYSTEM_MEMORY_GIB.multiply(GIB_TO_MIB_RATIO).add(new BigDecimal(1)), null)));
 
         assertEquals(memoryMatcher.matches(requestedNode, computerSystemWithMemoryModules), false);
     }
 
     @Test
     public void whenNoMemoryModulesAndTotalSystemMemoryIsPresentAndMemoryDeviceTypeRequested_shouldNotMatch() {
-        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(8);
+        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(TOTAL_SYSTEM_MEMORY_GIB);
 
         RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(createRequestedMemory(DDR3, null, null, null, null)));
 
@@ -226,7 +227,7 @@ public class MemoryMatcherTest {
 
     @Test
     public void whenNoMemoryModulesAndTotalSystemMemoryIsPresentAndAchievableSpeedMhzRequested_shouldNotMatch() {
-        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(8);
+        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(TOTAL_SYSTEM_MEMORY_GIB);
 
         RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(createRequestedMemory(null, 100, null, null, null)));
 
@@ -235,7 +236,7 @@ public class MemoryMatcherTest {
 
     @Test
     public void whenNoMemoryModulesAndTotalSystemMemoryIsPresentAndDataWidthBitsRequested_shouldNotMatch() {
-        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(8);
+        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(TOTAL_SYSTEM_MEMORY_GIB);
 
         RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(createRequestedMemory(null, null, 100, null, null)));
 
@@ -244,7 +245,7 @@ public class MemoryMatcherTest {
 
     @Test
     public void whenNoMemoryModulesAndTotalSystemMemoryIsPresentAndManufacturerRequested_shouldNotMatch() {
-        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(8);
+        ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(TOTAL_SYSTEM_MEMORY_GIB);
 
         RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(createRequestedMemory(null, null, null, null, "Kingston")));
 
@@ -255,35 +256,36 @@ public class MemoryMatcherTest {
     public void whenNoMemoryModulesAndTotalSystemMemoryIsNull_shouldNotMatch() {
         ComputerSystem computerSystemWithMemoryModules = createComputerSystemWithTotalSystemMemory(null);
 
-        RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(createRequestedMemory(null, null, null, 8 * GIB_TO_MIB_RATIO, null)));
+        RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(createRequestedMemory(null, null, null,
+            TOTAL_SYSTEM_MEMORY_GIB.multiply(GIB_TO_MIB_RATIO), null)));
 
         assertEquals(memoryMatcher.matches(requestedNode, computerSystemWithMemoryModules), false);
     }
 
 
-    private void shouldMatch(RequestedMemory requestedMemory, Memory availableMemory) {
+    private void shouldMatch(RequestedNode.Memory requestedMemory, Memory availableMemory) {
         RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(requestedMemory));
-        List<Memory> availableMemoryModules = asList(availableMemory);
+        Set<Memory> availableMemoryModules = new HashSet<>(singletonList(availableMemory));
 
         assertEquals(memoryMatcher.matches(requestedNode, createComputerSystemWithMemoryModules(availableMemoryModules)), true);
     }
 
-    private void shouldNotMatch(RequestedMemory requestedMemory, Memory availableMemory) {
+    private void shouldNotMatch(RequestedNode.Memory requestedMemory, Memory availableMemory) {
         RequestedNode requestedNode = new RequestedNodeWithMemoryModules(asList(requestedMemory));
-        List<Memory> availableMemoryModules = asList(availableMemory);
+        Set<Memory> availableMemoryModules = new HashSet<>(singletonList(availableMemory));
 
         assertEquals(memoryMatcher.matches(requestedNode, createComputerSystemWithMemoryModules(availableMemoryModules)), false);
     }
 
-    private static ComputerSystem createComputerSystemWithMemoryModules(List<Memory> memoryModules) {
+    private static ComputerSystem createComputerSystemWithMemoryModules(Set<Memory> memoryModules) {
         ComputerSystem computerSystemMock = mock(ComputerSystem.class);
         when(computerSystemMock.getMemoryModules()).thenReturn(memoryModules);
 
         return computerSystemMock;
     }
 
-    private static ComputerSystem createComputerSystemWithTotalSystemMemory(Integer totalSystemMemory) {
-        ComputerSystem computerSystemMock = createComputerSystemWithMemoryModules(new ArrayList<>());
+    private static ComputerSystem createComputerSystemWithTotalSystemMemory(BigDecimal totalSystemMemory) {
+        ComputerSystem computerSystemMock = createComputerSystemWithMemoryModules(new HashSet<>());
         when(computerSystemMock.getTotalSystemMemoryGiB()).thenReturn(totalSystemMemory);
 
         ComputerSystem.MemoryModuleFromMemorySummary memoryModuleFromMemorySummary = new ComputerSystem.MemoryModuleFromMemorySummary(computerSystemMock);

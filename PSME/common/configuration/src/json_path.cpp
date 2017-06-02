@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,10 +43,12 @@ void JsonPath::pop_key() {
 std::string JsonPath::get_path() {
     std::string path{};
     for (const auto& val : m_keys) {
-        if (val.empty()) { continue; }
+        if (val.empty()) {
+            continue;
+        }
 
         if (!path.empty()) {
-            path += ":";
+            path += "/";
         }
         path += val;
     }

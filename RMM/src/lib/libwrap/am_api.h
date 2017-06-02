@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ result_t am_peripheral_hard_reset(int64 cm_idx, int64 peripheral_id, int32 * res
 result_t am_psme_soft_reset(int64 dz_idx, int64 drawer_lid, int32 * result);
 result_t am_post_psu_by_node_id(int64 pzone_idx, int64 psu_idx, int64 request_enabled_state);
 result_t am_set_rack_puid(int64 puid);
+result_t am_set_rack_location_id(char* rack_location_id);
 
 #if 0
 int am_set_id_field(memdb_integer *node_id, int64 field_type, int64 field_instance, int64 byte_num, int32 *data);

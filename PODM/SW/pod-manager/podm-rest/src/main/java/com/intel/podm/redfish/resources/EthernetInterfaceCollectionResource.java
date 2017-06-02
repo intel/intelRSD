@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,24 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.EthernetInterfaceService;
+import com.intel.podm.business.dto.redfish.EthernetInterfaceDto;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import static com.intel.podm.business.services.context.ContextType.MANAGER;
-import static com.intel.podm.rest.resources.PathParamConstants.ETHERNET_INTERFACE_ID;
+import static com.intel.podm.business.services.context.PathParamConstants.ETHERNET_INTERFACE_ID;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class EthernetInterfaceCollectionResource extends BaseResource {
     @Inject
-    private EthernetInterfaceService service;
+    private ReaderService<EthernetInterfaceDto> readerService;
 
     @Override
     public Object get() {
-        Context context = getCurrentContext();
-        return getOrThrow(() -> {
-            if (MANAGER.equals(context.getType())) {
-                return service.getEthernetInterfacesCollectionForManager(context);
-            } else {
-                return service.getEthernetInterfacesCollectionForComputerSystem(context);
-            }
-        });
+        return getOrThrow(() -> readerService.getCollection(getCurrentContext()));
     }
 
     @Path(ETHERNET_INTERFACE_ID)

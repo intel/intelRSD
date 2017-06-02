@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -58,9 +59,7 @@ public class ResourceLinksImpl implements ResourceLinks {
 
     @Override
     public Iterable<ResourceSupplier> get(String name) throws ExternalServiceApiReaderException {
-        if (name == null) {
-            throw new IllegalArgumentException("Supplied name cannot be null!");
-        }
+        requiresNonNull(name, "name");
 
         if (!methods.containsKey(name)) {
             throw new IllegalArgumentException("No method found for given name");

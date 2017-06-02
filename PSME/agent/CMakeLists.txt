@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/storage)
     add_subdirectory(storage)
 endif()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/storage-ref)
-    add_subdirectory(storage-ref EXCLUDE_FROM_ALL)
-endif()
-
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/network AND FM10K_ACL_FOUND)
-        add_subdirectory(network)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/network)
+    add_subdirectory(network)
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/chassis)
     add_subdirectory(chassis)
+endif()
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/pnc)
+    add_subdirectory(pnc)
 endif()

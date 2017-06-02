@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,21 @@
 
 package com.intel.podm.common.types;
 
-import static java.lang.Long.compare;
-import static java.lang.Long.parseLong;
-import static java.lang.Long.valueOf;
+import java.io.Serializable;
 
-public final class Id implements Comparable<Id> {
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 
-    private final long value;
+public final class Id implements Comparable<Id>, Serializable {
+    private static final long serialVersionUID = -4051352713257896901L;
+
+    private final String value;
 
     private Id(long value) {
+        this.value = Long.toString(value);
+    }
+
+    private Id(String value) {
+        requiresNonNull(value, "value");
         this.value = value;
     }
 
@@ -32,18 +38,22 @@ public final class Id implements Comparable<Id> {
         return new Id(value);
     }
 
-    public long getValue() {
-        return value;
+    public static Id id(String value) {
+        return new Id(value);
     }
 
     /* used by JAX-RS */
     public static Id fromString(String value) {
-        return new Id(parseLong(value));
+        return new Id(value);
+    }
+
+    public String getValue() {
+        return value;
     }
 
     @Override
     public String toString() {
-        return Long.toString(value);
+        return value;
     }
 
     @Override
@@ -57,17 +67,16 @@ public final class Id implements Comparable<Id> {
         }
 
         Id id = (Id) o;
-
-        return value == id.value;
+        return value.equals(id.value);
     }
 
     @Override
     public int hashCode() {
-        return valueOf(value).hashCode();
+        return value.hashCode();
     }
 
     @Override
     public int compareTo(Id anotherId) {
-        return compare(value, anotherId.getValue());
+        return value.compareTo(anotherId.getValue());
     }
 }

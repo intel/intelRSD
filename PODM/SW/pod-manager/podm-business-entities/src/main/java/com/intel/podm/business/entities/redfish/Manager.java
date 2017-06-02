@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,207 +16,390 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.properties.Console;
-import com.intel.podm.business.entities.redfish.properties.GraphicalConsole;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.SuppressEvents;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.NetworkInterfacePossessor;
+import com.intel.podm.business.entities.redfish.embeddables.CommandShell;
+import com.intel.podm.business.entities.redfish.embeddables.GraphicalConsole;
+import com.intel.podm.business.entities.redfish.embeddables.SerialConsole;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.ManagerType;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.PowerState;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
-import java.util.Collection;
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.COMMAND_SHELL;
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.GRAPHIC_CONSOLE;
-import static com.intel.podm.business.entities.base.DomainObjectLink.MANAGER_IN_CHASSIS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.MANAGES;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.SERIAL_CONSOLE;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.uuidProperty;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.REQUIRED;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(REQUIRED)
-public class Manager extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<ManagerType> MANAGER_TYPE = enumProperty("managerType", ManagerType.class);
-    public static final DomainObjectProperty<UUID> SERVICE_ENTRY_POINT_UUID = uuidProperty("serviceEntryPointUuid");
-    public static final DomainObjectProperty<UUID> UUID = uuidProperty("uuid");
-    public static final DomainObjectProperty<String> MODEL = stringProperty("model");
-    public static final DomainObjectProperty<String> FIRMWARE_VERSION = stringProperty("firmwareVersion");
+@javax.persistence.Entity
+@Table(name = "manager", indexes = @Index(name = "idx_manager_entity_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
+public class Manager extends DiscoverableEntity implements NetworkInterfacePossessor {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "manager_type")
+    @Enumerated(STRING)
+    private ManagerType managerType;
+
+    @Column(name = "service_entry_point_uuid")
+    private UUID serviceEntryPointUuid;
+
+    @Column(name = "uuid")
+    private UUID uuid;
+
+    @Column(name = "model")
+    private String model;
+
+    @Column(name = "firmware_version")
+    private String firmwareVersion;
+
+    @Column(name = "power_state")
+    @Enumerated(STRING)
+    private PowerState powerState;
+
+    @SuppressEvents
+    @ManyToMany(mappedBy = "managers", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetInterface> ethernetInterfaces = new HashSet<>();
+
+    @ManyToMany(mappedBy = "managers", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<ComputerSystem> computerSystems = new HashSet<>();
+
+    @ManyToMany(mappedBy = "managers", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Switch> fabricSwitches = new HashSet<>();
+
+    @ManyToMany(mappedBy = "managers", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Chassis> managedChassis = new HashSet<>();
+
+    @ManyToMany(mappedBy = "managers", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitch> ethernetSwitches = new HashSet<>();
+
+    @ManyToMany(mappedBy = "managers", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<StorageService> storageServices = new HashSet<>();
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "serviceEnabled", column = @Column(name = "graphical_console_service_enabled")),
+        @AttributeOverride(name = "maxConcurrentSessions", column = @Column(name = "graphical_console_max_concurrent_sessions"))
+    })
+    private GraphicalConsole graphicalConsole;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "serviceEnabled", column = @Column(name = "serial_console_service_enabled")),
+        @AttributeOverride(name = "maxConcurrentSessions", column = @Column(name = "serial_console_max_concurrent_sessions"))
+    })
+    private SerialConsole serialConsole;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "serviceEnabled", column = @Column(name = "command_shell_service_enabled")),
+        @AttributeOverride(name = "maxConcurrentSessions", column = @Column(name = "command_shell_max_concurrent_sessions"))
+    })
+    private CommandShell commandShell;
+
+    @OneToOne(mappedBy = "manager", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private NetworkProtocol networkProtocol;
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "in_chassis_manager_id")
+    private Chassis inChassisManager;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public ManagerType getManagerType() {
-        return getProperty(MANAGER_TYPE);
+        return managerType;
     }
 
-    public void setManagerType(ManagerType type) {
-        setProperty(MANAGER_TYPE, type);
+    public void setManagerType(ManagerType managerType) {
+        this.managerType = managerType;
     }
 
     public UUID getServiceEntryPointUuid() {
-        return getProperty(SERVICE_ENTRY_POINT_UUID);
+        return serviceEntryPointUuid;
     }
 
     public void setServiceEntryPointUuid(UUID serviceEntryPointUuid) {
-        setProperty(SERVICE_ENTRY_POINT_UUID, serviceEntryPointUuid);
+        this.serviceEntryPointUuid = serviceEntryPointUuid;
     }
 
     public UUID getUuid() {
-        return getProperty(UUID);
+        return uuid;
     }
 
     public void setUuid(UUID uuid) {
-        setProperty(UUID, uuid);
+        this.uuid = uuid;
     }
 
     public String getModel() {
-        return getProperty(MODEL);
+        return model;
     }
 
     public void setModel(String model) {
-        setProperty(MODEL, model);
-    }
-
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
-    }
-
-    public GraphicalConsole getGraphicalConsole() {
-        return singleOrNull(getLinked(GRAPHIC_CONSOLE));
-    }
-
-    public void setGraphicalConsole(GraphicalConsole graphicalConsole) {
-        link(GRAPHIC_CONSOLE, graphicalConsole);
-    }
-
-    public Console getSerialConsole() {
-        return singleOrNull(getLinked(SERIAL_CONSOLE));
-    }
-
-    public void setSerialConsole(Console serialConsole) {
-        link(SERIAL_CONSOLE, serialConsole);
-    }
-
-    public Console getCommandShell() {
-        return singleOrNull(getLinked(COMMAND_SHELL));
-    }
-
-    public void setCommandShell(Console commandShell) {
-        link(COMMAND_SHELL, commandShell);
+        this.model = model;
     }
 
     public String getFirmwareVersion() {
-        return getProperty(FIRMWARE_VERSION);
+        return firmwareVersion;
     }
 
     public void setFirmwareVersion(String firmwareVersion) {
-        setProperty(FIRMWARE_VERSION, firmwareVersion);
+        this.firmwareVersion = firmwareVersion;
     }
 
-    public NetworkProtocol getNetworkProtocol() {
-        //TODO: single() ?
-        return singleOrNull(getLinked(CONTAINS, NetworkProtocol.class));
+    public PowerState getPowerState() {
+        return powerState;
     }
 
-    public void setNetworkProtocol(NetworkProtocol networkProtocol) {
-        link(CONTAINS, networkProtocol);
+    public void setPowerState(PowerState powerState) {
+        this.powerState = powerState;
     }
 
-    public Collection<EthernetInterface> getEthernetInterfaces() {
-        return getLinked(CONTAINS, EthernetInterface.class);
+    @Override
+    public Set<EthernetInterface> getEthernetInterfaces() {
+        return ethernetInterfaces;
     }
 
     public void addEthernetInterface(EthernetInterface ethernetInterface) {
-        link(CONTAINS, ethernetInterface);
+        requiresNonNull(ethernetInterface, "ethernetInterface");
+
+        ethernetInterfaces.add(ethernetInterface);
+        if (!ethernetInterface.getManagers().contains(this)) {
+            ethernetInterface.addManager(this);
+        }
     }
 
-    public Collection<ComputerSystem> getManagedComputerSystems() {
-        return getLinked(MANAGES, ComputerSystem.class);
+    public void unlinkEthernetInterface(EthernetInterface ethernetInterface) {
+        if (ethernetInterfaces.contains(ethernetInterface)) {
+            ethernetInterfaces.remove(ethernetInterface);
+            if (ethernetInterface != null) {
+                ethernetInterface.unlinkManager(this);
+            }
+        }
+    }
+
+    public Set<ComputerSystem> getComputerSystems() {
+        return computerSystems;
     }
 
     public void addComputerSystem(ComputerSystem computerSystem) {
-        link(MANAGES, computerSystem);
+        requiresNonNull(computerSystem, "computerSystem");
+
+        computerSystems.add(computerSystem);
+        if (!computerSystem.getManagers().contains(this)) {
+            computerSystem.addManager(this);
+        }
     }
 
-    public Collection<Chassis> getManagedChassisCollection() {
-        return getLinked(MANAGES, Chassis.class);
+    public void unlinkComputerSystem(ComputerSystem computerSystem) {
+        if (computerSystems.contains(computerSystem)) {
+            computerSystems.remove(computerSystem);
+            if (computerSystem != null) {
+                computerSystem.unlinkManager(this);
+            }
+        }
     }
 
-    public void addChassis(Chassis chassis) {
-        link(MANAGES, chassis);
+    public Set<Chassis> getManagedChassis() {
+        return managedChassis;
     }
 
-    public Chassis getManagerInChassis() {
-        return singleOrNull(getLinked(MANAGER_IN_CHASSIS, Chassis.class));
+    public void addManagedChassis(Chassis chassis) {
+        requiresNonNull(chassis, "chassis");
+
+        managedChassis.add(chassis);
+        if (!chassis.getManagers().contains(this)) {
+            chassis.addManager(this);
+        }
     }
 
-    public void setManagerInChassis(Chassis chassis) {
-        link(MANAGER_IN_CHASSIS, chassis);
+    public void unlinkManagedChassis(Chassis chassis) {
+        if (managedChassis.contains(chassis)) {
+            managedChassis.remove(chassis);
+            if (chassis != null) {
+                chassis.unlinkManager(this);
+            }
+        }
     }
 
-    public Collection<EthernetSwitch> getManagedEthernetSwitches() {
-        return getLinked(MANAGES, EthernetSwitch.class);
+    public Set<Switch> getSwitches() {
+        return fabricSwitches;
+    }
+
+    public void addSwitch(Switch fabricSwitch) {
+        requiresNonNull(fabricSwitch, "fabricSwitch");
+
+        fabricSwitches.add(fabricSwitch);
+        if (!fabricSwitch.getManagers().contains(this)) {
+            fabricSwitch.addManager(this);
+        }
+    }
+
+    public void unlinkSwitch(Switch fabricSwitch) {
+        if (fabricSwitches.contains(fabricSwitch)) {
+            fabricSwitches.remove(fabricSwitch);
+            if (fabricSwitch != null) {
+                fabricSwitch.unlinkManager(this);
+            }
+        }
+    }
+
+    public Set<EthernetSwitch> getEthernetSwitches() {
+        return ethernetSwitches;
     }
 
     public void addEthernetSwitch(EthernetSwitch ethernetSwitch) {
-        link(MANAGES, ethernetSwitch);
+        requiresNonNull(ethernetSwitch, "ethernetSwitch");
+
+        ethernetSwitches.add(ethernetSwitch);
+        if (!ethernetSwitch.getManagers().contains(this)) {
+            ethernetSwitch.addManager(this);
+        }
     }
 
-    public Collection<StorageService> getManagedServices() {
-        return getLinked(MANAGES, StorageService.class);
+    public void unlinkEthernetSwitch(EthernetSwitch ethernetSwitch) {
+        if (ethernetSwitches.contains(ethernetSwitch)) {
+            ethernetSwitches.remove(ethernetSwitch);
+            if (ethernetSwitch != null) {
+                ethernetSwitch.unlinkManager(this);
+            }
+        }
+    }
+
+    public Set<StorageService> getStorageServices() {
+        return storageServices;
     }
 
     public void addStorageService(StorageService storageService) {
-        link(MANAGES, storageService);
+        requiresNonNull(storageService, "storageService");
+
+        storageServices.add(storageService);
+        if (!storageService.getManagers().contains(this)) {
+            storageService.addManager(this);
+        }
+    }
+
+    public void unlinkStorageService(StorageService storageService) {
+        if (storageServices.contains(storageService)) {
+            storageServices.remove(storageService);
+            if (storageService != null) {
+                storageService.unlinkManager(this);
+            }
+        }
+    }
+
+    public GraphicalConsole getGraphicalConsole() {
+        return graphicalConsole;
+    }
+
+    public void setGraphicalConsole(GraphicalConsole graphicalConsole) {
+        this.graphicalConsole = graphicalConsole;
+    }
+
+    public SerialConsole getSerialConsole() {
+        return serialConsole;
+    }
+
+    public void setSerialConsole(SerialConsole serialConsole) {
+        this.serialConsole = serialConsole;
+    }
+
+    public CommandShell getCommandShell() {
+        return commandShell;
+    }
+
+    public void setCommandShell(CommandShell commandShell) {
+        this.commandShell = commandShell;
+    }
+
+    public NetworkProtocol getNetworkProtocol() {
+        return networkProtocol;
+    }
+
+    public void setNetworkProtocol(NetworkProtocol networkProtocol) {
+        if (!Objects.equals(this.networkProtocol, networkProtocol)) {
+            unlinkNetworkProtocol(this.networkProtocol);
+            this.networkProtocol = networkProtocol;
+            if (networkProtocol != null && !this.equals(networkProtocol.getManager())) {
+                networkProtocol.setManager(this);
+            }
+        }
+    }
+
+    public void unlinkNetworkProtocol(NetworkProtocol networkProtocol) {
+        if (Objects.equals(this.networkProtocol, networkProtocol)) {
+            this.networkProtocol = null;
+            if (networkProtocol != null) {
+                networkProtocol.unlinkManager(this);
+            }
+        }
+    }
+
+    public Chassis getInChassisManager() {
+        return inChassisManager;
+    }
+
+    public void setInChassisManager(Chassis chassis) {
+        if (!Objects.equals(this.inChassisManager, chassis)) {
+            unlinkInChassisManager(this.inChassisManager);
+            this.inChassisManager = chassis;
+            if (chassis != null && !chassis.getInChassisManagers().contains(this)) {
+                chassis.addInChassisManager(this);
+            }
+        }
+    }
+
+    public void unlinkInChassisManager(Chassis chassis) {
+        if (Objects.equals(this.inChassisManager, chassis)) {
+            this.inChassisManager = null;
+            if (chassis != null) {
+                chassis.unlinkInChassisManager(this);
+            }
+        }
     }
 
     @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
+    public void preRemove() {
+        unlinkCollection(ethernetInterfaces, this::unlinkEthernetInterface);
+        unlinkCollection(computerSystems, this::unlinkComputerSystem);
+        unlinkCollection(managedChassis, this::unlinkManagedChassis);
+        unlinkCollection(ethernetSwitches, this::unlinkEthernetSwitch);
+        unlinkCollection(storageServices, this::unlinkStorageService);
+        unlinkNetworkProtocol(networkProtocol);
+        unlinkInChassisManager(inChassisManager);
+        unlinkCollection(fabricSwitches, this::unlinkSwitch);
     }
 
     @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public boolean containedBy(Entity possibleParent) {
+        return false;
     }
 }

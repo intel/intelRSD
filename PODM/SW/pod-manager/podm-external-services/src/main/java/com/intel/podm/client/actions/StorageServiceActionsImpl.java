@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.actions;
 
-import com.intel.podm.client.WebClientImpl;
 import com.intel.podm.client.api.ExternalServiceApiActionException;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.WebClient;
@@ -25,6 +24,7 @@ import com.intel.podm.client.api.actions.RemoteTargetResourceCreationRequest;
 import com.intel.podm.client.api.actions.StorageServiceActions;
 import com.intel.podm.client.api.resources.redfish.LogicalDriveResource;
 import com.intel.podm.common.types.State;
+import com.intel.podm.config.base.dto.ExternalServiceConfig;
 
 import java.net.URI;
 import java.util.Optional;
@@ -34,16 +34,14 @@ import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 
 public class StorageServiceActionsImpl implements StorageServiceActions {
-    private static final int CHECK_DELAY_MS = 5000;
 
-    private WebClient webClient;
+    private final WebClient webClient;
 
-    public StorageServiceActionsImpl(URI baseUri) {
-        this(WebClientImpl.createRetryable(baseUri));
-    }
+    private final ExternalServiceConfig config;
 
-    public StorageServiceActionsImpl(WebClient webClient) {
+    StorageServiceActionsImpl(ExternalServiceConfig config, WebClient webClient) {
         this.webClient = webClient;
+        this.config = config;
     }
 
     @Override
@@ -52,8 +50,8 @@ public class StorageServiceActionsImpl implements StorageServiceActions {
         URI logicalDriveUri = createLogicalDrive(storageServiceUri, request);
         URI path = create(logicalDriveUri.getPath());
 
-        try (WebClient client = WebClientImpl.createRetryable(webClient.getBaseUri())) {
-            LogicalDriveResource drive = (LogicalDriveResource) client.get(path);
+        try {
+            LogicalDriveResource drive = (LogicalDriveResource) webClient.get(path);
             if (!drive.isBootable()) {
                 throw new ExternalServiceApiActionException("Logical Drive was created but is not bootable.", logicalDriveUri);
             }
@@ -74,7 +72,7 @@ public class StorageServiceActionsImpl implements StorageServiceActions {
         URI path = create(resourceUri.getPath());
 
         while (true) {
-            Optional<State> driveState = readDriveState(webClient.getBaseUri(), path);
+            Optional<State> driveState = readDriveState(path);
 
             if (driveState.isPresent()) {
                 switch (driveState.get()) {
@@ -87,12 +85,12 @@ public class StorageServiceActionsImpl implements StorageServiceActions {
                 }
             }
 
-            Thread.sleep(CHECK_DELAY_MS);
+            Thread.sleep(config.getCheckStatusAfterLogicalDriveCreationDelayMillis());
         }
     }
 
-    private Optional<State> readDriveState(URI baseUri, URI path) {
-        try (WebClient webClient = WebClientImpl.createRetryable(baseUri)) {
+    private Optional<State> readDriveState(URI path) {
+        try {
             LogicalDriveResource drive = (LogicalDriveResource) webClient.get(path);
             return ofNullable(drive.getStatus().getState());
         } catch (ExternalServiceApiReaderException e) {
@@ -104,5 +102,10 @@ public class StorageServiceActionsImpl implements StorageServiceActions {
     public URI createRemoteTarget(URI storageServiceUri, RemoteTargetResourceCreationRequest request) throws ExternalServiceApiActionException {
         URI targetUri = create(storageServiceUri.toString() + "/Targets");
         return webClient.post(targetUri, request);
+    }
+
+    @Override
+    public void close() {
+        webClient.close();
     }
 }

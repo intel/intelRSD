@@ -50,7 +50,7 @@ include_directories(SYSTEM
 
 add_subdirectory(src)
 # TODO - the unit test doesn't currently work
-# add_subdirectory(tests)
+add_subdirectory(tests)
 add_subdirectory(examples)
 
 install (DIRECTORY include/json DESTINATION include)

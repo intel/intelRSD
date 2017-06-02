@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ result_t libwrap_pack_pzone_coll_to_json(json_t *output, struct rest_uri_param *
 	members = (char *)malloc(zone_num * HREF_URL_LEN);
 	if (members == NULL) {
 		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
+		free(pzone_collections);
 		return RESULT_NO_NODE;
 	}
 	
@@ -51,6 +52,8 @@ result_t libwrap_pack_pzone_coll_to_json(json_t *output, struct rest_uri_param *
 	rs = libwrap_get_pzone_coll(pzone_collections, &pzone_num, param->host);
 	if (rs != RESULT_OK) {
 		update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
+		free(pzone_collections);
+		free(members);
 		return RESULT_GET_COLL_ERR;
 	}
 
@@ -84,7 +87,7 @@ result_t libwrap_pack_pzone_to_json(json_t *output, pzone_member_t *pzone_member
 	int8 id_str[8] = {0};
 	json_t *act_obj = NULL;
 	json_t *act_type = NULL;
-	int8 attr_str[REST_RACK_STRING_LEN];
+	int8 attr_str[REST_MAX_ODATA_LEN];
 
 	if ((output == NULL) || (pzone_member == NULL) || (NULL == param)) {
 		return RESULT_NONE_POINTER;
@@ -221,6 +224,7 @@ result_t libwrap_pack_pzone_to_json(json_t *output, pzone_member_t *pzone_member
 		json_t *act = NULL;
 		int32 enable_state = 0;
 		int32 health_state = 0;
+		int32 power_supply_index = 0;
 
 		cm_node_id = get_subnode_id_by_lid(cm_lid, 0, MC_TYPE_CM);
 		pzone_node_id = get_subnode_id_by_lid(pzone_lid, cm_node_id, MC_TYPE_PZONE);
@@ -230,11 +234,16 @@ result_t libwrap_pack_pzone_to_json(json_t *output, pzone_member_t *pzone_member
 				power_supply = json_object();
 				if (power_supply) {
 					/* "@odata.id": "/redfish/v1/Chassis/Rack/PowerZones/1/Power#/PowerSupplies/0" */
-					snprintf_s_ii(odata, sizeof(odata), "/redfish/v1/Chassis/Rack/PowerZones/%d/PowerZone#/PowerSupplies/%d", pzone_idx, i+1);
+					snprintf_s_ii(odata, sizeof(odata),
+						      "/redfish/v1/Chassis/Rack/PowerZones/%d/PowerZone#/PowerSupplies/%d",
+						      pzone_idx,
+						      power_supply_index++);
 					add_json_string(power_supply, RMM_JSON_ODATA_ID, odata);
 
 					/* "Name": "Power Supply 1" */
-					snprintf_s_i(name, sizeof(name), "Power Supply %d", i+1);
+					snprintf_s_i(name, sizeof(name),
+						     "Power Supply %d",
+						     power_supply_index);
 					add_json_string(power_supply, RMM_JSON_NAME, name);
 
 					/*
@@ -333,28 +342,86 @@ result_t libwrap_pack_pzone_to_json(json_t *output, pzone_member_t *pzone_member
 	return RESULT_OK;
 }
 
-
 static input_attr_t patch_pz_attrs[] = {
+	{"Description",         NULL}
 };
 
+result_t libwrap_update_put_pzone_info(json_t *req, put_pzone_t *put_info)
+{
+	result_t rs = RESULT_OK;
+	json_t *obj = NULL;
+	int32  i = 0;
+	uint32 ary_size = sizeof(patch_pz_attrs)/sizeof(input_attr_t);
 
-result_t libwrap_update_put_pzone_info(json_t* req, put_pzone_t* put_info) {
-	int32 i = 0;
-	uint32 ary_size = sizeof(patch_pz_attrs) / sizeof(input_attr_t);
-
-	if ((req == NULL) || (put_info == NULL)) {
+	if ((req == NULL) || (put_info == NULL))
 		return RESULT_NONE_POINTER;
-	}
 
-	for (i = 0; i < ary_size; i++) {
+	for (i = 0; i < ary_size; i++)
 		patch_pz_attrs[i].value = NULL;
-	}
 
-	if (libwrap_check_input_attrs(patch_pz_attrs, ary_size, req, NULL) != RESULT_OK) {
+	if (libwrap_check_input_attrs(patch_pz_attrs, ary_size, req, NULL) != RESULT_OK)
 		return RESULT_JSON_ARR_ERR;
+
+	obj = libwrap_get_attr_json(patch_pz_attrs, ary_size, "Description");
+	if (obj) {
+		int8 *input = NULL;
+		input = json_string_value(obj);
+		if (input && check_str_len(input, REST_DESC_LEN)) {
+			strncpy_safe(put_info->descr, input, REST_DESC_LEN, REST_DESC_LEN - 1);
+		} else {
+			return RESULT_JSON_ARR_ERR;
+		}
 	}
 
 	return RESULT_OK;
+}
+
+static uint32 get_power_zone_power_consumption(memdb_integer cm_id) {
+    struct node_info *dzones = NULL;
+    int dzones_num = 0;
+    memdb_integer dzone_id = 0;
+
+    struct node_info *drawers = NULL;
+    int drawers_num = 0;
+    memdb_integer drawer_id = 0;
+
+    memdb_integer curr_cm_id = 0;
+    uint32 p_pwr = 0;
+    uint32 d_pwr = 0;
+    result_t rc = RESULT_OK;
+    int i, j = 0;
+
+    // Get all DZones from the tree
+    dzones = libdb_list_node_by_type(DB_RMM, MC_TYPE_DZONE, MC_TYPE_DZONE, &dzones_num, memdb_filter, LOCK_ID_NULL);
+    if (dzones_num == 0) {
+        libdb_free_node(dzones);
+        return 0;
+    }
+
+    // Iterate through all Drawer Zones
+    for (i = 0; i < dzones_num; i++) {
+        dzone_id = dzones[i].node_id;
+        curr_cm_id = dzones[i].parent;
+        if (curr_cm_id == cm_id) {
+            // Iterate through all Drawers in Drawer Zones
+            drawers = libdb_list_subnode_by_type(DB_RMM, dzone_id, MC_TYPE_DRAWER,
+                                                 &drawers_num, &memdb_filter, LOCK_ID_NULL);
+            for(j = 0; j < drawers_num; j++) {
+                drawer_id = drawers[j].node_id;
+                rmm_log(DBG, "Attempting to read Drawer %d power consumption...\n", drawer_id);
+                rc = libwrap_get_drawer_power_consumption_by_node_id(drawer_id, &d_pwr);
+                if (RESULT_OK != rc) {
+                    rmm_log(DBG, "Cannot read Drawer %d power consumption\n", drawer_id);
+                    continue;
+                }
+                p_pwr += d_pwr;
+                rmm_log(DBG, "Drawer %d power consumption is %d\n", drawer_id, d_pwr);
+            }
+        }
+    }
+    libdb_free_node(dzones);
+
+    return p_pwr;
 }
 
 static result_t get_pzone_by_idx(uint32 pzone_idx, struct pzone_member *pzone_member)
@@ -382,8 +449,8 @@ static result_t get_pzone_by_idx(uint32 pzone_idx, struct pzone_member *pzone_me
 		PZONE_CREATE_DATE_STR, pzone_member->be.create_date, DATE_LEN);
 	get_db_info_string(DB_RMM, pzone_node_id,
 		PZONE_UPDATE_DATE_STR, pzone_member->be.update_date, DATE_LEN);
-	pzone_member->tot_power_consumption =
-		(uint32)get_db_info_num(DB_RMM, pzone_node_id, PZONE_TT_PWR_CONSUM_STR);
+
+    pzone_member->tot_power_consumption = get_power_zone_power_consumption(cm_node_id);
 	pzone_member->tot_power_cap =
 		(uint32)get_db_info_num(DB_RMM, pzone_node_id, PZONE_TT_PWR_CAP_STR);
 	pzone_member->tot_power_production =

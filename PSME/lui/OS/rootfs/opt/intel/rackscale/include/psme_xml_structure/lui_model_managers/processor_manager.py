@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,16 +42,15 @@ class ProcessorManager(ProcessorManager_abstract):
         processor.processorArchitecture = arch
         processor.instructionSet = instrSet
         processor.processorType = data[LSHW_DESCRIPTION]
+        processor.socket = data[LSHW_SLOT]
 
         try:
-            processor.socket = str(data[LSHW_SLOT]).split(' ')[1]
             processor.cpuid.numericId = data[XML_AT_ID].split(":")[1]
         except IndexError:
-            processor.socket = 0
             processor.cpuid.numericId = 0
         processor.manufacturer = str(data[XML_VENDOR])
         for model in PROC_MODELS:
-                if model not in str(data[XML_VERSION]).upper():
+                if model not in str(data[XML_PRODUCT]).upper():
                     continue
                 else:
                     break
@@ -60,7 +59,7 @@ class ProcessorManager(ProcessorManager_abstract):
         if "Unknown" == model: model = "X3"
 
         processor.model = model
-        processor.modelName = data[XML_VERSION]
+        processor.modelName = data[XML_PRODUCT]
         capabilities = data[LSHW_CAPABILITIES][LSHW_CAPABILITY]
         if not isinstance(capabilities, list):
             capabilities = [capabilities]

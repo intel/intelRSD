@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
@@ -26,134 +25,174 @@ import com.intel.podm.client.api.resources.redfish.EthernetInterfaceResource;
 import com.intel.podm.client.api.resources.redfish.IpV4AddressObject;
 import com.intel.podm.client.api.resources.redfish.IpV6AddressObject;
 import com.intel.podm.client.api.resources.redfish.IpV6AddressPolicyObject;
-import com.intel.podm.client.api.resources.redfish.LuiEthernetInterfaceResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.client.resources.ODataId;
-import com.intel.podm.common.types.LinkTechnology;
+import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.annotations.AsUnassigned;
 import com.intel.podm.common.types.net.MacAddress;
 
-import java.util.Collections;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
+import static com.intel.podm.common.types.Ref.unassigned;
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_EMPTY_COLLECTION;
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
 @OdataTypes({
-        "#EthernetInterface.1.0.0.EthernetInterface",
-        "#EthernetInterface.v1_0_0.EthernetInterface"
+    "#EthernetInterface" + OdataTypes.VERSION_PATTERN + "EthernetInterface"
 })
-public class EthernetInterfaceResourceImpl extends ExternalServiceResourceImpl implements EthernetInterfaceResource, LuiEthernetInterfaceResource {
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class EthernetInterfaceResourceImpl extends ExternalServiceResourceImpl implements EthernetInterfaceResource {
     @JsonProperty ("FQDN")
-    private String fqdn;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> fqdn = unassigned();
     @JsonProperty ("HostName")
-    private String hostName;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> hostName = unassigned();
     @JsonProperty ("Status")
-    private Status status;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Status> status = unassigned();
     @JsonProperty ("InterfaceEnabled")
-    private Boolean interfaceEnabled;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Boolean> interfaceEnabled = unassigned();
     @JsonProperty ("PermanentMACAddress")
-    private MacAddress permanentMacAddress;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<MacAddress> permanentMacAddress = unassigned();
     @JsonProperty ("MACAddress")
-    private MacAddress macAddress;
-    @JsonProperty ("LinkTechnology")
-    private LinkTechnology linkTechnology;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<MacAddress> macAddress = unassigned();
     @JsonProperty ("SpeedMbps")
-    private Integer speedMbps;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> speedMbps = unassigned();
     @JsonProperty ("AutoNeg")
-    private Boolean autoNeg;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Boolean> autoNeg = unassigned();
     @JsonProperty ("FullDuplex")
-    private Boolean fullDuplex;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Boolean> fullDuplex = unassigned();
     @JsonProperty ("MTUSize")
-    private Integer mtuSize;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> mtuSize = unassigned();
     @JsonProperty("IPv6DefaultGateway")
-    private String ipV6DefaultGateway;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> ipV6DefaultGateway = unassigned();
     @JsonProperty ("MaxIPv6StaticAddresses")
-    private Integer maxIPv6StaticAddresses;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> maxIPv6StaticAddresses = unassigned();
     @JsonProperty("IPv4Addresses")
-    private List<IpV4AddressObjectImpl> ipV4Addresses;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<IpV4AddressObjectImpl>> ipV4Addresses = unassigned();
     @JsonProperty("IPv6Addresses")
-    private List<IpV6AddressObjectImpl> ipV6Addresses;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<IpV6AddressObjectImpl>> ipV6Addresses = unassigned();
     @JsonProperty("IPv6StaticAddresses")
-    private List<IpV6AddressObjectImpl> ipV6StaticAddresses;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<IpV6AddressObjectImpl>> ipV6StaticAddresses = unassigned();
     @JsonProperty("IPv6AddressPolicyTable")
-    private List<IpV6AddressPolicyObjectImpl> ipV6AddressesPolicies;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<IpV6AddressPolicyObjectImpl>> ipV6AddressesPolicies = unassigned();
     @JsonProperty("NameServers")
-    private List<String> nameServers;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<String>> nameServers = unassigned();
     @JsonProperty("VLAN")
-    private Vlan vlan;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Vlan> vlan = unassigned();
     @JsonProperty("VLANs")
     private ODataId vlanCollection;
 
     @Override
-    public String getFqdn() {
+    public Ref<String> getFqdn() {
         return fqdn;
     }
 
     @Override
-    public String getHostName() {
+    public Ref<String> getHostName() {
         return hostName;
     }
 
     @Override
-    public Status getStatus() {
+    public Ref<Status> getStatus() {
         return status;
     }
 
     @Override
-    public MacAddress getPermanentMacAddress() {
+    public Ref<Boolean> getInterfaceEnabled() {
+        return interfaceEnabled;
+    }
+
+    @Override
+    public Ref<MacAddress> getPermanentMacAddress() {
         return permanentMacAddress;
     }
 
     @Override
-    public MacAddress getMacAddress() {
+    public Ref<MacAddress> getMacAddress() {
         return macAddress;
     }
 
-
     @Override
-    public Integer getSpeedMbps() {
+    public Ref<Integer> getSpeedMbps() {
         return speedMbps;
     }
 
     @Override
-    public Boolean isFullDuplex() {
+    public Ref<Boolean> getAutoNeg() {
+        return autoNeg;
+    }
+
+    @Override
+    public Ref<Boolean> isFullDuplex() {
         return fullDuplex;
     }
 
     @Override
-    public String getIpV6DefaultGateway() {
+    public Ref<Integer> getMtuSize() {
+        return mtuSize;
+    }
+
+    @Override
+    public Ref<Boolean> getVlanEnable() {
+        return vlan.flatMap(v -> v.vlanEnable);
+    }
+
+    @Override
+    public Ref<Integer> getVlanId() {
+        return vlan.flatMap(v -> v.vlanId);
+    }
+
+    @Override
+    public Ref<String> getIpV6DefaultGateway() {
         return ipV6DefaultGateway;
     }
 
     @Override
-    public List<IpV4AddressObject> getIpV4Addresses() {
-        if (ipV4Addresses == null) {
-            return emptyList();
-        }
-        return (List) ipV4Addresses;
+    public Ref<Integer> getMaxIPv6StaticAddresses() {
+        return maxIPv6StaticAddresses;
     }
 
     @Override
-    public List<IpV6AddressObject> getIpV6Addresses() {
-        if (ipV6Addresses == null) {
-            return emptyList();
-        }
-        return (List) ipV6Addresses;
+    public Ref<List<IpV4AddressObject>> getIpV4Addresses() {
+        return (Ref) ipV4Addresses;
     }
 
     @Override
-    public List<IpV6AddressObject> getIpV6StaticAddresses() {
-        if (ipV6StaticAddresses == null) {
-            return Collections.emptyList();
-        }
-        return (List) ipV6StaticAddresses;
+    public Ref<List<IpV6AddressObject>> getIpV6Addresses() {
+        return (Ref) ipV6Addresses;
     }
 
-    public List<IpV6AddressPolicyObject> getIpV6AddressesPolicyTable() {
-        if (ipV6AddressesPolicies == null) {
-            return emptyList();
-        }
-        return (List) ipV6AddressesPolicies;
+    @Override
+    public Ref<List<IpV6AddressObject>> getIpV6StaticAddresses() {
+        return (Ref) ipV6StaticAddresses;
+    }
+
+    @Override
+    public Ref<List<IpV6AddressPolicyObject>> getIpV6AddressesPolicyTable() {
+        return (Ref) ipV6AddressesPolicies;
+    }
+
+    @Override
+    public Ref<List<String>> getNameServers() {
+        return nameServers;
     }
 
     @Override
@@ -163,60 +202,17 @@ public class EthernetInterfaceResourceImpl extends ExternalServiceResourceImpl i
     }
 
     @Override
-    public List<String> getNameServers() {
-        if (nameServers == null) {
-            return emptyList();
-        }
-        return (List) nameServers;
-    }
-
-    @Override
-    public Boolean getInterfaceEnabled() {
-        return interfaceEnabled;
-    }
-
-    @Override
-    public Boolean getAutoNeg() {
-        return autoNeg;
-    }
-
-    @Override
-    public Integer getMtuSize() {
-        return mtuSize;
-    }
-
-    @Override
-    public Integer getMaxIPv6StaticAddresses() {
-        return maxIPv6StaticAddresses;
-    }
-
-    @Override
-    public Boolean getVlanEnable() {
-        if (vlan == null) {
-            return false;
-        }
-        return vlan.vlanEnable;
-    }
-
-    @Override
-    public Integer getVlanId() {
-        if (vlan == null) {
-            return null;
-        }
-        return vlan.vlanId;
-    }
-
-    @Override
     @LinkName("ethernetInterfaceVlans")
     public Iterable<ResourceSupplier> getVlans() throws ExternalServiceApiReaderException {
         return processMembersListResource(this.vlanCollection);
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     private static final class Vlan {
         @JsonProperty("VLANEnable")
-        private Boolean vlanEnable;
+        @AsUnassigned(WHEN_NULL)
+        private Ref<Boolean> vlanEnable = unassigned();
         @JsonProperty("VLANId")
-        private Integer vlanId;
+        @AsUnassigned(WHEN_NULL)
+        private Ref<Integer> vlanId = unassigned();
     }
 }

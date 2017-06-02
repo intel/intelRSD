@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,22 @@ package com.intel.podm.redfish.json.templates.actions;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.intel.podm.business.dto.redfish.RequestedEthernetSwitchPortCreation;
-import com.intel.podm.business.dto.redfish.RequestedEthernetSwitchPortLinks;
 import com.intel.podm.common.types.PortMode;
-
-import java.util.Optional;
-
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
+import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
 
 @JsonIgnoreProperties(ignoreUnknown = false)
-public class CreateEthernetSwitchPortActionJson implements RequestedEthernetSwitchPortCreation {
+public class CreateEthernetSwitchPortActionJson implements RedfishEthernetSwitchPort {
     @JsonProperty("Name")
-    public String name;
+    private String name;
 
     @JsonProperty("PortId")
-    public String portId;
+    private String portId;
 
     @JsonProperty("PortMode")
-    public PortMode portMode;
+    private PortMode portMode;
 
-    private Optional<RequestedEthernetSwitchPortLinks> links = empty();
+    @JsonProperty("Links")
+    private EthernetSwitchPortLinksJson links = new EthernetSwitchPortLinksJson();
 
     @Override
     public String getName() {
@@ -56,12 +51,7 @@ public class CreateEthernetSwitchPortActionJson implements RequestedEthernetSwit
     }
 
     @Override
-    public Optional<RequestedEthernetSwitchPortLinks> getLinks() {
+    public Links getLinks() {
         return links;
-    }
-
-    @JsonProperty("Links")
-    public void setLinks(EthernetSwitchPortLinksJson links) {
-        this.links = links != null ? of(links) : null;
     }
 }

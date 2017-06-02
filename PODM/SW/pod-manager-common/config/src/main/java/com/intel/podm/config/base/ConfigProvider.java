@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,9 @@ import javax.inject.Inject;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.intel.podm.common.utils.Contracts.requires;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
-import static java.util.Objects.nonNull;
 
 @Singleton
 public class ConfigProvider {
@@ -41,7 +40,7 @@ public class ConfigProvider {
     private ConfigAccessor configAccessor;
 
     public <T extends BaseConfig> T get(Class<T> configClass) {
-        checkNotNull(configClass, "configClass should not be null");
+        requiresNonNull(configClass, "configClass");
 
         String filePath = getConfigFilePath(configClass);
         try {
@@ -88,7 +87,7 @@ public class ConfigProvider {
 
     private static <T extends BaseConfig> ConfigFile getConfigFileAnnotation(Class<T> configClass) {
         ConfigFile annotation = configClass.getDeclaredAnnotation(ConfigFile.class);
-        checkArgument(nonNull(annotation), format("%s should be annotated with ConfigFile", configClass));
+        requires(annotation != null, format("%s should be annotated with ConfigFile", configClass));
         return annotation;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.intel.podm.discovery.external.matchers;
 
-import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Processor;
+import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
 import com.intel.podm.client.api.resources.redfish.ProcessorResource;
@@ -28,22 +28,24 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Dependent
-public class ProcessorObtainerHelper implements DomainObjectObtainerHelper<ProcessorResource> {
+public class ProcessorObtainerHelper implements EntityObtainerHelper<ProcessorResource> {
     @Override
     public ComputerSystemResource findComputerSystemResourceFor(ProcessorResource resource) throws ExternalServiceApiReaderException {
         return (ComputerSystemResource) resource.getComputerSystem().get();
     }
 
     @Override
-    public Optional<? extends DomainObject> findDomainObjectFor(ComputerSystem computerSystem, ProcessorResource resource) {
+    public Optional<? extends Entity> findEntityFor(ComputerSystem computerSystem, ProcessorResource resource) {
+        String resourceProcessorSocket = resource.getSocket().orElse(null);
+
         return computerSystem.getProcessors()
                 .stream()
-                .filter(processor -> Objects.equals(processor.getSocket(), resource.getSocket()))
+                .filter(processor -> Objects.equals(processor.getSocket(), resourceProcessorSocket))
                 .findFirst();
     }
 
     @Override
-    public Class<? extends DomainObject> getDomainObjectClass() {
+    public Class<? extends Entity> getEntityClass() {
         return Processor.class;
     }
 

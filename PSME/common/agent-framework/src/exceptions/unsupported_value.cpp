@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,9 @@
  * limitations under the License.
  *
  *
- * @file unsupported_value_error.cpp
+ * @file unsupported_value.cpp
  *
- * @brie Unsupported Value Error implementation
+ * @brief Unsupported Value Error implementation
  * */
 
 #include "agent-framework/exceptions/unsupported_value.hpp"

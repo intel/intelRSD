@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,14 @@ import com.intel.podm.config.base.ConfigFile;
 
 @ConfigFile(filename = "discovery.json")
 public class DiscoveryConfig extends BaseConfig {
+    @JsonProperty("PodLocationId")
+    private String podLocationId = "Pod1";
+
+    @JsonProperty("PodName")
+    private String podName = "Pod Manager";
+
     @JsonProperty("DeepDiscoveryEnabled")
-    private boolean deepDiscoveryEnabled = true;
+    private boolean deepDiscoveryEnabled;
 
     @JsonProperty("MaxComputerSystemsCountPerDrawerBeingDeepDiscovered")
     private int maxComputerSystemsCountPerDrawerBeingDeepDiscovered = 1;
@@ -30,11 +36,11 @@ public class DiscoveryConfig extends BaseConfig {
     @JsonProperty("DiscoveryIntervalSeconds")
     private long discoveryIntervalSeconds = 600;
 
-    @JsonProperty("DeepDiscoveryTimeoutSeconds")
-    private long deepDiscoveryTimeoutSeconds = 600;
+    @JsonProperty("DeepDiscoveryExecutionTimeoutInSeconds")
+    private long deepDiscoveryExecutionTimeoutSeconds = 600L;
 
-    @JsonProperty("TriggeredDiscoveryDelaySeconds")
-    private long triggeredDiscoveryDelaySeconds = 10;
+    @JsonProperty("DiscoveryCancelable")
+    private boolean discoveryCancelable;
 
     public int getMaxComputerSystemsCountPerDrawerBeingDeepDiscovered() {
         return maxComputerSystemsCountPerDrawerBeingDeepDiscovered;
@@ -48,12 +54,20 @@ public class DiscoveryConfig extends BaseConfig {
         return discoveryIntervalSeconds;
     }
 
-    public long getDeepDiscoveryTimeoutSeconds() {
-        return deepDiscoveryTimeoutSeconds;
+    public long getDeepDiscoveryExecutionTimeoutSeconds() {
+        return deepDiscoveryExecutionTimeoutSeconds;
     }
 
-    public long getTriggeredDiscoveryDelaySeconds() {
-        return triggeredDiscoveryDelaySeconds;
+    public String getPodLocationId() {
+        return podLocationId;
+    }
+
+    public String getPodName() {
+        return podName;
+    }
+
+    public boolean isDiscoveryCancelable() {
+        return discoveryCancelable;
     }
 
     @Override

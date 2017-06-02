@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ import com.intel.podm.client.api.RedfishApiException;
 import java.net.ConnectException;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static org.apache.commons.lang.exception.ExceptionUtils.getRootCause;
 
+@SuppressWarnings({"checkstyle:IllegalCatch"})
 final class RetryInvoker {
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final long DEFAULT_INTERVAL_MS = 100;
@@ -64,7 +65,7 @@ final class RetryInvoker {
     }
 
     private static boolean maximumAttemptsReached(Integer currentAttemptNumber) {
-        checkNotNull(currentAttemptNumber);
+        requiresNonNull(currentAttemptNumber, "currentAttemptNumber");
         return Objects.equals(MAX_RETRY_ATTEMPTS, currentAttemptNumber);
     }
 

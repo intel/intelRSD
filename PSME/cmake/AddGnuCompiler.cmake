@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -87,6 +87,7 @@ function (gnu_compiler_processing)
         -Wvariadic-macros
         -Wvolatile-register-var
         -Wwrite-strings
+        -Wno-deprecated-declarations
     )
 
     set(C_WARNINGS
@@ -159,10 +160,14 @@ function (gnu_compiler_processing)
     set(COMPILER_DEBUG      "-O0 -g3 -ggdb")
     set(COMPILER_RELEASE    "-O3 -DNDEBUG -fdata-sections -ffunction-sections ${COMPILER_DEFENSES}")
     set(COMPILER_COVERAGE   "-O0 -g --coverage")
+    set(COMPILER_ASANITIZE   "-O0 -g3 -ggdb -fsanitize=address -fno-omit-frame-pointer")
+    set(COMPILER_TSANITIZE   "-O0 -g3 -ggdb -fsanitize=thread")
 
     set(LINKER_DEBUG        "")
     set(LINKER_RELEASE      "-Wl,--gc-sections ${LINKER_DEFENSES}")
     set(LINKER_COVERAGE     "--coverage")
+    set(LINKER_ASANITIZE     "")
+    set(LINKER_TSANITIZE     "")
 
     if(NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE "Release" PARENT_SCOPE)
@@ -174,14 +179,22 @@ function (gnu_compiler_processing)
     set(CMAKE_C_FLAGS_DEBUG "${COMPILER_DEBUG} ${C_FLAGS}" CACHE STRING "CMake C Flags Debug" FORCE)
     set(CMAKE_C_FLAGS_RELEASE "${COMPILER_RELEASE} ${C_FLAGS}" CACHE STRING "CMake C Flags Release" FORCE)
     set(CMAKE_C_FLAGS_COVERAGE "${COMPILER_COVERAGE} ${C_FLAGS}" CACHE STRING "CMake C Flags Coverage" FORCE)
+    set(CMAKE_C_FLAGS_ASANITIZE "${COMPILER_ASANITIZE} ${C_FLAGS}" CACHE STRING "CMake C Flags Address/Memory Sanitize" FORCE)
+    set(CMAKE_C_FLAGS_TSANITIZE "${COMPILER_TSANITIZE} ${C_FLAGS}" CACHE STRING "CMake C Flags Thread Sanitize" FORCE)
+
 
     set(CMAKE_CXX_FLAGS_DEBUG "${COMPILER_DEBUG} ${CXX_FLAGS}" CACHE STRING "CMake CXX Flags Debug" FORCE)
     set(CMAKE_CXX_FLAGS_RELEASE "${COMPILER_RELEASE} ${CXX_FLAGS}" CACHE STRING "CMake CXX Flags Release" FORCE)
     set(CMAKE_CXX_FLAGS_COVERAGE "${COMPILER_COVERAGE} ${CXX_FLAGS}" CACHE STRING "CMake CXX Flags Coverage" FORCE)
+    set(CMAKE_CXX_FLAGS_ASANITIZE "${COMPILER_ASANITIZE} ${CXX_FLAGS}" CACHE STRING "CMake CXX Flags Address/Memory Sanitize" FORCE)
+    set(CMAKE_CXX_FLAGS_TSANITIZE "${COMPILER_TSANITIZE} ${CXX_FLAGS}" CACHE STRING "CMake CXX Flags Thread Sanitize" FORCE)
+
 
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${LINKER_DEBUG} ${LD_FLAGS}" CACHE STRING "CMake Exe Linker Flags Debug")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${LINKER_RELEASE} ${LD_FLAGS} -s" CACHE STRING "CMake Exe Linker Flags Release" FORCE)
     set(CMAKE_EXE_LINKER_FLAGS_COVERAGE "${LINKER_COVERAGE} ${LD_FLAGS}" CACHE STRING "CMake Exe Linker Flags Coverage" FORCE)
+    set(CMAKE_EXE_LINKER_FLAGS_ASANITIZE "${LINKER_ASANITIZE} ${LD_FLAGS}" CACHE STRING "CMake Exe Linker Flags Address/Memory Sanitize" FORCE)
+    set(CMAKE_EXE_LINKER_FLAGS_TSANITIZE "${LINKER_TSANITIZE} ${LD_FLAGS}" CACHE STRING "CMake Exe Linker Flags Thread Sanitize" FORCE)
 endfunction ()
 
 gnu_compiler_processing()

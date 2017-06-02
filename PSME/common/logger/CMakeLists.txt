@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ include_directories(src include)
 add_library(logger STATIC
     src/logger.c
     src/logger.cpp
+    src/logger_options.cpp
     src/logger_factory.cpp
     src/logger_alloc.c
     src/logger_buffer.c
@@ -50,7 +51,6 @@ add_library(logger STATIC
 )
 
 add_subdirectory(tests)
-add_subdirectory(examples)
 
 add_custom_target(logger-doc-all
     COMMAND doxygen doxygen.config

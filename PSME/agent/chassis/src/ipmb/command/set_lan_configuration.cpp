@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@
 #include "configuration/configuration.hpp"
 
 #include <iterator>
+#include <thread>
 
 using namespace agent::chassis::ipmb::command;
 
@@ -75,30 +76,36 @@ void restart_network(const std::string& interface) {
 
 void SetLanConfiguration::process_request() {
     auto& config = configuration::Configuration::get_instance().to_json();
-    if (!config["lanConfig"]["interface"].is_string()) {
-        log_debug(LOGUSR, "Configuration interface not set");
-        m_response.set_cc(CompletionCode::CC_CANNOT_RETURN_REQ_DATA);
-        return;
-    }
+    auto& managers = config["managers"].as_array();
 
-    std::string interface = config["lanConfig"]["interface"].as_string();
-    try {
-        switch (m_param) {
-        case PARAM_IP_ADDRESS: process_ip(interface); break;
-        case PARAM_IP_ADDRESS_SOURCE: process_source(interface); break;
-        case PARAM_IP_SUBNET_MASK: process_mask(interface); break;
-        default:
-            log_debug(LOGUSR, "Invalid parameter");
-            m_response.set_cc(CompletionCode::CC_PARAMETER_NOT_SUPPORTED);
-            return;
+    for (const auto& manager : managers) {
+        if (manager["chassis"].is_object()) {
+            if (manager["chassis"]["networkInterface"].is_string()) {
+                std::string interface = manager["chassis"]["networkInterface"].as_string();
+                try {
+                    switch (m_param) {
+                        case PARAM_IP_ADDRESS: process_ip(interface); break;
+                        case PARAM_IP_ADDRESS_SOURCE: process_source(interface); break;
+                        case PARAM_IP_SUBNET_MASK: process_mask(interface); break;
+                        default:
+                            log_debug(LOGUSR, "Invalid parameter");
+                            m_response.set_cc(CompletionCode::CC_PARAMETER_NOT_SUPPORTED);
+                            return;
+                    }
+                } catch (const std::runtime_error& e) {
+                    log_debug(LOGUSR, "Cannot set interface settings : " << e.what());
+                    m_response.set_cc(CompletionCode::CC_CANNOT_RETURN_REQ_DATA);
+                    return;
+                }
+
+                restart_network(interface);
+                return;
+            }
         }
-    } catch (const std::runtime_error& e) {
-        log_debug(LOGUSR, "Cannot set interface settings : " << e.what());
-        m_response.set_cc(CompletionCode::CC_CANNOT_RETURN_REQ_DATA);
-        return;
     }
-
-    restart_network(interface);
+    log_debug(LOGUSR, "Configuration interface not set");
+    m_response.set_cc(CompletionCode::CC_CANNOT_RETURN_REQ_DATA);
+    return;
 }
 
 void SetLanConfiguration::process_ip(const std::string& interface) {

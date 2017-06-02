@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,112 +16,258 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.properties.RackLocation;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.entities.EventOriginProvider;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.embeddables.InputRange;
+import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.IndicatorLed;
+import com.intel.podm.common.types.LineInputVoltageType;
+import com.intel.podm.common.types.PowerSupplyType;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.REQUIRED;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(REQUIRED)
-public class PowerSupply extends DomainObject implements StatusPossessor {
-    public static final DomainObjectProperty<String> NAME = stringProperty("name");
-    public static final DomainObjectProperty<Integer> POWER_CAPACITY_WATTS = integerProperty("powerCapacityWatts");
-    public static final DomainObjectProperty<Integer> LAST_POWER_OUTPUT_WATTS = integerProperty("lastPowerOutputWatt");
-    public static final DomainObjectProperty<String> SERIAL_NUMBER = stringProperty("serialNumber");
-    public static final DomainObjectProperty<String> MANUFACTURER = stringProperty("manufacturer");
-    public static final DomainObjectProperty<String> MODEL = stringProperty("model");
-    public static final DomainObjectProperty<String> PART_NUMBER = stringProperty("partNumber");
-    public static final DomainObjectProperty<String> FIRMWARE_VERSION = stringProperty("firmwareVersion");
+@javax.persistence.Entity
+@Table(name = "power_supply", indexes = @Index(name = "idx_power_supply_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class PowerSupply extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
 
-    public void setRackLocation(RackLocation rackLocation) {
-        link(CONTAINS, rackLocation);
+    @Column(name = "member_id")
+    private String memberId;
+
+    @Column(name = "power_supply_type")
+    @Enumerated(STRING)
+    private PowerSupplyType powerSupplyType;
+
+    @Column(name = "line_input_voltage_type")
+    @Enumerated(STRING)
+    private LineInputVoltageType lineInputVoltageType;
+
+    @Column(name = "line_input_voltage")
+    private BigDecimal lineInputVoltage;
+
+    @Column(name = "power_capacity_watts")
+    private BigDecimal powerCapacityWatts;
+
+    @Column(name = "last_power_output_watts")
+    private BigDecimal lastPowerOutputWatts;
+
+    @Column(name = "model")
+    private String model;
+
+    @Column(name = "manufacturer")
+    private String manufacturer;
+
+    @Column(name = "firmware_version")
+    private String firmwareVersion;
+
+    @Column(name = "serial_number")
+    private String serialNumber;
+
+    @Column(name = "part_number")
+    private String partNumber;
+
+    @Column(name = "spare_part_number")
+    private String sparePartNumber;
+
+    @Column(name = "oem")
+    private String oem;
+
+    @ElementCollection
+    @CollectionTable(name = "power_supply_input_range", joinColumns = @JoinColumn(name = "power_supply_id"))
+    @OrderColumn(name = "input_range_order")
+    private List<InputRange> inputRanges = new ArrayList<>();
+
+    @Column(name = "indicator_led")
+    @Enumerated(STRING)
+    private IndicatorLed indicatorLed;
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "power_id")
+    private Power power;
+
+    @Override
+    public Id getId() {
+        return entityId;
     }
 
-    public RackLocation getRackLocation() {
-        return singleOrNull(getLinked(CONTAINS, RackLocation.class));
+    @Override
+    public void setId(Id id) {
+        entityId = id;
     }
 
-    public String getFirmwareVersion() {
-        return getProperty(FIRMWARE_VERSION);
+    public String getMemberId() {
+        return memberId;
     }
 
-    public void setFirmwareVersion(String firmwareVersion) {
-        setProperty(FIRMWARE_VERSION, firmwareVersion);
+    public void setMemberId(String memberId) {
+        this.memberId = memberId;
     }
 
-    public String getPartNumber() {
-        return getProperty(PART_NUMBER);
+    public PowerSupplyType getPowerSupplyType() {
+        return powerSupplyType;
     }
 
-    public void setPartNumber(String partNumber) {
-        setProperty(PART_NUMBER, partNumber);
+    public void setPowerSupplyType(PowerSupplyType powerSupplyType) {
+        this.powerSupplyType = powerSupplyType;
+    }
+
+    public LineInputVoltageType getLineInputVoltageType() {
+        return lineInputVoltageType;
+    }
+
+    public void setLineInputVoltageType(LineInputVoltageType lineInputVoltageType) {
+        this.lineInputVoltageType = lineInputVoltageType;
+    }
+
+    public BigDecimal getLineInputVoltage() {
+        return lineInputVoltage;
+    }
+
+    public void setLineInputVoltage(BigDecimal lineInputVoltage) {
+        this.lineInputVoltage = lineInputVoltage;
+    }
+
+    public BigDecimal getPowerCapacityWatts() {
+        return powerCapacityWatts;
+    }
+
+    public void setPowerCapacityWatts(BigDecimal powerCapacityWatts) {
+        this.powerCapacityWatts = powerCapacityWatts;
+    }
+
+    public BigDecimal getLastPowerOutputWatts() {
+        return lastPowerOutputWatts;
+    }
+
+    public void setLastPowerOutputWatts(BigDecimal lastPowerOutputWatts) {
+        this.lastPowerOutputWatts = lastPowerOutputWatts;
     }
 
     public String getModel() {
-        return getProperty(MODEL);
+        return model;
     }
 
     public void setModel(String model) {
-        setProperty(MODEL, model);
+        this.model = model;
     }
 
     public String getManufacturer() {
-        return getProperty(MANUFACTURER);
+        return manufacturer;
     }
 
     public void setManufacturer(String manufacturer) {
-        setProperty(MANUFACTURER, manufacturer);
+        this.manufacturer = manufacturer;
+    }
+
+    public String getFirmwareVersion() {
+        return firmwareVersion;
+    }
+
+    public void setFirmwareVersion(String firmwareVersion) {
+        this.firmwareVersion = firmwareVersion;
     }
 
     public String getSerialNumber() {
-        return getProperty(SERIAL_NUMBER);
+        return serialNumber;
     }
 
     public void setSerialNumber(String serialNumber) {
-        setProperty(SERIAL_NUMBER, serialNumber);
+        this.serialNumber = serialNumber;
     }
 
-    public Integer getLastPowerOutputWatt() {
-        return getProperty(LAST_POWER_OUTPUT_WATTS);
+    public String getPartNumber() {
+        return partNumber;
     }
 
-    public void setLastPowerOutputWatt(Integer lastPowerOutputWatt) {
-        setProperty(LAST_POWER_OUTPUT_WATTS, lastPowerOutputWatt);
+    public void setPartNumber(String partNumber) {
+        this.partNumber = partNumber;
     }
 
-    public Integer getPowerCapacityWatts() {
-        return getProperty(POWER_CAPACITY_WATTS);
+    public String getSparePartNumber() {
+        return sparePartNumber;
     }
 
-    public void setPowerCapacityWatts(Integer powerCapacityWatts) {
-        setProperty(POWER_CAPACITY_WATTS, powerCapacityWatts);
+    public void setSparePartNumber(String sparePartNumber) {
+        this.sparePartNumber = sparePartNumber;
+    }
+
+    public String getOem() {
+        return oem;
+    }
+
+    public void setOem(String oem) {
+        this.oem = oem;
+    }
+
+    public List<InputRange> getInputRanges() {
+        return inputRanges;
+    }
+
+    public void addInputRange(InputRange inputRange) {
+        this.inputRanges.add(inputRange);
+    }
+
+    public IndicatorLed getIndicatorLed() {
+        return indicatorLed;
+    }
+
+    public void setIndicatorLed(IndicatorLed indicatorLed) {
+        this.indicatorLed = indicatorLed;
+    }
+
+    @EventOriginProvider
+    public Power getPower() {
+        return power;
+    }
+
+    public void setPower(Power power) {
+        if (!Objects.equals(this.power, power)) {
+            unlinkPower(this.power);
+            this.power = power;
+            if (power != null && !power.getPowerSupplies().contains(this)) {
+                power.addPowerSupply(this);
+            }
+        }
+    }
+
+    public void unlinkPower(Power power) {
+        if (Objects.equals(this.power, power)) {
+            this.power = null;
+            if (power != null) {
+                power.unlinkPowerSupply(this);
+            }
+        }
     }
 
     @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
+    public void preRemove() {
+        unlinkPower(power);
     }
 
     @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
-    }
-
-    public String getName() {
-        return getProperty(NAME);
-    }
-
-    public void setName(String name) {
-        setProperty(NAME, name);
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, power);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.intel.podm.client.events;
 
-import com.intel.podm.client.WebClientImpl;
+import com.intel.podm.client.WebClientBuilder;
 import com.intel.podm.client.api.events.EventServiceDefinition;
 import com.intel.podm.client.api.events.EventSubscriberFactory;
 import com.intel.podm.client.api.events.EventSubscriptionManager;
@@ -36,11 +36,14 @@ public class EventSubscriberFactoryImpl implements EventSubscriberFactory {
     @New
     private Instance<EventSubscriptionManagerImpl> eventSubscriberFactory;
 
+    @Inject
+    private WebClientBuilder webClientBuilder;
+
     @Override
     public EventSubscriptionManager createEventSubscriberManager(EventServiceDefinition eventServiceDefinition) {
         EventSubscriptionManagerImpl eventSubscriber = eventSubscriberFactory.get();
         URI baseUri = create(eventServiceDefinition.getServiceBaseUri().toString());
-        eventSubscriber.setWebClient(WebClientImpl.createRetryable(baseUri));
+        eventSubscriber.setWebClient(webClientBuilder.newInstance(baseUri).retryable().build());
         eventSubscriber.setEventServiceDefinition(eventServiceDefinition);
         return eventSubscriber;
     }

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,60 +19,59 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(command)
 add_subdirectory(discovery)
-add_subdirectory(discovery-ref)
 add_subdirectory(sysfs)
 add_subdirectory(iscsi)
 add_subdirectory(lvm)
 add_subdirectory(status)
+add_subdirectory(event)
 add_subdirectory(hotswap)
+add_subdirectory(ip)
 add_subdirectory(loader)
-add_subdirectory(utils)
+add_subdirectory(common)
+add_subdirectory(tree_stability)
 
-add_library(storage-loader-utils
-    $<TARGET_OBJECTS:storage-loaders>
-)
 
-add_library(storage-commands STATIC
-    $<TARGET_OBJECTS:storage-command-conf-based>
-)
+add_library(storage-loader-utils-ref $<TARGET_OBJECTS:storage-loaders-ref>)
 
-add_library(storage-discovery-status-utils
+add_library(storage-common-utils-ref $<TARGET_OBJECTS:common-utils-ref>)
+
+add_library(storage-commands-ref STATIC $<TARGET_OBJECTS:storage-command-conf-based-ref>)
+
+add_library(storage-discovery-status-utils-ref
     $<TARGET_OBJECTS:discovery-impl-storage>
-    $<TARGET_OBJECTS:discovery-ref-impl-storage>
-    $<TARGET_OBJECTS:dependency-resolver-impl-storage>
-    $<TARGET_OBJECTS:iscsi-tgt>
-    $<TARGET_OBJECTS:iscsi-tgt-config>
-    $<TARGET_OBJECTS:sysfs-api>
-    $<TARGET_OBJECTS:lvm-api>
-    $<TARGET_OBJECTS:utils>
-    $<TARGET_OBJECTS:storage-status-impl>
+    $<TARGET_OBJECTS:iscsi-tgt-ref>
+    $<TARGET_OBJECTS:iscsi-tgt-config-ref>
+    $<TARGET_OBJECTS:sysfs-api-ref>
+    $<TARGET_OBJECTS:lvm-api-ref>
+    $<TARGET_OBJECTS:storage-status-impl-ref>
+    $<TARGET_OBJECTS:event-impl-storage>
     $<TARGET_OBJECTS:hotswap-impl-storage>
+    $<TARGET_OBJECTS:ip-impl-storage>
+    $<TARGET_OBJECTS:storage-tree-stability>
 )
 
-add_executable(psme-storage
-    main.cpp
-)
+add_executable(psme-storage main.cpp)
 
 target_link_libraries(psme-storage
     ${AGENT_STORAGE_LIBRARIES}
-    storage-discovery-status-utils
-    storage-loader-utils
+    storage-discovery-status-utils-ref
+    storage-loader-utils-ref
+    storage-common-utils-ref
+    ${NET_LIBRARIES}
     ${AGENT_FRAMEWORK_LIBRARIES}
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
+    ${SAFESTRING_LIBRARIES}
     ${PCA95XX_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
     ${SYSFS_LIBRARIES}
     ${LVM2APP_LIBRARIES}
     ${LVM2DEVMAPPER_LIBRARIES}
-    pthread
-    jsonrpccpp-server
-    jsonrpccpp-client
-    jsonrpccpp-common
-    jsoncpp
+    ${JSONCPP_LIBRARIES}
+    ${JSONRPCCPP_LIBRARIES}
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
-    md5
+    ${MD5_LIBRARIES}
+    pthread
 )

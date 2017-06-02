@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,38 +17,18 @@
 package com.intel.podm.assembly.tasks;
 
 
-import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
-import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.types.Id;
+import com.intel.podm.common.synchronization.TaskCoordinator;
 
-import javax.annotation.Resource;
-import javax.enterprise.concurrent.ManagedExecutorService;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import java.util.List;
-import java.util.concurrent.RejectedExecutionException;
+import java.util.function.Consumer;
 
-@RequestScoped
-public class NodeAssemblyTaskRunner {
-    @Inject
-    private Logger logger;
-
-    @Resource
-    private ManagedExecutorService executorService;
+public class NodeAssemblyTaskRunner implements Consumer<ChainElement<NodeAssemblyTask>> {
 
     @Inject
-    private BeanFactory beanFactory;
+    private TaskCoordinator taskCoordinator;
 
-    public void submitAll(Id nodeId, List<NodeAssemblyTask> tasks) {
-        NodeAssemblyTaskGroup nodeAssemblyTaskGroup = beanFactory.create(NodeAssemblyTaskGroup.class);
-        nodeAssemblyTaskGroup.setNodeId(nodeId);
-        nodeAssemblyTaskGroup.addTasks(tasks);
-
-        try {
-            executorService.submit(nodeAssemblyTaskGroup);
-        } catch (RejectedExecutionException e) {
-            logger.w("Tasks was rejected by the executor for node" + nodeId, e);
-            throw e;
-        }
+    @Override
+    public void accept(ChainElement<NodeAssemblyTask> chainElement) {
+        taskCoordinator.registerAsync(chainElement.getTask().getServiceUuid(), chainElement);
     }
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Application default configuration
  * */
 
-#ifndef AGENT_DEFAULT_CONFIGURATION_HPP
-#define AGENT_DEFAULT_CONFIGURATION_HPP
-
+#pragma once
 namespace agent {
 namespace generic {
 
@@ -35,6 +33,10 @@ static constexpr const char DEFAULT_CONFIGURATION[] = R"({
 "agent": { "vendor" : "Intel Corporation", "capabilities" : [ "Chassis" ]},
 "server": { "port": 7780},
 "registration":{"ipv4":"localhost","port":8383,"interval":3},
+"cyMux": {
+    "ipv4": "127.0.0.1",
+    "port": 5623
+},
 "logger":{"agent":{}},
 "managers":[]
 })";
@@ -93,4 +95,3 @@ static constexpr const char DEFAULT_FILE[] = "configuration.json";
 }
 }
 
-#endif /* APPLICATION_DEFAULT_CONFIGURATION_HPP */

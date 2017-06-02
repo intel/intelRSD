@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.api.resources.redfish.GraphicalConsoleObject;
 import com.intel.podm.common.types.GraphicalConnectType;
 
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class GraphicalConsoleObjectImpl implements GraphicalConsoleObject {
     @JsonProperty("ServiceEnabled")
     private Boolean serviceEnabled;

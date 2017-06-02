@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@ package com.intel.podm.redfish.serializers;
 import com.intel.podm.business.dto.redfish.EthernetSwitchPortDto;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.redfish.json.templates.EthernetSwitchPortJson;
-import com.intel.podm.redfish.json.templates.EthernetSwitchPortJson.Oem.RackScaleOem;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 import com.intel.podm.rest.representation.json.templates.RedfishErrorResponseJson.ExtendedInfoJson;
 
 import java.util.List;
@@ -29,16 +28,15 @@ import java.util.List;
 import static com.intel.podm.common.utils.Collections.nullOrEmpty;
 import static com.intel.podm.redfish.serializers.EthernetInterfaceJsonSerializer.mapToIpv4Addresses;
 import static com.intel.podm.redfish.serializers.EthernetInterfaceJsonSerializer.mapToIpv6Addresses;
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
-import static com.intel.podm.rest.odataid.ODataIds.oDataIdFromContext;
-import static com.intel.podm.rest.odataid.ODataIds.oDataIdsCollection;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataIdSet;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 import static java.net.URI.create;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
-public class EthernetSwitchPortDtoJsonSerializer extends DtoJsonSerializer<EthernetSwitchPortDto> {
-
+@SuppressWarnings({"checkstyle:MethodLength", "checkstyle:ExecutableStatementCount"})
+public class EthernetSwitchPortDtoJsonSerializer extends BaseDtoJsonSerializer<EthernetSwitchPortDto> {
     public EthernetSwitchPortDtoJsonSerializer() {
         super(EthernetSwitchPortDto.class);
     }
@@ -46,7 +44,7 @@ public class EthernetSwitchPortDtoJsonSerializer extends DtoJsonSerializer<Ether
     @Override
     protected EthernetSwitchPortJson translate(EthernetSwitchPortDto dto) {
         EthernetSwitchPortJson port = new EthernetSwitchPortJson();
-        ODataId oDataId = oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         port.oDataId = oDataId;
         port.oDataContext = getContextFromId(oDataId);
         port.id = dto.getId();
@@ -69,34 +67,31 @@ public class EthernetSwitchPortDtoJsonSerializer extends DtoJsonSerializer<Ether
         port.operationalState = dto.getOperationalState();
         port.neighborInfo = dto.getNeighborInfo();
         port.administrativeState = dto.getAdministrativeState();
-        port.vlans = oDataId(create(oDataId + "/VLANs"));
-        mapLinks(dto, port);
+        port.vlans = oDataIdFromUri(create(oDataId + "/VLANs"));
+        mapLinks(dto.getLinks(), port);
         return port;
     }
 
-    private void mapLinks(EthernetSwitchPortDto dto, EthernetSwitchPortJson port) {
-        handleNeighborInterface(dto, port);
-        port.links.primaryVlan = oDataIdFromContext(dto.getPrimaryVlan());
-        port.links.switchLink = oDataIdFromContext(dto.getSwitchContext());
-        port.links.portMembers = mapToPortMembers(dto.getPortMembers());
-        port.links.memberOfPort = oDataIdFromContext(dto.getMemberOfPort());
+    private void mapLinks(EthernetSwitchPortDto.Links links, EthernetSwitchPortJson port) {
+        handleNeighborInterface(links, port);
+        port.links.primaryVlan = asOdataId(links.getPrimaryVlan());
+        port.links.switchLink = asOdataId(links.getSwitchContext());
+        port.links.portMembers.addAll(asOdataIdSet(links.getPortMembers()));
+        port.links.memberOfPort = asOdataId(links.getMemberOfPort());
     }
 
-    private void handleNeighborInterface(EthernetSwitchPortDto dto, EthernetSwitchPortJson port) {
-        Context neighborInterfaceContext = dto.getNeighborInterface();
+    private void handleNeighborInterface(EthernetSwitchPortDto.Links links, EthernetSwitchPortJson port) {
+        Context neighborInterfaceContext = links.getNeighborInterface();
         List<ExtendedInfoJson> neighborInterfaceExtendedInfoJson =
-                nullOrEmpty(dto.getNeighborInterfaceExtendedInfo()) ? null : dto.getNeighborInterfaceExtendedInfo().stream()
-                        .map(extendedInfo -> new ExtendedInfoJson(extendedInfo.getMessageId(), extendedInfo.getMessage()))
-                        .collect(toList());
+            nullOrEmpty(links.getNeighborInterfaceExtendedInfo()) ? null : links.getNeighborInterfaceExtendedInfo().stream()
+                .map(extendedInfo -> new ExtendedInfoJson(extendedInfo.getMessageId(), extendedInfo.getMessage()))
+                .collect(toList());
 
         if (neighborInterfaceContext != null || neighborInterfaceExtendedInfoJson != null) {
-            port.links.oem.rackScaleOem = new RackScaleOem(oDataIdFromContext(neighborInterfaceContext), neighborInterfaceExtendedInfoJson);
+            EthernetSwitchPortJson.Links.Oem.RackScaleOem rackScaleOem = port.links.oem.createNewRackScaleOem();
+            rackScaleOem.neighborInterface = asOdataId(neighborInterfaceContext);
+            rackScaleOem.neighborInterfaceExtendedInfo = neighborInterfaceExtendedInfoJson;
+            port.links.oem.rackScaleOem = rackScaleOem;
         }
-    }
-
-    private List<ODataId> mapToPortMembers(List<Context> portMembers) {
-        return portMembers == null
-                ? emptyList()
-                : oDataIdsCollection(portMembers.stream().toArray(Context[]::new));
     }
 }

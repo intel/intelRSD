@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,33 +18,34 @@ package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.OemType;
+
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "id", "name",
-        "description", "vlanEnable", "vlanId", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name",
+    "description", "status", "vlanEnable", "vlanId", "oem"
 })
-public class VlanJson extends BaseJson {
-    public Id id;
-    public String name;
-    public String description;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class VlanJson extends BaseResourceJson {
     @JsonProperty("VLANEnable")
     public Boolean vlanEnable;
     @JsonProperty("VLANId")
     public Integer vlanId;
-    public VlanOem oem = new VlanOem();
+    public Oem oem = new Oem();
 
     public VlanJson() {
-        super("#VLanNetworkInterface.1.0.1.VLanNetworkInterface");
+        super("#VLanNetworkInterface.v1_0_1.VLanNetworkInterface");
     }
 
-    public static class VlanOem {
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOemJson {
         @JsonProperty("Intel_RackScale")
         public RackScaleOem rackScaleOem = new RackScaleOem();
 
         @JsonPropertyOrder({"oDataType", "tagged", "status"})
-        public static class RackScaleOem {
+        public class RackScaleOem {
             @JsonProperty("@odata.type")
             public String oDataType;
             public Boolean tagged;

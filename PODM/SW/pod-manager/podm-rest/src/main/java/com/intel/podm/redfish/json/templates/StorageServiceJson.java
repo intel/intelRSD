@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,30 @@
 package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "id", "name", "description",
-        "status", "remoteTargets", "logicalDrives", "drives", "oem", "links"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description",
+    "status", "remoteTargets", "logicalDrives", "drives", "oem", "links"
 })
-public class StorageServiceJson extends BaseJson {
-    public Id id;
-    public String name;
-    public String description;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class StorageServiceJson extends BaseResourceJson {
     public Status status;
-
     public ODataId remoteTargets;
     public ODataId logicalDrives;
     public ODataId drives;
     public Links links = new Links();
-    public Object oem = new Object();
 
     public StorageServiceJson() {
-        super("#StorageService.1.0.0.StorageService");
+        super("#StorageService.v1_0_0.StorageService");
     }
 
-    @JsonPropertyOrder({"managedBy", "oem"})
-    public static final class Links {
-        public List<ODataId> managedBy = new ArrayList<>();
-        public Object oem = new Object();
+    @JsonPropertyOrder({"pcieFunctions", "oem"})
+    public class Links extends RedfishLinksJson {
+        public Set<ODataId> managedBy = new HashSet<>();
     }
 }

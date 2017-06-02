@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,17 @@ package com.intel.podm.business.dto.redfish;
 
 import com.intel.podm.business.dto.redfish.attributes.ProtocolDto;
 import com.intel.podm.business.dto.redfish.attributes.SimpleServiceDiscoveryProtocolDto;
-import com.intel.podm.common.types.Id;
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.common.types.Status;
 
-public final class NetworkProtocolDto {
-    private final Id id;
+import java.util.List;
+
+@SuppressWarnings({"checkstyle:MethodCount"})
+public final class NetworkProtocolDto extends BaseDto {
+    private final String id;
     private final String name;
     private final String description;
+    private final List<UnknownOemDto> unknownOems;
     private final Status status;
     private final String hostName;
     private final String fqdn;
@@ -43,6 +47,7 @@ public final class NetworkProtocolDto {
         id = builder.id;
         name = builder.name;
         description = builder.description;
+        unknownOems = builder.unknownOems;
         status = builder.status;
         hostName = builder.hostName;
         fqdn = builder.fqdn;
@@ -61,16 +66,24 @@ public final class NetworkProtocolDto {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public Status getStatus() {
@@ -122,9 +135,10 @@ public final class NetworkProtocolDto {
     }
 
     public static final class Builder {
-        private Id id;
+        private String id;
         private String name;
         private String description;
+        private List<UnknownOemDto> unknownOems;
         private Status status;
         private String hostName;
         private String fqdn;
@@ -141,7 +155,7 @@ public final class NetworkProtocolDto {
         private Builder() {
         }
 
-        public Builder id(Id id) {
+        public Builder id(String id) {
             this.id = id;
             return this;
         }
@@ -153,6 +167,11 @@ public final class NetworkProtocolDto {
 
         public Builder description(String description) {
             this.description = description;
+            return this;
+        }
+
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 

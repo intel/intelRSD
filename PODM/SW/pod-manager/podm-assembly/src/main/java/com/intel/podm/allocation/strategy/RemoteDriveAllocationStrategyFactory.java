@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@
 package com.intel.podm.allocation.strategy;
 
 import com.intel.podm.allocation.validation.RemoteDriveValidationException;
-import com.intel.podm.business.dto.redfish.RequestedNode;
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
 
 import javax.enterprise.context.Dependent;
@@ -41,7 +40,7 @@ public class RemoteDriveAllocationStrategyFactory {
             throw new RemoteDriveValidationException("Creation of Systems with multiple RemoteDrives is not supported");
         }
 
-        RequestedRemoteDrive drive = single(requestedNode.getRemoteDrives());
+        RequestedNode.RemoteDrive drive = single(requestedNode.getRemoteDrives());
 
         return isDefiningExistingTarget(drive)
                 ? existingRemoteDrive(drive)
@@ -52,19 +51,19 @@ public class RemoteDriveAllocationStrategyFactory {
         return isNotEmpty(requestedNode.getRemoteDrives());
     }
 
-    private ExistingRemoteDriveAllocationStrategy existingRemoteDrive(RequestedRemoteDrive drive) {
+    private ExistingRemoteDriveAllocationStrategy existingRemoteDrive(RequestedNode.RemoteDrive drive) {
         ExistingRemoteDriveAllocationStrategy allocationStrategy = beanFactory.create(ExistingRemoteDriveAllocationStrategy.class);
         allocationStrategy.setDrive(drive);
         return allocationStrategy;
     }
 
-    private NewRemoteDriveAllocationStrategy newRemoteDrive(RequestedRemoteDrive drive) {
+    private NewRemoteDriveAllocationStrategy newRemoteDrive(RequestedNode.RemoteDrive drive) {
         NewRemoteDriveAllocationStrategy allocationStrategy = beanFactory.create(NewRemoteDriveAllocationStrategy.class);
         allocationStrategy.setDrive(drive);
         return allocationStrategy;
     }
 
-    private boolean isDefiningExistingTarget(RequestedRemoteDrive drive) {
+    private boolean isDefiningExistingTarget(RequestedNode.RemoteDrive drive) {
         return drive.getMaster() == null;
     }
 }

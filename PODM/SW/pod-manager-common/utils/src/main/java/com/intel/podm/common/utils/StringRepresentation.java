@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,11 +87,11 @@ public final class StringRepresentation {
                 .join(mapToJoin);
     }
 
-    public static String fromList(List<?> listToJoin) {
-        return fromList(listToJoin, ELEMENT_SEPARATOR);
+    public static String fromIterable(Iterable<?> listToJoin) {
+        return fromIterable(listToJoin, ELEMENT_SEPARATOR);
     }
 
-    public static String fromList(List<?> listToJoin, String separator) {
+    public static String fromIterable(Iterable<?> listToJoin, String separator) {
         return Joiner
                 .on(separator)
                 .join(listToJoin);

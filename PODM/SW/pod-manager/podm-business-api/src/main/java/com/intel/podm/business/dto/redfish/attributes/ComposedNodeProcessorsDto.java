@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.intel.podm.business.dto.redfish.attributes;
 import com.intel.podm.common.types.Status;
 
 public final class ComposedNodeProcessorsDto {
-    private int count;
+    private Integer count;
     private String model;
     private Status status;
 
@@ -33,7 +33,7 @@ public final class ComposedNodeProcessorsDto {
         return new Builder();
     }
 
-    public int getCount() {
+    public Integer getCount() {
         return count;
     }
 
@@ -46,14 +46,14 @@ public final class ComposedNodeProcessorsDto {
     }
 
     public static final class Builder {
-        private int count;
+        private Integer count;
         private String model;
         private Status status;
 
         private Builder() {
         }
 
-        public Builder count(int count) {
+        public Builder count(Integer count) {
             this.count = count;
             return this;
         }

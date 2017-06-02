@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,23 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.LogicalDriveType;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.VolumeMode;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
 import java.math.BigDecimal;
-import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
-public final class LogicalDriveDto {
-    private final Id id;
+@SuppressWarnings({"checkstyle:MethodCount"})
+public final class LogicalDriveDto extends BaseDto implements RedfishResource {
+    private final String id;
     private final String name;
     private final String description;
+    private final List<UnknownOemDto> unknownOems;
     private final Status status;
     private final LogicalDriveType type;
     private final VolumeMode mode;
@@ -38,17 +42,13 @@ public final class LogicalDriveDto {
     private final Boolean bootable;
     private final Boolean snapshot;
     private final Context context;
-
-    private final Collection<Context> logicalDrives;
-    private final Collection<Context> physicalDrives;
-    private final Context masterDrive;
-    private final Collection<Context> usedBy;
-    private final Collection<Context> targets;
+    private final Links links;
 
     private LogicalDriveDto(Builder builder) {
         id = builder.id;
         name = builder.name;
         description = builder.description;
+        unknownOems = builder.unknownOems;
         status = builder.status;
         type = builder.type;
         mode = builder.mode;
@@ -58,27 +58,37 @@ public final class LogicalDriveDto {
         bootable = builder.bootable;
         snapshot = builder.snapshot;
         context = builder.context;
-        logicalDrives = builder.logicalDrives;
-        physicalDrives = builder.physicalDrives;
-        masterDrive = builder.masterDrive;
-        usedBy = builder.usedBy;
-        targets = builder.targets;
+        links = Links.newBuilder()
+            .logicalDrives(builder.logicalDrives)
+            .physicalDrives(builder.physicalDrives)
+            .masterDrive(builder.masterDrive)
+            .usedBy(builder.usedBy)
+            .targets(builder.targets)
+            .build();
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public Status getStatus() {
@@ -117,30 +127,96 @@ public final class LogicalDriveDto {
         return context;
     }
 
-    public Collection<Context> getLogicalDrives() {
-        return logicalDrives;
+    @Override
+    public Links getLinks() {
+        return links;
     }
 
-    public Collection<Context> getPhysicalDrives() {
-        return physicalDrives;
-    }
+    public static final class Links implements RedfishResource.Links {
+        private final Set<Context> logicalDrives;
+        private final Set<Context> physicalDrives;
+        private final Context masterDrive;
+        private final Set<Context> usedBy;
+        private final Set<Context> targets;
 
-    public Context getMasterDrive() {
-        return masterDrive;
-    }
+        private Links(Builder builder) {
+            logicalDrives = builder.logicalDrives;
+            physicalDrives = builder.physicalDrives;
+            masterDrive = builder.masterDrive;
+            usedBy = builder.usedBy;
+            targets = builder.targets;
+        }
 
-    public Collection<Context> getUsedBy() {
-        return usedBy;
-    }
+        public static Builder newBuilder() {
+            return new Builder();
+        }
 
-    public Collection<Context> getTargets() {
-        return targets;
+        public Set<Context> getLogicalDrives() {
+            return logicalDrives;
+        }
+
+        public Set<Context> getPhysicalDrives() {
+            return physicalDrives;
+        }
+
+        public Context getMasterDrive() {
+            return masterDrive;
+        }
+
+        public Set<Context> getUsedBy() {
+            return usedBy;
+        }
+
+        public Set<Context> getTargets() {
+            return targets;
+        }
+
+        public static final class Builder {
+            private Set<Context> logicalDrives;
+            private Set<Context> physicalDrives;
+            private Context masterDrive;
+            private Set<Context> usedBy;
+            private Set<Context> targets;
+
+            private Builder() {
+            }
+
+            public Builder logicalDrives(Set<Context> logicalDrives) {
+                this.logicalDrives = logicalDrives;
+                return this;
+            }
+
+            public Builder physicalDrives(Set<Context> physicalDrives) {
+                this.physicalDrives = physicalDrives;
+                return this;
+            }
+
+            public Builder masterDrive(Context masterDrive) {
+                this.masterDrive = masterDrive;
+                return this;
+            }
+
+            public Builder usedBy(Set<Context> usedBy) {
+                this.usedBy = usedBy;
+                return this;
+            }
+
+            public Builder targets(Set<Context> targets) {
+                this.targets = targets;
+                return this;
+            }
+
+            public Links build() {
+                return new Links(this);
+            }
+        }
     }
 
     public static final class Builder {
-        private Id id;
+        private String id;
         private String name;
         private String description;
+        private List<UnknownOemDto> unknownOems;
         private Status status;
         private LogicalDriveType type;
         private VolumeMode mode;
@@ -150,97 +226,102 @@ public final class LogicalDriveDto {
         private Boolean bootable;
         private Boolean snapshot;
         private Context context;
-        private Collection<Context> logicalDrives;
-        private Collection<Context> physicalDrives;
+        private Set<Context> logicalDrives;
+        private Set<Context> physicalDrives;
         private Context masterDrive;
-        private Collection<Context> usedBy;
-        private Collection<Context> targets;
+        private Set<Context> usedBy;
+        private Set<Context> targets;
 
         private Builder() {
         }
 
-        public Builder id(Id val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder description(String val) {
-            description = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 
-        public Builder type(LogicalDriveType val) {
-            type = val;
+        public Builder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public Builder mode(VolumeMode val) {
-            mode = val;
+        public Builder type(LogicalDriveType type) {
+            this.type = type;
             return this;
         }
 
-        public Builder writeProtected(Boolean val) {
-            writeProtected = val;
+        public Builder mode(VolumeMode mode) {
+            this.mode = mode;
             return this;
         }
 
-        public Builder capacityGib(BigDecimal val) {
-            capacityGib = val;
+        public Builder writeProtected(Boolean writeProtected) {
+            this.writeProtected = writeProtected;
             return this;
         }
 
-        public Builder image(String val) {
-            image = val;
+        public Builder capacityGib(BigDecimal capacityGib) {
+            this.capacityGib = capacityGib;
             return this;
         }
 
-        public Builder bootable(Boolean val) {
-            bootable = val;
+        public Builder image(String image) {
+            this.image = image;
             return this;
         }
 
-        public Builder snapshot(Boolean val) {
-            snapshot = val;
+        public Builder bootable(Boolean bootable) {
+            this.bootable = bootable;
             return this;
         }
 
-        public Builder context(Context val) {
-            context = val;
+        public Builder snapshot(Boolean snapshot) {
+            this.snapshot = snapshot;
             return this;
         }
 
-        public Builder logicalDrives(Collection<Context> val) {
-            logicalDrives = val;
+        public Builder context(Context context) {
+            this.context = context;
             return this;
         }
 
-        public Builder physicalDrives(Collection<Context> val) {
-            physicalDrives = val;
+        public Builder logicalDrives(Set<Context> logicalDrives) {
+            this.logicalDrives = logicalDrives;
             return this;
         }
 
-        public Builder masterDrive(Context val) {
-            masterDrive = val;
+        public Builder physicalDrives(Set<Context> physicalDrives) {
+            this.physicalDrives = physicalDrives;
             return this;
         }
 
-        public Builder usedBy(Collection<Context> val) {
-            usedBy = val;
+        public Builder masterDrive(Context masterDrive) {
+            this.masterDrive = masterDrive;
             return this;
         }
 
-        public Builder targets(Collection<Context> val) {
-            targets = val;
+        public Builder usedBy(Set<Context> usedBy) {
+            this.usedBy = usedBy;
+            return this;
+        }
+
+        public Builder targets(Set<Context> targets) {
+            this.targets = targets;
             return this;
         }
 

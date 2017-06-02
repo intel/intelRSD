@@ -18,11 +18,12 @@
 
 <xs:element name="chassis">
     <xs:complexType>
-        <xs:all>
+        <xs:choice maxOccurs="unbounded">
             <xs:element type="xs:string" name="type" minOccurs="0" maxOccurs="1"/>
             <xs:element type="xs:unsignedInt" name="locationOffset" minOccurs="0" maxOccurs="1"/>
             <xs:element type="xs:string" name="parentId" minOccurs="0" maxOccurs="1"/>
-        </xs:all>
+            <xs:element ref="drive" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:choice>
     </xs:complexType>
 </xs:element>
 
@@ -31,8 +32,8 @@
         <xs:choice maxOccurs="unbounded">
             <xs:element ref="fruInfo" minOccurs="0" maxOccurs="1"/>
             <xs:element ref="processor" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element ref="storageController" minOccurs="0" maxOccurs="unbounded"/>
-            <xs:element ref="dimm" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element ref="storageSubsystem"/>
+            <xs:element ref="memory" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="networkInterface" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="pciDevice" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element ref="usbDevice" minOccurs="0" maxOccurs="unbounded"/>
@@ -41,6 +42,14 @@
             <xs:element type="xs:string" name="assetTag" minOccurs="0" maxOccurs="1"/>
             <xs:element type="xs:string" name="indicatorLed" minOccurs="0" maxOccurs="1"/>
             <xs:element type="xs:string" name="biosVersion" minOccurs="0" maxOccurs="1"/>
+        </xs:choice>
+    </xs:complexType>
+</xs:element>
+
+<xs:element name="storageSubsystem">
+    <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+            <xs:element ref="storageController" minOccurs="0" maxOccurs="unbounded"/>
         </xs:choice>
     </xs:complexType>
 </xs:element>
@@ -196,7 +205,7 @@
     </xs:complexType>
 </xs:element>
 
-<xs:element name="dimm">
+<xs:element name="memory">
     <xs:complexType>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element ref="status" minOccurs="0" maxOccurs="1"/>
@@ -234,7 +243,6 @@
         <xs:choice maxOccurs="unbounded">
             <xs:element ref="status" minOccurs="0"/>
             <xs:element ref="interface" minOccurs="0"/>
-            <xs:element ref="drive" maxOccurs="unbounded" minOccurs="0"/>
             <xs:element type="xs:string" name="busInfo" maxOccurs="1" minOccurs="0"/>
         </xs:choice>
     </xs:complexType>
@@ -280,7 +288,6 @@
             <xs:element ref="speedMbps" minOccurs="0"/>
             <xs:element ref="frameSize" minOccurs="0"/>
             <xs:element ref="autoSense" minOccurs="0"/>
-            <xs:element ref="fullDuplex" minOccurs="0"/>
             <xs:element ref="ipv4Address" minOccurs="0"/>
             <xs:element ref="ipv6Address" minOccurs="0"/>
             <xs:element ref="fullDuplex" minOccurs="0"/>
@@ -384,6 +391,7 @@
         </xs:union>
     </xs:simpleType>
 </xs:element>
+
 <xs:element name="autoSense">
     <xs:simpleType>
         <xs:union>

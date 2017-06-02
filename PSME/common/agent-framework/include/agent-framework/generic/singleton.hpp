@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief Generic singleton implementation
  * */
 
-#ifndef AGENT_FRAMEWORK_GENERIC_SINGLETON_HPP
-#define AGENT_FRAMEWORK_GENERIC_SINGLETON_HPP
-
+#pragma once
 #include <mutex>
 #include <memory>
 
@@ -66,6 +64,4 @@ std::once_flag Singleton<T>::m_once_flag{};
 
 }
 }
-
-#endif /* AGENT_FRAMEWORK_GENERIC_GENERIC_MANAGER_HPP */
 

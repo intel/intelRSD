@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,21 +24,26 @@
 
 #include "iscsi/tgt/config/tgt_config.hpp"
 #include "iscsi/tgt/config/tgt_target_config.hpp"
+
+#include "agent-framework/module/managers/iscsi_target_manager.hpp"
+#include "agent-framework/module/storage_components.hpp"
 #include <fstream>
-#include <cstring>
 
 using namespace agent::storage::iscsi::tgt::config;
-using namespace agent_framework::generic;
+using namespace agent_framework::model;
+using namespace agent_framework::module;
+using namespace agent_framework::module::managers;
 using namespace std;
 
 constexpr const char* TGT_TARGET_CONF_EXTENSION = ".conf";
 constexpr const char* TGT_TARGET_CONF_PATH = "/etc/tgt/conf.d/";
 
-void TgtConfig::add_target(const Target::TargetSharedPtr& target) const {
+
+void TgtConfig::add_target(const IscsiTarget& target) const {
 
     TgtTargetConfig tgtTargetConfig(target);
 
-    auto target_conf_file_name = get_target_conf_file_name(target->get_target_iqn());
+    auto target_conf_file_name = get_target_conf_file_name(target.get_target_iqn());
     log_info(GET_LOGGER("tgt"), "Add TGT target config file: " + target_conf_file_name);
 
     ofstream targetConfigFile;

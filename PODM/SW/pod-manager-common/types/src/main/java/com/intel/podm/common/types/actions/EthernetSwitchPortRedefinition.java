@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package com.intel.podm.common.types.actions;
 import com.intel.podm.common.types.AdministrativeState;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 public final class EthernetSwitchPortRedefinition {
     private final AdministrativeState administrativeState;
@@ -28,7 +27,7 @@ public final class EthernetSwitchPortRedefinition {
     private final Integer frameSize;
     private final Boolean autosense;
     private final URI primaryVlan;
-    private final Optional<List<URI>> uris;
+    private final Set<URI> uris;
 
     private EthernetSwitchPortRedefinition(Builder builder) {
         this.administrativeState = builder.administrativeState;
@@ -59,7 +58,7 @@ public final class EthernetSwitchPortRedefinition {
         return primaryVlan;
     }
 
-    public Optional<List<URI>> getUris() {
+    public Set<URI> getUris() {
         return uris;
     }
 
@@ -73,7 +72,7 @@ public final class EthernetSwitchPortRedefinition {
         private Integer frameSize;
         private Boolean autosense;
         private URI primaryVlan;
-        private Optional<List<URI>> uris;
+        private Set<URI> uris;
 
         private Builder() {
         }
@@ -83,7 +82,7 @@ public final class EthernetSwitchPortRedefinition {
             return this;
         }
 
-        public Builder linkSpeed(Integer linkSpeed) {
+        public Builder linkSpeedMbps(Integer linkSpeed) {
             this.linkSpeed = linkSpeed;
             return this;
         }
@@ -103,7 +102,7 @@ public final class EthernetSwitchPortRedefinition {
             return this;
         }
 
-        public Builder uris(Optional<List<URI>> uris) {
+        public Builder uris(Set<URI> uris) {
             this.uris = uris;
             return this;
         }

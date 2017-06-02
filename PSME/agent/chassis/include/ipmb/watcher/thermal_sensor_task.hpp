@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,7 @@
  * @brief Thermal Sensor task.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_THERMAL_SENSOR_THERMAL_SENSOR_TASK_HPP
-#define AGENT_CHASSIS_IPMB_THERMAL_SENSOR_THERMAL_SENSOR_TASK_HPP
-
+#pragma once
 #include <ipmb/watcher/task.hpp>
 
 /*! Agent namspace */
@@ -48,5 +46,4 @@ public:
 }
 }
 
-#endif /* AGENT_CHASSIS_IPMB_THERMAL_SENSOR_THERMAL_SENSOR_TASK_HPP */
 

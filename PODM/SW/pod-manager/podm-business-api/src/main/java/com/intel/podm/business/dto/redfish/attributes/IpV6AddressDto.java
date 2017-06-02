@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,17 @@ import com.intel.podm.common.types.IpV6AddressOrigin;
 
 public final class IpV6AddressDto {
     private final String address;
-    private final int prefixLength;
+    private final Integer prefixLength;
     private final IpV6AddressOrigin addressOrigin;
     private final AddressState addressState;
+    private final UnknownOemDto oem;
 
     private IpV6AddressDto(Builder builder) {
         address = builder.address;
         prefixLength = builder.prefixLength;
         addressOrigin = builder.addressOrigin;
         addressState = builder.addressState;
+        oem = builder.oem;
     }
 
     public static Builder newBuilder() {
@@ -41,7 +43,7 @@ public final class IpV6AddressDto {
         return address;
     }
 
-    public int getPrefixLength() {
+    public Integer getPrefixLength() {
         return prefixLength;
     }
 
@@ -53,32 +55,42 @@ public final class IpV6AddressDto {
         return addressState;
     }
 
+    public UnknownOemDto getOem() {
+        return oem;
+    }
+
     public static final class Builder {
         private String address;
-        private int prefixLength;
+        private Integer prefixLength;
         private IpV6AddressOrigin addressOrigin;
         private AddressState addressState;
+        private UnknownOemDto oem;
 
         private Builder() {
         }
 
-        public Builder address(String val) {
-            address = val;
+        public Builder address(String address) {
+            this.address = address;
             return this;
         }
 
-        public Builder prefixLength(int val) {
-            prefixLength = val;
+        public Builder prefixLength(Integer prefixLength) {
+            this.prefixLength = prefixLength;
             return this;
         }
 
-        public Builder addressOrigin(IpV6AddressOrigin val) {
-            addressOrigin = val;
+        public Builder addressOrigin(IpV6AddressOrigin addressOrigin) {
+            this.addressOrigin = addressOrigin;
             return this;
         }
 
-        public Builder addressState(AddressState val) {
-            addressState = val;
+        public Builder addressState(AddressState addressState) {
+            this.addressState = addressState;
+            return this;
+        }
+
+        public Builder oem(UnknownOemDto oem) {
+            this.oem = oem;
             return this;
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,86 +16,33 @@
 
 package com.intel.podm.mappers.redfish;
 
-import com.intel.podm.business.entities.dao.GenericDao;
-import com.intel.podm.business.entities.redfish.PowerSupply;
 import com.intel.podm.business.entities.redfish.PowerZone;
-import com.intel.podm.business.entities.redfish.properties.RackLocation;
-import com.intel.podm.client.api.resources.redfish.PowerSupplyResource;
+import com.intel.podm.business.entities.redfish.embeddables.RackLocation;
 import com.intel.podm.client.api.resources.redfish.PowerZoneResource;
-import com.intel.podm.client.api.resources.redfish.RackLocationObject;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
+import com.intel.podm.mappers.subresources.PowerZonePowerSupplyMapper;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.util.Collection;
-import java.util.function.Supplier;
-
-import static java.util.Objects.isNull;
 
 @Dependent
-public class PowerZoneMapper extends DomainObjectMapper<PowerZoneResource, PowerZone> {
+public class PowerZoneMapper extends EntityMapper<PowerZoneResource, PowerZone> {
     @Inject
-    private GenericDao genericDao;
+    private PowerZonePowerSupplyMapper powerZonePowerSupplyMapper;
 
     public PowerZoneMapper() {
         super(PowerZoneResource.class, PowerZone.class);
-        registerProvider(RackLocation.class, this::provideRackLocation);
+        registerProvider(RackLocation.class, target -> provideRackLocation());
     }
 
     @Override
-    protected void performNotAutomatedMapping(PowerZoneResource source, PowerZone target) {
-        clearPsus(target.getPowerSupplies());
-        addPsus(source.getPowerSupplies(), target::addPowerSupply);
+    protected void performNotAutomatedMapping(PowerZoneResource sourcePowerZone, PowerZone targetPowerZone) {
+        super.performNotAutomatedMapping(source, target);
+        powerZonePowerSupplyMapper.map(sourcePowerZone.getPowerSupplies(), targetPowerZone.getPowerSupplies(), targetPowerZone::addPowerSupply);
     }
 
-    private void clearPsus(Collection<PowerSupply> psus) {
-        psus.forEach(genericDao::remove);
-    }
-
-    private void addPsus(Iterable<PowerSupplyResource> psus, Supplier<PowerSupply> psuSupplier) {
-        if (isNull(psus)) {
-            return;
-        }
-
-        for (PowerSupplyResource psu : psus) {
-            PowerSupply powerSupply = psuSupplier.get();
-            powerSupply.setName(psu.getName());
-            powerSupply.setStatus(psu.getStatus());
-            powerSupply.setPowerCapacityWatts(psu.getPowerCapacityWatts());
-            powerSupply.setLastPowerOutputWatt(psu.getLastPowerOutputWatts());
-            powerSupply.setSerialNumber(psu.getSerialNumber());
-            powerSupply.setManufacturer(psu.getManufacturer());
-            powerSupply.setModel(psu.getModel());
-            powerSupply.setPartNumber(psu.getPartNumber());
-            powerSupply.setFirmwareVersion(psu.getFirmwareVersion());
-            powerSupply.setRackLocation(toRackLocation(psu.getRackLocation()));
-        }
-    }
-
-    private RackLocation toRackLocation(RackLocationObject rackLocation) {
-        if (isNull(rackLocation)) {
-            return null;
-        }
-
-        RackLocation location = createRackLocation();
-        location.setRackUnit(rackLocation.getRackUnit());
-        location.setUHeight(rackLocation.getUHeight());
-        location.setULocation(rackLocation.getULocation());
-        location.setXLocation(rackLocation.getXLocation());
-
-        return location;
-    }
-
-    private RackLocation createRackLocation() {
-        return genericDao.create(RackLocation.class);
-    }
-
-    private RackLocation provideRackLocation(RackLocationObject rackLocationObject) {
+    private RackLocation provideRackLocation() {
         RackLocation rackLocation = target.getRackLocation();
-        if (rackLocation == null) {
-            rackLocation = genericDao.create(RackLocation.class);
-        }
-
-        return rackLocation;
+        return rackLocation == null ? new RackLocation() : rackLocation;
     }
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -329,6 +329,23 @@ public:
     const Rules& get_rules() {
         return m_rules;
     }
+
+    /*!
+     * @brief Save ACL name for given UUID.
+
+     * @param[in] uuid UUID of the ACL.
+     * @param[in] name ACL name.
+     * */
+    static void add_acl_name(const std::string& uuid, const std::string& name);
+
+    /*!
+     * @brief Get ACL name for given ACL UUID if exist.
+
+     * @param[in] uuid UUID of the ACL.
+
+     * @return ACL name if found in the map, UUID if not.
+     * */
+    static const std::string& get_acl_name(const std::string& uuid);
 
 private:
     Strings m_acls{};

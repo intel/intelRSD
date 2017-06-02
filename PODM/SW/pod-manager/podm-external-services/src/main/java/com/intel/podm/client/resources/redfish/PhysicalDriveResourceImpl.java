@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.api.resources.redfish.PhysicalDriveResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
-import com.intel.podm.common.types.DriveType;
+import com.intel.podm.common.types.MediaType;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.StorageControllerInterface;
 
-import java.math.BigDecimal;
-
 @OdataTypes({
-        "#PhysicalDrive.1.0.0.PhysicalDrive",
-        "#PhysicalDrive.v1_0_0.PhysicalDrive"
+    "#PhysicalDrive" + OdataTypes.VERSION_PATTERN + "PhysicalDrive"
 })
 public class PhysicalDriveResourceImpl extends ExternalServiceResourceImpl implements PhysicalDriveResource {
     @JsonProperty ("Interface")
     private StorageControllerInterface controllerInterface;
     @JsonProperty ("CapacityGiB")
-    private BigDecimal capacityGib;
+    private Float capacityGib;
     @JsonProperty ("Type")
-    private DriveType type;
+    private MediaType type;
     @JsonProperty("RPM")
     private Integer rpm;
     @JsonProperty ("Manufacturer")
@@ -54,12 +51,12 @@ public class PhysicalDriveResourceImpl extends ExternalServiceResourceImpl imple
     }
 
     @Override
-    public BigDecimal getCapacityGib() {
+    public Float getCapacityGib() {
         return capacityGib;
     }
 
     @Override
-    public DriveType getType() {
+    public MediaType getType() {
         return type;
     }
 

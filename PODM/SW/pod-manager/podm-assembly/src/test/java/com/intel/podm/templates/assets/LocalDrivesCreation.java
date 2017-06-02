@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package com.intel.podm.templates.assets;
 
-import com.intel.podm.business.dto.redfish.RequestedLocalDrive;
-import com.intel.podm.business.entities.redfish.Device;
+import com.intel.podm.allocation.strategy.matcher.LocalDrive;
+import com.intel.podm.business.entities.redfish.SimpleStorageDevice;
 import com.intel.podm.business.entities.redfish.base.LocalStorage;
-import com.intel.podm.business.entities.redfish.properties.SimpleStorageDevice;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.DriveType;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.types.Id;
-import com.intel.podm.common.types.StorageControllerInterface;
+import com.intel.podm.common.types.MediaType;
+import com.intel.podm.common.types.Protocol;
 
 import java.math.BigDecimal;
 
@@ -31,20 +31,30 @@ import static java.math.BigDecimal.valueOf;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings({"checkstyle:ParameterNumber"})
 public final class LocalDrivesCreation {
     private LocalDrivesCreation() {
     }
 
-    public static RequestedLocalDrive createRequestedDrive(DriveType type, Integer capacityGib,
-                                                           StorageControllerInterface iface,
-                                                           Integer minRpm, String serialNumber, Context context) {
-        RequestedLocalDrive mock = mock(RequestedLocalDrive.class);
+    public static RequestedNode.LocalDrive createRequestedDrive(MediaType type, Integer capacityGib,
+                                                                Protocol protocol,
+                                                                BigDecimal minRpm, String serialNumber, Context context) {
+        RequestedNode.LocalDrive mock = mock(RequestedNode.LocalDrive.class);
         when(mock.getCapacityGib()).thenReturn(capacityGib == null ? null : valueOf(capacityGib));
         when(mock.getType()).thenReturn(type);
         when(mock.getMinRpm()).thenReturn(minRpm);
         when(mock.getSerialNumber()).thenReturn(serialNumber);
-        when(mock.getInterface()).thenReturn(iface);
+        when(mock.getInterface()).thenReturn(protocol);
         when(mock.getResourceContext()).thenReturn(context);
+
+        return mock;
+    }
+
+    public static RequestedNode.LocalDrive createRequestedDriveWithChassisContext(MediaType type, Integer capacityGib,
+                                                                Protocol protocol,
+                                                                BigDecimal minRpm, String serialNumber, Context resourceContext, Context chassisContext) {
+        RequestedNode.LocalDrive mock = LocalDrivesCreation.createRequestedDrive(type, capacityGib, protocol, minRpm, serialNumber, resourceContext);
+        when(mock.getChassisContext()).thenReturn(chassisContext);
 
         return mock;
     }
@@ -53,19 +63,19 @@ public final class LocalDrivesCreation {
         return createAvailableStorage(SimpleStorageDevice.class, null, capacityGib, null, null, null, id);
     }
 
-    public static Device createAvailableLocalDrive(DriveType type, BigDecimal capacityGib, StorageControllerInterface iface,
-                                                   Integer rpm, String serialNumber, Id id) {
-        return createAvailableStorage(Device.class, type, capacityGib, iface, rpm, serialNumber, id);
+    public static LocalDrive createAvailableLocalDrive(MediaType type, BigDecimal capacityGib, Protocol protocol,
+                                                       BigDecimal rpm, String serialNumber, Id id) {
+        return createAvailableStorage(LocalDrive.class, type, capacityGib, protocol, rpm, serialNumber, id);
     }
 
-    private static <T extends LocalStorage> T createAvailableStorage(Class<T> storageClass, DriveType type, BigDecimal capacityGib,
-                                                                     StorageControllerInterface iface, Integer rpm, String serialNumber, Id id) {
+    private static <T extends LocalStorage> T createAvailableStorage(Class<T> storageClass, MediaType type, BigDecimal capacityGib,
+                                                                     Protocol protocol, BigDecimal rpm, String serialNumber, Id id) {
         T mock = mock(storageClass);
         when(mock.getCapacityGib()).thenReturn(capacityGib);
         when(mock.getType()).thenReturn(type);
         when(mock.getRpm()).thenReturn(rpm);
         when(mock.getSerialNumber()).thenReturn(serialNumber);
-        when(mock.getInterface()).thenReturn(iface);
+        when(mock.getProtocol()).thenReturn(protocol);
         when(mock.getId()).thenReturn(id);
 
         return mock;

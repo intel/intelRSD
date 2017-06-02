@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 #
 # </license_header>
 
-if (CMAKE_CROSSCOMPILING)
-    message(WARNING "Not supported for crosscompaling.")
-    return()
-endif()
-
 if (NOT GTEST_FOUND)
     return()
-endif()
-
-if (ENABLE_VALGRIND_DRD)
-    link_libraries(${VALGRINDCXX_LIBRARIES})
 endif()
 
 add_subdirectory(loader)
 add_subdirectory(md5)
 add_subdirectory(network_utils)
+add_subdirectory(tree_stability)
+add_subdirectory(ipmb)
+
+add_custom_target(unittest_psme-chassis
+                  make
+)
+add_custom_target(unittest_psme-chassis_run
+                  ctest --output-on-failure
+)

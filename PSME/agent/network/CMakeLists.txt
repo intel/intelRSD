@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,9 +24,10 @@ if (CMAKE_CROSSCOMPILING)
   return()
 endif()
 
-set(VALGRIND_SUPPRESSIONS
-    ${CMAKE_CURRENT_SOURCE_DIR}/valgrind/jsonrpccpp.supp
-)
+if (NOT FM10KD_FOUND)
+    message(WARNING "Network agent not compiled:: Fm10kd not found (should be Fedora Linux)")
+    return()
+endif()
 
 set(AGENT_NETWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 

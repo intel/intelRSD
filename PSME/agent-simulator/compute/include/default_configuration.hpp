@@ -3,7 +3,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,9 +27,7 @@
  * @brief Application default configuration
  * */
 
-#ifndef AGENT_DEFAULT_CONFIGURATION_HPP
-#define AGENT_DEFAULT_CONFIGURATION_HPP
-
+#pragma once
 namespace agent {
 namespace generic {
 
@@ -93,4 +91,3 @@ static constexpr const char DEFAULT_FILE[] = "configuration.json";
 }
 }
 
-#endif /* AGENT_DEFAULT_CONFIGURATION_HPP */

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ add_subdirectory(ipmb)
 add_subdirectory(command)
 add_subdirectory(status)
 add_subdirectory(loader)
+add_subdirectory(tree_stability)
 
 add_library(chassis-commands STATIC
     $<TARGET_OBJECTS:chassis-command-sdv>
@@ -29,6 +30,7 @@ add_library(chassis-commands STATIC
 add_library(chassis-utils
     $<TARGET_OBJECTS:chassis-status-impl>
     $<TARGET_OBJECTS:chassis-loader>
+    $<TARGET_OBJECTS:chassis-tree-stability>
 )
 
 add_library(chassis-ipmb
@@ -53,7 +55,7 @@ target_link_libraries(psme-chassis
     ${JSONCXX_LIBRARIES}
     ipmi
     ${BASE64_LIBRARIES}
-    ipmicmd
+    ${IPMITOOL_LIBRARIES}
     pthread
     jsonrpccpp-server
     jsonrpccpp-client
@@ -62,5 +64,7 @@ target_link_libraries(psme-chassis
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
     ${CY_USB_SERIAL_LIBRARIES}
+    ${NET_LIBRARIES}
+    ${SAFESTRING_LIBRARIES}
     md5
 )

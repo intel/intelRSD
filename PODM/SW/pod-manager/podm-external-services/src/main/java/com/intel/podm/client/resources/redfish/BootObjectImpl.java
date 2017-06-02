@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,39 +17,65 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.intel.podm.client.api.resources.redfish.BootObject;
+import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
+import com.intel.podm.common.types.BootSourceMode;
 import com.intel.podm.common.types.BootSourceState;
 import com.intel.podm.common.types.BootSourceType;
+import com.intel.podm.common.types.Ref;
+import com.intel.podm.common.types.annotations.AsUnassigned;
 
-import java.util.List;
+import java.util.LinkedHashSet;
 
-import static java.util.Collections.emptyList;
+import static com.intel.podm.common.types.Ref.unassigned;
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
-public class BootObjectImpl implements BootObject {
+public class BootObjectImpl implements ComputerSystemResource.Boot {
     @JsonProperty("BootSourceOverrideEnabled")
-    private BootSourceState bootSourceOverrideEnabled;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<BootSourceState> bootSourceOverrideEnabled = unassigned();
 
     @JsonProperty("BootSourceOverrideTarget")
-    private BootSourceType bootSourceOverrideTarget;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<BootSourceType> bootSourceOverrideTarget = unassigned();
 
     @JsonProperty("BootSourceOverrideTarget@Redfish.AllowableValues")
-    private List<BootSourceType> bootSourceOverrideTargetAllowableValues;
+    private LinkedHashSet<BootSourceType> bootSourceOverrideTargetAllowableValues;
+
+    @JsonProperty("BootSourceOverrideMode")
+    @AsUnassigned(WHEN_NULL)
+    private Ref<BootSourceMode> bootSourceOverrideMode = unassigned();
+
+    @JsonProperty("BootSourceOverrideMode@Redfish.AllowableValues")
+    private LinkedHashSet<BootSourceMode> bootSourceOverrideModeAllowableValues;
 
     @Override
-    public BootSourceState getBootSourceOverrideEnabled() {
+    public Ref<BootSourceState> getBootSourceOverrideEnabled() {
         return bootSourceOverrideEnabled;
     }
 
     @Override
-    public BootSourceType getBootSourceOverrideTarget() {
+    public Ref<BootSourceType> getBootSourceOverrideTarget() {
         return bootSourceOverrideTarget;
     }
 
     @Override
-    public List<BootSourceType> getBootSourceOverrideTargetAllowableValues() {
+    public LinkedHashSet<BootSourceType> getBootSourceOverrideTargetAllowableValues() {
         if (bootSourceOverrideTargetAllowableValues == null) {
-            return emptyList();
+            return new LinkedHashSet<>();
         }
         return bootSourceOverrideTargetAllowableValues;
+    }
+
+    @Override
+    public Ref<BootSourceMode> getBootSourceOverrideMode() {
+        return bootSourceOverrideMode;
+    }
+
+    @Override
+    public LinkedHashSet<BootSourceMode> getBootSourceOverrideModeAllowableValues() {
+        if (bootSourceOverrideModeAllowableValues == null) {
+            return new LinkedHashSet<>();
+        }
+        return bootSourceOverrideModeAllowableValues;
     }
 }

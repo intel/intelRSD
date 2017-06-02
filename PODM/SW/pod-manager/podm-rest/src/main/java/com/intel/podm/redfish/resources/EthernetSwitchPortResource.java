@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.actions.ActionException;
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.BusinessApiException;
+import com.intel.podm.business.EntityOperationException;
 import com.intel.podm.business.dto.redfish.EthernetSwitchPortDto;
-import com.intel.podm.business.redfish.services.EthernetSwitchPortActionsService;
-import com.intel.podm.business.services.redfish.EthernetSwitchPortService;
+import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.business.services.redfish.RemovalService;
+import com.intel.podm.business.services.redfish.UpdateService;
+import com.intel.podm.common.types.redfish.RedfishErrorResponseCarryingException;
+import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
 import com.intel.podm.redfish.OptionsResponseBuilder;
 import com.intel.podm.redfish.json.templates.actions.UpdateEthernetSwitchPortActionJson;
-import com.intel.podm.rest.resources.ResourceNames;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -33,66 +35,78 @@ import javax.ws.rs.PATCH;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import java.util.concurrent.TimeoutException;
 
 import static com.intel.podm.common.types.PortClass.LOGICAL;
 import static com.intel.podm.redfish.OptionsResponseBuilder.newDefaultOptionsResponseBuilder;
 import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
 import static com.intel.podm.rest.error.PodmExceptions.invalidPayload;
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
+import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.ok;
 
 @Produces(APPLICATION_JSON)
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class EthernetSwitchPortResource extends BaseResource {
 
+    //TODO: change EthernetSwitchPortDto to RedfishEthernetSwitchPort
     @Inject
-    private EthernetSwitchPortService service;
+    private ReaderService<EthernetSwitchPortDto> readerService;
 
     @Inject
-    private EthernetSwitchPortActionsService actionService;
+    private UpdateService<RedfishEthernetSwitchPort> updateService;
+
+    @Inject
+    private RemovalService<RedfishEthernetSwitchPort> removalService;
 
     @GET
     @Override
     public EthernetSwitchPortDto get() {
-        return getOrThrow(() -> service.getEthernetSwitchPort(getCurrentContext()));
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
     }
 
     @PATCH
     @Consumes(APPLICATION_JSON)
-    public Response updateSwitchPort(UpdateEthernetSwitchPortActionJson updateSwitchPortActionJson) {
+    public Response updateSwitchPort(UpdateEthernetSwitchPortActionJson updateSwitchPortActionJson) throws TimeoutException, BusinessApiException {
         try {
-            actionService.updateSwitchPort(getCurrentContext(), updateSwitchPortActionJson);
-            return noContent().build();
-        } catch (EntityNotFoundException e) {
-            throw notFound();
-        } catch (ActionException e) {
-            throw invalidPayload("Switch Port modification action could not be completed!", e.getErrorResponse());
+            updateService.perform(getCurrentContext(), updateSwitchPortActionJson);
+            return ok(get()).build();
+        } catch (EntityOperationException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RedfishErrorResponseCarryingException) {
+                RedfishErrorResponseCarryingException ex = (RedfishErrorResponseCarryingException) cause;
+                throw invalidPayload("The specified switch port could not be updated!", ex.getErrorResponse());
+            } else {
+                throw invalidPayload("The specified switch port could not be updated!");
+            }
         }
     }
 
     @DELETE
-    @Override
-    public Response delete() {
-        EthernetSwitchPortDto port = this.get();
-
-        if (!LOGICAL.equals(port.getPortClass())) {
+    public Response deleteSwitchPort() throws TimeoutException, BusinessApiException {
+        //TODO: this kind of validation should be moved to lower layer
+        if (!LOGICAL.equals(get().getPortClass())) {
             throw invalidHttpMethod("The specified switch port could not be deleted!");
         }
 
         try {
-            actionService.deleteSwitchPort(getCurrentContext());
-        } catch (EntityNotFoundException e) {
-            throw notFound();
-        } catch (ActionException e) {
-            throw invalidPayload("The specified switch port could not be deleted!", e.getErrorResponse());
+            removalService.perform(getCurrentContext());
+            return noContent().build();
+        } catch (EntityOperationException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RedfishErrorResponseCarryingException) {
+                RedfishErrorResponseCarryingException ex = (RedfishErrorResponseCarryingException) cause;
+                throw invalidPayload("The specified switch port could not be deleted!", ex.getErrorResponse());
+            } else {
+                throw invalidPayload("The specified switch port could not be deleted!");
+            }
         }
-
-        return noContent().build();
     }
 
-    @Path(ResourceNames.ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME)
-    public EthernetSwitchPortVlanCollectionResource getEthernetSwitchPortVlans() {
-        return getResource(EthernetSwitchPortVlanCollectionResource.class);
+    @Path(ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME)
+    public VlanNetworkInterfaceCollectionResource getEthernetSwitchPortVlans() {
+        return getResource(VlanNetworkInterfaceCollectionResource.class);
     }
 
     @Override
@@ -100,7 +114,7 @@ public class EthernetSwitchPortResource extends BaseResource {
         EthernetSwitchPortDto port = this.get();
 
         OptionsResponseBuilder optionsResponseBuilder = newDefaultOptionsResponseBuilder()
-                .addPatchMethod();
+            .addPatchMethod();
 
         if (LOGICAL.equals(port.getPortClass())) {
             optionsResponseBuilder.addDeleteMethod();

@@ -1,7 +1,0 @@
-Package: psme-compute-simulator
-Version: 0.0.0.0
-Maintainer: Intel (c) Rackscale
-Architecture: amd64
-Description: Package for PSME compute simulator
-Pre-depends: libjsoncpp0, libmicrohttpd10, libcurl3-gnutls, libcurl3, libstdc++6 (>=4.9.2), libossp-uuid16, libxml2, libxml++2.6-2
-Installed-Size: 0

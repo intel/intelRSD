@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.intel.podm.client.api.ExternalServiceApiReaderException;
 
 public interface EventSubscriptionManager extends AutoCloseable {
     boolean subscribeIfNotAlreadySubscribed() throws ExternalServiceApiReaderException, ExternalServiceApiActionException;
-    void deleteSubscription() throws ExternalServiceApiReaderException, ExternalServiceApiActionException;
     @Override
     void close();
 }

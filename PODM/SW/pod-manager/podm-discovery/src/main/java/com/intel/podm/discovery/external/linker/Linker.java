@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package com.intel.podm.discovery.external.linker;
 
-import com.intel.podm.business.entities.base.DomainObject;
+import com.intel.podm.business.entities.redfish.base.Entity;
 
 import java.util.Objects;
 
-final class Linker<S extends DomainObject, T extends DomainObject> {
+final class Linker<S extends Entity, T extends Entity> {
     private final Class<S> sourceClass;
     private final Class<T> targetClass;
     private final String linkName;
@@ -33,7 +33,7 @@ final class Linker<S extends DomainObject, T extends DomainObject> {
         this.method = method;
     }
 
-    public boolean tryLink(DomainObject source, DomainObject target, String linkName)  {
+    public boolean tryLink(Entity source, Entity target, String linkName)  {
         if (!canLink(source, target, linkName)) {
             return false;
         }
@@ -42,13 +42,13 @@ final class Linker<S extends DomainObject, T extends DomainObject> {
         return  true;
     }
 
-    boolean canLink(DomainObject source, DomainObject target, String linkName) {
+    boolean canLink(Entity source, Entity target, String linkName) {
         return sourceClass.isInstance(source)
                 && targetClass.isInstance(target)
                 && Objects.equals(this.linkName, linkName);
     }
 
-    interface LinkMethod<S extends DomainObject, T extends DomainObject> {
+    interface LinkMethod<S extends Entity, T extends Entity> {
         void link(S source, T target);
     }
 }

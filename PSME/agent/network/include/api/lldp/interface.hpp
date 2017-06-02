@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,8 @@
 #include "request.hpp"
 #include "response.hpp"
 
+#include "net/datagram_socket.hpp"
+
 struct clif;
 
 namespace agent {
@@ -40,11 +42,11 @@ namespace lldp {
  * */
 class Interface final {
 public:
-    /*! Default constructor */
+    /*! Constructor */
     Interface();
 
-    Interface(const Interface&) = delete;
-    Interface& operator=(const Interface&) = delete;
+    Interface(const Interface&) = default;
+    Interface& operator=(const Interface&) = default;
 
     /*!
      * @brief Send response to the LLDP daemon
@@ -60,7 +62,7 @@ public:
     ~Interface();
 
 private:
-    int m_sock{-1};
+    net::DatagramSocket m_sock{net::AddressFamily::UNIX_LOCAL};
 };
 
 }

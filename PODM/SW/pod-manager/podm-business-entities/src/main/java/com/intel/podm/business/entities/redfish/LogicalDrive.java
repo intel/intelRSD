@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,202 +16,318 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.LogicalDriveType;
-import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.VolumeMode;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
+import javax.persistence.Column;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
 import java.math.BigDecimal;
-import java.net.URI;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.MASTERED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.USED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.USES;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.booleanProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.decimalProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
 import static com.intel.podm.common.types.ComposedNodeState.ALLOCATED;
 import static com.intel.podm.common.types.ComposedNodeState.ALLOCATING;
 import static com.intel.podm.common.types.ComposedNodeState.ASSEMBLING;
-import static com.intel.podm.common.utils.IterableHelper.single;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.math.BigDecimal.ZERO;
-import static java.util.Objects.nonNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class LogicalDrive extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<LogicalDriveType> TYPE = enumProperty("type", LogicalDriveType.class);
-    public static final DomainObjectProperty<VolumeMode> MODE = enumProperty("mode", VolumeMode.class);
-    public static final DomainObjectProperty<Boolean> WRITE_PROTECTED = booleanProperty("writeProtected");
-    public static final DomainObjectProperty<BigDecimal> CAPACITY_GIB = decimalProperty("capacityGib");
-    public static final DomainObjectProperty<String> IMAGE = stringProperty("image");
-    public static final DomainObjectProperty<Boolean> BOOTABLE = booleanProperty("bootable");
-    public static final DomainObjectProperty<Boolean> SNAPSHOT = booleanProperty("snapshot");
+@javax.persistence.Entity
+@Table(name = "logical_drive", indexes = @Index(name = "idx_logical_drive_entity_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class LogicalDrive extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "type")
+    @Enumerated(STRING)
+    private LogicalDriveType type;
+
+    @Column(name = "mode")
+    @Enumerated(STRING)
+    private VolumeMode mode;
+
+    @Column(name = "write_protected")
+    private Boolean writeProtected;
+
+    @Column(name = "capacity_gib")
+    private BigDecimal capacityGib;
+
+    @Column(name = "image")
+    private String image;
+
+    @Column(name = "bootable")
+    private Boolean bootable;
+
+    @Column(name = "snapshot")
+    private Boolean snapshot;
+
+    @ManyToMany(mappedBy = "logicalDrives", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<RemoteTarget> remoteTargets = new HashSet<>();
+
+    @ManyToMany(mappedBy = "logicalDrives", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<PhysicalDrive> physicalDrives = new HashSet<>();
+
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "logical_drive_logical_drive",
+        joinColumns = {@JoinColumn(name = "used_by_logical_drive_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "used_logical_drive_id", referencedColumnName = "id")})
+    private Set<LogicalDrive> usedLogicalDrives = new HashSet<>();
+
+    @ManyToMany(mappedBy = "usedLogicalDrives", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<LogicalDrive> usedByLogicalDrives = new HashSet<>();
+
+    @IgnoreUnlinkingRelationship
+    @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "master_drive_id")
+    private LogicalDrive masterDrive;
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "storage_service_id")
+    private StorageService storageService;
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "composed_node_id")
+    private ComposedNode composedNode;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
-    }
-
-    public Boolean getSnapshot() {
-        return getProperty(SNAPSHOT);
-    }
-
-    public void setSnapshot(Boolean snapshot) {
-        setProperty(SNAPSHOT, snapshot);
-    }
-
-    public Boolean getBootable() {
-        return getProperty(BOOTABLE);
-    }
-
-    public void setBootable(Boolean bootable) {
-        setProperty(BOOTABLE, bootable);
-    }
-
-    public String getImage() {
-        return getProperty(IMAGE);
-    }
-
-    public void setImage(String image) {
-        setProperty(IMAGE, image);
-    }
-
-    public BigDecimal getCapacityGib() {
-        return getProperty(CAPACITY_GIB);
-    }
-
-    public void setCapacityGib(BigDecimal capacityGib) {
-        setProperty(CAPACITY_GIB, capacityGib);
-    }
-
-    public Boolean getWriteProtected() {
-        return getProperty(WRITE_PROTECTED);
-    }
-
-    public void setWriteProtected(Boolean writeProtected) {
-        setProperty(WRITE_PROTECTED, writeProtected);
-    }
-
-    public VolumeMode getMode() {
-        return getProperty(MODE);
-    }
-
-    public void setMode(VolumeMode volumeMode) {
-        setProperty(MODE, volumeMode);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public LogicalDriveType getType() {
-        return getProperty(TYPE);
+        return type;
     }
 
     public void setType(LogicalDriveType type) {
-        setProperty(TYPE, type);
+        this.type = type;
     }
 
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
+    public VolumeMode getMode() {
+        return mode;
     }
 
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
+    public void setMode(VolumeMode volumeMode) {
+        this.mode = volumeMode;
+    }
+
+    public Boolean getWriteProtected() {
+        return writeProtected;
+    }
+
+    public void setWriteProtected(Boolean writeProtected) {
+        this.writeProtected = writeProtected;
+    }
+
+    public BigDecimal getCapacityGib() {
+        return capacityGib;
+    }
+
+    public void setCapacityGib(BigDecimal capacityGib) {
+        this.capacityGib = capacityGib;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Boolean getBootable() {
+        return bootable;
+    }
+
+    public void setBootable(Boolean bootable) {
+        this.bootable = bootable;
+    }
+
+    public Boolean getSnapshot() {
+        return snapshot;
+    }
+
+    public void setSnapshot(Boolean snapshot) {
+        this.snapshot = snapshot;
+    }
+
+    public Set<RemoteTarget> getRemoteTargets() {
+        return remoteTargets;
+    }
+
+    public void addRemoteTarget(RemoteTarget remoteTarget) {
+        requiresNonNull(remoteTarget, "remoteTarget");
+
+        remoteTargets.add(remoteTarget);
+        if (!remoteTarget.getLogicalDrives().contains(this)) {
+            remoteTarget.addLogicalDrive(this);
+        }
+    }
+
+    public void unlinkRemoteTarget(RemoteTarget remoteTarget) {
+        if (remoteTargets.contains(remoteTarget)) {
+            remoteTargets.remove(remoteTarget);
+            if (remoteTarget != null) {
+                remoteTarget.unlinkLogicalDrive(this);
+            }
+        }
+    }
+
+    public Set<PhysicalDrive> getPhysicalDrives() {
+        return physicalDrives;
     }
 
     public void addPhysicalDrive(PhysicalDrive physicalDrive) {
-        link(USES, physicalDrive);
-    }
+        requiresNonNull(physicalDrive, "physicalDrive");
 
-    public Collection<PhysicalDrive> getPhysicalDrives() {
-        return getLinked(USES, PhysicalDrive.class);
-    }
-
-    public void addLogicalDrive(LogicalDrive logicalDrive) {
-        link(USES, logicalDrive);
-    }
-
-    public Collection<LogicalDrive> getLogicalDrives() {
-        return getLinked(USES, LogicalDrive.class);
-    }
-
-    public Collection<LogicalDrive> getUsedBy() {
-        return getLinked(USED_BY, LogicalDrive.class);
-    }
-
-    public void addMasterDrive(LogicalDrive masterDrive) {
-        if (masterDrive == null) {
-            return;
+        physicalDrives.add(physicalDrive);
+        if (!physicalDrive.getLogicalDrives().contains(this)) {
+            physicalDrive.addLogicalDrive(this);
         }
+    }
 
-        link(MASTERED_BY, masterDrive);
+    public void unlinkPhysicalDrive(PhysicalDrive physicalDrive) {
+        if (physicalDrives.contains(physicalDrive)) {
+            physicalDrives.remove(physicalDrive);
+            if (physicalDrive != null) {
+                physicalDrive.unlinkLogicalDrive(this);
+            }
+        }
+    }
+
+    public Set<LogicalDrive> getUsedLogicalDrives() {
+        return usedLogicalDrives;
+    }
+
+    public void addUsedLogicalDrive(LogicalDrive logicalDrive) {
+        requiresNonNull(logicalDrive, "logicalDrive");
+
+        usedLogicalDrives.add(logicalDrive);
+        if (!logicalDrive.getUsedByLogicalDrives().contains(this)) {
+            logicalDrive.addUsedByLogicalDrive(this);
+        }
+    }
+
+    public void unlinkUsedLogicalDrive(LogicalDrive logicalDrive) {
+        if (usedLogicalDrives.contains(logicalDrive)) {
+            usedLogicalDrives.remove(logicalDrive);
+            if (logicalDrive != null) {
+                logicalDrive.unlinkUsedByLogicalDrive(this);
+            }
+        }
+    }
+
+    public Set<LogicalDrive> getUsedByLogicalDrives() {
+        return usedByLogicalDrives;
+    }
+
+    public void addUsedByLogicalDrive(LogicalDrive logicalDrive) {
+        requiresNonNull(logicalDrive, "logicalDrive");
+
+        usedByLogicalDrives.add(logicalDrive);
+        if (!logicalDrive.getUsedLogicalDrives().contains(this)) {
+            logicalDrive.addUsedLogicalDrive(this);
+        }
+    }
+
+    public void unlinkUsedByLogicalDrive(LogicalDrive logicalDrive) {
+        if (usedByLogicalDrives.contains(logicalDrive)) {
+            usedByLogicalDrives.remove(logicalDrive);
+            if (logicalDrive != null) {
+                logicalDrive.unlinkUsedLogicalDrive(this);
+            }
+        }
     }
 
     public LogicalDrive getMasterDrive() {
-        return singleOrNull(getLinked(MASTERED_BY, LogicalDrive.class));
+        return masterDrive;
+    }
+
+    public void setMasterDrive(LogicalDrive masterDrive) {
+        if (!Objects.equals(this.masterDrive, masterDrive)) {
+            unlinkMasterDrive(this.masterDrive);
+            this.masterDrive = masterDrive;
+        }
+    }
+
+    public void unlinkMasterDrive(LogicalDrive masterDrive) {
+        if (Objects.equals(this.masterDrive, masterDrive)) {
+            this.masterDrive = null;
+        }
     }
 
     public StorageService getStorageService() {
-        return single(getLinked(CONTAINED_BY, StorageService.class));
+        return storageService;
     }
 
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
+    public void setStorageService(StorageService storageService) {
+        if (!Objects.equals(this.storageService, storageService)) {
+            unlinkStorageService(this.storageService);
+            this.storageService = storageService;
+            if (storageService != null && !storageService.getLogicalDrives().contains(this)) {
+                storageService.addLogicalDrive(this);
+            }
+        }
     }
 
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
+    public void unlinkStorageService(StorageService storageService) {
+        if (Objects.equals(this.storageService, storageService)) {
+            this.storageService = null;
+            if (storageService != null) {
+                storageService.unlinkLogicalDrive(this);
+            }
+        }
     }
 
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public ComposedNode getComposedNode() {
+        return composedNode;
     }
 
-    public Collection<RemoteTarget> getRemoteTargets() {
-        return getLinked(USED_BY, RemoteTarget.class);
+    public void setComposedNode(ComposedNode composedNode) {
+        if (!Objects.equals(this.composedNode, composedNode)) {
+            unlinkComposedNode(this.composedNode);
+            this.composedNode = composedNode;
+            if (composedNode != null && !composedNode.getLogicalDrives().contains(this)) {
+                composedNode.addLogicalDrive(this);
+            }
+        }
     }
 
-    public Collection<ComposedNode> getComposedNodes() {
-        return getLinked(USED_BY, ComposedNode.class);
-    }
-
-    public void addComposedNode(ComposedNode composedNode) {
-        link(USED_BY, composedNode);
+    public void unlinkComposedNode(ComposedNode composedNode) {
+        if (Objects.equals(this.composedNode, composedNode)) {
+            this.composedNode = null;
+            if (composedNode != null) {
+                composedNode.unlinkLogicalDrive(this);
+            }
+        }
     }
 
     public BigDecimal getFreeSpaceGib() {
-        Collection<LogicalDrive> usedBy = getUsedBy();
+        Collection<LogicalDrive> usedBy = getUsedByLogicalDrives();
         BigDecimal freeSpaceGib = getCapacityGib();
 
         for (LogicalDrive logicalDrive : usedBy) {
@@ -223,14 +339,28 @@ public class LogicalDrive extends DomainObject implements Discoverable, StatusPo
     }
 
     private BigDecimal getSpaceReservedByComposedNodes() {
-        return getComposedNodes().stream()
-                .filter(composedNode -> composedNode.isInAnyOfStates(ALLOCATING, ALLOCATED, ASSEMBLING))
-                .filter(composedNode -> nonNull(composedNode.getRemoteDriveCapacityGib()))
-                .map(ComposedNode::getRemoteDriveCapacityGib)
-                .reduce(ZERO, BigDecimal::add);
+        if (composedNode != null
+            && composedNode.isInAnyOfStates(ALLOCATING, ALLOCATED, ASSEMBLING)
+            && composedNode.getRemoteDriveCapacityGib() != null) {
+            return composedNode.getRemoteDriveCapacityGib();
+        }
+
+        return ZERO;
     }
 
-    public void use(LogicalDrive logicalDrive) {
-        link(USES, logicalDrive);
+    @Override
+    public void preRemove() {
+        unlinkCollection(remoteTargets, this::unlinkRemoteTarget);
+        unlinkCollection(physicalDrives, this::unlinkPhysicalDrive);
+        unlinkCollection(usedLogicalDrives, this::unlinkUsedLogicalDrive);
+        unlinkCollection(usedByLogicalDrives, this::unlinkUsedByLogicalDrive);
+        unlinkMasterDrive(masterDrive);
+        unlinkStorageService(storageService);
+        unlinkComposedNode(composedNode);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, storageService);
     }
 }

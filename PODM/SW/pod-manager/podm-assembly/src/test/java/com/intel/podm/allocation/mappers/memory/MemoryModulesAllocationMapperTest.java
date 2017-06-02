@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,28 @@
 
 package com.intel.podm.allocation.mappers.memory;
 
-import com.intel.podm.business.dto.redfish.RequestedMemory;
 import com.intel.podm.business.entities.redfish.Memory;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.business.entities.redfish.base.MemoryModule;
 import com.intel.podm.templates.assets.MemoryModulesCreation;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
 import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.ContextType.MEMORY;
+import static com.intel.podm.common.types.Id.id;
 import static com.intel.podm.common.types.MemoryDeviceType.DDR3;
 import static com.intel.podm.common.types.MemoryDeviceType.SDRAM;
-import static com.intel.podm.common.types.Id.id;
 import static java.lang.Integer.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.testng.Assert.assertEquals;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName", "checkstyle:MethodLength"})
 public class MemoryModulesAllocationMapperTest {
     private MemoryModulesAllocationMapper mapper;
 
@@ -46,9 +48,9 @@ public class MemoryModulesAllocationMapperTest {
 
     @Test
     public void whenMappingMultipleRequestedWithUnorderedAvailable_shouldMapWithMinimalCapacityGibSubset() {
-        RequestedMemory requestedSdram = MemoryModulesCreation.createRequestedMemory(SDRAM, null, null, 300, null);
-        RequestedMemory requestedDdr3 = MemoryModulesCreation.createRequestedMemory(DDR3, null, null, 500, null);
-        List<RequestedMemory> requested = asList(
+        RequestedNode.Memory requestedSdram = MemoryModulesCreation.createRequestedMemory(SDRAM, null, null, new BigDecimal(300), null);
+        RequestedNode.Memory requestedDdr3 = MemoryModulesCreation.createRequestedMemory(DDR3, null, null, new BigDecimal(500), null);
+        List<RequestedNode.Memory> requested = asList(
                 requestedSdram,
                 requestedDdr3
         );
@@ -62,7 +64,7 @@ public class MemoryModulesAllocationMapperTest {
                 MemoryModulesCreation.createAvailableMemory(DDR3, null, null, 300, null)
         );
 
-        Map<RequestedMemory, List<MemoryModule>> map = mapper.map(requested, toMemoryModules(available));
+        Map<RequestedNode.Memory, List<MemoryModule>> map = mapper.map(requested, toMemoryModules(available));
 
         assertEquals(map.size(), 2);
         assertEquals(map.get(requestedSdram).size(), 2);
@@ -77,9 +79,11 @@ public class MemoryModulesAllocationMapperTest {
 
     @Test
     public void whenMappingMultipleRequestedWithUnorderedAvailable_shouldMapWithProperIdAndMinimalCapacityGibSubset() {
-        RequestedMemory requestedSdram = MemoryModulesCreation.createRequestedMemory(SDRAM, null, null, 100, null, contextOf(id(5), MEMORY));
-        RequestedMemory requestedDdr3 = MemoryModulesCreation.createRequestedMemory(DDR3, null, null, 151, null, contextOf(id(6), MEMORY));
-        List<RequestedMemory> requested = asList(
+        RequestedNode.Memory requestedSdram =
+            MemoryModulesCreation.createRequestedMemory(SDRAM, null, null, new BigDecimal(100), null, contextOf(id(5), MEMORY));
+        RequestedNode.Memory requestedDdr3 =
+            MemoryModulesCreation.createRequestedMemory(DDR3, null, null, new BigDecimal(151), null, contextOf(id(6), MEMORY));
+        List<RequestedNode.Memory> requested = asList(
                 requestedSdram,
                 requestedDdr3
         );
@@ -93,7 +97,7 @@ public class MemoryModulesAllocationMapperTest {
                 MemoryModulesCreation.createAvailableMemory(DDR3, null, null, 300, null, id(6))
         );
 
-        Map<RequestedMemory, List<MemoryModule>> map = mapper.map(requested, toMemoryModules(available));
+        Map<RequestedNode.Memory, List<MemoryModule>> map = mapper.map(requested, toMemoryModules(available));
 
         assertEquals(map.size(), 2);
         assertEquals(map.get(requestedSdram).size(), 1);

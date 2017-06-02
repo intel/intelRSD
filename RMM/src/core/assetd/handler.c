@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -257,7 +257,7 @@ static void ad_remove_node(char *uuid)
 
 	remove_node(node_id, parent_id, type);
 	libdb_destroy_node(DB_RMM, node_id, LOCK_ID_NULL);
-	libdb_free_node(sub_node);
+	free(sub_node);
 }
 
 void set_chassis_fw_ver(uint8 ver_low, uint8 ver_hi, memdb_integer node_id)
@@ -269,12 +269,12 @@ void set_chassis_fw_ver(uint8 ver_low, uint8 ver_hi, memdb_integer node_id)
 	int ret;
 
 	snprintf_s_i(tmp, sizeof(tmp), "%02X", ver_low);
-	ret = sscanf(tmp, "%[0-9a-fA-F]", ver_l);
+	ret = sscanf(tmp, "%7[0-9a-fA-F]s", ver_l);
 	if (ret != 1)
 		return;
 
 	snprintf_s_i(tmp, sizeof(tmp), "%02X", ver_hi);
-	ret = sscanf(tmp, "%[0-9a-fA-F]", ver_h);
+	ret = sscanf(tmp, "%7[0-9a-fA-F]s", ver_h);
 	if (ret != 1)
 		return;
 
@@ -915,7 +915,7 @@ int on_psu_change(char *uuid, json_t *req, json_t *resp)
 		}
 		memset(buff, 0, sizeof(buff));
 		snprintf_s_i(buff, sizeof(buff), "%d", (int)total_pin);
-		libdb_attr_set_string(DB_RMM, pnode->parent, PZONE_TT_PWR_PROD_STR, 0, buff, SNAPSHOT_NEED_NOT, LOCK_ID_NULL);
+		libdb_attr_set_string(DB_RMM, pnode->parent, PZONE_TT_PWR_CONSUM_STR , 0, buff, SNAPSHOT_NEED_NOT, LOCK_ID_NULL);
 	}
 
 	if (jrpc_get_named_param_value(req, JRPC_PSU_TOTAL_POWER_OUT, JSON_INTEGER, &total_po) == JSONRPC_SUCCESS) {
@@ -926,7 +926,7 @@ int on_psu_change(char *uuid, json_t *req, json_t *resp)
 		}
 		memset(buff, 0, sizeof(buff));
 		snprintf_s_i(buff, sizeof(buff), "%d", (int)total_po);
-		libdb_attr_set_string(DB_RMM, pnode->parent, PZONE_TT_PWR_CONSUM_STR, 0, buff, SNAPSHOT_NEED_NOT, LOCK_ID_NULL);
+		libdb_attr_set_string(DB_RMM, pnode->parent, PZONE_TT_PWR_PROD_STR, 0, buff, SNAPSHOT_NEED_NOT, LOCK_ID_NULL);
 	}
 
 	if (jrpc_get_named_param_value(req, JRPC_PSU_HEALTH_STATUS, JSON_INTEGER, &health_status) == JSONRPC_SUCCESS) {
@@ -1566,7 +1566,7 @@ static void reset_zone(memdb_integer node_id, int cm_lid, reset_zone_fn zone_fn,
 		item_fn(&(sub_node[i].node_id), cm_lid, sub_idx, lid);
 	}
 
-	libdb_free_node(sub_node);
+	free(sub_node);
 }
 
 static void reset_zones(memdb_integer node_id, reset_zone_fn zone_fn, int zone_type, reset_item_fn item_fn, int sub_type)

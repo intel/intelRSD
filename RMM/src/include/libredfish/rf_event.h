@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,6 @@ int32 rf_msg_send(const int8 *func_name, int32 level, int32 is_evt, int32 msg_sn
  * @param  data				the pointer of log.
  */
 int32 rf_log_get_by_limit(int32 count, struct rf_log_desc *desc_rsp, int8 *data);
-
-#define rf_evt(level, msg_sn, args...) rf_msg_send(__func__, level, RF_EVENT, msg_sn, ##args)
 
 #define rf_log(level, msg_sn, args...) rf_msg_send(__func__, level, RF_LOG,  msg_sn, ##args)
 

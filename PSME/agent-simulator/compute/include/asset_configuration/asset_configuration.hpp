@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,25 +22,23 @@
  * @section DESCRIPTION
  * */
 
-#ifndef ASSET_CONFIGURATION_HPP
-#define ASSET_CONFIGURATION_HPP
-
+#pragma once
 #include "agent-framework/logger_ext.hpp"
-#include "agent-framework/module-ref/utils/utils.hpp"
-#include "uuid++.hh"
-#include "json/json.hpp"
+#include "agent-framework/module/utils/utils.hpp"
 
+#include <uuid++.hh>
+#include <json/json.hpp>
 #include <libxml++/libxml++.h>
 
 namespace agent {
 
-    using agent_framework::module::utils::OptionalField;
-    /*!
-     * @brief Class responsible for managing reading asset configuration from an xml file.
-     * */
+/*!
+ * @brief Class responsible for managing reading asset configuration from an xml file.
+ * */
 class AssetConfiguration {
-
 public:
+    template <typename T>
+    using OptionalField = agent_framework::module::utils::OptionalField<T>;
 
     /*!
      * @brief Get instance
@@ -196,10 +194,12 @@ public:
      * @param[out] element pointer to the element which will be deleted
      * */
     static void remove_element(xmlpp::Node* element);
+
     /*!
      * @brief Clean up, remove the instance of the class, if exists
      * */
     static void cleanup();
+
     ~AssetConfiguration();
 
 private:
@@ -226,4 +226,3 @@ private:
 
 }
 
-#endif /* ASSET_CONFIGURATION */

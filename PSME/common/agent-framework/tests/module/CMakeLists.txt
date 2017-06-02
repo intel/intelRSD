@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,25 +22,36 @@ endif()
 
 add_gtest(module agent-framework
     test_runner.cpp
-    module_test.cpp
-    module_manager_test.cpp
-    collection_test.cpp
-    port_test.cpp
-    chassis_test.cpp
-    hard_drive_partition_test.cpp
-    hard_drive_test.cpp
-    logical_drive_test.cpp
-    vlan_test.cpp
+    generic_manager_test.cpp
+    optional_values_test.cpp
+    persistent_uuid_generation_test.cpp
+    obj_reference_test.cpp
+    many_to_many_manager_test.cpp
+    task_test.cpp
 )
 
+set_source_files_properties(
+    optional_values_test.cpp
+    COMPILE_FLAGS "-Wno-unused-member-function"
+)
+
+set_source_files_properties(
+    generic_manager_test.cpp
+    COMPILE_FLAGS "-Wno-exit-time-destructors -Wno-global-constructors"
+)
+
+if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    set_source_files_properties(
+        generic_manager_test.cpp
+        PROPERTIES COMPILE_FLAGS "-Wno-unsafe-loop-optimizations"
+    )
+endif()
+
 target_link_libraries(${test_target}
-    ${LOGGER_LIBRARIES}
-    ${UUID_LIBRARIES}
     ${AGENT_FRAMEWORK_LIB}
-    ${SAFESTRING_LIBRARIES}
-    agent-mocks
+    ${UUID_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    ${SAFESTRING_LIBRARIES}
     ${JSONCPP_LIBRARIES}
-    ${PCA95XX_LIBRARIES}
+    ${JSONCXX_LIBRARIES}
 )

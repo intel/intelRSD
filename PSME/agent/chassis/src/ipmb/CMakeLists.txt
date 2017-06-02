@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,13 +21,10 @@ add_subdirectory(command)
 set(SOURCES
     utils.cpp
     ipmi_message.cpp
-    socket.cpp
     mux.cpp
     responder.cpp
     client.cpp
     service.cpp
-    worker_thread.cpp
-    receiver_thread.cpp
     dispatcher.cpp
     patcher.cpp
     gpio.cpp
@@ -41,11 +38,6 @@ set(SOURCES
     watcher/task.cpp
     watcher/drawer_power_task.cpp
     watcher/thermal_sensor_task.cpp
-)
-
-set_source_files_properties(
-    service.cpp
-    COMPILE_FLAGS "-Wno-switch-enum"
 )
 
 set_property (

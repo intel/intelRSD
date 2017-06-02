@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,73 +22,56 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/get_collection.hpp"
-#include "agent-framework/command/storage/json/get_collection.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 
-class GetCollection : public storage::GetCollection {
+class MyGetCollection {
 private:
     std::string m_component{};
     std::string m_name{};
 public:
-    GetCollection(
+    MyGetCollection(
         const std::string& component,
         const std::string& name) {
         m_component = component;
         m_name = name;
     }
 
-    using storage::GetCollection::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto component = request.get_component();
+    void execute(const GetCollection::Request& request,
+                 GetCollection::Response& response) {
+        auto component = request.get_uuid();
         auto name = request.get_name();
 
         if (component != m_component || name != m_name) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
         for (std::uint32_t i = 0; i < 10; ++i) {
-            response.add_subcomponent(
+            response.add_entry(
                 agent_framework::model::attribute::SubcomponentEntry(std::to_string(i)));
         }
     }
-
-    virtual ~GetCollection();
 };
 
-GetCollection::~GetCollection() { }
+static constexpr char COMPONENT[] = "component";
+static constexpr char NAME[] = "name";
 
-class GetCollectionTest : public ::testing::Test {
-protected:
-    static constexpr char COMPONENT[] = "component";
-    static constexpr char NAME[] = "name";
-
-    virtual ~GetCollectionTest();
-};
-
-constexpr char GetCollectionTest::COMPONENT[];
-constexpr char GetCollectionTest::NAME[];
-
-GetCollectionTest::~GetCollectionTest() { }
-
-TEST_F(GetCollectionTest, PositiveExecute) {
-    storage::json::GetCollection command_json;
-    GetCollection* command = new GetCollection("TestModuleId", "TestName");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetCollectionTest, PositiveExecute) {
+    MyGetCollection command{"TestModuleId", "TestName"};
+    GetCollection::Request request{"", ""};
+    GetCollection::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[COMPONENT] = "TestModuleId";
     params[NAME] = "TestName";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetCollection::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isArray());
     ASSERT_EQ(result.size(), 10);
@@ -97,32 +80,30 @@ TEST_F(GetCollectionTest, PositiveExecute) {
     }
 }
 
-TEST_F(GetCollectionTest, NegativeModuleNotFound) {
-    storage::json::GetCollection command_json;
-    GetCollection* command = new GetCollection("TestModuleId", "TestName");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetCollectionTest, NegativeModuleNotFound) {
+    MyGetCollection command{"TestModuleId", "TestName"};
+    GetCollection::Request request{"", ""};
+    GetCollection::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[COMPONENT] = "OtherTestModuleId";
     params[NAME] = "TestName";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetCollection::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }
 
-TEST_F(GetCollectionTest, NegativeNameNotFound) {
-    storage::json::GetCollection command_json;
-    GetCollection* command = new GetCollection("TestModuleId", "TestName");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetCollectionTest, NegativeNameNotFound) {
+    MyGetCollection command{"TestModuleId", "TestName"};
+    GetCollection::Request request{"", ""};
+    GetCollection::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[COMPONENT] = "TestModuleId";
     params[NAME] = "OtherTestName";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetCollection::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

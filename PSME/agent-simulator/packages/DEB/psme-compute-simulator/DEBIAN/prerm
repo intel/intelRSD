@@ -1,6 +1,0 @@
-#!/bin/bash
-
-service psme-compute-simulator stop
-if [ -f /etc/init/psme-compute-simulator.conf ]; then
-        rm /etc/init/psme-compute-simulator.conf
-fi

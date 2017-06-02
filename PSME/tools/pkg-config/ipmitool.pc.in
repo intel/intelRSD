@@ -1,0 +1,11 @@
+prefix=@CMAKE_BINARY_DIR@
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: ipmitool
+Description: Interface to IPMI-enabled devices
+Version: @IPMITOOL_VERSION@
+URL: https://sourceforge.net/projects/ipmitool/
+Libs: -L${libdir} -lipmicmd
+Cflags: -I${includedir}

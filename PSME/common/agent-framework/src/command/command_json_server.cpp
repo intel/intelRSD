@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,10 +35,10 @@ using namespace agent_framework::command;
 
 CommandJsonServer::CommandJsonServer(AbstractServerConnector& connector,
         serverVersion_t type) :
-    m_connection(connector),
-    m_handler(RequestHandlerFactory::createProtocolHandler(type, *this)),
-    m_methods({})
-{
+            m_connection(connector),
+            m_handler(RequestHandlerFactory::createProtocolHandler(type, *this)),
+            m_methods({}) {
+
     connector.SetHandler(m_handler.get());
 }
 
@@ -60,14 +60,12 @@ void CommandJsonServer::HandleMethodCall(Procedure& proc,
         throw;
     }
     catch (const std::exception& e) {
-        throw JsonRpcException(
-                static_cast<int>(exceptions::ErrorCode::UNKNOWN_ERROR),
-                e.what());
+        throw JsonRpcException(static_cast<int>(exceptions::ErrorCode::UNKNOWN_ERROR),
+                               e.what());
     }
     catch (...) {
-        throw JsonRpcException(
-                static_cast<int>(exceptions::ErrorCode::UNKNOWN_ERROR),
-                "Unknown exception occurred in JSON command method.");
+        throw JsonRpcException(static_cast<int>(exceptions::ErrorCode::UNKNOWN_ERROR),
+                               "Unknown exception occurred in JSON command method.");
     }
 }
 
@@ -82,19 +80,18 @@ void CommandJsonServer::HandleNotificationCall(Procedure& proc,
         throw;
     }
     catch (const std::exception& e) {
-        throw JsonRpcException(
-                static_cast<int>(exceptions::ErrorCode::UNKNOWN_ERROR),
-                e.what());
+        throw JsonRpcException(static_cast<int>(exceptions::ErrorCode::UNKNOWN_ERROR),
+                               e.what());
     }
     catch (...) {
-        throw JsonRpcException(
-                static_cast<int>(exceptions::ErrorCode::UNKNOWN_ERROR),
-                "Unknown exception occurred in JSON command method.");
+        throw JsonRpcException(static_cast<int>(exceptions::ErrorCode::UNKNOWN_ERROR),
+                               "Unknown exception occurred in JSON command method.");
     }
 }
 
 void CommandJsonServer::add(const Procedure& proc,
-        const method_function_t& method) {
+                            const method_function_t& method) {
+
     if (RPC_METHOD != proc.GetProcedureType()) {
         return;
     }
@@ -110,7 +107,8 @@ void CommandJsonServer::add(const Procedure& proc,
 }
 
 void CommandJsonServer::add(const Procedure& proc,
-        const notification_function_t& notification) {
+                            const notification_function_t& notification) {
+
     if(RPC_NOTIFICATION != proc.GetProcedureType()) {
         return;
     }
@@ -128,8 +126,7 @@ void CommandJsonServer::add(const Procedure& proc,
 }
 
 
-void CommandJsonServer::add(const CommandFactory::CommandsJsonVector&
-        command_vector) {
+void CommandJsonServer::add(const CommandFactory::CommandsJsonVector& command_vector) {
     using std::placeholders::_1;
     using std::placeholders::_2;
 

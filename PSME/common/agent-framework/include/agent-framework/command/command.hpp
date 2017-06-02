@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Command interface
  * */
 
-#ifndef AGENT_FRAMEWORK_COMMAND_COMMAND_HPP
-#define AGENT_FRAMEWORK_COMMAND_COMMAND_HPP
-
+#pragma once
 #include <map>
 #include <memory>
 #include <string>
@@ -34,14 +32,8 @@
 
 #include "agent-framework/command/command_exception.hpp"
 
-/*! Agent Framework */
 namespace agent_framework {
-/*! Command */
 namespace command {
-
-using std::map;
-using std::string;
-using std::unique_ptr;
 
 /*!
  * @brief Command class interface for all generic commands
@@ -65,7 +57,7 @@ public:
      * */
     class Argument {
     public:
-        /*! Default assigment constructor */
+        /*! Default assignment constructor */
         Argument& operator=(const Argument&) = default;
 
         /*! Command virtual destructor */
@@ -145,4 +137,3 @@ public:
 } /* namespace command */
 } /* namespace agent_framework */
 
-#endif /* AGENT_FRAMEWORK_COMMAND_COMMAND_HPP */

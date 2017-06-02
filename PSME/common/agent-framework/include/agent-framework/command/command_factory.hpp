@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Commands factory interface
  * */
 
-#ifndef AGENT_FRAMEWORK_COMMAND_COMMAND_FACTORY_HPP
-#define AGENT_FRAMEWORK_COMMAND_COMMAND_FACTORY_HPP
-
+#pragma once
 #include <agent-framework/command/command.hpp>
 #include <agent-framework/command/command_json.hpp>
 
@@ -126,4 +124,3 @@ private:
 } /* namespace command */
 } /* namespace agent_framework */
 
-#endif /* AGENT_FRAMEWORK_COMMAND_COMMAND_FACTORY_HPP */

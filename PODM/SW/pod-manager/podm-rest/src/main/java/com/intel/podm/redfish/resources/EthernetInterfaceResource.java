@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,28 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.services.redfish.EthernetInterfaceService;
-import com.intel.podm.rest.resources.ResourceNames;
+import com.intel.podm.business.dto.redfish.EthernetInterfaceDto;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
+import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class EthernetInterfaceResource extends BaseResource {
     @Inject
-    private EthernetInterfaceService service;
+    private ReaderService<EthernetInterfaceDto> readerService;
 
     @Override
-    public Object get() {
-        return getOrThrow(() -> service.getEthernetInterface(getCurrentContext()));
+    public EthernetInterfaceDto get() {
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
     }
 
-    @Path(ResourceNames.ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME)
-    public EthernetInterfaceVlanCollectionResource getVlanCollection() {
-        return getResource(EthernetInterfaceVlanCollectionResource.class);
+    @Path(ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME)
+    public VlanNetworkInterfaceCollectionResource getVlanCollection() {
+        return getResource(VlanNetworkInterfaceCollectionResource.class);
     }
 }

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,11 +29,15 @@
 
 /* Internal headers */
 #include "api/netlink/static_mac_message.hpp"
+#include "netlink/nl_exception.hpp"
 
 extern "C" {
 #include <net/if.h>
 #include <netinet/ether.h>
+#include <linux/rtnetlink.h>
+#include <netlink/attr.h>
 }
+#include <algorithm>
 
 using namespace netlink_base;
 using namespace agent::network::api::netlink;
@@ -41,69 +45,51 @@ using namespace std;
 
 StaticMacMessage::StaticMacMessage(bool add, const string& port,
                                    const string& address, uint16_t vlan_id) :
-    Message(), m_add(add), m_port(port), m_vlan_id(vlan_id),
-    m_address(address) {}
+    NeighMessage(port), m_vlan_id(vlan_id), m_address(address) {
+    if (add) {
+        set_nlhdr_type(RTM_NEWNEIGH);
+        set_nlhdr_flags(NLM_F_CREATE | NLM_F_EXCL);
+    }
+    else {
+        set_nlhdr_type(RTM_DELNEIGH);
+    }
+    set_ifindex(get_ifindex());
+    set_family(PF_BRIDGE);
+    set_state(NUD_NOARP | NUD_PERMANENT);
+    set_flags(NTF_SELF);
+}
 
 StaticMacMessage::~StaticMacMessage() {}
 
 namespace {
-    void set_address(Message::Pointer& msg, const string& address) {
+    void set_address(struct nl_msg* msg, string& address) {
+        // according to metadata, MAC address can use both colons and dashes: aa:bb-cc:dd-ee:ff
+        // however, ether_aton_r function only accepts notation with colons.
+        // So, we convert the dashes to colons before checking if the address is correct
+        std::replace(address.begin(), address.end(), '-', ':');
+
         ether_addr ether{};
 
-        if (NULL == ether_aton_r(address.c_str(), &ether)) {
-            throw runtime_error("Invalid address was provided: " + address);
+        if (nullptr == ether_aton_r(address.c_str(), &ether)) {
+            throw NlException("Invalid address was provided: " + address);
         }
 
-        int err = nla_put(msg.get(), NDA_LLADDR, ETH_ALEN, &ether);
+        int err = nla_put(msg, NDA_LLADDR, ETH_ALEN, &ether);
         if (0 > err) {
-            throw runtime_error("nla_put address failed: "
-                                + std::to_string(err));
+            throw NlException("nla_put address failed: "
+                              + std::to_string(err));
         }
     }
 
-    void set_vlan(Message::Pointer& msg, uint16_t vlan_id) {
-        int err = nla_put(msg.get(), NDA_VLAN, sizeof(vlan_id), &vlan_id);
+    void set_vlan(struct nl_msg* msg, uint16_t vlan_id) {
+        int err = nla_put(msg, NDA_VLAN, sizeof(vlan_id), &vlan_id);
         if (0 > err) {
-            throw runtime_error("nla_put vlan failed: " + std::to_string(err));
-        }
-    }
-
-    void init_netlink_data(Message::Pointer& msg, const string& port) {
-        ndmsg ndm{};
-        ndm.ndm_family = PF_BRIDGE;
-        ndm.ndm_state = NUD_NOARP | NUD_PERMANENT;
-        ndm.ndm_flags = NTF_SELF;
-        int ifindex = if_nametoindex(port.c_str());
-        if (0 == ifindex) {
-            throw runtime_error("Invalid port identifier " + port + " " +
-                                std::to_string(errno));
-        }
-        ndm.ndm_ifindex = ifindex;
-        int ret = nlmsg_append(msg.get(), &ndm, sizeof(ndm), NLMSG_ALIGNTO);
-        if (0 > ret) {
-            throw runtime_error("nlmsg_append failed: " + std::to_string(ret));
+            throw NlException("nla_put vlan failed: " + std::to_string(err));
         }
     }
 }
 
-Message::Pointer StaticMacMessage::prepare_netlink_msg() const {
-    int type{0};
-    int flags{0};
-
-    if (m_add) {
-        type = RTM_NEWNEIGH;
-        flags = NLM_F_CREATE | NLM_F_EXCL;
-    }
-    else {
-        type = RTM_DELNEIGH;
-    }
-    /* Allocate the netlink message */
-    Pointer msg(nlmsg_alloc_simple(type, flags));
-    if (!msg) {
-        return nullptr;
-    }
-    ::init_netlink_data(msg, m_port);
+void StaticMacMessage::prepare_neigh_message(struct nl_msg* msg) {
     ::set_address(msg, m_address);
     ::set_vlan(msg, m_vlan_id);
-    return msg;
 }

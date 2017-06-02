@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,15 @@
 
 package com.intel.podm.mappers.redfish;
 
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.NetworkProtocol;
 import com.intel.podm.client.api.resources.redfish.NetworkProtocolResource;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
 
 @Dependent
-public class NetworkProtocolMapper extends DomainObjectMapper<NetworkProtocolResource, NetworkProtocol> {
-    @Inject
-    private GenericDao genericDao;
-
+public class NetworkProtocolMapper extends EntityMapper<NetworkProtocolResource, NetworkProtocol> {
     protected NetworkProtocolMapper() {
         super(NetworkProtocolResource.class, NetworkProtocol.class);
     }
-
 }

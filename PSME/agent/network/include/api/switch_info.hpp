@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Switch port parameters
  * */
 
-#ifndef AGENT_NETWORK_SWITCH_INFO_HPP
-#define AGENT_NETWORK_SWITCH_INFO_HPP
-
+#pragma once
 #include <cstdint>
 #include <array>
 #include <string>
@@ -170,4 +168,3 @@ private:
 }
 }
 }
-#endif /* AGENT_NETWORK_SWITCH_INFO_HPP */

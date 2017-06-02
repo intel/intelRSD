@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,11 +215,18 @@ static json_t *rf_listener_del(struct rest_uri_param *param)
 	}
 	listener_id  = (int32)str2int(p_id);
 
-	if (libwrap_del_evt_listener(RF_EVENT_MASK_ALL, listener_id) != RESULT_OK) {
-		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
-		HTTPD_ERR("mbp listener info del fail\n");
+    rs = libwrap_del_evt_listener(RF_EVENT_MASK_ALL, listener_id);
+	if (rs == RESULT_NONE_POINTER || rs == RESULT_NO_NODE) {
+		update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
+		HTTPD_ERR("no listener found\n");
 		return NULL;
 	}
+
+    if (rs != RESULT_OK) {
+        update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
+        HTTPD_ERR("mbp listener info del fail\n");
+        return NULL;
+    }
 
 	update_response_info(param, HTTP_NO_CONTENT);
 	return NULL;

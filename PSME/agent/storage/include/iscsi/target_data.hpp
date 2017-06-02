@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,9 @@
  * @brief Target data interface
 */
 
-#ifndef ISCSI_TGT_TARGET_DATA_HPP
-#define	ISCSI_TGT_TARGET_DATA_HPP
-
+#pragma once
+#include "agent-framework/module/enum/storage.hpp"
+#include "agent-framework/module/utils/optional_field.hpp"
 #include <vector>
 #include <memory>
 #include <string>
@@ -32,6 +32,8 @@ namespace agent {
 namespace storage {
 namespace iscsi {
 namespace tgt {
+
+using namespace agent_framework::model;
 
 /*! Class represents tgt lun model data */
 class LunData {
@@ -106,6 +108,54 @@ public:
      */
     const std::string& get_target_initiator() const;
 
+    /*!
+     * @brief Set authentication method
+     * @param authentication_method Authentication method
+     */
+    void set_authentication_method(
+            const agent_framework::module::utils::OptionalField<enums::TargetAuthenticationMethod>& authentication_method);
+
+    /*!
+     * @brief Get authentication method
+     * @return Authentication method
+     */
+    const agent_framework::module::utils::OptionalField<enums::TargetAuthenticationMethod>& get_authentication_method() const;
+
+    /*!
+     * @brief Set chap username
+     * @param username Chap username
+     */
+    void set_chap_username(const std::string& username);
+
+    /*!
+     * @brief Get chap username
+     * @return Chap username
+     */
+    const std::string& get_chap_username() const;
+
+    /*!
+     * @brief Set mutual chap username
+     * @param username Mutual chap username
+     */
+    void set_mutual_chap_username(const std::string& username);
+
+    /*!
+     * @brief Get mutual chap username
+     * @return Mutual chap username
+     */
+    const std::string& get_mutual_chap_username() const;
+
+    /*!
+     * @brief Set chap password
+     * @param password Chap password
+     */
+    void set_chap_password(const std::string& password);
+
+    /*!
+     * @brief Set mutual chap password
+     * @param password Mutual chap password
+     */
+    void set_mutual_chap_password(const std::string& password);
 
     /*!
      * @brief Add lun data object to list
@@ -122,6 +172,11 @@ private:
     std::int32_t m_target_id{};
     std::string m_target_iqn{};
     std::string m_target_initiator{};
+    agent_framework::module::utils::OptionalField<enums::TargetAuthenticationMethod> m_authentication_method{};
+    std::string m_chap_username{};
+    std::string m_chap_password{};
+    std::string m_mutual_chap_username{};
+    std::string m_mutual_chap_password{};
     LunDataSVec m_luns{};
 };
 using TargetDataSPtr = std::shared_ptr<TargetData>;
@@ -132,4 +187,3 @@ using TargetDataSVec = std::vector<TargetDataSPtr>;
 }
 }
 
-#endif	/* ISCSI_TGT_TARGET_DATA_HPP */

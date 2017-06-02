@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,84 +22,27 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/network/get_ethernet_switch_port_info.hpp"
-#include "agent-framework/module-ref/network_manager.hpp"
-#include "hw/fm10000/network_controller_manager.hpp"
-#include "hw/fm10000/network_controller.hpp"
+#include "agent-framework/module/network_components.hpp"
+#include "agent-framework/command-ref/registry.hpp"
+#include "agent-framework/command-ref/network_commands.hpp"
 #include "api/netlink/switch_port_info.hpp"
 #include "api/dcrp/remote_switch_info.hpp"
 #include "network_config.hpp"
 
-using namespace agent_framework::command;
-using namespace agent_framework::model;
+#include "utils/lag.hpp"
+#include "utils/port.hpp"
+
+using namespace agent_framework::command_ref;
 using namespace agent_framework::module;
 using namespace agent_framework::model::enums;
+using namespace agent_framework::model;
+using namespace agent_framework;
 using namespace agent::network::api::netlink;
 using namespace agent::network::api::dcrp;
-using namespace agent::network::hw::fm10000;
+using namespace agent::network::utils;
 
-namespace fm10000 {
-
-using namespace agent_framework;
-
-/*! Network command GetEthernetSwitchPortInfo */
-class GetEthernetSwitchPortInfo final : public command::network::GetEthernetSwitchPortInfo {
-
-public:
-    /*! Command constructor */
-    GetEthernetSwitchPortInfo() { }
-
-    using network::GetEthernetSwitchPortInfo::execute;
-
-    /*!
-     * @brief Execute command with given request and response argument
-     *
-     * @param[in]   request     Input request argument
-     * @param[out]  response    Output response argument
-     * */
-    void execute(const Request& request, Response& response) {
-        /* get port reference */
-        auto network_manager = NetworkManager::get_instance();
-        auto& port_manager = network_manager->get_port_manager();
-        auto port_model = port_manager.get_entry(request.get_port());
-
-        /* get neighbor info */
-        get_neighbor_info(port_model);
-
-        if (PortClass::Logical == port_model.get_port_class()) {
-            /* get physical port info */
-            get_logical_port_attributes(port_model);
-        }
-        else {
-            /* get physical port info */
-            get_switch_port_attributes(port_model);
-        }
-
-        /* get common attributes */
-        get_common_attributes(port_model);
-
-        /* get default vlan */
-        get_default_vlan(port_model);
-
-        /* get max frame size */
-        get_max_frame_size(port_model);
-
-        /* process port collections */
-        process_collections(port_model);
-
-        /* set port model to responce */
-        response.set_port(port_model);
-    }
-
-    /*! Command destructor */
-    ~GetEthernetSwitchPortInfo();
-
-    /*!
-     * @brief Get neighbor info
-     *
-     * @param[out] port Port model
-     * */
-    void get_neighbor_info(SwitchPort& port) {
+namespace {
+    void get_neighbor_info(EthernetSwitchPort& port) {
         string switch_identifier{};
         string port_identifier{};
         auto neighbor_info = port.get_neighbor_info();
@@ -111,8 +54,8 @@ public:
         }
         catch (std::runtime_error& err) {
             /* DCRP is not enabled, continue */
-            log_warning(GET_LOGGER("fm10000"), "Getting remote switch info failed");
-            log_debug(GET_LOGGER("fm10000"), err.what());
+            log_warning(GET_LOGGER("fm10000"), "Getting remote switch info failed.");
+            log_debug(GET_LOGGER("fm10000"), "Error message: " + std::string(err.what()));
         }
         if (!switch_identifier.empty()) {
             neighbor_info.set_switch_identifier(switch_identifier);
@@ -133,18 +76,17 @@ public:
     /*!
      * @brief Get default vlan
      *
-     * @param[out] port Port model
+     * @param[out] port EthernetSwitchPort model
      * */
-    void get_default_vlan(SwitchPort& port) {
-        auto controller = NetworkControllerManager::get_network_controller();
-        auto network_manager = NetworkManager::get_instance();
-        auto& port_vlan_manager = network_manager->get_port_vlan_manager();
-        if (controller->is_member_port(port.get_port_identifier())) {
+    void get_default_vlan(EthernetSwitchPort& port) {
+        auto network_components = NetworkComponents::get_instance();
+        auto& port_vlan_manager = network_components->get_port_vlan_manager();
+        if (is_member_port(port.get_port_identifier())) {
             /* PVID is not supported on member ports */
             return;
         }
         if (PortClass::Logical == port.get_port_class()) {
-            if (controller->is_logical_port_empty(port.get_port_identifier())) {
+            if (is_logical_port_empty(port.get_port_identifier())) {
                 /* PVID is not supported on empty LAG */
                 return;
             }
@@ -164,12 +106,11 @@ public:
     /*!
      * @brief Get max frame size
      *
-     * @param[out] port Port model
+     * @param[out] port EthernetSwitchPort model
      * */
-    void get_max_frame_size(SwitchPort& port) {
-        auto controller = NetworkControllerManager::get_network_controller();
+    void get_max_frame_size(EthernetSwitchPort& port) {
         if (PortClass::Logical == port.get_port_class()) {
-            if (controller->is_logical_port_empty(port.get_port_identifier())) {
+            if (is_logical_port_empty(port.get_port_identifier())) {
                 /* MAX is not supported on empty LAG */
                 return;
             }
@@ -181,11 +122,11 @@ public:
     }
 
     /*!
-     * @brief Process collection
-     *
-     * @param[out] port Port model
-     * */
-    void process_collections(SwitchPort& port) {
+    * @brief Process collections
+    *
+    * @param[out] port EthernetSwitchPort model
+    * */
+    void process_collections(EthernetSwitchPort& port) {
         /* process Members collection */
         if (PortClass::Logical == port.get_port_class()) {
             port.add_collection({CollectionName::PortMembers,
@@ -196,9 +137,9 @@ public:
     /*!
      * @brief Get switch port attributes
      *
-     * @param[out] port Port model
+     * @param[out] port EthernetSwitchPort model
      * */
-    void get_switch_port_attributes(SwitchPort& port) {
+    void get_switch_port_attributes(EthernetSwitchPort& port) {
         /* get physical port info */
         SwitchPortInfo::PortAttributeValue value{};
         SwitchPortInfo port_info(port.get_port_identifier());
@@ -206,7 +147,7 @@ public:
             /* attributes specific for PCIe port */
             port_info.get_switch_port_attribute(SwitchPortInfo::MACADDRESS,
                                                 value);
-            port.set_mac_address(string(value));
+            port.set_mac_address({});
             port.set_neighbor_mac(string(value));
             port.set_auto_sense(false);
         }
@@ -223,9 +164,9 @@ public:
     /*!
      * @brief Get LAG attributes
      *
-     * @param[out] port Port model
+     * @param[out] port EthernetSwitchPort model
      * */
-    void get_logical_port_attributes(SwitchPort& port) {
+    void get_logical_port_attributes(EthernetSwitchPort& port) {
         port.set_mac_address({});
         port.set_neighbor_mac({});
         port.set_auto_sense(false);
@@ -234,9 +175,9 @@ public:
     /*!
      * @brief Get common port attributes
      *
-     * @param[out] port Port model
+     * @param[out] port EthernetSwitchPort model
      * */
-    void get_common_attributes(SwitchPort& port) {
+    void get_common_attributes(EthernetSwitchPort& port) {
         /* get physical port info */
         SwitchPortInfo::PortAttributeValue value{};
         SwitchPortInfo port_info(port.get_port_identifier());
@@ -254,10 +195,41 @@ public:
                                             value);
         port.set_link_speed_mbps(value.get_number());
     }
-};
 
-GetEthernetSwitchPortInfo::~GetEthernetSwitchPortInfo() { }
+    void get_port_info(const GetEthernetSwitchPortInfo::Request& request,
+                       GetEthernetSwitchPortInfo::Response& response) {
+        /* get port reference */
+        auto network_components = NetworkComponents::get_instance();
+        auto& port_manager = network_components->get_port_manager();
+        auto port_model = port_manager.get_entry(request.get_uuid());
 
+        /* get neighbor info */
+        get_neighbor_info(port_model);
+
+        if (PortClass::Logical == port_model.get_port_class()) {
+            /* get logical port info */
+            get_logical_port_attributes(port_model);
+        }
+        else {
+            /* get physical port info */
+            get_switch_port_attributes(port_model);
+        }
+
+        /* get common attributes */
+        get_common_attributes(port_model);
+
+        /* get default vlan */
+        get_default_vlan(port_model);
+
+        /* get max frame size */
+        get_max_frame_size(port_model);
+
+        /* process port collections */
+        process_collections(port_model);
+
+        /* set port model to responce */
+        response = port_model;
+    }
 }
 
-static Command::Register<fm10000::GetEthernetSwitchPortInfo> g("fm10000");
+REGISTER_COMMAND(GetEthernetSwitchPortInfo, ::get_port_info);

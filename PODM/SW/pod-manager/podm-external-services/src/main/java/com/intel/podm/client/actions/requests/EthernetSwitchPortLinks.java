@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.resources.ODataId;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @JsonInclude(NON_DEFAULT)
 public class EthernetSwitchPortLinks {
@@ -35,16 +32,14 @@ public class EthernetSwitchPortLinks {
     private ODataId primaryVlan;
 
     @JsonProperty("PortMembers")
-    private Optional<List<ODataId>> portMembers = empty();
+    private Set<ODataId> portMembers;
 
-    public void setRequestedPortMembers(Optional<List<URI>> uris) {
+    public void setRequestedPortMembers(Set<URI> uris) {
         if (uris == null) {
-            portMembers = null;
-        } else if (uris.isPresent()) {
-            portMembers = of(uris.get().stream().map(ODataId::new).collect(toList()));
-        } else {
-            portMembers = empty();
+            return;
         }
+
+        portMembers = uris.stream().map(ODataId::new).collect(toSet());
     }
 
     public void setPrimaryVlan(URI primaryVlanUri) {
@@ -53,7 +48,7 @@ public class EthernetSwitchPortLinks {
         }
     }
 
-    public Optional<List<ODataId>> getPortMembers() {
+    public Set<ODataId> getPortMembers() {
         return portMembers;
     }
 

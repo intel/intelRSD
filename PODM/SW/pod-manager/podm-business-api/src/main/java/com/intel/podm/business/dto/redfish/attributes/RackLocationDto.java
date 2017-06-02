@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,23 +60,23 @@ public final class RackLocationDto {
         private Builder() {
         }
 
-        public Builder uLocation(Integer val) {
-            uLocation = val;
+        public Builder uLocation(Integer uLocation) {
+            this.uLocation = uLocation;
             return this;
         }
 
-        public Builder uHeight(Integer val) {
-            uHeight = val;
+        public Builder uHeight(Integer uHeight) {
+            this.uHeight = uHeight;
             return this;
         }
 
-        public Builder xLocation(Integer val) {
-            xLocation = val;
+        public Builder xLocation(Integer xLocation) {
+            this.xLocation = xLocation;
             return this;
         }
 
-        public Builder rackUnitType(RackUnitType val) {
-            rackUnitType = val;
+        public Builder rackUnitType(RackUnitType rackUnitType) {
+            this.rackUnitType = rackUnitType;
             return this;
         }
 

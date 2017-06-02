@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,40 +21,41 @@ import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.client.api.ExternalServiceApiActionException;
-import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActions;
-import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActionsFactory;
+import com.intel.podm.client.api.actions.EthernetSwitchPortVlanResourceActions;
+import com.intel.podm.client.api.actions.EthernetSwitchPortVlanResourceActionsFactory;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
-import static javax.transaction.Transactional.TxType.REQUIRED;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 public class VlanTerminator {
     @Inject
-    private EthernetSwitchPortResourceActionsFactory actionsFactory;
+    private EthernetSwitchPortVlanResourceActionsFactory actionsFactory;
 
     @Inject
     private GenericDao genericDao;
 
-    @Transactional(REQUIRED)
-    public void terminate(List<EthernetSwitchPortVlan> vlansToDelete) throws ActionException {
+    @Transactional(MANDATORY)
+    public void deleteVlans(List<EthernetSwitchPortVlan> vlansToDelete) throws ActionException {
         for (EthernetSwitchPortVlan vlan : vlansToDelete) {
             deleteVlan(vlan);
         }
     }
 
-    private void deleteVlan(EthernetSwitchPortVlan ethernetSwitchPortVlan) throws ActionException {
+    @Transactional(MANDATORY)
+    public void deleteVlan(EthernetSwitchPortVlan ethernetSwitchPortVlan) throws ActionException {
         ExternalService service = ethernetSwitchPortVlan.getService();
         if (service == null) {
             throw new IllegalStateException("There is no Service associated with selected ethernet switch port vlan");
         }
 
-        EthernetSwitchPortResourceActions actions = actionsFactory.create(service.getBaseUri());
-        try {
-            actions.deleteVlan(ethernetSwitchPortVlan.getSourceUri());
+
+        try (EthernetSwitchPortVlanResourceActions switchPortVlanActions = actionsFactory.create(service.getBaseUri())) {
+            switchPortVlanActions.deleteVlan(ethernetSwitchPortVlan.getSourceUri());
         } catch (ExternalServiceApiActionException e) {
             throw new ActionException("Could not delete vlan", e.getErrorResponse(), e);
         }

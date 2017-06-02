@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,33 +18,25 @@ package com.intel.podm.redfish.json.templates.actions;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.intel.podm.business.dto.redfish.RequestedEthernetSwitchPortLinks;
-import com.intel.podm.business.dto.redfish.RequestedEthernetSwitchPortModification;
-import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.AdministrativeState;
-
-import java.util.Optional;
-
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
+import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
 
 @JsonIgnoreProperties(ignoreUnknown = false)
-public class UpdateEthernetSwitchPortActionJson implements RequestedEthernetSwitchPortModification {
+public class UpdateEthernetSwitchPortActionJson implements RedfishEthernetSwitchPort {
     @JsonProperty("AdministrativeState")
-    public AdministrativeState administrativeState;
+    private AdministrativeState administrativeState;
 
     @JsonProperty("LinkSpeedMbps")
-    public Integer linkSpeed;
+    private Integer linkSpeedMbps;
 
     @JsonProperty("FrameSize")
-    public Integer frameSize;
+    private Integer frameSize;
 
     @JsonProperty("Autosense")
-    public Boolean autosense;
+    private Boolean autosense;
 
     @JsonProperty("Links")
-    public Links links = new Links();
+    private EthernetSwitchPortLinksJson links = new EthernetSwitchPortLinksJson();
 
     @Override
     public AdministrativeState getAdministrativeState() {
@@ -52,8 +44,8 @@ public class UpdateEthernetSwitchPortActionJson implements RequestedEthernetSwit
     }
 
     @Override
-    public Integer getLinkSpeed() {
-        return linkSpeed;
+    public Integer getLinkSpeedMbps() {
+        return linkSpeedMbps;
     }
 
     @Override
@@ -67,31 +59,7 @@ public class UpdateEthernetSwitchPortActionJson implements RequestedEthernetSwit
     }
 
     @Override
-    public Context getPrimaryVlan() {
-        return links.primaryVlan;
-    }
-
-    @Override
-    public Optional<RequestedEthernetSwitchPortLinks> getLinks() {
-        return links.portMembers;
-    }
-
-    @JsonProperty("Links")
-    public void setLinks(EthernetSwitchPortLinksJson portMemberLinks) {
-        if (portMemberLinks != null) {
-            links.portMembers = of(portMemberLinks);
-            links.primaryVlan = portMemberLinks.getPrimaryVlan();
-        } else {
-            links.portMembers = null;
-            links.primaryVlan = null;
-        }
-    }
-
-    private static final class Links {
-        @JsonProperty("PrimaryVLAN")
-        public Context primaryVlan;
-
-        @JsonUnwrapped
-        public Optional<RequestedEthernetSwitchPortLinks> portMembers = empty();
+    public RedfishEthernetSwitchPort.Links getLinks() {
+        return links;
     }
 }

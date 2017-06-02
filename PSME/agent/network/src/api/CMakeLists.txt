@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,58 +26,14 @@ set(SOURCES
     static_mac.cpp
 )
 
+set_source_files_properties(
+    static_mac.cpp
+    COMPILE_FLAGS "-Wno-old-style-cast -Wno-cast-align")
+
 if (NL3_FOUND)
-    set_source_files_properties(
-        netlink/vlan_message.cpp
-        netlink/port_message.cpp
-        netlink/port_attribute_message.cpp
-        netlink/lag_message.cpp
-        netlink/lag_port_message.cpp
-        netlink/acl_message.cpp
-        static_mac.cpp
-        COMPILE_FLAGS "-Wno-missing-field-initializers -Wno-old-style-cast -Wno-cast-align")
-
-    set(BDC_R_SOURCES ${SOURCES}
-        # Netlink Interface
-        netlink/vlan_message.cpp
-        netlink/port_message.cpp
-        netlink/port_attribute_message.cpp
-        netlink/lag_message.cpp
-        netlink/add_lag_message.cpp
-        netlink/del_lag_message.cpp
-        netlink/lag_port_message.cpp
-        netlink/del_lag_port_message.cpp
-        netlink/add_lag_port_message.cpp
-        netlink/ethtool.cpp
-        netlink/switch_port_info.cpp
-        netlink/switch_vlan.cpp
-        netlink/switch_info.cpp
-        netlink/sysfs.cpp
-        netlink/acl_message.cpp
-        netlink/acl_socket.cpp
-        netlink/static_mac_message.cpp
-        # DCRP Interface
-        dcrp/remote_switch_info.cpp
-    )
-
-    if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-        set_source_files_properties(
-            netlink/vlan_message.cpp
-            netlink/port_message.cpp
-            netlink/port_attribute_message.cpp
-            netlink/lag_message.cpp
-            netlink/lag_port_message.cpp
-            netlink/acl_message.cpp
-            dcrp/remote_switch_info.cpp
-            static_mac.cpp
-            PROPERTIES
-            COMPILE_FLAGS "-Wno-old-style-cast -Wno-missing-field-initializers -Wno-sign-conversion"
-        )
-    endif()
-
     add_subdirectory(netlink)
     add_subdirectory(dcrp)
-    add_library(api-fm10000 OBJECT ${BDC_R_SOURCES})
+    add_library(api-fm10000 OBJECT ${SOURCES})
 endif()
 
 add_subdirectory(lldp)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,24 +18,25 @@ package com.intel.podm.actions;
 
 import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
+import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.client.api.RedfishApiException;
-import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActions;
-import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActionsFactory;
+import com.intel.podm.client.api.actions.EthernetSwitchPortVlanResourceActions;
+import com.intel.podm.client.api.actions.EthernetSwitchPortVlanResourceActionsFactory;
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.actions.VlanCreationRequest;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.net.URI;
 
-import static javax.transaction.Transactional.TxType.REQUIRED;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 public class EthernetSwitchPortVlanActionsInvoker {
     @Inject
-    private EthernetSwitchPortResourceActionsFactory actionsFactory;
+    private EthernetSwitchPortVlanResourceActionsFactory actionsFactory;
 
     @Inject
     private EthernetSwitchPortDao ethernetSwitchPortDao;
@@ -43,41 +44,25 @@ public class EthernetSwitchPortVlanActionsInvoker {
     @Inject
     private Logger logger;
 
-    @Transactional(REQUIRED)
-    public URI create(Id portId, VlanCreationRequest request) throws ActionException {
-        EthernetSwitchPort port = ethernetSwitchPortDao.getOrThrow(portId);
+    @Inject
+    private EthernetSwitchPortVlanObtainer vlanObtainer;
+
+    @Transactional(MANDATORY)
+    public EthernetSwitchPortVlan create(EthernetSwitchPort port, VlanCreationRequest request) throws ActionException {
         ExternalService service = port.getService();
         if (service == null) {
             throw new IllegalStateException("There is no Service associated with selected switch port");
         }
 
         URI switchPortUri = port.getSourceUri();
-        EthernetSwitchPortResourceActions switchPortActions = actionsFactory.create(service.getBaseUri());
 
-        try {
-            return switchPortActions.createVlan(switchPortUri, request.getId(), request.isTagged());
+        try (EthernetSwitchPortVlanResourceActions switchPortVlanActions = actionsFactory.create(service.getBaseUri())) {
+            URI vlanUri = switchPortVlanActions.createVlan(switchPortUri, request.getId(), request.isTagged(), request.isEnabled());
+            return vlanObtainer.discoverEthernetSwitchPortVlan(service, vlanUri);
         } catch (RedfishApiException e) {
             String errorMessage = "Vlan creation failed on selected switch port";
             logger.w(errorMessage + " on [ service: {}, path: {} ]", service.getBaseUri(), switchPortUri);
             throw new ActionException(errorMessage, e.getErrorResponse(), e);
-        }
-    }
-
-    public static final class VlanCreationRequest {
-        int id;
-        boolean tagged;
-
-        public VlanCreationRequest(int id, boolean tagged) {
-            this.id = id;
-            this.tagged = tagged;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public boolean isTagged() {
-            return tagged;
         }
     }
 }

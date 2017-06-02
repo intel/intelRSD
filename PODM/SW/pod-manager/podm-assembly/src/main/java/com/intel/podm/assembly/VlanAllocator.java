@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,33 +19,23 @@ package com.intel.podm.assembly;
 import com.intel.podm.actions.ActionException;
 import com.intel.podm.actions.EthernetSwitchPortActionsInvoker;
 import com.intel.podm.actions.EthernetSwitchPortVlanActionsInvoker;
-import com.intel.podm.actions.EthernetSwitchPortVlanActionsInvoker.VlanCreationRequest;
-import com.intel.podm.actions.EthernetSwitchPortVlanObtainer;
-import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
-import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
-import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.actions.EthernetSwitchPortRedefinition;
+import com.intel.podm.common.types.actions.VlanCreationRequest;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.transaction.Transactional;
 import java.net.URI;
 import java.util.List;
 
-import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toList;
-import static javax.transaction.Transactional.TxType.REQUIRED;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
-@Interceptors(RetryOnRollbackInterceptor.class)
 public class VlanAllocator {
     @Inject
     private VlanSelector vlanSelector;
@@ -60,53 +50,42 @@ public class VlanAllocator {
     private EthernetSwitchPortActionsInvoker switchPortActionsInvoker;
 
     @Inject
-    private EthernetSwitchPortDao ethernetSwitchPortDao;
-
-    @Inject
-    private EthernetSwitchPortVlanObtainer vlanObtainer;
-
-    @Inject
     private Logger logger;
 
-    @Transactional(REQUIRED)
-    public void createNecessaryVlans(Id associatedSwitchPortId, List<RequestedEthernetInterface.Vlan> requestedVlans) throws ActionException {
-        EthernetSwitchPort associatedSwitchPort = ethernetSwitchPortDao.getOrThrow(associatedSwitchPortId);
-        List<VlanCreationRequest> vlansToCreate = vlanSelector.vlansToCreate(associatedSwitchPort.getVlans(), requestedVlans);
+    @Transactional(MANDATORY)
+    public void createNecessaryVlans(EthernetSwitchPort associatedSwitchPort, List<RequestedNode.EthernetInterface.Vlan> requestedVlans)
+            throws ActionException {
+        List<VlanCreationRequest> vlansToCreate = vlanSelector.vlansToCreate(associatedSwitchPort.getEthernetSwitchPortVlans(), requestedVlans);
         for (VlanCreationRequest vlanCreationRequest : vlansToCreate) {
-            URI vlanUri = ethernetSwitchPortVlanActionsInvoker.create(associatedSwitchPort.getId(), vlanCreationRequest);
-            try {
-                vlanObtainer.discoverEthernetSwitchPortVlan(associatedSwitchPort.getId(), vlanUri);
-            } catch (ExternalServiceApiReaderException e) {
-                String errorMessage = "Vlan creation was successful, but failed on refreshing selected Vlan";
-                logger.i(errorMessage + " on [ service: {}, path: {} ]", associatedSwitchPort.getService().getBaseUri(), e.getResourceUri());
-                throw new ActionException(errorMessage, e.getErrorResponse());
-            }
+            createVlan(associatedSwitchPort, vlanCreationRequest);
         }
     }
 
-    @NumberOfRetriesOnRollback(3)
-    @Transactional(REQUIRES_NEW)
-    public void removeUnnecessaryVlans(Id associatedSwitchPortId, List<RequestedEthernetInterface.Vlan> requestedVlans)
-            throws ActionException {
-        EthernetSwitchPort associatedSwitchPort = ethernetSwitchPortDao.getOrThrow(associatedSwitchPortId);
-        List<EthernetSwitchPortVlan> vlansToDelete = vlanSelector.vlansToDelete(associatedSwitchPort, requestedVlans);
-        vlanTerminator.terminate(vlansToDelete);
+    @Transactional(MANDATORY)
+    public EthernetSwitchPortVlan createVlan(EthernetSwitchPort associatedSwitchPort, VlanCreationRequest vlanCreationRequest) throws ActionException {
+        EthernetSwitchPortVlan vlan = ethernetSwitchPortVlanActionsInvoker.create(associatedSwitchPort, vlanCreationRequest);
+        associatedSwitchPort.addEthernetSwitchPortVlan(vlan);
+        return vlan;
     }
 
-    @NumberOfRetriesOnRollback(3)
-    @Transactional(REQUIRES_NEW)
-    public void changePrimaryVlan(Id associatedSwitchPortId, Integer primaryVlanId) throws ActionException {
-        EthernetSwitchPort associatedSwitchPort = ethernetSwitchPortDao.getOrThrow(associatedSwitchPortId);
+    @Transactional(MANDATORY)
+    public void removeUnnecessaryVlans(EthernetSwitchPort associatedSwitchPort, List<RequestedNode.EthernetInterface.Vlan> requestedVlans)
+            throws ActionException {
+        List<EthernetSwitchPortVlan> vlansToDelete = vlanSelector.vlansToDelete(associatedSwitchPort, requestedVlans);
+        vlanTerminator.deleteVlans(vlansToDelete);
+    }
+
+    @Transactional(MANDATORY)
+    public void changePrimaryVlan(EthernetSwitchPort associatedSwitchPort, Integer primaryVlanId) throws ActionException {
         URI primaryVlanUri = findAssociatedVlanUri(associatedSwitchPort, primaryVlanId);
         EthernetSwitchPortRedefinition switchPortRedefinition = EthernetSwitchPortRedefinition.newBuilder()
                 .primaryVlan(primaryVlanUri)
-                .uris(empty())
                 .build();
         switchPortActionsInvoker.updateSwitchPort(associatedSwitchPort, switchPortRedefinition);
     }
 
     private URI findAssociatedVlanUri(EthernetSwitchPort associatedSwitchPort, Integer primaryVlan) throws ActionException {
-        List<EthernetSwitchPortVlan> vlans = associatedSwitchPort.getVlans().stream()
+        List<EthernetSwitchPortVlan> vlans = associatedSwitchPort.getEthernetSwitchPortVlans().stream()
                 .filter(vlan -> vlan.getVlanId().equals(primaryVlan))
                 .collect(toList());
 

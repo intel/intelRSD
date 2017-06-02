@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,8 +40,10 @@ public:
     /*! Default constructor */
     explicit MessageHeader() = default;
 
-    MessageHeader(MessageHeader&) = default;
     MessageHeader(const MessageHeader&) = default;
+    MessageHeader(MessageHeader&&) = default;
+    MessageHeader& operator=(const MessageHeader&) = default;
+    MessageHeader& operator=(MessageHeader&&) = default;
 
     /*!
      * @brief Parse raw message

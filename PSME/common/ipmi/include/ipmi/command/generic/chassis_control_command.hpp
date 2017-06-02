@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief IPMI Chassis Control Command.
  * */
 
-#ifndef IPMI_COMMAND_GENERIC_CHASSIS_CONTROL_COMMAND_HPP
-#define	IPMI_COMMAND_GENERIC_CHASSIS_CONTROL_COMMAND_HPP
+#pragma once
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
@@ -40,18 +39,18 @@ namespace request {
  * It's needed to set PowerStatus you expected to enforce.
  * Default behavior is to power down chassis/platform.
  */
-class ChassisControlCommand: public Request {
+class ChassisControlCommand : public Request {
 public:
 
     /*!
      * @brief Represents Power Status to be set.
      */
-    enum class PowerState: uint8_t {
+    enum class PowerState : std::uint8_t {
         POWER_DOWN = 0x00,
         POWER_UP,
         POWER_CYCLE,
         HARD_RESET,
-        DIAGNOSTIC_INTERUPT,
+        DIAGNOSTIC_INTERRUPT,
         ACPI_SOFT_SHUTDOWN,
         LAST,
         UNKNOWN
@@ -79,7 +78,7 @@ public:
      */
     void set_power_state(PowerState status);
 
-    virtual void pack(vector<uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const;
 
 private:
     PowerState m_power_state = PowerState::POWER_DOWN;
@@ -91,7 +90,7 @@ namespace response {
 /*!
  * @brief Request message for IPMI Chassis Control Command.
  */
-class ChassisControlCommand: public Response {
+class ChassisControlCommand : public Response {
 public:
     /*!
      * @brief Default constructor.
@@ -109,10 +108,10 @@ public:
      */
     virtual ~ChassisControlCommand();
 
-    virtual void unpack(const vector<uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data);
 
 private:
-    static constexpr size_t RESPONSE_SIZE = 1;
+    static constexpr std::size_t RESPONSE_SIZE = 1;
 };
 
 }
@@ -121,5 +120,4 @@ private:
 }
 }
 
-#endif	/* IPMI_COMMAND_GENERIC_CHASSIS_CONTROL_COMMAND_HPP */
 

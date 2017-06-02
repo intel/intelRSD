@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,10 @@
  * @brief Storage module loader interface
  * */
 
-#ifndef AGENT_STORAGE_LOADER_STORAGE_LOADER_HPP
-#define AGENT_STORAGE_LOADER_STORAGE_LOADER_HPP
-
-#include "agent-framework/module-ref/loader/loader.hpp"
+#pragma once
+#include "agent-framework/module/loader/loader.hpp"
+#include "agent-framework/module/model/storage_services.hpp"
+#include "agent-framework/module/model/manager.hpp"
 #include <memory>
 #include <string>
 
@@ -54,30 +54,35 @@ public:
     bool load(const json::Value& json) override;
 
     /*!
-     * @brief Read module configuration file
+     * @brief Read storage configuration file
      * @param[in] json Json configuration file
-     * @return true if success otherwise false
      */
-    bool read_modules(const json::Value& json);
+    void read_managers(const json::Value& json);
 
     /*!
-     * @brief Make manager module
-     * @param[in] json Module json configuration
-     * @return true if success otherwise false
+     * @brief Make manager model
+     * @param[in] json Manager json configuration
      */
-    bool make_manager_module(const json::Value& json);
+    agent_framework::model::Manager make_manager(const json::Value& json);
 
     /*!
-     * @brief Make submodule
-     * @param[in] json Submodule json configuration
+     * @brief Make StorageServices model
+     * @param[in] json StorageServices json configuration
      * @param[in] uuid Manager UUID
-     * @return true if success otherwise false
      */
-    bool make_submodule(const json::Value& json, const std::string& uuid);
+    agent_framework::model::StorageServices
+    make_storage_services(const json::Value& json, const std::string& uuid);
+
+private:
+    struct IfAddrsDeleter {
+        void operator()(struct ifaddrs *) const;
+    };
+    using IfAddrsPointer = std::unique_ptr<struct ifaddrs, IfAddrsDeleter>;
+
+    const std::string get_iface_ipaddress(const std::string& iface) const;
 };
 
 }
 }
 }
 
-#endif /* AGENT_STORAGE_LOADER_STORAGE_LOADER_HPP */

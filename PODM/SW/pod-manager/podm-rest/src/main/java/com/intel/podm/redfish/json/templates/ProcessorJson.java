@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,24 @@ package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.InstructionSet;
 import com.intel.podm.common.types.ProcessorArchitecture;
 import com.intel.podm.common.types.ProcessorBrand;
 import com.intel.podm.common.types.ProcessorType;
 import com.intel.podm.common.types.Status;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.common.types.redfish.OemType;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "name", "description", "id", "socket", "processorType", "processorArchitecture",
-        "instructionSet", "manufacturer", "model", "processorId", "maxSpeedMHz", "totalCores", "totalThreads", "status", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "name", "description", "id", "socket", "processorType", "processorArchitecture",
+    "instructionSet", "manufacturer", "model", "processorId", "maxSpeedMHz", "totalCores", "totalThreads", "status", "oem"
 })
-public class ProcessorJson extends BaseJson {
-    public String name;
-    public String description;
-    public Id id;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class ProcessorJson extends BaseResourceJson {
     public String socket;
     public ProcessorType processorType;
     public ProcessorArchitecture processorArchitecture;
@@ -50,14 +48,14 @@ public class ProcessorJson extends BaseJson {
     public Status status;
     @JsonProperty("ProcessorId")
     public ProcessorIdJson processorId = new ProcessorIdJson();
-    public ProcessorOemJson oem = new ProcessorOemJson();
+    public Oem oem = new Oem();
 
     public ProcessorJson() {
-        super("#Processor.1.0.0.Processor");
+        super("#Processor.v1_0_0.Processor");
     }
 
     @JsonPropertyOrder({
-            "vendorId", "identificationRegisters", "effectiveFamily", "effectiveModel", "step", "microcodeInfo"
+        "vendorId", "identificationRegisters", "effectiveFamily", "effectiveModel", "step", "microcodeInfo"
     })
     public static class ProcessorIdJson {
         @JsonProperty("VendorId")
@@ -69,17 +67,17 @@ public class ProcessorJson extends BaseJson {
         public String microcodeInfo;
     }
 
-    public static class ProcessorOemJson {
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOemJson {
         @JsonProperty("Intel_RackScale")
         public RackScaleOem rackScaleOem = new RackScaleOem();
 
-        @JsonPropertyOrder({"odataType", "brand", "capabilities", "containedBy"})
-        public static class RackScaleOem {
+        @JsonPropertyOrder({"odataType", "brand", "capabilities"})
+        public class RackScaleOem {
             @JsonProperty("@odata.type")
             public String odataType;
             public ProcessorBrand brand;
-            public List<String> capabilities = newArrayList();
-            public ODataId containedBy;
+            public List<String> capabilities = new ArrayList<>();
         }
     }
 }

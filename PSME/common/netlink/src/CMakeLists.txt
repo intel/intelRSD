@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016 Intel Corporation
+# Copyright (c) 2016-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,10 +17,14 @@
 # </license_header>
 
 set(SOURCES
-    message.cpp
-    socket.cpp
+    nl_message.cpp
+    nl_exception.cpp
+    nl_exception_invalid_input.cpp
+    nl_exception_invalid_ifname.cpp
+    rt_message.cpp
+    neigh_message.cpp
+    fdb_info_message.cpp
     utils.cpp
-    exceptions.cpp
 )
 
 add_library(netlink STATIC ${SOURCES})
@@ -30,17 +34,3 @@ install(TARGETS netlink
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
-
-set_source_files_properties(
-    message.cpp
-    socket.cpp
-    utils.cpp
-    COMPILE_FLAGS "-Wno-missing-field-initializers -Wno-old-style-cast -Wno-cast-align -Wno-deprecated")
-
-if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-    set_source_files_properties(
-        message.cpp
-        socket.cpp
-        COMPILE_FLAGS "-Wno-old-style-cast -Wno-missing-field-initializers -Wno-sign-conversion")
-endif()
-

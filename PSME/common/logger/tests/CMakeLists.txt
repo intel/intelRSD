@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,4 +29,12 @@ target_link_libraries(
     ${test_target}
     logger
     ${SAFESTRING_LIBRARIES}
+    jsonrpccpp-common
+)
+
+add_custom_target(unittest_logger
+                  make
+)
+add_custom_target(unittest_logger_run
+                  ctest --output-on-failure
 )

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ class ManagersTypes:
     FRU_INFO_MANAGER = "fru_info_manager"
     IPV4_ADDRESS_MANAGER = "ipv4_address manager"
     IPV6_ADDRESS_MANAGER = "ipv6_address manager"
-    DIMM_MANAGER = "dimm_manager"
+    MEMORY_MANAGER = "memory_manager"
     NEIGHBOR_INFO_MANAGER = "neighbor_info_manager"
     NETWORK_INTERFACE_MANAGER = "network_interface_manager"
     NETWORK_SERVICE_MANAGER = "network_service_manager"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,20 @@
 
 package com.intel.podm.business.dto.redfish;
 
-import com.intel.podm.business.dto.redfish.attributes.PowerSupplyDto;
+import com.intel.podm.business.dto.redfish.attributes.PowerZonePowerSupplyDto;
 import com.intel.podm.business.dto.redfish.attributes.RackLocationDto;
-import com.intel.podm.common.types.Id;
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
 import java.util.List;
 
-public final class PowerZoneDto {
-    private final Id id;
+@SuppressWarnings({"checkstyle:MethodCount"})
+public final class PowerZoneDto extends BaseDto implements RedfishResource {
+    private final String id;
     private final String name;
     private final String description;
+    private final List<UnknownOemDto> unknownOems;
     private final Status status;
     private final RackLocationDto rackLocation;
     private final Integer maxPsusSupported;
@@ -35,12 +38,13 @@ public final class PowerZoneDto {
     private final Integer powerConsumedWatts;
     private final Integer powerCapacityWatts;
     private final Integer powerOutputWatts;
-    private final List<PowerSupplyDto> powerSupplies;
+    private final List<PowerZonePowerSupplyDto> powerSupplies;
 
     private PowerZoneDto(Builder builder) {
         id = builder.id;
         name = builder.name;
         description = builder.description;
+        unknownOems = builder.unknownOems;
         status = builder.status;
         rackLocation = builder.rackLocation;
         maxPsusSupported = builder.maxPsusSupported;
@@ -56,16 +60,24 @@ public final class PowerZoneDto {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public Status getStatus() {
@@ -100,14 +112,20 @@ public final class PowerZoneDto {
         return powerOutputWatts;
     }
 
-    public List<PowerSupplyDto> getPowerSupplies() {
+    public List<PowerZonePowerSupplyDto> getPowerSupplies() {
         return powerSupplies;
     }
 
+    @Override
+    public Links getLinks() {
+        throw new UnsupportedOperationException("Links are not available in this resource");
+    }
+
     public static final class Builder {
-        private Id id;
+        private String id;
         private String name;
         private String description;
+        private List<UnknownOemDto> unknownOems;
         private Status status;
         private RackLocationDto rackLocation;
         private Integer maxPsusSupported;
@@ -116,68 +134,73 @@ public final class PowerZoneDto {
         private Integer powerConsumedWatts;
         private Integer powerCapacityWatts;
         private Integer powerOutputWatts;
-        private List<PowerSupplyDto> powerSupplies;
+        private List<PowerZonePowerSupplyDto> powerSupplies;
 
         private Builder() {
         }
 
-        public Builder id(Id val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder description(String val) {
-            description = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 
-        public Builder rackLocation(RackLocationDto val) {
-            rackLocation = val;
+        public Builder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public Builder maxPsusSupported(Integer val) {
-            maxPsusSupported = val;
+        public Builder rackLocation(RackLocationDto rackLocation) {
+            this.rackLocation = rackLocation;
             return this;
         }
 
-        public Builder presence(String val) {
-            presence = val;
+        public Builder maxPsusSupported(Integer maxPsusSupported) {
+            this.maxPsusSupported = maxPsusSupported;
             return this;
         }
 
-        public Builder numberOfPsusPresent(Integer val) {
-            numberOfPsusPresent = val;
+        public Builder presence(String presence) {
+            this.presence = presence;
             return this;
         }
 
-        public Builder powerConsumedWatts(Integer val) {
-            powerConsumedWatts = val;
+        public Builder numberOfPsusPresent(Integer numberOfPsusPresent) {
+            this.numberOfPsusPresent = numberOfPsusPresent;
             return this;
         }
 
-        public Builder powerCapacityWatts(Integer val) {
-            powerCapacityWatts = val;
+        public Builder powerConsumedWatts(Integer powerConsumedWatts) {
+            this.powerConsumedWatts = powerConsumedWatts;
             return this;
         }
 
-        public Builder powerOutputWatts(Integer val) {
-            powerOutputWatts = val;
+        public Builder powerCapacityWatts(Integer powerCapacityWatts) {
+            this.powerCapacityWatts = powerCapacityWatts;
             return this;
         }
 
-        public Builder powerSupplies(List<PowerSupplyDto> val) {
-            powerSupplies = val;
+        public Builder powerOutputWatts(Integer powerOutputWatts) {
+            this.powerOutputWatts = powerOutputWatts;
+            return this;
+        }
+
+        public Builder powerSupplies(List<PowerZonePowerSupplyDto> powerSupplies) {
+            this.powerSupplies = powerSupplies;
             return this;
         }
 

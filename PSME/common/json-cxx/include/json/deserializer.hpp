@@ -41,9 +41,7 @@
  * @brief JSON deserializer interface
  * */
 
-#ifndef JSON_CXX_DESERIALIZER_HPP
-#define JSON_CXX_DESERIALIZER_HPP
-
+#pragma once
 #include "json/value.hpp"
 
 #include <array>
@@ -247,19 +245,22 @@ public:
             INVALID_UNICODE,
             INVALID_NUMBER_INTEGER,
             INVALID_NUMBER_FRACTION,
-            INVALID_NUMBER_EXPONENT
+            INVALID_NUMBER_EXPONENT,
+            DUPLICATE_KEY,
         };
 
         /*! Error parsing code */
-        Code code;
+        Code code{};
         /*! Line position indicative error */
-        size_t line;
+        size_t line{};
         /*! Column number indicative error */
-        size_t column;
+        size_t column{};
         /*! Parsed stream size in bytes/characters */
-        size_t size;
+        size_t size{};
         /*! Offset in the parsed stream that indicative error */
-        size_t offset;
+        size_t offset{};
+        /*! Additional error data*/
+        String data{};
 
         /*!
          * @brief Try to decode error code
@@ -294,8 +295,11 @@ private:
     const char* m_end;
     size_t m_limit;
     Error::Code m_error_code;
+    String m_error_data;
+
 
     bool read_object(Value& value);
+    bool is_duplicate(const Value& value, const String& key, const size_t& count);
     bool read_object_member(Value& value, size_t& count);
     bool read_string(String& str);
     bool read_string_unicode(String& str);
@@ -327,4 +331,3 @@ Deserializer operator>>(const String& str, Value& value);
 
 }
 
-#endif /* JSON_CXX_DESERIALIZER_HPP */

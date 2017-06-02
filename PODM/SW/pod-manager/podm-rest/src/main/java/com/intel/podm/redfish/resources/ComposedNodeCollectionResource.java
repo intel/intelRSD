@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +17,32 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.services.redfish.ComposedNodeService;
+import com.intel.podm.business.dto.redfish.ComposedNodeDto;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
-import static com.intel.podm.rest.resources.PathParamConstants.COMPOSED_NODE_ID;
+import static com.intel.podm.business.services.context.PathParamConstants.COMPOSED_NODE_ID;
+import static com.intel.podm.business.services.redfish.ReaderService.SERVICE_ROOT_CONTEXT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class ComposedNodeCollectionResource extends BaseResource {
     @Inject
-    private ComposedNodeService service;
+    private ReaderService<ComposedNodeDto> readerService;
 
     @GET
     @Override
     public CollectionDto get() {
-        return service.getComposedNodeCollection();
+        return getOrThrow(() -> readerService.getCollection(SERVICE_ROOT_CONTEXT));
     }
 
-    @Path(COMPOSED_NODE_ID)
-    public ComposedNodeResource getComposedNode() {
+    @Path("{" + COMPOSED_NODE_ID + "}")
+    public ComposedNodeResource getComposedNode(@PathParam(COMPOSED_NODE_ID) Long composedNodeId) {
         return getResource(ComposedNodeResource.class);
     }
 

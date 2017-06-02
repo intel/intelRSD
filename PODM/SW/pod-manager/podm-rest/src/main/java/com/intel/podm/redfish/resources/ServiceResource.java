@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,25 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.dto.redfish.ServiceDto;
-import com.intel.podm.business.services.redfish.StorageServiceService;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import static com.intel.podm.rest.resources.ResourceNames.LOGICAL_DRIVES_RESOURCE_NAME;
-import static com.intel.podm.rest.resources.ResourceNames.PHYSICAL_DRIVES_RESOURCE_NAME;
-import static com.intel.podm.rest.resources.ResourceNames.REMOTE_TARGETS_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.LOGICAL_DRIVES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.PHYSICAL_DRIVES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.REMOTE_TARGETS_RESOURCE_NAME;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class ServiceResource extends BaseResource {
     @Inject
-    private StorageServiceService storageServiceService;
+    private ReaderService<ServiceDto> readerService;
 
     @Override
     public ServiceDto get() {
-        return getOrThrow(() -> storageServiceService.getService(getCurrentContext()));
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
     }
 
     @Path(REMOTE_TARGETS_RESOURCE_NAME)

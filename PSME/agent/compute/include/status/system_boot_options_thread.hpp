@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,9 @@
  * @brief Declaration of System boot options thread class
  * */
 
-#ifndef AGENT_COMPUTE_STATUS_SYSTEM_BOOT_OPTIONS_THREAD_HPP
-#define AGENT_COMPUTE_STATUS_SYSTEM_BOOT_OPTIONS_THREAD_HPP
+#pragma once
+
+
 
 #include <thread>
 #include <memory>
@@ -44,34 +45,41 @@ class SystemBootOptionsThread final {
 public:
     using Seconds = std::chrono::seconds;
 
-    /*! Default power state update intarval */
+    /*! Default power state update interval */
     static constexpr const Seconds DEFAULT_BOOT_OPTIONS_UPDATE_INTERVAL{10};
-    /*!
-     * @brief Constructor
-     * */
+
+
+    /*! Default constructor. */
     SystemBootOptionsThread() = default;
 
+
     /*!
-     * @brief Constructor
-     * @param[in] interval Interval between two consequtive boot options reads
+     * Constructs object with passed time interval in seconds.
+     * @param[in] interval Interval between two consecutive boot options reads
      * */
-    SystemBootOptionsThread(const Seconds interval):
+    SystemBootOptionsThread(const Seconds interval) :
         m_interval(interval) {
     }
 
-    /*! @brief Destructor */
+
+    /*! Destructor */
     ~SystemBootOptionsThread();
 
-    /*! @brief Start thread */
+
+    /*! Start thread */
     void start();
 
-    /*! @brief Stop thread */
+
+    /*! Stop thread */
     void stop();
+
 
 private:
     Seconds m_interval{DEFAULT_BOOT_OPTIONS_UPDATE_INTERVAL};
     std::thread m_thread{};
     volatile bool m_running{false};
+
+
     void m_task();
 };
 
@@ -81,5 +89,3 @@ using SystemBootOptionsThreadUniquePtr = std::unique_ptr<SystemBootOptionsThread
 }
 }
 }
-#endif /* AGENT_COMPUTE_STATUS_SYSTEM_BOOT_OPTIONS_THREAD_HPP
-*/

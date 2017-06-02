@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ bool AddressValidator::is_valid(const json::Value& value) const {
 }
 
 std::string AddressValidator::get_error() const {
-    return "is not valid IPv4 or IPv6 address.";
+    return "Field value is not valid IPv4 or IPv6 address.";
 }
 std::regex AddressValidator::make_regex(const std::string& address) {
     (void) address;

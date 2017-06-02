@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,21 @@
 
 package com.intel.podm.client.actions;
 
+import com.intel.podm.client.WebClientBuilder;
 import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActions;
 import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActionsFactory;
 
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import java.net.URI;
 
-
+@Dependent
 public class EthernetSwitchPortResourceActionsFactoryImpl implements EthernetSwitchPortResourceActionsFactory {
+    @Inject
+    private WebClientBuilder webClientBuilder;
+
     @Override
     public EthernetSwitchPortResourceActions create(URI baseUri) {
-        return new EthernetSwitchPortResourceActionsImpl(baseUri);
+        return new EthernetSwitchPortResourceActionsImpl(webClientBuilder.newInstance(baseUri).retryable().build());
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ int udp_create(void);
 int udp_connect(unsigned int host, int port);
 int udp_sendto(int sock_fd,  unsigned long host, int port, unsigned char* snd_buf, int snd_len);
 int udp_recv(int sock_fd, unsigned char* recv_buf, int len, int timeout_ms);
-int ping(int host, int timeout);
-
 
 static inline ssize_t socket_recv(int sockfd, void *buf, size_t len)
 {

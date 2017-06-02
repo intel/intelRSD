@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,4 +16,25 @@
 #
 # </license_header>
 
-add_subdirectory(Simulator)
+add_library(compute-command-simulator OBJECT
+    get_manager_info.cpp
+    get_system_info.cpp
+    get_chassis_info.cpp
+    get_collection.cpp
+    get_managers_collection.cpp
+    get_drive_info.cpp
+    get_memory_info.cpp
+    get_network_interface_info.cpp
+    get_processor_info.cpp
+    get_storage_controller_info.cpp
+    get_storage_subsystem_info.cpp
+)
+
+set_psme_command_target_properties(compute-command-simulator)
+
+if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    set_source_files_properties(
+        get_manager_info.cpp
+        PROPERTIES COMPILE_FLAGS "-Wno-missing-field-initializers"
+    )
+endif()

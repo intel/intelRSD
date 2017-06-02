@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package com.intel.podm.client.api.resources.redfish;
 
+import com.intel.podm.common.types.Ref;
+
 public interface ProcessorIdObject {
-    String getVendorId();
-    String getIdentificationRegisters();
-    String getEffectiveFamily();
-    String getEffectiveModel();
-    String getStep();
-    String getMicrocodeInfo();
+    Ref<String> getVendorId();
+    Ref<String> getIdentificationRegisters();
+    Ref<String> getEffectiveFamily();
+    Ref<String> getEffectiveModel();
+    Ref<String> getStep();
+    Ref<String> getMicrocodeInfo();
 }

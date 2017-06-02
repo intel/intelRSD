@@ -1,7 +1,0 @@
-Package: psme-compute-intel
-Version: 0.0.0.0
-Maintainer: Intel (c) Rackscale
-Architecture: amd64
-Description: Package for PSME compute intel
-Pre-depends: libjsoncpp0, libmicrohttpd10, libcurl3-gnutls, libcurl3, libopenipmi0, libstdc++6 (>=4.9.2), libossp-uuid16
-Installed-Size: 0

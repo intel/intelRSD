@@ -1,35 +1,26 @@
 /*!
- * @section LICENSE
+ * @brief Logger stream C prototypes
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
  *
- * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
- * @file logger_stream.h
- *
- * @brief Logger stream interface
- * */
+ * @header{Files}
+ * @file stream.h
+ */
 
 #ifndef LOGGER_STREAM_H
 #define LOGGER_STREAM_H
 
-#include "logger/logger.h"
+#include <stdint.h>
 
 /*!
  * @enum logger_stream_type
@@ -60,6 +51,7 @@ enum logger_stream_type {
 };
 
 struct logger_stream;
+union logger_options;
 
 /*!
  * @brief Dynamically create buffer for logger stream
@@ -110,7 +102,7 @@ int logger_stream_stop(struct logger_stream *inst);
  *              error code
  * */
 int logger_stream_open_udp(struct logger_stream *inst,
-        const char *ip_address, size_t port);
+        const char *ip_address, uint16_t port);
 
 /*!
  * @brief Configure TCP stream with given IPv4 address and port number
@@ -122,7 +114,7 @@ int logger_stream_open_udp(struct logger_stream *inst,
  *              error code
  * */
 int logger_stream_open_tcp(struct logger_stream *inst,
-        const char *ip_address, size_t port);
+        const char *ip_address, uint16_t port);
 
 /*!
  * @brief Configure file stream with given file name

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,17 @@
 
 package com.intel.podm.templates.requestednode;
 
-import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
-
 import java.util.List;
 
-public class RequestedNodeWithEthernetInterfaces extends TestRequestedNode {
-    final List<RequestedEthernetInterface> ethernetInterfaces;
+public class RequestedNodeWithEthernetInterfaces extends RequestedNodeBuilder {
+    final List<EthernetInterface> ethernetInterfaces;
 
-    public RequestedNodeWithEthernetInterfaces(List<RequestedEthernetInterface> ethernetInterfaces) {
+    public RequestedNodeWithEthernetInterfaces(List<EthernetInterface> ethernetInterfaces) {
         this.ethernetInterfaces = ethernetInterfaces;
     }
 
     @Override
-    public List<RequestedEthernetInterface> getEthernetInterfaces() {
+    public List<EthernetInterface> getEthernetInterfaces() {
         return ethernetInterfaces;
     }
 }

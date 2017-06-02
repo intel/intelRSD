@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,35 +18,46 @@
  * limitations under the License.
  *
  *
- * @file unsupported_value_error.hpp
+ * @file unsupported_value.hpp
  *
  * @brief Declaration of Unsupported Value error interface
  * */
 
-#ifndef AGENT_FRAMEWORK_EXCEPTIONS_UNSUPP_VALUE_ERROR_HPP
-#define AGENT_FRAMEWORK_EXCEPTIONS_UNSUPP_VALUE_ERROR_HPP
+#pragma once
 
-#include "agent-framework/exceptions/exception_base.hpp"
+
+
+#include "agent-framework/exceptions/gami_exception.hpp"
+
+
 
 namespace agent_framework {
 namespace exceptions {
 
 /*! @brief Unsupported Value exception class */
-class UnsupportedValue final : public ExceptionBase {
+class UnsupportedValue final : public GamiException {
 public:
+
     /*!
      * @brief Constructor
      *
      * @param[in] msg Error message
      * */
     explicit UnsupportedValue(const std::string& msg) :
-            ExceptionBase{ErrorCode::UNSUPPORTED_VALUE, msg} {}
+        GamiException{ErrorCode::UNSUPPORTED_VALUE, msg} {}
+
 
     UnsupportedValue(const UnsupportedValue&) = default;
+
+
     UnsupportedValue& operator=(const UnsupportedValue&) = default;
 
+
     UnsupportedValue(UnsupportedValue&&) = default;
+
+
     UnsupportedValue& operator=(UnsupportedValue&&) = default;
+
 
     /*! @brief Destructor */
     ~UnsupportedValue();
@@ -55,4 +66,3 @@ public:
 } // namespace exceptions
 } // namespace agent_framework
 
-#endif	/* AGENT_FRAMEWORK_EXCEPTIONS_UNSUPP_VALUE_ERROR_HPP */

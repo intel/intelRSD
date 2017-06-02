@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,8 +77,9 @@ result_t libwrap_get_rack(rack_info_t *rack_info)
 {
 	get_base_element(&rack_info->be, DB_RMM, MC_NODE_ROOT);
 
-	rack_info->rack_puid = get_db_info_num(DB_RMM, MC_NODE_ROOT,
-										   RACK_PUID_STR);
+	rack_info->rack_puid = get_db_info_num(DB_RMM, MC_NODE_ROOT, RACK_PUID_STR);
+        get_db_info_string(DB_RMM, MC_NODE_ROOT, RACK_LOC_ID_STR,
+                                           rack_info->rack_location_id, REST_RACK_ID_LEN);
 
 	get_db_info_string(DB_RMM, MC_NODE_ROOT, RACK_GEOTAG_STR,
 					   rack_info->geo_tag, RACK_TAG_LEN);
@@ -113,7 +114,7 @@ static void get_rack_link_url(int8 *href, int32 len)
 	int32 port = 0;
 	char url[96] = {};
 
-	sscanf(href, "http://x:%d%s", &port, url);
+	sscanf(href, "http://x:%d%95s", &port, url);
 	snprintf_s_s(href, len, "%s", url);
 }
 
@@ -145,6 +146,13 @@ static int32 pack_rack_oem_info(rack_info_t *rack_info, json_t *output)
 		add_json_string(rsa, RMM_JSON_UPDATED_DATE, rack_info->be.update_date);
 		add_json_string(rsa, RMM_JSON_API_VER, rack_info->api_ver);
 		add_json_integer(rsa, RMM_JSON_RACK_PUID, rack_info->rack_puid);
+
+                json_t *location = json_object();
+                if (NULL != location) {
+                    add_json_string(location, RMM_JSON_ID, rack_info->rack_location_id);
+                    json_object_add(rsa, RMM_JSON_LOC, location);
+                }
+
 		add_json_string(rsa, RMM_JSON_POD_DCUID, rack_info->pod_dcuid);
 		add_json_string(rsa, RMM_JSON_PODM_ADDR, rack_info->podm_addr);
 		add_json_string(rsa, RMM_JSON_GEO_TAG, rack_info->geo_tag);
@@ -260,6 +268,7 @@ result_t libwrap_pack_rack_info_to_json(json_t *output, rack_info_t *rack_info, 
 	for (i = 0; i < subnode_num; i++) {
 		parent = libdb_get_node_by_node_id(DB_RMM, subnode[i].parent, LOCK_ID_NULL);
 		if (parent == NULL) {
+			libdb_free_node(subnode);
 			update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
 			return RESULT_NO_NODE;
 		}
@@ -276,6 +285,7 @@ result_t libwrap_pack_rack_info_to_json(json_t *output, rack_info_t *rack_info, 
 
 		drawer_obj = json_object();
 		if (rmc_obj == NULL) {
+			libdb_free_node(subnode);
 			update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
 			return RESULT_MALLOC_ERR;
 		}
@@ -294,6 +304,7 @@ result_t libwrap_pack_rack_info_to_json(json_t *output, rack_info_t *rack_info, 
 	rsa = json_object();
 	act_obj = json_object();
 	if (av_action == NULL || oem == NULL || rsa == NULL || act_obj == NULL) {
+		libdb_free_node(subnode);
 		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
 		return RESULT_MALLOC_ERR;
 	}
@@ -311,7 +322,7 @@ result_t libwrap_pack_rack_info_to_json(json_t *output, rack_info_t *rack_info, 
 		}
 
 		libdb_free_node(subnode);
-
+		subnode = NULL;
 		bzero(attr_str, sizeof(attr_str));
 		snprintf_s_ss((char *)attr_str, REST_MAX_ACTION_LEN, "%s@%s", RMM_JSON_TARGET_INDEX, RMM_JSON_ALLOWABLE_VALUES);
 		json_object_add(act_obj, (char *)attr_str, target_index);
@@ -319,6 +330,9 @@ result_t libwrap_pack_rack_info_to_json(json_t *output, rack_info_t *rack_info, 
 
 	act_type = json_array();
 	if (act_type == NULL) {
+		if (subnode) {
+			libdb_free_node(subnode);
+		}
 		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
 		return RESULT_MALLOC_ERR;
 	}
@@ -336,6 +350,10 @@ result_t libwrap_pack_rack_info_to_json(json_t *output, rack_info_t *rack_info, 
 	/*Reset End*/
 
 	json_object_add(output, RMM_JSON_POST_ACTIONS, av_action);
+
+	if (subnode) {
+		libdb_free_node(subnode);
+	}
 
 	return RESULT_OK;
 }
@@ -364,6 +382,8 @@ static input_attr_t patch_rack_attrs[] = {
 	{"Oem",                       NULL},
 	{"Oem.Intel_RackScale",             NULL},
 	{"Oem.Intel_RackScale.RackPUID",    NULL},
+        {"Oem.Intel_RackScale.Location",    NULL},
+        {"Oem.Intel_RackScale.Location.Id", NULL},
 	{"Oem.Intel_RackScale.PODDCUID",    NULL},
 	{"Oem.Intel_RackScale.GeoTag",      NULL},
 	{"Oem.Intel_RackScale.PODMAddress", NULL}
@@ -375,6 +395,7 @@ result_t libwrap_update_put_rack_info(json_t *req, put_rack_info_t *put_info)
 	json_t *obj = NULL;
 	int32  i = 0;
 	uint32 ary_size = sizeof(patch_rack_attrs)/sizeof(input_attr_t);
+        bool puid_updated = false;
 
 	if ((req == NULL) || (put_info == NULL))
 		return RESULT_NONE_POINTER;
@@ -438,13 +459,39 @@ result_t libwrap_update_put_rack_info(json_t *req, put_rack_info_t *put_info)
 
 		if (input && check_int_range((int32)input, 0, 0x7fffffff)) {
 			if (put_info->rack_puid != input) {
-				put_info->rack_puid = input;
-				rf_snmp_evt(INFO, MSGRackResourceUpdated, "RackPUID Updated");
-			}
+			    put_info->rack_puid = input;
+                            puid_updated = true;
+                            snprintf_s_i(put_info->rack_location_id, sizeof(put_info->rack_location_id),
+                                         "%d", (int32)put_info->rack_puid);
+                        }
 		} else {
 			return RESULT_JSON_ARR_ERR;
 		}
 	}
+
+        obj = libwrap_get_attr_json(patch_rack_attrs, ary_size, "Oem.Intel_RackScale.Location.Id");
+	if (obj) {
+		int8 *input = NULL;
+		input = json_string_value(obj);
+                rsize_t len = strnlen_s(input, RSIZE_MAX_STR);
+		if (input && len > 0 && len < REST_RACK_ID_LEN) {
+			strncpy_safe(put_info->rack_location_id, input, REST_RACK_ID_LEN, REST_RACK_ID_LEN - 1);
+                        int64 puid = str2int64((const char*)put_info->rack_location_id);
+                        if (!check_int_range((int32)puid, 0, 0x7fffffff)) {
+                            puid = 0;
+                        }
+                        if (put_info->rack_puid != puid) {
+                            put_info->rack_puid = puid;
+                            puid_updated = true;
+                        }
+		} else {
+			return RESULT_JSON_ARR_ERR;
+		}
+	}
+
+        if (puid_updated) {
+            rf_snmp_evt(INFO, MSGRackResourceUpdated, "RackPUID Updated");
+        }
 
 	return RESULT_OK;
 }
@@ -466,7 +513,6 @@ result_t libwrap_update_rack_mtime()
 
 result_t libwrap_pre_put_rack(put_rack_info_t *put_rack_info)
 {
-	int8 buff[128] = {0};
 	int8 output[128] = {0};
 
 	libdb_attr_get_string(DB_RMM, MC_NODE_ROOT, RACK_DESCRIPT_STR, output, sizeof(output), LOCK_ID_NULL);
@@ -484,9 +530,11 @@ result_t libwrap_pre_put_rack(put_rack_info_t *put_rack_info)
 	libdb_attr_get_string(DB_RMM, MC_NODE_ROOT, RACK_ASSET_TAG_STR, output, sizeof(output), LOCK_ID_NULL);
 	strncpy_safe((char*)put_rack_info->asset_tag, output, REST_ASSET_TAG_LEN, REST_ASSET_TAG_LEN - 1);
 	memset(output, 0, sizeof(output));
-	libdb_attr_get_string(DB_RMM, MC_NODE_ROOT, RACK_PUID_STR, output, sizeof(output), LOCK_ID_NULL);
-	strncpy_safe(buff, output, sizeof(buff), sizeof(buff) - 1);
-	put_rack_info->rack_puid = (int32)atoi(buff);
+        libdb_attr_get_string(DB_RMM, MC_NODE_ROOT, RACK_LOC_ID_STR, output, sizeof(output), LOCK_ID_NULL);
+        strncpy_safe((char*)put_rack_info->rack_location_id, output, REST_RACK_ID_LEN, REST_RACK_ID_LEN - 1);
+        memset(output, 0, sizeof(output));
+        libdb_attr_get_string(DB_RMM, MC_NODE_ROOT, RACK_PUID_STR, output, sizeof(output), LOCK_ID_NULL);
+	put_rack_info->rack_puid = str2int64(output);
 
 	return RESULT_OK;
 }
@@ -531,21 +579,22 @@ result_t libwrap_put_rack(const put_rack_info_t put_rack_info)
 		return RESULT_ATTR_ERR;
 	}
 
-	snprintf_s_i(buff, sizeof(buff), "%d", (int32)put_rack_info.rack_puid);
+	snprintf_s_ll(buff, sizeof(buff), "%lld", put_rack_info.rack_puid);
 	rc = libdb_attr_set_string(DB_RMM, MC_NODE_ROOT, RACK_PUID_STR,
 						  0x0, buff, SNAPSHOT_NEED, LOCK_ID_NULL);
-	am_set_rack_puid(put_rack_info.rack_puid);
 	if (rc == -1) {
 		return RESULT_ATTR_ERR;
 	}
+        am_set_rack_puid(put_rack_info.rack_puid);
 
-	rc = libdb_attr_set_string(DB_RMM, MC_NODE_ROOT, RACK_LOC_ID_STR,
-						  0x0, buff, SNAPSHOT_NEED, LOCK_ID_NULL);
+        rc = libdb_attr_set_string(DB_RMM, MC_NODE_ROOT, RACK_LOC_ID_STR,
+					  0x0, (int8 *)put_rack_info.rack_location_id, SNAPSHOT_NEED, LOCK_ID_NULL);
 	if (rc == -1) {
 		return RESULT_ATTR_ERR;
 	}
+        am_set_rack_location_id((char*)put_rack_info.rack_location_id);
 
-	snprintf_s_sll(buff, sizeof(buff), "%s-%lld", (char *)(put_rack_info.pod_dcuid), put_rack_info.rack_puid);
+	snprintf_s_ss(buff, sizeof(buff), "%s-%s", (char *)(put_rack_info.pod_dcuid), (char*)put_rack_info.rack_location_id);
 	rc = libdb_attr_set_string(DB_RMM, MC_NODE_ROOT, RACK_DCUID_STR,
 						  0x0, buff, SNAPSHOT_NEED, LOCK_ID_NULL);
 	if (rc == -1) {

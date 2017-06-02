@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.resources.ExternalServiceResource;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Set;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 
 public interface ResourceSupplier  {
-    static List<URI> getUrisFromResources(Iterable<ResourceSupplier> resources) {
+    static Set<URI> getUrisFromResources(Iterable<ResourceSupplier> resources) {
         return stream(resources.spliterator(), false)
                 .map(ResourceSupplier::getUri)
-                .collect(toList());
+                .collect(toSet());
     }
 
     ExternalServiceResource get() throws ExternalServiceApiReaderException;

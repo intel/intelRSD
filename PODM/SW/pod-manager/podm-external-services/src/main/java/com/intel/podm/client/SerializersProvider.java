@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,29 @@
 package com.intel.podm.client;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.intel.podm.common.types.EnumeratedType;
 import com.intel.podm.common.types.NeighborInfo;
+import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.deserialization.BooleanDeserializer;
 import com.intel.podm.common.types.deserialization.EnumeratedTypeDeserializer;
 import com.intel.podm.common.types.deserialization.MacAddressDeserializer;
 import com.intel.podm.common.types.deserialization.NeighborInfoDeserializer;
+import com.intel.podm.common.types.deserialization.RefDeserializer;
 import com.intel.podm.common.types.deserialization.StatusDeserializer;
 import com.intel.podm.common.types.net.MacAddress;
 import com.intel.podm.common.types.serialization.EnumeratedTypeSerializer;
 import com.intel.podm.common.types.serialization.OptionalSerializer;
+import com.intel.podm.common.types.serialization.RefSerializer;
 
 import java.util.Optional;
 
-public class SerializersProvider {
+import static com.intel.podm.common.types.EnumeratedType.SUB_TYPES;
 
+public class SerializersProvider {
     public SimpleModule getSerializersModule() {
         SimpleModule serializersModule = new SimpleModule();
 
-        for (Class subType : EnumeratedType.SUB_TYPES) {
+        for (Class subType : SUB_TYPES) {
             serializersModule.addSerializer(subType, new EnumeratedTypeSerializer<>());
             serializersModule.addDeserializer(subType, new EnumeratedTypeDeserializer<>(subType));
         }
@@ -43,7 +47,11 @@ public class SerializersProvider {
         serializersModule.addDeserializer(MacAddress.class, new MacAddressDeserializer());
         serializersModule.addDeserializer(NeighborInfo.class, new NeighborInfoDeserializer());
         serializersModule.addDeserializer(Status.class, new StatusDeserializer());
+        serializersModule.addDeserializer(Ref.class, new RefDeserializer());
+        serializersModule.addDeserializer(Boolean.class, new BooleanDeserializer());
+
         serializersModule.addSerializer(Optional.class, new OptionalSerializer(Optional.class));
+        serializersModule.addSerializer(Ref.class, new RefSerializer());
         return serializersModule;
     }
 }

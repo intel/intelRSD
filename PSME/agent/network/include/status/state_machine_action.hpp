@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,32 +17,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
  * @file state_machine_action.hpp
+ *
  * @brief State machine action
  * */
 
-#ifndef AGENT_NETWORK_STATE_MACHINE_ACTION_HPP
-#define AGENT_NETWORK_STATE_MACHINE_ACTION_HPP
+#pragma once
 
 #include "agent-framework/state_machine/state_machine_thread_action.hpp"
 
-/*! Psme namespace */
 namespace agent {
 namespace network {
+namespace discovery {
+class DiscoveryManager;
+}
 
+/*!
+ * @brief State machine action class
+ * */
 class StateMachineAction final :
             public agent_framework::state_machine::StateMachineThreadAction {
 public:
+    using DiscoveryManager = discovery::DiscoveryManager;
+
+    /*!
+     * @brief Default constructor
+     *
+     * @param[in] discovery_manager Disacovery manager
+     * */
+    explicit StateMachineAction(DiscoveryManager& discovery_manager);
+
     /*! Default destructor. */
     ~StateMachineAction();
 
-    void execute(const std::string& uuid,
-    const agent_framework::state_machine::enums::State state,
-    const agent_framework::state_machine::enums::Transition trans) override;
+    void execute(StateThreadEntrySharedPtr entry) override;
+
+private:
+    DiscoveryManager& m_discovery_manager;
 };
 
 }
 }
-#endif /* */
 

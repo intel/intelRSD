@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -374,6 +374,8 @@ static memdb_integer libdb_process_cmd(struct request_pkg *req, struct response_
 	}
 
 	rc = socket_send(cmdfd, req_str, strnlen_s(req_str, JSONRPC_MAX_STRING_LEN) + 1);
+	jrpc_free_string(req_str);
+	req_str = NULL;
 	if (rc < 0) {
 		rmm_log(ERROR, "fail at socket_send.\n");
 		goto failed;
@@ -403,6 +405,7 @@ static memdb_integer libdb_process_cmd(struct request_pkg *req, struct response_
 
 			if(libdb_parse_rsp(rsp_string, rsp) != 0) {
 				rmm_log(ERROR, "fail at libdb_parse_rsp.\n");
+				jrpc_rsp_pkg_free(&(rsp->jrpc_pkg));
 				goto failed;
 			}
 
@@ -417,10 +420,6 @@ static memdb_integer libdb_process_cmd(struct request_pkg *req, struct response_
 					jrpc_rsp_pkg_free(&(rsp->jrpc_pkg));
 					goto failed;
 				} else {
-					if (req_str != NULL) {
-						jrpc_free_string(req_str);
-						req_str = NULL;
-					}
 					pthread_mutex_unlock(&socket_mutex);
 					/* process memdb command successfully. */
 					return 0;
@@ -440,11 +439,6 @@ static memdb_integer libdb_process_cmd(struct request_pkg *req, struct response_
 	}
 
 failed:
-	if (req_str != NULL) {
-		jrpc_free_string(req_str);
-		req_str = NULL;
-	}
-
 	pthread_mutex_unlock(&socket_mutex);
 	return rsp->rcode;
 }
@@ -487,7 +481,7 @@ lock_id_t libdb_lock(long timeout)
 		return LOCK_ID_NULL;
 
 	if(JSONRPC_SUCCESS != jrpc_get_named_result_value(rsp.jrpc_pkg.json, "r_lock_id", JSON_INTEGER, &lock_id))
-		return LOCK_ID_NULL;
+		lock_id = LOCK_ID_NULL;
 	jrpc_rsp_pkg_free(&(rsp.jrpc_pkg));
 	return lock_id;
 }
@@ -572,6 +566,7 @@ struct node_info *libdb_get_node_by_node_id(unsigned char db_name, memdb_integer
 	memdb_integer rc = 0;
 	/* FIXME: not thread safe */
 	static memdb_integer nodeinfo[CMDBUFSIZ/sizeof(long)];
+	struct node_info *ret = NULL;
 
 	req.db_name = db_name;
 	req.cmd = CMD_NODE_GET_BY_NODE_ID;
@@ -588,13 +583,14 @@ struct node_info *libdb_get_node_by_node_id(unsigned char db_name, memdb_integer
 			-1 == (info->parent = json_integer_value(json_object_get(node, "parent"))) ||
 			-1 == (info->node_id = json_integer_value(json_object_get(node, "node_id"))) ||
 			-1 == type_str2int(&info->type, json_string_value(json_object_get(node, "type")))){
-			return NULL;
+			ret = NULL;
 		}
-
-		return (struct node_info *)nodeinfo;
+		else {
+			ret = (struct node_info *)nodeinfo;
+		}
 	}
 	jrpc_rsp_pkg_free(&(rsp.jrpc_pkg));
-	return NULL;
+	return ret;
 }
 
 
@@ -670,6 +666,7 @@ static struct node_info *list_subnode(unsigned char db_name,
 	}
 
 end:
+	jrpc_req_pkg_free(&(req.jrpc_pkg));
 	jrpc_rsp_pkg_free(&(rsp.jrpc_pkg));
 	return pinfo;
 }
@@ -830,10 +827,11 @@ static memdb_integer set_attr_data(unsigned char db_name, memdb_integer node,
 		return -1;
 
 	rc = libdb_process_cmd(&req, &rsp);
+	jrpc_req_pkg_free(&(req.jrpc_pkg));
+	jrpc_rsp_pkg_free(&(rsp.jrpc_pkg));
 	if (rc != 0)
 		return -1;
 
-	jrpc_rsp_pkg_free(&(rsp.jrpc_pkg));
 
 	return 0;
 }
@@ -874,6 +872,7 @@ static memdb_integer get_attr_data(unsigned char db_name, memdb_integer node,
 	}
 
 end:
+	jrpc_req_pkg_free(&(req.jrpc_pkg));
 	jrpc_rsp_pkg_free(&(rsp->jrpc_pkg));
 	return rc;
 }
@@ -1246,7 +1245,7 @@ memdb_integer libdb_subscribe_type_of_node_create(unsigned char db_name,
 	if (rc == 0) {
 		memdb_integer result;
 		if(JSONRPC_SUCCESS == jrpc_get_named_result_value(rsp.jrpc_pkg.json, "r_sub", JSON_INTEGER, &result))
-			return result;
+			rc = result;
 	}
 
 	jrpc_rsp_pkg_free(&(rsp.jrpc_pkg));
@@ -1304,7 +1303,7 @@ memdb_integer libdb_subscribe_type_of_node_delete(unsigned char db_name,
 	if (rc == 0) {
 		memdb_integer result;
 		if(JSONRPC_SUCCESS == jrpc_get_named_result_value(rsp.jrpc_pkg.json, "r_sub", JSON_INTEGER, &result))
-			return result;
+			rc = result;
 	}
 
 	jrpc_rsp_pkg_free(&(rsp.jrpc_pkg));
@@ -1361,7 +1360,7 @@ memdb_integer libdb_subscribe_attr_special(unsigned char db_name,
 	if (rc == 0) {
 		memdb_integer result;
 		if(JSONRPC_SUCCESS == jrpc_get_named_result_value(rsp.jrpc_pkg.json, "r_sub", JSON_INTEGER, &result))
-			return result;
+			rc = result;
 	}
 	jrpc_rsp_pkg_free(&(rsp.jrpc_pkg));
 	return rc;

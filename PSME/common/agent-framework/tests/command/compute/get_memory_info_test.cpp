@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,20 +22,18 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/compute/get_memory_info.hpp"
-#include "agent-framework/command/compute/json/get_memory_info.hpp"
+#include "agent-framework/module/constants/compute.hpp"
+#include "agent-framework/command-ref/compute_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model;
 using namespace agent_framework::model::literals;
 
-static constexpr char TEST_SOCKET[] = "Test Socket 1";
-static constexpr char TEST_TYPE[] = "Test Type";
-static constexpr enums::MemoryFormFactor TEST_FORM_FACTOR{
-    enums::MemoryFormFactor::Unknown};
+static constexpr enums::MemoryType TEST_MEMORY_TYPE = enums::MemoryType::DRAM;
+static constexpr enums::DeviceType TEST_DEVICE_TYPE = enums::DeviceType::DDR;
+static constexpr char TEST_DEVICE_LOCATOR[] = "DIMM 1";
 static constexpr int TEST_SIZE = 16;
 static constexpr int TEST_SPEED = 1333;
 static constexpr int TEST_DATA_WIDTH = 8;
@@ -46,99 +44,89 @@ static constexpr char TEST_MANUFACTURER[] = "TestManufacturer";
 static constexpr char TEST_MODEL[] = "TestModelNumber";
 static constexpr char TEST_PART[] = "TestPartNumber";
 
-class GetMemoryInfo : public compute::GetMemoryInfo {
+class MyGetMemoryInfo {
 private:
     std::string m_memory{};
 public:
-    GetMemoryInfo(
+    MyGetMemoryInfo(
         const std::string& memory) {
         m_memory = memory;
     }
 
-    using compute::GetMemoryInfo::execute;
     using Memory =  agent_framework::model::Memory;
 
-    void execute(const Request& request, Response& response) {
-        const auto& memory_uuid = request.get_memory();
+    void execute(const GetMemoryInfo::Request& request,
+                 GetMemoryInfo::Response& response) {
+        const auto& memory_uuid = request.get_uuid();
 
         if (memory_uuid != m_memory) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
         Memory memory{};
-        memory.set_socket(TEST_SOCKET);
-        memory.set_type(TEST_TYPE);
-        memory.set_size_gb(TEST_SIZE);
-        memory.set_speed_mhz(TEST_SPEED);
+        memory.set_memory_type(TEST_MEMORY_TYPE);
+        memory.set_device_type(TEST_DEVICE_TYPE);
+        memory.set_capacity_mb(TEST_SIZE);
+        memory.set_operating_speed_mhz(TEST_SPEED);
         memory.set_voltage_volt(TEST_VOLTAGE);
         memory.set_data_width_bits(TEST_DATA_WIDTH);
-        memory.set_total_width_bits(TEST_TOTAL_WIDTH);
-        memory.set_form_factor(TEST_FORM_FACTOR);
+        memory.set_bus_width_bits(TEST_TOTAL_WIDTH);
+        memory.set_device_locator(TEST_DEVICE_LOCATOR);
         memory.set_fru_info(agent_framework::model::attribute::FruInfo(
           TEST_SERIAL, TEST_MANUFACTURER, TEST_MODEL, TEST_PART));
-        memory.set_oem(agent_framework::model::attribute::OEMData());
 
-        response.set_memory(std::move(memory));
+        response = std::move(memory);
     }
 
-    virtual ~GetMemoryInfo();
+    virtual ~MyGetMemoryInfo();
 };
 
-GetMemoryInfo::~GetMemoryInfo() { }
+MyGetMemoryInfo::~MyGetMemoryInfo() { }
 
-class GetMemoryInfoTest : public ::testing::Test {
-public:
-    virtual ~GetMemoryInfoTest();
-};
-
-GetMemoryInfoTest::~GetMemoryInfoTest() { }
-
-TEST_F(GetMemoryInfoTest, PositiveExecute) {
-    compute::json::GetMemoryInfo command_json;
-    GetMemoryInfo* command = new GetMemoryInfo("TestMemoryId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetMemoryInfoTest, PositiveExecute) {
+    MyGetMemoryInfo command{"TestMemoryId"};
+    GetMemoryInfo::Request request{""};
+    GetMemoryInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Memory::MEMORY] = "TestMemoryId";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetMemoryInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
-    ASSERT_TRUE(result[literals::Memory::SOCKET].isString());
-    ASSERT_TRUE(result[literals::Memory::TYPE].isString());
-    ASSERT_TRUE(result[literals::Memory::SIZE].isUInt());
-    ASSERT_TRUE(result[literals::Memory::SPEED].isUInt());
+    ASSERT_TRUE(result[literals::Memory::MEMORY_TYPE].isString());
+    ASSERT_TRUE(result[literals::Memory::DEVICE_TYPE].isString());
+    ASSERT_TRUE(result[literals::Memory::CAPACITY_MB].isUInt());
+    ASSERT_TRUE(result[literals::Memory::OPERATING_SPEED_MHZ].isUInt());
     ASSERT_TRUE(result[literals::Memory::VOLTAGE].isNumeric());
-    ASSERT_TRUE(result[literals::Memory::DATA_WIDTH].isUInt());
-    ASSERT_TRUE(result[literals::Memory::TOTAL_WIDTH].isUInt());
-    ASSERT_TRUE(result[literals::Memory::FORM_FACTOR].isString());
+    ASSERT_TRUE(result[literals::Memory::DATA_WIDTH_BITS].isUInt());
+    ASSERT_TRUE(result[literals::Memory::BUS_WIDTH_BITS].isUInt());
+    ASSERT_TRUE(result[literals::Memory::DEVICE_LOCATOR].isString());
     ASSERT_TRUE(result[FruInfo::FRU_INFO].isObject());
     ASSERT_TRUE(result[Status::STATUS].isObject());
-    ASSERT_TRUE(result[OEMData::OEM].isObject());
-    ASSERT_EQ(result[literals::Memory::SOCKET].asString(), TEST_SOCKET);
-    ASSERT_EQ(result[literals::Memory::TYPE].asString(), TEST_TYPE);
-    ASSERT_EQ(result[literals::Memory::SIZE].asUInt(), TEST_SIZE);
-    ASSERT_EQ(result[literals::Memory::SPEED].asUInt(), TEST_SPEED);
+    ASSERT_EQ(result[literals::Memory::MEMORY_TYPE].asString(), TEST_MEMORY_TYPE.to_string());
+    ASSERT_EQ(result[literals::Memory::DEVICE_TYPE].asString(), TEST_DEVICE_TYPE.to_string());
+    ASSERT_EQ(result[literals::Memory::CAPACITY_MB].asUInt(), TEST_SIZE);
+    ASSERT_EQ(result[literals::Memory::OPERATING_SPEED_MHZ].asUInt(), TEST_SPEED);
     ASSERT_EQ(result[literals::Memory::VOLTAGE].asDouble(), TEST_VOLTAGE);
-    ASSERT_EQ(result[literals::Memory::DATA_WIDTH].asUInt(), TEST_DATA_WIDTH);
-    ASSERT_EQ(result[literals::Memory::TOTAL_WIDTH].asUInt(), TEST_TOTAL_WIDTH);
-    ASSERT_EQ(result[literals::Memory::FORM_FACTOR].asString(), TEST_FORM_FACTOR.to_string());
+    ASSERT_EQ(result[literals::Memory::DATA_WIDTH_BITS].asUInt(), TEST_DATA_WIDTH);
+    ASSERT_EQ(result[literals::Memory::BUS_WIDTH_BITS].asUInt(), TEST_TOTAL_WIDTH);
+    ASSERT_EQ(result[literals::Memory::DEVICE_LOCATOR].asString(), TEST_DEVICE_LOCATOR);
 }
 
-TEST_F(GetMemoryInfoTest, NegativeModuleNotFound) {
-    compute::json::GetMemoryInfo command_json;
-    GetMemoryInfo* command = new GetMemoryInfo("TestMemoryId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetMemoryInfoTest, NegativeModuleNotFound) {
+    MyGetMemoryInfo command{"TestMemoryId"};
+    GetMemoryInfo::Request request{""};
+    GetMemoryInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Memory::MEMORY] = "OtherTestMemoryId";
 
-    EXPECT_THROW(command_json.method(params, result), exception::NotFound);
+    EXPECT_NO_THROW(request = GetMemoryInfo::Request::from_json(params));
+    EXPECT_THROW(command.execute(request, response), std::runtime_error);
 }
 

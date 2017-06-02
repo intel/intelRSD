@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,15 +23,20 @@
  * @brief IPMI Get Chassis Boot Options Command.
  * */
 
-#ifndef IPMI_COMMAND_GENERIC_GET_SYSTEM_BOOT_OPTIONS_HPP
-#define	IPMI_COMMAND_GENERIC_GET_SYSTEM_BOOT_OPTIONS_HPP
+#pragma once
+
+
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
+#include "enums.hpp"
+#include "boot_options.hpp"
 
 #include <cstdint>
 #include <vector>
 #include <map>
+
+
 
 namespace ipmi {
 namespace command {
@@ -39,11 +44,10 @@ namespace generic {
 
 namespace request {
 
-using std::vector;
 /*!
  * @brief Request message for IPMI Get Chassis Boot Options Command.
  */
-class GetSystemBootOptions: public Request {
+class GetSystemBootOptions : public Request {
 public:
 
     /*!
@@ -51,65 +55,66 @@ public:
      */
     GetSystemBootOptions();
 
+
     /*! Copy constructor. */
     GetSystemBootOptions(const GetSystemBootOptions&) = default;
 
+
     /*! Assignment operator */
     GetSystemBootOptions& operator=(const GetSystemBootOptions&) = default;
+
 
     /*!
      * @brief Default destructor.
      */
     virtual ~GetSystemBootOptions();
 
-    virtual void pack(vector<uint8_t>& data) const;
+
+    virtual void pack(std::vector<std::uint8_t>& data) const;
+
 
 private:
-    static constexpr uint8_t REQ_PARAM_SEL = 0x05;
-    static constexpr uint8_t REQ_SET_SEL = 0x00;
-    static constexpr uint8_t REQ_BLOCK_SEL = 0x00;
+    static constexpr std::uint8_t REQ_PARAM_SEL = 0x05;
+    static constexpr std::uint8_t REQ_SET_SEL = 0x00;
+    static constexpr std::uint8_t REQ_BLOCK_SEL = 0x00;
 };
 }
 
 namespace response {
 
-using std::map;
-using std::vector;
-using std::string;
-
 /*!
- * @brief Response message for IPMI Get Chassis Boot Options Command. Response
- * includes information about current boot order overrides: mode (is it one-time
- * override or is it continuous) and target device. Keep in mind that in any case,
- * overrides are only temporary and last approximately 30s. After that time this
- * method always returns Disabled/None. This is a proper behaviour of the BMC.
+ * @brief Response message for IPMI Get Chassis Boot Options Command.
+ *
+ * Response includes information about current boot order overrides:
+ * mode (is it one-time override or is it continuous) and target device.
+ * Keep in mind that in any case, overrides are only temporary and last approximately 30s.
+ * After that time this method always returns Disabled/None. This is a proper behaviour of the BMC.
  * In case of One-time overrides, after 30s, overrides are removed. In case of
- * continuous overrides, the boot order is altered thus no overrides are in fact
- * present.
- */
-class GetSystemBootOptions: public Response {
+ * continuous overrides, the boot order is altered thus no overrides are in fact present.
+ * */
+class GetSystemBootOptions : public Response {
 public:
-
-    enum class BootOverrideTarget: uint8_t { None, Hdd, Pxe, Other };
-    enum class BootOverride: uint8_t { Disabled, Once, Continuous };
-
     /*!
      * @brief Default constructor.
      */
     GetSystemBootOptions();
 
+
     /*! Copy constructor. */
     GetSystemBootOptions(const GetSystemBootOptions&) = default;
 
+
     /*! Assignment operator */
     GetSystemBootOptions& operator=(const GetSystemBootOptions&) = default;
+
 
     /*!
      * @brief Default destructor.
      */
     virtual ~GetSystemBootOptions();
 
-    /**
+
+    /*!
      * Returns current boot override setting
      * @return Boot override setting (Once/Continuous/Disabled)
      */
@@ -117,7 +122,8 @@ public:
         return m_boot_override;
     }
 
-    /**
+
+    /*!
      * Returns current boot override target
      * @return Boot override target (Hdd/Pxe/None/Unknown)
      */
@@ -125,24 +131,28 @@ public:
         return m_boot_override_target;
     }
 
-    virtual void unpack(const vector<uint8_t>& data);
+
+    /*!
+     * Returns current boot mode
+     * @return Boot mode (Hdd/Pxe/None/Unknown)
+     */
+    BootMode get_boot_mode() const {
+        return m_boot_mode;
+    }
+
+
+    virtual void unpack(const std::vector<std::uint8_t>& data);
+
 
 private:
 
     BootOverride m_boot_override{BootOverride::Disabled};
     BootOverrideTarget m_boot_override_target{BootOverrideTarget::None};
+    BootMode m_boot_mode{BootMode::Legacy};
 
-    static constexpr uint8_t MASK_VALID = 0x80;
-    static constexpr uint8_t MASK_PERSISTENT = 0x40;
-
-    static constexpr uint8_t MASK_DEVICE = 0x3C;
-    static constexpr uint8_t DEVICE_NONE = 0x00;
-    static constexpr uint8_t DEVICE_PXE = 0x04;
-    static constexpr uint8_t DEVICE_HDD = 0x08;
-
-    static constexpr size_t RESPONSE_SIZE = 8;
-    static constexpr size_t OFFSET_PERSISTENT = 3;
-    static constexpr size_t OFFSET_DEVICE = 4;
+    static constexpr std::size_t RESPONSE_SIZE = 8;
+    static constexpr std::size_t OFFSET_PERSISTENT = 3;
+    static constexpr std::size_t OFFSET_DEVICE = 4;
 
 };
 }
@@ -150,4 +160,3 @@ private:
 }
 }
 }
-#endif	/* IPMI_COMMAND_GENERIC_GET_SYSTEM_BOOT_OPTIONS_HPP */

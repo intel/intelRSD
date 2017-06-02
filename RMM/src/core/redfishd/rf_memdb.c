@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,13 +80,20 @@ static int32 gen_node_msg_id_map(p_rf_node_msg_id_map evt_types)
 	struct node_info *action_node_info;
 
 	/*Get redfish event nid*/
-	rf_node = libdb_list_node_by_type(DB_RMM, MC_REDFISH_EVENT, MC_REDFISH_EVENT, &nodenum, NULL, LOCK_ID_NULL);
-	if (nodenum == 0)
+	rf_node = libdb_list_node_by_type(DB_RMM, MC_REDFISH_EVENT,
+					  MC_REDFISH_EVENT, &nodenum, NULL,
+					  LOCK_ID_NULL);
+	if (NULL == rf_node) {
 		return 0;
+	}
 
-	evt_source_nodeinfo = libdb_list_subnode(DB_RMM, rf_node[0].node_id, &evt_source_num, NULL, LOCK_ID_NULL);
-	if (evt_source_num == 0)
+	evt_source_nodeinfo = libdb_list_subnode(DB_RMM, rf_node[0].node_id,
+						 &evt_source_num, NULL,
+						 LOCK_ID_NULL);
+	if (evt_source_num == 0) {
+		libdb_free_node(rf_node);
 		return 0;
+	}
 
 	/*traverse all of event sources*/
 	for (i = 0; i < evt_source_num; i++) {
@@ -94,6 +101,8 @@ static int32 gen_node_msg_id_map(p_rf_node_msg_id_map evt_types)
 		libdb_attr_get_string(DB_RMM, evt_source_nodeinfo[i].node_id, MSG_ID_KEY, evt_types[index].msg_id_str, MSG_ID_STR_LEN, LOCK_ID_NULL);
 		index += 1;
 	}
+
+	libdb_free_node(rf_node);
 
 	/*The index is total of event types count.*/
 	return index;
@@ -190,6 +199,9 @@ static void get_listeners_by_nid(memdb_integer nid, struct dest_info **listeners
 				(*listeners)->pnext = tmp;
 				(*listeners) = tmp;
 				(*listeners)->pnext = NULL;
+			}
+			else {
+				free(tmp);
 			}
 		}
 	}

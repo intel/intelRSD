@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,10 +21,8 @@
  * @brief tgt target lun configuration
 */
 
-#ifndef ISCSI_TGT_TARGET_LUN_CONFIG_HPP
-#define	ISCSI_TGT_TARGET_LUN_CONFIG_HPP
-
-#include "agent-framework/module/target.hpp"
+#pragma once
+#include "agent-framework/module/model/attributes/target_lun.hpp"
 #include <cstdint>
 #include <string>
 
@@ -34,14 +32,13 @@ namespace iscsi {
 namespace tgt {
 namespace config {
 
-using namespace agent_framework::generic;
-
 /*! Represents TGT target lun configuration */
 class TgtTargetLunConfig {
 public:
 
     /*! Default constructor*/
-    TgtTargetLunConfig(const Target::Lun& lun) : m_lun(lun) {
+    TgtTargetLunConfig(const agent_framework::model::attribute::TargetLun& lun)
+        : m_lun(lun) {
     }
 
     /*! Disable copy constructor*/
@@ -55,13 +52,12 @@ public:
 
     /*!
      * @brief Returns target configuration string
-     *
      * @return target configuration string
      */
     const std::string to_string() const;
 
 private:
-    Target::Lun m_lun;
+    const agent_framework::model::attribute::TargetLun& m_lun;
 };
 
 }
@@ -70,5 +66,4 @@ private:
 }
 }
 
-#endif	/* ISCSI_TGT_TARGET_LUN_CONFIG_HPP */
 

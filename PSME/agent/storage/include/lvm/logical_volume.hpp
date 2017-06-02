@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief Logical volume model interface
  * */
 
-#ifndef PSME_AGENT_STORAGE_LVM_LOGICAL_VOLUME_HPP
-#define PSME_AGENT_STORAGE_LVM_LOGICAL_VOLUME_HPP
-
+#pragma once
 #include <string>
 
 namespace agent {
@@ -193,4 +191,3 @@ private:
 }
 }
 }
-#endif	/* PSME_AGENT_STORAGE_LVM_LOGICAL_VOLUME_HPP */

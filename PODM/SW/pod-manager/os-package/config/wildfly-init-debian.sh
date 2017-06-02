@@ -1,20 +1,21 @@
 #!/bin/sh
-#
-# /etc/init.d/wildfly -- startup script for WildFly
-#
-# Written by Jorge Solorzano
-#
 ### BEGIN INIT INFO
-# Provides:             wildfly
+# Provides:             pod-manager
 # Required-Start:       $remote_fs $network
 # Required-Stop:        $remote_fs $network
 # Should-Start:         $named
 # Should-Stop:          $named
 # Default-Start:        2 3 4 5
 # Default-Stop:         0 1 6
-# Short-Description:    WildFly Application Server
-# Description:          Provide WildFly startup/shutdown script
+# Short-Description:    POD Manager Software
+# Description:          Provide POD Manager Software Server  startup/shutdown script
 ### END INIT INFO
+#
+# /etc/init.d/pod-manager -- startup script for WildFly
+#
+# Original filename: .../wildfly/bin/init.d/wildfly-init-debian.sh
+# Originally written by Jorge Solorzano
+#
 
 NAME=wildfly
 DESC="WildFly Application Server"
@@ -162,6 +163,13 @@ case "$1" in
 	check_status
 	status_start=$?
 	if [ $status_start -eq 3 ]; then
+
+		if [ -f /var/lib/pod-manager/clear-db-on-next-startup ]; then
+	        	log_action_msg "Recreating database."
+			pod-manager-clean-database-immediately
+			rm /var/lib/pod-manager/clear-db-on-next-startup
+		fi
+
 		mkdir -p $(dirname "$JBOSS_PIDFILE")
 		mkdir -p $(dirname "$JBOSS_CONSOLE_LOG")
 		chown $JBOSS_USER $(dirname "$JBOSS_PIDFILE") || true

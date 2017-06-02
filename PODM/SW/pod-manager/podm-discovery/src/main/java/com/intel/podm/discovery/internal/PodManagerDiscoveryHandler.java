@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package com.intel.podm.discovery.internal;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.Manager;
-import com.intel.podm.business.entities.redfish.properties.Console;
-import com.intel.podm.business.entities.redfish.properties.GraphicalConsole;
+import com.intel.podm.business.entities.redfish.embeddables.CommandShell;
+import com.intel.podm.business.entities.redfish.embeddables.GraphicalConsole;
+import com.intel.podm.business.entities.redfish.embeddables.SerialConsole;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
@@ -32,13 +33,15 @@ import javax.inject.Inject;
 import java.util.Collection;
 
 import static com.intel.podm.common.types.Health.OK;
+import static com.intel.podm.common.types.Id.id;
 import static com.intel.podm.common.types.ManagerType.MANAGEMENT_CONTROLLER;
+import static com.intel.podm.common.types.PowerState.ON;
 import static com.intel.podm.common.types.State.ENABLED;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static com.intel.podm.common.utils.IterableHelper.single;
 
 @ApplicationScoped
 public class PodManagerDiscoveryHandler {
-
     @Inject
     GenericDao genericDao;
 
@@ -53,13 +56,13 @@ public class PodManagerDiscoveryHandler {
     Holder<ServiceConfig> config;
 
     public Manager getManagerForPod(Chassis podChassis) {
-        if (podChassis == null) {
-            throw new IllegalArgumentException("Cannot create Manager for a null Pod");
-        }
+        requiresNonNull(podChassis, "podChassis");
 
         Collection<Manager> podManagers = podChassis.getManagers();
         if (!podManagers.isEmpty()) {
-            return single(podManagers);
+            Manager manager = single(podManagers);
+            updateManagerForPod(manager);
+            return manager;
         } else {
             Manager manager = createManagerForPod(podChassis);
             podChassis.addManager(manager);
@@ -72,29 +75,40 @@ public class PodManagerDiscoveryHandler {
 
         manager.setFirmwareVersion(versionLoader.loadAppVersion());
 
+        manager.setId(id("pod-manager"));
         manager.setStatus(new Status(ENABLED, OK, OK));
-        manager.setName("POD Manager");
-
+        manager.setName("Pod Manager");
         manager.setGraphicalConsole(createDisabledGraphicalConsole());
-        manager.setSerialConsole(createDisabledConsole());
-        manager.setCommandShell(createDisabledConsole());
+        manager.setSerialConsole(createDisabledSerialConsole());
+        manager.setCommandShell(createDisabledCommandShell());
         manager.setManagerType(MANAGEMENT_CONTROLLER);
-        manager.setManagerInChassis(podChassis);
+        manager.setInChassisManager(podChassis);
         manager.setServiceEntryPointUuid(config.get().getUuid());
+        manager.setPowerState(ON);
         podManagerNetworkDiscoveryHandler.initializeNetworking(manager);
 
         return manager;
     }
 
-    private Console createDisabledConsole() {
-        Console console = genericDao.create(Console.class);
-        console.setServiceEnabled(false);
-        return console;
+    private void updateManagerForPod(Manager manager) {
+        manager.setFirmwareVersion(versionLoader.loadAppVersion());
     }
 
     private GraphicalConsole createDisabledGraphicalConsole() {
-        GraphicalConsole console = genericDao.create(GraphicalConsole.class);
-        console.setServiceEnabled(false);
-        return console;
+        GraphicalConsole graphicalConsole = new GraphicalConsole();
+        graphicalConsole.setServiceEnabled(false);
+        return graphicalConsole;
+    }
+
+    private SerialConsole createDisabledSerialConsole() {
+        SerialConsole serialConsole = new SerialConsole();
+        serialConsole.setServiceEnabled(false);
+        return serialConsole;
+    }
+
+    private CommandShell createDisabledCommandShell() {
+        CommandShell commandShell = new CommandShell();
+        commandShell.setServiceEnabled(false);
+        return commandShell;
     }
 }

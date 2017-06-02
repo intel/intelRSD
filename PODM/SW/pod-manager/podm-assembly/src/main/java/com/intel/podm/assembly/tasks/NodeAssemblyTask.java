@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,16 @@
 package com.intel.podm.assembly.tasks;
 
 
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
 import com.intel.podm.common.enterprise.utils.tasks.DefaultManagedTask;
 import com.intel.podm.common.types.Id;
 
+import java.util.UUID;
+
 import static java.lang.String.format;
 import static java.util.Optional.of;
+import static org.apache.commons.lang.StringUtils.substringBefore;
 
 
 public abstract class NodeAssemblyTask extends DefaultManagedTask implements Runnable {
@@ -39,5 +42,12 @@ public abstract class NodeAssemblyTask extends DefaultManagedTask implements Run
     protected ComputerSystem getComputerSystemFromNode(ComposedNode node) {
         return of(node.getComputerSystem()).orElseThrow(() ->
                 new RuntimeException(format("Unknown Computer system for Node: %s", node.getId())));
+    }
+
+    public abstract UUID getServiceUuid();
+
+    @Override
+    public String toString() {
+        return format("%s(%s)", substringBefore(getClass().getSimpleName(), "$"), nodeId);
     }
 }

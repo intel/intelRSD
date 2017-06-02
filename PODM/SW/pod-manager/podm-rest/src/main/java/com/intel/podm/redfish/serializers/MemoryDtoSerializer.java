@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,22 @@ package com.intel.podm.redfish.serializers;
 import com.intel.podm.business.dto.redfish.MemoryDto;
 import com.intel.podm.business.dto.redfish.attributes.MemoryLocationDto;
 import com.intel.podm.business.dto.redfish.attributes.MemoryRegionDto;
-import com.intel.podm.redfish.json.templates.BaseJson;
 import com.intel.podm.redfish.json.templates.MemoryJson;
 import com.intel.podm.redfish.json.templates.attributes.MemoryLocationJson;
 import com.intel.podm.redfish.json.templates.attributes.MemoryRegionJson;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
 import java.util.Collection;
 import java.util.List;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
-public class MemoryDtoSerializer extends DtoJsonSerializer<MemoryDto> {
-
+@SuppressWarnings({"checkstyle:MethodLength", "checkstyle:ExecutableStatementCount"})
+public class MemoryDtoSerializer extends BaseDtoJsonSerializer<MemoryDto> {
     private static final String OEM_ODATA_TYPE = "#Intel.Oem.Memory";
 
     protected MemoryDtoSerializer() {
@@ -42,11 +42,10 @@ public class MemoryDtoSerializer extends DtoJsonSerializer<MemoryDto> {
     }
 
     @Override
-    protected BaseJson translate(MemoryDto dto) {
-
+    protected MemoryJson translate(MemoryDto dto) {
         MemoryJson memoryJson = new MemoryJson();
 
-        ODataId oDataId = ODataId.oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         memoryJson.oDataId = oDataId;
         memoryJson.oDataContext = getContextFromId(oDataId);
         memoryJson.id = dto.getId();
@@ -70,26 +69,23 @@ public class MemoryDtoSerializer extends DtoJsonSerializer<MemoryDto> {
         memoryJson.errorCorrection = dto.getErrorCorrection();
         memoryJson.status = dto.getStatus();
         memoryJson.operatingSpeedMhz = dto.getOperatingSpeedMhz();
-        memoryJson.memoryLocation = translateMemoryLocation(dto.getMemoryLocation());
 
+        processMemoryJson(memoryJson.memoryLocation, dto.getMemoryLocation());
         processCollections(memoryJson, dto);
         processOem(memoryJson, dto);
 
         return memoryJson;
     }
 
-    private MemoryLocationJson translateMemoryLocation(MemoryLocationDto memoryLocationDto) {
+    private void processMemoryJson(MemoryLocationJson json, MemoryLocationDto memoryLocationDto) {
         if (memoryLocationDto == null) {
-            return null;
+            return;
         }
 
-        MemoryLocationJson memoryLocationJson = new MemoryLocationJson();
-        memoryLocationJson.socket = memoryLocationDto.getLocationSocket();
-        memoryLocationJson.memoryController = memoryLocationDto.getLocationMemoryController();
-        memoryLocationJson.channel = memoryLocationDto.getLocationChannel();
-        memoryLocationJson.slot = memoryLocationDto.getLocationSlot();
-
-        return memoryLocationJson;
+        json.socket = memoryLocationDto.getLocationSocket();
+        json.memoryController = memoryLocationDto.getLocationMemoryController();
+        json.channel = memoryLocationDto.getLocationChannel();
+        json.slot = memoryLocationDto.getLocationSlot();
     }
 
     private void processCollections(MemoryJson memoryJson, MemoryDto dto) {
@@ -106,8 +102,8 @@ public class MemoryDtoSerializer extends DtoJsonSerializer<MemoryDto> {
         }
 
         return regions.stream()
-                .map(reg -> new MemoryRegionJson(reg.getRegionId(), reg.getMemoryClassification(), reg.getOffsetMib(), reg.getSizeMib()))
-                .collect(toList());
+            .map(reg -> new MemoryRegionJson(reg.getRegionId(), reg.getMemoryClassification(), reg.getOffsetMib(), reg.getSizeMib()))
+            .collect(toList());
     }
 
     private void processOem(MemoryJson memoryJson, MemoryDto dto) {

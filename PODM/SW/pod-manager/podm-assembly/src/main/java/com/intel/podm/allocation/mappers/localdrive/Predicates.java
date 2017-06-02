@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@
 
 package com.intel.podm.allocation.mappers.localdrive;
 
-import com.intel.podm.business.entities.redfish.Device;
+import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.business.entities.redfish.SimpleStorageDevice;
 import com.intel.podm.business.entities.redfish.base.LocalStorage;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.DriveType;
-import com.intel.podm.common.types.StorageControllerInterface;
+import com.intel.podm.common.types.MediaType;
+import com.intel.podm.common.types.Protocol;
 
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.util.Objects.isNull;
@@ -33,14 +35,18 @@ class Predicates {
     }
 
     public static Predicate<? super LocalStorage> byExactId(Context context) {
-        return isNull(context) ? alwaysMatches() : localStorage -> {
-            //TODO: better way to distinguish?
-            if (localStorage instanceof Device) {
-                return Objects.equals(localStorage.getId(), context.getId());
-            }
+        return isNull(context)
+            ?
+            localStorage -> !localStorage.needsToBeExplicitlySelected()
+            :
+            localStorage -> {
+                //TODO: better way to distinguish?
+                if (localStorage instanceof SimpleStorageDevice) {
+                    return Objects.equals(localStorage.getParent().getId(), context.getId());
+                }
 
-            return Objects.equals(localStorage.getParent().getId(), context.getId());
-        };
+                return Objects.equals(localStorage.getId(), context.getId());
+            };
     }
 
     public static Predicate<? super LocalStorage> byAtLeastCapacityGib(BigDecimal capacityGib) {
@@ -50,14 +56,23 @@ class Predicates {
         };
     }
 
-    public static Predicate<? super LocalStorage> byExactType(DriveType type) {
+    public static Predicate<? super LocalStorage> byExactType(MediaType type) {
         return isNull(type) ? alwaysMatches() : localStorage -> Objects.equals(localStorage.getType(), type);
     }
 
-    public static Predicate<? super LocalStorage> byAtLeastMinRpm(Integer minRpm) {
+    public static Predicate<? super LocalStorage> byChassisContext(Context chassisContext) {
+        return isNull(chassisContext)
+            ? alwaysMatches()
+            : localStorage -> {
+                Optional<Chassis> chassis = localStorage.getChassis();
+                return Objects.equals(chassisContext.getId(), chassis.map(Chassis::getId).orElse(null));
+            };
+    }
+
+    public static Predicate<? super LocalStorage> byAtLeastMinRpm(BigDecimal minRpm) {
         return isNull(minRpm) ? alwaysMatches() : localStorage -> {
-            Integer availableRpm = localStorage.getRpm();
-            return !isNull(availableRpm) && availableRpm >= minRpm;
+            BigDecimal availableRpm = localStorage.getRpm();
+            return !isNull(availableRpm) && availableRpm.compareTo(minRpm) >= 0;
         };
     }
 
@@ -65,8 +80,14 @@ class Predicates {
         return isNull(serialNumber) ? alwaysMatches() : localStorage -> Objects.equals(serialNumber, localStorage.getSerialNumber());
     }
 
-    public static Predicate<? super LocalStorage> byExactInterface(StorageControllerInterface storageControllerInterface) {
-        return isNull(storageControllerInterface) ? alwaysMatches() : localStorage -> Objects.equals(localStorage.getInterface(), storageControllerInterface);
+    public static Predicate<? super LocalStorage> byExactInterface(Protocol protocol) {
+        return isNull(protocol) ? alwaysMatches()
+            : localStorage -> Objects.equals(localStorage.getProtocol(), protocol);
+    }
+
+    public static Predicate<? super LocalStorage> isFromFabricSwitch(Boolean isFromFabricSwitch) {
+        return isNull(isFromFabricSwitch) ? alwaysMatches()
+            : localStorage -> Objects.equals(localStorage.fromFabricSwitch(), isFromFabricSwitch);
     }
 
     private static Predicate<? super LocalStorage> alwaysMatches() {

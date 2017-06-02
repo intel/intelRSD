@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,5 +40,5 @@ bool MinValidator::is_valid(const json::Value& value) const {
 }
 
 std::string MinValidator::get_error() const {
-    return "is less than " + std::to_string(m_min_value) + ".";
+    return "Field value is less than " + std::to_string(m_min_value) + ".";
 }

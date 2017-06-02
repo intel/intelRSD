@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,53 +25,7 @@ endif()
 
 function(install_google_test_framework)
     include(ConfigurationPackage OPTIONAL)
-
-    set(GTEST_SOURCE_PACKAGE
-        "https://github.com/google/googletest/archive/release-1.7.0.zip"
-    )
-
-    set(source_package ${GTEST_SOURCE_PACKAGE})
-    get_filename_component(source_package_fname ${source_package} NAME)
-    set(source_package_name "googletest-${source_package_fname}")
-    string(REGEX REPLACE ".zip" "" source_file ${source_package_name})
-
-    set(source_dir ${CMAKE_BINARY_DIR}/${source_file})
-    set(binary_dir ${source_dir}/build)
-    if (NOT EXISTS ${source_dir})
-        set(download_dir ${CMAKE_CURRENT_LIST_DIR}/../third_party)
-        if (NOT EXISTS ${download_dir}/${source_package_name})
-            file(DOWNLOAD
-                ${source_package}
-                ${download_dir}/${source_package_name}
-                SHOW_PROGRESS
-                STATUS download_result
-            )
-            if (NOT EXISTS ${download_dir}/${source_package_name})
-                message(FATAL_ERROR "Cannot create source package ${source_package_name}")
-            endif()
-            list(GET download_result 0 result)
-            if (NOT ${result} EQUAL 0)
-                file(REMOVE ${download_dir}/${source_package_name})
-                list(GET download_result 1 result)
-                message(FATAL_ERROR "Cannot download package, error ${result}")
-            endif()
-        endif()
-
-        execute_process(
-            COMMAND unzip ${download_dir}/${source_package_name}
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            ERROR_VARIABLE errors
-            RESULT_VARIABLE result
-        )
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Errors occure when extracting source bundle: ${result} ${errors}")
-        endif()
-        if (NOT EXISTS ${source_dir})
-            message(FATAL_ERROR "${source_dir} does not exist")
-        endif()
-        file(MAKE_DIRECTORY ${binary_dir})
-    endif()
-
+    assure_package(gtest 1.7.0 "https://github.com/google/googletest/archive/release-1.7.0.zip" "ef5e700c8a0f3ee123e2e0209b8b4961")
 
     set(ARGS)
     list(APPEND ARGS -DCMAKE_PREFIX_PATH:PATH=${CMAKE_BINARY_DIR})
@@ -113,7 +67,7 @@ function(install_google_test_framework)
     endif()
 
     execute_process(
-        COMMAND ${CMAKE_COMMAND} -E create_symlink googletest-release-1.7.0 gtest
+        COMMAND ${CMAKE_COMMAND} -E create_symlink ${source_name} gtest
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
     file(INSTALL ${binary_dir}/libgtest.a

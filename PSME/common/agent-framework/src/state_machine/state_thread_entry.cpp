@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ void StateThreadEntry::next_state() {
     auto sw_status = m_manager->get_sw_status();
 
     if (enums::State::ENABLED == m_state_machine.get_state() ||
-        enums::State::STANDBY_OFFLINE == m_state_machine.get_state() ||
+        enums::State::UNAVAILABLE_OFFLINE == m_state_machine.get_state() ||
         enums::State::UNKNOWN == m_state_machine.get_state() ) {
         m_starting_counter = STARTING_INTERVALS_MAX_NUMBER;
     }
@@ -58,13 +58,13 @@ void StateThreadEntry::next_state() {
         status::ModuleStatus::Status::NOT_PRESENT == sw_status &&
             STARTING_INTERVALS_MAX_NUMBER > m_starting_counter) {
         m_starting_counter++;
-        log_debug(GET_LOGGER("agent"), "Module:" << m_module
+        log_debug(GET_LOGGER("agent"), "Module: " << m_module
                          << " HW status: " << std::uint32_t(status::ModuleStatus::Status::DETERMINING)
                          << " SW status: " << std::uint32_t(sw_status));
         m_state_machine.set_next_state(status::ModuleStatus::Status::DETERMINING, sw_status);
     }
     else {
-        log_debug(GET_LOGGER("agent"), "Module:" << m_module
+        log_debug(GET_LOGGER("agent"), "Module: " << m_module
                          << " HW status: " << std::uint32_t(hw_status)
                          << " SW status: " << std::uint32_t(sw_status));
         m_state_machine.set_next_state(hw_status, sw_status);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,14 @@ package com.intel.podm.rest.representation.json.providers;
 
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.intel.podm.common.types.EnumeratedType;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.NeighborInfo;
+import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
-import com.intel.podm.common.types.deserialization.EnumeratedTypeDeserializer;
+import com.intel.podm.common.types.deserialization.BooleanDeserializer;
 import com.intel.podm.common.types.deserialization.MacAddressDeserializer;
+import com.intel.podm.common.types.deserialization.RefDeserializer;
+import com.intel.podm.common.types.deserialization.StrictEnumeratedTypeDeserializer;
 import com.intel.podm.common.types.net.MacAddress;
 import com.intel.podm.common.types.serialization.EnumeratedTypeSerializer;
 import com.intel.podm.common.types.serialization.IdSerializer;
@@ -36,8 +38,9 @@ import com.intel.podm.rest.representation.json.serializers.ContextAwareSerialize
 import javax.enterprise.inject.Instance;
 import java.time.OffsetDateTime;
 
-public class NorthboundObjectMapperModuleProvider {
+import static com.intel.podm.common.types.EnumeratedType.SUB_TYPES;
 
+public class NorthboundObjectMapperModuleProvider {
     public SimpleModule getSerializerModule(JsonProvider.SerializerContext context, Instance<ContextAwareSerializer> serializers) {
         SimpleModule module = new SimpleModule();
 
@@ -46,9 +49,12 @@ public class NorthboundObjectMapperModuleProvider {
             module.addSerializer((JsonSerializer<?>) serializer);
         }
 
-        for (Class subType : EnumeratedType.SUB_TYPES) {
+        for (Class subType : SUB_TYPES) {
             module.addSerializer(subType, new EnumeratedTypeSerializer<>());
         }
+
+        module.addDeserializer(Ref.class, new RefDeserializer());
+        module.addDeserializer(Boolean.class, BooleanDeserializer.INSTANCE);
 
         module.addSerializer(OffsetDateTime.class, OffsetDateTimeSerializer.INSTANCE);
         module.addSerializer(Id.class, IdSerializer.INSTANCE);
@@ -62,8 +68,8 @@ public class NorthboundObjectMapperModuleProvider {
     public SimpleModule getDeserializerModule() {
         SimpleModule module = new SimpleModule();
 
-        for (Class subType : EnumeratedType.SUB_TYPES) {
-            module.addDeserializer(subType, new EnumeratedTypeDeserializer<>(subType));
+        for (Class subType : SUB_TYPES) {
+            module.addDeserializer(subType, new StrictEnumeratedTypeDeserializer<>(subType));
         }
 
         module.addDeserializer(MacAddress.class, new MacAddressDeserializer());

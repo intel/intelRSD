@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +53,9 @@ TEST_F(SchemaPropertyTest, PositiveValidValue) {
     json::Value json_val(VALID_TEST_VALUE);
     std::shared_ptr<configuration::MaxValidator> validator(new configuration::MaxValidator(MAX_VALID_VALUE));
     schema_property->add_validator(validator);
-    ASSERT_EQ(schema_property->validate(json_val).count(), 0);
+    configuration::SchemaErrors errors{};
+    schema_property->validate(json_val, errors);
+    ASSERT_EQ(errors.count(), 0);
 }
 
 /* Negative. */
@@ -63,7 +65,9 @@ TEST_F(SchemaPropertyTest, NegativeSchemaErrors) {
     json::Value json_val(INVALID_TEST_VALUE);
     std::shared_ptr<configuration::MaxValidator> validator(new configuration::MaxValidator(MAX_VALID_VALUE));
     schema_property->add_validator(validator);
-    ASSERT_NE(schema_property->validate(json_val).count(), 0);
+    configuration::SchemaErrors errors{};
+    schema_property->validate(json_val, errors);
+    ASSERT_NE(errors.count(), 0);
 }
 
 

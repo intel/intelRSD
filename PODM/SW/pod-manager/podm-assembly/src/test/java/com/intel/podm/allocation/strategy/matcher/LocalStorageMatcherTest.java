@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,37 @@
 
 package com.intel.podm.allocation.strategy.matcher;
 
-import com.intel.podm.business.dto.redfish.RequestedLocalDrive;
-import com.intel.podm.business.dto.redfish.RequestedNode;
-import com.intel.podm.business.entities.redfish.Adapter;
-import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.Device;
+import com.intel.podm.allocation.mappers.localdrive.LocalStorageAllocationMapper;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.templates.requestednode.RequestedNodeWithLocalDrives;
-import org.testng.annotations.BeforeClass;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import static com.intel.podm.business.services.context.Context.contextOf;
-import static com.intel.podm.business.services.context.ContextType.DEVICE;
-import static com.intel.podm.common.types.DriveType.HDD;
-import static com.intel.podm.common.types.DriveType.SSD;
+import static com.intel.podm.business.services.context.ContextType.DRIVE;
 import static com.intel.podm.common.types.Id.id;
-import static com.intel.podm.common.types.StorageControllerInterface.PCIE;
-import static com.intel.podm.common.types.StorageControllerInterface.SAS;
+import static com.intel.podm.common.types.MediaType.HDD;
+import static com.intel.podm.common.types.MediaType.SSD;
+import static com.intel.podm.common.types.Protocol.NVME;
+import static com.intel.podm.common.types.Protocol.SAS;
 import static com.intel.podm.templates.assets.LocalDrivesCreation.createAvailableLocalDrive;
 import static com.intel.podm.templates.assets.LocalDrivesCreation.createRequestedDrive;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName", "checkstyle:MethodCount"})
 public class LocalStorageMatcherTest {
-    private LocalStorageMatcher matcher;
+    @InjectMocks
+    private LocalStorageAllocationMapper localStorageAllocationMapper;
 
-    @BeforeClass
-    public void setup() {
-        this.matcher = new LocalStorageMatcher();
+    @BeforeMethod
+    public void initMocks() {
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
@@ -93,15 +92,15 @@ public class LocalStorageMatcherTest {
     @Test
     public void whenExactInterfaceIsSatisfied_shouldMatch() {
         shouldMatch(
-                createRequestedDrive(null, null, PCIE, null, null, null),
-                createAvailableLocalDrive(null, null, PCIE, null, null, null)
+                createRequestedDrive(null, null, NVME, null, null, null),
+                createAvailableLocalDrive(null, null, NVME, null, null, null)
         );
     }
 
     @Test
     public void whenExactInterfaceIsNotSatisfied_shouldNotMatch() {
         shouldNotMatch(
-                createRequestedDrive(null, null, PCIE, null, null, null),
+                createRequestedDrive(null, null, NVME, null, null, null),
                 createAvailableLocalDrive(null, null, SAS, null, null, null)
         );
     }
@@ -109,7 +108,7 @@ public class LocalStorageMatcherTest {
     @Test
     public void whenAvailableRpmIsNull_shouldNotMatch() {
         shouldNotMatch(
-                createRequestedDrive(null, null, null, 500, null, null),
+                createRequestedDrive(null, null, null, new BigDecimal(500), null, null),
                 createAvailableLocalDrive(null, null, null, null, null, null)
         );
     }
@@ -117,16 +116,16 @@ public class LocalStorageMatcherTest {
     @Test
     public void whenAtLeastMinRpmIsNotSatisfied_shouldMatch() {
         shouldMatch(
-                createRequestedDrive(null, null, null, 500, null, null),
-                createAvailableLocalDrive(null, null, null, 501, null, null)
+                createRequestedDrive(null, null, null, new BigDecimal(500), null, null),
+                createAvailableLocalDrive(null, null, null, new BigDecimal(501), null, null)
         );
     }
 
     @Test
     public void whenAtLeastMinRpmIsSatisfied_shouldNotMatch() {
         shouldNotMatch(
-                createRequestedDrive(null, null, null, 501, null, null),
-                createAvailableLocalDrive(null, null, null, 500, null, null)
+                createRequestedDrive(null, null, null, new BigDecimal(501), null, null),
+                createAvailableLocalDrive(null, null, null, new BigDecimal(500), null, null)
         );
     }
 
@@ -149,7 +148,7 @@ public class LocalStorageMatcherTest {
     @Test
     public void whenExactIdIsSatisfied_shouldMatch() {
         shouldMatch(
-                createRequestedDrive(null, null, null, null, null, contextOf(id(1), DEVICE)),
+                createRequestedDrive(null, null, null, null, null, contextOf(id(1), DRIVE)),
                 createAvailableLocalDrive(null, null, null, null, null, id(1))
         );
     }
@@ -157,30 +156,28 @@ public class LocalStorageMatcherTest {
     @Test
     public void whenExactIdIsNotSatisfied_shouldNotMatch() {
         shouldNotMatch(
-                createRequestedDrive(null, null, null, null, null, contextOf(id(2), DEVICE)),
+                createRequestedDrive(null, null, null, null, null, contextOf(id(2), DRIVE)),
                 createAvailableLocalDrive(null, null, null, null, null, id(1))
         );
     }
 
-    private void shouldMatch(RequestedLocalDrive requestedLocalDrive, Device availableLocalDrive) {
-        RequestedNode requestedNode = new RequestedNodeWithLocalDrives(singletonList(requestedLocalDrive));
-        ComputerSystem computerSystemWithDrives = createComputerSystemWithDrives(singletonList(availableLocalDrive));
-        assertEquals(matcher.matches(requestedNode, computerSystemWithDrives), true);
+    private LocalStorageMatcher createLocalStorageMatcher() {
+        LocalStorageMatcher localStorageMatcher = new LocalStorageMatcher();
+        localStorageMatcher.mapper = localStorageAllocationMapper;
+        return localStorageMatcher;
     }
 
-    private void shouldNotMatch(RequestedLocalDrive requestedLocalDrive, Device availableLocalDrive) {
+    private void shouldMatch(RequestedNode.LocalDrive requestedLocalDrive, LocalDrive availableLocalDrive) {
+        LocalStorageMatcher localStorageMatcher = createLocalStorageMatcher();
+
         RequestedNode requestedNode = new RequestedNodeWithLocalDrives(singletonList(requestedLocalDrive));
-        ComputerSystem computerSystemWithDrives = createComputerSystemWithDrives(singletonList(availableLocalDrive));
-        assertEquals(matcher.matches(requestedNode, computerSystemWithDrives), false);
+        assertEquals(localStorageMatcher.matches(requestedNode, singleton(availableLocalDrive)), true);
     }
 
-    private static ComputerSystem createComputerSystemWithDrives(List<Device> drives) {
-        ComputerSystem computerSystemMock = mock(ComputerSystem.class);
-        Adapter adapterMock = mock(Adapter.class);
+    private void shouldNotMatch(RequestedNode.LocalDrive requestedLocalDrive, LocalDrive availableLocalDrive) {
+        LocalStorageMatcher localStorageMatcher = createLocalStorageMatcher();
 
-        when(adapterMock.getDevices()).thenReturn(drives);
-        when(computerSystemMock.getAdapters()).thenReturn(singletonList(adapterMock));
-
-        return computerSystemMock;
+        RequestedNode requestedNode = new RequestedNodeWithLocalDrives(singletonList(requestedLocalDrive));
+        assertEquals(localStorageMatcher.matches(requestedNode, singleton(availableLocalDrive)), false);
     }
 }

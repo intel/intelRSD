@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,15 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.api.resources.redfish.IscsiAddressObject;
+import com.intel.podm.client.api.resources.redfish.ChapObject;
 import com.intel.podm.client.api.resources.redfish.TargetLunObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class IscsiAddressObjectImpl implements IscsiAddressObject {
-
     @JsonProperty("TargetLUN")
     List<TargetLunObjectImpl> targetLuns = new ArrayList<>();
 
@@ -38,6 +36,9 @@ public class IscsiAddressObjectImpl implements IscsiAddressObject {
 
     @JsonProperty("TargetPortalPort")
     private Integer targetPortalPort;
+
+    @JsonProperty("CHAP")
+    private ChapObjectImpl chap;
 
     @Override
     public List<TargetLunObject> getTargetLuns() {
@@ -57,5 +58,10 @@ public class IscsiAddressObjectImpl implements IscsiAddressObject {
     @Override
     public Integer getTargetPortalPort() {
         return targetPortalPort;
+    }
+
+    @Override
+    public ChapObject getChap() {
+        return chap;
     }
 }

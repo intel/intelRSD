@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.events;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
@@ -29,13 +28,10 @@ import java.util.Set;
 
 import static java.util.Collections.emptySet;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @OdataTypes({
-        "#EventService.1.0.0.EventService",
-        "#EventService.v1_0_0.EventService"
+    "#EventService" + OdataTypes.VERSION_PATTERN + "EventService"
 })
 public class EventServiceResourceImpl extends ExternalServiceResourceImpl implements EventServiceResource {
-
     @JsonProperty("EventTypesForSubscription")
     private Set<String> eventTypesForSubscription;
 

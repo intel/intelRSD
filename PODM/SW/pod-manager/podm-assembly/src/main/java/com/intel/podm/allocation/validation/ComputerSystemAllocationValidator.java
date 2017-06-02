@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package com.intel.podm.allocation.validation;
 
-import com.intel.podm.allocation.RequestValidationException;
-import com.intel.podm.business.dto.redfish.RequestedNode;
+import com.intel.podm.allocation.AllocationRequestProcessingException;
+import com.intel.podm.business.Violations;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -53,7 +54,7 @@ public class ComputerSystemAllocationValidator {
         Set<ComputerSystem> computerSystems = emptySet();
         try {
             computerSystems = computerSystemCollector.collectDistinctComputerSystemsFromResourceContexts(requestedNode);
-        } catch (RequestValidationException e) {
+        } catch (AllocationRequestProcessingException e) {
             violations.addAll(e.getViolations());
         }
 
@@ -63,7 +64,7 @@ public class ComputerSystemAllocationValidator {
 
         try {
             computerSystemCollector.collectCommonComputerSystemsFromChassisContexts(requestedNode);
-        } catch (RequestValidationException e) {
+        } catch (AllocationRequestProcessingException e) {
             violations.addAll(e.getViolations());
         }
 

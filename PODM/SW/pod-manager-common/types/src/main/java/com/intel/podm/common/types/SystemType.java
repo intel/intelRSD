@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ public enum SystemType implements EnumeratedType {
     PHYSICALLY_PARTITIONED("PhysicallyPartitioned"),
     VIRTUALLY_PARTITIONED("VirtuallyPartitioned");
 
-    private String value;
+    private final String value;
 
     SystemType(String value) {
         this.value = value;

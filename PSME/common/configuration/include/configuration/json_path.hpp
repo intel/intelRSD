@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,7 @@
  * @brief JsonPath interface
  * */
 
-#ifndef CONFIGURATION_JSON_PATH_HPP
-#define CONFIGURATION_JSON_PATH_HPP
-
+#pragma once
 #include <deque>
 #include <string>
 
@@ -62,4 +60,3 @@ private:
 };
 
 }
-#endif /* CONFIGURATION_JSON_PATH_HPP */

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,7 @@
  * */
 
 
-#ifndef AGENT_FRAMEWORK_THREADING_THREAD_QUEUE_HPP
-#define AGENT_FRAMEWORK_THREADING_THREAD_QUEUE_HPP
-
+#pragma once
 #include <list>
 #include <mutex>
 #include <condition_variable>
@@ -132,4 +130,3 @@ private:
 }
 }
 
-#endif /* AGENT_FRAMEWORK_THREADING_THREAD_QUEUE_HPP */

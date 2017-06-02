@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,49 +31,31 @@
 
 using namespace configuration;
 
-SchemaErrors::Error::Error(const std::string& property,
-                           const error_list_t& errors_list) :
-            m_property{property},
-            m_messages{errors_list} {}
-
-void SchemaErrors::Error::add_error_message(const std::string& error_message) {
-    m_messages.push_back(error_message);
-}
-
-std::size_t SchemaErrors::Error::count() const {
-    return m_messages.size();
-}
-
-void SchemaErrors::Error::set_value(const std::string& value) {
-    m_value = value;
-}
-
-const std::string& SchemaErrors::Error::get_value() const {
-    return m_value;
-}
-
-void SchemaErrors::Error::set_path(const std::string& path) {
-    m_path = path;
-}
-
-const std::string& SchemaErrors::Error::get_path() const {
-    return m_path;
-}
+SchemaErrors::Error::Error(const std::string& message, const std::string& path) :
+            m_message{message}, m_paths{path} { }
 
 std::string SchemaErrors::Error::to_string() const {
-    std::stringstream str{};
-    for (const auto& error : m_messages) {
-        str << " * " << error << std::endl;
+    std::stringstream stream{};
+    stream << m_message << " Properties list:" << std::endl;
+    for (const auto& path : m_paths) {
+        stream << " * " << path << std::endl;
     }
-    return str.str();
-}
-
-const std::vector<std::string>& SchemaErrors::Error::get_messages() const {
-    return m_messages;
+    return stream.str();
 }
 
 void SchemaErrors::add_error(const Error& error) {
-    m_errors.push_back(error);
+    bool error_exists{false};
+    for (auto& e : m_errors) {
+        if (e.get_message() == error.get_message()) {
+            error_exists = true;
+            e.add_paths(error.get_paths());
+            break;
+        }
+    }
+
+    if (!error_exists) {
+        m_errors.push_back(error);
+    }
 }
 
 std::size_t SchemaErrors::count() const {

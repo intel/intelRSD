@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,6 @@ dependencies {
         }
     }
 
-    zipBinary("com.orientechnologies:orientdb-community:$orientDbVer") {
-        artifact {
-            name = 'orientdb-community'
-            classifier = 'distribution'
-            type = 'zip'
-        }
-    }
-
     logback('ch.qos.logback:logback-classic:1.1.1') {
         artifact {
             name = 'logback-classic'
@@ -52,6 +44,8 @@ dependencies {
             type = 'jar'
         }
     }
+
+    runtime POSTGRESQL_JDBC
 }
 
 
@@ -74,7 +68,6 @@ task extractDependencies << {
     def buildDirStr = buildDir.toString()
 
     assert file(buildDirStr + "/wildfly-$wildflyVer").exists()
-    assert file(buildDirStr + "/orientdb-community-$orientDbVer").exists()
 
     copy {
         from "os-package/config/logback.xml"
@@ -107,6 +100,8 @@ task extractDependencies << {
     def discoveryDir = new File(buildDirStr + "/wildfly-$wildflyVer/discovery")
     discoveryDir.mkdir()
 
+    def postgresqlJdbcDir = new File(modulesDir + "/org/postgresql/main/")
+    postgresqlJdbcDir.mkdir()
 
     copy {
         from {
@@ -128,34 +123,19 @@ task extractDependencies << {
     }
 
     copy {
-        from "os-package/config/orientdb-server-config.xml"
-        into buildDirStr + "/orientdb-community-$orientDbVer/config"
-    }
+        from {
+            configurations.runtime.find {
+                it.name.contains("postgresql-$postgresqlJdbcVer")
+            }
+        }
+        from "os-package/modules/system/layers/base/org/postgresql/main/module.xml"
 
-    copy {
-        from "os-package/config/server.sh"
-        into buildDirStr + "/orientdb-community-$orientDbVer/bin"
-    }
-
-    // Delete all example databases provided by OrientDB
-    delete buildDirStr + "/orientdb-community-$orientDbVer/databases"
-
-    copy {
-        from "os-package/databases/"
-        into buildDirStr + "/orientdb-community-$orientDbVer/databases"
-    }
-
-    copy {
-        from project(":orientdb-rar").buildDir.toString() + "/libs/orient-rar-$orientRarVer" + ".rar"
-        into buildDirStr + "/wildfly-$wildflyVer" + "/standalone/deployments"
+        into postgresqlJdbcDir.getCanonicalPath()
     }
 }
 
-extractDependencies.dependsOn ":orientdb-rar:rar"
-
 buildDeb.dependsOn extractDependencies
 buildDeb.dependsOn ":vault-decrypter:jar"
-buildDeb.dependsOn ":podm-db-schema-creation:jar"
 
 buildDeb {
     user = 'podm'
@@ -164,6 +144,7 @@ buildDeb {
     os = LINUX
 
     requires 'openjdk-8-jre-headless'
+    requires('postgresql-9.5', '9.5.2', GREATER | EQUAL)
 
     breaks 'pod-manager-webapp'
     breaks 'pod-manager-servers'
@@ -177,19 +158,14 @@ buildDeb {
         into '/opt/pod-manager/wildfly'
     }
 
-    from(project.buildDir.toString() + "/orientdb-community-$orientDbVer") {
+    from(project.getParent().projectDir.toString() + "/licences") {
         createDirectoryEntry = true
-        into '/opt/pod-manager/orientdb'
+        into '/usr/share/doc/pod-manager/third-party-licences'
     }
 
     from project(":vault-decrypter").jar.outputs.files.getFiles().each{ file ->
         into '/usr/lib/pod-manager/'
         rename("vault-(.*).jar", "vault-decrypter.jar")
-    }
-
-    from project(":podm-db-schema-creation").jar.outputs.files.getFiles().each{ file ->
-        into '/usr/lib/pod-manager/'
-        rename("podm-db-schema-creation-(.*).jar", "db-schema-creation.jar")
     }
 
     from(project(':podm-rest').tasks.war) {
@@ -207,7 +183,8 @@ buildDeb {
                         "/etc/pod-manager/allocation.json\n" +
                         "/etc/pod-manager/service-connection.json\n"
 
-    preInstall file('os-package/scripts/deb/preinstall.sh')
-    postInstall file('os-package/scripts/deb/postinstall.sh')
-    preUninstall file('os-package/scripts/deb/preuninstall.sh')
+    preInstall file('os-package/scripts/deb/preinst.sh')
+    postInstall file('os-package/scripts/deb/postinst.sh')
+    preUninstall file('os-package/scripts/deb/prerm.sh')
+    postUninstall file('os-package/scripts/deb/postrm.sh')
 }

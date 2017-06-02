@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,7 @@
  * @brief SetIdField IPMI command.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_COMMAND_SET_ID_FIELD_HPP
-#define AGENT_CHASSIS_IPMB_COMMAND_SET_ID_FIELD_HPP
-
+#pragma once
 #include <ipmb/command/command.hpp>
 
 #include <vector>
@@ -41,15 +39,15 @@ namespace ipmb {
 /*! Command namesapce */
 namespace command {
 
-/*! SetIDField command */
-class SetIDField final : public Command {
+/*! SetIdField command */
+class SetIdField final : public Command {
 public:
     /*! Default constructor */
-    SetIDField(){}
+    SetIdField(){}
     /*! Copy constructor */
-    SetIDField(const SetIDField&) = default;
-    /*! Assigment construcor */
-    SetIDField& operator=(const SetIDField&) = default;
+    SetIdField(const SetIdField&) = default;
+    /*! Assignment constructor */
+    SetIdField& operator=(const SetIdField&) = default;
 
     /*!
      * Unpacks IPMI Message
@@ -65,25 +63,21 @@ public:
 
 private:
     static const constexpr uint8_t CMD_MIN_REQUEST_DATA_LENGTH = 4;
-    static const constexpr uint8_t CMD_MAX_REQUEST_LENGTH = 7;
-    static const constexpr uint8_t CMD_MAX_FIELD_SIZE = 4;
-    static const constexpr uint8_t CMD_RESPONSE_DATA_LENGTH = 2;
-
+    static const constexpr uint8_t CMD_MAX_STRING_FIELD_SIZE = 128;
+    static const constexpr uint8_t CMD_MAX_NUMERIC_FIELD_SIZE = sizeof(std::uint32_t);
     static const constexpr uint8_t CMD_TYPE_DEFAULT = 0x00;
-
-    static const constexpr uint8_t OFFSET_CC = 0;
-    static const constexpr uint8_t OFFSET_MAX_FIELD_SIZE = 1;
 
     void set_tray_ruid(const uint32_t ruid);
     void set_rack_puid(const uint32_t puid);
-    uint32_t decode_id_field(uint8_t* data, uint8_t len);
+    void set_location_id(const std::string& location_id);
+    uint32_t decode_id_field(const uint8_t* data, uint8_t len);
     void populate(IpmiMessage& msg);
 
     class Request final : public Command::Request {
         uint8_t m_type{};
         uint8_t m_instance{};
         uint8_t m_field_size{};
-        uint32_t m_id_field{};
+        std::vector<uint8_t> m_field{};
     public:
         /*!
          * Set field type
@@ -134,20 +128,19 @@ private:
 
         /*!
          * Set ID field
-         * @param id ID field
+         * @param field ID field
          * */
-        void set_id_field(const uint32_t id) {
-            m_id_field = id;
+        void set_field(std::vector<uint8_t>&& field) {
+            m_field = std::move(field);
         }
 
         /*!
          * Get id field
          * @return Returns id field
          * */
-        uint32_t get_id_field() {
-            return m_id_field;
+        const std::vector<uint8_t>& get_field() const {
+            return m_field;
         }
-
     };
 
     class Response final : public Command::Response {
@@ -185,4 +178,3 @@ private:
 }
 }
 
-#endif /* AGENT_CHASSIS_IPMB_COMMAND_SET_ID_FIELD_HPP */

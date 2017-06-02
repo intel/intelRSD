@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,12 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/set_component_attributes.hpp"
-#include "agent-framework/command/storage/json/set_component_attributes.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "json/json.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 
 class TestComponentAttributes {
 public:
@@ -104,26 +102,25 @@ private:
 
 TestComponentAttributes::~TestComponentAttributes() { }
 
-class SetComponentAttributes : public storage::SetComponentAttributes {
+class MySetComponentAttributes {
 private:
     std::string m_component{};
     TestComponentAttributes* m_component_attributes;
 public:
-    SetComponentAttributes(
+    MySetComponentAttributes(
         const std::string& component,
         TestComponentAttributes* component_attributes) {
         m_component = component;
         m_component_attributes = component_attributes;
         }
 
-    using storage::SetComponentAttributes::execute;
-
-    void execute(const Request& request, Response&) {
+    void execute(const SetComponentAttributes::Request& request,
+                 SetComponentAttributes::Response&) {
         auto component = request.get_component();
         auto attributes = request.get_attributes();
 
         if (component != m_component) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
         for (const auto& json_value : attributes) {
@@ -141,48 +138,24 @@ public:
                 m_component_attributes->set_array_boolean_value(json_value.get_array_boolean_value());
         }
     }
-
-    virtual ~SetComponentAttributes();
 };
 
-SetComponentAttributes::~SetComponentAttributes() { }
+static constexpr char COMPONENT[] = "component";
+static constexpr char ATTRIBUTES[] = "attributes";
+static constexpr char BOOLEAN[] = "boolean";
+static constexpr char STRING[] = "string";
+static constexpr char NUMBER[] = "number";
+static constexpr char ARRAY_BOOLEAN[] = "arrayBoolean";
+static constexpr char ARRAY_STRING[] = "arrayString";
+static constexpr char ARRAY_NUMBER[] = "arrayNumber";
+static constexpr char NAME[] = "name";
+static constexpr char VALUE[] = "value";
 
-class SetComponentAttributesTest : public ::testing::Test {
-protected:
-    static constexpr char COMPONENT[] = "component";
-    static constexpr char ATTRIBUTES[] = "attributes";
-    static constexpr char BOOLEAN[] = "boolean";
-    static constexpr char STRING[] = "string";
-    static constexpr char NUMBER[] = "number";
-    static constexpr char ARRAY_BOOLEAN[] = "arrayBoolean";
-    static constexpr char ARRAY_STRING[] = "arrayString";
-    static constexpr char ARRAY_NUMBER[] = "arrayNumber";
-    static constexpr char NAME[] = "name";
-    static constexpr char VALUE[] = "value";
-
-    virtual ~SetComponentAttributesTest();
-};
-
-constexpr char SetComponentAttributesTest::COMPONENT[];
-constexpr char SetComponentAttributesTest::ATTRIBUTES[];
-constexpr char SetComponentAttributesTest::BOOLEAN[];
-constexpr char SetComponentAttributesTest::STRING[];
-constexpr char SetComponentAttributesTest::NUMBER[];
-constexpr char SetComponentAttributesTest::ARRAY_BOOLEAN[];
-constexpr char SetComponentAttributesTest::ARRAY_STRING[];
-constexpr char SetComponentAttributesTest::ARRAY_NUMBER[];
-constexpr char SetComponentAttributesTest::NAME[];
-constexpr char SetComponentAttributesTest::VALUE[];
-
-SetComponentAttributesTest::~SetComponentAttributesTest() { }
-
-TEST_F(SetComponentAttributesTest, PositiveExecuteBooleanValue) {
-    storage::json::SetComponentAttributes command_json;
+TEST(SetComponentAttributesTest, PositiveExecuteBooleanValue) {
     TestComponentAttributes test_component_attributes;
-    SetComponentAttributes* command = new SetComponentAttributes("TestModule", &test_component_attributes);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MySetComponentAttributes command{"TestModule", &test_component_attributes};
+    SetComponentAttributes::Request request{""};
+    SetComponentAttributes::Response response{};
     Json::Value params;
     Json::Value result;
     Json::Value attributes;
@@ -196,18 +169,19 @@ TEST_F(SetComponentAttributesTest, PositiveExecuteBooleanValue) {
     params[COMPONENT] = "TestModule";
     params[ATTRIBUTES] = attributes;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = SetComponentAttributes::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_EQ(test_component_attributes.get_boolean_value(), true);
 }
 
-TEST_F(SetComponentAttributesTest, PositiveExecuteStringValue) {
-    storage::json::SetComponentAttributes command_json;
+TEST(SetComponentAttributesTest, PositiveExecuteStringValue) {
     TestComponentAttributes test_component_attributes;
-    SetComponentAttributes* command = new SetComponentAttributes("TestModule", &test_component_attributes);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
+    MySetComponentAttributes command{"TestModule", &test_component_attributes};
+    SetComponentAttributes::Request request{""};
+    SetComponentAttributes::Response response{};
 
     Json::Value params;
     Json::Value result;
@@ -222,18 +196,19 @@ TEST_F(SetComponentAttributesTest, PositiveExecuteStringValue) {
     params[COMPONENT] = "TestModule";
     params[ATTRIBUTES] = attributes;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = SetComponentAttributes::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_EQ(test_component_attributes.get_string_value(), "TestString");
 }
 
-TEST_F(SetComponentAttributesTest, PositiveExecuteNumberValue) {
-    storage::json::SetComponentAttributes command_json;
+TEST(SetComponentAttributesTest, PositiveExecuteNumberValue) {
     TestComponentAttributes test_component_attributes;
-    SetComponentAttributes* command = new SetComponentAttributes("TestModule", &test_component_attributes);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
+    MySetComponentAttributes command{"TestModule", &test_component_attributes};
+    SetComponentAttributes::Request request{""};
+    SetComponentAttributes::Response response{};
 
     Json::Value params;
     Json::Value result;
@@ -248,18 +223,19 @@ TEST_F(SetComponentAttributesTest, PositiveExecuteNumberValue) {
     params[COMPONENT] = "TestModule";
     params[ATTRIBUTES] = attributes;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = SetComponentAttributes::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_EQ(test_component_attributes.get_number_value(), 1.0);
 }
 
-TEST_F(SetComponentAttributesTest, PositiveExecuteArrayString) {
-    storage::json::SetComponentAttributes command_json;
+TEST(SetComponentAttributesTest, PositiveExecuteArrayString) {
     TestComponentAttributes test_component_attributes;
-    SetComponentAttributes* command = new SetComponentAttributes("TestModule", &test_component_attributes);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
+    MySetComponentAttributes command{"TestModule", &test_component_attributes};
+    SetComponentAttributes::Request request{""};
+    SetComponentAttributes::Response response{};
 
     Json::Value params;
     Json::Value result;
@@ -277,7 +253,9 @@ TEST_F(SetComponentAttributesTest, PositiveExecuteArrayString) {
     params[COMPONENT] = "TestModule";
     params[ATTRIBUTES] = attributes;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = SetComponentAttributes::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_EQ(test_component_attributes.get_array_string_value().size(), 2);
@@ -285,12 +263,11 @@ TEST_F(SetComponentAttributesTest, PositiveExecuteArrayString) {
     ASSERT_EQ(test_component_attributes.get_array_string_value()[1], "SecondTestString");
 }
 
-TEST_F(SetComponentAttributesTest, PositiveExecuteArrayNumber) {
-    storage::json::SetComponentAttributes command_json;
+TEST(SetComponentAttributesTest, PositiveExecuteArrayNumber) {
     TestComponentAttributes test_component_attributes;
-    SetComponentAttributes* command = new SetComponentAttributes("TestModule", &test_component_attributes);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
+    MySetComponentAttributes command{"TestModule", &test_component_attributes};
+    SetComponentAttributes::Request request{""};
+    SetComponentAttributes::Response response{};
 
     Json::Value params;
     Json::Value result;
@@ -308,7 +285,9 @@ TEST_F(SetComponentAttributesTest, PositiveExecuteArrayNumber) {
     params[COMPONENT] = "TestModule";
     params[ATTRIBUTES] = attributes;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = SetComponentAttributes::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_EQ(test_component_attributes.get_array_number_value().size(), 2);
@@ -316,12 +295,11 @@ TEST_F(SetComponentAttributesTest, PositiveExecuteArrayNumber) {
     ASSERT_EQ(test_component_attributes.get_array_number_value()[1], 1.0);
 }
 
-TEST_F(SetComponentAttributesTest, PositiveExecuteArrayBoolean) {
-    storage::json::SetComponentAttributes command_json;
+TEST(SetComponentAttributesTest, PositiveExecuteArrayBoolean) {
     TestComponentAttributes test_component_attributes;
-    SetComponentAttributes* command = new SetComponentAttributes("TestModule", &test_component_attributes);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
+    MySetComponentAttributes command{"TestModule", &test_component_attributes};
+    SetComponentAttributes::Request request{""};
+    SetComponentAttributes::Response response{};
 
     Json::Value params;
     Json::Value result;
@@ -339,7 +317,9 @@ TEST_F(SetComponentAttributesTest, PositiveExecuteArrayBoolean) {
     params[COMPONENT] = "TestModule";
     params[ATTRIBUTES] = attributes;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = SetComponentAttributes::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_EQ(test_component_attributes.get_array_boolean_value().size(), 2);
@@ -347,13 +327,11 @@ TEST_F(SetComponentAttributesTest, PositiveExecuteArrayBoolean) {
     ASSERT_EQ(test_component_attributes.get_array_boolean_value()[1], false);
 }
 
-TEST_F(SetComponentAttributesTest, NegativeNotFound) {
-    storage::json::SetComponentAttributes command_json;
+TEST(SetComponentAttributesTest, NegativeNotFound) {
     TestComponentAttributes test_component_attributes;
-    SetComponentAttributes* command = new SetComponentAttributes("TestModule", &test_component_attributes);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MySetComponentAttributes command{"TestModule", &test_component_attributes};
+    SetComponentAttributes::Request request{""};
+    SetComponentAttributes::Response response{};
     Json::Value params;
     Json::Value result;
     Json::Value attributes;
@@ -361,5 +339,6 @@ TEST_F(SetComponentAttributesTest, NegativeNotFound) {
     params[COMPONENT] = "OtherTestModule";
     params[ATTRIBUTES] = attributes;
 
-    EXPECT_THROW(command_json.method(params, result), jsonrpc::JsonRpcException);
+    EXPECT_NO_THROW(request = SetComponentAttributes::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

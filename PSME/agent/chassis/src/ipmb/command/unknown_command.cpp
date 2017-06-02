@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,7 @@ void UnknownCommand::unpack(IpmiMessage& msg){
 
 void UnknownCommand::pack(IpmiMessage& msg){
 
-    log_debug(LOGUSR, "Packing unknown message.")
+    log_debug(LOGUSR, "Packing unknown message.");
 
     m_response.set_cc(CompletionCode::CC_INVALID_CMD);
 

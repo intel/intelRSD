@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,22 @@
 
 package com.intel.podm.assembly;
 
-import com.intel.podm.actions.EthernetSwitchPortVlanActionsInvoker.VlanCreationRequest;
-import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
+import com.intel.podm.common.types.actions.VlanCreationRequest;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.AllocationConfig;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 
 @Dependent
@@ -40,23 +40,25 @@ public class VlanSelector {
     @Config
     private Holder<AllocationConfig> allocationConfigHolder;
 
-    public List<VlanCreationRequest> vlansToCreate(Collection<EthernetSwitchPortVlan> switchPortVlans, List<RequestedEthernetInterface.Vlan> requestedVlans) {
-        List<RequestedEthernetInterface.Vlan> vlans = newArrayList(requestedVlans);
+    public List<VlanCreationRequest> vlansToCreate(Collection<EthernetSwitchPortVlan> switchPortVlans,
+                                                   List<RequestedNode.EthernetInterface.Vlan> requestedVlans) {
+        List<RequestedNode.EthernetInterface.Vlan> vlans = new ArrayList<>(requestedVlans);
         vlans.removeIf(vlan -> switchPortVlans.stream().anyMatch(sameVlanPredicate(vlan)));
 
         return vlans.stream()
-                .map(vlan -> new VlanCreationRequest(vlan.getVlanId(), vlan.isTagged()))
+                .map(vlan -> new VlanCreationRequest(vlan.getVlanId(), vlan.isTagged(), vlan.isEnabled()))
                 .collect(toList());
     }
 
-    private Predicate<EthernetSwitchPortVlan> sameVlanPredicate(RequestedEthernetInterface.Vlan vlan) {
+    private Predicate<EthernetSwitchPortVlan> sameVlanPredicate(RequestedNode.EthernetInterface.Vlan vlan) {
         return v -> Objects.equals(v.getVlanId(), vlan.getVlanId()) && Objects.equals(v.getTagged(), vlan.isTagged());
     }
 
-    public List<EthernetSwitchPortVlan> vlansToDelete(EthernetSwitchPort switchPort, List<RequestedEthernetInterface.Vlan> requestedVlans) {
-        List<EthernetSwitchPortVlan> vlansToDelete = newArrayList(switchPort.getVlans());
+    public List<EthernetSwitchPortVlan> vlansToDelete(EthernetSwitchPort switchPort,
+                                                      List<RequestedNode.EthernetInterface.Vlan> requestedVlans) {
+        List<EthernetSwitchPortVlan> vlansToDelete = new ArrayList<>(switchPort.getEthernetSwitchPortVlans());
 
-        List<Integer> reservedVlans = newArrayList(allocationConfigHolder.get().getReservedVlanIds());
+        List<Integer> reservedVlans = (List<Integer>) allocationConfigHolder.get().getReservedVlanIds();
 
         vlansToDelete.removeIf(vlan -> requestedVlans.stream().anyMatch(sameVlanPredicate(vlan)));
         vlansToDelete.removeIf(vlan -> reservedVlans.stream().anyMatch(vlanId -> Objects.equals(vlan.getVlanId(), vlanId)));
@@ -64,7 +66,7 @@ public class VlanSelector {
         return vlansToDelete;
     }
 
-    private Predicate<RequestedEthernetInterface.Vlan> sameVlanPredicate(EthernetSwitchPortVlan vlanRequest) {
+    private Predicate<RequestedNode.EthernetInterface.Vlan> sameVlanPredicate(EthernetSwitchPortVlan vlanRequest) {
         return vlan ->
                 Objects.equals(vlan.isTagged(), vlanRequest.getTagged())
                         && Objects.equals(vlan.getVlanId(), vlanRequest.getVlanId());

@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,23 +16,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
-*/
+ * */
 
 #include "agent-framework/registration/amc_connection_manager.hpp"
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
 #include "agent-framework/state_machine/state_machine_thread.hpp"
-#include "agent-framework/module-ref/compute_manager.hpp"
+#include "agent-framework/module/common_components.hpp"
 
 #include "agent-framework/eventing/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 
-#include "agent-framework/command/command.hpp"
-#include "agent-framework/command/command_factory.hpp"
-#include "agent-framework/command/command_json.hpp"
-#include "agent-framework/command/command_json_server.hpp"
+#include "agent-framework/command-ref/command_server.hpp"
 
 #include "discovery/discovery_manager.hpp"
 #include "status/status_manager.hpp"
@@ -53,9 +46,6 @@
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
 #include <csignal>
-#include <cstdio>
-#include <memory>
-#include <iostream>
 
 using namespace std;
 using namespace agent::compute::status;
@@ -65,10 +55,6 @@ using namespace agent_framework::state_machine;
 using namespace logger_cpp;
 using namespace configuration;
 
-using command::Command;
-using command::CommandFactory;
-using command::CommandJson;
-using command::CommandJsonServer;
 using eventing::EventData;
 using eventing::EventsQueue;
 
@@ -77,12 +63,11 @@ using agent::generic::DEFAULT_VALIDATOR_JSON;
 using agent::generic::DEFAULT_ENV_FILE;
 using agent::generic::DEFAULT_FILE;
 
-using ComputeComponents = agent_framework::module::ComputeManager;
+using agent_framework::module::CommonComponents;
 
 static constexpr unsigned int DEFAULT_SERVER_PORT = 7777;
-static constexpr const char COMMANDS_IMPLEMENTATION[] = "sdv";
 
-void add_state_machine_entries(StateMachineThread* machine_thread);
+void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action);
 const json::Value& init_configuration(int argc, const char** argv);
 bool check_configuration(const json::Value& json);
 
@@ -125,33 +110,18 @@ int main(int argc, const char* argv[]) {
     amc_connection.start();
 
     /* Initialize command server */
-    auto& commands_factory = CommandFactory::get_instance();
-    try {
-        server_port = configuration["server"]["port"].as_uint();
-        auto agent_type = configuration["agent"]["capabilities"].as_array();
-        commands_factory.add_commands(agent_type.front().as_string(), COMMANDS_IMPLEMENTATION);
-    }
-    catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("agent"), "Invalid agent configuration: " << e.what());
-        return -10;
-    }
-    auto commands_initialization =
-        commands_factory.create_initialization();
-    auto commands = commands_factory.create();
-
     jsonrpc::HttpServer http_server((int(server_port)));
-    CommandJsonServer server(http_server);
-
-    server.add(commands);
+    agent_framework::command_ref::CommandServer server(http_server);
+    server.add(command_ref::Registry::get_instance()->get_commands());
     server.start();
 
     try {
         state_action.reset(new StateMachineAction());
 
         /* Start state machine */
-        state_machine_thread_u_ptr.reset(new StateMachineThread(*state_action));
+        state_machine_thread_u_ptr.reset(new StateMachineThread());
 
-        ::add_state_machine_entries(state_machine_thread_u_ptr.get());
+        ::add_state_machine_entries(state_machine_thread_u_ptr.get(), *state_action);
         /* Start RPC Client */
 
         system_power_state_thread_u_ptr.reset(new SystemPowerStateThread());
@@ -176,10 +146,6 @@ int main(int argc, const char* argv[]) {
     server.stop();
     amc_connection.stop();
     event_dispatcher.stop();
-    commands_initialization.clear();
-    command::Command::Map::cleanup();
-    command::CommandJson::Map::cleanup();
-    command::CommandFactory::cleanup();
     Configuration::cleanup();
     LoggerFactory::cleanup();
 
@@ -203,16 +169,16 @@ const json::Value& init_configuration(int argc, const char** argv) {
     return basic_config.to_json();
 }
 
-void add_state_machine_entries(StateMachineThread* machine_thread) {
-    auto keys = ComputeComponents::get_instance()->
-            get_module_manager().get_keys();
+void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action) {
+    auto keys = CommonComponents::get_instance()->get_module_manager().get_keys();
+
     for (const auto& key : keys) {
-        auto entry = ComputeComponents::get_instance()->
-                get_module_manager().get_entry(key);
-        machine_thread->add_entry(std::make_shared<StateThreadEntry>(key,
-                std::make_shared<::agent::compute::status::StatusManager>
-                (entry.get_slot(),
-                entry.get_connection_data().get_ip_address())));
+        auto entry = CommonComponents::get_instance()->get_module_manager().get_entry(key);
+        auto status_manager = std::make_shared<::agent::compute::status::StatusManager>(
+                entry.get_slot(), entry.get_connection_data().get_ip_address(), key);
+        auto state_thread_entry = std::make_shared<StateThreadEntry>(key, status_manager);
+        auto module_thread = std::make_shared<StateMachineModuleThread>(state_thread_entry, action);
+        machine_thread->add_module_thread(module_thread);
     }
 }
 bool check_configuration(const json::Value& json) {

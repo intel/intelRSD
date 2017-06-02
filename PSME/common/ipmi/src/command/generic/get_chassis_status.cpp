@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,16 +33,16 @@ using namespace ipmi;
 using namespace ipmi::command::generic;
 
 request::GetChassisStatus::GetChassisStatus():
-    Request(uint8_t(NetFn::CHASSIS), uint8_t(Cmd::GET_CHASSIS_STATUS)) {}
+    Request(generic::NetFn::CHASSIS, generic::Cmd::GET_CHASSIS_STATUS) {}
 
 request::GetChassisStatus::~GetChassisStatus() {}
 
-void request::GetChassisStatus::pack(vector<uint8_t>& data) const {
+void request::GetChassisStatus::pack(std::vector<std::uint8_t>& data) const {
     (void)data;
 }
 
 response::GetChassisStatus::GetChassisStatus():
-    Response(uint8_t(NetFn::CHASSIS), uint8_t(Cmd::GET_CHASSIS_STATUS), RESPONSE_SIZE) {}
+    Response(generic::NetFn::CHASSIS, generic::Cmd::GET_CHASSIS_STATUS, RESPONSE_SIZE) {}
 
 response::GetChassisStatus::~GetChassisStatus() {}
 
@@ -62,7 +62,7 @@ bool response::GetChassisStatus::is_response_correct(const std::vector<std::uint
     return retval;
 }
 
-void response::GetChassisStatus::unpack(const vector<uint8_t>& data) {
+void response::GetChassisStatus::unpack(const std::vector<std::uint8_t>& data) {
     if(!is_response_correct(data)) {
         return; // Error response, do not unpack values.
     }

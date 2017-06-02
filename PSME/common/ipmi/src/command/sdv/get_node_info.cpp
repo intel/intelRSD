@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,19 +32,15 @@
 using namespace ipmi;
 using namespace ipmi::command::sdv;
 
-request::GetNodeInfo::GetNodeInfo() : Request(uint8_t(NetFn::INTEL), uint8_t(Cmd::GET_NODE_INFO)) {
-}
+request::GetNodeInfo::GetNodeInfo() : Request(sdv::NetFn::INTEL, sdv::Cmd::GET_NODE_INFO) { }
 
-request::GetNodeInfo::~GetNodeInfo() {
-}
+request::GetNodeInfo::~GetNodeInfo() { }
 
-response::GetNodeInfo::GetNodeInfo() : Response(uint8_t(NetFn::INTEL), uint8_t(Cmd::GET_NODE_INFO), RESPONSE_SIZE) {
-}
+response::GetNodeInfo::GetNodeInfo() : Response(sdv::NetFn::INTEL, sdv::Cmd::GET_NODE_INFO, RESPONSE_SIZE) { }
 
-response::GetNodeInfo::~GetNodeInfo() {
-}
+response::GetNodeInfo::~GetNodeInfo() { }
 
-void response::GetNodeInfo::unpack(const vector<uint8_t>& data) {
+void response::GetNodeInfo::unpack(const std::vector<std::uint8_t>& data) {
     if(!is_response_correct(data)) {
         return; // received only completion code, do not unpack.
     }
@@ -57,14 +53,14 @@ void response::GetNodeInfo::unpack(const vector<uint8_t>& data) {
     }
 }
 
-bool response::GetNodeInfo::is_present(size_t node_nr) const {
+bool response::GetNodeInfo::is_present(std::size_t node_nr) const {
     if (node_nr < m_nodes_present.size()) {
-        throw runtime_error("Node number too big: " + to_string(node_nr));
+        throw std::runtime_error("Node number too big: " + std::to_string(node_nr));
     }
     return m_nodes_present[node_nr];
 
 }
 
-size_t response::GetNodeInfo::get_nodes_number() const {
+std::size_t response::GetNodeInfo::get_nodes_number() const {
     return m_nodes_no;
 }

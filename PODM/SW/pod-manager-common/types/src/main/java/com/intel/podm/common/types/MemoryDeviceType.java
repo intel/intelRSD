@@ -23,7 +23,7 @@ public enum MemoryDeviceType implements EnumeratedType {
 
     private final String value;
 
-    MemoryDeviceType(final String value) {
+    MemoryDeviceType(String value) {
         this.value = value;
     }
 

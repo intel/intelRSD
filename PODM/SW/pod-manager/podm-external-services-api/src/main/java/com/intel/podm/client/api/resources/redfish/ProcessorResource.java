@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,31 @@ package com.intel.podm.client.api.resources.redfish;
 
 import com.intel.podm.client.api.reader.ResourceSupplier;
 import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.common.types.InstructionSet;
+import com.intel.podm.common.types.ProcessorArchitecture;
+import com.intel.podm.common.types.ProcessorBrand;
+import com.intel.podm.common.types.ProcessorType;
+import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
 
+import java.util.List;
+
+@SuppressWarnings({"checkstyle:MethodCount"})
 public interface ProcessorResource extends ExternalServiceResource {
-    String getSocket();
-    Integer getMaxSpeedMhz();
-    Status getStatus();
+    Ref<String> getSocket();
+    Ref<ProcessorType> getProcessorType();
+    Ref<ProcessorArchitecture> getProcessorArchitecture();
+    Ref<InstructionSet> getInstructionSet();
+    Ref<String> getManufacturer();
+    Ref<ProcessorBrand> getBrand();
+    Ref<List<String>> getCapabilities();
+    Ref<Integer> getTotalCores();
+    Ref<Integer> getTotalThreads();
+    Ref<String> getModel();
+    ProcessorIdObject getProcessorId();
+
+    Ref<Integer> getMaxSpeedMhz();
+    Ref<Status> getStatus();
 
     ResourceSupplier getComputerSystem();
 }

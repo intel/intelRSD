@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,22 @@
 package com.intel.podm.common.types.redfish;
 
 public interface RedfishResource {
-    String getId();
-    String getName();
-    String getDescription();
+    default String getId() {
+        return null;
+    }
 
-    Links getLinks();
+    default String getName() {
+        return null;
+    }
+
+    default String getDescription() {
+        return null;
+    }
+
+    default Links getLinks() {
+        return null;
+    }
+
     interface Links {
 
     }

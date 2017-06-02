@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,51 +16,45 @@
 
 package com.intel.podm.mappers.redfish;
 
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.Memory;
-import com.intel.podm.business.entities.redfish.properties.Region;
+import com.intel.podm.business.entities.redfish.embeddables.MemoryLocation;
 import com.intel.podm.client.api.resources.redfish.MemoryResource;
-import com.intel.podm.client.api.resources.redfish.MemoryRegionObject;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
+import com.intel.podm.mappers.subresources.RegionMapper;
+import com.intel.podm.mappers.subresources.SimpleTypeMapper;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.util.Collection;
-import java.util.function.Supplier;
-
-import static java.util.Objects.isNull;
 
 @Dependent
-public class MemoryMapper extends DomainObjectMapper<MemoryResource, Memory> {
-
+public class MemoryMapper extends EntityMapper<MemoryResource, Memory> {
     @Inject
-    private GenericDao genericDao;
+    RegionMapper regionMapper;
+    @Inject
+    SimpleTypeMapper simpleTypeMapper;
 
     public MemoryMapper() {
         super(MemoryResource.class, Memory.class);
+        registerProvider(MemoryLocation.class, target -> provideMemoryLocation());
+    }
+
+    private MemoryLocation provideMemoryLocation() {
+        MemoryLocation memoryLocation = target.getMemoryLocation();
+        return memoryLocation == null ? new MemoryLocation() : memoryLocation;
     }
 
     @Override
-    protected void performNotAutomatedMapping(MemoryResource source, Memory target) {
-        clearRegions(target.getRegions());
-        addRegions(source.getRegions(), target::addRegion);
-    }
-
-    private void clearRegions(Collection<Region> regions) {
-        regions.forEach(genericDao::remove);
-    }
-
-    private void addRegions(Iterable<MemoryRegionObject> regions, Supplier<Region> regionSupplier) {
-        if (isNull(regions)) {
-            return;
-        }
-
-        for (MemoryRegionObject region : regions) {
-            Region reg = regionSupplier.get();
-            reg.setRegionId(region.getRegionId());
-            reg.setMemoryClassification(region.getMemoryClassification());
-            reg.setOffsetMib(region.getOffsetMib());
-            reg.setSizeMib(region.getSizeMib());
-        }
+    protected void performNotAutomatedMapping(MemoryResource sourceMemory, Memory targetMemory) {
+        super.performNotAutomatedMapping(source, target);
+        source.getRegions().ifAssigned(regions ->
+            regionMapper.map(regions, targetMemory.getRegions(), targetMemory::addRegion));
+        source.getMemoryMedia().ifAssigned(memoryMedia ->
+            simpleTypeMapper.map(memoryMedia, targetMemory.getMemoryMedia(), targetMemory::addMemoryMedia));
+        source.getAllowedSpeedsMhz().ifAssigned(allowedSpeedsMhz ->
+            simpleTypeMapper.map(allowedSpeedsMhz, targetMemory.getAllowedSpeedsMhz(), targetMemory::addAllowedSpeedMhz));
+        source.getFunctionClasses().ifAssigned(functionClasses ->
+            simpleTypeMapper.map(functionClasses, targetMemory.getFunctionClasses(), targetMemory::addFunctionClass));
+        source.getOperatingMemoryModes().ifAssigned(operatingMemoryModes ->
+            simpleTypeMapper.map(operatingMemoryModes, targetMemory.getOperatingMemoryModes(), targetMemory::addOperatingMemoryMode));
     }
 }

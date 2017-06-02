@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodLength"})
 public class IscsiSanUriTest {
     @Test(dataProvider = "validUris")
     public void testParsingValidUri(String uri, String targetName, String server, int port, int lun) throws Exception {

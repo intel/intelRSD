@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Command exception interface
  * */
 
-#ifndef AGENT_FRAMEWORK_COMMAND_COMMAND_EXCEPTION_HPP
-#define AGENT_FRAMEWORK_COMMAND_COMMAND_EXCEPTION_HPP
-
+#pragma once
 #include <string>
 #include <exception>
 
@@ -150,4 +148,3 @@ public:
 } /* namespace command */
 } /* namespace agent_framework */
 
-#endif /* AGENT_FRAMEWORK_COMMAND_COMMAND_EXCEPTION_HPP */

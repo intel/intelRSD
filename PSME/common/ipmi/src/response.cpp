@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@
 
 using namespace ipmi;
 
-Response::Response(NetFn fn, Cmd cmd, size_t rsp_size): Message(fn, cmd), DATA_SIZE(rsp_size) {}
+Response::Response(NetFn fn, Cmd cmd, std::size_t rsp_size) : Message(fn, cmd), DATA_SIZE(rsp_size) {}
 
 Response::~Response() {}
 
@@ -37,20 +37,18 @@ Response::COMPLETION_CODE Response::get_completion_code() const {
     return m_completion_code;
 }
 
-bool Response::is_response_correct(const vector<uint8_t>& data) {
-    bool retval = true;
+bool Response::is_response_correct(const std::vector<std::uint8_t>& data) {
+    m_completion_code = COMPLETION_CODE(data[OFFSET_COMPLETION_CODE]);
 
+    bool retval = true;
     if(ERROR_DATA_SIZE == data.size()) {
         retval = false;
     }
     else if (data.size() < DATA_SIZE) {
-        throw runtime_error(("Cannot unpack response. Data length too short."
-                             " Expected: ")
-                           + to_string(DATA_SIZE)
-                           + " Received: "
-                           + to_string(data.size()));
+        throw std::runtime_error(("Cannot unpack response. Data length too short."
+                             " Expected: ") + std::to_string(DATA_SIZE)
+                           + " Received: " + std::to_string(data.size()));
     }
-    m_completion_code = COMPLETION_CODE(data[OFFSET_COMPLETION_CODE]);
     return retval;
 }
 

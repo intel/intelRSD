@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 package com.intel.podm.security.providers;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
@@ -29,15 +30,20 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 
+@Singleton
 public class SslConnectionManagersProvider {
 
-    private Logger logger = LoggerFactory.getLogger(SslConnectionManagersProvider.class);
+    @Inject
+    private Logger logger;
+
+    @Inject
+    private KeyStoreProvider keyStoreProvider;
 
     public KeyManager[] getKeyManagersArray() {
         String password = PasswordProvider.INSTANCE.getPassword();
 
         try {
-            KeyStore keyStore = new KeyStoreProvider().loadCertificate(password);
+            KeyStore keyStore = keyStoreProvider.loadCertificate(password);
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             keyManagerFactory.init(keyStore, password.toCharArray());
             return keyManagerFactory.getKeyManagers();

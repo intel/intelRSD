@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package com.intel.podm.client.api.resources.redfish;
 
 import com.intel.podm.common.types.MemoryClassification;
+import com.intel.podm.common.types.Ref;
 
 public interface MemoryRegionObject {
-    String getRegionId();
-    MemoryClassification getMemoryClassification();
-    Integer getOffsetMib();
-    Integer getSizeMib();
+    Ref<String> getRegionId();
+    Ref<MemoryClassification> getMemoryClassification();
+    Ref<Integer> getOffsetMib();
+    Ref<Integer> getSizeMib();
 }

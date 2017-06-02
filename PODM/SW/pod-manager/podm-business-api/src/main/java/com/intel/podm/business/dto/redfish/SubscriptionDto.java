@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,33 +74,33 @@ public final class SubscriptionDto {
         private Builder() {
         }
 
-        public Builder id(String val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder destination(String val) {
-            destination = val;
+        public Builder destination(String destination) {
+            this.destination = destination;
             return this;
         }
 
-        public Builder context(String val) {
-            context = val;
+        public Builder context(String context) {
+            this.context = context;
             return this;
         }
 
-        public Builder eventTypes(List<String> val) {
-            eventTypes = val;
+        public Builder eventTypes(List<String> eventTypes) {
+            this.eventTypes = eventTypes;
             return this;
         }
 
-        public Builder protocol(String val) {
-            protocol = val;
+        public Builder protocol(String protocol) {
+            this.protocol = protocol;
             return this;
         }
 

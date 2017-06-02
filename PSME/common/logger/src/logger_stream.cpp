@@ -1,40 +1,32 @@
 /*!
- * @section LICENSE
+ * @brief Logger stream implementation
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
  *
- * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
+ * @header{Files}
  * @file logger_stream.cpp
- *
- * @brief Logger stream implementation
- * */
+ */
 
 #include "logger/stream.hpp"
 
 extern "C" {
 #include "logger/stream.h"
+#include "logger/logger.h"
 }
 
-using namespace logger_cpp;
+namespace logger_cpp {
 
-Stream::Stream(enum Type type, const char* tag, const Options& options) {
+Stream::Stream(Stream::Type type, const char* tag, const Options& options) {
 
     auto logtype = static_cast<enum logger_stream_type>(type);
 
@@ -60,12 +52,12 @@ void Stream::open_file(const char* file_name) {
             file_name);
 }
 
-void Stream::open_udp(const char* ip_address, size_t port) {
+void Stream::open_udp(const char* ip_address, uint16_t port) {
     logger_stream_open_udp(static_cast<struct logger_stream*>(m_impl),
             ip_address, port);
 }
 
-void Stream::open_tcp(const char* ip_address, size_t port) {
+void Stream::open_tcp(const char* ip_address, uint16_t port) {
     logger_stream_open_tcp(static_cast<struct logger_stream*>(m_impl),
             ip_address, port);
 }
@@ -83,4 +75,6 @@ Options Stream::get_options() {
     Options options;
     options.m_raw = opt.raw;
     return options;
+}
+
 }

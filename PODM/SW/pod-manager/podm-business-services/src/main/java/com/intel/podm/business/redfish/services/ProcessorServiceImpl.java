@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,57 +16,61 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.dto.redfish.ProcessorDto;
 import com.intel.podm.business.dto.redfish.attributes.ProcessorIdDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Processor;
-import com.intel.podm.business.entities.redfish.properties.ProcessorId;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.entities.redfish.embeddables.ProcessorId;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.ProcessorService;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PROCESSORS;
-import static com.intel.podm.business.redfish.Contexts.getAsIdList;
+import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Transactional(REQUIRED)
-public class ProcessorServiceImpl implements ProcessorService {
+public class ProcessorServiceImpl implements ReaderService<ProcessorDto> {
     @Inject
-    private DomainObjectTreeTraverser traverser;
+    private EntityTreeTraverser traverser;
+
+    @Inject
+    private UnknownOemTranslator unknownOemTranslator;
 
     @Override
-    public CollectionDto getProcessorsCollection(Context systemContext) throws EntityNotFoundException {
+    public CollectionDto getCollection(Context systemContext) throws ContextResolvingException {
         ComputerSystem system = (ComputerSystem) traverser.traverse(systemContext);
-        return new CollectionDto(PROCESSORS, getAsIdList(system.getProcessors()));
+        return new CollectionDto(PROCESSORS, getAsIdSet(system.getProcessors()));
     }
 
     @Override
-    public ProcessorDto getProcessor(Context processorContext) throws EntityNotFoundException {
+    public ProcessorDto getResource(Context processorContext) throws ContextResolvingException {
         Processor processor = (Processor) traverser.traverse(processorContext);
         return ProcessorDto.newBuilder()
-                .name(processor.getName())
-                .description(processor.getDescription())
-                .id(processorContext.getId())
-                .socket(processor.getSocket())
-                .processorType(processor.getProcessorType())
-                .processorArchitecture(processor.getProcessorArchitecture())
-                .instructionSet(processor.getInstructionSet())
-                .manufacturer(processor.getManufacturer())
-                .model(processor.getModel())
-                .maxSpeedMhz(processor.getMaxSpeedMhz())
-                .totalCores(processor.getTotalCores())
-                .totalThreads(processor.getTotalThreads())
-                .brand(processor.getBrand())
-                .capabilities(processor.getCapabilities())
-                .processorId(buildProcessorId(processor.getProcessorId()))
-                .status(processor.getStatus())
-                .containedBy(processorContext.getParent())
-                .build();
+            .id(processorContext.getId().toString())
+            .name(processor.getName())
+            .description(processor.getDescription())
+            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(processor.getService(), processor.getUnknownOems()))
+            .socket(processor.getSocket())
+            .processorType(processor.getProcessorType())
+            .processorArchitecture(processor.getProcessorArchitecture())
+            .instructionSet(processor.getInstructionSet())
+            .manufacturer(processor.getManufacturer())
+            .model(processor.getModel())
+            .maxSpeedMhz(processor.getMaxSpeedMhz())
+            .totalCores(processor.getTotalCores())
+            .totalThreads(processor.getTotalThreads())
+            .brand(processor.getBrand())
+            .capabilities(processor.getCapabilities())
+            .processorId(buildProcessorId(processor.getProcessorId()))
+            .status(processor.getStatus())
+            .build();
 
     }
 
@@ -76,12 +80,12 @@ public class ProcessorServiceImpl implements ProcessorService {
         }
 
         return ProcessorIdDto.newBuilder()
-                .vendorId(processorId.getVendorId())
-                .identificationRegisters(processorId.getIdentificationRegisters())
-                .effectiveFamily(processorId.getEffectiveFamily())
-                .effectiveModel(processorId.getEffectiveModel())
-                .step(processorId.getStep())
-                .microcodeInfo(processorId.getMicrocodeInfo())
-                .build();
+            .vendorId(processorId.getVendorId())
+            .identificationRegisters(processorId.getIdentificationRegisters())
+            .effectiveFamily(processorId.getEffectiveFamily())
+            .effectiveModel(processorId.getEffectiveModel())
+            .step(processorId.getStep())
+            .microcodeInfo(processorId.getMicrocodeInfo())
+            .build();
     }
 }

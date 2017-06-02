@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,12 @@ public enum BootSourceType implements EnumeratedType {
     DIAGS("Diags"),
     UEFI_SHELL("UefiShell"),
     UEFI_TARGET("UefiTarget"),
-    SD_CARD("SDCard");
+    SD_CARD("SDCard"),
+    REMOTE_DRIVE("RemoteDrive");
 
     private final String value;
 
-    BootSourceType(final String value) {
+    BootSourceType(String value) {
         this.value = value;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,7 @@
 package com.intel.podm.redfish.json.templates.assembly;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
-import com.intel.podm.business.dto.redfish.RequestedLocalDrive;
-import com.intel.podm.business.dto.redfish.RequestedMemory;
-import com.intel.podm.business.dto.redfish.RequestedNode;
-import com.intel.podm.business.dto.redfish.RequestedProcessor;
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import java.util.List;
 
@@ -35,6 +30,12 @@ public final class RequestedNodeJson implements RequestedNode {
 
     @JsonProperty
     private String description;
+
+    @JsonProperty("TotalSystemMemoryMiB")
+    private Integer totalSystemMemoryMib;
+
+    @JsonProperty
+    private Integer totalSystemCoreCount;
 
     @JsonProperty
     private List<RequestedProcessorImpl> processors;
@@ -65,27 +66,37 @@ public final class RequestedNodeJson implements RequestedNode {
     }
 
     @Override
-    public List<RequestedProcessor> getProcessors() {
+    public Integer getTotalSystemMemoryMib() {
+        return totalSystemMemoryMib;
+    }
+
+    @Override
+    public Integer getTotalSystemCoreCount() {
+        return totalSystemCoreCount;
+    }
+
+    @Override
+    public List<Processor> getProcessors() {
         return ofNullable((List) processors).orElse(emptyList());
     }
 
     @Override
-    public List<RequestedMemory> getMemoryModules() {
+    public List<Memory> getMemoryModules() {
         return ofNullable((List) memory).orElse(emptyList());
     }
 
     @Override
-    public List<RequestedRemoteDrive> getRemoteDrives() {
+    public List<RemoteDrive> getRemoteDrives() {
         return ofNullable((List) remoteDrives).orElse(emptyList());
     }
 
     @Override
-    public List<RequestedLocalDrive> getLocalDrives() {
+    public List<LocalDrive> getLocalDrives() {
         return ofNullable((List) localDrives).orElse(emptyList());
     }
 
     @Override
-    public List<RequestedEthernetInterface> getEthernetInterfaces() {
+    public List<EthernetInterface> getEthernetInterfaces() {
         return ofNullable((List) ethernetInterfaces).orElse(emptyList());
     }
 

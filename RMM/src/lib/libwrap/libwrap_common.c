@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -163,7 +163,7 @@ int32 get_cm_lid(int32 zone_type, int32 zone_idx)
 
 	if (zone_num == 1)
 		lid = (zone_idx / zone_num);
-	else
+	else if (zone_num)
 		lid = (zone_idx / zone_num) + 1;
 
 	return lid;
@@ -176,7 +176,7 @@ int32 get_zone_lid(int32 zone_type, int32 zone_idx)
 
 	if (zone_num == 1)
 		lid = 1;
-	else
+	else if (zone_num)
 		lid = zone_idx % zone_num;
 
 	return lid;
@@ -430,7 +430,7 @@ result_t libwrap_pack_service_root_to_json(json_t *output, rest_uri_param_t *par
 
 	add_json_string(output, RMM_JSON_UUID, uuid);
 	add_json_string(output, RMM_JSON_NAME, "Root Service");
-	add_json_string(output, RMM_JSON_REDFISH_VERSION, "1.0.0");
+	add_json_string(output, RMM_JSON_REDFISH_VERSION, "1.0.2");
 
 	odata_id_chassis = json_object();
 	if (odata_id_chassis != NULL) {
@@ -476,6 +476,7 @@ result_t libwrap_pack_chassis_to_json(json_t *output, rest_uri_param_t *param)
 	struct node_info *dz_node = NULL;
 	int8 buf[128] = {0};
 	int8 uuid[UUID_LEN] = {};
+	unsigned int members_count = 0;
 	memdb_integer rc = -1;
 
 	if ((output == NULL) || (param == NULL)) {
@@ -487,11 +488,11 @@ result_t libwrap_pack_chassis_to_json(json_t *output, rest_uri_param_t *param)
 	add_json_string(output, RMM_JSON_NAME, "Chassis Collection");
 
 	drawer_node = libdb_list_node_by_type(DB_RMM, MC_TYPE_DRAWER, MC_TYPE_DRAWER, &nodenum, NULL, LOCK_ID_NULL);
-	add_json_integer(output, RMM_JSON_MEMBERS_COUNT, nodenum + 1);
 
 	members_arr = json_array();
 	if (members_arr == NULL) {
 		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
+        libdb_free_node(drawer_node);
 		return RESULT_MALLOC_ERR;
 	}
 
@@ -499,6 +500,7 @@ result_t libwrap_pack_chassis_to_json(json_t *output, rest_uri_param_t *param)
 	if (member != NULL) {
 		add_json_string(member, RMM_JSON_ODATA_ID, "/redfish/v1/Chassis/Rack");
 		json_array_add(members_arr, member);
+		members_count++;
 	}
 
 	if (drawer_node != NULL) {
@@ -512,6 +514,7 @@ result_t libwrap_pack_chassis_to_json(json_t *output, rest_uri_param_t *param)
 			dz_node = libdb_get_node_by_node_id(DB_RMM, drawer_node[i].parent, LOCK_ID_NULL);
 			if (dz_node == NULL) {
 				update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
+				libdb_free_node(drawer_node);
 				return RESULT_NO_NODE;
 			}
 			libdb_attr_get_int(DB_RMM, dz_node->parent, MBP_LOC_ID_STR, &cm_lid, LOCK_ID_NULL);
@@ -521,12 +524,14 @@ result_t libwrap_pack_chassis_to_json(json_t *output, rest_uri_param_t *param)
 			if (member != NULL) {
 				add_json_string(member, RMM_JSON_ODATA_ID, buf);
 				json_array_add(members_arr, member);
+				members_count++;
 			}
 		}
 	}
-
 	json_object_add(output, RMM_JSON_MEMBERS, members_arr);
+	add_json_integer(output, RMM_JSON_MEMBERS_COUNT, members_count);
 	update_response_info(param, HTTP_OK);
+	libdb_free_node(drawer_node);
 
 	return RESULT_OK;
 }
@@ -736,6 +741,7 @@ result_t check_module_capability(int8 *module, int8 *cap_name)
 	}
 
 	if (nodenum == i) {
+		free(sub_node);
 		return RESULT_NO_NODE;
 	} else
 		module_node_id = sub_node[i].node_id;
@@ -748,16 +754,22 @@ result_t check_module_capability(int8 *module, int8 *cap_name)
 		else
 			cap = strstr(cap, GAMI_CAP_SPLIT_STR) + 1;
 
-		if (cap == NULL)
+		if (cap == NULL) {
+			free(sub_node);
 			return RESULT_ATTR_ERR;
+		}
 
-		if (*cap == '\0')
+		if (*cap == '\0') {
+			free(sub_node);
 			return RESULT_ATTR_ERR;
+		}
 
-		if (strncmp(cap, cap_name, cap_len) == 0 && strncmp(cap+cap_len, GAMI_CAP_SPLIT_STR, 1) == 0)
+		if (strncmp(cap, cap_name, cap_len) == 0 && strncmp(cap+cap_len, GAMI_CAP_SPLIT_STR, 1) == 0) {
+			free(sub_node);
 			return RESULT_OK;
+		}
 	}
-
+	free(sub_node);
 	return RESULT_OTHER_ERR;
 }
 
@@ -788,8 +800,10 @@ result_t check_asset_module_capability(int8 *cap_name)
 	reg_node_id = sub_node[0].node_id;
 
 	subnode = libdb_list_subnode_by_type(DB_RMM, reg_node_id, MC_TYPE_REG_MODULE, &nodenum, NULL, LOCK_ID_NULL);
-	if (subnode == NULL)
+	if (subnode == NULL) {
+		free(sub_node);
 		return RESULT_NO_NODE;
+	}
 	memset(sub_node, 0, CMDBUFSIZ);
 	memcpy_s(sub_node, sizeof(struct node_info) * nodenum, subnode, sizeof(struct node_info) * nodenum);
 
@@ -800,6 +814,7 @@ result_t check_asset_module_capability(int8 *cap_name)
 	}
 
 	if (nodenum == i) {
+		free(sub_node);
 		return RESULT_NO_NODE;
 	} else
 		module_node_id = sub_node[i].node_id;
@@ -812,17 +827,24 @@ result_t check_asset_module_capability(int8 *cap_name)
 		else
 			cap = strstr(cap, GAMI_CAP_SPLIT_STR) + 1;
 
-		if (cap == NULL)
+		if (cap == NULL) {
+			free(sub_node);
 			return RESULT_ATTR_ERR;
+		}
 
-		if (*cap == '\0')
+		if (*cap == '\0') {
+			free(sub_node);
 			return RESULT_ATTR_ERR;
+		}
 
-		if (strncmp(cap, cap_name, cap_len) == 0 && strncmp(cap+cap_len, GAMI_CAP_SPLIT_STR, 1) == 0)
+		if (strncmp(cap, cap_name, cap_len) == 0 &&
+		    strncmp(cap+cap_len, GAMI_CAP_SPLIT_STR, 1) == 0) {
+			free(sub_node);
 			return RESULT_OK;
+		}
 	}
 
-	libdb_free_node(sub_node);
+	free(sub_node);
 
 	return RESULT_OTHER_ERR;
 }
@@ -861,6 +883,7 @@ int get_drawer_pres_from_cm(int8 *pres)
 
 	sub_node = (struct node_info *)malloc(CMDBUFSIZ);
 	if (sub_node == NULL) {
+		libdb_free_node(subnode);
 		return 0;
 	}
 	memcpy_s(sub_node, sizeof(struct node_info) * subnode_num, subnode, sizeof(struct node_info) * subnode_num);
@@ -871,6 +894,8 @@ int get_drawer_pres_from_cm(int8 *pres)
 		dr_subnode = libdb_list_subnode_by_type(DB_RMM, dz_node_id, MC_TYPE_DRAWER, &dr_number, &memdb_filter, LOCK_ID_NULL);
 		dr_sub_node = (struct node_info *)malloc(CMDBUFSIZ);
 		if (dr_sub_node == NULL) {
+			libdb_free_node(subnode);
+			free(sub_node);
 			return 0;
 		}
 		memcpy_s(dr_sub_node, sizeof(struct node_info) * dr_number, dr_subnode, sizeof(struct node_info) * dr_number);
@@ -881,14 +906,15 @@ int get_drawer_pres_from_cm(int8 *pres)
 			drawer_pres = (1 << (dr_lid - 1 + ((cm_lid - 1) * 4)))|drawer_pres;
 			printf("cm[%d] dr_number[%d] dr_idx[%d] drawer_pres[%d], node_id[%lld]\n", cm_lid, dr_number, dr_lid, drawer_pres, dr_sub_node[j].node_id);
 		}
-		libdb_free_node(dr_sub_node);
+		free(dr_sub_node);
 	}
 
 	for (i = 0; i < 8; i++) {
 		strncat_s(pres, RSIZE_MAX_STR, ((0x80 == (0x80 & (drawer_pres << i)))? "1" : "0"), 1);
 	}
 
-	libdb_free_node(sub_node);
+	libdb_free_node(subnode);
+	free(sub_node);
 
 	return subnode_num;
 }
@@ -971,6 +997,7 @@ int32 get_asset_module_port(int32 *port)
 	reg_node_id = sub_node[0].node_id;
 	subnode = libdb_list_subnode_by_type(DB_RMM, reg_node_id, MC_TYPE_REG_MODULE, &node_num, NULL, LOCK_ID_NULL);
 	if (node_num == 0) {
+		free(sub_node);
 		printf("no asset module registry info found\n");
 		return -1;
 	}
@@ -1224,9 +1251,11 @@ int32 libwrap_check_input_attrs(input_attr_t *input_attrs, uint32 size, json_t *
 			int8 tmp_name[ATTR_NAME_LEN_MAX * ATTR_TIER_MAX] = {0};
 
 			if (prefix)
-				sprintf(tmp_name, "%s.%s", prefix, pair->name);
+				snprintf_s_ss(tmp_name, sizeof(tmp_name),
+					 "%s.%s", prefix, pair->name);
 			else
-				sprintf(tmp_name, "%s", pair->name);
+				snprintf_s_s(tmp_name, sizeof(tmp_name),
+					 "%s", pair->name);
 
 			printf("%s\n", tmp_name);
 			if (!is_attr_name_valid(input_attrs, size, tmp_name, pair->value)) {

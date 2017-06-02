@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,15 +22,13 @@
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
 #include "agent-framework/state_machine/state_machine_thread.hpp"
-#include "agent-framework/module-ref/compute_manager.hpp"
-#include "agent-framework/module-ref/chassis_manager.hpp"
+#include "agent-framework/module/compute_components.hpp"
+#include "agent-framework/module/common_components.hpp"
 
 #include "agent-framework/eventing/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 
-#include "agent-framework/command/command.hpp"
-#include "agent-framework/command/command_factory.hpp"
-#include "agent-framework/command/command_json_server.hpp"
+#include "agent-framework/command-ref/command_server.hpp"
 
 #include "loader/chassis_loader.hpp"
 #include "loader/state_machine_action_loader.hpp"
@@ -60,22 +58,16 @@ using namespace agent::chassis;
 using namespace agent::chassis::ipmb;
 using namespace agent_framework::eventing;
 
-using command::Command;
-using command::CommandFactory;
-using command::CommandJson;
-using command::CommandJsonServer;
-
 using agent::generic::DEFAULT_CONFIGURATION;
 using agent::generic::DEFAULT_VALIDATOR_JSON;
 using agent::generic::DEFAULT_ENV_FILE;
 using agent::generic::DEFAULT_FILE;
 
-using ChassisManager = agent_framework::module::ChassisManager;
+using agent_framework::module::CommonComponents;
 
 static constexpr unsigned int DEFAULT_SERVER_PORT = 7780;
-static constexpr const char COMMANDS_IMPLEMENTATION[] = "sdv";
 
-void add_state_machine_entries(StateMachineThread* machine_thread);
+void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action);
 const json::Value& init_configuration(int argc, const char** argv);
 bool check_configuration(const json::Value& json);
 
@@ -85,6 +77,8 @@ bool check_configuration(const json::Value& json);
 int main(int argc, const char* argv[]) {
     using agent::chassis::StateMachineAction;
     using StateMachineActionUnique = unique_ptr<StateMachineAction>;
+
+    unsigned int server_port = DEFAULT_SERVER_PORT;
 
     StateMachineThreadUniquePtr state_machine_thread_u_ptr = nullptr;
     StateMachineActionUnique state_action = nullptr;
@@ -113,47 +107,19 @@ int main(int argc, const char* argv[]) {
     AmcConnectionManager amc_connection(event_dispatcher);
     amc_connection.start();
 
-    /* Start command server */
-    uint32_t server_port = DEFAULT_SERVER_PORT;
-    auto& commands_factory = CommandFactory::get_instance();
-    try {
-        server_port = configuration["server"]["port"].as_uint();
-        auto agent_type = configuration["agent"]["capabilities"].as_array();
-        commands_factory.add_commands(agent_type.front().as_string(), COMMANDS_IMPLEMENTATION);
-    }
-    catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("agent"), "Invalid agent configuration: " << e.what());
-        return -10;
-    }
-    auto commands_initialization =
-        commands_factory.create_initialization();
-    auto commands = commands_factory.create();
-
+    /* Initialize command server */
     jsonrpc::HttpServer http_server((int(server_port)));
-    CommandJsonServer server(http_server);
-
-    server.add(commands);
+    agent_framework::command_ref::CommandServer server(http_server);
+    server.add(command_ref::Registry::get_instance()->get_commands());
     server.start();
 
-    /* IPMB Service */
-    ::in_port_t mux_port = static_cast<::in_port_t>(Mux::DEFAULT_IPMB_MUX_PORT);
-    try {
-        auto configuration_mux_port = configuration["cyMux"]["port"].as_uint();
-        mux_port = static_cast<::in_port_t>(configuration_mux_port);
-    }
-    catch (const json::Value::Exception& e) {
-        log_warning(GET_LOGGER("agent"), "Unable to read cyMux port configuration. "
-                << e.what() << ". Using default port: " << mux_port);
-    }
     watcher::Watcher ipmb_watcher{};
     ipmb_watcher.add_task(std::make_shared<watcher::ThermalSensorTask>());
     ipmb_watcher.add_task(std::make_shared<watcher::DrawerPowerTask>());
+    ipmb_watcher.start();
 
-    auto ipmb_service = ipmb::Service::get_instance();
-    if (ipmb_service->init(mux_port)) {
-        ipmb_service->start();
-        ipmb_watcher.start();
-    }
+    ipmb::Service ipmb_service;
+    ipmb_service.start();
 
     /* Start state machine */
     try {
@@ -163,8 +129,8 @@ int main(int argc, const char* argv[]) {
             return -3;
         }
         state_action = state_machine_loader.get_state_machine();
-        state_machine_thread_u_ptr.reset(new StateMachineThread(*state_action));
-        ::add_state_machine_entries(state_machine_thread_u_ptr.get());
+        state_machine_thread_u_ptr.reset(new StateMachineThread());
+        ::add_state_machine_entries(state_machine_thread_u_ptr.get(), *state_action);
         state_machine_thread_u_ptr->start();
     }
     catch (const std::exception& e) {
@@ -173,7 +139,9 @@ int main(int argc, const char* argv[]) {
         return -10;
     }
 
-    auto cc = ChassisManager::get_instance();
+    ::agent::chassis::loader::ChassisLoader::wait_for_complete();
+
+    auto cc = CommonComponents::get_instance();
     auto managers_uuids_vec = cc->get_module_manager().get_keys("");
 
     for (const auto& manager_uuid: managers_uuids_vec) {
@@ -189,17 +157,11 @@ int main(int argc, const char* argv[]) {
 
     /* Cleanup */
     ipmb_watcher.stop();
-    if (ipmb_service->stop()) {
-        ipmb_service->deinit();
-    }
+    ipmb_service.stop();
 
     server.stop();
     amc_connection.stop();
     event_dispatcher.stop();
-    commands_initialization.clear();
-    command::Command::Map::cleanup();
-    command::CommandJson::Map::cleanup();
-    command::CommandFactory::cleanup();
     Configuration::cleanup();
     LoggerFactory::cleanup();
 
@@ -207,23 +169,28 @@ int main(int argc, const char* argv[]) {
 
 }
 
-void add_state_machine_entries(StateMachineThread* machine_thread) {
-    auto drawer_keys = ChassisManager::get_instance()->
+void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action) {
+    auto drawer_keys = CommonComponents::get_instance()->
             get_module_manager().get_keys("");
+
+    if (drawer_keys.empty()) {
+        log_error(GET_LOGGER("agent"), "No drawer manager found!");
+        std::exit(-1);
+    }
 
     log_debug(GET_LOGGER("agent"), "Drawer: " << drawer_keys.front());
 
     /* Process Blade manager */
-    auto blade_keys = ChassisManager::get_instance()->
+    auto blade_keys = CommonComponents::get_instance()->
             get_module_manager().get_keys(drawer_keys.front());
 
     for (const auto& key : blade_keys) {
-        auto entry = ChassisManager::get_instance()->
-                get_module_manager().get_entry(key);
-        machine_thread->add_entry(std::make_shared<StateThreadEntry>(key,
-                std::make_shared<::agent::chassis::status::StatusManager>
-                (entry.get_slot(),
-                entry.get_connection_data().get_ip_address())));
+        auto entry = CommonComponents::get_instance()->get_module_manager().get_entry(key);
+        auto status_manager = std::make_shared<::agent::chassis::status::StatusManager>(
+                entry.get_slot(),entry.get_connection_data().get_ip_address());
+        auto state_thread_entry = std::make_shared<StateThreadEntry>(key, status_manager);
+        auto module_thread = std::make_shared<StateMachineModuleThread>(state_thread_entry, action);
+        machine_thread->add_module_thread(module_thread);
     }
 }
 const json::Value& init_configuration(int argc, const char** argv) {

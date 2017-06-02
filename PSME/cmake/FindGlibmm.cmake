@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,26 +16,4 @@
 #
 # </license_header>
 
-if (NOT GLIBMM_FOUND)
-    find_library(GLIBMM_LIBRARY "glibmm-2.4")
-
-    find_path(GLIBMM_INCLUDE "glibmmconfig.h"
-        PATHS ${CMAKE_BINARY_DIR}/include
-        "/usr"
-        PATH_SUFFIXES "lib64/glibmm-2.4/include"
-                      "lib/x86_64-linux-gnu/glibmm-2.4/include"
-    )
-
-    if (GLIBMM_LIBRARY AND GLIBMM_INCLUDE)
-        add_library("glibmm-2.4" IMPORTED SHARED)
-        set_target_properties("glibmm-2.4" PROPERTIES
-            IMPORTED_LOCATION ${GLIBMM_LIBRARY})
-        get_filename_component(GLIBMM_LIBRARY_DIR ${GLIBMM_LIBRARY}
-            DIRECTORY)
-        set(GLIBMM_LIBRARIES "glibmm-2.4")
-        set(GLIBMM_INCLUDE_DIRS ${GLIBMM_INCLUDE}
-            /usr/include/glibmm-2.4
-        )
-        set(GLIBMM_FOUND TRUE)
-    endif()
-endif()
+find_package_local(Glibmm glibmm-2.4)

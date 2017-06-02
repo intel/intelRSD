@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@
 #include "ipmi/command/sdv/get_node_info.hpp"
 #include "ipmi/command/sdv/get_bios_version.hpp"
 #include "ipmi/command/sdv/get_dimm_info.hpp"
+#include "ipmi/command/sdv/get_cable_id.hpp"
 
 #include <iostream>
 #include <string>
@@ -96,7 +97,13 @@ int main(int argc, char ** argv) {
         sdv::response::GetNodeInfo node_rsp;
         mc.send(node_req, node_rsp);
         cout << "Completion code: " << uint32_t(node_rsp.get_completion_code()) << endl;
-        cout << "Number of nodes avaible: " << uint32_t(node_rsp.get_nodes_number()) << endl;
+        cout << "Number of nodes available: " << uint32_t(node_rsp.get_nodes_number()) << endl;
+
+        sdv::request::GetCableId cable_id_req;
+        sdv::response::GetCableId cable_id_res;
+        mc.send(cable_id_req, cable_id_res);
+        cout << "Completion code: " << uint32_t(cable_id_res.get_completion_code()) << endl;
+        cout << "Cable id received: " << cable_id_res.get_cable_id() << endl;
     } catch (runtime_error & error) {
         cout << "error: " << error.what() << endl;
     }

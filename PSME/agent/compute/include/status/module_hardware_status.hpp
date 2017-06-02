@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,12 @@
  * @brief Module hardware status implementation
  * */
 
-#ifndef AGENT_COMPUTE_STATUS_MODULE_HARDWARE_STATUS_HPP
-#define AGENT_COMPUTE_STATUS_MODULE_HARDWARE_STATUS_HPP
+#pragma once
+
+
 
 #include "agent-framework/status/module_hardware_status.hpp"
+#include "status/gpio/gpio_status.hpp"
 
 /* Forward declaration */
 namespace json { class Value; }
@@ -37,51 +39,42 @@ namespace compute {
 /*! Status namespace */
 namespace status {
 
-
-static constexpr uint8_t  MODULE_NR_MAX = 4;
+static constexpr uint8_t MODULE_NR_MAX = 4;
 /*!
  * @brief ModuleHardwareStatus class.
  * */
 class ModuleHardwareStatus : public agent_framework::status::ModuleHardwareStatus {
     uint32_t m_slot = 0;
-    agent_framework::status::ModuleStatus::Status m_status_cache[MODULE_NR_MAX] = {
-            agent_framework::status::ModuleStatus::Status::NOT_PRESENT,
-            agent_framework::status::ModuleStatus::Status::NOT_PRESENT,
-            agent_framework::status::ModuleStatus::Status::NOT_PRESENT,
-            agent_framework::status::ModuleStatus::Status::NOT_PRESENT};
+    GpioStatus m_gpio_status;
+    Status m_last_status{agent_framework::status::ModuleStatus::Status::NOT_PRESENT};
 public:
     /*!
      * @brief Class default constructor.
      * */
-    ModuleHardwareStatus() {}
+    ModuleHardwareStatus(uint32_t slot) :
+            m_slot(slot), m_gpio_status(slot) {
+    }
 
     /*!
      * @brief Class destructor.
      * */
-    ~ModuleHardwareStatus() {}
-
-    /*!
-    * @brief Getter method for slot number.
-    * @return  Slot number of this module..
-    * */
-    uint32_t get_slot() const { return m_slot; }
-
-    /*!
-     * @brief Setter method for slot.
-     * @param slot reference to slot number.
-     * */
-    void set_slot(const uint32_t slot) { m_slot = slot; }
+    ~ModuleHardwareStatus() { }
 
     /*!
      * @brief Method reads Hardware Status of Module.
      * */
     Status read_status();
+
+
 private:
     Status read_status_from_file();
+
+    bool went_up();
+    bool went_down();
+    void wait_for_smbios();
 };
 
 }
 }
 }
-#endif /* AGENT_COMPUTE_STATUS_MODULE_HARDWARE_STATUS_HPP */
 

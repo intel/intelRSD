@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,24 +22,21 @@
  * @brief Module loader interface
  * */
 
-#ifndef AGENT_SIMULATOR_COMPUTE_LOADER_COMPUTE_LOADER_HPP
-#define AGENT_SIMULATOR_COMPUTE_LOADER_COMPUTE_LOADER_HPP
-
-#include "agent-framework/module-ref/loader/loader.hpp"
+#pragma once
 #include "asset_configuration/asset_configuration.hpp"
 
 namespace agent {
 namespace compute {
 namespace loader {
 
-    /*!
-     * @brief Class loading asset configuration into a model.
-     * */
+/*!
+ * @brief Class loading asset configuration into a model.
+ * */
 class ComputeLoader {
 public:
     ~ComputeLoader();
 
-    /**
+    /*!
      * @brief Loads compute module configuration.
      *
      * @param[in] node root node of DOM tree representing the asset.
@@ -54,5 +51,4 @@ public:
 } /* compute */
 } /* agent */
 
-#endif /* AGENT_SIMULATOR_COMPUTE_LOADER_COMPUTE_LOADER_HPP */
 

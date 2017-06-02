@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,13 +95,17 @@ result_t libwrap_pack_tzone_coll_to_json(json_t *output, struct rest_uri_param *
 	memset(tzone_collections, 0, zone_num * sizeof(collections_t));
 
 	members = (int8 *)malloc(zone_num * HREF_URL_LEN);
-	if (members == NULL)
+	if (members == NULL) {
+		free(tzone_collections);
 		return RESULT_NO_NODE;
+	}
 	
 	memset(members, 0, zone_num * HREF_URL_LEN);
 
 	rs = libwrap_get_tzone_coll(tzone_collections, &tzone_num, param->host);
 	if (rs != RESULT_OK) {
+		free(members);
+		free(tzone_collections);
 		update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
 		return RESULT_GET_COLL_ERR;
 	}
@@ -210,7 +214,7 @@ result_t libwrap_pack_tzone_to_json(json_t *output, tzone_member_t *tzone_member
 		inlet_temperature = json_object();
 		if (inlet_temperature) {
 			/* "@odata.id": "/redfish/v1/Chassis/Rack/ThermalZones/1/ThermalZone#/Temperatures/1", */
-			snprintf_s_ii(odata, sizeof(odata), "/redfish/v1/Chassis/Rack/ThermalZones/%d/ThermalZone#/Temperatures/%d", tzone_idx, m_id+1);
+			snprintf_s_ii(odata, sizeof(odata), "/redfish/v1/Chassis/Rack/ThermalZones/%d/ThermalZone#/Temperatures/%d", tzone_idx, m_id);
 			add_json_string(inlet_temperature, RMM_JSON_ODATA_ID, odata);		
 			m_id++;
 
@@ -252,7 +256,7 @@ result_t libwrap_pack_tzone_to_json(json_t *output, tzone_member_t *tzone_member
 		outlet_temperature = json_object();
 		if (outlet_temperature) {
 			/* "@odata.id": "/redfish/v1/Chassis/Rack/ThermalZones/1/ThermalZone#/Temperatures/1", */
-			snprintf_s_ii(odata, sizeof(odata), "/redfish/v1/Chassis/Rack/ThermalZones/%d/ThermalZone#/Temperatures/%d", tzone_idx, m_id+1);
+			snprintf_s_ii(odata, sizeof(odata), "/redfish/v1/Chassis/Rack/ThermalZones/%d/ThermalZone#/Temperatures/%d", tzone_idx, m_id);
 			add_json_string(outlet_temperature, RMM_JSON_ODATA_ID, odata);		
 			m_id++;
 
@@ -275,14 +279,23 @@ result_t libwrap_pack_tzone_to_json(json_t *output, tzone_member_t *tzone_member
 			add_json_integer(outlet_temperature, RMM_JSON_READING_CELSIUS, tzone_member->outlet_temp);
 			add_json_string(outlet_temperature, RMM_JSON_PHYSICAL_CONTEXT, "Exhaust");
 
-			related_item = json_object();
-			if (related_item != NULL) {
-				/* "@odata.id": "/redfish/v1/Chassis/Rack/ThermalZones/1", */
-				snprintf_s_i(odata, sizeof(odata), "/redfish/v1/Chassis/Rack/ThermalZones/%d", tzone_idx);
-				add_json_string(related_item, RMM_JSON_ODATA_ID, odata);
-			
-				json_object_add(outlet_temperature, RMM_JSON_RELATED_ITEM, related_item);
+			related_item_arry = json_array();
+			if (related_item_arry != NULL) {
+				related_item = json_object();
+				if (related_item != NULL) {
+					/* "@odata.id": "/redfish/v1/Chassis/Rack/ThermalZones/1", */
+					snprintf_s_i(odata, sizeof(odata),
+						     "/redfish/v1/Chassis/Rack/ThermalZones/%d",
+						     tzone_idx);
+					add_json_string(related_item,
+							RMM_JSON_ODATA_ID,
+							odata);
+				}
+				json_array_add(related_item_arry, related_item);
 			}
+			json_object_add(outlet_temperature,
+					RMM_JSON_RELATED_ITEM,
+					related_item_arry);
 
 			json_array_add(temperature_array, outlet_temperature);
 		}
@@ -347,25 +360,14 @@ result_t libwrap_pack_tzone_to_json(json_t *output, tzone_member_t *tzone_member
 				fan = json_object();
 				if (fan) {
 					/* "@odata.id": "/redfish/v1/Chassis/Rack/ThermalZones/1/Fans/0", */
-					snprintf_s_ii(odata, sizeof(odata), "/redfish/v1/Chassis/Rack/ThermalZones/%d/ThermalZone#/Fans/%d", tzone_idx, i+1);
+					snprintf_s_ii(odata, sizeof(odata), "/redfish/v1/Chassis/Rack/ThermalZones/%d/ThermalZone#/Fans/%d", tzone_idx, i);
 					add_json_string(fan, RMM_JSON_ODATA_ID, odata);
 
 					/* "Name": "Fan 1" */
 					snprintf_s_i(name, sizeof(name), "Fan%d", i+1);
 					add_json_string(fan, RMM_JSON_NAME, name);
 
-					/*
-					 * "Status": {
-					 *     "State": "Enabled",
-					 *     "Health": "OK"
-					 * }
-					 */
-					status = json_object();
-					if (status != NULL) {
-						add_json_string(status, RMM_JSON_FAN_ENABLE_STATE, RMM_JSON_STATE_ENABLED);
-						add_json_string(status, RMM_JSON_HEALTH_CODE, RMM_JSON_HEALTH_CODE_HEALTH_STR);
-						json_object_add(fan, RMM_JSON_HEALTH_STATUS, status);
-					}
+
 
 					bzero(attr_str, sizeof(attr_str));
 					get_db_info_string(DB_RMM, fan_node_id, FAN_UUID_STR, attr_str, REST_RACK_STRING_LEN);
@@ -383,6 +385,23 @@ result_t libwrap_pack_tzone_to_json(json_t *output, tzone_member_t *tzone_member
 					get_db_info_string(DB_RMM, fan_node_id, FAN_TACH_READ_STR, attr_str, REST_RACK_STRING_LEN);
 					fan_tach = str2int(attr_str);
 					add_json_integer(fan, RMM_JSON_TACHOMETER_READING, fan_tach);
+
+					float rpm_ratio = ((float)fan_tach/(float)tzone_member->desired_speed_rpm)*FAN_RPM_RATIO_100_PER;
+                    status = json_object();
+                    if (status != NULL) {
+                        add_json_string(status, RMM_JSON_FAN_ENABLE_STATE, RMM_JSON_STATE_ENABLED);
+
+                        if (rpm_ratio > FAN_RPM_RATIO_190_PER || rpm_ratio < FAN_RPM_RATIO_10_PER) {
+                            add_json_string(status, RMM_JSON_HEALTH_CODE, RMM_JSON_HEALTH_CODE_CRITICAL_STR);
+                        }
+                        else if (rpm_ratio > FAN_RPM_RATIO_110_PER || rpm_ratio < FAN_RPM_RATIO_90_PER) {
+                            add_json_string(status, RMM_JSON_HEALTH_CODE, RMM_JSON_HEALTH_CODE_WARNING_STR);
+                        }
+                        else {
+                            add_json_string(status, RMM_JSON_HEALTH_CODE, RMM_JSON_HEALTH_CODE_HEALTH_STR);
+                        }
+                        json_object_add(fan, RMM_JSON_HEALTH_STATUS, status);
+                    }
 
 					loc = json_object();
 					if (loc != NULL) {
@@ -582,21 +601,28 @@ result_t libwrap_post_fan_set_speed(uint32 tzone_idx, uint32 type, int64 speed)
 		if (sub_node == NULL) {
 			return RESULT_MALLOC_ERR;
 		}
-		memcpy_s(sub_node, sizeof(struct node_info) * subnode_num, subnode, sizeof(struct node_info) * subnode_num);
+		memcpy_s(sub_node, sizeof(struct node_info) * subnode_num,
+			 subnode, sizeof(struct node_info) * subnode_num);
 
 		/*set desired speed for thermalzone*/
 		if (type == 0) {/* unit is rpm */
 			snprintf_s_ll(buff, sizeof(buff), "%lld", speed);
-			rc = libdb_attr_set_string(DB_RMM, tz_node_id, FAN_DESIRED_SPD_RPM_STR,
-						0x0, buff, SNAPSHOT_NEED, LOCK_ID_NULL);
-			if (rc == -1)
+			rc = libdb_attr_set_string(DB_RMM, tz_node_id,
+						   FAN_DESIRED_SPD_RPM_STR,
+						   0x0, buff, SNAPSHOT_NEED,
+						   LOCK_ID_NULL);
+			if (rc == -1) {
+				free(sub_node);
 				return RESULT_ATTR_ERR;
+			}
 		} else {/* unit is pwm */
 			snprintf_s_ll(buff, sizeof(buff), "%lld", speed);
 			rc = libdb_attr_set_string(DB_RMM, tz_node_id, FAN_DESIRED_SPD_PWM_STR,
 						0x0, buff, SNAPSHOT_NEED, LOCK_ID_NULL);
-			if (rc == -1)
+			if (rc == -1) {
+				free(sub_node);
 				return RESULT_ATTR_ERR;
+			}
 			am_set_tzone_pwm(tz_node_id, speed);
 		}
 
@@ -607,6 +633,7 @@ result_t libwrap_post_fan_set_speed(uint32 tzone_idx, uint32 type, int64 speed)
 				rc = libdb_attr_set_string(DB_RMM, sub_node[i].node_id, FAN_DESIRED_SPD_RPM_STR,
 										  0x0, buff, SNAPSHOT_NEED, LOCK_ID_NULL);
 				if (rc == -1) {
+					free(sub_node);
 					return RESULT_ATTR_ERR;
 				}
 			} else {
@@ -615,6 +642,7 @@ result_t libwrap_post_fan_set_speed(uint32 tzone_idx, uint32 type, int64 speed)
 				rc = libdb_attr_set_string(DB_RMM, sub_node[i].node_id, FAN_DESIRED_SPD_PWM_STR,
 										  0x0, buff, SNAPSHOT_NEED, LOCK_ID_NULL);
 				if (rc == -1) {
+					free(sub_node);
 					return RESULT_ATTR_ERR;
 				}
 
@@ -622,12 +650,14 @@ result_t libwrap_post_fan_set_speed(uint32 tzone_idx, uint32 type, int64 speed)
 					rc = libdb_attr_set_int(DB_RMM, sub_node[i].node_id, FAN_ENABLE_STATE_STR,
 							  0x0, FAN_STATE_DISABLED, SNAPSHOT_NEED, LOCK_ID_NULL);
 					if (rc == -1) {
+						free(sub_node);
 						return RESULT_ATTR_ERR;
 					}
 				} else {
 					rc = libdb_attr_set_int(DB_RMM, sub_node[i].node_id, FAN_ENABLE_STATE_STR,
 							  0x0, FAN_STATE_ENABLED, SNAPSHOT_NEED, LOCK_ID_NULL);
 					if (rc == -1) {
+						free(sub_node);
 						return RESULT_ATTR_ERR;
 					}
 
@@ -635,12 +665,13 @@ result_t libwrap_post_fan_set_speed(uint32 tzone_idx, uint32 type, int64 speed)
 					rc = libdb_attr_set_string(DB_RMM, sub_node[i].node_id, FAN_SPEED_PWM_RESTORE_STR,
 										  0x0, speed_str, SNAPSHOT_NEED_NOT, LOCK_ID_NULL);
 					if (rc == -1) {
+						free(sub_node);
 						return RESULT_ATTR_ERR;
 					}
 				}
 			}
 		}
-		libdb_free_node(sub_node);
+		free(sub_node);
 	}
 	return RESULT_OK;
 }
@@ -802,25 +833,35 @@ result_t libwrap_get_tzone_coll(collections_t* tzone, uint32 *number, int8 *host
 	return get_thermalzone_collection(tzone, number, host);
 }
 
-
 static input_attr_t patch_tz_attrs[] = {
+	{"Description",         NULL}
 };
 
+result_t libwrap_update_put_tzone_info(json_t *req, put_tzone_t *put_info)
+{
+	result_t rs = RESULT_OK;
+	json_t *obj = NULL;
+	int32  i = 0;
+	uint32 ary_size = sizeof(patch_tz_attrs)/sizeof(input_attr_t);
 
-result_t libwrap_update_put_tzone_info(json_t* req, put_tzone_t* put_info) {
-	int32 i = 0;
-	uint32 ary_size = sizeof(patch_tz_attrs) / sizeof(input_attr_t);
-
-	if ((req == NULL) || (put_info == NULL)) {
+	if ((req == NULL) || (put_info == NULL))
 		return RESULT_NONE_POINTER;
-	}
 
-	for (i = 0; i < ary_size; i++) {
+	for (i = 0; i < ary_size; i++)
 		patch_tz_attrs[i].value = NULL;
-	}
 
-	if (libwrap_check_input_attrs(patch_tz_attrs, ary_size, req, NULL) != RESULT_OK) {
+	if (libwrap_check_input_attrs(patch_tz_attrs, ary_size, req, NULL) != RESULT_OK)
 		return RESULT_JSON_ARR_ERR;
+
+	obj = libwrap_get_attr_json(patch_tz_attrs, ary_size, "Description");
+	if (obj) {
+		int8 *input = NULL;
+		input = json_string_value(obj);
+		if (input && check_str_len(input, REST_DESC_LEN)) {
+			strncpy_safe(put_info->descr, input, REST_DESC_LEN, REST_DESC_LEN - 1);
+		} else {
+			return RESULT_JSON_ARR_ERR;
+		}
 	}
 
 	return RESULT_OK;

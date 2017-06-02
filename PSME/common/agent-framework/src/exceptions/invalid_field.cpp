@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,38 +18,60 @@
  * limitations under the License.
  *
  *
- * @file invalid_uuid.cpp
+ * @file invalid_field.cpp
  *
  * @brief Invalid JSON field exception implementation
  * */
 
 #include "agent-framework/exceptions/invalid_field.hpp"
 
+
+
 using namespace agent_framework::exceptions;
 
-InvalidField::InvalidField(const std::string& msg, const std::string& field):
-    InvalidParameters{msg},
-    fields{""},
-    message{}
-{
-    append(field);
+const constexpr char InvalidField::FIELD_NAME[];
+const constexpr char InvalidField::FIELD_VALUE[];
+
+
+InvalidField::InvalidField(const std::string& msg, const std::string& field_name, const Json::Value& field_value) :
+    GamiException(ErrorCode::INVALID_FIELD, msg, create_json_data_from_field(field_name, field_value)) {
 }
+
+InvalidField::InvalidField(const ErrorCode error_code, const std::string& msg, const Json::Value& json_data) :
+    GamiException(error_code, msg, json_data) { }
+
 
 InvalidField::~InvalidField() {}
 
-const std::string& InvalidField::get_message() const {
-    return message;
+
+std::string InvalidField::get_field() const {
+    const auto& json_data = GetData();
+    return json_data.isMember(FIELD_NAME) ? json_data[FIELD_NAME].asString() : std::string{};
 }
 
-const std::string& InvalidField::get_path() const {
-    return fields;
+Json::Value InvalidField::create_json_data_from_field(const std::string& field_name, const Json::Value& field_value) {
+    Json::Value json_data{};
+    json_data[InvalidField::FIELD_NAME] = field_name;
+    json_data[InvalidField::FIELD_VALUE] = field_value;
+    return json_data;
 }
 
-void InvalidField::append(const std::string& field) {
-    if ((!fields.empty()) && fields.substr(0, 1) != "[") {
-        fields.insert(0, ".");
+std::string InvalidField::get_field_name_from_json_data(const Json::Value& data, bool should_return_empty) {
+    const auto& field_name = get_string_from_data(data, InvalidField::FIELD_NAME);
+    if(field_name.empty() && !should_return_empty) {
+        return NOT_SPECIFIED;
     }
-    fields.insert(0, field);
-    message = InvalidParameters::get_message() + " (" + fields + ")";
+    return field_name;
 }
 
+std::string InvalidField::get_field_value_from_json_data(const Json::Value& data, bool should_return_empty) {
+    const auto& field_value = get_styled_string_from_data(data, InvalidField::FIELD_VALUE);
+    if(field_value.empty() && !should_return_empty) {
+        return NOT_SPECIFIED;
+    }
+    return field_value;
+}
+
+Json::Value InvalidField::get_field_value_as_json_from_json_data(const Json::Value& data) {
+    return get_json_from_data(data, InvalidField::FIELD_VALUE);
+}

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
 */
 #include "agent-framework/eventing/event_dispatcher.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
-#include "agent-framework/registration/service_uuid.hpp"
+#include "agent-framework/service_uuid.hpp"
 
 #include <jsonrpccpp/client.h>
 #include <jsonrpccpp/client/connectors/httpclient.h>

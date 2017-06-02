@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,7 @@
  * @brief AnyOfValidator interface
  * */
 
-#ifndef CONFIGURATION_ANYOF_VALIDATOR_HPP
-#define CONFIGURATION_ANYOF_VALIDATOR_HPP
+#pragma once
 
 #include "validator.hpp"
 #include "json/json.hpp"
@@ -47,7 +46,7 @@ namespace configuration {
 * @param values container
 * @param delimiter Delimiter
 *
-* @return string objest
+* @return string object
 */
 template <typename T>
 std::string join(const T& values, const char* delimiter = " ") {
@@ -122,7 +121,7 @@ bool AnyOfValidator<T>::is_valid(const json::Value& value) const {
 
 template <typename T>
 std::string AnyOfValidator<T>::get_error() const {
-    return "is not in constraint values: [ " + join(m_constraints) + "]";
+    return "Field is not in constraint values: [ " + join(m_constraints) + "]";
 }
 
 template<>
@@ -157,4 +156,3 @@ std::string AnyOfValidator<std::string>::get_value(const json::Value& value) con
 
 }
 
-#endif /* CONFIGURATION_ANYOF_VALIDATOR_HPP */

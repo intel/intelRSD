@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package com.intel.podm.business.dto.redfish.attributes;
 
 import com.intel.podm.common.types.Status;
 
+import java.math.BigDecimal;
+
 public final class ComposedNodeMemoryDto {
-    private Integer totalSystemMemoryGiB;
+    private BigDecimal totalSystemMemoryGiB;
     private Status status;
 
     private ComposedNodeMemoryDto(Builder builder) {
@@ -31,7 +33,7 @@ public final class ComposedNodeMemoryDto {
         return new Builder();
     }
 
-    public Integer getTotalSystemMemoryGiB() {
+    public BigDecimal getTotalSystemMemoryGiB() {
         return totalSystemMemoryGiB;
     }
 
@@ -40,13 +42,13 @@ public final class ComposedNodeMemoryDto {
     }
 
     public static final class Builder {
-        private Integer totalSystemMemoryGiB;
+        private BigDecimal totalSystemMemoryGiB;
         private Status status;
 
         private Builder() {
         }
 
-        public Builder totalSystemMemoryGiB(Integer totalSystemMemoryGiB) {
+        public Builder totalSystemMemoryGiB(BigDecimal totalSystemMemoryGiB) {
             this.totalSystemMemoryGiB = totalSystemMemoryGiB;
             return this;
         }

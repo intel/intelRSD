@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,15 +26,13 @@
  * */
 #include <ipmb/command/get_drawer_power.hpp>
 
-#include <agent-framework/module-ref/chassis_manager.hpp>
-
-#include <logger/logger_factory.hpp>
-#include <algorithm>
-#include <iostream>
+#include "agent-framework/module/chassis_components.hpp"
+#include "agent-framework/module/common_components.hpp"
 
 using namespace agent::chassis::ipmb::command;
 
-using ChassisComponents = agent_framework::module::ChassisManager;
+using agent_framework::module::ChassisComponents;
+using agent_framework::module::CommonComponents;
 
 GetDrawerPower::~GetDrawerPower() {}
 
@@ -73,19 +71,19 @@ void GetDrawerPower::make_response(DrawerPowerIpmbResponse& response) {
     uint8_t sled_presence_bit_map = 0;
     uint8_t sled_presence_mask = 1;
 
-    auto drawer_manager_keys = ChassisComponents::get_instance()->
+    auto drawer_manager_keys = CommonComponents::get_instance()->
             get_module_manager().get_keys("");
-    auto blade_manager_keys = ChassisComponents::get_instance()->
+    auto blade_manager_keys = CommonComponents::get_instance()->
             get_module_manager().get_keys(drawer_manager_keys.front());
 
     for (const auto& key: blade_manager_keys) {
-        auto manager = ChassisComponents::get_instance()->
+        auto manager = CommonComponents::get_instance()->
                 get_module_manager().get_entry(key);
         if (manager.get_presence()) {
             sled_presence_bit_map = uint8_t(sled_presence_bit_map | sled_presence_mask << (manager.get_slot() - 1));
-            log_debug(LOGUSR, "Sled presence mask: " << sled_presence_mask
-                              << " Sled presence bit map: " << sled_presence_bit_map);
-            auto chassis_keys = ChassisComponents::get_instance()->
+            log_debug(LOGUSR, "Sled presence mask: " << std::to_string(static_cast<uint>(sled_presence_mask))
+                      << " Sled presence bit map: " << std::to_string(static_cast<uint>(sled_presence_bit_map)));
+            auto chassis_keys = CommonComponents::get_instance()->
                     get_chassis_manager().get_keys(manager.get_uuid());
             auto power_zone_keys = ChassisComponents::get_instance()->
                     get_power_zone_manager().get_keys(chassis_keys.front());

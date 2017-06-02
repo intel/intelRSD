@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -107,18 +107,6 @@ std::string Configuration::get_key_file_path(
 }
 
 void Configuration::load_key_file() {
-
-    const char* env = std::getenv(m_default_env_file.c_str());
-    if (nullptr != env) {
-        if (try_load_key_file(env)) {
-            return;
-        }
-    }
-
-    if (try_load_key_file(m_default_file)) {
-        return;
-    }
-
     for (const auto& config_file : m_configuration_files) {
         if (try_load_key_file(config_file)) {
             return;
@@ -187,26 +175,31 @@ const json::Value& Configuration::to_json() {
 
     m_json_configuration = nullptr;
 
-    const auto content_list = create_file_content_list();
+    try {
+        const auto content_list = create_file_content_list();
 
-    for (const auto& content : content_list) {
-        deserializer << content.second;
-        if (deserializer.is_invalid()) {
-            auto error = deserializer.get_error();
-            throw std::runtime_error("Configuration parsing " + content.first
-                    + " error " + std::string(error.decode())
-                    + " at line " + std::to_string(error.line)
-                    + " in " + std::to_string(error.column));
-        }
-        deserializer >> value;
+        for (const auto& content : content_list) {
+            deserializer << content.second;
+            if (deserializer.is_invalid()) {
+                auto error = deserializer.get_error();
+                throw std::runtime_error("Configuration parsing " + content.first
+                                                       + " error " + std::string(error.decode())
+                                                       + " at line " + std::to_string(error.line)
+                                                       + " in " + std::to_string(error.column));
+            }
+            deserializer >> value;
 
-        if( "default" != content.first ) {
-            update_json(m_json_configuration, value);
+            if( "default" != content.first ) {
+                update_json(m_json_configuration, value);
+            }
+            else {
+                std::string json_path = std::string("<configuration>");
+                update_json_with_defaults(m_json_configuration, value, json_path);
+            }
         }
-        else {
-            std::string json_path = std::string("<configuration>");
-            update_json_with_defaults(m_json_configuration, value, json_path);
-        }
+    } catch (const std::exception& e) {
+        log_error(GET_LOGGER("configuration"), e.what());
+        std::exit(-1);
     }
 
     return m_json_configuration;

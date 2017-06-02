@@ -105,7 +105,7 @@ Number::operator Uint64() const {
         break;
     }
 
-    return Uint(value);
+    return value;
 }
 
 Number::operator Int64() const {
@@ -171,10 +171,10 @@ bool json::operator==(const Number& num1, const Number& num2) {
 
     switch (num1.get_type()) {
     case Number::Type::INT:
-        result = (num1.m_int == Int(num2));
+        result = (num1.m_int == Int64(num2));
         break;
     case Number::Type::UINT:
-        result = (num1.m_uint == Uint(num2));
+        result = (num1.m_uint == Uint64(num2));
         break;
     case Number::Type::DOUBLE:
         result = std::fabs(num1.m_double - Double(num2)) <

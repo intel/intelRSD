@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,48 +39,49 @@ void IpmiMessage::set_data(const uint8_t* data, const uint16_t len) {
     }
 }
 
-void IpmiMessage::to_rsp_buffer(uint8_t* buffer) {
-    if (buffer) {
-        buffer[IPMB_OFFSET_DEST_ADDR] = get_dest();
-        if (m_is_request) {
-            buffer[IPMB_OFFSET_NETFN_DLUN] = IPMI_MSG_SET_REQ_NETFN_DLUN(get_netfn(), get_dlun());
-        }
-        else {
-            buffer[IPMB_OFFSET_NETFN_DLUN] = IPMI_MSG_SET_RSP_NETFN_DLUN(get_netfn(), get_dlun());
-        }
-        buffer[IPMB_OFFSET_HDR_CHCKSUM] = get_h_chcksum();
-        buffer[IPMB_OFFSET_SRC_ADDR] = get_src();
-        buffer[IPMB_OFFSET_SEQ_SLUN] = IPMI_MSG_SET_SEQ_SLUN(get_seq(), get_slun());
-        buffer[IPMB_OFFSET_CMD] = get_cmd();
+std::vector<uint8_t> IpmiMessage::as_byte_array() {
+    std::vector<uint8_t> buffer(get_len());
 
-        auto data = get_data();
-
-        if (uint8_t(CompletionCode::CC_OK) != data[0]) {
-            buffer[IPMB_OFFSET_DATA] = data[0];
-
-            buffer[IPMB_OFFSET_DATA_CHCKSUM] = utils::ipmi_checksum(&buffer[IPMB_OFFSET_SRC_ADDR],
-                    uint16_t(IPMB_ERR_FRAM_PAYLOAD_SIZE));
-            m_len = IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN + 1;
-        }
-        else {
-            for (uint16_t i = 0; i < get_len() - IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN; i++) {
-                buffer[IPMB_OFFSET_DATA + i] = data[i];
-            }
-
-            // To find data paylaod size, we have to substract SlaveAddres,
-            // NetFunction/DestLUN, HeaderChecksum and DataChecksum bytes (4)
-            // from full frame size.
-            buffer[get_len() - 1] = utils::ipmi_checksum(&buffer[IPMB_OFFSET_SRC_ADDR], uint16_t(get_len() - 4));
-        }
-        buffer[IPMB_OFFSET_HDR_CHCKSUM] = utils::ipmi_checksum(buffer, IPMI_MSG_HEADER_SIZE);
-
+    buffer[IPMB_OFFSET_DEST_ADDR] = get_dest();
+    if (m_is_request) {
+        buffer[IPMB_OFFSET_NETFN_DLUN] = IPMI_MSG_SET_REQ_NETFN_DLUN(get_netfn(), get_dlun());
     }
+    else {
+        buffer[IPMB_OFFSET_NETFN_DLUN] = IPMI_MSG_SET_RSP_NETFN_DLUN(get_netfn(), get_dlun());
+    }
+    buffer[IPMB_OFFSET_HDR_CHCKSUM] = get_h_chcksum();
+    buffer[IPMB_OFFSET_SRC_ADDR] = get_src();
+    buffer[IPMB_OFFSET_SEQ_SLUN] = IPMI_MSG_SET_SEQ_SLUN(get_seq(), get_slun());
+    buffer[IPMB_OFFSET_CMD] = get_cmd();
+
+    auto data = get_data();
+
+    if (uint8_t(CompletionCode::CC_OK) != data[0]) {
+        buffer[IPMB_OFFSET_DATA] = data[0];
+
+        buffer[IPMB_OFFSET_DATA_CHCKSUM] = utils::ipmi_checksum(&buffer[IPMB_OFFSET_SRC_ADDR],
+                uint16_t(IPMB_ERR_FRAM_PAYLOAD_SIZE));
+        m_len = IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN + 1;
+    }
+    else {
+        for (uint16_t i = 0; i < get_len() - IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN; i++) {
+            buffer[IPMB_OFFSET_DATA + i] = data[i];
+        }
+
+        // To find data paylaod size, we have to substract SlaveAddres,
+        // NetFunction/DestLUN, HeaderChecksum and DataChecksum bytes (4)
+        // from full frame size.
+        buffer[get_len() - 1] = utils::ipmi_checksum(&buffer[IPMB_OFFSET_SRC_ADDR], uint16_t(get_len() - 4));
+    }
+    buffer[IPMB_OFFSET_HDR_CHCKSUM] = utils::ipmi_checksum(buffer.data(), IPMI_MSG_HEADER_SIZE);
+
+    return buffer;
 }
 
 const std::string IpmiMessage::print_msg() const {
     std::string msg_body_string{ "IPMI Message - "};
 
-    if (IPMB_FRAME_HDR_LEN > get_len()) {
+    if (get_len() < IPMB_FRAME_HDR_LEN) {
         msg_body_string += "corrupt as message length(" +
             std::to_string(static_cast<unsigned>(get_len())) + ") < " +
             std::to_string(static_cast<unsigned>(IPMB_FRAME_HDR_LEN));

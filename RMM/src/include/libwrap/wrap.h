@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@
 #define REST_GEO_TAG_LEN        128
 #define REST_PODM_ADDR_LEN      128
 #define REST_ASSET_TAG_LEN      128
+#define REST_RACK_ID_LEN        96
 
 #define RACK_STRING_LEN         64
 #define RACK_TAG_LEN            128
@@ -289,6 +290,11 @@
 #define FAN_U_LOC_STR               U_LOC_STR
 #define FAN_U_HEIGHT_STR            U_HEIGHT_STR
 #define FAN_ONLINE_STATE_STR        WRAP_ONLINE_STATE_STR
+#define FAN_RPM_RATIO_190_PER       190
+#define FAN_RPM_RATIO_110_PER       110
+#define FAN_RPM_RATIO_100_PER       100
+#define FAN_RPM_RATIO_90_PER        90
+#define FAN_RPM_RATIO_10_PER        10
 
 
 #define WRAP_DB_MAX_KEY_LEN         32
@@ -312,7 +318,7 @@
 #define POWER_SUPPLY_OEM_ODATA_TYPE 	            "#RmmPowerZone.PowerSupply"
 #define THERMAL_ZONE_OEM_ODATA_TYPE 	            "#Intel.Oem.RmmThermalZone"
 #define POWER_ZONE_OEM_ODATA_TYPE 	                "#Intel.Oem.RmmPowerZone"
-#define VLAN_NETWORK_INTERFACE_ZONE_OEM_ODATA_TYPE 	"#VLanNetworkInterface.1.0.0.VLanNetworkInterface"
+#define VLAN_NETWORK_INTERFACE_ZONE_OEM_ODATA_TYPE 	"#Intel.Oem.VLanStatus"
 
 typedef enum {
 	ACT_RESET   = 0,
@@ -452,6 +458,7 @@ typedef struct href{
 typedef struct rack_info{
 	base_element_t  be;
 	int64   rack_puid;
+        int8 rack_location_id[REST_RACK_ID_LEN];
 	int8   pod_dcuid[DCUID_LEN];
 	int8   rack_dcuid[RACK_DCUID_LEN];
 	int8   geo_tag[RACK_TAG_LEN];
@@ -468,6 +475,7 @@ typedef struct rack_info{
 typedef struct put_rack_info{
 	int8 descr[REST_DESC_LEN];
 	int64 rack_puid;
+        int8 rack_location_id[REST_RACK_ID_LEN];
 	int8 pod_dcuid[REST_DCUID_LEN];
 	int8 geo_tag[REST_GEO_TAG_LEN];
 	int8 podm_addr[REST_PODM_ADDR_LEN];
@@ -675,8 +683,8 @@ typedef struct listener_base {
 typedef struct evt_listeners {
 	int8 copy_right[COPY_RIGHT_LEN];
 	int8 odata_context[CONTEXT_LEN];
-	int8 odata_id[ODATA_ID_LEN];
 	int8 odata_type[ODATA_TYPE_LEN];
+	int8 odata_id[ODATA_ID_LEN];
 	int8 name[NAME_LEN];
 	int64 num;
 	int8 url[RF_EVENT_MAX_LISTENER_NUM][URL_LEN];
@@ -900,6 +908,8 @@ extern result_t libwrap_get_dzone_by_idx(uint32 dzone_idx, dzone_member_t *dz_me
 extern result_t libwrap_get_drawer_coll(collections_t *drawer, uint32 *number, int8 *host);
 
 extern result_t libwrap_set_memdb_rack_puid();
+
+extern result_t libwrap_get_drawer_power_consumption_by_node_id(memdb_integer drawer_node_id, uint32 *pwr);
 
 extern result_t libwrap_get_drawer_by_idx(int32 dzone_idx, int32 drawer_idx, drawer_member_t *drawer_member, int8 *host);
 

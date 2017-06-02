@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,50 +16,26 @@
 
 package com.intel.podm.mappers.redfish;
 
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
-import com.intel.podm.business.entities.redfish.properties.SimpleStorageDevice;
-import com.intel.podm.client.api.resources.redfish.SimpleStorageDeviceResource;
 import com.intel.podm.client.api.resources.redfish.SimpleStorageResource;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
+import com.intel.podm.mappers.subresources.SimpleStorageDeviceMapper;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Supplier;
 
 @Dependent
-public class SimpleStorageMapper extends DomainObjectMapper<SimpleStorageResource, SimpleStorage> {
+public class SimpleStorageMapper extends EntityMapper<SimpleStorageResource, SimpleStorage> {
     @Inject
-    private GenericDao genericDao;
+    private SimpleStorageDeviceMapper simpleStorageDeviceMapper;
 
     public SimpleStorageMapper() {
         super(SimpleStorageResource.class, SimpleStorage.class);
     }
 
     @Override
-    protected void performNotAutomatedMapping(SimpleStorageResource source, SimpleStorage target) {
-        clearDevices(target.getDevices());
-        addDevices(source.getDevices(), target::addDevice);
-    }
-
-    private void clearDevices(Collection<SimpleStorageDevice> devices) {
-        devices.forEach(genericDao::remove);
-    }
-
-    private void addDevices(List<SimpleStorageDeviceResource> devices, Supplier<SimpleStorageDevice> deviceSupplier) {
-        if (devices == null) {
-            return;
-        }
-
-        devices.forEach(sourceDevice -> {
-            SimpleStorageDevice targetDevice = deviceSupplier.get();
-            targetDevice.setName(sourceDevice.getName());
-            targetDevice.setManufacturer(sourceDevice.getManufacturer());
-            targetDevice.setModel(sourceDevice.getModel());
-            targetDevice.setStatus(sourceDevice.getStatus());
-            targetDevice.setCapacityBytes(sourceDevice.getCapacityBytes());
-        });
+    protected void performNotAutomatedMapping(SimpleStorageResource sourceStorage, SimpleStorage targetStorage) {
+        super.performNotAutomatedMapping(source, target);
+        simpleStorageDeviceMapper.map(sourceStorage.getDevices(), targetStorage.getDevices(), targetStorage::addDevice);
     }
 }

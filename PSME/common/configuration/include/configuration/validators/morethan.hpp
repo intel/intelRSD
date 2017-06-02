@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,7 @@
  * @brief MoreThanValidator interface
  * */
 
-#ifndef CONFIGURATION_MORE_THAN_VALIDATOR_HPP
-#define CONFIGURATION_MORE_THAN_VALIDATOR_HPP
-
+#pragma once
 #include "validator.hpp"
 
 namespace json { class Value; }
@@ -65,4 +63,3 @@ private:
 
 }
 
-#endif /* CONFIGURATION_MORE_THAN_VALIDATOR_HPP */

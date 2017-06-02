@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,9 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.redfish.LuiMemoryResource;
 import com.intel.podm.client.api.resources.redfish.MemoryLocationObject;
 import com.intel.podm.client.api.resources.redfish.MemoryRegionObject;
 import com.intel.podm.client.api.resources.redfish.MemoryResource;
@@ -33,81 +29,115 @@ import com.intel.podm.common.types.MemoryDeviceType;
 import com.intel.podm.common.types.MemoryMedia;
 import com.intel.podm.common.types.MemoryType;
 import com.intel.podm.common.types.OperatingMemoryMode;
+import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.annotations.AsUnassigned;
+import com.intel.podm.common.types.redfish.OemType;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.intel.podm.common.types.Ref.unassigned;
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_EMPTY_COLLECTION;
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
+
 @OdataTypes({
-        "#Memory.1.0.0.Memory",
-        "#Memory.v1_0_0.Memory"
+    "#Memory" + OdataTypes.VERSION_PATTERN + "Memory"
 })
-public class MemoryResourceImpl extends ExternalServiceResourceImpl implements MemoryResource, LuiMemoryResource {
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class MemoryResourceImpl extends ExternalServiceResourceImpl implements MemoryResource {
     @JsonProperty("MemoryType")
-    private MemoryType memoryType;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<MemoryType> memoryType = unassigned();
 
     @JsonProperty("MemoryDeviceType")
-    private MemoryDeviceType memoryDeviceType;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<MemoryDeviceType> memoryDeviceType = unassigned();
 
     @JsonProperty("BaseModuleType")
-    private BaseModuleType baseModuleType;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<BaseModuleType> baseModuleType = unassigned();
 
     @JsonProperty("MemoryMedia")
-    private List<MemoryMedia> memoryMedia;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<MemoryMedia>> memoryMedia = unassigned();
 
     @JsonProperty("CapacityMiB")
-    private Integer capacityMib;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> capacityMib = unassigned();
 
     @JsonProperty("DataWidthBits")
-    private Integer dataWidthBits;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> dataWidthBits = unassigned();
 
     @JsonProperty("BusWidthBits")
-    private Integer busWidthBits;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> busWidthBits = unassigned();
 
     @JsonProperty("Manufacturer")
-    private String manufacturer;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> manufacturer = unassigned();
 
     @JsonProperty("SerialNumber")
-    private String serialNumber;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> serialNumber = unassigned();
 
     @JsonProperty("PartNumber")
-    private String partNumber;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> partNumber = unassigned();
 
     @JsonProperty("AllowedSpeedsMHz")
-    private List<Integer> allowedSpeedsMhz;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<Integer>> allowedSpeedsMhz = unassigned();
 
     @JsonProperty("FirmwareRevision")
-    private String firmwareRevision;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> firmwareRevision = unassigned();
 
     @JsonProperty("FirmwareApiVersion")
-    private String firmwareApiVersion;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> firmwareApiVersion = unassigned();
 
     @JsonProperty("FunctionClasses")
-    private List<String> functionClasses;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<String>> functionClasses = unassigned();
 
-    private String vendorId;
+    @JsonProperty("VendorID")
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> vendorId = unassigned();
 
-    private String deviceId;
+    @JsonProperty("DeviceID")
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> deviceId = unassigned();
 
     @JsonProperty("RankCount")
-    private Integer rankCount;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> rankCount = unassigned();
 
     @JsonProperty("DeviceLocator")
-    private String deviceLocator;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> deviceLocator = unassigned();
 
     @JsonProperty("ErrorCorrection")
-    private ErrorCorrection errorCorrection;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<ErrorCorrection> errorCorrection = unassigned();
 
     @JsonProperty("Status")
-    private Status status;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Status> status = unassigned();
 
-    private Integer operatingSpeedMhz;
+    @JsonProperty("OperatingSpeedMhz")
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> operatingSpeedMhz = unassigned();
 
     @JsonProperty("Regions")
-    private Iterable<MemoryRegionObjectImpl> regions;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<MemoryRegionObjectImpl>> regions = unassigned();
 
     @JsonProperty("OperatingMemoryModes")
-    private List<OperatingMemoryMode> operatingMemoryModes;
+    @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    private Ref<List<OperatingMemoryMode>> operatingMemoryModes = unassigned();
 
     @JsonProperty("MemoryLocation")
     private MemoryLocationObjectImpl memoryLocation;
@@ -115,88 +145,58 @@ public class MemoryResourceImpl extends ExternalServiceResourceImpl implements M
     @JsonProperty("Oem")
     private Oem oem = new Oem();
 
-    @JsonSetter("OperatingSpeedMhz")
-    public void setOperatingSpeedMhz(Integer operatingSpeedMhz) {
-        this.operatingSpeedMhz = operatingSpeedMhz;
-    }
-
-    @JsonSetter("OperatingSpeedMHz")
-    public void setOperatingSpeedMHz(Integer operatingSpeedMhz) {
-        this.operatingSpeedMhz = operatingSpeedMhz;
-    }
-
-    @JsonSetter("VendorId")
-    public void setVendorId(String vendorId) {
-        this.vendorId = vendorId;
-    }
-
-    @JsonSetter("VendorID")
-    public void setVendorID(String vendorId) {
-        this.vendorId = vendorId;
-    }
-
-    @JsonSetter("DeviceId")
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
-    }
-
-    @JsonSetter("DeviceID")
-    public void setDeviceID(String deviceId) {
-        this.deviceId = deviceId;
-    }
-
     @Override
-    public MemoryType getMemoryType() {
+    public Ref<MemoryType> getMemoryType() {
         return memoryType;
     }
 
     @Override
-    public MemoryDeviceType getMemoryDeviceType() {
+    public Ref<MemoryDeviceType> getMemoryDeviceType() {
         return memoryDeviceType;
     }
 
     @Override
-    public BaseModuleType getBaseModuleType() {
+    public Ref<BaseModuleType> getBaseModuleType() {
         return baseModuleType;
     }
 
     @Override
-    public List<MemoryMedia> getMemoryMedia() {
+    public Ref<List<MemoryMedia>> getMemoryMedia() {
         return memoryMedia;
     }
 
     @Override
-    public Integer getCapacityMib() {
+    public Ref<Integer> getCapacityMib() {
         return capacityMib;
     }
 
     @Override
-    public Integer getDataWidthBits() {
+    public Ref<Integer> getDataWidthBits() {
         return dataWidthBits;
     }
 
     @Override
-    public Integer getBusWidthBits() {
+    public Ref<Integer> getBusWidthBits() {
         return busWidthBits;
     }
 
     @Override
-    public String getManufacturer() {
+    public Ref<String> getManufacturer() {
         return manufacturer;
     }
 
     @Override
-    public String getSerialNumber() {
+    public Ref<String> getSerialNumber() {
         return serialNumber;
     }
 
     @Override
-    public String getPartNumber() {
+    public Ref<String> getPartNumber() {
         return partNumber;
     }
 
     @Override
-    public List<Integer> getAllowedSpeedsMhz() {
+    public Ref<List<Integer>> getAllowedSpeedsMhz() {
         return allowedSpeedsMhz;
     }
 
@@ -206,65 +206,62 @@ public class MemoryResourceImpl extends ExternalServiceResourceImpl implements M
     }
 
     @Override
-    public String getFirmwareRevision() {
+    public Ref<String> getFirmwareRevision() {
         return firmwareRevision;
     }
 
     @Override
-    public String getFirmwareApiVersion() {
+    public Ref<String> getFirmwareApiVersion() {
         return firmwareApiVersion;
     }
 
     @Override
-    public List<String> getFunctionClasses() {
+    public Ref<List<String>> getFunctionClasses() {
         return functionClasses;
     }
 
     @Override
-    @JsonGetter("vendorId")
-    public String getVendorId() {
+    public Ref<String> getVendorId() {
         return vendorId;
     }
 
     @Override
-    @JsonGetter("deviceId")
-    public String getDeviceId() {
+    public Ref<String> getDeviceId() {
         return deviceId;
     }
 
     @Override
-    public Integer getRankCount() {
+    public Ref<Integer> getRankCount() {
         return rankCount;
     }
 
     @Override
-    public String getDeviceLocator() {
+    public Ref<String> getDeviceLocator() {
         return deviceLocator;
     }
 
     @Override
-    public ErrorCorrection getErrorCorrection() {
+    public Ref<ErrorCorrection> getErrorCorrection() {
         return errorCorrection;
     }
 
     @Override
-    public Status getStatus() {
+    public Ref<Status> getStatus() {
         return status;
     }
 
     @Override
-    @JsonGetter("operatingSpeedMhz")
-    public Integer getOperatingSpeedMhz() {
+    public Ref<Integer> getOperatingSpeedMhz() {
         return operatingSpeedMhz;
     }
 
     @Override
-    public Iterable<MemoryRegionObject> getRegions() {
-        return (Iterable) regions;
+    public Ref<List<MemoryRegionObject>> getRegions() {
+        return (Ref) regions;
     }
 
     @Override
-    public List<OperatingMemoryMode> getOperatingMemoryModes() {
+    public Ref<List<OperatingMemoryMode>> getOperatingMemoryModes() {
         return operatingMemoryModes;
     }
 
@@ -275,19 +272,19 @@ public class MemoryResourceImpl extends ExternalServiceResourceImpl implements M
     }
 
     @Override
-    public BigDecimal getVoltageVolt() {
+    public Ref<BigDecimal> getVoltageVolt() {
         return oem.rackScaleOem.voltageVolt;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class Oem {
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOem {
         @JsonProperty("Intel_RackScale")
         private RackScaleOem rackScaleOem = new RackScaleOem();
 
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        private static final class RackScaleOem {
+        public class RackScaleOem {
             @JsonProperty("VoltageVolt")
-            private BigDecimal voltageVolt;
+            @AsUnassigned(WHEN_NULL)
+            private Ref<BigDecimal> voltageVolt = unassigned();
         }
     }
 }

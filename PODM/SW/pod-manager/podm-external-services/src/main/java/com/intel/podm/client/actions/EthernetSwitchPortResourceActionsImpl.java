@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package com.intel.podm.client.actions;
 
-import com.intel.podm.client.WebClientImpl;
-import com.intel.podm.client.actions.requests.CreateVlanRequestJson;
 import com.intel.podm.client.api.ExternalServiceApiActionException;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.WebClient;
@@ -25,38 +23,15 @@ import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActions;
 import com.intel.podm.client.api.actions.EthernetSwitchPortResourceCreationRequest;
 import com.intel.podm.client.api.actions.EthernetSwitchPortResourceModificationRequest;
 import com.intel.podm.client.api.resources.redfish.EthernetSwitchPortResource;
-import com.intel.podm.client.api.resources.redfish.EthernetSwitchPortVlanResource;
 
 import java.net.URI;
-
-import static java.net.URI.create;
 
 public class EthernetSwitchPortResourceActionsImpl implements EthernetSwitchPortResourceActions {
 
     private WebClient webClient;
 
-    public EthernetSwitchPortResourceActionsImpl(URI baseUri) {
-        this.webClient = WebClientImpl.createRetryable(baseUri);
-    }
-
-    @Override
-    public URI createVlan(URI switchPortUri, int vlanId, boolean tagged) throws ExternalServiceApiActionException {
-        URI vlanCollectionUri = create(switchPortUri + "/VLANs");
-        return webClient.post(vlanCollectionUri, new CreateVlanRequestJson(vlanId, tagged));
-    }
-
-    @Override
-    public EthernetSwitchPortVlanResource getVlan(URI vlanUri) throws ExternalServiceApiReaderException {
-        if (vlanUri == null) {
-            throw new ExternalServiceApiReaderException("Could not read vlan", null);
-        }
-
-        return (EthernetSwitchPortVlanResource) webClient.get(vlanUri);
-    }
-
-    @Override
-    public void deleteVlan(URI vlanUri) throws ExternalServiceApiActionException {
-        webClient.delete(vlanUri);
+    EthernetSwitchPortResourceActionsImpl(WebClient webClient) {
+        this.webClient = webClient;
     }
 
     @Override
@@ -83,5 +58,10 @@ public class EthernetSwitchPortResourceActionsImpl implements EthernetSwitchPort
     @Override
     public void deleteSwitchPort(URI switchPortUri) throws ExternalServiceApiActionException {
         webClient.delete(switchPortUri);
+    }
+
+    @Override
+    public void close() {
+        webClient.close();
     }
 }

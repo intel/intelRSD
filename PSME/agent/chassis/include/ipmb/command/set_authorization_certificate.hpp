@@ -1,7 +1,7 @@
 /*!
  * @section LICENSE
  *
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,7 @@
  * @brief SetAuthorizationCertificate IPMI command.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_COMMAND_SET_AUTHORIZATION_CERTIFICATE_HPP
-#define AGENT_CHASSIS_IPMB_COMMAND_SET_AUTHORIZATION_CERTIFICATE_HPP
-
+#pragma once
 #include <ipmb/command/command.hpp>
 #include "ipmb/certificate_manager.hpp"
 
@@ -190,5 +188,4 @@ private:
 }
 }
 }
-#endif /* AGENT_CHASSIS_IPMB_COMMAND_GET_AGGREGATED_HEALTH_SENSOR_HPP */
 

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,27 +16,9 @@
 #
 # </license_header>
 
-if (NOT UUID_FOUND)
-    find_file(uuid_library libuuid++.so
-        PATHS ${CMAKE_BINARY_DIR}/lib
-    )
-    find_library(uuid_library uuid++ NAMES ossp-uuid++)
-    find_path(uuid_include uuid++.hh
-        PATHS ${CMAKE_BINARY_DIR}/include
-    )
-
-    if (uuid_library AND uuid_include)
-        add_library(uuid++ IMPORTED SHARED)
-        set_target_properties(uuid++ PROPERTIES
-            IMPORTED_LOCATION ${uuid_library}
-        )
-
-        get_filename_component(UUID_LIBRARY_DIRS ${uuid_library}
-            DIRECTORY
-        )
-
-        set(UUID_LIBRARIES uuid++)
-        set(UUID_INCLUDE_DIRS ${uuid_include})
-        set(UUID_FOUND TRUE)
-    endif()
+if (CMAKE_CROSSCOMPILING)
+    find_package_local(UUID uuid uuid++)
+else()
+    # code depends on uuid-c++-devel.. but dependency is not included in .pc file
+    find_package_local(UUID ossp-uuid ossp-uuid++)
 endif()

@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,8 @@ int libutils_net_get_ip(const char *ifname, char *ip, int len)
 	return 0;
 }
 
+
+
 int libutils_net_get_ifname(const char *ip, char *ifname, int len)
 {
 	DIR *dir;
@@ -69,7 +71,7 @@ int libutils_net_get_ifname(const char *ip, char *ifname, int len)
 
 	bzero(ip_addr, sizeof(ip_addr));
 	if(strstr(ip, ":")) {
-		sscanf(ip, "%[^:]:%*s", ip_addr);
+		sscanf(ip, "%15[^:]:%*s", ip_addr);
 	}
 
 	if ((dir=opendir("/sys/class/net")) == NULL) {
@@ -104,7 +106,7 @@ int libutils_net_get_gateway(const char *ifname, char *gateway, int len)
 	FILE *fp;
 	int8 buf[256];
 	int8 iface[16];
-	int dest_addr, gw;
+	uint dest_addr, gw;
 
 	fp = fopen("/proc/net/route", "r");
 	if (fp == NULL)
@@ -118,7 +120,7 @@ int libutils_net_get_gateway(const char *ifname, char *gateway, int len)
 	fgets(buf, sizeof(buf), fp);
 
 	while (fgets(buf, sizeof(buf), fp)) {
-		if (sscanf(buf, "%s\t%X\t%X", iface, &dest_addr, &gw) == 3) {
+		if (sscanf(buf, "%15s\t%X\t%X", iface, &dest_addr, &gw) == 3) {
 			if (strncmp(iface, ifname, strnlen_s(ifname, RSIZE_MAX_STR)) == 0) {
 				snprintf_s_iiii(gateway, 16, "%d.%d.%d.%d", gw&0xff, (gw>>8)&0xff, (gw>>16)&0xff, (gw>>24)&0xff);
 				if (strncmp(gateway, "0.0.0.0", strnlen_s("0.0.0.0", RSIZE_MAX_STR)) == 0)
@@ -133,12 +135,46 @@ int libutils_net_get_gateway(const char *ifname, char *gateway, int len)
 	return 0;
 }
 
+int libutils_net_get_origin(const char *ifname, char *origin) {
+	FILE *fp;
+	char line[256];
+	const char origin_dhcp[] = "DHCP";
+	const char origin_static[] = "Static";
+
+	fp = fopen("/etc/network/interfaces", "r");
+	if (fp == NULL)
+		return -1;
+
+	while (fgets(line, sizeof(line), fp)) {
+		char  iface_str[65] = {0};
+		char      iface[65] = {0};
+		char   inet_str[65] = {0};
+		char origin_str[65] = {0};
+		if (sscanf(line, "%64s %64s %64s %64s",
+			   iface_str, iface, inet_str, origin_str) == 4) {
+			if (strncmp(iface, ifname, strlen(ifname)) == 0 &&
+				strncmp(iface_str, "iface", strlen(ifname)) == 0 &&
+				strncmp(inet_str, "inet", strlen(ifname)) == 0) {
+				if (strncmp(origin_str, "static", strnlen_s(origin_str, RSIZE_MAX_STR)) == 0) {
+					strncpy_s(origin, sizeof(origin_static), origin_static, sizeof(origin_static));
+					fclose(fp);
+					return 0;
+				}
+			}
+		}
+	}
+	//Let`s assume that DHCP is the default value
+	strncpy_s(origin, sizeof(origin_dhcp), origin_dhcp, sizeof(origin_dhcp));
+	fclose(fp);
+	return 0;
+}
+
 int libutils_net_get_mask(const char *ifname, char *net_mask, int len)
 {
 	FILE *fp;
 	int8 buf[256];
 	int8 iface[16];
-	int dest_addr, mask, tmp;
+	unsigned int dest_addr = 0, mask = 0, tmp = 0;
 
 	fp = fopen("/proc/net/route", "r");
 	if (fp == NULL)
@@ -152,7 +188,7 @@ int libutils_net_get_mask(const char *ifname, char *net_mask, int len)
 	fgets(buf, sizeof(buf), fp);
 
 	while (fgets(buf, sizeof(buf), fp)) {
-		if (sscanf(buf, "%s\t%X\t%X\t%X\t%X\t%X\t%X\t%X", iface, &dest_addr, &tmp, &tmp, &tmp, &tmp, &tmp, &mask) == 8) {
+		if (sscanf(buf, "%15s\t%X\t%X\t%X\t%X\t%X\t%X\t%X", iface, &dest_addr, &tmp, &tmp, &tmp, &tmp, &tmp, &mask) == 8) {
 			if (strncmp(iface, ifname, strnlen_s(ifname, RSIZE_MAX_STR)) == 0) {
 				snprintf_s_iiii(net_mask, len, "%d.%d.%d.%d",mask&0xff, (mask>>8)&0xff, (mask>>16)&0xff, (mask>>24)&0xff);
 				if (strncmp(net_mask, "0.0.0.0", strnlen_s("0.0.0.0", RSIZE_MAX_STR)) == 0)

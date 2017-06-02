@@ -1,5 +1,0 @@
-#!/bin/bash
-service psme-storage stop
-if [ -f /etc/init/psme-storage.conf ]; then
-        rm /etc/init/psme-storage.conf
-fi

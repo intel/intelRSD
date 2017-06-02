@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,22 @@
 
 package com.intel.podm.redfish.json.templates;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.common.types.redfish.OemType;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.util.UUID;
 
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
+
 @JsonPropertyOrder({
     "@odata.context", "@odata.id", "@odata.type", "id", "name", "redfishVersion", "UUID",
-        "chassis", "services", "systems", "managers", "eventService", "nodes", "ethernetSwitches", "oem", "links"
+    "chassis", "services", "systems", "managers", "eventService", "nodes", "ethernetSwitches",
+    "fabrics", "oem", "links"
 })
-@JsonIgnoreProperties("modified")
-public final class ServiceRootJson extends BaseJson {
-    public String id;
-    public String name;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public final class ServiceRootJson extends BaseResourceJson {
     public String redfishVersion;
     @JsonProperty("UUID")
     public UUID uuid;
@@ -41,23 +42,28 @@ public final class ServiceRootJson extends BaseJson {
     public ODataId nodes;
     public ODataId ethernetSwitches;
     public ODataId eventService;
+    public ODataId fabrics;
     public Oem oem = new Oem();
-    public Object links = new Object();
+    public Links links = new Links();
 
     public ServiceRootJson() {
-        super("#ServiceRoot.1.0.0.ServiceRoot");
+        super("#ServiceRoot.v1_1_1.ServiceRoot");
     }
 
-    public static final class Oem {
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOemJson {
         @JsonProperty("Intel_RackScale")
         public RackScaleOem rackScaleOem = new RackScaleOem();
 
         @JsonPropertyOrder({"oDataType", "apiVersion"})
-        public static final class RackScaleOem {
+        public final class RackScaleOem {
             @JsonProperty("@odata.type")
             public String oDataType = "#Intel.Oem.ServiceRoot";
-            public String apiVersion = "1.2.0";
+            public String apiVersion = "2.0.0";
         }
+    }
+
+    public class Links extends RedfishLinksJson {
     }
 }
 

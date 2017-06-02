@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.redfish.json.templates.actions.AllocateActionJson;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "name", "Members@odata.count", "members", "actions"})
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public final class ComposedNodeCollectionJson extends BaseJson {
     public String name;
     public final List<ODataId> members = new ArrayList<>();
@@ -41,6 +41,11 @@ public final class ComposedNodeCollectionJson extends BaseJson {
 
     public static final class Actions {
         @JsonProperty("#ComposedNodeCollection.Allocate")
-        public AllocateActionJson allocateActionJson = new AllocateActionJson();
+        public AllocateAction allocate = new AllocateAction();
+
+        public static final class AllocateAction {
+            @JsonProperty("target")
+            public String target;
+        }
     }
 }

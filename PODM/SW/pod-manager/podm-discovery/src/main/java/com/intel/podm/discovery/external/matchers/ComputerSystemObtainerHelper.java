@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package com.intel.podm.discovery.external.matchers;
 
-import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
+import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
 
@@ -27,20 +27,19 @@ import java.util.Optional;
 import static java.util.Optional.of;
 
 @Dependent
-public class ComputerSystemObtainerHelper implements DomainObjectObtainerHelper<ComputerSystemResource> {
-
+public class ComputerSystemObtainerHelper implements EntityObtainerHelper<ComputerSystemResource> {
     @Override
     public ComputerSystemResource findComputerSystemResourceFor(ComputerSystemResource resource) throws ExternalServiceApiReaderException {
         return resource;
     }
 
     @Override
-    public Optional<ComputerSystem> findDomainObjectFor(ComputerSystem computerSystem, ComputerSystemResource resource) {
+    public Optional<ComputerSystem> findEntityFor(ComputerSystem computerSystem, ComputerSystemResource resource) {
         return of(computerSystem);
     }
 
     @Override
-    public Class<? extends DomainObject> getDomainObjectClass() {
+    public Class<? extends Entity> getEntityClass() {
         return ComputerSystem.class;
     }
 

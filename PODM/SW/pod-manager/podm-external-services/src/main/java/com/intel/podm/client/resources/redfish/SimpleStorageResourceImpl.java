@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,20 +23,18 @@ import com.intel.podm.client.api.resources.redfish.SimpleStorageResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.common.types.Status;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @OdataTypes({
-        "#SimpleStorage.1.0.0.SimpleStorage",
-        "#SimpleStorage.1.1.0.SimpleStorage",
-        "#SimpleStorage.v1_0_0.SimpleStorage",
-        "#SimpleStorage.v1_1_0.SimpleStorage"
+        "#SimpleStorage" + OdataTypes.VERSION_PATTERN + "SimpleStorage"
 })
 public class SimpleStorageResourceImpl extends ExternalServiceResourceImpl implements SimpleStorageResource {
     @JsonProperty("UEFIDevicePath")
-    String uefiDevicePath;
+    private String uefiDevicePath;
 
     @JsonProperty("Devices")
-    private List<SimpleStorageDeviceResourceImpl> devices;
+    private List<SimpleStorageDeviceResourceImpl> devices = new ArrayList<>();
 
     @JsonProperty("Status")
     private Status status;

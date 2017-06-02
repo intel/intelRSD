@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.intel.podm.redfish.resources.context;
 
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.context.ContextType;
+import com.intel.podm.business.services.context.ParamNameContextTypeMapper;
 import com.intel.podm.common.types.Id;
 
 import java.util.LinkedHashMap;
@@ -25,10 +26,11 @@ import java.util.Map;
 
 import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.Context.isAcceptableChildOf;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
 
 public final class ContextBuilder {
-    private final ParamNameToContextTypeMapper mapper = new ParamNameToContextTypeMapper();
+    private final ParamNameContextTypeMapper mapper = new ParamNameContextTypeMapper();
 
     private final LinkedHashMap<String, Id> params = new LinkedHashMap<>();
 
@@ -38,9 +40,7 @@ public final class ContextBuilder {
             throw new IllegalArgumentException(msg);
         }
 
-        if (value == null) {
-            throw new IllegalArgumentException("value must not be null");
-        }
+        requiresNonNull(value, "value");
 
         params.put(paramName, value);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,30 +17,26 @@ package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.common.types.DriveType;
-import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.MediaType;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.StorageControllerInterface;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @JsonPropertyOrder({
     "@odata.context", "@odata.id", "@odata.type", "id", "name", "description",
     "controllerInterface", "capacityGib", "type", "rpm", "manufacturer",
     "model", "serialNumber", "firmwareVersion", "status", "oem", "links"
 })
-public final class PhysicalDriveJson extends BaseJson {
-    public Id id;
-    public String name;
-    public String description;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public final class PhysicalDriveJson extends BaseResourceJson {
     @JsonProperty("Interface")
     public StorageControllerInterface controllerInterface;
     @JsonProperty("CapacityGiB")
-    public BigDecimal capacityGib;
-    public DriveType type;
+    public Float capacityGib;
+    public MediaType type;
     @JsonProperty("RPM")
     public Integer rpm;
     public String manufacturer;
@@ -48,17 +44,13 @@ public final class PhysicalDriveJson extends BaseJson {
     public String serialNumber;
     public Status status;
     public final Links links = new Links();
-    public final Object oem = new Object();
 
     public PhysicalDriveJson() {
-        super("#PhysicalDrive.1.0.0.PhysicalDrive");
+        super("#PhysicalDrive.v1_0_0.PhysicalDrive");
     }
 
-    @JsonPropertyOrder({
-      "usedBy", "oem"
-    })
-    public static final class Links {
-        public Collection<ODataId> usedBy = new ArrayList<>();
-        public Object oem = new Object();
+    @JsonPropertyOrder({"usedBy", "oem"})
+    public class Links extends RedfishLinksJson {
+        public Set<ODataId> usedBy = new HashSet<>();
     }
 }

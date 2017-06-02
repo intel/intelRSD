@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,14 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/network/get_manager_info.hpp"
-#include "agent-framework/command/network/json/get_manager_info.hpp"
+#include "agent-framework/module/constants/network.hpp"
+#include "agent-framework/module/network_components.hpp"
+#include "agent-framework/command-ref/network_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 using namespace agent_framework::model;
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 
 static constexpr enums::SerialConsoleParity TEST_PARITY
     { enums::SerialConsoleParity::None };
@@ -38,19 +38,18 @@ static constexpr enums::SerialConsoleFlowControl TEST_FLOW
 static constexpr enums::SerialConsolePinOut TEST_PIN
     { enums::SerialConsolePinOut::Cisco };
 
-class GetManagerInfo : public network::GetManagerInfo {
+class MyGetManagerInfo {
 private:
     std::string m_component{};
 public:
-    GetManagerInfo(const std::string& component) { m_component = component; }
+    MyGetManagerInfo(const std::string& component) { m_component = component; }
 
-    using network::GetManagerInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto uuid = request.get_manager();
+    void execute(const GetManagerInfo::Request& request,
+                 GetManagerInfo::Response& response) {
+        auto uuid = request.get_uuid();
 
         if (uuid != m_component) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not Found");
         }
 
         attribute::SerialConsole serial_console{};
@@ -66,26 +65,26 @@ public:
         manager.set_firmware_version("Test Firmware Version");
         manager.set_ipv4_address("127.0.0.1");
         manager.set_serial_console(serial_console);
-        response.set_manager(manager);
+        response = manager;
     }
 
-    virtual ~GetManagerInfo();
+    virtual ~MyGetManagerInfo();
 };
 
-GetManagerInfo::~GetManagerInfo() { }
+MyGetManagerInfo::~MyGetManagerInfo() { }
 
 TEST(GetManagerInfoTest, PositiveExecute) {
-    network::json::GetManagerInfo command_json;
-    GetManagerInfo* command = new GetManagerInfo("TestModuleId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetManagerInfo command{"TestModuleId"};
+    GetManagerInfo::Request request{""};
+    GetManagerInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Manager::MANAGER] = "TestModuleId";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetManagerInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::Manager::FIRMWARE_VERSION].isString());
@@ -110,15 +109,15 @@ TEST(GetManagerInfoTest, PositiveExecute) {
 }
 
 TEST(GetManagerInfoTest, NegativeModuleNotFound) {
-    network::json::GetManagerInfo command_json;
-    GetManagerInfo* command = new GetManagerInfo("TestModuleId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetManagerInfo command{"TestModuleId"};
+    GetManagerInfo::Request request{""};
+    GetManagerInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Manager::MANAGER] = "OtherTestModuleId";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetManagerInfo::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 }

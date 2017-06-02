@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,7 +81,7 @@ static const struct timeval g_udp_receive_timeout = {
 };
 
 static int logger_stream_open_socket(struct logger_stream *inst,
-        const char *ip_address, size_t port) {
+        const char *ip_address, uint16_t port) {
 
     int err;
     struct logger_stream_setting_socket *sock =
@@ -98,7 +98,7 @@ static int logger_stream_open_socket(struct logger_stream *inst,
     bzero(&server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = inet_addr(ip_address);
-    server_address.sin_port = htons((uint16_t)port);
+    server_address.sin_port = (htons)(port);
     memcpy_s(&sock->address, sizeof(struct sockaddr), &server_address, sizeof(struct sockaddr));
 
     err = logger_stream_add_message(inst, sock, LOGGER_MESSAGE_OPEN);
@@ -111,7 +111,7 @@ static int logger_stream_open_socket(struct logger_stream *inst,
 }
 
 int logger_stream_open_udp(struct logger_stream *inst,
-        const char *ip_address, size_t port) {
+        const char *ip_address, uint16_t port) {
     logger_assert(NULL != inst);
     logger_assert(NULL != ip_address);
     if (LOGGER_STREAM_UDP != inst->type) return LOGGER_ERROR_TYPE;
@@ -119,7 +119,7 @@ int logger_stream_open_udp(struct logger_stream *inst,
 }
 
 int logger_stream_open_tcp(struct logger_stream *inst,
-        const char *ip_address, size_t port) {
+        const char *ip_address, uint16_t port) {
     logger_assert(NULL != inst);
     logger_assert(NULL != ip_address);
     if (LOGGER_STREAM_TCP != inst->type) return LOGGER_ERROR_TYPE;

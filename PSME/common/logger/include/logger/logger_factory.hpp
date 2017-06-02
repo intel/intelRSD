@@ -1,46 +1,41 @@
 /*!
- * @section LICENSE
+ * @brief Collection of configured loggers
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Keeps mapping 'name' to 'logger' with default and "system" loggers.
+ * Default one is used when requested (by name) doesn't exist. System one
+ * exists always (is configuration agnostic).
  *
- * @copyright
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
- * */
+ * @header{Files}
+ * @file logger_factory.hpp
+ */
 
-#ifndef PSME_LOGGER_FACTORY_HPP
-#define PSME_LOGGER_FACTORY_HPP
-
+#pragma once
 #include "logger/stream.hpp"
 #include "logger/logger.hpp"
 
 #include <unordered_map>
 
-#define LOGUSR \
-    logger_cpp::LoggerFactory::instance().get_logger(( \
-                logger_cpp::LoggerFactory::get_main_logger_name()))
-
-#define GET_LOGGER(name) \
-    logger_cpp::LoggerFactory::instance().get_logger((name))
-
-namespace json { class Value; }
-
 namespace logger_cpp {
+
+/*!
+ * @brief Name of global logger.
+ *
+ * Logger with that name always exists, doesn't have to be configured.
+ * It is used for logging when no application (configured) logger is requested.
+ */
+constexpr const char* GLOBAL_LOGGER_NAME = "usr";
 
 /*!
  * @brief The LoggerFactory class manage all loggers in application
@@ -64,18 +59,44 @@ public:
     void set_loggers(const loggers_t& loggers);
 
     /*!
+     * @brief get all defined loggers (for application)
+     * @return vector with defined loggers
+     */
+    std::vector<LoggerSPtr> get_loggers(void) const;
+
+    /*!
+     * @brief get_logger Return logger object for given name
+     * @param[in] name Logger name, nullptr is allowed
+     * @param[in] only_defined if logger isn't defined return NULL instead of app one
+     * @return If name exists in loggers map, module logger is returned,
+     * otherwise return global logger for NULL.
+     */
+    LoggerSPtr get_logger(const char* name, bool only_defined = false) const;
+
+    /*!
      * @brief get_logger Return logger object for given name
      * @param[in] name Logger name
+     * @param[in] only_defined if logger isn't defined return NULL instead of app one
      * @return If name exists in loggers map, module logger is returned,
-     * otherwise global logger is returned
+     * otherwise application logger is returned
      */
-    Logger* get_logger(const std::string& name) const;
+    LoggerSPtr get_logger(const std::string& name, bool only_defined = false) const;
+
+    /*!
+     * @brief Get logger
+     *
+     * Dumb method to handle overloaded calls (from log_xxx() macro).
+     *
+     * @param logger Shared pointer to logger
+     * @return logger argument
+     */
+    LoggerSPtr get_logger(LoggerSPtr logger) const;
 
     /*!
      * @brief global_logger Get global logger object
      * @return Global logger object for application
      */
-    static Logger* global_logger();
+    static LoggerSPtr global_logger();
 
     /*!
      * @brief Get global stream object
@@ -100,7 +121,8 @@ public:
      *
      * @return logger name
      */
-    static std::string get_main_logger_name();
+    static const char* get_main_logger_name();
+
 private:
     LoggerFactory();
     ~LoggerFactory() = default;
@@ -110,12 +132,11 @@ private:
     loggers_t m_loggers;
 
     static LoggerFactory* g_logger_factory;
-    static Logger* g_global_logger;
-    static StreamSPtr* g_global_stream;
+    static LoggerSPtr g_global_logger;
+    static StreamSPtr g_global_stream;
 
     static const char* g_main_logger_name;
 };
 
 }
 
-#endif /* PSME_LOGGER_FACTORY_HPP  */

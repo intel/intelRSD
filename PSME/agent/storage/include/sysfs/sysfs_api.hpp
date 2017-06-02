@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief C++ wrapper for libsysfs
  * */
 
-#ifndef PSME_STORAGE_SYSFS_API_HPP
-#define PSME_STORAGE_SYSFS_API_HPP
-
+#pragma once
 #include <vector>
 #include <string>
 #include <memory>
@@ -362,7 +360,7 @@ private:
 
     void m_trim(string& input_string);
 
-    static constexpr double SECTORS_TO_GB = 512.0 / (1000.0 * 1000.0 * 1000.0); // a sector has 512 Bytes
+    static constexpr double SECTORS_TO_GB = 512.0 / (1000.0 * 1000.0 * 1000.0) ; // a sector has 512 B
     static constexpr const char ROOT_FS[] = "/";
     static constexpr const char BOOT_FS[] = "/boot";
 
@@ -372,5 +370,4 @@ private:
 }
 }
 }
-#endif	/* PSME_STORAGE_SYSFS_API_HPP */
 

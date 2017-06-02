@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,49 +22,54 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/module-ref/network_manager.hpp"
+#include "agent-framework/module/network_components.hpp"
 #include "agent-framework/command-ref/registry.hpp"
 #include "agent-framework/command-ref/network_commands.hpp"
 #include "api/acl.hpp"
-#include "hw/fm10000/network_controller_manager.hpp"
 
 #include <stdexcept>
+
+
 
 using namespace agent_framework::command_ref;
 using namespace agent_framework::module;
 using namespace agent_framework;
 using namespace agent::network;
-using namespace agent::network::hw::fm10000;
 
 namespace {
-    void delete_acl_rule(const DeleteAclRule::Request& request,
-                         DeleteAclRule::Response&) {
-        auto network_manager = NetworkManager::get_instance();
-        auto& rule_manager = network_manager->get_acl_rule_manager();
-        auto controller = NetworkControllerManager::get_network_controller();
+void delete_acl_rule(const DeleteAclRule::Request& request, DeleteAclRule::Response&) {
+    auto network_manager = NetworkComponents::get_instance();
+    auto& rule_manager = network_manager->get_acl_rule_manager();
 
-        // check if given ACL rule UUID exists
-        const string& rule_uuid = request.get_rule();
-        const auto rule = rule_manager.get_entry(rule_uuid);
-        if (!rule.get_rule_id().has_value()) {
-            THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
-                  "Failed to delete ACL rule " + rule_uuid +
-                  ", unknown rule id.");
-        }
-        const auto& acl_uuid = rule.get_parent_uuid();
-
-        try {
-            api::Acl::delete_acl_rule(controller->get_acl_name(acl_uuid),
-                                      uint16_t(rule.get_rule_id()));
-        }
-        catch (const std::runtime_error& e) {
-            THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
-                  "Failed to delete ACL rule " + rule_uuid +
-                  " from switch: " + e.what());
-        }
-
-        rule_manager.remove_entry(rule_uuid);
+    // check if given ACL rule UUID exists
+    const string& rule_uuid = request.get_rule();
+    const auto rule = rule_manager.get_entry(rule_uuid);
+    if (!rule.get_rule_id().has_value()) {
+        log_error(GET_LOGGER("fm10000"),
+                  "Failed to delete ACL because rule ID is unknown for ACL rule: " << rule_uuid);
+        throw agent_framework::exceptions::InvalidValue("Failed to delete ACL rule because rule ID is unknown.");
     }
+
+    const auto& acl_uuid = rule.get_parent_uuid();
+    const auto acl_name = network_manager->get_acl_manager().get_entry(acl_uuid).get_name();
+
+    try {
+        api::Acl::delete_acl_rule(acl_name.value(),
+                                  uint16_t(rule.get_rule_id()));
+    }
+    catch (const std::experimental::bad_optional_access&) {
+        // This code should never execute
+        log_error(GET_LOGGER("fm10000"),
+                  "Failed to delete ACL rule from switch: empty ACL name (memory corruption possible)");
+    }
+    catch (const std::exception& e) {
+        THROW(agent_framework::exceptions::Fm10000Error, "fm10000",
+              "Failed to delete ACL rule from switch: " + std::string(e.what()));
+    }
+
+    rule_manager.remove_entry(rule_uuid);
+}
 }
 
-REGISTER_COMMAND(DeleteAclRule, ::delete_acl_rule);
+REGISTER_COMMAND(DeleteAclRule, ::delete_acl_rule
+);

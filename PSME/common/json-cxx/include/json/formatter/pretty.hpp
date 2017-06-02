@@ -41,9 +41,7 @@
  * @brief JSON formatter interface
  * */
 
-#ifndef JSON_CXX_FORMATTER_PRETTY_HPP
-#define JSON_CXX_FORMATTER_PRETTY_HPP
-
+#pragma once
 #include "json/formatter.hpp"
 #include "json/formatter/compact.hpp"
 
@@ -89,4 +87,3 @@ private:
 }
 }
 
-#endif /* JSON_CXX_FORMATTER_PRETTY_HPP */

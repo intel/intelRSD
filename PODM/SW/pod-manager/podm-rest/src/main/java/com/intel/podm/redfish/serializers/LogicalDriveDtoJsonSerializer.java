@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,16 @@ package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.LogicalDriveDto;
 import com.intel.podm.redfish.json.templates.LogicalDriveJson;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.odataid.ODataIds;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataIdSet;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 
-public class LogicalDriveDtoJsonSerializer extends DtoJsonSerializer<LogicalDriveDto> {
+@SuppressWarnings({"checkstyle:ExecutableStatementCount"})
+public class LogicalDriveDtoJsonSerializer extends BaseDtoJsonSerializer<LogicalDriveDto> {
     protected LogicalDriveDtoJsonSerializer() {
         super(LogicalDriveDto.class);
     }
@@ -34,7 +36,7 @@ public class LogicalDriveDtoJsonSerializer extends DtoJsonSerializer<LogicalDriv
     protected LogicalDriveJson translate(LogicalDriveDto dto) {
 
         LogicalDriveJson logicalDriveJson = new LogicalDriveJson();
-        ODataId oDataId = oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
 
         logicalDriveJson.oDataId = oDataId;
         logicalDriveJson.oDataContext = getContextFromId(oDataId);
@@ -51,17 +53,17 @@ public class LogicalDriveDtoJsonSerializer extends DtoJsonSerializer<LogicalDriv
         logicalDriveJson.description = dto.getDescription();
         logicalDriveJson.writeProtected = dto.getWriteProtected();
 
-        mapLinks(dto, logicalDriveJson);
+        mapLinks(dto.getLinks(), logicalDriveJson);
 
         return logicalDriveJson;
     }
 
-    private void mapLinks(LogicalDriveDto dto, LogicalDriveJson logicalDriveJson) {
-        logicalDriveJson.links.logicalDrives.addAll(ODataIds.oDataIdsCollection(dto.getLogicalDrives()));
-        logicalDriveJson.links.physicalDrives.addAll(ODataIds.oDataIdsCollection(dto.getPhysicalDrives()));
-        logicalDriveJson.links.usedBy.addAll(ODataIds.oDataIdsCollection(dto.getUsedBy()));
-        logicalDriveJson.links.targets.addAll(ODataIds.oDataIdsCollection(dto.getTargets()));
-        logicalDriveJson.links.masterDrive = ODataIds.oDataIdFromContext(dto.getMasterDrive());
+    private void mapLinks(LogicalDriveDto.Links links, LogicalDriveJson logicalDriveJson) {
+        logicalDriveJson.links.logicalDrives.addAll(asOdataIdSet(links.getLogicalDrives()));
+        logicalDriveJson.links.physicalDrives.addAll(asOdataIdSet(links.getPhysicalDrives()));
+        logicalDriveJson.links.usedBy.addAll(asOdataIdSet(links.getUsedBy()));
+        logicalDriveJson.links.targets.addAll(asOdataIdSet(links.getTargets()));
+        logicalDriveJson.links.masterDrive = asOdataId(links.getMasterDrive());
     }
 }
 

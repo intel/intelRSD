@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,17 @@
 package com.intel.podm.client.api.resources.redfish;
 
 import com.intel.podm.client.api.resources.ExternalServiceResource;
-import com.intel.podm.common.types.DriveType;
+import com.intel.podm.common.types.MediaType;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.StorageControllerInterface;
-
-import java.math.BigDecimal;
 
 /**
  * Drive resource details provided by PSME.
  */
 public interface PhysicalDriveResource extends ExternalServiceResource {
     StorageControllerInterface getControllerInterface();
-    BigDecimal getCapacityGib();
-    DriveType getType();
+    Float getCapacityGib();
+    MediaType getType();
     Integer getRpm();
     String getManufacturer();
     String getModel();

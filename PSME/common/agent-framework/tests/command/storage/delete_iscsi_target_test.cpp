@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,77 +22,57 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/delete_iscsi_target.hpp"
-#include "agent-framework/command/storage/json/delete_iscsi_target.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 
-class DeleteIscsiTarget : public storage::DeleteIscsiTarget {
+class MyDeleteIscsiTarget {
 private:
     std::string m_target{};
 public:
-    DeleteIscsiTarget(std::string target) { m_target = target; }
+    MyDeleteIscsiTarget(std::string target) { m_target = target; }
 
-    using storage::DeleteIscsiTarget::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto target = request.get_target();
+    void execute(const DeleteIscsiTarget::Request& request,
+                 DeleteIscsiTarget::Response&) {
+        auto target = request.get_uuid();
 
         if (target != m_target) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
-
-        response.set_oem(agent_framework::model::attribute::Oem());
     }
-
-    virtual ~DeleteIscsiTarget();
 };
 
-DeleteIscsiTarget::~DeleteIscsiTarget() { }
+static constexpr char TARGET[] = "target";
+static constexpr char OEM[] = "oem";
 
-class DeleteIscsiTargetTest : public ::testing::Test {
-protected:
-    static constexpr char TARGET[] = "target";
-    static constexpr char OEM[] = "oem";
-
-    virtual ~DeleteIscsiTargetTest();
-};
-
-constexpr char DeleteIscsiTargetTest::TARGET[];
-constexpr char DeleteIscsiTargetTest::OEM[];
-
-DeleteIscsiTargetTest::~DeleteIscsiTargetTest() { }
-
-TEST_F(DeleteIscsiTargetTest, PositiveExecute) {
-    storage::json::DeleteIscsiTarget command_json;
-    DeleteIscsiTarget* command = new DeleteIscsiTarget("TestTarget");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(DeleteIscsiTargetTest, PositiveExecute) {
+    MyDeleteIscsiTarget command{"TestTarget"};
+    DeleteIscsiTarget::Request request{""};
+    DeleteIscsiTarget::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[TARGET] = "TestTarget";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = DeleteIscsiTarget::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[OEM].isObject());
 }
 
-TEST_F(DeleteIscsiTargetTest, NegativeTargetNotFound) {
-    storage::json::DeleteIscsiTarget command_json;
-    DeleteIscsiTarget* command = new DeleteIscsiTarget("TestTarget");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(DeleteIscsiTargetTest, NegativeTargetNotFound) {
+    MyDeleteIscsiTarget command{"TestTarget"};
+    DeleteIscsiTarget::Request request{""};
+    DeleteIscsiTarget::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[TARGET] = "OtherTestTarget";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = DeleteIscsiTarget::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

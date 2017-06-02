@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -857,6 +857,7 @@ void json_free(json_t *json)
 			free(pair->name);
 			free(pair);
 		}
+		free(object);
 	} else if (json->type == JSON_ARRAY) {
 		json_t *item;
 		json_array_t *array = json_to_array(json);
@@ -866,12 +867,15 @@ void json_free(json_t *json)
 
 			json_free(item);
 		}
+		free(array);
 	} else if (json->type == JSON_STRING) {
 		json_string_t *string = json_to_string(json);
 		free(string->value);
-	} 
-
-	free(json);
+		free(string);
+	}
+	else {
+		free(json);
+	}
 }
 
 

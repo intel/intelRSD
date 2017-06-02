@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,21 @@
 
 package com.intel.podm.allocation.strategy;
 
-import com.intel.podm.allocation.CompositionException;
 import com.intel.podm.allocation.validation.NewRemoteDriveValidator;
-import com.intel.podm.allocation.validation.Violations;
 import com.intel.podm.assembly.tasks.NewRemoteDriveAssemblyTask;
 import com.intel.podm.assembly.tasks.NewRemoteDriveTaskFactory;
 import com.intel.podm.assembly.tasks.NodeAssemblyTask;
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
+import com.intel.podm.assembly.tasks.PatchNetworkDeviceFunctionAssemblyTaskFactory;
+import com.intel.podm.business.Violations;
+import com.intel.podm.business.entities.redfish.ComposedNode;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
@@ -45,11 +45,14 @@ public class NewRemoteDriveAllocationStrategy implements RemoteDriveAllocationSt
     @Inject
     private NewRemoteDriveTaskFactory newRemoteDriveTaskFactory;
 
-    private RequestedRemoteDrive drive;
-    private NewRemoteDriveResourcesFinder.NewRemoteDriveAllocationResources resources;
-    private List<NodeAssemblyTask> tasks = newArrayList();
+    @Inject
+    private PatchNetworkDeviceFunctionAssemblyTaskFactory networkDeviceFunctionTaskFactory;
 
-    public void setDrive(RequestedRemoteDrive drive) {
+    private RequestedNode.RemoteDrive drive;
+    private NewRemoteDriveResourcesFinder.NewRemoteDriveAllocationResources resources;
+    private List<NodeAssemblyTask> tasks = new ArrayList<>();
+
+    public void setDrive(RequestedNode.RemoteDrive drive) {
         this.drive = drive;
     }
 
@@ -65,12 +68,13 @@ public class NewRemoteDriveAllocationStrategy implements RemoteDriveAllocationSt
     }
 
     @Override
-    public void allocate(ComposedNode composedNode) throws CompositionException {
+    public void allocate(ComposedNode composedNode) {
         reserveLvgSpace(composedNode);
         NewRemoteDriveAssemblyTask task = newRemoteDriveTaskFactory.create(resources.getLvg().getId(),
-                resources.getMaster().getSourceUri(),
-                drive);
+            resources.getMaster().getSourceUri(),
+            drive);
         tasks.add(task);
+        tasks.add(networkDeviceFunctionTaskFactory.create());
     }
 
     @Override
@@ -80,6 +84,6 @@ public class NewRemoteDriveAllocationStrategy implements RemoteDriveAllocationSt
 
     private void reserveLvgSpace(ComposedNode composedNode) {
         composedNode.setRemoteDriveCapacityGib(resources.getCapacity());
-        resources.getLvg().addComposedNode(composedNode);
+        resources.getLvg().setComposedNode(composedNode);
     }
 }

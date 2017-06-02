@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,457 +16,774 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperties;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.DeepDiscoverable;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.Manageable;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
+import com.intel.podm.business.entities.EventRedirectionSource;
+import com.intel.podm.business.entities.EventRedirectionTarget;
+import com.intel.podm.business.entities.SuppressEvents;
+import com.intel.podm.business.entities.listeners.ComputerSystemListener;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.base.MemoryModule;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.base.StorageServiceHost;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
-import com.intel.podm.business.entities.redfish.properties.Boot;
-import com.intel.podm.business.entities.redfish.properties.ComputerSystemDevice;
-import com.intel.podm.common.types.MemoryDeviceType;
+import com.intel.podm.business.entities.redfish.base.NetworkInterfacePossessor;
+import com.intel.podm.business.entities.redfish.base.Resettable;
+import com.intel.podm.business.entities.redfish.embeddables.Boot;
+import com.intel.podm.business.entities.redfish.embeddables.ComputerSystemDevice;
 import com.intel.podm.common.types.DiscoveryState;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.IndicatorLed;
+import com.intel.podm.common.types.MemoryDeviceType;
 import com.intel.podm.common.types.PowerState;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.SystemType;
 import com.intel.podm.common.types.actions.ResetType;
-import com.intel.podm.common.types.helpers.EnumeratedTypeListHolder;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
+import javax.persistence.EntityListeners;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.google.common.collect.Sets.newHashSet;
-import static com.intel.podm.business.entities.base.DomainObjectLink.CHASSIS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.INCLUDED;
-import static com.intel.podm.business.entities.base.DomainObjectLink.MANAGED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.PCI_DEVICES;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumeratedTypeListProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.statusProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.RUNNING;
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.WAITING_TO_START;
 import static com.intel.podm.common.types.ChassisType.DRAWER;
-import static com.intel.podm.common.types.helpers.EnumeratedTypeListHolder.enumeratedTypeListHolder;
-import static com.intel.podm.common.types.helpers.EnumeratedTypeListHolder.toList;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static java.lang.Boolean.TRUE;
-import static java.util.Arrays.stream;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.EAGER;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class ComputerSystem extends DomainObject implements DeepDiscoverable, Discoverable, Manageable, StatusPossessor, StorageServiceHost, Descriptable {
-    public static final DomainObjectProperty<String> MANUFACTURER = stringProperty("manufacturer");
-    public static final DomainObjectProperty<String> MODEL = stringProperty("model");
-    public static final DomainObjectProperty<String> SERIAL_NUMBER = stringProperty("serialNumber");
-    public static final DomainObjectProperty<UUID> UUID = DomainObjectProperties.uuidProperty("uuid");
-    public static final DomainObjectProperty<SystemType> SYSTEM_TYPE = enumProperty("systemType", SystemType.class);
-    public static final DomainObjectProperty<String> ASSET_TAG = stringProperty("assetTag");
-    public static final DomainObjectProperty<String> BIOS_VERSION = stringProperty("biosVersion");
-    public static final DomainObjectProperty<String> SKU = stringProperty("sku");
-    public static final DomainObjectProperty<String> HOST_NAME = stringProperty("hostName");
-    public static final DomainObjectProperty<IndicatorLed> INDICATOR_LED = enumProperty("indicatorLed", IndicatorLed.class);
-    public static final DomainObjectProperty<Integer> MEMORY_SOCKETS = integerProperty("memorySockets");
-    public static final DomainObjectProperty<Status> MEMORY_STATUS = statusProperty("memoryStatus");
-    public static final DomainObjectProperty<Integer> TOTAL_SYSTEM_MEMORY_GIB = integerProperty("totalSystemMemoryGiB");
-    public static final DomainObjectProperty<Integer> PROCESSORS_COUNT = integerProperty("processorsCount");
-    public static final DomainObjectProperty<String> PROCESSORS_MODEL = stringProperty("processorsModel");
-    public static final DomainObjectProperty<Integer> PROCESSORS_SOCKETS = integerProperty("processorsSockets");
-    public static final DomainObjectProperty<Status> PROCESSORS_STATUS = statusProperty("processorsStatus");
-    public static final DomainObjectProperty<DiscoveryState> DISCOVERY_STATE = enumProperty("discoveryState", DiscoveryState.class);
-    public static final DomainObjectProperty<PowerState> POWER_STATE = enumProperty("powerState", PowerState.class);
-    public static final DomainObjectProperty<String> PART_NUMBER = stringProperty("partNumber");
-    public static final DomainObjectProperty<EnumeratedTypeListHolder<ResetType>> ALLOWABLE_RESET_TYPES =
-            enumeratedTypeListProperty("allowableResetTypes", ResetType.class);
+@javax.persistence.Entity
+@Table(name = "computer_system", indexes = @Index(name = "idx_computer_system_entity_id", columnList = "entity_id", unique = true))
+@NamedQueries({
+    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE,
+        query = "SELECT computerSystem FROM ComputerSystem computerSystem "
+            + "WHERE computerSystem.metadata.allocated = :allocated AND computerSystem.systemType = :systemType"),
+    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID,
+        query = "SELECT computerSystem FROM ComputerSystem computerSystem WHERE :pcieConnectionId MEMBER computerSystem.pcieConnectionId")
+})
+@EntityListeners(ComputerSystemListener.class)
+@Eventable
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
+public class ComputerSystem extends DiscoverableEntity implements NetworkInterfacePossessor, Resettable {
+    public static final String GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE = "GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE";
+    public static final String GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID = "GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID";
 
-    public static final DomainObjectProperty<Boolean> ALLOCATED = DomainObjectProperties.booleanProperty("allocated");
+    private static final String ENTITY_NAME = "ComputerSystem";
+
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "manufacturer")
+    private String manufacturer;
+
+    @Column(name = "model")
+    private String model;
+
+    @Column(name = "serial_number")
+    private String serialNumber;
+
+    @Column(name = "uuid")
+    private UUID uuid;
+
+    @Column(name = "system_type")
+    @Enumerated(STRING)
+    private SystemType systemType;
+
+    @Column(name = "asset_tag")
+    private String assetTag;
+
+    @Column(name = "bios_version")
+    private String biosVersion;
+
+    @Column(name = "sku")
+    private String sku;
+
+    @Column(name = "host_name")
+    private String hostName;
+
+    @Column(name = "indicator_led")
+    @Enumerated(STRING)
+    private IndicatorLed indicatorLed;
+
+    @Column(name = "memory_sockets")
+    private Integer memorySockets;
+
+    @Column(name = "memory_status")
+    private Status memoryStatus;
+
+    @Column(name = "total_system_memory_gib")
+    private BigDecimal totalSystemMemoryGiB;
+
+    @EventRedirectionSource
+    @Column(name = "processors_count")
+    private Integer processorsCount;
+
+    @EventRedirectionSource
+    @Column(name = "processor_model")
+    private String processorModel;
+
+    @Column(name = "processor_socket")
+    private Integer processorSockets;
+
+    @EventRedirectionSource
+    @Column(name = "processor_status")
+    private Status processorStatus;
+
+    @Column(name = "discovery_state")
+    @Enumerated(STRING)
+    private DiscoveryState discoveryState;
+
+    @Column(name = "power_state")
+    @Enumerated(STRING)
+    @EventRedirectionSource
+    private PowerState powerState;
+
+    @Column(name = "part_number")
+    private String partNumber;
+
+    @ElementCollection
+    @CollectionTable(name = "computer_system_pcie_connection_id", joinColumns = @JoinColumn(name = "computer_system_id"))
+    @Column(name = "pcie_connection_id")
+    @OrderColumn(name = "pcie_connection_id_order")
+    private List<String> pcieConnectionId = new ArrayList<>();
+
+    @EventRedirectionSource
+    @Embedded
+    private Boot boot;
+
+    @ElementCollection
+    @Enumerated(STRING)
+    @CollectionTable(name = "computer_system_allowable_reset_type", joinColumns = @JoinColumn(name = "computer_system_id"))
+    @Column(name = "allowable_reset_type")
+    @OrderColumn(name = "allowable_reset_type_order")
+    private List<ResetType> allowableResetTypes = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "computer_system_pci_device", joinColumns = @JoinColumn(name = "computer_system_id"))
+    @OrderColumn(name = "pci_device_order")
+    private List<ComputerSystemDevice> pciDevices = new ArrayList<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Memory> memoryModules = new HashSet<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Processor> processors = new HashSet<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<SimpleStorage> simpleStorages = new HashSet<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Storage> storages = new HashSet<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetInterface> ethernetInterfaces = new HashSet<>();
+
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "computer_system_manager",
+        joinColumns = {@JoinColumn(name = "computer_system_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "manager_id", referencedColumnName = "id")})
+    private Set<Manager> managers = new HashSet<>();
+
+    @ManyToMany(mappedBy = "computerSystems", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Chassis> chassis = new HashSet<>();
+
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Endpoint> endpoints = new HashSet<>();
+
+    @IgnoreUnlinkingRelationship
+    @OneToOne(fetch = EAGER, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "computer_system_metadata_id")
+    private ComputerSystemMetadata metadata = new ComputerSystemMetadata();
+
+    @OneToOne(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private ComposedNode composedNode;
+
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<PcieDevice> pcieDevices = new HashSet<>();
+
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<PcieDeviceFunction> pcieDeviceFunctions = new HashSet<>();
+
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<NetworkInterface> networkInterfaces = new HashSet<>();
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
-    }
-
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
-    }
-
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public String getManufacturer() {
-        return getProperty(MANUFACTURER);
+        return manufacturer;
     }
 
     public void setManufacturer(String manufacturer) {
-        setProperty(MANUFACTURER, manufacturer);
+        this.manufacturer = manufacturer;
     }
 
     public String getModel() {
-        return getProperty(MODEL);
+        return model;
     }
 
     public void setModel(String model) {
-        setProperty(MODEL, model);
+        this.model = model;
     }
 
     public String getSerialNumber() {
-        return getProperty(SERIAL_NUMBER);
+        return serialNumber;
     }
 
     public void setSerialNumber(String serialNumber) {
-        setProperty(SERIAL_NUMBER, serialNumber);
-    }
-
-    public void setUuid(UUID uuid) {
-        setProperty(UUID, uuid);
+        this.serialNumber = serialNumber;
     }
 
     public UUID getUuid() {
-        return getProperty(UUID);
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 
     public SystemType getSystemType() {
-        return getProperty(SYSTEM_TYPE);
+        return systemType;
     }
 
     public void setSystemType(SystemType systemType) {
-        setProperty(SYSTEM_TYPE, systemType);
+        this.systemType = systemType;
     }
 
     public String getAssetTag() {
-        return getProperty(ASSET_TAG);
+        return assetTag;
     }
 
     public void setAssetTag(String assetTag) {
-        setProperty(ASSET_TAG, assetTag);
+        this.assetTag = assetTag;
     }
 
     public String getBiosVersion() {
-        return getProperty(BIOS_VERSION);
+        return biosVersion;
     }
 
     public void setBiosVersion(String biosVersion) {
-        setProperty(BIOS_VERSION, biosVersion);
+        this.biosVersion = biosVersion;
     }
 
     public String getSku() {
-        return getProperty(SKU);
+        return sku;
     }
 
     public void setSku(String sku) {
-        setProperty(SKU, sku);
+        this.sku = sku;
     }
 
     public String getHostName() {
-        return getProperty(HOST_NAME);
+        return hostName;
     }
 
     public void setHostName(String hostName) {
-        setProperty(HOST_NAME, hostName);
+        this.hostName = hostName;
     }
 
     public IndicatorLed getIndicatorLed() {
-        return getProperty(INDICATOR_LED);
+        return indicatorLed;
     }
 
     public void setIndicatorLed(IndicatorLed indicatorLed) {
-        setProperty(INDICATOR_LED, indicatorLed);
+        this.indicatorLed = indicatorLed;
     }
 
     public Integer getMemorySockets() {
-        return getProperty(MEMORY_SOCKETS);
+        return memorySockets;
     }
 
     public void setMemorySockets(Integer memorySockets) {
-        setProperty(MEMORY_SOCKETS, memorySockets);
+        this.memorySockets = memorySockets;
     }
 
     public Status getMemoryStatus() {
-        return getProperty(MEMORY_STATUS);
+        return memoryStatus;
     }
 
     public void setMemoryStatus(Status memoryStatus) {
-        setProperty(MEMORY_STATUS, memoryStatus);
+        this.memoryStatus = memoryStatus;
     }
 
-    public Integer getTotalSystemMemoryGiB() {
-        return getProperty(TOTAL_SYSTEM_MEMORY_GIB);
+    public BigDecimal getTotalSystemMemoryGiB() {
+        return totalSystemMemoryGiB;
     }
 
-    public void setTotalSystemMemoryGiB(Integer totalSystemMemoryGiB) {
-        setProperty(TOTAL_SYSTEM_MEMORY_GIB, totalSystemMemoryGiB);
-    }
-
-    public MemoryModule getMemoryModuleFromMemorySummary() {
-        return new MemoryModuleFromMemorySummary(this);
+    public void setTotalSystemMemoryGiB(BigDecimal totalSystemMemoryGiB) {
+        this.totalSystemMemoryGiB = totalSystemMemoryGiB;
     }
 
     public Integer getProcessorsCount() {
-        return getProperty(PROCESSORS_COUNT);
+        return processorsCount;
     }
 
     public void setProcessorsCount(Integer processorsCount) {
-        setProperty(PROCESSORS_COUNT, processorsCount);
+        this.processorsCount = processorsCount;
     }
 
-    public String getProcessorsModel() {
-        return getProperty(PROCESSORS_MODEL);
+    public String getProcessorModel() {
+        return processorModel;
     }
 
-    public void setProcessorsModel(String processorsModel) {
-        setProperty(PROCESSORS_MODEL, processorsModel);
+    public void setProcessorModel(String processorModel) {
+        this.processorModel = processorModel;
     }
 
-    public Integer getProcessorsSockets() {
-        return getProperty(PROCESSORS_SOCKETS);
+    public Integer getProcessorSockets() {
+        return processorSockets;
     }
 
-    public void setProcessorsSockets(Integer processorsSockets) {
-        setProperty(PROCESSORS_SOCKETS, processorsSockets);
+    public void setProcessorSockets(Integer processorSockets) {
+        this.processorSockets = processorSockets;
     }
 
-    public Status getProcessorsStatus() {
-        return getProperty(PROCESSORS_STATUS);
+    public Status getProcessorStatus() {
+        return processorStatus;
     }
 
-    public void setProcessorsStatus(Status processorsStatus) {
-        setProperty(PROCESSORS_STATUS, processorsStatus);
+    public void setProcessorStatus(Status processorStatus) {
+        this.processorStatus = processorStatus;
     }
 
     public DiscoveryState getDiscoveryState() {
-        return getProperty(DISCOVERY_STATE);
+        return discoveryState;
     }
 
     public void setDiscoveryState(DiscoveryState discoveryState) {
-        setProperty(DISCOVERY_STATE, discoveryState);
-    }
-
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
+        this.discoveryState = discoveryState;
     }
 
     public PowerState getPowerState() {
-        return getProperty(POWER_STATE);
+        return powerState;
     }
 
     public void setPowerState(PowerState powerState) {
-        setProperty(POWER_STATE, powerState);
+        this.powerState = powerState;
     }
 
     public String getPartNumber() {
-        return getProperty(PART_NUMBER);
+        return partNumber;
     }
 
     public void setPartNumber(String partNumber) {
-        setProperty(PART_NUMBER, partNumber);
-    }
-
-    public List<ResetType> getAllowableResetTypes() {
-        return toList(ResetType.class, getProperty(ALLOWABLE_RESET_TYPES));
-    }
-
-    public void setAllowableResetTypes(List<ResetType> allowableResetTypes) {
-        setProperty(ALLOWABLE_RESET_TYPES, enumeratedTypeListHolder(ResetType.class, allowableResetTypes));
-    }
-
-    public Boolean isAllocated() {
-        return Objects.equals(TRUE, getProperty(ALLOCATED));
-    }
-
-    public void setAllocated(Boolean allocated) {
-        setProperty(ALLOCATED, allocated);
+        this.partNumber = partNumber;
     }
 
     public Boot getBoot() {
-        return singleOrNull(getLinked(CONTAINS, Boot.class));
+        return boot;
     }
 
     public void setBoot(Boot boot) {
-        link(CONTAINS, boot);
+        this.boot = boot;
     }
 
-    public List<Chassis> getChassis() {
-        return getLinked(CHASSIS);
+    public List<ResetType> getAllowableResetTypes() {
+        return allowableResetTypes;
+    }
+
+    public void addAllowableResetType(ResetType allowableResetType) {
+        allowableResetTypes.add(allowableResetType);
+    }
+
+    public List<String> getPcieConnectionId() {
+        return pcieConnectionId;
+    }
+
+    public void addPcieConnectionId(String pcieConnectionId) {
+        this.pcieConnectionId.add(pcieConnectionId);
     }
 
     public List<ComputerSystemDevice> getPciDevices() {
-        return getLinked(PCI_DEVICES, ComputerSystemDevice.class);
+        return pciDevices;
     }
 
-    public ComputerSystemDevice addPciDevice() {
-        return addDomainObject(PCI_DEVICES, ComputerSystemDevice.class);
-    }
-
-    public List<Adapter> getAdapters() {
-        return getLinked(CONTAINS, Adapter.class);
-    }
-
-    public void link(Adapter adapter) {
-        link(CONTAINS, adapter);
-    }
-
-    public void link(MemoryChunk memoryChunk) {
-        link(CONTAINS, memoryChunk);
-    }
-
-    public List<MemoryChunk> getMemoryChunks() {
-        return getLinked(CONTAINS, MemoryChunk.class);
-    }
-
-    public List<Memory> getMemoryModules() {
-        return getLinked(CONTAINS, Memory.class);
-    }
-
-    public void link(Memory memory) {
-        link(CONTAINS, memory);
-    }
-
-    @Override
-    public List<Manager> getManagers() {
-        return getLinked(MANAGED_BY);
-    }
-
-    @Override
-    public void addManager(Manager manager) {
-        link(MANAGED_BY, manager);
-    }
-
-    public void linkProcessor(Processor processor) {
-        link(CONTAINS, processor);
-    }
-
-    public void linkEthernetInterface(EthernetInterface ethernetInterface) {
-        link(CONTAINS, ethernetInterface);
-    }
-
-    public void linkSimpleStorage(SimpleStorage simpleStorage) {
-        link(CONTAINS, simpleStorage);
-    }
-
-    public List<Processor> getProcessors() {
-        return getLinked(CONTAINS, Processor.class);
-    }
-
-    public List<SimpleStorage> getSimpleStorages() {
-        return getLinked(CONTAINS, SimpleStorage.class);
-    }
-
-    public List<EthernetInterface> getEthernetInterfaces() {
-        return getLinked(CONTAINS, EthernetInterface.class);
-    }
-
-    public ComposedNode getComposedNode() {
-        return singleOrNull(getLinked(INCLUDED, ComposedNode.class));
-    }
-
-    @Override
-    public void setStorageServiceHost(boolean storageServiceHost) {
-        setProperty(STORAGE_SERVICE_HOST, storageServiceHost);
-    }
-
-    @Override
-    public boolean isStorageServiceHost() {
-        return Objects.equals(TRUE, getProperty(STORAGE_SERVICE_HOST));
-    }
-
-    @Override
-    public void setTaskUuid(UUID taskUuid) {
-        setProperty(TASK_UUID, taskUuid);
-    }
-
-    @Override
-    public UUID getTaskUuid() {
-        return getProperty(TASK_UUID);
-    }
-
-    @Override
-    public DeepDiscoveryState getDeepDiscoveryState() {
-        return getProperty(DEEP_DISCOVERY_STATE);
-    }
-
-    @Override
-    public void setDeepDiscoveryState(DeepDiscoveryState deepDiscoveryState) {
-        setProperty(DEEP_DISCOVERY_STATE, deepDiscoveryState);
-    }
-
-    @Override
-    public boolean isInAnyOfStates(DeepDiscoveryState... states) {
-        DeepDiscoveryState actualDeepDiscoveryState = getDeepDiscoveryState();
-        return actualDeepDiscoveryState != null
-                && stream(states).anyMatch(expectedDeepDiscoveryState -> actualDeepDiscoveryState == expectedDeepDiscoveryState);
-    }
-
-    @Override
-    public boolean isBeingDeepDiscovered() {
-        return isInAnyOfStates(WAITING_TO_START, RUNNING);
+    public void addPciDevice(ComputerSystemDevice pciDevice) {
+        pciDevices.add(pciDevice);
     }
 
     public Optional<Chassis> getDrawerChassis() {
-        List<Chassis> chassisList = getChassis();
-        Set<Chassis> allChassisSet = newHashSet(chassisList);
+        Set<Chassis> chassisList = getChassis();
+        Set<Chassis> allChassisSet = new HashSet<>(chassisList);
 
         for (Chassis chassis : chassisList) {
             allChassisSet.addAll(chassis.getAllOnTopOfChassis());
         }
 
         return allChassisSet.stream()
-                .filter(chassis -> DRAWER.equals(chassis.getChassisType()))
-                .findFirst();
+            .filter(chassis -> DRAWER.equals(chassis.getChassisType()))
+            .findFirst();
+    }
+
+    private void linkChassisToStoragesContainedByThisSystem(Storage storage) {
+        Iterator<Chassis> iterator = this.chassis.iterator();
+        if (iterator.hasNext()) {
+            Chassis chassis = iterator.next();
+            storage.setChassis(chassis);
+            storage.getDrives().forEach(drive -> drive.setChassis(chassis));
+        }
+    }
+
+    public Set<Memory> getMemoryModules() {
+        return memoryModules;
+    }
+
+    public void addMemoryModule(Memory memoryModule) {
+        requiresNonNull(memoryModule, "memoryModule");
+
+        memoryModules.add(memoryModule);
+        if (!this.equals(memoryModule.getComputerSystem())) {
+            memoryModule.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkMemoryModule(Memory memoryModule) {
+        if (memoryModules.contains(memoryModule)) {
+            memoryModules.remove(memoryModule);
+            if (memoryModule != null) {
+                memoryModule.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public MemoryModule getMemoryModuleFromMemorySummary() {
+        return new MemoryModuleFromMemorySummary(this);
+    }
+
+    public Set<Processor> getProcessors() {
+        return processors;
+    }
+
+    public void addProcessor(Processor processor) {
+        requiresNonNull(processor, "processor");
+
+        processors.add(processor);
+        if (!this.equals(processor.getComputerSystem())) {
+            processor.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkProcessor(Processor processor) {
+        if (processors.contains(processor)) {
+            processors.remove(processor);
+            if (processor != null) {
+                processor.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<Endpoint> getEndpoints() {
+        return endpoints;
+    }
+
+    public void addEndpoint(Endpoint endpoint) {
+        requiresNonNull(endpoint, "endpoint");
+
+        endpoints.add(endpoint);
+        if (!this.equals(endpoint.getComputerSystem())) {
+            endpoint.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkEndpoint(Endpoint endpoint) {
+        if (endpoints.contains(endpoint)) {
+            endpoints.remove(endpoint);
+            if (endpoint != null) {
+                endpoint.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<SimpleStorage> getSimpleStorages() {
+        return simpleStorages;
+    }
+
+    public void addSimpleStorage(SimpleStorage simpleStorage) {
+        requiresNonNull(simpleStorage, "simpleStorage");
+
+        simpleStorages.add(simpleStorage);
+        if (!this.equals(simpleStorage.getComputerSystem())) {
+            simpleStorage.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkSimpleStorage(SimpleStorage simpleStorage) {
+        if (simpleStorages.contains(simpleStorage)) {
+            simpleStorages.remove(simpleStorage);
+            if (simpleStorage != null) {
+                simpleStorage.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<Storage> getStorages() {
+        return storages;
+    }
+
+    public void addStorage(Storage storage) {
+        requiresNonNull(storage, "storage");
+
+        storages.add(storage);
+        if (!this.equals(storage.getComputerSystem())) {
+            storage.setComputerSystem(this);
+            linkChassisToStoragesContainedByThisSystem(storage);
+        }
+    }
+
+    public void unlinkStorage(Storage storage) {
+        if (storages.contains(storage)) {
+            storages.remove(storage);
+            if (storage != null) {
+                storage.unlinkComputerSystem(this);
+
+                Iterator<Chassis> chassisIterator = getChassis().iterator();
+                if (chassisIterator.hasNext()) {
+                    storage.unlinkChassis(chassisIterator.next());
+                }
+            }
+        }
+    }
+
+    private void linkToStorages(Chassis newChassis) {
+        getStorages().forEach(storage -> storage.setChassis(newChassis));
+        getStorages().forEach(storage -> storage.getDrives().forEach(drive -> drive.setChassis(newChassis)));
+    }
+
+    private void uncoupleFromStorages(Chassis chassisToUnlink) {
+        getStorages().forEach(storage -> storage.unlinkChassis(chassisToUnlink));
+        getStorages().forEach(storage -> storage.getDrives().forEach(drive -> drive.unlinkChassis(chassisToUnlink)));
+    }
+
+    @Override
+    public Set<EthernetInterface> getEthernetInterfaces() {
+        return ethernetInterfaces;
+    }
+
+    public void addEthernetInterface(EthernetInterface ethernetInterface) {
+        requiresNonNull(ethernetInterface, "ethernetInterface");
+
+        ethernetInterfaces.add(ethernetInterface);
+        if (!this.equals(ethernetInterface.getComputerSystem())) {
+            ethernetInterface.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkEthernetInterface(EthernetInterface ethernetInterface) {
+        if (ethernetInterfaces.contains(ethernetInterface)) {
+            ethernetInterfaces.remove(ethernetInterface);
+            if (ethernetInterface != null) {
+                ethernetInterface.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<Manager> getManagers() {
+        return managers;
+    }
+
+    public void addManager(Manager manager) {
+        requiresNonNull(manager, "manager");
+
+        managers.add(manager);
+        if (!manager.getComputerSystems().contains(this)) {
+            manager.addComputerSystem(this);
+        }
+    }
+
+    public void unlinkManager(Manager manager) {
+        if (managers.contains(manager)) {
+            managers.remove(manager);
+            if (manager != null) {
+                manager.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<Chassis> getChassis() {
+        return chassis;
+    }
+
+    public void addChassis(Chassis newChassis) {
+        requiresNonNull(newChassis, "newChassis");
+
+        chassis.add(newChassis);
+        if (!newChassis.getComputerSystems().contains(this)) {
+            newChassis.addComputerSystem(this);
+        }
+
+        linkToStorages(newChassis);
+    }
+
+    public void unlinkChassis(Chassis chassisToUnlink) {
+        if (chassis.contains(chassisToUnlink)) {
+            chassis.remove(chassisToUnlink);
+            uncoupleFromStorages(chassisToUnlink);
+            if (chassisToUnlink != null) {
+                chassisToUnlink.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public ComputerSystemMetadata getMetadata() {
+        return metadata;
+    }
+
+    @EventRedirectionTarget
+    public ComposedNode getComposedNode() {
+        return composedNode;
+    }
+
+    public void setComposedNode(ComposedNode composedNode) {
+        if (!Objects.equals(this.composedNode, composedNode)) {
+            unlinkComposedNode(this.composedNode);
+            this.composedNode = composedNode;
+            if (composedNode != null && !this.equals(composedNode.getComputerSystem())) {
+                composedNode.setComputerSystem(this);
+            }
+        }
+    }
+
+    public void unlinkComposedNode(ComposedNode composedNode) {
+        if (Objects.equals(this.composedNode, composedNode)) {
+            this.composedNode = null;
+            if (composedNode != null) {
+                composedNode.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<PcieDevice> getPcieDevices() {
+        return pcieDevices;
+    }
+
+    public void addPcieDevice(PcieDevice pcieDevice) {
+        requiresNonNull(pcieDevice, "pcieDevice");
+
+        pcieDevices.add(pcieDevice);
+        if (!this.equals(pcieDevice.getComputerSystem())) {
+            pcieDevice.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkPcieDevice(PcieDevice pcieDevice) {
+        if (pcieDevices.contains(pcieDevice)) {
+            pcieDevices.remove(pcieDevice);
+            if (pcieDevice != null) {
+                pcieDevice.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<PcieDeviceFunction> getPcieDeviceFunctions() {
+        return pcieDeviceFunctions;
+    }
+
+    public void addPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        requiresNonNull(pcieDeviceFunction, "pcieDeviceFunction");
+
+        pcieDeviceFunctions.add(pcieDeviceFunction);
+        if (!this.equals(pcieDeviceFunction.getComputerSystem())) {
+            pcieDeviceFunction.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        if (pcieDeviceFunctions.contains(pcieDeviceFunction)) {
+            pcieDeviceFunctions.remove(pcieDeviceFunction);
+            if (pcieDeviceFunction != null) {
+                pcieDeviceFunction.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<NetworkInterface> getNetworkInterfaces() {
+        return networkInterfaces;
+    }
+
+    public void addNetworkInterface(NetworkInterface networkInterface) {
+        requiresNonNull(networkInterface, "networkInterface");
+
+        networkInterfaces.add(networkInterface);
+        if (!this.equals(networkInterface.getComputerSystem())) {
+            networkInterface.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkNetworkInterface(NetworkInterface networkInterface) {
+        if (networkInterfaces.contains(networkInterface)) {
+            networkInterfaces.remove(networkInterface);
+            if (networkInterface != null) {
+                networkInterface.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    @Override
+    public void preRemove() {
+        unlinkCollection(memoryModules, this::unlinkMemoryModule);
+        unlinkCollection(processors, this::unlinkProcessor);
+        unlinkCollection(simpleStorages, this::unlinkSimpleStorage);
+        unlinkCollection(storages, this::unlinkStorage);
+        unlinkCollection(ethernetInterfaces, this::unlinkEthernetInterface);
+        unlinkCollection(managers, this::unlinkManager);
+        unlinkCollection(chassis, this::unlinkChassis);
+        unlinkCollection(endpoints, this::unlinkEndpoint);
+        unlinkComposedNode(composedNode);
+        unlinkCollection(pcieDevices, this::unlinkPcieDevice);
+        unlinkCollection(pcieDeviceFunctions, this::unlinkPcieDeviceFunction);
+        unlinkCollection(networkInterfaces, this::unlinkNetworkInterface);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, chassis);
+    }
+
+    @Override
+    public String getResetName() {
+        return ENTITY_NAME;
     }
 
     public static class MemoryModuleFromMemorySummary implements MemoryModule {
-        public static final int GIB_TO_MIB_RATIO = 1024;
-        private Integer capacityMib;
+        public static final BigDecimal GIB_TO_MIB_RATIO = new BigDecimal(1024);
+        private BigDecimal capacityMib;
 
         public MemoryModuleFromMemorySummary(ComputerSystem computerSystem) {
-            Integer totalSystemMemoryGiB = computerSystem.getTotalSystemMemoryGiB();
-            capacityMib = totalSystemMemoryGiB != null ? totalSystemMemoryGiB * GIB_TO_MIB_RATIO : null;
+            BigDecimal totalSystemMemoryGiB = computerSystem.getTotalSystemMemoryGiB();
+            capacityMib = totalSystemMemoryGiB != null ? totalSystemMemoryGiB.multiply(GIB_TO_MIB_RATIO) : null;
         }
 
         @Override
@@ -481,7 +798,10 @@ public class ComputerSystem extends DomainObject implements DeepDiscoverable, Di
 
         @Override
         public Integer getCapacityMib() {
-            return capacityMib;
+            if (capacityMib != null) {
+                return capacityMib.intValueExact();
+            }
+            return null;
         }
 
         @Override

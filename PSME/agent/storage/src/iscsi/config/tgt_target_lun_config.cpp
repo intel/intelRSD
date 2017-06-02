@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,13 @@
  */
 
 #include "iscsi/tgt/config/tgt_target_lun_config.hpp"
-#include <cstring>
-#include <sstream>
-#include <exception>
+#include "agent-framework/module/model/logical_drive.hpp"
+#include "agent-framework/module/storage_components.hpp"
 
 using namespace agent::storage::iscsi::tgt::config;
+using namespace agent_framework::module;
+using namespace agent_framework::model;
+using namespace agent_framework::model::attribute;
 using namespace std;
 
 constexpr const char* TGT_CONFIG_PROPERTY_LUN = "lun";
@@ -38,13 +40,14 @@ constexpr const char* LT = "<";
 constexpr const char* GT = ">";
 
 const string TgtTargetLunConfig::to_string() const {
-    const auto& device_path = m_lun.get_device_path();
+    const auto drive = get_manager<LogicalDrive>().get_entry(m_lun.get_logical_drive());
+    const auto& device_path = drive.get_device_path();
     if (device_path.empty()) {
         throw invalid_argument("Device path is empty");
     }
     ostringstream content;
-    content << TAB << LT << TGT_CONFIG_PROPERTY_DEVICE_TYPE << SPACE << m_lun.get_device_path() << GT << endl;
-    content << TAB << TAB << TGT_CONFIG_PROPERTY_LUN << SPACE << m_lun.get_lun_id() << endl;
+    content << TAB << LT << TGT_CONFIG_PROPERTY_DEVICE_TYPE << SPACE << device_path << GT << endl;
+    content << TAB << TAB << TGT_CONFIG_PROPERTY_LUN << SPACE << m_lun.get_lun() << endl;
     content << TAB << LT << "/" << TGT_CONFIG_PROPERTY_DEVICE_TYPE << GT << endl;
     return content.str();
 }

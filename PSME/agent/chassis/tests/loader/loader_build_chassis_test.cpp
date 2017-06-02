@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,19 +22,19 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/module-ref/chassis_manager.hpp"
+#include "agent-framework/module/common_components.hpp"
 #include "loader/chassis_loader.hpp"
-
 #include "configuration_full.hpp"
-#include "json/value.hpp"
-#include "json/deserializer.hpp"
 
-#include "gtest/gtest.h"
+#include <json/value.hpp>
+#include <json/deserializer.hpp>
+#include <gtest/gtest.h>
 
 using namespace agent::chassis::loader;
 using namespace agent_framework::module;
+using namespace agent_framework::model;
 
-using ChassisComponents = agent_framework::module::ChassisManager;
+using agent_framework::module::CommonComponents;
 
 const constexpr uint32_t CONFIG_DRAWER_MANAGERS_COUNT = 1;
 const constexpr uint32_t CONFIG_BLADE_MANAGERS_COUNT = 4;
@@ -68,23 +68,23 @@ protected:
     }
 
     void SetUp() {
-        drawer_manager_keys = ChassisComponents::get_instance()->get_module_manager().get_keys("");
-        blade_manager_keys = ChassisComponents::get_instance()->
+        drawer_manager_keys = CommonComponents::get_instance()->get_module_manager().get_keys("");
+        blade_manager_keys = CommonComponents::get_instance()->
                 get_module_manager().get_keys(drawer_manager_keys.front());
 
-        drawer_manager = ChassisComponents::get_instance()->
+        drawer_manager = CommonComponents::get_instance()->
                 get_module_manager().get_entry(drawer_manager_keys.front());
-        first_blade_manager = ChassisComponents::get_instance()->
+        first_blade_manager = CommonComponents::get_instance()->
                 get_module_manager().get_entry(blade_manager_keys.front());
 
-        drawer_chassis_keys = ChassisComponents::get_instance()->
+        drawer_chassis_keys = CommonComponents::get_instance()->
                 get_chassis_manager().get_keys(drawer_manager.get_uuid());
-        drawer_chassis = ChassisComponents::get_instance()->
+        drawer_chassis = CommonComponents::get_instance()->
                 get_chassis_manager().get_entry(drawer_chassis_keys.front());
 
-        blade_chassis_keys = ChassisComponents::get_instance()->
+        blade_chassis_keys = CommonComponents::get_instance()->
                 get_chassis_manager().get_keys(first_blade_manager.get_uuid());
-        blade_chassis = ChassisComponents::get_instance()->
+        blade_chassis = CommonComponents::get_instance()->
                 get_chassis_manager().get_entry(blade_chassis_keys.front());
     }
 
@@ -122,7 +122,7 @@ TEST_F(ChassisLoaderBuildChassisTest, LoadFullConfiguration_ManagersHierarchyIsC
                                 << " Blade manager1. Got: " << blade_manager_keys.size();
 
     for (const auto& blade_manager_key:blade_manager_keys) {
-        auto blade_manager = ChassisComponents::get_instance()->
+        auto blade_manager = CommonComponents::get_instance()->
                 get_module_manager().get_entry(blade_manager_key);
 
         ASSERT_STREQ(drawer_manager.get_uuid().c_str(), blade_manager.get_parent_uuid().c_str())
@@ -144,7 +144,7 @@ TEST_F(ChassisLoaderBuildChassisTest, LoadFullConfiguration_BladeManagerFieldsVa
 TEST_F(ChassisLoaderBuildChassisTest, LoadFullConfiguration_BladeManagersFieldsValuesAreCorrect) {
 
     for (const auto& blade_manager_key:blade_manager_keys) {
-        auto blade_manager = ChassisComponents::get_instance()->
+        auto blade_manager = CommonComponents::get_instance()->
                 get_module_manager().get_entry(blade_manager_key);
 
         auto slot = blade_manager.get_slot();

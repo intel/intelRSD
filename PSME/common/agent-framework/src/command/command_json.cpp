@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,6 @@
 #include <iostream>
 
 using namespace agent_framework::command;
-using agent_framework::command::exception::NotImplemented;
 
 static CommandJson::Map::CommandMap* g_command_map = nullptr;
 

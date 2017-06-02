@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,36 +32,40 @@
 using namespace ipmi;
 using namespace ipmi::command::sdv;
 
-request::GetSystemMacAddressHaswell::GetSystemMacAddressHaswell():
-        Request(uint8_t(NetFn::QUANTA), uint8_t(Cmd::GET_SYSTEM_MAC_INFO)) {}
+request::GetSystemMacAddressHaswell::GetSystemMacAddressHaswell() :
+        Request(sdv::NetFn::QUANTA, sdv::Cmd::GET_SYSTEM_MAC_INFO) {}
 request::GetSystemMacAddressHaswell::~GetSystemMacAddressHaswell() {}
 
-void request::GetSystemMacAddressHaswell::pack(vector<uint8_t>& data) const {
-    uint8_t interface_id_high = uint8_t((m_interface_id & 0xFF00) >> 8);
-    uint8_t interface_id_low = uint8_t(m_interface_id & 0x00FF);
+void request::GetSystemMacAddressHaswell::pack(std::vector<std::uint8_t>& data) const {
+    std::uint8_t interface_id_high = std::uint8_t((m_interface_id & 0xFF00) >> 8);
+    std::uint8_t interface_id_low = std::uint8_t(m_interface_id & 0x00FF);
     data.push_back(interface_id_high);
     data.push_back(interface_id_low);
 }
 
-response::GetSystemMacAddressHaswell::GetSystemMacAddressHaswell():
-        Response(uint8_t(NetFn::QUANTA), uint8_t(Cmd::GET_SYSTEM_MAC_INFO), RESPONSE_SIZE) {}
+response::GetSystemMacAddressHaswell::GetSystemMacAddressHaswell() :
+        Response(sdv::NetFn::QUANTA, sdv::Cmd::GET_SYSTEM_MAC_INFO, RESPONSE_SIZE) {}
 response::GetSystemMacAddressHaswell::~GetSystemMacAddressHaswell() {}
 
-void response::GetSystemMacAddressHaswell::unpack(const vector<uint8_t>& data) {
-    char mac_address[MAC_ADDRESS_LENGTH];
+void response::GetSystemMacAddressHaswell::unpack(const std::vector<std::uint8_t>& data) {
     if(!is_response_correct(data)) {
         return; // received only completion code, do not unpack.
     }
-    int result = std::snprintf(&mac_address[0], MAC_ADDRESS_LENGTH ,"%02x:%02x:%02x:%02x:%02x:%02x",
+
+    char mac_address[MAC_ADDRESS_LENGTH];
+    int result = std::snprintf(&mac_address[0],
+                               MAC_ADDRESS_LENGTH ,
+                               "%02x:%02x:%02x:%02x:%02x:%02x",
                     static_cast<unsigned int>(data[MAC_ADDRESS_OFFSET + 0]),
                     static_cast<unsigned int>(data[MAC_ADDRESS_OFFSET + 1]),
                     static_cast<unsigned int>(data[MAC_ADDRESS_OFFSET + 2]),
                     static_cast<unsigned int>(data[MAC_ADDRESS_OFFSET + 3]),
                     static_cast<unsigned int>(data[MAC_ADDRESS_OFFSET + 4]),
                     static_cast<unsigned int>(data[MAC_ADDRESS_OFFSET + 5]));
+
     mac_address[MAC_ADDRESS_LENGTH - 1] = '\0';
     if (result == MAC_ADDRESS_LENGTH - 1) {
-        m_system_mac_address = string(mac_address);
+        m_system_mac_address = std::string(mac_address);
     }
 }
 

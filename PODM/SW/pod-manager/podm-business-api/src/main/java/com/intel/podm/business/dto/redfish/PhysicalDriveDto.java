@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,37 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.DriveType;
-import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.MediaType;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.StorageControllerInterface;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
-import java.math.BigDecimal;
-import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
-public final class PhysicalDriveDto {
-    private final Id id;
+@SuppressWarnings({"checkstyle:MethodCount"})
+public final class PhysicalDriveDto extends BaseDto implements RedfishResource {
+    private final String id;
     private final String name;
     private final String description;
+    private final List<UnknownOemDto> unknownOems;
     private final StorageControllerInterface controllerInterface;
-    private final BigDecimal capacityGib;
-    private final DriveType type;
+    private final Float capacityGib;
+    private final MediaType type;
     private final Integer rpm;
     private final String manufacturer;
     private final String model;
     private final String serialNumber;
     private final Status status;
-    private final Collection<Context> usedBy;
-    private final Context context;
+    private final Links links;
 
     private PhysicalDriveDto(Builder builder) {
         id = builder.id;
         name = builder.name;
         description = builder.description;
+        unknownOems = builder.unknownOems;
         controllerInterface = builder.controllerInterface;
         capacityGib = builder.capacityGib;
         type = builder.type;
@@ -52,35 +55,42 @@ public final class PhysicalDriveDto {
         model = builder.model;
         serialNumber = builder.serialNumber;
         status = builder.status;
-        usedBy = builder.usedBy;
-        context = builder.context;
+        links = new Links(builder.usedBy);
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public StorageControllerInterface getControllerInterface() {
         return controllerInterface;
     }
 
-    public BigDecimal getCapacityGib() {
+    public Float getCapacityGib() {
         return capacityGib;
     }
 
-    public DriveType getType() {
+    public MediaType getType() {
         return type;
     }
 
@@ -104,94 +114,103 @@ public final class PhysicalDriveDto {
         return status;
     }
 
-    public Collection<Context> getUsedBy() {
-        return usedBy;
+    @Override
+    public Links getLinks() {
+        return links;
     }
 
-    public Context getContext() {
-        return context;
+    public static final class Links implements RedfishResource.Links {
+        private final Set<Context> usedBy;
+
+        public Links(Set<Context> usedBy) {
+            this.usedBy = usedBy;
+        }
+
+        public Set<Context> getUsedBy() {
+            return usedBy;
+        }
     }
 
     public static final class Builder {
-        private Id id;
+        private String id;
         private String name;
         private String description;
+        private List<UnknownOemDto> unknownOems;
         private StorageControllerInterface controllerInterface;
-        private BigDecimal capacityGib;
-        private DriveType type;
+        private Float capacityGib;
+        private MediaType type;
         private Integer rpm;
         private String manufacturer;
         private String model;
         private String serialNumber;
         private Status status;
-        private Collection<Context> usedBy;
-        private Context context;
+        private Set<Context> usedBy;
 
         private Builder() {
         }
 
-        public Builder id(Id val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder description(String val) {
-            description = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder controllerInterface(StorageControllerInterface val) {
-            controllerInterface = val;
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 
-        public Builder capacityGib(BigDecimal val) {
-            capacityGib = val;
+        public Builder controllerInterface(StorageControllerInterface controllerInterface) {
+            this.controllerInterface = controllerInterface;
             return this;
         }
 
-        public Builder type(DriveType val) {
-            type = val;
+        public Builder capacityGib(Float capacityGib) {
+            this.capacityGib = capacityGib;
             return this;
         }
 
-        public Builder rpm(Integer val) {
-            rpm = val;
+        public Builder type(MediaType type) {
+            this.type = type;
             return this;
         }
 
-        public Builder manufacturer(String val) {
-            manufacturer = val;
+        public Builder rpm(Integer rpm) {
+            this.rpm = rpm;
             return this;
         }
 
-        public Builder model(String val) {
-            model = val;
+        public Builder manufacturer(String manufacturer) {
+            this.manufacturer = manufacturer;
             return this;
         }
 
-        public Builder serialNumber(String val) {
-            serialNumber = val;
+        public Builder model(String model) {
+            this.model = model;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder serialNumber(String serialNumber) {
+            this.serialNumber = serialNumber;
             return this;
         }
 
-        public Builder usedBy(Collection<Context> val) {
-            usedBy = val;
+        public Builder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public Builder context(Context val) {
-            context = val;
+        public Builder usedBy(Set<Context> usedBy) {
+            this.usedBy = usedBy;
             return this;
         }
 

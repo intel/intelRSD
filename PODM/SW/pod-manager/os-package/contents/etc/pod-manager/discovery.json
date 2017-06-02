@@ -2,5 +2,5 @@
   "MaxComputerSystemsCountPerDrawerBeingDeepDiscovered": 1,
   "DeepDiscoveryEnabled": false,
   "DiscoveryIntervalSeconds": 600,
-  "DeepDiscoveryTimeoutSeconds": 600
+  "DiscoveryCancelable": false
 }

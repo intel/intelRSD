@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,26 @@ package com.intel.podm.business.dto.redfish;
 
 import com.intel.podm.business.dto.redfish.attributes.MemoryLocationDto;
 import com.intel.podm.business.dto.redfish.attributes.MemoryRegionDto;
-import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.common.types.BaseModuleType;
+import com.intel.podm.common.types.ErrorCorrection;
 import com.intel.podm.common.types.MemoryDeviceType;
 import com.intel.podm.common.types.MemoryMedia;
-import com.intel.podm.common.types.ErrorCorrection;
+import com.intel.podm.common.types.MemoryType;
 import com.intel.podm.common.types.OperatingMemoryMode;
 import com.intel.podm.common.types.Status;
-import com.intel.podm.common.types.MemoryType;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 
-public final class MemoryDto {
-    private final String name;
+@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:MethodLength", "checkstyle:ExecutableStatementCount"})
+public final class MemoryDto extends BaseDto implements RedfishResource {
     private final String id;
+    private final String name;
     private final String description;
+    private final List<UnknownOemDto> unknownOems;
     private final MemoryType memoryType;
     private final MemoryDeviceType memoryDeviceType;
     private final BaseModuleType baseModuleType;
@@ -60,12 +63,12 @@ public final class MemoryDto {
     private final List<OperatingMemoryMode> operatingMemoryModes;
     private final BigDecimal voltageVolt;
     private final MemoryLocationDto memoryLocation;
-    private final Context context;
 
     private MemoryDto(Builder builder) {
-        name = builder.name;
         id = builder.id;
+        name = builder.name;
         description = builder.description;
+        unknownOems = builder.unknownOems;
         memoryType = builder.memoryType;
         memoryDeviceType = builder.memoryDeviceType;
         baseModuleType = builder.baseModuleType;
@@ -91,23 +94,30 @@ public final class MemoryDto {
         operatingMemoryModes = builder.operatingMemoryModes;
         voltageVolt = builder.voltageVolt;
         memoryLocation = builder.memoryLocation;
-        context = builder.context;
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
-    public String getId() {
-        return id;
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public MemoryType getMemoryType() {
@@ -210,14 +220,16 @@ public final class MemoryDto {
         return memoryLocation;
     }
 
-    public Context getContext() {
-        return context;
+    @Override
+    public Links getLinks() {
+        return null;
     }
 
     public static final class Builder {
-        private String name;
         private String id;
+        private String name;
         private String description;
+        private List<UnknownOemDto> unknownOems;
         private MemoryType memoryType;
         private MemoryDeviceType memoryDeviceType;
         private BaseModuleType baseModuleType;
@@ -243,153 +255,152 @@ public final class MemoryDto {
         private List<OperatingMemoryMode> operatingMemoryModes;
         private BigDecimal voltageVolt;
         private MemoryLocationDto memoryLocation;
-        private Context context;
 
         private Builder() {
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder id(String val) {
-            id = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder memoryType(MemoryType val) {
-            memoryType = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder memoryDeviceType(MemoryDeviceType val) {
-            memoryDeviceType = val;
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 
-        public Builder baseModuleType(BaseModuleType val) {
-            baseModuleType = val;
+        public Builder memoryType(MemoryType memoryType) {
+            this.memoryType = memoryType;
             return this;
         }
 
-        public Builder memoryMedia(List<MemoryMedia> val) {
-            memoryMedia = val;
+        public Builder memoryDeviceType(MemoryDeviceType memoryDeviceType) {
+            this.memoryDeviceType = memoryDeviceType;
             return this;
         }
 
-        public Builder capacityMib(Integer val) {
-            capacityMib = val;
+        public Builder baseModuleType(BaseModuleType baseModuleType) {
+            this.baseModuleType = baseModuleType;
             return this;
         }
 
-        public Builder dataWidthBits(Integer val) {
-            dataWidthBits = val;
+        public Builder memoryMedia(List<MemoryMedia> memoryMedia) {
+            this.memoryMedia = memoryMedia;
             return this;
         }
 
-        public Builder busWidthBits(Integer val) {
-            busWidthBits = val;
+        public Builder capacityMib(Integer capacityMib) {
+            this.capacityMib = capacityMib;
             return this;
         }
 
-        public Builder manufacturer(String val) {
-            manufacturer = val;
+        public Builder dataWidthBits(Integer dataWidthBits) {
+            this.dataWidthBits = dataWidthBits;
             return this;
         }
 
-        public Builder serialNumber(String val) {
-            serialNumber = val;
+        public Builder busWidthBits(Integer busWidthBits) {
+            this.busWidthBits = busWidthBits;
             return this;
         }
 
-        public Builder partNumber(String val) {
-            partNumber = val;
+        public Builder manufacturer(String manufacturer) {
+            this.manufacturer = manufacturer;
             return this;
         }
 
-        public Builder allowedSpeedsMhz(Collection<Integer> val) {
-            allowedSpeedsMhz = val;
+        public Builder serialNumber(String serialNumber) {
+            this.serialNumber = serialNumber;
             return this;
         }
 
-        public Builder firmwareRevision(String val) {
-            firmwareRevision = val;
+        public Builder partNumber(String partNumber) {
+            this.partNumber = partNumber;
             return this;
         }
 
-        public Builder firmwareApiVersion(String val) {
-            firmwareApiVersion = val;
+        public Builder allowedSpeedsMhz(Collection<Integer> allowedSpeedsMhz) {
+            this.allowedSpeedsMhz = allowedSpeedsMhz;
             return this;
         }
 
-        public Builder functionClasses(Collection<String> val) {
-            functionClasses = val;
+        public Builder firmwareRevision(String firmwareRevision) {
+            this.firmwareRevision = firmwareRevision;
             return this;
         }
 
-        public Builder vendorId(String val) {
-            vendorId = val;
+        public Builder firmwareApiVersion(String firmwareApiVersion) {
+            this.firmwareApiVersion = firmwareApiVersion;
             return this;
         }
 
-        public Builder deviceId(String val) {
-            deviceId = val;
+        public Builder functionClasses(Collection<String> functionClasses) {
+            this.functionClasses = functionClasses;
             return this;
         }
 
-        public Builder rankCount(Integer val) {
-            rankCount = val;
+        public Builder vendorId(String vendorId) {
+            this.vendorId = vendorId;
             return this;
         }
 
-        public Builder deviceLocator(String val) {
-            deviceLocator = val;
+        public Builder deviceId(String deviceId) {
+            this.deviceId = deviceId;
             return this;
         }
 
-        public Builder errorCorrection(ErrorCorrection val) {
-            errorCorrection = val;
+        public Builder rankCount(Integer rankCount) {
+            this.rankCount = rankCount;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder deviceLocator(String deviceLocator) {
+            this.deviceLocator = deviceLocator;
             return this;
         }
 
-        public Builder operatingSpeedMhz(Integer val) {
-            operatingSpeedMhz = val;
+        public Builder errorCorrection(ErrorCorrection errorCorrection) {
+            this.errorCorrection = errorCorrection;
             return this;
         }
 
-        public Builder regions(Collection<MemoryRegionDto> val) {
-            regions = val;
+        public Builder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public Builder operatingMemoryModes(List<OperatingMemoryMode> val) {
-            operatingMemoryModes = val;
+        public Builder operatingSpeedMhz(Integer operatingSpeedMhz) {
+            this.operatingSpeedMhz = operatingSpeedMhz;
             return this;
         }
 
-        public Builder voltageVolt(BigDecimal val) {
-            voltageVolt = val;
+        public Builder regions(Collection<MemoryRegionDto> regions) {
+            this.regions = regions;
             return this;
         }
 
-        public Builder memoryLocation(MemoryLocationDto val) {
-            memoryLocation = val;
+        public Builder operatingMemoryModes(List<OperatingMemoryMode> operatingMemoryModes) {
+            this.operatingMemoryModes = operatingMemoryModes;
             return this;
         }
 
-        public Builder context(Context val) {
-            context = val;
+        public Builder voltageVolt(BigDecimal voltageVolt) {
+            this.voltageVolt = voltageVolt;
             return this;
         }
 
-        public Builder description(String val) {
-            description = val;
+        public Builder memoryLocation(MemoryLocationDto memoryLocation) {
+            this.memoryLocation = memoryLocation;
             return this;
         }
 

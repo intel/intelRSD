@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ result_t libwrap_pack_mbp_coll_to_json(json_t *output, struct rest_uri_param *pa
 
 	members = (int8 *)malloc(cm_num * HREF_URL_LEN);
 	if (members == NULL) {
+		if (mbp_collections)
+			free(mbp_collections);
 		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
 		return RESULT_NO_NODE;
 	}
@@ -50,6 +52,10 @@ result_t libwrap_pack_mbp_coll_to_json(json_t *output, struct rest_uri_param *pa
 
 	rs = libwrap_get_mbp_coll(mbp_collections, &mbp_num, param->host);
 	if (rs != RESULT_OK) {
+		if (mbp_collections)
+			free(mbp_collections);
+		if (members)
+			free(members);
 		return RESULT_GET_COLL_ERR;
 	}
 
@@ -167,6 +173,7 @@ result_t libwrap_pack_mbp_to_json(json_t *output, mbp_member_t *mbp_member, stru
 		for (i = 0; i < subnode_num; i++) {
 			parent = libdb_get_node_by_node_id(DB_RMM, subnode[i].parent, LOCK_ID_NULL);
 			if (parent == NULL) {
+				libdb_free_node(subnode);
 				update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
 				return RESULT_NO_NODE;
 			}
@@ -236,43 +243,40 @@ result_t libwrap_pack_mbp_to_json(json_t *output, mbp_member_t *mbp_member, stru
 	return RESULT_OK;
 }
 
-
 static input_attr_t patch_mbp_attrs[] = {
-    {"AssetTag", NULL}
+	{"AssetTag",            NULL}
 };
 
+result_t libwrap_update_put_mbp_info(json_t *req, put_mbp_t *put_info)
+{
+	result_t rs = RESULT_OK;
+	json_t *obj = NULL;
+	int32  i = 0;
+	uint32 ary_size = sizeof(patch_mbp_attrs)/sizeof(input_attr_t);
 
-result_t libwrap_update_put_mbp_info(json_t* req, put_mbp_t* put_info) {
-    json_t* obj = NULL;
-    int32 i = 0;
-    uint32 ary_size = sizeof(patch_mbp_attrs) / sizeof(input_attr_t);
+	if ((req == NULL) || (put_info == NULL))
+		return RESULT_NONE_POINTER;
 
-    if ((req == NULL) || (put_info == NULL)) {
-        return RESULT_NONE_POINTER;
-    }
+	for (i = 0; i < ary_size; i++)
+		patch_mbp_attrs[i].value = NULL;
 
-    for (i = 0; i < ary_size; i++) {
-        patch_mbp_attrs[i].value = NULL;
-    }
+	if (libwrap_check_input_attrs(patch_mbp_attrs, ary_size, req, NULL) != RESULT_OK)
+		return RESULT_JSON_ARR_ERR;
 
-    if (libwrap_check_input_attrs(patch_mbp_attrs, ary_size, req, NULL) != RESULT_OK) {
-        return RESULT_JSON_ARR_ERR;
-    }
+	obj = libwrap_get_attr_json(patch_mbp_attrs, ary_size, "AssetTag");
+	if (obj) {
+		int8 *input = NULL;
+		input = json_string_value(obj);
+		if (input && check_str_len(input, REST_ASSET_TAG_LEN)) {
+			strncpy_safe(put_info->asset_tag, input, REST_ASSET_TAG_LEN, REST_ASSET_TAG_LEN - 1);
+		} else {
+			return RESULT_JSON_ARR_ERR;
+		}
+	}
 
-    obj = libwrap_get_attr_json(patch_mbp_attrs, ary_size, "AssetTag");
-    if (obj) {
-        int8* input = NULL;
-        input = json_string_value(obj);
-        if (input && check_str_len(input, REST_ASSET_TAG_LEN)) {
-            strncpy_safe(put_info->asset_tag, input, REST_ASSET_TAG_LEN, REST_ASSET_TAG_LEN - 1);
-        }
-        else {
-            return RESULT_JSON_ARR_ERR;
-        }
-    }
-
-    return RESULT_OK;
+	return RESULT_OK;
 }
+
 
 
 result_t libwrap_pre_put_mbp(int idx, put_mbp_t *put_mbp_info)
@@ -286,13 +290,6 @@ result_t libwrap_pre_put_mbp(int idx, put_mbp_t *put_mbp_info)
 		return RESULT_ATTR_ERR;
 	}
 
-	error_code = libdb_attr_get_string(DB_RMM, node_id, MBP_DESCRIPT_STR, output, sizeof(output), LOCK_ID_NULL);
-	if (error_code != 0) {
-		return (int32)error_code;
-	}
-
-	strncpy_safe((int8 *)put_mbp_info->descr, output, DESCRIPTION_LEN, DESCRIPTION_LEN - 1);
-	error_code = 0;
 	error_code = libdb_attr_get_string(DB_RMM, node_id, MBP_ASSET_TAG_STR, output, sizeof(output), LOCK_ID_NULL);
 	if (error_code != 0) {
 		return (int32)error_code;
@@ -310,12 +307,6 @@ result_t libwrap_put_mbp(int idx, const put_mbp_t put_mbp_info)
 	memdb_integer node_id = get_subnode_id_by_lid(lid, MC_NODE_ROOT, MC_TYPE_CM);
 
 	if (node_id == 0) {
-		return RESULT_ATTR_ERR;
-	}
-
-	rc = libdb_attr_set_string(DB_RMM, node_id, MBP_DESCRIPT_STR,
-						  0x0, (char*)put_mbp_info.descr, SNAPSHOT_NEED, LOCK_ID_NULL);
-	if (rc == -1) {
 		return RESULT_ATTR_ERR;
 	}
 

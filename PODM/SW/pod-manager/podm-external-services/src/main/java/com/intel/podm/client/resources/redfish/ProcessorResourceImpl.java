@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,105 +16,120 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.redfish.LuiProcessorResource;
 import com.intel.podm.client.api.resources.redfish.ProcessorIdObject;
 import com.intel.podm.client.api.resources.redfish.ProcessorResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
-import com.intel.podm.client.resources.ODataId;
 import com.intel.podm.common.types.InstructionSet;
 import com.intel.podm.common.types.ProcessorArchitecture;
 import com.intel.podm.common.types.ProcessorBrand;
 import com.intel.podm.common.types.ProcessorType;
+import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.annotations.AsUnassigned;
+import com.intel.podm.common.types.redfish.OemType;
 
 import java.util.List;
 
+import static com.intel.podm.common.types.Ref.unassigned;
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_EMPTY_COLLECTION;
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
+
 @OdataTypes({
-        "#Processor.1.0.0.Processor",
-        "#Processor.v1_0_0.Processor"
+    "#Processor" + OdataTypes.VERSION_PATTERN + "Processor"
 })
-public class ProcessorResourceImpl extends ExternalServiceResourceImpl implements ProcessorResource, LuiProcessorResource {
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class ProcessorResourceImpl extends ExternalServiceResourceImpl implements ProcessorResource {
     @JsonProperty("Socket")
-    private String socket;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> socket = unassigned();
     @JsonProperty("ProcessorType")
-    private ProcessorType processorType;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<ProcessorType> processorType = unassigned();
     @JsonProperty("ProcessorArchitecture")
-    private ProcessorArchitecture processorArchitecture;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<ProcessorArchitecture> processorArchitecture = unassigned();
     @JsonProperty("InstructionSet")
-    private InstructionSet instructionSet;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<InstructionSet> instructionSet = unassigned();
     @JsonProperty("Manufacturer")
-    private String manufacturer;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> manufacturer = unassigned();
     @JsonProperty("Model")
-    private String model;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> model = unassigned();
     @JsonProperty("MaxSpeedMHz")
-    private Integer maxSpeedMhz;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> maxSpeedMhz = unassigned();
     @JsonProperty("TotalCores")
-    private Integer totalCores;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> totalCores = unassigned();
     @JsonProperty("TotalThreads")
-    private Integer totalThreads;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> totalThreads = unassigned();
     @JsonProperty("Status")
-    private Status status;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Status> status = unassigned();
     @JsonProperty("ProcessorId")
     private ProcessorIdObjectImpl processorId;
     @JsonProperty("Oem")
     private Oem oem = new Oem();
 
     @Override
-    public String getSocket() {
+    public Ref<String> getSocket() {
         return socket;
     }
 
     @Override
-    public ProcessorType getProcessorType() {
+    public Ref<ProcessorType> getProcessorType() {
         return processorType;
     }
 
     @Override
-    public ProcessorArchitecture getProcessorArchitecture() {
+    public Ref<ProcessorArchitecture> getProcessorArchitecture() {
         return processorArchitecture;
     }
 
     @Override
-    public InstructionSet getInstructionSet() {
+    public Ref<InstructionSet> getInstructionSet() {
         return instructionSet;
     }
 
     @Override
-    public String getManufacturer() {
+    public Ref<String> getManufacturer() {
         return manufacturer;
     }
 
     @Override
-    public String getModel() {
+    public Ref<String> getModel() {
         return model;
     }
 
     @Override
-    public Integer getMaxSpeedMhz() {
+    public Ref<Integer> getMaxSpeedMhz() {
         return maxSpeedMhz;
     }
 
     @Override
-    public Integer getTotalCores() {
+    public Ref<Integer> getTotalCores() {
         return totalCores;
     }
 
     @Override
-    public Integer getTotalThreads() {
+    public Ref<Integer> getTotalThreads() {
         return totalThreads;
     }
 
     @Override
-    public ProcessorBrand getBrand() {
+    public Ref<ProcessorBrand> getBrand() {
         return oem.rackScaleOem.brand;
     }
 
     @Override
-    public List<String> getCapabilities() {
+    public Ref<List<String>> getCapabilities() {
         return oem.rackScaleOem.capabilities;
     }
 
@@ -124,28 +139,29 @@ public class ProcessorResourceImpl extends ExternalServiceResourceImpl implement
     }
 
     @Override
-    public Status getStatus() {
+    public Ref<Status> getStatus() {
         return status;
     }
 
     @Override
     public ResourceSupplier getComputerSystem() {
-        return toSupplier(oem.rackScaleOem.containedBy);
+        //FIXME: workaround until link to computer system is available
+        return toSupplier(getComputerSystemODataId());
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class Oem {
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOem {
         @JsonProperty("Intel_RackScale")
         private RackScaleOem rackScaleOem = new RackScaleOem();
 
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        private static final class RackScaleOem {
+        public class RackScaleOem {
             @JsonProperty("Capabilities")
-            private List<String> capabilities;
+            @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+            private Ref<List<String>> capabilities = unassigned();
+
             @JsonProperty("Brand")
-            private ProcessorBrand brand;
-            @JsonProperty("ContainedBy")
-            private ODataId containedBy;
+            @AsUnassigned(WHEN_NULL)
+            private Ref<ProcessorBrand> brand = unassigned();
         }
     }
 }

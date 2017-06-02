@@ -177,6 +177,11 @@
                 }
             }
         },
+        "service-uuid-file": {
+            "description": "Path to service uuid file.",
+            "name": "service-uuid-file",
+            "type": "string"
+        },
         "logger": {
             "description": "Logger configuration.",
             "name": "logger",
@@ -252,6 +257,7 @@
         "agent",
         "server",
         "registration",
+        "service-uuid-file",
         "logger"
     ]
 }

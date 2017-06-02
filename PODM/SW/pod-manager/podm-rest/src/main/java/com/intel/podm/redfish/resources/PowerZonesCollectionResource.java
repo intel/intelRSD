@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,24 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.services.redfish.PowerZoneService;
+import com.intel.podm.business.dto.redfish.PowerZoneDto;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import static com.intel.podm.rest.resources.PathParamConstants.POWER_ZONE_ID;
+import static com.intel.podm.business.services.context.PathParamConstants.POWER_ZONE_ID;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class PowerZonesCollectionResource extends BaseResource {
     @Inject
-    private PowerZoneService powerZoneService;
+    private ReaderService<PowerZoneDto> readerService;
 
     @Override
     public CollectionDto get() {
-        return getOrThrow(() -> powerZoneService.getPowerZonesCollection(getCurrentContext()));
+        return getOrThrow(() -> readerService.getCollection(getCurrentContext()));
     }
 
     @Path(POWER_ZONE_ID)

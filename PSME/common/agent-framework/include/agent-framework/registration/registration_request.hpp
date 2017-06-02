@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Registration request data
  * */
 
-#ifndef AGENT_FRAMEWORK_REGISTRATION_REGISTRATION_REQUEST_HPP
-#define AGENT_FRAMEWORK_REGISTRATION_REGISTRATION_REQUEST_HPP
-
+#pragma once
 #include <json/json.h>
 
 #include <vector>
@@ -108,4 +106,3 @@ private:
 };
 }}
 
-#endif /* AGENT_FRAMEWORK_REGISTRATION_REGISTRATION_REQUEST_HPP */

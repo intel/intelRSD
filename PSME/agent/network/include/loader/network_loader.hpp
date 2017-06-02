@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,8 @@
  * @brief Network module loader interface
  * */
 
-#ifndef AGENT_NETWORK_LOADER_NETWORK_LOADER_HPP
-#define AGENT_NETWORK_LOADER_NETWORK_LOADER_HPP
-
-#include "agent-framework/module-ref/loader/loader.hpp"
+#pragma once
+#include "agent-framework/module/loader/loader.hpp"
 
 namespace agent {
 namespace network {
@@ -49,7 +47,7 @@ public:
     bool load(const json::Value& json) override;
 
     /*!
-     * @brief Read FabriModule configuration file
+     * @brief Read FabricModule configuration file
      * @param[in] json JSON configuration file
      */
     void read_fabric_modules(const json::Value& json);
@@ -59,4 +57,3 @@ public:
 }
 }
 
-#endif /* AGENT_NETWORK_LOADER_NETWORK_LOADER_HPP */

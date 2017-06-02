@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,31 +16,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
  * */
-#include "agent-framework/module-ref/compute_manager.hpp"
+#include "agent-framework/module/common_components.hpp"
 #include "discovery/discovery_manager.hpp"
-#include "mock_send_method.hpp"
-#include "mock_const.hpp"
 #include "loader/compute_loader.hpp"
-#include "configuration_full.hpp"
-#include "json/deserializer.hpp"
-#include "json/value.hpp"
-#include "gtest/gtest.h"
+
+#include "mock/mock_send_method.hpp"
+#include "mock/mock_const.hpp"
+#include "mock/configuration_full.hpp"
+
+#include <json/deserializer.hpp>
+#include <json/value.hpp>
+#include <gtest/gtest.h>
 #include <memory>
 
 using namespace std;
 using namespace ipmi;
 using namespace agent::compute::loader;
-using agent::compute::discovery::DiscoveryManager;
+using namespace agent_framework::module;
+using namespace agent::compute::discovery;
 
-// TODO: For refactor purpose only. Remove after name unification.
-using ComputeComponents = agent_framework::module::ComputeManager;
-
-/*! This class is responsible for testing DiscoveryManager.
- *  It checks how DisvoeryManager handle the runtime exception when
- *  it's thrown by the send method in mock ManagementController class.
+/*!
+ * @brief This class is responsible for testing DiscoveryManager.
+ * It checks how DiscoveryManager handle the runtime exception when
+ * it's thrown by the send method in mock ManagementController class.
  */
 class MockSendMethodTest: public ::testing::Test {
 private:
@@ -57,7 +54,7 @@ private:
     }
 
     string get_manager_uuid() {
-        auto& module_manager = ComputeComponents::get_instance()->get_module_manager();
+        auto& module_manager = CommonComponents::get_instance()->get_module_manager();
         auto uuids = module_manager.get_keys("");
 
         if (1 > uuids.size()) {
@@ -65,6 +62,7 @@ private:
         }
         return uuids.front();
     }
+
     static bool is_initialized;
 protected:
 
@@ -78,6 +76,7 @@ public:
         if (is_initialized) {
             return;
         }
+
         load_config_and_build_compute();
         manager_uuid = get_manager_uuid();
         unique_ptr<ManagementController> mc(new MockSendMethod());
@@ -95,7 +94,7 @@ public:
 
 bool MockSendMethodTest::is_initialized{false};
 
-MockSendMethodTest::~MockSendMethodTest() {}
+MockSendMethodTest::~MockSendMethodTest() { }
 
 TEST_F(MockSendMethodTest, DiscoverManagerThrowOnSend) {
     try {

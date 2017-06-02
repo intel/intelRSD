@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,21 @@
 
 package com.intel.podm.discovery.external.finalizers.rmm;
 
-import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.dao.ChassisDao;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.business.entities.redfish.properties.RackChassisAttributes;
-import com.intel.podm.discovery.external.finalizers.DiscoveryFinalizer;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.discovery.external.finalizers.ServiceTypeSpecializedDiscoveryFinalizer;
 import com.intel.podm.discovery.external.finders.RackChassisFinder;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.intel.podm.common.types.ChassisType.DRAWER;
 import static com.intel.podm.common.types.ChassisType.POD;
 import static com.intel.podm.common.types.ChassisType.RACK;
@@ -40,12 +38,11 @@ import static com.intel.podm.common.types.ServiceType.RMM;
 import static com.intel.podm.common.utils.Collections.filterByType;
 import static com.intel.podm.common.utils.IterableHelper.single;
 import static java.util.Objects.isNull;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Dependent
-public class RmmDiscoveryFinalizer extends DiscoveryFinalizer {
-
+public class RmmDiscoveryFinalizer extends ServiceTypeSpecializedDiscoveryFinalizer {
     @Inject
     private GenericDao genericDao;
 
@@ -60,47 +57,42 @@ public class RmmDiscoveryFinalizer extends DiscoveryFinalizer {
     }
 
     @Override
-    public void finalize(Set<DomainObject> discoveredDomainObjects, ExternalService service) {
-        Chassis rackChassis = getRackChassisFromDiscoveredObjects(discoveredDomainObjects);
-
-        linkDiscoveredRackToPod(rackChassis);
-        assignLocationId(rackChassis);
-        removeUselessRacks(rackChassis);
-        assureConsistentTopology(rackChassis);
+    public void finalize(Set<Entity> discoveredEntities, ExternalService service) {
+        for (Chassis rack : getRackChassisFromDiscoveredObjects(discoveredEntities)) {
+            linkDiscoveredRackToPod(rack);
+            removeUselessRacks(rack);
+            assureConsistentTopology(rack);
+        }
     }
 
     private void assureConsistentTopology(Chassis rackChassis) {
-        rackChassis.getContainedChassis().stream()
-                .filter(chassis -> chassis.is(DRAWER))
-                .filter(drawer -> !Objects.equals(drawer.getLocationParentId(), rackChassis.getLocationId()))
-                .forEach(drawer -> {
-                    rackChassis.unlinkContainedChassis(drawer);
-                    Chassis newRackChassis = rackChassisFinder.findAnyOrCreate(drawer.getLocationParentId());
-                    newRackChassis.contain(drawer);
-                });
-    }
+        Set<Chassis> drawers = rackChassis.getContainedChassis().stream()
+            .filter(chassis -> chassis.is(DRAWER))
+            .filter(drawer -> !Objects.equals(drawer.getLocationParentId(), rackChassis.getLocationId()))
+            .collect(toSet());
 
-    private void assignLocationId(Chassis rackChassis) {
-        checkNotNull(rackChassis, "Non null argument required here.");
-
-        ofNullable(rackChassis.getRackChassisAttributes())
-                .map(RackChassisAttributes::getRackPuid)
-                .map(Object::toString)
-                .ifPresent(rackChassis::setLocationId);
+        drawers.forEach(drawer -> {
+            rackChassis.unlinkContainedChassis(drawer);
+            Chassis newRackChassis = rackChassisFinder.findAnyOrCreate(drawer.getLocationParentId());
+            newRackChassis.addContainedChassis(drawer);
+        });
     }
 
     private void removeUselessRacks(Chassis discoveredRack) {
         List<Chassis> racksWithEqualLocationWithoutRmm = rackChassisFinder.findByLocation(discoveredRack.getLocationId())
-                .stream()
-                .filter(chassis -> !Objects.equals(chassis.getId(), discoveredRack.getId()))
-                .filter(chassis -> isNull(chassis.getService()))
-                .collect(toList());
+            .stream()
+            .filter(chassis -> !Objects.equals(chassis.getId(), discoveredRack.getId()))
+            .filter(chassis -> isNull(chassis.getService()))
+            .collect(toList());
 
+        moveContainedChassisToNewlyDiscoveredRack(discoveredRack, racksWithEqualLocationWithoutRmm);
+    }
+
+    private void moveContainedChassisToNewlyDiscoveredRack(Chassis discoveredRack, List<Chassis> racksWithEqualLocationWithoutRmm) {
         for (Chassis rack : racksWithEqualLocationWithoutRmm) {
-            // move drawers to newly discovered rack
-            rack.getContainedChassis().stream()
-                    .filter(chassis -> chassis.is(DRAWER))
-                    .forEach(discoveredRack::contain);
+            // copy of contained chassis needed because of ConcurrentModificationException
+            Set<Chassis> containedChassis = new HashSet<>(rack.getContainedChassis());
+            containedChassis.forEach(discoveredRack::addContainedChassis);
 
             genericDao.remove(rack);
         }
@@ -108,14 +100,14 @@ public class RmmDiscoveryFinalizer extends DiscoveryFinalizer {
 
     private void linkDiscoveredRackToPod(Chassis rackChassis) {
         Chassis podChassis = single(chassisDao.getAllByChassisType(POD));
-        podChassis.contain(rackChassis);
+        podChassis.addContainedChassis(rackChassis);
+        rackChassis.setLocationParentId(podChassis.getLocationId());
     }
 
-    private Chassis getRackChassisFromDiscoveredObjects(Set<DomainObject> discoveredDomainObjects) {
-        Collection<Chassis> chassisCollection = filterByType(discoveredDomainObjects, Chassis.class);
-        return chassisCollection.stream()
-                .filter(chassis -> chassis.is(RACK))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("There should be at least one Rack discovered from RMM service."));
+    private List<Chassis> getRackChassisFromDiscoveredObjects(Set<Entity> discoveredEntities) {
+        return filterByType(discoveredEntities, Chassis.class)
+            .stream()
+            .filter(chassis -> chassis.is(RACK))
+            .collect(toList());
     }
 }

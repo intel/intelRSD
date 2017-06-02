@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@ package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.PhysicalDriveDto;
 import com.intel.podm.redfish.json.templates.PhysicalDriveJson;
-import com.intel.podm.rest.odataid.ODataContextProvider;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
-import static com.intel.podm.rest.odataid.ODataIds.oDataIdsCollection;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataIdSet;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 
-public class PhysicalDriveDtoJsonSerializer extends DtoJsonSerializer<PhysicalDriveDto> {
-
+public class PhysicalDriveDtoJsonSerializer extends BaseDtoJsonSerializer<PhysicalDriveDto> {
     protected PhysicalDriveDtoJsonSerializer() {
         super(PhysicalDriveDto.class);
     }
@@ -34,8 +33,8 @@ public class PhysicalDriveDtoJsonSerializer extends DtoJsonSerializer<PhysicalDr
     protected PhysicalDriveJson translate(PhysicalDriveDto dto) {
         PhysicalDriveJson physicalDriveJson = new PhysicalDriveJson();
 
-        physicalDriveJson.oDataId = oDataId(context.getRequestPath());
-        physicalDriveJson.oDataContext = ODataContextProvider.getContextFromId(physicalDriveJson.oDataId);
+        physicalDriveJson.oDataId = oDataIdFromUri(context.getRequestPath());
+        physicalDriveJson.oDataContext = getContextFromId(physicalDriveJson.oDataId);
 
         physicalDriveJson.id = dto.getId();
         physicalDriveJson.rpm = dto.getRpm();
@@ -48,7 +47,7 @@ public class PhysicalDriveDtoJsonSerializer extends DtoJsonSerializer<PhysicalDr
         physicalDriveJson.manufacturer = dto.getManufacturer();
         physicalDriveJson.serialNumber = dto.getSerialNumber();
         physicalDriveJson.controllerInterface = dto.getControllerInterface();
-        physicalDriveJson.links.usedBy.addAll(oDataIdsCollection(dto.getUsedBy()));
+        physicalDriveJson.links.usedBy.addAll(asOdataIdSet(dto.getLinks().getUsedBy()));
 
         return physicalDriveJson;
     }

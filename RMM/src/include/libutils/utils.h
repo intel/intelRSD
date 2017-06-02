@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ extern bool check_int_range(int value, int min, int max);
 extern bool is_str_num(const char *str);
 extern bool is_str_uuid(const char *str);
 extern int str2int(const char *str);
+extern int64 str2int64(const char* str);
 extern bool str_end_with(char *str, char *substr);
 
 extern int gen_uuid_v1(char *uuid);

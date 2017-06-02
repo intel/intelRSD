@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,7 @@
  * @brief IPMI message patcher.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_PATCHER_HPP
-#define AGENT_CHASSIS_IPMB_PATCHER_HPP
-
+#pragma once
 
 /*! Agent namespace */
 namespace agent {
@@ -51,4 +49,3 @@ public:
 }
 }
 
-#endif /* AGENT_CHASSIS_IPMB_PATCHER_HPP */

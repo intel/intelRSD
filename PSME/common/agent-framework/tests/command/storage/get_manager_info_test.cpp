@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,12 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/get_manager_info.hpp"
-#include "agent-framework/command/storage/json/get_manager_info.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model;
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
 
 static constexpr enums::SerialConsoleSignalType TEST_SIGNAL_TYPE{
     enums::SerialConsoleSignalType::Rs232};
@@ -44,19 +42,18 @@ static constexpr uint32_t TEST_DATA_BITS = 6;
 static constexpr uint32_t TEST_STOP_BITS = 2;
 static constexpr bool TEST_CONSOLE_ENABLED = false;
 
-class GetManagerInfo : public storage::GetManagerInfo {
+class MyGetManagerInfo {
 private:
     std::string m_component{};
 public:
-    GetManagerInfo(const std::string& component) { m_component = component; }
+    MyGetManagerInfo(const std::string& component) { m_component = component; }
 
-    using storage::GetManagerInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto uuid = request.get_component();
+    void execute(const GetManagerInfo::Request& request,
+                 GetManagerInfo::Response& response) {
+        auto uuid = request.get_uuid();
 
         if (uuid != m_component) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
         Manager manager{};
         manager.set_firmware_version("Test Firmware Version");
@@ -71,27 +68,23 @@ public:
         console.set_flow_control(TEST_FLOW_CONTROL);
         console.set_pin_out(TEST_PIN_OUT);
         console.set_enabled(TEST_CONSOLE_ENABLED);
-	manager.set_serial_console(console);
-        response.set_manager(manager);
+        manager.set_serial_console(console);
+        response = manager;
     }
-
-    virtual ~GetManagerInfo();
 };
 
-GetManagerInfo::~GetManagerInfo() { }
-
 TEST(GetManagerInfoTest, PositiveExecute) {
-    storage::json::GetManagerInfo command_json;
-    GetManagerInfo* command = new GetManagerInfo("TestModuleId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetManagerInfo command{"TestModuleId"};
+    GetManagerInfo::Request request{""};
+    GetManagerInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Manager::MANAGER] = "TestModuleId";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetManagerInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::Manager::FIRMWARE_VERSION].isString());
@@ -134,15 +127,14 @@ TEST(GetManagerInfoTest, PositiveExecute) {
 }
 
 TEST(GetManagerInfoTest, NegativeModuleNotFound) {
-    storage::json::GetManagerInfo command_json;
-    GetManagerInfo* command = new GetManagerInfo("TestModuleId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetManagerInfo command{"TestModuleId"};
+    GetManagerInfo::Request request{""};
+    GetManagerInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Manager::MANAGER] = "OtherTestModuleId";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetManagerInfo::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
  * @file port_attribute_message.cpp
  *
  * @brief Switch port attribute netlink message class
@@ -30,58 +26,56 @@
 /* Internal headers */
 #include "api/netlink/port_attribute_message.hpp"
 #include "logger/logger_factory.hpp"
+#include "netlink/nl_exception_invalid_ifname.hpp"
 
 /* C/C++ standard headers */
-#include <net/if.h>
+#include <netlink/msg.h>
+#include <linux/rtnetlink.h>
 
 struct sw_attributes {
     __u64 attribute_val;     /* Value of the attribute*/
     __s64 attribute_index;   /* Attribute index */
 };
 
+using std::string;
 using namespace netlink_base;
 using namespace agent::network::api::netlink;
 
-PortAttributeMessage::PortAttributeMessage(const IfName& ifname) : Message(ifname) {
-    set_flags(NLM_F_REPLACE|NLM_F_REQUEST|NLM_F_ACK);
-    set_type(RTM_SETLINK);
+PortAttributeMessage::PortAttributeMessage(const string& ifname) :
+        LinkMessage{ifname} {
+    set_nlhdr_flags(NLM_F_REPLACE|NLM_F_REQUEST|NLM_F_ACK);
+    set_nlhdr_type(RTM_SETLINK);
 }
 
 PortAttributeMessage::~PortAttributeMessage() {}
 
-Message::Pointer PortAttributeMessage::prepare_netlink_msg() const {
-    struct ifinfomsg ifi{};
+void PortAttributeMessage::prepare_link_message(struct nl_msg* msg) {
     struct sw_attributes attr_val_index{};
-    struct nlattr *port_config_attr;
-    Pointer msg(nlmsg_alloc_simple(m_type, int(m_flags)));
-    if (!msg) {
-        return nullptr;
-    }
+    struct nlattr *port_config_attr{nullptr};
 
-    /* Appending the ndm parameter details to netlink message msg */
-    if (0 > nlmsg_append(msg.get(), &ifi, sizeof(ifi), NLMSG_ALIGNTO)) {
-        return nullptr;
+    /* validate interface */
+    if (!iface_exists()) {
+        throw NlExceptionInvalidIfName(get_ifname());
     }
 
     /* add iface name into the message */
-    if (0 > nla_put(msg.get(), IFLA_IFNAME, int((m_ifname.length())), m_ifname.c_str())) {
-        return nullptr;
+    if (0 > nla_put(msg, IFLA_IFNAME, int((get_ifname().length())),
+        get_ifname().c_str())) {
+        throw NlException("Cannot put iface name to the message");
     }
 
     /* set port attribute into the message */
-    port_config_attr = nla_nest_start(msg.get(), IFLA_SWPORT_ATTRS);
+    port_config_attr = nla_nest_start(msg, IFLA_SWPORT_ATTRS);
     if (!port_config_attr) {
-        return nullptr;
+        throw NlException("Cannot start nested sw port attr");
     }
     attr_val_index.attribute_index = -1;
     attr_val_index.attribute_val = m_attribute_value;
-    if (0 > nla_put(msg.get(), int(m_attribute), sizeof(attr_val_index),
+    if (0 > nla_put(msg, int(m_attribute), sizeof(attr_val_index),
         &attr_val_index)) {
-        return nullptr;
+        throw NlException("Cannot put sw port attrs to the message");
     }
-    nla_nest_end(msg.get(), port_config_attr);
+    nla_nest_end(msg, port_config_attr);
 
-    log_debug(GET_LOGGER("netlink"), "netlink switch message created for device " + m_ifname);
-    return msg;
+    log_debug(GET_LOGGER("netlink"), "netlink switch message created for device " + get_ifname());
 }
-

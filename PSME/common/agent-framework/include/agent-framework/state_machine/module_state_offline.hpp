@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief StateMachine OFFLINE State
  * */
 
-#ifndef AGENT_FRAMEWORK_STATE_MACHINE_MODULE_STATE_OFFLINE_HPP
-#define AGENT_FRAMEWORK_STATE_MACHINE_MODULE_STATE_OFFLINE_HPP
-
+#pragma once
 #include "agent-framework/state_machine/module_state.hpp"
 
 /*! Psme namespace */
@@ -40,7 +38,7 @@ public:
     /*!
      * @brief Class default constructor.
      */
-    ModuleStateOffline() : ModuleState(enums::State::STANDBY_OFFLINE) {}
+    ModuleStateOffline() : ModuleState(enums::State::UNAVAILABLE_OFFLINE) {}
 
     /*!
      * @brief Class destructor.
@@ -58,4 +56,3 @@ public:
 
 }
 }
-#endif /* AGENT_FRAMEWORK_STATE_MACHINE_MODULE_STATE_OFFLINE_HPP */

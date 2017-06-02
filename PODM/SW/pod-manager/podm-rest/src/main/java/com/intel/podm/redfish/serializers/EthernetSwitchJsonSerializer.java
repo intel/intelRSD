@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,17 @@ package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.EthernetSwitchDto;
 import com.intel.podm.redfish.json.templates.EthernetSwitchJson;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
-import static com.intel.podm.rest.odataid.ODataIds.oDataIdFromContext;
-import static com.intel.podm.rest.odataid.ODataIds.oDataIdsCollection;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataIdSet;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 import static java.net.URI.create;
 
-public class EthernetSwitchJsonSerializer extends DtoJsonSerializer<EthernetSwitchDto> {
+@SuppressWarnings({"checkstyle:ExecutableStatementCount"})
+public class EthernetSwitchJsonSerializer extends BaseDtoJsonSerializer<EthernetSwitchDto> {
     protected EthernetSwitchJsonSerializer() {
         super(EthernetSwitchDto.class);
     }
@@ -35,10 +36,10 @@ public class EthernetSwitchJsonSerializer extends DtoJsonSerializer<EthernetSwit
     @Override
     protected EthernetSwitchJson translate(EthernetSwitchDto dto) {
         EthernetSwitchJson switchJson = new EthernetSwitchJson();
-        ODataId oDataId = oDataId(context.getRequestPath());
-
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         switchJson.oDataId = oDataId;
         switchJson.oDataContext = getContextFromId(oDataId);
+
         switchJson.id = dto.getId();
         switchJson.switchId = dto.getSwitchId();
         switchJson.name = dto.getName();
@@ -52,9 +53,9 @@ public class EthernetSwitchJsonSerializer extends DtoJsonSerializer<EthernetSwit
         switchJson.firmwareVersion = dto.getFirmwareVersion();
         switchJson.role = dto.getRole();
         switchJson.status = dto.getStatus();
-        switchJson.ports = oDataId(create(oDataId + "/Ports"));
-        switchJson.links.chassis = oDataIdFromContext(dto.getChassis());
-        switchJson.links.managedBy = oDataIdsCollection(dto.getManagedBy());
+        switchJson.ports = oDataIdFromUri(create(oDataId + "/Ports"));
+        switchJson.links.chassis = asOdataId(dto.getLinks().getChassis());
+        switchJson.links.managedBy = asOdataIdSet(dto.getLinks().getManagedBy());
 
         return switchJson;
     }

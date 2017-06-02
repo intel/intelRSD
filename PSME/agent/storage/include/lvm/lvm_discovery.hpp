@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief Lvm discovery interface
  * */
 
-#ifndef PSME_AGENT_STORAGE_LVM_LVM_DISCOVERY_HPP
-#define PSME_AGENT_STORAGE_LVM_LVM_DISCOVERY_HPP
-
+#pragma once
 #include <vector>
 
 struct lvm;
@@ -75,5 +73,4 @@ private:
 }
 }
 }
-#endif	/* PSME_AGENT_STORAGE_LVM_LVM_DISCOVERY_HPP */
 

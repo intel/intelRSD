@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,7 @@
  * @brief tgt request interface
 */
 
-#ifndef ISCSI_TGT_REQUEST_HPP
-#define	ISCSI_TGT_REQUEST_HPP
-
+#pragma once
 #include "utils.hpp"
 #include <string>
 #include <limits>
@@ -34,8 +32,6 @@ namespace storage {
 namespace iscsi {
 /*! TGT object namespace */
 namespace tgt {
-
-class Socket;
 
 /*! POD request data */
 struct RequestData {
@@ -227,5 +223,4 @@ private:
 }
 }
 
-#endif	/* ISCSI_TGT_REQUEST_HPP */
 

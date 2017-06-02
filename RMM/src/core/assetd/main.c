@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,10 +173,6 @@ static void *asset_module_set_gami_attr_thread()
 
 		reg_node_id = sub_node[0].node_id;
 		subnode = libdb_list_subnode_by_type(DB_RMM, reg_node_id, MC_TYPE_REG_MODULE, &node_num, NULL, LOCK_ID_NULL);
-		if (node_num == 0) {
-			rmm_log(ERROR, "no asset module registry info found\n");
-			continue;
-		}
 		memset(sub_node, 0, CMDBUFSIZ);
 		memcpy_s(sub_node, sizeof(struct node_info) * node_num, subnode, sizeof(struct node_info) * node_num);
 
@@ -193,7 +189,7 @@ static void *asset_module_set_gami_attr_thread()
 				}
 			}
 		}
-		libdb_free_node(sub_node);
+		free(sub_node);
 		sleep(1);
 	}
 	return NULL;
@@ -244,6 +240,9 @@ int main(int argc, char **argv)
 		root_service_nid = libdb_create_node(DB_RMM, MC_NODE_ROOT, MC_TYPE_V1, SNAPSHOT_NEED, LOCK_ID_NULL);
 		if (root_service_nid == 0) {
 			rmm_log(ERROR, "Failed to create root service node!\n");
+			if (NULL != pnode) {
+				libdb_free_node(pnode);
+			}
 			return -1;
 		}
 		init_root_service_attr(&root_service_nid, PERSISTENT_ALL);
@@ -251,6 +250,9 @@ int main(int argc, char **argv)
 		rmc_nid = libdb_create_node(DB_RMM, root_service_nid, MC_TYPE_RMC, SNAPSHOT_NEED, LOCK_ID_NULL);
 		if (rmc_nid == 0) {
 			rmm_log(ERROR, "Failed to create root service node!\n");
+			if (NULL != pnode) {
+				libdb_free_node(pnode);
+			}
 			return -1;
 		}
 		init_rmc_attr(&rmc_nid, PERSISTENT_ALL);
@@ -258,7 +260,10 @@ int main(int argc, char **argv)
 		root_service_nid = pnode[0].node_id;
 		init_root_service_attr(&root_service_nid, PERSISTENT_N);
 
-		pnode = libdb_list_subnode_by_type(DB_RMM, root_service_nid, MC_TYPE_RMC, &node_num, NULL, LOCK_ID_NULL);
+		libdb_free_node(pnode);
+		pnode = libdb_list_subnode_by_type(DB_RMM, root_service_nid,
+						   MC_TYPE_RMC, &node_num,
+						   NULL, LOCK_ID_NULL);
 		if (pnode != NULL)
 			rmc_nid = pnode[0].node_id;
 		init_rmc_attr(&rmc_nid, PERSISTENT_N);
@@ -266,14 +271,23 @@ int main(int argc, char **argv)
 
 	if (pthread_create(&tid_ipmi_cb, NULL, ipmi_cb_thread, NULL) != 0) {
 		rmm_log(ERROR, "Failed to create ipmi callback thread!\n");
+		if (NULL != pnode) {
+			libdb_free_node(pnode);
+		}
 		return -1;
 	}
 
 	if (pthread_create(&tid_asset_module_set_attr, NULL, asset_module_set_gami_attr_thread, NULL) != 0) {
 		rmm_log(ERROR, "Failed to create asset module notify thread!\n");
+		if (NULL != pnode) {
+			libdb_free_node(pnode);
+		}
 		return -1;
 	}
 
 	main_loop(fd);
+	if (NULL != pnode) {
+		libdb_free_node(pnode);
+	}
 	return 0;
 }

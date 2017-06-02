@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.intel.podm.common.types.EnumeratedType.SUB_TYPES;
 import static java.util.Optional.ofNullable;
 import static org.testng.Assert.assertEquals;
 
@@ -37,7 +38,7 @@ public class SubTypesCheckTest {
     @Test
     public void checkEnumeratedTypeSubTypes() throws ClassNotFoundException, IOException {
         Set<Class<? extends EnumeratedType>> subTypes = getAllSubTypesOf(EnumeratedType.class, TYPES_PACKAGE_NAME);
-        assertEquals(subTypes, EnumeratedType.SUB_TYPES);
+        assertEquals(subTypes, SUB_TYPES);
     }
 
     private <T> Set<Class<? extends T>> getAllSubTypesOf(final Class<T> classType, String packageFilter) throws ClassNotFoundException, IOException {

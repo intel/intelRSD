@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=/lib
+includedir=${prefix}/include/sysfs/
+
+Name: libsysfs
+Description: interface to sysfs
+Version: 2.1.0
+Libs: -L${libdir} -lsysfs
+Cflags: -I${includedir}
+

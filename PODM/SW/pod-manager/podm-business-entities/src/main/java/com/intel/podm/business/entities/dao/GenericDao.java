@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 
 package com.intel.podm.business.entities.dao;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectRepository;
+import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.types.Id;
-import com.tinkerpop.blueprints.Vertex;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
@@ -33,29 +33,33 @@ import static javax.transaction.Transactional.TxType.MANDATORY;
 @Transactional(MANDATORY)
 public class GenericDao {
     @Inject
-    private DomainObjectRepository repository;
+    private EntityRepository repository;
 
-    public <T extends DomainObject> T create(Class<T> domainObjectClass) {
-        return repository.create(domainObjectClass);
+    public <T extends Entity> T create(Class<T> entityClass) {
+        return repository.create(entityClass);
     }
 
-    public <T extends DomainObject> Optional<T> tryFind(Class<T> domainObjectClass, Id id) {
-        return repository.tryGet(domainObjectClass, id);
+    public <T extends Entity> Optional<T> tryFind(Class<T> entityClass, Id id) {
+        return repository.tryFind(entityClass, id);
     }
 
-    public <T extends DomainObject> Optional<T> tryFind(Vertex vertex) {
-        return repository.tryGet(vertex);
+    public <T extends Entity> T find(Class<T> entityClass, Id id) {
+        return repository.find(entityClass, id);
     }
 
-    public <T extends DomainObject> T find(Class<T> domainObjectClass, Id id) {
-        return repository.get(domainObjectClass, id);
+    public <T extends Entity> List<T> findAll(Class<T> entityClass) {
+        return repository.findAll(entityClass);
     }
 
-    public <T extends DomainObject> List<T> findAll(Class<T> domainObjectClass) {
-        return repository.getAll(domainObjectClass);
+    public <T extends Entity> void remove(T entity) {
+        repository.remove(entity);
     }
 
-    public <T extends DomainObject> void remove(T domainObject) {
-        repository.delete(domainObject);
+    public <T extends Entity> void removeAndClear(Collection<T> entities) {
+        repository.removeAndClear(entities);
+    }
+
+    public <T extends Entity> void removeAndClear(Collection<T> entities, Predicate<T> predicate) {
+        repository.removeAndClear(entities, predicate);
     }
 }

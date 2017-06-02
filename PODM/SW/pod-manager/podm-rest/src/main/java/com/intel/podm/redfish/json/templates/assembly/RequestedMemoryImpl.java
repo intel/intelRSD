@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,19 @@ package com.intel.podm.redfish.json.templates.assembly;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.intel.podm.business.dto.redfish.RequestedMemory;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.client.resources.ODataId;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.types.MemoryDeviceType;
 import com.intel.podm.common.types.deserialization.PositiveIntegerDeserializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.math.BigDecimal;
 
 import static com.intel.podm.business.services.context.ContextType.CHASSIS;
 import static com.intel.podm.business.services.context.ContextType.MEMORY;
-import static com.intel.podm.redfish.UriConverter.getContextFromUri;
+import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUri;
 
-public final class RequestedMemoryImpl implements RequestedMemory {
+public final class RequestedMemoryImpl implements RequestedNode.Memory {
     @JsonProperty("CapacityMiB")
     private BigDecimal capacityMib;
 

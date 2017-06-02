@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,84 +17,94 @@
 package com.intel.podm.client.psme.actions;
 
 import com.intel.podm.client.actions.ComputerSystemResourceActionsImpl;
+import com.intel.podm.client.actions.ResetResourceActionImpl;
 import com.intel.podm.client.api.ExternalServiceApiActionException;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.WebClient;
 import com.intel.podm.client.api.actions.ComputerSystemResourceActions;
+import com.intel.podm.client.api.actions.ResetAction;
+import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
 import com.intel.podm.client.resources.redfish.RedfishErrorResponseImpl;
-import com.intel.podm.common.types.BootSourceState;
-import com.intel.podm.common.types.BootSourceType;
+import com.intel.podm.common.types.actions.ComputerSystemUpdateDefinition;
 import com.intel.podm.common.types.actions.ResetType;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.Response;
 import java.net.URI;
 
+import static com.intel.podm.common.types.BootSourceMode.UEFI;
 import static com.intel.podm.common.types.BootSourceState.CONTINUOUS;
 import static com.intel.podm.common.types.BootSourceType.HDD;
 import static java.net.URI.create;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-
+@SuppressWarnings({"checkstyle:MethodName", "checkstyle:ClassFanOutComplexity"})
 public class ComputerSystemResourceActionsImplTest {
     private static final URI ANY_URI = create("");
 
     @Test(expectedExceptions = ExternalServiceApiActionException.class)
-    public void whenResetWithErrorResponse_ShouldThrowException() throws ExternalServiceApiActionException {
+    public void whenResetWithErrorResponse_ShouldThrowException() throws Exception {
         ResetType anyResetType = ResetType.ON;
 
-        ComputerSystemResourceActions computerSystemResourceActions = createPsmeComputerSystemActions(Response.serverError().build());
-        computerSystemResourceActions.reset(ANY_URI, anyResetType);
+        WebClient mockedWebClient = mock(WebClient.class);
+        doThrow(externalServiceApiActionException()).when(mockedWebClient).post(any(URI.class), any(Object.class));
+
+        ResetAction resetAction = new ResetResourceActionImpl(mockedWebClient);
+        resetAction.reset(ANY_URI, anyResetType);
     }
 
     @Test
-    public void whenResetWithOkResponse_ShouldNotThrowException() throws ExternalServiceApiActionException {
+    public void whenResetWithOkResponse_ShouldNotThrowException() throws Exception {
         ResetType anyResetType = ResetType.ON;
-        ComputerSystemResourceActions computerSystemResourceActions = createPsmeComputerSystemActions(Response.noContent().build());
 
-        computerSystemResourceActions.reset(ANY_URI, anyResetType);
+        WebClient mockedWebClient = mock(WebClient.class);
+        doReturn(URI.create("/dummy-uri")).when(mockedWebClient).post(any(URI.class), any(Object.class));
+
+        ResetAction resetAction = new ResetResourceActionImpl(mockedWebClient);
+        resetAction.reset(ANY_URI, anyResetType);
     }
 
     @Test(expectedExceptions = ExternalServiceApiActionException.class)
-    public void whenBootSourceOverrideWithErrorResponse_ShouldThrowException() throws ExternalServiceApiActionException, ExternalServiceApiReaderException {
-        BootSourceType anyBootSourceType = HDD;
-        BootSourceState anyBootSourceState = CONTINUOUS;
+    public void whenBootSourceOverrideWithErrorResponse_ShouldThrowExternalServiceApiActionException() throws Exception {
+        ComputerSystemUpdateDefinition computerSystemUpdateDefinition = new ComputerSystemUpdateDefinition(UEFI, HDD, CONTINUOUS);
 
-        ComputerSystemResourceActions computerSystemResourceActions = createPsmeComputerSystemActions(Response.serverError().build());
+        WebClient mockedWebClient = mock(WebClient.class);
+        doThrow(externalServiceApiActionException()).when(mockedWebClient).patchAndRetrieve(any(URI.class), any(Object.class));
 
-        computerSystemResourceActions.bootSourceOverride(ANY_URI, anyBootSourceType, anyBootSourceState);
+        ComputerSystemResourceActions computerSystemResourceActions = new ComputerSystemResourceActionsImpl(mockedWebClient);
+        computerSystemResourceActions.update(ANY_URI, computerSystemUpdateDefinition);
+    }
+
+    @Test(expectedExceptions = ExternalServiceApiReaderException.class)
+    public void whenBootSourceOverrideWithErrorResponse_ShouldThrowExternalServiceApiReaderException() throws Exception {
+        ComputerSystemUpdateDefinition computerSystemUpdateDefinition = new ComputerSystemUpdateDefinition(UEFI, HDD, CONTINUOUS);
+
+        WebClient mockedWebClient = mock(WebClient.class);
+        doThrow(externalServiceApiReaderException()).when(mockedWebClient).patchAndRetrieve(any(URI.class), any(Object.class));
+
+        ComputerSystemResourceActions computerSystemResourceActions = new ComputerSystemResourceActionsImpl(mockedWebClient);
+        computerSystemResourceActions.update(ANY_URI, computerSystemUpdateDefinition);
     }
 
     @Test
-    public void whenBootSourceOverrideWithOkResponse_ShouldNotThrowException() throws ExternalServiceApiActionException, ExternalServiceApiReaderException {
-        BootSourceType anyBootSourceType = HDD;
-        BootSourceState anyBootSourceState = CONTINUOUS;
+    public void whenBootSourceOverrideWithOkResponse_ShouldNotThrowException() throws Exception {
+        ComputerSystemUpdateDefinition computerSystemUpdateDefinition = new ComputerSystemUpdateDefinition(UEFI, HDD, CONTINUOUS);
 
-        ComputerSystemResourceActions computerSystemResourceActions = createPsmeComputerSystemActions(Response.ok().build());
+        WebClient mockedWebClient = mock(WebClient.class);
+        ComputerSystemResource computerSystemResourceMock = mock(ComputerSystemResource.class);
+        doReturn(computerSystemResourceMock).when(mockedWebClient).patchAndRetrieve(any(URI.class), any(Object.class));
 
-        computerSystemResourceActions.bootSourceOverride(ANY_URI, anyBootSourceType, anyBootSourceState);
+        ComputerSystemResourceActions computerSystemResourceActions = new ComputerSystemResourceActionsImpl(mockedWebClient);
+        computerSystemResourceActions.update(ANY_URI, computerSystemUpdateDefinition);
     }
 
-    private WebClient createWebClient(Response response) throws ExternalServiceApiActionException {
-        WebClient webClientMock = mock(WebClient.class);
-        if (response.getStatusInfo().getFamily() == Response.Status.Family.SERVER_ERROR) {
-            doThrow(createExternalServiceApiActionException()).when(webClientMock).patch(any(URI.class), any(Object.class));
-            doThrow(createExternalServiceApiActionException()).when(webClientMock).post(any(URI.class), any(Object.class));
-        } else {
-            doNothing().when(webClientMock).patch(any(URI.class), any(Object.class));
-            doReturn(URI.create("/dummy-uri")).when(webClientMock).post(any(URI.class), any(Object.class));
-        }
-        return webClientMock;
-    }
-
-    private ExternalServiceApiActionException createExternalServiceApiActionException() {
+    private ExternalServiceApiActionException externalServiceApiActionException() {
         return new ExternalServiceApiActionException("Server error", create("/redfish/v1/"), new RedfishErrorResponseImpl());
     }
 
-    private ComputerSystemResourceActions createPsmeComputerSystemActions(Response response) throws ExternalServiceApiActionException {
-        return new ComputerSystemResourceActionsImpl(createWebClient(response));
+    private ExternalServiceApiReaderException externalServiceApiReaderException() {
+        return new ExternalServiceApiReaderException("Server error", create("/redfish/v1/"));
     }
+
 }

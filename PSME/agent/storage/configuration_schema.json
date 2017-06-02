@@ -332,6 +332,16 @@
                 ]
             }
         },
+        "service-uuid-file": {
+            "description": "Path to service uuid file.",
+            "name": "service-uuid-file",
+            "type": "string"
+        },
+        "tgt-socket": {
+            "description": "Path to tgt socket file.",
+            "name": "tgt-socket",
+            "type": "string"
+        },
         "logger": {
             "description": "Logger configuration.",
             "name": "logger",
@@ -409,6 +419,8 @@
         "server",
         "registration",
         "modules",
+        "service-uuid-file",
+        "tgt-socket",
         "logger"
     ]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ package com.intel.podm.common.types;
 
 import com.intel.podm.common.utils.StringRepresentation;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.intel.podm.common.types.Health.valueOf;
+import static com.intel.podm.common.types.EnumeratedType.stringToEnum;
 import static java.lang.String.format;
 import static java.util.Objects.hash;
 import static java.util.Optional.ofNullable;
@@ -31,10 +32,12 @@ import static org.apache.commons.lang.StringUtils.trimToNull;
 /**
  * Provides representation of State, Health and HealthRollup objects.
  */
-public class Status {
+public class Status implements Serializable {
     public static final String STATE_PROPERTY = "State";
     public static final String HEALTH_PROPERTY = "Health";
     public static final String HEALTH_ROLLUP_PROPERTY = "HealthRollup";
+
+    private static final long serialVersionUID = -1239512910107787280L;
 
     private State state;
     private Health health;
@@ -45,6 +48,7 @@ public class Status {
         this.health = health;
         this.healthRollup = healthRollup;
     }
+
     /**
      * Creates Status object instance from string
      * @param statusString string representation of Status, e.g. "State=Enabled,Health=OK,HealthRollup=OK"
@@ -53,7 +57,7 @@ public class Status {
      */
     public static Status fromString(String statusString) {
         if (trimToNull(statusString) == null) {
-            return null;
+            return new Status(null, null, null);
         }
 
         try {
@@ -72,14 +76,13 @@ public class Status {
      */
     public static Status fromMap(Map<String, String> statusMap) {
         if (statusMap == null || statusMap.isEmpty()) {
-            return null;
+            return new Status(null, null, null);
         }
 
         State state = ofNullable(statusMap.get(STATE_PROPERTY)).map(Status::mapState).orElse(null);
-
         Health health = ofNullable(statusMap.get(HEALTH_PROPERTY)).map(Status::mapHealth).orElse(null);
-
         Health healthRollup = ofNullable(statusMap.get(HEALTH_ROLLUP_PROPERTY)).map(Status::mapHealth).orElse(null);
+
         return new Status(state, health, healthRollup);
     }
 
@@ -112,8 +115,8 @@ public class Status {
 
         Status status = (Status) o;
         return Objects.equals(state, status.state)
-                && Objects.equals(health, status.health)
-                && Objects.equals(healthRollup, status.healthRollup);
+            && Objects.equals(health, status.health)
+            && Objects.equals(healthRollup, status.healthRollup);
     }
 
     @Override
@@ -137,7 +140,6 @@ public class Status {
         }
 
         return propertiesMap;
-
     }
 
     private static Map<String, String> splitStatusString(String statusString) {
@@ -149,19 +151,10 @@ public class Status {
     }
 
     private static Health mapHealth(String healthString) {
-        try {
-            return valueOf(healthString);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Health value is incorrect: " + healthString, e);
-        }
+        return stringToEnum(Health.class, healthString);
     }
 
     private static State mapState(String stateString) {
-        try {
-            return EnumeratedType.stringToEnum(State.class, stateString);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("State value is incorrect: " + stateString, e);
-        }
+        return stringToEnum(State.class, stateString);
     }
-
 }

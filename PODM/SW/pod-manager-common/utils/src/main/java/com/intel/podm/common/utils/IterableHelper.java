@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package com.intel.podm.common.utils;
 
 import java.util.Iterator;
+
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 
 public final class IterableHelper {
 
@@ -37,9 +39,7 @@ public final class IterableHelper {
      *          If iterable is empty or contains more than one element.
      */
     public static <T> T single(Iterable<T> iterable) {
-        if (iterable == null) {
-            throw new IllegalArgumentException("Null is not a valid argument for this method");
-        }
+        requiresNonNull(iterable, "iterable");
         Iterator<T> iterator = iterable.iterator();
         if (!iterator.hasNext()) {
             throw new IllegalStateException("Iterator is empty. Only iterator with 1 element is accepted!");
@@ -66,9 +66,7 @@ public final class IterableHelper {
      *          If iterable contains more than one element.
      */
     public static <T> T singleOrNull(Iterable<T> iterable) {
-        if (iterable == null) {
-            throw new IllegalArgumentException("Null is not a valid argument for this method");
-        }
+        requiresNonNull(iterable, "iterable");
         Iterator<T> iterator = iterable.iterator();
         if (!iterable.iterator().hasNext()) {
             return null;

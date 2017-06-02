@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,33 +69,33 @@ public final class ProcessorIdDto {
         private String step;
         private String microcodeInfo;
 
-        public Builder vendorId(String val) {
-            vendorId = val;
+        public Builder vendorId(String vendorId) {
+            this.vendorId = vendorId;
             return this;
         }
 
-        public Builder identificationRegisters(String val) {
-            identificationRegisters = val;
+        public Builder identificationRegisters(String identificationRegisters) {
+            this.identificationRegisters = identificationRegisters;
             return this;
         }
 
-        public Builder effectiveFamily(String val) {
-            effectiveFamily = val;
+        public Builder effectiveFamily(String effectiveFamily) {
+            this.effectiveFamily = effectiveFamily;
             return this;
         }
 
-        public Builder effectiveModel(String val) {
-            effectiveModel = val;
+        public Builder effectiveModel(String effectiveModel) {
+            this.effectiveModel = effectiveModel;
             return this;
         }
 
-        public Builder step(String val) {
-            step = val;
+        public Builder step(String step) {
+            this.step = step;
             return this;
         }
 
-        public Builder microcodeInfo(String val) {
-            microcodeInfo = val;
+        public Builder microcodeInfo(String microcodeInfo) {
+            this.microcodeInfo = microcodeInfo;
             return this;
         }
 

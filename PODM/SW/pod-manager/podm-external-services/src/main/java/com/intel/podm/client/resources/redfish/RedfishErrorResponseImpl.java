@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.redfish.RedfishErrorResponse;
 
@@ -25,7 +24,6 @@ import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class RedfishErrorResponseImpl implements RedfishErrorResponse {
     @JsonProperty("error")
     private ErrorImpl error;
@@ -38,11 +36,10 @@ public class RedfishErrorResponseImpl implements RedfishErrorResponse {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("error", error)
-                .toString();
+            .add("error", error)
+            .toString();
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class ErrorImpl implements RedfishErrorResponse.Error {
         @JsonProperty("code")
         private String code;
@@ -69,13 +66,12 @@ public class RedfishErrorResponseImpl implements RedfishErrorResponse {
         @Override
         public String toString() {
             return toStringHelper(this)
-                    .add("code", code)
-                    .add("message", message)
-                    .add("extendedInfo", extendedInfo)
-                    .toString();
+                .add("code", code)
+                .add("message", message)
+                .add("extendedInfo", extendedInfo)
+                .toString();
         }
 
-        @JsonIgnoreProperties(ignoreUnknown = true)
         public static final class ExtendedInfoImpl implements ExtendedInfo {
             @JsonProperty("Message")
             private String message;
@@ -93,8 +89,8 @@ public class RedfishErrorResponseImpl implements RedfishErrorResponse {
             @Override
             public String toString() {
                 return toStringHelper(this)
-                        .add("message", message)
-                        .toString();
+                    .add("message", message)
+                    .toString();
             }
         }
     }

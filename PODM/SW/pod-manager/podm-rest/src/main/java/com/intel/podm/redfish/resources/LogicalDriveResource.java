@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.dto.redfish.LogicalDriveDto;
-import com.intel.podm.business.services.redfish.LogicalDriveService;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
@@ -28,9 +28,9 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 public final class LogicalDriveResource extends BaseResource {
 
     @Inject
-    private LogicalDriveService service;
+    private ReaderService<LogicalDriveDto> readerService;
 
     public LogicalDriveDto get() {
-        return getOrThrow(() -> service.getLogicalDrive(getCurrentContext()));
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
     }
 }

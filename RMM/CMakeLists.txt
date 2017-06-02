@@ -21,8 +21,6 @@ IF(ARM)
 	SET (ZLIB_CC	"CC=arm-linux-gcc")
 ENDIF()
 
-exec_program("cd ${PROJECT_SOURCE_DIR}/utils/redfish/mrgenfile/; make clean; make; ./mrgenfile; cd -")
-
 INCLUDE(ExternalProject)
 MESSAGE(STATUS "SRC DIR: ${PROJECT_SOURCE_DIR}")
 MESSAGE(STATUS "BIN DIR: ${PROJECT_BINARY_DIR}")

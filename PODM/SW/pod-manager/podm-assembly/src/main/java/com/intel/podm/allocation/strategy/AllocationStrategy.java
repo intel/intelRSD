@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,17 @@
 
 package com.intel.podm.allocation.strategy;
 
-import com.intel.podm.allocation.CompositionException;
-import com.intel.podm.allocation.RequestValidationException;
-import com.intel.podm.allocation.validation.Violations;
+import com.intel.podm.allocation.AllocationRequestProcessingException;
 import com.intel.podm.assembly.tasks.NodeAssemblyTask;
+import com.intel.podm.business.Violations;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
 
 import javax.enterprise.context.Dependent;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
@@ -44,11 +43,11 @@ public class AllocationStrategy {
         this.driveAllocationStrategy = remoteDriveAllocationStrategy;
     }
 
-    public void validate() throws RequestValidationException {
+    public void validate() throws AllocationRequestProcessingException {
         Violations violations = computerSystemAllocationStrategy.validate();
         violations.addAll(driveAllocationStrategy.validate());
         if (violations.hasViolations()) {
-            throw new RequestValidationException(violations);
+            throw new AllocationRequestProcessingException(violations);
         }
     }
 
@@ -65,7 +64,7 @@ public class AllocationStrategy {
         return computerSystem;
     }
 
-    public ComposedNode allocateWithComputerSystem(ComputerSystem computerSystem) throws CompositionException {
+    public ComposedNode allocateWithComputerSystem(ComputerSystem computerSystem) {
         ComposedNode node = computerSystemAllocationStrategy.allocateWithComputerSystem(computerSystem);
         driveAllocationStrategy.allocate(node);
 
@@ -73,10 +72,9 @@ public class AllocationStrategy {
     }
 
     public List<NodeAssemblyTask> getTasks() {
-        List<NodeAssemblyTask> tasks = newArrayList();
+        List<NodeAssemblyTask> tasks = new ArrayList<>();
         tasks.addAll(computerSystemAllocationStrategy.getTasks());
         tasks.addAll(driveAllocationStrategy.getTasks());
-
         return tasks;
     }
 }

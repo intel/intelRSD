@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,18 @@
  * @brief Module loader interface
  * */
 
-#ifndef AGENT_CHASSIS_LOADER_CHASSIS_LOADER_HPP
-#define AGENT_CHASSIS_LOADER_CHASSIS_LOADER_HPP
 
-#include "agent-framework/module-ref/loader/loader.hpp"
+
+#pragma once
+
+
+
+#include "agent-framework/module/loader/loader.hpp"
+
+#include <atomic>
+#include <condition_variable>
+
+
 
 namespace agent {
 namespace chassis {
@@ -35,12 +43,25 @@ class ChassisLoader : public agent_framework::module::loader::Loader {
 public:
     ~ChassisLoader();
 
+
     bool load(const json::Value&) override;
+
+
+    /*!
+     * Block thread of execution until all chassis components are fully loaded.
+     * After chassis is loaded, all blocked threads are notified and continue
+     * their execution. This is needed to avoid premature event sending
+     * (before tree stabilization takes places).
+     * */
+    static void wait_for_complete();
+
+
+private:
+    static std::mutex m_mutex;
+    static std::condition_variable m_cv;
+    static std::atomic<bool> m_is_loaded;
 };
 
 }
 }
 }
-
-#endif /* AGENT_CHASSIS_LOADER_CHASSIS_LOADER_HPP */
-

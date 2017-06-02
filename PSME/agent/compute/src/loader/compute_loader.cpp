@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,7 @@
 #include "loader/compute_loader.hpp"
 #include "configuration/configuration.hpp"
 #include "logger/logger_factory.hpp"
-#include "agent-framework/module-ref/compute_manager.hpp"
-#include "port_mapper.hpp"
+#include "agent-framework/module/common_components.hpp"
 
 using namespace agent::compute::loader;
 using namespace agent::compute;
@@ -35,7 +34,7 @@ using namespace std;
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 
-using ComputeComponents = agent_framework::module::ComputeManager;
+using agent_framework::module::CommonComponents;
 
 namespace {
 
@@ -138,10 +137,8 @@ namespace {
         connection.set_port(element["port"].as_uint());
         manager.set_connection_data(connection);
         manager.set_slot(element["slot"].as_uint());
-        PortMapper::get_instance()->
-            set_switch_port_identifier(manager.get_uuid(),
-                                       element["switchPortIdentifier"].as_string());
-
+        manager.set_switch_port_identifier(element["switchPortIdentifier"].
+                                           as_string());
 
         manager.add_collection(attribute::Collection(
             enums::CollectionName::Systems,
@@ -170,14 +167,18 @@ namespace {
         chassis.set_status(status);
         chassis.set_type(enums::ChassisType::Module);
         chassis.set_location_offset(config["slot"].as_uint());
-
+        chassis.add_collection(attribute::Collection(
+            enums::CollectionName::Drives,
+            enums::CollectionType::Drives,
+            ""
+        ));
         return chassis;
     }
 
     void build_compute_agent(const json::Value& config) {
         auto& managers_array = config["managers"];
 
-        auto cc = ComputeComponents::get_instance();
+        auto cc = CommonComponents::get_instance();
         for (const auto& element: managers_array) {
 
             auto manager = build_manager(element);

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,66 +31,42 @@ function(code_coverage_processing)
     set(GENHTML_COMMAND genhtml)
     set(CODE_COVERAGE_DIR code_coverage)
 
-    execute_process(COMMAND find ${CMAKE_SOURCE_DIR}/tests/
-        -name "test_runner.cpp" OUTPUT_VARIABLE TESTS_AVAILABLE)
-
-    if(TESTS_AVAILABLE AND NOT DISABLE_TESTS)
-        add_custom_target(code-coverage
-            COMMAND ${LCOV_COMMAND} --quiet --zerocounters --directory .
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${CODE_COVERAGE_DIR}
-            COMMAND ${LCOV_COMMAND}
-                --quiet
-                --checksum
-                --capture --directory .
-                --initial
-                --output-file ${CODE_COVERAGE_DIR}/tracefile.base
-            COMMAND ctest
-            COMMAND ${LCOV_COMMAND}
-                --quiet
-                --checksum
-                --capture --directory .
-                --output-file ${CODE_COVERAGE_DIR}/tracefile.test
-            COMMAND ${LCOV_COMMAND}
-                --quiet
-                --checksum
-                --add-tracefile ${CODE_COVERAGE_DIR}/tracefile.base
-                --add-tracefile ${CODE_COVERAGE_DIR}/tracefile.test
-                --output-file ${CODE_COVERAGE_DIR}/tracefile
-            COMMAND ${LCOV_COMMAND}
-                --quiet
-                --checksum
-                --remove ${CODE_COVERAGE_DIR}/tracefile '/usr/*' 'tests/*'
-                '**gtest/*' '**gmock/*' 'examples/*' ${CODE_COVERAGE_IGNORE}
-                --output-file ${CODE_COVERAGE_DIR}/tracefile.cleaned
-            COMMAND ${GENHTML_COMMAND}
-                --quiet
-                --legend
-                --num-spaces 4
-                --demangle-cpp
-                --title ${CMAKE_PROJECT_NAME}
-                --output-directory ${CODE_COVERAGE_DIR}/html
-                ${CODE_COVERAGE_DIR}/tracefile.cleaned
-        )
-    else()
-        add_custom_target(code-coverage
-            COMMAND ${LCOV_COMMAND} --quiet --zerocounters --directory .
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${CODE_COVERAGE_DIR}
-            COMMAND ${LCOV_COMMAND}
-                --quiet
-                --checksum
-                --capture --directory .
-                --initial
-                --output-file ${CODE_COVERAGE_DIR}/tracefile.base
-            COMMAND ${GENHTML_COMMAND}
-                --quiet
-                --legend
-                --num-spaces 4
-                --demangle-cpp
-                --title ${CMAKE_PROJECT_NAME}
-                --output-directory ${CODE_COVERAGE_DIR}/html
-                ${CODE_COVERAGE_DIR}/tracefile.base
-        )
-    endif()
+    add_custom_target(code-coverage
+        COMMAND ${LCOV_COMMAND} --quiet --zerocounters --directory .
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CODE_COVERAGE_DIR}
+        COMMAND ${LCOV_COMMAND}
+            --quiet
+            --checksum
+            --capture --directory .
+            --initial
+            --output-file ${CODE_COVERAGE_DIR}/tracefile.base
+        COMMAND ctest
+        COMMAND ${LCOV_COMMAND}
+            --quiet
+            --checksum
+            --capture --directory .
+            --output-file ${CODE_COVERAGE_DIR}/tracefile.test
+        COMMAND ${LCOV_COMMAND}
+            --quiet
+            --checksum
+            --add-tracefile ${CODE_COVERAGE_DIR}/tracefile.base
+            --add-tracefile ${CODE_COVERAGE_DIR}/tracefile.test
+            --output-file ${CODE_COVERAGE_DIR}/tracefile
+        COMMAND ${LCOV_COMMAND}
+            --quiet
+            --checksum
+            --remove ${CODE_COVERAGE_DIR}/tracefile '/usr/*' 'tests/*'
+            '**gtest/*' '**gmock/*' 'examples/*' ${CODE_COVERAGE_IGNORE}
+            --output-file ${CODE_COVERAGE_DIR}/tracefile.cleaned
+        COMMAND ${GENHTML_COMMAND}
+            --quiet
+            --legend
+            --num-spaces 4
+            --demangle-cpp
+            --title ${CMAKE_PROJECT_NAME}
+            --output-directory ${CODE_COVERAGE_DIR}/html
+            ${CODE_COVERAGE_DIR}/tracefile.cleaned
+    )
 
     add_custom_target(code-coverage-clean
         COMMAND ${LCOV_COMMAND} --zerocounters --directory .

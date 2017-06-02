@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.intel.podm.business.dto.redfish.attributes.ChapDto;
 import com.intel.podm.business.services.context.Context;
 
 import java.util.List;
@@ -26,12 +27,14 @@ public final class RemoteTargetIscsiAddressDto {
     private final String targetIqn;
     private final String targetPortalIp;
     private final Integer targetPortalPort;
+    private final ChapDto chap;
 
     private RemoteTargetIscsiAddressDto(Builder builder) {
         this.targetLun = builder.targetLun;
         this.targetIqn = builder.targetIqn;
         this.targetPortalIp = builder.targetPortalIp;
         this.targetPortalPort = builder.targetPortalPort;
+        this.chap = builder.chap;
     }
 
     public List<TargetLunDto> getTargetLun() {
@@ -46,8 +49,12 @@ public final class RemoteTargetIscsiAddressDto {
         return targetPortalIp;
     }
 
-    public int getTargetPortalPort() {
+    public Integer getTargetPortalPort() {
         return targetPortalPort;
+    }
+
+    public ChapDto getChap() {
+        return chap;
     }
 
     public static Builder newBuilder() {
@@ -60,6 +67,7 @@ public final class RemoteTargetIscsiAddressDto {
         private String targetIqn;
         private String targetPortalIp;
         private Integer targetPortalPort;
+        private ChapDto chap;
 
         private Builder() {
 
@@ -86,6 +94,11 @@ public final class RemoteTargetIscsiAddressDto {
 
         public Builder targetLun(List<TargetLunDto> targetLun) {
             this.targetLun = targetLun;
+            return this;
+        }
+
+        public Builder chap(ChapDto chap) {
+            this.chap = chap;
             return this;
         }
     }

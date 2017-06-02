@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief Declaration of GenericClient class
  * */
 
-#ifndef AGENT_FRAMEWORK_CLIENT_GENERIC_CLIENT_HPP
-#define AGENT_FRAMEWORK_CLIENT_GENERIC_CLIENT_HPP
-
+#pragma once
 #include <jsonrpccpp/client.h>
 
 /*! Psme namespace */
@@ -51,4 +49,3 @@ public:
 
 }
 }
-#endif /* AGENT_FRAMEWORK_CLIENT_GENERIC_CLIENT_HPP */

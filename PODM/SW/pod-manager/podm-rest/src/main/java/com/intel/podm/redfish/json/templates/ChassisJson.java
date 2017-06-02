@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,33 @@
 
 package com.intel.podm.redfish.json.templates;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.common.types.ChassisType;
 import com.intel.podm.common.types.IndicatorLed;
 import com.intel.podm.common.types.Status;
-import com.intel.podm.redfish.json.templates.attributes.ChassisLinksJson;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.common.types.redfish.OemType;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
+
 @JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "id", "chassisType", "name",
-        "description", "manufacturer", "model", "sku", "serialNumber", "partNumber",
-        "assetTag", "indicatorLed", "status", "thermalZones", "powerZones", "oem", "links"
+    "@odata.context", "@odata.id", "@odata.type", "id", "chassisType", "name",
+    "description", "manufacturer", "model", "sku", "serialNumber", "partNumber",
+    "assetTag", "indicatorLed", "status", "thermalZones", "powerZones", "power", "thermal", "oem", "links"
 })
-public class ChassisJson extends BaseJson {
-    public String id;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class ChassisJson extends BaseResourceJson {
     public ChassisType chassisType;
-    public String name;
-    public String description;
     public String manufacturer;
     public String model;
     @JsonProperty("SKU")
@@ -48,19 +55,33 @@ public class ChassisJson extends BaseJson {
     public Status status;
     public ODataId thermalZones;
     public ODataId powerZones;
-    public ChassisOem oem;
-    public ChassisLinksJson links = new ChassisLinksJson();
+    @JsonInclude(NON_NULL)
+    public ODataId thermal;
+    @JsonInclude(NON_NULL)
+    public ODataId power;
+    public Oem oem;
+    public Links links = new Links();
+    public Actions actions = new Actions();
 
     public ChassisJson() {
-        super("#Chassis.1.2.0.Chassis");
+        super("#Chassis.v1_3_0.Chassis");
     }
 
-    public static class ChassisOem {
+    public RackChassisOem createNewRackChassisOem() {
+        return new RackChassisOem();
+    }
+
+    public Oem createNewChassisOem() {
+        return new Oem();
+    }
+
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOemJson {
         @JsonProperty("Intel_RackScale")
         public RackScaleOem rackScaleOem = new RackScaleOem();
 
         @JsonPropertyOrder({"oDataType", "location"})
-        public static class RackScaleOem {
+        public class RackScaleOem {
             @JsonProperty("@odata.type")
             public String oDataType;
             public Location location = new Location();
@@ -71,17 +92,18 @@ public class ChassisJson extends BaseJson {
         }
 
         @JsonPropertyOrder({"id", "parentId"})
-        public static class Location {
+        public class Location {
             public String id;
             public String parentId;
         }
     }
 
-    public static class RackChassisOem extends ChassisOem {
+    @OemType(TOP_LEVEL_OEM)
+    public class RackChassisOem extends Oem {
         @JsonProperty("Intel_RackScale")
         public RackChassisRackScaleOem rackChassisOem = new RackChassisRackScaleOem();
 
-        public static class RackChassisRackScaleOem extends RackScaleOem {
+        public class RackChassisRackScaleOem extends RackScaleOem {
             @JsonProperty("RMMPresent")
             public Boolean rmmPresent;
             public Boolean rackSupportsDisaggregatedPowerCooling;
@@ -94,5 +116,38 @@ public class ChassisJson extends BaseJson {
                 this.oDataType = "#Intel.Oem.RackChassis";
             }
         }
+    }
+
+    @JsonPropertyOrder({"contains", "containedBy", "computerSystems", "switches", "managedBy", "managersInChassis",
+        "storage", "drives", "oem"})
+    @SuppressWarnings({"checkstyle:VisibilityModifier"})
+    public class Links extends RedfishLinksJson {
+        @JsonProperty("@odata.type")
+        public String oDataType = "#Chassis.v1_2_0.Links";
+
+        public Set<ODataId> contains = new HashSet<>();
+        public ODataId containedBy;
+        public Set<ODataId> computerSystems = new HashSet<>();
+        public Set<ODataId> managedBy = new HashSet<>();
+        public Set<ODataId> managersInChassis = new HashSet<>();
+        public Collection<ODataId> drives = new ArrayList<>();
+        public Set<ODataId> storage = new HashSet<>();
+        public Oem oem = new Oem();
+
+        @OemType(OEM_IN_LINKS)
+        public class Oem extends RedfishOemJson {
+            @JsonProperty("Intel_RackScale")
+            public RackScaleOem rackScaleOem = new RackScaleOem();
+
+            @JsonPropertyOrder({"oDataType", "switches"})
+            public class RackScaleOem {
+                @JsonProperty("@odata.type")
+                public String oDataType = "#Intel.Oem.ChassisLinks";
+                public Set<ODataId> switches = new HashSet<>();
+            }
+        }
+    }
+
+    public class Actions extends RedfishActionsJson {
     }
 }

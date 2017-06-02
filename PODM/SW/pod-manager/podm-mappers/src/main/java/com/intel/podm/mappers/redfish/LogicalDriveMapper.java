@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,12 @@ package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.LogicalDrive;
 import com.intel.podm.client.api.resources.redfish.LogicalDriveResource;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
 
 @Dependent
-public class LogicalDriveMapper extends DomainObjectMapper<LogicalDriveResource, LogicalDrive> {
-
+public class LogicalDriveMapper extends EntityMapper<LogicalDriveResource, LogicalDrive> {
     public LogicalDriveMapper() {
         super(LogicalDriveResource.class, LogicalDrive.class);
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,6 +103,7 @@ static int handle_node_create(struct request_pkg *req, json_t *resp)
 		n = insert_node(req->db_name, parent, param.type, param.snapshot_flag);
 		if (n) {
 			if (JSON_SUCCESS != json_object_add(resp, "node_id", json_integer(n->node_id))) {
+				destroy_node(req->db_name, n, false);
 				MEMDB_ERR("handle_node_create return fail.\n");
 				return MEMDB_INTERNAL_ERR;
 			}
@@ -529,6 +530,10 @@ static int handle_add_subscription(struct request_pkg *req, json_t *resp)
 		list_add_tail(&sub->list, &sublist);
 	else if (DB_POD == req->db_name)
 		list_add_tail(&sub->list, &pod_sublist);
+	else {
+		// In case we do not add sub to global list we need to dealocate memory.
+		free(sub);
+	}
 
 	/*
 	if (JSON_SUCCESS != json_object_add(resp, "r_sub", json_integer((int64)sub)))
@@ -699,6 +704,7 @@ void process_command(int fd, struct request_pkg *req, struct sockaddr *addr, soc
 
 send_rsp:
 	if (rsp_str) {
+			rmm_log(INFO, "send:  %s.\n", rsp_str);
 			sendto(fd, rsp_str, strnlen_s(rsp_str, JSONRPC_MAX_STRING_LEN-1)+1, 0, addr, addrlen);
 		free(rsp_str);
 		rsp_str = NULL;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ static void handle_signal(int sig)
 	if ((SIGTERM == sig) || (SIGKILL == sig)) {
 		MEMDB_ERR("Prepare to exit...\n");
 
+		// snapshot_in_progress is volatile global driven by other threads.
 		while (snapshot_in_progress || (0 == memdb_log_get_status()))
 			usleep(10 * 1000);
 	}
@@ -157,11 +158,6 @@ int main(int argc, char **argv)
 		if (rc) {
 			if ((rc > 0) && (rc < JSON_RPC_MAX_ERR))
 				rc = jrpc_create_error_rsp_string(0, JSONRPC_ID_TYPE_NULL, err_st_t[rc].err_code, err_st_t[rc].err_msg, rsp_str);
-
-			if (rc == 0) {
-				rmm_log(INFO, "send:  %s.\n", rsp_str);
-				sendto(fd, rsp_str, strnlen_s(rsp_str, JSONRPC_MAX_STRING_LEN)+1, 0, (struct sockaddr *)&addr, addrlen);
-			}
 			continue;
 		}
 

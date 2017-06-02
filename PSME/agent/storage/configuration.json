@@ -1,37 +1,21 @@
 {
-    "agent":{
-        "type":"Storage",
-        "capabilities" : [
-            {
-                "name" : "Storage",
-                "version" : ""
-            }
-        ]
+    "agent" : {
+        "vendor" : "Intel Corporation",
+        "capabilities" : [ "Storage" ]
     },
-    "commands":{
-        "*": {
-            "implementation": "ConfigurationBased"
-        }
+    "server" : {
+        "port" : 7777
     },
-    "server":{
-	"ipv4":"localhost",
-        "port":7777
+    "registration" : {
+        "ipv4" : "localhost",
+        "port" : 8383,
+        "interval" : 3
     },
-    "registration":{
-        "ipv4":"localhost",
-        "port":8383,
-        "interval":3
-    },
-    "modules":[
+    "managers" : [
         {
-            "ipv4" : "127.0.0.1",
-            "username": "put_username_hash_here",
-            "password": "put_password_hash_here",
-            "port" : 623,
-            "submodules":[
+            "serialConsoleEnabled": true,
+            "StorageServices" : [
                 {
-                    "type": "StorageServices",
-                    "port": 623,
                     "iscsi" : {
                         "config-path" : "/etc/tgt/conf.d",
                         "portal-interface" : "eth0",
@@ -39,41 +23,22 @@
                         "username" : "",
                         "password" : "",
                         "initiator" : "psme-storage"
-                    },
-                    "networkInterfaces": [],
-                    "storageControllers":[
-                        {
-                            "status":{
-                                "state":"Enabled",
-                                "health":"OK"
-                            },
-                            "interface":"SATA",
-                            "fruInfo":{
-                                "serialNumber":"123fed3029c-12",
-                                "manufacturer":"Intel Corporation",
-                                "modelNumber":"Wellsburg 6-Port SATA Controller",
-                                "partNumber":"rev2"
-                            },
-                            "driveCount": 1,
-                            "drives": [],
-                            "oem":{
-
-                            }
-                        }
-                    ]
+                    }
                 }
             ]
         }
     ],
-    "logger":{
-        "agent":{
-            "level": "WARNING",
-            "timeformat":"DATE_NS",
-            "color":true,
-            "output":true,
-            "tagging":true,
-            "moredebug":false,
-            "streams":[
+    "service-uuid-file" : "/var/opt/psme/storage-service-uuid.json",
+    "tgt-socket": "/var/run/tgtd/socket.0",
+    "logger" : {
+        "agent" : {
+            "level" : "WARNING",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
                 {
                     "type": "STDOUT"
                 }

@@ -1,104 +1,44 @@
 /*!
- * @section LICENSE
+ * @brief C++ logger implementation
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
  *
- * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
+ * @header{Files}
  * @file logger.cpp
- *
- * @brief Logger C++ interface
- * */
+ */
 
 #include "logger/logger.hpp"
 #include "logger/stream.hpp"
 
-extern "C" {
-#include "logger/logger.h"
-}
+namespace logger_cpp {
 
-using namespace logger_cpp;
-
-/*
- * level = LOG_DEBUG,
- * time_format = LOG_TIME_DATE_NS,
- * color = false,
- * tagging = true,
- * more_debug = true,
- * output_enable = true
- * This default options store in int value give number 0x3a7
- * */
-static constexpr unsigned int OPTION_DEFAULT = 0x3a7;
-
-Options::Options() : m_raw(OPTION_DEFAULT) {}
-
-void Options::set_level(enum Level level) {
-    union logger_options options;
-    options.raw = m_raw;
-    options.option.level = LOG_LEVEL_MASK & static_cast<unsigned int>(level);
-    m_raw = options.raw;
-}
-
-void Options::set_time_format(enum TimeFormat time_format) {
-    union logger_options options;
-    options.raw = m_raw;
-    options.option.time_format =
-        LOG_TIME_MASK & static_cast<unsigned int>(time_format);
-    m_raw = options.raw;
-}
-
-void Options::enable_color(bool enable) {
-    union logger_options options;
-    options.raw = m_raw;
-    options.option.color = enable;
-    m_raw = options.raw;
-}
-
-void Options::enable_output(bool enable) {
-    union logger_options options;
-    options.raw = m_raw;
-    options.option.output_enable = enable;
-    m_raw = options.raw;
-}
-
-void Options::enable_tagging(bool enable) {
-    union logger_options options;
-    options.raw = m_raw;
-    options.option.tagging = enable;
-    m_raw = options.raw;
-}
-
-void Options::enable_more_debug(bool enable) {
-    union logger_options options;
-    options.raw = m_raw;
-    options.option.more_debug = enable;
-    m_raw = options.raw;
-}
-
-Logger::Logger(const char* tag, const Options& options) : m_streams{} {
+Logger::Logger(const char* tag, const Options& options) :
+    m_streams{} {
     union logger_options opt;
     opt.raw = options.m_raw;
     m_impl = logger_create(tag, &opt);
 }
 
 Logger::~Logger() {
-    logger_destroy(static_cast<struct logger*>(m_impl));
+    logger_destroy(m_impl);
+}
+
+struct logger* Logger::get_instance() const {
+    return m_impl;
+}
+
+bool Logger::is_loggable(Level level) const {
+    return logger_is_loggable(m_impl, static_cast<unsigned>(level));
 }
 
 void Logger::add_stream(const std::shared_ptr<Stream> stream) {
@@ -107,8 +47,8 @@ void Logger::add_stream(const std::shared_ptr<Stream> stream) {
     }
 
     logger_add_stream(
-            static_cast<struct logger*>(m_impl),
-            static_cast<struct logger_stream*>(stream->m_impl));
+        m_impl,
+        static_cast<struct logger_stream*>(stream->m_impl));
 
     m_streams.push_back(stream);
 }
@@ -119,8 +59,8 @@ void Logger::add_stream(Stream* stream) {
     }
 
     logger_add_stream(
-            static_cast<struct logger*>(m_impl),
-            static_cast<struct logger_stream*>(stream->m_impl));
+        m_impl,
+        static_cast<struct logger_stream*>(stream->m_impl));
 }
 
 void Logger::remove_stream(const std::shared_ptr<Stream> stream) {
@@ -129,34 +69,61 @@ void Logger::remove_stream(const std::shared_ptr<Stream> stream) {
     }
 
     logger_remove_stream(
-            static_cast<struct logger*>(m_impl),
-            static_cast<struct logger_stream*>(stream->m_impl));
+        m_impl,
+        static_cast<struct logger_stream*>(stream->m_impl));
 
     m_streams.remove(stream);
 }
 
-void Logger::write(enum Level level,
-        const char* file_name,
-        const char* function_name,
-        unsigned int line_number,
-        const std::string& str) {
+
+void Logger::write(
+    const char* logger_name,
+    enum Level level,
+    const char* file_name,
+    const char* function_name,
+    unsigned int line_number,
+    const std::string& str) {
+
     _log_write(
-            static_cast<struct logger*>(m_impl),
-            static_cast<unsigned int>(level),
-            file_name, function_name, line_number, str.c_str()
-        );
+        m_impl,
+        logger_name,
+        static_cast<unsigned int>(level),
+        file_name, function_name, line_number,
+        str.c_str()
+    );
 }
+
 
 void Logger::set_options(const Options& options) {
     union logger_options opt;
     opt.raw = options.m_raw;
-    logger_set_options(static_cast<struct logger*>(m_impl), &opt);
+    logger_set_options(m_impl, &opt);
 }
+
 
 Options Logger::get_options() {
     union logger_options opt;
-    logger_get_options(static_cast<struct logger*>(m_impl), &opt);
+    logger_get_options(m_impl, &opt);
     Options options;
     options.m_raw = opt.raw;
     return options;
+}
+
+const char* logger_get_logger_name(const char* logger_name) {
+    return logger_name;
+}
+
+/*!
+ * @brief Get name of the requested logger
+ *
+ * @param logger logger shared poiter
+ * @return logger_name
+ */
+const char* logger_get_logger_name(LoggerSPtr logger) {
+    if (!logger) {
+        return nullptr;
+    }
+    return logger_get_tag(logger->get_instance());
+}
+
 }

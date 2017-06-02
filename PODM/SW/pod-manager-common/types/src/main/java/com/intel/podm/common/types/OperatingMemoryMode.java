@@ -7,7 +7,7 @@ public enum OperatingMemoryMode implements EnumeratedType {
 
     private final String value;
 
-    OperatingMemoryMode(final String value) {
+    OperatingMemoryMode(String value) {
         this.value = value;
     }
 

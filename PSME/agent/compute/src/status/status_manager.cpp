@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,15 +22,11 @@
 
 using namespace agent::compute::status;
 
-StatusManager::StatusManager(const std::uint32_t slot, const std::string& ip) :
-    m_slot{slot},
-    m_ip_address{ip}
-{
-    m_hw_status.set_slot(m_slot);
-    m_sw_status.set_ip(m_ip_address);
+StatusManager::StatusManager(const std::uint32_t slot, const std::string& ip, const std::string& uuid) :
+        m_hw_status{slot}, m_sw_status{ip, uuid} {
 }
 
-StatusManager::~StatusManager(){}
+StatusManager::~StatusManager() { }
 
 ModuleStatus::Status StatusManager::get_hw_status() {
     try {

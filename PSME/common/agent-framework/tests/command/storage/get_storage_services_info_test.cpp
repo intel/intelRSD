@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,64 +22,57 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/get_storage_services_info.hpp"
-#include "agent-framework/command/storage/json/get_storage_services_info.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 
 static constexpr char SERVICES[] = "services";
+static constexpr char TEST_SERVICES[] = "TestServices";
 
-class GetStorageServicesInfo : public storage::GetStorageServicesInfo {
+class MyGetStorageServicesInfo {
 private:
     std::string m_services{};
 public:
-    GetStorageServicesInfo(std::string services) { m_services = services; }
+    MyGetStorageServicesInfo(std::string services) { m_services = services; }
 
-    using storage::GetStorageServicesInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto services = request.get_services();
+    void execute(const GetStorageServicesInfo::Request& request,
+                 GetStorageServicesInfo::Response& response) {
+        auto services = request.get_uuid();
 
         if (services != m_services) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
         agent_framework::model::StorageServices service{};
-        response.set_services(service);
+        response = service;
     }
-
-    virtual ~GetStorageServicesInfo();
 };
 
-GetStorageServicesInfo::~GetStorageServicesInfo() { }
-
 TEST(GetStorageServicesInfoTest, PositiveExecute) {
-    storage::json::GetStorageServicesInfo command_json;
-    GetStorageServicesInfo* command = new GetStorageServicesInfo("TestServices");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetStorageServicesInfo command{TEST_SERVICES};
+    GetStorageServicesInfo::Request request{""};
+    GetStorageServicesInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
-    params[SERVICES] = "TestServices";
+    params[SERVICES] = TEST_SERVICES;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetStorageServicesInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 }
 
 TEST(GetStorageServicesInfoTest, NegativeServicesNotFound) {
-    storage::json::GetStorageServicesInfo command_json;
-    GetStorageServicesInfo* command = new GetStorageServicesInfo("TestServices");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetStorageServicesInfo command{TEST_SERVICES};
+    GetStorageServicesInfo::Request request{""};
+    GetStorageServicesInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[SERVICES] = "OtherTestServices";
 
-    EXPECT_THROW(command_json.method(params, result), NotFound);
+    EXPECT_NO_THROW(request = GetStorageServicesInfo::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

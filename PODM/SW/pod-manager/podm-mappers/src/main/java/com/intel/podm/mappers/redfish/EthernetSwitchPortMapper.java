@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,32 @@
 
 package com.intel.podm.mappers.redfish;
 
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
-import com.intel.podm.business.entities.redfish.properties.IpV4Address;
-import com.intel.podm.business.entities.redfish.properties.IpV6Address;
 import com.intel.podm.client.api.resources.redfish.EthernetSwitchPortResource;
-import com.intel.podm.client.api.resources.redfish.IpV4AddressObject;
-import com.intel.podm.client.api.resources.redfish.IpV6AddressObject;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
+import com.intel.podm.mappers.subresources.IpV4AddressMapper;
+import com.intel.podm.mappers.subresources.IpV6AddressMapper;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 @Dependent
-public class EthernetSwitchPortMapper extends DomainObjectMapper<EthernetSwitchPortResource, EthernetSwitchPort> {
-
+public class EthernetSwitchPortMapper extends EntityMapper<EthernetSwitchPortResource, EthernetSwitchPort> {
     @Inject
-    private IpAddressMapperHelper ipAddressMapperHelper;
-
+    private IpV4AddressMapper ipV4AddressMapper;
     @Inject
-    private GenericDao genericDao;
+    private IpV6AddressMapper ipV6AddressMapper;
 
     public EthernetSwitchPortMapper() {
         super(EthernetSwitchPortResource.class, EthernetSwitchPort.class);
-        registerProvider(IpV4Address.class, this::provideIpV4Address);
-        registerProvider(IpV6Address.class, this::provideIpV6Address);
-    }
-
-    private IpV4Address provideIpV4Address(IpV4AddressObject address) {
-        return ipAddressMapperHelper.provideIpV4Address(address, target.getIpV4Addresses());
-    }
-
-    private IpV6Address provideIpV6Address(IpV6AddressObject address) {
-        return ipAddressMapperHelper.provideIpV6Address(address, target.getIpV6Addresses());
     }
 
     @Override
-    protected void performNotAutomatedMapping(EthernetSwitchPortResource source, EthernetSwitchPort target) {
+    protected void performNotAutomatedMapping(EthernetSwitchPortResource sourceSwitchPort, EthernetSwitchPort targetSourceSwitchPort) {
         super.performNotAutomatedMapping(source, target);
-        ipAddressMapperHelper.cleanIpV4Addresses(source.getIpV4Addresses(), target.getIpV4Addresses());
-        ipAddressMapperHelper.cleanIpV6Addresses(source.getIpV6Addresses(), target.getIpV6Addresses());
+        ipV4AddressMapper.map(sourceSwitchPort.getIpV4Addresses(),
+            targetSourceSwitchPort.getIpV4Addresses(), targetSourceSwitchPort::addIpV4Address);
+        ipV6AddressMapper.map(sourceSwitchPort.getIpV6Addresses(),
+            targetSourceSwitchPort.getIpV6Addresses(), targetSourceSwitchPort::addIpV6Address);
     }
 }

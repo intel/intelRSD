@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ public enum ChassisType implements EnumeratedType {
     DRAWER("Drawer"),
     MODULE("Module"),
     COMPONENT("Component"),
+    IP_BASED_DRIVE("IPBasedDrive"),
     OTHER("Other");
 
     private final String value;

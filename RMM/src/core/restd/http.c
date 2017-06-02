@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,6 +212,11 @@ void *http_process(void *args)
 			cp = &line[15];
 			cp += strspn(cp, " \t");
 			req->content_length = atol(cp);
+
+			// If 0 the conversion failed.
+			if (0 == req->content_length) {
+				goto close_task;
+			}
 
 			if ((BUFFSIZ < req->content_length + MAX_HEADER_LEN) &&
 				(req->buff_size != req->content_length + MAX_HEADER_LEN) + 1) {

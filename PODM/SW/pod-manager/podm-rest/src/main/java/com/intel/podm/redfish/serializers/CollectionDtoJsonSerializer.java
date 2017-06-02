@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,15 @@ package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.redfish.json.templates.CollectionJson;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
 
 import java.util.stream.Collectors;
 
 import static com.intel.podm.redfish.serializers.CollectionTypeToCollectionODataMapping.getOdataForCollectionType;
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.appendOdataId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 
 public class CollectionDtoJsonSerializer extends DtoJsonSerializer<CollectionDto> {
     public CollectionDtoJsonSerializer() {
@@ -39,13 +40,13 @@ public class CollectionDtoJsonSerializer extends DtoJsonSerializer<CollectionDto
         CollectionJson result = new CollectionJson(oData.getODataType());
         result.name = oData.getName();
         result.description = oData.getName();
-        ODataId oDataId = oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         result.oDataId = oDataId;
         result.oDataContext = getContextFromId(oDataId);
 
         result.members.addAll(dto.getMembers().stream()
-                .map(id -> ODataId.oDataId(result.oDataId, id))
-                .collect(Collectors.toList()));
+            .map(id -> appendOdataId(result.oDataId, id))
+            .collect(Collectors.toList()));
 
         return result;
     }

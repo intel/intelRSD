@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@
 
 package com.intel.podm.business.redfish.services.helpers;
 
-import com.intel.podm.allocation.RequestValidationException;
-import com.intel.podm.allocation.validation.Violations;
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.allocation.AllocationRequestProcessingException;
+import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.Violations;
 import com.intel.podm.business.dto.redfish.ContextPossessor;
-import com.intel.podm.business.dto.redfish.RequestedMasterDrive;
-import com.intel.podm.business.dto.redfish.RequestedNode;
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -39,9 +37,9 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 public class ComposedNodeValidator {
     @Inject
-    private DomainObjectTreeTraverser traverser;
+    private EntityTreeTraverser traverser;
 
-    public void validateExistenceOfIncludedResources(RequestedNode requestedNode) throws RequestValidationException {
+    public void validateExistenceOfIncludedResources(RequestedNode requestedNode) throws AllocationRequestProcessingException {
         Set<Context> contexts = new HashSet<>();
         contexts.addAll(getContexts(requestedNode.getProcessors()));
         contexts.addAll(getContexts(requestedNode.getMemoryModules()));
@@ -58,7 +56,7 @@ public class ComposedNodeValidator {
         }
 
         List<Context> contexts = new ArrayList<>();
-        contextPossessors.stream().forEach(contextPossessor -> {
+        contextPossessors.forEach(contextPossessor -> {
             if (contextPossessor.getResourceContext() != null) {
                 contexts.add(contextPossessor.getResourceContext());
             }
@@ -69,32 +67,32 @@ public class ComposedNodeValidator {
         return contexts;
     }
 
-    private List<Context> getContextsOfMasterDrives(List<RequestedRemoteDrive> remoteDrives) {
+    private List<Context> getContextsOfMasterDrives(List<RequestedNode.RemoteDrive> remoteDrives) {
         if (isEmpty(remoteDrives)) {
             return emptyList();
         }
 
         return remoteDrives.stream()
                 .filter(remoteDrive -> nonNull(remoteDrive.getMaster()))
-                .map(RequestedRemoteDrive::getMaster)
+                .map(RequestedNode.RemoteDrive::getMaster)
                 .filter(masterDrive -> nonNull(masterDrive.getResourceContext()))
-                .map(RequestedMasterDrive::getResourceContext)
+                .map(RequestedNode.RemoteDrive.MasterDrive::getResourceContext)
                 .collect(toList());
     }
 
-    private void validateContexts(Set<Context> contexts) throws RequestValidationException {
+    private void validateContexts(Set<Context> contexts) throws AllocationRequestProcessingException {
         Violations violations = new Violations();
 
         for (Context context : contexts) {
             try {
                 traverser.traverse(context);
-            } catch (EntityNotFoundException e) {
+            } catch (ContextResolvingException e) {
                 violations.addViolation("Specified resource (" + context + ") does not exist.");
             }
         }
 
         if (violations.hasViolations()) {
-            throw new RequestValidationException(violations);
+            throw new AllocationRequestProcessingException(violations);
         }
     }
 }

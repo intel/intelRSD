@@ -1,30 +1,21 @@
 /*!
- * @section LICENSE
+ * @brief C logger prototypes and macros
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
  *
- * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
+ * @header{Files}
  * @file logger.h
- *
- * @brief Logger interface
- * */
+ */
 
 #ifndef LOGGER_H
 #define LOGGER_H
@@ -65,14 +56,16 @@
 /*!
  * @def LOGGER_ARRAY_SIZE(array)
  * Get number of elements in array. May be used with logbuf_array
- *
+ */
+#define LOGGER_ARRAY_SIZE(array)            (sizeof(array)/sizeof(array[0]))
+
+/*!
  * @def LOGGER_PRINTF_FORMAT(x, y)
  * Tell compiler that we use formated string like in printf functions. Compiler
  * will check for us invalid arguments and parameters in that functions
  * */
-#define LOGGER_ARRAY_SIZE(array)            (sizeof(array)/sizeof(array[0]))
-#define LOGGER_PRINTF_FORMAT(x, y)\
-    __attribute__((__format__(__printf__, x, y)))
+#define LOGGER_PRINTF_FORMAT(fmt_index, val_index)\
+    __attribute__((__format__(__printf__, fmt_index, val_index)))
 
 /*!
  * @def LOGGER_FILE_NAME
@@ -170,6 +163,10 @@
 #define LOG_TIME_DATE_US    3
 #define LOG_TIME_DATE_NS    4
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * @union logger_options
  * @brief Options for logger and stream objects
@@ -196,6 +193,10 @@
  * Enable/disable more debug information like file name, function name and
  * line number
  *
+ * @var logger_options::def_level
+ * Logger level defined in the config file, used to
+ * restore level on SIG_USR2
+ *
  * @var logger_options::output_enable
  * Enable/disable output
  * */
@@ -207,6 +208,7 @@ union logger_options {
         unsigned int tagging : 1;
         unsigned int more_debug : 1;
         unsigned int output_enable : 1;
+        unsigned int def_level:3;
     }option;
     unsigned int raw;
 };
@@ -241,6 +243,18 @@ enum logger_status {
     LOGGER_ERROR_TYPE           = -4,
     LOGGER_ERROR_TIMEOUT        = -5
 };
+
+
+/*!
+ * @brief Handle logger configuration request.
+ *
+ * String must be formatted with "separators" ('=' for level, '@' for file,
+ * ':' for enable), first value must be existing logger name.
+ * @param[in] logger_command command to be parsed and executed
+ * @note Executed on signal (SIGUSRx) and from debugger.
+ * @see logger_handle_usr_signal()
+ */
+void logger_execute_command(const char* logger_command);
 
 struct logger;
 struct logger_stream;
@@ -291,6 +305,14 @@ void logger_remove_stream(struct logger *inst, struct logger_stream *stream);
 void logger_set_options(struct logger *inst, union logger_options *options);
 
 /*!
+ * @brief Set logging level
+ *
+ * @param[in]   inst    Logger instance
+ * @param[in]   level   Level to be set in the logger instance
+ * */
+void logger_set_level(struct logger* inst, unsigned level);
+
+/*!
  * @brief Get logger options
  *
  * @param[in]   inst    Logger instance
@@ -299,17 +321,38 @@ void logger_set_options(struct logger *inst, union logger_options *options);
 void logger_get_options(struct logger *inst, union logger_options *options);
 
 /*!
+ * @brief Check if message is to be logged
+ *
+ * @param[in]   inst    Logger instance
+ * @param[in]   level   Checked level
+ * @return      true if message is to be logged
+ * */
+int logger_is_loggable(struct logger* inst, unsigned level);
+
+/*!
+ * @brief Get logger name (tag)
+ *
+ * @param[in]   inst    Logger instance
+ * @return      logger name (tag)
+ */
+const char* logger_get_tag(struct logger* inst);
+
+/*!
  * @brief Write log. Low level function. Please use log_write instead
  * #_log_write
  *
  * @param[in]   inst            Logger instance
+ * @param[in]   logger_name     Logger name to be shown in the log
  * @param[in]   level           Logger level
  * @param[in]   file_name       File name from log was executed
  * @param[in]   function_name   Function name from log was executed
  * @param[in]   line_number     File line number from log was executed
  * @param[in]   message         Message string
  * */
-void _log_write(struct logger *inst, const unsigned int level,
+void _log_write(
+        struct logger *inst,
+        const char* logger_name,
+        const unsigned int level,
         const char *file_name,
         const char *function_name,
         const unsigned int line_number,
@@ -320,6 +363,7 @@ void _log_write(struct logger *inst, const unsigned int level,
  * #_log_write
  *
  * @param[in]   inst            Logger instance
+ * @param[in]   logger_name     Logger name to be shown in the log
  * @param[in]   level           Logger level
  * @param[in]   file_name       File name from log was executed
  * @param[in]   function_name   Function name from log was executed
@@ -327,18 +371,21 @@ void _log_write(struct logger *inst, const unsigned int level,
  * @param[in]   fmt             Format string like in printf
  * @param[in]   ...             Variadic variables like in printf
  * */
-LOGGER_PRINTF_FORMAT(6, 7)
-void _log_fwrite(struct logger *inst, const unsigned int level,
+void _log_fwrite(
+        struct logger *inst,
+        const char* logger_name,
+        const unsigned int level,
         const char *file_name,
         const char *function_name,
         const unsigned int line_number,
-        const char *fmt, ...);
+        const char *fmt, ...) LOGGER_PRINTF_FORMAT(7, 8);
 
 /*!
  * @brief Write log. Low level function. Please use log_write instead
  * #_log_write. Variadic variables version
  *
  * @param[in]   inst            Logger instance
+ * @param[in]   logger_name     Logger name to be shown in the log
  * @param[in]   level           Logger level
  * @param[in]   file_name       File name from log was executed
  * @param[in]   function_name   Function name from log was executed
@@ -346,43 +393,43 @@ void _log_fwrite(struct logger *inst, const unsigned int level,
  * @param[in]   fmt             Format string like in printf
  * @param[in]   args            Variadic variables like in vprintf
  * */
-LOGGER_PRINTF_FORMAT(6, 0)
-void _log_vwrite(struct logger *inst, const unsigned int level,
+void _log_vwrite(
+        struct logger *inst,
+        const char* logger_name,
+        const unsigned int level,
         const char *file_name,
         const char *function_name,
         const unsigned int line_number,
-        const char *fmt, va_list args);
+        const char *fmt, va_list args) LOGGER_PRINTF_FORMAT(7, 0);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #ifndef LOGGER_CPP_OVER_LOGGER_C_MACROS
 
 /*!
  * @brief Write log
  *
- * @param[in]   inst            Logger instance
- * @param[in]   level           Logger level
- * @param[in]   ...             Format and variadic variables like in printf
+ * @param[in]   inst  Logger instance
+ * @param[in]   lvl   Logger level
+ * @param[in]   ...   Format and variadic variables like in printf
  * */
-#define log_write(inst, level, ...)\
-    _log_fwrite((inst), (level),\
-            LOGGER_FILE_NAME,\
-            LOGGER_FUNCTION_NAME,\
-            LOGGER_LINE_NUMBER,\
-            __VA_ARGS__)
-
-/*!
- * @brief Write log. Variadic variables version
- *
- * @param[in]   inst            Logger instance
- * @param[in]   level           Logger level
- * @param[in]   fmt             Format string like in printf
- * @param[in]   args            Variadic variables like in vprintf
- * */
-#define log_vwrite(inst, level, fmt, args)\
-    _logv_vwrite((inst), (level),\
-            LOGGER_FILE_NAME,\
-            LOGGER_FUNCTION_NAME,\
-            LOGGER_LINE_NUMBER,\
-            fmt, args)
+#define log_write(inst, lvl, ...) \
+    do {\
+        struct logger* __inst = (inst);\
+        unsigned __level = (lvl);\
+        if (__inst && logger_is_loggable(__inst, __level)) {\
+            _log_fwrite(\
+                __inst,\
+                logger_get_tag(__inst),\
+                __level,\
+                LOGGER_FILE_NAME,\
+                LOGGER_FUNCTION_NAME,\
+                LOGGER_LINE_NUMBER,\
+                __VA_ARGS__);\
+        }\
+    } while (0)
 
 /*!
  * @brief Emergency message, system is about to crash or is unstable

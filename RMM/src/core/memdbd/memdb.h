@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,6 @@
 #define MEMDB_ERR(format, args...)		rmm_log(ERROR, format, ##args)
 #define MEMDB_INFO(format, args...)		rmm_log(INFO, format, ##args)
 
-extern bool snapshot_in_progress;
+extern volatile bool snapshot_in_progress;
 
 #endif

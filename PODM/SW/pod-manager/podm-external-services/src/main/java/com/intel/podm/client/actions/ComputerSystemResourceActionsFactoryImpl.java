@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 
 package com.intel.podm.client.actions;
 
+import com.intel.podm.client.WebClientBuilder;
 import com.intel.podm.client.api.actions.ComputerSystemResourceActions;
 import com.intel.podm.client.api.actions.ComputerSystemResourceActionsFactory;
 
+import javax.inject.Inject;
 import java.net.URI;
 
 public class ComputerSystemResourceActionsFactoryImpl implements ComputerSystemResourceActionsFactory {
+    @Inject
+    private WebClientBuilder webClientBuilder;
+
     @Override
     public ComputerSystemResourceActions create(URI baseUri) {
-        return new ComputerSystemResourceActionsImpl(baseUri);
+        return new ComputerSystemResourceActionsImpl(webClientBuilder.newInstance(baseUri).retryable().build());
     }
 }

@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,31 +16,43 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
  * */
-#include "agent-framework/module-ref/compute_manager.hpp"
-#include "discovery/discovery_manager.hpp"
-#include "mock_management_controller.hpp"
-#include "mock_const.hpp"
-#include "loader/compute_loader.hpp"
-#include "configuration_full.hpp"
-#include "json/deserializer.hpp"
-#include "json/value.hpp"
-#include "gtest/gtest.h"
-#include <memory>
 
-using namespace std;
+#include "agent-framework/module/compute_components.hpp"
+#include "agent-framework/module/common_components.hpp"
+#include "discovery/discovery_manager.hpp"
+#include "loader/compute_loader.hpp"
+
+#include "mock/mock_const.hpp"
+#include "mock/mock_management_controller.hpp"
+#include "mock/configuration_full.hpp"
+
+#include <gtest/gtest.h>
+#include <json/value.hpp>
+#include <json/deserializer.hpp>
+
 using namespace ipmi;
 using namespace agent::compute::loader;
-using agent::compute::discovery::DiscoveryManager;
+using namespace agent::compute::discovery;
+using namespace agent_framework::module;
 
-// TODO: For refactor purpose only. Remove after name unification.
-using ComputeComponents = agent_framework::module::ComputeManager;
+namespace {
+
+std::string to_string_with_padding(int number) {
+    std::stringstream stream{};
+    stream << std::setw(2) << std::setfill('0') << number;
+    return stream.str();
+}
+
+}
 
 class DiscoveryManagerTest: public ::testing::Test {
 private:
     void load_config_and_build_compute() {
+        ComputeLoader loader{};
+        json::Value config;
+        json::Deserializer deserializer{};
+
         deserializer << COMPUTE_FULL_CONFIGURATION;
         deserializer >> config;
         bool is_loaded = loader.load(config);
@@ -52,8 +62,8 @@ private:
         }
     }
 
-    string get_manager_uuid() {
-        auto& module_manager = ComputeComponents::get_instance()->get_module_manager();
+    std::string get_manager_uuid() {
+        auto& module_manager = CommonComponents::get_instance()->get_module_manager();
         auto uuids = module_manager.get_keys("");
 
         if (1 > uuids.size()) {
@@ -61,15 +71,13 @@ private:
         }
         return uuids.front();
     }
+
     static bool is_initialized;
+
 protected:
+    std::string manager_uuid{};
 
-    ComputeLoader loader{};
-    json::Value config;
-    json::Deserializer deserializer{};
-    string manager_uuid{};
 public:
-
     DiscoveryManagerTest() {
         if (is_initialized) {
             return;
@@ -78,8 +86,8 @@ public:
         load_config_and_build_compute();
         manager_uuid = get_manager_uuid();
 
-        /* Initialization mock managment controller */
-        unique_ptr<ManagementController> mc(new MockManagementController());
+        /* Initialization mock management controller */
+        std::unique_ptr<ManagementController> mc(new MockManagementController());
         DiscoveryManager discovery_manager{mc};
         discovery_manager.discovery(manager_uuid);
 
@@ -95,39 +103,44 @@ public:
 
 bool DiscoveryManagerTest::is_initialized{false};
 
-DiscoveryManagerTest::~DiscoveryManagerTest() {}
+DiscoveryManagerTest::~DiscoveryManagerTest() { }
+MockManagementController::~MockManagementController() { }
 
 TEST_F(DiscoveryManagerTest, DiscoverManagerFirmwareVersion) {
-    auto& module_manager = ComputeComponents::get_instance()->get_module_manager();
+    auto& module_manager = CommonComponents::get_instance()->get_module_manager();
     auto manager = module_manager.get_entry(manager_uuid);
-    ASSERT_STREQ(manager.get_firmware_version().value().c_str(), mock_const::FIRMWARE_VERSION);
+
+    const auto& firmware_version = std::to_string(int(mock::FIRMWARE_VERSION_MAJOR)) +
+        "." + ::to_string_with_padding(int(mock::FIRMWARE_VERSION_MINOR));
+
+    ASSERT_STREQ(manager.get_firmware_version().value().c_str(), firmware_version.c_str());
 }
 
 TEST_F(DiscoveryManagerTest, DiscoverBios) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
 
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no system.";
-    for (const auto& system_uuid: system_uuid_vector) {
+    for (const auto& system_uuid : system_uuid_vector) {
         auto system = system_manager.get_entry(system_uuid);
-        EXPECT_STREQ(system.get_bios_version().value().c_str(), mock_const::FULL_VERSION);
+        EXPECT_STREQ(system.get_bios_version().value().c_str(), mock::FULL_VERSION);
     }
 }
 
 TEST_F(DiscoveryManagerTest, DiscoverProcessors) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System.";
     auto& processor_manager = ComputeComponents::get_instance()->get_processor_manager();
 
-    for (const auto& system_uuid: system_uuid_vector) {
+    for (const auto& system_uuid : system_uuid_vector) {
         auto processor_uuid_vector = processor_manager.get_keys(system_uuid);
         EXPECT_FALSE(processor_uuid_vector.empty()) << "There is no Processor.";
     }
 }
 
 TEST_F(DiscoveryManagerTest, DiscoverProcessorFrequency) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System.";
     auto& processor_manager = ComputeComponents::get_instance()->get_processor_manager();
@@ -138,104 +151,117 @@ TEST_F(DiscoveryManagerTest, DiscoverProcessorFrequency) {
 
         for (const auto& processor_uuid: processor_uuid_vector) {
             auto processor = processor_manager.get_entry(processor_uuid);
-            EXPECT_EQ(processor.get_max_speed_mhz(), mock_const::CPU_FREQUENCY)
+            EXPECT_EQ(processor.get_max_speed_mhz(), mock::CPU_FREQUENCY)
                 << "CPU Frequency is not set.";
         }
     }
 }
 
-TEST_F(DiscoveryManagerTest, DiscoverDimmModules) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+TEST_F(DiscoveryManagerTest, DiscoverCableId) {
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System.";
-    auto& dimm_manager = ComputeComponents::get_instance()->get_dimm_manager();
 
     for (const auto& system_uuid: system_uuid_vector) {
-        auto dimm_uuid_vector = dimm_manager.get_keys(system_uuid);
-        EXPECT_FALSE(dimm_uuid_vector.empty()) << "There is no Dimm Module.";
+        auto system = CommonComponents::get_instance()->get_system_manager().get_entry(system_uuid);
+        auto cable_ids = system.get_cable_ids();
+        EXPECT_EQ(cable_ids.size(), 4) << "Cable id is not set";
+        EXPECT_EQ(cable_ids[0], mock::PCIE_PORT_CABLE_ID) << "Invalid Cable id value";
     }
 }
 
-TEST_F(DiscoveryManagerTest, DiscoverDimmModulesTypes) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+TEST_F(DiscoveryManagerTest, DiscoverMemoryModules) {
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
+    auto system_uuid_vector = system_manager.get_keys(manager_uuid);
+    ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System.";
+    auto& memory_manager = ComputeComponents::get_instance()->get_memory_manager();
+
+    for (const auto& system_uuid : system_uuid_vector) {
+        auto memory_uuid_vector = memory_manager.get_keys(system_uuid);
+        EXPECT_FALSE(memory_uuid_vector.empty()) << "There is no Memory Module.";
+    }
+}
+
+TEST_F(DiscoveryManagerTest, DiscoverMemoryDeviceType) {
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System";
-    auto& dimm_manager = ComputeComponents::get_instance()->get_dimm_manager();
+    auto& memory_manager = ComputeComponents::get_instance()->get_memory_manager();
 
-    for (const auto& system_uuid: system_uuid_vector) {
-        auto dimm_uuid_vector = dimm_manager.get_keys(system_uuid);
-        ASSERT_FALSE(dimm_uuid_vector.empty()) << "There is no Dimm Module.";
+    for (const auto& system_uuid : system_uuid_vector) {
+        auto memory_uuid_vector = memory_manager.get_keys(system_uuid);
+        ASSERT_FALSE(memory_uuid_vector.empty()) << "There is no Memory Module.";
 
-        for (const auto& dimm_uuid: dimm_uuid_vector) {
-            auto dimm = dimm_manager.get_entry(dimm_uuid);
-            EXPECT_EQ(dimm.get_memory_type(), agent_framework::model::enums::MemoryType::DRAM)
-                << "Dimm type is not set.";
+        for (const auto& memory_uuid : memory_uuid_vector) {
+            auto memory = memory_manager.get_entry(memory_uuid);
+            EXPECT_EQ(memory.get_device_type(), agent_framework::model::enums::DeviceType::DDR3)
+                << "Memory type is not set.";
         }
     }
 }
 
-TEST_F(DiscoveryManagerTest, DiscoverDimmModulesVoltage) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+TEST_F(DiscoveryManagerTest, DiscoverMemoryModulesVoltage) {
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System.";
-    auto& dimm_manager = ComputeComponents::get_instance()->get_dimm_manager();
+    auto& memory_manager = ComputeComponents::get_instance()->get_memory_manager();
 
-    for (const auto& system_uuid: system_uuid_vector) {
-        auto dimm_uuid_vector = dimm_manager.get_keys(system_uuid);
-        ASSERT_FALSE(dimm_uuid_vector.empty()) << "There is no Dimm Module.";
+    for (const auto& system_uuid : system_uuid_vector) {
+        auto memory_uuid_vector = memory_manager.get_keys(system_uuid);
+        ASSERT_FALSE(memory_uuid_vector.empty()) << "There is no Memory Module.";
 
-        for (const auto& dimm_uuid: dimm_uuid_vector) {
-            auto dimm = dimm_manager.get_entry(dimm_uuid);
-            EXPECT_EQ(dimm.get_max_voltage_volt(), mock_const::DIMM_VOLTAGE)
-                << "Dimm maximum volate is not set.";
+        for (const auto& memory_uuid : memory_uuid_vector) {
+            auto memory = memory_manager.get_entry(memory_uuid);
+            EXPECT_EQ(memory.get_voltage_volt(), mock::MEMORY_VOLTAGE)
+                << "Memory maximum voltage is not set.";
         }
     }
 }
 
-TEST_F(DiscoveryManagerTest, DiscoverDimmModulesSpeedMhz) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+TEST_F(DiscoveryManagerTest, DiscoverMemoryModulesSpeedMhz) {
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System.";
-    auto& dimm_manager = ComputeComponents::get_instance()->get_dimm_manager();
+    auto& memory_manager = ComputeComponents::get_instance()->get_memory_manager();
 
-    for (const auto& system_uuid: system_uuid_vector) {
-        auto dimm_uuid_vector = dimm_manager.get_keys(system_uuid);
-        ASSERT_FALSE(dimm_uuid_vector.empty()) << "There is no Dimm Module.";
+    for (const auto& system_uuid : system_uuid_vector) {
+        auto memory_uuid_vector = memory_manager.get_keys(system_uuid);
+        ASSERT_FALSE(memory_uuid_vector.empty()) << "There is no Memory Module.";
 
-        for (const auto& dimm_uuid: dimm_uuid_vector) {
-            auto dimm = dimm_manager.get_entry(dimm_uuid);
-            EXPECT_EQ(dimm.get_operating_speed_mhz(), mock_const::DIMM_SPEED_MHZ)
-                << "Dimm configured speed is not set";
+        for (const auto& memory_uuid : memory_uuid_vector) {
+            auto memory = memory_manager.get_entry(memory_uuid);
+            EXPECT_EQ(memory.get_operating_speed_mhz(), mock::MEMORY_SPEED_MHZ)
+                << "Memory configured speed is not set";
         }
     }
 }
 
-TEST_F(DiscoveryManagerTest, DiscoverDimmModulesSizeGB) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+TEST_F(DiscoveryManagerTest, DiscoverMemoryModulesSizeGB) {
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System.";
-    auto& dimm_manager = ComputeComponents::get_instance()->get_dimm_manager();
+    auto& memory_manager = ComputeComponents::get_instance()->get_memory_manager();
 
-    for (const auto& system_uuid: system_uuid_vector) {
-        auto dimm_uuid_vector = dimm_manager.get_keys(system_uuid);
-        ASSERT_FALSE(dimm_uuid_vector.empty()) << "There is no Dimm Module.";
+    for (const auto& system_uuid : system_uuid_vector) {
+        auto memory_uuid_vector = memory_manager.get_keys(system_uuid);
+        ASSERT_FALSE(memory_uuid_vector.empty()) << "There is no Memory Module.";
 
-        for (const auto& dimm_uuid: dimm_uuid_vector) {
-            auto dimm = dimm_manager.get_entry(dimm_uuid);
-            EXPECT_EQ(dimm.get_capacity_mb(), mock_const::DIMM_SIZE_MB)
-                << "Dimm size is not set.";
+        for (const auto& memory_uuid : memory_uuid_vector) {
+            auto memory = memory_manager.get_entry(memory_uuid);
+            EXPECT_EQ(memory.get_capacity_mb(), mock::MEMORY_SIZE_MB)
+                << "Memory size is not set.";
         }
     }
 }
 
 TEST_F(DiscoveryManagerTest, DiscoverNetworkInterfaces) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System.";
     auto& network_interface_manager = ComputeComponents::get_instance()->
         get_network_interface_manager();
 
-    for (const auto& system_uuid: system_uuid_vector) {
+    for (const auto& system_uuid : system_uuid_vector) {
         auto network_interface_vector = network_interface_manager.get_keys(system_uuid);
         EXPECT_FALSE(network_interface_vector.empty())
             << "There is no Network Interface.";
@@ -243,13 +269,13 @@ TEST_F(DiscoveryManagerTest, DiscoverNetworkInterfaces) {
 }
 
 TEST_F(DiscoveryManagerTest, DiscoverNetworkInterfacesHaswellMacAddress) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system_uuid_vector = system_manager.get_keys(manager_uuid);
     ASSERT_FALSE(system_uuid_vector.empty()) << "There is no System.";
     auto& network_interface_manager = ComputeComponents::get_instance()->
         get_network_interface_manager();
 
-    for (const auto& system_uuid: system_uuid_vector) {
+    for (const auto& system_uuid : system_uuid_vector) {
         auto network_interface_vector = network_interface_manager.get_keys(system_uuid);
         ASSERT_FALSE(network_interface_vector.empty()) << "There is no Network Interface.";
 
@@ -257,8 +283,7 @@ TEST_F(DiscoveryManagerTest, DiscoverNetworkInterfacesHaswellMacAddress) {
             auto network_interface = network_interface_manager.get_entry(network_interface_uuid);
             const auto& mac_address = network_interface.get_mac_address();
             if (mac_address && !mac_address.value().empty()) {
-                EXPECT_STREQ(mac_address.value().c_str(),
-                             mock_const::SYSTEM_MAC_ADDRESS_HASWELL)
+                EXPECT_STREQ(mac_address.value().c_str(), mock::SYSTEM_MAC_ADDRESS_HASWELL)
                     << "Network interface mac address is not set.";
             }
         }
@@ -266,27 +291,27 @@ TEST_F(DiscoveryManagerTest, DiscoverNetworkInterfacesHaswellMacAddress) {
 }
 
 TEST_F(DiscoveryManagerTest, DiscoverManufacturer) {
-    auto& chassis_manager = ComputeComponents::get_instance()->get_chassis_manager();
+    auto& chassis_manager = CommonComponents::get_instance()->get_chassis_manager();
     auto chassis_uuid_vector = chassis_manager.get_keys(manager_uuid);
     ASSERT_FALSE(chassis_uuid_vector.empty()) << "There is no Chassis.";
 
-    for (const auto& chassis_uuid: chassis_uuid_vector) {
+    for (const auto& chassis_uuid : chassis_uuid_vector) {
         auto chassis = chassis_manager.get_entry(chassis_uuid);
         auto fru_info = chassis.get_fru_info();
-        EXPECT_STREQ(fru_info.get_manufacturer().value().c_str(), mock_const::MANUFACTURER_ID_INTEL)
+        EXPECT_STREQ(fru_info.get_manufacturer().value().c_str(), mock::MANUFACTURER_ID_INTEL)
             << "Chassis manufacturer id is not set.";
     }
 }
 
 TEST_F(DiscoveryManagerTest, DiscoverProduct) {
-    auto& chassis_manager = ComputeComponents::get_instance()->get_chassis_manager();
+    auto& chassis_manager = CommonComponents::get_instance()->get_chassis_manager();
     auto chassis_uuid_vector = chassis_manager.get_keys(manager_uuid);
     ASSERT_FALSE(chassis_uuid_vector.empty()) << "There is no Chassis.";
 
-    for (const auto& chassis_uuid: chassis_uuid_vector) {
+    for (const auto& chassis_uuid : chassis_uuid_vector) {
         auto chassis = chassis_manager.get_entry(chassis_uuid);
         auto fru_info = chassis.get_fru_info();
-        EXPECT_STREQ(fru_info.get_model_number().value().c_str(), mock_const::PRODUCT_ID_INTEL_ATOM)
+        EXPECT_STREQ(fru_info.get_model_number().value().c_str(), mock::PRODUCT_ID_INTEL_ATOM)
             << "Chassis product id is not set.";
     }
 }

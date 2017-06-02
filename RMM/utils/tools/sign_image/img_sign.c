@@ -97,6 +97,11 @@ int main(int argc, char *argv[])
 	}
 
 	signature = (unsigned char*) malloc(RSA_size(private_key));
+	if (!signature)
+	{
+		fprintf(stderr, "memory allocation error\n");
+		exit(-1);
+	}
 
 	if (calc_sha256() != 0)
 	{

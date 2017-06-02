@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,36 @@
 package com.intel.podm.allocation.strategy.matcher;
 
 import com.intel.podm.allocation.mappers.processor.ProcessorsAllocationMapper;
-import com.intel.podm.business.dto.redfish.RequestedNode;
-import com.intel.podm.business.dto.redfish.RequestedProcessor;
 import com.intel.podm.business.entities.redfish.Processor;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Lists.newArrayList;
+import static com.intel.podm.common.utils.Contracts.requires;
+import static java.util.Collections.unmodifiableCollection;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 public class ProcessorMatcher {
-    public boolean matches(RequestedNode requestedNode, List<Processor> availableProcessors) {
-        checkArgument(availableProcessors != null, "Processors collection under computer system cannot be null.");
-        return isNotEmpty(requestedNode.getProcessors())
-                ?
-                areMatched(requestedNode.getProcessors(), availableProcessors)
-                :
-                true;
+    public boolean matches(RequestedNode requestedNode, Collection<Processor> availableProcessors) {
+        requires(availableProcessors != null, "Processors collection under computer system cannot be null.");
+        List<RequestedNode.Processor> requestedProcessors = requestedNode.getProcessors();
+
+        if (isEmpty(availableProcessors)) {
+            return false;
+        }
+
+        return isNotEmpty(requestedProcessors)
+            ? areMatched(requestedProcessors, availableProcessors)
+            : true;
     }
 
-    private static boolean areMatched(List<RequestedProcessor> requestedProcessors, List<Processor> availableProcessors) {
+    private static boolean areMatched(List<RequestedNode.Processor> requestedProcessors, Collection<Processor> availableProcessors) {
         ProcessorsAllocationMapper mapper = new ProcessorsAllocationMapper();
-        Map<RequestedProcessor, Processor> mappedProcessors = mapper.map(requestedProcessors, newArrayList(availableProcessors));
+        Map<RequestedNode.Processor, Processor> mappedProcessors = mapper.map(requestedProcessors, unmodifiableCollection(availableProcessors));
         return Objects.equals(mappedProcessors.entrySet().size(), requestedProcessors.size());
     }
 }

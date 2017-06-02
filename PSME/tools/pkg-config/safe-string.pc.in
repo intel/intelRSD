@@ -1,0 +1,10 @@
+prefix=@CMAKE_BINARY_DIR@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: safestring
+Description: Safe-String library
+Version: @SAFESTRING_VERSION@
+Libs: -L${libdir} -lsafe-string
+Cflags: -I${includedir}

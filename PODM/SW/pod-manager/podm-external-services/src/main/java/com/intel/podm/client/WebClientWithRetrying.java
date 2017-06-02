@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,15 @@ import com.intel.podm.client.api.WebClient;
 import com.intel.podm.client.api.resources.ExternalServiceResource;
 
 import java.net.URI;
+import java.util.Optional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 
 class WebClientWithRetrying implements WebClient {
     private final WebClient innerClient;
 
     WebClientWithRetrying(WebClient client) {
-        checkNotNull(client);
+        requiresNonNull(client, "client");
         innerClient = client;
     }
 
@@ -54,8 +55,8 @@ class WebClientWithRetrying implements WebClient {
     }
 
     @Override
-    public <T> void patch(URI requestUri, T obj) throws ExternalServiceApiActionException {
-        RetryInvoker.retry(() -> innerClient.patch(requestUri, obj));
+    public <T> Optional<ExternalServiceResource> patch(URI requestUri, T obj) throws ExternalServiceApiActionException {
+        return RetryInvoker.retry(() -> innerClient.patch(requestUri, obj));
     }
 
     @Override

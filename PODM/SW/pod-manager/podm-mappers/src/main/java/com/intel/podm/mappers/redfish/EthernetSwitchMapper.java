@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
 import com.intel.podm.client.api.resources.redfish.EthernetSwitchResource;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
 
 @Dependent
-public class EthernetSwitchMapper extends DomainObjectMapper<EthernetSwitchResource, EthernetSwitch> {
+public class EthernetSwitchMapper extends EntityMapper<EthernetSwitchResource, EthernetSwitch> {
     public EthernetSwitchMapper() {
         super(EthernetSwitchResource.class, EthernetSwitch.class);
     }

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,17 +29,15 @@
 using namespace ipmi;
 using namespace ipmi::command::sdv;
 
-request::GetFanPwm::GetFanPwm(): Request(uint8_t(NetFn::RACKSCALE), uint8_t(Cmd::GET_FAN_PWM)) {}
+request::GetFanPwm::GetFanPwm() : Request(sdv::NetFn::RACKSCALE, sdv::Cmd::GET_FAN_PWM) {}
 request::GetFanPwm::~GetFanPwm() {}
 
-void request::GetFanPwm::pack(vector<uint8_t>&) const {}
+void request::GetFanPwm::pack(std::vector<std::uint8_t>&) const {}
 
-response::GetFanPwm::GetFanPwm(): Response(uint8_t(NetFn::RACKSCALE), uint8_t(Cmd::GET_FAN_PWM),
-                                           RESPONSE_SIZE) {}
-response::GetFanPwm::~GetFanPwm() {
-}
+response::GetFanPwm::GetFanPwm() : Response(sdv::NetFn::RACKSCALE, sdv::Cmd::GET_FAN_PWM, RESPONSE_SIZE) {}
+response::GetFanPwm::~GetFanPwm() {}
 
-void response::GetFanPwm::unpack(const vector<uint8_t>& data) {
+void response::GetFanPwm::unpack(const std::vector<std::uint8_t>& data) {
 
     if (!is_response_correct(data)) {
         return; // received only completion code, do not unpack.

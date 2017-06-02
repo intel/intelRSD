@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,12 +63,12 @@ void GetDeviceID::pack(IpmiMessage& msg){
     std::vector<uint8_t> man_id{};
     std::vector<uint8_t> aux_fw_rev{};
 
-    log_debug(LOGUSR, "Packing Get Device ID message.")
+    log_debug(LOGUSR, "Packing Get Device ID message.");
 
     m_response.set_dev_id(IPMI_DEVICE_ID);
     m_response.set_dev_rev(IPMI_DEVICE_REV);
-    m_response.set_rev_major(IPMI_DEVICE_REV_MAJOR);
-    m_response.set_rev_minor(IPMI_DEVICE_REV_MINOR);
+    m_response.set_rev_major(IPMI_DEVICE_REV_MAJOR());
+    m_response.set_rev_minor(IPMI_DEVICE_REV_MINOR());
     m_response.set_dev_supp(IPMI_CHASSIS_DEVICE);
     m_response.set_ipmi_ver(IPMI_DEVICE_IPMI_VER);
 
@@ -77,10 +77,11 @@ void GetDeviceID::pack(IpmiMessage& msg){
     man_id.push_back(IPMI_IANA_INTEL_2());
     m_response.set_man_id(man_id);
 
-    aux_fw_rev.push_back(IPMI_AUX_FW_REV_0());
-    aux_fw_rev.push_back(IPMI_AUX_FW_REV_1());
-    aux_fw_rev.push_back(IPMI_AUX_FW_REV_2());
-    aux_fw_rev.push_back(IPMI_AUX_FW_REV_3());
+    const auto fw_rev = IPMI_AUX_FW_REV();
+    aux_fw_rev.push_back(uint8_t(fw_rev));
+    aux_fw_rev.push_back(uint8_t(fw_rev >> 8));
+    aux_fw_rev.push_back(uint8_t(fw_rev >> 16));
+    aux_fw_rev.push_back(uint8_t(fw_rev >> 24));
     m_response.set_aux_fw_rev(aux_fw_rev);
 
     msg.set_cc(CompletionCode::CC_OK);

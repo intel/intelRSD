@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@ package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.PhysicalDrive;
 import com.intel.podm.client.api.resources.redfish.PhysicalDriveResource;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
 
 @Dependent
-public class PhysicalDriveMapper extends DomainObjectMapper<PhysicalDriveResource, PhysicalDrive> {
+public class PhysicalDriveMapper extends EntityMapper<PhysicalDriveResource, PhysicalDrive> {
     public PhysicalDriveMapper() {
         super(PhysicalDriveResource.class, PhysicalDrive.class);
     }
-
 }

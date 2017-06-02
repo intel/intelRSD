@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ static int get_last_line(const char *file_path, char *line)
 {
 	FILE *fd;
 	int ret;
-
-	if ((fd = fopen(file_path, "r")) != NULL) // open file
+	fd = fopen(file_path, "r"); // open file
+	if (fd != NULL)
 	{
 		fseek(fd, 0, SEEK_SET); // make sure start from 0
 
@@ -56,6 +56,7 @@ static int get_last_line(const char *file_path, char *line)
 				continue;
 		}
 		printf("Last Line :: %s\n", line);
+        fclose(fd);
 	}
 	return 0;
 }

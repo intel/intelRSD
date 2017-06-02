@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package com.intel.podm.config.network.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.Health;
-import com.intel.podm.common.types.LinkTechnology;
 import com.intel.podm.common.types.State;
 import com.intel.podm.common.types.net.MacAddress;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings({"checkstyle:MethodCount"})
 public class EthernetInterfaceDto {
     @JsonProperty("Name")
     private String name;
@@ -42,8 +42,6 @@ public class EthernetInterfaceDto {
     private MacAddress factoryMacAddress;
     @JsonProperty ("MacAddress")
     private MacAddress macAddress;
-    @JsonProperty ("LinkTechnology")
-    private LinkTechnology linkTechnology;
     @JsonProperty ("SpeedMbps")
     private Integer speedMbps;
     @JsonProperty ("Autosense")
@@ -99,10 +97,6 @@ public class EthernetInterfaceDto {
 
     public MacAddress getMacAddress() {
         return macAddress;
-    }
-
-    public LinkTechnology getLinkTechnology() {
-        return linkTechnology;
     }
 
     public Integer getSpeedMbps() {
@@ -171,10 +165,6 @@ public class EthernetInterfaceDto {
 
     public void setMacAddress(MacAddress macAddress) {
         this.macAddress = macAddress;
-    }
-
-    public void setLinkTechnology(LinkTechnology linkTechnology) {
-        this.linkTechnology = linkTechnology;
     }
 
     public void setSpeedMbps(Integer speedMbps) {

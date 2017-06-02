@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
 
 package com.intel.podm.redfish.json.templates.actions;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.intel.podm.business.services.redfish.requests.ResetRequest;
 import com.intel.podm.common.types.actions.ResetType;
 
-import java.util.List;
+public class ResetActionJson implements ResetRequest {
+    private ResetType resetType;
 
-@JsonPropertyOrder({"target", "allowableResetTypes"})
-public final class ResetActionJson {
-    @JsonProperty("target")
-    public String target;
-    @JsonProperty("ResetType@Redfish.AllowableValues")
-    public List<ResetType> allowableResetTypes;
+    public ResetType getResetType() {
+        return resetType;
+    }
 }

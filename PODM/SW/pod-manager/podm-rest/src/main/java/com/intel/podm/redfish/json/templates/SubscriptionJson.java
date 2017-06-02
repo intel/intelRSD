@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.List;
         "@odata.context", "@odata.id", "@odata.type", "id",
         "name", "destination", "eventTypes", "context", "protocol"
 })
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class SubscriptionJson extends BaseJson {
     public String id;
     public String name;
@@ -35,6 +36,6 @@ public class SubscriptionJson extends BaseJson {
     public String protocol;
 
     public SubscriptionJson() {
-        super("#EventDestination.1.0.0.EventDestination");
+        super("#EventDestination.v1_0_0.EventDestination");
     }
 }

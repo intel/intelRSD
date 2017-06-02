@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +22,12 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/compute/get_processor_info.hpp"
-#include "agent-framework/command/compute/json/get_processor_info.hpp"
+#include "agent-framework/module/constants/compute.hpp"
+#include "agent-framework/command-ref/compute_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model;
 using namespace agent_framework::model::literals;
 
@@ -54,24 +53,24 @@ static constexpr char TEST_CPUID_MODEL[] = "6";
 static constexpr char TEST_STEP[] = "2";
 static constexpr char TEST_MICROCODE_INFO[] = "4";
 
-class GetProcessorInfo : public compute::GetProcessorInfo {
+class MyGetProcessorInfo {
 private:
     std::string m_processor{};
 public:
-    GetProcessorInfo(
+    MyGetProcessorInfo(
         const std::string& processor) {
         m_processor = processor;
     }
 
-    using compute::GetProcessorInfo::execute;
     using Processor = agent_framework::model::Processor;
     using CpuId = agent_framework::model::attribute::CpuId;
 
-    void execute(const Request& request, Response& response) {
-        const auto& processor_uuid = request.get_processor();
+    void execute(const GetProcessorInfo::Request& request,
+                 GetProcessorInfo::Response& response) {
+        const auto& processor_uuid = request.get_uuid();
 
         if (processor_uuid != m_processor) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not Found");
         }
 
         Processor processor{};
@@ -97,34 +96,26 @@ public:
         cpu_id.set_step(TEST_STEP);
         cpu_id.set_microcode_info(TEST_MICROCODE_INFO);
         processor.set_cpu_id(std::move(cpu_id));
-        response.set_processor(std::move(processor));
+        response = std::move(processor);
     }
 
-    virtual ~GetProcessorInfo();
+    virtual ~MyGetProcessorInfo();
 };
 
-GetProcessorInfo::~GetProcessorInfo() { }
+MyGetProcessorInfo::~MyGetProcessorInfo() { }
 
-class GetProcessorInfoTest : public ::testing::Test {
-public:
-    virtual ~GetProcessorInfoTest();
-};
-
-GetProcessorInfoTest::~GetProcessorInfoTest() { }
-
-TEST_F(GetProcessorInfoTest, PositiveExecute) {
-    compute::json::GetProcessorInfo command_json;
-    GetProcessorInfo* command = new GetProcessorInfo(
-        "TestModuleId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetProcessorInfoTest, PositiveExecute) {
+    MyGetProcessorInfo command{"TestModuleId"};
+    GetProcessorInfo::Request request{""};
+    GetProcessorInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Processor::PROCESSOR] = "TestModuleId";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetProcessorInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[Status::STATUS].isObject());
@@ -166,17 +157,15 @@ TEST_F(GetProcessorInfoTest, PositiveExecute) {
     ASSERT_EQ(result[literals::Processor::CPU_ID][CpuId::MICROCODE_INFO].asString(), TEST_MICROCODE_INFO);
 }
 
-TEST_F(GetProcessorInfoTest, NegativeModuleNotFound) {
-    compute::json::GetProcessorInfo command_json;
-    GetProcessorInfo* command = new GetProcessorInfo(
-        "TestProcessorId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetProcessorInfoTest, NegativeModuleNotFound) {
+    MyGetProcessorInfo command{"TestModuleId"};
+    GetProcessorInfo::Request request{""};
+    GetProcessorInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::Processor::PROCESSOR] = "OtherTestProcessorId";
 
-    EXPECT_THROW(command_json.method(params, result), exception::NotFound);
+    EXPECT_NO_THROW(request = GetProcessorInfo::Request::from_json(params));
+    EXPECT_THROW(command.execute(request, response), std::runtime_error);
 }

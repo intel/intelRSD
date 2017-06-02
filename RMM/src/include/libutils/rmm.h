@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,6 +103,7 @@
 #define INSTANCE_RACK_PUID      0x01
 #define INSTANCE_RACK_BPID      0x02
 #define INSTANCE_DRAWER_RUID    0x03
+#define INSTANCE_RACK_ID    0x04
 
 #define CHASSIS_TEMP_CMD             0x08
 #define CHASSIS_SET_RACKID_CMD       0xFF

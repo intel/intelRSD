@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
@@ -30,8 +29,7 @@ import com.intel.podm.common.types.Status;
 import java.util.List;
 
 @OdataTypes({
-        "#EthernetSwitch.1.0.0.EthernetSwitch",
-        "#EthernetSwitch.v1_0_0.EthernetSwitch"
+    "#EthernetSwitch" + OdataTypes.VERSION_PATTERN + "EthernetSwitch"
 })
 public class EthernetSwitchResourceImpl extends ExternalServiceResourceImpl implements EthernetSwitchResource {
     @JsonProperty("SwitchId")
@@ -54,12 +52,10 @@ public class EthernetSwitchResourceImpl extends ExternalServiceResourceImpl impl
     private String role;
     @JsonProperty("Status")
     private Status status;
-    @JsonProperty("Oem")
-    private Object oem = new Object();
     @JsonProperty("Ports")
     private ODataId ports;
     @JsonProperty("Links")
-    private Links links;
+    private Links links = new Links();
 
     @Override
     public String getSwitchId() {
@@ -117,13 +113,10 @@ public class EthernetSwitchResourceImpl extends ExternalServiceResourceImpl impl
         return processMembersListResource(ports);
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class Links {
+    public class Links extends RedfishLinks {
         @JsonProperty("Chassis")
         private ODataId chassis;
         @JsonProperty("ManagedBy")
         private List<ODataId> managedBy;
-        @JsonProperty("Oem")
-        private Object oem = new Object();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,22 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.OdataTypes;
-import com.intel.podm.client.api.resources.redfish.PowerSupplyResource;
+import com.intel.podm.client.api.resources.redfish.PowerZonePowerSupplyResource;
 import com.intel.podm.client.api.resources.redfish.PowerZoneResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
-import com.intel.podm.client.resources.redfish.properties.PowerSupplyResourceImpl;
+import com.intel.podm.client.resources.redfish.properties.PowerZonePowerSupplyResourceImpl;
 import com.intel.podm.client.resources.redfish.properties.RackLocationObjectImpl;
 import com.intel.podm.common.types.Status;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+import java.util.ArrayList;
+import java.util.List;
+
 @OdataTypes({
-        "#PowerZone.1.0.0.PowerZone",
-        "http://rackscale.intel.com/schema#Intel.Oem.PowerZone",
-        "#Intel.Oem.RmmPowerZone",
-        "#PowerZone.v1_0_0.PowerZone"
+    "#PowerZone" + OdataTypes.VERSION_PATTERN + "PowerZone",
+    "http://rackscale\\.intel\\.com/schema#Intel\\.Oem\\.PowerZone",
+    "#Intel\\.Oem\\.RmmPowerZone"
 })
 public class PowerZoneResourceImpl extends ExternalServiceResourceImpl implements PowerZoneResource {
     @JsonProperty("Presence")
@@ -59,7 +59,7 @@ public class PowerZoneResourceImpl extends ExternalServiceResourceImpl implement
     private RackLocationObjectImpl rackLocation;
 
     @JsonProperty("PowerSupplies")
-    private Iterable<PowerSupplyResourceImpl> powerSupplies;
+    private List<PowerZonePowerSupplyResourceImpl> powerSupplies = new ArrayList<>();
 
     @Override
     public String getPresence() {
@@ -102,7 +102,7 @@ public class PowerZoneResourceImpl extends ExternalServiceResourceImpl implement
     }
 
     @Override
-    public Iterable<PowerSupplyResource> getPowerSupplies() {
-        return (Iterable) powerSupplies;
+    public List<PowerZonePowerSupplyResource> getPowerSupplies() {
+        return (List) powerSupplies;
     }
 }

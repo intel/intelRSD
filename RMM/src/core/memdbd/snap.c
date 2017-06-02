@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
 #include "libsecurec/safe_lib.h"
 
 
-bool snapshot_in_progress = false;
+volatile bool snapshot_in_progress = false;
 
 #define MAX_WRITE_SIZE	256
 #define MAX_READ_SIZE	MAX_WRITE_SIZE

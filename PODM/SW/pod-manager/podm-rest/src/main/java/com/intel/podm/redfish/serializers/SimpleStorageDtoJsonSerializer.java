@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,17 @@ import com.intel.podm.business.dto.redfish.SimpleStorageDto;
 import com.intel.podm.business.dto.redfish.SimpleStorageDto.SimpleStorageDeviceDto;
 import com.intel.podm.redfish.json.templates.SimpleStorageJson;
 import com.intel.podm.redfish.json.templates.attributes.SimpleStorageDeviceJson;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataContextProvider;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
 import java.util.List;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
+import static com.intel.podm.rest.representation.json.serializers.OemSerializeHelper.oemDtoToJsonNode;
 import static java.util.stream.Collectors.toList;
 
-public class SimpleStorageDtoJsonSerializer extends DtoJsonSerializer<SimpleStorageDto> {
+public class SimpleStorageDtoJsonSerializer extends BaseDtoJsonSerializer<SimpleStorageDto> {
     protected SimpleStorageDtoJsonSerializer() {
         super(SimpleStorageDto.class);
     }
@@ -42,23 +44,27 @@ public class SimpleStorageDtoJsonSerializer extends DtoJsonSerializer<SimpleStor
         simpleStorageJson.description = dto.getDescription();
         simpleStorageJson.status = dto.getStatus();
         simpleStorageJson.devices = toSimpleStorageDeviceJsonCollection(dto.getDevices());
-        ODataId oDataId = ODataId.oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         simpleStorageJson.oDataId = oDataId;
-        simpleStorageJson.oDataContext = getContextFromId(oDataId);
+        simpleStorageJson.oDataContext = ODataContextProvider.getContextFromId(oDataId);
         simpleStorageJson.description = dto.getDescription();
         simpleStorageJson.uefiDevicePath = dto.getUefiDevicePath();
 
         return simpleStorageJson;
     }
 
-    public List<SimpleStorageDeviceJson> toSimpleStorageDeviceJsonCollection(List<SimpleStorageDeviceDto> devices) {
+    private List<SimpleStorageDeviceJson> toSimpleStorageDeviceJsonCollection(List<SimpleStorageDeviceDto> devices) {
         return devices.stream()
-                .map(simpleStorageDevice -> new SimpleStorageDeviceJson(
-                                simpleStorageDevice.getName(),
-                                simpleStorageDevice.getManufacturer(),
-                                simpleStorageDevice.getModel(),
-                                simpleStorageDevice.getStatus(),
-                                simpleStorageDevice.getCapacityBytes())
-                ).collect(toList());
+            .map(simpleStorageDevice -> {
+                    SimpleStorageDeviceJson simpleStorageDeviceJson = new SimpleStorageDeviceJson();
+                    simpleStorageDeviceJson.name = simpleStorageDevice.getName();
+                    simpleStorageDeviceJson.manufacturer = simpleStorageDevice.getManufacturer();
+                    simpleStorageDeviceJson.model = simpleStorageDevice.getModel();
+                    simpleStorageDeviceJson.status = simpleStorageDevice.getStatus();
+                    simpleStorageDeviceJson.capacityBytes = simpleStorageDevice.getCapacityBytes();
+                    simpleStorageDeviceJson.oem = oemDtoToJsonNode(simpleStorageDevice.getOem());
+                    return simpleStorageDeviceJson;
+                }
+            ).collect(toList());
     }
 }

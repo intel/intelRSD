@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,6 @@
 #include <ipmb/ipmi_message.hpp>
 #include <ipmb/utils.hpp>
 #include <ipmb/gpio.hpp>
-#include <ipmb/service.hpp>
 
 #include <logger/logger_factory.hpp>
 
@@ -66,12 +65,11 @@ void GetSledPresence::pack(IpmiMessage& msg){
      * diffrent way than all other commands are. When the command is used, USB
      * device is working in master mode which means that PSME initializes
      * communication to MMP */
-    auto service = Service::get_instance();
 
     msg.set_dest(I2C_MMP_ADDRESS);
     msg.set_netfn(uint8_t(NetFn::IPMI_NETFN_INTEL_REQ));
     msg.set_dlun(IPMI_MSG_DEFAULT_LUN);
-    msg.set_src(service->get_slave_address());
+    msg.set_src(I2C_SLAVE_ADDRESS);
     msg.set_seq(0);
     msg.set_slun(IPMI_MSG_OEM_REQ_LUN);
     msg.set_cmd(uint8_t(CmdCode::GET_SLED_PRESENCE));
@@ -84,5 +82,3 @@ void GetSledPresence::pack(IpmiMessage& msg){
 
     msg.set_to_request();
 }
-
-

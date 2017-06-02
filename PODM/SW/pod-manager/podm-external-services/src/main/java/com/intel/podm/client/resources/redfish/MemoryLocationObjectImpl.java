@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,48 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.api.resources.redfish.MemoryLocationObject;
+import com.intel.podm.common.types.Ref;
+import com.intel.podm.common.types.annotations.AsUnassigned;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+import static com.intel.podm.common.types.Ref.unassigned;
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+
 public class MemoryLocationObjectImpl implements MemoryLocationObject {
     @JsonProperty("Socket")
-    private Integer socket;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> socket = unassigned();
 
     @JsonProperty("MemoryController")
-    private Integer memoryController;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> memoryController = unassigned();
 
     @JsonProperty("Channel")
-    private Integer channel;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> channel = unassigned();
 
     @JsonProperty("Slot")
-    private Integer slot;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> slot = unassigned();
 
     @Override
-    public Integer getSocket() {
+    public Ref<Integer> getSocket() {
         return socket;
     }
 
     @Override
-    public Integer getMemoryController() {
+    public Ref<Integer> getMemoryController() {
         return memoryController;
     }
 
     @Override
-    public Integer getChannel() {
+    public Ref<Integer> getChannel() {
         return channel;
     }
 
     @Override
-    public Integer getSlot() {
+    public Ref<Integer> getSlot() {
         return slot;
     }
 }

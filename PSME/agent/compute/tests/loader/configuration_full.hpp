@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @section DESCRIPTION
  * */
 
-#ifndef AGENT_COMPUTE_TEST_LOADER_HPP
-#define AGENT_COMPUTE_TEST_LOADER_HPP
-
+#pragma once
 static constexpr const char COMPUTE_FULL_CONFIGURATION[] = R"({
     "agent": {
         "vendor" : "Intel Corporation",
@@ -96,4 +94,3 @@ static constexpr const char COMPUTE_FULL_CONFIGURATION[] = R"({
 
 
 
-#endif //AGENT_COMPUTE_TEST_LOADER_HPP

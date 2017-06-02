@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ from include.psme_xml_structure.lui_model_managers.drive_manager import DriveMan
 from include.psme_xml_structure.lui_model_managers.fru_info_manager import FruInfoManager
 from include.psme_xml_structure.lui_model_managers.ipv4_address_manager import Ipv4AddressManager
 from include.psme_xml_structure.lui_model_managers.ipv6_address_manager import Ipv6AddressManager
-from include.psme_xml_structure.lui_model_managers.dimm_manager import DimmManager
+from include.psme_xml_structure.lui_model_managers.memory_manager import MemoryManager
 from include.psme_xml_structure.lui_model_managers.neighbor_info_manager import NeighborInfoManager
 from include.psme_xml_structure.lui_model_managers.network_service_manager import NetworkServiceManager
 from include.psme_xml_structure.lui_model_managers.network_interface_manager import NetworkInterfaceManager
@@ -53,7 +53,7 @@ ManagersMap = {
     ManagersTypes.FRU_INFO_MANAGER: FruInfoManager,
     ManagersTypes.IPV4_ADDRESS_MANAGER: Ipv4AddressManager,
     ManagersTypes.IPV6_ADDRESS_MANAGER: Ipv6AddressManager,
-    ManagersTypes.DIMM_MANAGER: DimmManager,
+    ManagersTypes.MEMORY_MANAGER: MemoryManager,
     ManagersTypes.NEIGHBOR_INFO_MANAGER: NeighborInfoManager,
     ManagersTypes.NETWORK_INTERFACE_MANAGER: NetworkInterfaceManager,
     ManagersTypes.NETWORK_SERVICE_MANAGER: NetworkServiceManager,

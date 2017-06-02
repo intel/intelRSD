@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Switch Lag Port configuration
  * */
 
-#ifndef AGENT_NETWORK_NETLINK_LAG_PORT_MESSAGE_HPP
-#define AGENT_NETWORK_NETLINK_LAG_PORT_MESSAGE_HPP
-
+#pragma once
 #include "lag_message.hpp"
 
 namespace agent {
@@ -39,21 +37,24 @@ public:
 
     /*!
      * @brief Default constructor.
+     *
      * @param[in] lag Lag interface name.
      * @param[in] port Port interface name.
-     */
-    LagPortMessage(const IfName& lag, const IfName& port);
+     * */
+    LagPortMessage(const std::string& lag, const std::string& port);
 
     /*!
      * @brief Default destructor.
-     */
+     * */
     virtual ~LagPortMessage();
 
+protected:
     /*!
-     * @brief Prepare Lag port netlink message.
-     * @return Netlink message ready to be sent.
-     */
-    Pointer prepare_netlink_msg() const;
+     * @brief Prepare message to be sent
+     *
+     * @param[out] msg message to be prepared.
+     * */
+    void prepare_link_message(struct nl_msg* msg) override;
 };
 
 }
@@ -61,4 +62,3 @@ public:
 }
 }
 
-#endif /* AGENT_NETWORK_NETLINK_LAG_PORT_MESSAGE_HPP */

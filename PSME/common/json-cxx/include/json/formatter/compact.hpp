@@ -41,9 +41,7 @@
  * @brief JSON formatter interface
  * */
 
-#ifndef JSON_CXX_FORMATTER_COMPACT_HPP
-#define JSON_CXX_FORMATTER_COMPACT_HPP
-
+#pragma once
 #include "json/formatter.hpp"
 
 namespace json {
@@ -78,4 +76,3 @@ protected:
 }
 }
 
-#endif /* JSON_CXX_FORMATTER_COMPACT_HPP */

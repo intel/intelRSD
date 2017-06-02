@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
@@ -29,10 +28,8 @@ import com.intel.podm.common.types.Status;
 
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @OdataTypes({
-        "#StorageService.1.0.0.StorageService",
-        "#StorageService.v1_0_0.StorageService"
+    "#StorageService" + OdataTypes.VERSION_PATTERN + "StorageService"
 })
 public final class StorageServiceResourceImpl extends ExternalServiceResourceImpl implements StorageServiceResource {
     @JsonProperty("Status")
@@ -75,11 +72,8 @@ public final class StorageServiceResourceImpl extends ExternalServiceResourceImp
         return toSuppliers(links.managedBy);
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class Links {
+    public class Links extends RedfishLinks {
         @JsonProperty("ManagedBy")
         private List<ODataId> managedBy;
-        @JsonProperty("Oem")
-        private Object oem;
     }
 }

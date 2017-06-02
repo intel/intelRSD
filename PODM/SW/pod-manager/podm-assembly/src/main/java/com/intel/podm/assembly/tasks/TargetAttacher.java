@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package com.intel.podm.assembly.tasks;
 import com.intel.podm.assembly.AssemblyException;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.dao.RemoteTargetDao;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
 import com.intel.podm.common.types.Id;
 
 import javax.enterprise.context.Dependent;
@@ -60,9 +60,11 @@ public class TargetAttacher {
         }
 
         RemoteTarget remoteTarget = single(remoteTargets);
-        remoteTarget.setAllocated(true);
+        remoteTarget.getMetadata().setAllocated(true);
         ComposedNode node = genericDao.find(ComposedNode.class, nodeId);
-        node.addRemoteDrive(remoteTarget);
+        node.addRemoteTarget(remoteTarget);
+        node.setAssociatedStorageServiceUuid(remoteTarget.getService().getUuid());
+        node.setAssociatedRemoteTargetIqn(remoteTarget.getTargetIqn());
         return true;
     }
 }

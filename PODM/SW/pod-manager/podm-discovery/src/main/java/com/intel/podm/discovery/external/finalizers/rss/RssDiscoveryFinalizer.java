@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,35 @@
 
 package com.intel.podm.discovery.external.finalizers.rss;
 
-import com.intel.podm.business.entities.base.DomainObject;
+import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.business.entities.redfish.components.ComposedNodeUpdater;
-import com.intel.podm.discovery.external.finalizers.DiscoveryFinalizer;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.discovery.ComposedNodeUpdater;
+import com.intel.podm.discovery.external.finalizers.ChassisHierarchyMaintainer;
+import com.intel.podm.discovery.external.finalizers.ServiceTypeSpecializedDiscoveryFinalizer;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import java.util.Set;
 
 import static com.intel.podm.common.types.ServiceType.RSS;
+import static com.intel.podm.common.utils.Collections.filterByType;
 
 @Dependent
-public class RssDiscoveryFinalizer extends DiscoveryFinalizer {
-
+public class RssDiscoveryFinalizer extends ServiceTypeSpecializedDiscoveryFinalizer {
     @Inject
     private ComposedNodeUpdater composedNodeUpdater;
+
+    @Inject
+    private ChassisHierarchyMaintainer chassisHierarchyMaintainer;
 
     public RssDiscoveryFinalizer() {
         super(RSS);
     }
 
     @Override
-    public void finalize(Set<DomainObject> discoveredDomainObjects, ExternalService service) {
-        composedNodeUpdater.updateRelatedComposedNodes(discoveredDomainObjects);
+    public void finalize(Set<Entity> discoveredEntities, ExternalService service) {
+        chassisHierarchyMaintainer.maintain(filterByType(discoveredEntities, Chassis.class));
+        composedNodeUpdater.updateRelatedComposedNodes(discoveredEntities);
     }
 }

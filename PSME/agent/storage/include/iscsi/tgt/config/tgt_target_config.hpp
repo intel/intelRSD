@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,10 +21,8 @@
  * @brief tgt target configuration
 */
 
-#ifndef ISCSI_TGT_TARGET_CONFIG_HPP
-#define	ISCSI_TGT_TARGET_CONFIG_HPP
-
-#include "agent-framework/module/target.hpp"
+#pragma once
+#include "agent-framework/module/model/iscsi_target.hpp"
 #include <cstdint>
 #include <string>
 
@@ -34,14 +32,12 @@ namespace iscsi {
 namespace tgt {
 namespace config {
 
-using namespace agent_framework::generic;
-
 /*! Represents TGT target configuration */
 class TgtTargetConfig {
 public:
 
     /*! Default constructor*/
-    TgtTargetConfig(const Target::TargetSharedPtr& target) : m_target(target) {
+    TgtTargetConfig(const agent_framework::model::IscsiTarget& target) : m_target(target) {
     }
 
     /*! Disable copy constructor*/
@@ -61,7 +57,7 @@ public:
     const std::string to_string() const;
 
 private:
-    Target::TargetSharedPtr m_target;
+    const agent_framework::model::IscsiTarget& m_target;
 
     const std::string get_target_begin_tag() const;
     const std::string get_target_initiator_address() const;
@@ -74,5 +70,4 @@ private:
 }
 }
 
-#endif	/* ISCSI_TGT_TARGET_CONFIG_HPP */
 

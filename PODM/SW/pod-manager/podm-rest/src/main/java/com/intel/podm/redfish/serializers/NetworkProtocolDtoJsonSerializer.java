@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,13 @@ import com.intel.podm.business.dto.redfish.attributes.SimpleServiceDiscoveryProt
 import com.intel.podm.redfish.json.templates.NetworkProtocolJson;
 import com.intel.podm.redfish.json.templates.NetworkProtocolJson.ProtocolJson;
 import com.intel.podm.redfish.json.templates.NetworkProtocolJson.SimpleServiceDiscoveryProtocolJson;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 
-public class NetworkProtocolDtoJsonSerializer extends DtoJsonSerializer<NetworkProtocolDto> {
+public class NetworkProtocolDtoJsonSerializer extends BaseDtoJsonSerializer<NetworkProtocolDto> {
     public NetworkProtocolDtoJsonSerializer() {
         super(NetworkProtocolDto.class);
     }
@@ -36,7 +37,7 @@ public class NetworkProtocolDtoJsonSerializer extends DtoJsonSerializer<NetworkP
     protected NetworkProtocolJson translate(NetworkProtocolDto dto) {
         NetworkProtocolJson networkProtocolJson = new NetworkProtocolJson();
 
-        ODataId oDataId = ODataId.oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         networkProtocolJson.oDataId = oDataId;
         networkProtocolJson.oDataContext = getContextFromId(oDataId);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,193 +16,226 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperties;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.properties.ProcessorId;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.embeddables.ProcessorId;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.InstructionSet;
 import com.intel.podm.common.types.ProcessorArchitecture;
 import com.intel.podm.common.types.ProcessorBrand;
 import com.intel.podm.common.types.ProcessorType;
-import com.intel.podm.common.types.Status;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.single;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class Processor extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<String> SOCKET = stringProperty("socket");
-    public static final DomainObjectProperty<ProcessorType> PROCESSOR_TYPE = enumProperty("processorType", ProcessorType.class);
-    public static final DomainObjectProperty<ProcessorArchitecture> PROCESSOR_ARCHITECTURE
-            = enumProperty("processorArchitecture", ProcessorArchitecture.class);
-    public static final DomainObjectProperty<InstructionSet> INSTRUCTION_SET = enumProperty("instructionSet", InstructionSet.class);
-    public static final DomainObjectProperty<String> MANUFACTURER = stringProperty("manufacturer");
-    public static final DomainObjectProperty<String> MODEL = stringProperty("model");
-    public static final DomainObjectProperty<Integer> MAX_SPEED_MHZ = integerProperty("maxSpeedMhz");
-    public static final DomainObjectProperty<Integer> TOTAL_CORES = integerProperty("totalCores");
-    public static final DomainObjectProperty<Integer> TOTAL_THREADS = integerProperty("totalThreads");
-    public static final DomainObjectProperty<ProcessorBrand> BRAND = enumProperty("brand", ProcessorBrand.class);
+@javax.persistence.Entity
+@Table(name = "processor", indexes = @Index(name = "idx_processor_entity_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class Processor extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
 
-    public static final DomainObjectProperty<List<String>> PROCESSOR_CAPABILITIES = DomainObjectProperties.listProperty("processorCapabilities");
+    @Column(name = "socket")
+    private String socket;
+
+    @Column(name = "processor_type")
+    @Enumerated(STRING)
+    private ProcessorType processorType;
+
+    @Column(name = "processor_architecture")
+    @Enumerated(STRING)
+    private ProcessorArchitecture processorArchitecture;
+
+    @Column(name = "instruction_set")
+    @Enumerated(STRING)
+    private InstructionSet instructionSet;
+
+    @Column(name = "manufacturer")
+    private String manufacturer;
+
+    @Column(name = "model")
+    private String model;
+
+    @Column(name = "max_speed_mhz")
+    private Integer maxSpeedMhz;
+
+    @Column(name = "total_cores")
+    private Integer totalCores;
+
+    @Column(name = "total_threads")
+    private Integer totalThreads;
+
+    @Column(name = "brand")
+    @Enumerated(STRING)
+    private ProcessorBrand brand;
+
+    @Embedded
+    private ProcessorId processorId;
+
+    @ElementCollection
+    @CollectionTable(name = "processor_capability", joinColumns = @JoinColumn(name = "processor_id"))
+    @Column(name = "capability")
+    @OrderColumn(name = "capability_order")
+    private List<String> capabilities = new ArrayList<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "computer_system_id")
+    private ComputerSystem computerSystem;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public String getSocket() {
-        return getProperty(SOCKET);
+        return socket;
     }
 
     public void setSocket(String socket) {
-        setProperty(SOCKET, socket);
+        this.socket = socket;
     }
 
     public ProcessorType getProcessorType() {
-        return getProperty(PROCESSOR_TYPE);
+        return processorType;
     }
 
     public void setProcessorType(ProcessorType processorType) {
-        setProperty(PROCESSOR_TYPE, processorType);
+        this.processorType = processorType;
     }
 
     public ProcessorArchitecture getProcessorArchitecture() {
-        return getProperty(PROCESSOR_ARCHITECTURE);
+        return processorArchitecture;
     }
 
     public void setProcessorArchitecture(ProcessorArchitecture processorArchitecture) {
-        setProperty(PROCESSOR_ARCHITECTURE, processorArchitecture);
+        this.processorArchitecture = processorArchitecture;
     }
 
     public InstructionSet getInstructionSet() {
-        return getProperty(INSTRUCTION_SET);
+        return instructionSet;
     }
 
     public void setInstructionSet(InstructionSet instructionSet) {
-        setProperty(INSTRUCTION_SET, instructionSet);
+        this.instructionSet = instructionSet;
     }
 
     public String getManufacturer() {
-        return getProperty(MANUFACTURER);
+        return manufacturer;
     }
 
     public void setManufacturer(String manufacturer) {
-        setProperty(MANUFACTURER, manufacturer);
+        this.manufacturer = manufacturer;
     }
 
     public String getModel() {
-        return getProperty(MODEL);
+        return model;
     }
 
     public void setModel(String model) {
-        setProperty(MODEL, model);
+        this.model = model;
     }
 
     public Integer getMaxSpeedMhz() {
-        return getProperty(MAX_SPEED_MHZ);
+        return maxSpeedMhz;
     }
 
     public void setMaxSpeedMhz(Integer maxSpeedMhz) {
-        setProperty(MAX_SPEED_MHZ, maxSpeedMhz);
+        this.maxSpeedMhz = maxSpeedMhz;
     }
 
     public Integer getTotalCores() {
-        return getProperty(TOTAL_CORES);
+        return totalCores;
     }
 
     public void setTotalCores(Integer totalCores) {
-        setProperty(TOTAL_CORES, totalCores);
+        this.totalCores = totalCores;
     }
 
     public Integer getTotalThreads() {
-        return getProperty(TOTAL_THREADS);
+        return totalThreads;
     }
 
     public void setTotalThreads(Integer totalThreads) {
-        setProperty(TOTAL_THREADS, totalThreads);
+        this.totalThreads = totalThreads;
     }
 
     public ProcessorBrand getBrand() {
-        return getProperty(BRAND);
+        return brand;
     }
 
     public void setBrand(ProcessorBrand brand) {
-        setProperty(BRAND, brand);
-    }
-
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
-    }
-
-    public List<String> getCapabilities() {
-        return getProperty(PROCESSOR_CAPABILITIES);
-    }
-
-    public void setCapabilities(List<String> processorCapabilities) {
-        setProperty(PROCESSOR_CAPABILITIES, processorCapabilities);
-    }
-
-    public ComputerSystem getComputerSystem() {
-        return single(getLinked(CONTAINED_BY, ComputerSystem.class));
-    }
-
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
-    }
-
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
-    }
-
-    public void setProcessorId(ProcessorId processorId) {
-        link(CONTAINS, processorId);
+        this.brand = brand;
     }
 
     public ProcessorId getProcessorId() {
-        return singleOrNull(getLinked(CONTAINS, ProcessorId.class));
+        return processorId;
+    }
+
+    public void setProcessorId(ProcessorId processorId) {
+        this.processorId = processorId;
+    }
+
+    public List<String> getCapabilities() {
+        return capabilities;
+    }
+
+    public void addCapability(String capability) {
+        this.capabilities.add(capability);
+    }
+
+    public ComputerSystem getComputerSystem() {
+        return computerSystem;
+    }
+
+    public void setComputerSystem(ComputerSystem computerSystem) {
+        if (!Objects.equals(this.computerSystem, computerSystem)) {
+            unlinkComputerSystem(this.computerSystem);
+            this.computerSystem = computerSystem;
+            if (computerSystem != null && computerSystem.getProcessors().contains(this)) {
+                computerSystem.addProcessor(this);
+            }
+        }
+    }
+
+    public void unlinkComputerSystem(ComputerSystem computerSystem) {
+        if (Objects.equals(this.computerSystem, computerSystem)) {
+            this.computerSystem = null;
+            if (computerSystem != null) {
+                computerSystem.unlinkProcessor(this);
+            }
+        }
+    }
+
+    @Override
+    public void preRemove() {
+        unlinkComputerSystem(computerSystem);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, computerSystem);
     }
 }

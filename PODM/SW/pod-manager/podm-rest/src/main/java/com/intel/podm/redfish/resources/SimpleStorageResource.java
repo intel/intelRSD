@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.services.redfish.SimpleStorageService;
+import com.intel.podm.business.dto.redfish.SimpleStorageDto;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
@@ -25,13 +26,11 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class SimpleStorageResource extends BaseResource {
-    public static final String SIMPLE_STORAGE_ID_PARAM = "{simpleStorageId}";
-
     @Inject
-    private SimpleStorageService simpleStorageService;
+    private ReaderService<SimpleStorageDto> readerService;
 
     @Override
     public Object get() {
-        return getOrThrow(() -> simpleStorageService.getSimpleStorage(getCurrentContext()));
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
     }
 }

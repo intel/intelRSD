@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,11 +41,9 @@ public:
         m_properties.push_back(property);
     }
 
-    void add_mandatory_property_error(const std::string& path,
-                                      SchemaErrors& errors) {
-        SchemaErrors::Error error{path};
-        error.add_error_message("Mandatory field '"+ path + "' is not present.");
-        errors.add_error(error);
+    void add_mandatory_property_error(const std::string& path, SchemaErrors& errors) {
+        std::string message = "Mandatory field is not present.";
+        errors.add_error({message, path});
     }
 
     void validate_properties(SchemaErrors& errors) {
@@ -75,19 +73,14 @@ public:
                         const json::Value& value,
                         SchemaErrors& errors) {
 
-        auto error = property.validate(value);
-        if (error.count()) {
-            error.set_path(property.get_path());
-            error.set_value(json_value_to_string(value));
-            errors.add_error(error);
-        }
+        property.validate(value, errors);
     }
 
 private:
-    using property_t = std::vector<SchemaProperty>;
-    using map_t = std::map<std::string, json::Value>;
-    property_t m_properties{};
-    map_t m_json_map{};
+    using Properties = std::vector<SchemaProperty>;
+    using PropertyMap = std::map<std::string, json::Value>;
+    Properties m_properties{};
+    PropertyMap m_json_map{};
     JsonPath m_json_path{};
 
     void build_json_map(const json::Value& json) {

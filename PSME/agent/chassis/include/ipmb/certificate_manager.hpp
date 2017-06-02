@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,7 @@
  * */
 
 
-#ifndef AGENT_CHASSIS_IPMB_CERTIFICATE_MANAGER_HPP
-#define AGENT_CHASSIS_IPMB_CERTIFICATE_MANAGER_HPP
-
+#pragma once
 #include <ipmb/certificate.hpp>
 #include <agent-framework/generic/singleton.hpp>
 #include <map>
@@ -72,5 +70,4 @@ private:
 }
 }
 
-#endif  /* AGENT_CHASSIS_IPMB_CERTIFICATE_MANAGER_HPP */
 

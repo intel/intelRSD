@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #include "iscsi/target_data.hpp"
 
 using namespace agent::storage::iscsi::tgt;
+using namespace agent_framework::model;
 
 void LunData::set_lun(const std::uint64_t lun) {
     m_lun = lun;
@@ -64,6 +65,38 @@ void TargetData::set_target_initiator(const std::string& initiator) {
 
 const std::string& TargetData::get_target_initiator() const {
     return m_target_initiator;
+}
+
+void TargetData::set_authentication_method(const agent_framework::module::utils::OptionalField<enums::TargetAuthenticationMethod>& authentication_method) {
+    m_authentication_method = authentication_method;
+}
+
+const agent_framework::module::utils::OptionalField<enums::TargetAuthenticationMethod>& TargetData::get_authentication_method() const {
+    return m_authentication_method;
+}
+
+void TargetData::set_chap_username(const std::string& username) {
+    m_chap_username = username;
+}
+
+const std::string& TargetData::get_chap_username() const {
+    return m_chap_username;
+}
+
+void TargetData::set_mutual_chap_username(const std::string& username) {
+    m_mutual_chap_username = username;
+}
+
+const std::string& TargetData::get_mutual_chap_username() const {
+    return m_mutual_chap_username;
+}
+
+void TargetData::set_chap_password(const std::string& password) {
+    m_chap_password = password;
+}
+
+void TargetData::set_mutual_chap_password(const std::string& password) {
+    m_mutual_chap_password = password;
 }
 
 void TargetData::add_lun_data(const LunDataSPtr& lun) {

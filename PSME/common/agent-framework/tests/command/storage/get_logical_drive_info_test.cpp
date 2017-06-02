@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,34 +22,30 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/get_logical_drive_info.hpp"
-#include "agent-framework/command/storage/json/get_logical_drive_info.hpp"
-#include "agent-framework/exceptions/exception.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework;
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model;
-using namespace agent_framework::command;
 
 static constexpr enums::LogicalDriveMode TEST_MODE
     {enums::LogicalDriveMode::JBOD};
 static constexpr enums::LogicalDriveType TEST_TYPE
     {enums::LogicalDriveType::LVM};
 
-class GetLogicalDriveInfo : public storage::GetLogicalDriveInfo {
+class MyGetLogicalDriveInfo {
 private:
     std::string m_drive{};
 public:
-    GetLogicalDriveInfo(std::string drive) { m_drive = drive; }
+    MyGetLogicalDriveInfo(std::string drive) { m_drive = drive; }
 
-    using storage::GetLogicalDriveInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto drive = request.get_drive();
+    void execute(const GetLogicalDriveInfo::Request& request,
+                 GetLogicalDriveInfo::Response& response) {
+        auto drive = request.get_uuid();
 
         if (drive != m_drive) {
-            throw exceptions::InvalidUuid("Wrong UUID!");
+            throw std::runtime_error("Not found");
         }
 
         LogicalDrive logical_drive{};
@@ -60,26 +56,22 @@ public:
         logical_drive.set_bootable(true);
         logical_drive.set_protected(true);
         logical_drive.set_master("Test Master");
-        response.set_drive(logical_drive);
+        response = logical_drive;
     }
-
-    virtual ~GetLogicalDriveInfo();
 };
 
-GetLogicalDriveInfo::~GetLogicalDriveInfo() { }
-
 TEST(GetLogicalDriveInfoTest, PositiveExecute) {
-    storage::json::GetLogicalDriveInfo command_json;
-    GetLogicalDriveInfo* command = new GetLogicalDriveInfo("TestDrive");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetLogicalDriveInfo command{"TestDrive"};
+    GetLogicalDriveInfo::Request request{""};
+    GetLogicalDriveInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::LogicalDrive::DRIVE] = "TestDrive";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetLogicalDriveInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::LogicalDrive::IMAGE].isString());
@@ -99,15 +91,14 @@ TEST(GetLogicalDriveInfoTest, PositiveExecute) {
 }
 
 TEST(GetLogicalDriveInfoTest, NegativeDriveNotFound) {
-    storage::json::GetLogicalDriveInfo command_json;
-    GetLogicalDriveInfo* command = new GetLogicalDriveInfo("TestDrive");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetLogicalDriveInfo command{"TestDrive"};
+    GetLogicalDriveInfo::Request request{""};
+    GetLogicalDriveInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::LogicalDrive::DRIVE] = "OtherTestDrive";
 
-    EXPECT_THROW(command_json.method(params, result), jsonrpc::JsonRpcException);
+    EXPECT_NO_THROW(request = GetLogicalDriveInfo::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

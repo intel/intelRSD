@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,50 +17,33 @@
 package com.intel.podm.allocation.strategy.matcher;
 
 import com.intel.podm.allocation.mappers.localdrive.LocalStorageAllocationMapper;
-import com.intel.podm.business.dto.redfish.RequestedLocalDrive;
-import com.intel.podm.business.dto.redfish.RequestedNode;
-import com.intel.podm.business.entities.redfish.Adapter;
-import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.SimpleStorage;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.business.entities.redfish.base.LocalStorage;
 
-import java.util.Collection;
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 public class LocalStorageMatcher {
-    public boolean matches(RequestedNode requestedNode, ComputerSystem computerSystem) {
-        List<LocalStorage> storageUnderComputerSystem = getStorageUnderComputerSystem(computerSystem);
-        List<RequestedLocalDrive> requestedLocalDrives = requestedNode.getLocalDrives();
+    @Inject
+    protected LocalStorageAllocationMapper mapper;
+
+    public boolean matches(RequestedNode requestedNode, Set<LocalStorage> availableLocalStorage) {
+        List<RequestedNode.LocalDrive> requestedLocalDrives = requestedNode.getLocalDrives();
 
         if (isNotEmpty(requestedLocalDrives)) {
-            return areMatched(requestedLocalDrives, storageUnderComputerSystem);
+            return areMatched(requestedLocalDrives, availableLocalStorage);
         }
 
         return true;
     }
 
-    private boolean areMatched(List<RequestedLocalDrive> requestedDrives, List<LocalStorage> availableLocalStorage) {
-        LocalStorageAllocationMapper mapper = new LocalStorageAllocationMapper();
-        Map<RequestedLocalDrive, LocalStorage> mapped = mapper.map(requestedDrives, availableLocalStorage);
+    private boolean areMatched(List<RequestedNode.LocalDrive> requestedDrives, Set<LocalStorage> availableLocalStorage) {
+        Map<RequestedNode.LocalDrive, LocalStorage> mapped = mapper.map(requestedDrives, availableLocalStorage);
         return Objects.equals(requestedDrives.size(), mapped.size());
-    }
-
-    private static List<LocalStorage> getStorageUnderComputerSystem(ComputerSystem computerSystem) {
-        List<LocalStorage> localStorage = computerSystem.getAdapters().stream()
-                .map(Adapter::getDevices)
-                .flatMap(Collection::stream)
-                .collect(toList());
-
-        localStorage.addAll(computerSystem.getSimpleStorages().stream()
-                .map(SimpleStorage::getDevices)
-                .flatMap(Collection::stream)
-                .collect(toList()));
-
-        return localStorage;
     }
 }

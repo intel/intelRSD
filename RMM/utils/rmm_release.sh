@@ -56,13 +56,13 @@ cd $DEB_PACKAGE_DIR
 #time_stamp=`date "+%Y%m%d%H%M%S"`
 #deb_tar_name="rmm-$time_stamp.tar.gz"
 
-deb_tar_name="rmm-${VERSION}.tar.gz"
+deb_tar_name="rmm-bin-${VERSION}.tar.gz"
 deb_bin_name="rmm-${VERSION}.bin"
 deb_signed_bin_name="rmm-${VERSION}.signed.bin"
 
 tar -zcf $RMM_RELEASE_DIR/$deb_bin_name rmm*.deb
 (cd $TOP_DIR/utils/tools/sign_image/ && make && ./img_sign $RMM_RELEASE_DIR/$deb_bin_name $RMM_RELEASE_DIR/$deb_signed_bin_name)
-RELEASE_PACKAGE_DIR="rmm-${VERSION}"
+RELEASE_PACKAGE_DIR="rmm-bin-${VERSION}"
 if [ -e $RELEASE_PACKAGE_DIR ]; then
 	/bin/rm -rf ${RELEASE_PACKAGE_DIR}/*
 else

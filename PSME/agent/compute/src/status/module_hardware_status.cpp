@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,50 +23,67 @@
 #include "status/module_hardware_status.hpp"
 #include "agent-framework/logger_ext.hpp"
 #include "configuration/configuration.hpp"
+#include <chrono>
+#include <thread>
 
-#include <fstream>
-
-using configuration::Configuration;
+/*! SMBIOS MDR Data Update Time */
+constexpr const std::uint8_t SMBIOS_UPDATE_TIME_MINUTES = 3;
 
 using namespace agent::compute::status;
+using configuration::Configuration;
+using Status = agent_framework::status::ModuleStatus::Status;
 
-static const constexpr char GPIO_PRESENCE_FILE_PATH[] = "/tmp/gpio";
-
-agent_framework::status::ModuleStatus::Status ModuleHardwareStatus::read_status() {
-
-    // GPIOs are read by Chassis and stored in shared file.
-    m_status = read_status_from_file();
-    return m_status;
-}
-
-agent_framework::status::ModuleStatus::Status ModuleHardwareStatus::read_status_from_file() {
-
-    agent_framework::status::ModuleStatus::Status status {m_status_cache[m_slot - 1]};
-    log_debug(GET_LOGGER("agent"), "Current HW status:" << uint32_t(status));
-
-    try {
-        std::ifstream ifs;
-        std::string content{};
-        uint32_t presence_mask = 1;
-
-        ifs.open(GPIO_PRESENCE_FILE_PATH);
-        if (ifs.is_open() && getline(ifs, content)) {
-            auto presence = std::stoul(content, nullptr, 10);
-            if (presence & (presence_mask << (m_slot - 1))) {
-                status = agent_framework::status::ModuleStatus::Status::PRESENT;
-            }
-            else {
-                status = agent_framework::status::ModuleStatus::Status::NOT_PRESENT;
-            }
-            ifs.close();
-            m_status_cache[m_slot - 1] = status;
-            log_debug(GET_LOGGER("agent"), "Saved HW status:" << uint32_t(m_status_cache[m_slot - 1]));
+namespace {
+    std::string to_string(agent_framework::status::ModuleStatus::Status status) {
+        switch (status) {
+            case agent_framework::status::ModuleStatus::Status::NOT_PRESENT:
+                return "NOT PRESENT";
+            case agent_framework::status::ModuleStatus::Status::PRESENT:
+                return "PRESENT";
+            case agent_framework::status::ModuleStatus::Status::UNKNOWN:
+                return "UNKNOWN";
+            case agent_framework::status::ModuleStatus::Status::DETERMINING:
+                return "DETERMINING";
+            default:
+                return "UNKNOWN";
         }
     }
-    catch (const std::exception& e) {
-        log_debug(GET_LOGGER("agent"), e.what());
-        log_error(GET_LOGGER("agent"), "Cannot read GPIO status.");
-    }
+}
 
-    return status;
+bool ModuleHardwareStatus::went_up() {
+    if (agent_framework::status::ModuleStatus::Status::NOT_PRESENT == m_last_status &&
+        agent_framework::status::ModuleStatus::Status::PRESENT == m_status ) {
+
+        return true;
+    }
+    return false;
+}
+
+bool ModuleHardwareStatus::went_down() {
+    if (agent_framework::status::ModuleStatus::Status::PRESENT == m_last_status &&
+        agent_framework::status::ModuleStatus::Status::NOT_PRESENT == m_status ) {
+
+            return true;
+    }
+    return false;
+}
+
+void ModuleHardwareStatus::wait_for_smbios() {
+    log_debug(GET_LOGGER("agent"), "Module Slot: " << m_slot << " Wait for SMBIOS..");
+    std::this_thread::sleep_for(std::chrono::minutes(SMBIOS_UPDATE_TIME_MINUTES));
+    log_debug(GET_LOGGER("agent"), "Module Slot: " << m_slot << " Wait for SMBIOS.. Done.");
+}
+
+Status ModuleHardwareStatus::read_status() {
+    m_status = m_gpio_status.read_from_file();
+    log_debug(GET_LOGGER("status"), "Module Slot: " << m_slot << " HW Status: " << to_string(m_status));
+    if (went_up()) {
+        log_debug(GET_LOGGER("agent"), "Module Slot: " << m_slot << " Transition from NOT PRESENT to PRESENT");
+        wait_for_smbios();
+    }
+    if (went_down()){
+        log_debug(GET_LOGGER("agent"), "Module Slot: " << m_slot << " Transition from PRESENT to NOT PRESENT");
+    }
+    m_last_status = m_status;
+    return m_status;
 }

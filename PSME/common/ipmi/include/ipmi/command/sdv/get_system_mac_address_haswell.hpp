@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief Implementation of GetSystemMacAddressHaswellHaswell Request/Response.
  * */
 
-#ifndef IPMI_COMMAND_SDV_GET_SYSTEM_MAC_ADDRESS_HASWELL_HPP
-#define	IPMI_COMMAND_SDV_GET_SYSTEM_MAC_ADDRESS_HASWELL_HPP
+#pragma once
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
@@ -32,13 +31,6 @@
 #include <string>
 #include <map>
 #include <vector>
-
-using std::size_t;
-using std::uint8_t;
-using std::string;
-using std::to_string;
-using std::vector;
-using std::map;
 
 namespace ipmi {
 namespace command {
@@ -49,7 +41,7 @@ namespace request {
 /*!
  * @brief Represents request message for Get command.
  */
-class GetSystemMacAddressHaswell: public Request {
+class GetSystemMacAddressHaswell : public Request {
 public:
 
     /*!
@@ -68,22 +60,22 @@ public:
      */
     virtual ~GetSystemMacAddressHaswell();
 
-    /**
+    /*!
      * @brief Packs data from object to output vector
      * @param[out] data vector where data will be packed.
      */
-    virtual void pack(vector<uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const;
 
     /*!
-     * @brief Sets ethernet interafce index.
-     * @param index etherenet interafce index.
+     * @brief Sets ethernet interface index.
+     * @param index ethernet interface index.
      */
-    void set_interface_id(uint16_t index) {
+    void set_interface_id(std::uint16_t index) {
         m_interface_id = index;
     }
 
 private:
-    uint16_t m_interface_id{};
+    std::uint16_t m_interface_id{};
 };
 }
 
@@ -92,10 +84,10 @@ namespace response {
 /*!
  * @brief Represents response message for GetDeviceId command.
  */
-class GetSystemMacAddressHaswell: public Response {
+class GetSystemMacAddressHaswell : public Response {
 public:
 
-    /**
+    /*!
      * @brief Default constructor.
      */
     GetSystemMacAddressHaswell();
@@ -120,25 +112,17 @@ public:
     }
 
     /*!
-     * @brief Sets system mac address.
-     * @param system_mac_address of device.
-     */
-    void set_system_mac_address(const std::string system_mac_address){
-        m_system_mac_address = system_mac_address;
-    }
-
-    /*!
      * @brief Unpacks data from vector to object.
      * @param data bytes to be copied to object,
      */
-    void unpack(const vector<uint8_t>& data);
+    void unpack(const std::vector<std::uint8_t>& data);
 
 private:
     std::string m_system_mac_address{};
 
-    static constexpr size_t RESPONSE_SIZE = 9;
-    static constexpr size_t MAC_ADDRESS_LENGTH = 18;
-    static constexpr size_t MAC_ADDRESS_OFFSET = 3;
+    static constexpr std::size_t RESPONSE_SIZE = 9;
+    static constexpr std::size_t MAC_ADDRESS_LENGTH = 18;
+    static constexpr std::size_t MAC_ADDRESS_OFFSET = 3;
 };
 }
 
@@ -147,4 +131,3 @@ private:
 }
 }
 
-#endif	/* IPMI_COMMAND_SDV_GET_SYSTEM_MAC_ADDRESS_HASWELL_HPP */

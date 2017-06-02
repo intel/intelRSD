@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
@@ -35,11 +34,9 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 @OdataTypes({
-        "#RemoteTarget.1.0.0.RemoteTarget",
-        "#RemoteTarget.v1_0_0.RemoteTarget"
+        "#RemoteTarget" + OdataTypes.VERSION_PATTERN + "RemoteTarget"
 })
 public class RemoteTargetResourceImpl extends ExternalServiceResourceImpl implements RemoteTargetResource {
-
     @JsonProperty("Status")
     private Status status;
 
@@ -52,9 +49,6 @@ public class RemoteTargetResourceImpl extends ExternalServiceResourceImpl implem
     @JsonProperty("Initiator")
     private List<Initiator> initiator = new ArrayList<>();
 
-    @JsonProperty("Links")
-    private Links links = new Links();
-
     @Override
     public String getType() {
         return type;
@@ -66,7 +60,7 @@ public class RemoteTargetResourceImpl extends ExternalServiceResourceImpl implem
     }
 
     @Override
-    public Iterable<IscsiAddressObject> getAddresses() {
+    public List<IscsiAddressObject> getAddresses() {
         return addresses.stream().map((wrap) -> wrap.iscsi).collect(toList());
     }
 
@@ -91,11 +85,6 @@ public class RemoteTargetResourceImpl extends ExternalServiceResourceImpl implem
             return initiator.iscsi.initiatorIqn;
         }
         return null;
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class Links {
-
     }
 
     public static final class AddressWrapper {

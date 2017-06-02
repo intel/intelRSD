@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,67 +16,47 @@
 #
 # </license_header>
 
-include(InstallScriptsCommon)
-
 function(install_safe_string)
     include(ConfigurationPackage OPTIONAL)
+    assure_package(safestring 0.0.1 "https://github.com/01org/safestringlib/archive/master.zip" "45900cbf87c27d4e75bc50f192804df4")
 
-    set(SAFE_STRING_SOURCE_DIR
-        ${CMAKE_CURRENT_LIST_DIR}/../common/safe-string
-        CACHE PATH "Safe string library source path"
+    file(GLOB cfiles ${source_dir}/safeclib/*.c)
+    execute_process(
+        COMMAND ${CMAKE_C_COMPILER} -fPIC -c -I ${source_dir}/include/ ${cfiles}
+        WORKING_DIRECTORY ${binary_dir}
+        RESULT_VARIABLE result
     )
-
-    find_library(safe_string_library safe-string
-        PATHS ${CMAKE_BINARY_DIR}/lib
-    )
-    find_path(safe_string_include "safe-string/safe_lib.h"
-        PATHS ${CMAKE_BINARY_DIR}/include
-    )
-
-    if (safe_string_library AND safe_string_include)
-        return()
+    if (NOT ${result} EQUAL 0)
+        message(FATAL_ERROR "Error occurs while compiling sources, ${result}")
     endif()
 
-    set(source_dir ${SAFE_STRING_SOURCE_DIR})
-    set(binary_dir ${CMAKE_BINARY_DIR}/safe-string/build)
-    file(MAKE_DIRECTORY ${binary_dir})
-
-    if (EXISTS ${source_dir})
-        init_cmake_args(ARGS)
-
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} ${ARGS} ${source_dir}
-            WORKING_DIRECTORY ${binary_dir}
-            RESULT_VARIABLE result
-        )
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Error occurs when configure project")
-        endif()
-
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} --build ${binary_dir} --target all
-                -- ${BUILD_EXTRA_ARGS}
-            WORKING_DIRECTORY ${binary_dir}
-            RESULT_VARIABLE result
-        )
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Error occurs when build project")
-        endif()
-
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} --build ${binary_dir} --target install
-            WORKING_DIRECTORY ${binary_dir}
-            RESULT_VARIABLE result
-        )
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Error occurs when install project")
-        endif()
-    else()
-        message(FATAL_ERROR "${source_dir} not found")
+    file(GLOB objfiles ${binary_dir}/*.o)
+    execute_process(
+        COMMAND ar rcs ${binary_dir}/libsafe-string.a ${objfiles}
+        RESULT_VARIABLE result
+    )
+    if (NOT ${result} EQUAL 0)
+        message(FATAL_ERROR "Error occurs while crating static library, ${result}")
     endif()
+    configure_file(${binary_dir}/libsafe-string.a
+        ${CMAKE_BINARY_DIR}/lib/libsafe-string.a
+        COPYONLY
+    )
+
+
+    file(GLOB hfiles ${source_dir}/include/*.h ${source_dir}/include/*.hpp)
+    file(INSTALL
+        ${hfiles}
+        ${source_dir}/include/safe_types.h
+        ${source_dir}/include/safe_lib_errno.h
+        DESTINATION ${CMAKE_BINARY_DIR}/include/safe-string
+    )
+
+    CONFIGURE_FILE(
+        ${CMAKE_CURRENT_LIST_DIR}/../tools/pkg-config/safe-string.pc.in
+        ${CMAKE_BINARY_DIR}/pkg-config/safe-string.pc
+        @ONLY
+    )
 endfunction()
 
 install_safe_string()

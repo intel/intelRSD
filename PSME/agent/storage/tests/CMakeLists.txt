@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,3 +24,12 @@ endif()
 if (NOT GTEST_FOUND)
     return()
 endif()
+
+add_subdirectory(tree_stability)
+
+add_custom_target(unittest_psme-storage
+                  make
+)
+add_custom_target(unittest_psme-storage_run
+                  ctest --output-on-failure
+)

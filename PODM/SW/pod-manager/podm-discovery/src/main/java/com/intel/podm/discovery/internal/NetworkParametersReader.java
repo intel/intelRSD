@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import static com.intel.podm.common.types.State.ENABLED;
 import static java.util.Collections.list;
 
 @Dependent
+@SuppressWarnings({"checkstyle:MethodCount"})
 public class NetworkParametersReader {
 
     private static final String VLAN_SEPARATOR = ".";

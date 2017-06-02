@@ -5,6 +5,32 @@
             <locationOffset>4</locationOffset>
             <type>Module</type>
             <parentId>3</parentId>
+            <drive>
+                <interface>SATA</interface>
+                <capacityGB>500</capacityGB>
+                <physicalId>0.0.0</physicalId>
+                <type>HDD</type>
+                <rpm>5400</rpm>
+                <firmwareVersion>version 1</firmwareVersion>
+                <fruInfo>
+                    <partNumber/>
+                    <modelNumber>WDC WD5000AAKX-603CA0</modelNumber>
+                    <manufacturer/>
+                    <serialNumber>WD-WMAYUK627964</serialNumber>
+                </fruInfo>
+            </drive>
+            <drive>
+                <interface>SATA</interface>
+                <capacityGB>120</capacityGB>
+                <physicalId>0.0.0</physicalId>
+                <type>SSD</type>
+                <fruInfo>
+                    <partNumber/>
+                    <modelNumber>INTEL SSDMCEAC120B3</modelNumber>
+                    <manufacturer>Intel</manufacturer>
+                    <serialNumber>CVLI346400M0120E</serialNumber>
+                </fruInfo>
+            </drive>
         </chassis>
         <ComputeSystem>
             <location>0</location>
@@ -16,28 +42,24 @@
                 <vendorId>1d6b</vendorId>
                 <deviceId>0002</deviceId>
             </usbDevice>
-            <storageController>
-                <status>
-                    <state>Enabled</state>
-                    <health>OK</health>
-                </status>
-                <interface>SATA</interface>
-                <busInfo>1f.2</busInfo>
-                <drive>
+            <storageSubsystem>
+                <storageController>
+                    <status>
+                        <state>Enabled</state>
+                        <health>OK</health>
+                    </status>
                     <interface>SATA</interface>
-                    <capacityGB>500</capacityGB>
-                    <physicalId>0.0.0</physicalId>
-                    <type>HDD</type>
-                    <rpm>5400</rpm>
-                    <firmwareVersion>version 1</firmwareVersion>
-                    <fruInfo>
-                        <partNumber/>
-                        <modelNumber>WDC WD5000AAKX-603CA0</modelNumber>
-                        <manufacturer/>
-                        <serialNumber>WD-WMAYUK627964</serialNumber>
-                    </fruInfo>
-                </drive>
-            </storageController>
+                    <busInfo>1f.2</busInfo>
+                </storageController>
+                <storageController>
+                    <status>
+                        <state>Enabled</state>
+                        <health>OK</health>
+                    </status>
+                    <interface>SATA</interface>
+                    <busInfo>11.4</busInfo>
+                </storageController>
+            </storageSubsystem>
             <pciDevice>
                 <vendorId>8086</vendorId>
                 <deviceId>1502</deviceId>
@@ -113,7 +135,7 @@
                 <fullDuplex>true</fullDuplex>
                 <factoryMacAddress>30:67:22:00:00:00</factoryMacAddress>
                 <frameSize>1500</frameSize>
-                <autosense>true</autosense>
+                <autoSense>true</autoSense>
                 <speedMbps>1000</speedMbps>
                 <ipv4Address>
                     <address>10.3.2.1</address>
@@ -140,7 +162,7 @@
                     <addressState>Preferred</addressState>
                 </ipv6Address>
             </networkInterface>
-            <dimm>
+            <memory>
                 <capacityMB>8000</capacityMB>
                 <dimmType>DRAM</dimmType>
                 <voltageVolt>1.35</voltageVolt>
@@ -158,8 +180,8 @@
                     <serialNumber>033B147A</serialNumber>
                 </fruInfo>
                 <busWidthBits>64</busWidthBits>
-            </dimm>
-            <dimm>
+            </memory>
+            <memory>
                 <capacityMB>8</capacityMB>
                 <dimmType>DRAM</dimmType>
                 <voltageVolt>1.35</voltageVolt>
@@ -177,7 +199,7 @@
                     <serialNumber>037B144F</serialNumber>
                 </fruInfo>
                 <busWidthBits>64</busWidthBits>
-            </dimm>
+            </memory>
             <processor>
                 <capability>x86:EM64T</capability>
                 <capability>x86:MMX</capability>
@@ -195,7 +217,7 @@
                 <processorType>CPU</processorType>
                 <enabledThreads>8</enabledThreads>
                 <instructionSet>x86-64</instructionSet>
-                <processorArchitecture>x86_64</processorArchitecture>
+                <processorArchitecture>x86</processorArchitecture>
                 <totalThreads>8</totalThreads>
                 <cpuid>
                     <vendorId>GenuineIntel</vendorId>

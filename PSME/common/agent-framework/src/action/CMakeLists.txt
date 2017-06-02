@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 # </license_header>
 
 set(SOURCES
+    task.cpp
+    task_creator.cpp
     task_runner.cpp
-    task_status_manager.cpp
+    task_result_manager.cpp
     ${AGENT_FRAMEWORK_DIR}/src/threading/threadpool.cpp
 )
 

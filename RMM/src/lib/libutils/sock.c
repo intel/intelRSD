@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,109 +177,5 @@ int udp_sendto(int sock_fd,  unsigned long host, int port, unsigned char* snd_bu
 	if (ret == -1) {
 		printf("sendto err!\n");
 	}
-	return ret;
-}
-
-static unsigned short inet_cksum(unsigned short *addr, int len)
-{
-	unsigned int sum = 0;   
-
-	while (len > 1) {
-		sum += *addr++;
-		len -= 2;
-	}
-
-	if (len == 1) {
-		unsigned short pad;
-
-		*(unsigned char *)&pad = *(unsigned char *)addr;
-		sum += pad;
-	}
-
-	sum  = (sum >> 16) + (sum & 0xFFFF);
-	sum += (sum >> 16);
-
-	return (unsigned short) ~sum;
-}
-
-static void ping_host_by_icmp(int icmp_fd, unsigned int host)
-{
-	static int init = 0;
-	static struct sockaddr_in dest;
-	static unsigned char packet[ICMP_MINLEN + 4];
-
-	if (host == 0 || host == 0xFFFFFFFF)
-		return;
-
-	if (init == 0) {
-		struct icmp *icmphdr;
-
-		init = 1;
-
-		dest.sin_family = AF_INET;
-
-		icmphdr = (struct icmp *)packet;
-		icmphdr->icmp_type = ICMP_ECHO;
-		icmphdr->icmp_cksum = inet_cksum((unsigned short *)packet, sizeof(packet));
-	}
-
-	dest.sin_addr.s_addr = host;
-
-	sendto(icmp_fd, packet, sizeof(packet), 0, (struct sockaddr *)&dest, sizeof(dest));
-}
-
-static int open_icmp_socket(int timeout)
-{
-	int fd;
-	fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-	if (fd < 0) {
-		perror("socket() failed");
-		return -1;
-	}
-	struct timeval tv;
-
-	tv.tv_sec = timeout;  /* 30 Secs Timeout */
-	tv.tv_usec = 0;  // Not init'ing this can cause strange errors
-
-	setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
-
-	return fd;
-
-}
-
-static int process_ping_from_icmp(int icmp_fd, unsigned int host)
-{
-	int rc;
-	unsigned char packet[512];
-	memset(packet, 0, 512);
-	rc = socket_recv(icmp_fd, packet, sizeof(packet));
-
-	if (rc < sizeof(struct iphdr)) {
-		printf("socket recv fail\n");
-		return -1;  
-	}
-
-	struct iphdr *ip = (struct iphdr *)packet;
-	if(ip->saddr == 0 || ip->saddr != host) {
-		printf("ip: %d fail\n", ip->saddr);
-		return -1;
-	}
-
-	return 0;
-}
-
-int ping(int host, int timeout)
-{
-	int ret = -1;
-	//int host = inet_addr(ip);
-
-	int fd = open_icmp_socket(timeout);
-	if(fd < 0)
-		return -1;
-
-	ping_host_by_icmp(fd, host);
-	ret = process_ping_from_icmp(fd, host);
-
-	close(fd);
 	return ret;
 }

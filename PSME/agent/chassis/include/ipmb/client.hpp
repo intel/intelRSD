@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,24 +32,14 @@ namespace ipmb {
 /*! General class for multiplex connectivity with I2C device */
 class Client : public Mux {
 public:
-    /*!
-     * @brief Default constructor
-     */
-    Client();
+    /*! Default constructor */
+    Client() = default;
 
-    /*!
-     * @brief Copy constructor
-     * */
+    /*! disable copy */
     Client(const Client&) = delete;
-
-    /*!
-     * @brief Assignment operator
-     * */
     Client& operator=(const Client&) = delete;
 
-    /*!
-     * @brief Get MUX connection mode
-     */
+    /*! Mode or type of MUX connection -- responder */
     byte_vec_t mode() const;
 };
 

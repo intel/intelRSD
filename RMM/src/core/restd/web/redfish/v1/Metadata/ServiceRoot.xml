@@ -50,7 +50,7 @@
                 <Singleton Name="Chassis" Type="ChassisCollection.1.0.0.ChassisCollection"/>
                 <Singleton Name="Managers" Type="ManagerCollection.1.0.0.ManagerCollection"/>
                 <Singleton Name="EventService" Type="EventService.EventService"/>
-                <Singleton Name="MessageRegistry" Type="MessageRegistryFileCollection.MessageRegistryFileCollection"/>
+                <Singleton Name="MessageRegistry" Type="MessageRegistry.1.0.0.MessageRegistry"/>
                 <Singleton Name="JsonSchemas" Type="JsonSchemaFileCollection.JsonSchemaFileCollection"/>
             </EntityContainer>
 
@@ -94,7 +94,7 @@
                     <Annotation Term="OData.AutoExpandReferences"/>
                 </NavigationProperty>
                 <NavigationProperty Name="MessageRegistry"
-                                    Type="MessageRegistryFileCollection.MessageRegistryFileCollection">
+                                    Type="MessageRegistry.1.0.0.MessageRegistry">
                     <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
                     <Annotation Term="OData.Description" String="This is a link to a collection of Registries."/>
                     <Annotation Term="OData.LongDescription"

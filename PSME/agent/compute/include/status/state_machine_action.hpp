@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,15 +21,20 @@
  * @file state_machine_thread.hpp
  * @brief StateMachine thread.
  * */
+#pragma once
 
-#ifndef AGENT_COMPUTE_STATE_MACHINE_ACTION_HPP
-#define AGENT_COMPUTE_STATE_MACHINE_ACTION_HPP
+
 
 #include "agent-framework/state_machine/state_machine_thread_action.hpp"
+#include "agent-framework/state_machine/state_thread_entry.hpp"
+
+
 
 namespace agent_framework {
 namespace discovery {
-    class Discovery;
+
+class Discovery;
+
 }
 }
 
@@ -37,20 +42,15 @@ namespace discovery {
 namespace agent {
 namespace compute {
 
-class StateMachineAction final:
-            public agent_framework::state_machine::StateMachineThreadAction {
+class StateMachineAction final : public agent_framework::state_machine::StateMachineThreadAction {
 public:
     /*! @brief Default destructor. */
     ~StateMachineAction() = default;
 
-    void execute(
-        const std::string& uuid,
-        const agent_framework::state_machine::enums::State state,
-        const agent_framework::state_machine::enums::Transition trans
-    ) override;
+
+    void execute(StateThreadEntrySharedPtr entry) override;
 
 };
 
 }
 }
-#endif /* AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_THREAD_HPP */

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,74 +22,55 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/add_iscsi_target.hpp"
-#include "agent-framework/command/storage/json/add_iscsi_target.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 
-class AddIscsiTarget : public storage::AddIscsiTarget {
+class MyAddIscsiTarget {
 private:
     std::string m_initiator_iqn{};
     std::string m_target_iqn{};
 public:
-    AddIscsiTarget(std::string initiator_iqn,
-                   std::string target_iqn) {
+    MyAddIscsiTarget(std::string initiator_iqn, std::string target_iqn) {
         m_initiator_iqn = initiator_iqn;
         m_target_iqn = target_iqn;
     }
 
-    using storage::AddIscsiTarget::execute;
-
-    void execute(const Request& request, Response& response) {
+    void execute(const AddIscsiTarget::Request& request,
+                 AddIscsiTarget::Response& response) {
         auto initiator_iqn = request.get_initiator_iqn();
         auto target_iqn = request.get_target_iqn();
 
         if (initiator_iqn != m_initiator_iqn || target_iqn != m_target_iqn) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
         response.set_target("Test Target");
-        response.set_oem(agent_framework::model::attribute::Oem());
     }
-
-    virtual ~AddIscsiTarget();
 };
 
-AddIscsiTarget::~AddIscsiTarget() { }
+static constexpr char INITIATOR_IQN[] = "initiatorIQN";
+static constexpr char TARGET_IQN[] = "targetIQN";
+static constexpr char AUTHENTICATION_METHOD[] = "authenticationMethod";
+static constexpr char TARGET[] = "target";
+static constexpr char OEM[] = "oem";
 
-class AddIscsiTargetTest : public ::testing::Test {
-protected:
-    static constexpr char INITIATOR_IQN[] = "initiatorIQN";
-    static constexpr char TARGET_IQN[] = "targetIQN";
-    static constexpr char TARGET[] = "target";
-    static constexpr char OEM[] = "oem";
-
-    virtual ~AddIscsiTargetTest();
-};
-
-constexpr char AddIscsiTargetTest::INITIATOR_IQN[];
-constexpr char AddIscsiTargetTest::TARGET_IQN[];
-constexpr char AddIscsiTargetTest::TARGET[];
-constexpr char AddIscsiTargetTest::OEM[];
-
-AddIscsiTargetTest::~AddIscsiTargetTest() { }
-
-TEST_F(AddIscsiTargetTest, PositiveExecute) {
-    storage::json::AddIscsiTarget command_json;
-    AddIscsiTarget* command = new AddIscsiTarget("TestInitiatorIQN", "TestTargetIQN");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(AddIscsiTargetTest, PositiveExecute) {
+    MyAddIscsiTarget command{"TestInitiatorIQN", "TestTargetIQN"};
+    AddIscsiTarget::Request request{};
+    AddIscsiTarget::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[TARGET_IQN] = "TestTargetIQN";
     params[INITIATOR_IQN] = "TestInitiatorIQN";
+    params[AUTHENTICATION_METHOD] = Json::Value::null;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = AddIscsiTarget::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[TARGET].isString());
@@ -97,32 +78,32 @@ TEST_F(AddIscsiTargetTest, PositiveExecute) {
     ASSERT_EQ(result[TARGET].asString(), "Test Target");
 }
 
-TEST_F(AddIscsiTargetTest, NegativeTargetNotFound) {
-    storage::json::AddIscsiTarget command_json;
-    AddIscsiTarget* command = new AddIscsiTarget("TestInitiatorIQN", "TestTargetIQN");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(AddIscsiTargetTest, NegativeTargetNotFound) {
+    MyAddIscsiTarget command{"TestInitiatorIQN", "TestTargetIQN"};
+    AddIscsiTarget::Request request{};
+    AddIscsiTarget::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[TARGET_IQN] = "OtherTestTargetIQN";
     params[INITIATOR_IQN] = "TestInitiatorIQN";
+    params[AUTHENTICATION_METHOD] = Json::Value::null;
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = AddIscsiTarget::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }
 
-TEST_F(AddIscsiTargetTest, NegativeInitiatortNotFound) {
-    storage::json::AddIscsiTarget command_json;
-    AddIscsiTarget* command = new AddIscsiTarget("TestInitiatorIQN", "TestTargetIQN");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(AddIscsiTargetTest, NegativeInitiatortNotFound) {
+    MyAddIscsiTarget command{"TestInitiatorIQN", "TestTargetIQN"};
+    AddIscsiTarget::Request request{};
+    AddIscsiTarget::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[TARGET_IQN] = "TestTargetIQN";
     params[INITIATOR_IQN] = "OtherTestInitiatorIQN";
+    params[AUTHENTICATION_METHOD] = Json::Value::null;
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = AddIscsiTarget::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

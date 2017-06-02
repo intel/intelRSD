@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,18 +17,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
-*/
+ * */
 
 #include "status/state_machine_action.hpp"
-#include "agent-framework/module/module_manager.hpp"
 #include "discovery/discovery_manager.hpp"
-#include "discovery-ref/discovery_manager.hpp"
+#include "tree_stability/storage_tree_stabilizer.hpp"
 #include "agent-framework/state_machine/state_machine_exception.hpp"
 
 using namespace agent::storage;
+using namespace agent::storage::discovery;
 using namespace agent_framework::state_machine;
-using namespace agent::storage::discoveries;
 
 namespace {
     bool is_enabled(const enums::State state) {
@@ -38,24 +34,23 @@ namespace {
     }
 }
 
-StateMachineAction::StateMachineAction(
-                                discovery::DiscoveryManager& discover_manger) :
-    m_discovery_manager{discover_manger} {}
+StateMachineAction::StateMachineAction(DiscoveryManager& discover_manger) :
+    m_discovery_manager{discover_manger} { }
 
 StateMachineAction::~StateMachineAction() { }
 
-void StateMachineAction::execute(const std::string& module,
-                                       const enums::State state,
-                                       const enums::Transition) {
+void StateMachineAction::execute(StateThreadEntrySharedPtr entry) {
+    auto state = entry->get_state();
+    auto module = entry->get_module();
+
     if (is_enabled(state)) {
-        auto module_ptr = ModuleManager::get_module(module);
-        if (module_ptr) {
-            m_discovery_manager.discover(*module_ptr);
-        }
         try {
             /* start discovery manager */
-            DiscoveryManager().discovery(module);
-        } catch(const std::runtime_error& e) {
+            m_discovery_manager.discovery(module);
+            module = StorageTreeStabilizer().stabilize(module);
+            entry->update_module(module);
+        }
+        catch(const std::exception& e) {
             throw StateMachineError(e.what());
         }
     }

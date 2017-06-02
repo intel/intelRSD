@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,97 +17,75 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
  * @file port_message.cpp
  *
- * @brief Switch port netlink message class
+ * @brief Port netlink message class
  *
  * */
 
-/* Internal headers */
 #include "api/netlink/port_message.hpp"
+#include "netlink/nl_exception_invalid_ifname.hpp"
 
-/* C/C++ standard headers */
+#include <netlink/msg.h>
 #include <net/if.h>
 
+using std::string;
 using namespace netlink_base;
 using namespace agent::network::api::netlink;
 
-PortMessage::PortMessage(const IfName& ifname) : Message(ifname) {
-    set_flags(NLM_F_REQUEST);
-    set_type(RTM_GETLINK);
+PortMessage::PortMessage(const string& ifname) : LinkMessage{ifname} {
+    /* set-up Netlink attributes */
+    set_nlhdr_flags(NLM_F_REQUEST);
+    set_nlhdr_type(RTM_GETLINK);
+
+    /* set-up Link attributes */
+    set_family(AF_PACKET);
 }
 
 PortMessage::~PortMessage() {}
 
-Message::Pointer PortMessage::prepare_netlink_msg() const {
-    struct ifinfomsg ifi{};
-
-    /* Allocate the netlink message */
-    Pointer msg(nlmsg_alloc_simple(m_type, int(m_flags)));
-    if (!msg) {
-        return nullptr;
+void PortMessage::prepare_link_message(struct nl_msg* msg) {
+    /* validate interface */
+    if (!iface_exists()) {
+        throw NlExceptionInvalidIfName(get_ifname());
     }
 
-    /* Appending iface parameter details to netlink message msg */
-    ifi.ifi_family = AF_PACKET;
-    if (0 > nlmsg_append(msg.get(), &ifi, sizeof(ifi), NLMSG_ALIGNTO)) {
-        return nullptr;
-    }
-
-    /* add interface name into the message */
-    if (0 > nla_put(msg.get(), IFLA_IFNAME, int(m_ifname.length()), m_ifname.c_str())) {
-        return nullptr;
+    /* put iface name into the message */
+    if (0 > nla_put(msg, IFLA_IFNAME, int((get_ifname().length())),
+        get_ifname().c_str())) {
+        throw NlException("Cannot put iface name to the message");
     }
 
     /* insert TEXT_FILTER_VF mask */
-    if (0 > nla_put_u32(msg.get(), IFLA_EXT_MASK, RTEXT_FILTER_VF)) {
-        return nullptr;
+    if (get_filter_mask() &&
+        (0 > nla_put_u32(msg, IFLA_EXT_MASK, get_filter_mask()))) {
+        throw NlException("Cannot put filter mask to the message");
     }
-
-    return msg;
 }
 
-void PortMessage::parse_netlink_hdr(NetlinkHeader& nlhdr) {
-    struct ifinfomsg* ifm = static_cast<struct ifinfomsg*>(nlhdr.get_data());
-    struct nlattr* nl_attr_table[IFLA_MAX + 1];
-    int len = int(nlhdr.get_len());
+void PortMessage::process_link_message(struct nl_msg* msg, const struct ifinfomsg* ifm) {
+    struct nlattr* attrs[IFLA_MAX + 1];
     char ifname[IF_NAMESIZE]{};
 
-    /* check netlink message type */
-    if (RTM_NEWLINK != nlhdr.get_type() && RTM_DELLINK != nlhdr.get_type ()) {
-        throw std::runtime_error("Incorrect netlink message type");
-    }
-
-    /* check netlink message length */
-    len -= int(nlmsg_size(sizeof(*ifm)));
-    if (0 > len) {
-        throw std::runtime_error("Incorrect netlink message length");
-    }
-
-    /* check family info */
-    if (AF_UNSPEC != ifm->ifi_family) {
-        return;
-    }
-
     /* parse nla attributes */
-    nla_parse(nl_attr_table, IFLA_MAX, (struct nlattr*)IFLA_RTA(ifm),
-              len, nullptr);
+    int err = nlmsg_parse(nlmsg_hdr(msg), sizeof(struct ifinfomsg), attrs, IFLA_MAX, nullptr);
+    if (0 != err) {
+        throw NlException("Failed to parse Netlink route response");
+    }
 
     /* get interface name */
     if (nullptr == if_indextoname(uint32_t(ifm->ifi_index), ifname)) {
-        throw std::runtime_error("Failed to get interface index");
+        throw NlException("Failed to get interface index");
     }
 
-    if (nl_attr_table[IFLA_MASTER]) {
+    if (attrs[IFLA_MASTER]) {
 
         /* get master port ifindex */
-        uint32_t master_index = nla_get_u32(nl_attr_table[IFLA_MASTER]);
+        uint32_t master_index = nla_get_u32(attrs[IFLA_MASTER]);
 
         /* get master name */
         if (nullptr == if_indextoname(master_index, ifname)) {
-            throw std::runtime_error("Failed to get master name");
+            throw NlException("Failed to get master name");
         }
         m_master = ifname;
         m_member = true;

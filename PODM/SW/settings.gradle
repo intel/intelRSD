@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,23 +29,26 @@ rootProject.children.find { it.name == 'pod-manager-common/enterprise-utils' }.n
 include 'pod-manager-common/logger'
 rootProject.children.find { it.name == 'pod-manager-common/logger' }.name = 'logger'
 
-include 'pod-manager-common/orientdb-rar'
-rootProject.children.find { it.name == 'pod-manager-common/orientdb-rar' }.name = 'orientdb-rar'
-
 include 'pod-manager-common/security'
 rootProject.children.find { it.name == 'pod-manager-common/security' }.name = 'security'
 
 include 'pod-manager-common/serialization'
 rootProject.children.find { it.name == 'pod-manager-common/serialization' }.name = 'serialization'
 
-include 'pod-manager-common/vault-decrypter'
-rootProject.children.find { it.name == 'pod-manager-common/vault-decrypter' }.name = 'vault-decrypter'
+include 'pod-manager-common/synchronization'
+rootProject.children.find { it.name == 'pod-manager-common/synchronization' }.name = 'synchronization'
 
 include 'pod-manager-common/types'
 rootProject.children.find { it.name == 'pod-manager-common/types' }.name = 'types'
 
 include 'pod-manager-common/utils'
 rootProject.children.find { it.name == 'pod-manager-common/utils' }.name = 'utils'
+
+include 'pod-manager-common/vault-decrypter'
+rootProject.children.find { it.name == 'pod-manager-common/vault-decrypter' }.name = 'vault-decrypter'
+
+include 'pod-manager-common/stress-tester'
+rootProject.children.find { it.name == 'pod-manager-common/stress-tester' }.name = 'stress-tester'
 
 include 'pod-manager/podm-actions'
 rootProject.children.find { it.name == 'pod-manager/podm-actions' }.name = 'podm-actions'
@@ -62,14 +65,11 @@ rootProject.children.find { it.name == 'pod-manager/podm-business-entities' }.na
 include 'pod-manager/podm-business-services'
 rootProject.children.find { it.name == 'pod-manager/podm-business-services' }.name = 'podm-business-services'
 
+include 'pod-manager/podm-eventing'
+rootProject.children.find { it.name == 'pod-manager/podm-eventing' }.name = 'podm-eventing'
+
 include 'pod-manager/podm-mappers'
 rootProject.children.find { it.name == 'pod-manager/podm-mappers' }.name = 'podm-mappers'
-
-include 'pod-manager/podm-repositories'
-rootProject.children.find { it.name == 'pod-manager/podm-repositories' }.name = 'podm-repositories'
-
-include 'pod-manager/podm-repository-api'
-rootProject.children.find { it.name == 'pod-manager/podm-repository-api' }.name = 'podm-repository-api'
 
 include 'pod-manager/podm-rest'
 rootProject.children.find { it.name == 'pod-manager/podm-rest' }.name = 'podm-rest'
@@ -86,11 +86,6 @@ rootProject.children.find { it.name == 'pod-manager/podm-discovery' }.name = 'po
 include 'pod-manager/podm-services-detection'
 rootProject.children.find { it.name == 'pod-manager/podm-services-detection' }.name = 'podm-services-detection'
 
-include 'pod-manager/podm-eventing'
-rootProject.children.find { it.name == 'pod-manager/podm-eventing' }.name = 'podm-eventing'
-
 include 'pod-manager/ipxe-supplier'
 rootProject.children.find { it.name == 'pod-manager/ipxe-supplier' }.name = 'ipxe-supplier'
 
-include 'pod-manager/podm-db-schema-creation'
-rootProject.children.find { it.name == 'pod-manager/podm-db-schema-creation' }.name = 'podm-db-schema-creation'

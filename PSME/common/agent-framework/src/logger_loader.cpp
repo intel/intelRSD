@@ -1,27 +1,24 @@
 /*!
- * @section LICENSE
+ * @brief Strategy for logger configuration
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * This file maps user configuration (parsed from configuration.json) to
+ * logger objects.
  *
- * @copyright
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- * */
-
+ * @header{Files}
+ * @file logger_loader.cpp
+ */
 #include "agent-framework/logger_loader.hpp"
 #include "json/json.hpp"
 
@@ -31,6 +28,10 @@
 
 using namespace logger_cpp;
 
+/*!
+ * @brief list of logger levels
+ * @todo they should match journalctl strings
+ */
 std::array<const char*, 8> LoggerLoader::g_level = {
     {
     "EMERGENCY",
@@ -184,13 +185,13 @@ void LoggerLoader::set_stream_output(Stream::Type type, StreamSPtr stream, const
 
             case Stream::Type::TCP: {
                 if (!config["address"].is_null() && !config["port"].is_null()) {
-                    stream->open_tcp(config["address"].as_char(), config["port"].as_uint());
+                    stream->open_tcp(config["address"].as_char(), static_cast<uint16_t>(config["port"].as_uint()));
                 }
             } break;
 
             case Stream::Type::UDP: {
                 if (!config["address"].is_null() && !config["port"].is_null()) {
-                    stream->open_udp(config["address"].as_char(), config["port"].as_uint());
+                    stream->open_udp(config["address"].as_char(), static_cast<uint16_t>(config["port"].as_uint()));
                 }
             } break;
 

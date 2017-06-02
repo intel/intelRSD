@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,8 +29,6 @@
 #include "api/switch_vlan.hpp"
 #include "agent-framework/exceptions/exception.hpp"
 #include "logger/logger_factory.hpp"
-#include "netlink/exceptions.hpp"
-
 #include <sstream>
 
 using namespace agent::network::api;
@@ -40,17 +38,10 @@ void SwitchVlan::add_port(const PortIdentifier& port, bool tagged) {
     try {
         add_switch_port(port, tagged);
     }
-    catch (const netlink_base::NetlinkInvalidParamsException& error) {
-        stringstream ss{};
-        ss << "Unable to add vlan " << get_vlan_id() << " to port " << port << ": invalid parameters given";
-        log_error(GET_LOGGER("network-agent"), error.what());
-        THROW(agent_framework::exceptions::InvalidParameters,
-              "network-agent", ss.str());
-    }
-    catch (const std::runtime_error& error) {
+    catch(const std::runtime_error& error) {
         stringstream ss{};
         ss << "Unable to add vlan " << get_vlan_id() << " to port " << port;
-        log_error(GET_LOGGER("network-agent"), error.what());
+        log_debug(GET_LOGGER("network-agent"), error.what());
         THROW(agent_framework::exceptions::Fm10000Error,
                 "network-agent", ss.str());
     }
@@ -60,10 +51,10 @@ void SwitchVlan::remove_port(const PortIdentifier& port) {
     try {
         remove_switch_port(port);
     }
-    catch (const std::runtime_error& error) {
+    catch(const std::runtime_error& error) {
         stringstream ss{};
         ss << "Unable to remove vlan " << get_vlan_id() << " from port " << port;
-        log_error(GET_LOGGER("network-agent"), error.what());
+        log_debug(GET_LOGGER("network-agent"), error.what());
         THROW(agent_framework::exceptions::Fm10000Error,
                 "network-agent", ss.str());
     }
@@ -73,10 +64,10 @@ void SwitchVlan::get_info(const PortIdentifier& port, VlanPortInfo& info) {
     try {
         get_switch_info(port, info);
     }
-    catch (const std::runtime_error& error) {
+    catch(const std::runtime_error& error) {
         stringstream ss{};
         ss << "Unable to get vlan " << get_vlan_id() << " info on port " << port;
-        log_error(GET_LOGGER("network-agent"), error.what());
+        log_debug(GET_LOGGER("network-agent"), error.what());
         THROW(agent_framework::exceptions::Fm10000Error,
                 "network-agent", ss.str());
     }

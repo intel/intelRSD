@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,10 +45,10 @@ public final class ResourceResolver extends TypeIdResolverBase {
     private JavaType baseType;
 
     private static void registerResource(Class clazz, String odataType) {
-        register(OdataTypeMatcher.simpleOdataTypeMatcher(odataType, clazz));
+        register(OdataTypeMatcher.odataTypePatternMatcher(odataType, clazz));
     }
 
-    static void register(OdataTypeMatcher matcher) {
+    public static void register(OdataTypeMatcher matcher) {
         MATCHERS.add(matcher);
     }
 
@@ -99,11 +99,13 @@ public final class ResourceResolver extends TypeIdResolverBase {
             }
         }
 
+        LOGGER.e("Encountered an unknown @odata.type: {}", id);
+
         if (defaultTypeRequired()) {
+            LOGGER.i("Creating default instance for @odata.type: {}", id);
             return createDefaultType(id);
         }
 
-        LOGGER.e("Encountered an unknown @odata.type: {}", id);
         throw new NotImplementedException(id);
     }
 

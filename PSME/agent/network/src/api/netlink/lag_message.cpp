@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,52 +27,39 @@
  * */
 
 #include "api/netlink/lag_message.hpp"
+#include "netlink/nl_exception.hpp"
 
 #include <net/if.h>
+#include <linux/if_link.h>
+#include <netlink/attr.h>
 
+using std::string;
 using namespace netlink_base;
 using namespace agent::network::api::netlink;
 
-LagMessage::LagMessage(const IfName& lag, const IfName& port) :
-    Message(lag), m_port(port) { }
+LagMessage::LagMessage(const string& lag, const string& port) :
+    LinkMessage(lag), m_port(port) {
+    set_family(AF_UNSPEC);
+}
 
 LagMessage::~LagMessage() { }
 
-Message::Pointer LagMessage::prepare_netlink_msg() const {
-    struct ifinfomsg ifi{};
+void LagMessage::prepare_link_message(struct nl_msg* msg) {
     struct nlattr *lagspec{nullptr};
-    const IfName& ifname{m_ifname};
 
-    /* Allocate the lag netlink message */
-    Pointer msg(nlmsg_alloc_simple(m_type, int(m_flags)));
-    if (!msg) {
-        return nullptr;
-    }
-
-    ifi.ifi_family = AF_UNSPEC;
-    ifi.ifi_change = IFI_CHANGE_RESERVED;
-
-    /* Appending iface parameter details to netlink message msg */
-    if (0 > nlmsg_append(msg.get(), &ifi, sizeof(ifi), NLMSG_ALIGNTO)) {
-        return nullptr;
-    }
-
-    if (0 > nla_put(msg.get(), IFLA_IFNAME, int(ifname.length()),
-                    ifname.c_str())) {
-        return nullptr;
+    if (0 > nla_put(msg, IFLA_IFNAME, int(get_ifname().length()),
+                    get_ifname().c_str())) {
+        throw NlException("Cannot put iface name to the message");
     }
 
     /* Setup lag attributes */
-    lagspec = nla_nest_start(msg.get(), IFLA_LINKINFO);
+    lagspec = nla_nest_start(msg, IFLA_LINKINFO);
     if (!lagspec) {
-        return nullptr;
+        throw NlException("nla_nest_start failed");
     }
 
-    if (0 > nla_put(msg.get(), IFLA_INFO_KIND, sizeof(TEAM), TEAM)) {
-        return nullptr;
+    if (0 > nla_put(msg, IFLA_INFO_KIND, sizeof(TEAM), TEAM)) {
+        throw NlException("Cannot put IFLA_INFO_KIND to the message");
     }
-    nla_nest_end(msg.get(), lagspec);
-
-    return msg;
+    nla_nest_end(msg, lagspec);
 }
-

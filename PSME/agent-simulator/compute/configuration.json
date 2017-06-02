@@ -19,6 +19,7 @@
         "input"  : "deep_discovery.xml",
         "schema" : "deep_discovery.xsd"
     },
+    "service-uuid-file" : "/var/opt/psme/compute-service-uuid.json",
     "logger" : {
         "agent" : {
             "level" : "WARNING",

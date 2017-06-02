@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,8 @@
  * @brief Switch port parameters
  * */
 
-#ifndef AGENT_NETWORK_SWITCH_PORT_INFO_HPP
-#define AGENT_NETWORK_SWITCH_PORT_INFO_HPP
-
-#include "agent-framework/command/command_json.hpp"
-#include "netlink/message.hpp"
+#pragma once
+#include "netlink/rt_message.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -59,103 +56,32 @@ public:
     using PortIdentifier = std::string;
     using State = netlink_base::State;
 
-    /*!
-     * @enum PortAttributeType
-     * @brief Port attribute list.
-     *
-     * @var PortAttributeType SwitchPortInfo::STATUS
-     * Port Status.
-     *
-     * @var PortAttributeType SwitchPortInfo::PORTIDENTIFIER
-     * Port Identifier.
-     *
-     * @var PortAttributeType SwitchPortInfo::PORTTYPE
-     * Port type.
-     *
-     * @var PortAttributeType SwitchPortInfo::LINKTECHNOLOGY
-     * This is link technology, such as Ethernet, for this NIC.
-     *
-     * @var PortAttributeType SwitchPortInfo::LINKSPEEDMBPS
-     * Current port speed.
-     *
-     * @var PortAttributeType SwitchPortInfo::MAXSPEEDMBPS
-     * Max port speed.
-     *
-     * @var PortAttributeType SwitchPortInfo::LINKSTATE
-     * Port link state.
-     *
-     * @var PortAttributeType SwitchPortInfo::OPERATIONALSTATE
-     * Operational (administrative) state.
-     *
-     * @var PortAttributeType SwitchPortInfo::PORTWIDTH
-     * Port width, for PCI-e port this is number of PCI-e lanes.
-     *
-     * @var PortAttributeType SwitchPortInfo::FRAMESIZE
-     * MAC Frame size in bytes.
-     *
-     * @var PortAttributeType SwitchPortInfo::AUTOSENSE
-     * Indicates if the speed and duplex is automatically configured by the
-     * port.
-     *
-     * @var PortAttributeType SwitchPortInfo::ISMANAGEMENTPORT
-     * Indicates if a port may be used for switch management.
-     *
-     * @var PortAttributeType SwitchPortInfo::LASTERRORCODE
-     * Code of last error detected.
-     *
-     * @var PortAttributeType SwitchPortInfo::ERRORCLEARED
-     * Error cleared.
-     *
-     * @var PortAttributeType SwitchPortInfo::LASTSTATECHANGETIME
-     * Time of the last port state change.
-     *
-     * @var PortAttributeType SwitchPortInfo::MACADDRESS
-     * Switch port MAC address.
-     *
-     * @var PortAttributeType SwitchPortInfo::IPV4ADDRESS
-     * IPv4 address.
-     *
-     * @var PortAttributeType SwitchPortInfo::IPV6ADDRESS
-     * IPv6 address.
-     *
-     * @var PortAttributeType SwitchPortInfo::NEIGHBORINFO
-     * Neighbor information.
-     *
-     * @var PortAttributeType SwitchPortInfo::VLANENABLE
-     * Indicates if VLANs are enabled on the switch port.
-     *
-     * @var PortAttributeType SwitchPortInfo::VLANLIST
-     * List of created VLANs.
-     *
-     * @var PortAttributeType SwitchPortInfo::DEFAULTVID
-     * Default VLAN Id.
-     *
-     * */
+    /*! @brief Port attributes. */
     enum PortAttributeType {
-        STATUS,
-        PORTIDENTIFIER,
-        PORTTYPE,
-        PORTMODE,
-        LINKTECHNOLOGY,
-        LINKSPEEDMBPS,
-        MAXSPEEDMBPS,
-        ADMINISTRATIVESTATE,
-        OPERATIONALSTATE,
-        PORTWIDTH,
-        FRAMESIZE,
-        AUTOSENSE,
-        ISMANAGEMENTPORT,
-        LASTERRORCODE,
-        ERRORCLEARED,
-        LASTSTATECHANGETIME,
-        MACADDRESS,
-        IPV4ADDRESS,
-        IPV6ADDRESS,
-        NEIGHBORINFO,
-        NEIGHBORMAC,
-        VLANENABLE,
-        VLANLIST,
-        DEFAULTVID
+        STATUS, //!< Port Status
+        PORTIDENTIFIER, //!< Port Identifier
+        PORTTYPE, //!< Port type
+        PORTMODE, //!< Port mode
+        LINKTECHNOLOGY, //!< This is link technology, such as Ethernet, for this NIC
+        LINKSPEEDMBPS, //!< Current port speed
+        MAXSPEEDMBPS, //!< Max port speed
+        ADMINISTRATIVESTATE, //!< Administrative state
+        OPERATIONALSTATE, //!< Operational (administrative) state
+        PORTWIDTH, //!< Port width, for PCI-e port this is number of PCI-e lanes
+        FRAMESIZE, //!< MAC Frame size in bytes
+        AUTOSENSE, //!< Indicates if the speed and duplex is automatically configured by the port
+        ISMANAGEMENTPORT, //!< Indicates if a port may be used for switch management
+        LASTERRORCODE, //!< Code of last error detected
+        ERRORCLEARED, //!< Error cleared
+        LASTSTATECHANGETIME, //!< Time of the last port state change
+        MACADDRESS, //!< Switch port MAC address
+        IPV4ADDRESS, //!< IPv4 address
+        IPV6ADDRESS, //!< IPv6 address
+        NEIGHBORINFO, //!< Neighbor information
+        NEIGHBORMAC, //!< Neighbor MAC
+        VLANENABLE, //!< Indicates if VLANs are enabled on the switch port
+        VLANLIST, //!< List of created VLANs
+        DEFAULTVID //!< Default VLAN Id
     };
 
     /*! Port attribute value class */
@@ -163,54 +89,61 @@ public:
     public:
         /*!
          * @brief Default constructor.
-         */
+         * */
         PortAttributeValue() = default;
 
         /*!
          * @brief Default destructor.
-         */
+         * */
         ~PortAttributeValue() { }
 
         /*!
          * @brief Get bool value
+         *
          * @return Bool value.
-         */
+         * */
         bool get_bool() const;
 
         /*!
          * @brief Get number value
+         *
          * @return Number value.
-         */
+         * */
         uint32_t get_number() const;
 
         /*!
          * @brief Get string value
+         *
          * @return String value.
-         */
+         * */
         const std::string& get_string() const;
 
         /*!
          * @brief Set bool value
+         *
          * @param[in] value Value to set.
-         */
+         * */
         void set(bool value);
 
         /*!
          * @brief Set number value
+         *
          * @param[in] value Value to set.
-         */
+         * */
         void set(uint32_t value);
 
         /*!
          * @brief Set string value
+         *
          * @param[in] value Value to set.
-         */
+         * */
         void set(const std::string& value);
 
         /*!
          * @brief Set value based on Json::Value object
+         *
          * @param[in] value Value to set.
-         */
+         * */
         void set_value_from_json(const Json::Value& value);
 
         /*! Explicit class conversation to int */
@@ -243,259 +176,291 @@ public:
 
     /*!
      * @brief Default constructor.
-     */
+     * */
     SwitchPortInfo() = default;
 
     /*!
      * @brief Default constructor.
+     *
      * @param[in] switch_id Switch index.
      * @param[in] port_index port index.
-     */
+     * */
     SwitchPortInfo(uint8_t switch_id, uint8_t port_index);
 
     /*!
      * @brief Default destructor.
-     */
+     * */
     virtual ~SwitchPortInfo();
 
     /*!
      * @brief Gets Port present flag
+     *
      * @return present flag.
-     */
+     * */
     bool get_is_present() const {
         return m_is_present;
     }
 
     /*!
      * @brief Sets Port present flag
+     *
      * @param is_present Port present plag.
-     */
+     * */
     void set_is_present(const bool is_present) {
         m_is_present = is_present;
     }
 
     /*!
      * @brief Gets switch id
+     *
      * @return Switch id.
-     */
+     * */
     uint8_t get_switch_id() const {
-      return m_switch_id;
+        return m_switch_id;
     }
 
     /*!
      * @brief Sets switch id
+     *
      * @param switch_id Switch id.
-     */
+     * */
     void set_switch_id(const uint8_t switch_id) {
         m_switch_id = switch_id;
     }
 
     /*!
      * @brief Set public VLANs
+     *
      * @param public_vlans Public VLANs
-     */
+     * */
     void set_public_vlans(const PublicVlans& public_vlans) {
         m_public_vlans = public_vlans;
     }
 
     /*!
      * @brief Get public VLANs
+     *
      * @return public VLANs
-     */
+     * */
     PublicVlans get_public_vlans() const {
         return m_public_vlans;
     }
 
     /*!
      * @brief Gets port index
+     *
      * @return Switch port index.
-     */
+     * */
     uint8_t get_index() const {
-      return m_index;
+        return m_index;
     }
 
     /*!
      * @brief Sets port index
+     *
      * @param index Port index.
-     */
+     * */
     void set_index(const uint8_t index) {
         m_index = index;
     }
 
     /*!
      * @brief Gets switch port link state.
+     *
      * @return Switch port link state.
-     */
+     * */
     string get_link_state() const {
         return m_link_state.to_string();
     }
 
     /*!
      * @brief Gets switch port link state.
+     *
      * @return Switch port link state.
-     */
+     * */
     State get_link_state_enum() const {
-      return m_link_state;
+        return m_link_state;
     }
 
     /*!
      * @brief Sets switch port link state.
+     *
      * @param link_state Port link state.
-     */
+     * */
     void set_link_state(const string& link_state) {
         m_link_state = State::from_string(link_state);
     }
 
     /*!
      * @brief Sets switch port link state using enum value.
+     *
      * @param link_state Port link state.
-     */
+     * */
     void set_link_state(State link_state) {
         m_link_state = link_state;
     }
 
     /*!
      * @brief Gets switch port operational state.
+     *
      * @return Switch port operational state.
-     */
+     * */
     string get_operational_state() const {
         return m_operational_state.to_string();
     }
 
     /*!
      * @brief Sets switch port operational state.
+     *
      * @param operational_state Port operational state.
-     */
+     * */
     void set_operational_state(const string& operational_state) {
         m_operational_state = State::from_string(operational_state);
     }
 
     /*!
      * @brief Sets switch port operational state.
+     *
      * @param operational_state Port operational state.
-     */
+     * */
     void set_operational_state(State operational_state) {
         m_operational_state = operational_state;
     }
 
     /*!
      * @brief Gets switch port link speed.
+     *
      * @return Switch port link speed.
-     */
+     * */
     uint32_t get_link_speed() const {
-      return m_link_speed;
+        return m_link_speed;
     }
 
     /*!
      * @brief Sets switch port link speed
+     *
      * @param link_speed Port link speed.
-     */
+     * */
     void set_link_speed(uint32_t link_speed) {
         m_link_speed = link_speed;
     }
 
     /*!
      * @brief Gets switch port max frame size.
+     *
      * @return Switch port max frame size.
-     */
+     * */
     uint32_t get_max_frame_size() const {
-      return m_max_frame_size;
+        return m_max_frame_size;
     }
 
     /*!
      * @brief Sets switch port max frame size
+     *
      * @param max_frame_size Port max frame size.
-     */
+     * */
     void set_max_frame_size(uint32_t max_frame_size) {
         m_max_frame_size = max_frame_size;
     }
 
     /*!
      * @brief Gets switch port identifier.
+     *
      * @return Switch port identifier.
-     */
+     * */
     string get_identifier() const {
-      return m_identifier;
+        return m_identifier;
     }
 
     /*!
      * @brief Sets switch port identifier
+     *
      * @param identifier Port identifier.
-     */
+     * */
     void set_identifier(string identifier) {
         m_identifier = identifier;
     }
 
     /*!
      * @brief Gets switch port MAC address.
+     *
      * @return Switch port MAC address.
-     */
+     * */
     const string& get_mac_address() const {
-      return m_mac_address;
+        return m_mac_address;
     }
 
     /*!
      * @brief Sets switch port MAC address
+     *
      * @param mac_address Port MAC address.
-     */
+     * */
     void set_mac_address(const string& mac_address) {
         m_mac_address = mac_address;
     }
 
-     /*!
+    /*!
      * @brief Gets Port index (Port number).
+     *
      * @return port_index Port index.
-     */
+     * */
     uint32_t get_port_index() const {
         return m_index;
     }
 
     /*!
      * @brief Checks if the link state is valid.
+     *
      * @return true if the link state is valid, false otherwise.
-     */
+     * */
     bool link_state_is_valid() const {
         return State::Unknown != get_link_state_enum();
     }
 
     /*!
      * @brief Get vlan list on the port.
+     *
      * @return Vlan list.
-     */
+     * */
     const VlanList& get_vlan_list() const {
-      return m_vlan_list;
+        return m_vlan_list;
     }
 
     /*!
      * @brief Set vlan list on the port.
+     *
      * @param[in] vlan_list Vlan list.
-     */
+     * */
     void set_vlan_list(const VlanList& vlan_list) {
         m_vlan_list = vlan_list;
     }
 
     /*!
      * @brief Gets default vlan index.
+     *
      * @return Vlan default index.
-     */
+     * */
     VlanId get_default_vlan_id() const {
         return m_default_vlan_id;
     }
 
     /*!
      * @brief Set default vlan index.
+     *
      * @param[in] vlan_id Vlan Id.
-     */
+     * */
     void set_default_vlan_id(VlanId vlan_id) {
         m_default_vlan_id = vlan_id;
     }
 
     /*!
      * @brief Get port attribute type by string.
+     *
      * @param[in] attr Port attribute type as string.
+     *
      * @return Port attribtue.
-     */
-    PortAttributeType get_port_attribute_type(const std::string& attr);
+     * */
+    PortAttributeType get_port_attribute_type(const std::string& attr, const Json::Value& value);
 
 private:
     std::map<std::string, PortAttributeType> m_attribute_map {
@@ -525,4 +490,3 @@ private:
 }
 }
 }
-#endif /* AGENT_NETWORK_SWITCH_PORT_INFO_HPP */

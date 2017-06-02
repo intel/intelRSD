@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,44 @@
 
 package com.intel.podm.redfish.resources;
 
+import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.dto.redfish.RemoteTargetDto;
-import com.intel.podm.business.services.redfish.RemoteTargetService;
+import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.business.services.redfish.UpdateService;
+import com.intel.podm.common.types.redfish.RedfishRemoteTarget;
+import com.intel.podm.redfish.json.templates.actions.RemoteTargetPartialRepresentation;
+import com.intel.podm.redfish.json.templates.actions.constraints.RemoteTargetConstraint;
 
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+
+import java.util.concurrent.TimeoutException;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.ok;
 
 @Produces(APPLICATION_JSON)
 public class RemoteTargetResource extends BaseResource {
 
     @Inject
-    private RemoteTargetService remoteTargetService;
+    private ReaderService<RemoteTargetDto> readerService;
+
+    @Inject
+    private UpdateService<RedfishRemoteTarget> updateService;
 
     @Override
     public RemoteTargetDto get() {
-        return getOrThrow(() -> remoteTargetService.getRemoteTarget(getCurrentContext()));
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    }
+
+    @PATCH
+    @Consumes(APPLICATION_JSON)
+    public Response updateRemoteTarget(@RemoteTargetConstraint RemoteTargetPartialRepresentation partialRepresentation)
+            throws TimeoutException, BusinessApiException {
+        updateService.perform(getCurrentContext(), partialRepresentation);
+        return ok(get()).build();
     }
 }

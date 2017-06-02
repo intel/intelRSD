@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,12 +26,13 @@
  * @brief TypeValidator interface
  * */
 
-#ifndef CONFIGURATION_TYPE_VALIDATOR_HPP
-#define CONFIGURATION_TYPE_VALIDATOR_HPP
+#pragma once
 
 #include "validator.hpp"
 
-namespace json { class Value; }
+namespace json {
+class Value;
+}
 
 namespace configuration {
 
@@ -42,7 +43,9 @@ public:
      * @brief Construct TypeValidator for given type
      * @param type value type
      */
-    explicit TypeValidator(const std::string& type) : m_type{type} {}
+    explicit TypeValidator(const std::string& type) : m_type{type} { }
+
+    /*! @brief Default destructor */
     ~TypeValidator() = default;
 
     /*!
@@ -64,4 +67,3 @@ private:
 
 }
 
-#endif /* CONFIGURATION_TYPE_VALIDATOR_HPP */

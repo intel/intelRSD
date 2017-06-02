@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,26 +38,23 @@ using namespace ipmi::command::generic;
  */
 using PowerState = request::ChassisControlCommand::PowerState;
 
-request::ChassisControlCommand::ChassisControlCommand()
-    :Request(uint8_t(NetFn::CHASSIS), uint8_t(Cmd::CHASSIS_CONTROLL_COMMAND)) {}
+request::ChassisControlCommand::ChassisControlCommand() :
+        Request(generic::NetFn::CHASSIS, generic::Cmd::CHASSIS_CONTROLL_COMMAND) {}
 request::ChassisControlCommand::~ChassisControlCommand() {}
 
-void
-request::ChassisControlCommand::pack(vector<uint8_t>& data) const {
+void request::ChassisControlCommand::pack(std::vector<std::uint8_t>& data) const {
     data.push_back(uint8_t(m_power_state));
 }
 
-void
-request::ChassisControlCommand::set_power_state(PowerState status) {
+void request::ChassisControlCommand::set_power_state(PowerState status) {
     m_power_state = status;
 }
 
-response::ChassisControlCommand::ChassisControlCommand()
-    : Response(uint8_t(NetFn::CHASSIS), uint8_t(Cmd::CHASSIS_CONTROLL_COMMAND), RESPONSE_SIZE) {}
+response::ChassisControlCommand::ChassisControlCommand() :
+        Response(generic::NetFn::CHASSIS, generic::Cmd::CHASSIS_CONTROLL_COMMAND, RESPONSE_SIZE) {}
 response::ChassisControlCommand::~ChassisControlCommand() {}
 
-void
-response::ChassisControlCommand::unpack(const vector<uint8_t>& data) {
+void response::ChassisControlCommand::unpack(const std::vector<std::uint8_t>& data) {
     if(!is_response_correct(data)) {
         return;
     }

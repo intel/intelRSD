@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,7 @@
  * @file get_fan_pwm.hpp
  * */
 
-#ifndef IPMI_COMMAND_SDV_GET_FAN_PWM_HPP
-#define IPMI_COMMAND_SDV_GET_FAN_PWM_HPP
+#pragma once
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
@@ -33,12 +32,6 @@
 #include <string>
 #include <iostream>
 
-using std::uint8_t;
-using std::uint32_t;
-using std::vector;
-using std::map;
-using std::string;
-
 namespace ipmi {
 namespace command {
 namespace sdv {
@@ -48,7 +41,7 @@ namespace request {
 /*!
  * @brief Request message for Get Fan PWM command.
  */
-class GetFanPwm: public Request {
+class GetFanPwm : public Request {
 public:
 
     /*!
@@ -67,7 +60,7 @@ public:
      */
     virtual ~GetFanPwm();
 
-    virtual void pack(vector<uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const;
 
 };
 
@@ -78,7 +71,7 @@ namespace response {
 /*!
  * @brief Response message for Get Fan PWM command.
  */
-class GetFanPwm: public Response {
+class GetFanPwm : public Response {
 public:
 
     /*!
@@ -101,26 +94,27 @@ public:
      * @brief Gets sensor reading.
      * @return Sensor reading.
      */
-    uint8_t get_sensor_reading() const;
+    std::uint8_t get_sensor_reading() const;
 
-    virtual void unpack(const vector<uint8_t>& data);
-
-    uint8_t get_maximum_pwm() const {
+    /*!
+     * @brief Gets maximum PWM
+     * @return Maximum PWM
+     */
+    std::uint8_t get_maximum_pwm() const {
         return m_maximum_pwm;
     }
 
+    virtual void unpack(const std::vector<std::uint8_t>& data);
+
 private:
+    static constexpr std::size_t RESPONSE_SIZE = 4;
+    static constexpr std::size_t OFFSET_MAXIMUM_PWM = 2;
 
-    static constexpr size_t RESPONSE_SIZE = 4;
-
-    static constexpr size_t OFFSET_MAXIMUM_PWM = 2;
-
-    uint8_t m_maximum_pwm{};
+    std::uint8_t m_maximum_pwm{};
 };
 }
 
 }
 }
 }
-#endif
 

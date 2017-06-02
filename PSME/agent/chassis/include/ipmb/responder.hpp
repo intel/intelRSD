@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +32,8 @@ namespace ipmb {
 /*! General class for multiplex connectivity with I2C device */
 class Responder : public Mux {
 public:
-    /*! create socket, throw exception on error */
-    Responder() : Mux() {}
+    /*! Default constructor */
+    Responder() = default;
 
     /*! disable copy constructor */
     Responder(const Responder&) = delete;

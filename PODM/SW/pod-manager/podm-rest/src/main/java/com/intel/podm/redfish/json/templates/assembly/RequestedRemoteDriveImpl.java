@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package com.intel.podm.redfish.json.templates.assembly;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import java.math.BigDecimal;
 
-public final class RequestedRemoteDriveImpl implements RequestedRemoteDrive {
+public final class RequestedRemoteDriveImpl implements RequestedNode.RemoteDrive {
     @JsonProperty("CapacityGiB")
     private BigDecimal capacityGib;
 

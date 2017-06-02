@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.intel.podm.allocation.strategy;
 
 import com.intel.podm.allocation.CompositionException;
-import com.intel.podm.allocation.validation.Violations;
+import com.intel.podm.business.Violations;
 
 public class ResourceFinderException extends CompositionException {
     public ResourceFinderException(Violations violations) {

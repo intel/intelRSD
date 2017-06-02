@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,23 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
  * @file client.cpp
  * @brief Perform client I2C (outbound get/inbound response) with MUX
 */
 
 #include "ipmb/client.hpp"
 
-extern "C" {
-#include <fcntl.h>
-}
-
 using namespace agent::chassis::ipmb;
-
-Client::Client() : Mux() {
-    connect();
-    set_nonblocking(true);  // Perform all packet communications in non-blocking mode
-}
 
 byte_vec_t Client::mode() const {
     return {'C'};

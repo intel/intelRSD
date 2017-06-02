@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.intel.podm.rest.representation.json.serializers;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.intel.podm.redfish.json.templates.BaseJson;
@@ -33,7 +32,7 @@ public abstract class DtoJsonSerializer<T> extends JsonSerializer<T> implements 
     }
 
     @Override
-    public final void serialize(T value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
+    public void serialize(T value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         gen.writeObject(translate(value));
     }
 

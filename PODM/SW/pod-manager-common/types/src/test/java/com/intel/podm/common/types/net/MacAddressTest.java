@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName"})
 public class MacAddressTest {
 
     private static final byte HEX_255 = (byte) 0xFF;
@@ -40,6 +41,7 @@ public class MacAddressTest {
                 {"00:01:02:03:04:05 ", "00:01:02:03:04:05" },
                 {" 05:04:03:02:01:00", "05:04:03:02:01:00" },
                 {"Ff:FF:FF:FF:FF:FF", "ff:ff:ff:ff:ff:ff" },
+                {"b9-09:ab:12-11:FF", "b9:09:ab:12:11:ff" },
         };
     }
 

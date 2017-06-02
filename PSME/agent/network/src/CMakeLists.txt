@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,17 +18,23 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(api)
-add_subdirectory(hw)
+add_subdirectory(utils)
 add_subdirectory(command)
 add_subdirectory(loader)
 add_subdirectory(status)
 add_subdirectory(discovery)
+add_subdirectory(tree_stability)
 
 add_library(network-utils
     $<TARGET_OBJECTS:network-loaders>
+    $<TARGET_OBJECTS:network-utils-fm10000>
+    $<TARGET_OBJECTS:network-tree-stability>
+    $<TARGET_OBJECTS:network-discovery-impl>
 )
 
 set(NETWORK_COMMON_LIBRARIES
+    network-utils
+    ${NET_LIBRARIES}
     ${AGENT_FRAMEWORK_LIBRARIES}
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
@@ -36,7 +42,6 @@ set(NETWORK_COMMON_LIBRARIES
     ${JSONCXX_LIBRARIES}
     ${PCA95XX_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
-    network-utils
     pthread
     jsonrpccpp-server
     jsonrpccpp-common
@@ -62,9 +67,10 @@ if (NL3_FOUND)
 
     add_library(network-hw-api-fm10000
         $<TARGET_OBJECTS:api-fm10000>
-        $<TARGET_OBJECTS:hw-fm10000>
+        $<TARGET_OBJECTS:api-fm10000-netlink>
+        $<TARGET_OBJECTS:api-fm10000-dcrp>
         $<TARGET_OBJECTS:api-fm10000-lldp>
-    )
+     )
 
     add_library(network-discovery-fm10000
         $<TARGET_OBJECTS:network-discovery-impl>
@@ -72,6 +78,10 @@ if (NL3_FOUND)
 
     add_library(network-status-fm10000
         $<TARGET_OBJECTS:network-status-impl>
+    )
+
+    add_library(network-loader-fm10000
+        $<TARGET_OBJECTS:network-loaders>
     )
 
     add_executable(psme-network-fm10000

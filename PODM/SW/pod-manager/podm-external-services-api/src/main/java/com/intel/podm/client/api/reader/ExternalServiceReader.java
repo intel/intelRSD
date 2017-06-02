@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,18 @@ package com.intel.podm.client.api.reader;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.resources.redfish.RackscaleServiceRootResource;
 
+import java.util.Optional;
+
 public interface ExternalServiceReader extends AutoCloseable {
     RackscaleServiceRootResource getServiceRoot() throws ExternalServiceApiReaderException;
+
+    default Optional<RackscaleServiceRootResource> tryGetServiceRoot() {
+        try {
+            return Optional.of(getServiceRoot());
+        } catch (ExternalServiceApiReaderException e) {
+            return Optional.empty();
+        }
+    }
 
     @Override
     void close();

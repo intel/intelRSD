@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,17 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.util.AnnotationLiteral;
+import java.util.HashSet;
 import java.util.Set;
 
-import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName"})
 public class BeanFactoryTest {
     private static final AnnotationLiteral<Any> ANY_ANNOTATION_LITERAL = new AnnotationLiteral<Any>() {
     };
@@ -42,7 +44,7 @@ public class BeanFactoryTest {
 
         Bean<?> bean = mock(Bean.class);
         when(sut.beanManager.getBeans(TestBean.class, ANY_ANNOTATION_LITERAL))
-                .thenReturn(newHashSet(bean));
+                .thenReturn(new HashSet<>(singletonList(bean)));
 
         TestBean expected = mock(TestBean.class);
         when(bean.create(any()))
@@ -59,7 +61,7 @@ public class BeanFactoryTest {
         BeanFactory sut = new BeanFactory();
         sut.beanManager = mock(BeanManager.class);
         when(sut.beanManager.getBeans(any(), any()))
-                .thenReturn(newHashSet());
+                .thenReturn(new HashSet<>());
 
         sut.create(TestBean.class);
     }
@@ -86,7 +88,7 @@ public class BeanFactoryTest {
 
         Bean<?> bean = mock(Bean.class);
         when(sut.beanManager.getBeans(TestBean.class, ANY_ANNOTATION_LITERAL))
-                .thenReturn(newHashSet(bean));
+                .thenReturn(new HashSet<>(singletonList(bean)));
 
         CreationalContext correctContext = mock(CreationalContext.class);
 

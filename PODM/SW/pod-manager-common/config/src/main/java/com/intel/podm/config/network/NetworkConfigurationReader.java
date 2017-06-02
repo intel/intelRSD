@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,31 @@ package com.intel.podm.config.network;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.deserialization.EnumeratedTypeDeserializer;
 import com.intel.podm.common.types.deserialization.MacAddressDeserializer;
 import com.intel.podm.common.types.net.MacAddress;
 
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Supplier;
 
 import static com.intel.podm.common.types.EnumeratedType.SUB_TYPES;
 
 /**
  * Reads preconfigured content for the given type from config json file
  */
+@Dependent
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class NetworkConfigurationReader {
 
     public static final String DEFAULT_PATH_TO_CONFIGURATION_FILES = "/tmp/pod-manager/config";
+
+    @Inject
+    private Logger logger;
 
     public <T> T readConfiguration(String configurationName, Class<T> type) throws NetworkConfigurationIOException {
         String path = DEFAULT_PATH_TO_CONFIGURATION_FILES + "/" + configurationName + ".json";
@@ -45,6 +54,15 @@ public class NetworkConfigurationReader {
             return mapper.readValue(is, type);
         } catch (IOException e) {
             throw new NetworkConfigurationIOException("Could not read configuration : " + path + ". ", e);
+        }
+    }
+
+    public <T> T readConfigurationOrComputeDefault(String configurationName, Class<T> type, Supplier<T> defaultConfigSupplier) {
+        try {
+            return readConfiguration(configurationName, type);
+        } catch (NetworkConfigurationIOException e) {
+            logger.e("Pod manager network service configuration is unavailable, using defaults");
+            return defaultConfigSupplier.get();
         }
     }
 

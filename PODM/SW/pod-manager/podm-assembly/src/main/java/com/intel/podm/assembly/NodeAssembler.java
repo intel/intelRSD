@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package com.intel.podm.assembly;
 
 import com.intel.podm.allocation.ComposedNodeStateChanger;
 import com.intel.podm.assembly.tasks.NodeTasksCoordinator;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
+import com.intel.podm.business.BusinessApiException;
+import com.intel.podm.business.ResourceStateMismatchException;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -38,9 +40,9 @@ public class NodeAssembler {
     private NodeTasksCoordinator nodeTasksCoordinator;
 
     @Transactional(REQUIRED)
-    public void assemble(ComposedNode composedNode) throws AssemblyException {
+    public void assemble(ComposedNode composedNode) throws AssemblyException, BusinessApiException {
         if (!composedNode.isInAnyOfStates(ALLOCATED)) {
-            throw new AssemblyException(format("Only composed node in %s state can be assembled", ALLOCATED));
+            throw new ResourceStateMismatchException(format("Only composed node in %s state can be assembled", ALLOCATED));
         }
         composedNodeStateChanger.change(composedNode.getId(), ASSEMBLING);
         nodeTasksCoordinator.runTasks(composedNode.getId());

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,11 @@
  * @brief Switch port netlink message class
  * */
 
-#ifndef AGENT_NETWORK_NETLINK_PORT_MESSAGE_HPP
-#define AGENT_NETWORK_NETLINK_PORT_MESSAGE_HPP
+#pragma once
 
-/* Internal headers */
-#include "netlink/message.hpp"
+#include "api/netlink/link_message.hpp"
 
-/* C/C++ standard headers */
+#include <linux/rtnetlink.h>
 
 namespace agent {
 namespace network {
@@ -37,49 +35,58 @@ namespace api {
 namespace netlink {
 
 /*! Port Message class */
-class PortMessage: public netlink_base::Message {
+class PortMessage : public agent::network::api::netlink::LinkMessage {
 public:
-    using IfName = Message::IfName;
-
     /*!
-     * @brief Default constructor.
-     */
-    PortMessage() = delete;
-
-    /*!
-     * @brief Default constructor.
-     * @param[in] ifname Interface name.
-     */
-    PortMessage(const IfName& ifname);
+     * @brief Default constructor
+     *
+     * @param[in] ifname Interface name
+     * */
+    PortMessage(const std::string& ifname);
 
     /*!
      * @brief Default destructor.
-     */
+     * */
     virtual ~PortMessage();
 
     /*!
-     * @brief Prepare port netlink message.
-     * @return Netlink message ready to be sent.
-     */
-    Pointer prepare_netlink_msg() const;
+     * @brief Get master port
+     *
+     * @return Master port
+     * */
+    const std::string& get_master() { return m_master; }
 
     /*!
-     * @brief Parse recv netlink header.
-     * @param[in] nlhdr Netlink header.
-     */
-    void parse_netlink_hdr(NetlinkHeader& nlhdr);
-
-    /*!
-     * @brief Get master port.
-     * @return Master port.
-     */
-    const IfName& get_master() { return m_master; }
-
-    /*!
-     * @brief Check if the port in a member.
-     * @return Is port member (true/false).
-     */
+     * @brief Check if the port in a member
+     *
+     * @return true if port is member otherwise false
+     * */
     bool is_member() const { return m_member; }
+
+protected:
+    /*!
+     * @brief Prepare message to be sent.
+     * */
+    void prepare_link_message(struct nl_msg*) override;
+
+    /*!
+     * @brief Message handler.
+     * */
+    void process_link_message(struct nl_msg*, const struct ifinfomsg*) override;
+
+    /*!
+     * @brief Get filter mask.
+     *
+     * @return Filter mask.
+     * */
+    uint32_t get_filter_mask() const { return m_filter_mask; }
+
+    /*!
+     * @brief Set filter mask.
+     *
+     * @param[in] filter_mask Filter mask.
+     * */
+    void set_filter_mask(uint32_t filter_mask) { m_filter_mask = filter_mask; }
 
 private:
 
@@ -87,12 +94,13 @@ private:
     bool m_member{false};
 
     /*! master interface name */
-    IfName m_master{};
+    std::string m_master{};
+
+    /*! Filter mask */
+    uint32_t m_filter_mask{RTEXT_FILTER_VF};
 };
 
 } /* netlink */
 } /* api */
 } /* network */
 } /* agent */
-
-#endif /* AGENT_NETWORK_NETLINK_PORT_MESSAGE_HPP */

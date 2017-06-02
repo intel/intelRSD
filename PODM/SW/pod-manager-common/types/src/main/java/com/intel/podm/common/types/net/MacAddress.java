@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,46 +16,49 @@
 
 package com.intel.podm.common.types.net;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.intel.podm.common.utils.Contracts.requires;
+import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
+import static java.util.regex.Pattern.compile;
 import static org.apache.commons.lang.StringUtils.trimToNull;
 
 /**
  * Provides lower case string representation of provided MAC Address.
  */
-public class MacAddress {
+public class MacAddress implements Serializable {
+    private static final long serialVersionUID = 5747417246966085116L;
     private static final int MAC_LENGTH = 6;
     private static final int HEX_RADIX = 16;
-    private static final String MAC_PATTERN = "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$";
+    private static final String MAC_PATTERN = "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$";
 
     private final byte[] macAddressBytes;
 
     public MacAddress(byte[] macAddressBytes) {
-        checkArgument(macAddressBytes != null, "MAC Address must not be null");
-        checkArgument(macAddressBytes.length == MAC_LENGTH, "MAC Address length is " + macAddressBytes.length + " bytes instead of " + MAC_LENGTH + " bytes");
+        requires(macAddressBytes != null, "MAC Address must not be null");
+        requires(macAddressBytes.length == MAC_LENGTH, "MAC Address length is " + macAddressBytes.length + " bytes instead of " + MAC_LENGTH + " bytes");
 
         this.macAddressBytes = macAddressBytes.clone();
     }
 
     public MacAddress(String macAddressString) {
         String localMacAddressString = trimToNull(macAddressString);
-        checkArgument(localMacAddressString != null, "MAC Address must not be empty or null");
+        requires(localMacAddressString != null, "MAC Address must not be empty or null");
 
-        Pattern pattern = Pattern.compile(MAC_PATTERN);
+        Pattern pattern = compile(MAC_PATTERN);
         Matcher matcher = pattern.matcher(localMacAddressString);
 
-        checkArgument(matcher.matches(),
-                "MAC Address must contain 12 hex digits separated pairwise by ':' (provided MAC Address: [" + macAddressString + "])");
+        requires(matcher.matches(), "MAC Address must contain 12 hex digits separated pairwise by ':' (provided MAC Address: [" + macAddressString + "])");
 
-        String[] hexPairs = localMacAddressString.split(":");
+        String[] hexPairs = localMacAddressString.split("[:-]");
 
         byte[] macAddressInBytes = new byte[MAC_LENGTH];
         for (int i = 0; i < MAC_LENGTH; i++) {
-            macAddressInBytes[i] = (byte) Integer.parseInt(hexPairs[i], HEX_RADIX);
+            macAddressInBytes[i] = (byte) parseInt(hexPairs[i], HEX_RADIX);
         }
 
         this.macAddressBytes = macAddressInBytes;

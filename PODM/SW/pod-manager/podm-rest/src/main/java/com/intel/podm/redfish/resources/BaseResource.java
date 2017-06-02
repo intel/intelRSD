@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.BusinessApiException;
+import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.redfish.resources.context.ContextBuilder;
 import com.intel.podm.redfish.resources.context.ContextBuilderException;
@@ -34,18 +35,19 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.business.services.context.PathParamConstants.getPathParameterNames;
 import static com.intel.podm.common.types.Id.fromString;
 import static com.intel.podm.redfish.OptionsResponseBuilder.newDefaultOptionsResponseBuilder;
 import static com.intel.podm.rest.error.PodmExceptions.notFound;
-import static com.intel.podm.rest.resources.PathParamConstants.getPathParameterNames;
 import static java.lang.String.format;
 import static org.apache.commons.lang.StringUtils.removeEnd;
 import static org.apache.commons.lang.StringUtils.removeStart;
 
 //TODO: extract some methods since this class brokes CheckStyles MethodCount rule
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public abstract class BaseResource {
-
     @Context
     private ResourceContext rc;
 
@@ -66,7 +68,7 @@ public abstract class BaseResource {
     }
 
     @DELETE
-    public Object delete() {
+    public Object delete() throws TimeoutException, BusinessApiException {
         return throwResourceNotFoundOrMethodNotAllowed();
     }
 
@@ -95,7 +97,7 @@ public abstract class BaseResource {
     public static <T> T getOrThrow(EntitySupplier<T> closure) {
         try {
             return closure.get();
-        } catch (EntityNotFoundException e) {
+        } catch (ContextResolvingException e) {
             throw notFound();
         }
     }
@@ -183,6 +185,6 @@ public abstract class BaseResource {
     }
 
     interface EntitySupplier<V> {
-        V get() throws EntityNotFoundException;
+        V get() throws ContextResolvingException;
     }
 }

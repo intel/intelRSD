@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
@@ -44,15 +42,11 @@ public class ConfigHolderFactory {
         return new StaticHolder<>(configProvider.get(configClass));
     }
 
-    private Class getConfigClass(InjectionPoint injectionPoint) {
-        Member member = injectionPoint.getMember();
-
-        if (member instanceof Field) {
-            Type fieldType = ((Field) member).getGenericType();
-            ParameterizedType parameterizedType = (ParameterizedType) fieldType;
-            return (Class) parameterizedType.getActualTypeArguments()[0];
+    Class getConfigClass(InjectionPoint injectionPoint) {
+        Type type = injectionPoint.getType();
+        if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
+            return (Class) ((ParameterizedType) type).getActualTypeArguments()[0];
         }
-
         throw new UnsupportedOperationException("Given injection point is not supported");
     }
 }

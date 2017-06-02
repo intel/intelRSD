@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,73 +32,55 @@
 
 using namespace agent::chassis::ipmb;
 
-void Mux::connect(::in_port_t port, ::in_addr_t address) {
+constexpr const std::uint16_t Mux::MUX_TIMEOUT_SEC;
 
-    // Perform basic socket connection
-    Socket::connect(port, address);
+Mux::~Mux() { }
 
-    // keep the connection as non-blocking so we can time out on reads during
-    // negotiation
-    set_nonblocking(true);
+void Mux::close() {
+    m_socket.close();
+}
 
-    // Issue to MUX what kind of connection (client/responder/etc.)
+void Mux::connect(const net::SocketAddress& mux_address) {
+    m_socket.connect(mux_address);
+
+    m_socket.set_blocking(false);
+
     send(mode());
 
-    // Check for an acknowledgement from the MUX for this type of connection
-    // Don't use possibly overridden recv for negotiation.
-    auto response = Mux::recv(MUX_MAX_ACK_LENGTH);   // Should receive "OK" or "NOK"
-
-    if (0 == response.size()) {
-        close();
-        throw std::runtime_error("MUX returned no data during negotiation");
-    }
+    auto resp = recv(MUX_MAX_ACK_LENGTH); // Should receive "OK" or "NOK"
 
     // Stringify the [unsigned) bytes received
-    std::string rstr{};
-    for (auto ch : response) rstr.push_back(static_cast<char>(ch));
+    std::string rstr{resp.cbegin(), resp.cend()};
 
     if ("OK" != rstr) {
-        close();
         throw std::runtime_error("MUX NAK'd connection: (received \"" + rstr + "\")");
     }
-
-    // return the socket back to the default blocking mode.
-    set_nonblocking(false);
 }
 
-byte_vec_t Mux::recv(std::size_t size) {
-    if (is_nonblocking()) {
-        fd_set rfds;
-        FD_ZERO(&rfds);
-        FD_SET(fd(), &rfds);
-
-        // Sleep on the socket, until data is received or timeout
-        auto retval = ::select(fd()+1, &rfds, nullptr, nullptr, &m_timeout);
-        if (0 == retval) {
-            throw std::runtime_error(TIMEDOUT);
-        }
-        else if (retval < 0) {
-            throw std::runtime_error(std::strerror(errno));
-        }
+byte_vec_t Mux::recv(std::size_t size, const net::Duration& timeout) {
+    if (!m_socket.poll(timeout, net::Socket::SELECT_READ)) {
+        throw net::TimeoutException();
     }
-    return Socket::recv(size);
-}
-
-void Mux::send(const byte_vec_t& in) {
-    if (is_nonblocking()) {
-        fd_set wfds;
-        FD_ZERO(&wfds);
-        FD_SET(fd(), &wfds);
-
-        // Sleep on the socket, until data is ready to send or timeout
-        auto retval = ::select(fd()+1, nullptr, &wfds, nullptr, &m_timeout);
-        if (0 == retval) {
-            throw std::runtime_error(TIMEDOUT);
-        }
-        else if (retval < 0) {
-            throw std::runtime_error(std::strerror(errno));
-        }
+    byte_vec_t buffer;
+    buffer.resize(size);
+    auto bytes = m_socket.receive_bytes(buffer.data(), size);
+    if (0 >= bytes) {
+        throw std::runtime_error(" Cannot read MUX data rc: "
+                                 + std::to_string(bytes)
+                                 + " socket: " + std::strerror(errno));
     }
-    return Socket::send(in);
+    buffer.resize(static_cast<unsigned>(bytes));
+    return buffer;
 }
 
+void Mux::send(const byte_vec_t& in, const net::Duration& timeout) {
+    if (!m_socket.poll(timeout, net::Socket::SELECT_WRITE)) {
+        throw net::TimeoutException();
+    }
+    auto write_size = m_socket.send_bytes(in.data(), in.size());
+    if (in.size() != static_cast<std::size_t>(write_size)) {
+        throw std::runtime_error("Written "
+                + std::to_string(static_cast<std::size_t> (write_size))
+                + " bytes out of " + std::to_string(in.size()));
+    }
+}

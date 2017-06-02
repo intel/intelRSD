@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static java.util.Collections.singletonList;
 
 public final class RedfishErrorResponseJson {
     @JsonProperty("code")
@@ -42,6 +43,10 @@ public final class RedfishErrorResponseJson {
         this.code = errorType;
         this.message = errorMessage;
         this.extendedInfo = extendedInfo;
+    }
+
+    public static List<ExtendedInfoJson> createExtendedInfoJsonList(String extendedInfoMessage) {
+        return singletonList(new ExtendedInfoJson(null, extendedInfoMessage));
     }
 
     @JsonInclude(NON_NULL)

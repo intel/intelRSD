@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 #include <stdio.h>
 #include "libcfg/cfg.h"
 
-void pirint_rmm_log_module(int index, struct rmm_log_module log_module)
+void pirint_rmm_log_module(int index, const struct rmm_log_module* log_module)
 {
 	printf("[%d] module name:%-16s, module level: %d, max line: %d.\n",
-		index, log_module.name, log_module.level, log_module.max_lines);
+		index, log_module->name, log_module->level,
+		log_module->max_lines);
 }
 
 int main(int argc, char **argv)
@@ -52,7 +53,7 @@ int main(int argc, char **argv)
 	rmm_cfg_get_log_modules(modules, &modules_cnt);
 
 	for (index = 0; index < modules_cnt; index++) {
-		pirint_rmm_log_module(index, modules[index]);
+		pirint_rmm_log_module(index, &modules[index]);
 	}
 
 	printf("\n");

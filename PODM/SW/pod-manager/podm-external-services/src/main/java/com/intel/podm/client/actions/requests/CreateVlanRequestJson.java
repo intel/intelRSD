@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,20 @@ package com.intel.podm.client.actions.requests;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CreateVlanRequestJson {
-    @JsonProperty("Name")
-    private final String name = "VLAN";
-    @JsonProperty("Description")
-    private final String description = "VLAN created by PodM";
 
     @JsonProperty("VLANId")
     private int id;
 
+    @JsonProperty("VLANEnable")
+    private boolean vlanEnable;
+
     @JsonProperty("Oem")
     private final Oem oem = new Oem();
 
-    public CreateVlanRequestJson(int id, boolean tagged) {
+    public CreateVlanRequestJson(int id, boolean tagged, boolean enabled) {
         this.id = id;
         this.oem.rackScaleOem.tagged = tagged;
+        this.vlanEnable = enabled;
     }
 
     private static final class Oem {

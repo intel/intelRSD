@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package com.intel.podm.allocation.validation;
 
-import com.intel.podm.business.dto.redfish.RequestedMasterDrive;
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
-import com.intel.podm.business.entities.DomainObjectNotFoundException;
+import com.intel.podm.business.Violations;
+import com.intel.podm.business.entities.EntityNotFoundException;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.dao.RemoteTargetIscsiAddressDao;
 import com.intel.podm.business.entities.redfish.LogicalDrive;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -39,7 +39,7 @@ public class NewRemoteDriveValidator {
     @Inject
     private RemoteTargetIscsiAddressDao remoteTargetIscsiAddressDao;
 
-    public Violations validate(RequestedRemoteDrive drive) {
+    public Violations validate(RequestedNode.RemoteDrive drive) {
         Violations violations = new Violations();
 
         Violations masterDriveViolations = validateMaster(drive);
@@ -55,8 +55,8 @@ public class NewRemoteDriveValidator {
         return violations;
     }
 
-    private Violations validateMaster(RequestedRemoteDrive drive) {
-        RequestedMasterDrive masterDrive = drive.getMaster();
+    private Violations validateMaster(RequestedNode.RemoteDrive drive) {
+        RequestedNode.RemoteDrive.MasterDrive masterDrive = drive.getMaster();
         Violations violations = new Violations();
         if (masterDrive == null) {
             violations.addMissingPropertyViolation("Master");
@@ -73,7 +73,7 @@ public class NewRemoteDriveValidator {
         return violations;
     }
 
-    private void validateMasterAvailabilityAndProperties(RequestedMasterDrive masterDrive, Violations violations) {
+    private void validateMasterAvailabilityAndProperties(RequestedNode.RemoteDrive.MasterDrive masterDrive, Violations violations) {
         try {
             LogicalDrive master = genericDao.find(LogicalDrive.class, masterDrive.getResourceContext().getId());
 
@@ -85,12 +85,12 @@ public class NewRemoteDriveValidator {
             if (!master.isEnabledAndHealthy()) {
                 violations.addViolation("Provided master drive should be enabled and healthy.");
             }
-        } catch (DomainObjectNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             violations.addViolation("Provided master drive does not exist.");
         }
     }
 
-    private Violations validateRemoteDrive(RequestedRemoteDrive drive) {
+    private Violations validateRemoteDrive(RequestedNode.RemoteDrive drive) {
         Violations remoteDriveViolations = validateCapacity(drive);
         remoteDriveViolations.addAll(remoteDriveViolations);
         String iscsiAddress = drive.getIscsiAddress();
@@ -104,7 +104,7 @@ public class NewRemoteDriveValidator {
         return remoteDriveViolations;
     }
 
-    private Violations validateCapacity(RequestedRemoteDrive drive) {
+    private Violations validateCapacity(RequestedNode.RemoteDrive drive) {
         BigDecimal capacity = drive.getCapacityGib();
         Violations violations = new Violations();
 
@@ -122,20 +122,20 @@ public class NewRemoteDriveValidator {
         return violations;
     }
 
-    private void validateThatRequestedDriveIsBigEnough(RequestedRemoteDrive drive, Violations violations) {
+    private void validateThatRequestedDriveIsBigEnough(RequestedNode.RemoteDrive drive, Violations violations) {
         if (drive.getMaster().getType().equals(CLONE)) {
             try {
                 LogicalDrive master = genericDao.find(LogicalDrive.class, drive.getMaster().getResourceContext().getId());
                 if (drive.getCapacityGib().compareTo(master.getCapacityGib()) < 0) {
                     violations.addViolation(
-                            format(
-                                    "Remote Drive's CapacityGiB [%sGiB] should be greater or equal to Master Drive's CapacityGiB [%sGiB].",
-                                    drive.getCapacityGib(),
-                                    master.getCapacityGib()
-                            )
+                        format(
+                            "Remote Drive's CapacityGiB [%sGiB] should be greater or equal to Master Drive's CapacityGiB [%sGiB].",
+                            drive.getCapacityGib(),
+                            master.getCapacityGib()
+                        )
                     );
                 }
-            } catch (DomainObjectNotFoundException e) {
+            } catch (EntityNotFoundException e) {
                 violations.addViolation("Provided master drive does not exist.");
             }
         }

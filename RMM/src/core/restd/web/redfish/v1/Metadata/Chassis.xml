@@ -25,12 +25,6 @@
   <edmx:Reference Uri="LogServiceCollection.xml">
     <edmx:Include Namespace="LogServiceCollection"/>
   </edmx:Reference>
-  <edmx:Reference Uri="ThermalZoneCollection.xml">
-    <edmx:Include Namespace="RmmThermalZoneCollection"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="PowerZoneCollection.xml">
-    <edmx:Include Namespace="RmmPowerZoneCollection"/>
-  </edmx:Reference>
 
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis">
@@ -78,7 +72,8 @@
                       String="The value of this property shall be a part number assigned by the organization that is responsible for producing or manufacturing the chassis."/>
         </Property>
         <Property Name="AssetTag" Type="Edm.String">
-          <Annotation Term="OData.Description" String="The user assigned asset tag for this chassis."/>
+            <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+            <Annotation Term="OData.Description" String="The user assigned asset tag for this chassis."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be an identifying string used to track the chassis for inventory purposes."/>
         </Property>

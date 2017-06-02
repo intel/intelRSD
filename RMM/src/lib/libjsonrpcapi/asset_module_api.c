@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ int asset_module_set_gami_attr(int *ip_addr, int *port)
 	fill_param(&req_pkg, JRPC_GAMI_REG_PORT, &tmp_port, JSON_INTEGER);
 
 	rc = send_msg_to_asset_module(&req_pkg, &rsp_pkg, REG_APP);
+	jrpc_req_pkg_free(&req_pkg);
 	jrpc_rsp_pkg_free(&rsp_pkg);
 
 	return rc;

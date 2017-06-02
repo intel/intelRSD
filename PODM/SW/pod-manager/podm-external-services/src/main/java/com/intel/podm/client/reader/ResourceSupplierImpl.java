@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import com.intel.podm.client.api.resources.ExternalServiceResource;
 
 import java.net.URI;
 
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+
 
 /**
  * Generic ResourceSupplier implementation that uses HTTP to lazy load Resources
@@ -39,8 +41,12 @@ public final class ResourceSupplierImpl implements ResourceSupplier {
     @Override
     public ExternalServiceResource get() throws ExternalServiceApiReaderException {
         ExternalServiceResource resource = webClient.get(uri);
+        if (uri.getFragment() != null) {
+            resource = resource.getByFragment(uri.getFragment());
+            requiresNonNull(resource, () -> new ExternalServiceApiReaderException("Requested resource doesn't exist", uri));
+            resource.setWebClient(webClient);
+        }
         resource.setUri(uri);
-
         return resource;
     }
 

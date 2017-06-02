@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,14 +24,12 @@
 from include.psme_xml_structure.model.psme_structure_element import PsmeStructureElement
 
 from include.psme_xml_structure.model.compute_system import ComputeSystem
-from include.psme_xml_structure.model.fru_info import FruInfo
-from include.psme_xml_structure.model.status import Status
-from include.psme_xml_structure.model.bmc import Bmc
 from include.psme_xml_structure.model.chassis import Chassis
 
 class ManagerBlade(PsmeStructureElement):
     def __init__(self):
         self.ComputeSystem = ComputeSystem()
         self.chassis = Chassis("Module")
+        self.chassis.drive = []
         self.serialConsole = {"enabled" : "true"}
 

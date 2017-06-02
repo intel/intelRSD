@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,36 @@
 
 package com.intel.podm.templates.assets;
 
-import com.intel.podm.business.dto.redfish.RequestedMemory;
 import com.intel.podm.business.entities.redfish.Memory;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.MemoryDeviceType;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.MemoryDeviceType;
 
 import java.math.BigDecimal;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings({"checkstyle:ParameterNumber"})
 public final class MemoryModulesCreation {
     private MemoryModulesCreation() {
     }
 
-    public static RequestedMemory createRequestedMemory(MemoryDeviceType memoryDeviceType, Integer achievableSpeedMhz, Integer dataWidthBits,
-                                                        Integer sizeMib, String manufacturer) {
+    public static RequestedNode.Memory createRequestedMemory(MemoryDeviceType memoryDeviceType, Integer achievableSpeedMhz, Integer dataWidthBits,
+                                                             BigDecimal sizeMib, String manufacturer) {
         return createRequestedMemory(memoryDeviceType, achievableSpeedMhz, dataWidthBits, sizeMib, manufacturer, null, null);
     }
 
-    public static RequestedMemory createRequestedMemory(MemoryDeviceType memoryDeviceType, Integer achievableSpeedMhz, Integer dataWidthBits,
-                                                        Integer sizeMib, String manufacturer, Context resourceContext) {
+    public static RequestedNode.Memory createRequestedMemory(MemoryDeviceType memoryDeviceType, Integer achievableSpeedMhz, Integer dataWidthBits,
+                                                             BigDecimal sizeMib, String manufacturer, Context resourceContext) {
         return createRequestedMemory(memoryDeviceType, achievableSpeedMhz, dataWidthBits, sizeMib, manufacturer, resourceContext, null);
     }
 
-    public static RequestedMemory createRequestedMemory(MemoryDeviceType memoryDeviceType, Integer achievableSpeedMhz, Integer dataWidthBits,
-                                                        Integer sizeMib, String manufacturer, Context resourceContext, Context chassisContext) {
-        RequestedMemory mock = mock(RequestedMemory.class);
-        when(mock.getCapacityMib()).thenReturn(sizeMib == null ? null : BigDecimal.valueOf(sizeMib));
+    public static RequestedNode.Memory createRequestedMemory(MemoryDeviceType memoryDeviceType, Integer achievableSpeedMhz, Integer dataWidthBits,
+                                                             BigDecimal sizeMib, String manufacturer, Context resourceContext, Context chassisContext) {
+        RequestedNode.Memory mock = mock(RequestedNode.Memory.class);
+        when(mock.getCapacityMib()).thenReturn(sizeMib == null ? null : sizeMib);
         when(mock.getMemoryDeviceType()).thenReturn(memoryDeviceType);
         when(mock.getSpeedMhz()).thenReturn(achievableSpeedMhz);
         when(mock.getManufacturer()).thenReturn(manufacturer);
@@ -56,12 +57,12 @@ public final class MemoryModulesCreation {
     }
 
     public static Memory createAvailableMemory(MemoryDeviceType memoryDeviceType, Integer speedMhz, Integer dataWidthBits,
-                                                   Integer sizeMib, String manufacturer) {
+                                               Integer sizeMib, String manufacturer) {
         return createAvailableMemory(memoryDeviceType, speedMhz, dataWidthBits, sizeMib, manufacturer, null);
     }
 
     public static Memory createAvailableMemory(MemoryDeviceType memoryDeviceType, Integer speedMhz, Integer dataWidthBits,
-                                                   Integer sizeMib, String manufacturer, Id id) {
+                                               Integer sizeMib, String manufacturer, Id id) {
         Memory mock = mock(Memory.class);
         when(mock.getCapacityMib()).thenReturn(sizeMib);
         when(mock.getMemoryDeviceType()).thenReturn(memoryDeviceType);
