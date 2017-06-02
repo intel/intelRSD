@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,30 +23,41 @@
  * @brief Declaration of ISCSI error interface
  * */
 
-#ifndef AGENT_FRAMEWORK_EXCEPTIONS_ISCSI_ERROR_HPP
-#define AGENT_FRAMEWORK_EXCEPTIONS_ISCSI_ERROR_HPP
+#pragma once
 
-#include "agent-framework/exceptions/exception_base.hpp"
+
+
+#include "agent-framework/exceptions/gami_exception.hpp"
+
+
 
 namespace agent_framework {
 namespace exceptions {
 
 /*! @brief iSCSI exception class */
-class IscsiError final : public ExceptionBase {
+class IscsiError final : public GamiException {
 public:
+
     /*!
      * @brief Constructor
      *
      * @param[in] msg Error message
      */
     explicit IscsiError(const std::string& msg) :
-                ExceptionBase{ErrorCode::ISCSI, msg} {}
+        GamiException(ErrorCode::ISCSI, msg) {}
+
 
     IscsiError(const IscsiError&) = default;
+
+
     IscsiError& operator=(const IscsiError&) = default;
 
+
     IscsiError(IscsiError&&) = default;
+
+
     IscsiError& operator=(IscsiError&&) = default;
+
 
     /*! @brief Destructor */
     ~IscsiError();
@@ -55,4 +66,3 @@ public:
 } // namespace exceptions
 } // namespace agent_framework
 
-#endif	/* AGENT_FRAMEWORK_EXCEPTIONS_ISCSI_ERROR_HPP */

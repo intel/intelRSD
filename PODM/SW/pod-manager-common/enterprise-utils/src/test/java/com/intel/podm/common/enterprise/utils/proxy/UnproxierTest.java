@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static com.intel.podm.common.enterprise.utils.proxy.Unproxier.unproxy;
 import static org.mockito.Mockito.spy;
 import static org.testng.Assert.assertEquals;
 
+@SuppressWarnings({"checkstyle:MethodName"})
 public class UnproxierTest {
     @Test
     public void WhenUnproxingProxiedClass_ShouldReturnProperClass() {
@@ -39,7 +40,7 @@ public class UnproxierTest {
         assertEquals(actualClass, AnotherTestClass.class);
     }
 
-    @Test(expectedExceptions = NullPointerException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void whenUnproxingNullClass_ShouldThrow() {
         unproxy(null);
     }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@ namespace {
     static const constexpr char* ADMIN_STATUS_RX= "rx";
     static const constexpr char* ADMIN_STATUS_TX= "tx";
 
-    static inline Response send_request(const Request& request) {
+    Response send_request(const Request& request) {
         Interface conn{};
 
         /* send LLDP request to the LLDP daemon */

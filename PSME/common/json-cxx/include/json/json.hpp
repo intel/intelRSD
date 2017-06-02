@@ -41,9 +41,7 @@
  * @brief JSON interface
  * */
 
-#ifndef JSON_CXX_HPP
-#define JSON_CXX_HPP
-
+#pragma once
 #include "json/value.hpp"
 #include "json/number.hpp"
 #include "json/iterator.hpp"
@@ -52,4 +50,3 @@
 #include "json/serializer.hpp"
 #include "json/deserializer.hpp"
 
-#endif /* JSON_CXX_HPP */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,20 @@ import com.intel.podm.business.dto.redfish.attributes.ExtendedInfoDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV4AddressDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV6AddressDto;
 import com.intel.podm.business.dto.redfish.attributes.IpV6AddressPolicyDto;
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.net.MacAddress;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
 import java.util.List;
 
-public final class EthernetInterfaceDto {
-    private final Id id;
+@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ExecutableStatementCount", "checkstyle:MethodLength"})
+public final class EthernetInterfaceDto extends BaseDto implements RedfishResource {
+    private final String id;
     private final String name;
     private final String description;
+    private final List<UnknownOemDto> unknownOems;
     private final Status status;
     private final Boolean interfaceEnabled;
     private final MacAddress permanentMacAddress;
@@ -50,13 +53,13 @@ public final class EthernetInterfaceDto {
     private final List<IpV6AddressDto> ipv6Addresses;
     private final List<IpV6AddressDto> ipv6StaticAddresses;
     private final List<IpV6AddressPolicyDto> ipV6AddressesPolicyTable;
-    private Context neighborPort;
-    private List<ExtendedInfoDto> neighborPortExtendedInfo;
+    private final Links links;
 
     private EthernetInterfaceDto(Builder builder) {
         id = builder.id;
         name = builder.name;
         description = builder.description;
+        unknownOems = builder.unknownOems;
         status = builder.status;
         interfaceEnabled = builder.interfaceEnabled;
         permanentMacAddress = builder.permanentMacAddress;
@@ -76,24 +79,31 @@ public final class EthernetInterfaceDto {
         ipv6Addresses = builder.ipv6Addresses;
         ipv6StaticAddresses = builder.ipv6StaticAddresses;
         ipV6AddressesPolicyTable = builder.ipV6AddressesPolicyTable;
-        neighborPort = builder.neighborPort;
-        neighborPortExtendedInfo = builder.neighborPortExtendedInfo;
+        links = new Links(builder.neighborPort, builder.neighborPortExtendedInfo);
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public Status getStatus() {
@@ -172,18 +182,34 @@ public final class EthernetInterfaceDto {
         return ipV6AddressesPolicyTable;
     }
 
-    public Context getNeighborPort() {
-        return neighborPort;
+    @Override
+    public Links getLinks() {
+        return links;
     }
 
-    public List<ExtendedInfoDto> getNeighborPortExtendedInfo() {
-        return neighborPortExtendedInfo;
+    public static final class Links implements RedfishResource.Links {
+        private Context neighborPort;
+        private List<ExtendedInfoDto> neighborPortExtendedInfo;
+
+        public Links(Context neighborPort, List<ExtendedInfoDto> neighborPortExtendedInfo) {
+            this.neighborPort = neighborPort;
+            this.neighborPortExtendedInfo = neighborPortExtendedInfo;
+        }
+
+        public Context getNeighborPort() {
+            return neighborPort;
+        }
+
+        public List<ExtendedInfoDto> getNeighborPortExtendedInfo() {
+            return neighborPortExtendedInfo;
+        }
     }
 
     public static final class Builder {
-        private Id id;
+        private String id;
         private String name;
         private String description;
+        private List<UnknownOemDto> unknownOems;
         private Status status;
         private Boolean interfaceEnabled;
         private MacAddress permanentMacAddress;
@@ -209,123 +235,128 @@ public final class EthernetInterfaceDto {
         private Builder() {
         }
 
-        public Builder id(Id val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder description(String val) {
-            description = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 
-        public Builder interfaceEnabled(Boolean val) {
-            interfaceEnabled = val;
+        public Builder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public Builder permanentMacAddress(MacAddress val) {
-            permanentMacAddress = val;
+        public Builder interfaceEnabled(Boolean interfaceEnabled) {
+            this.interfaceEnabled = interfaceEnabled;
             return this;
         }
 
-        public Builder macAddress(MacAddress val) {
-            macAddress = val;
+        public Builder permanentMacAddress(MacAddress permanentMacAddress) {
+            this.permanentMacAddress = permanentMacAddress;
             return this;
         }
 
-        public Builder speedMbps(Integer val) {
-            speedMbps = val;
+        public Builder macAddress(MacAddress macAddress) {
+            this.macAddress = macAddress;
             return this;
         }
 
-        public Builder autoNeg(Boolean val) {
-            autoNeg = val;
+        public Builder speedMbps(Integer speedMbps) {
+            this.speedMbps = speedMbps;
             return this;
         }
 
-        public Builder fullDuplex(Boolean val) {
-            fullDuplex = val;
+        public Builder autoNeg(Boolean autoNeg) {
+            this.autoNeg = autoNeg;
             return this;
         }
 
-        public Builder mtuSize(Integer val) {
-            mtuSize = val;
+        public Builder fullDuplex(Boolean fullDuplex) {
+            this.fullDuplex = fullDuplex;
             return this;
         }
 
-        public Builder fqdn(String val) {
-            fqdn = val;
+        public Builder mtuSize(Integer mtuSize) {
+            this.mtuSize = mtuSize;
             return this;
         }
 
-        public Builder hostname(String val) {
-            hostname = val;
+        public Builder fqdn(String fqdn) {
+            this.fqdn = fqdn;
             return this;
         }
 
-        public Builder nameServers(List<String> val) {
-            nameServers = val;
+        public Builder hostname(String hostname) {
+            this.hostname = hostname;
             return this;
         }
 
-        public Builder vlanEnable(Boolean val) {
-            vlanEnable = val;
+        public Builder nameServers(List<String> nameServers) {
+            this.nameServers = nameServers;
             return this;
         }
 
-        public Builder vlanId(Integer val) {
-            vlanId = val;
+        public Builder vlanEnable(Boolean vlanEnable) {
+            this.vlanEnable = vlanEnable;
             return this;
         }
 
-        public Builder ipv4Addresses(List<IpV4AddressDto> val) {
-            ipv4Addresses = val;
+        public Builder vlanId(Integer vlanId) {
+            this.vlanId = vlanId;
             return this;
         }
 
-        public Builder maxIPv6StaticAddresses(Integer val) {
-            maxIPv6StaticAddresses = val;
+        public Builder ipv4Addresses(List<IpV4AddressDto> ipv4Addresses) {
+            this.ipv4Addresses = ipv4Addresses;
             return this;
         }
 
-        public Builder ipv6DefaultGateway(String val) {
-            ipv6DefaultGateway = val;
+        public Builder maxIPv6StaticAddresses(Integer maxIPv6StaticAddresses) {
+            this.maxIPv6StaticAddresses = maxIPv6StaticAddresses;
             return this;
         }
 
-        public Builder ipv6Addresses(List<IpV6AddressDto> val) {
-            ipv6Addresses = val;
+        public Builder ipv6DefaultGateway(String ipv6DefaultGateway) {
+            this.ipv6DefaultGateway = ipv6DefaultGateway;
             return this;
         }
 
-        public Builder ipv6StaticAddresses(List<IpV6AddressDto> val) {
-            ipv6StaticAddresses = val;
+        public Builder ipv6Addresses(List<IpV6AddressDto> ipv6Addresses) {
+            this.ipv6Addresses = ipv6Addresses;
             return this;
         }
 
-        public Builder ipV6AddressesPolicyTable(List<IpV6AddressPolicyDto> val) {
-            ipV6AddressesPolicyTable = val;
+        public Builder ipv6StaticAddresses(List<IpV6AddressDto> ipv6StaticAddresses) {
+            this.ipv6StaticAddresses = ipv6StaticAddresses;
             return this;
         }
 
-        public Builder neighborPort(Context val) {
-            neighborPort = val;
+        public Builder ipV6AddressesPolicyTable(List<IpV6AddressPolicyDto> ipV6AddressesPolicyTable) {
+            this.ipV6AddressesPolicyTable = ipV6AddressesPolicyTable;
             return this;
         }
 
-        public Builder neighborPortExtendedInfo(List<ExtendedInfoDto> val) {
-            neighborPortExtendedInfo = val;
+        public Builder neighborPort(Context neighborPort) {
+            this.neighborPort = neighborPort;
+            return this;
+        }
+
+        public Builder neighborPortExtendedInfo(List<ExtendedInfoDto> neighborPortExtendedInfo) {
+            this.neighborPortExtendedInfo = neighborPortExtendedInfo;
             return this;
         }
 

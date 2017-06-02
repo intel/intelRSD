@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 dependencies {
     compile "$JAVA_EE_API_DEPENDENCY"
-    compile (project(':logger')) { transitive = false }
+    compile project(":podm-business-api")
     compile project(":podm-business-entities")
-    compile project(":podm-discovery")
+    compile project(":podm-business-services")
+    compile project(":podm-external-services")
+    compile project(":types")
 }
-

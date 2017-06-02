@@ -1,55 +1,81 @@
 /*!
- * @section LICENSE
+ * @brief Extended validators for JSON values
  *
- * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Set of classes to proper check JSON document in conjunction with JSONRPC
+ * library. These introduces second stage of validation, where data is checked
+ * according to the schema (provided by request class).
  *
- * @copyright
+ * @header{License}
+ * @copyright Copyright (c) 2016-2017 Intel Corporation.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
-*/
+ * @header{Filesystem}
+ * @file procedure_validator.hpp
+ */
+
+#pragma once
 
 
-#ifndef PSME_FW_BUILD_PROCEDUREVALIDATOR_H
-#define PSME_FW_BUILD_PROCEDUREVALIDATOR_H
+
+#include "agent-framework/validators/checkers/validity_checker.hpp"
 
 #include <jsonrpccpp/common/procedure.h>
-// for unique_ptrs
-#include <memory>
+#include <json/value.hpp>
 
-/* "decorators", they are "chained" with other validators in the simplest manner
- * WARNING 'v' cannot be considered expression, another values might be appended!
- * WARNING No (arythmetic/logic) other than these operators are allowed to be used!
+/*!
+ * @defgroup valmacros JSON schema definitions
+ * Set of macros to "hide" how validators "consume" values from the variable
+ * args list (with syntax/semantics checking).
+ * "Old" style jsonrpc::jsontype_t are allowed as well.
+ * @warning No (arithmetic/logic) operators other than these macros are allowed!
+ * @warning Checkers cannot be considered expression, macro expansion is used!
+ * @see jsonrpc::ProcedureValidator
+ * @{ @i{valmacros}
  */
-#define VALID_OPTIONAL(v) 0x1000 | v
-#define VALID_NULLABLE(v) 0x2000 | v
 
-/* definitions of validators */
-#define VALID_VAL(v) static_cast<unsigned>(jsonrpc::ProcedureValidator::Validators_t::valid_##v)
-#define VALID_JSON_ANY VALID_VAL(any)
-
-/* general true/false validators */
-#define VALID_ALWAYS VALID_VAL(always)
-#define VALID_NEVER VALID_VAL(never)
-
-/* jsonrpc::JSON_xxx enum values are allowed to be put directly as well, but
- * cannot be used in more sophisticated conditions (like optional). VALID_JSON
- * have to be used instead (value cast is done properly)
+/*!
+ * @brief Optional validity checker.
+ * @param v Checker to be applied if value is present.
+ * @return valid if field is not present otherwise apply checker.
  */
-#define VALID_JSON(v) static_cast<unsigned>(jsonrpc::JSON_##v)
+#define VALID_OPTIONAL(v) \
+    0x1000 | v
+
+/*!
+ * @brief Validate value if is not null.
+ * @param v Checker to be applied if value is not null
+ * @return valid if field is null otherwise apply checker.
+ * @warning 'v' cannot be considered expression, macro expansion is used here!
+ */
+#define VALID_NULLABLE(v) \
+    0x2000 | v
+
+
+/*!
+ * @defgroup valjsonrpc JSONRPC validators
+ * jsonrpc::JSON_xxx enum values are allowed to be put directly as well, but
+ * cannot be used in more sophisticated conditions. VALID_JSON_xxx have to be
+ * used in such situations instead (value cast is done properly)
+ * @{ @i{valjsonrpc}
+ */
+
+/*!
+ * @brief JSONRPC value enumeration validity checker
+ * @param t STRING, BOOLEAN, INTEGER, REAL, OBJECT, or ARRAY to select the type
+ * @see jsonrpc::jsontype_t
+ */
+#define VALID_JSON(t) \
+    static_cast<unsigned>(jsonrpc::JSON_##t)
+
 #define VALID_JSON_ANY VALID_VAL(any)
 #define VALID_JSON_STRING VALID_JSON(STRING)
 #define VALID_JSON_BOOLEAN VALID_JSON(BOOLEAN)
@@ -57,54 +83,188 @@
 #define VALID_JSON_REAL VALID_JSON(REAL)
 #define VALID_JSON_OBJECT VALID_JSON(OBJECT)
 
-#define VALID_JSON_ARRAY VALID_JSON(ARRAY)
-#define VALID_ARRAY_OF(v) VALID_VAL(array_of), v
-#define VALID_ARRAY_SIZE(min, max) VALID_VAL(array_size_of), min, max, VALID_JSON_ANY
-#define VALID_ARRAY_SIZE_OF(v, min, max) VALID_VAL(array_size_of), min, max, v
-
-#define VALID_NUMERIC VALID_VAL(numeric)
-#define VALID_NUMERIC_TYPE(type, what) \
-    (static_cast<unsigned>(jsonrpc::ProcedureValidator::NumberValidityChecker_t::TYPE_##type) |\
-     static_cast<unsigned>(jsonrpc::ProcedureValidator::NumberValidityChecker_t::CONSTR_##what))
-#define VALID_NUMERIC_TYPED(type) VALID_VAL(numeric_typed), VALID_NUMERIC_TYPE(type, NOTHING)
-#define VALID_NUMERIC_EQLT(type, max) VALID_VAL(numeric_typed), VALID_NUMERIC_TYPE(type, MAX), max
-#define VALID_NUMERIC_EQGT(type, min) VALID_VAL(numeric_typed), VALID_NUMERIC_TYPE(type, MIN), min
-#define VALID_NUMERIC_RANGE(type, min, max) VALID_VAL(numeric_typed), VALID_NUMERIC_TYPE(type, BOTH), min, max
-
-#define VALID_ATTRIBUTE(o) VALID_VAL(attribute), o::get_procedure
-#define VALID_ENUM(e) VALID_VAL(enum), e::is_allowable_value
-#define VALID_UUID VALID_VAL(uuid)
-
-namespace jsonrpc {
-
-/*! @brief interface to validate value from JSON document (custom validator) */
-class ValidityChecker {
-public:
-    virtual ~ValidityChecker();
-    /*!
-     * @brief validation method
-     * @param value json value to be checked
-     * @throws InvalidParameters exception if not valid
-     */
-    virtual void validate(const Json::Value& value) const
-        noexcept(false);
-
-protected:
-    /*! @brief Default constructor, available only for subclasses */
-    ValidityChecker() = default;
-
-private:
-    /*! @brief Copy constructor not allowed */
-    ValidityChecker(const ValidityChecker&) = delete;
-    ValidityChecker& operator=(const ValidityChecker&) = delete;
-};
-
-/*! @brief Type alias for custom validators */
-using ValidityCheckerPtr = std::unique_ptr<ValidityChecker>;
+/*! @} @i{valjsonrpc} */
 
 
 /*!
- * @brief Replacer for JSONRPC validators
+ * @defgroup valcustom Custom validators
+ * Macros to cover all semantics aspects of custom validity checkers
+ * @{ @i{valcustom}
+ */
+
+/*!
+ * @brief Validator_t enumeration declared values validity checker
+ * @param t any of string, boolean, ..., uuid, enum to select the type
+ * @see jsonrpc::ProcedureValidator::Validators_t
+ */
+#define VALID_VAL(t) \
+    static_cast<unsigned>(jsonrpc::ProcedureValidator::Validators::valid_##t)
+
+/*! Always pass validity checker. */
+#define VALID_ALWAYS \
+    VALID_VAL(always)
+
+/*! @brief Always fail validity checker. */
+#define VALID_NEVER \
+    VALID_VAL(never)
+
+
+/*!
+ * @defgroup valarray Array validators
+ * @{ @i{valarray}
+ */
+
+/*! @brief Array validator without checking */
+#define VALID_JSON_ARRAY \
+    VALID_JSON(ARRAY)
+
+/*!
+ * @brief Array validator with values checking
+ * @param v validator (by the means of another VALID_xxx macros) to check all
+ *          values in the array
+ */
+#define VALID_ARRAY_OF(v) \
+    VALID_VAL(array_of), v
+
+/*!
+ * @brief Array validator with checking array size
+ * @param min minimal array size
+ * @param max maximal array size
+ */
+#define VALID_ARRAY_SIZE(min, max) \
+    VALID_VAL(array_size_of), min, max, VALID_JSON_ANY
+
+/*!
+ * @brief Array validator with full checking.
+ *
+ * Both value type and array size are checked.
+ *
+ * @param v validator (by the means of another VALID_xxx macros) to check all
+ *          values in the array
+ * @param min minimal array size
+ * @param max maximal array size
+ */
+#define VALID_ARRAY_SIZE_OF(v, min, max) VALID_VAL(array_size_of), min, max, v
+/*! @} @i{valarray} */
+
+
+/*!
+ * @defgroup valnumber Numbers validators
+ * Any numeric values validity checkers. Either value might be (any) numeric
+ * or the type might be specified. For values with specified type min/max values
+ * might be specified.
+ * @param type Type of the value, INT32, UINT32, and DOUBLE apply
+ * @param what which additional arguments were specified; NOTHING, MIN, MAX and BOTH apply
+ * @{ @i{valnumber}
+ */
+
+/*!
+ * @brief Helper macro for other VALID_NUMERIC macros
+ * @param type Type of the value, INT32, UINT32, and DOUBLE apply
+ * @param what boundaries specification, NOTHING, MIN, MAX or BOTH apply
+ */
+#define VALID_NUMERIC_TYPE(type, what) \
+    (static_cast<unsigned>(jsonrpc::ProcedureValidator::NumberType::TYPE_##type) |\
+     static_cast<unsigned>(jsonrpc::ProcedureValidator::NumberRangeConstraint::CONSTR_##what))
+
+/*! @brief Any number validator */
+#define VALID_NUMERIC \
+    VALID_VAL(numeric)
+
+/*!
+ * @brief Typed number validator
+ * @param type Type of the value, currently only INT32, UINT32 and DOUBLE are handled
+ */
+#define VALID_NUMERIC_TYPED(type) \
+    VALID_VAL(numeric_typed), VALID_NUMERIC_TYPE(type, NOTHING)
+
+/*!
+ * @brief Typed number validator with upper bound
+ *
+ * Checks if value is equal or less than given value.
+ *
+ * @param type Type of the value, currently only INT32, UINT32 and DOUBLE are handled
+ * @param max Upper bound value
+ */
+#define VALID_NUMERIC_EQLT(type, max) \
+    VALID_VAL(numeric_typed), VALID_NUMERIC_TYPE(type, MAX), max
+
+/*!
+ * @brief Typed number validator with lower bound
+ *
+ * Checks if value is equal or greater than given value.
+ *
+ * @param type Type of the value, currently only INT32, UINT32 and DOUBLE are handled
+ * @param min Lower bound value
+ */
+#define VALID_NUMERIC_EQGT(type, min) \
+    VALID_VAL(numeric_typed), VALID_NUMERIC_TYPE(type, MIN), min
+
+/*!
+ * @brief Typed number validator with full range checking
+ *
+ * Checks if value is in the bounds of min and max values inclusively.
+ *
+ * @param type Type of the value, currently only INT32, UINT32 and DOUBLE are handled
+ * @param min Lower bound value
+ * @param max Upper bound value
+ */
+#define VALID_NUMERIC_RANGE(type, min, max) \
+    VALID_VAL(numeric_typed), VALID_NUMERIC_TYPE(type, BOTH), min, max
+
+/*! @} @i{valnumber} */
+
+
+/*!
+ * @brief Attribute validity checker.
+ *
+ * All fields from the attribute are checked according to attribute schema.
+ *
+ * @param o Attribute type name, it must have schema defined
+ * @see Attributes class
+ */
+#define VALID_ATTRIBUTE(o) \
+    VALID_VAL(attribute), o::get_procedure
+
+/*!
+ * @brief Regex validity checker.
+ *
+ * Checks if proper string and compares field value with provided regular expression.
+ *
+ * @param string_regex Regular expression
+ */
+#define VALID_REGEX(string_regex) \
+    VALID_VAL(regex), string_regex
+
+/*!
+ * @brief Enumeration validity checker
+ *
+ * Checks if proper string, and if its value is listed in the enumeration
+ *
+ * @param e Enumeration type name
+ * @see ENUM macro
+ */
+#define VALID_ENUM(e) \
+    VALID_VAL(enum), e::is_allowable_value, e::get_values
+
+/*!
+ * @brief UUID validity checker
+ *
+ * UUID must be valid string following 8-4-4-4-12 with hex values.
+ * More detailed description is in [RFC4122](https://tools.ietf.org/html/rfc4122)
+ */
+#define VALID_UUID \
+    VALID_VAL(uuid)
+
+/*! @} @i{valcustom} */
+/*! @} @i{valmacros} */
+
+
+namespace jsonrpc {
+
+/*!
+ * @brief Replacer for JSONRPC validators.
+ *
  * Procedure validator is executed on the JSON document received by JSONRPC.
  * The document must be valid according RFC and JSONRPC rough validation.
  * ProcedureValidator validates document in more detailed manner (eg. with range
@@ -112,147 +272,213 @@ using ValidityCheckerPtr = std::unique_ptr<ValidityChecker>;
  * procedure usage is allowed).
  * */
 class ProcedureValidator : public Procedure {
+    friend class ValidatorTester;
+
 public:
     /*!
-     * @brief special value for fields not in the object, to distinguish from
-     * plain nulls
-     * */
-    static const Json::Value NON_EXISTING_VALUE;
+     * @brief All defined validity checkers
+     *
+     * This enumeration contains all handled data types. These are
+     * "mapped" from appropriate macros VALID_xxx.
+     * @see valmacros
+     */
+    enum class Validators : unsigned int {
+        valid_any = 0, //!< value of any type, must exist..
 
-    /*! @brief List of all defined validator types handled by the class */
-    enum class Validators_t : unsigned int {
-        // Check if field exists, but do not check against the type
-        valid_any = 0,
+        valid_string = JSON_STRING, //!< JSON string
+        valid_boolean = JSON_BOOLEAN, //!< JSON boolean
+        valid_integer = JSON_INTEGER, //!< JSON integer, no '.'/'e' are allowed
+        valid_real = JSON_REAL, //!< JSON real value, pass only values with '.' or 'e'
+        valid_object = JSON_OBJECT, //!< JSON object, no schema validation
+        valid_array = JSON_ARRAY, //!< JSON array, no schema validation
 
-        // jsonrpc validators (as enumeration values) mith be passed directly
-        // thus values must be the same. Backward compability.
-        valid_string = JSON_STRING,
-        valid_boolean = JSON_BOOLEAN,
-        valid_integer = JSON_INTEGER,
-        valid_real = JSON_REAL,
-        valid_object = JSON_OBJECT,
-        valid_array = JSON_ARRAY,
+        valid_numeric, //!< any number
+        valid_numeric_typed, //!< (typed) number of requested type, it might have min/max
 
-        valid_numeric, // any int/float number
-        valid_numeric_typed, // any value between given two numbers
+        valid_uuid, //!< UUID following 8-4-4-4-12 hex digits format
+        valid_enum, //!< string matching the enumerated type
+        valid_attribute, //!< object value with schema validation
+	valid_regex, //!< string matching regular expression
+        valid_array_of, //!< array value with schema validation
+        valid_array_size_of, //!< validate array if contains proper values and has proper size
 
-
-        valid_uuid, // must be valid UUID 8-4-4-4-12 hex digits
-        valid_enum, // validate string if match the enumerated type
-        valid_attribute, // validate object agains the type
-        valid_array_of, // validate array if contains proper objects
-        valid_array_size_of, // validate array if contains proper objects and size
-
-        valid_always, // field is always valid
-        valid_never // never valid
+        valid_always, //!< always valid
+        valid_never //!< never valid
     };
 
-    /*! @brief All numeric types */
-    enum class NumberValidityChecker_t : unsigned int {
-        // no checking at all
-        TYPE_ANYTHING = 0,
+    /*! @brief Handled numeric types. */
+    enum class NumberType : unsigned int {
+        TYPE_ANYTHING = 0, //!< any numeric value (either integer or real).
 
-        // primary valu types
-        TYPE_INT32,
-        TYPE_UINT32,
-        TYPE_DOUBLE,
+        TYPE_INT32, //!< (signed) 32-bit integer
+        TYPE_UINT32, //!< (unsigned) 32-bit integer
+        TYPE_INT64, //!< (signed) 64-bit integer
+        TYPE_UINT64, //!< (unsigned) 64-bit integer
+        TYPE_DOUBLE, //!< real value
 
-        // if given unknown type
-        WRONG_TYPE     = 0xff,
+        WRONG_TYPE = 0xff //!< wrong value type, validation always fails with assert
+    };
 
-
-        // constraint checks for numbers
-        CONSTR_NOTHING = 0x1000,
-        CONSTR_MIN     = 0x1100,
-        CONSTR_MAX     = 0x1200,
-        CONSTR_BOTH    = 0x1300
+    /*! @brief Constraint checks for numbers. */
+    enum class NumberRangeConstraint : unsigned int {
+        CONSTR_NOTHING = 0x1000, //!< no range checking
+        CONSTR_MIN = 0x1100, //!< min value is specified
+        CONSTR_MAX = 0x1200, //!< max value is specified
+        CONSTR_BOTH = 0x1300  //!< both min and max values are specified
     };
 
     /*!
-     * @brief Compability constructor from JSON Procedure.
+     * @brief Compatibility constructor from JSON Procedure.
+     *
      * No additional validation here (only "pre" validation in JSONRPC is done).
+     *
      * @deprecated To be used only from CommandJson.
      * When all commands are refactored, it should be removed!
-     * */
-    explicit ProcedureValidator(const Procedure &procedure);
+     */
+    explicit ProcedureValidator(const Procedure& procedure) __attribute__((deprecated));
+
 
     /*!
      * @brief Method validator
-     * Variadic list contains all fields (by name) with validators. Mostly they
-     * should be jsontype_t values. "Custom" validators are handled via macros.
-     * Some validators have "own" additional values. These must be passed
-     * as arguments to appropriate macro (named as validator), eg:
+     * @anchor methodValidator
+     *
+     * @param name Method name to be registered
+     * @param paramType format of input document, only PARAMS_BY_NAME is allowed.
+     * @param returnType what is reported after handling the method. The param
+     *                   is only to distinguish method from notification (value
+     *                   doesn't have any effect). Default value JSON_OBJECT is
+     *                   to be used.
+     * @param ... Variadic list containing schema declaration. Each field
+     *            is the field name and validity checker which control JSON
+     *            document values. After all declarations <b>nullptr</b> must
+     *            be put.
+     *
+     * The most adviced is to use @ref valmacros "custom macros" for schema
+     * declaration:
      * - VALID_NUMERIC
-     * - VALID_NUMERIC_LT(DOUBLE, 23.1)
-     * - VALID_STRING_LONGER(10)
+     * - VALID_NUMERIC_EQLT(DOUBLE, 23.1)
+     * - VALID_OPTIONAL(VALID_NUMERIC_RANGE(INT32, 5, 20))
      * - VALID_ENUM(PhysicalDriveType)
      * - VALID_OBJECT(FruInfo)
      * ...
-     * The last parameter must be NULL.
-     * @param name name to be registered
-     * @param returntype something to be given, I duno what
-     * @param ... tuples with name and validator type.
-     * */
+     */
     ProcedureValidator(const std::string& name,
                        parameterDeclaration_t paramType,
-                       jsontype_t returntype,
+                       jsontype_t returnType,
                        ...);
 
+
     /*!
-     * @brief Notification validator
-     * @see Method validator
-     * */
+     * @brief Notification validator.
+     * @param name Notification name to be registered
+     * @param paramType format of input document, only PARAMS_BY_NAME is allowed.
+     * @param ... Variadic list with schema declaration.
+     *
+     * See also @ref methodValidator
+     */
     ProcedureValidator(const std::string& name,
                        parameterDeclaration_t paramType,
                        ...);
 
+
     /*!
-     * @brief validate input JSON value (or whole document) if valid.
-     * Pre-check is done just after document is parsed by JSONRPC server.
+     * @brief Validate JSON-CPP value if valid.
+     *
+     * Validate JSON value (or whole document) if matches schema on which
+     * validator is constructed.
+     * @warning Pre-check is done just after document is parsed by JSONRPC server,
+     * thus invalid (according JSONRPC validation) documents are not validated here.
      * @param req JSON value (document) to be validated
      * @throw InvalidParameters if value (document) is not valid
      * */
-    void validate(const Json::Value &val) const;
+    void validate(const Json::Value& req) const;
+
+
+    /*!
+     * @brief Check JSON-CXX value if valid
+     *
+     * Conversion to JSONRPC value is done here.
+     *
+     * @param val JSON-CXX value to be validated
+     * @deprecated It must be removed when "our" JSON is removed
+     */
+    void validate(const json::Value& val) const __attribute__((deprecated));
+
 
 private:
-
-    /*! @brief Dummy constructor, not to be used */
+    /*!
+     * @brief Default constructor.
+     *
+     * Not to be used.
+     */
     ProcedureValidator() = delete;
-    /*! @brief default copy constructor, not to be used */
-    ProcedureValidator(const ProcedureValidator &) = delete;
 
-    /*! @brief create all validators according var_args passed to the constructor */
+
+    /*!
+     * @brief Default copy constructor.
+     *
+     * Not to be used.
+     */
+    ProcedureValidator(const ProcedureValidator&) = delete;
+
+
+    ProcedureValidator& operator=(const ProcedureValidator&) = delete;
+
+
+    ProcedureValidator(ProcedureValidator&&) = delete;
+
+
+    ProcedureValidator& operator=(ProcedureValidator&&) = delete;
+
+
+    /*! @brief Create all validators according var_args passed to the constructor. */
     void create_validators(va_list args);
+
 
     /*!
      * @brief create single validator on given type
      * @param type value got from VALID_xxx macros to identify validators
      * @param args var_args to get necessary values
-     * @return uniq pointer with created validator
+     * @return unique pointer with created validator
      * */
-    static ValidityCheckerPtr create_validator(unsigned type, va_list args);
+    static ValidityChecker::Ptr create_validator(unsigned type, va_list args);
+
 
     /*!
      * @brief Remove all members from fields list
-     * @param fields list of not handled values
+     * @param[in,out] members list of not yet handled values
      * @param name to be removed
      * @return number of removed members
      * */
     static unsigned remove_from(Json::Value::Members& members, const std::string& name);
 
 
-    /*! @brief Whole definition of value (document) schema */
-    struct Validator_s {
+    /*! @brief Single JSON value schema declaration */
+    struct ValidatorSchema {
         std::string name;
-        ValidityCheckerPtr validator;
+        ValidityChecker::Ptr validator;
     };
-    using ValidatorsMap_t = std::vector<Validator_s>;
-    ValidatorsMap_t validators{};
+
+    /*! @brief Whole document (or value) schema declaration */
+    using ValidatorsMap = std::vector<ValidatorSchema>;
+
+    /*! @brief Whole document (or value) schema definition */
+    ValidatorsMap validators{};
+
+
+    /*! @brief "Extended" validators to JSONRPC mapping declaration */
+    using JsonrpcValidators = std::map<Validators, jsontype_t>;
 
     /*! @brief Mapping between "extended" validators and JSONRPC validators */
-    using JsonrpcValidators_t = std::map<Validators_t, jsontype_t>;
-    static const JsonrpcValidators_t JSONRPC_VALIDATORS;
+    static const JsonrpcValidators JSONRPC_VALIDATORS;
+
+
+    /*!
+     * @brief Convert "our" json::Value to JSONRPC value
+     * @param src JSON to be converted
+     * @deprecated Utility to be used "temporarily" for converting "our" JSONs to JSONRPC ones
+     */
+    static Json::Value to_json_rpc(const json::Value& src) __attribute__((deprecated));
 };
 
 }
-#endif //PSME_FW_BUILD_PROCEDUREVALIDATOR_H

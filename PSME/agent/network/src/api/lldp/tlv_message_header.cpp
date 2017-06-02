@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +80,7 @@ void TlvMessageHeader::parse_raw(const string& raw) {
 
     /* check raw data size */
     if ((TLV_HEADER_RAW_SIZE + (tlv_size * BYTE_RAW_SIZE)) > raw.length()) {
-        throw ApiError("TLV header raw message is too short");
+        throw ApiError("TLV raw message is too short");
     }
 
     /* parse TLV payload */

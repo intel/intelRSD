@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,19 @@
 
 static struct rest_handler pzone_coll_handler;
 static struct rest_handler pzone_handler;
-static struct rest_handler psu_coll_handler;
-static struct rest_handler psu_handler;
+static struct rest_handler pzone_pointer_handler;
 static struct rest_handler psu_change_handler;
 
 
 void register_pzone_handler(void)
 {
-	register_handler(PZONE_COLL_URL,				&pzone_coll_handler);
-	register_handler(PZONE_URL,						&pzone_handler);
+	register_handler(PZONE_COLL_URL, &pzone_coll_handler);
+	register_handler(PZONE_URL, &pzone_handler);
+	register_handler(PZONE_POINTER_URL, &pzone_pointer_handler);
 }
 
 void register_psu_handler(void)
 {
-//	register_handler(PSU_COLL_URL,					&psu_coll_handler);
-//	register_handler(PSU_URL,						&psu_handler);
 	register_handler(PSU_ACTION_STATUS_CHANGE_URL,	&psu_change_handler);
 }
 
@@ -56,18 +54,6 @@ static json_t *pzone_coll_get(struct rest_uri_param *param)
 
 	update_response_info(param, HTTP_OK);
 	return result;
-}
-
-static json_t *pzone_coll_patch(struct rest_uri_param *param)
-{
-	update_response_info(param, HTTP_METHOD_NOT_ALLOWED);
-	return NULL;
-}
-
-static json_t *pzone_coll_post(struct rest_uri_param *param)
-{
-	update_response_info(param, HTTP_METHOD_NOT_ALLOWED);
-	return NULL;
 }
 
 static json_t *pzone_get(struct rest_uri_param *param)
@@ -112,63 +98,6 @@ static json_t *pzone_get(struct rest_uri_param *param)
 
 	update_response_info(param, HTTP_OK);
 	return result;
-}
-
-static json_t *pzone_patch(struct rest_uri_param *param)
-{
-	json_t *req = NULL;
-	result_t rs = RESULT_OK;
-	put_pzone_t put_pzone_info = { {0} };
-	int32 pzone_idx = 0;
-
-	pzone_idx = get_asset_idx(param, "zone_id", MC_TYPE_PZONE);
-	if (pzone_idx == -1) {
-		HTTPD_ERR("get power zone index fail\n");
-		update_response_info(param, HTTP_BAD_REQUEST);
-		return NULL;
-	}
-
-	rs = libwrap_pre_put_pzone_by_idx(pzone_idx, &put_pzone_info);
-	if (rs != RESULT_OK) {
-		HTTPD_ERR("power zone pre put fail, result is %d\n", rs);
-		update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
-		return NULL;
-	}
-
-	req = json_parse(param->json_data);
-	if (req == NULL) {
-		update_response_info(param, HTTP_BAD_REQUEST);
-		HTTPD_ERR("json parse error\n");
-		return NULL;
-	}
-
-	rs = libwrap_update_put_pzone_info(req, &put_pzone_info);
-	if (rs != RESULT_OK) {
-		update_response_info(param, HTTP_BAD_REQUEST);
-		HTTPD_ERR("libwrap_update_put_pzone_info fail, result is %d\n", rs);
-		json_free(req);
-		return NULL;
-	}
-	json_free(req);
-
-	rs = libwrap_put_pzone_by_idx(pzone_idx, put_pzone_info);
-	if (rs != RESULT_OK) {
-		HTTPD_ERR("pz patch fail, result is %d\n", rs);
-		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
-		return NULL;
-	}
-
-	int8 buff[128] = {};
-	snprintf_s_i(buff, sizeof(buff), "%d", pzone_idx);
-	rf_log(INFO, MSGPZoneResourceUpdated, buff);
-	update_response_info(param, HTTP_OK);
-	return pzone_get(param);
-}
-
-static json_t *pzone_post(struct rest_uri_param *param)
-{
-	update_response_info(param, HTTP_METHOD_NOT_ALLOWED);
-	return NULL;
 }
 
 static input_attr_t psu_change_attrs[] = {
@@ -284,36 +213,26 @@ static json_t *psu_change_post(struct rest_uri_param *param)
 static struct rest_handler pzone_coll_handler = {
 	.get    = pzone_coll_get,
 	.put    = NULL,
-	.patch  = pzone_coll_patch,
-	.post   = pzone_coll_post,
+	.patch  = NULL,
+	.post   = NULL,
 	.del    = NULL,
 };
 
 static struct rest_handler pzone_handler = {
 	.get    = pzone_get,
 	.put    = NULL,
-	.patch  = pzone_patch,
-	.post   = pzone_post,
-	.del    = NULL,
-};
-
-#if 0
-static struct rest_handler psu_coll_handler = {
-	.get    = psu_coll_get,
-	.put    = NULL,
-	.patch  = psu_coll_patch,
-	.post   = psu_coll_post,
-	.del    = NULL,
-};
-
-static struct rest_handler psu_handler = {
-	.get    = psu_get,
-	.put    = NULL,
-	.patch  = psu_patch,
+	.patch  = NULL,
 	.post   = NULL,
 	.del    = NULL,
 };
-#endif
+
+static struct rest_handler pzone_pointer_handler = {
+	.get    = pzone_get,
+	.put    = NULL,
+	.patch  = NULL,
+	.post   = NULL,
+	.del    = NULL,
+};
 
 static struct rest_handler psu_change_handler = {
 	.get    = NULL,

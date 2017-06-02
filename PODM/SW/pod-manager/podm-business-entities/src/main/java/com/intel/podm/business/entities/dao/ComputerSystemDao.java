@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,32 @@
 
 package com.intel.podm.business.entities.dao;
 
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.base.DeepDiscoverable;
 
 import javax.enterprise.context.Dependent;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
 
+import static com.intel.podm.business.entities.redfish.ComputerSystem.GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE;
+import static com.intel.podm.business.entities.redfish.ComputerSystem.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID;
+import static com.intel.podm.common.types.SystemType.PHYSICAL;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 @Transactional(MANDATORY)
 public class ComputerSystemDao extends Dao<ComputerSystem> {
-    public List<ComputerSystem> getComputerSystemsByDeepDiscoveryState(DeepDiscoverable.DeepDiscoveryState deepDiscoveryState) {
-        return repository.getAllByProperty(ComputerSystem.class, DeepDiscoverable.DEEP_DISCOVERY_STATE, deepDiscoveryState);
+    public List<ComputerSystem> getComputerSystemsPossibleToAllocate() {
+        TypedQuery<ComputerSystem> query = entityManager.createNamedQuery(GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE, ComputerSystem.class);
+        query.setParameter("allocated", false);
+        query.setParameter("systemType", PHYSICAL);
+        return query.getResultList();
     }
 
-    public List<ComputerSystem> getNotAllocatedComputerSystems() {
-        return repository.getAllByFlag(ComputerSystem.class, ComputerSystem.ALLOCATED, false);
+    public ComputerSystem getComputerSystemByPcieConnectionId(String connectionId) throws NonUniqueResultException {
+        TypedQuery<ComputerSystem> query = entityManager.createNamedQuery(GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID, ComputerSystem.class);
+        query.setParameter("pcieConnectionId", connectionId);
+        return singleEntityOrNull(query.getResultList());
     }
 }

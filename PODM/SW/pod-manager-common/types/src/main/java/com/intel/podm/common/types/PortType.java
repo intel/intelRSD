@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,15 @@ public enum PortType implements EnumeratedType {
     UPSTREAM("Upstream"),
     DOWNSTREAM("Downstream"),
     MESH_PORT("MeshPort"),
-    UNKNOWN("Unknown");
+    UNKNOWN("Unknown"),
+    UPSTREAM_PORT("UpstreamPort"),
+    DOWNSTREAM_PORT("DownstreamPort"),
+    INTERSWITCH_PORT("InterswitchPort"),
+    MANAGEMENT_PORT("ManagementPort"),
+    BIDIRECTIONAL_PORT("BidirectionalPort"),
+    UNCONFIGURED_PORT("UnconfiguredPort");
 
-    private String value;
+    private final String value;
 
     PortType(String value) {
         this.value = value;

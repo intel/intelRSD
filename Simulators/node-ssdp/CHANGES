@@ -1,0 +1,9 @@
+CHANGES BETWEEN INTEL RACK SCALE ARCHITECTURE SSDP IMPLEMENTATION AND CURRENT (2016-12-13) MASTER OF node-ssdp NPM PACKAGE:
+
+lib/index.js
+LINE 385: changed 'LOCATION' -> 'AL'
+
+lib/server.js:
+LINE 96: added 'setTimeout' function for 'self._stop()' method
+LINE 140: changed 'LOCATION' -> 'AL'
+LINE 141: changed 'heads['CACHE-CONTROL'] = 'max-age=1800'' to 'heads['CACHE-CONTROL'] = 'max-age=' + self._ttl'

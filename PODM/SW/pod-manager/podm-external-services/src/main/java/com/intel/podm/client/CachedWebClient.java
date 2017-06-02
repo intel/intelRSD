@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,15 @@ import com.intel.podm.client.api.resources.ExternalServiceResource;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-public final class CachedWebClient implements WebClient {
+final class CachedWebClient implements WebClient {
     private final WebClient decoratedClient;
     private final Object lock = new Object();
 
     private final Map<URI, ExternalServiceResource> cache = new HashMap<>();
 
-    public CachedWebClient(WebClient decoratedClient) {
+    CachedWebClient(WebClient decoratedClient) {
         this.decoratedClient = decoratedClient;
     }
 
@@ -61,8 +62,8 @@ public final class CachedWebClient implements WebClient {
     }
 
     @Override
-    public <T> void patch(URI requestUri, T obj) throws ExternalServiceApiActionException {
-        decoratedClient.patch(requestUri, obj);
+    public <T> Optional<ExternalServiceResource> patch(URI requestUri, T obj) throws ExternalServiceApiActionException {
+        return decoratedClient.patch(requestUri, obj);
     }
 
     @Override
@@ -80,7 +81,4 @@ public final class CachedWebClient implements WebClient {
         return decoratedClient.getBaseUri();
     }
 
-    public static WebClient createRetryable(CachedWebClient cachedWebClient) {
-        return new WebClientWithRetrying(cachedWebClient);
-    }
 }

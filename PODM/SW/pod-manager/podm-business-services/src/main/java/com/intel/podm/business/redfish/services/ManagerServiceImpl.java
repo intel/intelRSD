@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,95 +16,168 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.dto.redfish.ManagerDto;
+import com.intel.podm.business.dto.redfish.NetworkProtocolDto;
 import com.intel.podm.business.dto.redfish.attributes.ConsoleDto;
 import com.intel.podm.business.dto.redfish.attributes.GraphicalConsoleDto;
+import com.intel.podm.business.dto.redfish.attributes.ProtocolDto;
+import com.intel.podm.business.dto.redfish.attributes.SimpleServiceDiscoveryProtocolDto;
 import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.redfish.embeddables.CommandShell;
+import com.intel.podm.business.entities.redfish.embeddables.GraphicalConsole;
 import com.intel.podm.business.entities.redfish.Manager;
-import com.intel.podm.business.entities.redfish.properties.Console;
-import com.intel.podm.business.entities.redfish.properties.GraphicalConsole;
-import com.intel.podm.business.redfish.Contexts;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.entities.redfish.NetworkProtocol;
+import com.intel.podm.business.entities.redfish.embeddables.SerialConsole;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.ManagerService;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.MANAGERS;
-import static java.util.Objects.nonNull;
+import static com.intel.podm.business.redfish.ContextCollections.asChassisContexts;
+import static com.intel.podm.business.redfish.ContextCollections.asComputerSystemContexts;
+import static com.intel.podm.business.redfish.ContextCollections.asEthernetSwitchContexts;
+import static com.intel.podm.business.redfish.ContextCollections.asStorageServicesContexts;
+import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.redfish.Contexts.toContext;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Transactional(REQUIRED)
-public class ManagerServiceImpl implements ManagerService {
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodLength"})
+public class ManagerServiceImpl implements ReaderService<ManagerDto> {
     @Inject
-    DomainObjectTreeTraverser traverser;
+    EntityTreeTraverser traverser;
 
     @Inject
-    GenericDao genericDao;
+    UnknownOemTranslator unknownOemTranslator;
+
+    @Inject
+    private GenericDao genericDao;
 
     @Override
-    public CollectionDto getManagerCollection() {
+    public CollectionDto getCollection(Context serviceRootContext) throws ContextResolvingException {
         List<Manager> managerCollection = genericDao.findAll(Manager.class);
-        return new CollectionDto(MANAGERS, Contexts.getAsIdList(managerCollection));
+        return new CollectionDto(MANAGERS, getAsIdSet(managerCollection));
     }
 
     @Override
-    public ManagerDto getManager(Context context) throws EntityNotFoundException {
+    public ManagerDto getResource(Context context) throws ContextResolvingException {
         Manager manager = (Manager) traverser.traverse(context);
-        return map(manager);
+        return mapManager(manager);
     }
 
-    private ManagerDto map(Manager manager) {
+    private ManagerDto mapManager(Manager manager) {
         return ManagerDto.newBuilder()
-                .id(manager.getId())
-                .name(manager.getName())
-                .managerType(manager.getManagerType())
-                .description(manager.getDescription())
-                .serviceEntryPointUuid(manager.getServiceEntryPointUuid())
-                .uuid(manager.getUuid())
-                .model(manager.getModel())
-                .status(manager.getStatus())
-                .graphicalConsole(toConsoleDto(manager.getGraphicalConsole()))
-                .serialConsole(toConsoleDto(manager.getSerialConsole()))
-                .commandShell(toConsoleDto(manager.getCommandShell()))
-                .firmwareVersion(manager.getFirmwareVersion())
-                .hasNetworkProtocol(manager.getNetworkProtocol() != null)
-                .context(Contexts.toContext(manager))
-                .managedComputerSystems(Contexts.asComputerSystemContexts(manager.getManagedComputerSystems()))
-                .managedChassisCollection(Contexts.asChassisContexts(manager.getManagedChassisCollection()))
-                .managerInChassis(nonNull(manager.getManagerInChassis()) ? Contexts.toContext(manager.getManagerInChassis()) : null)
-                .managedEthernetSwitches(Contexts.asEthernetSwitchContexts(manager.getManagedEthernetSwitches()))
-                .managedServices(Contexts.asStorageServicesContexts(manager.getManagedServices()))
-                .build();
+            .id(manager.getId().toString())
+            .name(manager.getName())
+            .description(manager.getDescription())
+            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(manager.getService(), manager.getUnknownOems()))
+            .managerType(manager.getManagerType())
+            .serviceEntryPointUuid(manager.getServiceEntryPointUuid())
+            .uuid(manager.getUuid())
+            .model(manager.getModel())
+            .status(manager.getStatus())
+            .powerState(manager.getPowerState())
+            .graphicalConsole(toConsoleDto(manager.getGraphicalConsole()))
+            .serialConsole(toConsoleDto(manager.getSerialConsole()))
+            .commandShell(toConsoleDto(manager.getCommandShell()))
+            .firmwareVersion(manager.getFirmwareVersion())
+            .networkProtocol(mapNetworkProtocol(manager.getNetworkProtocol()))
+            .context(toContext(manager))
+            .managedComputerSystems(asComputerSystemContexts(manager.getComputerSystems()))
+            .managedChassisCollection(asChassisContexts(manager.getManagedChassis()))
+            .managerInChassis(toContext(manager.getInChassisManager()))
+            .managedEthernetSwitches(asEthernetSwitchContexts(manager.getEthernetSwitches()))
+            .managedServices(asStorageServicesContexts(manager.getStorageServices()))
+            .build();
     }
 
-    public ConsoleDto toConsoleDto(Console console) {
-        if (console == null) {
-            return null;
-        }
-
-        return ConsoleDto
-                .newBuilder()
-                .serviceEnabled(console.isServiceEnabled())
-                .maxConcurrentSessions(console.getMaxConcurrentSessions())
-                .connectTypesSupported(console.getConnectTypesSupported())
-                .build();
-    }
-
-    public GraphicalConsoleDto toConsoleDto(GraphicalConsole console) {
-        if (console == null) {
+    public GraphicalConsoleDto toConsoleDto(GraphicalConsole graphicalConsole) {
+        if (graphicalConsole == null) {
             return null;
         }
 
         return GraphicalConsoleDto
-                .newBuilder()
-                .serviceEnabled(console.isServiceEnabled())
-                .maxConcurrentSessions(console.getMaxConcurrentSessions())
-                .connectTypesSupported(console.getConnectTypesSupported())
-                .build();
+            .newBuilder()
+            .serviceEnabled(graphicalConsole.isServiceEnabled())
+            .maxConcurrentSessions(graphicalConsole.getMaxConcurrentSessions())
+            .connectTypesSupported(graphicalConsole.getConnectTypesSupported())
+            .build();
+    }
+
+    public ConsoleDto toConsoleDto(SerialConsole serialConsole) {
+        if (serialConsole == null) {
+            return null;
+        }
+
+        return ConsoleDto
+            .newBuilder()
+            .serviceEnabled(serialConsole.isServiceEnabled())
+            .maxConcurrentSessions(serialConsole.getMaxConcurrentSessions())
+            .connectTypesSupported(serialConsole.getConnectTypesSupported())
+            .build();
+    }
+
+    public ConsoleDto toConsoleDto(CommandShell commandShell) {
+        if (commandShell == null) {
+            return null;
+        }
+
+        return ConsoleDto
+            .newBuilder()
+            .serviceEnabled(commandShell.isServiceEnabled())
+            .maxConcurrentSessions(commandShell.getMaxConcurrentSessions())
+            .connectTypesSupported(commandShell.getConnectTypesSupported())
+            .build();
+    }
+
+    private NetworkProtocolDto mapNetworkProtocol(NetworkProtocol networkProtocol) {
+        if (networkProtocol == null) {
+            return null;
+        }
+        return NetworkProtocolDto.newBuilder()
+            .id(networkProtocol.getId().toString())
+            .name(networkProtocol.getName())
+            .description(networkProtocol.getDescription())
+            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(networkProtocol.getService(), networkProtocol.getUnknownOems()))
+            .status(networkProtocol.getStatus())
+            .hostName(networkProtocol.getHostName())
+            .fqdn(networkProtocol.getFqdn())
+            .http(toProtocolDto(networkProtocol.getHttpProtocolEnabled(), networkProtocol.getHttpPort()))
+            .https(toProtocolDto(networkProtocol.getHttpsProtocolEnabled(), networkProtocol.getHttpsPort()))
+            .ipmi(toProtocolDto(networkProtocol.getIpmiProtocolEnabled(), networkProtocol.getIpmiPort()))
+            .ssh(toProtocolDto(networkProtocol.getSshProtocolEnabled(), networkProtocol.getSshPort()))
+            .snmp(toProtocolDto(networkProtocol.getSnmpProtocolEnabled(), networkProtocol.getSnmpPort()))
+            .virtualMedia(toProtocolDto(networkProtocol.getVirtualMediaProtocolEnabled(), networkProtocol.getVirtualMediaPort()))
+            .ssdp(getSsdpProtocolDto(networkProtocol))
+            .telnet(toProtocolDto(networkProtocol.getTelnetProtocolEnabled(), networkProtocol.getTelnetPort()))
+            .kvmip(toProtocolDto(networkProtocol.getKvmIpProtocolEnabled(), networkProtocol.getKvmIpPort()))
+            .build();
+    }
+
+    private SimpleServiceDiscoveryProtocolDto getSsdpProtocolDto(NetworkProtocol networkProtocol) {
+        return SimpleServiceDiscoveryProtocolDto
+            .newBuilder()
+            .protocolEnabled(networkProtocol.getSsdpProtocolEnabled())
+            .port(networkProtocol.getSsdpPort())
+            .notifyMulticastIntervalSeconds(networkProtocol.getSsdpNotifyMulticastIntervalSeconds())
+            .notifyTtl(networkProtocol.getSsdpNotifyTtl())
+            .notifyIpV6Scope(networkProtocol.getSsdpNotifyIpV6Scope())
+            .build();
+
+    }
+
+    private ProtocolDto toProtocolDto(Boolean protocolEnabled, Integer port) {
+        return ProtocolDto
+            .newBuilder()
+            .protocolEnabled(protocolEnabled)
+            .port(port)
+            .build();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,18 @@
 package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
-import java.util.Collection;
+import java.util.Set;
 
 @JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "switchId", "name", "description", "manufacturer", "model",
-        "manufacturingDate", "serialNumber", "partNumber", "firmwareName", "firmwareVersion", "role", "status", "oem",
-        "ports", "links",
+    "manufacturingDate", "serialNumber", "partNumber", "firmwareName", "firmwareVersion", "role", "status", "oem",
+    "ports", "links",
 })
-public class EthernetSwitchJson extends BaseJson {
-    public Id id;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class EthernetSwitchJson extends BaseResourceJson {
     public String switchId;
-    public String name;
-    public String description;
     public String manufacturer;
     public String model;
     public String manufacturingDate;
@@ -41,18 +38,16 @@ public class EthernetSwitchJson extends BaseJson {
     public String firmwareVersion;
     public String role;
     public Status status;
-    public Object oem = new Object();
     public ODataId ports;
     public Links links = new Links();
 
     public EthernetSwitchJson() {
-        super("#EthernetSwitch.1.0.0.EthernetSwitch");
+        super("#EthernetSwitch.v1_0_0.EthernetSwitch");
     }
 
-    @JsonPropertyOrder({"chassis", "managedBy", "oem"})
-    public static class Links {
+    @JsonPropertyOrder({"chassis", "pcieFunctions", "oem"})
+    public class Links extends RedfishLinksJson {
         public ODataId chassis;
-        public Collection<ODataId> managedBy;
-        public Object oem = new Object();
+        public Set<ODataId> managedBy;
     }
 }

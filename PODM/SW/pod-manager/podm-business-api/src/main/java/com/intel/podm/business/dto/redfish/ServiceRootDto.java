@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,52 +16,73 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
+
+import java.util.List;
 import java.util.UUID;
 
-public final class ServiceRootDto {
-    private final UUID uuid;
-    private final String name;
-    private final String redfishVersion;
+public final class ServiceRootDto extends BaseDto {
     private final String id;
+    private final String name;
+    private final String description;
+    private final List<UnknownOemDto> unknownOems;
+    private final String redfishVersion;
+    private final UUID uuid;
 
     private ServiceRootDto(Builder builder) {
         id = builder.id;
-        uuid = builder.uuid;
-        redfishVersion = builder.serviceVersion;
         name = builder.name;
+        description = builder.description;
+        unknownOems = builder.unknownOems;
+        redfishVersion = builder.redfishVersion;
+        uuid = builder.uuid;
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    public UUID getUuid() {
-        return uuid;
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public String getRedfishVersion() {
         return redfishVersion;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getId() {
-        return id;
+    public UUID getUuid() {
+        return uuid;
     }
 
     public static final class Builder {
-        private UUID uuid;
-        private String name;
-        private String serviceVersion;
         private String id;
+        private String name;
+        private String description;
+        private List<UnknownOemDto> unknownOems;
+        private UUID uuid;
+        private String redfishVersion;
 
         private Builder() {
         }
 
-        public Builder uuid(UUID uuid) {
-            this.uuid = uuid;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
@@ -70,18 +91,28 @@ public final class ServiceRootDto {
             return this;
         }
 
-        public Builder redfishVersion(String serviceVersion) {
-            this.serviceVersion = serviceVersion;
+        public Builder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
+            return this;
+        }
+
+        public Builder redfishVersion(String redfishVersion) {
+            this.redfishVersion = redfishVersion;
+            return this;
+        }
+
+        public Builder uuid(UUID uuid) {
+            this.uuid = uuid;
             return this;
         }
 
         public ServiceRootDto build() {
             return new ServiceRootDto(this);
-        }
-
-        public Builder id(String id) {
-            this.id = id;
-            return this;
         }
     }
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,11 +27,16 @@
  *
  * */
 
-#ifndef IPMI_COMMAND_GENERIC_SET_SYSTEM_BOOT_OPTIONS_HPP
-#define IPMI_COMMAND_GENERIC_SET_SYSTEM_BOOT_OPTIONS_HPP
+#pragma once
+
+
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
+#include "enums.hpp"
+#include "boot_options.hpp"
+
+
 
 namespace ipmi {
 namespace command {
@@ -42,22 +47,19 @@ namespace request {
 /*!
  * @brief Request message for IPMI Set System Boot Options.
  */
-class SetSystemBootOptions: public Request {
+class SetSystemBootOptions : public Request {
 public:
 
     /*!
      * @brief Represents ParameterValidity field in request.
      */
-    enum class ParameterValidity: std::uint8_t {
+    enum class ParameterValidity : std::uint8_t {
         VALID = 0x00,
         INVALID = 0x01,
     };
 
-    /*!
-     * @brief Represents Parameter Selector. Indicates which options is going to
-     * set.
-     */
-    enum class ParameterSelector: std::uint8_t {
+    /*! @brief Represents Parameter Selector. Indicates which options is going to set. */
+    enum class ParameterSelector : std::uint8_t {
         SET_IN_PROGRES = 0x00,
         SERVICE_PARTITION_SELECTOR = 0x01,
         SERVICE_PARTITION_SCAN = 0x02,
@@ -68,23 +70,41 @@ public:
         BOOT_INITIATOR_MAILBOX = 0x07,
     };
 
+    static constexpr std::uint8_t REQUEST_BYTE_3_DEFAULT = 0x00;
+    static constexpr std::uint8_t REQUEST_BYTE_4_DEFAULT = 0x00;
+    static constexpr std::uint8_t REQUEST_BYTE_5_DEFAULT = 0x00;
+
+
     /*!
-     * @brief Default constructor.
+     * @brief Constructor destructor.
+     * @param[in] boot_override boot override : Once, Continuous
+     * @param[in] boot_mode boot mode : UEFI, Legacy
+     * @param[in] boot_override_target override target: Hdd, Pxe
      */
-    SetSystemBootOptions();
+    SetSystemBootOptions(BootOverride boot_override, BootMode boot_mode, BootOverrideTarget boot_override_target);
+
 
     /*! Copy constructor */
-    SetSystemBootOptions(const SetSystemBootOptions&) = default;
+    SetSystemBootOptions(const SetSystemBootOptions&) = delete;
+
 
     /*! Assignment operator */
-    SetSystemBootOptions& operator=(const SetSystemBootOptions&) = default;
+    SetSystemBootOptions& operator=(const SetSystemBootOptions&) = delete;
+
 
     /*!
      * @brief Default destructor.
      */
     virtual ~SetSystemBootOptions();
 
-    virtual void pack(vector<uint8_t>& data) const = 0;
+
+    void pack(std::vector<std::uint8_t>& data) const;
+
+
+private:
+    BootOverride m_boot_override{BootOverride::Disabled};
+    BootOverrideTarget m_boot_override_target{BootOverrideTarget::None};
+    BootMode m_boot_mode{BootMode::Legacy};
 };
 
 }
@@ -94,7 +114,7 @@ namespace response {
 /*!
  * @brief Response message for IPMI Set System Boot Options.
  */
-class SetSystemBootOptions: public Response {
+class SetSystemBootOptions : public Response {
 public:
 
     /*!
@@ -102,21 +122,26 @@ public:
      */
     SetSystemBootOptions();
 
+
     /*! Copy constructor */
     SetSystemBootOptions(const SetSystemBootOptions&) = default;
 
+
     /*! Assignment operator */
     SetSystemBootOptions& operator=(const SetSystemBootOptions&) = default;
+
 
     /*!
      * @brief Default destructor.
      */
     virtual ~SetSystemBootOptions();
 
-    virtual void unpack(const vector<uint8_t>& data) = 0;
+
+    void unpack(const std::vector<std::uint8_t>& data);
+
 
 private:
-    static constexpr size_t RESPONSE_SIZE = 1;
+    static constexpr std::size_t RESPONSE_SIZE = 1;
 };
 
 }
@@ -124,4 +149,3 @@ private:
 }
 }
 }
-#endif	/* IPMI_COMMAND_GENERIC_SET_SYSTEM_BOOT_OPTIONS_HPP */

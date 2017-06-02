@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,8 @@
 
 #include "api/acl.hpp"
 #include "api/netlink/acl_message.hpp"
-#include "api/netlink/acl_socket.hpp"
 #include "logger/logger_factory.hpp"
+#include "loader/network_config.hpp"
 
 extern "C" {
 #include <acl_nl_cmds.h>
@@ -38,33 +38,6 @@ using namespace std;
 
 Acl::Acl() {}
 Acl::~Acl() {}
-
-static int netlink_callback(nl_msg *msg, void *arg) {
-    if (!msg) {
-        return NL_ERR;
-    }
-    AclMessage *acl_message = reinterpret_cast<AclMessage*>(arg);
-    if (!acl_message) {
-        return NL_ERR;
-    }
-
-    return acl_message->parse_reply(msg);
-}
-
-static void send_and_receive(AclMessage& msg) {
-    AclSocket socket{};
-    int retcode{NL_ERR};
-
-    socket.connect();
-    socket.modify_callback(netlink_callback, &msg);
-    socket.send_message(msg);
-    socket.receive_to_callback(msg);
-    retcode = msg.get_errno();
-    if (retcode) {
-        throw runtime_error("ACL netlink function returned error condition: "
-                            + to_string(retcode));
-    }
-}
 
 namespace {
     uint32_t get_ifindex(const string& port_identifier) {
@@ -93,12 +66,12 @@ namespace {
         vector<uint32_t> ifindexes{};
         get_ifindexes(port_identifiers, ifindexes);
         msg.set_ifindexes(ifindexes);
-        send_and_receive(msg);
+        msg.send();
     }
 
     void unbind(const std::string& name) {
         AclMessage msg(ACL_UNBIND_CMD, name);
-        send_and_receive(msg);
+        msg.send();
     }
 
     static std::map<Acl::ConditionType, uint32_t>
@@ -227,12 +200,12 @@ namespace {
 
 void Acl::create_acl(const string& name) {
     AclMessage msg(ACL_CREATE_CMD, name);
-    send_and_receive(msg);
+    msg.send();
 }
 
 void Acl::delete_acl(const string& name) {
     AclMessage msg(ACL_DELETE_CMD, name);
-    send_and_receive(msg);
+    msg.send();
 }
 
 void Acl::add_rule(const string& acl_name, uint16_t rule_id,
@@ -243,7 +216,7 @@ void Acl::add_rule(const string& acl_name, uint16_t rule_id,
     ::get_acl_conditions(conditions, acl_conditions);
     msg.set_rule(rule_id, ::get_acl_action(action),
                  ::get_ifindex(port_identifier), acl_conditions);
-    send_and_receive(msg);
+    msg.send();
 }
 
 void Acl::add_mirror_rule(const string& acl_name, uint16_t rule_id,
@@ -261,14 +234,14 @@ void Acl::add_mirror_rule(const string& acl_name, uint16_t rule_id,
     msg.set_mirror_type(::get_acl_mirror(mirror_type));
     ::get_ifindexes(mirrored_ports, mirrored_ports_indexes);
     msg.set_ifindexes(mirrored_ports_indexes);
-    send_and_receive(msg);
+    msg.send();
 }
 
 void Acl::read_acl_list() {
     m_acls.clear();
     m_bound_ports.clear();
     AclMessage msg(ACL_GET_CMD, "");
-    send_and_receive(msg);
+    msg.send();
     m_acls = msg.get_acls();
     m_bound_ports = msg.get_bound_ports();
 }
@@ -276,7 +249,7 @@ void Acl::read_acl_list() {
 void Acl::read_acl_rule_list(const string& acl_name) {
     m_rules.clear();
     AclMessage msg(ACL_GET_CMD, acl_name);
-    send_and_receive(msg);
+    msg.send();
     ::get_acl_rules(msg.get_rules(), m_rules);
 }
 
@@ -297,6 +270,14 @@ void Acl::unbind_acl_from_all_ports(const string& acl_name) {
 void Acl::delete_acl_rule(const std::string& name, uint16_t rule_id) {
     AclMessage msg(ACL_DEL_RULE_CMD, name);
     msg.set_rule_id(rule_id);
-    send_and_receive(msg);
+    msg.send();
+}
+
+void Acl::add_acl_name(const string& uuid, const string& name) {
+    loader::NetworkConfig().get_instance()->add_acl_name(uuid, name);
+}
+
+const string& Acl::get_acl_name(const std::string& uuid) {
+    return loader::NetworkConfig().get_instance()->get_acl_name(uuid);
 }
 

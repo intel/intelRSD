@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,277 +16,407 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.properties.IpV4Address;
-import com.intel.podm.business.entities.redfish.properties.IpV6Address;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
+import com.intel.podm.business.entities.SuppressEvents;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.VlanPossessor;
+import com.intel.podm.business.entities.redfish.embeddables.IpV4Address;
+import com.intel.podm.business.entities.redfish.embeddables.IpV6Address;
 import com.intel.podm.common.types.AdministrativeState;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.LinkType;
 import com.intel.podm.common.types.NeighborInfo;
 import com.intel.podm.common.types.OperationalState;
 import com.intel.podm.common.types.PortClass;
 import com.intel.podm.common.types.PortMode;
 import com.intel.podm.common.types.PortType;
-import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.net.MacAddress;
+import org.hibernate.annotations.NotFound;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Predicate;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.IP_ADDRESS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.MEMBER_OF_PORT;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.PORT_MEMBERS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.PRIMARY_VLAN;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.booleanProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.macAddressProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.neighborInfoProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.single;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.LAZY;
+import static org.hibernate.annotations.NotFoundAction.IGNORE;
 
-@Dependent
-@Transactional(MANDATORY)
-public class EthernetSwitchPort extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<String> PORT_ID = stringProperty("portId");
-    public static final DomainObjectProperty<LinkType> LINK_TYPE = enumProperty("linkType", LinkType.class);
-    public static final DomainObjectProperty<OperationalState> OPERATIONAL_STATE = enumProperty("operationalState", OperationalState.class);
-    public static final DomainObjectProperty<AdministrativeState> ADMINISTRATIVE_STATE = enumProperty("administrativeState", AdministrativeState.class);
-    public static final DomainObjectProperty<Integer> LINK_SPEED_MBPS = integerProperty("linkSpeedMbps");
-    public static final DomainObjectProperty<NeighborInfo> NEIGHBOR_INFO = neighborInfoProperty("neighborInfo");
-    public static final DomainObjectProperty<MacAddress> NEIGHBOR_MAC = macAddressProperty("neighborMac");
-    public static final DomainObjectProperty<Boolean> AUTOSENSE = booleanProperty("autosense");
-    public static final DomainObjectProperty<Integer> FRAME_SIZE = integerProperty("frameSize");
-    public static final DomainObjectProperty<Boolean> FULL_DUPLEX = booleanProperty("fullDuplex");
-    public static final DomainObjectProperty<MacAddress> MAC_ADDRESS = macAddressProperty("macAddress");
-    public static final DomainObjectProperty<PortClass> PORT_CLASS = enumProperty("portClass", PortClass.class);
-    public static final DomainObjectProperty<PortMode> PORT_MODE = enumProperty("portMode", PortMode.class);
-    public static final DomainObjectProperty<PortType> PORT_TYPE = enumProperty("portType", PortType.class);
+@javax.persistence.Entity
+@NamedQueries({
+    @NamedQuery(name = EthernetSwitchPort.GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC,
+        query = "SELECT esp FROM EthernetSwitchPort esp WHERE esp.neighborMac = :neighborMac")
+})
+@Table(name = "ethernet_switch_port", indexes = @Index(name = "idx_ethernet_switch_port_entity_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
+public class EthernetSwitchPort extends DiscoverableEntity implements VlanPossessor {
+    public static final String GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC = "GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC";
+
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "port_id")
+    private String portId;
+
+    @Column(name = "link_type")
+    @Enumerated(STRING)
+    private LinkType linkType;
+
+    @Column(name = "operational_state")
+    @Enumerated(STRING)
+    private OperationalState operationalState;
+
+    @Column(name = "administrative_state")
+    @Enumerated(STRING)
+    private AdministrativeState administrativeState;
+
+    @Column(name = "link_speed_gbps")
+    private Integer linkSpeedGbps;
+
+    @Column(name = "neighbor_info")
+    private NeighborInfo neighborInfo;
+
+    @Column(name = "neighbor_mac")
+    private MacAddress neighborMac;
+
+    @Column(name = "mac_address")
+    private MacAddress macAddress;
+
+    @Column(name = "autosense")
+    private Boolean autosense;
+
+    @Column(name = "frame_size")
+    private Integer frameSize;
+
+    @Column(name = "full_duplex")
+    private Boolean fullDuplex;
+
+    @Column(name = "port_class")
+    @Enumerated(STRING)
+    private PortClass portClass;
+
+    @Column(name = "port_mode")
+    @Enumerated(STRING)
+    private PortMode portMode;
+
+    @Column(name = "port_type")
+    @Enumerated(STRING)
+    private PortType portType;
+
+    @ElementCollection
+    @CollectionTable(name = "ethernet_switch_port_ipv4_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @OrderColumn(name = "ipv4_address_order")
+    private List<IpV4Address> ipv4Addresses = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "ethernet_switch_port_ipv6_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @OrderColumn(name = "ipv6_address_order")
+    private List<IpV6Address> ipv6Addresses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "memberOfPort", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitchPort> portMembers = new HashSet<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "ethernetSwitchPort", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitchPortVlan> ethernetSwitchPortVlans = new HashSet<>();
+
+    @IgnoreUnlinkingRelationship
+    @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "primary_vlan_id")
+    @NotFound(action = IGNORE)
+    private EthernetSwitchPortVlan primaryVlan;
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "ethernet_switch_id")
+    private EthernetSwitch ethernetSwitch;
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "member_of_port_id")
+    private EthernetSwitchPort memberOfPort;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public String getPortId() {
-        return getProperty(PORT_ID);
+        return portId;
     }
 
-    public void setPortId(String value) {
-        setProperty(PORT_ID, value);
-    }
-
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
-    }
-
-    public Integer getLinkSpeedMbps() {
-        return getProperty(LINK_SPEED_MBPS);
-    }
-
-    public void setLinkSpeedMbps(Integer value) {
-        setProperty(LINK_SPEED_MBPS, value);
-    }
-
-    public OperationalState getOperationalState() {
-        return getProperty(OPERATIONAL_STATE);
-    }
-
-    public void setOperationalState(OperationalState value) {
-        setProperty(OPERATIONAL_STATE, value);
-    }
-
-    public AdministrativeState getAdministrativeState() {
-        return getProperty(ADMINISTRATIVE_STATE);
-    }
-
-    public void setAdministrativeState(AdministrativeState value) {
-        setProperty(ADMINISTRATIVE_STATE, value);
+    public void setPortId(String portId) {
+        this.portId = portId;
     }
 
     public LinkType getLinkType() {
-        return getProperty(LINK_TYPE);
+        return linkType;
     }
 
     public void setLinkType(LinkType value) {
-        setProperty(LINK_TYPE, value);
+        this.linkType = value;
+    }
+
+    public OperationalState getOperationalState() {
+        return operationalState;
+    }
+
+    public void setOperationalState(OperationalState value) {
+        this.operationalState = value;
+    }
+
+    public AdministrativeState getAdministrativeState() {
+        return administrativeState;
+    }
+
+    public void setAdministrativeState(AdministrativeState value) {
+        this.administrativeState = value;
+    }
+
+    public Integer getLinkSpeedMbps() {
+        return linkSpeedGbps;
+    }
+
+    public void setLinkSpeedMbps(Integer value) {
+        this.linkSpeedGbps = value;
     }
 
     public NeighborInfo getNeighborInfo() {
-        return getProperty(NEIGHBOR_INFO);
+        return neighborInfo;
     }
 
     public void setNeighborInfo(NeighborInfo neighborInfo) {
-        setProperty(NEIGHBOR_INFO, neighborInfo);
+        this.neighborInfo = neighborInfo;
     }
 
     public MacAddress getNeighborMac() {
-        return getProperty(NEIGHBOR_MAC);
+        return neighborMac;
     }
 
     public void setNeighborMac(MacAddress macAddress) {
-        setProperty(NEIGHBOR_MAC, macAddress);
-    }
-
-    public Boolean getAutosense() {
-        return getProperty(AUTOSENSE);
-    }
-
-    public void setAutosense(Boolean autosense) {
-        setProperty(AUTOSENSE, autosense);
-    }
-
-    public Boolean getFullDuplex() {
-        return getProperty(FULL_DUPLEX);
-    }
-
-    public void setFullDuplex(Boolean fullDuplex) {
-        setProperty(FULL_DUPLEX, fullDuplex);
-    }
-
-    public Integer getFrameSize() {
-        return getProperty(FRAME_SIZE);
-    }
-
-    public void setFrameSize(Integer frameSize) {
-        setProperty(FRAME_SIZE, frameSize);
+        this.neighborMac = macAddress;
     }
 
     public MacAddress getMacAddress() {
-        return getProperty(MAC_ADDRESS);
+        return macAddress;
     }
 
     public void setMacAddress(MacAddress macAddress) {
-        setProperty(MAC_ADDRESS, macAddress);
+        this.macAddress = macAddress;
+    }
+
+    public Boolean getAutosense() {
+        return autosense;
+    }
+
+    public void setAutosense(Boolean autosense) {
+        this.autosense = autosense;
+    }
+
+    public Integer getFrameSize() {
+        return frameSize;
+    }
+
+    public void setFrameSize(Integer frameSize) {
+        this.frameSize = frameSize;
+    }
+
+    public Boolean getFullDuplex() {
+        return fullDuplex;
+    }
+
+    public void setFullDuplex(Boolean fullDuplex) {
+        this.fullDuplex = fullDuplex;
     }
 
     public PortClass getPortClass() {
-        return getProperty(PORT_CLASS);
+        return portClass;
     }
 
     public void setPortClass(PortClass portClass) {
-        setProperty(PORT_CLASS, portClass);
+        this.portClass = portClass;
     }
 
     public PortMode getPortMode() {
-        return getProperty(PORT_MODE);
+        return portMode;
     }
 
     public void setPortMode(PortMode portMode) {
-        setProperty(PORT_MODE, portMode);
+        this.portMode = portMode;
     }
 
     public PortType getPortType() {
-        return getProperty(PORT_TYPE);
+        return portType;
     }
 
     public void setPortType(PortType portType) {
-        setProperty(PORT_TYPE, portType);
-    }
-
-    public void setPrimaryVlan(EthernetSwitchPortVlan primaryVlan) {
-        setLink(PRIMARY_VLAN, primaryVlan);
-    }
-
-    public void removePrimaryVlan(EthernetSwitchPortVlan primaryVlan) {
-        unlink(PRIMARY_VLAN, primaryVlan);
-    }
-
-    public EthernetSwitchPortVlan getPrimaryVlan() {
-        return singleOrNull(getLinked(PRIMARY_VLAN, EthernetSwitchPortVlan.class));
-    }
-
-    public void addVlan(EthernetSwitchPortVlan vlan) {
-        link(CONTAINS, vlan);
-    }
-
-    public Collection<EthernetSwitchPortVlan> getVlans() {
-        return getLinked(CONTAINS, EthernetSwitchPortVlan.class);
-    }
-
-    public EthernetSwitch getEthernetSwitch() {
-        return single(getLinked(CONTAINED_BY, EthernetSwitch.class));
-    }
-
-    public void setIpV4Addresses(Collection<IpV4Address> addresses) {
-        addresses.forEach(address -> link(IP_ADDRESS, address));
-    }
-
-    public void setIpV6Addresses(Collection<IpV6Address> addresses) {
-        addresses.forEach(address -> link(IP_ADDRESS, address));
+        this.portType = portType;
     }
 
     public Collection<IpV4Address> getIpV4Addresses() {
-        return getLinked(IP_ADDRESS, IpV4Address.class);
+        return ipv4Addresses;
+    }
+
+    public void addIpV4Address(IpV4Address address) {
+        this.ipv4Addresses.add(address);
     }
 
     public Collection<IpV6Address> getIpV6Addresses() {
-        return getLinked(IP_ADDRESS, IpV6Address.class);
+        return ipv6Addresses;
     }
 
-    public EthernetSwitchPort getMemberOfPort() {
-        try {
-            return singleOrNull(getLinked(MEMBER_OF_PORT, EthernetSwitchPort.class));
-        } catch (IllegalStateException e) {
-            throw new IllegalStateException("EthernetSwitchPort may be a member of at most one port", e);
+    public void addIpV6Address(IpV6Address address) {
+        this.ipv6Addresses.add(address);
+    }
+
+    public Set<EthernetSwitchPort> getPortMembers() {
+        return portMembers;
+    }
+
+    public void addPortMember(EthernetSwitchPort ethernetSwitchPort) {
+        requiresNonNull(ethernetSwitchPort, "ethernetSwitchPort");
+
+        portMembers.add(ethernetSwitchPort);
+        if (!this.equals(ethernetSwitchPort.getMemberOfPort())) {
+            ethernetSwitchPort.setMemberOfPort(this);
         }
     }
 
-    public Collection<EthernetSwitchPort> getPortMembers() {
-        return getLinked(PORT_MEMBERS, EthernetSwitchPort.class);
+    public void unlinkPortMember(EthernetSwitchPort ethernetSwitchPort) {
+        if (portMembers.contains(ethernetSwitchPort)) {
+            portMembers.remove(ethernetSwitchPort);
+            if (ethernetSwitchPort != null) {
+                ethernetSwitchPort.unlinkMemberOfPort(this);
+            }
+        }
     }
 
-    public void addPortMember(EthernetSwitchPort switchPort) {
-        link(PORT_MEMBERS, switchPort);
-    }
-
-    public void removePortMember(EthernetSwitchPort switchPort) {
-        unlink(PORT_MEMBERS, switchPort);
-    }
-
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
+    public void uncouplePortMembers(Predicate<EthernetSwitchPort> unlinkPredicate) {
+        unlinkCollection(portMembers, this::unlinkPortMember, unlinkPredicate);
     }
 
     @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
+    public Set<EthernetSwitchPortVlan> getEthernetSwitchPortVlans() {
+        return ethernetSwitchPortVlans;
+    }
+
+    public void addEthernetSwitchPortVlan(EthernetSwitchPortVlan ethernetSwitchPortVlan) {
+        requiresNonNull(ethernetSwitchPortVlan, "ethernetSwitchPortVlan");
+
+        ethernetSwitchPortVlans.add(ethernetSwitchPortVlan);
+        if (!this.equals(ethernetSwitchPortVlan.getEthernetSwitchPort())) {
+            ethernetSwitchPortVlan.setEthernetSwitchPort(this);
+        }
+    }
+
+    public void unlinkEthernetSwitchPortVlan(EthernetSwitchPortVlan ethernetSwitchPortVlan) {
+        if (ethernetSwitchPortVlans.contains(ethernetSwitchPortVlan)) {
+            ethernetSwitchPortVlans.remove(ethernetSwitchPortVlan);
+            if (ethernetSwitchPortVlan != null) {
+                ethernetSwitchPortVlan.unlinkEthernetSwitchPort(this);
+            }
+        }
+    }
+
+    public EthernetSwitchPortVlan getPrimaryVlan() {
+        return primaryVlan;
+    }
+
+    public void setPrimaryVlan(EthernetSwitchPortVlan primaryVlan) {
+        if (!Objects.equals(this.primaryVlan, primaryVlan)) {
+            unlinkPrimaryVlan(this.primaryVlan);
+            this.primaryVlan = primaryVlan;
+        }
+    }
+
+    public void unlinkPrimaryVlan(EthernetSwitchPortVlan primaryVlan) {
+        if (Objects.equals(this.primaryVlan, primaryVlan)) {
+            this.primaryVlan = null;
+        }
+    }
+
+    public EthernetSwitch getEthernetSwitch() {
+        return ethernetSwitch;
+    }
+
+    public void setEthernetSwitch(EthernetSwitch ethernetSwitch) {
+        if (!Objects.equals(this.ethernetSwitch, ethernetSwitch)) {
+            unlinkEthernetSwitch(this.ethernetSwitch);
+            this.ethernetSwitch = ethernetSwitch;
+            if (ethernetSwitch != null && !ethernetSwitch.getPorts().contains(this)) {
+                ethernetSwitch.addPort(this);
+            }
+        }
+    }
+
+    public void unlinkEthernetSwitch(EthernetSwitch ethernetSwitch) {
+        if (Objects.equals(this.ethernetSwitch, ethernetSwitch)) {
+            this.ethernetSwitch = null;
+            if (ethernetSwitch != null) {
+                ethernetSwitch.unlinkPort(this);
+            }
+        }
+    }
+
+    public EthernetSwitchPort getMemberOfPort() {
+        return memberOfPort;
+    }
+
+    public void setMemberOfPort(EthernetSwitchPort memberOfPort) {
+        if (!Objects.equals(this.memberOfPort, memberOfPort)) {
+            unlinkMemberOfPort(this.memberOfPort);
+            this.memberOfPort = memberOfPort;
+            if (memberOfPort != null && !memberOfPort.getPortMembers().contains(this)) {
+                memberOfPort.addPortMember(this);
+            }
+        }
+    }
+
+    public void unlinkMemberOfPort(EthernetSwitchPort memberOfPort) {
+        if (Objects.equals(this.memberOfPort, memberOfPort)) {
+            this.memberOfPort = null;
+            if (memberOfPort != null) {
+                memberOfPort.unlinkPortMember(this);
+            }
+        }
     }
 
     @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public void preRemove() {
+        unlinkCollection(portMembers, this::unlinkPortMember);
+        unlinkCollection(ethernetSwitchPortVlans, this::unlinkEthernetSwitchPortVlan);
+        unlinkPrimaryVlan(primaryVlan);
+        unlinkEthernetSwitch(ethernetSwitch);
+        unlinkMemberOfPort(memberOfPort);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, ethernetSwitch);
     }
 }

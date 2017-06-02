@@ -1,4 +1,8 @@
 {
+  "Northbound": {
+    "DeliveryRetryAttempts": 2,
+    "DeliveryRetryIntervalSeconds": 1
+  },
   "EventSubscriptionIntervalSeconds" : 90,
   "NetworkInterfaceNameForEventsFromPsme" : "eth0.4094",
   "NetworkInterfaceNameForEventsFromRss" : "eth0.4093",

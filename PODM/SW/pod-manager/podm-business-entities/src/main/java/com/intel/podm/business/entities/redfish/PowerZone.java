@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,142 +16,186 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.properties.RackLocation;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.listeners.PowerZoneListener;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.embeddables.RackLocation;
+import com.intel.podm.common.types.Id;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
-import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.EntityListeners;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.REQUIRED;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(REQUIRED)
-public class PowerZone extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<Integer> MAX_PSUS_SUPPORTED = integerProperty("maxPsusSupported");
-    public static final DomainObjectProperty<String> PRESENCE = stringProperty("presence");
-    public static final DomainObjectProperty<Integer> NUMBER_OF_PSUS_PRESENT = integerProperty("numberOfPsusPresent");
-    public static final DomainObjectProperty<Integer> POWER_CONSUMED_WATTS  = integerProperty("powerConsumedWatts");
-    public static final DomainObjectProperty<Integer> POWER_OUTPUT_WATTS = integerProperty("powerOutputWatts");
-    public static final DomainObjectProperty<Integer> POWER_CAPACITY_WATTS = integerProperty("powerCapacityWatts");
+@javax.persistence.Entity
+@Table(name = "power_zone", indexes = @Index(name = "idx_power_zone_entity_id", columnList = "entity_id", unique = true))
+@EntityListeners(PowerZoneListener.class)
+@Eventable
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class PowerZone extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "presence")
+    private String presence;
+
+    @Column(name = "power_capacity_watts")
+    private Integer powerCapacityWatts;
+
+    @Column(name = "power_consumed_watts")
+    private Integer powerConsumedWatts;
+
+    @Column(name = "power_output_watts")
+    private Integer powerOutputWatts;
+
+    @Column(name = "max_psus_supported")
+    private Integer maxPsusSupported;
+
+    @Column(name = "number_of_psus_present")
+    private Integer numberOfPsusPresent;
+
+    @Embedded
+    private RackLocation rackLocation;
+
+    @OneToMany(mappedBy = "powerZone", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<PowerZonePowerSupply> powerSupplies = new HashSet<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "chassis_id")
+    private Chassis chassis;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
-    }
-
-    public Integer getNumberOfPsusPresent() {
-        return getProperty(NUMBER_OF_PSUS_PRESENT);
-    }
-
-    public void setNumberOfPsusPresent(Integer numberOfPsusPresent) {
-        setProperty(NUMBER_OF_PSUS_PRESENT, numberOfPsusPresent);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public String getPresence() {
-        return getProperty(PRESENCE);
+        return presence;
     }
 
     public void setPresence(String presence) {
-        setProperty(PRESENCE, presence);
-    }
-
-    public PowerSupply addPowerSupply() {
-        return addDomainObject(CONTAINS, PowerSupply.class);
-    }
-
-    public List<PowerSupply> getPowerSupplies() {
-        return getLinked(CONTAINS, PowerSupply.class);
-    }
-
-    public void setRackLocation(RackLocation rackLocation) {
-        link(CONTAINS, rackLocation);
-    }
-
-    public RackLocation getRackLocation() {
-        return singleOrNull(getLinked(CONTAINS, RackLocation.class));
-    }
-
-    public Integer getMaxPsusSupported() {
-        return getProperty(MAX_PSUS_SUPPORTED);
-    }
-
-    public void setMaxPsusSupported(Integer maxPsusSupported) {
-        setProperty(MAX_PSUS_SUPPORTED, maxPsusSupported);
+        this.presence = presence;
     }
 
     public Integer getPowerCapacityWatts() {
-        return getProperty(POWER_CAPACITY_WATTS);
+        return powerCapacityWatts;
     }
 
-    public void setPowerCapacityWatts(Integer powerAvailableWatts) {
-        setProperty(POWER_CAPACITY_WATTS, powerAvailableWatts);
-    }
-
-    public Integer getPowerOutputWatts() {
-        return getProperty(POWER_OUTPUT_WATTS);
-    }
-
-    public void setPowerOutputWatts(Integer powerOutputWatts) {
-        setProperty(POWER_OUTPUT_WATTS, powerOutputWatts);
+    public void setPowerCapacityWatts(Integer powerCapacityWatts) {
+        this.powerCapacityWatts = powerCapacityWatts;
     }
 
     public Integer getPowerConsumedWatts() {
-        return getProperty(POWER_CONSUMED_WATTS);
+        return powerConsumedWatts;
     }
 
     public void setPowerConsumedWatts(Integer powerConsumedWatts) {
-        setProperty(POWER_CONSUMED_WATTS, powerConsumedWatts);
+        this.powerConsumedWatts = powerConsumedWatts;
+    }
+
+    public Integer getPowerOutputWatts() {
+        return powerOutputWatts;
+    }
+
+    public void setPowerOutputWatts(Integer powerOutputWatts) {
+        this.powerOutputWatts = powerOutputWatts;
+    }
+
+    public Integer getMaxPsusSupported() {
+        return maxPsusSupported;
+    }
+
+    public void setMaxPsusSupported(Integer maxPsusSupported) {
+        this.maxPsusSupported = maxPsusSupported;
+    }
+
+    public Integer getNumberOfPsusPresent() {
+        return numberOfPsusPresent;
+    }
+
+    public void setNumberOfPsusPresent(Integer numberOfPsusPresent) {
+        this.numberOfPsusPresent = numberOfPsusPresent;
+    }
+
+    public RackLocation getRackLocation() {
+        return rackLocation;
+    }
+
+    public void setRackLocation(RackLocation rackLocation) {
+        this.rackLocation = rackLocation;
+    }
+
+    public Set<PowerZonePowerSupply> getPowerSupplies() {
+        return powerSupplies;
+    }
+
+    public void addPowerSupply(PowerZonePowerSupply powerZonePowerSupply) {
+        requiresNonNull(powerZonePowerSupply, "powerZonePowerSupply");
+
+        powerSupplies.add(powerZonePowerSupply);
+        if (!this.equals(powerZonePowerSupply.getPowerZone())) {
+            powerZonePowerSupply.setPowerZone(this);
+        }
+    }
+
+    public void unlinkPowerSupply(PowerZonePowerSupply powerZonePowerSupply) {
+        if (powerSupplies.contains(powerZonePowerSupply)) {
+            powerSupplies.remove(powerZonePowerSupply);
+            if (powerZonePowerSupply != null) {
+                powerZonePowerSupply.unlinkPowerZone(this);
+            }
+        }
+    }
+
+    public Chassis getChassis() {
+        return chassis;
+    }
+
+    public void setChassis(Chassis chassis) {
+        if (!Objects.equals(this.chassis, chassis)) {
+            unlinkChassis(this.chassis);
+            this.chassis = chassis;
+            if (chassis != null && !chassis.getPowerZones().contains(this)) {
+                chassis.addPowerZone(this);
+            }
+        }
+    }
+
+    public void unlinkChassis(Chassis chassis) {
+        if (Objects.equals(this.chassis, chassis)) {
+            this.chassis = null;
+            if (chassis != null) {
+                chassis.unlinkPowerZone(this);
+            }
+        }
     }
 
     @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
+    public void preRemove() {
+        unlinkCollection(powerSupplies, this::unlinkPowerSupply);
+        unlinkChassis(chassis);
     }
 
     @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
-    }
-
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
-    }
-
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, chassis);
     }
 }

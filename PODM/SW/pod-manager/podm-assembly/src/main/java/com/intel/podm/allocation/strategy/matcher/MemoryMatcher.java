@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@
 package com.intel.podm.allocation.strategy.matcher;
 
 import com.intel.podm.allocation.mappers.memory.MemoryModulesAllocationMapper;
-import com.intel.podm.business.dto.redfish.RequestedMemory;
-import com.intel.podm.business.dto.redfish.RequestedNode;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.base.MemoryModule;
 
@@ -31,7 +30,7 @@ import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 public class MemoryMatcher {
     public boolean matches(RequestedNode requestedNode, ComputerSystem computerSystem) {
-        List<RequestedMemory> requestedMemoryModules = requestedNode.getMemoryModules();
+        List<RequestedNode.Memory> requestedMemoryModules = requestedNode.getMemoryModules();
         List<MemoryModule> availableMemoryModules = getMemoryModules(computerSystem);
         return isNotEmpty(requestedMemoryModules)
                 ? areMatched(requestedMemoryModules, availableMemoryModules)
@@ -48,9 +47,9 @@ public class MemoryMatcher {
         return availableMemoryModules;
     }
 
-    private static boolean areMatched(List<RequestedMemory> requestedMemoryModules, List<MemoryModule> availableMemoryModules) {
+    private static boolean areMatched(List<RequestedNode.Memory> requestedMemoryModules, List<MemoryModule> availableMemoryModules) {
         MemoryModulesAllocationMapper mapper = new MemoryModulesAllocationMapper();
-        Map<RequestedMemory, List<MemoryModule>> mappedMemoryModules = mapper.map(requestedMemoryModules, unmodifiableList(availableMemoryModules));
+        Map<RequestedNode.Memory, List<MemoryModule>> mappedMemoryModules = mapper.map(requestedMemoryModules, unmodifiableList(availableMemoryModules));
         return mappedMemoryModules.entrySet().stream().allMatch(entry -> !entry.getValue().isEmpty());
     }
 }

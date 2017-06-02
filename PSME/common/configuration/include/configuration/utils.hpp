@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,7 @@
  * @brief Configuration utils
  * */
 
-#ifndef CONFIGURATION_UTILS_HPP
-#define CONFIGURATION_UTILS_HPP
-
+#pragma once
 #include <string>
 
 namespace json { class Value; }
@@ -74,4 +72,3 @@ std::string decrypt(const std::string& key, const std::string& message);
 
 }
 
-#endif /* CONFIGURATION_UTILS_HPP */

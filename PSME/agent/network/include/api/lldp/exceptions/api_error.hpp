@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,8 +48,8 @@ public:
      * */
     explicit ApiError(const std::string& what);
 
-    ApiError(ApiError&) = default;
     ApiError(const ApiError&) = default;
+    ApiError& operator=(const ApiError&) = default;
 
     /*!
      * @brief Default constructor

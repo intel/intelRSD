@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,38 +30,37 @@ using namespace agent::storage::iscsi::tgt;
 namespace {
 /*! Global array for error string descriptions */
 std::array<const char*, 25> g_error_array = {{
-    "Success!",
-    "Unknown error!",
-    "Out of memory!",
-    "Can't find the driver!",
-    "Can't find the target!",
-    "Can't find the logical unit!",
-    "Can't find the session!",
-    "Can't find the connection!",
-    "Can't find the binding!",
-    "Target already exists!",
-    "Binding already exists!",
-    "Logical unit number already exists!",
-    "Access control rule already exists!",
-    "Access control does not exists!",
-    "Account already exists!",
-    "Can't find the account!",
-    "Too many account!",
-    "Invalid request!",
-    "Target already has an outgoing account!",
-    "Target is still active!",
-    "Logical unit is still active!",
-    "Drive is busy!",
-    "Operation isn't supported!",
-    "Unknown parameter!",
-    "Device has prevent removal set!"
-    }
-};
+     "Success!",
+     "Unknown error!",
+     "Out of memory!",
+     "Can't find the driver!",
+     "Can't find the target!",
+     "Can't find the logical unit!",
+     "Can't find the session!",
+     "Can't find the connection!",
+     "Can't find the binding!",
+     "Target already exists!",
+     "Binding already exists!",
+     "Logical unit number already exists!",
+     "Access control rule already exists!",
+     "Access control does not exists!",
+     "Account already exists!",
+     "Can't find the account!",
+     "Too many account!",
+     "Invalid request!",
+     "Target already has an outgoing account!",
+     "Target is still active!",
+     "Logical unit is still active!",
+     "Drive is busy!",
+     "Operation isn't supported!",
+     "Unknown parameter!",
+     "Device has prevent removal set!"
+}};
 }
 
 std::string Errors::get_error_message(const std::uint32_t ec) {
     if (ec < g_error_array.size()) {
-       return std::string(g_error_array[ec]);
+        return std::string(g_error_array[ec]);
     }
 
     return "Unknown request error.";
@@ -83,7 +82,13 @@ void Errors::throw_exception(const Errors::Types error,
             break;
 
         case Errors::Types::TARGET_EXIST:
-            THROW(agent_framework::exceptions::InvalidParameters,
+            THROW(agent_framework::exceptions::InvalidValue,
+                  "storage-agent", message + get_error_message(error));
+        case Errors::Types::TARGET_ACTIVE:
+            THROW(agent_framework::exceptions::InvalidValue,
+                  "storage-agent", message + get_error_message(error));
+        case Errors::Types::LUN_ACTIVE:
+            THROW(agent_framework::exceptions::InvalidValue,
                   "storage-agent", message + get_error_message(error));
 
         case Errors::Types::UNKNOWN_ERROR:
@@ -101,8 +106,6 @@ void Errors::throw_exception(const Errors::Types error,
         case Errors::Types::TOO_MANY_USERS:
         case Errors::Types::INVALID_REQUEST:
         case Errors::Types::OUTACCOUNT_EXIST:
-        case Errors::Types::TARGET_ACTIVE:
-        case Errors::Types::LUN_ACTIVE:
         case Errors::Types::DRIVER_ACTIVE:
         case Errors::Types::UNSUPPORTED_OPERATION:
         case Errors::Types::UNKNOWN_PARAM:
@@ -112,4 +115,3 @@ void Errors::throw_exception(const Errors::Types error,
                   "storage-agent", message + get_error_message(error));
     }
 }
-

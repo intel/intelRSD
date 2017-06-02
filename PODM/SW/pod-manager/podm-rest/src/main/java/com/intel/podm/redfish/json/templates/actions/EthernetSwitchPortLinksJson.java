@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,55 +18,59 @@ package com.intel.podm.redfish.json.templates.actions;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.intel.podm.business.dto.redfish.RequestedEthernetSwitchPortLinks;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.client.resources.ODataId;
+import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
 
+import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT_VLAN;
-import static com.intel.podm.redfish.UriConverter.getContextFromUri;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
+import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUri;
+import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUriWithPossibleParent;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EthernetSwitchPortLinksJson implements RequestedEthernetSwitchPortLinks {
+public class EthernetSwitchPortLinksJson implements RedfishEthernetSwitchPort.Links {
 
-    private Optional<List<Context>> portMembers = empty();
+    private Set<Context> portMembers;
+
+    private Context primaryVlan;
 
     @JsonProperty("PrimaryVLAN")
-    private ODataId primaryVlan;
-
-    @JsonProperty("PortMembers")
-    public void setPortMembers(List<ODataId> portMembers) {
-        if (portMembers == null) {
-            this.portMembers = null;
+    public void setPrimaryVlan(ODataId primaryVlanOdataId) {
+        if (primaryVlanOdataId == null) {
             return;
         }
-        List<Context> contextList = new ArrayList<>();
-        for (ODataId portMember : portMembers) {
-            if (portMember == null) {
-                throw new RuntimeException("Port member is not set");
-            }
-            Context switchContext = getContextFromUri(portMember.toUri(), ETHERNET_SWITCH_PORT);
-            contextList.add(switchContext);
-        }
-        this.portMembers = of(contextList);
+
+        primaryVlan = getContextFromUriWithPossibleParent(primaryVlanOdataId.toUri(), ETHERNET_SWITCH, ETHERNET_SWITCH_PORT_VLAN);
     }
 
     @Override
     public Context getPrimaryVlan() {
-        if (primaryVlan == null) {
-            return null;
+        return primaryVlan;
+    }
+
+    @JsonProperty("PortMembers")
+    public void setPortMembers(Set<ODataId> portMembersOdataIds) {
+        if (portMembersOdataIds == null) {
+            return;
         }
-        return getContextFromUri(primaryVlan.toUri(), ETHERNET_SWITCH_PORT_VLAN);
+        Set<Context> contextList = new HashSet<>();
+        for (ODataId portMember : portMembersOdataIds) {
+            if (portMember == null) {
+                throw new RuntimeException("Port member is not set");
+            }
+
+            Context switchContext = getContextFromUri(portMember.toUri(), ETHERNET_SWITCH_PORT);
+            contextList.add(switchContext);
+        }
+        this.portMembers = contextList;
     }
 
     @Override
-    public Optional<List<Context>> getPortMembers() {
+    public Set<Context> getPortMembers() {
         return portMembers;
     }
 }

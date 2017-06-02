@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,10 @@ static void event_notify(struct subscription *s, struct event_info *evt, int evt
 		break;
 	}
 
-	if (notify_str)
+	if (notify_str) {
 		sendto(notify_fd, notify_str, strnlen_s(notify_str, RSIZE_MAX_STR)+1, 0, (struct sockaddr *)&addr, sizeof(addr));
+		jrpc_free_string(notify_str);
+	}
 
 	if (s->cb_pid != 0)
 		kill(s->cb_pid, SIGEVT);

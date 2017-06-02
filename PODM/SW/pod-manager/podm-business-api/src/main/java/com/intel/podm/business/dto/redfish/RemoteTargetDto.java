@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,17 @@
 
 package com.intel.podm.business.dto.redfish;
 
-import com.intel.podm.common.types.Id;
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
 import java.util.List;
 
-public final class RemoteTargetDto {
-    private final Id id;
+public final class RemoteTargetDto extends BaseDto implements RedfishResource {
+    private final String id;
     private final String name;
     private final String description;
+    private final List<UnknownOemDto> unknownOems;
     private final Status status;
     private final String type;
     private final List<RemoteTargetIscsiAddressDto> iscsiAddresses;
@@ -34,6 +36,7 @@ public final class RemoteTargetDto {
         id = builder.id;
         name = builder.name;
         description = builder.description;
+        unknownOems = builder.unknownOems;
         status = builder.status;
         type = builder.type;
         iscsiAddresses = builder.iscsiAddresses;
@@ -44,16 +47,24 @@ public final class RemoteTargetDto {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public Status getStatus() {
@@ -72,10 +83,16 @@ public final class RemoteTargetDto {
         return iscsiInitiatorIqn;
     }
 
+    @Override
+    public Links getLinks() {
+        throw new UnsupportedOperationException("Links are not available in this resource");
+    }
+
     public static final class Builder {
-        private Id id;
+        private String id;
         private String name;
         private String description;
+        private List<UnknownOemDto> unknownOems;
         private Status status;
         private String type;
         private List<RemoteTargetIscsiAddressDto> iscsiAddresses;
@@ -84,38 +101,43 @@ public final class RemoteTargetDto {
         private Builder() {
         }
 
-        public Builder id(Id val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder description(String val) {
-            description = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 
-        public Builder type(String val) {
-            type = val;
+        public Builder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public Builder iscsiAddresses(List<RemoteTargetIscsiAddressDto> val) {
-            iscsiAddresses = val;
+        public Builder type(String type) {
+            this.type = type;
             return this;
         }
 
-        public Builder iscsiInitiatorIqn(String val) {
-            iscsiInitiatorIqn = val;
+        public Builder iscsiAddresses(List<RemoteTargetIscsiAddressDto> iscsiAddresses) {
+            this.iscsiAddresses = iscsiAddresses;
+            return this;
+        }
+
+        public Builder iscsiInitiatorIqn(String iscsiInitiatorIqn) {
+            this.iscsiInitiatorIqn = iscsiInitiatorIqn;
             return this;
         }
 

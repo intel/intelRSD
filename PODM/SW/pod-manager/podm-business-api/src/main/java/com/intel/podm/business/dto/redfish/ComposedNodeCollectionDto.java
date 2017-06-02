@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package com.intel.podm.business.dto.redfish;
 
 import com.intel.podm.common.types.Id;
 
-import java.util.Collection;
+import java.util.Set;
 
 public class ComposedNodeCollectionDto extends CollectionDto {
-    public ComposedNodeCollectionDto(Type type, Collection<Id> members) {
+    public ComposedNodeCollectionDto(Type type, Set<Id> members) {
         super(type, members);
     }
 }

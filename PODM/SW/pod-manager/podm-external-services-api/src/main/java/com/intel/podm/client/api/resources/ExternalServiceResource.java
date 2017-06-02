@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,29 @@
 package com.intel.podm.client.api.resources;
 
 import com.intel.podm.client.api.WebClient;
+import com.intel.podm.client.api.resources.redfish.UnknownOemObject;
 import com.intel.podm.common.types.redfish.RedfishResource;
 
 import java.net.URI;
+import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 public interface ExternalServiceResource extends RedfishResource {
     /**
      * Gets relative URI of resource.
      */
     URI getUri();
+
     void setUri(URI uri);
+
     void setWebClient(WebClient webClient);
+
+    default List<UnknownOemObject> getUnknownOems() {
+        return emptyList();
+    }
+
+    default ExternalServiceResource getByFragment(String uriFragment) {
+        throw null;
+    }
 }

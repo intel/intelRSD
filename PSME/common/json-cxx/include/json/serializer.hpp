@@ -41,9 +41,7 @@
  * @brief JSON serializer interface
  * */
 
-#ifndef JSON_CXX_SERIALIZER_HPP
-#define JSON_CXX_SERIALIZER_HPP
-
+#pragma once
 #include "json/value.hpp"
 #include "json/formatter.hpp"
 
@@ -59,6 +57,8 @@ public:
      * @brief Default constructor
      *
      * Create JSON serializer object with default settings
+     *
+     * @param formatter Strategy to format the output document
      * */
     Serializer(Formatter* formatter = nullptr) : m_formatter{formatter} { }
 
@@ -68,6 +68,7 @@ public:
      * When JSON C++ object is null, store '{}'
      *
      * @param[in]   value   JSON C++ to serialize
+     * @param       formatter Strategy to format the output document
      * */
     Serializer(const Value& value, Formatter* formatter = nullptr) :
         m_formatter{formatter} {
@@ -77,7 +78,7 @@ public:
     /*!
      * @brief Serialize JSON C++ object or array
      *
-     * @param[in]   value   JSON C++ to serialize
+     * @param[in] value   JSON C++ to serialize
      * */
     Serializer& operator<<(const Value& value);
 
@@ -146,4 +147,3 @@ std::ostream& operator<<(std::ostream& os, Serializer&& serializer);
 
 }
 
-#endif /* JSON_CXX_SERIALIZER_HPP */

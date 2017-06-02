@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +21,8 @@
  * @brief tgt configuration
 */
 
-#ifndef ISCSI_TGT_CONFIG_HPP
-#define	ISCSI_TGT_CONFIG_HPP
-
-#include "agent-framework/module/target.hpp"
-#include "logger/logger_factory.hpp"
+#pragma once
+#include "agent-framework/module/model/iscsi_target.hpp"
 #include <cstdint>
 #include <string>
 
@@ -34,8 +31,6 @@ namespace storage {
 namespace iscsi {
 namespace tgt {
 namespace config {
-
-using namespace agent_framework::generic;
 
 /*! Config class adds and removes tgt config file for specified target */
 class TgtConfig {
@@ -58,7 +53,7 @@ public:
      *
      * @param target Target
      */
-    void add_target(const Target::TargetSharedPtr& target) const;
+    void add_target(const agent_framework::model::IscsiTarget& target) const;
 
 
     /*!
@@ -82,5 +77,4 @@ private:
 }
 }
 
-#endif	/* ISCSI_TGT_CONFIG_HPP */
 

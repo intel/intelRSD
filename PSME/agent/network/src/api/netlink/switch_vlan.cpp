@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,6 @@
  * */
 
 #include "api/netlink/switch_vlan.hpp"
-#include "netlink/socket.hpp"
 #include "api/netlink/vlan_message.hpp"
 
 using namespace netlink_base;
@@ -40,25 +39,17 @@ SwitchVlan::SwitchVlan(VlanId vlan_id) {
 SwitchVlan::~SwitchVlan() { }
 
 void SwitchVlan::add_switch_port(const PortIdentifier& port, bool tagged) {
-    Socket socket{};
-    socket.connect();
-    AddVlanPortMessage vlan_msg(port, get_vlan_id(), tagged);
-    socket.send_message(vlan_msg);
-    socket.receive_message(vlan_msg);
+    AddVlanPortMessage vlan_msg{port, get_vlan_id(), tagged, false};
+    vlan_msg.send();
 }
 
 void SwitchVlan::remove_switch_port(const PortIdentifier& port) {
-    Socket socket;
-    socket.connect();
-    DelVlanPortMessage vlan_msg(port, get_vlan_id());
-    socket.send_message(vlan_msg);
+    DelVlanPortMessage vlan_msg{port, get_vlan_id()};
+    vlan_msg.send();
 }
 
 void SwitchVlan::get_switch_info(const PortIdentifier& port, VlanPortInfo& info) {
-    Socket socket;
-    socket.connect();
-    InfoVlanPortMessage vlan_msg;
-    socket.send_message(vlan_msg);
-    socket.receive_message(vlan_msg);
+    InfoVlanPortMessage vlan_msg{};
+    vlan_msg.send();
     info.set_tagged(vlan_msg.is_tagged(port, get_vlan_id()));
 }

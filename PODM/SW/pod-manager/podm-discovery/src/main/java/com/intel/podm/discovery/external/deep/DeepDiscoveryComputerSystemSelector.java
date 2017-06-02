@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,36 @@
 
 package com.intel.podm.discovery.external.deep;
 
-import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.NonUniqueResultException;
+import com.intel.podm.business.entities.dao.ChassisDao;
+import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
-import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
+import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.DiscoveryConfig;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.INITIAL;
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.SCHEDULED_MANUALLY;
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.WAITING_TO_START;
+import static com.intel.podm.common.types.DeepDiscoveryState.INITIAL;
+import static com.intel.podm.common.types.DeepDiscoveryState.SCHEDULED_MANUALLY;
+import static com.intel.podm.common.types.DeepDiscoveryState.WAITING_TO_START;
 import static com.intel.podm.common.types.DiscoveryState.DEEP_IN_PROGRESS;
+import static com.intel.podm.common.types.SystemType.PHYSICAL;
 import static java.lang.Math.max;
 import static java.util.Comparator.comparing;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
@@ -50,7 +53,6 @@ import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
  * Class responsible for selecting and marking computer systems for deep discovery process.
  */
 @Dependent
-@Interceptors(RetryOnRollbackInterceptor.class)
 public class DeepDiscoveryComputerSystemSelector {
     @Inject
     private Logger logger;
@@ -60,51 +62,71 @@ public class DeepDiscoveryComputerSystemSelector {
     private Holder<DiscoveryConfig> config;
 
     @Inject
-    private GenericDao genericDao;
+    private ExternalServiceDao externalServiceDao;
+
+    @Inject
+    private ChassisDao chassisDao;
 
     @Transactional(REQUIRES_NEW)
-    @NumberOfRetriesOnRollback(3)
-    public void markComputerSystemsForDeepDiscovery() {
-        List<ComputerSystem> computerSystems = genericDao.findAll(ComputerSystem.class);
+    public void markComputerSystemsForDeepDiscovery(UUID serviceUuid) {
+        ExternalService externalService = ofNullable(getExternalServiceByUuid(serviceUuid)).orElseThrow(() ->
+            new RuntimeException(
+                "Marking Computer Systems for Deep Discovery failed, there is no Service with UUID: " + serviceUuid
+            ));
+
+        List<ComputerSystem> computerSystems = getPhysicalComputerSystems(externalService);
         Predicate<ComputerSystem> computerSystemIsContainedByDrawer = computerSystem -> computerSystem.getDrawerChassis().isPresent();
 
         Set<ComputerSystem> computerSystemsWithDrawer = filterComputerSystems(computerSystems, computerSystemIsContainedByDrawer);
-        Map<Id, DrawerDeepDiscoveryCounter> drawerDeepDiscoveryCounterMap = buildDrawerDeepDiscoveryCounterMap(computerSystemsWithDrawer);
-        drawerDeepDiscoveryCounterMap.entrySet().stream()
-                .forEach(entry -> processDrawer(entry.getKey(), entry.getValue()));
+        Map<Chassis, DrawerDeepDiscoveryCounter> drawerDeepDiscoveryCounterMap = buildDrawerDeepDiscoveryCounterMap(computerSystemsWithDrawer);
+        drawerDeepDiscoveryCounterMap.entrySet().forEach(entry -> processDrawer(entry.getKey(), entry.getValue()));
 
         Set<ComputerSystem> computerSystemsWithoutDrawer = filterComputerSystems(computerSystems, computerSystemIsContainedByDrawer.negate());
         putAuthorizedComputerSystemsToWaitingStateWithLimit(computerSystemsWithoutDrawer, computerSystemsWithoutDrawer.size());
     }
 
-    private Set<ComputerSystem> filterComputerSystems(List<ComputerSystem> computerSystems, Predicate<ComputerSystem> predicate) {
-        return computerSystems.stream()
-                .filter(predicate)
-                .collect(toSet());
+    private List<ComputerSystem> getPhysicalComputerSystems(ExternalService externalService) {
+        return externalService.getOwned(ComputerSystem.class)
+            .stream()
+            .filter(cs -> PHYSICAL.equals(cs.getSystemType()))
+            .collect(toList());
     }
 
-    private Map<Id, DrawerDeepDiscoveryCounter> buildDrawerDeepDiscoveryCounterMap(Set<ComputerSystem> computerSystems) {
-        Map<Id, DrawerDeepDiscoveryCounter> drawerDeepDiscoveryCounterMap = new HashMap<>();
+    private ExternalService getExternalServiceByUuid(UUID serviceUuid) {
+        try {
+            return externalServiceDao.getExternalServiceByUuid(serviceUuid);
+        } catch (NonUniqueResultException e) {
+            return null;
+        }
+    }
+
+    private Set<ComputerSystem> filterComputerSystems(List<ComputerSystem> computerSystems, Predicate<ComputerSystem> predicate) {
+        return computerSystems.stream()
+            .filter(predicate)
+            .collect(toSet());
+    }
+
+    private Map<Chassis, DrawerDeepDiscoveryCounter> buildDrawerDeepDiscoveryCounterMap(Set<ComputerSystem> computerSystems) {
+        Map<Chassis, DrawerDeepDiscoveryCounter> drawerDeepDiscoveryCounterMap = new HashMap<>();
 
         for (ComputerSystem computerSystem : computerSystems) {
-            Id drawerId = computerSystem.getDrawerChassis().get().getId();
-            drawerDeepDiscoveryCounterMap.putIfAbsent(drawerId, new DrawerDeepDiscoveryCounter());
+            Chassis drawerChassis = computerSystem.getDrawerChassis().get();
+            drawerDeepDiscoveryCounterMap.putIfAbsent(drawerChassis, new DrawerDeepDiscoveryCounter());
 
-            if (computerSystem.isBeingDeepDiscovered()) {
-                drawerDeepDiscoveryCounterMap.get(drawerId).incrementComputerSystemsBeingDeepDiscoveredCount();
+            if (computerSystem.getMetadata().isBeingDeepDiscovered()) {
+                drawerDeepDiscoveryCounterMap.get(drawerChassis).incrementComputerSystemsBeingDeepDiscoveredCount();
             } else if (qualifiesForDeepDiscovery(computerSystem)) {
-                drawerDeepDiscoveryCounterMap.get(drawerId).incrementComputerSystemsWaitingForDeepDiscoveryCount();
+                drawerDeepDiscoveryCounterMap.get(drawerChassis).incrementComputerSystemsWaitingForDeepDiscoveryCount();
             }
         }
 
         return drawerDeepDiscoveryCounterMap;
     }
 
-    private void processDrawer(Id drawerId, DrawerDeepDiscoveryCounter drawerDeepDiscoveryCounter) {
-        Chassis drawerChassis = genericDao.find(Chassis.class, drawerId);
+    private void processDrawer(Chassis drawerChassis, DrawerDeepDiscoveryCounter drawerDeepDiscoveryCounter) {
         logStats(drawerChassis,
-                drawerDeepDiscoveryCounter.getComputerSystemsBeingDeepDiscoveredCount(),
-                drawerDeepDiscoveryCounter.getComputerSystemsWaitingForDeepDiscoveryCount());
+            drawerDeepDiscoveryCounter.getComputerSystemsBeingDeepDiscoveredCount(),
+            drawerDeepDiscoveryCounter.getComputerSystemsWaitingForDeepDiscoveryCount());
 
         int maxComputerSystemsCountPerDrawerBeingDeepDiscovered = config.get().getMaxComputerSystemsCountPerDrawerBeingDeepDiscovered();
         int limit = max(maxComputerSystemsCountPerDrawerBeingDeepDiscovered - drawerDeepDiscoveryCounter.getComputerSystemsBeingDeepDiscoveredCount(), 0);
@@ -115,33 +137,32 @@ public class DeepDiscoveryComputerSystemSelector {
 
     private void putAuthorizedComputerSystemsToWaitingStateWithLimit(Set<ComputerSystem> computerSystems, int limit) {
         computerSystems.stream()
-                .filter(this::qualifiesForDeepDiscovery)
-                .sorted(comparing(computerSystem -> computerSystem.isInAnyOfStates(SCHEDULED_MANUALLY)))
-                .limit(limit)
-                .forEach(this::putToWaitingState);
+            .filter(this::qualifiesForDeepDiscovery)
+            .sorted(comparing(computerSystem -> computerSystem.getMetadata().isInAnyOfStates(SCHEDULED_MANUALLY)))
+            .limit(limit)
+            .forEach(this::putToWaitingState);
     }
 
     private void logStats(Chassis chassis, int computerSystemsBeingDeepDiscoveredCount, int toBeDeepDiscoveredCount) {
         if (computerSystemsBeingDeepDiscoveredCount + toBeDeepDiscoveredCount > 0) {
             logger.i("Drawer Chassis {} deep discovery: active ({}), waiting ({})", chassis.getId(),
-                    computerSystemsBeingDeepDiscoveredCount, toBeDeepDiscoveredCount);
+                computerSystemsBeingDeepDiscoveredCount, toBeDeepDiscoveredCount);
         }
     }
 
     private boolean qualifiesForDeepDiscovery(ComputerSystem computerSystem) {
-        return computerSystem.isInAnyOfStates(INITIAL, SCHEDULED_MANUALLY) && isUsable(computerSystem);
+        return computerSystem.getMetadata().isInAnyOfStates(INITIAL, SCHEDULED_MANUALLY) && isUsable(computerSystem);
     }
 
     private boolean isUsable(ComputerSystem computerSystem) {
-        return !computerSystem.isStorageServiceHost()
-                && computerSystem.isEnabledAndHealthy()
-                && computerSystem.getComposedNode() == null;
+        return computerSystem.isEnabledAndHealthy()
+            && computerSystem.getComposedNode() == null;
     }
 
     private void putToWaitingState(ComputerSystem computerSystem) {
         computerSystem.setDiscoveryState(DEEP_IN_PROGRESS);
-        computerSystem.setDeepDiscoveryState(WAITING_TO_START);
-        computerSystem.setAllocated(true);
+        computerSystem.getMetadata().setDeepDiscoveryState(WAITING_TO_START);
+        computerSystem.getMetadata().setAllocated(true);
     }
 
     private static final class DrawerDeepDiscoveryCounter {

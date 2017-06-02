@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@
 package com.intel.podm.allocation.mappers.processor;
 
 import com.intel.podm.allocation.mappers.Sorter;
-import com.intel.podm.business.dto.redfish.RequestedProcessor;
 import com.intel.podm.business.entities.redfish.Processor;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static com.intel.podm.allocation.mappers.processor.Predicates.byAtLeastAchievableSpeedMhz;
 import static com.intel.podm.allocation.mappers.processor.Predicates.byAtLeastTotalCores;
 import static com.intel.podm.allocation.mappers.processor.Predicates.byCapabilities;
@@ -38,15 +38,16 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
 
 public class ProcessorsAllocationMapper {
-    public Map<RequestedProcessor, Processor> map(List<RequestedProcessor> requestedProcessors, List<Processor> availableProcessors) {
-        Map<RequestedProcessor, Processor> mappedProcessors = newHashMap();
+    public Map<RequestedNode.Processor, Processor> map(Collection<RequestedNode.Processor> requestedProcessors,
+                                                       Collection<Processor> availableProcessors) {
+        Map<RequestedNode.Processor, Processor> mappedProcessors = new HashMap<>();
 
-        List<RequestedProcessor> requestedProcessorsQueue =
-                Sorter.sort(requestedProcessors, Sorter.contextsAscendingWhereNullsLast());
-        List<Processor> availableProcessorsQueue =
-                Sorter.sort(availableProcessors, Sorter.ascendingWhereNullsLast(Processor::getId));
+        Collection<RequestedNode.Processor> requestedProcessorsQueue =
+            Sorter.sort(requestedProcessors, Sorter.contextsAscendingWhereNullsLast());
+        Collection<Processor> availableProcessorsQueue =
+            Sorter.sort(availableProcessors, Sorter.ascendingWhereNullsLast(Processor::getId));
 
-        for (RequestedProcessor requestedProcessor : requestedProcessorsQueue) {
+        for (RequestedNode.Processor requestedProcessor : requestedProcessorsQueue) {
             Optional<Processor> matched = findMatchingProcessor(requestedProcessor, availableProcessorsQueue);
             matched.ifPresent(availableProcessor -> mappedProcessors.put(requestedProcessor, availableProcessor));
             matched.ifPresent(availableProcessorsQueue::remove);
@@ -55,23 +56,24 @@ public class ProcessorsAllocationMapper {
         return mappedProcessors;
     }
 
-    private static Optional<Processor> findMatchingProcessor(RequestedProcessor requestedProcessor, List<Processor> availableProcessors) {
+    private static Optional<Processor> findMatchingProcessor(RequestedNode.Processor requestedProcessor,
+                                                             Collection<Processor> availableProcessors) {
         return availableProcessors.stream()
-                .filter(byExactId(requestedProcessor.getResourceContext()))
-                .filter(byExactModel(requestedProcessor.getModel()))
-                .filter(byExactBrand(requestedProcessor.getBrand()))
-                .filter(byAtLeastTotalCores(requestedProcessor.getTotalCores()))
-                .filter(byAtLeastAchievableSpeedMhz(requestedProcessor.getAchievableSpeedMhz()))
-                .filter(byExactInstructionSet(requestedProcessor.getInstructionSet()))
-                .filter(byCapabilities(requestedProcessor.getCapabilities()))
-                .sorted(getAvailableProcessorsComparator())
-                .findFirst();
+            .filter(byExactId(requestedProcessor.getResourceContext()))
+            .filter(byExactModel(requestedProcessor.getModel()))
+            .filter(byExactBrand(requestedProcessor.getBrand()))
+            .filter(byAtLeastTotalCores(requestedProcessor.getTotalCores()))
+            .filter(byAtLeastAchievableSpeedMhz(requestedProcessor.getAchievableSpeedMhz()))
+            .filter(byExactInstructionSet(requestedProcessor.getInstructionSet()))
+            .filter(byCapabilities(requestedProcessor.getCapabilities()))
+            .sorted(getAvailableProcessorsComparator())
+            .findFirst();
     }
 
     private static Comparator<Processor> getAvailableProcessorsComparator() {
         return comparing(Processor::getModel, nullsFirst(naturalOrder()))
-                .thenComparing(Processor::getTotalCores, nullsFirst(naturalOrder()))
-                .thenComparing(Processor::getMaxSpeedMhz, nullsFirst(naturalOrder()))
-                .thenComparing(Processor::getInstructionSet, nullsFirst(naturalOrder()));
+            .thenComparing(Processor::getTotalCores, nullsFirst(naturalOrder()))
+            .thenComparing(Processor::getMaxSpeedMhz, nullsFirst(naturalOrder()))
+            .thenComparing(Processor::getInstructionSet, nullsFirst(naturalOrder()));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.intel.podm.client.resources.redfish.properties.OemVendorImpl;
 import com.intel.podm.common.logger.Logger;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.inject.Instance;
@@ -36,6 +37,7 @@ import static com.intel.podm.client.typeidresolver.ResourceResolver.registerReso
 
 @Singleton
 @Startup
+@DependsOn("DatabaseSchemaUpdateFinalizer")
 public class ResourceProvider {
 
     @Inject

@@ -1,0 +1,270 @@
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/ipmi_intf.c ipmitool-1.8.17_patched/src/plugins/ipmi_intf.c
+--- ipmitool-1.8.17/src/plugins/ipmi_intf.c	2016-05-06 16:48:54.000000000 +0200
++++ ipmitool-1.8.17_patched/src/plugins/ipmi_intf.c	2016-10-18 05:07:01.351321383 +0200
+@@ -125,6 +125,9 @@
+ 	NULL
+ };
+ 
++int verbose = 0;
++int csv_output = 0;
++
+ /* ipmi_intf_print  -  Print list of interfaces
+  *
+  * no meaningful return code
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/lan/auth.c ipmitool-1.8.17_patched/src/plugins/lan/auth.c
+--- ipmitool-1.8.17/src/plugins/lan/auth.c	2016-05-06 16:48:54.000000000 +0200
++++ ipmitool-1.8.17_patched/src/plugins/lan/auth.c	2016-10-18 04:54:42.223330728 +0200
+@@ -66,7 +66,7 @@
+ {
+ #ifdef HAVE_CRYPTO_MD5
+ 	MD5_CTX ctx;
+-	static uint8_t md[16];
++	static __thread uint8_t md[16];
+ 	uint32_t temp;
+ 
+ #if WORDS_BIGENDIAN
+@@ -91,7 +91,7 @@
+ 	return md;
+ #else /*HAVE_CRYPTO_MD5*/
+ 	md5_state_t state;
+-	static md5_byte_t digest[16];
++	static __thread md5_byte_t digest[16];
+ 	uint32_t temp;
+ 
+ 	memset(digest, 0, 16);
+@@ -130,7 +130,7 @@
+ {
+ #ifdef HAVE_CRYPTO_MD2
+ 	MD2_CTX ctx;
+-	static uint8_t md[16];
++	static __thread uint8_t md[16];
+ 	uint32_t temp;
+ 
+ #if WORDS_BIGENDIAN
+@@ -154,7 +154,7 @@
+ 
+ 	return md;
+ #else /*HAVE_CRYPTO_MD2*/
+-	static uint8_t md[16];
++	static __thread uint8_t md[16];
+ 	memset(md, 0, 16);
+ 	printf("WARNING: No internal support for MD2!  "
+ 	       "Please re-compile with OpenSSL.\n");
+@@ -193,7 +193,7 @@
+ #else  /*HAVE_CRYPTO_MD5*/
+ 	int i;
+ 	md5_state_t state;
+-	static md5_byte_t digest[16];
++	static __thread md5_byte_t digest[16];
+ 	uint8_t challenge[16];
+ 
+ 	memset(challenge, 0, 16);
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/lan/lan.c ipmitool-1.8.17_patched/src/plugins/lan/lan.c
+--- ipmitool-1.8.17/src/plugins/lan/lan.c	2016-05-06 16:48:54.000000000 +0200
++++ ipmitool-1.8.17_patched/src/plugins/lan/lan.c	2016-10-18 04:54:23.527330964 +0200
+@@ -82,9 +82,9 @@
+ extern const struct valstr ipmi_authtype_session_vals[];
+ extern int verbose;
+ 
+-struct ipmi_rq_entry * ipmi_req_entries;
+-static struct ipmi_rq_entry * ipmi_req_entries_tail;
+-static uint8_t bridge_possible = 0;
++static __thread struct ipmi_rq_entry * ipmi_req_entries;
++static __thread struct ipmi_rq_entry * ipmi_req_entries_tail;
++static __thread uint8_t bridge_possible = 0;
+ 
+ static int ipmi_lan_send_packet(struct ipmi_intf * intf, uint8_t * data, int data_len);
+ static struct ipmi_rs * ipmi_lan_recv_packet(struct ipmi_intf * intf);
+@@ -147,11 +147,12 @@
+ }
+ 
+ static struct ipmi_rq_entry *
+-ipmi_req_lookup_entry(uint8_t seq, uint8_t cmd)
++ipmi_req_lookup_entry(struct ipmi_intf* intf, uint8_t seq, uint8_t cmd)
+ {
+ 	struct ipmi_rq_entry * e = ipmi_req_entries;
+-	while (e && (e->rq_seq != seq || e->req.msg.cmd != cmd)) {
+-		if (e->next == NULL || e == e->next)
++
++	while (e && (e->intf != intf || e->rq_seq != seq || e->req.msg.cmd != cmd)) {
++		if (e == e->next)
+ 			return NULL;
+ 		e = e->next;
+ 	}
+@@ -159,13 +160,13 @@
+ }
+ 
+ static void
+-ipmi_req_remove_entry(uint8_t seq, uint8_t cmd)
++ipmi_req_remove_entry(struct ipmi_intf* intf, uint8_t seq, uint8_t cmd)
+ {
+ 	struct ipmi_rq_entry * p, * e, * saved_next_entry;
+ 
+ 	e = p = ipmi_req_entries;
+ 
+-	while (e && (e->rq_seq != seq || e->req.msg.cmd != cmd)) {
++	while (e && (e->intf != intf || e->rq_seq != seq || e->req.msg.cmd != cmd)) {
+ 		p = e;
+ 		e = e->next;
+ 	}
+@@ -187,37 +188,55 @@
+ 				ipmi_req_entries_tail = p;
+ 			else
+ 				ipmi_req_entries_tail = NULL;
+-		}
+-		if (e->msg_data) {
+-			free(e->msg_data);
+-			e->msg_data = NULL;
+-		}
++                }
++                if (e->msg_data) {
++                    free(e->msg_data);
++                    e->msg_data = NULL;
++                }
+ 		free(e);
+ 		e = NULL;
+ 	}
+ }
+ 
+ static void
+-ipmi_req_clear_entries(void)
+-{
+-	struct ipmi_rq_entry * p, * e;
++ipmi_req_clear_entries(struct ipmi_intf* intf) {
++    struct ipmi_rq_entry *e = ipmi_req_entries;
++    struct ipmi_rq_entry *prev = NULL;
++    struct ipmi_rq_entry *next = NULL;
++
++    while (e) {
++        next = e->next;
++
++        /* Is it the node we want to remove? */
++        if (e->intf == intf) {
++            if (prev) {
++                /* Link the previous node to the next one. */
++                prev->next = next;
++            } else {
++                /* If entry being removed is first in list, fix up list head */
++                ipmi_req_entries = next;
++            }
++
++            /* If entry being removed is last in list, fix up list tail */
++            if (e == ipmi_req_entries_tail) {
++                ipmi_req_entries_tail = prev;
++            }
++
++            lprintf(LOG_DEBUG + 3, "cleared list entry seq=0x%02x cmd=0x%02x intf=%p",
++                    e->rq_seq, e->req.msg.cmd, e->intf);
++            if (e->msg_data) {
++                free(e->msg_data);
++                e->msg_data = NULL;
++            }
++            free(e);
++            e = NULL;
++        } else {
++            /* Remember previous visited node */
++            prev = e;
++        }
+ 
+-	e = ipmi_req_entries;
+-	while (e) {
+-		lprintf(LOG_DEBUG+3, "cleared list entry seq=0x%02x cmd=0x%02x",
+-			e->rq_seq, e->req.msg.cmd);
+-		if (e->next != NULL) {
+-			p = e->next;
+-			free(e);
+-			e = p;
+-		} else {
+-			free(e);
+-			e = NULL;
+-			break;
+-		}
+-	}
+-	ipmi_req_entries = NULL;
+-	ipmi_req_entries_tail = NULL;
++        e = next;
++    }
+ }
+ 
+ static int
+@@ -251,7 +270,7 @@
+ static struct ipmi_rs *
+ ipmi_lan_recv_packet(struct ipmi_intf * intf)
+ {
+-	static struct ipmi_rs rsp;
++	static __thread struct ipmi_rs rsp;
+ 	fd_set read_set;
+ 	fd_set err_set;
+ 	struct timeval tmout;
+@@ -593,7 +612,7 @@
+ 				rsp->ccode);
+ 			
+ 			/* now see if we have outstanding entry in request list */
+-			entry = ipmi_req_lookup_entry(rsp->payload.ipmi_response.rq_seq,
++			entry = ipmi_req_lookup_entry(intf, rsp->payload.ipmi_response.rq_seq,
+ 						      rsp->payload.ipmi_response.cmd);
+ 			if (entry) {
+ 				lprintf(LOG_DEBUG+2, "IPMI Request Match found");
+@@ -614,7 +633,7 @@
+ 							if (!entry->bridging_level)
+ 								entry->req.msg.cmd = entry->req.msg.target_cmd;
+ 							if (rsp == NULL) {
+-								ipmi_req_remove_entry(entry->rq_seq, entry->req.msg.cmd);
++								ipmi_req_remove_entry(intf, entry->rq_seq, entry->req.msg.cmd);
+ 							}
+ 							continue;
+ 						} else {
+@@ -637,7 +656,7 @@
+ 								rsp->data[x-1]);
+ 					}
+ 				}
+-				ipmi_req_remove_entry(rsp->payload.ipmi_response.rq_seq,
++				ipmi_req_remove_entry(intf, rsp->payload.ipmi_response.rq_seq,
+ 						      rsp->payload.ipmi_response.cmd);
+ 			} else {
+ 				lprintf(LOG_INFO, "IPMI Request Match NOT FOUND");
+@@ -704,7 +723,7 @@
+ 	int cs2 = 0, cs3 = 0;
+ 	struct ipmi_rq_entry * entry;
+ 	struct ipmi_session * s = intf->session;
+-	static int curr_seq = 0;
++	static __thread int curr_seq = 0;
+ 	uint8_t our_address = intf->my_addr;
+ 
+ 	if (our_address == 0)
+@@ -722,7 +741,7 @@
+ 	// the seq number we have to re-use the node which has existing
+ 	// command and sequence number. If we add then we will have redundant node with
+ 	// same cmd,seq pair
+-	entry = ipmi_req_lookup_entry(curr_seq, req->msg.cmd);
++	entry = ipmi_req_lookup_entry(intf, curr_seq, req->msg.cmd);
+ 	if (entry)
+ 	{
+ 		// This indicates that we have already same command and seq in list
+@@ -930,7 +949,7 @@
+ 		if (ipmi_lan_send_packet(intf, entry->msg_data, entry->msg_len) < 0) {
+ 			try++;
+ 			usleep(5000);
+-			ipmi_req_remove_entry(entry->rq_seq, entry->req.msg.target_cmd);	
++			ipmi_req_remove_entry(intf, entry->rq_seq, entry->req.msg.target_cmd);
+ 			continue;
+ 		}
+ 
+@@ -984,7 +1003,7 @@
+ 	//                   <-- [23, 10]
+ 	//  here if we maintain 23,10 in the list then it will get matched and consider
+ 	//  23 response as response for 2D.   
+-	ipmi_req_clear_entries();
++	ipmi_req_clear_entries(intf);
+  
+ 	return rsp;
+ }
+@@ -2014,7 +2033,7 @@
+ 		intf->fd = -1;
+ 	}
+ 
+-	ipmi_req_clear_entries();
++	ipmi_req_clear_entries(intf);
+ 	ipmi_intf_session_cleanup(intf);
+ 	intf->opened = 0;
+ 	intf->manufacturer_id = IPMI_OEM_UNKNOWN;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,27 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.services.redfish.DimmConfigService;
+import com.intel.podm.business.dto.redfish.MemoryDto;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import static com.intel.podm.redfish.resources.MemoryResource.MEMORY_ID_PARAM;
+import static com.intel.podm.business.services.context.PathParamConstants.MEMORY_ID;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class MemoryCollectionResource extends BaseResource {
     @Inject
-    private DimmConfigService service;
+    private ReaderService<MemoryDto> readerService;
 
     @Override
     public Object get() {
-        return getOrThrow(() -> service.getDimmConfigCollection(getCurrentContext()));
+        return getOrThrow(() -> readerService.getCollection(getCurrentContext()));
     }
 
-    @Path(MEMORY_ID_PARAM)
+    @Path(MEMORY_ID)
     public MemoryResource getMemoryModules() {
         return getResource(MemoryResource.class);
     }

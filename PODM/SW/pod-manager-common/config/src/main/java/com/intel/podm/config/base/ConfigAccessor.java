@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 
 @Dependent
 class ConfigAccessor {
@@ -33,8 +33,8 @@ class ConfigAccessor {
     private ObjectMapper mapper;
 
     public <T> T read(String fileName, Class<T> configClass) throws IOException {
-        checkNotNull(fileName, "fileName should not be null");
-        checkNotNull(configClass, "configClass should not be null");
+        requiresNonNull(fileName, "fileName");
+        requiresNonNull(configClass, "configClass");
 
         try (FileInputStream stream = new FileInputStream(fileName)) {
             return mapper.readValue(stream, configClass);
@@ -42,8 +42,8 @@ class ConfigAccessor {
     }
 
     public void write(String fileName, Object config) throws IOException {
-        checkNotNull(fileName, "fileName should not be null");
-        checkNotNull(config, "config should not be null");
+        requiresNonNull(fileName, "fileName");
+        requiresNonNull(config, "config");
 
         try (FileOutputStream stream = new FileOutputStream(fileName)) {
             mapper.writeValue(stream, config);

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,16 +22,11 @@ set(SOURCES
     set_system_boot_options.cpp
     get_system_boot_options.cpp
     chassis_control_command.cpp
-    clear_boot_valid_bit.cpp
-    force_pxe_boot_continuous.cpp
-    force_pxe_boot_once.cpp
-    force_hdd_boot_continuous.cpp
-    force_hdd_boot_once.cpp
-    force_boot_disabled.cpp
     get_sensor_reading.cpp
     get_sensor_reading_factors.cpp
     get_system_guid.cpp
     get_device_guid.cpp
+    master_write_read.cpp
 )
 
 set_source_files_properties(

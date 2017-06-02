@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,6 +125,7 @@ static bool get_index_by_uuid(const int8 *uuid, const int32 type, int32 *index)
 	sub_node = (struct node_info *)malloc(sizeof(struct node_info) * subnode_num);
 	if (sub_node == NULL) {
 		rmm_log(ERROR, "malloc error\n");
+		libdb_free_node(subnode);
 		return FALSE;
 	}
 
@@ -137,7 +138,8 @@ static bool get_index_by_uuid(const int8 *uuid, const int32 type, int32 *index)
 
 		if (error_code != 0) {
 			rmm_log(ERROR, "%s:%d: error code:%d\n", __func__, __LINE__, error_code);
-			libdb_free_node(sub_node);
+			free(sub_node);
+			libdb_free_node(subnode);
 			return FALSE;
 		} else {
 			if (0 == strcasecmp(uuid, rs)) {
@@ -146,19 +148,22 @@ static bool get_index_by_uuid(const int8 *uuid, const int32 type, int32 *index)
 				error_code = libdb_attr_get_string(DB_RMM, sub_node[i].node_id, WRAP_LOC_ID_STR, rs, 128, LOCK_ID_NULL);
 				if (error_code != 0) {
 					rmm_log(ERROR, "%s:%d: error code:%d\n", __func__, __LINE__, error_code);
-					libdb_free_node(sub_node);
+					free(sub_node);
+					libdb_free_node(subnode);
 					return FALSE;
 				} else if (index != NULL) {
 					loc_id = str2int(rs);
 					*index = gen_asset_index(type, loc_id, sub_node[i].node_id);
-					libdb_free_node(sub_node);
+					free(sub_node);
+					libdb_free_node(subnode);
 					return TRUE;
 				}
 			}
 		}
 	}
 
-	libdb_free_node(sub_node);
+	free(sub_node);
+	libdb_free_node(subnode);
 	return FALSE;
 }
 
@@ -482,6 +487,7 @@ int32 process_listener(json_t *req, listener_dest_t *listener, int32 mask)
 	json_t *elem = NULL;
 	json_t *event_types = NULL;
 	int32 array_size, i = 0;
+	int32 rc = 0;
 
 	context = json_string_value(json_object_get(req, RMM_JSON_CONTEXT));
 	dest = json_string_value(json_object_get(req, RMM_JSON_DEST));
@@ -502,12 +508,23 @@ int32 process_listener(json_t *req, listener_dest_t *listener, int32 mask)
 	snprintf_s_s(listener->protocol, sizeof(listener->protocol), "%s", protocol);
 	listener->idx_mask = mask;
 
+	if (JSON_ARRAY != event_types->type) {
+		HTTPD_ERR("event_types is not an array\n");
+		return -1;
+	}
+
 	array_size = json_array_size(event_types);
+
+	if (array_size < 1) {
+		HTTPD_ERR("event_types array is empty\n");
+		return -1;
+	}
 
 	if (is_event_types_valid(array_size, event_types) == -1)
 		return -1;
 
 	for (i = 0; i < array_size; i++) {
+		elem = NULL;
 		elem = json_array_get(event_types, i);
 		if (elem == NULL) {
 			HTTPD_ERR("get json array element error\n");
@@ -662,11 +679,17 @@ int32 evt_listener_pack_json(json_t *result, evt_listener_t *listener)
 	return 0;
 }
 
-
-int32 evt_listeners_init(evt_listeners_t* listeners, int32 mask, const int8* fmt, ...) {
+int32 evt_listeners_init(evt_listeners_t *listeners, int32 mask, const int8 * fmt, ...)
+{
+	json_t *result = NULL;
+	json_t *jitem = NULL;
+	json_t *evt_type_item = NULL;
 	int32 i = 0;
+	int8 evt_type[128];
+	listener_t *tmp;
 	int8 format[256] = {0};
 	int8 prefix[PREFIX_LEN] = {0};
+	int8 buff[256] = {0};
 	int32 count = 0;
 	int32 rs = 0;
 	va_list args;
@@ -679,14 +702,13 @@ int32 evt_listeners_init(evt_listeners_t* listeners, int32 mask, const int8* fmt
 		return -1;
 	}
 
-	snprintf_s_ssss(format, sizeof(format), "%s%s%s%s", prefix, (char*) fmt, RF_EVENT_ODATA_CONTEXT_STR,
-					RF_EVENT_EVT_MEMBER_STR);
+	snprintf_s_ssss(format, sizeof(format), "%s%s%s%s", prefix, (char *)fmt, RF_EVENT_ODATA_CONTEXT_STR, RF_EVENT_EVT_MEMBER_STR);
 	va_start(args, fmt);
 	vsnprintf(listeners->odata_context, CONTEXT_LEN, format, args);
 	va_end(args);
 
-	snprintf_s_s(listeners->odata_id, sizeof(listeners->odata_id), "%s", "/redfish/v1/Subscriptions");
 	snprintf_s_s(listeners->odata_type, sizeof(listeners->odata_type), "%s", RF_EVENT_ODATA_TYPE_DEST_COLL);
+    snprintf_s_s(listeners->odata_id, sizeof(listeners->odata_id), "%s", RF_EVENT_ODATA_ID_DEST_COLL);
 	snprintf_s_s(listeners->name, sizeof(listeners->name), "%s", RF_EVENT_LISTENERS_NAME);
 
 	rs = libwrap_get_evt_listeners_count(mask, &count);
@@ -697,22 +719,21 @@ int32 evt_listeners_init(evt_listeners_t* listeners, int32 mask, const int8* fmt
 	listeners->num = count;
 
 	for (i = 0; i < count; i++) {
-		snprintf_s_ssssi(listeners->url[i], sizeof(listeners->url[i]), "%s%s%s%s/%d", prefix, (char*) fmt,
-						 RF_EVENT_SERVICE_STR, RF_EVENT_SUBSCRIBE_STR, (i + 1));
+		snprintf_s_ssssi(listeners->url[i], sizeof(listeners->url[i]), "%s%s%s%s/%d", prefix, (char *)fmt, RF_EVENT_SERVICE_STR, RF_EVENT_SUBSCRIBE_STR, (i + 1));
 	}
 
 	return 0;
 }
 
-
-int32 evt_listeners_pack_json(json_t* result, evt_listeners_t* listeners) {
-	json_t* listener_array = NULL;
-	json_t* listener = NULL;
+int32 evt_listeners_pack_json(json_t *result, evt_listeners_t *listeners)
+{
+	json_t *listener_array = NULL;
+	json_t * listener = NULL;
 	int32 i = 0;
 
 	json_object_add(result, RMM_JSON_ODATA_CONTEXT, json_string(listeners->odata_context));
-	json_object_add(result, RMM_JSON_ODATA_ID, json_string(listeners->odata_id));
 	json_object_add(result, RMM_JSON_ODATA_TYPE, json_string(listeners->odata_type));
+    json_object_add(result, RMM_JSON_ODATA_ID, json_string(listeners->odata_id));
 	json_object_add(result, RMM_JSON_NAME, json_string(listeners->name));
 	json_object_add(result, RMM_JSON_MEMBERS_ODATA_COUNT, json_integer(listeners->num));
 

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,10 @@
 
 #include "agent-framework/exceptions/exception.hpp"
 #include "agent-framework/validators/procedure_validator.hpp"
-#include "agent-framework/module-ref/enum/enum_builder.hpp"
+#include "agent-framework/module/enum/enum_builder.hpp"
+#include "agent-framework/module/constants/regular_expressions.hpp"
+
+#include "json/value.hpp"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
@@ -35,9 +38,10 @@
 using ::testing::Return;
 using ::testing::Throw;
 
-using namespace jsonrpc;
 using namespace agent_framework::exceptions;
+using namespace agent_framework::model::literals::regex;
 
+namespace jsonrpc {
 
 class ProcedureValidatorTest: public ::testing::Test {
 protected:
@@ -61,23 +65,31 @@ ProcedureValidatorTest::~ProcedureValidatorTest() {}
 
 
 
-class Validator {
-private:
-    const ProcedureValidator* procedure;
-    Json::Value value{};
-    std::string json;
-    bool validated;
-    std::string message;
-    std::string fields;
+/*!
+ * @brief Class to validate jsons according the schema
+ *
+ * Each tester is simple object to check if document is valid. No exception are
+ * thrown. Class limits set of allowed operations to minimum and simplifies
+ * the code of test cases.
+ */
+class ValidatorTester {
 public:
-    Validator(const ProcedureValidator& _procedure, const std::string& json);
+    ValidatorTester(const ProcedureValidator& _procedure, const char* _json);
+    ValidatorTester(const ProcedureValidator& _procedure, const json::Value& _json);
 
     /* validation methods, reformat message thrown during validation */
     bool valid();
-    std::string err_descr();
     std::string wrong_field();
 
     const Json::Value& operator[](const std::string& field);
+
+private:
+    const ProcedureValidator* procedure;
+    Json::Value value{};
+    std::string json{};
+    bool validated{false};
+    std::string message{};
+    std::string fields{};
 };
 
 #define VALIDATOR(name, s, ...) \
@@ -86,47 +98,49 @@ public:
         PARAMS_BY_NAME,\
         __VA_ARGS__\
     };\
-    Validator name{p_##name, s}
+    ValidatorTester name{p_##name, s}
 
 
-Validator::Validator(const ProcedureValidator& _procedure, const std::string& _json):
+ValidatorTester::ValidatorTester(const ProcedureValidator& _procedure, const json::Value& _json):
     procedure(&_procedure),
-    json(_json),
-    validated(false),
-    message(""),
-    fields("")
+    value(ProcedureValidator::to_json_rpc(_json))
 {}
 
-bool Validator::valid() {
+ValidatorTester::ValidatorTester(const ProcedureValidator& _procedure, const char* _json):
+    procedure(&_procedure),
+    json(_json)
+{}
+
+bool ValidatorTester::valid() {
     if (!validated) {
         try {
-            static Json::Reader reader{};
+            if (!json.empty()) {
+                static Json::Reader reader{};
 
-            validated = true;
-            message = "Cannot parse document";
-            reader.parse(json, value);
-            message = "Cannot validate document";
+                message = "Cannot parse document.";
+                reader.parse(json, value);
+            }
+            message = "Cannot validate document.";
             procedure->validate(value);
+            validated = true;
             message = "";
-        } catch (InvalidField fe) {
-            message = fe.get_message();
-            fields = fe.get_path();
-        } catch (InvalidParameters px) {
-            message = px.get_message();
-            fields = "";
+        }
+        catch (const GamiException& ex) {
+            message = ex.get_message();
+            fields = InvalidField::get_field_name_from_json_data(ex.get_data());
         }
     }
     return message.empty();
 }
 
-std::string Validator::wrong_field()  {
+std::string ValidatorTester::wrong_field()  {
     if (valid()) {
         return "";
     }
     return fields;
 }
 
-const Json::Value& Validator::operator[](const std::string& field) {
+const Json::Value& ValidatorTester::operator[](const std::string& field) {
     return value[field];
 }
 
@@ -220,7 +234,7 @@ TEST_F(ProcedureValidatorTest, NumberOfFields) {
     EXPECT_TRUE(duplicates.valid());
 }
 
-TEST_F(ProcedureValidatorTest, JsonrpcNubers) {
+TEST_F(ProcedureValidatorTest, JsonrpcNumbers) {
     VALIDATOR(proper_number,
         R"({
             "integer": 1,
@@ -250,6 +264,8 @@ TEST_F(ProcedureValidatorTest, JsonrpcNubers) {
     ASSERT_FALSE(float_as_int.valid());
 
     // real MUST have '.' or 'e' phrase
+    // FIXME behaviour depends on the version of the library!
+    #if 0
     VALIDATOR(int_as_real,
         R"({
             "float": 1,
@@ -280,6 +296,7 @@ TEST_F(ProcedureValidatorTest, JsonrpcNubers) {
     ASSERT_EQ(233, proper_int["dot"].asInt());
     ASSERT_EQ(234, proper_int["exp"].asInt());
     ASSERT_EQ(235, proper_int["dot_exp"].asInt());
+    #endif
 
     VALIDATOR(null_val,
         R"({
@@ -393,6 +410,253 @@ TEST_F(ProcedureValidatorTest, TypedNumbers) {
     );
     ASSERT_FALSE(uint_from_signed.valid());
     ASSERT_EQ("uint", uint_from_signed.wrong_field());
+
+    VALIDATOR(int64_ranges1,
+        R"({
+            "int64Max": 9223372036854775807,
+            "posInt64": 2147483648,
+            "int32Max": 2147483647,
+            "posInt32": 1,
+            "negInt32": -1,
+            "int32Min": -2147483648,
+            "negInt64": -2147483649,
+            "int64Min": -9223372036854775808
+        })",
+        "int64Max", VALID_NUMERIC_TYPED(INT64),
+        "posInt64", VALID_NUMERIC_TYPED(INT64),
+        "int32Max", VALID_NUMERIC_TYPED(INT64),
+        "posInt32", VALID_NUMERIC_TYPED(INT64),
+        "negInt32", VALID_NUMERIC_TYPED(INT64),
+        "int32Min", VALID_NUMERIC_TYPED(INT64),
+        "negInt64", VALID_NUMERIC_TYPED(INT64),
+        "int64Min", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_TRUE(int64_ranges1.valid());
+
+    VALIDATOR(int64_ranges2,
+        R"({
+            "negBigInt": -9223372036854775809
+        })",
+        "negBigInt", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_ranges2.valid());
+
+    VALIDATOR(int64_ranges3,
+        R"({
+            "negBigInt": -16446744073709551615
+        })",
+        "negBigInt", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_ranges3.valid());
+
+    VALIDATOR(int64_ranges4,
+        R"({
+            "negBigInt": -17446744073709551615
+        })",
+        "negBigInt", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_ranges4.valid());
+
+    VALIDATOR(int64_ranges5,
+        R"({
+            "negBigInt": -18446744073709551615
+        })",
+        "negBigInt", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_ranges5.valid());
+
+    VALIDATOR(int64_ranges6,
+        R"({
+            "negBigInt": -18446744073709551616
+        })",
+        "negBigInt", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_ranges6.valid());
+
+    VALIDATOR(int64_ranges7,
+        R"({
+            "negBigInt": -18446744073709551617
+        })",
+        "negBigInt", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_ranges7.valid());
+
+    VALIDATOR(int64_ranges8,
+        R"({
+            "posBigInt": 9223372036854775808
+        })",
+        "posBigInt", VALID_OPTIONAL(VALID_NUMERIC_TYPED(INT64)),
+        nullptr
+    );
+    ASSERT_FALSE(int64_ranges8.valid());
+
+    VALIDATOR(int64_types1,
+        R"({
+            "int64": 0.5
+        })",
+        "int64", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_types1.valid());
+
+    VALIDATOR(int64_types2,
+        R"({
+            "overInt64": 9223372036854775807.1
+        })",
+        "overInt64", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_types2.valid());
+
+    VALIDATOR(int64_types3,
+        R"({
+            "underInt64": -9223372036854775808.1
+        })",
+        "underInt64", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_types3.valid());
+
+    VALIDATOR(uint64_ranges1,
+        R"({
+            "uint64Max": 18446744073709551615,
+            "int64Max": 9223372036854775807,
+            "posInt64": 2147483648,
+            "int32Max": 2147483647,
+            "posInt32": 1,
+        })",
+        "uint64Max", VALID_NUMERIC_TYPED(UINT64),
+        "int64Max", VALID_NUMERIC_TYPED(UINT64),
+        "posInt64", VALID_NUMERIC_TYPED(UINT64),
+        "int32Max", VALID_NUMERIC_TYPED(UINT64),
+        "posInt32", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_TRUE(uint64_ranges1.valid());
+
+    VALIDATOR(uint64_ranges2,
+        R"({
+            "negInt32": -1
+        })",
+        "negInt32", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_ranges2.valid());
+
+    VALIDATOR(uint64_ranges3,
+        R"({
+            "int32Min": -2147483648
+        })",
+        "int32Min", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_ranges3.valid());
+
+    VALIDATOR(uint64_ranges4,
+        R"({
+            "negInt64": -2147483649
+        })",
+        "negInt64", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_ranges4.valid());
+
+    VALIDATOR(uint64_ranges5,
+        R"({
+            "int64Min": -9223372036854775808
+        })",
+        "int64Min", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_ranges5.valid());
+
+    VALIDATOR(uint64_ranges6,
+        R"({
+            "negBigInt": -9223372036854775809
+        })",
+        "negBigInt", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_ranges6.valid());
+
+    VALIDATOR(uint64_ranges7,
+        R"({
+            "posBigInt": 18446744073709551616
+        })",
+        "posBigInt", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_ranges7.valid());
+
+    VALIDATOR(uint64_types1,
+        R"({
+            "underUInt64": -0.1
+        })",
+        "underUInt64", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_types1.valid());
+
+    VALIDATOR(uint64_types2,
+        R"({
+            "overUInt64": 18446744073709551615.1
+        })",
+        "overUInt64", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_types2.valid());
+
+    VALIDATOR(uint64_types3,
+        R"({
+            "UInt64": 0.1
+        })",
+        "UInt64", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_types3.valid());
+}
+
+TEST_F(ProcedureValidatorTest, NumbersFromBoolean) {
+    VALIDATOR(int_from_boolean,
+        R"({ "int": true })",
+        "int", VALID_NUMERIC_TYPED(INT32),
+        nullptr
+    );
+    ASSERT_FALSE(int_from_boolean.valid());
+
+    VALIDATOR(uint_from_boolean,
+        R"({ "uint": true })",
+        "uint", VALID_NUMERIC_TYPED(UINT32),
+        nullptr
+    );
+    ASSERT_FALSE(uint_from_boolean.valid());
+
+    VALIDATOR(double_from_boolean,
+        R"({ "double": true })",
+        "double", VALID_NUMERIC_TYPED(DOUBLE),
+        nullptr
+    );
+    ASSERT_FALSE(double_from_boolean.valid());
+
+    VALIDATOR(from_number_boolean,
+        R"({
+            "int": 1,
+            "uint": 1,
+            "double": 1
+        })",
+        "int", VALID_NUMERIC_TYPED(INT32),
+        "uint", VALID_NUMERIC_TYPED(UINT32),
+        "double", VALID_NUMERIC_TYPED(DOUBLE),
+        nullptr
+    );
+    ASSERT_TRUE(from_number_boolean.valid());
 }
 
 TEST_F(ProcedureValidatorTest, EqLtNumbers) {
@@ -472,6 +736,125 @@ TEST_F(ProcedureValidatorTest, Optionals) {
     );
     ASSERT_FALSE(null_field.valid());
     ASSERT_EQ("b", null_field.wrong_field());
+}
+
+TEST_F(ProcedureValidatorTest, Regex) {
+    VALIDATOR(valid_string,
+        R"({
+            "string":"asdasdasdasd"
+        })",
+        "string", VALID_REGEX(RemoteTarget::TARGET_IQN),
+         nullptr
+    );
+    ASSERT_TRUE(valid_string.valid());
+
+    VALIDATOR(invalid,
+        R"({
+            "string":"as dasd"
+        })",
+        "string", VALID_REGEX(RemoteTarget::TARGET_IQN),
+        nullptr
+    );
+    ASSERT_FALSE(invalid.valid());
+
+    VALIDATOR(valid_ip,
+        R"({
+            "string":"123.123.123.123"
+        })",
+        "string", VALID_REGEX(IPAddresses::ADDRESS),
+        nullptr
+    );
+    ASSERT_TRUE(valid_ip.valid());
+
+    VALIDATOR(invalid_ip,
+        R"({
+            "string":"123.123.123"
+        })",
+        "string", VALID_REGEX(IPAddresses::ADDRESS),
+        nullptr
+    );
+    ASSERT_FALSE(invalid_ip.valid());
+
+    VALIDATOR(invalid_ip2,
+	    R"({
+	        "string":"999.999.999.999"
+	    })",
+	    "string", VALID_REGEX(IPAddresses::ADDRESS),
+	    nullptr
+    );
+    ASSERT_FALSE(invalid_ip2.valid());
+
+    VALIDATOR(valid_mac,
+        R"({
+            "string":"af:af:99:af:00:af"
+        })",
+        "string", VALID_REGEX(EthernetInterface::MAC_ADDRESS),
+        nullptr
+    );
+    ASSERT_TRUE(valid_mac.valid());
+
+    VALIDATOR(invalid_mac,
+        R"({
+            "string":"af:af:99:xx:00:af"
+        })",
+        "string", VALID_REGEX(EthernetInterface::MAC_ADDRESS),
+        nullptr
+    );
+    ASSERT_FALSE(invalid_mac.valid());
+
+    VALIDATOR(valid_date_time,
+        R"({
+            "string":"+18:59"
+        })",
+        "string", VALID_REGEX(Common::DATE_TIME_LOCAL_OFFSET),
+        nullptr
+    );
+    ASSERT_TRUE(valid_date_time.valid());
+
+    VALIDATOR(invalid_date_time,
+        R"({
+            "string":"-28:59"
+        })",
+        "string", VALID_REGEX(Common::DATE_TIME_LOCAL_OFFSET),
+        nullptr
+    );
+    ASSERT_FALSE(invalid_date_time.valid());
+
+    VALIDATOR(valid_redfish,
+        R"({
+            "string":"4.4.4"
+        })",
+        "string", VALID_REGEX(ServiceRoot::REDFISH_VERSION),
+        nullptr
+    );
+    ASSERT_TRUE(valid_redfish.valid());
+
+    VALIDATOR(invalid_redfish,
+        R"({
+            "string":"12.21"
+        })",
+        "string", VALID_REGEX(ServiceRoot::REDFISH_VERSION),
+        nullptr
+    );
+    ASSERT_FALSE(invalid_redfish.valid());
+
+    VALIDATOR(valid_device_id,
+        R"({
+            "string":"0x32ff"
+        })",
+        "string", VALID_REGEX(Common::DEVICE_ID),
+        nullptr
+    );
+    ASSERT_TRUE(valid_device_id.valid());
+
+    VALIDATOR(invalid_device_id,
+        R"({
+            "string":"0xXXXX"
+        })",
+        "string", VALID_REGEX(Common::DEVICE_ID),
+        nullptr
+    );
+    ASSERT_FALSE(invalid_device_id.valid());
 }
 
 TEST_F(ProcedureValidatorTest, Uuid) {
@@ -561,7 +944,7 @@ TEST_F(ProcedureValidatorTest, Arrays) {
         nullptr
     );
     ASSERT_FALSE(wrong_types.valid());
-    ASSERT_EQ("array[1]", wrong_types.wrong_field());
+    ASSERT_EQ("array/1", wrong_types.wrong_field());
 }
 
 TEST_F(ProcedureValidatorTest, SizedArrays) {
@@ -611,17 +994,6 @@ TEST_F(ProcedureValidatorTest, SizedArrays) {
         nullptr
     );
     ASSERT_FALSE(to_long.valid());
-
-    VALIDATOR(wrong_def,
-            R"({
-            "array": [
-                1, 2, 3, 4, 5
-            ]
-        })",
-            "array", VALID_ARRAY_SIZE(10, 1),
-            nullptr
-    );
-    ASSERT_FALSE(wrong_def.valid());
 }
 
 
@@ -681,14 +1053,14 @@ TEST_F(ProcedureValidatorTest, Attributes) {
         nullptr
     );
     ASSERT_FALSE(wrong_attr.valid()); // nullable_string is numeric
-    ASSERT_EQ("object.nullable_string", wrong_attr.wrong_field());
+    ASSERT_EQ("object/nullable_string", wrong_attr.wrong_field());
 }
 
 
 ENUM(TestEnum, uint32_t, Abc, BAc, CBA, abc);
 TEST_F(ProcedureValidatorTest, Enumerations) {
     VALIDATOR(ok,
-            R"({
+        R"({
             "e1": "Abc",
             "e2": "BAc",
             "e3": "abc"
@@ -726,4 +1098,56 @@ TEST_F(ProcedureValidatorTest, Enumerations) {
         nullptr
     );
     ASSERT_FALSE(any_string.valid());
+}
+
+class ObjValidator {
+public:
+    static const ProcedureValidator& get_procedure() {
+        static ProcedureValidator proc{
+            "obj_validator",
+            PARAMS_BY_NAME,
+            "str", VALID_JSON_STRING,
+            "int", VALID_NUMERIC_EQGT(INT32, 1),
+            "optional", VALID_OPTIONAL(VALID_JSON_INTEGER),
+            nullptr
+        };
+        return proc;
+    }
+};
+
+TEST_F(ProcedureValidatorTest, Conversion) {
+    json::Value val;
+    val["int"] = -10;
+    val["uint"] = 10;
+    val["float"] = 11.1;
+    val["str"] = "String";
+    val["array"][0] = 0;
+    val["array"][1] = "first";
+    val["obj"]["str"] = "first";
+    val["obj"]["int"] = 2;
+
+    VALIDATOR(converted, val,
+        "int", VALID_NUMERIC_TYPED(INT32),
+        "uint", VALID_NUMERIC_TYPED(UINT32),
+        "float", VALID_NUMERIC_TYPED(DOUBLE),
+        "str", VALID_JSON_STRING,
+        "array", VALID_JSON_ARRAY, // content is not checked
+        "obj", VALID_ATTRIBUTE(ObjValidator),
+        nullptr
+    );
+    ASSERT_TRUE(converted.valid());
+
+    VALIDATOR(converted2, val,
+        "int", VALID_JSON_ANY,
+        "uint", VALID_JSON_ANY,
+        "float", VALID_JSON_ANY,
+        "str", VALID_JSON_ANY,
+        "array", VALID_JSON_ANY,
+        "obj", VALID_JSON_ANY,
+        "new", VALID_JSON_ANY,
+        nullptr
+    );
+    ASSERT_FALSE(converted2.valid());
+}
+
 }

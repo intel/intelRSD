@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -62,14 +62,14 @@ subnet 10.2.0.0 netmask 255.255.255.0 {
 				);
 
 		on commit {
-			execute("/usr/bin/python", "/usr/bin/parse.leases.py", "-i", ip_addr, "-e", "commit", "-n", lease_hostname, "-d", mac_addr);
+			execute("/usr/bin/python3", "/usr/bin/parse_leases.py", "-i", ip_addr, "-e", "commit", "-n", lease_hostname, "-d", mac_addr);
 		}
 		on release {
-			execute("/usr/bin/python", "/usr/bin/parse.leases.py", "-i", ip_addr, "-e", "release", "-n", lease_hostname, "-d", mac_addr);
+			execute("/usr/bin/python3", "/usr/bin/parse_leases.py", "-i", ip_addr, "-e", "release", "-n", lease_hostname, "-d", mac_addr);
 		}
 		on expiry {
 			# "zero-mac" string is a temporary workaround for isc-dhcp issue : ISC-Bugs #24584
-			execute("/usr/bin/python", "/usr/bin/parse.leases.py", "-i", ip_addr, "-e", "expiry", "-n", lease_hostname, "-d", "00:00:00:00:00:00");
+			execute("/usr/bin/python3", "/usr/bin/parse_leases.py", "-i", ip_addr, "-e", "expiry", "-n", lease_hostname, "-d", "00:00:00:00:00:00");
 		}
 	}
 }
@@ -79,7 +79,6 @@ subnet 10.2.0.0 netmask 255.255.255.0 {
 #
 subnet 10.3.0.0 netmask 255.255.252.0 {
 	range 10.3.0.2 10.3.3.254;
-	option routers 10.3.0.1;
 	option ntp-servers 10.3.0.1;
 
 	set lease_hostname = option host-name;
@@ -101,14 +100,14 @@ subnet 10.3.0.0 netmask 255.255.252.0 {
 			);
 
 	on commit {
-		execute("/usr/bin/python", "/usr/bin/parse.leases.py", "-i", ip_addr, "-e", "commit", "-n", lease_hostname, "-d", mac_addr);
+		execute("/usr/bin/python3", "/usr/bin/parse_leases.py", "-i", ip_addr, "-e", "commit", "-n", lease_hostname, "-d", mac_addr);
 	}
 	on release {
-		execute("/usr/bin/python", "/usr/bin/parse.leases.py", "-i", ip_addr, "-e", "release", "-n", lease_hostname, "-d", mac_addr);
+		execute("/usr/bin/python3", "/usr/bin/parse_leases.py", "-i", ip_addr, "-e", "release", "-n", lease_hostname, "-d", mac_addr);
 	}
 	on expiry {
 		# "zero-mac" string is a temporary workaround for isc-dhcp issue : ISC-Bugs #24584
-		execute("/usr/bin/python", "/usr/bin/parse.leases.py", "-i", ip_addr, "-e", "expiry", "-n", lease_hostname, "-d", "00:00:00:00:00:00");
+		execute("/usr/bin/python3", "/usr/bin/parse_leases.py", "-i", ip_addr, "-e", "expiry", "-n", lease_hostname, "-d", "00:00:00:00:00:00");
 	}
 }
 
@@ -133,14 +132,14 @@ subnet 10.5.0.0 netmask 255.255.255.0 {
 				);
 
 		on commit {
-			execute("/usr/bin/python", "/usr/bin/parse.leases.py", "-i", ip_addr, "-e", "commit", "-n", lease_hostname, "-d", mac_addr);
+			execute("/usr/bin/python3", "/usr/bin/parse_leases.py", "-i", ip_addr, "-e", "commit", "-n", lease_hostname, "-d", mac_addr);
 		}
 		on release {
-			execute("/usr/bin/python", "/usr/bin/parse.leases.py", "-i", ip_addr, "-e", "release", "-n", lease_hostname, "-d", mac_addr);
+			execute("/usr/bin/python3", "/usr/bin/parse_leases.py", "-i", ip_addr, "-e", "release", "-n", lease_hostname, "-d", mac_addr);
 		}
 		on expiry {
 			# "zero-mac" string is a temporary workaround for isc-dhcp issue : ISC-Bugs #24584
-			execute("/usr/bin/python", "/usr/bin/parse.leases.py", "-i", ip_addr, "-e", "expiry", "-n", lease_hostname, "-d", "00:00:00:00:00:00");
+			execute("/usr/bin/python3", "/usr/bin/parse_leases.py", "-i", ip_addr, "-e", "expiry", "-n", lease_hostname, "-d", "00:00:00:00:00:00");
 		}
 	}
 }

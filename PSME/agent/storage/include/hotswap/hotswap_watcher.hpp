@@ -1,7 +1,7 @@
 
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,25 +19,30 @@
  * limitations under the License.
  * */
 
-#include <thread>
-#include <atomic>
+#include "agent-framework/threading/thread.hpp"
 #include "hotswap/hotswap_manager.hpp"
 
 namespace agent {
-    namespace storage {
+namespace storage {
 
-        class HotswapWatcher {
-        public:
-            void start();
-            void stop();
-        private:
-            std::thread m_thread{};
-            std::atomic<bool> m_running{false};
-            void watch();
-            void handle_hotswap();
-            bool detect_hotswap(int, int);
-            const char* m_watch_disk_dir = "/dev/disk/by-id/";
-        };
+/*!
+ * @brief HotSwap watcher
+ */
+class HotswapWatcher final : public agent_framework::threading::Thread {
+public:
+    /*! @brief Default constructor */
+    HotswapWatcher() = default;
 
-    }
+    /*! @brief Hotswap watcher loop */
+    void execute() override;
+
+    /*! @brief Default destructor */
+    ~HotswapWatcher();
+
+private:
+    void handle_hotswap();
+    bool detect_hotswap(int, int);
+};
+
+}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,37 @@
 
 package com.intel.podm.allocation.validation;
 
-import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
+import com.intel.podm.business.Violations;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.AllocationConfig;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.intel.podm.common.utils.StringRepresentation.fromList;
+import static com.intel.podm.common.utils.StringRepresentation.fromIterable;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 @Dependent
 public class EthernetInterfacesValidator {
-    @Inject @Config
+    @Inject
+    @Config
     private Holder<AllocationConfig> allocationConfigHolder;
 
-    public Violations validate(List<RequestedEthernetInterface> ethernetInterfaces) {
+    public Violations validate(List<RequestedNode.EthernetInterface> ethernetInterfaces) {
         Violations violations = new Violations();
 
-        List<Optional<String>> possibleViolations = newArrayList();
+        List<Optional<String>> possibleViolations = new ArrayList<>();
 
-        for (RequestedEthernetInterface ethernetInterface : ethernetInterfaces) {
-            Optional<List<RequestedEthernetInterface.Vlan>> vlans = ethernetInterface.getVlans();
+        for (RequestedNode.EthernetInterface ethernetInterface : ethernetInterfaces) {
+            Optional<List<RequestedNode.EthernetInterface.Vlan>> vlans = ethernetInterface.getVlans();
 
             if (!vlans.isPresent()) {
                 continue;
@@ -55,13 +57,12 @@ public class EthernetInterfacesValidator {
             possibleViolations.add(validatePrivateVlanRequestConsistency(ethernetInterface.getPrimaryVlan(), vlans.get()));
         }
 
-        possibleViolations.stream()
-                .forEach(possibleViolation -> possibleViolation.ifPresent(violations::addViolation));
+        possibleViolations.forEach(possibleViolation -> possibleViolation.ifPresent(violations::addViolation));
 
         return violations;
     }
 
-    private Optional<String> validatePrivateVlanRequestConsistency(Integer primaryVlanId, List<RequestedEthernetInterface.Vlan> vlans) {
+    private Optional<String> validatePrivateVlanRequestConsistency(Integer primaryVlanId, List<RequestedNode.EthernetInterface.Vlan> vlans) {
         Optional<Integer> primaryVlanOption = ofNullable(primaryVlanId);
         if (!primaryVlanOption.isPresent()) {
             return empty();
@@ -75,23 +76,22 @@ public class EthernetInterfacesValidator {
         return empty();
     }
 
-    private Optional<String> validateUsageOfAllowedVlans(List<RequestedEthernetInterface.Vlan> vlans) {
-        List<Integer> reservedVlans = newArrayList(allocationConfigHolder.get().getReservedVlanIds());
-
+    private Optional<String> validateUsageOfAllowedVlans(List<RequestedNode.EthernetInterface.Vlan> vlans) {
+        Iterable<Integer> reservedVlans = allocationConfigHolder.get().getReservedVlanIds();
         for (Integer integer : reservedVlans) {
             if (vlans.stream().anyMatch(vlan -> vlan.getVlanId().equals(integer))) {
-                String reservedVlansList = fromList(reservedVlans);
+                String reservedVlansList = fromIterable(reservedVlans);
                 return of("Requested vlan id appeared in reserved vlans list " + reservedVlansList);
             }
         }
         return empty();
     }
 
-    private Optional<String> validateUniquenessOfVlans(List<RequestedEthernetInterface.Vlan> vlans) {
-        long numberOfUniqueVlansIds = vlans.stream().map(RequestedEthernetInterface.Vlan::getVlanId).distinct().count();
+    private Optional<String> validateUniquenessOfVlans(List<RequestedNode.EthernetInterface.Vlan> vlans) {
+        long numberOfUniqueVlansIds = vlans.stream().map(RequestedNode.EthernetInterface.Vlan::getVlanId).distinct().count();
         return numberOfUniqueVlansIds != vlans.size()
-                ? of("There are repetitions in vlan collection")
-                : empty();
+            ? of("There are repetitions in vlan collection")
+            : empty();
     }
 
 }

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,13 +26,9 @@ configure_file (
   ${CMAKE_CURRENT_SOURCE_DIR}/include/agent-framework/version.hpp
 )
 
-set(AGENT_COMMANDS_LIB -Wl,-whole-archive agent-commands -Wl,-no-whole-archive)
+set(AGENT_COMMANDS_LIB -Wl,-whole-archive -Wl,-no-whole-archive)
 set(AGENT_FRAMEWORK_LIB agent-framework logger)
 set(AGENT_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
-set(VALGRIND_SUPPRESSIONS
-    ${CMAKE_CURRENT_SOURCE_DIR}/valgrind/jsonrpccpp.supp
-)
 
 set(AGENT_FRAMEWORK_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -40,7 +36,7 @@ set(AGENT_FRAMEWORK_INCLUDE_DIRS
 )
 
 set(AGENT_FRAMEWORK_LIBRARIES
-    -Wl,--whole-archive agent-commands -Wl,--no-whole-archive agent-framework
+    -Wl,--whole-archive -Wl,--no-whole-archive agent-framework
     CACHE PATH "Agent framework libraries"
 )
 
@@ -51,13 +47,6 @@ set(CODE_COVERAGE_IGNORE
     '**/logger/*'
     '**/jsonrpccpp/*'
 )
-
-find_package(ValgrindCxx)
-
-if (ENABLE_VALGRIND_DRD)
-    include_directories(${VALGRINDCXX_INCLUDE_DIRS})
-    add_compile_options(${VALGRINDCXX_COMPILE_FLAGS})
-endif()
 
 include_directories(
     ${PCA95XX_INCLUDE_DIRS}

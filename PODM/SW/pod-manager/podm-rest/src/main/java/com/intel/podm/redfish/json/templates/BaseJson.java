@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,14 @@ package com.intel.podm.redfish.json.templates;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.intel.podm.rest.odataid.ODataId;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.net.URI;
-import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public abstract class BaseJson {
     @JsonProperty("@odata.type")
     public final String oDataType;
@@ -36,7 +39,7 @@ public abstract class BaseJson {
     public ODataId oDataId;
 
     @JsonIgnore
-    public OffsetDateTime modified;
+    public Map<String, JsonNode> unknownOems = new HashMap<>();
 
     protected BaseJson(String oDataType) {
         this.oDataType = oDataType;

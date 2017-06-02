@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,6 @@ namespace {
     constexpr uint32_t ARG_VALUE_MIN_HEADER_RAW_SIZE = 6;
     constexpr uint32_t ARG_LEN_RAW_SIZE = 2;
     constexpr uint32_t ARG_VALUE_LEN_RAW_SIZE = 4;
-    constexpr uint32_t BYTE_RAW_SIZE = 2;
 }
 
 ArgValueMessageHeader::ArgValueMessageHeader(
@@ -105,6 +104,5 @@ string ArgValueMessageHeader::get_raw() const {
 }
 
 size_t ArgValueMessageHeader::get_raw_size() const {
-    return ((m_arg.length() * m_value.length() * BYTE_RAW_SIZE)
-            + ARG_VALUE_MIN_HEADER_RAW_SIZE);
+    return m_arg.length() + m_value.length() + ARG_VALUE_MIN_HEADER_RAW_SIZE;
 }

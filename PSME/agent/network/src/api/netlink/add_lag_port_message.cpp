@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,9 +30,10 @@
 
 #include <net/if.h>
 
+using std::string;
 using namespace agent::network::api::netlink;
 
-AddLagPortMessage::AddLagPortMessage(const IfName& lag, const IfName& port) :
+AddLagPortMessage::AddLagPortMessage(const string& lag, const string& port) :
     LagPortMessage(lag, port) { }
 
 AddLagPortMessage::~AddLagPortMessage() { }

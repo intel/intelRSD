@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,11 @@ import static javax.transaction.Transactional.TxType.MANDATORY;
 @Dependent
 @Transactional(MANDATORY)
 public class EthernetSwitchDao extends Dao<EthernetSwitch> {
-
     public EthernetSwitch getOrThrow(Id switchId) {
-        Optional<EthernetSwitch> expectedSwitchPort = tryFind(switchId);
-        if (!expectedSwitchPort.isPresent()) {
+        Optional<EthernetSwitch> expectedSwitch = tryFind(switchId);
+        if (!expectedSwitch.isPresent()) {
             throw new IllegalStateException("Target EthernetSwitch was not found!");
         }
-        return expectedSwitchPort.get();
+        return expectedSwitch.get();
     }
 }

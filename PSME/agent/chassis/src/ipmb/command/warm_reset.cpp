@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +66,7 @@ void WarmReset::unpack(IpmiMessage& msg){
 
 void WarmReset::pack(IpmiMessage& msg){
 
-    log_debug(LOGUSR, "Packing WarmReset message.")
+    log_debug(LOGUSR, "Packing WarmReset message.");
 
     m_response.set_cc(CompletionCode::CC_OK);
 

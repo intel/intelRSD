@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015 Intel Corporation
+  ~ Copyright (c) 2015-2017 Intel Corporation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,7 +29,25 @@
         </triggeringPolicy>
 
         <encoder>
-            <pattern>%d{"yyyy-MM-dd HH:mm:ss,SSS"} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss,SSS"} [%thread] %-5level %logger{36}%marker - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="pod-manager-services-detection" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/log/pod-manager/pod-manager-services-detection.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>/var/log/pod-manager/pod-manager-services-detection.%i.log.gz</fileNamePattern>
+            <minIndex>0</minIndex>
+            <maxIndex>4</maxIndex>
+        </rollingPolicy>
+
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>100MB</maxFileSize>
+        </triggeringPolicy>
+
+        <encoder>
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss,SSS"} [%thread] %-5level %logger{36}%marker - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -38,12 +56,12 @@
         <appender-ref ref="pod-manager" />
     </logger>
 
-    <logger name="com.intel" level="INFO" additivity="false" >
+    <logger name="com.intel" level="DEBUG" additivity="false">
 	    <appender-ref ref="pod-manager" />
     </logger>
 
-    <logger name="org.ops4j" level="INFO" additivity="false" >
-	    <appender-ref ref="pod-manager" />
+    <logger name="com.intel.podm.discovery.external.ServiceDetectionListenerImpl" level="INFO" additivity="true">
+        <appender-ref ref="pod-manager-services-detection" />
     </logger>
 
     <root level="INFO" >

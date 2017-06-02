@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,13 @@ package com.intel.podm.common.types.actions;
 import com.intel.podm.common.types.PortMode;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 public final class EthernetSwitchPortDefinition {
     private final String name;
     private final String portId;
     private final PortMode portMode;
-    private final Optional<List<URI>> uris;
+    private final Set<URI> uris;
 
     private EthernetSwitchPortDefinition(Builder builder) {
         name = builder.name;
@@ -47,7 +46,7 @@ public final class EthernetSwitchPortDefinition {
         return portMode;
     }
 
-    public Optional<List<URI>> getUris() {
+    public Set<URI> getUris() {
         return uris;
     }
 
@@ -59,7 +58,7 @@ public final class EthernetSwitchPortDefinition {
         private String name;
         private String portId;
         private PortMode portMode;
-        private Optional<List<URI>> uris;
+        private Set<URI> uris;
 
         private Builder() {
         }
@@ -79,7 +78,7 @@ public final class EthernetSwitchPortDefinition {
             return this;
         }
 
-        public Builder uris(Optional<List<URI>> uris) {
+        public Builder uris(Set<URI> uris) {
             this.uris = uris;
             return this;
         }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,8 @@
  * @brief Switch Del Lag configuration
  * */
 
-#ifndef AGENT_NETWORK_NETLINK_DEL_LAG_MESSAGE_HPP
-#define AGENT_NETWORK_NETLINK_DEL_LAG_MESSAGE_HPP
-
-#include "add_lag_message.hpp"
+#pragma once
+#include "lag_message.hpp"
 
 namespace agent {
 namespace network {
@@ -39,13 +37,14 @@ public:
 
     /*!
      * @brief Default constructor.
+     *
      * @param[in] lag Lag interface name.
-     */
-    DelLagMessage(const IfName& lag);
+     * */
+    DelLagMessage(const std::string& lag);
 
     /*!
      * @brief Default destructor.
-     */
+     * */
     virtual ~DelLagMessage();
 };
 
@@ -54,4 +53,3 @@ public:
 }
 }
 
-#endif /* AGENT_NETWORK_NETLINK_DEL_LAG_MESSAGE_HPP */

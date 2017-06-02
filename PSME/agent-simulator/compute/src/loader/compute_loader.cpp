@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,10 @@
 
 
 #include "loader/compute_loader.hpp"
-#include "agent-framework/module-ref/compute_manager.hpp"
-#include "agent-framework/module-ref/constants/compute.hpp"
-#include "agent-framework/module-ref/constants/chassis.hpp"
+#include "agent-framework/module/compute_components.hpp"
+#include "agent-framework/module/common_components.hpp"
+#include "agent-framework/module/constants/compute.hpp"
+#include "agent-framework/module/constants/chassis.hpp"
 #include "asset_configuration/asset_configuration.hpp"
 
 using namespace agent::compute::loader;
@@ -41,7 +42,7 @@ ComputeLoader::~ComputeLoader() {}
 
 class LoadModules {
 public:
-    using ComputeComponents = agent_framework::module::ComputeManager;
+    using ComputeComponents = agent_framework::module::ComputeComponents;
 
     /* @TODO replace all literals with constants*/
 
@@ -51,7 +52,7 @@ public:
             auto manager = make_manager(element);
             read_chassis(manager,element);
             read_managers(manager, element);
-            ComputeComponents::get_instance()->
+            CommonComponents::get_instance()->
                     get_module_manager().add_entry(manager);
         }
     }
@@ -60,7 +61,8 @@ public:
         if (parent) {
             for (const auto& element : parent->get_children(literals::System::CHASSIS)) {
                 auto chassis = make_chassis(manager, element);
-                ComputeManager::get_instance()->
+                read_hard_drives(chassis, element);
+                CommonComponents::get_instance()->
                         get_chassis_manager().add_entry(chassis);
                 }
         }
@@ -78,6 +80,11 @@ public:
             chassis.set_size(agent::AssetConfiguration::read_int(element, literals::Chassis::SIZE));
             chassis.set_location_offset(agent::AssetConfiguration::read_int(element, literals::Chassis::LOCATION_OFFSET));
             chassis.set_parent_id(agent::AssetConfiguration::read_string(element, literals::Chassis::PARENT_ID));
+            chassis.add_collection(attribute::Collection(
+                enums::CollectionName::Drives,
+                enums::CollectionType::Drives,
+                ""
+            ));
             return chassis;
         }
         return chassis;
@@ -91,7 +98,7 @@ public:
                 auto manager = make_manager(parent_manager, element);
                 read_chassis(manager,element);
                 read_systems(manager, element);
-                ComputeComponents::get_instance()->
+                CommonComponents::get_instance()->
                         get_module_manager().add_entry(manager);
             }
         } else {
@@ -145,6 +152,16 @@ public:
             manager.set_serial_console(make_serial_console(element));
             log_debug(GET_LOGGER("discovery"), "Creating manager.");
         }
+        manager.add_collection(attribute::Collection(
+            enums::CollectionName::Chassis,
+            enums::CollectionType::Chassis,
+            ""
+        ));
+        manager.add_collection(attribute::Collection(
+            enums::CollectionName::Systems,
+            enums::CollectionType::Systems,
+            ""
+        ));
         return manager;
     }
 
@@ -155,14 +172,13 @@ public:
                 log_debug(GET_LOGGER("discovery"), "Reading compute system.");
                 auto system = make_system(manager, element);
                 read_network_interfaces(system, element);
-                read_storage_controllers(system, element);
-                read_dimms(system, element);
-                create_memory_chunks(system);
+                read_storage_subsystem(system, element);
+                read_memory_modules(system, element);
                 read_processors(system, element);
                 read_usb_devices(system, element);
                 read_pci_devices(system, element);
 
-                ComputeComponents::get_instance()->
+                CommonComponents::get_instance()->
                         get_system_manager().add_entry(system);
             }
         } else {
@@ -182,15 +198,35 @@ public:
                     read_opt_string(element, literals::System::ASSET_TAG));
             system.set_guid(AssetConfiguration::
                     read_string(element, literals::System::GUID));
-            if (!ComputeManager::get_instance()->get_chassis_manager().
+            if (!CommonComponents::get_instance()->get_chassis_manager().
                     get_keys(manager.get_uuid()).empty()) {
-                auto chassis_uuid = ComputeManager::get_instance()->
+                auto chassis_uuid = CommonComponents::get_instance()->
                         get_chassis_manager().get_keys(manager.get_uuid()).front();
                 system.set_chassis(chassis_uuid);
-                auto chassis = ComputeManager::get_instance()->
+                auto chassis = CommonComponents::get_instance()->
                         get_chassis_manager().get_entry_reference(chassis_uuid);
                 chassis->set_fru_info(system.get_fru_info());
             }
+            system.add_collection(attribute::Collection(
+                enums::CollectionName::StorageSubsystems,
+                enums::CollectionType::StorageSubsystems,
+                ""
+            ));
+            system.add_collection(attribute::Collection(
+                enums::CollectionName::NetworkInterfaces,
+                enums::CollectionType::NetworkInterfaces,
+                ""
+            ));
+            system.add_collection(attribute::Collection(
+                enums::CollectionName::Memory,
+                enums::CollectionType::Memory,
+                ""
+            ));
+            system.add_collection(attribute::Collection(
+                enums::CollectionName::Processors,
+                enums::CollectionType::Processors,
+                ""
+            ));
         }
         return system;
     }
@@ -348,27 +384,56 @@ public:
         return agent_framework::model::attribute::Status("Enabled", "OK");
     }
 
-    void read_storage_controllers(const System& system, const xmlpp::Node* element) {
+    void read_storage_subsystem(const System& system, const xmlpp::Node* element) {
+        if (element) {
+            for (const auto& elem : element->get_children("storageSubsystem")) {
+                auto storage = make_storage_subsystem(system, elem);
+                read_storage_controllers(storage, elem);
+                CommonComponents::get_instance()->
+                    get_storage_subsystem_manager().add_entry(storage);
+            }
+        }
+    }
+
+    void read_storage_controllers(const StorageSubsystem& storage, const xmlpp::Node* element) {
         if (element) {
             for (const auto& elem : element->get_children("storageController")) {
-                auto controller = make_storage_controller(system, elem);
-                read_hard_drives(controller, elem);
+                auto controller = make_storage_controller(storage, elem);
                 ComputeComponents::get_instance()->
                     get_storage_controller_manager().add_entry(controller);
             }
         }
     }
 
+    StorageSubsystem make_storage_subsystem(const System& system, const xmlpp::Node* element) {
+        StorageSubsystem storage{system.get_uuid()};
+        storage.set_status(make_status(element));
+        if (element) {
+            log_debug(GET_LOGGER("discovery"), "Creating storage subsystem.");
+        }
+        storage.add_collection(attribute::Collection(
+            enums::CollectionName::StorageControllers,
+            enums::CollectionType::StorageControllers,
+            ""
+        ));
+        storage.add_collection(attribute::Collection(
+            enums::CollectionName::Drives,
+            enums::CollectionType::Drives,
+            ""
+        ));
+        return storage;
+    }
+
     StorageController
-    make_storage_controller(const System& system, const xmlpp::Node* element) {
-        StorageController controller{system.get_uuid()};
+    make_storage_controller(const StorageSubsystem& storage, const xmlpp::Node* element) {
+        StorageController controller{storage.get_uuid()};
         controller.set_status(make_status(element));
         if (element) {
             log_debug(GET_LOGGER("discovery"), "Creating storage controller.");
             std::string interface = AssetConfiguration::
-                    read_string(element ,literals::StorageController::INTERFACE);
-            if (enums::DriveInterface::is_allowable_value(interface)) {
-                controller.set_interface(enums::DriveInterface::
+                    read_string(element, literals::StorageController::INTERFACE);
+            if (enums::StorageProtocol::is_allowable_value(interface)) {
+                controller.add_supported_device_protocol(enums::StorageProtocol::
                         from_string(interface));
             }
             controller.set_fru_info(make_fru_info(element));
@@ -396,26 +461,26 @@ public:
         return fru_info;
     }
 
-    void read_hard_drives(const StorageController& controller,
+    void read_hard_drives(const Chassis& chassis,
                                                const xmlpp::Node* element) {
         if (element) {
             for (const auto& elem : element->get_children(literals::Drive::DRIVE)) {
-                 ComputeComponents::get_instance()->
+                CommonComponents::get_instance()->
                      get_drive_manager().add_entry(
-                                make_hard_drive(controller, elem));
+                                make_hard_drive(chassis, elem));
             }
         }
     }
 
-    Drive make_hard_drive(const StorageController& controller,
+    Drive make_hard_drive(const Chassis& chassis,
                                                const xmlpp::Node* element) {
-        Drive hard_drive{controller.get_uuid()};
+        Drive hard_drive{chassis.get_uuid()};
         if (element) {
             log_debug(GET_LOGGER("discovery"), "Creating hard drive.");
             std::string interface = AssetConfiguration::
                     read_string(element, literals::Drive::INTERFACE);
-            if (enums::DriveInterface::is_allowable_value(interface)) {
-                hard_drive.set_interface(enums::DriveInterface::
+            if (enums::StorageProtocol::is_allowable_value(interface)) {
+                hard_drive.set_interface(enums::StorageProtocol::
                         from_string(interface));
             }
             std::string type = AssetConfiguration::
@@ -437,82 +502,54 @@ public:
         return hard_drive;
     }
 
-    void read_dimms(const System& system, const xmlpp::Node* element) {
+    void read_memory_modules(const System& system, const xmlpp::Node* element) {
         if (element) {
-            for (const auto& elem : element->get_children(literals::Dimm::DIMM)) {
+            for (const auto& elem : element->get_children(literals::Memory::MEMORY)) {
                  ComputeComponents::get_instance()->
-                     get_dimm_manager().add_entry(
-                                make_dimm(system, elem));
+                     get_memory_manager().add_entry(
+                                make_memory(system, elem));
             }
         }
     }
 
-    Dimm make_dimm(const System& system, const xmlpp::Node* element) {
-        Dimm dimm{system.get_uuid()};
+    Memory make_memory(const System& system, const xmlpp::Node* element) {
+        Memory memory{system.get_uuid()};
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating dimm.");
+            log_debug(GET_LOGGER("discovery"), "Creating memory module.");
 
-            dimm.set_device_locator(AssetConfiguration::
-                    read_opt_string(element, literals::Dimm::DEVICE_LOCATOR));
-            dimm.set_bus_width_bits(AssetConfiguration::
-                    read_opt_int(element, literals::Dimm::BUS_WIDTH_BITS));
-            dimm.set_data_width_bits(AssetConfiguration::
-                    read_opt_int(element, literals::Dimm::DATA_WIDTH_BITS));
-            dimm.set_capacity_mb(AssetConfiguration::
-                    read_double(element, literals::Dimm::CAPACITY_MB));
-            dimm.set_fru_info(make_fru_info(element));
-            dimm.set_operating_speed_mhz(AssetConfiguration::
-                    read_opt_int(element, literals::Dimm::OPERATING_SPEED_MHZ));
-            dimm.set_voltage_volt(AssetConfiguration::
-                    read_opt_double(element,literals::Dimm::VOLTAGE));
-            dimm.set_min_voltage_volt(AssetConfiguration::
-                    read_opt_double(element, literals::Dimm::MIN_VOLTAGE));
-            dimm.set_max_voltage_volt(AssetConfiguration::
-                    read_opt_double(element, literals::Dimm::MAX_VOLTAGE));
-            dimm.set_device_id(AssetConfiguration::
-                    read_opt_string(element, literals::Dimm::DEVICE_ID));
-            dimm.set_firmware_revision(AssetConfiguration::
-                    read_opt_string(element, literals::Dimm::FIRMWARE_REVISION));
-            dimm.set_status(make_status(element));
+            memory.set_device_locator(AssetConfiguration::
+                    read_opt_string(element, literals::Memory::DEVICE_LOCATOR));
+            memory.set_bus_width_bits(AssetConfiguration::
+                    read_opt_int(element, literals::Memory::BUS_WIDTH_BITS));
+            memory.set_data_width_bits(AssetConfiguration::
+                    read_opt_int(element, literals::Memory::DATA_WIDTH_BITS));
+            memory.set_capacity_mb(AssetConfiguration::
+                    read_double(element, literals::Memory::CAPACITY_MB));
+            memory.set_fru_info(make_fru_info(element));
+            memory.set_operating_speed_mhz(AssetConfiguration::
+                    read_opt_int(element, literals::Memory::OPERATING_SPEED_MHZ));
+            memory.set_voltage_volt(AssetConfiguration::
+                    read_opt_double(element,literals::Memory::VOLTAGE));
+            memory.set_min_voltage_volt(AssetConfiguration::
+                    read_opt_double(element, literals::Memory::MIN_VOLTAGE));
+            memory.set_max_voltage_volt(AssetConfiguration::
+                    read_opt_double(element, literals::Memory::MAX_VOLTAGE));
+            memory.set_device_id(AssetConfiguration::
+                    read_opt_string(element, literals::Memory::DEVICE_ID));
+            memory.set_firmware_revision(AssetConfiguration::
+                    read_opt_string(element, literals::Memory::FIRMWARE_REVISION));
+            memory.set_status(make_status(element));
 
             attribute::Region region1;
             region1.set_region_id("1");
             region1.set_memory_type(enums::MemoryClass::Volatile);
             region1.set_offset_mb(0);
-            if (dimm.get_capacity_mb().has_value()) {
-                region1.set_size_mb(dimm.get_capacity_mb());
+            if (memory.get_capacity_mb().has_value()) {
+                region1.set_size_mb(memory.get_capacity_mb());
             }
-            dimm.add_region(std::move(region1));
+            memory.add_region(std::move(region1));
         }
-        return dimm;
-    }
-
-    void create_memory_chunks(const System& system) {
-        MemoryChunk chunk{system.get_uuid()};
-        auto memories =
-            ComputeComponents::get_instance()->
-                get_dimm_manager().get_keys(system.get_uuid());
-
-        for (const auto& memory_uuid : memories) {
-            auto memory = ComputeComponents::get_instance()->
-                get_dimm_manager().get_entry_reference(memory_uuid);
-            for (const auto& region: memory->get_regions()) {
-                if (region.get_size_mb().has_value()) {
-                    if (chunk.get_chunk_size_mb().has_value() == false) {
-                        chunk.set_chunk_size_mb(0);
-                    }
-                    chunk.set_chunk_size_mb(chunk.get_chunk_size_mb().value()+region.get_size_mb());
-                }
-                chunk.add_interleave_set({memory_uuid, region.get_region_id()});
-            }
-        }
-
-        chunk.set_type(agent_framework::model::enums::MemoryChunkType::Volatile);
-        chunk.set_status(true);
-        log_debug(GET_LOGGER("agent"), "Creating memory chunk: "
-                                      << chunk.get_uuid());
-        ComputeComponents::get_instance()->
-            get_memory_chunk_manager().add_entry(std::move(chunk));
+        return memory;
     }
 
     void read_processors(const System& system, const xmlpp::Node* element) {

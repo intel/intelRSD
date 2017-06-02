@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package com.intel.podm.discovery.external.deep;
 
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.ComputerSystemDao;
+import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
@@ -34,30 +36,36 @@ import javax.inject.Inject;
 import javax.interceptor.Interceptors;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.FAILED;
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.RUNNING;
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.WAITING_TO_START;
+import static com.intel.podm.common.types.DeepDiscoveryState.FAILED;
+import static com.intel.podm.common.types.DeepDiscoveryState.RUNNING;
+import static com.intel.podm.common.types.DeepDiscoveryState.WAITING_TO_START;
 import static com.intel.podm.common.types.DiscoveryState.DEEP_FAILED;
+import static java.util.Optional.ofNullable;
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 /**
  * Class responsible for triggering deep discovery process for all selected computer systems
  */
 @Dependent
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class DeepDiscoveryRunner {
-
-    private static final long DEEP_DISCOVERY_EXECUTION_TIMEOUT_SECONDS = 300L;
 
     @Inject
     private Logger logger;
 
     @Inject
-    private ComputerSystemDao computerSystemDao;
+    @Config
+    private Holder<DiscoveryConfig> configHolder;
+
+    @Inject
+    private ExternalServiceDao externalServiceDao;
 
     @Inject
     private DeepDiscoveryInvoker invoker;
@@ -68,16 +76,17 @@ public class DeepDiscoveryRunner {
     @Inject
     private DeepDiscoveryLaunchGuard deepDiscoveryLaunchGuard;
 
-    @Inject @Config
-    private Holder<DiscoveryConfig> discoveryConfigHolder;
-
     @Resource(lookup = "java:/DeepDiscoveryExecutor")
     private ManagedScheduledExecutorService executorService;
 
     @Transactional(REQUIRES_NEW)
-    public void deepDiscoverComputerSystems() {
-        List<ComputerSystem> computerSystemsReadyForDeepDiscovery = computerSystemDao.getComputerSystemsByDeepDiscoveryState(WAITING_TO_START);
-        for (ComputerSystem computerSystem : computerSystemsReadyForDeepDiscovery) {
+    public void deepDiscoverComputerSystems(UUID serviceUuid) {
+        ExternalService externalService = ofNullable(getExternalServiceByUuid(serviceUuid)).orElseThrow(() ->
+            new RuntimeException(
+                "Starting deep discovery failed, there is no Service with UUID: " + serviceUuid
+            ));
+
+        for (ComputerSystem computerSystem : getComputerSystemsWaitingToStart(externalService)) {
             ExternalService service = computerSystem.getService();
             if (service == null) {
                 logger.w("There is no Service associated with ComputerSystem {}, skipping deep discovery launch", computerSystem.getId());
@@ -86,7 +95,7 @@ public class DeepDiscoveryRunner {
             try {
                 UUID taskUuid = launchDeepDiscovery(computerSystem);
                 logger.i("Deep discovery for ComputerSystem {} started, [ service: {}, path: {} ]",
-                        computerSystem.getId(), service.getBaseUri(), computerSystem.getSourceUri());
+                    computerSystem.getId(), service.getBaseUri(), computerSystem.getSourceUri());
                 deepDiscoveryLaunchGuard.onDeepDiscoveryLaunchSuccess(computerSystem.getId(), taskUuid);
             } catch (DeepDiscoveryException e) {
                 logger.e("Starting deep discovery failed: ", e);
@@ -95,12 +104,25 @@ public class DeepDiscoveryRunner {
         }
     }
 
+    private ExternalService getExternalServiceByUuid(UUID serviceUuid) {
+        try {
+            return externalServiceDao.getExternalServiceByUuid(serviceUuid);
+        } catch (NonUniqueResultException e) {
+            return null;
+        }
+    }
+
+    private List<ComputerSystem> getComputerSystemsWaitingToStart(ExternalService externalService) {
+        return externalService.getOwned(ComputerSystem.class).stream()
+            .filter(computerSystem -> Objects.equals(computerSystem.getMetadata().getDeepDiscoveryState(), WAITING_TO_START))
+            .collect(toList());
+    }
+
     private UUID launchDeepDiscovery(ComputerSystem computerSystem) throws DeepDiscoveryException {
         invoker.startDeepDiscovery(computerSystem.getId());
         UUID deepDiscoveryTaskUuid = randomUUID();
         DeepDiscoveryTimeoutTask task = taskFactory.create(computerSystem.getId(), deepDiscoveryTaskUuid);
-        long deepDiscoveryTimeoutSeconds = discoveryConfigHolder.get().getDeepDiscoveryTimeoutSeconds();
-        executorService.schedule(task, deepDiscoveryTimeoutSeconds, SECONDS);
+        executorService.schedule(task, configHolder.get().getDeepDiscoveryExecutionTimeoutSeconds(), SECONDS);
         return deepDiscoveryTaskUuid;
     }
 
@@ -126,8 +148,8 @@ public class DeepDiscoveryRunner {
             }
 
             ComputerSystem computerSystem = possibleComputerSystem.get();
-            computerSystem.setTaskUuid(taskUuid);
-            computerSystem.setDeepDiscoveryState(RUNNING);
+            computerSystem.getMetadata().setTaskUuid(taskUuid);
+            computerSystem.getMetadata().setDeepDiscoveryState(RUNNING);
         }
 
         @NumberOfRetriesOnRollback(3)
@@ -140,10 +162,10 @@ public class DeepDiscoveryRunner {
             }
 
             ComputerSystem computerSystem = possibleComputerSystem.get();
-            computerSystem.setTaskUuid(null);
+            computerSystem.getMetadata().setTaskUuid(null);
+            computerSystem.getMetadata().setAllocated(false);
+            computerSystem.getMetadata().setDeepDiscoveryState(FAILED);
             computerSystem.setDiscoveryState(DEEP_FAILED);
-            computerSystem.setAllocated(false);
-            computerSystem.setDeepDiscoveryState(FAILED);
         }
     }
 }

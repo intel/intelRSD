@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief ...
  * */
 
-#ifndef IPMI_COMMAND_SDV_GET_NODE_INFO_HPP
-#define	IPMI_COMMAND_SDV_GET_NODE_INFO_HPP
+#pragma once
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
@@ -32,12 +31,6 @@
 #include <cstdint>
 #include <stdexcept>
 #include <vector>
-
-using std::size_t;
-using std::uint8_t;
-using std::vector;
-using std::to_string;
-using std::runtime_error;
 
 namespace ipmi {
 namespace command {
@@ -48,7 +41,7 @@ namespace request {
 /*!
  * @brief Represents request message for Get Node Info command.
  */
-class GetNodeInfo: public Request {
+class GetNodeInfo : public Request {
 public:
 
     /*!
@@ -56,7 +49,7 @@ public:
      */
     GetNodeInfo();
 
-    /*! Copy constrcutor. */
+    /*! Copy constructor. */
     GetNodeInfo(const GetNodeInfo&) = default;
 
     /*! Assignment operator */
@@ -67,7 +60,7 @@ public:
      */
     virtual ~GetNodeInfo();
 
-    virtual void pack(vector<uint8_t>& data) const {
+    virtual void pack(std::vector<std::uint8_t>& data) const {
         // GetNodeInfo without request parameters.
         (void)data;
     }
@@ -80,9 +73,9 @@ private:
 namespace response {
 
 /*!
- * @brief Represents response message for Get Node Info command. Returns list of avaiable nodes.
+ * @brief Represents response message for Get Node Info command. Returns list of available nodes.
  */
-class GetNodeInfo: public Response {
+class GetNodeInfo : public Response {
 public:
 
     /*!
@@ -90,7 +83,7 @@ public:
      */
     GetNodeInfo();
 
-    /*! Copy constrcutor. */
+    /*! Copy constructor. */
     GetNodeInfo(const GetNodeInfo&) = default;
 
     /*! Assignment operator */
@@ -101,31 +94,31 @@ public:
      */
     virtual ~GetNodeInfo();
 
-    virtual void unpack(const vector<uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data);
 
     /*!
      * @brief Checks if node is present (slot is occupied).
      * @param node_nr node number.
      * @return true if node exists, otherwise false.
      */
-    bool is_present(size_t node_nr) const;
+    bool is_present(std::size_t node_nr) const;
 
     /*!
      * @brief Gets number of available nodes.
      * @return number of available nodes.
      */
-    size_t get_nodes_number() const;
+    std::size_t get_nodes_number() const;
 
 private:
-    uint8_t m_nodes_no{};
-    vector<bool> m_nodes_present = {};
+    std::uint8_t m_nodes_no{};
+    std::vector<bool> m_nodes_present{};
 
-    static constexpr size_t NODE_NUMBER = 12;
-    static constexpr size_t OFFSET_NODES_NUMBER  = 1;
-    static constexpr size_t OFFSET_NODES_PRESENT = 2;
-    static constexpr uint8_t NODE_PRESENT_MASK = 0x01;
+    static constexpr std::size_t NODE_NUMBER = 12;
+    static constexpr std::size_t OFFSET_NODES_NUMBER = 1;
+    static constexpr std::size_t OFFSET_NODES_PRESENT = 2;
+    static constexpr std::uint8_t NODE_PRESENT_MASK = 0x01;
 
-    static constexpr size_t RESPONSE_SIZE = 14;
+    static constexpr std::size_t RESPONSE_SIZE = 14;
 };
 }
 
@@ -133,5 +126,4 @@ private:
 }
 }
 
-#endif	/* IPMI_COMMAND_SDV_GET_NODE_INFO_HPP */
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,7 @@
  * @file evens_queue.hpp
  * */
 
-#ifndef AGENT_FRAMEWORK_EVENTING_DATA_QUEUE_HPP
-#define AGENT_FRAMEWORK_EVENTING_DATA_QUEUE_HPP
-
+#pragma once
 #include "event_data.hpp"
 #include "generic/threadsafe_queue.hpp"
 #include "agent-framework/generic/singleton.hpp"
@@ -44,4 +42,3 @@ private:
 }
 }
 
-#endif

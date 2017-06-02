@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief Get Bios Version request and response.
  * */
 
-#ifndef IPMI_COMMAND_SDV_GET_BIOS_VERSION_HPP
-#define	IPMI_COMMAND_SDV_GET_BIOS_VERSION_HPP
+#pragma once
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
@@ -32,11 +31,6 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-
-using std::size_t;
-using std::uint8_t;
-using std::vector;
-using std::string;
 
 namespace ipmi {
 namespace command {
@@ -47,7 +41,7 @@ namespace request {
 /*!
  * @brief Request message for Get Bios Info command.
  */
-class GetBiosVersion: public Request {
+class GetBiosVersion : public Request {
 public:
 
     /*!
@@ -66,8 +60,10 @@ public:
      */
     virtual ~GetBiosVersion();
 
-    // Request without parameters. Pack is empty.
-    virtual void pack(vector<uint8_t>& data) const { (void)data; }
+    virtual void pack(std::vector<std::uint8_t>& data) const {
+        // Request without parameters. Pack is empty.
+        (void)data;
+    }
 
 private:
 
@@ -80,7 +76,7 @@ namespace response {
 /*!
  * @brief Response message for Get Bios Info command. Gets BIOS version information.
  */
-class GetBiosVersion: public Response {
+class GetBiosVersion : public Response {
 public:
 
     /*!
@@ -99,30 +95,23 @@ public:
      */
     virtual ~GetBiosVersion();
 
-    virtual void unpack(const vector<uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data);
 
-    const string& get_version() const {
+    const std::string& get_version() const {
         return m_full_version;
     }
 
-    void set_version(const std::string& version) {
-        m_full_version = version;
-    }
-
 private:
-    static constexpr size_t RESPONSE_SIZE = 17;
-    static constexpr size_t OFFSET_ASCII_CODE = 1;
-    static constexpr size_t OFFSET_VERSION = 5;
+    static constexpr std::size_t RESPONSE_SIZE = 17;
+    static constexpr std::size_t OFFSET_ASCII_CODE = 1;
+    static constexpr std::size_t OFFSET_VERSION = 5;
 
-    string m_full_version{};
-
-    string extract_bios_version(const vector<uint8_t>& data);
+    std::string m_full_version{};
+    std::string extract_bios_version(const std::vector<std::uint8_t>& data);
 };
 }
 
 }
 }
 }
-
-#endif	/* IPMI_COMMAND_SDV_GET_BIOS_INFO_HPP */
 

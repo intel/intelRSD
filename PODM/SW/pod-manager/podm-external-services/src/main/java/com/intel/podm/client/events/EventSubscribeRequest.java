@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,38 +28,22 @@ public final class EventSubscribeRequest {
     @JsonProperty("Name")
     private final String name = "Event Subscription";
 
-    @JsonProperty("Description")
-    private String description;
-
     @JsonProperty("Destination")
-    private String destination;
+    private final String destination;
 
     @JsonProperty("EventTypes")
-    private EnumSet<EventType> eventTypes = noneOf(EventType.class);
+    private final EnumSet<EventType> eventTypes = noneOf(EventType.class);
 
     @JsonProperty("Context")
-    private String context;
+    private final String context;
 
     @JsonProperty("Protocol")
     private final String protocol = "Redfish";
 
     private EventSubscribeRequest(Builder builder) {
-        this.description = builder.description;
         this.destination = builder.destination;
-        this.eventTypes = builder.eventTypes;
+        this.eventTypes.addAll(builder.eventTypes);
         this.context = builder.context;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-
-    public void setEventTypes(EnumSet<EventType> eventTypes) {
-        this.eventTypes = eventTypes;
     }
 
     public static Builder newBuilder() {
@@ -67,17 +51,11 @@ public final class EventSubscribeRequest {
     }
 
     public static final class Builder {
-        private String description;
         private String destination;
         private EnumSet<EventType> eventTypes;
         private String context;
 
         private Builder() {
-        }
-
-        public Builder description(String description) {
-            this.description = description;
-            return this;
         }
 
         public Builder destination(URI destination) {

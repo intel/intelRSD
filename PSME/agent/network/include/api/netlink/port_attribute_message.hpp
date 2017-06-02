@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,63 +23,63 @@
  * @brief Switch port attribute netlink message class
  * */
 
-#ifndef AGENT_NETWORK_NETLINK_PORT_ATTRIBUTE_MESSAGE_HPP
-#define AGENT_NETWORK_NETLINK_PORT_ATTRIBUTE_MESSAGE_HPP
+#pragma once
 
 /* Internal headers */
-#include "netlink/message.hpp"
-
-/* C/C++ standard headers */
+#include "api/netlink/link_message.hpp"
 
 namespace agent {
 namespace network {
 namespace api {
 namespace netlink {
 
-/*! Port Attribute Message class */
-class PortAttributeMessage: public netlink_base::Message {
+/*!
+ * @brief Port Attribute Message class
+ * */
+class PortAttributeMessage: public agent::network::api::netlink::LinkMessage {
 public:
-    using IfName = Message::IfName;
     using Attribute = uint32_t;
     using AttributeValue = uint32_t;
 
     /*!
-     * @brief Default constructor.
-     */
-    PortAttributeMessage() = delete;
+     * @brief Default constructor
+     *
+     * @param[in] ifname Interface name
+     * */
+    PortAttributeMessage(const std::string& ifname);
 
     /*!
-     * @brief Default constructor.
-     * @param[in] ifname Interface name.
-     */
-    PortAttributeMessage(const IfName& ifname);
-
-    /*!
-     * @brief Default destructor.
-     */
+     * @brief Default destructor
+     * */
     virtual ~PortAttributeMessage();
 
     /*!
-     * @brief Prepare port netlink message.
-     * @return Netlink message ready to be sent.
-     */
-    Pointer prepare_netlink_msg() const;
-
-    /*!
-     * @brief Set port attribute.
+     * @brief Set port attribute
+     *
      * @param[in] attr Switch port attribute.
      * @param[in] value Switch port attribute value.
-     */
+     * */
     void set_attribute(Attribute attr, AttributeValue value) {
         m_attribute = attr;
         m_attribute_value = value;
     }
 
+protected:
+    /*!
+     * @brief Prepare message to be sent.
+     * */
+    void prepare_link_message(struct nl_msg*) override;
+
 private:
+    /*! IFLA_SWPORT_ATTRS and AFLA_ATTR_* definitions are
+     * in if_link.h linux header file of NOS linux image.
+     * Temporary define them here.
+     * */
+    static constexpr uint16_t IFLA_SWPORT_ATTRS = 40;
+
     /* switch port attributes */
     Attribute m_attribute{};
     AttributeValue m_attribute_value{};
-
 };
 
 } /* netlink */
@@ -87,4 +87,3 @@ private:
 } /* network */
 } /* agent */
 
-#endif /* AGENT_NETWORK_NETLINK_PORT_ATTRIBUTE_MESSAGE_HPP */

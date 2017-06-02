@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 package com.intel.podm.client.resources.redfish.properties;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.api.resources.redfish.TemperatureResource;
 import com.intel.podm.common.types.PhysicalContext;
 import com.intel.podm.common.types.Status;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class TemperatureResourceImpl implements TemperatureResource {
     @JsonProperty("Name")
     private String name;

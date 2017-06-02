@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,48 +13,51 @@
 # limitations under the License.
 
 DHCPD_CONF=/etc/dhcp/dhcpd.conf
+INTERFACES_CONF=/etc/network/interfaces
+DHCPD_DEFAULT_CONF=/etc/default/isc-dhcp-server
 
 echo_log() {
     echo "[$DPKG_MAINTSCRIPT_PACKAGE]: $1"
 }
 
-change_permissions() {
+change_file_permissions() {
     echo_log 'Changing files permissions'
 
     chmod 755 /etc/init.d/isc-dhcp-server-fix
-    chmod 755 /usr/bin/parse.leases.py
-}
-
-configure_dhcp_service() {
-    echo_log "Configuring isc-dhcp-server-fix service"
-    update-rc.d isc-dhcp-server-fix defaults 19
+    chmod 755 /usr/bin/parse_leases.py
 }
 
 apply_dhcp_fix() {
-    echo_log "Applying DHCP server fix..."
-    setfacl -dm u:dhcpd:rwx /var/lib/dhcp
-    setfacl -m u:dhcpd:rwx /var/lib/dhcp
+    echo_log "Running DHCP server fix..."
+    /etc/init.d/isc-dhcp-server-fix start
+    echo_log "Configuring isc-dhcp-server-fix service"
+    update-rc.d isc-dhcp-server-fix defaults
 }
 
-append_dhcp_config() {
-    echo_log "Changing dhcp configuration to pod-manager specific"
-    echo "$INCLUDE" >> $DHCPD_CONF
-    echo_log "Restarting isc-dhcp-server"
-    service isc-dhcp-server restart || :
+add_listening_interfaces_for_dhcpd() {
+    echo_log "Updating /etc/default/isc-dhcp-server file"
+    actual_interfaces="$(grep 'INTERFACES' $DHCPD_DEFAULT_CONF | awk -F\" '{print $(NF-1)}')"
+    updated_interfaces="$(echo "$actual_interfaces" | sed -e '/eth0.4091/ ! s/$/ eth0.4091/g' -e '/eth0.4093/ ! s/$/ eth0.4093/g' -e '/eth0.4094/ ! s/$/ eth0.4094/g' -e '/eth0.4088/ ! s/$/ eth0.4088/g')"
+    sed -i "s/INTERFACES=.*/INTERFACES=\"$updated_interfaces\"/g" $DHCPD_DEFAULT_CONF
 }
 
-handle_dhcp_configuration() {
+configure_dhcp() {
     INCLUDE='include "/etc/dhcp/dhcpd-pod-manager.inc";'
     INCLUDE_LEGACY='include "/etc/dhcp/dhcpd-rsa.inc";'
 
     # removing include for legacy include file
     sed -i 's,'"$INCLUDE_LEGACY"',,g' "$DHCPD_CONF"
 
-    # TODO: os-package uses "#!/bin/sh -e" as shell - checking exit status with #? is not possible
-    grep "$INCLUDE" $DHCPD_CONF > /dev/null || append_dhcp_config
+    echo_log "Changing dhcp configuration to pod-manager specific"
+    grep "$INCLUDE" $DHCPD_CONF > /dev/null || echo "$INCLUDE" >> $DHCPD_CONF
+
+    add_listening_interfaces_for_dhcpd
+
+    echo_log "Restarting isc-dhcp-server"
+    service isc-dhcp-server restart || :
 }
 
-handle_apparmor() {
+disable_apparmor() {
     if [ ! -e /etc/init.d/apparmor ]; then
         return
     fi
@@ -65,17 +68,18 @@ handle_apparmor() {
     update-rc.d -f apparmor remove || :
 }
 
+configure_ethernet_interfaces() {
+    INTERFACE_SOURCE='source /etc/network/interfaces.d/pod-manager-network-configuration.conf'
 
-handle_etc_network_interfaces() {
-    echo_log "Overriding /etc/network/interfaces to pod-manager specific configuration"
-    cp -f /etc/pod-manager/opt/network/interfaces /etc/network/interfaces
+    echo_log "Adding POD Manager specific network configuration to current interfaces configuration"
+    grep "$INTERFACE_SOURCE" $INTERFACES_CONF > /dev/null || echo "$INTERFACE_SOURCE" >> $INTERFACES_CONF
 
     # FIXME: Ubuntu 14.04 disabled restarting networking
     echo_log "Restarting networking service"
     service networking restart || :
 }
 
-handle_etc_ntp_conf() {
+configure_ntp() {
     echo_log "Overriding /etc/ntp.conf to pod-manager specific configuration"
     cp -f /etc/pod-manager/opt/ntp.conf /etc/ntp.conf
     echo_log "Restarting ntp service"
@@ -89,23 +93,23 @@ configure_tftpd() {
     mv -f /tmp/tftpd-hpa /etc/default/tftpd-hpa
 }
 
-handle_tagged_vlans() {
+enable_vlans_module() {
     MODULES_FILE="/etc/modules"
     grep -sq "^8021q" $MODULES_FILE || { echo "8021q" >> $MODULES_FILE; modprobe 8021q || : ; }
 }
 
 echo_log "postinst: beginning $1 action"
 
-change_permissions
-handle_apparmor
-handle_dhcp_configuration
-configure_dhcp_service
-apply_dhcp_fix
-handle_tagged_vlans
-# todo: move this to separate script?
-handle_etc_network_interfaces
-handle_etc_ntp_conf
-#
+# DO NOT CHANGE ANYTHING UNDER THIS LINE
+# This order is a fix for conflict between isc-dhcp-server and networking service in Ubuntu
+
+change_file_permissions
+disable_apparmor
+enable_vlans_module
+configure_ethernet_interfaces
+configure_ntp
 configure_tftpd
+apply_dhcp_fix
+configure_dhcp
 
 echo_log "postinst: done"

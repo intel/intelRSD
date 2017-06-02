@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,140 @@
 
 dependencies {
     compile "$JAVA_EE_API_DEPENDENCY"
-    compile project(":podm-repository-api"),
-            project(":enterprise-utils"),
+    compile "$HIBERNATE_CORE"
+    compile "$HIBERNATE_EM"
+    compile "$LIQUIBASE_CORE"
+    compile "$LIQUIBASE_CDI"
+    compile project(":enterprise-utils"),
             project(":utils"),
-            project(":types")
+            project(":types"),
+            project(":config")
+
+    testCompile project(path: ':utils', configuration: 'testOutput')
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'io.github.divinespear:jpa-schema-gradle-plugin:0.1.12-1'
+        classpath "org.postgresql:postgresql:$postgresqlJdbcVer"
+        classpath "$LIQUIBASE_CORE"
+    }
+}
+
+apply plugin: "jpa-schema-generate"
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+jar.dependsOn ":podm-business-entities:generateSchema"
+compileJava.finalizedBy('generateSchema')
+
+sourceSets {
+    main {
+        // set output to same directories
+        // jpa implementations always scan classes using classpath that found persistence.xml
+        output.resourcesDir = output.classesDir
+    }
+}
+
+generateSchema {
+    skip = false
+    format = true
+    scanTestClasses = false
+    persistenceUnitName = "PostgreSqlDS"
+    databaseAction = "none"
+    scriptAction = "create"
+    outputDirectory = new File(projectDir.absolutePath + '/src/main/resources/META-INF', 'sql')
+    createOutputFileName = "create.sql"
+    createSourceMode = "metadata"
+    databaseProductName = "PostgreSQL"
+    databaseMajorVersion = 9
+    databaseMinorVersion = 5
+    namingStrategy = "org.hibernate.cfg.ImprovedNamingStrategy"
+    dialect = "com.intel.podm.business.entities.dialect.CustomPostgreSql9Dialect"
+}
+
+
+task generateChangelog(group: 'db-schema', dependsOn: 'compileJava') {
+    doLast {
+        removeTemporaryDatabases()
+        initializeTemporaryDatabases()
+        loadExpectedSchema()
+        loadCurrentSchema()
+        println "Checking schema changes..."
+        runLiquibase('diffChangeLog')
+        removeTemporaryDatabases()
+    }
+}
+
+task generateInitialChangelog(group: 'db-schema', dependsOn: 'compileJava') {
+    doLast {
+        removeTemporaryDatabases()
+        initializeTemporaryDatabases()
+        loadExpectedSchema()
+        runLiquibase(
+                "--changeLogFile=./initial.xml",
+                '--url=jdbc:postgresql://localhost:5432/podm_expected',
+                'generateChangeLog'
+        )
+        removeTemporaryDatabases()
+    }
+}
+
+def removeTemporaryDatabases() {
+    exec { commandLine 'dropdb', '--if-exists', 'podm_expected' }
+    exec { commandLine 'dropdb', '--if-exists', 'podm_current' }
+}
+
+def initializeTemporaryDatabases() {
+    exec { commandLine 'createdb', 'podm_expected' }
+    exec { commandLine 'createdb', 'podm_current' }
+}
+
+def loadExpectedSchema() {
+    println "Updating expected podm schema"
+    exec {
+        commandLine 'psql', 'podm_expected', '--quiet', '-f', "${projectDir.absolutePath}/src/main/resources/META-INF/sql/create.sql"
+    }
+}
+
+def loadCurrentSchema() {
+    println "Updating current podm schema"
+    runLiquibase(
+            "--changeLogFile=${projectDir.absolutePath}/src/main/resources/META-INF/sql/changelog/createdb.xml",
+            'update'
+    )
+}
+
+def runLiquibase(...commandArgs) {
+    def db_password;
+    new ByteArrayOutputStream().withStream { os ->
+        exec {
+            commandLine 'java', '-jar', '/usr/lib/pod-manager/vault-decrypter.jar', '--password-type','database'
+            standardOutput = os
+        }
+        db_password = os.toString().trim()
+    }
+
+    def defArgs = [
+            '--url=jdbc:postgresql://localhost:5432/podm_current',
+            '--username=podm',
+            "--password=${db_password}",
+            '--referenceUrl=jdbc:postgresql://localhost:5432/podm_expected',
+            "--referencePassword=${db_password}",
+            '--referenceUsername=podm',
+            "--classpath=${buildscript.configurations.classpath.asPath}"
+    ]
+
+    javaexec {
+        workingDir = projectDir
+        main = 'liquibase.integration.commandline.Main'
+        classpath = buildscript.configurations.classpath.asFileTree
+        args = defArgs + commandArgs.toList()
+    }
 }

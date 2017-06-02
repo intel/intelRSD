@@ -1,34 +1,25 @@
 /*!
- * @section LICENSE
+ * @brief Logger stream C++ interface
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
  *
- * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
- * @file logger_stream.hpp
- *
- * @brief Logger stream C++ interface
- * */
+ * @header{Files}
+ * @file stream.hpp
+ */
 
-#ifndef LOGGER_STREAM_HPP
-#define LOGGER_STREAM_HPP
+#pragma once
 
+#include "logger/logger_options.hpp"
 #include "logger/logger.hpp"
 
 namespace logger_cpp {
@@ -50,14 +41,14 @@ public:
      * @enum Type
      * @brief Stream types
      * */
-    enum class Type {
+    typedef enum class Type {
         STDOUT    = 0,
         STDERR    = 1,
         FILE      = 2,
         UDP       = 3,
         TCP       = 4,
         DIRECT    = 5
-    };
+    } Type;
 
     /*!
      * @brief Default constructor. Create specific stream object given by first
@@ -68,7 +59,7 @@ public:
      * @param[in]   tag     Tag string for tagging
      * @param[in]   options Stream options to set
      * */
-    Stream(enum Type type, const char* tag = nullptr,
+    Stream(Type type, const char* tag = nullptr,
             const Options& options = Options());
 
     /*!
@@ -102,7 +93,7 @@ public:
      * @param[in]   ip_address  IP address like "127.0.0.1"
      * @param[in]   port        UDP port
      * */
-    void open_udp(const char* ip_address, size_t port);
+    void open_udp(const char* ip_address, uint16_t port);
 
     /*!
      * @brief Open IP TCP socket with given IP address and TCP port.
@@ -111,7 +102,7 @@ public:
      * @param[in]   ip_address  IP address like "127.0.0.1"
      * @param[in]   port        TCP port
      * */
-    void open_tcp(const char* ip_address, size_t port);
+    void open_tcp(const char* ip_address, uint16_t port);
 
     /*!
      * @brief Set stream options @see logger_cpp::Options
@@ -128,8 +119,9 @@ public:
      * */
     Options get_options();
 };
+
 using StreamSPtr = std::shared_ptr<Stream>;
 using StreamUPtr = std::unique_ptr<Stream>;
+
 }
 
-#endif /* LOGGER_STREAM_HPP */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,17 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.api.resources.redfish.EthernetSwitchPortVlanResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.OemType;
+
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @OdataTypes({
-        "#VLanNetworkInterface.1.0.0.VLanNetworkInterface",
-        "#VLanNetworkInterface.1.0.1.VLanNetworkInterface",
-        "#VLanNetworkInterface.v1_0_0.VLanNetworkInterface",
-        "#VLanNetworkInterface.v1_0_1.VLanNetworkInterface"
+    "#VLanNetworkInterface" + OdataTypes.VERSION_PATTERN + "VLanNetworkInterface"
 })
 public class EthernetSwitchPortVlanResourceImpl extends ExternalServiceResourceImpl implements EthernetSwitchPortVlanResource {
     @JsonProperty("VLANEnable")
@@ -57,13 +56,12 @@ public class EthernetSwitchPortVlanResourceImpl extends ExternalServiceResourceI
         return oem.rackScaleOem.status;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class Oem {
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOem {
         @JsonProperty("Intel_RackScale")
         private RackScaleOem rackScaleOem = new RackScaleOem();
 
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        private static class RackScaleOem {
+        public class RackScaleOem {
             @JsonProperty("Tagged")
             private Boolean tagged;
             @JsonProperty("Status")

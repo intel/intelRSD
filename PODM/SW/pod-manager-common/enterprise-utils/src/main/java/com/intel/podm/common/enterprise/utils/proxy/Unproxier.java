@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.intel.podm.common.enterprise.utils.proxy;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 
 /**
  * Contains method allowing to determine what is underlying class of class proxied by JEE container.
@@ -28,7 +28,7 @@ public final class Unproxier {
     }
 
     public static <T> Class<T> unproxy(Class<? extends T> proxiedClass) {
-        checkNotNull(proxiedClass, "Proxied class should not be null");
+        requiresNonNull(proxiedClass, "proxiedClass");
 
         String name = proxiedClass.getSimpleName();
 

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,4 +16,23 @@
 #
 # </license_header>
 
-add_subdirectory(ConfigurationBased)
+add_library(storage-command-conf-based-ref OBJECT
+    get_managers_collection.cpp
+    get_tasks_collection.cpp
+    set_component_attributes.cpp
+    get_manager_info.cpp
+    get_storage_services_info.cpp
+    get_collection.cpp
+    get_physical_drive_info.cpp
+    get_logical_drive_info.cpp
+    get_task_info.cpp
+    get_task_result_info.cpp
+    add_logical_drive.cpp
+    delete_logical_drive.cpp
+    get_iscsi_target_info.cpp
+    add_iscsi_target.cpp
+    delete_iscsi_target.cpp
+    delete_task.cpp
+)
+
+set_psme_command_target_properties(storage-command-conf-based-ref)

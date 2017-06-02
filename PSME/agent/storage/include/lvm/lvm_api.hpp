@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief C++ wrapper for liblvm2app
  * */
 
-#ifndef PSME_AGENT_STORAGE_LVM_API_HPP
-#define PSME_AGENT_STORAGE_LVM_API_HPP
-
+#pragma once
 #include "lvm_create_data.hpp"
 #include "volume_group.hpp"
 #include "physical_volume.hpp"
@@ -83,5 +81,4 @@ private:
 }
 }
 }
-#endif	/* PSME_AGENT_STORAGE_LVM_API_HPP */
 

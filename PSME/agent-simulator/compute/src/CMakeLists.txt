@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,10 @@ set(SOURCES
     main.cpp
 )
 
-include_directories(${PSME_COMPUTE_SIMULATOR_DIR}/include)
+include_directories(
+    ${PSME_COMPUTE_SIMULATOR_DIR}/include
+    ${LIBXMLPP_INCLUDE_DIRS}
+)
 
 add_subdirectory(discovery)
 add_subdirectory(asset_configuration)
@@ -57,7 +60,7 @@ target_link_libraries(psme-compute-simulator
     ${SAFESTRING_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
-    ${LIBXMLPP_LIBRARY}
+    ${LIBXMLPP_LIBRARIES}
     ${GLIBMM_LIBRARY}
     ${GLIB_LIBRARY}
     pthread

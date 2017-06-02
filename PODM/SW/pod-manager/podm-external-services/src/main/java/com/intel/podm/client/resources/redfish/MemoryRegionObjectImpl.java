@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,42 +16,49 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.api.resources.redfish.MemoryRegionObject;
 import com.intel.podm.common.types.MemoryClassification;
+import com.intel.podm.common.types.Ref;
+import com.intel.podm.common.types.annotations.AsUnassigned;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+import static com.intel.podm.common.types.Ref.unassigned;
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+
 public class MemoryRegionObjectImpl implements MemoryRegionObject {
     @JsonProperty("RegionId")
-    private String regionId;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> regionId = unassigned();
 
     @JsonProperty("MemoryClassification")
-    private MemoryClassification memoryClassification;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<MemoryClassification> memoryClassification = unassigned();
 
     @JsonProperty("OffsetMiB")
-    private Integer offsetMib;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> offsetMib = unassigned();
 
     @JsonProperty("SizeMiB")
-    private Integer sizeMib;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<Integer> sizeMib = unassigned();
 
     @Override
-    public String getRegionId() {
+    public Ref<String> getRegionId() {
         return regionId;
     }
 
     @Override
-    public MemoryClassification getMemoryClassification() {
+    public Ref<MemoryClassification> getMemoryClassification() {
         return memoryClassification;
     }
 
     @Override
-    public Integer getOffsetMib() {
+    public Ref<Integer> getOffsetMib() {
         return offsetMib;
     }
 
     @Override
-    public Integer getSizeMib() {
+    public Ref<Integer> getSizeMib() {
         return sizeMib;
     }
 }

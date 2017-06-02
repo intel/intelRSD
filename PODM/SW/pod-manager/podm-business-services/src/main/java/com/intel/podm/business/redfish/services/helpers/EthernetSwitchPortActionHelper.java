@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,46 +17,45 @@
 package com.intel.podm.business.redfish.services.helpers;
 
 import com.intel.podm.actions.ActionException;
-import com.intel.podm.business.EntityNotFoundException;
-import com.intel.podm.business.dto.redfish.RequestedEthernetSwitchPortCreation;
-import com.intel.podm.business.dto.redfish.RequestedEthernetSwitchPortLinks;
-import com.intel.podm.business.dto.redfish.RequestedEthernetSwitchPortModification;
+import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.entities.redfish.EthernetSwitch;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.actions.EthernetSwitchPortDefinition;
 import com.intel.podm.common.types.actions.EthernetSwitchPortRedefinition;
+import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
 
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.net.URI;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
+@Dependent
 public class EthernetSwitchPortActionHelper {
-
     @Inject
-    private DomainObjectTreeTraverser traverser;
+    private EntityTreeTraverser traverser;
 
-    public Optional<List<EthernetSwitchPort>> validateAndGetSwitchPorts(Id parentId, Optional<RequestedEthernetSwitchPortLinks> requestedSwitchPortLinks)
+    @Transactional(MANDATORY)
+    public Set<EthernetSwitchPort> validateAndGetSwitchPorts(EthernetSwitch ethernetSwitch,
+                                                              RedfishEthernetSwitchPort.Links requestedSwitchPortLinks)
             throws ActionException {
 
-        Optional<List<EthernetSwitchPort>> switchPorts = convertContextsToSwitchPorts(validateSwitchPortsAndGetContexts(requestedSwitchPortLinks));
+        Set<EthernetSwitchPort> switchPorts = convertContextsToSwitchPorts(validateSwitchPortsAndGetContexts(requestedSwitchPortLinks));
 
         if (shouldCheckSwitchPorts(switchPorts)) {
-            Set<Id> parentIds = switchPorts.get().stream().map(switchPort -> switchPort.getEthernetSwitch().getId()).collect(toSet());
+            Set<EthernetSwitch> switches = switchPorts.stream().map(EthernetSwitchPort::getEthernetSwitch).collect(toSet());
 
-            if (parentIds.size() != 1 || !parentId.equals(parentIds.iterator().next())) {
+            if (switches.size() != 1 || !ethernetSwitch.equals(switches.iterator().next())) {
                 throw new ActionException("Provided ports don't belong to single EthernetSwitch");
             }
 
-            if (!parentId.equals(parentIds.iterator().next())) {
+            if (!ethernetSwitch.equals(switches.iterator().next())) {
                 throw new ActionException("Provided ports don't belong to proper EthernetSwitch");
             }
         }
@@ -64,44 +63,32 @@ public class EthernetSwitchPortActionHelper {
         return switchPorts;
     }
 
-    private Optional<List<EthernetSwitchPort>> convertContextsToSwitchPorts(Optional<List<Context>> contextList) throws ActionException {
+    private Set<EthernetSwitchPort> convertContextsToSwitchPorts(Set<Context> contextList) throws ActionException {
         if (contextList == null) {
-            return empty();
+            return null;
         }
 
         try {
-            return contextList.isPresent() ? of(traverser.traverse(contextList.get())) : empty();
-        } catch (EntityNotFoundException e) {
+            return traverser.traverse(contextList);
+        } catch (ContextResolvingException e) {
             throw new ActionException("Provided ports contain a non-existing port entry");
         }
     }
 
-    private Optional<List<Context>> validateSwitchPortsAndGetContexts(Optional<RequestedEthernetSwitchPortLinks> links) throws ActionException {
-        if (links == null) {
+    private Set<Context> validateSwitchPortsAndGetContexts(RedfishEthernetSwitchPort.Links links) throws ActionException {
+        if (links == null || links.getPortMembers() == null) {
             return null;
         }
 
-        if (!links.isPresent()) {
-            return empty();
-        }
-
-        if (links.get().getPortMembers() == null) {
-            throw new ActionException("SwitchPort action cannot be triggered. No ports provided.");
-        }
-
-        if (!links.get().getPortMembers().isPresent()) {
-            return empty();
-        }
-
-        return links.get().getPortMembers();
+        return links.getPortMembers();
     }
 
-    private boolean shouldCheckSwitchPorts(Optional<List<EthernetSwitchPort>> switchPorts) {
-        return switchPorts.isPresent() && !switchPorts.get().isEmpty();
+    private boolean shouldCheckSwitchPorts(Set<EthernetSwitchPort> switchPorts) {
+        return switchPorts != null && !switchPorts.isEmpty();
     }
 
-    public EthernetSwitchPortDefinition switchPortDefinition(RequestedEthernetSwitchPortCreation switchPortCreation,
-                                                     Optional<List<EthernetSwitchPort>> switchPorts) {
+    public EthernetSwitchPortDefinition switchPortDefinition(RedfishEthernetSwitchPort switchPortCreation,
+                                                     Set<EthernetSwitchPort> switchPorts) {
         return EthernetSwitchPortDefinition
                 .newBuilder()
                 .name(switchPortCreation.getName())
@@ -111,28 +98,25 @@ public class EthernetSwitchPortActionHelper {
                 .build();
     }
 
-    public EthernetSwitchPortRedefinition switchPortRedefinition(RequestedEthernetSwitchPortModification switchPortModification,
-                                                         Optional<List<EthernetSwitchPort>> switchPorts,
-                                                         URI primaryVlanUri) {
-
+    public EthernetSwitchPortRedefinition switchPortRedefinition(RedfishEthernetSwitchPort switchPortModification,
+                                                         Set<EthernetSwitchPort> switchPorts,
+                                                         EthernetSwitchPortVlan primaryVlan) {
         return EthernetSwitchPortRedefinition
                 .newBuilder()
                 .administrativeState(switchPortModification.getAdministrativeState())
-                .linkSpeed(switchPortModification.getLinkSpeed())
+                .linkSpeedMbps(switchPortModification.getLinkSpeedMbps())
                 .frameSize(switchPortModification.getFrameSize())
                 .autosense(switchPortModification.getAutosense())
-                .primaryVlan(primaryVlanUri)
+                .primaryVlan(primaryVlan != null ? primaryVlan.getSourceUri() : null)
                 .uris(convertSwitchPortsToSourceUris(switchPorts))
                 .build();
     }
 
-    private Optional<List<URI>> convertSwitchPortsToSourceUris(Optional<List<EthernetSwitchPort>> switchPorts) {
+    private Set<URI> convertSwitchPortsToSourceUris(Set<EthernetSwitchPort> switchPorts) {
         if (switchPorts == null) {
             return null;
         }
 
-        return switchPorts.isPresent()
-                ? of(switchPorts.get().stream().map(EthernetSwitchPort::getSourceUri).collect(toList()))
-                : empty();
+        return switchPorts.stream().map(EthernetSwitchPort::getSourceUri).collect(toSet());
     }
 }

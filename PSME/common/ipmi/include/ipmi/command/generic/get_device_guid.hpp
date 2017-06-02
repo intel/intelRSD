@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief Implementation of GetDeviceGuid Request/Response.
  * */
 
-#ifndef IPMI_COMMAND_GENERIC_GET_DEVICE_GUID_HPP
-#define	IPMI_COMMAND_GENERIC_GET_DEVICE_GUID_HPP
+#pragma once
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
@@ -42,7 +41,7 @@ namespace request {
 /*!
  * @brief Represents request message for GetDeviceGuid command.
  */
-class GetDeviceGuid: public Request {
+class GetDeviceGuid : public Request {
 public:
 
     /*!
@@ -51,10 +50,10 @@ public:
     GetDeviceGuid();
 
     /*! Copy constructor */
-    GetDeviceGuid(const GetDeviceGuid &) = default;
+    GetDeviceGuid(const GetDeviceGuid&) = default;
 
     /*! Assignment operator */
-    GetDeviceGuid &operator=(const GetDeviceGuid &) = default;
+    GetDeviceGuid& operator=(const GetDeviceGuid&) = default;
 
     /*!
      * @brief Destructor.
@@ -65,7 +64,7 @@ public:
      * @brief Packs data from object to output vector
      * @param[out] data vector where data will be packed.
      */
-    virtual void pack(std::vector <std::uint8_t> &data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const;
 
 };
 }
@@ -98,18 +97,18 @@ public:
      * @brief Unpacks data from vector to object.
      * @param data bytes to be copied to object,
      */
-    virtual void unpack(const vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data);
 
     const std::string& get_guid() const {
         return m_guid;
     }
 
 private:
-    static constexpr std::uint32_t OFFSET_NODE = 1;
-    static constexpr std::uint32_t OFFSET_CLK_SEQ_AND_RESERVED = 7;
-    static constexpr std::uint32_t OFFSET_TIME_HIGH_AND_VER = 9;
-    static constexpr std::uint32_t OFFSET_TIME_MID = 11;
-    static constexpr std::uint32_t OFFSET_TIME_LOW = 13;
+    static constexpr std::uint32_t OFFSET_NODE = 11;
+    static constexpr std::uint32_t OFFSET_CLK_SEQ_AND_RESERVED = 9;
+    static constexpr std::uint32_t OFFSET_TIME_HIGH_AND_VER = 7;
+    static constexpr std::uint32_t OFFSET_TIME_MID = 5;
+    static constexpr std::uint32_t OFFSET_TIME_LOW = 1;
 
     static constexpr std::size_t RESPONSE_SIZE = 16;
     static constexpr std::uint32_t GUID_LENGTH = 37;
@@ -122,4 +121,3 @@ private:
 }
 }
 }
-#endif  /* IPMI_COMMAND_GENERIC_GET_DEVICE_GUID_HPP */

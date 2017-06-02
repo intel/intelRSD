@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,12 +29,13 @@
 #include "api/netlink/add_lag_message.hpp"
 
 #include <net/if.h>
+#include <linux/rtnetlink.h>
 
 using namespace agent::network::api::netlink;
 
-AddLagMessage::AddLagMessage(const IfName& lag) : LagMessage(lag, {}) {
-    set_flags(NLM_F_CREATE | NLM_F_EXCL);
-    set_type(RTM_NEWLINK);
+AddLagMessage::AddLagMessage(const std::string& lag) : LagMessage(lag, {}) {
+    set_nlhdr_flags(NLM_F_CREATE | NLM_F_EXCL);
+    set_nlhdr_type(RTM_NEWLINK);
 }
 
 AddLagMessage::~AddLagMessage() { }

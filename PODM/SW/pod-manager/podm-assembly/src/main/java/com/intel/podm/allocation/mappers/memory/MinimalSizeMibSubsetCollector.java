@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collector.Characteristics.UNORDERED;
 
 class MinimalSizeMibSubsetCollector implements Collector<MemoryModule, List<MemoryModule>, List<MemoryModule>> {
@@ -65,7 +65,7 @@ class MinimalSizeMibSubsetCollector implements Collector<MemoryModule, List<Memo
                             .filter(memoryModule -> memoryModule.getCapacityMib() != null)
                             .mapToInt(MemoryModule::getCapacityMib).sum() >= sizeMib;
 
-            List<MemoryModule> minimalSubset = newArrayList();
+            List<MemoryModule> minimalSubset = new ArrayList<>();
             for (MemoryModule availableMemoryModule : memoryModules) {
                 minimalSubset.add(availableMemoryModule);
                 if (satisfiesCapacityConstraint.test(minimalSubset)) {
@@ -73,7 +73,7 @@ class MinimalSizeMibSubsetCollector implements Collector<MemoryModule, List<Memo
                 }
             }
 
-            return newArrayList();
+            return emptyList();
         };
     }
 

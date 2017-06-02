@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,27 +33,27 @@ using namespace ipmi;
 using namespace ipmi::command::sdv;
 
 request::SetIscsiField::SetIscsiField():
-        Request(uint8_t(NetFn::INTEL), uint8_t(Cmd::SET_ISCSI_FIELD)) {}
+        Request(sdv::NetFn::INTEL, sdv::Cmd::SET_ISCSI_FIELD) {}
 request::SetIscsiField::~SetIscsiField() {}
 
-void request::SetIscsiField::pack(vector<uint8_t>& data) const {
+void request::SetIscsiField::pack(std::vector<std::uint8_t>& data) const {
     data.push_back(uint8_t(m_field_instance_type));
     data.push_back(uint8_t(m_data.size()));
     // Appends bytes from `m_data` to the end of the `data` vector
     append_vector(data, m_data);
 }
 
-void request::SetIscsiField::append_vector(vector<uint8_t>& output, const vector<uint8_t>& input) const {
+void request::SetIscsiField::append_vector(std::vector<uint8_t>& output, const std::vector<std::uint8_t>& input) const {
     for(const auto& item: input) {
         output.push_back(item);
     }
 }
 
 response::SetIscsiField::SetIscsiField():
-        Response(uint8_t(NetFn::INTEL), uint8_t(Cmd::SET_ISCSI_FIELD), RESPONSE_SIZE) {}
+        Response(sdv::NetFn::INTEL, sdv::Cmd::SET_ISCSI_FIELD, RESPONSE_SIZE) {}
 response::SetIscsiField::~SetIscsiField() {}
 
-void response::SetIscsiField::unpack(const vector<uint8_t>& data) {
+void response::SetIscsiField::unpack(const std::vector<std::uint8_t>& data) {
     if(!is_response_correct(data)) {
         return;
     }

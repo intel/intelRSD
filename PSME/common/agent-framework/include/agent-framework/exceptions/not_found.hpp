@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,32 +23,62 @@
  * @brief Declaration of not found exception
  * */
 
-#ifndef AGENT_FRAMEWORK_EXCEPTIONS_NOT_FOUND_HPP
-#define AGENT_FRAMEWORK_EXCEPTIONS_NOT_FOUND_HPP
+#pragma once
 
-#include "agent-framework/exceptions/exception_base.hpp"
+
+
+#include "agent-framework/exceptions/gami_exception.hpp"
+
+
 
 namespace agent_framework {
 namespace exceptions {
 
 /*! @brief Not found exception class */
-class NotFound final : public ExceptionBase {
+class NotFound final : public GamiException {
 public:
-    explicit NotFound(const std::string& msg) :
-             ExceptionBase{ErrorCode::NOT_FOUND, msg} {}
+
+    /*! @brief Exception JSON field */
+    static const constexpr char URI[] = "uri";
+
+
+    explicit NotFound(const std::string& msg);
+
+
+    explicit NotFound(const std::string& msg, const std::string& uri);
+
 
     NotFound(const NotFound&) = default;
+
+
     NotFound& operator=(const NotFound&) = default;
 
+
     NotFound(NotFound&&) = default;
+
+
     NotFound& operator=(NotFound&&) = default;
+
 
     /*! @brief Destructor */
     ~NotFound();
-};
 
+    /*!
+     * @brief Get field value from JSON data.
+     * @param data Exception's JSON data.
+     * @param should_return_empty Should method return empty string or "not specified" text.
+     * @return Field value as string or empty string if data does not contain field name.
+     * */
+    static std::string get_uri_from_json_data(const Json::Value& data, bool should_return_empty = true);
+
+    /*!
+     * @brief Creates JSON data object from invalid URI.
+     * @param uri Requested invalid URI
+     * @return JSON data object with URI
+     */
+    Json::Value create_json_data_from_uri(const std::string& uri);
+};
 
 } // namespace exceptions
 } // namespace agent_framework
 
-#endif	/* AGENT_FRAMEWORK_EXCEPTIONS_NOT_FOUND_HPP */

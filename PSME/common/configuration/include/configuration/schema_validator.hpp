@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,10 @@
  *
  * @file schema_validator.hpp
  *
- * @brief SchemaValidator inteface
+ * @brief SchemaValidator interface
  * */
 
-#ifndef CONFIGURATION_SCHEMA_VALIDATOR_HPP
-#define CONFIGURATION_SCHEMA_VALIDATOR_HPP
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -57,6 +56,7 @@ public:
      * @param errors JSON object errors
      */
     void validate(const json::Value& json, SchemaErrors& errors);
+
 private:
     /*! pimpl idiom */
     class Impl;
@@ -65,4 +65,3 @@ private:
 
 }
 
-#endif /* CONFIGURATION_SCHEMA_VALIDATOR_HPP */

@@ -49,9 +49,10 @@
             "serialConsoleEnabled": true
         }
     ],
+    "service-uuid-file" : "/var/opt/psme/compute-service-uuid.json",
     "logger" : {
         "agent" : {
-            "level" : "WARNING",
+            "level" : "INFO",
             "timeformat" : "DATE_NS",
             "color" : true,
             "output" : true,

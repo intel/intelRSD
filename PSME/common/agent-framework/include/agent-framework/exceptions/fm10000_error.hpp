@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,16 +23,19 @@
  * @brief Declaration of FM10000 error interface
  * */
 
-#ifndef AGENT_FRAMEWORK_EXCEPTIONS_FM10000_ERROR_HPP
-#define AGENT_FRAMEWORK_EXCEPTIONS_FM10000_ERROR_HPP
+#pragma once
 
-#include "agent-framework/exceptions/exception_base.hpp"
+
+
+#include "agent-framework/exceptions/gami_exception.hpp"
+
+
 
 namespace agent_framework {
 namespace exceptions {
 
 /*! @brief Fm10000 exception class */
-class Fm10000Error final : public ExceptionBase {
+class Fm10000Error final : public GamiException {
 public:
 
     /*!
@@ -41,13 +44,20 @@ public:
      * @param[in] msg Error message
      * */
     explicit Fm10000Error(const std::string& msg) :
-        ExceptionBase{ErrorCode::FM10000, msg} {}
+        GamiException(ErrorCode::FM10000, msg) {}
+
 
     Fm10000Error(const Fm10000Error&) = default;
+
+
     Fm10000Error& operator=(const Fm10000Error&) = default;
 
+
     Fm10000Error(Fm10000Error&&) = default;
+
+
     Fm10000Error& operator=(Fm10000Error&&) = default;
+
 
     /*! @brief Destructor */
     ~Fm10000Error();
@@ -56,4 +66,3 @@ public:
 } // namespace exceptions
 } // namespace agent_framework
 
-#endif	/* AGENT_FRAMEWORK_EXCEPTIONS_FM10000_ERROR_HPP */

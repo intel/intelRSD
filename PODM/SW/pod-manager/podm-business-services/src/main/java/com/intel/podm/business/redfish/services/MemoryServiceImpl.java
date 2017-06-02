@@ -1,107 +1,109 @@
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.dto.redfish.MemoryDto;
 import com.intel.podm.business.dto.redfish.attributes.MemoryLocationDto;
 import com.intel.podm.business.dto.redfish.attributes.MemoryRegionDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Memory;
-import com.intel.podm.business.entities.redfish.properties.MemoryLocation;
-import com.intel.podm.business.entities.redfish.properties.Region;
-import com.intel.podm.business.redfish.Contexts;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.entities.redfish.embeddables.MemoryLocation;
+import com.intel.podm.business.entities.redfish.embeddables.Region;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.DimmConfigService;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.Collection;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.MEMORY_MODULES;
+import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Transactional(REQUIRED)
-public class MemoryServiceImpl implements DimmConfigService {
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodLength"})
+public class MemoryServiceImpl implements ReaderService<MemoryDto> {
+    @Inject
+    private EntityTreeTraverser traverser;
 
     @Inject
-    private DomainObjectTreeTraverser traverser;
+    private UnknownOemTranslator unknownOemTranslator;
 
     @Override
-    public CollectionDto getDimmConfigCollection(Context systemContext) throws EntityNotFoundException {
+    public CollectionDto getCollection(Context systemContext) throws ContextResolvingException {
         ComputerSystem computerSystem = (ComputerSystem) traverser.traverse(systemContext);
-        return new CollectionDto(MEMORY_MODULES, Contexts.getAsIdList(computerSystem.getMemoryModules()));
+        return new CollectionDto(MEMORY_MODULES, getAsIdSet(computerSystem.getMemoryModules()));
     }
 
     @Override
-    public MemoryDto getDimmConfig(Context dimmContext) throws EntityNotFoundException {
-        Memory dimmConfig = (Memory) traverser.traverse(dimmContext);
-        return map(dimmContext, dimmConfig);
+    public MemoryDto getResource(Context memoryContext) throws ContextResolvingException {
+        Memory memory = (Memory) traverser.traverse(memoryContext);
+        return map(memory);
     }
 
-    private MemoryDto map(Context context, Memory dimmConfig) {
+    private MemoryDto map(Memory memory) {
         return MemoryDto.newBuilder()
-                .name(dimmConfig.getName())
-                .id(dimmConfig.getId().toString())
-                .description(dimmConfig.getDescription())
-                .memoryType(dimmConfig.getMemoryType())
-                .memoryDeviceType(dimmConfig.getMemoryDeviceType())
-                .baseModuleType(dimmConfig.getBaseModuleType())
-                .memoryMedia(dimmConfig.getMemoryMedia())
-                .capacityMib(dimmConfig.getCapacityMib())
-                .dataWidthBits(dimmConfig.getDataWidthBits())
-                .busWidthBits(dimmConfig.getBusWidthBits())
-                .manufacturer(dimmConfig.getManufacturer())
-                .serialNumber(dimmConfig.getSerialNumber())
-                .partNumber(dimmConfig.getPartNumber())
-                .allowedSpeedsMhz(dimmConfig.getAllowedSpeedsMhz())
-                .firmwareRevision(dimmConfig.getFirmwareRevision())
-                .firmwareApiVersion(dimmConfig.getFirmwareApiVersion())
-                .functionClasses(dimmConfig.getFunctionClasses())
-                .vendorId(dimmConfig.getVendorId())
-                .deviceId(dimmConfig.getDeviceId())
-                .rankCount(dimmConfig.getRankCount())
-                .deviceLocator(dimmConfig.getDeviceLocator())
-                .memoryLocation(buildDimmLocationDto(dimmConfig.getMemoryLocation()))
-                .errorCorrection(dimmConfig.getErrorCorrection())
-                .status(dimmConfig.getStatus())
-                .operatingSpeedMhz(dimmConfig.getOperatingSpeedMhz())
-                .regions(processDimmRegions(dimmConfig.getRegions()))
-                .operatingMemoryModes(dimmConfig.getOperatingMemoryModes())
-                .voltageVolt(dimmConfig.getVoltageVolt())
-                .context(context)
-                .build();
+            .id(memory.getId().toString())
+            .name(memory.getName())
+            .description(memory.getDescription())
+            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(memory.getService(), memory.getUnknownOems()))
+            .memoryType(memory.getMemoryType())
+            .memoryDeviceType(memory.getMemoryDeviceType())
+            .baseModuleType(memory.getBaseModuleType())
+            .memoryMedia(memory.getMemoryMedia())
+            .capacityMib(memory.getCapacityMib())
+            .dataWidthBits(memory.getDataWidthBits())
+            .busWidthBits(memory.getBusWidthBits())
+            .manufacturer(memory.getManufacturer())
+            .serialNumber(memory.getSerialNumber())
+            .partNumber(memory.getPartNumber())
+            .allowedSpeedsMhz(memory.getAllowedSpeedsMhz())
+            .firmwareRevision(memory.getFirmwareRevision())
+            .firmwareApiVersion(memory.getFirmwareApiVersion())
+            .functionClasses(memory.getFunctionClasses())
+            .vendorId(memory.getVendorId())
+            .deviceId(memory.getDeviceId())
+            .rankCount(memory.getRankCount())
+            .deviceLocator(memory.getDeviceLocator())
+            .memoryLocation(buildMemoryLocationDto(memory.getMemoryLocation()))
+            .errorCorrection(memory.getErrorCorrection())
+            .status(memory.getStatus())
+            .operatingSpeedMhz(memory.getOperatingSpeedMhz())
+            .regions(processMemoryRegions(memory.getRegions()))
+            .operatingMemoryModes(memory.getOperatingMemoryModes())
+            .voltageVolt(memory.getVoltageVolt())
+            .build();
     }
 
-    private MemoryLocationDto buildDimmLocationDto(MemoryLocation dimmLocation) {
-        if (dimmLocation == null) {
+    private MemoryLocationDto buildMemoryLocationDto(MemoryLocation memoryLocation) {
+        if (memoryLocation == null) {
             return null;
         }
 
         return MemoryLocationDto.newBuilder()
-                .locationChannel(dimmLocation.getChannel())
-                .locationMemoryController(dimmLocation.getMemoryController())
-                .locationSlot(dimmLocation.getSlot())
-                .locationSocket(dimmLocation.getSocket())
-                .build();
+            .locationChannel(memoryLocation.getChannel())
+            .locationMemoryController(memoryLocation.getMemoryController())
+            .locationSlot(memoryLocation.getSlot())
+            .locationSocket(memoryLocation.getSocket())
+            .build();
     }
 
-    private Collection<MemoryRegionDto> processDimmRegions(Collection<Region> regions) {
-        Collection<MemoryRegionDto> dimmRegions = new ArrayList<>();
-        for (Region reg : regions) {
-            dimmRegions.add(createDimmRegionDto(reg));
-        }
-
-        return dimmRegions;
+    private Collection<MemoryRegionDto> processMemoryRegions(Collection<Region> regions) {
+        Collection<MemoryRegionDto> memoryRegions = regions.stream()
+            .map(this::createMemoryRegionDto)
+            .collect(toList());
+        return memoryRegions;
     }
 
-    private MemoryRegionDto createDimmRegionDto(Region region) {
+    private MemoryRegionDto createMemoryRegionDto(Region region) {
         return MemoryRegionDto.newBuilder()
-                .regionId(region.getRegionId())
-                .memoryClassification(region.getMemoryClassification())
-                .offsetMib(region.getOffsetMib())
-                .sizeMib(region.getSizeMib())
-                .build();
+            .regionId(region.getRegionId())
+            .memoryClassification(region.getMemoryClassification())
+            .offsetMib(region.getOffsetMib())
+            .sizeMib(region.getSizeMib())
+            .build();
     }
 }

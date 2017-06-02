@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
 
 @JsonPropertyOrder({"socket", "memoryController", "channel", "slot"})
 @JsonInclude(ALWAYS)
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class MemoryLocationJson {
     @JsonProperty("Socket")
     public Integer socket;

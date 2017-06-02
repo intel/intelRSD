@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ if (NOT GTEST_FOUND)
 endif()
 
 add_gtest(discovery_discover psme-compute
-    discovery_discover_test.cpp
-    mock_send_method_test.cpp
-    test_runner.cpp
+        discovery_discover_test.cpp
+        mock_send_method_test.cpp
+        mdr_region_discovery_test.cpp
+        test_runner.cpp
 )
 
 add_library(compute-discovery-test-libs
@@ -38,7 +39,6 @@ target_link_libraries(${test_target}
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
     ${PCA95XX_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
     ipmi
@@ -52,5 +52,7 @@ target_link_libraries(${test_target}
     ${CURL_LIBRARIES}
     md5
     netlink
+    smbios
+    ${SAFESTRING_LIBRARIES}
     ${NL3_LIBRARIES}
 )

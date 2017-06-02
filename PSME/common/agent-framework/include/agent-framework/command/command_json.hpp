@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,7 @@
  * Include singleton pattern for registering JSON commands to be use later.
  * */
 
-#ifndef AGENT_FRAMEWORK_COMMAND_COMMAND_JSON_HPP
-#define AGENT_FRAMEWORK_COMMAND_COMMAND_JSON_HPP
-
+#pragma once
 #include <map>
 #include <memory>
 #include <string>
@@ -53,7 +51,7 @@ private:
     /*! @brief Dummy validator to be used for initializing const&
      * @deprecated It should be removed when all commands are refactored
      */
-    ProcedureValidator m_procedure_ref;
+    ProcedureValidator m_procedure_ref __attribute__((deprecated));
 
     /*! @brief General validator for the command */
     const ProcedureValidator& m_procedure;
@@ -70,7 +68,7 @@ protected:
      *
      * @param[in]   procedure   JSON RPC procedure for parsing JSON parameters
      * */
-    CommandJson(const Procedure& procedure) :
+    CommandJson(const Procedure& procedure) __attribute__((deprecated)) :
         m_procedure_ref(procedure),
         m_procedure(m_procedure_ref)
     {}
@@ -201,16 +199,8 @@ public:
 
         template<class T> friend class Register;
     };
-
-    /*!
-     * @brief Flag to disable checking value if type is correct.
-     * No chcecking at jsonrpc side is done if this value is used instead of
-     * jsonrpc::jsontype_t (JSON_STRING, etc) enum values.
-     */
-    constexpr static const unsigned JSON_ANYTHING = 0;
 };
 
 } /* namespace command */
 } /* namespace agent_framework */
 
-#endif /* AGENT_FRAMEWORK_COMMAND_COMMAND_JSON_HPP */

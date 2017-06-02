@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,14 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
 @OdataTypes("OemVendorImpl")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
-        defaultImpl = OemVendorImpl.class,
-        use = NAME,
-        include = PROPERTY,
-        property = "@odata.type",
-        visible = true
+    defaultImpl = OemVendorImpl.class,
+    use = NAME,
+    include = PROPERTY,
+    property = "@odata.type",
+    visible = true
 )
 @JsonTypeIdResolver(ResourceResolver.class)
 public class OemVendorImpl implements OemVendor {
     @JsonProperty("@odata.id")
     private String oDataId;
 }
-
-

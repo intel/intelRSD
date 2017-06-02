@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ dependencies {
     compile "$JAVA_EE_API_DEPENDENCY"
     compile "$RESTEASY_CLIENT_DEPENDENCY"
     compile "$APACHE_COMMONS_VALIDATOR"
+    compile "$CLING_CORE"
+    compile project(":podm-discovery")
     compile project(":security")
     compile project(":enterprise-utils")
     compile project(":config")

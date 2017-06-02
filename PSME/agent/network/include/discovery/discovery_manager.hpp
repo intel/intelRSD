@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,53 +17,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
  * @file discovery_manager.hpp
+ *
  * @brief Initial discovery implementation.
  * */
 
-#ifndef AGENT_NETWORK_DISCOVERY_MANAGER_HPP
-#define	AGENT_NETWORK_DISCOVERY_MANAGER_HPP
+#pragma once
 
-#include "agent-framework/discovery/discovery_manager.hpp"
-#include "agent-framework/module/module_manager.hpp"
-#include "agent-framework/logger_ext.hpp"
+#include "agent-framework/discovery/discovery.hpp"
 
-using agent_framework::generic::Module;
-using agent_framework::generic::Submodule;
-using agent_framework::generic::ModuleManager;
+#include <mutex>
+#include <condition_variable>
 
 namespace agent {
 namespace network {
 namespace discovery {
 
-/*!
- * @brief Implementation of initial discovery.
- */
-class DiscoveryManager: public agent_framework::generic::DiscoveryManager {
+/*! @brief Implementation of initial discovery. */
+class DiscoveryManager final : public agent_framework::discovery::Discovery {
 public:
 
-    /*!
-     * @brief Default constructor.
-     */
+    /*! @brief Default constructor. */
     DiscoveryManager();
 
-    /*! Copy constructor */
+    /*! @brief Copy constructor */
     DiscoveryManager(const DiscoveryManager&) = default;
 
-    /*! Assignment operator */
+    /*! @brief Assignment operator */
     DiscoveryManager& operator=(const DiscoveryManager&) = default;
 
-    /*!
-     * @brief Default destructor.
-     */
+    /*! @brief Default destructor. */
     virtual ~DiscoveryManager();
 
-    virtual void discover(Module& module) const;
+    virtual void discovery(const std::string& uuid) override;
+
+    /*! @brief Wait for discovery complete */
+    void wait_for_complete();
+
+private:
+    std::mutex m_mutex{};
+    std::condition_variable m_cv{};
 };
 
 }
 }
 }
-#endif	/* AGENT_NETWORK_DISCOVERY_MANAGER_HPP */
 

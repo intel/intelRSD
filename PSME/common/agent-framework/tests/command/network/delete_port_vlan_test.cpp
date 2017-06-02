@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,85 +22,83 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/network/delete_port_vlan.hpp"
-#include "agent-framework/command/network/json/delete_port_vlan.hpp"
-#include "agent-framework/module-ref/constants/network.hpp"
+#include "agent-framework/module/constants/network.hpp"
+#include "agent-framework/module/network_components.hpp"
+#include "agent-framework/command-ref/network_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 using namespace agent_framework::model;
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 
 static constexpr char TEST_UUID[] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51b";
 
-class DeletePortVlan : public network::DeletePortVlan {
+class MyDeletePortVlan {
 private:
     std::string m_port_vlan{};
 public:
-    DeletePortVlan(
+    MyDeletePortVlan(
         std::string port_vlan) {
         m_port_vlan = port_vlan;
         }
 
-    using network::DeletePortVlan::execute;
-
-    void execute(const Request& request, Response& response) {
+    void execute(const DeletePortVlan::Request& request,
+                 DeletePortVlan::Response& response) {
         auto port_vlan = request.get_port_vlan();
 
         if (port_vlan != m_port_vlan) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not Found");
         }
 
         response.set_oem(attribute::Oem());
     }
 
-    virtual ~DeletePortVlan();
+    virtual ~MyDeletePortVlan();
 };
 
-DeletePortVlan::~DeletePortVlan() { }
+MyDeletePortVlan::~MyDeletePortVlan() { }
 
 TEST(DeletePortVlanTest, PositiveExecute) {
-    network::json::DeletePortVlan command_json;
-    DeletePortVlan* command = new DeletePortVlan(TEST_UUID);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyDeletePortVlan command{TEST_UUID};
+    DeletePortVlan::Request request{""};
+    DeletePortVlan::Response response{};
     Json::Value params;
     Json::Value result;
 
-    params[literals::PortVlan::PORT_VLAN] = TEST_UUID;
+    params[literals::EthernetSwitchPortVlan::PORT_VLAN] = TEST_UUID;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = DeletePortVlan::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
-    ASSERT_TRUE(result[literals::PortVlan::OEM].isObject());
+    ASSERT_TRUE(result[literals::EthernetSwitchPortVlan::OEM].isObject());
 }
 
 TEST(DeletePortVlanTest, NegativeVlanPortNotFound) {
-    network::json::DeletePortVlan command_json;
-    DeletePortVlan* command = new DeletePortVlan(TEST_UUID);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyDeletePortVlan command{TEST_UUID};
+    DeletePortVlan::Request request{""};
+    DeletePortVlan::Response response{};
     Json::Value params;
     Json::Value result;
 
-    params[literals::PortVlan::PORT_VLAN] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
+    params[literals::EthernetSwitchPortVlan::PORT_VLAN] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = DeletePortVlan::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 }
 
 TEST(DeletePortVlanTest, NegativeInvalidUUIDFormat) {
-    network::json::DeletePortVlan command_json;
-    DeletePortVlan* command = new DeletePortVlan(TEST_UUID);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyDeletePortVlan command{TEST_UUID};
+    DeletePortVlan::Request request{""};
+    DeletePortVlan::Response response{};
     Json::Value params;
     Json::Value result;
 
-    params[literals::PortVlan::PORT_VLAN] = "TestUUID";
+    params[literals::EthernetSwitchPortVlan::PORT_VLAN] = "TestUUID";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = DeletePortVlan::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 }

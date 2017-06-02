@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.intel.podm.discovery.external;
 
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.common.logger.Logger;
-import com.intel.podm.services.detection.ServiceEndpoint;
+import com.intel.podm.common.enterprise.utils.logger.ServiceLifecycle;
+import com.intel.podm.common.logger.ServiceLifecycleLogger;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -30,30 +30,33 @@ import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Dependent
 public class ExternalServiceUpdater {
-
     @Inject
-    private Logger logger;
+    @ServiceLifecycle
+    private ServiceLifecycleLogger logger;
 
     @Inject
     private ExternalServiceRepository repository;
 
     @Transactional(REQUIRES_NEW)
-    public void updateExternalService(ServiceEndpoint serviceEndpoint) {
+    void updateExternalService(ServiceEndpoint serviceEndpoint) {
         ExternalService service = repository.findOrNull(serviceEndpoint.getServiceUuid());
         if (service == null) {
             service = repository.create(serviceEndpoint);
-            logger.t("New external service created for {}", serviceEndpoint);
+            logger.lifecycleInfo("New service {} discovered.", service);
         }
 
         if (!Objects.equals(service.getBaseUri(), serviceEndpoint.getEndpointUri())) {
-            logger.t("Service's URI for {} was updated to {}", service, serviceEndpoint.getEndpointUri());
+            logger.lifecycleInfo(
+                "Service's URI for {} was updated to {}",
+                service, serviceEndpoint.getEndpointUri()
+            );
         }
 
         service.setBaseUri(serviceEndpoint.getEndpointUri());
     }
 
     @Transactional(REQUIRES_NEW)
-    public void updateExternalServiceUuid(UUID oldUuid, UUID newUuid) {
+    void updateExternalServiceUuid(UUID oldUuid, UUID newUuid) {
         ExternalService service = repository.find(oldUuid);
         service.setUuid(newUuid);
     }

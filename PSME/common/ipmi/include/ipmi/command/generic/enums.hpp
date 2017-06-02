@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,17 +23,16 @@
  * @brief IPMI generic enums.
  * */
 
-#ifndef IPMI_COMMAND_GENERIC_ENUMS_HPP
-#define IPMI_COMMAND_GENERIC_ENUMS_HPP
+#pragma once
 
 namespace ipmi {
 namespace command {
 namespace generic {
 
-/*
+/*!
  * @brief Represents codes for Network Function tailored to IPMI spec.
  */
-enum class NetFn: uint8_t {
+enum NetFn : std::uint8_t {
     CHASSIS = 0x00,
     SENSOR_EVENT = 0x04,
     APP = 0x06,
@@ -42,7 +41,7 @@ enum class NetFn: uint8_t {
 /*!
  * @brief Represents codes for IPMI Command.
  */
-enum class Cmd: uint8_t {
+enum Cmd : std::uint8_t {
     GET_CHASSIS_STATUS = 0x01,
     GET_DEVICE_ID = 0x01,
     GET_THERMAL_STATE = 0x08,
@@ -52,10 +51,37 @@ enum class Cmd: uint8_t {
     GET_SENSOR_READING = 0x2D,
     CHASSIS_CONTROLL_COMMAND = 0x02,
     GET_SYSTEM_GUID = 0x37,
-    GET_DEVICE_GUID = 0x08
+    GET_DEVICE_GUID = 0x08,
+    MASTER_WRITE_READ = 0x52
+};
+
+/*!
+ * @brief Represents available boot override targets
+ */
+enum class BootOverrideTarget : std::uint8_t {
+    None,
+    Hdd,
+    Pxe,
+    Other
+};
+
+/*!
+ * @brief Represents available boot override types
+ */
+enum class BootOverride : std::uint8_t {
+    Disabled,
+    Once,
+    Continuous
+};
+
+/*!
+ * @brief Represents available Boot Modes
+ */
+enum class BootMode : std::uint8_t {
+    Legacy,
+    UEFI
 };
 
 }
 }
 }
-#endif /* IPMI_COMMAND_GENERIC_ENUMS_HPP */

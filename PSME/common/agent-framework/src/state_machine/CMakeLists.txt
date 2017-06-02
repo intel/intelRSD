@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ set(SOURCES
     module_state_starting.cpp
     state_machine.cpp
     state_machine_exception.cpp
+    state_machine_module_thread.cpp
     state_machine_thread.cpp
     state_machine_thread_action.cpp
     state_thread_entry.cpp
@@ -33,7 +34,6 @@ set(SOURCES
 
 include_directories(
     ${AGENT_FRAMEWORK_DIR}/src/status
-    ${AGENT_FRAMEWORK_DIR}/src/module
     ${AGENT_FRAMEWORK_DIR}/src/eventing
     ${AGENT_FRAMEWORK_DIR}/src/state_machine
 )

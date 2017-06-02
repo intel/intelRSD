@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
 import static java.util.Objects.hash;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 /**
  * Represents iSCSI SAN URI
@@ -47,7 +48,7 @@ public final class IscsiSanUri {
     private final int lun;
 
     public IscsiSanUri(String targetName, String serverName, Integer port, Integer lun) {
-        if (isNullOrEmpty(targetName)) {
+        if (isEmpty(targetName)) {
             throw new IllegalArgumentException("targetName must not be null or empty");
         }
 
@@ -62,9 +63,7 @@ public final class IscsiSanUri {
     }
 
     public IscsiSanUri(String iscsiSanUri) {
-        if (iscsiSanUri == null) {
-            throw new IllegalArgumentException("iscsiSanUri must not be null");
-        }
+        requiresNonNull(iscsiSanUri, "iscsiSanUri");
 
         Matcher matcher = PATTERN.matcher(iscsiSanUri);
         if (!matcher.find()) {

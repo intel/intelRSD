@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,48 +18,58 @@ package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.api.resources.redfish.ProcessorIdObject;
+import com.intel.podm.common.types.Ref;
+import com.intel.podm.common.types.annotations.AsUnassigned;
+
+import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
 public class ProcessorIdObjectImpl implements ProcessorIdObject {
     @JsonProperty("VendorId")
-    private String vendorId;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> vendorId = Ref.unassigned();
     @JsonProperty("IdentificationRegisters")
-    private String identificationRegisters;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> identificationRegisters = Ref.unassigned();
     @JsonProperty("EffectiveFamily")
-    private String effectiveFamily;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> effectiveFamily = Ref.unassigned();
     @JsonProperty("EffectiveModel")
-    private String effectiveModel;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> effectiveModel = Ref.unassigned();
     @JsonProperty("Step")
-    private String step;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> step = Ref.unassigned();
     @JsonProperty("MicrocodeInfo")
-    private String microcodeInfo;
+    @AsUnassigned(WHEN_NULL)
+    private Ref<String> microcodeInfo = Ref.unassigned();
 
     @Override
-    public String getVendorId() {
+    public Ref<String> getVendorId() {
         return vendorId;
     }
 
     @Override
-    public String getIdentificationRegisters() {
+    public Ref<String> getIdentificationRegisters() {
         return identificationRegisters;
     }
 
     @Override
-    public String getEffectiveFamily() {
+    public Ref<String> getEffectiveFamily() {
         return effectiveFamily;
     }
 
     @Override
-    public String getEffectiveModel() {
+    public Ref<String> getEffectiveModel() {
         return effectiveModel;
     }
 
     @Override
-    public String getStep() {
+    public Ref<String> getStep() {
         return step;
     }
 
     @Override
-    public String getMicrocodeInfo() {
+    public Ref<String> getMicrocodeInfo() {
         return microcodeInfo;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,152 +16,212 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.properties.Fan;
-import com.intel.podm.business.entities.redfish.properties.RackLocation;
-import com.intel.podm.business.entities.redfish.properties.Temperature;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.listeners.ThermalZoneListener;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.embeddables.RackLocation;
+import com.intel.podm.common.types.Id;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
-import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.EntityListeners;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class ThermalZone extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<Integer> MAX_FANS_SUPPORTED = integerProperty("maxFansSupported");
-    public static final DomainObjectProperty<Integer> DESIRED_SPEED_PWM = integerProperty("desiredSpeedPwm");
-    public static final DomainObjectProperty<Integer> DESIRED_SPEED_RPM = integerProperty("desiredSpeedRpm");
-    public static final DomainObjectProperty<String> PRESENCE = stringProperty("presence");
-    public static final DomainObjectProperty<Integer> NUMBER_OF_FANS_PRESENT = integerProperty("numberOfFansPresent");
-    public static final DomainObjectProperty<Integer> VOLUMETRIC_AIRFLOW = integerProperty("volumetricAirflow");
+@javax.persistence.Entity
+@Table(name = "thermal_zone", indexes = @Index(name = "idx_thermal_zone_entity_id", columnList = "entity_id", unique = true))
+@EntityListeners(ThermalZoneListener.class)
+@Eventable
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class ThermalZone extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "volumetric_airflow")
+    private Integer volumetricAirflow;
+
+    @Column(name = "number_of_fans_present")
+    private Integer numberOfFansPresent;
+
+    @Column(name = "presence")
+    private String presence;
+
+    @Column(name = "desired_speed_rpm")
+    private Integer desiredSpeedRpm;
+
+    @Column(name = "desired_speed_pwm")
+    private Integer desiredSpeedPwm;
+
+    @Column(name = "max_fans_supported")
+    private Integer maxFansSupported;
+
+    @Embedded
+    private RackLocation rackLocation;
+
+    @OneToMany(mappedBy = "thermalZone", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Fan> fans = new HashSet<>();
+
+    @OneToMany(mappedBy = "thermalZone", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Temperature> temperatures = new HashSet<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "chassis_id")
+    private Chassis chassis;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public Integer getVolumetricAirflow() {
-        return getProperty(VOLUMETRIC_AIRFLOW);
+        return volumetricAirflow;
     }
 
     public void setVolumetricAirflow(Integer volumetricAirflow) {
-        setProperty(VOLUMETRIC_AIRFLOW, volumetricAirflow);
+        this.volumetricAirflow = volumetricAirflow;
     }
 
     public Integer getNumberOfFansPresent() {
-        return getProperty(NUMBER_OF_FANS_PRESENT);
+        return numberOfFansPresent;
     }
 
     public void setNumberOfFansPresent(Integer numberOfFansPresent) {
-        setProperty(NUMBER_OF_FANS_PRESENT, numberOfFansPresent);
+        this.numberOfFansPresent = numberOfFansPresent;
     }
 
     public String getPresence() {
-        return getProperty(PRESENCE);
+        return presence;
     }
 
     public void setPresence(String presence) {
-        setProperty(PRESENCE, presence);
-    }
-
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
+        this.presence = presence;
     }
 
     public Integer getDesiredSpeedRpm() {
-        return getProperty(DESIRED_SPEED_RPM);
+        return desiredSpeedRpm;
     }
 
     public void setDesiredSpeedRpm(Integer desiredSpeedRpm) {
-        setProperty(DESIRED_SPEED_RPM, desiredSpeedRpm);
+        this.desiredSpeedRpm = desiredSpeedRpm;
     }
 
     public Integer getDesiredSpeedPwm() {
-        return getProperty(DESIRED_SPEED_PWM);
+        return desiredSpeedPwm;
     }
 
     public void setDesiredSpeedPwm(Integer desiredSpeedPwm) {
-        setProperty(DESIRED_SPEED_PWM, desiredSpeedPwm);
+        this.desiredSpeedPwm = desiredSpeedPwm;
     }
 
     public Integer getMaxFansSupported() {
-        return getProperty(MAX_FANS_SUPPORTED);
+        return maxFansSupported;
     }
 
     public void setMaxFansSupported(Integer maxFansSupported) {
-        setProperty(MAX_FANS_SUPPORTED, maxFansSupported);
-    }
-
-    public List<Fan> getFans() {
-        return getLinked(CONTAINS, Fan.class);
-    }
-
-    public void link(Fan fan) {
-        link(CONTAINS, fan);
-    }
-
-    public void link(Temperature temperature) {
-        link(CONTAINS, temperature);
-    }
-
-    public List<Temperature> getTemperatures() {
-        return getLinked(CONTAINS, Temperature.class);
-    }
-
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
-    }
-
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+        this.maxFansSupported = maxFansSupported;
     }
 
     public RackLocation getRackLocation() {
-        return singleOrNull(getLinked(CONTAINS, RackLocation.class));
+        return rackLocation;
     }
 
     public void setRackLocation(RackLocation rackLocation) {
-        link(CONTAINS, rackLocation);
+        this.rackLocation = rackLocation;
+    }
+
+    public Set<Fan> getFans() {
+        return fans;
+    }
+
+    public void addFan(Fan fan) {
+        requiresNonNull(fan, "fan");
+
+        fans.add(fan);
+        if (!this.equals(fan.getThermalZone())) {
+            fan.setThermalZone(this);
+        }
+    }
+
+    public void unlinkFan(Fan fan) {
+        if (fans.contains(fan)) {
+            fans.remove(fan);
+            if (fan != null) {
+                fan.unlinkThermalZone(this);
+            }
+        }
+    }
+
+    public Set<Temperature> getTemperatures() {
+        return temperatures;
+    }
+
+    public void addTemperature(Temperature temperature) {
+        requiresNonNull(temperature, "temperature");
+
+        temperatures.add(temperature);
+        if (!this.equals(temperature.getThermalZone())) {
+            temperature.setThermalZone(this);
+        }
+    }
+
+    public void unlinkTemperature(Temperature temperature) {
+        if (temperatures.contains(temperature)) {
+            temperatures.remove(temperature);
+            if (temperature != null) {
+                temperature.unlinkThermalZone(this);
+            }
+        }
+    }
+
+    public Chassis getChassis() {
+        return chassis;
+    }
+
+    public void setChassis(Chassis chassis) {
+        if (!Objects.equals(this.chassis, chassis)) {
+            unlinkChassis(this.chassis);
+            this.chassis = chassis;
+            if (chassis != null && !chassis.getThermalZones().contains(this)) {
+                chassis.addThermalZone(this);
+            }
+        }
+    }
+
+    public void unlinkChassis(Chassis chassis) {
+        if (Objects.equals(this.chassis, chassis)) {
+            this.chassis = null;
+            if (chassis != null) {
+                chassis.unlinkThermalZone(this);
+            }
+        }
+    }
+
+    @Override
+    public void preRemove() {
+        unlinkCollection(fans, this::unlinkFan);
+        unlinkCollection(temperatures, this::unlinkTemperature);
+        unlinkChassis(chassis);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, chassis);
     }
 }

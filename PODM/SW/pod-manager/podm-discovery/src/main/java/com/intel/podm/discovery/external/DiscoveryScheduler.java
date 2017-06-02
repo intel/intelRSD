@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,38 @@
 
 package com.intel.podm.discovery.external;
 
+import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
+import com.intel.podm.common.synchronization.TaskCoordinator;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.DiscoveryConfig;
 import com.intel.podm.config.base.dto.EventsConfig;
+import com.intel.podm.discovery.external.deep.DeepDiscoveryTriggeringTask;
 import com.intel.podm.discovery.external.event.EventSubscribeRunner;
-import com.intel.podm.discovery.external.event.EventSubscriptionTask;
 import com.intel.podm.discovery.external.event.EventSubscriptionTaskFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.Singleton;
-import javax.enterprise.concurrent.ManagedScheduledExecutorService;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
 public class DiscoveryScheduler {
-
-    @Resource(name = "default")
-    private ManagedScheduledExecutorService discoveryManagedExecutorService;
-
-    @Resource(lookup = "java:/EventSubscribeExecutor")
-    private ManagedScheduledExecutorService eventManagedExecutorService;
+    private static final int DEEP_DISCOVERY_INTERVAL = 10;
 
     @Inject
-    private DiscoveryRunner discoveryRunner;
+    @Named("TasksExecutor")
+    private ScheduledExecutorService discoveryTaskExecutor;
+
+    @Inject
+    @Named("EventsExecutor")
+    private ScheduledExecutorService eventSubscriptionTaskExecutor;
 
     @Inject
     private EventSubscribeRunner eventSubscribeRunner;
@@ -55,58 +55,103 @@ public class DiscoveryScheduler {
     @Inject
     private EventSubscriptionTaskFactory eventSubscriptionTaskFactory;
 
-    @Inject @Config
+    @Inject
+    @Config
     private Holder<DiscoveryConfig> discoveryConfig;
 
-    @Inject @Config
+    @Inject
+    private TaskCoordinator taskCoordinator;
+
+    @Inject
+    private BeanFactory beanFactory;
+
+    @Inject
+    @Config
     private Holder<EventsConfig> eventsConfig;
 
+    //TODO: consider refactor and move below hashmaps to another class
     private Map<UUID, ScheduledFuture> discoveryTasks = new HashMap<>();
 
     private Map<UUID, ScheduledFuture> eventSubscriptionTasks = new HashMap<>();
-    private Set<UUID> servicesWithScheduledDiscovery = ConcurrentHashMap.newKeySet();
 
+    private Map<UUID, ScheduledFuture> deepDiscoveryTasks = new HashMap<>();
+
+    private Map<UUID, DiscoveryRunner> discoveryRunners = new HashMap<>();
 
     public void scheduleServiceDiscoveryWithEventServiceSubscription(UUID serviceUuid) {
-        long discoveryIntervalSeconds = discoveryConfig.get().getDiscoveryIntervalSeconds();
+        DiscoveryConfig discoveryConfig = this.discoveryConfig.get();
+        long discoveryIntervalSeconds = discoveryConfig.getDiscoveryIntervalSeconds();
         long discoveryDelaySeconds = 0;
 
+        boolean scheduledSubscriptionTask = scheduleEventServiceSubscription(serviceUuid);
+        discoveryDelaySeconds = scheduledSubscriptionTask ? discoveryIntervalSeconds : discoveryDelaySeconds;
+
+        scheduleDiscovery(serviceUuid, discoveryIntervalSeconds, discoveryDelaySeconds);
+
+        if (discoveryConfig.isDeepDiscoveryEnabled()) {
+            scheduleDeepDiscoveryTriggeringTask(serviceUuid);
+        }
+    }
+
+    private void scheduleDeepDiscoveryTriggeringTask(UUID serviceUuid) {
+        if (!deepDiscoveryTasks.containsKey(serviceUuid)) {
+            ScheduledFuture<?> deepDiscoveryTriggeringTask = discoveryTaskExecutor.scheduleWithFixedDelay(
+                () -> enqueueDeepDiscoveryTriggeringTask(serviceUuid),
+                DEEP_DISCOVERY_INTERVAL,
+                DEEP_DISCOVERY_INTERVAL,
+                SECONDS
+            );
+            deepDiscoveryTasks.put(serviceUuid, deepDiscoveryTriggeringTask);
+        }
+    }
+
+    private void scheduleDiscovery(UUID serviceUuid, long discoveryIntervalSeconds, long discoveryDelaySeconds) {
+        if (!discoveryTasks.containsKey(serviceUuid)) {
+            ScheduledFuture<?> discoveryTask = discoveryTaskExecutor.scheduleWithFixedDelay(
+                () -> enqueueDiscovery(serviceUuid),
+                discoveryDelaySeconds,
+                discoveryIntervalSeconds,
+                SECONDS
+            );
+            discoveryTasks.put(serviceUuid, discoveryTask);
+        } else {
+            enqueueDiscovery(serviceUuid);
+        }
+    }
+
+    private boolean scheduleEventServiceSubscription(UUID serviceUuid) {
         if (!eventSubscriptionTasks.containsKey(serviceUuid)) {
             triggerDiscoveryAndScheduleEventService(serviceUuid);
             //discovery was made during scheduling event service, so first scheduled discovery can be delayed
-            discoveryDelaySeconds = discoveryIntervalSeconds;
+            return true;
         }
-
-        if (!discoveryTasks.containsKey(serviceUuid)) {
-            ScheduledFuture<?> discoveryTask = discoveryManagedExecutorService.scheduleWithFixedDelay(
-                    () -> triggerDiscovery(serviceUuid), discoveryDelaySeconds, discoveryIntervalSeconds, SECONDS);
-            discoveryTasks.put(serviceUuid, discoveryTask);
-        }
+        return false;
     }
 
     private void triggerDiscoveryAndScheduleEventService(UUID serviceUuid) {
         //run synchronously for first time
-        triggerDiscovery(serviceUuid);
+        enqueueDiscovery(serviceUuid);
         subscribeAndScheduleEventService(serviceUuid);
     }
 
-    public void subscribeAndScheduleEventService(UUID serviceUuid) {
+    private void subscribeAndScheduleEventService(UUID serviceUuid) {
         eventSubscribeRunner.subscribeIfNotAlreadySubscribed(serviceUuid);
         long eventSubscriptionIntervalSeconds = eventsConfig.get().getEventSubscriptionIntervalSeconds();
-        EventSubscriptionTask task = eventSubscriptionTaskFactory.create(serviceUuid);
         ScheduledFuture<?> eventSubscriptionTask =
-                eventManagedExecutorService.scheduleWithFixedDelay(
-                        task,
-                        eventSubscriptionIntervalSeconds,
-                        eventSubscriptionIntervalSeconds,
-                        SECONDS
-                );
+            eventSubscriptionTaskExecutor.scheduleWithFixedDelay(
+                eventSubscriptionTaskFactory.create(serviceUuid),
+                eventSubscriptionIntervalSeconds,
+                eventSubscriptionIntervalSeconds,
+                SECONDS
+            );
         eventSubscriptionTasks.put(serviceUuid, eventSubscriptionTask);
     }
 
     public void cancel(UUID serviceUuid) {
         cancelTaskForService(discoveryTasks, serviceUuid);
         cancelTaskForService(eventSubscriptionTasks, serviceUuid);
+        cancelTaskForService(deepDiscoveryTasks, serviceUuid);
+        discoveryRunners.remove(serviceUuid);
     }
 
     private void cancelTaskForService(Map<UUID, ScheduledFuture> tasks, UUID serviceUuid) {
@@ -116,12 +161,25 @@ public class DiscoveryScheduler {
         }
     }
 
-    public void triggerDiscovery(UUID serviceUuid) {
-        if (servicesWithScheduledDiscovery.add(serviceUuid)) {
-            discoveryManagedExecutorService.schedule(() -> {
-                servicesWithScheduledDiscovery.remove(serviceUuid);
-                discoveryRunner.run(serviceUuid);
-            }, discoveryConfig.get().getTriggeredDiscoveryDelaySeconds(), SECONDS);
+    public void enqueueDiscovery(UUID serviceUuid) {
+        DiscoveryRunner discoveryRunner = getDiscoveryRunner(serviceUuid);
+        taskCoordinator.registerAsync(serviceUuid, discoveryRunner);
+    }
+
+    private DiscoveryRunner getDiscoveryRunner(UUID serviceUuid) {
+        DiscoveryRunner discoveryRunner = discoveryRunners.get(serviceUuid);
+        if (discoveryRunner == null) {
+            discoveryRunner = beanFactory.create(DiscoveryRunner.class);
+            discoveryRunner.setServiceUuid(serviceUuid);
+            discoveryRunners.put(serviceUuid, discoveryRunner);
         }
+
+        return discoveryRunner;
+    }
+
+    private void enqueueDeepDiscoveryTriggeringTask(UUID serviceUuid) {
+        DeepDiscoveryTriggeringTask deepDiscoveryTriggeringTask = beanFactory.create(DeepDiscoveryTriggeringTask.class);
+        deepDiscoveryTriggeringTask.setServiceUuid(serviceUuid);
+        taskCoordinator.registerAsync(serviceUuid, deepDiscoveryTriggeringTask);
     }
 }

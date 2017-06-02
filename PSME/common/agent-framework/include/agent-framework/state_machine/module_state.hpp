@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,8 @@
  * @brief Abstract Module State.
  * */
 
-#ifndef AGENT_FRAMEWORK_STATE_MACHINE_MODULE_STATE_HPP
-#define AGENT_FRAMEWORK_STATE_MACHINE_MODULE_STATE_HPP
-
-#include "agent-framework/module-ref/enum/enum_builder.hpp"
+#pragma once
+#include "agent-framework/module/enum/enum_builder.hpp"
 
 #include <memory>
 #include <array>
@@ -35,22 +33,22 @@ namespace agent_framework {
 /*! Generic namespace */
 namespace state_machine {
 namespace enums {
+
 /*!
-* @brief ENUM States of State Machine
-*/
-ENUM(State, uint32_t, UNKNOWN, ENABLED, STANDBY_OFFLINE, ABSENT, STARTING);
+ * @brief ENUM States of State Machine
+ * */
+ENUM(State, uint32_t, UNKNOWN, ENABLED, UNAVAILABLE_OFFLINE, ABSENT, STARTING);
+
 }
 
 class StateMachineTransition;
 
 /*!
- * @brief Virtual interafce to %StateMachine state.
- */
+ * @brief Virtual interface to %StateMachine state.
+ * */
 class ModuleState {
 public:
-    /*!
-     * @brief Class default constructor.
-     */
+    /*! @brief Class default constructor. */
     ModuleState();
 
     /*!
@@ -74,13 +72,13 @@ public:
 
     /*!
      * @brief Getter method for state value.
-     * @return Integer value of a partucular state.
+     * @return Integer value of a particular state.
      */
     enums::State get_state() {
         return m_state;
     }
 
-    /**
+    /*!
      * @brief Return state name
      * @param state module state
      * @return state name
@@ -99,4 +97,3 @@ using ModuleStateSharedPtr = std::shared_ptr<ModuleState>;
 }
 }
 
-#endif /* AGENT_FRAMEWORK_STATE_MACHINE_MODULE_STATE_HPP */

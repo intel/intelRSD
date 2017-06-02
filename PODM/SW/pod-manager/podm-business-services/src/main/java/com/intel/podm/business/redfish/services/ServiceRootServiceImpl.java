@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,11 @@ import com.intel.podm.config.base.dto.ServiceConfig;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
+import static java.util.Collections.emptyList;
+
 @Stateless
 public class ServiceRootServiceImpl implements ServiceRootService {
-
-    private static final String SERVICE_VERSION = "1.0.0";
+    private static final String SERVICE_VERSION = "1.0.2";
 
     @Inject
     @Config
@@ -39,6 +40,8 @@ public class ServiceRootServiceImpl implements ServiceRootService {
         return ServiceRootDto.newBuilder()
             .id("ServiceRoot")
             .name("Service root")
+            .description("POD Manager Service root")
+            .unknownOems(emptyList())
             .redfishVersion(SERVICE_VERSION)
             .uuid(config.get().getUuid())
             .build();

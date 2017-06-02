@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -322,15 +322,14 @@ result_t assetd_get_psu_fw_ver(memdb_integer *node_id, int psu_id, int pzone_id)
 #endif
 static int uuid_generate_t(char * uuid_str)
 {
-	int count,label;
 	FILE *fp;
-
-	if (!(fp=fopen("/proc/sys/kernel/random/uuid","r"))) {
+	fp=fopen("/proc/sys/kernel/random/uuid","r");
+	if (!(fp)) {
 		printf("Error in open file!\n");
 		return -1;
 	}
 
-	if (fscanf(fp,"%s", uuid_str)) {
+	if (fscanf(fp,"%36s", uuid_str)) {
 		fclose(fp);
 
 		uuid_str[UUID_MAX_LEN-1] = '\0';
@@ -338,7 +337,7 @@ static int uuid_generate_t(char * uuid_str)
 		printf("uuid is %s. str len is %d\n", uuid_str, (int)strnlen_s(uuid_str, RSIZE_MAX_STR));
 		return 0;
 	}
-
+	fclose(fp);
 	return -1;
 }
 

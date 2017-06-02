@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,23 +24,29 @@
 
 #include "agent-framework/state_machine/state_machine_transition.hpp"
 
+
+
 using namespace agent_framework::state_machine;
 
 namespace {
-std::array<const char*, 8> g_transition_names = {
+std::array<const char*, 11> g_transition_names = {
     {
         "IDLE",
         "EXTRACTION",
         "INSERTION",
+        "SLOW_INSERTION",
+        "DID_NOT_START",
         "WENT_DOWN",
         "CAME_UP",
         "DISCOVERY_UP",
         "DISCOVERY_DOWN",
-        "DISCOVERY_MISSING"
+        "DISCOVERY_MISSING",
+        "STARTED"
     }
 };
 
 }
+
 
 const char*
 StateMachineTransition::get_transition_name(const enums::Transition transition) {

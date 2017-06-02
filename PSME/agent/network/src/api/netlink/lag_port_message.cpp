@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,52 +27,41 @@
  * */
 
 #include "api/netlink/lag_port_message.hpp"
+#include "netlink/nl_exception_invalid_ifname.hpp"
 
 #include <net/if.h>
+#include <netlink/attr.h>
 
+using std::string;
 using namespace netlink_base;
 using namespace agent::network::api::netlink;
 
-LagPortMessage::LagPortMessage(const IfName& lag, const IfName& port) :
+LagPortMessage::LagPortMessage(const string& lag, const string& port) :
     LagMessage(lag, port) {
-    set_flags(NLM_F_REPLACE | NLM_F_REQUEST | NLM_F_ACK);
-    set_type(RTM_SETLINK);
+    auto index = if_nametoindex(port.c_str());
+    if (0 == index) {
+        throw NlExceptionInvalidIfName(get_member_name());
+    }
+    set_index(index);
+    set_nlhdr_flags(NLM_F_REPLACE | NLM_F_REQUEST | NLM_F_ACK);
+    set_nlhdr_type(RTM_SETLINK);
+    set_family(AF_UNSPEC);
 }
 
 LagPortMessage::~LagPortMessage() { }
 
-Message::Pointer LagPortMessage::prepare_netlink_msg() const {
-    struct ifinfomsg ifi{};
-    const IfName& lag_name{m_ifname};
+void LagPortMessage::prepare_link_message(struct nl_msg* msg) {
+    const string& lag_name{get_ifname()};
     int lag_ifi{0}; // 0 means interface will be removed from LAG.
 
     if (!lag_name.empty()) {
-        lag_ifi = (int) if_nametoindex(lag_name.c_str());
-        if (0 == lag_ifi) {
-            return nullptr;
+        if (!iface_exists()) {
+            throw NlExceptionInvalidIfName(lag_name);
         }
+        lag_ifi = get_ifindex();
     }
 
-    /* Allocate the lag netlink message */
-    Pointer msg(nlmsg_alloc_simple(m_type, int(m_flags)));
-    if (!msg) {
-        return nullptr;
+    if (0 > nla_put(msg, IFLA_MASTER, sizeof(int), &lag_ifi)) {
+        throw NlException("Cannot put IFLA_MASTER attribute");
     }
-
-    ifi.ifi_family = AF_UNSPEC;
-    ifi.ifi_index = int(if_nametoindex(get_member_name().c_str()));
-    if (0 == ifi.ifi_index) {
-        return nullptr;
-    }
-
-    /* Appending iface parameter details to netlink message msg */
-    if (0 > nlmsg_append(msg.get(), &ifi, sizeof(ifi), NLMSG_ALIGNTO)) {
-        return nullptr;
-    }
-
-    if (0 > nla_put(msg.get(), IFLA_MASTER, sizeof(int), &lag_ifi)) {
-        return nullptr;
-    }
-
-    return msg;
 }

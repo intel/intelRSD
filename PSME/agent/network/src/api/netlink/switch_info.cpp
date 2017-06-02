@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,20 +26,15 @@
  * @brief Switch parameters
  * */
 #include "api/netlink/switch_info.hpp"
-#include "netlink/socket.hpp"
 #include "api/netlink/add_lag_message.hpp"
 #include "api/netlink/del_lag_message.hpp"
-#include "api/netlink/sysfs.hpp"
 #include "agent-framework/exceptions/exception.hpp"
-#include "logger/logger_factory.hpp"
+#include "netlink/nl_exception.hpp"
 
 #include <net/if.h>
 
-#include <sstream>
-
 using namespace netlink_base;
 using namespace agent::network::api::netlink;
-using std::stringstream;
 
 SwitchInfo::SwitchInfo(const std::string& mgmt_port) {
     set_is_enabled(0 != if_nametoindex(CPU_PORT));
@@ -57,34 +52,30 @@ void SwitchInfo::read_switch_port_list() {
 
 void SwitchInfo::add_switch_port(const PortIdentifier& port, PortMode mode)
 {
-    Socket socket{};
-    AddLagMessage lag_msg(port);
-    try {
-        socket.connect();
-        if (PortMode::LINK_AGGREGATION_STATIC != mode) {
-            THROW(agent_framework::exceptions::InvalidParameters,
-                  "network-agent", "Invalid link aggregation mode");
-        }
-        socket.send_message(lag_msg);
-        socket.receive_message(lag_msg);
+    if (PortMode::LINK_AGGREGATION_STATIC != mode) {
+        THROW(agent_framework::exceptions::InvalidValue,
+              "network-agent", "Invalid link aggregation mode.");
     }
-    catch (const std::runtime_error& error) {
-        THROW(agent_framework::exceptions::Fm10000Error,
-                "network-agent", "Unable to add new port " + port + ". Error message: " + error.what());
+    try {
+        AddLagMessage lag_msg(port);
+        lag_msg.send();
+    }
+    catch (const NlException& error) {
+        THROW(agent_framework::exceptions::Fm10000Error, "network-agent",
+              "Unable to add new port " + port + ". Error message: " +
+              error.what());
     }
 }
 
 void SwitchInfo::delete_switch_port(const PortIdentifier& port)
 {
-    Socket socket{};
-    DelLagMessage lag_msg(port);
     try {
-        socket.connect();
-        socket.send_message(lag_msg);
-        socket.receive_message(lag_msg);
+        DelLagMessage lag_msg(port);
+        lag_msg.send();
     }
-    catch (const std::runtime_error&) {
-        THROW(agent_framework::exceptions::Fm10000Error,
-                "network-agent", "Unable to remove port " + port);
+    catch (const NlException& error) {
+        THROW(agent_framework::exceptions::Fm10000Error, "network-agent",
+              "Unable to remove port " + port + ". Error message: " +
+              error.what());
     }
 }

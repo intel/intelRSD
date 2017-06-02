@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,21 +30,21 @@
 
 using namespace ipmi;
 
-Message::Message(uint8_t fn, Cmd cmd): network_function(fn), command_code(cmd) {}
+Message::Message(NetFn fn, Cmd cmd): network_function(fn), command_code(cmd) {}
 Message::~Message() {}
 
-Cmd Message::get_command() const {
+Message::Cmd Message::get_command() const {
     return command_code;
 }
 
-uint8_t Message::get_network_function() const {
+Message::NetFn Message::get_network_function() const {
     return network_function;
 }
 
-void Message::set_command(Cmd cmd) {
+void Message::set_command(Message::Cmd cmd) {
     command_code = cmd;
 }
 
-void Message::set_network_function(uint8_t fn) {
+void Message::set_network_function(Message::NetFn fn) {
     network_function = fn;
 }

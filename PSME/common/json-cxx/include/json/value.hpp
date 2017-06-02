@@ -41,9 +41,7 @@
  * @brief JSON value interface
  * */
 
-#ifndef JSON_CXX_VALUE_HPP
-#define JSON_CXX_VALUE_HPP
-
+#pragma once
 #include "json/number.hpp"
 
 #include <string>
@@ -232,6 +230,24 @@ public:
      * @param[in]   value   Unsigned integer
      * */
     Value(Int value);
+
+    /*!
+     * @brief Create JSON number as unsigned int
+     *
+     * Initialize number with given value
+     *
+     * @param[in]   value   Unsigned integer 64-bit
+     * */
+    Value(Uint64 value);
+
+    /*!
+     * @brief Create JSON number as signed int
+     *
+     * Initialize number with given value
+     *
+     * @param[in]   value   Signed integer 64-bit
+     * */
+    Value(Int64 value);
 
     /*!
      * @brief Create JSON number as double
@@ -765,6 +781,12 @@ public:
     /*! Convert JSON value to unsigned integer */
     explicit operator Uint() const { return Uint(m_number); }
 
+    /*! Convert JSON value to signed 64-bit integer */
+    explicit operator Int64() const { return Int64(m_number); }
+
+    /*! Convert JSON value to unsigned 64-bit integer */
+    explicit operator Uint64() const { return Uint64(m_number); }
+
     /*! Convert JSON value to double */
     explicit operator Double() const { return Double(m_number); }
 
@@ -803,6 +825,12 @@ public:
 
     /*! Convert JSON value to unsigned integer */
     Uint as_uint() const;
+
+    /*! Convert JSON value to signed 64-bit integer */
+    Int64 as_int64() const;
+
+    /*! Convert JSON value to unsigned 64-bit integer */
+    Uint64 as_uint64() const;
 
     /*! Convert JSON value to double */
     Double as_double() const;
@@ -902,4 +930,3 @@ inline bool operator>=(const Value& val1, const Value& val2) {
 
 } /* namespace json */
 
-#endif /* JSON_CXX_VALUE_HPP */

@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,6 +92,7 @@ static void free_listeners(listener_t *header)
 static result_t get_listeners(int32 mask, listener_t** header)
 {
 	struct node_info *subnode = NULL;
+	struct node_info *tmp = NULL;
 	int32 subnode_num = 0;
 	struct node_info *listener_subnode = NULL;
 	struct node_info *listener_sub_node = NULL;
@@ -111,10 +112,11 @@ static result_t get_listeners(int32 mask, listener_t** header)
 		rc = RESULT_NO_NODE;
 		goto end;
 	}
-
+	tmp = subnode;
 	/* get supported event type nodes */
 	subnode = libdb_list_subnode(DB_RMM, subnode[0].node_id, &subnode_num, NULL, LOCK_ID_NULL);
 	if (subnode_num == 0) {
+		libdb_free_node(tmp);
 		rc = RESULT_NO_NODE;
 		goto end;
 	}
@@ -175,35 +177,38 @@ end:
 	return rc;
 }
 
+static result_t get_listeners_count(int32 mask, int32 *count) {
+    listener_t *header = NULL;
+    listener_t *orig_header;
+    result_t rc = RESULT_OK;
+
+    *count = 0;
+    rc = get_listeners(mask, &header);
+    orig_header = header;
+    while (header) {
+        *count = *count + 1;
+        header = header->pnext;
+    }
+    free_listeners(orig_header);
+
+    return rc;
+}
+
 result_t libwrap_get_evt_listeners_count(int32 mask, int32 *count)
 {
-	listener_t *header = NULL;
-	listener_t *orig_header;
-	result_t rc = RESULT_OK;
-
-	*count = 0;
-	rc = get_listeners(mask, &header);
-	orig_header = header;
-	while (header) {
-		*count = *count + 1;
-		header = header->pnext;
-	}
-	free_listeners(orig_header);
-
-	return rc;
+    return get_listeners_count(mask, count);
 }
 
 static result_t del_listener(int8 *url)
 {
 	struct node_info *subnode = NULL;
+	struct node_info *tmp = NULL;
 	struct node_info *listener_subnode = NULL;
 	struct node_info *listener_sub_node = NULL;
 	int32 subnode_num = 0;
 	int32 listener_subnode_num = 0;
 	int32 i,j = 0;
-	memdb_integer error_code = 0;
 	int8 tmp_url[MAX_URL] = {0};
-	int32 listener_count = 0;
 	struct node_info *evt_type_nodes = NULL;
 	result_t rc = RESULT_OK;
 
@@ -214,9 +219,12 @@ static result_t del_listener(int8 *url)
 		goto end;
 	}
 
+	tmp = subnode;
 	/* get supported event type nodes */
+
 	subnode = libdb_list_subnode(DB_RMM, subnode[0].node_id, &subnode_num, NULL, LOCK_ID_NULL);
 	if (subnode_num == 0) {
+		libdb_free_node(tmp);
 		rc = RESULT_NO_NODE;
 		goto end;
 	}
@@ -256,6 +264,7 @@ end:
 	if (evt_type_nodes)
 		libdb_free_node(evt_type_nodes);
 
+
 	return rc;
 }
 
@@ -264,6 +273,14 @@ result_t libwrap_del_evt_listener(int32 mask, int32 listener_idx)
 	int32 count = 0;
 	result_t rc = RESULT_OK;
 	listener_t *header = NULL;
+
+    rc = get_listeners_count(mask, &count);
+    if (rc != RESULT_OK) {
+        return rc;
+    }
+    if (count < listener_idx) {
+        return RESULT_NO_NODE;
+    }
 
 	rc = get_listeners(mask, &header);
 	if (rc != RESULT_OK) {
@@ -378,8 +395,11 @@ memdb_integer libwrap_get_listener_id_by_dest(char *dest, memdb_integer parent, 
 	for (i = 0; i < subnode_num; i++) {
 		libdb_attr_get_string(DB_RMM, sub_node[i].node_id, RF_EVENT_LISTENER_DEST_STR, output, 1024, LOCK_ID_NULL);
 
-		if (0 == strcmp(dest, output))
-			return sub_node[i].node_id;
+		if (0 == strcmp(dest, output)) {
+            memdb_integer node_id = sub_node[i].node_id;
+            free(sub_node);
+            return node_id;
+        }
 	}
 
 	libdb_free_node(sub_node);

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,6 @@ using namespace agent::network::api::lldp::exception;
 
 namespace {
     constexpr uint32_t ARG_MIN_HEADER_RAW_SIZE = 2;
-    constexpr uint32_t BYTE_RAW_SIZE = 2;
 }
 
 ArgMessageHeader::ArgMessageHeader(const string& arg) : m_arg{arg} {
@@ -64,6 +63,5 @@ string ArgMessageHeader::get_raw() const {
 }
 
 size_t ArgMessageHeader::get_raw_size() const {
-    return ((m_arg.length() * BYTE_RAW_SIZE)
-            + ARG_MIN_HEADER_RAW_SIZE);
+    return m_arg.length() + ARG_MIN_HEADER_RAW_SIZE;
 }

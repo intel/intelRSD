@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,18 +25,21 @@
 #include "agent-framework/state_machine/module_state_starting.hpp"
 #include "agent-framework/state_machine/state_machine_transition.hpp"
 
+
+
 using namespace agent_framework::state_machine;
 
+
 void ModuleStateStarting::enter_state(StateMachineTransition& transition,
-                                    enums::State next_state) {
+                                      enums::State next_state) {
     switch (next_state) {
         case enums::State::UNKNOWN:
             break;
         case enums::State::ENABLED:
-            transition.set_transition(enums::Transition::CAME_UP);
+            transition.set_transition(enums::Transition::STARTED);
             break;
-        case enums::State::STANDBY_OFFLINE:
-            transition.set_transition(enums::Transition::WENT_DOWN);
+        case enums::State::UNAVAILABLE_OFFLINE:
+            transition.set_transition(enums::Transition::DID_NOT_START);
             break;
         case enums::State::ABSENT:
             transition.set_transition(enums::Transition::EXTRACTION);

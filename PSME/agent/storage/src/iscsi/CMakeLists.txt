@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@
 
 set(SOURCES
     manager.cpp
-    socket.cpp
     request.cpp
     response.cpp
     errors.cpp
     target_data.cpp
     target_parser.cpp
     tokenizer.cpp
+    utils.cpp
 )
 add_subdirectory(config)
-add_library(iscsi-tgt OBJECT ${SOURCES})
+add_library(iscsi-tgt-ref OBJECT ${SOURCES})

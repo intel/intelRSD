@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,22 @@
 
 package com.intel.podm.allocation.strategy;
 
-import com.intel.podm.allocation.validation.Violations;
 import com.intel.podm.assembly.tasks.NodeAssemblyTask;
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
+import com.intel.podm.assembly.tasks.PatchNetworkDeviceFunctionAssemblyTaskFactory;
+import com.intel.podm.business.Violations;
+import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.RemoteTargetIscsiAddressDao;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
-import com.intel.podm.business.entities.redfish.properties.RemoteTargetIscsiAddress;
+import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
@@ -41,10 +43,13 @@ public class ExistingRemoteDriveAllocationStrategy implements RemoteDriveAllocat
     @Inject
     private ExistingRemoteDriveResourcesFinder finder;
 
-    private RequestedRemoteDrive drive;
+    @Inject
+    private PatchNetworkDeviceFunctionAssemblyTaskFactory networkDeviceFunctionTaskFactory;
+
+    private RequestedNode.RemoteDrive drive;
     private ExistingRemoteDriveResourcesFinder.ExistingRemoteDriveAllocationResources resources;
 
-    public void setDrive(RequestedRemoteDrive drive) {
+    public void setDrive(RequestedNode.RemoteDrive drive) {
         this.drive = drive;
     }
 
@@ -56,7 +61,7 @@ public class ExistingRemoteDriveAllocationStrategy implements RemoteDriveAllocat
             violations.addMissingPropertyViolation("iSCSIAddress");
         }
 
-        RemoteTargetIscsiAddress target = remoteTargetIscsiAddressDao.getRemoteTargetIscsiAddressByTargetIqn(drive.getIscsiAddress());
+        RemoteTargetIscsiAddress target = getRemoteTargetIscsiAddressByTargetIqn();
 
         if (target == null) {
             violations.addViolation("Specified remote target (" + drive.getIscsiAddress() + ") does not exist.");
@@ -66,6 +71,14 @@ public class ExistingRemoteDriveAllocationStrategy implements RemoteDriveAllocat
         validateRemoteTarget(target, violations);
 
         return violations;
+    }
+
+    private RemoteTargetIscsiAddress getRemoteTargetIscsiAddressByTargetIqn() {
+        try {
+            return remoteTargetIscsiAddressDao.getRemoteTargetIscsiAddressByTargetIqn(drive.getIscsiAddress());
+        } catch (NonUniqueResultException e) {
+            return null;
+        }
     }
 
     private void validateRemoteTarget(RemoteTargetIscsiAddress target, Violations violations) {
@@ -89,12 +102,15 @@ public class ExistingRemoteDriveAllocationStrategy implements RemoteDriveAllocat
 
     @Override
     public void allocate(ComposedNode composedNode) {
-        composedNode.addRemoteDrive(resources.getRemoteTarget());
-        resources.getRemoteTarget().setAllocated(true);
+        RemoteTarget remoteTarget = resources.getRemoteTarget();
+        composedNode.addRemoteTarget(remoteTarget);
+        composedNode.setAssociatedStorageServiceUuid(remoteTarget.getService().getUuid());
+        composedNode.setAssociatedRemoteTargetIqn(remoteTarget.getTargetIqn());
+        remoteTarget.getMetadata().setAllocated(true);
     }
 
     @Override
     public List<NodeAssemblyTask> getTasks() {
-        return emptyList();
+        return singletonList(networkDeviceFunctionTaskFactory.create());
     }
 }

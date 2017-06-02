@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,4 +16,17 @@
 #
 # </license_header>
 
+
+set(DCRP_SOURCES
+    remote_switch_info.cpp
+   )
+
+if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    set_source_files_properties(
+                                remote_switch_info.cpp
+                                PROPERTIES
+                                COMPILE_FLAGS "-Wno-old-style-cast -Wno-missing-field-initializers -Wno-sign-conversion"
+                               )
+endif()
+add_library(api-fm10000-dcrp OBJECT ${DCRP_SOURCES})
 

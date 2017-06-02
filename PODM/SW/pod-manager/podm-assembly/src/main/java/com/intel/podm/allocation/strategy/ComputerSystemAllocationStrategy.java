@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,35 @@
 package com.intel.podm.allocation.strategy;
 
 import com.intel.podm.allocation.strategy.matcher.ComputerSystemMatcher;
+import com.intel.podm.allocation.strategy.matcher.LocalStorageCollector;
+import com.intel.podm.allocation.strategy.matcher.PcieLocalStorage;
 import com.intel.podm.allocation.validation.ComputerSystemAllocationValidator;
-import com.intel.podm.allocation.validation.Violations;
+import com.intel.podm.business.Violations;
 import com.intel.podm.assembly.tasks.NodeAssemblyTask;
-import com.intel.podm.business.dto.redfish.RequestedNode;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.business.entities.dao.ChassisDao;
 import com.intel.podm.business.entities.dao.ComputerSystemDao;
 import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
+import com.intel.podm.business.entities.redfish.base.LocalStorage;
 import com.intel.podm.common.types.Status;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.intel.podm.common.types.ComposedNodeState.ALLOCATING;
 import static com.intel.podm.common.types.Health.OK;
-import static com.intel.podm.common.types.NodeSystemType.LOGICAL;
 import static com.intel.podm.common.types.State.ENABLED;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 @Transactional(MANDATORY)
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class ComputerSystemAllocationStrategy {
     @Inject
     private ComputerSystemDao computerSystemDao;
@@ -61,8 +65,14 @@ public class ComputerSystemAllocationStrategy {
     @Inject
     private EthernetInterfacesAllocator ethernetInterfacesAllocator;
 
+    @Inject
+    private PcieLocalStorageAllocator pcieLocalStorageAllocator;
+
+    @Inject
+    private LocalStorageCollector localStorageCollector;
+
     private RequestedNode requestedNode;
-    private List<NodeAssemblyTask> tasks = newArrayList();
+    private List<NodeAssemblyTask> tasks = new ArrayList<>();
 
     public void setRequestedNode(RequestedNode requestedNode) {
         this.requestedNode = requestedNode;
@@ -73,17 +83,29 @@ public class ComputerSystemAllocationStrategy {
     }
 
     public ComputerSystem findResources() throws ResourceFinderException {
-        List<ComputerSystem> computerSystems = computerSystemDao.getNotAllocatedComputerSystems();
+        List<ComputerSystem> computerSystems = computerSystemDao.getComputerSystemsPossibleToAllocate();
         computerSystems = computerSystemMatcher.matches(requestedNode, computerSystems);
         return computerSystems.iterator().next();
     }
 
     public ComposedNode allocateWithComputerSystem(ComputerSystem computerSystem) {
-        List<NodeAssemblyTask> allocationTasks =
-                ethernetInterfacesAllocator.allocate(computerSystem.getEthernetInterfaces(), requestedNode.getEthernetInterfaces());
-
         ComposedNode composedNode = createComposedNodeWithComputerSystem(computerSystem);
-        tasks.addAll(allocationTasks);
+
+        Set<LocalStorage> storageUnderComputerSystem = localStorageCollector.getStorageUnderComputerSystem(computerSystem);
+
+        Set<PcieLocalStorage> selectedPcieLocalStorages = pcieLocalStorageAllocator.selectResources(
+                requestedNode.getLocalDrives(),
+                storageUnderComputerSystem
+        );
+
+        tasks.addAll(pcieLocalStorageAllocator.prepareNodeAssemblyTasks(selectedPcieLocalStorages, storageUnderComputerSystem));
+        for (PcieLocalStorage localStorage : selectedPcieLocalStorages) {
+            composedNode.addDrive(localStorage.getDrive());
+            localStorage.getDrive().getMetadata().setAllocated(true);
+            composedNode.incrementNumberOfRequestedDrives();
+        }
+
+        tasks.addAll(ethernetInterfacesAllocator.allocate(requestedNode.getEthernetInterfaces(), computerSystem.getEthernetInterfaces()));
 
         return composedNode;
     }
@@ -91,19 +113,16 @@ public class ComputerSystemAllocationStrategy {
     private ComposedNode createComposedNodeWithComputerSystem(ComputerSystem computerSystem) {
         ComposedNode composedNode = createComposedNode();
         composedNode.setComputerSystem(computerSystem);
-        computerSystem.setAllocated(true);
-        computerSystem.getEthernetInterfaces().forEach(composedNode::addEthernetInterface);
-        computerSystem.getAdapters().forEach(adapter -> adapter.getDevices().forEach(composedNode::addLocalDrive));
-        computerSystem.getSimpleStorages().forEach(composedNode::addSimpleStorage);
+        composedNode.setAssociatedComputerSystemUuid(computerSystem.getUuid());
+        composedNode.setAssociatedComputeServiceUuid(computerSystem.getService().getUuid());
+        computerSystem.getMetadata().setAllocated(true);
 
         return composedNode;
     }
 
     private ComposedNode createComposedNode() {
         ComposedNode composedNode = genericDao.create(ComposedNode.class);
-
         composedNode.setName(requestedNode.getName());
-        composedNode.setSystemType(LOGICAL);
         composedNode.setDescription(requestedNode.getDescription());
         composedNode.setComposedNodeState(ALLOCATING);
         composedNode.setStatus(new Status(ENABLED, OK, OK));

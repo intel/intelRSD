@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,27 +24,21 @@ if (CMAKE_CROSSCOMPILING)
     return()
 endif()
 
-set(VALGRIND_SUPPRESSIONS
-    ${CMAKE_CURRENT_SOURCE_DIR}/valgrind/jsonrpccpp.supp
-)
-
 set(AGENT_STORAGE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(AGENT_STORAGE_LIBRARIES
-    -Wl,--whole-archive storage-commands -Wl,--no-whole-archive
-)
+set(AGENT_STORAGE_LIBRARIES -Wl,--whole-archive storage-commands-ref -Wl,--no-whole-archive)
 
-configure_file (
-  ${CMAKE_CURRENT_SOURCE_DIR}/config/storage_config.hpp.in
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/storage_config.hpp
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/config/storage_config.hpp.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/storage_config.hpp
 )
 
 include_directories(
+    ${COMMON_INCLUDE_DIRS}
+    ${NET_INCLUDE_DIRS}
     ${AGENT_FRAMEWORK_INCLUDE_DIRS}
     ${LOGGER_INCLUDE_DIRS}
     ${JSONCXX_INCLUDE_DIRS}
     ${CONFIGURATION_INCLUDE_DIRS}
-    ${COMMON_INCLUDE_DIRS}
-
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
@@ -54,7 +48,6 @@ include_directories(SYSTEM
     ${JSONCPP_INCLUDE_DIRS}
     ${JSONRPCCPP_INCLUDE_DIRS}
     ${SYSFS_INCLUDE_DIRS}
-    ${LVM2APP_INCLUDE_DIRS}
 )
 
 add_subdirectory(src)

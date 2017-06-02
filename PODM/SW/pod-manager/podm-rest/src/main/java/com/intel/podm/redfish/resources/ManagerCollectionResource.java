@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,27 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.services.redfish.ManagerService;
+import com.intel.podm.business.dto.redfish.ManagerDto;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import static com.intel.podm.rest.resources.PathParamConstants.MANAGER_ID;
+import static com.intel.podm.business.services.context.PathParamConstants.MANAGER_ID;
+import static com.intel.podm.business.services.redfish.ReaderService.SERVICE_ROOT_CONTEXT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class ManagerCollectionResource extends BaseResource {
-
     @Inject
-    private ManagerService service;
+    private ReaderService<ManagerDto> readerService;
 
     @GET
     @Override
     public CollectionDto get() {
-        return service.getManagerCollection();
+        return getOrThrow(() -> readerService.getCollection(SERVICE_ROOT_CONTEXT));
     }
 
     @Path(MANAGER_ID)

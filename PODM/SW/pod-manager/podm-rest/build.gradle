@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,39 +17,50 @@
 apply plugin:'war'
 
 dependencies {
-    compile (project(':podm-actions')) { transitive = false }
-    compile (project(':podm-assembly')) { transitive = false }
-    compile (project(':podm-business-services')) { transitive = false }
-    compile (project(':podm-business-entities')) { transitive = false }
-    compile (project(':podm-repository-api')) { transitive = false }
-    compile (project(':podm-repositories')) { transitive = false }
-    compile (project(':podm-mappers')) { transitive = false }
+    runtime (project(':podm-actions')) { transitive = false }
+    runtime (project(':podm-assembly')) { transitive = false }
+    runtime (project(':podm-business-services')) { transitive = false }
+    runtime (project(':podm-business-entities')) { transitive = false }
+    compile (project(':podm-eventing')) { transitive = false }
+    runtime (project(':podm-mappers')) { transitive = false }
     compile (project(':logger')) { transitive = false }
     compile (project(':utils')) { transitive = false }
+    runtime (project(':synchronization')) { transitive = false }
     compile (project(':types')) { transitive = false }
-    compile (project(':enterprise-utils')) { transitive = false }
+    runtime (project(':enterprise-utils')) { transitive = false }
     compile (project(':config')) { transitive = false }
-    compile (project(':podm-external-services-api')) { transitive = false }
-    compile (project(':podm-external-services')) { transitive = false }
+    runtime (project(':podm-external-services-api')) { transitive = false }
+    runtime (project(':podm-external-services')) { transitive = false }
     compile (project(':podm-business-api')) { transitive = false }
-    compile (project(':podm-services-detection')) { transitive = false }
-    compile (project(':security')) { transitive = false }
+    runtime (project(':podm-services-detection')) { transitive = false }
+    runtime (project(':security')) { transitive = false }
     compile (project(':serialization')) { transitive = false }
-    compile (project(':podm-discovery')) { transitive = false }
-    compile (project(':podm-eventing')) { transitive = false }
+    runtime (project(':podm-discovery')) { transitive = false }
     compile (project(':ipxe-supplier')) { transitive = false }
 
-    compile ("$MODEL_MAPPER_DEPENDENCY") { transitive = false }
+    runtime ("$MODEL_MAPPER_DEPENDENCY") { transitive = false }
     compile "$GUAVA_DEPENDENCY"
     compile ("$JACKSON_JSR310_DEPENDENCY") { transitive = true }
     compile ("$JACKSON_PROVIDER_DEPENDENCY") { transitive = true }
     compile "$APACHE_COMMONS_VALIDATOR"
     compile "$APACHE_COMMONS_LANG"
     compile "$APACHE_COMMONS_IO"
+    runtime "$APACHE_COMMONS_NET"
+    runtime "$METRICS_CDI"
+    compile "$CLASS_INDEX"
+    runtime "$CLING_CORE"
+    compile "$LIQUIBASE_CORE"
+    compile "$LIQUIBASE_CDI"
 
     providedCompile "$JAVA_EE_API_DEPENDENCY"
     providedCompile ("$RESTEASY_JAXRS_DEPENDENCY") { transitive = false }
+    providedCompile "$HIBERNATE_JPA"
+    providedCompile "$HIBERNATE_CORE"
+    providedCompile "$HIBERNATE_EM"
+
+    testCompile project(path: ':utils', configuration: 'testOutput')
 }
+
 
 war {
     archiveName = "pod-manager-$version-rest.war"

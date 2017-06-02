@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@
 from include.psme_xml_structure.model.network_interface import NetworkInterface
 
 from include.psme_xml_structure.model.psme_structure_element import PsmeStructureElement
-from include.psme_xml_structure.model.dimm import Dimm
+from include.psme_xml_structure.model.memory import Memory
 from include.psme_xml_structure.model.processor import Processor
 from include.psme_xml_structure.model.storage_controller import StorageController
 from include.psme_xml_structure.model.fru_info import FruInfo
@@ -33,8 +33,8 @@ from include.psme_xml_structure.model.usb_device import UsbDevice
 class ComputeSystem(PsmeStructureElement):
     def __init__(self):
         self.processor = Processor()
-        self.dimm = Dimm()
-        self.storageController = StorageController()
+        self.memory = Memory()
+        self.storageSubsystem = StorageController()
         self.networkInterface = NetworkInterface()
         self.usbDevice = UsbDevice()
         self.fruInfo = FruInfo()

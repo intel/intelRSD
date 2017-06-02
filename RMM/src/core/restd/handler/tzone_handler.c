@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,15 +31,10 @@ void register_tzone_handler(void)
 	register_handler(TZONE_ACTION_SET_PWM_URL, &tzone_pwm_handler);
 }
 
-#if 0
 void  register_fan_handler(void)
 {
-	char action_url[REST_MAX_ODATA_LEN] = {0};
-
-	register_handler(FAN_COLL_URL, &fan_coll_handler);
-	register_handler(FAN_URL, &fan_handler);
+	register_handler(TZONE_POINTER_URL, &fan_handler);
 }
-#endif
 
 static json_t *tzone_coll_get(struct rest_uri_param *param)
 {
@@ -117,59 +112,6 @@ static json_t *tzone_get(struct rest_uri_param *param)
 
 	update_response_info(param, HTTP_OK);
 	return result;
-}
-
-static json_t *tzone_patch(struct rest_uri_param *param)
-{
-	json_t *req = NULL;
-	result_t rs = RESULT_OK;
-	put_tzone_t put_tzone_info = { {0} };
-	int8 *description = NULL;
-	json_t *rs_json = NULL;
-	int32 tzone_idx = 0;
-	json_t *obj = NULL;
-
-	tzone_idx = get_asset_idx(param, "zone_id", MC_TYPE_TZONE);
-	if (tzone_idx == -1) {
-		update_response_info(param, HTTP_BAD_REQUEST);
-		HTTPD_ERR("get cooling zone index fail\n");
-		return NULL;
-	}
-
-	rs = libwrap_pre_put_tzone_by_idx(tzone_idx, &put_tzone_info);
-	if (rs != RESULT_OK) {
-		HTTPD_ERR("cooling zone pre put fail, result is %d\n", rs);
-		update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
-		return NULL;
-	}
-
-	req = json_parse(param->json_data);
-	if (req == NULL) {
-		update_response_info(param, HTTP_BAD_REQUEST);
-		HTTPD_ERR("json parse error\n");
-		return NULL;
-	}
-
-	rs = libwrap_update_put_tzone_info(req, &put_tzone_info);
-	if (rs != RESULT_OK) {
-		update_response_info(param, HTTP_BAD_REQUEST);
-		HTTPD_ERR("libwrap_update_put_tzone_info fail, result is %d\n", rs);
-		json_free(req);
-		return NULL;
-	}
-	json_free(req);
-
-	rs = libwrap_put_tzone_by_idx(tzone_idx, put_tzone_info);
-	if (rs != RESULT_OK) {
-		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
-		HTTPD_ERR("cooling zone put error, result is %d\n", rs);
-		return NULL;
-	}
-
-	int8 buff[128] = {};
-	snprintf_s_i(buff, sizeof(buff), "%d", tzone_idx);
-	rf_log(INFO, MSGTZoneResourceUpdated, buff);
-	return tzone_get(param);
 }
 
 static input_attr_t tz_pwm_attrs[] = {
@@ -369,7 +311,7 @@ static struct rest_handler tzone_coll_handler = {
 static struct rest_handler tzone_handler = {
 	.get    = tzone_get,
 	.put    = NULL,
-	.patch  = tzone_patch,
+	.patch  = NULL,
 	.post   = NULL,
 	.del    = NULL,
 };
@@ -381,20 +323,11 @@ static struct rest_handler tzone_pwm_handler = {
 	.post   = tzone_pwm_post,
 	.del    = NULL,
 };
-#if 0
-static struct rest_handler fan_coll_handler = {
-	.get    = fan_coll_get,
-	.put    = NULL,
-	.patch  = fan_coll_patch,
-	.post   = fan_coll_post,
-	.del    = NULL,
-};
 
 static struct rest_handler fan_handler = {
-	.get    = fan_get,
+	.get    = tzone_get,
 	.put    = NULL,
-	.patch  = fan_patch,
+	.patch  = NULL,
 	.post   = NULL,
 	.del    = NULL,
 };
-#endif

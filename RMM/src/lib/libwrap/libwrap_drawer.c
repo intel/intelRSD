@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,17 +55,17 @@ static int get_dzone_by_id(uint32 rack_dzone_idx, struct dzone_member *dz_number
 	memdb_integer dzone_node_id = get_subnode_id_by_lid(dzone_lid, cm_node_id, MC_TYPE_DZONE);
 	char buff[RMM_NAME_LEN] = {0};
 
-	dz_number->be.id = 
+	dz_number->be.id =
 		get_db_info_num(DB_RMM, dzone_node_id, DZONE_LOC_ID_STR);
-	get_db_info_string(DB_RMM, dzone_node_id, 
+	get_db_info_string(DB_RMM, dzone_node_id,
 		DZONE_UUID_STR, dz_number->be.uuid, UUID_LEN);
-	get_db_info_string(DB_RMM, dzone_node_id, 
+	get_db_info_string(DB_RMM, dzone_node_id,
 		TZONE_NAME_STR, dz_number->be.name, RMM_NAME_LEN);
-	get_db_info_string(DB_RMM, dzone_node_id, 
+	get_db_info_string(DB_RMM, dzone_node_id,
 		TZONE_DESCRIPT_STR, dz_number->be.desc, DESCRIPTION_LEN);
-	get_db_info_string(DB_RMM, dzone_node_id, 
+	get_db_info_string(DB_RMM, dzone_node_id,
 		TZONE_CREATE_DATE_STR, dz_number->be.create_date, DATE_LEN);
-	get_db_info_string(DB_RMM, dzone_node_id, 
+	get_db_info_string(DB_RMM, dzone_node_id,
 		TZONE_UPDATE_DATE_STR, dz_number->be.update_date, DATE_LEN);
 
 	memset(buff, 0, RMM_NAME_LEN);
@@ -151,7 +151,7 @@ result_t libwrap_pre_put_drawer(uint32 dzone_idx, uint32 drawer_idx, put_drawer_
 	libdb_attr_get_string(DB_RMM, drawer_node_id, DRAWER_DESCRIPT_STR, output, 128, LOCK_ID_NULL);
 	if (error_code != 0) {
 		return (int)error_code;
-	}	
+	}
 	strncpy_safe((char*)put_drawer_info->descr, output, DESCRIPTION_LEN, DESCRIPTION_LEN - 1);
 
 	return RESULT_OK;
@@ -159,7 +159,6 @@ result_t libwrap_pre_put_drawer(uint32 dzone_idx, uint32 drawer_idx, put_drawer_
 
 result_t libwrap_put_drawer(int32 dzone_idx, int32 drawer_idx, const put_drawer_t put_drawer_info)
 {
-
 	memdb_integer drawer_id = 0;
 	get_drawer_id_by_idx(dzone_idx, drawer_idx, &drawer_id);
 	if (libdb_attr_set_string(DB_RMM, drawer_id, DRAWER_DESCRIPT_STR,
@@ -170,31 +169,18 @@ result_t libwrap_put_drawer(int32 dzone_idx, int32 drawer_idx, const put_drawer_
 	return RESULT_OK;
 }
 
-static result_t get_drawer_by_idx(int32 dzone_idx, int32 drawer_idx, drawer_member_t *drawer_member, int8 *host)
+static result_t get_drawer_by_node_id(int32 drawer_node_id, drawer_member_t *drawer_member, int8 *host)
 {
-	int cm_lid = get_cm_lid(MC_TYPE_DZONE, dzone_idx);
-	int dzone_lid = get_zone_lid(MC_TYPE_DZONE, dzone_idx);
-	int drawer_lid = drawer_idx;
-
-	memdb_integer cm_node_id = get_subnode_id_by_lid(cm_lid, 0, MC_TYPE_CM);
-	memdb_integer dzone_node_id = get_subnode_id_by_lid(dzone_lid, cm_node_id, MC_TYPE_DZONE);
-	memdb_integer drawer_node_id = get_subnode_id_by_lid(drawer_lid, dzone_node_id, MC_TYPE_DRAWER);
-
 	char buff[RMM_NAME_LEN] = {0};
 	char prefix[PREFIX_LEN] = {0};
 	char new_link[MAX_URL + 48] = {0};
 	char rack_puid[REST_RACK_STRING_LEN] = {0};
 
-	if (0 == drawer_node_id )
-		return RESULT_NO_NODE;
-
-	drawer_member->be.id = 
-		get_db_info_num(DB_RMM, drawer_node_id, DRAWER_LOC_ID_STR) + (cm_lid - 1) * dzone_lid * MAX_DRAWER_NUM;
-	get_db_info_string(DB_RMM, drawer_node_id, 
+	get_db_info_string(DB_RMM, drawer_node_id,
 		DRAWER_UUID_STR, drawer_member->be.uuid, UUID_LEN);
-	get_db_info_string(DB_RMM, drawer_node_id, 
+	get_db_info_string(DB_RMM, drawer_node_id,
 		DRAWER_NAME_STR, drawer_member->be.name, RMM_NAME_LEN);
-	get_db_info_string(DB_RMM, drawer_node_id, 
+	get_db_info_string(DB_RMM, drawer_node_id,
 		DRAWER_DESCRIPT_STR, drawer_member->be.desc, DESCRIPTION_LEN);
 
 	rmm_cfg_get_rest_prefix(prefix, PREFIX_LEN);
@@ -203,42 +189,42 @@ static result_t get_drawer_by_idx(int32 dzone_idx, int32 drawer_idx, drawer_memb
 	snprintf_s_sis((char *)(drawer_member->href), DESCRIPTION_LEN, new_link,
 			host, rmm_cfg_get_port(RESTD_PORT), (char *)(drawer_member->be.uuid));
 
-	get_db_info_string(DB_RMM, drawer_node_id, 
+	get_db_info_string(DB_RMM, drawer_node_id,
 		DRAWER_CREATE_DATE_STR, drawer_member->be.create_date, DATE_LEN);
-	get_db_info_string(DB_RMM, drawer_node_id, 
+	get_db_info_string(DB_RMM, drawer_node_id,
 		DRAWER_UPDATE_DATE_STR, drawer_member->be.update_date, DATE_LEN);
     memset(drawer_member->TMC_ip_addr, 0, REST_RACK_STRING_LEN);
-	get_db_info_string(DB_RMM, drawer_node_id, 
+	get_db_info_string(DB_RMM, drawer_node_id,
 		DRAWER_TMC_IP_STR, drawer_member->TMC_ip_addr, REST_RACK_STRING_LEN);
 
-	//get_db_info_string(DB_RMM, drawer_node_id, 
+	//get_db_info_string(DB_RMM, drawer_node_id,
 		//DRAWER_PUID_STR, drawer_member->tray_puid, REST_RACK_STRING_LEN);
-	drawer_member->tray_ruid = 
+	drawer_member->tray_ruid =
 		(uint32)get_db_info_num(DB_RMM, drawer_node_id, DRAWER_RUID_STR);
 
 	memset(buff, 0, RMM_NAME_LEN);
-	libdb_attr_get_string(DB_RMM, MC_NODE_ROOT, RACK_PUID_STR, (char *)(drawer_member->tray_puid), sizeof(drawer_member->tray_puid), LOCK_ID_NULL);	
+	libdb_attr_get_string(DB_RMM, MC_NODE_ROOT, RACK_PUID_STR, (char *)(drawer_member->tray_puid), sizeof(drawer_member->tray_puid), LOCK_ID_NULL);
 	snprintf_s_i(buff, sizeof(buff), "-%d", drawer_member->tray_ruid);
 	strncat_s((char *)(drawer_member->tray_puid), sizeof(drawer_member->tray_puid), buff, strnlen_s(buff, sizeof(buff)));
-	
-	drawer_member->power_consumption = 
+
+	drawer_member->power_consumption =
 		(uint32)get_db_info_num(DB_RMM, drawer_node_id, DRAWER_PWR_CONSUM_STR);
 
 	snprintf_s_s((char *)(drawer_member->av_action.action), RMM_NAME_LEN, "%s", RMM_JSON_RESET);
 	snprintf_s_s((char *)(drawer_member->av_action.cap[0].property), RMM_NAME_LEN, "%s", RMM_JSON_RESET_TYPE);
 	snprintf_s_s((char *)(drawer_member->av_action.cap[1].property), RMM_NAME_LEN, "%s", RMM_JSON_RESET_TYPE);
-	get_db_info_string(DB_RMM, drawer_node_id, 
+	get_db_info_string(DB_RMM, drawer_node_id,
 		DRAWER_AV_RST_TYPE_1_STR, drawer_member->av_action.cap[0].av, RMM_NAME_LEN);
-	get_db_info_string(DB_RMM, drawer_node_id, 
+	get_db_info_string(DB_RMM, drawer_node_id,
 		DRAWER_AV_RST_TYPE_2_STR, drawer_member->av_action.cap[1].av, RMM_NAME_LEN);
 
-	drawer_member->pres_temp = 
+	drawer_member->pres_temp =
 		(uint32)get_db_info_num(DB_RMM, drawer_node_id, DRAWER_PRES_TEMP);
 	memset(drawer_member->pod, 0, REST_RACK_STRING_LEN);
 	//memcpy_s(drawer_member->pod, "", 0);
 	memset(drawer_member->rack, 0, REST_RACK_STRING_LEN);
     get_db_info_string(DB_RMM, MC_NODE_ROOT, RACK_UUID_STR, drawer_member->rack, UUID_LEN);
-    
+
 	memset(buff, 0, RMM_NAME_LEN);
 	get_db_info_string(DB_RMM, drawer_node_id, UNITS, buff, RMM_NAME_LEN);
 	drawer_member->loc.units = (uint32)atoi((const char *)buff);
@@ -252,15 +238,45 @@ static result_t get_drawer_by_idx(int32 dzone_idx, int32 drawer_idx, drawer_memb
 	memset(buff, 0, RMM_NAME_LEN);
 	get_db_info_string(DB_RMM, drawer_node_id, U_HEIGHT, buff, RMM_NAME_LEN);
 	drawer_member->loc.u_height = (uint32)atoi((const char *)buff);
-	
+
 	return RESULT_OK;
 }
 
+result_t libwrap_get_drawer_power_consumption_by_node_id(memdb_integer drawer_node_id, uint32 *pwr) {
+    drawer_member_t drawer;
+    int8 host = 0;
+    result_t rc = RESULT_OK;
 
+    if (NULL == pwr) {
+        return RESULT_NONE_POINTER;
+    }
+
+    rc = get_drawer_by_node_id(drawer_node_id, &drawer, &host);
+        if (RESULT_OK != rc) {
+        return rc;
+    }
+
+    *pwr = drawer.power_consumption;
+    return rc;
+}
 
 result_t libwrap_get_drawer_by_idx(int32 dzone_idx, int32 drawer_idx, drawer_member_t *drawer_member, int8 *host)
 {
-	return get_drawer_by_idx(dzone_idx, drawer_idx, drawer_member, host);
+	int cm_lid = get_cm_lid(MC_TYPE_DZONE, dzone_idx);
+	int dzone_lid = get_zone_lid(MC_TYPE_DZONE, dzone_idx);
+	int drawer_lid = drawer_idx;
+
+	memdb_integer cm_node_id = get_subnode_id_by_lid(cm_lid, 0, MC_TYPE_CM);
+	memdb_integer dzone_node_id = get_subnode_id_by_lid(dzone_lid, cm_node_id, MC_TYPE_DZONE);
+	memdb_integer drawer_node_id = get_subnode_id_by_lid(drawer_lid, dzone_node_id, MC_TYPE_DRAWER);
+
+	if (0 == drawer_node_id )
+		return RESULT_NO_NODE;
+
+	drawer_member->be.id =
+			get_db_info_num(DB_RMM, drawer_node_id, DRAWER_LOC_ID_STR) + (cm_lid - 1) * dzone_lid * MAX_DRAWER_NUM;
+
+	return get_drawer_by_node_id(drawer_node_id, drawer_member, host);
 }
 
 
@@ -292,6 +308,8 @@ result_t libwrap_pack_drawer_coll_to_json(json_t *output, struct rest_uri_param 
 	members = (int8 *)malloc(drawers_num * HREF_URL_LEN);
 	if (members == NULL) {
 		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
+		if (drawer_collections)
+			free(drawer_collections);
 		return RESULT_NO_NODE;
 	}
 
@@ -300,6 +318,10 @@ result_t libwrap_pack_drawer_coll_to_json(json_t *output, struct rest_uri_param 
 	rs = libwrap_get_drawer_coll(drawer_collections, &drawer_num, param->host);
 	if (rs != RESULT_OK) {
 		update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
+		if (members)
+			free(members);
+		if (drawer_collections)
+			free(drawer_collections);
 		return RESULT_GET_COLL_ERR;
 	}
 
@@ -351,7 +373,7 @@ result_t libwrap_pack_drawer_to_json(json_t *output, drawer_member_t *drawer_mem
 			if (loc == NULL) {
 				return RESULT_NONE_POINTER;
 			}
-			
+
 			add_json_string(loc, RMM_JSON_RACK_UNITS, RMM_JSON_RACK_UNITS_OU);
 			add_loc_info(loc, drawer_member->loc.x_location, RMM_JSON_XLOC);
 			add_loc_info(loc, drawer_member->loc.u_location, RMM_JSON_ULOC);
@@ -437,8 +459,10 @@ static result_t get_drawer_coll(collections_t *drawer_coll, uint32 *number, int8
 
 	for (i = 0; i < subnode_num; i++) {
 		parent = libdb_get_node_by_node_id(DB_RMM, subnode[i].parent, LOCK_ID_NULL);
-		if (parent == NULL)
+		if (parent == NULL) {
+			libdb_free_node(subnode);
 			return RESULT_NO_NODE;
+		}
 
 		cm_lid = (uint32)get_db_info_num(DB_RMM, parent[0].parent, MBP_LOC_ID_STR);
 		drawer_coll->id = (cm_lid - 1) * MAX_DRAWER_NUM +
@@ -471,15 +495,17 @@ result_t libwrap_get_drawer_coll(collections_t *drawer, uint32 *number, int8 *ho
 	return get_drawer_coll(drawer, number, host);
 }
 
-result_t libwrap_set_memdb_rack_puid()
-{
-	int64 rack_puid = 0;
+result_t libwrap_set_memdb_rack_puid() {
+    int64 rack_puid = 0;
+    char rack_loc_id[128] = {0};
 
-	rack_puid = get_db_info_num(DB_RMM, MC_NODE_ROOT, RACK_PUID_STR);
+    if (0 == libdb_attr_get_string(DB_RMM, MC_NODE_ROOT, RACK_LOC_ID_STR, rack_loc_id, sizeof(rack_loc_id), LOCK_ID_NULL)) {
+        am_set_rack_location_id(rack_loc_id);
+    }
 
-	am_set_rack_puid(rack_puid);
+    rack_puid = get_db_info_num(DB_RMM, MC_NODE_ROOT, RACK_PUID_STR);
 
-	return 0;
+    am_set_rack_puid(rack_puid);
+
+    return 0;
 }
-
-

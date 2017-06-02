@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package com.intel.podm.rest.representation.json.exceptionmappers;
 
+import com.intel.podm.common.logger.Logger;
+
 import javax.ejb.EJBException;
+import javax.inject.Inject;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -30,8 +33,12 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 @Provider
 @Produces(APPLICATION_JSON)
 public class EjbExceptionMapper implements ExceptionMapper<EJBException> {
+    @Inject
+    private Logger logger;
+
     @Override
     public Response toResponse(EJBException exception) {
+        logger.e("Application Error: " + exception.getMessage(), exception);
         if (exception.getCause() instanceof RejectedExecutionException) {
             return serviceUnavailable().getResponse();
         } else {

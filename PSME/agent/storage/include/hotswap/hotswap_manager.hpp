@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,40 +23,43 @@
  * @brief Initial hotswap implementation.
  * */
 
-
-#include "agent-framework/module/module_manager.hpp"
-#include "agent-framework/logger_ext.hpp"
-#include "agent-framework/module/hard_drive.hpp"
-#include "agent-framework/eventing/event_data.hpp"
 #include "sysfs/sysfs_api.hpp"
 
-using agent_framework::generic::Module;
-using agent_framework::generic::Submodule;
-using agent_framework::generic::ModuleManager;
-using HardDriveSharedPtr = agent_framework::generic::HardDrive::HardDriveSharedPtr;
-using SysfsAPI = agent::storage::sysfs::SysfsAPI;
-using SubmoduleUniquePtr = Submodule::SubmoduleUniquePtr;
+/* forward declaration */
+namespace agent_framework {
+    namespace model {
+        class PhysicalDrive;
+        class LogicalDrive;
+    }
+}
 
 namespace agent {
 namespace storage {
 namespace hotswap_discovery {
 
 /*!
- * @brief Implementation of initial hotswap_discovery.
+ * @brief HotSwap manager implementation
  */
 class HotswapManager {
 public:
-    void hotswap_discover_hard_drives();
-    bool compare_disks(const SysfsAPI::HardDrive&, HardDriveSharedPtr);
-    void add_disk(agent_framework::generic::StorageController*, SysfsAPI::HardDrive&, const SubmoduleUniquePtr&);
-    void remove_disk(agent_framework::generic::StorageController*, HardDriveSharedPtr&, const SubmoduleUniquePtr&);
-    void resolve_dependencies(HardDriveSharedPtr&);
-    void fill_disk_parameters(HardDriveSharedPtr&, SysfsAPI::HardDrive&);
-    bool check_physical_volumes_state(const SubmoduleUniquePtr&, HardDriveSharedPtr&);
-    void check_volume_groups_state(const SubmoduleUniquePtr&);
-    void check_logical_volumes_state(const SubmoduleUniquePtr&);
-    void check_targets_state(const SubmoduleUniquePtr&, const agent_framework::generic::LogicalDriveSharedPtr&);
+    using PhysicalDrive = agent_framework::model::PhysicalDrive;
+    using LogicalDrive = agent_framework::model::LogicalDrive;
+    using SysfsAPI = agent::storage::sysfs::SysfsAPI;
 
+    /*!
+     * @brief Update storage physical drive information
+     */
+    void hotswap_discover_hard_drives();
+
+private:
+    void resolve_dependencies(const PhysicalDrive&);
+    void check_volume_groups_state(const std::string&);
+    void check_logical_volumes_state(const std::string&);
+    bool check_physical_volumes_state(const PhysicalDrive&, const std::string&);
+    void check_targets_state(const LogicalDrive&, const std::string&);
+    bool compare_disks(const SysfsAPI::HardDrive&, const PhysicalDrive&);
+    void add_disk(const SysfsAPI::HardDrive&);
+    void remove_disk(const PhysicalDrive&);
 };
 
 }

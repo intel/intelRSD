@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,34 +17,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
  * @file message.hpp
- *
- * @brief ...
+ * @brief Base class for IPMI message.
  * */
 
-#ifndef IPMI_MESSAGE_HPP
-#define IPMI_MESSAGE_HPP
+#pragma once
 
 #include <cstdint>
-
-using std::uint8_t;
-using Cmd = std::uint8_t;
-using NetFn = std::uint8_t;
 
 namespace ipmi {
 
 /*!
- * @brief Represents Message used to communicate through IPMI. It's a base class for Request and Response.
+ * @brief Represents Message used to communicate through IPMI.
+ * It's a base class for Request and Response.
  */
 class Message {
 public:
+    using Cmd = std::uint8_t;
+    using NetFn = std::uint8_t;
+
     /*!
      * @brief Constructor.
      * @param fn Network function.
      * @param cmd Command.
      */
-    Message(uint8_t fn, Cmd cmd);
+    Message(NetFn fn, Cmd cmd);
 
     /*! Copy constructor */
     Message(const Message&) = default;
@@ -62,13 +59,13 @@ public:
      *
      * @param fn Network Function code
      */
-    void set_network_function(uint8_t fn);
+    void set_network_function(NetFn fn);
 
-    /**
+    /*!
      * Gets Network Function code.
      * @return NetFn
      */
-    uint8_t get_network_function() const;
+    NetFn get_network_function() const;
 
     /*!
      * Sets Command code.
@@ -83,11 +80,10 @@ public:
     Cmd get_command() const;
 
 private:
-    uint8_t network_function {};
+    NetFn network_function {};
     Cmd command_code {};
 };
 
 }
 
-#endif	/* IPMI_MESSAGE_HPP */
 

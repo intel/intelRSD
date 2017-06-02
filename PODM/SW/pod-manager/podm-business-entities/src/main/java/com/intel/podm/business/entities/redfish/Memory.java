@@ -1,316 +1,396 @@
+/*
+ * Copyright (c) 2016-2017 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.base.MemoryModule;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.properties.MemoryLocation;
-import com.intel.podm.business.entities.redfish.properties.Region;
+import com.intel.podm.business.entities.redfish.embeddables.MemoryLocation;
+import com.intel.podm.business.entities.redfish.embeddables.Region;
 import com.intel.podm.common.types.BaseModuleType;
+import com.intel.podm.common.types.ErrorCorrection;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.MemoryDeviceType;
 import com.intel.podm.common.types.MemoryMedia;
 import com.intel.podm.common.types.MemoryType;
-import com.intel.podm.common.types.ErrorCorrection;
 import com.intel.podm.common.types.OperatingMemoryMode;
-import com.intel.podm.common.types.Status;
-import com.intel.podm.common.types.helpers.EnumeratedTypeListHolder;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
 import java.math.BigDecimal;
-import java.net.URI;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.REGIONS;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.decimalProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumeratedTypeListProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.listProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.types.helpers.EnumeratedTypeListHolder.enumeratedTypeListHolder;
-import static com.intel.podm.common.types.helpers.EnumeratedTypeListHolder.toList;
-import static com.intel.podm.common.utils.IterableHelper.single;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class Memory extends DomainObject implements Discoverable, StatusPossessor, Descriptable, MemoryModule {
-    public static final DomainObjectProperty<MemoryType> MEMORY_TYPE = enumProperty("memoryType", MemoryType.class);
-    public static final DomainObjectProperty<MemoryDeviceType> MEMORY_DEVICE_TYPE = enumProperty("memoryDeviceType", MemoryDeviceType.class);
-    public static final DomainObjectProperty<BaseModuleType> BASE_MODULE_TYPE = enumProperty("baseModuleType", BaseModuleType.class);
-    public static final DomainObjectProperty<EnumeratedTypeListHolder<MemoryMedia>> MEMORY_MEDIA
-            = enumeratedTypeListProperty("memoryMedia", MemoryMedia.class);
-    public static final DomainObjectProperty<Integer> CAPACITY_MIB = integerProperty("capacityMib");
-    public static final DomainObjectProperty<Integer> DATA_WIDTH_BITS = integerProperty("dataWidthBits");
-    public static final DomainObjectProperty<Integer> BUS_WIDTH_BITS = integerProperty("busWidthBits");
-    public static final DomainObjectProperty<String> MANUFACTURER = stringProperty("manufacturer");
-    public static final DomainObjectProperty<String> SERIAL_NUMBER = stringProperty("serialNumber");
-    public static final DomainObjectProperty<String> PART_NUMBER = stringProperty("partNumber");
-    public static final DomainObjectProperty<List<Integer>> ALLOWED_SPEEDS_MHZ = listProperty("allowedSpeedMHz");
-    public static final DomainObjectProperty<String> FIRMWARE_REVISION = stringProperty("firmwareRevision");
-    public static final DomainObjectProperty<String> FIRMWARE_API_VERSION = stringProperty("firmwareApiVersion");
-    public static final DomainObjectProperty<List<String>> FUNCTION_CLASSES = listProperty("functionClasses");
-    public static final DomainObjectProperty<String> VENDOR_ID = stringProperty("vendorId");
-    public static final DomainObjectProperty<String> DEVICE_ID = stringProperty("deviceId");
-    public static final DomainObjectProperty<Integer> RANK_COUNT = integerProperty("rankCount");
-    public static final DomainObjectProperty<String> DEVICE_LOCATOR = stringProperty("deviceLocator");
-    public static final DomainObjectProperty<ErrorCorrection> ERROR_CORRECTION = enumProperty("errorCorrection", ErrorCorrection.class);
-    public static final DomainObjectProperty<Integer> OPERATING_SPEED_MHZ = integerProperty("operatingSpeedMHz");
-    public static final DomainObjectProperty<EnumeratedTypeListHolder<OperatingMemoryMode>> OPERATING_MEMORY_MODES
-            = enumeratedTypeListProperty("operatingMemoryModes", OperatingMemoryMode.class);
-    public static final DomainObjectProperty<BigDecimal> VOLTAGE_VOLT = decimalProperty("voltageVolt");
+@javax.persistence.Entity
+@Table(name = "memory", indexes = @Index(name = "idx_memory_entity_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
+public class Memory extends DiscoverableEntity implements MemoryModule {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "memory_type")
+    @Enumerated(STRING)
+    private MemoryType memoryType;
+
+    @Column(name = "memory_device_type")
+    @Enumerated(STRING)
+    private MemoryDeviceType memoryDeviceType;
+
+    @Column(name = "base_module_type")
+    @Enumerated(STRING)
+    private BaseModuleType baseModuleType;
+
+    @Column(name = "capacity_mib")
+    private Integer capacityMib;
+
+    @Column(name = "data_width_bits")
+    private Integer dataWidthBits;
+
+    @Column(name = "bus_width_bits")
+    private Integer busWidthBits;
+
+    @Column(name = "manufacturer")
+    private String manufacturer;
+
+    @Column(name = "serial_number")
+    private String serialNumber;
+
+    @Column(name = "part_number")
+    private String partNumber;
+
+    @Column(name = "firmware_revision")
+    private String firmwareRevision;
+
+    @Column(name = "firmware_api_version")
+    private String firmwareApiVersion;
+
+    @Column(name = "vendor_id")
+    private String vendorId;
+
+    @Column(name = "device_id")
+    private String deviceId;
+
+    @Column(name = "rank_count")
+    private Integer rankCount;
+
+    @Column(name = "device_locator")
+    private String deviceLocator;
+
+    @Column(name = "error_correction")
+    @Enumerated(STRING)
+    private ErrorCorrection errorCorrection;
+
+    @Column(name = "operating_speed_mhz")
+    private Integer operatingSpeedMhz;
+
+    @Column(name = "voltage_volt")
+    private BigDecimal voltageVolt;
+
+    @Embedded
+    private MemoryLocation memoryLocation;
+
+    @ElementCollection
+    @Enumerated(STRING)
+    @CollectionTable(name = "memory_memory_media", joinColumns = @JoinColumn(name = "memory_id"))
+    @Column(name = "memory_media")
+    @OrderColumn(name = "memory_media_order")
+    private List<MemoryMedia> memoryMedia = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "memory_allowed_speed_mhz", joinColumns = @JoinColumn(name = "computer_system_id"))
+    @Column(name = "allowed_speed_mhz")
+    @OrderColumn(name = "allowed_speed_mhz_order")
+    private List<Integer> allowedSpeedsMhz = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "memory_function_class", joinColumns = @JoinColumn(name = "memory_id"))
+    @Column(name = "function_class")
+    @OrderColumn(name = "function_class_order")
+    private List<String> functionClasses = new ArrayList<>();
+
+    @ElementCollection
+    @Enumerated(STRING)
+    @CollectionTable(name = "memory_operating_memory_mode", joinColumns = @JoinColumn(name = "memory_id"))
+    @Column(name = "operating_memory_mode")
+    @OrderColumn(name = "operating_memory_mode_order")
+    private List<OperatingMemoryMode> operatingMemoryModes = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "memory_region", joinColumns = @JoinColumn(name = "memory_id"))
+    @OrderColumn(name = "memory_region_order")
+    private List<Region> regions = new ArrayList<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "computer_system_id")
+    private ComputerSystem computerSystem;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
-    }
-
-    public Region addRegion() {
-        return addDomainObject(REGIONS, Region.class);
-    }
-
-    public Collection<Region> getRegions() {
-        return getLinked(REGIONS, Region.class);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public MemoryType getMemoryType() {
-        return getProperty(MEMORY_TYPE);
+        return memoryType;
     }
 
     public void setMemoryType(MemoryType memoryType) {
-        setProperty(MEMORY_TYPE, memoryType);
+        this.memoryType = memoryType;
     }
 
     @Override
     public MemoryDeviceType getMemoryDeviceType() {
-        return getProperty(MEMORY_DEVICE_TYPE);
+        return memoryDeviceType;
     }
 
     public void setMemoryDeviceType(MemoryDeviceType memoryDeviceType) {
-        setProperty(MEMORY_DEVICE_TYPE, memoryDeviceType);
+        this.memoryDeviceType = memoryDeviceType;
     }
 
     public BaseModuleType getBaseModuleType() {
-        return getProperty(BASE_MODULE_TYPE);
+        return baseModuleType;
     }
 
     public void setBaseModuleType(BaseModuleType baseModuleType) {
-        setProperty(BASE_MODULE_TYPE, baseModuleType);
-    }
-
-    public List<MemoryMedia> getMemoryMedia() {
-        return toList(MemoryMedia.class, getProperty(MEMORY_MEDIA));
-    }
-
-    public void setMemoryMedia(List<MemoryMedia> memoryMedia) {
-        setProperty(MEMORY_MEDIA, enumeratedTypeListHolder(MemoryMedia.class, memoryMedia));
+        this.baseModuleType = baseModuleType;
     }
 
     @Override
     public Integer getCapacityMib() {
-        return getProperty(CAPACITY_MIB);
+        return capacityMib;
     }
 
     public void setCapacityMib(Integer capacityMib) {
-        setProperty(CAPACITY_MIB, capacityMib);
+        this.capacityMib = capacityMib;
     }
 
     @Override
     public Integer getDataWidthBits() {
-        return getProperty(DATA_WIDTH_BITS);
+        return dataWidthBits;
     }
 
     public void setDataWidthBits(Integer dataWidthBits) {
-        setProperty(DATA_WIDTH_BITS, dataWidthBits);
+        this.dataWidthBits = dataWidthBits;
     }
 
     public Integer getBusWidthBits() {
-        return getProperty(BUS_WIDTH_BITS);
+        return busWidthBits;
     }
 
-    public void setBusWidthBits(Integer capacityMib) {
-        setProperty(BUS_WIDTH_BITS, capacityMib);
+    public void setBusWidthBits(Integer busWidthBits) {
+        this.busWidthBits = busWidthBits;
     }
 
     @Override
     public String getManufacturer() {
-        return getProperty(MANUFACTURER);
+        return manufacturer;
     }
 
     public void setManufacturer(String manufacturer) {
-        setProperty(MANUFACTURER, manufacturer);
+        this.manufacturer = manufacturer;
     }
 
     public String getSerialNumber() {
-        return getProperty(SERIAL_NUMBER);
+        return serialNumber;
     }
 
     public void setSerialNumber(String serialNumber) {
-        setProperty(SERIAL_NUMBER, serialNumber);
+        this.serialNumber = serialNumber;
     }
 
     public String getPartNumber() {
-        return getProperty(PART_NUMBER);
+        return partNumber;
     }
 
     public void setPartNumber(String partNumber) {
-        setProperty(PART_NUMBER, partNumber);
-    }
-
-    public List<Integer> getAllowedSpeedsMhz() {
-        return getProperty(ALLOWED_SPEEDS_MHZ);
-    }
-
-    public void setAllowedSpeedsMhz(List<Integer> allowedSpeeds) {
-        setProperty(ALLOWED_SPEEDS_MHZ, allowedSpeeds);
+        this.partNumber = partNumber;
     }
 
     public String getFirmwareRevision() {
-        return getProperty(FIRMWARE_REVISION);
+        return firmwareRevision;
     }
 
     public void setFirmwareRevision(String firmwareRevision) {
-        setProperty(FIRMWARE_REVISION, firmwareRevision);
+        this.firmwareRevision = firmwareRevision;
     }
 
     public String getFirmwareApiVersion() {
-        return getProperty(FIRMWARE_API_VERSION);
+        return firmwareApiVersion;
     }
 
     public void setFirmwareApiVersion(String firmwareApiVersion) {
-        setProperty(FIRMWARE_API_VERSION, firmwareApiVersion);
-    }
-
-    public List<String> getFunctionClasses() {
-        return getProperty(FUNCTION_CLASSES);
-    }
-
-    public void setFunctionClasses(List<String> functionClasses) {
-        setProperty(FUNCTION_CLASSES, functionClasses);
+        this.firmwareApiVersion = firmwareApiVersion;
     }
 
     public String getVendorId() {
-        return getProperty(VENDOR_ID);
+        return vendorId;
     }
 
     public void setVendorId(String vendorId) {
-        setProperty(VENDOR_ID, vendorId);
+        this.vendorId = vendorId;
     }
 
     public String getDeviceId() {
-        return getProperty(DEVICE_ID);
+        return deviceId;
     }
 
     public void setDeviceId(String deviceId) {
-        setProperty(DEVICE_ID, deviceId);
+        this.deviceId = deviceId;
     }
 
     public Integer getRankCount() {
-        return getProperty(RANK_COUNT);
+        return rankCount;
     }
 
     public void setRankCount(Integer rankCount) {
-        setProperty(RANK_COUNT, rankCount);
+        this.rankCount = rankCount;
     }
 
     public String getDeviceLocator() {
-        return getProperty(DEVICE_LOCATOR);
+        return deviceLocator;
     }
 
     public void setDeviceLocator(String deviceLocator) {
-        setProperty(DEVICE_LOCATOR, deviceLocator);
+        this.deviceLocator = deviceLocator;
     }
 
     public ErrorCorrection getErrorCorrection() {
-        return getProperty(ERROR_CORRECTION);
+        return errorCorrection;
     }
 
     public void setErrorCorrection(ErrorCorrection errorCorrection) {
-        setProperty(ERROR_CORRECTION, errorCorrection);
-    }
-
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
+        this.errorCorrection = errorCorrection;
     }
 
     @Override
     public Integer getOperatingSpeedMhz() {
-        return getProperty(OPERATING_SPEED_MHZ);
+        return operatingSpeedMhz;
     }
 
     public void setOperatingSpeedMhz(Integer operatingSpeedMhz) {
-        setProperty(OPERATING_SPEED_MHZ, operatingSpeedMhz);
-    }
-
-    public List<OperatingMemoryMode> getOperatingMemoryModes() {
-        return toList(OperatingMemoryMode.class, getProperty(OPERATING_MEMORY_MODES));
-    }
-
-    public void setOperatingMemoryModes(List<OperatingMemoryMode> operatingMemoryModes) {
-        setProperty(OPERATING_MEMORY_MODES, enumeratedTypeListHolder(OperatingMemoryMode.class, operatingMemoryModes));
+        this.operatingSpeedMhz = operatingSpeedMhz;
     }
 
     public BigDecimal getVoltageVolt() {
-        return getProperty(VOLTAGE_VOLT);
+        return voltageVolt;
     }
 
     public void setVoltageVolt(BigDecimal voltageVolt) {
-        setProperty(VOLTAGE_VOLT, voltageVolt);
-    }
-
-    public ComputerSystem getComputerSystem() {
-        return single(getLinked(CONTAINED_BY, ComputerSystem.class));
-    }
-
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
-    }
-
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
-    }
-
-    public void setMemoryLocation(MemoryLocation memoryLocation) {
-        link(CONTAINS, memoryLocation);
+        this.voltageVolt = voltageVolt;
     }
 
     public MemoryLocation getMemoryLocation() {
-        return singleOrNull(getLinked(CONTAINS, MemoryLocation.class));
+        return memoryLocation;
+    }
+
+    public void setMemoryLocation(MemoryLocation memoryLocation) {
+        this.memoryLocation = memoryLocation;
+    }
+
+    public List<MemoryMedia> getMemoryMedia() {
+        return memoryMedia;
+    }
+
+    public void addMemoryMedia(MemoryMedia memoryMedia) {
+        this.memoryMedia.add(memoryMedia);
+    }
+
+    public List<Integer> getAllowedSpeedsMhz() {
+        return allowedSpeedsMhz;
+    }
+
+    public void addAllowedSpeedMhz(Integer allowedSpeed) {
+        this.allowedSpeedsMhz.add(allowedSpeed);
+    }
+
+    public List<String> getFunctionClasses() {
+        return functionClasses;
+    }
+
+    public void addFunctionClass(String functionClass) {
+        this.functionClasses.add(functionClass);
+    }
+
+    public List<OperatingMemoryMode> getOperatingMemoryModes() {
+        return operatingMemoryModes;
+    }
+
+    public void addOperatingMemoryMode(OperatingMemoryMode operatingMemoryMode) {
+        this.operatingMemoryModes.add(operatingMemoryMode);
+    }
+
+    public List<Region> getRegions() {
+        return regions;
+    }
+
+    public void addRegion(Region region) {
+        regions.add(region);
+    }
+
+    public ComputerSystem getComputerSystem() {
+        return computerSystem;
+    }
+
+    public void setComputerSystem(ComputerSystem computerSystem) {
+        if (!Objects.equals(this.computerSystem, computerSystem)) {
+            unlinkComputerSystem(this.computerSystem);
+            this.computerSystem = computerSystem;
+            if (computerSystem != null && !computerSystem.getMemoryModules().contains(this)) {
+                computerSystem.addMemoryModule(this);
+            }
+        }
+    }
+
+    public void unlinkComputerSystem(ComputerSystem computerSystem) {
+        if (Objects.equals(this.computerSystem, computerSystem)) {
+            this.computerSystem = null;
+            if (computerSystem != null) {
+                computerSystem.unlinkMemoryModule(this);
+            }
+        }
+    }
+
+    @Override
+    public void preRemove() {
+        unlinkComputerSystem(computerSystem);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, computerSystem);
     }
 }

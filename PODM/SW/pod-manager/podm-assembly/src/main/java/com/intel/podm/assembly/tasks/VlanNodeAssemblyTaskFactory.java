@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package com.intel.podm.assembly.tasks;
 
-import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
 
 import javax.enterprise.context.Dependent;
@@ -29,7 +29,7 @@ public class VlanNodeAssemblyTaskFactory {
     private BeanFactory beanFactory;
 
     public NodeAssemblyTask createVlanCreationTask(EthernetInterface availableEthernetInterface,
-                                                   RequestedEthernetInterface requestedEthernetInterface) {
+                                                   RequestedNode.EthernetInterface requestedEthernetInterface) {
         VlanNodeAssemblyTask vlanNodeAssemblyTask = beanFactory.create(VlanNodeAssemblyTask.class);
         vlanNodeAssemblyTask.setRequestedInterface(requestedEthernetInterface);
         vlanNodeAssemblyTask.setAvailableInterfaceId(availableEthernetInterface.getId());

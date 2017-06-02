@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,32 +31,32 @@
 using namespace ipmi;
 using namespace ipmi::command::sdv;
 
-request::GetProcessorInfo::GetProcessorInfo(): Request(uint8_t(NetFn::QUANTA), uint8_t(Cmd::GET_PROCESSOR_INFO)) {}
+request::GetProcessorInfo::GetProcessorInfo() : Request(sdv::NetFn::QUANTA, sdv::Cmd::GET_PROCESSOR_INFO) {}
 request::GetProcessorInfo::~GetProcessorInfo() {}
 
-void request::GetProcessorInfo::pack(vector<uint8_t>& data) const {
+void request::GetProcessorInfo::pack(std::vector<std::uint8_t>& data) const {
     data.push_back(m_cpu_id);
 }
 
-response::GetProcessorInfo::GetProcessorInfo(): Response(uint8_t(NetFn::QUANTA),
-                                                                 uint8_t(Cmd::GET_PROCESSOR_INFO), RESPONSE_SIZE) {}
+response::GetProcessorInfo::GetProcessorInfo() : Response(sdv::NetFn::QUANTA, sdv::Cmd::GET_PROCESSOR_INFO, RESPONSE_SIZE) {}
 response::GetProcessorInfo::~GetProcessorInfo() {}
 
-void response::GetProcessorInfo::unpack(const vector<uint8_t>& data) {
+void response::GetProcessorInfo::unpack(const std::vector<std::uint8_t>& data) {
     if(!is_response_correct(data)) {
         return; // received only completion code, do not unpack.
     }
+
     m_cpu_type = CPU_TYPE(data[OFFSET_CPU_TYPE]);
     m_cpu_frequency = extract_cpu_frequency(data);
     m_presence = data[OFFSET_CPU_PRESENCE] == 1 ? true : false;
 }
 
-uint16_t response::GetProcessorInfo::extract_cpu_frequency(const vector<uint8_t>& data) const {
-    uint16_t freq = uint16_t((data[OFFSET_CPU_FREQUENCY + 1] << 8) | (data[OFFSET_CPU_FREQUENCY]));
+std::uint16_t response::GetProcessorInfo::extract_cpu_frequency(const std::vector<std::uint8_t>& data) const {
+    std::uint16_t freq = std::uint16_t((data[OFFSET_CPU_FREQUENCY + 1] << 8) | (data[OFFSET_CPU_FREQUENCY]));
     return freq;
 }
 
-const string& response::GetProcessorInfo::get_cpu_type_name() const {
+const std::string& response::GetProcessorInfo::get_cpu_type_name() const {
     CPU_TYPE type = get_cpu_type();
 
     if (m_cpu_type_name.end() == m_cpu_type_name.find(type)) {

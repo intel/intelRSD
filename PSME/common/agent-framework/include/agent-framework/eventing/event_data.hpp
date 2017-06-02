@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,14 +18,10 @@
  * limitations under the License.
  * */
 
-#ifndef AGENT_FRAMEWORK_EVENTING_EVENT_DATA_HPP
-#define AGENT_FRAMEWORK_EVENTING_EVENT_DATA_HPP
-
-#include "agent-framework/module-ref/enum/common.hpp"
-#include "agent-framework/module-ref/enum/enum_builder.hpp"
-#include <json/json.h>
+#pragma once
+#include "agent-framework/module/enum/common.hpp"
+#include "agent-framework/module/enum/enum_builder.hpp"
 #include <string>
-
 
 namespace agent_framework {
 namespace eventing {
@@ -110,4 +106,3 @@ private:
 }
 }
 
-#endif

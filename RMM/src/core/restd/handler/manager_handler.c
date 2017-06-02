@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -357,7 +357,7 @@ static json_t *manager_vlan_get(struct rest_uri_param *param)
 	}
 
 	vlan_idx = get_asset_idx(param, "vlan_id", MC_TYPE_V1);
-	if (inf_idx == -1) {
+	if (vlan_idx == -1) {
 		update_response_info(param, HTTP_BAD_REQUEST);
 		HTTPD_ERR("get vlan index fail\n");
 		return NULL;
@@ -599,37 +599,38 @@ static int signature_verify(const char *signed_file)
 	unsigned char calc_hash[65] = {0};
 	RSA *public_key;
 	BIO *pub_bio;
-	char *pub_key = (char *)malloc(PUB_KEY_LEN);
+	char pub_key[PUB_KEY_LEN + 1]; // create buffer for public key +1 for NULL delimiter.
 
-	if (pub_key == NULL)
-		return 0;
+	// Fills buffer with 0. To work with OpenSSL BIO_new_mem_buf array must be NULL terminated.
+	memset(pub_key, 0, sizeof(pub_key));
 
 	FILE *key_file = fopen(PUB_KEY_PATH, "r");
 	if (key_file == NULL) {
-		free(pub_key);
 		return 0;
 	}
 
-	fread(pub_key, PUB_KEY_LEN - 1, 1, key_file);
-	pub_key[PUB_KEY_LEN] = '\0';
+	// Read the whole key.
+	fread(pub_key, PUB_KEY_LEN, 1, key_file);
 	fclose(key_file);
 
+	// -1 means that pub_key must be NULL terminated. We ensure that by filling buffer with 0s.
 	pub_bio = BIO_new_mem_buf(pub_key, -1);
 	if(pub_bio == NULL) {
-		free(pub_key);
 		return 0;
 	}
 
 	public_key = PEM_read_bio_RSA_PUBKEY(pub_bio, NULL, NULL, NULL);
+
+	// PEM_read_bio_RSA_PUBKEY allocates new memory. We can free pub_bio.
+	BIO_free(pub_bio);
+
 	if(public_key == NULL) {
-		free(pub_key);
 		return 0;
 	}
 
 	FILE *file = fopen(signed_file, "r");
 	if (file == NULL) {
 		RSA_free(public_key);
-		free(pub_key);
 		return 0;
 	}
 
@@ -641,7 +642,6 @@ static int signature_verify(const char *signed_file)
 			strnlen_s((char*)calc_hash, sizeof(calc_hash)), signature, slen, public_key);
 
 	RSA_free(public_key);
-	free(pub_key);
 
 	return verified;
 }
@@ -689,7 +689,7 @@ static int save_signed_image(const char *signed_file, int8 *buff, int32 length)
 out:
 	if (w_buf)
 		free(w_buf);
-	if (fd > 0)
+	if (fd >= 0)
 		close(fd);
 
 	return rc;
@@ -720,9 +720,9 @@ static int save_unsigned_image(const char *signed_file, const char *unsigned_fil
 		write(w_fd, buff, len);
 
 out:
-	if (r_fd > 0)
+	if (r_fd >= 0)
 		close(r_fd);
-	if (w_fd > 0)
+	if (w_fd >= 0)
 		close(w_fd);
 	return rc;
 }
@@ -873,6 +873,9 @@ static result_t update_rack(int8 *comp_type, int8 *buff,
 	return RESULT_OK;
 
 err:
+	if (pp) {
+		pclose(pp);
+	}
 	unlink(UPGRADE_FILE_SIGNED);
 	unlink(UPGRADE_FILE_TARBALL);
 
@@ -909,10 +912,9 @@ static json_t *rack_process_reset(json_t *result, json_t *req, struct rest_uri_p
 
 	if (RESULT_OK == reset_rack(0, param)) {	/* only support service reset */
 		HTTPD_INFO("rack reset success\n");
-		update_response_info(param, HTTP_OK);
+		update_response_info(param, HTTP_NO_CONTENT);
 		rf_snmp_evt(INFO, MSGRackStatusChange, RMM_JSON_RESETED_BIG);
 
-		json_object_add(result, RMM_JSON_RESULT, json_string("Success"));
 		return result;
 
 	} else {

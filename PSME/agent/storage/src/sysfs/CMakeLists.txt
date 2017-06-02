@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,4 +25,4 @@ set_source_files_properties(
     # libsysfs contains old style casting.
     COMPILE_FLAGS "-Wno-old-style-cast")
 
-add_library(sysfs-api OBJECT ${SOURCES})
+add_library(sysfs-api-ref OBJECT ${SOURCES})

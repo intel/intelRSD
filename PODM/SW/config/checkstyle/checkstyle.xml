@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2015 Intel Corporation
+  ~ Copyright (c) 2015-2017 Intel Corporation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,10 +20,6 @@
           "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 <module name="Checker">
     <property name="severity" value="error" />
-
-    <module name="SuppressionFilter">
-        <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
-    </module>
 
     <module name="NewlineAtEndOfFile"/>
 
@@ -45,7 +41,10 @@
        <property name="message" value="Line has trailing spaces."/>
     </module>
 
+    <module name="SuppressWarningsFilter" />
+
     <module name="TreeWalker">
+        <module name="SuppressWarningsHolder" />
         <module name="Regexp">
             <property name="format" value="created by rsa"/>
             <property name="illegalPattern" value="true"/>
@@ -62,7 +61,9 @@
 
         <module name="PackageDeclaration"/>
         <module name="AvoidStarImport"/>
-        <module name="IllegalImport"/> <!-- defaults to sun.* packages -->
+        <module name="IllegalImport">
+            <property name="illegalPkgs" value="sun, com.google.common.base.Preconditions, java.util.Objects.requireNonNull"/>
+        </module>
         <module name="RedundantImport"/>
         <module name="UnusedImports" />
 
@@ -190,8 +191,8 @@
             Byte, Character, Double, Float, Integer, Long, Short, Void, Object, Class, String, StringBuffer,
             StringBuilder, ArrayIndexOutOfBoundsException, Exception, RuntimeException, IllegalArgumentException,
             IllegalStateException, IndexOutOfBoundsException, NullPointerException, Throwable, SecurityException,
-            UnsupportedOperationException, List, ArrayList, Deque, Queue, LinkedList, Set, HashSet, SortedSet, TreeSet,
-            Map, HashMap, SortedMap, TreeMap, Optional, Consumer, UUID, Collectors, Collection, Iterable, URI, Predicate"/>
+            UnsupportedOperationException, List, ArrayList, Deque, Queue, LinkedList, Logger, Set, HashSet, SortedSet, TreeSet,
+            Map, HashMap, SortedMap, TreeMap, BiMap, Optional, Consumer, UUID, Collectors, Collection, Iterable, URI, Predicate"/>
         </module>
         <module name="NPathComplexity">
             <property name="max" value="16"/>

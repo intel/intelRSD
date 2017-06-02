@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,263 +16,398 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.properties.IpV4Address;
-import com.intel.podm.business.entities.redfish.properties.IpV6Address;
-import com.intel.podm.business.entities.redfish.properties.IpV6AddressPolicy;
-import com.intel.podm.business.entities.redfish.properties.NameServer;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.SuppressEvents;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.VlanPossessor;
+import com.intel.podm.business.entities.redfish.embeddables.IpV4Address;
+import com.intel.podm.business.entities.redfish.embeddables.IpV6Address;
+import com.intel.podm.business.entities.redfish.embeddables.IpV6AddressPolicy;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.net.MacAddress;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.IPV6_ADDRESS_POLICY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.IPV6_STATIC_ADDRESS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.IP_ADDRESS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.NAME_SERVER;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.booleanProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.integerProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.macAddressProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class EthernetInterface extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<Boolean> INTERFACE_ENABLED = booleanProperty("interfaceEnabled");
-    public static final DomainObjectProperty<Boolean> AUTO_NEG = booleanProperty("autoNeg");
-    public static final DomainObjectProperty<Integer> MTU_SIZE = integerProperty("mtuSize");
-    public static final DomainObjectProperty<Integer> MAX_IPV_6_STATIC_ADDRESSES = integerProperty("maxIPv6StaticAddresses");
-    public static final DomainObjectProperty<Boolean> VLAN_ENABLE = booleanProperty("vlanEnable");
-    public static final DomainObjectProperty<Integer> VLAN_ID = integerProperty("vlanId");
-    public static final DomainObjectProperty<MacAddress> PERMANENT_MAC_ADDRESS = macAddressProperty("permanentMacAddress");
-    public static final DomainObjectProperty<MacAddress> MAC_ADDRESS = macAddressProperty("macAddress");
-    public static final DomainObjectProperty<Integer> SPEED_MBPS = integerProperty("speedMbps");
-    public static final DomainObjectProperty<Boolean> FULL_DUPLEX = booleanProperty("fullDuplex");
-    public static final DomainObjectProperty<String> HOST_NAME = stringProperty("hostName");
-    public static final DomainObjectProperty<String> FQDN = stringProperty("fqdn");
-    public static final DomainObjectProperty<String> IP_V6_DEFAULT_GATEWAY = stringProperty("ipV6DefaultGateway");
+@javax.persistence.Entity
+@NamedQueries({
+    @NamedQuery(name = EthernetInterface.GET_ETHERNET_INTERFACE_BY_MAC_ADDRESS,
+        query = "SELECT ei FROM EthernetInterface ei WHERE ei.macAddress = :macAddress")
+})
+@Table(name = "ethernet_interface", indexes = @Index(name = "idx_ethernet_interface_entity_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class    EthernetInterface extends DiscoverableEntity implements VlanPossessor {
+    public static final String GET_ETHERNET_INTERFACE_BY_MAC_ADDRESS = "GET_ETHERNET_INTERFACE_BY_MAC_ADDRESS";
+
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "interface_enabled")
+    private Boolean interfaceEnabled;
+
+    @Column(name = "autoneg")
+    private Boolean autoNeg;
+
+    @Column(name = "mtu_size")
+    private Integer mtuSize;
+
+    @Column(name = "max_ipv6_static_addresses")
+    private Integer maxIPv6StaticAddresses;
+
+    @Column(name = "vlan_enable")
+    private Boolean vlanEnable;
+
+    @Column(name = "vlan_id")
+    private Integer vlanId;
+
+    @Column(name = "permanent_mac_address")
+    private MacAddress permanentMacAddress;
+
+    @Column(name = "mac_address")
+    private MacAddress macAddress;
+
+    @Column(name = "speed_mbps")
+    private Integer speedMbps;
+
+    @Column(name = "full_duplex")
+    private Boolean fullDuplex;
+
+    @Column(name = "hostname")
+    private String hostName;
+
+    @Column(name = "fqdn")
+    private String fqdn;
+
+    @Column(name = "ip_ipv6_default_gateway")
+    private String iPv6DefaultGateway;
+
+    @ElementCollection
+    @CollectionTable(name = "ethernet_interface_name_server", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @Column(name = "name_server")
+    @OrderColumn(name = "name_server_order")
+    private List<String> nameServers = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "ethernet_interface_ipv4_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @OrderColumn(name = "ipv4_address_order")
+    private List<IpV4Address> ipv4Addresses = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "ethernet_interface_ipv6_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @OrderColumn(name = "ipv6_address_order")
+    private List<IpV6Address> ipv6Addresses = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "ethernet_interface_ipv6_static_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @OrderColumn(name = "ipv6_static_address_order")
+    private List<IpV6Address> ipv6StaticAddresses = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "ethernet_interface_ipv6_address_policy", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @OrderColumn(name = "ipv6_address_policy_order")
+    private List<IpV6AddressPolicy> ipV6AddressesPolicyTable = new ArrayList<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "ethernetInterface", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitchPortVlan> ethernetSwitchPortVlan = new HashSet<>();
+
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "ethernet_interface_manager",
+        joinColumns = {@JoinColumn(name = "ethernet_interface_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "manager_id", referencedColumnName = "id")})
+    private Set<Manager> managers = new HashSet<>();
+
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "ethernet_interface_pcie_functions",
+        joinColumns = {@JoinColumn(name = "ethernet_interface_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "pcie_function_id", referencedColumnName = "id")})
+    private Set<PcieDeviceFunction> pcieDeviceFunctions = new HashSet<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "computer_system_id")
+    private ComputerSystem computerSystem;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
-    }
-
-    public MacAddress getPermanentMacAddress() {
-        return getProperty(PERMANENT_MAC_ADDRESS);
-    }
-
-    public void setPermanentMacAddress(MacAddress factoryMacAddress) {
-        setProperty(PERMANENT_MAC_ADDRESS, factoryMacAddress);
-    }
-
-    public MacAddress getMacAddress() {
-        return getProperty(MAC_ADDRESS);
-    }
-
-    public void setMacAddress(MacAddress macAddress) {
-        setProperty(MAC_ADDRESS, macAddress);
-    }
-
-    public Integer getSpeedMbps() {
-        return getProperty(SPEED_MBPS);
-    }
-
-    public void setSpeedMbps(Integer speedMbps) {
-        setProperty(SPEED_MBPS, speedMbps);
-    }
-
-    public Boolean isFullDuplex() {
-        return getProperty(FULL_DUPLEX);
-    }
-
-    public void setFullDuplex(Boolean fullDuplex) {
-        setProperty(FULL_DUPLEX, fullDuplex);
-    }
-
-    public String getHostName() {
-        return getProperty(HOST_NAME);
-    }
-
-    public void setHostName(String hostName) {
-        setProperty(HOST_NAME, hostName);
-    }
-
-    public String getFqdn() {
-        return getProperty(FQDN);
-    }
-
-    public void setFqdn(String fqdn) {
-        setProperty(FQDN, fqdn);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public Boolean getInterfaceEnabled() {
-        return getProperty(INTERFACE_ENABLED);
+        return interfaceEnabled;
     }
 
     public void setInterfaceEnabled(Boolean interfaceEnabled) {
-        setProperty(INTERFACE_ENABLED, interfaceEnabled);
+        this.interfaceEnabled = interfaceEnabled;
     }
 
-
     public Boolean getAutoNeg() {
-        return getProperty(AUTO_NEG);
+        return autoNeg;
     }
 
     public void setAutoNeg(Boolean autoNeg) {
-        setProperty(AUTO_NEG, autoNeg);
+        this.autoNeg = autoNeg;
     }
 
-
     public Integer getMtuSize() {
-        return getProperty(MTU_SIZE);
+        return mtuSize;
     }
 
     public void setMtuSize(Integer mtuSize) {
-        setProperty(MTU_SIZE, mtuSize);
-    }
-
-    public Boolean getVlanEnable() {
-        return getProperty(VLAN_ENABLE);
-    }
-
-    public void setVlanEnable(Boolean vlanEnable) {
-        setProperty(VLAN_ENABLE, vlanEnable);
-    }
-
-    public Integer getVlanId() {
-        return getProperty(VLAN_ID);
-    }
-
-    public void setVlanId(Integer vlanId) {
-        setProperty(VLAN_ID, vlanId);
-    }
-
-    public void addVlan(EthernetSwitchPortVlan vlan) {
-        link(CONTAINS, vlan);
-    }
-
-    public Collection<EthernetSwitchPortVlan> getVlans() {
-        return getLinked(CONTAINS, EthernetSwitchPortVlan.class);
+        this.mtuSize = mtuSize;
     }
 
     public Integer getMaxIPv6StaticAddresses() {
-        return getProperty(MAX_IPV_6_STATIC_ADDRESSES);
+        return maxIPv6StaticAddresses;
     }
 
     public void setMaxIPv6StaticAddresses(Integer maxIPv6StaticAddresses) {
-        setProperty(MAX_IPV_6_STATIC_ADDRESSES, maxIPv6StaticAddresses);
+        this.maxIPv6StaticAddresses = maxIPv6StaticAddresses;
+    }
+
+    public Boolean getVlanEnable() {
+        return vlanEnable;
+    }
+
+    public void setVlanEnable(Boolean vlanEnable) {
+        this.vlanEnable = vlanEnable;
+    }
+
+    public Integer getVlanId() {
+        return vlanId;
+    }
+
+    public void setVlanId(Integer vlanId) {
+        this.vlanId = vlanId;
+    }
+
+    public MacAddress getPermanentMacAddress() {
+        return permanentMacAddress;
+    }
+
+    public void setPermanentMacAddress(MacAddress factoryMacAddress) {
+        this.permanentMacAddress = factoryMacAddress;
+    }
+
+    public MacAddress getMacAddress() {
+        return macAddress;
+    }
+
+    public void setMacAddress(MacAddress macAddress) {
+        this.macAddress = macAddress;
+    }
+
+    public Integer getSpeedMbps() {
+        return speedMbps;
+    }
+
+    public void setSpeedMbps(Integer speedMbps) {
+        this.speedMbps = speedMbps;
+    }
+
+    public Boolean isFullDuplex() {
+        return fullDuplex;
+    }
+
+    public void setFullDuplex(Boolean fullDuplex) {
+        this.fullDuplex = fullDuplex;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
+    public String getFqdn() {
+        return fqdn;
+    }
+
+    public void setFqdn(String fqdn) {
+        this.fqdn = fqdn;
     }
 
     public String getIpV6DefaultGateway() {
-        return getProperty(IP_V6_DEFAULT_GATEWAY);
+        return iPv6DefaultGateway;
     }
 
     public void setIpV6DefaultGateway(String ipV6DefaultGateway) {
-        setProperty(IP_V6_DEFAULT_GATEWAY, ipV6DefaultGateway);
+        this.iPv6DefaultGateway = ipV6DefaultGateway;
     }
 
-    public IpV4Address addIpV4Address() {
-        return addDomainObject(IP_ADDRESS, IpV4Address.class);
+    public List<String> getNameServers() {
+        return nameServers;
+    }
+
+    public void addNameServer(String nameServer) {
+        this.nameServers.add(nameServer);
     }
 
     public Collection<IpV4Address> getIpV4Addresses() {
-        return getLinked(IP_ADDRESS, IpV4Address.class);
+        return ipv4Addresses;
     }
 
-    public void setIpV4Addresses(Collection<IpV4Address> addresses) {
-        addresses.forEach(addr -> link(IP_ADDRESS, addr));
+    public void addIpV4Address(IpV4Address ipV4Address) {
+        ipv4Addresses.add(ipV4Address);
     }
 
     public List<IpV6Address> getIpV6Addresses() {
-        return getLinked(IP_ADDRESS, IpV6Address.class);
+        return ipv6Addresses;
     }
 
-    public void setIpV6Addresses(Collection<IpV6Address> addresses) {
-        addresses.forEach(addr -> link(IP_ADDRESS, addr));
+    public void addIpV6Address(IpV6Address ipV6Address) {
+        ipv6Addresses.add(ipV6Address);
     }
 
     public List<IpV6Address> getIpV6StaticAddresses() {
-        return getLinked(IPV6_STATIC_ADDRESS, IpV6Address.class);
+        return ipv6StaticAddresses;
     }
 
-    public void setIpV6StaticAddresses(List<IpV6Address> staticAddresses) {
-        staticAddresses.forEach(staticAddress -> link(IPV6_STATIC_ADDRESS, staticAddress));
+    public void addIpV6StaticAddress(IpV6Address ipV6Address) {
+        ipv6StaticAddresses.add(ipV6Address);
     }
+
 
     public List<IpV6AddressPolicy> getIpV6AddressesPolicyTable() {
-        return getLinked(IPV6_ADDRESS_POLICY, IpV6AddressPolicy.class);
+        return ipV6AddressesPolicyTable;
     }
 
-    public void setIpV6AddressesPolicyTable(List<IpV6AddressPolicy> policyList) {
-        policyList.forEach(policy -> link(IPV6_ADDRESS_POLICY, policy));
-    }
-
-    public NameServer addNameServer() {
-        return addDomainObject(NAME_SERVER, NameServer.class);
-    }
-
-    public Collection<NameServer> getNameServers() {
-        return getLinked(NAME_SERVER, NameServer.class);
-    }
-
-    public void setNameServers(Collection<NameServer> nameServers) {
-        nameServers.forEach(nameServer -> link(NAME_SERVER, nameServer));
+    public void addIpV6Policy(IpV6AddressPolicy ipV6AddressPolicy) {
+        ipV6AddressesPolicyTable.add(ipV6AddressPolicy);
     }
 
     @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
+    public Set<EthernetSwitchPortVlan> getEthernetSwitchPortVlans() {
+        return ethernetSwitchPortVlan;
     }
 
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
+    public void addEthernetSwitchPortVlan(EthernetSwitchPortVlan ethernetSwitchPortVlan) {
+        requiresNonNull(ethernetSwitchPortVlan, "ethernetSwitchPortVlan");
+
+        this.ethernetSwitchPortVlan.add(ethernetSwitchPortVlan);
+        if (!this.equals(ethernetSwitchPortVlan.getEthernetInterface())) {
+            ethernetSwitchPortVlan.setEthernetInterface(this);
+        }
     }
 
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
+    public void unlinkEthernetSwitchPortVlan(EthernetSwitchPortVlan ethernetSwitchPortVlan) {
+        if (this.ethernetSwitchPortVlan.contains(ethernetSwitchPortVlan)) {
+            this.ethernetSwitchPortVlan.remove(ethernetSwitchPortVlan);
+            if (ethernetSwitchPortVlan != null) {
+                ethernetSwitchPortVlan.unlinkEthernetInterface(this);
+            }
+        }
     }
 
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
+    public Set<Manager> getManagers() {
+        return managers;
     }
 
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public void addManager(Manager manager) {
+        requiresNonNull(manager, "manager");
+
+        managers.add(manager);
+        if (!manager.getEthernetInterfaces().contains(this)) {
+            manager.addEthernetInterface(this);
+        }
+    }
+
+    public void unlinkManager(Manager manager) {
+        if (managers.contains(manager)) {
+            managers.remove(manager);
+            if (manager != null) {
+                manager.unlinkEthernetInterface(this);
+            }
+        }
+    }
+
+    public Set<PcieDeviceFunction> getPcieDeviceFunctions() {
+        return pcieDeviceFunctions;
+    }
+
+    public void addPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        requiresNonNull(pcieDeviceFunction, "pcieDeviceFunction");
+
+        pcieDeviceFunctions.add(pcieDeviceFunction);
+        if (!pcieDeviceFunction.getEthernetInterfaces().contains(this)) {
+            pcieDeviceFunction.addEthernetInterface(this);
+        }
+    }
+
+    public void unlinkPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        if (pcieDeviceFunctions.contains(pcieDeviceFunction)) {
+            pcieDeviceFunctions.remove(pcieDeviceFunction);
+            if (pcieDeviceFunction != null) {
+                pcieDeviceFunction.unlinkEthernetInterface(this);
+            }
+        }
     }
 
     public ComputerSystem getComputerSystem() {
-        return singleOrNull(getLinked(CONTAINED_BY, ComputerSystem.class));
+        return computerSystem;
+    }
+
+    public void setComputerSystem(ComputerSystem computerSystem) {
+        if (!Objects.equals(this.computerSystem, computerSystem)) {
+            unlinkComputerSystem(this.computerSystem);
+            this.computerSystem = computerSystem;
+            if (computerSystem != null && !computerSystem.getEthernetInterfaces().contains(this)) {
+                computerSystem.addEthernetInterface(this);
+            }
+        }
+    }
+
+    public void unlinkComputerSystem(ComputerSystem computerSystem) {
+        if (Objects.equals(this.computerSystem, computerSystem)) {
+            this.computerSystem = null;
+            if (computerSystem != null) {
+                computerSystem.unlinkEthernetInterface(this);
+            }
+        }
+    }
+
+    @Override
+    public void preRemove() {
+        unlinkCollection(ethernetSwitchPortVlan, this::unlinkEthernetSwitchPortVlan);
+        unlinkCollection(managers, this::unlinkManager);
+        unlinkCollection(pcieDeviceFunctions, this::unlinkPcieDeviceFunction);
+        unlinkComputerSystem(computerSystem);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, managers) || isContainedBy(possibleParent, computerSystem);
     }
 }

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,23 +16,19 @@
 #
 # </license_header>
 
-set (SOURCES
-    main.cpp
-)
+set (SOURCES main.cpp)
 
-add_library(iscsi-tgt-module
-    $<TARGET_OBJECTS:iscsi-tgt>
-)
+add_library(iscsi-tgt-module $<TARGET_OBJECTS:iscsi-tgt-ref>)
 
-target_link_libraries(iscsi-tgt-module
-    ${LOGGER_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-)
+target_link_libraries(iscsi-tgt-module ${LOGGER_LIBRARIES} ${SAFESTRING_LIBRARIES} ${AGENT_FRAMEWORK_LIBRARIES})
 
-add_executable(iscsi-tgt-example ${SOURCES})
+add_executable(iscsi-tgt-example-ref ${SOURCES})
 
-target_link_libraries(iscsi-tgt-example
+target_link_libraries(iscsi-tgt-example-ref
     ${LOGGER_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     iscsi-tgt-module
+    ${NET_LIBRARIES}
+    ${CONFIGURATION_LIBRARIES}
+    ${JSONCXX_LIBRARIES}
 )

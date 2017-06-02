@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,22 @@
 package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.PowerZoneDto;
-import com.intel.podm.business.dto.redfish.attributes.PowerSupplyDto;
+import com.intel.podm.business.dto.redfish.attributes.PowerZonePowerSupplyDto;
 import com.intel.podm.business.dto.redfish.attributes.RackLocationDto;
 import com.intel.podm.redfish.json.templates.PowerZoneJson;
-import com.intel.podm.redfish.json.templates.attributes.PowerSupplyJson;
+import com.intel.podm.redfish.json.templates.attributes.PowerZonePowerSupplyJson;
 import com.intel.podm.redfish.json.templates.attributes.RackLocationAttributeJson;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
 import java.util.List;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
-import static java.util.Objects.isNull;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 import static java.util.stream.Collectors.toList;
 
-public class PowerZoneDtoJsonSerializer extends DtoJsonSerializer<PowerZoneDto> {
-
+@SuppressWarnings({"checkstyle:ExecutableStatementCount"})
+public class PowerZoneDtoJsonSerializer extends BaseDtoJsonSerializer<PowerZoneDto> {
     protected PowerZoneDtoJsonSerializer() {
         super(PowerZoneDto.class);
     }
@@ -42,7 +41,7 @@ public class PowerZoneDtoJsonSerializer extends DtoJsonSerializer<PowerZoneDto> 
     protected PowerZoneJson translate(PowerZoneDto dto) {
         PowerZoneJson json = new PowerZoneJson();
 
-        ODataId oDataId = oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         json.oDataId = oDataId;
         json.oDataContext = getContextFromId(oDataId);
         json.id = dto.getId();
@@ -61,20 +60,20 @@ public class PowerZoneDtoJsonSerializer extends DtoJsonSerializer<PowerZoneDto> 
         return json;
     }
 
-    private void addPowerSupplies(PowerZoneJson json, List<PowerSupplyDto> powerSupplies) {
+    private void addPowerSupplies(PowerZoneJson json, List<PowerZonePowerSupplyDto> powerSupplies) {
         json.powerSupplies.addAll(powerSupplies.stream().map(this::createPowerSupply).collect(toList()));
     }
 
-    private PowerSupplyJson createPowerSupply(PowerSupplyDto dto) {
-        PowerSupplyJson json = new PowerSupplyJson();
+    private PowerZonePowerSupplyJson createPowerSupply(PowerZonePowerSupplyDto dto) {
+        PowerZonePowerSupplyJson json = new PowerZonePowerSupplyJson();
         json.name = dto.getName();
         json.status = dto.getStatus();
         json.powerCapacityWatts = dto.getPowerCapacityWatts();
         json.lastPowerOutputWatts = dto.getLastPowerOutputWatt();
         json.manufacturer = dto.getManufacturer();
-        json.firmwareVersion = dto.getFirmwareVersion();
+        json.firmwareRevision = dto.getFirmwareRevision();
         json.serialNumber = dto.getSerialNumber();
-        json.model = dto.getModel();
+        json.modelNumber = dto.getModelNumber();
         json.partNumber = dto.getPartNumber();
         json.rackLocation = toRackLocation(dto.getRackLocation());
 
@@ -82,10 +81,10 @@ public class PowerZoneDtoJsonSerializer extends DtoJsonSerializer<PowerZoneDto> 
     }
 
     private RackLocationAttributeJson toRackLocation(RackLocationDto rackLocation) {
-        return isNull(rackLocation) ? null : new RackLocationAttributeJson(
-                rackLocation.getuLocation(),
-                rackLocation.getuHeight(),
-                rackLocation.getxLocation(),
-                rackLocation.getRackUnitType());
+        return rackLocation == null ? null : new RackLocationAttributeJson(
+            rackLocation.getuLocation(),
+            rackLocation.getuHeight(),
+            rackLocation.getxLocation(),
+            rackLocation.getRackUnitType());
     }
 }

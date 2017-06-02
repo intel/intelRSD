@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.intel.podm.client.api;
 import com.intel.podm.client.api.resources.ExternalServiceResource;
 
 import java.net.URI;
+import java.util.Optional;
 
 public interface WebClient extends AutoCloseable {
     URI getBaseUri();
@@ -28,6 +29,14 @@ public interface WebClient extends AutoCloseable {
 
     ExternalServiceResource get(URI uri) throws ExternalServiceApiReaderException;
     <T> URI post(URI requestUri, T obj) throws ExternalServiceApiActionException;
-    <T> void patch(URI requestUri, T obj) throws ExternalServiceApiActionException;
+    <T> Optional<ExternalServiceResource> patch(URI requestUri, T obj) throws ExternalServiceApiActionException;
     void delete(URI requestUri) throws ExternalServiceApiActionException;
+
+    /**
+     *  Performs PATCH request using obj on requestUri and returns patched resource (performs additional GET on it if necessary)
+     */
+    default <T extends ExternalServiceResource> T patchAndRetrieve(URI requestUri, Object obj)
+        throws ExternalServiceApiActionException, ExternalServiceApiReaderException {
+        return (T) patch(requestUri, obj).orElse(get(requestUri));
+    }
 }

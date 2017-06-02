@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,7 @@
  * @brief tgt response inteface
 */
 
-#ifndef ISCSI_TGT_RESPONSE_HPP
-#define ISCSI_TGT_RESPONSE_HPP
-
+#pragma once
 #include "errors.hpp"
 #include <string>
 #include <vector>
@@ -90,4 +88,3 @@ private:
 }
 }
 
-#endif /* ISCSI_TGT_RESPONSE_HPP */

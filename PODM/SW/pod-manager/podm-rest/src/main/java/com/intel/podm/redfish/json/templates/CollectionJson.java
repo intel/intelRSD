@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@ package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "name", "description", "Members@odata.count", "members"})
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public final class CollectionJson extends BaseJson {
     public String name;
     public String description;

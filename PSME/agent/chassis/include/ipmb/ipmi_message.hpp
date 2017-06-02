@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,15 +25,11 @@
  * @brief IPMI message.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_IPMI_MESSAGE_HPP
-#define AGENT_CHASSIS_IPMB_IPMI_MESSAGE_HPP
-
+#pragma once
 #include <ipmb/utils.hpp>
 
 #include <cstdint>
-#include <thread>
 #include <vector>
-
 
 /*! Agent namspace */
 namespace agent {
@@ -250,15 +246,11 @@ public:
     const std::string print_msg() const;
 
     /*! Converts IPMI Message to buffer
-     * @param buffer response buffer to fill */
-    void to_rsp_buffer(uint8_t* buffer);
+     * @return buffer filled with IPMI message */
+    std::vector<uint8_t> as_byte_array();
 };
 
-/*! IPMI Message shared pointer */
-using IpmiMessageSharedPtr = std::shared_ptr<IpmiMessage>;
-
 }
 }
 }
 
-#endif

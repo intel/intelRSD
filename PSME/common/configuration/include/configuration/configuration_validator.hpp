@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,12 +26,9 @@
  * @brief Configuration validator includes
  * */
 
-#ifndef CONFIGURATION_CONFIGURATION_VALIDATOR_HPP
-#define CONFIGURATION_CONFIGURATION_VALIDATOR_HPP
-
+#pragma once
 #include "schema_validator.hpp"
 #include "schema_errors.hpp"
 #include "schema_reader.hpp"
 #include "utils.hpp"
 
-#endif /* CONFIGURATION_CONFIGURATION_VALIDATOR_HPP */

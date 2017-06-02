@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import static com.intel.podm.common.utils.IterableHelper.single;
 
 @Dependent
 public class BeanFactory implements Serializable {
+    private static final long serialVersionUID = -6691592134302488258L;
+
     @Inject
     BeanManager beanManager;
 

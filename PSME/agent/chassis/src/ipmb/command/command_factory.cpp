@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,7 @@ using namespace agent::chassis::ipmb::command;
 CommandUniquePtr CommandFactory::get_command(const uint8_t lun,
         const NetFn netfn, const CmdCode cmd_code) {
 
-    CommandUniquePtr cmd { nullptr };
+    CommandUniquePtr cmd {};
 
     if (IPMI_MSG_DEFAULT_LUN == lun) {
         if (NetFn::IPMI_NETFN_APP == netfn) {
@@ -65,8 +65,6 @@ CommandUniquePtr CommandFactory::get_command(const uint8_t lun,
                 cmd.reset(new WarmReset());
                 break;
             default:
-                log_warning(LOGUSR, "Unknown IPMI command.");
-                cmd.reset(new UnknownCommand());
                 break;
             }
         }
@@ -86,11 +84,11 @@ CommandUniquePtr CommandFactory::get_command(const uint8_t lun,
                 break;
             case CmdCode::GET_ID_FIELD:
                 log_debug(LOGUSR, "Execute Get ID Field IPMI command.");
-                cmd.reset(new GetIDField());
+                cmd.reset(new GetIdField());
                 break;
             case CmdCode::SET_ID_FIELD:
                 log_debug(LOGUSR, "Execute Set ID Field IPMI command.");
-                cmd.reset(new SetIDField());
+                cmd.reset(new SetIdField());
                 break;
             case CmdCode::SET_AUTHORIZED_CERT:
                 log_debug(LOGUSR, "Execute Set Authorization Certificate IPMI command.");
@@ -105,8 +103,6 @@ CommandUniquePtr CommandFactory::get_command(const uint8_t lun,
                 cmd.reset(new GetAuthorizationCertificateHash());
                 break;
             default:
-                log_warning(LOGUSR, "Unknown IPMI command.");
-                cmd.reset(new UnknownCommand());
                 break;
             }
         }
@@ -121,8 +117,6 @@ CommandUniquePtr CommandFactory::get_command(const uint8_t lun,
                 cmd.reset(new SetLanConfiguration());
                 break;
             default:
-                log_warning(LOGUSR, "Unknown IPMI command.");
-                cmd.reset(new UnknownCommand());
                 break;
             }
         }
@@ -134,22 +128,16 @@ CommandUniquePtr CommandFactory::get_command(const uint8_t lun,
                 cmd.reset(new GetSledPresence());
                 break;
             default:
-                log_warning(LOGUSR, "Unknown IPMI command.");
-                cmd.reset(new UnknownCommand());
                 break;
             }
         }
     }
-    else {
-        log_warning(LOGUSR, "Unknown unsupported LUN 0x" << std::hex << lun);
-        cmd.reset(new UnknownCommand());
-    }
 
     if (!cmd) {
-        log_warning(LOGUSR, "Unknown unsupported Command 0");
+        log_warning(LOGUSR, "Unrecognized Command lun: 0x" << std::hex << int(lun)
+                             << " netfn: 0x" << int(netfn) << " cmd: 0x" << int(cmd_code));
         cmd.reset(new UnknownCommand());
     }
 
     return cmd;
 }
-

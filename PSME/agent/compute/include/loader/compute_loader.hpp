@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,8 @@
  * @brief Module loader interface
  * */
 
-#ifndef AGENT_COMPUTE_LOADER_COMPUTE_LOADER_HPP
-#define AGENT_COMPUTE_LOADER_COMPUTE_LOADER_HPP
-
-#include "agent-framework/module-ref/loader/loader.hpp"
+#pragma once
+#include "agent-framework/module/loader/loader.hpp"
 
 namespace agent {
 namespace compute {
@@ -33,9 +31,10 @@ namespace loader {
 
 /*!
  * @brief Loads Compute Loader.
- * Builds minor objects: hard drive, network interfaces, modules to construct
- * Compute Agent.
- */
+ *
+ * Builds minor objects: hard drive, network interfaces, modules
+ * to construct Compute Agent.
+ * */
 class ComputeLoader : public agent_framework::module::loader::Loader {
 public:
 
@@ -44,14 +43,13 @@ public:
 
     /*!
      * @brief Loads compute configuration file and build compute.
-     * @param json instance of json::Value with loaded compute configuration.
-     */
+     * @param[in] json instance of json::Value with loaded compute configuration.
+     * @return true if success otherwise false
+     * */
     bool load(const json::Value& json) override;
 };
 
 }
 }
 }
-
-#endif /* AGENT_FRAMEWORK_MODULE_MODULE_MANAGER_HPP */
 

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,18 +18,21 @@
 
 set(SOURCES
     error_codes.cpp
-    exception_base.cpp
+    gami_exception.cpp
     not_found.cpp
-    invalid_parameters.cpp
     invalid_field.cpp
     invalid_uuid.cpp
+    invalid_value.cpp
+    invalid_collection.cpp
     not_implemented.cpp
     iscsi_error.cpp
     lvm_error.cpp
     fm10000_error.cpp
-    unsupported_parameter.cpp
+    ipmi_error.cpp
+    unsupported_field.cpp
     unsupported_value.cpp
     certificate_error.cpp
+    pcie_fabric_error.cpp
 )
 
 add_library(exceptions OBJECT ${SOURCES})

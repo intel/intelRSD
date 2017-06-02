@@ -1,11 +1,15 @@
 package com.intel.podm.mappers;
 
+import org.modelmapper.Condition;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
-import org.modelmapper.internal.MappingContextImpl;
 import org.modelmapper.spi.MatchingStrategy;
 import org.modelmapper.spi.PropertyInfo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -13,23 +17,23 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Sets.newHashSet;
+import static com.intel.podm.mappers.Conditions.refMappingCondition;
+import static com.intel.podm.mappers.Converters.refConverter;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang.BooleanUtils.negate;
 import static org.modelmapper.convention.MatchingStrategies.STRICT;
 
 /**
  * Base class for automated mappers.
+ *
  * @param <S> Source class
  * @param <T> Target Class
  */
 public abstract class BrilliantMapper<S, T> implements Mapper<S, T> {
-    private final Map<Class, Function> providers = newHashMap();
-    private final List<TypeMap> typeMaps = newArrayList();
-    private final Set<String> ignoredProperties = newHashSet();
+    private final Map<Class, Function> providers = new HashMap<>();
+    private final List<TypeMap> typeMaps = new ArrayList<>();
+    private final Set<String> ignoredProperties = new HashSet<>();
     private final Class<S> sourceClass;
     private final Class<T> targetClass;
     private ModelMapper mapper;
@@ -56,10 +60,6 @@ public abstract class BrilliantMapper<S, T> implements Mapper<S, T> {
         return targetClass;
     }
 
-    /**
-     * Performs mapping which cannot be automated for some reasons. Try to avoid overriding this method.
-     * Provide better automation mechanisms instead.
-     */
     protected void performNotAutomatedMapping(S source, T target) {
     }
 
@@ -67,28 +67,29 @@ public abstract class BrilliantMapper<S, T> implements Mapper<S, T> {
         providers.put(targetClass, targetClassProvider);
     }
 
-    protected final void addIgnoredProperty(String ignoredProperty) {
-        ignoredProperties.add(ignoredProperty);
+    protected final void ignoredProperties(String... props) {
+        ignoredProperties.clear();
+        ignoredProperties.addAll(Arrays.asList(props));
     }
 
-    private void configureMapper(ModelMapper modelMapper) {
+    private void configureMapper(ModelMapper modelMapper, MatchingStrategy strategy) {
         modelMapper.getConfiguration().setProvider(request -> {
             Function requestedTypeProvider = providers.get(request.getRequestedType());
             return requestedTypeProvider == null ? null : requestedTypeProvider.apply(request.getSource());
         });
-        modelMapper.getConfiguration().setPropertyCondition(context -> {
-            Optional<String> ignoredProperty = getDestinationPropertiesFromMappingContext((MappingContextImpl) context).stream()
-                    .filter(ignoredProperties::contains)
-                    .findAny();
-            return !ignoredProperty.isPresent();
-        });
+
+        List<Condition> conditions = asList(
+                refMappingCondition(),
+                ignoredPropertiesCondition()
+        );
+        modelMapper.getConfiguration().getConverters().add(refConverter());
+        modelMapper.getConfiguration().setPropertyCondition(context -> conditions.stream().allMatch(condition -> condition.applies(context)));
+        modelMapper.getConfiguration().setMatchingStrategy(strategy);
     }
 
     private void setMatchingStrategy(MatchingStrategy strategy) {
         mapper = new ModelMapper();
-        configureMapper(mapper);
-
-        mapper.getConfiguration().setMatchingStrategy(strategy);
+        configureMapper(mapper, strategy);
 
         typeMaps.clear();
         typeMaps.addAll(createTypeMaps(getSourceClass(), getTargetClass()));
@@ -96,12 +97,13 @@ public abstract class BrilliantMapper<S, T> implements Mapper<S, T> {
 
     /**
      * Creates type map for each interface in inheritance hierarchy.
+     *
      * @param source source Class
      * @param target target Class
      * @return List of TypeMap objects for each interface in inheritance hierarchy.
      */
     private List<TypeMap> createTypeMaps(Class source, Class target) {
-        List<TypeMap> maps = newArrayList();
+        List<TypeMap> maps = new ArrayList<>();
 
         Optional<TypeMap> typeMapOption = ofNullable(mapper.getTypeMap(source, target));
         TypeMap typeMap = typeMapOption.orElseGet(() -> mapper.createTypeMap(source, target));
@@ -117,16 +119,14 @@ public abstract class BrilliantMapper<S, T> implements Mapper<S, T> {
         return maps;
     }
 
-    private Set<String> getDestinationPropertiesFromMappingContext(MappingContextImpl mappingContext) {
-        Set<String> destinationProperties = newHashSet();
-        if (mappingContext != null && mappingContext.getMapping() != null) {
-            destinationProperties.addAll(
-                    mappingContext.getMapping().getDestinationProperties().stream()
-                            .map(PropertyInfo::getName)
-                            .filter(Objects::nonNull)
-                            .collect(toSet()));
-        }
-
-        return destinationProperties;
+    private Condition<?, ?> ignoredPropertiesCondition() {
+        return context -> negate(
+                context.getMapping().getDestinationProperties().stream()
+                        .map(PropertyInfo::getName)
+                        .filter(Objects::nonNull)
+                        .filter(ignoredProperties::contains)
+                        .findFirst()
+                        .isPresent()
+        );
     }
 }

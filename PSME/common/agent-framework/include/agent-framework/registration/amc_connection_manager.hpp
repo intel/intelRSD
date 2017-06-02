@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief AMC application connection manager
  * */
 
-#ifndef AGENT_FRAMEWORK_AMC_CONNECTION_MANAGER_HPP
-#define AGENT_FRAMEWORK_AMC_CONNECTION_MANAGER_HPP
-
+#pragma once
 #include "agent-framework/eventing/event_dispatcher.hpp"
 #include "agent-framework/threading/thread.hpp"
 #include "agent-framework/logger_ext.hpp"
@@ -84,4 +82,3 @@ private:
 }
 }
 
-#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.intel.podm.assembly.tasks;
 
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.business.entities.redfish.LogicalDrive;
@@ -39,7 +39,7 @@ public class NewRemoteDriveTaskFactory {
     @Inject
     private GenericDao genericDao;
 
-    public NewRemoteDriveAssemblyTask create(Id logicalDriveId, URI sourceUri, RequestedRemoteDrive drive) {
+    public NewRemoteDriveAssemblyTask create(Id logicalDriveId, URI sourceUri, RequestedNode.RemoteDrive drive) {
         NewRemoteDriveAssemblyTask newRemoteDriveAssemblyTask = beanFactory.create(NewRemoteDriveAssemblyTask.class);
 
         LogicalDrive lvg = genericDao.find(LogicalDrive.class, logicalDriveId);

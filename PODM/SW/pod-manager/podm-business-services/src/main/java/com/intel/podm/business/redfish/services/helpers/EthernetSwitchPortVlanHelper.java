@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,37 @@
 package com.intel.podm.business.redfish.services.helpers;
 
 import com.intel.podm.actions.ActionException;
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.Id;
 
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.net.URI;
+import javax.transaction.Transactional;
 
+import static javax.transaction.Transactional.TxType.MANDATORY;
+
+@Dependent
 public class EthernetSwitchPortVlanHelper {
     @Inject
-    private DomainObjectTreeTraverser traverser;
+    private EntityTreeTraverser traverser;
 
-    public URI validateAndGetVlanUri(Id parentId, Context vlanContext) throws ActionException {
-        if (vlanContext == null) {
+    @Transactional(MANDATORY)
+    public EthernetSwitchPortVlan validateAndGetVlan(EthernetSwitchPort switchPort, Context primaryVlan)
+            throws ActionException {
+        if (primaryVlan == null) {
             return null;
         }
-        EthernetSwitchPortVlan vlan = convertVlanContextToVlan(vlanContext);
-        verifyVlanToSwitchPortRelation(parentId, vlan);
+        EthernetSwitchPortVlan vlan = convertVlanContextToVlan(primaryVlan);
+        verifyVlanToSwitchPortRelation(switchPort, vlan);
 
-        return vlan.getSourceUri();
+        return vlan;
     }
 
-    private void verifyVlanToSwitchPortRelation(Id parentId, EthernetSwitchPortVlan vlan) throws ActionException {
-        if (!parentId.equals(vlan.getSwitchPort().getId())) {
+    private void verifyVlanToSwitchPortRelation(EthernetSwitchPort switchPort, EthernetSwitchPortVlan vlan) throws ActionException {
+        if (!switchPort.equals(vlan.getEthernetSwitchPort())) {
             throw new ActionException("Provided VLAN doesn't belong to proper switch port");
         }
     }
@@ -49,7 +55,7 @@ public class EthernetSwitchPortVlanHelper {
     private EthernetSwitchPortVlan convertVlanContextToVlan(Context vlanContext) throws ActionException {
         try {
             return (EthernetSwitchPortVlan) traverser.traverse(vlanContext);
-        } catch (EntityNotFoundException e) {
+        } catch (ContextResolvingException e) {
             throw new ActionException("Provided VLAN was not found in specified context");
         }
     }

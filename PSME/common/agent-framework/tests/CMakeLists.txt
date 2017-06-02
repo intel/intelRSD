@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,19 +25,22 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
-if (ENABLE_VALGRIND_DRD)
-    link_libraries(${VALGRINDCXX_LIBRARIES})
-endif()
-
 add_subdirectory(mocks)
 add_subdirectory(configuration)
-add_subdirectory(module-ref)
+add_subdirectory(module)
 add_subdirectory(command)
 add_subdirectory(state_machine)
 add_subdirectory(eventing)
-add_subdirectory(module)
 add_subdirectory(validators)
+add_subdirectory(version)
 
 # TODO: Uncomment this after setcap will be add to build process
 # to allow use of ping for non-root user.
 #add_subdirectory(status)
+
+add_custom_target(unittest_agent-framework
+                  make
+)
+add_custom_target(unittest_agent-framework_run
+                  ctest --output-on-failure
+)

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,12 +20,11 @@
  *
  * @file /ipmi/management_controller.hpp
  *
- * @brief Interface for IPMI Management Controller. Implement this interface to
- * handle connections and sending/receiving commands.
+ * @brief Interface for IPMI Management Controller.
+ * Implement this interface to handle connections and sending/receiving commands.
  * */
 
-#ifndef IPMI_MANAGEMENTCONTROLLER_HPP
-#define IPMI_MANAGEMENTCONTROLLER_HPP
+#pragma once
 
 #include "request.hpp"
 #include "response.hpp"
@@ -34,8 +33,8 @@
 
 namespace ipmi {
 
- /*!
- * @brief ManagementController interafce.
+/*!
+ * @brief ManagementController interface.
  * */
 class ManagementController {
 public:
@@ -47,7 +46,7 @@ public:
      * @param request command to be send.
      * @param response buffer for output/response.
      */
-    virtual void send(const Request & request, Response & response) = 0;
+    virtual void send(const Request& request, Response& response) = 0;
 
     /*!
      * Sets username to connect to management controller.
@@ -121,5 +120,4 @@ private:
 };
 
 }
-#endif	/* MANAGEMENTCONTROLLER_HPP */
 

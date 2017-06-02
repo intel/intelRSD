@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,176 +16,237 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.Manageable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.SuppressEvents;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.common.types.Id;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
-import java.util.Collection;
+import javax.persistence.Column;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.MANAGED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class EthernetSwitch extends DomainObject implements Discoverable, Manageable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<String> SWITCH_ID = stringProperty("switchId");
-    public static final DomainObjectProperty<String> MANUFACTURER = stringProperty("manufacturer");
-    public static final DomainObjectProperty<String> MANUFACTURING_DATE = stringProperty("manufacturingDate");
-    public static final DomainObjectProperty<String> MODEL = stringProperty("model");
-    public static final DomainObjectProperty<String> SERIAL_NUMBER = stringProperty("serialNumber");
-    public static final DomainObjectProperty<String> PART_NUMBER = stringProperty("partNumber");
-    public static final DomainObjectProperty<String> FIRMWARE_NAME = stringProperty("firmwareName");
-    public static final DomainObjectProperty<String> FIRMWARE_VERSION = stringProperty("firmwareVersion");
-    public static final DomainObjectProperty<String> ROLE = stringProperty("role");
+@javax.persistence.Entity
+@Table(name = "ethernet_switch", indexes = @Index(name = "idx_ethernet_switch_entity_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class EthernetSwitch extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "switch_id")
+    private String switchId;
+
+    @Column(name = "manufacturer")
+    private String manufacturer;
+
+    @Column(name = "manufacturing_date")
+    private String manufacturingDate;
+
+    @Column(name = "model")
+    private String model;
+
+    @Column(name = "serial_number")
+    private String serialNumber;
+
+    @Column(name = "part_number")
+    private String partNumber;
+
+    @Column(name = "firmware_name")
+    private String firmwareName;
+
+    @Column(name = "firmware_version")
+    private String firmwareVersion;
+
+    @Column(name = "role")
+    private String role;
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "ethernetSwitch", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitchPort> ports = new HashSet<>();
+
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "ethernet_switch_manager",
+        joinColumns = {@JoinColumn(name = "ethernet_switch_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "manager_id", referencedColumnName = "id")})
+    private Set<Manager> managers = new HashSet<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "chassis_id")
+    private Chassis chassis;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public String getSwitchId() {
-        return getProperty(SWITCH_ID);
+        return switchId;
     }
 
     public void setSwitchId(String switchId) {
-        setProperty(SWITCH_ID, switchId);
+        this.switchId = switchId;
     }
 
     public String getManufacturer() {
-        return getProperty(MANUFACTURER);
+        return manufacturer;
     }
 
     public void setManufacturer(String manufacturer) {
-        setProperty(MANUFACTURER, manufacturer);
+        this.manufacturer = manufacturer;
     }
 
     public String getManufacturingDate() {
-        return getProperty(MANUFACTURING_DATE);
+        return manufacturingDate;
     }
 
     public void setManufacturingDate(String manufacturingDate) {
-        setProperty(MANUFACTURING_DATE, manufacturingDate);
+        this.manufacturingDate = manufacturingDate;
     }
 
     public String getModel() {
-        return getProperty(MODEL);
+        return model;
     }
 
     public void setModel(String model) {
-        setProperty(MODEL, model);
+        this.model = model;
     }
 
     public String getSerialNumber() {
-        return getProperty(SERIAL_NUMBER);
+        return serialNumber;
     }
 
     public void setSerialNumber(String serialNumber) {
-        setProperty(SERIAL_NUMBER, serialNumber);
+        this.serialNumber = serialNumber;
     }
 
     public String getPartNumber() {
-        return getProperty(PART_NUMBER);
+        return partNumber;
     }
 
     public void setPartNumber(String partNumber) {
-        setProperty(PART_NUMBER, partNumber);
+        this.partNumber = partNumber;
     }
 
     public String getFirmwareName() {
-        return getProperty(FIRMWARE_NAME);
+        return firmwareName;
     }
 
     public void setFirmwareName(String firmwareName) {
-        setProperty(FIRMWARE_NAME, firmwareName);
+        this.firmwareName = firmwareName;
     }
 
     public String getFirmwareVersion() {
-        return getProperty(FIRMWARE_VERSION);
+        return firmwareVersion;
     }
 
     public void setFirmwareVersion(String version) {
-        setProperty(FIRMWARE_VERSION, version);
+        this.firmwareVersion = version;
     }
 
     public String getRole() {
-        return getProperty(ROLE);
+        return role;
     }
 
     public void setRole(String role) {
-        setProperty(ROLE, role);
+        this.role = role;
     }
 
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
+    public Set<EthernetSwitchPort> getPorts() {
+        return ports;
     }
 
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
+    public void addPort(EthernetSwitchPort ethernetSwitchPort) {
+        requiresNonNull(ethernetSwitchPort, "ethernetSwitchPort");
+
+        ports.add(ethernetSwitchPort);
+        if (!this.equals(ethernetSwitchPort.getEthernetSwitch())) {
+            ethernetSwitchPort.setEthernetSwitch(this);
+        }
+    }
+
+    public void unlinkPort(EthernetSwitchPort ethernetSwitchPort) {
+        if (ports.contains(ethernetSwitchPort)) {
+            ports.remove(ethernetSwitchPort);
+            if (ethernetSwitchPort != null) {
+                ethernetSwitchPort.unlinkEthernetSwitch(this);
+            }
+        }
+    }
+
+    public Set<Manager> getManagers() {
+        return managers;
+    }
+
+    public void addManager(Manager manager) {
+        requiresNonNull(manager, "manager");
+
+        managers.add(manager);
+        if (!manager.getEthernetSwitches().contains(this)) {
+            manager.addEthernetSwitch(this);
+        }
+    }
+
+    public void unlinkManager(Manager manager) {
+        if (managers.contains(manager)) {
+            managers.remove(manager);
+            if (manager != null) {
+                manager.unlinkEthernetSwitch(this);
+            }
+        }
     }
 
     public Chassis getChassis() {
-        return singleOrNull(getLinked(CONTAINED_BY, Chassis.class));
+        return chassis;
     }
 
-    public void addPort(EthernetSwitchPort port) {
-        link(CONTAINS, port);
+    public void setChassis(Chassis chassis) {
+        if (!Objects.equals(this.chassis, chassis)) {
+            unlinkChassis(this.chassis);
+            this.chassis = chassis;
+            if (chassis != null && !chassis.getEthernetSwitches().contains(this)) {
+                chassis.addEthernetSwitch(this);
+            }
+        }
     }
 
-    public Collection<EthernetSwitchPort> getPortCollection() {
-        return getLinked(CONTAINS, EthernetSwitchPort.class);
-    }
-
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
-    }
-
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public void unlinkChassis(Chassis chassis) {
+        if (Objects.equals(this.chassis, chassis)) {
+            this.chassis = null;
+            if (chassis != null) {
+                chassis.unlinkEthernetSwitch(this);
+            }
+        }
     }
 
     @Override
-    public Collection<Manager> getManagers() {
-        return getLinked(MANAGED_BY);
+    public void preRemove() {
+        unlinkCollection(ports, this::unlinkPort);
+        unlinkCollection(managers, this::unlinkManager);
+        unlinkChassis(chassis);
     }
 
     @Override
-    public void addManager(Manager manager) {
-        link(MANAGED_BY, manager);
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, chassis);
     }
 }

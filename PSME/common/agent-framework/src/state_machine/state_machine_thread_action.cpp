@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,14 +23,13 @@
 */
 
 #include "agent-framework/state_machine/state_machine_thread_action.hpp"
+#include "agent-framework/state_machine/state_thread_entry.hpp"
 
 using namespace agent_framework;
 using namespace agent_framework::state_machine;
 
 StateMachineThreadAction::~StateMachineThreadAction() { }
 
-void StateMachineThreadAction::execute(const std::string&,
-                                       const enums::State,
-                                       const enums::Transition) {}
+void StateMachineThreadAction::execute(StateThreadEntrySharedPtr) {}
 
 

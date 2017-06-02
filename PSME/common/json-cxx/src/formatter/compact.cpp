@@ -122,10 +122,10 @@ void Compact::write_string(const Value& value) {
 void Compact::write_number(const Value& value) {
     switch (Number(value).get_type()) {
     case Number::Type::INT:
-        m_writter->append(std::to_string(Int(value)));
+        m_writter->append(std::to_string(Int64(value)));
         break;
     case Number::Type::UINT:
-        m_writter->append(std::to_string(Uint(value)));
+        m_writter->append(std::to_string(Uint64(value)));
         break;
     case Number::Type::DOUBLE: {
         std::stringstream stream;

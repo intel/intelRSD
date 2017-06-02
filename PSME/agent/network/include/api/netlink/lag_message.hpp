@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,8 @@
  * @brief Switch Lag configuration
  * */
 
-#ifndef AGENT_NETWORK_NETLINK_LAG_MESSAGE_HPP
-#define AGENT_NETWORK_NETLINK_LAG_MESSAGE_HPP
-
-#include "netlink/message.hpp"
+#pragma once
+#include "api/netlink/link_message.hpp"
 
 namespace agent {
 namespace network {
@@ -34,39 +32,42 @@ namespace api {
 namespace netlink {
 
 /*! Lag Message */
-class LagMessage: public netlink_base::Message {
+class LagMessage: public agent::network::api::netlink::LinkMessage {
 public:
     /*!
      * @brief Default constructor.
+     *
      * @param[in] lag Lag interface name.
      * @param[in] port Port interface name.
-     */
-    LagMessage(const IfName& lag, const IfName& port);
+     * */
+    LagMessage(const std::string& lag, const std::string& port);
 
     /*!
      * @brief Default destructor.
-     */
+     * */
     virtual ~LagMessage();
 
     /*!
      * @brief Set Lag port name.
+     *
      * @param[in] port Lag port interface name.
-     */
-    void set_member_name(const IfName& port) { m_port = port; }
+     * */
+    void set_member_name(const std::string& port) { m_port = port; }
 
     /*!
      * @brief Get Lag port name.
+     *
      * @return m_port Lag port interface name.
-     */
-    IfName get_member_name() const { return m_port; }
-
-    /*!
-     * @brief Prepare add Lag netlink message.
-     * @return Netlink message ready to be sent.
-     */
-    Pointer prepare_netlink_msg() const;
+     * */
+    const std::string& get_member_name() const { return m_port; }
 
 protected:
+    /*!
+     * @brief Prepare message to be sent
+     *
+     * @param[out] msg message to be prepared.
+     * */
+    void prepare_link_message(struct nl_msg* msg) override;
 
     /*! @brief Linux driver kind name used for
      *         hardware offloading of LAG feature. */
@@ -74,7 +75,7 @@ protected:
 
 private:
 
-    IfName m_port;
+    std::string m_port;
 };
 
 }
@@ -82,4 +83,3 @@ private:
 }
 }
 
-#endif /* AGENT_NETWORK_NETLINK_LAG_MESSAGE_HPP */

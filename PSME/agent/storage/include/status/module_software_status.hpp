@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief Module software status implementation
 */
 
-#ifndef AGENT_STORAGE_STATUS_MODULE_SOFTWARE_STATUS_HPP
-#define AGENT_STORAGE_STATUS_MODULE_SOFTWARE_STATUS_HPP
-
+#pragma once
 #include "agent-framework/status/module_software_status.hpp"
 
 /*! Agent namespace */
@@ -54,5 +52,4 @@ public:
 }
 }
 }
-#endif /* AGENT_STORAGE_STATUS_MODULE_SOFTWARE_STATUS_HPP */
 

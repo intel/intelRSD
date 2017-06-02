@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,10 @@
 package com.intel.podm;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.config.base.Config;
-import com.intel.podm.config.base.Holder;
-import com.intel.podm.config.base.dto.DiscoveryConfig;
 import com.intel.podm.config.version.VersionLoader;
-import com.intel.podm.discovery.external.ComposedNodeSanitizer;
-import com.intel.podm.discovery.external.ComputerSystemSanitizer;
-import com.intel.podm.discovery.external.ExternalServiceSanitizer;
-import com.intel.podm.discovery.external.deep.DeepDiscoveryTaskScheduler;
-import com.intel.podm.services.detection.ServiceDetector;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -35,55 +28,21 @@ import javax.inject.Inject;
 
 @Singleton
 @Startup
-@DependsOn({"DomainObjectModelStartup", "PodStartupDiscovery"})
+@DependsOn({"DiscoveryStartup", "SsdpServiceDetector", "DhcpServiceDetector", "MetricActivator"})
 public class ApplicationStartup {
+    @Inject
+    private Logger logger;
 
     @Inject
-    Logger logger;
-
-    @Inject
-    ServiceDetector serviceDetector;
-
-    @Inject
-    DeepDiscoveryTaskScheduler deepDiscoveryTaskScheduler;
-
-    @Inject
-    VersionLoader versionLoader;
-
-    @Inject @Config
-    Holder<DiscoveryConfig> discoveryConfig;
-
-    @Inject
-    ExternalServiceSanitizer externalServiceSanitizer;
-
-    @Inject
-    ComputerSystemSanitizer computerSystemSanitizer;
-
-    @Inject
-    ComposedNodeSanitizer composedNodeSanitizer;
+    private VersionLoader versionLoader;
 
     @PostConstruct
-    public void applicationStartup() {
-        logger.d("Sanitizing existing external services");
-        externalServiceSanitizer.sanitizeExistingServices();
-
-        if (discoveryConfig.get().isDeepDiscoveryEnabled()) {
-            logger.d("Reinitializing deep discovery process on computer systems that were left in DeepInProgress state");
-            computerSystemSanitizer.sanitizeComputerSystemsUsedForDeepDiscovery();
-        }
-
-        logger.d("Failing all composed nodes that were not assembled before restart");
-        composedNodeSanitizer.sanitizeComputerSystemsUsedInComposedNodes();
-
-        logger.d("Starting uri polling");
-        serviceDetector.pollForServices();
-
-        if (discoveryConfig.get().isDeepDiscoveryEnabled()) {
-            logger.d("Starting deep discovery scheduling task");
-            deepDiscoveryTaskScheduler.start();
-        }
-
+    public void initialize() {
         logger.i("PodM started (version: {})", versionLoader.loadAppVersion());
     }
 
+    @PreDestroy
+    public void shutdown() {
+        logger.i("PodM is shutting down (version: {})", versionLoader.loadAppVersion());
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package com.intel.podm.security.providers;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -27,21 +29,25 @@ import java.security.NoSuchAlgorithmException;
 
 import static javax.net.ssl.SSLContext.getInstance;
 
-public final class SslContextProvider {
+@Singleton
+public class SslContextProvider {
 
     private static final String PROTOCOL = "TLSv1.2";
 
-    private static Logger logger = LoggerFactory.getLogger(SslContextProvider.class);
+    @Inject
+    private Logger logger;
 
-    private static SSLContext context;
+    @Inject
+    private SslConnectionManagersProvider keyManagersProvider;
 
-    private SslContextProvider() {
+    private SSLContext context;
 
+    public SSLContext getContext() {
+        return context;
     }
 
-    public static SSLContext getContext() {
-        SslConnectionManagersProvider keyManagersProvider = new SslConnectionManagersProvider();
-
+    @PostConstruct
+    private void init() {
         try {
             if (context == null) {
                 KeyManager[] keyManagers = keyManagersProvider.getKeyManagersArray();
@@ -49,7 +55,6 @@ public final class SslContextProvider {
                 context = getInstance(PROTOCOL);
                 context.init(keyManagers, trustManagers, null);
             }
-            return context;
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             logger.e("Keystore has not been initialized {}", e.getMessage());
             throw new RuntimeException("Keystore has not been initialized", e);

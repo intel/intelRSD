@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
@@ -26,23 +25,20 @@ import com.intel.podm.client.api.resources.redfish.ManagerResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.client.resources.ODataId;
 import com.intel.podm.common.types.ManagerType;
+import com.intel.podm.common.types.PowerState;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.OemType;
 
 import java.util.List;
 import java.util.UUID;
 
+import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
 import static java.util.Collections.emptyList;
 
 @OdataTypes({
-        "#Manager.1.0.0.Manager",
-        "#Manager.1.0.1.Manager",
-        "#Manager.1.0.2.Manager",
-        "#Manager.1.1.0.Manager",
-        "#Manager.v1_0_0.Manager",
-        "#Manager.v1_0_1.Manager",
-        "#Manager.v1_0_2.Manager",
-        "#Manager.v1_1_0.Manager"
+    "#Manager" + OdataTypes.VERSION_PATTERN + "Manager"
 })
+@SuppressWarnings({"checkstyle:MethodCount"})
 public class ManagerResourceImpl extends ExternalServiceResourceImpl implements ManagerResource {
     @JsonProperty("UUID")
     private UUID uuid;
@@ -58,6 +54,9 @@ public class ManagerResourceImpl extends ExternalServiceResourceImpl implements 
 
     @JsonProperty("Status")
     private Status status;
+
+    @JsonProperty("PowerState")
+    private PowerState powerState;
 
     @JsonProperty("GraphicalConsole")
     private GraphicalConsoleObjectImpl graphicalConsole;
@@ -78,7 +77,7 @@ public class ManagerResourceImpl extends ExternalServiceResourceImpl implements 
     private ODataId ethernetInterfaces;
 
     @JsonProperty("Links")
-    private Links links;
+    private Links links = new Links();
 
     @Override
     public UUID getUuid() {
@@ -103,6 +102,11 @@ public class ManagerResourceImpl extends ExternalServiceResourceImpl implements 
     @Override
     public Status getStatus() {
         return status;
+    }
+
+    @Override
+    public PowerState getPowerState() {
+        return powerState;
     }
 
     @Override
@@ -165,7 +169,7 @@ public class ManagerResourceImpl extends ExternalServiceResourceImpl implements 
     @Override
     @LinkName("managedEthernetSwitches")
     public Iterable<ResourceSupplier> getManagedEthernetSwitches() throws ExternalServiceApiReaderException {
-        return toSuppliers(links.managerForSwitches);
+        return toSuppliers(links.oem.rackScaleOem.managerForSwitches);
     }
 
     @Override
@@ -174,9 +178,7 @@ public class ManagerResourceImpl extends ExternalServiceResourceImpl implements 
         return toSuppliers(links.oem.rackScaleOem.managerForServices);
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class Links {
-
+    public class Links extends RedfishLinks {
         @JsonProperty("ManagerForServers")
         private List<ODataId> managerForServers;
 
@@ -186,19 +188,18 @@ public class ManagerResourceImpl extends ExternalServiceResourceImpl implements 
         @JsonProperty("ManagerInChassis")
         private ODataId managerInChassis;
 
-        @JsonProperty("ManagerForSwitches")
-        private List<ODataId> managerForSwitches;
-
         @JsonProperty("Oem")
         private Oem oem = new Oem();
 
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        private static final class Oem {
+        @OemType(OEM_IN_LINKS)
+        public class Oem extends RedfishOem {
             @JsonProperty("Intel_RackScale")
             private RackScaleOem rackScaleOem = new RackScaleOem();
 
-            @JsonIgnoreProperties(ignoreUnknown = true)
-            private static final class RackScaleOem {
+            public class RackScaleOem {
+                @JsonProperty("ManagerForSwitches")
+                private List<ODataId> managerForSwitches;
+
                 @JsonProperty("ManagerForServices")
                 private List<ODataId> managerForServices = emptyList();
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,15 @@
 
 package com.intel.podm.business.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.context.ContextType;
 import com.intel.podm.common.types.Id;
 
 import javax.inject.Inject;
-import java.util.Optional;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.intel.podm.business.entities.base.DomainObjectsRelationsChecker.is;
-import static java.util.Objects.isNull;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 
 /**
  * Allows to verify whether given {@link ContextType} is correct
@@ -37,32 +34,35 @@ public class ContextValidator {
     GenericDao genericDao;
 
     @Inject
-    ContextTypeToDomainObjectMapper contextTypeToDomainObjectMapper;
+    ContextTypeToEntityMapper contextTypeToEntityMapper;
 
     public boolean isValid(Context context) {
-        checkArgument(!isNull(context), "context must not be null");
+        requiresNonNull(context, "context");
 
-        DomainObject domainObject = getIfValid(context);
-        return domainObject != null;
+        Entity entity = getIfValid(context);
+        return entity != null;
     }
 
-    private DomainObject getIfValid(Context context) {
-        DomainObject domainObject = tryGet(context.getType(), context.getId());
+    private Entity getIfValid(Context context) {
+        Entity entity = tryGet(context.getType(), context.getId());
 
-        if (domainObject == null || context.getParent() == null) {
-            return domainObject;
+        if (entity == null || context.getParent() == null) {
+            return entity;
         }
 
-        DomainObject parent = getIfValid(context.getParent());
-        return parent != null && is(domainObject).containedBy(parent)
-                ? domainObject
-                : null;
+        Entity parent = getIfValid(context.getParent());
+        return parent != null && entity.containedBy(parent)
+            ? entity
+            : null;
     }
 
-    private DomainObject tryGet(ContextType type, Id id) {
-        Class domainObjectClass = contextTypeToDomainObjectMapper.get(type);
-
-        Optional<DomainObject> domainObject = genericDao.tryFind(domainObjectClass, id);
-        return domainObject.orElse(null);
+    private Entity tryGet(ContextType type, Id id) {
+        Class<? extends Entity> entityClass;
+        try {
+            entityClass = contextTypeToEntityMapper.get(type);
+        } catch (UnsupportedOperationException e) {
+            return null;
+        }
+        return genericDao.tryFind(entityClass, id).orElse(null);
     }
 }

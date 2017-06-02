@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,84 +16,118 @@
 
 package com.intel.podm.assembly;
 
-import com.intel.podm.actions.ActionException;
-import com.intel.podm.actions.ResetActionInvoker;
-import com.intel.podm.business.entities.NonUniqueResultException;
-import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
+import com.intel.podm.assembly.tasks.ComposedNodeDeletionTask;
+import com.intel.podm.assembly.tasks.ComputerSystemDisassembleTask;
+import com.intel.podm.assembly.tasks.DeallocatePcieDriveTask;
+import com.intel.podm.assembly.tasks.DeallocateRemoteTarget;
+import com.intel.podm.assembly.tasks.DetachPcieDriveTask;
+import com.intel.podm.assembly.tasks.NodeAssemblyTask;
+import com.intel.podm.assembly.tasks.SecureErasePcieDriveTask;
+import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.entities.EntityNotFoundException;
+import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.EthernetInterface;
-import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
-import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
-import com.intel.podm.common.logger.Logger;
+import com.intel.podm.business.entities.redfish.Drive;
+import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
+import com.intel.podm.common.types.Id;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.UUID;
 
-import static com.intel.podm.common.types.ComposedNodeState.POWERED_ON;
+import static com.intel.podm.business.services.context.Context.contextOf;
+import static com.intel.podm.business.services.context.ContextType.COMPOSED_NODE;
+import static java.lang.Boolean.TRUE;
 import static java.util.Collections.emptyList;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @RequestScoped
 public class NodeDisassembler {
     @Inject
-    private Logger logger;
+    private BeanFactory beanFactory;
 
     @Inject
-    private EthernetSwitchPortDao ethernetSwitchPortDao;
+    private GenericDao genericDao;
 
-    @Inject
-    private ResetActionInvoker actionInvoker;
-
-    @Inject
-    private VlanTerminator vlanTerminator;
-
-    @Inject
-    private VlanSelector vlanSelector;
-
-    @Transactional(value = MANDATORY, rollbackOn = DisassemblyException.class)
-    public void disassemble(ComposedNode composedNode) throws DisassemblyException {
-        composedNode.getRemoteDrives().forEach(remoteTarget -> remoteTarget.setAllocated(false));
-
-        ComputerSystem computerSystem = composedNode.getComputerSystem();
-        if (computerSystem == null) {
-            return;
-        }
-
-        if (composedNode.isInAnyOfStates(POWERED_ON)) {
-            try {
-                actionInvoker.shutdownGracefully(computerSystem);
-            } catch (ActionException e) {
-                throw new DisassemblyException("Could not power off composed node: " + e.getMessage(), e.getErrorResponse(), e);
-            }
-        }
-
-        cleanUpEthernetInterfaces(computerSystem);
-        computerSystem.setAllocated(false);
-    }
-
-    private void cleanUpEthernetInterfaces(ComputerSystem computerSystem) {
-        for (EthernetInterface ethernetInterface : computerSystem.getEthernetInterfaces()) {
-            try {
-                EthernetSwitchPort neighborSwitchPort =
-                        ethernetSwitchPortDao.getEnabledAndHealthyEthernetSwitchPortByNeighborMac(ethernetInterface.getMacAddress());
-                if (neighborSwitchPort != null) {
-                    removeVlansFromPort(neighborSwitchPort);
-                }
-            } catch (NonUniqueResultException e) {
-                logger.e("Could not clean up Ethernet Interface '{}'.", ethernetInterface, e);
-            }
-        }
-    }
-
-    private void removeVlansFromPort(EthernetSwitchPort ethernetSwitchPort) {
-        List<EthernetSwitchPortVlan> vlansToDelete = vlanSelector.vlansToDelete(ethernetSwitchPort, emptyList());
+    @Transactional(REQUIRES_NEW)
+    public Collection<NodeAssemblyTask> getDisassemblyTasks(Id composedNodeId) throws ContextResolvingException {
+        ComposedNode composedNode;
         try {
-            vlanTerminator.terminate(vlansToDelete);
-        } catch (ActionException e) {
-            logger.w("Could not remove vlan from port " + ethernetSwitchPort.getSourceUri());
+            composedNode = genericDao.find(ComposedNode.class, composedNodeId);
+        } catch (EntityNotFoundException e) {
+            throw new ContextResolvingException(e.getMessage(), contextOf(composedNodeId, COMPOSED_NODE), e);
         }
+
+        Collection<NodeAssemblyTask> tasks = new ArrayList<>();
+        tasks.addAll(prepareRemoteTargetDeallocationTasks(composedNode));
+        tasks.addAll(preparePcieDriveDetachTasks(composedNode.getDrives()));
+        tasks.addAll(preparePcieDriveSecureEraseTasks(composedNode));
+        tasks.addAll(preparePcieDriveDeallocationTasks(composedNode));
+        tasks.addAll(prepareComputerSystemDeallocationTasks(composedNode));
+        tasks.addAll(prepareComposeNodeDeletionTasks());
+
+        tasks.forEach(t -> t.setNodeId(composedNode.getId()));
+        return tasks;
+    }
+
+    private Collection<? extends NodeAssemblyTask> prepareComposeNodeDeletionTasks() {
+        return singletonList(beanFactory.create(ComposedNodeDeletionTask.class));
+    }
+
+    private Collection<? extends NodeAssemblyTask> prepareComputerSystemDeallocationTasks(ComposedNode composedNode) {
+        UUID computerSystemServiceUuid = getComputerSystemServiceUuid(composedNode);
+        if (computerSystemServiceUuid != null) {
+            return singletonList(beanFactory.create(ComputerSystemDisassembleTask.class));
+        } else {
+            return emptyList();
+        }
+    }
+
+    private Collection<? extends NodeAssemblyTask> prepareRemoteTargetDeallocationTasks(ComposedNode composedNode) {
+        return composedNode.getRemoteTargets().stream()
+            .map(remoteTarget -> beanFactory.create(DeallocateRemoteTarget.class).setRemoteTargetId(remoteTarget.getId()))
+            .collect(toList());
+    }
+
+    private Collection<? extends NodeAssemblyTask> preparePcieDriveSecureEraseTasks(ComposedNode composedNode) {
+        return composedNode.getDrives().stream()
+            .filter(drive -> TRUE.equals(drive.getEraseOnDetach()))
+            .map(drive -> beanFactory.create(SecureErasePcieDriveTask.class).setPcieDriveId(drive.getId()))
+            .collect(toList());
+    }
+
+    private Collection<? extends NodeAssemblyTask> preparePcieDriveDeallocationTasks(ComposedNode composedNode) {
+        return composedNode.getDrives().stream()
+            .map(pcieDrive -> beanFactory.create(DeallocatePcieDriveTask.class).setDriveId(pcieDrive.getId()))
+            .collect(toList());
+    }
+
+    public Collection<NodeAssemblyTask> preparePcieDriveDetachTasks(Collection<Drive> drives) {
+        return drives.stream()
+            .filter(drive -> drive.getConnectedEntity().getEndpoint() != null)
+            .filter(drive -> drive.getConnectedEntity().getEndpoint().getZone() != null)
+            .map(this::createDetachPcieDriveTask).collect(toList());
+    }
+
+    private DetachPcieDriveTask createDetachPcieDriveTask(Drive drive) {
+        DetachPcieDriveTask detachPcieDriveTask = beanFactory.create(DetachPcieDriveTask.class);
+        detachPcieDriveTask.setZoneId(drive.getConnectedEntity().getEndpoint().getZone().getId());
+        detachPcieDriveTask.setEndpointId(drive.getConnectedEntity().getEndpoint().getId());
+        return detachPcieDriveTask;
+    }
+
+    private UUID getComputerSystemServiceUuid(ComposedNode composedNode) {
+        UUID uuid = null;
+        ComputerSystem computerSystem = composedNode.getComputerSystem();
+        if (computerSystem != null) {
+            uuid = computerSystem.getService().getUuid();
+        }
+        return uuid;
     }
 }

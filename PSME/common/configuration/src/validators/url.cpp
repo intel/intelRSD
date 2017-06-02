@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ bool UrlValidator::is_valid(const json::Value& value) const {
 }
 
 std::string UrlValidator::get_error() const {
-    return "is not valid URL address.";
+    return "Field value is not valid URL address.";
 }
 
 std::regex UrlValidator::make_regex(const std::string& url) {

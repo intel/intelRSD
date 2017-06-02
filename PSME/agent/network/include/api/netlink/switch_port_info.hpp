@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief Switch port parameters
  * */
 
-#ifndef AGENT_NETWORK_NETLINK_GET_SWITCH_PORT_INFO_HPP
-#define AGENT_NETWORK_NETLINK_GET_SWITCH_PORT_INFO_HPP
+#pragma once
 
 #include "api/switch_port_info.hpp"
 
@@ -184,7 +183,7 @@ public:
      * */
     bool vlan_exists(VlanId vid) const;
 
-    /*! CPU port identifier */
+    /* CPU port identifier */
     static const char CPU_PORT[];
 
 private:
@@ -236,7 +235,7 @@ private:
      *
      * @return Port MAC address.
      * */
-    std::string get_switch_port_mac_address();
+    string get_switch_port_mac_address();
 
     /*!
      * @brief Gets switch port link state thru Netlink api.
@@ -282,4 +281,3 @@ private:
 }
 }
 }
-#endif /* AGENT_NETWORK_NETLINK_SWITCH_PORT_INFO_HPP */

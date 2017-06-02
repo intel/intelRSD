@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,15 @@ import com.intel.podm.business.dto.redfish.attributes.RackLocationDto;
 import com.intel.podm.business.dto.redfish.attributes.TemperatureDto;
 import com.intel.podm.redfish.json.templates.ThermalZoneJson;
 import com.intel.podm.redfish.json.templates.attributes.RackLocationAttributeJson;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
-import static java.util.Objects.isNull;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 import static java.util.stream.Collectors.toList;
 
-public class ThermalZoneDtoJsonSerializer extends DtoJsonSerializer<ThermalZoneDto> {
-
+@SuppressWarnings({"checkstyle:ExecutableStatementCount"})
+public class ThermalZoneDtoJsonSerializer extends BaseDtoJsonSerializer<ThermalZoneDto> {
     public ThermalZoneDtoJsonSerializer() {
         super(ThermalZoneDto.class);
     }
@@ -39,7 +39,7 @@ public class ThermalZoneDtoJsonSerializer extends DtoJsonSerializer<ThermalZoneD
     protected ThermalZoneJson translate(ThermalZoneDto dto) {
         ThermalZoneJson thermalZoneJson = new ThermalZoneJson();
 
-        ODataId oDataId = ODataId.oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         thermalZoneJson.oDataId = oDataId;
         thermalZoneJson.oDataContext = getContextFromId(oDataId);
 
@@ -83,11 +83,11 @@ public class ThermalZoneDtoJsonSerializer extends DtoJsonSerializer<ThermalZoneD
     }
 
     private RackLocationAttributeJson toRackLocationAttributeJson(RackLocationDto rackLocationDto) {
-        return isNull(rackLocationDto) ? null : new RackLocationAttributeJson(
-                rackLocationDto.getuLocation(),
-                rackLocationDto.getuHeight(),
-                rackLocationDto.getxLocation(),
-                rackLocationDto.getRackUnitType()
+        return rackLocationDto == null ? null : new RackLocationAttributeJson(
+            rackLocationDto.getuLocation(),
+            rackLocationDto.getuHeight(),
+            rackLocationDto.getxLocation(),
+            rackLocationDto.getRackUnitType()
         );
     }
 }

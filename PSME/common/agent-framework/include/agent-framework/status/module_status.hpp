@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief Abstract ModuleStatus
  * */
 
-#ifndef AGENT_FRAMEWORK_STATUS_MODULE_STATUS_HPP
-#define AGENT_FRAMEWORK_STATUS_MODULE_STATUS_HPP
-
+#pragma once
 // Standard library.
 #include <string>
 
@@ -84,4 +82,3 @@ protected:
 
 }
 }
-#endif /* AGENT_FRAMEWORK_STATUS_MODULE_STATUS_HPP */

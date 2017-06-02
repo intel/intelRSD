@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,16 @@
 package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.ServiceDto;
-import com.intel.podm.business.services.context.Context;
 import com.intel.podm.redfish.json.templates.StorageServiceJson;
-import com.intel.podm.rest.odataid.ODataContextProvider;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.odataid.ODataIds;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataContextProvider;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
-import java.util.Collection;
-import java.util.List;
-
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataIdSet;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 import static java.net.URI.create;
-import static java.util.Collections.emptyList;
-import static java.util.Objects.isNull;
 
-public class ServiceDtoJsonSerializer extends DtoJsonSerializer<ServiceDto> {
+public class ServiceDtoJsonSerializer extends BaseDtoJsonSerializer<ServiceDto> {
     protected ServiceDtoJsonSerializer() {
         super(ServiceDto.class);
     }
@@ -40,28 +34,21 @@ public class ServiceDtoJsonSerializer extends DtoJsonSerializer<ServiceDto> {
     @Override
     protected StorageServiceJson translate(ServiceDto dto) {
         StorageServiceJson serviceJson = new StorageServiceJson();
-        ODataId oDataId = oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
 
         serviceJson.oDataId = oDataId;
         serviceJson.oDataContext = ODataContextProvider.getContextFromId(oDataId);
 
         serviceJson.id = dto.getId();
         serviceJson.name = dto.getName();
+        serviceJson.description = dto.getDescription();
         serviceJson.status = dto.getStatus();
-        serviceJson.remoteTargets = oDataId(create(oDataId + "/Targets"));
-        serviceJson.logicalDrives = oDataId(create(oDataId + "/LogicalDrives"));
-        serviceJson.drives = oDataId(create(oDataId + "/Drives"));
+        serviceJson.remoteTargets = oDataIdFromUri(create(oDataId + "/Targets"));
+        serviceJson.logicalDrives = oDataIdFromUri(create(oDataId + "/LogicalDrives"));
+        serviceJson.drives = oDataIdFromUri(create(oDataId + "/Drives"));
 
-        serviceJson.links.managedBy.addAll(mapToODataIdsCollection(dto.getManagedBy()));
+        serviceJson.links.managedBy.addAll(asOdataIdSet(dto.getLinks().getManagedBy()));
 
         return serviceJson;
-    }
-
-    private Collection<ODataId> mapToODataIdsCollection(List<Context> contexts) {
-        return isNull(contexts)
-                ?
-                emptyList()
-                :
-                ODataIds.oDataIdsCollection(contexts.stream().toArray(Context[]::new));
     }
 }

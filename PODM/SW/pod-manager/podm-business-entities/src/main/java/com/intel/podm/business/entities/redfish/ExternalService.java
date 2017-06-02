@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,112 +16,190 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectLink;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
+import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
+import com.intel.podm.business.entities.converters.IdToLongConverter;
+import com.intel.podm.business.entities.listeners.ExternalServiceListener;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.ServiceType;
-import com.intel.podm.common.types.net.MacAddress;
+import org.hibernate.annotations.Generated;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.EntityListeners;
+import javax.persistence.Enumerated;
+import javax.persistence.Index;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.net.URI;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
-import static com.intel.podm.business.entities.base.DomainObjectProperties.booleanProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.enumProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.macAddressProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.uriProperty;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.uuidProperty;
-import static java.lang.Boolean.TRUE;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
+import static java.time.Duration.between;
+import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
-import static javax.transaction.Transactional.TxType.REQUIRED;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
+import static javax.persistence.FetchType.LAZY;
+import static org.hibernate.annotations.GenerationTime.INSERT;
 
-@Dependent
-@Transactional(REQUIRED)
-public class ExternalService extends DomainObject {
-    public static final DomainObjectProperty<UUID> UUID = uuidProperty("uuid");
-    public static final DomainObjectProperty<URI> BASE_URI = uriProperty("baseUri");
-    public static final DomainObjectProperty<ServiceType> SERVICE_TYPE = enumProperty("type", ServiceType.class);
-    public static final DomainObjectProperty<MacAddress> MAC_ADDRESS = macAddressProperty("macAddress");
-    public static final DomainObjectProperty<Boolean> IS_DIRTY = booleanProperty("isDirty");
+@javax.persistence.Entity
+@NamedQueries({
+    @NamedQuery(name = ExternalService.GET_EXTERNAL_SERVICE_BY_UUID,
+        query = "SELECT es FROM ExternalService es WHERE es.uuid = :uuid"),
+    @NamedQuery(name = ExternalService.GET_EXTERNAL_SERVICES_BY_SERVICES_TYPES,
+        query = "SELECT es FROM ExternalService es WHERE es.serviceType IN (:serviceTypes)")
+})
+@Table(name = "external_service", indexes = @Index(name = "idx_external_service_entity_id", columnList = "entity_id", unique = true))
+@EntityListeners(ExternalServiceListener.class)
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class ExternalService extends Entity {
+    public static final String GET_EXTERNAL_SERVICE_BY_UUID = "GET_EXTERNAL_SERVICE_BY_UUID";
+    public static final String GET_EXTERNAL_SERVICES_BY_SERVICES_TYPES = "GET_EXTERNAL_SERVICES_BY_SERVICES_TYPES";
 
-    public boolean getIsDirty() {
-        return TRUE.equals(getProperty(IS_DIRTY));
-    }
+    @Generated(INSERT)
+    @Convert(converter = IdToLongConverter.class)
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_NUMERIC_COLUMN_DEFINITION, insertable = false, nullable = false)
+    private Id entityId;
 
-    public void setIsDirty(Boolean isDirty) {
-        setProperty(IS_DIRTY, isDirty);
+    @Column(name = "uuid", unique = true)
+    private UUID uuid;
+
+    @Column(name = "uri")
+    private URI baseUri;
+
+    @Column(name = "service_type")
+    @Enumerated(STRING)
+    private ServiceType serviceType;
+
+    @Column(name = "is_reachable")
+    private boolean isReachable = true;
+
+    @Column(name = "unreachable_since")
+    private LocalDateTime unreachableSince;
+
+    @IgnoreUnlinkingRelationship
+    @OneToMany(mappedBy = "externalService", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<DiscoverableEntity> owned = new HashSet<>();
+
+    public Id getId() {
+        return entityId;
     }
 
     public UUID getUuid() {
-        return getProperty(UUID);
+        return uuid;
     }
 
     public void setUuid(UUID uuid) {
-        setProperty(UUID, uuid);
+        this.uuid = uuid;
     }
 
     public URI getBaseUri() {
-        return getProperty(BASE_URI);
+        return baseUri;
     }
 
     public void setBaseUri(URI baseUri) {
-        setProperty(BASE_URI, baseUri);
+        this.baseUri = baseUri;
     }
 
     public ServiceType getServiceType() {
-        return getProperty(SERVICE_TYPE);
+        return serviceType;
     }
 
     public void setServiceType(ServiceType serviceType) {
-        setProperty(SERVICE_TYPE, serviceType);
+        this.serviceType = serviceType;
     }
 
-    public MacAddress getMacAddress() {
-        return getProperty(MAC_ADDRESS);
+    public boolean isReachable() {
+        return isReachable;
     }
 
-    public void setMacAddress(MacAddress macAddress) {
-        setProperty(MAC_ADDRESS, macAddress);
+    public boolean isUnreachableLongerThan(Duration duration) {
+        requiresNonNull(duration, "duration");
+        return !isReachable() && getHowLongIsUnreachable().compareTo(duration) > 0;
     }
 
-    public <T extends DomainObject & Discoverable> List<T> getOwned(Class<T> clazz) {
-        return getLinked(DomainObjectLink.OWNS, clazz);
-    }
+    public void markAsNotReachable() {
+        getAllOwnedEntities().forEach(DiscoverableEntity::putToAbsentState);
 
-    public <T extends DomainObject> List<T> getAllOwnedDomainObjects() {
-        return getLinked(DomainObjectLink.OWNS);
-    }
-
-    public <T extends DomainObject & Discoverable> T findOrCreate(URI uri, Class<T> clazz) {
-        for (T domainObject : getOwned(clazz)) {
-            URI sourceUri = domainObject.getSourceUri();
-
-            if (Objects.equals(uri, sourceUri)) {
-                return domainObject;
-            }
+        if (!isReachable()) {
+            return;
         }
 
-        T domainObject = addDomainObject(DomainObjectLink.OWNS, clazz);
-        domainObject.setSourceUri(uri);
-
-        return domainObject;
+        unreachableSince = now();
+        isReachable = false;
     }
 
-    public List<Discoverable> getDiscoverables() {
-        return getLinked(DomainObjectLink.OWNS).stream().
-                filter(domainObject -> domainObject instanceof Discoverable).
-                map(domainObject -> (Discoverable) domainObject).
-                collect(toList());
+    public void markAsReachable() {
+        isReachable = true;
+        unreachableSince = null;
+    }
+
+    private Duration getHowLongIsUnreachable() {
+        return between(unreachableSince, now());
+    }
+
+    public <T extends DiscoverableEntity> List<T> getOwned(Class<T> clazz) {
+        return owned.stream()
+            .filter(clazz::isInstance)
+            .map(entity -> (T) entity)
+            .collect(toList());
+    }
+
+    public Set<DiscoverableEntity> getAllOwnedEntities() {
+        return owned;
+    }
+
+    public void addOwned(DiscoverableEntity entity) {
+        requiresNonNull(entity, "entity");
+
+        owned.add(entity);
+        if (!this.equals(entity.getService())) {
+            entity.setExternalService(this);
+        }
+    }
+
+    public void unlinkOwned(DiscoverableEntity entity) {
+        if (owned.contains(entity)) {
+            owned.remove(entity);
+            if (entity != null) {
+                entity.unlinkExternalService(this);
+            }
+        }
+    }
+
+    @Override
+    public void preRemove() {
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return false;
     }
 
     @Override
     public String toString() {
-        return format("ExternalService {UUID=%s, baseUri=%s, MAC=%s, type=%s}", getUuid(), getBaseUri(), getMacAddress(), getServiceType());
+        if (isReachable()) {
+            return format("ExternalService {UUID=%s, baseUri=%s, type=%s}",
+                getUuid(),
+                getBaseUri(),
+                getServiceType());
+        } else {
+            return format("ExternalService {UUID=%s, baseUri=%s, type=%s, unreachableSince=%s}",
+                getUuid(),
+                getBaseUri(),
+                getServiceType(),
+                unreachableSince);
+        }
     }
-
 }

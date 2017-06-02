@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@
 #include "configuration/schema_property.hpp"
 #include "configuration/schema_errors.hpp"
 #include "configuration/validators/validator.hpp"
-#include "json/json.hpp"
+#include <json/json.hpp>
 
 using namespace configuration;
 
@@ -49,18 +49,16 @@ constexpr const char SchemaProperty::INT[];
 SchemaProperty::SchemaProperty(const std::string& path, bool mandatory)
     : m_path{path}, m_mandatory{mandatory} {}
 
-SchemaErrors::Error SchemaProperty::validate(const json::Value& value) const {
-    SchemaErrors::Error error{m_path};
-    // if the field is not mandatory, we also accept it as null
-    if (!is_mandatory() && value.is_null()) {
-        return error;
+void SchemaProperty::validate(const json::Value& value, SchemaErrors& errors) const {
+    // accept null values as mandatories
+    if (!m_mandatory && value.is_null()) {
+        return;
     }
     for (const auto& validator : m_validators) {
         if (!validator->is_valid(value)) {
-            error.add_error_message(m_path + " " + validator->get_error());
+            errors.add_error({validator->get_error(), m_path});
         }
     }
-    return error;
 }
 
 void SchemaProperty::add_validator(ValidatorJsonSPtr validator) {

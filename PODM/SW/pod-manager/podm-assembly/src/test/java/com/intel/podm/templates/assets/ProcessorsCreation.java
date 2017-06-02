@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.intel.podm.templates.assets;
 
-import com.intel.podm.business.dto.redfish.RequestedProcessor;
 import com.intel.podm.business.entities.redfish.Processor;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.InstructionSet;
 import com.intel.podm.common.types.ProcessorBrand;
@@ -26,23 +26,25 @@ import com.intel.podm.common.types.ProcessorBrand;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings({"checkstyle:ParameterNumber"})
 public final class ProcessorsCreation {
     private ProcessorsCreation() {
     }
 
-    public static RequestedProcessor createRequestedProcessor(String model, ProcessorBrand brand, Integer achievableSpeedMhz, InstructionSet instructionSet,
-                                                              Integer totalCores) {
+    public static RequestedNode.Processor createRequestedProcessor(String model, ProcessorBrand brand, Integer achievableSpeedMhz,
+                                                                   InstructionSet instructionSet, Integer totalCores) {
         return createRequestedProcessor(model, brand, achievableSpeedMhz, instructionSet, totalCores, null, null);
     }
 
-    public static RequestedProcessor createRequestedProcessor(String model, ProcessorBrand brand, Integer achievableSpeedMhz, InstructionSet instructionSet,
-                                                              Integer totalCores, Context resourceContext) {
+    public static RequestedNode.Processor createRequestedProcessor(String model, ProcessorBrand brand, Integer achievableSpeedMhz,
+                                                                   InstructionSet instructionSet, Integer totalCores, Context resourceContext) {
         return createRequestedProcessor(model, brand, achievableSpeedMhz, instructionSet, totalCores, resourceContext, null);
     }
 
-    public static RequestedProcessor createRequestedProcessor(String model, ProcessorBrand brand, Integer achievableSpeedMhz, InstructionSet instructionSet,
-                                                              Integer totalCores, Context resourceContext, Context chassisContext) {
-        RequestedProcessor mock = mock(RequestedProcessor.class);
+    public static RequestedNode.Processor createRequestedProcessor(String model, ProcessorBrand brand, Integer achievableSpeedMhz,
+                                                                   InstructionSet instructionSet, Integer totalCores,
+                                                                   Context resourceContext, Context chassisContext) {
+        RequestedNode.Processor mock = mock(RequestedNode.Processor.class);
         when(mock.getModel()).thenReturn(model);
         when(mock.getBrand()).thenReturn(brand);
         when(mock.getAchievableSpeedMhz()).thenReturn(achievableSpeedMhz);

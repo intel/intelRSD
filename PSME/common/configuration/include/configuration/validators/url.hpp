@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,7 @@
  * @brief URL validator interface
  * */
 
-#ifndef CONFIGURATION_URL_VALIDATOR_HPP
-#define CONFIGURATION_URL_VALIDATOR_HPP
-
+#pragma once
 #include "validator.hpp"
 #include <regex>
 
@@ -73,4 +71,3 @@ private:
 
 }
 
-#endif /* CONFIGURATION_URL_VALIDATOR_HPP */

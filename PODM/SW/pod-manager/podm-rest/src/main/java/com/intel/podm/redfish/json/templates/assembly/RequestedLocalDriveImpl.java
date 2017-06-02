@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,36 +18,39 @@ package com.intel.podm.redfish.json.templates.assembly;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.intel.podm.business.dto.redfish.RequestedLocalDrive;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.client.resources.ODataId;
-import com.intel.podm.common.types.DriveType;
-import com.intel.podm.common.types.StorageControllerInterface;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
+import com.intel.podm.common.types.MediaType;
+import com.intel.podm.common.types.Protocol;
 import com.intel.podm.common.types.deserialization.PositiveIntegerDeserializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.math.BigDecimal;
 
 import static com.intel.podm.business.services.context.ContextType.CHASSIS;
-import static com.intel.podm.business.services.context.ContextType.DEVICE;
+import static com.intel.podm.business.services.context.ContextType.DRIVE;
 import static com.intel.podm.business.services.context.ContextType.SIMPLE_STORAGE;
-import static com.intel.podm.redfish.UriConverter.getContextFromUri;
+import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUri;
 
-public final class RequestedLocalDriveImpl implements RequestedLocalDrive {
+public final class RequestedLocalDriveImpl implements RequestedNode.LocalDrive {
     @JsonProperty("CapacityGiB")
     private BigDecimal capacityGib;
 
     @JsonProperty
-    private DriveType type;
+    private MediaType type;
 
     @JsonProperty("MinRPM")
     @JsonDeserialize(using = PositiveIntegerDeserializer.class)
-    private Integer minRpm;
+    private BigDecimal minRpm;
 
     @JsonProperty
     private String serialNumber;
 
     @JsonProperty("Interface")
-    private StorageControllerInterface storageControllerInterface;
+    private Protocol protocol;
+
+    @JsonProperty("FabricSwitch")
+    private Boolean isFromFabricSwitch;
 
     private Context resourceContext;
 
@@ -59,12 +62,12 @@ public final class RequestedLocalDriveImpl implements RequestedLocalDrive {
     }
 
     @Override
-    public DriveType getType() {
+    public MediaType getType() {
         return type;
     }
 
     @Override
-    public Integer getMinRpm() {
+    public BigDecimal getMinRpm() {
         return minRpm;
     }
 
@@ -74,8 +77,13 @@ public final class RequestedLocalDriveImpl implements RequestedLocalDrive {
     }
 
     @Override
-    public StorageControllerInterface getInterface() {
-        return storageControllerInterface;
+    public Protocol getInterface() {
+        return protocol;
+    }
+
+    @Override
+    public Boolean isFromFabricSwitch() {
+        return isFromFabricSwitch;
     }
 
     @JsonProperty("Resource")
@@ -84,7 +92,7 @@ public final class RequestedLocalDriveImpl implements RequestedLocalDrive {
             return;
         }
 
-        resourceContext = getContextFromUri(resource.toUri(), DEVICE, SIMPLE_STORAGE);
+        resourceContext = getContextFromUri(resource.toUri(), SIMPLE_STORAGE, DRIVE);
     }
 
     @Override

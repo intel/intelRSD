@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,7 @@
  * @brief Message interface
  * */
 
-#ifndef AGENT_FRAMEWORK_MESSAGE_HPP
-#define AGENT_FRAMEWORK_MESSAGE_HPP
-
+#pragma once
 #include <map>
 #include <string>
 #include <vector>
@@ -121,4 +119,3 @@ public:
 
 }
 
-#endif /* AGENT_FRAMEWORK_MESSAGE_HPP */

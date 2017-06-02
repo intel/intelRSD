@@ -7,7 +7,7 @@ public enum MemoryMedia implements EnumeratedType {
 
     private final String value;
 
-    MemoryMedia(final String value) {
+    MemoryMedia(String value) {
         this.value = value;
     }
 

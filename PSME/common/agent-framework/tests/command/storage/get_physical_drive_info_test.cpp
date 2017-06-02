@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,65 +22,66 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/get_physical_drive_info.hpp"
-#include "agent-framework/command/storage/json/get_physical_drive_info.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model;
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
 
 static constexpr enums::PhysicalDriveInterface TEST_INTERFACE
     {enums::PhysicalDriveInterface::SATA};
-static constexpr enums::PhysicalDriveType TEST_DRIVE
+static constexpr enums::PhysicalDriveType TEST_TYPE
     {enums::PhysicalDriveType::SSD};
+static constexpr char TEST_SERIAL[] = "TestSerialNumber";
+static constexpr char TEST_MANUFACTURER[] = "TestManufacturer";
+static constexpr char TEST_MODEL[] = "TestModelNumber";
+static constexpr char TEST_PART[] = "TestPartNumber";
+static constexpr char TEST_DRIVE[] = "TestDrive";
+static constexpr int TEST_CAPACITY = 2048;
+static constexpr int TEST_RPM = 7200;
 
-class GetPhysicalDriveInfo : public storage::GetPhysicalDriveInfo {
+
+class MyGetPhysicalDriveInfo {
 private:
     std::string m_drive{};
 public:
-    GetPhysicalDriveInfo(std::string drive) { m_drive = drive; }
+    MyGetPhysicalDriveInfo(std::string drive) { m_drive = drive; }
 
-    using storage::GetPhysicalDriveInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto drive = request.get_drive();
+    void execute(const GetPhysicalDriveInfo::Request& request,
+                 GetPhysicalDriveInfo::Response& response) {
+        auto drive = request.get_uuid();
 
         if (drive != m_drive) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
         PhysicalDrive physical_drive{};
         physical_drive.set_interface(enums::PhysicalDriveInterface::SATA);
         physical_drive.set_type(enums::PhysicalDriveType::SSD);
-        physical_drive.set_capacity_gb(2048);
-        physical_drive.set_rpm(7200);
+        physical_drive.set_capacity_gb(TEST_CAPACITY);
+        physical_drive.set_rpm(TEST_RPM);
         physical_drive.set_fru_info(agent_framework::model::attribute::FruInfo(
-                                  "TestSerialNumber",
-                                  "TestManufacturer",
-                                  "TestModelNumber",
-                                  "TestPartNumber"));
-        response.set_drive(physical_drive);
+                                  TEST_SERIAL,
+                                  TEST_MANUFACTURER,
+                                  TEST_MODEL,
+                                  TEST_PART));
+        response = physical_drive;
     }
-
-    virtual ~GetPhysicalDriveInfo();
 };
 
-GetPhysicalDriveInfo::~GetPhysicalDriveInfo() { }
-
 TEST(GetPhysicalDriveInfoTest, PositiveExecute) {
-    storage::json::GetPhysicalDriveInfo command_json;
-    GetPhysicalDriveInfo* command = new GetPhysicalDriveInfo("TestDrive");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetPhysicalDriveInfo command{TEST_DRIVE};
+    GetPhysicalDriveInfo::Request request{""};
+    GetPhysicalDriveInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
-    params[literals::PhysicalDrive::DRIVE] = "TestDrive";
+    params[literals::PhysicalDrive::DRIVE] = TEST_DRIVE;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetPhysicalDriveInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::PhysicalDrive::INTERFACE].isString());
@@ -93,25 +94,24 @@ TEST(GetPhysicalDriveInfoTest, PositiveExecute) {
     ASSERT_TRUE(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::MODEL].isString());
     ASSERT_TRUE(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::PART].isString());
     ASSERT_EQ(result[literals::PhysicalDrive::INTERFACE].asString(), TEST_INTERFACE.to_string());
-    ASSERT_EQ(result[literals::PhysicalDrive::TYPE].asString(), TEST_DRIVE.to_string());
-    ASSERT_EQ(result[literals::PhysicalDrive::CAPACITY].asInt(), 2048);
-    ASSERT_EQ(result[literals::PhysicalDrive::RPM].asInt(), 7200);
-    ASSERT_EQ(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::SERIAL], "TestSerialNumber");
-    ASSERT_EQ(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::MANUFACTURER], "TestManufacturer");
-    ASSERT_EQ(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::MODEL], "TestModelNumber");
-    ASSERT_EQ(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::PART], "TestPartNumber");
+    ASSERT_EQ(result[literals::PhysicalDrive::TYPE].asString(), TEST_TYPE.to_string());
+    ASSERT_EQ(result[literals::PhysicalDrive::CAPACITY].asInt(), TEST_CAPACITY);
+    ASSERT_EQ(result[literals::PhysicalDrive::RPM].asInt(), TEST_RPM);
+    ASSERT_EQ(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::SERIAL], TEST_SERIAL);
+    ASSERT_EQ(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::MANUFACTURER], TEST_MANUFACTURER);
+    ASSERT_EQ(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::MODEL], TEST_MODEL);
+    ASSERT_EQ(result[literals::PhysicalDrive::FRU_INFO][literals::FruInfo::PART], TEST_PART);
 }
 
 TEST(GetPhysicalDriveInfoTest, NegativeDriveNotFound) {
-    storage::json::GetPhysicalDriveInfo command_json;
-    GetPhysicalDriveInfo* command = new GetPhysicalDriveInfo("TestDrive");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetPhysicalDriveInfo command{TEST_DRIVE};
+    GetPhysicalDriveInfo::Request request{""};
+    GetPhysicalDriveInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::PhysicalDrive::DRIVE] = "OtherTestDrive";
 
-    EXPECT_THROW(command_json.method(params, result), NotFound);
+    EXPECT_NO_THROW(request = GetPhysicalDriveInfo::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

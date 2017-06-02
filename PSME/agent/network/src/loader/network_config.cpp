@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,6 +92,19 @@ void NetworkConfig::add_public_vlan(uint32_t vlan_id) {
 std::vector<uint32_t> NetworkConfig::get_public_vlans() {
     lock_guard<mutex> lock{m_mutex};
     return m_public_vlans;
+}
+
+void NetworkConfig::add_acl_name(const string& uuid, const string& name) {
+    lock_guard<mutex> lock{m_mutex};
+    m_acl_map[uuid] = name;
+}
+
+const string& NetworkConfig::get_acl_name (const string& uuid) {
+    lock_guard<mutex> lock{m_mutex};
+    if (m_acl_map.find(uuid) != m_acl_map.end()) {
+        return m_acl_map[uuid];
+    }
+    return uuid;
 }
 
 NetworkConfig::~NetworkConfig() { }

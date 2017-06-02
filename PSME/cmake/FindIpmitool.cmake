@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,32 +16,4 @@
 #
 # </license_header>
 
-if (NOT IPMITOOL_FOUND)
-
-    find_file(ipmitool_library libipmicmd.a
-        PATHS ${CMAKE_BINARY_DIR}/lib
-    )
-
-    find_library(ipmitool_library ipmicmd)
-
-    find_path(ipmitool_include "ipmitool/ipmi_intf.h" "ipmitool/ipmi_sol.h"
-        PATHS ${CMAKE_BINARY_DIR}/include
-    )
-
-    if (ipmitool_library AND ipmitool_include)
-        add_library(ipmicmd IMPORTED STATIC)
-
-        set_target_properties(ipmicmd PROPERTIES
-            IMPORTED_LOCATION ${ipmitool_library}
-        )
-
-        get_filename_component(IPMITOOL_LIBRARY_DIRS ${ipmitool_library}
-            DIRECTORY
-        )
-
-        set(IPMITOOL_LIBRARIES ipmicmd)
-        set(IPMITOOL_INCLUDE_DIRS ${ipmitool_include})
-        set(IPMITOOL_FOUND TRUE)
-    endif()
-endif()
-
+find_package_local(Ipmitool ipmitool)

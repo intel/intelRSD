@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,65 +23,53 @@
  * @brief Initial discovery implementation.
  * */
 
-#ifndef DISCOVERYMANAGER_HPP
-#define	DISCOVERYMANAGER_HPP
+#pragma once
+#include "agent-framework/discovery/discovery.hpp"
+#include "agent-framework/module/model/logical_drive.hpp"
 
-#include "agent-framework/discovery/discovery_manager.hpp"
-#include "agent-framework/module/module_manager.hpp"
-#include "agent-framework/logger_ext.hpp"
-
-using agent_framework::generic::Module;
-using agent_framework::generic::Submodule;
-using agent_framework::generic::ModuleManager;
+#include <mutex>
+#include <condition_variable>
 
 namespace agent {
 namespace storage {
 namespace discovery {
 
 /*!
- * @brief Implementation of initial discovery.
+ * @brief Implementation of initial discovery
  */
-class DiscoveryManager: public agent_framework::generic::DiscoveryManager {
+class DiscoveryManager final : public agent_framework::discovery::Discovery {
 public:
+    using LogicalDrive = agent_framework::model::LogicalDrive;
+
+    /*! @brief Default constructor */
+    DiscoveryManager() = default;
 
     /*!
-     * @brief Default constructor.
+     * @brief Gather information about storage and its submodules.
+     * @param module component uuid.
      */
-    DiscoveryManager();
+    void discovery(const std::string& module) override;
 
-    /*! @brief Copy constructor */
-    DiscoveryManager(const DiscoveryManager& orig) = delete;
+    /*! @brief Wait for discovery complete */
+    void wait_for_complete();
 
-    /*! @brief Assignment operator */
-    DiscoveryManager& operator=(const DiscoveryManager& orig) = delete;
-
-    /*!
-     * @brief Wait for discovery to complete.
-     *
-     * Method blocks until discovery is complete.
-     */
-    void wait_for_discovery_complete() const;
-
-    /*!
-     * @brief Default destructor.
-     */
-    virtual ~DiscoveryManager();
-
-    void discover(Module & module) const override;
+    /*! @brief Default destructor */
+     ~DiscoveryManager();
 
 private:
-    void discovery_hard_drives(Module& module) const;
-    void discovery_iscsi_targets(Module& module) const;
-    void discovery_logical_drives(Module& module) const;
-    void resolve_dependencies(Module& module) const;
+    void discovery_physical_drives(const std::string& uuid) const;
+    void discovery_logical_drives(const std::string& uuid) const;
+    void discovery_iscsi_targets(const string& uuid) const;
 
-private:
-    struct DiscoveryComplete;
-    mutable std::unique_ptr<DiscoveryComplete> m_discovery_complete;
+    void init_logical_volume(LogicalDrive& logical_volume) const;
+    std::string get_logical_drive_uuid(const std::string& device_path) const;
+    std::string get_physical_drive_uuid(const std::string& device_path) const;
+
+    std::mutex m_mutex{};
+    std::condition_variable m_cv{};
 };
 
 }
 }
 }
-#endif	/* DISCOVERYMANAGER_HPP */
 

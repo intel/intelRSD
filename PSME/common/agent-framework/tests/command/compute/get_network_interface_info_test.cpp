@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +22,12 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/compute/get_network_interface_info.hpp"
-#include "agent-framework/command/compute/json/get_network_interface_info.hpp"
+#include "agent-framework/module/constants/compute.hpp"
+#include "agent-framework/command-ref/compute_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model;
 using namespace agent_framework::model::literals;
 
@@ -39,22 +38,22 @@ static constexpr int TEST_FULL_DUPLEX = false;
 static constexpr bool TEST_AUTOSENSE = true;
 static constexpr char TEST_MAC_ADDRESS[] = "TestMACAddress";
 static constexpr bool TEST_VLAN_ENABLE = true;
-class GetNetworkInterfaceInfo : public compute::GetNetworkInterfaceInfo {
+
+class MyGetNetworkInterfaceInfo {
 private:
     std::string m_interface{};
 public:
-    GetNetworkInterfaceInfo(
+    MyGetNetworkInterfaceInfo(
         const std::string& interface) {
         m_interface = interface;
     }
 
-    using compute::GetNetworkInterfaceInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        const auto& interface_uuid = request.get_interface();
+    void execute(const GetNetworkInterfaceInfo::Request& request,
+                 GetNetworkInterfaceInfo::Response& response) {
+        const auto& interface_uuid = request.get_uuid();
 
         if (interface_uuid != m_interface) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
         agent_framework::model::NetworkInterface interface{};
@@ -72,33 +71,26 @@ public:
         interface.set_factory_mac_address(TEST_MAC_ADDRESS);
         interface.set_status(agent_framework::model::attribute::Status(enums::State::InTest, enums::Health::Warning));
 
-        response.set_interface(std::move(interface));
+        response = std::move(interface);
     }
 
-    virtual ~GetNetworkInterfaceInfo();
+    virtual ~MyGetNetworkInterfaceInfo();
 };
 
-GetNetworkInterfaceInfo::~GetNetworkInterfaceInfo() { }
+MyGetNetworkInterfaceInfo::~MyGetNetworkInterfaceInfo() { }
 
-class GetNetworkInterfaceInfoTest : public ::testing::Test {
-public:
-    virtual ~GetNetworkInterfaceInfoTest();
-};
-
-GetNetworkInterfaceInfoTest::~GetNetworkInterfaceInfoTest() { }
-
-TEST_F(GetNetworkInterfaceInfoTest, PositiveExecute) {
-    compute::json::GetNetworkInterfaceInfo command_json;
-    GetNetworkInterfaceInfo* command = new GetNetworkInterfaceInfo("TestInterfaceId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetNetworkInterfaceInfoTest, PositiveExecute) {
+    MyGetNetworkInterfaceInfo command{"TestInterfaceId"};
+    GetNetworkInterfaceInfo::Request request{""};
+    GetNetworkInterfaceInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::NetworkInterface::INTERFACE] = "TestInterfaceId";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetNetworkInterfaceInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::NetworkInterface::FRAME_SIZE].isUInt());
@@ -123,16 +115,15 @@ TEST_F(GetNetworkInterfaceInfoTest, PositiveExecute) {
     ASSERT_EQ(result[literals::Status::STATUS][literals::Status::HEALTH], "Warning");
 }
 
-TEST_F(GetNetworkInterfaceInfoTest, NegativeInterfaceNotFound) {
-    compute::json::GetNetworkInterfaceInfo command_json;
-    GetNetworkInterfaceInfo* command = new GetNetworkInterfaceInfo("TestInterfaceId");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(GetNetworkInterfaceInfoTest, NegativeInterfaceNotFound) {
+    MyGetNetworkInterfaceInfo command{"TestInterfaceId"};
+    GetNetworkInterfaceInfo::Request request{""};
+    GetNetworkInterfaceInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::NetworkInterface::INTERFACE] = "OtherInterfaceId";
 
-    EXPECT_THROW(command_json.method(params, result), exception::NotFound);
+    EXPECT_NO_THROW(request = GetNetworkInterfaceInfo::Request::from_json(params));
+    EXPECT_THROW(command.execute(request, response), std::runtime_error);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,58 +16,64 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.dto.redfish.SimpleStorageDto;
 import com.intel.podm.business.dto.redfish.SimpleStorageDto.SimpleStorageDeviceDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.SimpleStorageService;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SIMPLE_STORAGE;
-import static com.intel.podm.business.redfish.Contexts.getAsIdList;
+import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
 import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Transactional(REQUIRED)
-public class SimpleStorageServiceImpl implements SimpleStorageService {
+public class SimpleStorageServiceImpl implements ReaderService<SimpleStorageDto> {
     @Inject
-    private DomainObjectTreeTraverser traverser;
+    private EntityTreeTraverser traverser;
+
+    @Inject
+    private UnknownOemTranslator unknownOemTranslator;
 
     @Override
-    public CollectionDto getSimpleStorageCollection(Context context) throws EntityNotFoundException {
+    public CollectionDto getCollection(Context context) throws ContextResolvingException {
         ComputerSystem system = (ComputerSystem) traverser.traverse(context);
-        return new CollectionDto(SIMPLE_STORAGE, getAsIdList(system.getSimpleStorages()));
+        return new CollectionDto(SIMPLE_STORAGE, getAsIdSet(system.getSimpleStorages()));
     }
 
     @Override
-    public SimpleStorageDto getSimpleStorage(Context context) throws EntityNotFoundException {
+    public SimpleStorageDto getResource(Context context) throws ContextResolvingException {
         SimpleStorage simpleStorage = (SimpleStorage) traverser.traverse(context);
         return SimpleStorageDto.newBuilder()
-                .id(simpleStorage.getId().toString())
-                .name(simpleStorage.getName())
-                .description(simpleStorage.getDescription())
-                .status(simpleStorage.getStatus())
-                .uefiDevicePath(simpleStorage.getUefiDevicePath())
-                .devices(getDevices(simpleStorage))
-                .context(context)
-                .build();
+            .id(simpleStorage.getId().toString())
+            .name(simpleStorage.getName())
+            .description(simpleStorage.getDescription())
+            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(simpleStorage.getService(), simpleStorage.getUnknownOems()))
+            .status(simpleStorage.getStatus())
+            .uefiDevicePath(simpleStorage.getUefiDevicePath())
+            .devices(getDevices(simpleStorage))
+            .build();
     }
 
     private List<SimpleStorageDeviceDto> getDevices(SimpleStorage simpleStorage) {
         return simpleStorage.getDevices().stream()
-                .map(simpleStorageDevice -> new SimpleStorageDeviceDto(
-                        simpleStorageDevice.getName(),
-                        simpleStorageDevice.getManufacturer(),
-                        simpleStorageDevice.getModel(),
-                        simpleStorageDevice.getStatus(),
-                        simpleStorageDevice.getCapacityBytes()
-                )).collect(toList());
+            .map(simpleStorageDevice -> SimpleStorageDeviceDto.newSimpleStorageDeviceDto()
+                .name(simpleStorageDevice.getName())
+                .manufacturer(simpleStorageDevice.getManufacturer())
+                .model(simpleStorageDevice.getModel())
+                .status(simpleStorageDevice.getStatus())
+                .capacityBytes(simpleStorageDevice.getCapacityBytes())
+                .oem(unknownOemTranslator.translateStringOemToDto(simpleStorage.getService(), simpleStorageDevice.getOem()))
+                .build()
+            ).collect(toList());
     }
 }

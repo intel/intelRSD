@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.dto.redfish.EthernetSwitchPortDto;
 import com.intel.podm.business.dto.redfish.EthernetSwitchPortDto.Builder;
@@ -27,9 +27,11 @@ import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.helpers.IpAddressDtoTranslateHelper;
+import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.EthernetSwitchPortService;
+import com.intel.podm.business.services.redfish.ReaderService;
 import com.intel.podm.common.logger.Logger;
 
 import javax.inject.Inject;
@@ -38,17 +40,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_PORTS;
-import static com.intel.podm.business.redfish.Contexts.asEthernetSwitchPortContexts;
-import static com.intel.podm.business.redfish.Contexts.getAsIdList;
+import static com.intel.podm.business.redfish.ContextCollections.asEthernetSwitchPortContexts;
+import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
 import static com.intel.podm.business.redfish.Contexts.toContext;
-import static com.intel.podm.common.utils.StringRepresentation.fromList;
+import static com.intel.podm.common.utils.StringRepresentation.fromIterable;
 import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Transactional(REQUIRED)
-public class EthernetSwitchPortServiceImpl implements EthernetSwitchPortService {
+@SuppressWarnings({"checkstyle:MethodLength", "checkstyle:ClassFanOutComplexity"})
+public class EthernetSwitchPortServiceImpl implements ReaderService<EthernetSwitchPortDto> {
     @Inject
-    private DomainObjectTreeTraverser traverser;
+    private EntityTreeTraverser traverser;
 
     @Inject
     private EthernetInterfaceDao ethernetInterfaceDao;
@@ -62,41 +65,45 @@ public class EthernetSwitchPortServiceImpl implements EthernetSwitchPortService 
     @Inject
     private Logger logger;
 
+    @Inject
+    private UnknownOemTranslator unknownOemTranslator;
+
     @Override
-    public CollectionDto getEthernetSwitchPortCollection(Context ethernetSwitch) throws EntityNotFoundException {
+    public CollectionDto getCollection(Context ethernetSwitch) throws ContextResolvingException {
         EthernetSwitch aSwitch = (EthernetSwitch) traverser.traverse(ethernetSwitch);
-        return new CollectionDto(ETHERNET_SWITCH_PORTS, getAsIdList(aSwitch.getPortCollection()));
+        return new CollectionDto(ETHERNET_SWITCH_PORTS, getAsIdSet(aSwitch.getPorts()));
     }
 
     @Override
-    public EthernetSwitchPortDto getEthernetSwitchPort(Context ethernetSwitchPort) throws EntityNotFoundException {
+    public EthernetSwitchPortDto getResource(Context ethernetSwitchPort) throws ContextResolvingException {
         EthernetSwitchPort port = (EthernetSwitchPort) traverser.traverse(ethernetSwitchPort);
 
         Builder ethernetSwitchPortBuilder = EthernetSwitchPortDto.newBuilder()
-                .id(port.getId())
-                .name(port.getName())
-                .description(port.getDescription())
-                .portId(port.getPortId())
-                .status(port.getStatus())
-                .portMode(port.getPortMode())
-                .portType(port.getPortType())
-                .linkType(port.getLinkType())
-                .autosense(port.getAutosense())
-                .portClass(port.getPortClass())
-                .frameSize(port.getFrameSize())
-                .fullDuplex(port.getFullDuplex())
-                .macAddress(port.getMacAddress())
-                .neighborMac(port.getNeighborMac())
-                .linkSpeedMbps(port.getLinkSpeedMbps())
-                .operationalState(port.getOperationalState())
-                .administrativeState(port.getAdministrativeState())
-                .neighborInfo(port.getNeighborInfo())
-                .switchContext(toContext(port.getEthernetSwitch()))
-                .ipv4Addresses(dtoTranslateHelper.translateIpV4AddressesToDto(port.getIpV4Addresses()))
-                .ipv6Addresses(dtoTranslateHelper.translateIpV6AddressesToDto(port.getIpV6Addresses()))
-                .portMembers(asEthernetSwitchPortContexts(port.getPortMembers()))
-                .memberOfPort(port.getMemberOfPort() != null ? toContext(port.getMemberOfPort()) : null)
-                .primaryVlan(port.getPrimaryVlan() != null ? toContext(port.getPrimaryVlan()) : null);
+            .id(port.getId().toString())
+            .name(port.getName())
+            .description(port.getDescription())
+            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(port.getService(), port.getUnknownOems()))
+            .portId(port.getPortId())
+            .status(port.getStatus())
+            .portMode(port.getPortMode())
+            .portType(port.getPortType())
+            .linkType(port.getLinkType())
+            .autosense(port.getAutosense())
+            .portClass(port.getPortClass())
+            .frameSize(port.getFrameSize())
+            .fullDuplex(port.getFullDuplex())
+            .macAddress(port.getMacAddress())
+            .neighborMac(port.getNeighborMac())
+            .linkSpeedMbps(port.getLinkSpeedMbps())
+            .operationalState(port.getOperationalState())
+            .administrativeState(port.getAdministrativeState())
+            .neighborInfo(port.getNeighborInfo())
+            .switchContext(toContext(port.getEthernetSwitch()))
+            .ipv4Addresses(dtoTranslateHelper.translateIpV4AddressesToDto(port.getService(), port.getIpV4Addresses()))
+            .ipv6Addresses(dtoTranslateHelper.translateIpV6AddressesToDto(port.getService(), port.getIpV6Addresses()))
+            .portMembers(asEthernetSwitchPortContexts(port.getPortMembers()))
+            .memberOfPort(toContext(port.getMemberOfPort()))
+            .primaryVlan(toContext(port.getPrimaryVlan()));
 
         return fillNeighborInterfacePart(ethernetSwitchPortBuilder, port).build();
     }
@@ -117,14 +124,14 @@ public class EthernetSwitchPortServiceImpl implements EthernetSwitchPortService 
         }
 
         if (errors.isEmpty()) {
-            ethernetSwitchPortBuilder.neighborInterface(neighborInterface != null ? toContext(neighborInterface) : null);
+            ethernetSwitchPortBuilder.neighborInterface(toContext(neighborInterface));
         } else {
             List<ExtendedInfoDto> extendedInfoList = errors.stream()
-                    .map(error -> ExtendedInfoDto.newExtendedInfoDto().message(error).build())
-                    .collect(toList());
+                .map(error -> ExtendedInfoDto.newExtendedInfoDto().message(error).build())
+                .collect(toList());
 
             ethernetSwitchPortBuilder.neighborInterfaceExtendedInfo(extendedInfoList);
-            logger.e(fromList(errors, "\n"));
+            logger.e(fromIterable(errors, "\n"));
         }
 
         return ethernetSwitchPortBuilder;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,7 @@
 #define JRPC_PWM					"fanPwm"
 #define JRPC_PSU_ENABLE_STATE		"psuEnableState"
 #define JRPC_RACK_PUID		"rackpuid"
+#define JRPC_RACK_LOCATION_ID		"rack_location_id"
 
 
 #define JRPC_GAMI_REG_VERSION		"version"
@@ -144,6 +145,7 @@
 #define JRPC_ACTION_FAN_RPM_RSP			"FanRPM"
 #define JRPC_ACTION_PSME_SOFT_RESET		"PSMESoftReset"
 #define JRPC_ACTION_SET_PUID		"SetPUID"
+#define JRPC_ACTION_SET_RACK_LOCATION_ID        "SetRackLocationId"
 
 
 #define JRPC_STATUS				"status"

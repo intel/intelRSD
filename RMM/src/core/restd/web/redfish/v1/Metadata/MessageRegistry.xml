@@ -122,14 +122,6 @@
                     <Annotation Term="OData.LongDescription"
                                 String="The value of this property shall be an ordered array of parameter types which match the types of the MessageArgs, in order."/>
                 </Property>
-                <Property Name="Resolution" Nullable="false" Type="Edm.String">
-                    <Annotation Term="OData.Permissions" EnumMember="OData.Permissions/Read"/>
-                    <Annotation Term="OData.Description"
-                                String="Used to provide suggestions on how to resolve the situation that caused the error."/>
-                    <Annotation Term="OData.LongDescription"
-                                String="This property shall contain an override of the Resolution of the message in message registry, if present."/>
-                    <Annotation Term="Redfish.Required"/>
-                </Property>
                 <Property Name="Oem" Type="Resource.Oem" Nullable="true">
                     <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
                     <Annotation Term="OData.Description" String="Oem extension object."/>

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@
 # </license_header>
 
 set(SOURCES
-    discovery_manager.cpp
-)
+        common.cpp
+        discovery_manager.cpp
+    )
+
+add_subdirectory(basic)
+add_subdirectory(smbios)
 
 add_library(compute-discovery OBJECT ${SOURCES})

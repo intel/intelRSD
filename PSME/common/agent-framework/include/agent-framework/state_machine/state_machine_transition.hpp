@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,29 +22,30 @@
  * @brief %StateMachine abstract transition
  */
 
-#ifndef AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_TRANSITION_HPP
-#define AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_TRANSITION_HPP
+#pragma once
 
-#include "agent-framework/module-ref/enum/enum_builder.hpp"
+
+
+#include "agent-framework/module/enum/enum_builder.hpp"
 
 #include <memory>
 #include <cstdio>
 #include <array>
 
-/*! Psme namespace */
+
+
 namespace agent_framework {
-/*! Generic namespace */
 namespace state_machine {
 namespace enums {
-/*!
-* @brief ENUM Transition of State Machine
-*/
-ENUM(Transition, uint32_t, IDLE, EXTRACTION, INSERTION, WENT_DOWN, CAME_UP,
-     DISCOVERY_UP, DISCOVERY_DOWN, DISCOVERY_MISSING);
+
+/*! @brief ENUM Transition of State Machine */
+ENUM(Transition, uint32_t, IDLE, EXTRACTION, INSERTION, SLOW_INSERTION, DID_NOT_START, WENT_DOWN, CAME_UP,
+    DISCOVERY_UP, DISCOVERY_DOWN, DISCOVERY_MISSING, STARTED
+);
 }
 
 /*!
- * @brief Virtual interafce to %StateMachine transition.
+ * @brief Virtual interface to %StateMachine transition.
  */
 class StateMachineTransition {
 public:
@@ -53,20 +54,23 @@ public:
      */
     StateMachineTransition() = default;
 
+
     /*!
      * @brief Class constructor.
      * @param[in] transition Initial transition.
      */
     StateMachineTransition(const enums::Transition transition) :
-        m_transition(transition) {}
+        m_transition(transition) { }
+
 
     /*!
      * @brief Getter method for transition value.
-     * @return Integer value of a partucular transition.
+     * @return Integer value of a particular transition.
      */
     enums::Transition get_transition() const {
         return m_transition;
     }
+
 
     /*!
      * @brief Setter method for transition value.
@@ -76,7 +80,8 @@ public:
         m_transition = transition;
     }
 
-    /**
+
+    /*!
      * @brief Gets transition name
      *
      * @param transition state machine transition
@@ -85,12 +90,12 @@ public:
      */
     static const char* get_transition_name(const enums::Transition transition);
 
+
 private:
     enums::Transition m_transition{enums::Transition::IDLE};
 };
 
 }
 }
-#endif /* AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_TRANSITION_HPP */
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,33 @@
  */
 package com.intel.podm.decrypter;
 
+import com.beust.jcommander.JCommander;
+import com.intel.podm.decrypter.cli.CommandLineArgs;
+
+@SuppressWarnings({"checkstyle:UncommentedMain"})
 public final class VaultDecrypterMain {
+    private final CommandLineArgs commandLineArgs;
 
-    private static final String KEYSTORE_PASS_PATH = "VAULT::keystore::keystore-password::1";
+    private VaultDecrypterMain(CommandLineArgs commandLineArgs) {
+        this.commandLineArgs = commandLineArgs;
+    }
 
-    private VaultDecrypterMain() {
+    private String getPassword() {
+        PodmVaultDecrypter decrypter = new PodmVaultDecrypter();
+        return decrypter.getPasswordUnder(commandLineArgs.getPasswordType().getPassPath());
     }
 
     public static void main(String[] args) {
-        String password = getPassword();
-        System.out.println(password);
-    }
+        CommandLineArgs commandLineArgs = new CommandLineArgs();
+        JCommander jCommander = new JCommander(commandLineArgs, args);
+        jCommander.setProgramName("VaultDecrypter");
 
-    private static String getPassword() {
-        PodmVaultDecrypter decrypter = new PodmVaultDecrypter();
-        return decrypter.getPasswordUnder(KEYSTORE_PASS_PATH);
+        if (commandLineArgs.isHelp()) {
+            jCommander.usage();
+            return;
+        }
+
+        VaultDecrypterMain vaultDecrypterMain = new VaultDecrypterMain(commandLineArgs);
+        System.out.println(vaultDecrypterMain.getPassword());
     }
 }

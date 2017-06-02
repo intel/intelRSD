@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Declaration of TaskRunner class
  * */
 
-#ifndef AGENT_FRAMEWORK_ACTION_TASK_RUNNER_HPP
-#define AGENT_FRAMEWORK_ACTION_TASK_RUNNER_HPP
-
+#pragma once
 #include "agent-framework/threading/threadpool.hpp"
 #include <mutex>
 #include <future>
@@ -79,4 +77,3 @@ private:
 
 }
 }
-#endif /* AGENT_FRAMEWORK_ACTIONS_TASK_RUNNER_HPP */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,23 +29,25 @@ import com.intel.podm.common.types.net.MacAddress;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.intel.podm.common.utils.StringRepresentation.fromList;
+import static com.intel.podm.common.utils.StringRepresentation.fromIterable;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Dependent
 public class ComputerSystemFinder {
-
     @Inject
     private EthernetInterfaceDao ethernetInterfaceDao;
 
     @Inject
     private Logger logger;
 
+    @Transactional(REQUIRED)
     public ComputerSystem findByCorrelatedPsmeComputerSystem(ComputerSystemResource computerSystemResource) {
         List<MacAddress> macAddresses = getMacAddresses(computerSystemResource);
         return findByMacAddresses(macAddresses);
@@ -59,11 +61,12 @@ public class ComputerSystemFinder {
                 .map(EthernetInterface::getComputerSystem)
                 .filter(Objects::nonNull)
                 .findFirst()
-                .orElseThrow(
-                        () -> {
-                            String msg = fromList(macAddresses);
-                            return new IllegalStateException(format("Computer System has not been found for MAC addresses '%s'", msg));
-                        });
+                .orElseThrow(() -> {
+                    String msg = fromIterable(macAddresses);
+                    return new IllegalStateException(
+                        format("Computer System has not been found for MAC addresses '%s'", msg)
+                    );
+                });
     }
 
 
@@ -82,7 +85,7 @@ public class ComputerSystemFinder {
         for (ResourceSupplier supplier : getEthernetInterfaces(computerSystemResource)) {
             try {
                 EthernetInterfaceResource ethernetInterface = (EthernetInterfaceResource) supplier.get();
-                result.add(ethernetInterface.getMacAddress());
+                ethernetInterface.getMacAddress().ifAssigned(result::add);
             } catch (ExternalServiceApiReaderException e) {
                 continue;
             }

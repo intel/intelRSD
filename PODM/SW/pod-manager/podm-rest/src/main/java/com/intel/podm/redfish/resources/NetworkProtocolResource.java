@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,28 @@
 
 package com.intel.podm.redfish.resources;
 
+import com.intel.podm.business.dto.redfish.ManagerDto;
 import com.intel.podm.business.dto.redfish.NetworkProtocolDto;
-import com.intel.podm.business.services.redfish.NetworkProtocolService;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
 
+import static com.intel.podm.rest.error.PodmExceptions.notFound;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class NetworkProtocolResource extends BaseResource {
 
     @Inject
-    private NetworkProtocolService service;
+    private ReaderService<ManagerDto> readerService;
 
     @Override
     public NetworkProtocolDto get() {
-        return getOrThrow(() -> service.getNetworkProtocol(getCurrentContext()));
+        ManagerDto managerDto = getOrThrow(() -> readerService.getResource(getCurrentContext()));
+        if (managerDto.getNetworkProtocol() == null) {
+            throw notFound();
+        }
+        return managerDto.getNetworkProtocol();
     }
 }

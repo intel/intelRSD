@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +19,15 @@
  *
  * */
 
-#include "agent-framework/module-ref/network_manager.hpp"
-#include "agent-framework/module-ref/enum/network.hpp"
+#include "agent-framework/module/enum/network.hpp"
+#include "agent-framework/module/network_components.hpp"
+#include "agent-framework/module/common_components.hpp"
+
 #include "loader/network_loader.hpp"
 #include "loader/network_config.hpp"
 #include "logger/logger_factory.hpp"
-#include "json/json.hpp"
+
+#include <json/json.hpp>
 
 using namespace agent::network::loader;
 using namespace agent_framework::module;
@@ -108,15 +111,15 @@ void check_required_fields(const json::Value& config) {
 
 bool add_port_vlan_module(const std::string& port_identifier,
     uint32_t vlan_id, bool vlan_tag) {
-    auto& port_manager = NetworkManager::get_instance()->get_port_manager();
+    auto& port_manager = NetworkComponents::get_instance()->get_port_manager();
     for (const auto& uuid : port_manager.get_keys()) {
         const auto port = port_manager.get_entry(uuid);
         if (port_identifier == port.get_port_identifier()) {
-            PortVlan portvlan_model{port.get_uuid()};
+            EthernetSwitchPortVlan portvlan_model{port.get_uuid()};
             portvlan_model.set_vlan_id(vlan_id);
             portvlan_model.set_tagged(vlan_tag);
             portvlan_model.set_vlan_enable(true);
-            NetworkManager::get_instance()->
+            NetworkComponents::get_instance()->
                             get_port_vlan_manager().add_entry(portvlan_model);
             log_debug(GET_LOGGER("network-agent"), "Created PortVlan module [vlan="
                     << portvlan_model.get_vlan_id() << " port="
@@ -127,9 +130,9 @@ bool add_port_vlan_module(const std::string& port_identifier,
     return false;
 }
 
-SwitchPort make_port_module(const json::Value& json, const std::string& switch_uuid) {
+EthernetSwitchPort make_port_module(const json::Value& json, const std::string& switch_uuid) {
     if (json.is_member("id") && json["id"].is_string()) {
-        SwitchPort port_model{switch_uuid};
+        EthernetSwitchPort port_model{switch_uuid};
         port_model.set_port_identifier(json["id"].as_string());
 
         /* read link state of the port */
@@ -196,12 +199,12 @@ bool make_vlan_module(const json::Value& json) {
     return false;
 }
 
-Switch make_switch_module(const json::Value& json,
+EthernetSwitch make_switch_module(const json::Value& json,
                           const std::string& manager_uuid) {
-    Switch switch_model{manager_uuid};
+    EthernetSwitch switch_model{manager_uuid};
 
     /* set switch identifier */
-    auto switch_count = NetworkManager::get_instance()->
+    auto switch_count = NetworkComponents::get_instance()->
         get_switch_manager().get_entry_count();
     switch_model.set_switch_identifier(std::to_string(switch_count));
 
@@ -216,7 +219,7 @@ Switch make_switch_module(const json::Value& json,
     if (json.is_member("ports") && json["ports"].is_array()) {
         for (const auto& port_json : json["ports"].as_array()) {
             auto port = make_port_module(port_json, switch_model.get_uuid());
-            NetworkManager::get_instance()->
+            NetworkComponents::get_instance()->
                 get_port_manager().add_entry(port);
         }
     }
@@ -242,7 +245,7 @@ Switch make_switch_module(const json::Value& json,
     switch_model.set_chassis(chassis_model.get_uuid());
 
     log_debug(GET_LOGGER("network-agent"), "Created Chassis module");
-    NetworkManager::get_instance()->
+    CommonComponents::get_instance()->
         get_chassis_manager().add_entry(chassis_model);
 
     /* return new switch model object */
@@ -262,7 +265,7 @@ Manager make_manager(const json::Value& element) {
     console.set_enabled(element["serialConsoleEnabled"].as_bool());
     manager.set_serial_console(std::move(console));
 
-    auto nm = NetworkManager::get_instance();
+    auto nm = NetworkComponents::get_instance();
     if (element.is_member("switches") && element["switches"].is_array()) {
         for (const auto& switch_json : element["switches"].as_array()) {
             auto switch_module = make_switch_module(switch_json,
@@ -281,7 +284,7 @@ Manager make_manager(const json::Value& element) {
 void NetworkLoader::read_fabric_modules(const json::Value& config) {
     auto& managers_array = config["managers"].as_array();
 
-    auto nm = NetworkManager::get_instance();
+    auto nm = CommonComponents::get_instance();
     for (const auto& element : managers_array) {
         auto manager = make_manager(element);
         nm->get_module_manager().add_entry(manager);

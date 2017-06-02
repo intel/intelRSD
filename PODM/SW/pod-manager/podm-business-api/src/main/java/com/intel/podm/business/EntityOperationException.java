@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package com.intel.podm.business;
 
-public class EntityOperationException extends Exception {
+public final class EntityOperationException extends BusinessApiException {
+    private static final long serialVersionUID = -5459146339043383917L;
+
     public EntityOperationException(String message) {
         super(message);
     }

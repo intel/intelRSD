@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,18 @@
  * @brief StateMachine thread.
  * */
 
-#ifndef AGENT_CHASSIS_STATE_MACHINE_ACTION_HPP
-#define AGENT_CHASSIS_STATE_MACHINE_ACTION_HPP
+
+
+#pragma once
 
 #include "agent-framework/state_machine/state_machine_thread_action.hpp"
+
+
 
 /*! Psme namespace */
 namespace agent {
 namespace chassis {
+
 
 class StateMachineAction final:
             public agent_framework::state_machine::StateMachineThreadAction {
@@ -37,23 +41,19 @@ public:
     /*!
      * @brief Constructs StateMachineAction with selected Discvoery
      * implementation.
-     *
-     * @param discovery unique pointer to Discovery implementation.
      */
     StateMachineAction() = default;
+
 
     /*! Default destructor. */
     ~StateMachineAction() = default;
 
-    void execute(
-        const std::string& uuid,
-        const agent_framework::state_machine::enums::State state,
-        const agent_framework::state_machine::enums::Transition trans
-    ) override;
+
+    void execute(StateThreadEntrySharedPtr entry) override;
 
 };
 
+
 }
 }
-#endif
 

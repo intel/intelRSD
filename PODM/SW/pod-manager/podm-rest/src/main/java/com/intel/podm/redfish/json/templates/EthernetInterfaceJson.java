@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,15 @@ package com.intel.podm.redfish.json.templates;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.intel.podm.common.types.AddressState;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.IpV4AddressOrigin;
 import com.intel.podm.common.types.IpV6AddressOrigin;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.net.MacAddress;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.common.types.redfish.IgnoreAutomaticOem;
+import com.intel.podm.common.types.redfish.OemType;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.rest.representation.json.templates.RedfishErrorResponseJson.ExtendedInfoJson;
 
 import java.util.ArrayList;
@@ -34,17 +36,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
 
 @JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "interfaceEnabled",
-        "permanentMacAddress", "macAddress", "speedMbps", "autoNeg", "fullDuplex", "mtuSize", "hostname", "fqdn",
-        "vlans", "ipv4Addresses", "ipV6AddressPolicyTable", "ipv6StaticAddresses", "maxIPv6StaticAddresses",
-        "ipv6DefaultGateway", "ipv6Addresses", "nameServers", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "interfaceEnabled",
+    "permanentMacAddress", "macAddress", "speedMbps", "autoNeg", "fullDuplex", "mtuSize", "hostname", "fqdn",
+    "vlans", "ipv4Addresses", "ipV6AddressPolicyTable", "ipv6StaticAddresses", "maxIPv6StaticAddresses",
+    "ipv6DefaultGateway", "ipv6Addresses", "nameServers", "oem"
 })
-public class EthernetInterfaceJson extends BaseJson {
-    public Id id;
-    public String name;
-    public String description;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class EthernetInterfaceJson extends BaseResourceJson {
     public Status status;
     @JsonProperty("InterfaceEnabled")
     public Boolean interfaceEnabled;
@@ -80,13 +81,11 @@ public class EthernetInterfaceJson extends BaseJson {
     public List<Ipv6AddressJson> ipv6StaticAddresses = new ArrayList<>();
     @JsonProperty("IPv6AddressPolicyTable")
     public final List<IpV6AddressPolicyJson> ipV6AddressPolicyTable = new LinkedList<>();
-    @JsonProperty("Oem")
-    public Object oem = new Object();
     @JsonProperty("Links")
     public Links links = new Links();
 
     public EthernetInterfaceJson() {
-        super("#EthernetInterface.1.0.0.EthernetInterface");
+        super("#EthernetInterface.v1_1_0.EthernetInterface");
     }
 
     @JsonInclude(NON_NULL)
@@ -96,17 +95,19 @@ public class EthernetInterfaceJson extends BaseJson {
         public String subnetMask;
         public IpV4AddressOrigin addressOrigin;
         public String gateway;
-        public Object oem = new Object();
+        @IgnoreAutomaticOem
+        public JsonNode oem;
     }
 
     @JsonInclude(NON_NULL)
     @JsonPropertyOrder({"address", "prefixLength", "addressOrigin", "addressState", "oem"})
     public static class Ipv6AddressJson {
         public String address;
-        public int prefixLength;
+        public Integer prefixLength;
         public IpV6AddressOrigin addressOrigin;
         public AddressState addressState;
-        public Object oem = new Object();
+        @IgnoreAutomaticOem
+        public JsonNode oem;
     }
 
     @JsonInclude(NON_NULL)
@@ -117,32 +118,31 @@ public class EthernetInterfaceJson extends BaseJson {
         public Integer label;
     }
 
-    public static class Links {
+    public class Links extends RedfishLinksJson {
         @JsonProperty("Oem")
         public Oem oem = new Oem();
 
         @JsonInclude(NON_NULL)
-        public static class Oem {
+        @OemType(OEM_IN_LINKS)
+        public class Oem extends RedfishOemJson {
             @JsonProperty("Intel_RackScale")
             public RackScaleOem rackScaleOem;
 
+            public RackScaleOem createNewRackScaleOem() {
+                return new RackScaleOem();
+            }
+
             @JsonInclude(NON_NULL)
             @JsonPropertyOrder({"odataType", "neighborPort", "neighborPortExtendedInfo"})
-            public static class RackScaleOem {
+            public class RackScaleOem {
                 @JsonProperty("@odata.type")
-                public String odataType;
+                public String odataType = "#Intel.Oem.EthernetInterface";
 
                 @JsonProperty("NeighborPort")
                 public ODataId neighborPort;
 
                 @JsonProperty("NeighborPort@Message.ExtendedInfo")
                 public List<ExtendedInfoJson> neighborPortExtendedInfo;
-
-                public RackScaleOem(ODataId neighborPort, List<ExtendedInfoJson> neighborPortExtendedInfo) {
-                    this.odataType = "#Intel.Oem.EthernetInterface";
-                    this.neighborPort = neighborPort;
-                    this.neighborPortExtendedInfo = neighborPortExtendedInfo;
-                }
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,36 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.events.EventType;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
 import java.util.Collection;
+import java.util.List;
 
-public final class EventServiceDto {
+public final class EventServiceDto extends BaseDto implements RedfishResource {
     private final String id;
-    private final Status status;
-    private final Boolean serviceEnabled;
-    private final Collection<String> eventTypesForSubscription;
-
     private final String name;
+    private final String description;
+    private final Boolean serviceEnabled;
+    private final Long deliveryRetryAttempts;
+    private final Long deliveryRetryIntervalSeconds;
+    private final Collection<EventType> eventTypesForSubscription;
+    private final Status status;
+    private final ODataId subscriptions;
 
-    private EventServiceDto(Builder builder) {
-        id = builder.id;
-        name = builder.name;
-        status = builder.status;
-        serviceEnabled = builder.serviceEnabled;
-        eventTypesForSubscription = builder.eventTypesForSubscription;
+    public EventServiceDto(Builder builder) {
+        this.id = builder.id;
+        this.name = builder.name;
+        this.status = builder.status;
+        this.description = builder.description;
+        this.subscriptions = builder.subscriptions;
+        this.serviceEnabled = builder.serviceEnabled;
+        this.deliveryRetryAttempts = builder.deliveryRetryAttempts;
+        this.eventTypesForSubscription = builder.eventTypesForSubscription;
+        this.deliveryRetryIntervalSeconds = builder.deliveryRetryIntervalSeconds;
     }
 
     public String getId() {
@@ -52,8 +64,30 @@ public final class EventServiceDto {
         return serviceEnabled;
     }
 
-    public Collection<String> getEventTypesForSubscription() {
+    public Collection<EventType> getEventTypesForSubscription() {
         return eventTypesForSubscription;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    public Long getDeliveryRetryAttempts() {
+        return deliveryRetryAttempts;
+    }
+
+    public Long getDeliveryRetryIntervalSeconds() {
+        return deliveryRetryIntervalSeconds;
+    }
+
+    public ODataId getSubscriptions() {
+        return subscriptions;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return null;
     }
 
     public static Builder newBuilder() {
@@ -63,35 +97,59 @@ public final class EventServiceDto {
     public static final class Builder {
         private String id;
         private String name;
+        private String description;
         private Status status;
         private Boolean serviceEnabled;
-        private Collection<String> eventTypesForSubscription;
+        private Collection<EventType> eventTypesForSubscription;
+        private Long deliveryRetryAttempts;
+        private Long deliveryRetryIntervalSeconds;
+        private ODataId subscriptions;
 
         private Builder() {
         }
 
-        public Builder id(String val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder serviceEnabled(Boolean val) {
-            serviceEnabled = val;
+        public Builder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public Builder eventTypesForSubscription(Collection<String> val) {
-            eventTypesForSubscription = val;
+        public Builder serviceEnabled(Boolean serviceEnabled) {
+            this.serviceEnabled = serviceEnabled;
+            return this;
+        }
+
+        public Builder eventTypesForSubscription(Collection<EventType> eventTypesForSubscription) {
+            this.eventTypesForSubscription = eventTypesForSubscription;
+            return this;
+        }
+
+        public Builder deliveryRetryAttempts(Long deliveryRetryAttempts) {
+            this.deliveryRetryAttempts = deliveryRetryAttempts;
+            return this;
+        }
+
+        public Builder deliveryRetryIntervalSeconds(Long deliveryRetryIntervalSeconds) {
+            this.deliveryRetryIntervalSeconds = deliveryRetryIntervalSeconds;
+            return this;
+        }
+
+        public Builder subscriptions(ODataId subscriptions) {
+            this.subscriptions = subscriptions;
             return this;
         }
 

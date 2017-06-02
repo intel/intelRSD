@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ private:
 
 LvmAPI::LvmImpl::LvmImpl() : m_lvm{lvm_init(nullptr), lvm_quit} {
     if (!m_lvm) {
-        THROW(::agent_framework::exceptions::LvmError, "lvm",
+        THROW(agent_framework::exceptions::LvmError, "lvm",
           "Could not create lvm handle!");
     }
 }
@@ -76,10 +76,10 @@ LvmAPI::VolumeGroupVec LvmAPI::LvmImpl::discover_volume_groups() {
 void LvmAPI::LvmImpl::create_snapshot(const LvmCreateData& data) {
     auto vg_handle = open_volume_group(m_lvm.get(), data.get_volume_group());
     create_snapshot(open_logical_volume(vg_handle.get(),
-                                          data.get_logical_volume()),
-                      data.get_create_name(),
-                      data.get_size(),
-                      data.get_bootable());
+                                        data.get_logical_volume()),
+                    data.get_create_name(),
+                    data.get_size(),
+                    data.get_bootable());
     lvm_vg_write(vg_handle.get());
 }
 
@@ -106,9 +106,9 @@ void LvmAPI::LvmImpl::remove_logical_volume(const std::string& vg_name,
 VolumeGroupPtr
 LvmAPI::LvmImpl::open_volume_group(lvm_t lvm_handle, const std::string& name) {
     auto vg_handle = lvm_vg_open(lvm_handle,
-                name.c_str(),
-                agent::storage::lvm::attribute::WRITE_MODE,
-                agent::storage::lvm::attribute::FLAGS);
+                                 name.c_str(),
+                                 agent::storage::lvm::attribute::WRITE_MODE,
+                                 agent::storage::lvm::attribute::FLAGS);
     if (!vg_handle) {
         THROW(agent_framework::exceptions::LvmError, "lvm",
           "Could not open volume group!");
@@ -116,10 +116,8 @@ LvmAPI::LvmImpl::open_volume_group(lvm_t lvm_handle, const std::string& name) {
     return VolumeGroupPtr{vg_handle, lvm_vg_close};
 }
 
-lv_t LvmAPI::LvmImpl::open_logical_volume(vg_t vg_handle,
-                                          const std::string& name) {
-    auto lv_handle = lvm_lv_from_name(vg_handle,
-                                      name.c_str());
+lv_t LvmAPI::LvmImpl::open_logical_volume(vg_t vg_handle, const std::string& name) {
+    auto lv_handle = lvm_lv_from_name(vg_handle, name.c_str());
     if (!lv_handle) {
         THROW(agent_framework::exceptions::LvmError, "lvm",
               "Could not open logical volume!");
@@ -128,16 +126,14 @@ lv_t LvmAPI::LvmImpl::open_logical_volume(vg_t vg_handle,
     return lv_handle;
 }
 
-lv_t LvmAPI::LvmImpl::create_snapshot(lv_t lv_handle,
-                     const std::string& name, const std::uint64_t size,
-                     const bool bootable) {
-    auto snapshot_handle = lvm_lv_snapshot(lv_handle,
-                                           name.c_str(),
-                                           size);
+lv_t LvmAPI::LvmImpl::create_snapshot(lv_t lv_handle, const std::string& name,
+                                      const std::uint64_t size, const bool bootable) {
+    auto snapshot_handle = lvm_lv_snapshot(lv_handle, name.c_str(), size);
     if (!snapshot_handle) {
         THROW(agent_framework::exceptions::LvmError, "lvm",
               "Could not create snapshot!");
     }
+
     if(bootable) {
         lvm_lv_add_tag(snapshot_handle, attribute::LV_BOOTABLE_ATTR);
     }

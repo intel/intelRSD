@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,22 @@
 
 package com.intel.podm.ipxesupplier;
 
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
-import com.intel.podm.business.entities.redfish.properties.RemoteTargetIscsiAddress;
+import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
 
 import javax.enterprise.context.Dependent;
 import java.util.Collection;
 import java.util.List;
 
-import static com.intel.podm.business.entities.redfish.base.DeepDiscoverable.DeepDiscoveryState.RUNNING;
+import static com.intel.podm.common.types.DeepDiscoveryState.RUNNING;
 import static com.intel.podm.common.utils.IterableHelper.single;
 
 @Dependent
 public class IpxeScriptFactory {
     public IpxeScript create(ComputerSystem computerSystem) throws AssetNotFoundException {
-        if (computerSystem.isInAnyOfStates(RUNNING)) {
+        if (computerSystem.getMetadata().isInAnyOfStates(RUNNING)) {
             return new DeepDiscoveryIpxeScript();
         } else {
             return remoteTargetIpxe(computerSystem);
@@ -65,7 +65,7 @@ public class IpxeScriptFactory {
     }
 
     private RemoteTarget findRemoteTarget(ComposedNode composedNode) throws AssetNotFoundException {
-        Collection<RemoteTarget> remoteTargets = composedNode.getRemoteDrives();
+        Collection<RemoteTarget> remoteTargets = composedNode.getRemoteTargets();
 
         if (remoteTargets.size() != 1) {
             throw new AssetNotFoundException("Invalid number of remote targets in composed node (expected: 1, found: " + remoteTargets.size() + ")");
@@ -85,7 +85,7 @@ public class IpxeScriptFactory {
     }
 
     private Integer findLun(RemoteTargetIscsiAddress address) throws AssetNotFoundException {
-        List<Integer> luns = address.getTargetLun();
+        List<Integer> luns = address.getTargetLuns();
 
         if (luns.size() != 1) {
             throw new AssetNotFoundException("Invalid number of LUNs in remote target (expected: 1, found: " + luns.size() + ")");

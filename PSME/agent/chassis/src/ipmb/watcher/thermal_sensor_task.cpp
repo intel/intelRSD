@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,9 @@
  * @brief Certificate
  * */
 
+#include "agent-framework/module/chassis_components.hpp"
+#include "agent-framework/module/common_components.hpp"
+
 #include <ipmb/watcher/thermal_sensor_task.hpp>
 #include <ipmb/command/thermal_sensor_response.hpp>
 #include <ipmb/gpio.hpp>
@@ -35,11 +38,6 @@
 #include <ipmi/command/generic/get_sensor_reading_factors.hpp>
 #include <ipmi/command/sdv/get_fan_pwm.hpp>
 #include <ipmi/manager/ipmitool/management_controller.hpp>
-#include <agent-framework/module-ref/chassis_manager.hpp>
-
-#include <logger/logger_factory.hpp>
-
-#include <algorithm>
 
 using namespace std;
 using namespace agent_framework::model;
@@ -50,7 +48,8 @@ using namespace agent::chassis::ipmb::watcher;
 using namespace ipmi;
 using namespace ipmi::command;
 
-using ChassisComponents = agent_framework::module::ChassisManager;
+using agent_framework::module::ChassisComponents;
+using agent_framework::module::CommonComponents;
 
 ThermalSensorTask::~ThermalSensorTask() {}
 
@@ -85,23 +84,17 @@ private:
 };
 
 void ThermalSensorTask::execute() {
-    auto drawer_manager_keys = ChassisComponents::get_instance()->
+    try {
+        auto drawer_manager_keys = CommonComponents::get_instance()->
             get_module_manager().get_keys("");
-    auto blade_manager_keys = ChassisComponents::get_instance()->
+        auto blade_manager_keys = CommonComponents::get_instance()->
             get_module_manager().get_keys(drawer_manager_keys.front());
 
-    try {
-        try {
-            ProcessThermalSensors ps{};
-            ps.execute(blade_manager_keys);
-        }
-        catch (const std::runtime_error& e) {
-            log_debug(LOGUSR, "ProcessThermalSensors - exception : " << e.what());
-        }
-
+        ProcessThermalSensors ps{};
+        ps.execute(blade_manager_keys);
     }
-    catch (const exception& e) {
-        log_error(LOGUSR, "Unable to get sled presence: " << e.what());
+    catch (const std::exception& e) {
+        log_debug(LOGUSR, "ProcessThermalSensors - exception : " << e.what());
     }
 }
 
@@ -184,7 +177,7 @@ void ProcessThermalSensors::fill_thermal_sensor_data(const std::vector<string>& 
 
     for (const auto& key: manager_keys) {
 
-        auto manager = ChassisComponents::get_instance()->
+        auto manager = CommonComponents::get_instance()->
                 get_module_manager().get_entry(key);
 
         if (manager.get_presence()) {
@@ -197,7 +190,7 @@ void ProcessThermalSensors::fill_thermal_sensor_data(const std::vector<string>& 
             mc.set_username(connection_data.get_username());
             mc.set_password(connection_data.get_password());
 
-            auto chassis_keys = ChassisComponents::get_instance()->
+            auto chassis_keys = CommonComponents::get_instance()->
                     get_chassis_manager().get_keys(manager.get_uuid());
             auto fan_keys = ChassisComponents::get_instance()->
                     get_fan_manager().get_keys(chassis_keys.front());
@@ -209,7 +202,7 @@ void ProcessThermalSensors::fill_thermal_sensor_data(const std::vector<string>& 
                 auto pwm = get_desired_pwm(mc);
                 auto tmp = get_inlet_temp(mc);
 
-                auto chassis = ChassisComponents::get_instance()->
+                auto chassis = CommonComponents::get_instance()->
                         get_chassis_manager().get_entry_reference(chassis_keys.front());
                 auto fan = ChassisComponents::get_instance()->
                         get_fan_manager().get_entry_reference(fan_keys.front());

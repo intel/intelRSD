@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.dto.redfish.EthernetSwitchDto;
-import com.intel.podm.business.services.redfish.EthernetSwitchService;
-import com.intel.podm.rest.resources.ResourceNames;
+import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.common.types.redfish.ResourceNames;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -31,15 +31,15 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 public class EthernetSwitchResource extends BaseResource {
 
     @Inject
-    private EthernetSwitchService service;
+    private ReaderService<EthernetSwitchDto> readerService;
 
     @GET
     @Override
     public EthernetSwitchDto get() {
-        return getOrThrow(() -> service.getEthernetSwitch(getCurrentContext()));
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
     }
 
-    @Path(ResourceNames.ETHERNET_SWITCH_PORTS_RESOURCE_NAME)
+    @Path(ResourceNames.PORTS_RESOURCE_NAME)
     public EthernetSwitchPortCollectionResource getEthernetSwitchPorts() {
         return getResource(EthernetSwitchPortCollectionResource.class);
     }

@@ -1,3 +1,5 @@
+@dir common/agent-framework
+
 PSME Generic Asset Management Interface Framework
 ====================
 
@@ -145,7 +147,6 @@ Dependencies:
     ccache >= 3.1.9
     cmake >= 2.8.12
     make >= 3.82
-    valgrind >= 3.9.0
     gcov >= 4.8.3
     lcov >= 1.11
     scan-build
@@ -266,3 +267,6 @@ Next:
     cd build
     cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/Platform/Linux-buildroot-arm.cmake ..
     make -j8
+
+
+@header{Dependencies}

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +19,7 @@
  *
  *
  * */
-#ifndef AGENT_FRAMEWORK_LOGGER_LOADER_HPP
-#define AGENT_FRAMEWORK_LOGGER_LOADER_HPP
-
+#pragma once
 #include "logger/logger_factory.hpp"
 #include <vector>
 #include <array>
@@ -133,5 +131,4 @@ private:
 };
 }
 
-#endif /* AGENT_FRAMEWORK_LOGGER_LOADER_HPP  */
 

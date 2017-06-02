@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -600,6 +600,7 @@ static int format_rmcp_br_cmd(char *dest_msg, struct ipmi_msg *request, ipmi_jso
 			unsigned long transit_addr, unsigned short transit_channel, int bridge_level)
 {
 	struct ipmi_msg *req;
+	int rc;
 
 	req = malloc(sizeof(*req));
 	if (req == NULL) {
@@ -626,7 +627,9 @@ static int format_rmcp_br_cmd(char *dest_msg, struct ipmi_msg *request, ipmi_jso
 		memcpy_s(req->data, sizeof(req->data), request->data, request->data_len);
 	}
 
-	return format_rmcp_cmd_timeout(dest_msg, host, port, req, header, IPMI_DFLT_TIMEOUT_MS, uname, passwd);
+	rc = format_rmcp_cmd_timeout(dest_msg, host, port, req, header, IPMI_DFLT_TIMEOUT_MS, uname, passwd);
+	free(req);
+	return rc;
 }
 
 
@@ -646,12 +649,10 @@ static int format_serial_br_cmd(char *dest_msg, struct ipmi_msg *request, ipmi_j
 			unsigned long target_addr, unsigned short target_channel,
 			unsigned long transit_addr, unsigned short transit_channel, int bridge_level)
 {
-	struct ipmi_msg *req;
 	int len;
 
 	if (bridge_level != IPMI_BRIDGE_MSG_NONE) {
-
-		req = malloc(sizeof(*req));
+		struct ipmi_msg *req = malloc(sizeof(*req));
 		if (req == NULL) {
 			rmm_log(ERROR, "failed for no memory!\n");
 			return -1;
@@ -680,6 +681,7 @@ static int format_serial_br_cmd(char *dest_msg, struct ipmi_msg *request, ipmi_j
 		}
 
 		len = format_serial_cmd_timeout(dest_msg, req, header, IPMI_DFLT_TIMEOUT_MS);
+		free(req);
 	}else
 		len = format_serial_cmd_timeout(dest_msg, request, header, IPMI_DFLT_TIMEOUT_MS);
 
@@ -800,6 +802,7 @@ static int jrpc_rmcp_req_parse(char *dest_msg, json_t *json_obj, ipmi_json_ipc_h
 
 		if (i != (int)len) {
 			rmm_log(ERROR, "data len(%d != %d) is wrong!\n", i, len);
+			free(w_buf);
 			return -1;
 		} else {
 			dump_hex_ascii((const unsigned char *)w_buf, (unsigned int)len);
@@ -909,6 +912,7 @@ static int jrpc_serail_req_parse(char *dest_msg, json_t *json_obj, ipmi_json_ipc
 
 		if (i != (int)len) {
 			rmm_log(ERROR, "data len(%d != %d) is wrong!\n", i, len);
+			free(w_buf);
 			return -1;
 		} else {
 			dump_hex_ascii((const unsigned char *)w_buf, (unsigned int)len);
@@ -1055,6 +1059,7 @@ static int jrpc_rmcp_br_req_parse(char *dest_msg, json_t *json_obj, ipmi_json_ip
 
 		if (i != (int)len) {
 			rmm_log(ERROR, "data len(%d != %d) is wrong!\n", i, len);
+			free(w_buf);
 			return -1;
 		} else {
 			dump_hex_ascii((const unsigned char *)w_buf, (unsigned int)len);
@@ -1164,6 +1169,7 @@ static int jrpc_serail_br_req_parse(char *dest_msg, json_t *json_obj, ipmi_json_
 
 		if (i != (int)len) {
 			rmm_log(ERROR, "data len(%d != %d) is wrong!\n", i, len);
+			free(w_buf);
 			return -1;
 		} else {
 			dump_hex_ascii((const unsigned char *)w_buf, (unsigned int)len);

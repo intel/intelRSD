@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@
 package com.intel.podm.discovery.internal;
 
 import com.intel.podm.business.entities.dao.ChassisDao;
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.common.logger.Logger;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.config.base.Config;
+import com.intel.podm.config.base.Holder;
+import com.intel.podm.config.base.dto.DiscoveryConfig;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
@@ -37,11 +40,12 @@ import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
 
 @Singleton
 @Startup
-@DependsOn("DomainObjectModelStartup")
+@DependsOn("DatabaseSchemaUpdateFinalizer")
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class PodStartupDiscovery {
-    public static final String DEFAULT_POD_LOCATION_COORDINATE = "Pod1";
-    private static final String POD_DEFAULT_NAME = "POD";
+    @Inject
+    @Config
+    private Holder<DiscoveryConfig> discoveryConfig;
 
     @Inject
     private PodManagerDiscoveryHandler podManagerDiscoveryHandler;
@@ -50,17 +54,16 @@ public class PodStartupDiscovery {
     private Logger logger;
 
     @Inject
-    private GenericDao genericDao;
-
-    @Inject
     private ChassisDao chassisDao;
 
     @PostConstruct
-    public void initInitialPod() {
+    private void initInitialPod() {
+        logger.i("Initializing {}", getClass().getSimpleName());
         Chassis podChassis = singleOrNull(chassisDao.getAllByChassisType(POD));
         if (podChassis == null) {
-            logger.d("Creating POD at location {}", DEFAULT_POD_LOCATION_COORDINATE);
-            podChassis = createPod(DEFAULT_POD_LOCATION_COORDINATE);
+            String podLocation = discoveryConfig.get().getPodLocationId();
+            logger.d("Creating POD at location {}", podLocation);
+            podChassis = createPod(podLocation);
         }
         podManagerDiscoveryHandler.getManagerForPod(podChassis);
     }
@@ -68,9 +71,10 @@ public class PodStartupDiscovery {
     private Chassis createPod(String podLocation) {
         Chassis pod = chassisDao.create();
 
-        pod.setName(POD_DEFAULT_NAME);
+        pod.setName(discoveryConfig.get().getPodName());
         pod.setChassisType(POD);
         pod.setLocationId(podLocation);
+        pod.setId(Id.id("pod"));
         pod.setStatus(new Status(ENABLED, OK, null));
 
         return pod;

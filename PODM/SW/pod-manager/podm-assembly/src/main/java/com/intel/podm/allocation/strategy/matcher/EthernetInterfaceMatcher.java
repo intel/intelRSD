@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package com.intel.podm.allocation.strategy.matcher;
 
 import com.intel.podm.allocation.mappers.ethernetinterface.EthernetInterfacesAllocationMapper;
-import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
-import com.intel.podm.business.dto.redfish.RequestedNode;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import javax.inject.Inject;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,8 +32,8 @@ public class EthernetInterfaceMatcher {
     @Inject
     protected EthernetInterfacesAllocationMapper ethernetInterfacesAllocationMapper;
 
-    public boolean matches(RequestedNode requestedNode, List<EthernetInterface> availableInterfaces) {
-        List<RequestedEthernetInterface> requestedInterfaces = requestedNode.getEthernetInterfaces();
+    public boolean matches(RequestedNode requestedNode, Collection<EthernetInterface> availableInterfaces) {
+        List<RequestedNode.EthernetInterface> requestedInterfaces = requestedNode.getEthernetInterfaces();
         boolean ethernetInterfacesAreNotSpecified = isEmpty(requestedInterfaces);
 
         if (ethernetInterfacesAreNotSpecified) {
@@ -42,10 +42,10 @@ public class EthernetInterfaceMatcher {
         return canMapRequestedWithAvailableInterfaces(requestedInterfaces, availableInterfaces);
     }
 
-    private boolean canMapRequestedWithAvailableInterfaces(List<RequestedEthernetInterface> requestedInterfaces,
-                                                           List<EthernetInterface> availableInterfaces) {
-        Map<EthernetInterface, RequestedEthernetInterface> map
-                = ethernetInterfacesAllocationMapper.map(availableInterfaces, requestedInterfaces);
+    private boolean canMapRequestedWithAvailableInterfaces(Collection<RequestedNode.EthernetInterface> requestedInterfaces,
+                                                           Collection<EthernetInterface> availableInterfaces) {
+        Map<EthernetInterface, RequestedNode.EthernetInterface> map
+                = ethernetInterfacesAllocationMapper.map(requestedInterfaces, availableInterfaces);
 
         return Objects.equals(map.size(), requestedInterfaces.size());
     }

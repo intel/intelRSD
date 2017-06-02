@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
 
 public class FilteringList {
@@ -30,9 +31,7 @@ public class FilteringList {
     private final StringJoiner joiner;
 
     FilteringList(List<ComputerSystem> computerSystems) {
-        if (computerSystems == null) {
-            throw new IllegalArgumentException("ComputerSystemsList should not be null");
-        }
+        requiresNonNull(computerSystems, "computerSystems");
         this.computerSystems = computerSystems;
         this.counter = computerSystems.size();
         this.joiner = new StringJoiner(" -> ", "[", "]");

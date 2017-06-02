@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,13 +31,15 @@
 using namespace ipmi;
 using namespace ipmi::command::sdv;
 
-request::GetBiosVersion::GetBiosVersion(): Request(uint8_t(NetFn::QUANTA), uint8_t(Cmd::GET_BIOS_VERSION)) {}
+request::GetBiosVersion::GetBiosVersion() :
+        Request(sdv::NetFn::QUANTA, sdv::Cmd::GET_BIOS_VERSION) {}
 request::GetBiosVersion::~GetBiosVersion() {}
 
-response::GetBiosVersion::GetBiosVersion(): Response(uint8_t(NetFn::QUANTA), uint8_t(Cmd::GET_BIOS_VERSION), RESPONSE_SIZE) {}
+response::GetBiosVersion::GetBiosVersion() :
+        Response(sdv::NetFn::QUANTA, sdv::Cmd::GET_BIOS_VERSION, RESPONSE_SIZE) {}
 response::GetBiosVersion::~GetBiosVersion() {}
 
-void response::GetBiosVersion::unpack(const vector<uint8_t>& data) {
+void response::GetBiosVersion::unpack(const std::vector<std::uint8_t>& data) {
     if(!is_response_correct(data)) {
         return; // received only completion code, do not unpack.
     }
@@ -45,7 +47,7 @@ void response::GetBiosVersion::unpack(const vector<uint8_t>& data) {
     m_full_version = extract_bios_version(data);
 }
 
-string response::GetBiosVersion::extract_bios_version(const vector<uint8_t>& data) {
+std::string response::GetBiosVersion::extract_bios_version(const std::vector<std::uint8_t>& data) {
     char version_array[] = {
         char(data[OFFSET_ASCII_CODE + 0]),
         char(data[OFFSET_ASCII_CODE + 1]),
@@ -66,7 +68,7 @@ string response::GetBiosVersion::extract_bios_version(const vector<uint8_t>& dat
         '\0'
     };
 
-    string version(version_array);
+    std::string version(version_array);
     return version;
 }
 

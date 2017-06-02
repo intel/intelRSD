@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,24 @@ package com.intel.podm.business.dto.redfish;
 import com.intel.podm.business.dto.redfish.attributes.FanDto;
 import com.intel.podm.business.dto.redfish.attributes.RackLocationDto;
 import com.intel.podm.business.dto.redfish.attributes.TemperatureDto;
-import com.intel.podm.common.types.Id;
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
 import java.util.List;
 
-public final class ThermalZoneDto {
-    private final Id id;
+@SuppressWarnings({"checkstyle:MethodCount"})
+public final class ThermalZoneDto extends BaseDto implements RedfishResource {
+    private final String id;
     private final String name;
+    private final String description;
+    private final List<UnknownOemDto> unknownOems;
     private final List<TemperatureDto> temperatures;
     private final List<FanDto> fans;
     private final RackLocationDto rackLocation;
     private final Integer maxFansSupported;
     private final Integer desiredSpeedPwm;
     private final Integer desiredSpeedRpm;
-    private final String description;
     private final Status status;
     private final String presence;
     private final Integer volumetricAirflow;
@@ -43,13 +46,14 @@ public final class ThermalZoneDto {
     private ThermalZoneDto(Builder builder) {
         id = builder.id;
         name = builder.name;
+        description = builder.description;
+        unknownOems = builder.unknownOems;
         temperatures = builder.temperatures;
         fans = builder.fans;
         rackLocation = builder.rackLocation;
         maxFansSupported = builder.maxFansSupported;
         desiredSpeedPwm = builder.desiredSpeedPwm;
         desiredSpeedRpm = builder.desiredSpeedRpm;
-        description = builder.description;
         status = builder.status;
         presence = builder.presence;
         volumetricAirflow = builder.volumetricAirflow;
@@ -61,12 +65,24 @@ public final class ThermalZoneDto {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
     }
 
     public List<TemperatureDto> getTemperatures() {
@@ -93,10 +109,6 @@ public final class ThermalZoneDto {
         return desiredSpeedRpm;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public Status getStatus() {
         return status;
     }
@@ -117,16 +129,22 @@ public final class ThermalZoneDto {
         return rackLocationDto;
     }
 
+    @Override
+    public Links getLinks() {
+        throw new UnsupportedOperationException("Links are not available in this resource");
+    }
+
     public static final class Builder {
-        private Id id;
+        private String id;
         private String name;
+        private String description;
+        private List<UnknownOemDto> unknownOems;
         private List<TemperatureDto> temperatures;
         private List<FanDto> fans;
         private RackLocationDto rackLocation;
         private Integer maxFansSupported;
         private Integer desiredSpeedPwm;
         private Integer desiredSpeedRpm;
-        private String description;
         private Status status;
         private String presence;
         private Integer volumetricAirflow;
@@ -136,73 +154,78 @@ public final class ThermalZoneDto {
         private Builder() {
         }
 
-        public Builder id(Id val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder temperatures(List<TemperatureDto> val) {
-            temperatures = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder fans(List<FanDto> val) {
-            fans = val;
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 
-        public Builder rackLocation(RackLocationDto val) {
-            rackLocation = val;
+        public Builder temperatures(List<TemperatureDto> temperatures) {
+            this.temperatures = temperatures;
             return this;
         }
 
-        public Builder maxFansSupported(Integer val) {
-            maxFansSupported = val;
+        public Builder fans(List<FanDto> fans) {
+            this.fans = fans;
             return this;
         }
 
-        public Builder desiredSpeedPwm(Integer val) {
-            desiredSpeedPwm = val;
+        public Builder rackLocation(RackLocationDto rackLocation) {
+            this.rackLocation = rackLocation;
             return this;
         }
 
-        public Builder desiredSpeedRpm(Integer val) {
-            desiredSpeedRpm = val;
+        public Builder maxFansSupported(Integer maxFansSupported) {
+            this.maxFansSupported = maxFansSupported;
             return this;
         }
 
-        public Builder description(String val) {
-            description = val;
+        public Builder desiredSpeedPwm(Integer desiredSpeedPwm) {
+            this.desiredSpeedPwm = desiredSpeedPwm;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder desiredSpeedRpm(Integer desiredSpeedRpm) {
+            this.desiredSpeedRpm = desiredSpeedRpm;
             return this;
         }
 
-        public Builder presence(String val) {
-            presence = val;
+        public Builder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public Builder volumetricAirflow(Integer val) {
-            volumetricAirflow = val;
+        public Builder presence(String presence) {
+            this.presence = presence;
             return this;
         }
 
-        public Builder numberOfFansPresent(Integer val) {
-            numberOfFansPresent = val;
+        public Builder volumetricAirflow(Integer volumetricAirflow) {
+            this.volumetricAirflow = volumetricAirflow;
             return this;
         }
 
-        public Builder rackLocationDto(RackLocationDto val) {
-            rackLocationDto = val;
+        public Builder numberOfFansPresent(Integer numberOfFansPresent) {
+            this.numberOfFansPresent = numberOfFansPresent;
+            return this;
+        }
+
+        public Builder rackLocationDto(RackLocationDto rackLocationDto) {
+            this.rackLocationDto = rackLocationDto;
             return this;
         }
 

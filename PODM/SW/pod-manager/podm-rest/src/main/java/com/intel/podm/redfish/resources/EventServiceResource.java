@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,58 +16,33 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.dto.redfish.EventServiceDto;
-import com.intel.podm.business.dto.redfish.SubscriptionDto;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SUBSCRIPTIONS;
-import static java.util.Collections.emptyList;
+import static com.intel.podm.business.services.context.Context.contextOf;
+import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
+import static com.intel.podm.common.types.Id.id;
+import static com.intel.podm.common.types.redfish.ResourceNames.EVENT_SUBSCRIPTION_RESOURCE_NAME;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
 public class EventServiceResource extends BaseResource {
 
+    @Inject
+    private ReaderService<EventServiceDto> readerService;
+
     @GET
     public EventServiceDto get() {
-        return EventServiceDto.newBuilder()
-                .id("EventService")
-                .name("Event Service")
-                .serviceEnabled(false)
-                .status(Status.fromString("State=Enabled,Health=OK"))
-                .eventTypesForSubscription(newArrayList("StatusChange",
-                        "ResourceUpdated", "ResourceAdded", "ResourceRemoved", "Alert"))
-                .build();
+        return getOrThrow(() -> readerService.getResource(contextOf(id(""), EVENT_SERVICE)));
     }
 
-    @GET
-    @Path("/Subscriptions")
-    public CollectionDto getSubscriptions() {
-        return new CollectionDto(SUBSCRIPTIONS, emptyList());
-    }
-
-    @GET
-    @Path("/Subscriptions/{subscriptionId}")
-    public SubscriptionDto getSimpleStorage(@PathParam("subscriptionId") String subscriptionId) {
-        return SubscriptionDto.newBuilder()
-                .destination("http://www.dnsname.com/Destination1")
-                .id(subscriptionId)
-                .name("Sub name")
-                .context("Context 1")
-                .protocol("Redfish")
-                .build();
-    }
-
-    @POST
-    @Path("/Actions/EventService.SendTestEvent")
-    public Object sendTestEvent(Object object) {
-        return new Object();
+    @Path(EVENT_SUBSCRIPTION_RESOURCE_NAME)
+    public EventSubscriptionCollectionResource getSubscriptions() {
+        return getResource(EventSubscriptionCollectionResource.class);
     }
 }

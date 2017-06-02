@@ -41,9 +41,7 @@
  * @brief JSON writter interface
  * */
 
-#ifndef JSON_CXX_WRITTER_STRING_HPP
-#define JSON_CXX_WRITTER_STRING_HPP
-
+#pragma once
 #include "json/writter.hpp"
 
 namespace json {
@@ -116,4 +114,3 @@ private:
 }
 }
 
-#endif /* JSON_CXX_WRITTER_STRING_HPP */

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,16 +22,13 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/get_drive_info.hpp"
-#include "agent-framework/command/storage/json/get_drive_info.hpp"
-#include "agent-framework/exceptions/exception.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework;
-using namespace agent_framework::command;
+using namespace agent_framework::command_ref;
 
-class GetDriveInfo : public storage::GetDriveInfo {
+class MyGetDriveInfo {
 private:
     std::string m_component{};
     std::uint32_t m_drive{};
@@ -47,11 +44,9 @@ private:
             json_oem["testOEM"] = "TestOEMSpecificData";
             return json_oem;
         }
-
-        ~TestOEMData();
     };
 public:
-    GetDriveInfo(
+    MyGetDriveInfo(
         const std::string& component,
         std::uint32_t drive,
         const std::string& interface,
@@ -66,14 +61,13 @@ public:
         m_rpm = rpm;
     }
 
-    using storage::GetDriveInfo::execute;
-
-    void execute(const Request& request, Response& response) {
+    void execute(const GetDriveInfo::Request& request,
+                 GetDriveInfo::Response& response) {
         auto component = request.get_component();
         auto drive = request.get_drive();
 
         if (component != m_component || drive != m_drive) {
-            throw exceptions::InvalidUuid("Wrong UUID!");
+            throw std::runtime_error("Not found");
         }
 
         response.set_interface(m_interface);
@@ -88,40 +82,27 @@ public:
                                   "TestPartNumber"));
         response.set_oem(new TestOEMData);
     }
-
-    virtual ~GetDriveInfo();
 };
 
-GetDriveInfo::~GetDriveInfo() { }
-
-GetDriveInfo::TestOEMData::~TestOEMData() { }
-
-class GetDriveInfoTest : public ::testing::Test {
-public:
-    virtual ~GetDriveInfoTest();
-};
-
-GetDriveInfoTest::~GetDriveInfoTest() { }
-
-TEST_F(GetDriveInfoTest, PositiveExecute) {
-    storage::json::GetDriveInfo command_json;
-    GetDriveInfo* command = new GetDriveInfo(
+TEST(GetDriveInfoTest, PositiveExecute) {
+    MyGetDriveInfo command{
         "TestComponentId",
         1,
         "Test Interface",
         "Test Type",
         2048,
-        7200);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+        7200};
+    GetDriveInfo::Request request{""};
+    GetDriveInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params["component"] = "TestComponentId";
     params["drive"] = 1;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetDriveInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result["interface"].isString());
@@ -150,45 +131,42 @@ TEST_F(GetDriveInfoTest, PositiveExecute) {
     ASSERT_EQ(result["oem"]["testOEM"], "TestOEMSpecificData");
 }
 
-TEST_F(GetDriveInfoTest, NegativeComponentNotFound) {
-    storage::json::GetDriveInfo command_json;
-    GetDriveInfo* command = new GetDriveInfo(
+TEST(GetDriveInfoTest, NegativeComponentNotFound) {
+    MyGetDriveInfo command{
         "TestComponentId",
         1,
         "Test Interface",
         "Test Type",
         2048,
-        7200);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+        7200};
+    GetDriveInfo::Request request{""};
+    GetDriveInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params["component"] = "OtherTestComponentId";
     params["drive"] = 1;
 
-    EXPECT_THROW(command_json.method(params, result), jsonrpc::JsonRpcException);
+    EXPECT_NO_THROW(request = GetDriveInfo::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }
 
 TEST_F(GetDriveInfoTest, NegativeSlotNotFound) {
-    storage::json::GetDriveInfo command_json;
-    GetDriveInfo* command = new GetDriveInfo(
+    MyGetDriveInfo command{
         "TestComponentId",
         1,
         "Test Interface",
         "Test Type",
         2048,
-        7200);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+        7200};
+    GetDriveInfo::Request request{""};
+    GetDriveInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params["component"] = "TestComponentId";
     params["drive"] = 2;
 
-    EXPECT_THROW(command_json.method(params, result), jsonrpc::JsonRpcException);
+    EXPECT_NO_THROW(request = GetDriveInfo::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }
-

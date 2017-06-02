@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,19 +22,18 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/module-ref/network_manager.hpp"
+#include "agent-framework/module/network_components.hpp"
 #include "agent-framework/command-ref/registry.hpp"
 #include "agent-framework/command-ref/network_commands.hpp"
-#include "hw/fm10000/network_controller_manager.hpp"
 #include "api/static_mac.hpp"
 
 #include <stdexcept>
 
 using namespace agent_framework::command_ref;
 using namespace agent_framework::module;
+using namespace agent_framework::model;
 using namespace agent_framework;
 using namespace agent::network;
-using namespace agent::network::hw::fm10000;
 using namespace std;
 
 namespace {
@@ -50,7 +49,7 @@ namespace {
     }
 
     void delete_port_static_mac(const DeletePortStaticMac::Request& request, DeletePortStaticMac::Response&) {
-        auto network_manager = NetworkManager::get_instance();
+        auto network_manager = NetworkComponents::get_instance();
         const auto& port_manager = network_manager->get_port_manager();
         auto& static_mac_manager = network_manager->get_static_mac_manager();
 

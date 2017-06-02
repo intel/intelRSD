@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,7 +89,7 @@ public:
     /*!
      * @brief Add JSON RPC commands registered in Registry
      *
-     * @param[in]  registry Registry with command implementation
+     * @param[in] commands Registry with command implementation
      * */
     void add(const command_ref::Registry::Commands& commands);
     /*!

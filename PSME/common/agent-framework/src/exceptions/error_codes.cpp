@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,5 +25,18 @@
 
 #include "agent-framework/exceptions/error_codes.hpp"
 
-using namespace agent_framework::exceptions;
+bool agent_framework::exceptions::is_communication_error(ErrorCode error_code){
+    if (
+        error_code == ErrorCode::INVALID_PARAMETER ||
+        error_code == ErrorCode::INVALID_FIELD ||
+        error_code == ErrorCode::UNSUPPORTED_FIELD ||
+        error_code == ErrorCode::DUPLICATED_FIELD ||
+        error_code == ErrorCode::UNEXPECTED_FIELD ||
+        error_code == ErrorCode::MISSING_FIELD
+    ) {
+        return true;
+    }
+    return false;
+}
+
 

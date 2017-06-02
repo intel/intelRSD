@@ -41,9 +41,7 @@
  * @brief JSON number interface
  * */
 
-#ifndef JSON_CXX_NUMBER_HPP
-#define JSON_CXX_NUMBER_HPP
-
+#pragma once
 #include <cstdint>
 
 namespace json {
@@ -99,6 +97,20 @@ public:
      * @param[in]  value    Value initialization
      * */
     Number(Uint value) : m_type(Type::UINT), m_uint(value) { }
+
+    /*!
+     * @brief Create JSON number as signed 64-bit integer number
+     *
+     * @param[in]  value    Value initialization
+     * */
+    Number(Int64 value) : m_type(Type::INT), m_int(value) { }
+
+    /*!
+     * @brief Create JSON number as unsigned 64-bit integer number
+     *
+     * @param[in]  value    Value initialization
+     * */
+    Number(Uint64 value) : m_type(Type::UINT), m_uint(value) { }
 
     /*!
      * @brief Create JSON number as double number
@@ -211,4 +223,3 @@ inline bool operator!=(const Number& num1, const Number& num2) {
 
 } /* namespace json */
 
-#endif /* JSON_CXX_NUMBER_HPP */

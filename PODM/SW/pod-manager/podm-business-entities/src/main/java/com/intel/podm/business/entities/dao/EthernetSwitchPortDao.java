@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,12 @@ import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.net.MacAddress;
 
 import javax.enterprise.context.Dependent;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static com.intel.podm.business.entities.redfish.EthernetSwitchPort.NEIGHBOR_MAC;
+import static com.intel.podm.business.entities.redfish.EthernetSwitchPort.GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC;
 import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -48,7 +49,10 @@ public class EthernetSwitchPortDao extends Dao<EthernetSwitchPort> {
             return null;
         }
 
-        List<EthernetSwitchPort> ethernetSwitchPorts = repository.getAllByProperty(EthernetSwitchPort.class, NEIGHBOR_MAC, neighborMac).stream()
+        TypedQuery<EthernetSwitchPort> query = entityManager.createNamedQuery(GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC, EthernetSwitchPort.class);
+        query.setParameter("neighborMac", neighborMac);
+
+        List<EthernetSwitchPort> ethernetSwitchPorts = query.getResultList().stream()
                 .filter(EthernetSwitchPort::isEnabledAndHealthy)
                 .collect(toList());
 

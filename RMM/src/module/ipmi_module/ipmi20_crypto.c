@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,6 +185,7 @@ unsigned char *ipmi20_payload_encrypt(struct ipmi_session *sess,
 
 	switch (sess->crypt_alg) {
 	case CRYPT_ALG_NONE:
+		free(buf);
 		buf = msg;
 		*len = msg_len;
 		break;
@@ -218,8 +219,10 @@ unsigned char *ipmi20_payload_encrypt(struct ipmi_session *sess,
 
 		free(pad_input);
 
-		if (*len == 0)
+		if (*len == 0) {
+			free(buf);
 			return NULL;
+		}
 
 		*len += 16;
 
@@ -278,12 +281,15 @@ unsigned char *ipmi20_payload_decrypt(struct ipmi_session *sess,
 			payload_len = *len - pad_len - 1;
 
 			for (i = 0; i < pad_len; i++) {
-				if (out[payload_len + i] != (i + 1))
+				if (out[payload_len + i] != (i + 1)) {
+					free(out);
 					return NULL;
+				}
 			}
 
 			*len -= (pad_len + 1);
 		} else {
+			free(out);
 			return NULL;
 		}
 		break;

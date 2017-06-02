@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.intel.podm.allocation.strategy;
 
-import com.intel.podm.allocation.validation.Violations;
+import com.intel.podm.business.Violations;
 import com.intel.podm.assembly.tasks.NodeAssemblyTask;
-import com.intel.podm.business.entities.redfish.components.ComposedNode;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 
 import javax.enterprise.context.Dependent;
 import javax.transaction.Transactional;

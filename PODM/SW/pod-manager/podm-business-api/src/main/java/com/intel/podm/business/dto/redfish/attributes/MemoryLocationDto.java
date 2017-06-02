@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,23 +55,23 @@ public final class MemoryLocationDto {
         private Integer locationChannel;
         private Integer locationSlot;
 
-        public Builder locationSocket(Integer val) {
-            locationSocket = val;
+        public Builder locationSocket(Integer locationSocket) {
+            this.locationSocket = locationSocket;
             return this;
         }
 
-        public Builder locationMemoryController(Integer val) {
-            locationMemoryController = val;
+        public Builder locationMemoryController(Integer locationMemoryController) {
+            this.locationMemoryController = locationMemoryController;
             return this;
         }
 
-        public Builder locationChannel(Integer val) {
-            locationChannel = val;
+        public Builder locationChannel(Integer locationChannel) {
+            this.locationChannel = locationChannel;
             return this;
         }
 
-        public Builder locationSlot(Integer val) {
-            locationSlot = val;
+        public Builder locationSlot(Integer locationSlot) {
+            this.locationSlot = locationSlot;
             return this;
         }
 

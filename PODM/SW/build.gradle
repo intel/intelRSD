@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,12 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    jacocoExecutionFile = project.hasProperty('jacocoExecutionFile') ? project.property('jacocoExecutionFile') : 'not-provided'
+    jacocoJarDestinationDir = project.hasProperty("jacocoJarDestinationDir") ? project.property("jacocoJarDestinationDir") : "jacocoAgent"
+    jacocoXmlReportDestination = project.hasProperty("jacocoXmlReportDestination") ? project.property("jacocoXmlReportDestination") : "jacocoReport.xml"
+}
+
 def readBuildVersion() {
     def buildVersion = '0.99'
     File versionFile = new File('VERSION')
@@ -42,24 +48,40 @@ allprojects {
     version = buildVersion
 }
 
+subprojects {
+    task allDeps(type: DependencyReportTask) {}
+}
+
 println 'Build version: ' + version
 
 project.ext {
     sourceCompatibility = JavaVersion.VERSION_1_8
 
+    jacocoToolVersion = "0.7.9"
+
     // library versions
-    checkstyleVer = '6.14'
+    checkstyleVer = '7.1.2'
     hamcrestVer = '1.3'
-    mockitoVer = '1.9.5'
-    orientRarVer = '0.3.0'
-    testNgVer = '6.8.21'
-    blueprintsApiVer = '2.6.0'
-    wildflyVer = '9.0.2.Final'
-    commonsValVer = '1.4.1'
-    commonsLangVer = '2.4'
-    commonsCollectionsVer = '3.2.1'
-    commonsIoVer = '2.1'
-    orientDbVer = '2.1.5'
+    mockitoVer = '1.10.19'
+    testNgVer = '6.9.13.6'
+    junitVer = '4.12'
+    cornCpsVer = '1.1.10'
+    dnaCommonVer = '0.7'
+    javaParserCoreVer = '2.5.1'
+    wildflyVer = '10.0.0.Final'
+    commonsValVer = '1.5.0'
+    commonsLangVer = '2.6'
+    commonsCollectionsVer = '3.2.2'
+    commonsIoVer = '2.4'
+    commonsNetVer = '3.4'
+    classIndexVer = '3.4'
+    metricsVer = '1.3.5'
+    clingVer = '2.0.1'
+    liquibaseVer = '3.5.2'
+
+    postgresqlJdbcVer = '9.4.1208'
+    jpa21Ver = '1.0.0.Final'
+    hibernateVer = '5.0.7.Final'
 
     JAVA_EE_API_DEPENDENCY = "javax:javaee-api:7.0"
 
@@ -76,6 +98,10 @@ project.ext {
     APACHE_COMMONS_LANG = "commons-lang:commons-lang:$commonsLangVer";
     APACHE_COMMONS_COLLECTIONS = "commons-collections:commons-collections:$commonsCollectionsVer";
     APACHE_COMMONS_IO = "commons-io:commons-io:$commonsIoVer";
+    APACHE_COMMONS_NET = "commons-net:commons-net:$commonsNetVer"
+    CLASS_INDEX = "org.atteo.classindex:classindex:$classIndexVer";
+
+    CLING_CORE = "org.fourthline.cling:cling-core:$clingVer"
 
     RESTEASY_VERSION = '3.0.14.Final'
     RESTEASY_CLIENT_DEPENDENCY = "org.jboss.resteasy:resteasy-client:$RESTEASY_VERSION"
@@ -84,14 +110,27 @@ project.ext {
 
     SLF4J_DEPENDENCY = "org.slf4j:slf4j-api:1.7.10"
     LOGBACK_DEPENDENCY = "ch.qos.logback:logback-classic:1.1.1"
-    ORIENTDB_RAR_API = "org.ops4j.orient:orient-ra-api:$orientRarVer"
 
-    MODEL_MAPPER_DEPENDENCY = 'org.modelmapper:modelmapper:0.7.5'
+    MODEL_MAPPER_DEPENDENCY = 'org.modelmapper:modelmapper:0.7.6'
 
+    METRICS_CDI = "io.astefanutti.metrics.cdi:metrics-cdi:$metricsVer"
 
+    POSTGRESQL_JDBC = "org.postgresql:postgresql:$postgresqlJdbcVer"
+    HIBERNATE_JPA = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21Ver"
+    HIBERNATE_CORE = "org.hibernate:hibernate-core:$hibernateVer"
+    HIBERNATE_EM = "org.hibernate:hibernate-entitymanager:$hibernateVer"
+
+    LIQUIBASE_CORE = "org.liquibase:liquibase-core:$liquibaseVer"
+    LIQUIBASE_CDI = "org.liquibase:liquibase-cdi:$liquibaseVer"
 }
 
 idea.project.languageLevel = JavaVersion.VERSION_1_8
+
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = jacocoToolVersion
+}
 
 configure (subprojects - project(':pod-manager-common')) {
 
@@ -99,11 +138,16 @@ configure (subprojects - project(':pod-manager-common')) {
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
 
+    jacoco {
+        toolVersion = jacocoToolVersion
+    }
+
     repositories {
         mavenCentral()
         maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
         maven { url 'http://repository.jboss.org/nexus/content/repositories/deprecated' }
         maven { url 'http://repo.jfrog.org/artifactory/repo' }
+        maven { url "http://4thline.org/m2" }
     }
 
     checkstyle {
@@ -137,12 +181,12 @@ configure (subprojects - project(':pod-manager-common')) {
         testCompile "org.testng:testng:$testNgVer"
         testCompile "org.hamcrest:hamcrest-all:$hamcrestVer"
         testCompile "org.mockito:mockito-all:$mockitoVer"
+        testRuntime "junit:junit:$junitVer" //needed in runtime by mockito...
         testCompile SLF4J_DEPENDENCY
-    }
-
-    compileJava {
-        options.debug = false
-        options.debugOptions.debugLevel = ""
+        testCompile "net.sf.corn:corn-cps:$cornCpsVer"
+        testCompile "$CLASS_INDEX"
+        testCompile "org.jboss.dna:dna-common:$dnaCommonVer"
+        testCompile "com.github.javaparser:javaparser-core:$javaParserCoreVer"
     }
 
     jacocoTestReport {
@@ -193,7 +237,7 @@ task gatherSrc << {
         copy {
             from srcPath
             into dstPath
-            exclude "*.iml", ".idea/", "**/build/**"
+            exclude "*.iml", ".idea/", "**/build/**", "*.yml"
         }
     }
 
@@ -223,6 +267,11 @@ task gatherSrc << {
         from ("external")
         into buildDir + "/" + project.name + "/external"
     }
+
+    copy {
+        from ("licences")
+        into buildDir + "/" + project.name + "/licences"
+    }
 }
 
 task srcTar(type: Tar, dependsOn: gatherSrc) {
@@ -235,4 +284,28 @@ task srcTar(type: Tar, dependsOn: gatherSrc) {
     extension = "tar.gz"
 
     outputs.upToDateWhen { false }
+}
+
+task copyJacocoAgentJar(type: Copy) {
+    description """Copies jacocoAgent jar file to location specified by jacocoJarDestination property - default value: jacocoAgent.
+Usage: ./gradlew copyJacocoAgentJar -PjacocoJarDestinationDir=/home/podm/jacocoAgent"""
+    from (zipTree(configurations.jacocoAgent.singleFile)) {
+        include "jacocoagent.jar"
+    }
+    into project.jacocoJarDestinationDir
+}
+
+task createJaCoCoReport(type: JacocoReport) {
+    description """Creates JaCoCo reports from provided exec file. Xml report is generated to jacocoXmlReportDestination - default value: jacocoReport.xml
+Usage: ./gradlew createJaCoCoReport -P jacocoExecutionFile=/opt/pod-manager/wildfly/jacoco.exec -P jacocoXmlReportDestination=podmIntegrationTestsJaCoCoReport.xml"""
+    executionData = files([project.jacocoExecutionFile])
+    def projects = subprojects - project(':pod-manager-common')
+    sourceDirectories = files(projects.sourceSets.main.allSource.srcDirs)
+    classDirectories = files(projects.sourceSets.main.output)
+    reports {
+        html.enabled = true
+        html.destination = "build/reports/jacocoHtmlReport"
+        xml.enabled = true
+        xml.destination = "${project.jacocoXmlReportDestination}"
+    }
 }

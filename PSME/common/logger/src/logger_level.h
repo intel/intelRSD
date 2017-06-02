@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,5 +38,19 @@
  * @return      Return logger level tag string
  * */
 const char *logger_level_get_string(unsigned int options);
+
+/*!
+ * @brief Get number of log levels
+ * @return Number of log levels
+ */
+unsigned logger_level_get_number_of_levels(void);
+
+/*!
+ * @brief Get id of log level given as name
+ * @param[in] level string with name of the level
+ * @return logging level id or -1 if name not match
+ */
+int logger_level_get_level(const char* level);
+
 
 #endif /* LOGGER_LEVEL_H */

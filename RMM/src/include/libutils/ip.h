@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 int libutils_net_get_ip(const char *ifname, char *ip, int len);
 int libutils_net_get_ifname(const char *ip, char *ifname, int len);
 int libutils_net_get_gateway(const char *ifname, char *gateway, int len);
+int libutils_net_get_origin(const char *ifname, char *origin);
 int libutils_net_get_mask(const char *ifname, char *net_mask, int len);
 int libutils_netdev_get_attribute(const char *ifname, char *key, char *value, int len);
 

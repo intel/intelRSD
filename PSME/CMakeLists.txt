@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 # </license_header>
 
 cmake_minimum_required(VERSION 2.8)
+message(STATUS "Current cmake is ${CMAKE_VERSION}")
+
 project("PSME FW Build" C CXX)
 
 ###############################################################################
@@ -28,8 +30,18 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+
+set(CMAKE_INCLUDE_PATH "${CMAKE_BINARY_DIR}/include;${CMAKE_SYSTEM_INCLUDE_PATH}")
+set(CMAKE_LIBRARY_PATH "${CMAKE_BINARY_DIR}/lib;${CMAKE_SYSTEM_LIBRARY_PATH}")
+set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR};${CMAKE_SYSTEM_PREFIX_PATH}")
+
 # Path to folder with all cmake scripts
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+# add pkg-config directory to search path
+set(CMAKE_PKG_CONFIG_DIR ${CMAKE_BINARY_DIR}/pkg-config)
+file(MAKE_DIRECTORY "${CMAKE_PKG_CONFIG_DIR}")
+set(ENV{PKG_CONFIG_PATH} "${CMAKE_PKG_CONFIG_DIR}" "${CMAKE_MODULE_PATH}")
 
 # Setup compilers
 include(AddGnuCompiler)
@@ -41,79 +53,94 @@ include(AddCodeCoverage)
 # Add documentation
 include(AddDocumentation)
 
-# Add cpack to setup output product
-include(AddCPack)
-
-# Add valgrind diagnostic options
-include(AddDiagnostics)
-
 # Add function which skips global constructor warnings
 include(PsmeAgentFramework)
-
-# Add common headers
-include(CopyCommonInclude)
+include(InstallScriptsCommon)
 
 option(ENABLE_HTTPS "Enable HTTPS support" ON)
 
+find_package(PkgConfig REQUIRED)
+find_package(PackageHandleStandardArgs REQUIRED)
+
+
+# TODO Issues to be done, order not significant..
+#
+# TODO parsing args in find_or_install/install_third_party (URL/REQUIRED)
+# TODO cleanup with "local" pkgconfig -> store all files in lib/pkgconfig
+# TODO GoogleTest/Mock with silent handling
+# TODO Check what about google_tests (last "version" on github..)
+# TODO extract tar/zip to package-version directory (with stripped "master" directory)
+# TODO ac_cv_va_copy env should not be used (is there any option to replace it?)
+# TODO remove PCA95XX: it is not used!
+# TODO add ABI tags checker for all find scripts (link small file with the lib.. if fails library is not found)
+# TODO add warning to all "non-999" packages created by Install
+
+###############################################################################
+# Find packages provided by us or by system
+
+# will not link if not ENABLE_HTTPS: some symbols are referenced directly
 if (ENABLE_HTTPS)
-    find_package(Libgcrypt REQUIRED)
     find_package(GnuTLS REQUIRED)
 endif()
 
-# Add external packages which are stored in third_party or so
-# TODO - get rid of as many of them as possible
-include(InstallGoogleTest)
-include(InstallGoogleMock)
-include(InstallMd5)
-include(InstallSafeString)
-include(InstallCurl)
-include(InstallIES)
-include(InstallJsonCpp)
-include(InstallMicrohttpd)
-include(InstallJsonRpcCpp)
-include(InstallUUID)
-include(InstallNcurses)
-include(InstallIpmitool)
-include(InstallSysfs)
-include(InstallLvm2App)
-include(InstallNL3)
+find_package(Curl REQUIRED)
 
-# Find packages provided by us or by system
-# TODO - REQUIRED / OPTIONAL
-find_package(PkgConfig)
-find_package(GoogleTest)
-find_package(Md5)
-find_package(SafeString)
-find_package(Ipmitool)
-find_package(Lvm2App)
-find_package(Curl)
-find_package(Glib)
-find_package(Glibmm)
-find_package(IES)
-find_package(Ncurses)
-find_package(JsonCpp)
-find_package(JsonRpcCpp)
-find_package(Libxmlpp)
-find_package(Microhttpd)
-find_package(NL3)
+find_package(Microhttpd REQUIRED)
+
+install_third_party(JsonCpp)
+install_third_party(JsonRpcCpp)
+
+if (NOT CMAKE_CROSSCOMPILING)
+    find_package(UUID)
+else()
+    install_third_party(UUID)
+endif()
+
+find_package(UDEV REQUIRED)
+install_third_party(Ipmitool)
 find_package(Sysfs)
-find_package(UDEV)
-find_package(UUID)
+
+find_package(Lvm2App REQUIRED)
+find_package(NL3 REQUIRED)
+find_package(DevMapper REQUIRED)
 find_package(Fm10kd)
 
-# Enable google testing
-enable_testing()
+install_third_party(SafeString)
+
+# for agent-simulator
+find_package(Libxmlpp)
+
+if (NOT CMAKE_CROSSCOMPILING)
+    # Enable google testing
+    install_third_party(GoogleTest)
+    install_third_party(GoogleMock)
+    enable_testing()
+endif()
+
+# Enable sanitizers
+if (CMAKE_BUILD_TYPE STREQUAL "asanitize")
+    find_package(Asan)
+    if (NOT ASAN_FOUND)
+        message(FATAL_ERROR "ASAN library not found, Address/Memory SANITIZE version will not be compiled.")
+        return()
+    endif()
+endif()
+
+if (CMAKE_BUILD_TYPE STREQUAL "tsanitize")
+    find_package(Tsan)
+    if (NOT TSAN_FOUND)
+        message(FATAL_ERROR "TSAN library not found, Thread SANITIZE version will not be compiled.")
+        return()
+    endif()
+endif()
 
 ###############################################################################
+message(STATUS "Building sources...")
 
 add_subdirectory(common)
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/agent)
 	add_subdirectory(agent)
-endif()
-
-if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/agent-intel)
-	add_subdirectory(agent-intel)
 endif()
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/agent-simulator)
@@ -124,5 +151,14 @@ if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/agent-stubs)
 	add_subdirectory(agent-stubs)
 endif()
 
-add_subdirectory(application-ref)
+add_subdirectory(application)
 add_subdirectory(encrypter)
+
+if (GTEST_FOUND)
+    get_property(ut_targets GLOBAL PROPERTY unittest_all_targets)
+    list(REMOVE_DUPLICATES ut_targets)
+    file(WRITE ${CMAKE_BINARY_DIR}/unittest_targets.txt " ")
+    foreach(ut_target ${ut_targets})
+        file(APPEND ${CMAKE_BINARY_DIR}/unittest_targets.txt " ${ut_target}")
+    endforeach()
+endif()

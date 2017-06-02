@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ void ModuleStateUnknown::enter_state(StateMachineTransition& transition,
         transition.set_transition(
                 enums::Transition::DISCOVERY_UP);
         break;
-    case enums::State::STANDBY_OFFLINE:
+    case enums::State::UNAVAILABLE_OFFLINE:
         transition.set_transition(
                 enums::Transition::DISCOVERY_DOWN);
         break;

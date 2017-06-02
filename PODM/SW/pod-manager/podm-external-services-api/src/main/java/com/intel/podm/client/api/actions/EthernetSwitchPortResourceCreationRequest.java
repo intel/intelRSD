@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,11 @@ package com.intel.podm.client.api.actions;
 import com.intel.podm.common.types.PortMode;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 public interface EthernetSwitchPortResourceCreationRequest {
     void setName(String name);
     void setPortId(String portId);
     void setPortMode(PortMode portMode);
-    void setPortMembers(Optional<List<URI>> portsUris);
+    void setPortMembers(Set<URI> portsUris);
 }

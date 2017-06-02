@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,30 +23,41 @@
  * @brief Declaration of Lvm error interface
  * */
 
-#ifndef AGENT_FRAMEWORK_EXCEPTIONS_LVM_ERROR_HPP
-#define AGENT_FRAMEWORK_EXCEPTIONS_LVM_ERROR_HPP
+#pragma once
 
-#include "agent-framework/exceptions/exception_base.hpp"
+
+
+#include "agent-framework/exceptions/gami_exception.hpp"
+
+
 
 namespace agent_framework {
 namespace exceptions {
 
 /*! @brief Lvm error exception class */
-class LvmError final : public ExceptionBase {
+class LvmError final : public GamiException {
 public:
+
     /*!
      * @brief Constructor
      *
      * @param[in] msg Error message
      */
     explicit LvmError(const std::string& msg) :
-                ExceptionBase{ErrorCode::LVM, msg} {}
+        GamiException(ErrorCode::LVM, msg) {}
+
 
     LvmError(const LvmError&) = default;
+
+
     LvmError& operator=(const LvmError&) = default;
 
+
     LvmError(LvmError&&) = default;
+
+
     LvmError& operator=(LvmError&&) = default;
+
 
     /*! @brief Destructor */
     ~LvmError();
@@ -55,4 +66,3 @@ public:
 } // namespace exceptions
 } // namespace agent_framework
 
-#endif	/* AGENT_FRAMEWORK_EXCEPTIONS_LVM_ERROR_HPP */

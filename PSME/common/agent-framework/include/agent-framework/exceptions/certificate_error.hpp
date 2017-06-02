@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,35 +18,45 @@
  * limitations under the License.
  *
  *
- * @file lvm_error.hpp
- *
+ * @file certificate_error.hpp
  * @brief Declaration of Certificate error interface
  * */
 
-#ifndef AGENT_FRAMEWORK_EXCEPTIONS_CERTIFICATE_ERROR_HPP
-#define AGENT_FRAMEWORK_EXCEPTIONS_CERTIFICATE_ERROR_HPP
+#pragma once
 
-#include "agent-framework/exceptions/exception_base.hpp"
+
+
+#include "agent-framework/exceptions/gami_exception.hpp"
+
+
 
 namespace agent_framework {
 namespace exceptions {
 
 /*! @brief Certificate error exception class */
-class CertificateError final : public ExceptionBase {
+class CertificateError final : public GamiException {
 public:
+
     /*!
      * @brief Constructor
      *
      * @param[in] msg Error message
      */
     explicit CertificateError(const std::string& msg) :
-            ExceptionBase{ErrorCode::CERTIFICATE, msg} {}
+        GamiException{ErrorCode::CERTIFICATE, msg} {}
+
 
     CertificateError(const CertificateError&) = default;
+
+
     CertificateError& operator=(const CertificateError&) = default;
 
+
     CertificateError(CertificateError&&) = default;
+
+
     CertificateError& operator=(CertificateError&&) = default;
+
 
     /*! @brief Destructor */
     ~CertificateError();
@@ -55,4 +65,3 @@ public:
 }
 }
 
-#endif	/* AGENT_FRAMEWORK_EXCEPTIONS_CERTIFICATE_ERROR_HPP */

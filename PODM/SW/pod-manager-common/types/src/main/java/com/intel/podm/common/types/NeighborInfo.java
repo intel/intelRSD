@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,17 @@ package com.intel.podm.common.types;
 
 import com.intel.podm.common.utils.StringRepresentation;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.intel.podm.common.utils.Contracts.requires;
 import static com.intel.podm.common.utils.StringRepresentation.fromMap;
 import static java.util.Collections.unmodifiableMap;
 
-public class NeighborInfo {
+public class NeighborInfo implements Serializable {
+    private static final long serialVersionUID = 4758875171334564789L;
     private static final String SWITCH_ID_NAME = "SwitchId";
     private static final String PORT_ID_NAME = "PortId";
     private static final String CABLE_ID_NAME = "CableId";
@@ -36,12 +38,12 @@ public class NeighborInfo {
     private String cableId;
 
     public NeighborInfo(Map<String, String> attributesMap) {
-        checkArgument(attributesMap != null, "Port attributes must not be null");
+        requires(attributesMap != null, "Port attributes must not be null");
         buildFromAttributesMap(attributesMap);
     }
 
     public NeighborInfo(String attributes) {
-        checkArgument(attributes != null, "Port attributes must not be null");
+        requires(attributes != null, "Port attributes must not be null");
         buildFromAttributesMap(StringRepresentation.toMap(attributes));
     }
 

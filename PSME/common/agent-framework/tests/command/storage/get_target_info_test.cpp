@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,16 +22,14 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/get_iscsi_target_info.hpp"
-#include "agent-framework/command/storage/json/get_iscsi_target_info.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model;
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
 
-class GetIscsiTargetInfo : public storage::GetIscsiTargetInfo {
+class MyGetIscsiTargetInfo {
 private:
     std::string m_target{};
 
@@ -49,36 +47,31 @@ private:
         return target;
     }
 public:
-    GetIscsiTargetInfo(const std::string& target) { m_target = target; }
+    MyGetIscsiTargetInfo(const std::string& target) { m_target = target; }
 
-    using storage::GetIscsiTargetInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto target = request.get_target();
+    void execute(const GetIscsiTargetInfo::Request& request,
+                 GetIscsiTargetInfo::Response& response) {
+        auto target = request.get_uuid();
 
         if (target != m_target) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
-        response.set_target(create_demo_target());
+        response = create_demo_target();
     }
-
-    virtual ~GetIscsiTargetInfo();
 };
 
-GetIscsiTargetInfo::~GetIscsiTargetInfo() { }
-
 TEST(GetIscsiTargetInfoTest, PositiveExecute) {
-    storage::json::GetIscsiTargetInfo command_json;
-    GetIscsiTargetInfo* command = new GetIscsiTargetInfo("TestIscsiTarget");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetIscsiTargetInfo command{"TestIscsiTarget"};
+    GetIscsiTargetInfo::Request request{""};
+    GetIscsiTargetInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::IscsiTarget::TARGET] = "TestIscsiTarget";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetIscsiTargetInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::IscsiTarget::TARGET_ADDRESS].isString());
@@ -94,15 +87,14 @@ TEST(GetIscsiTargetInfoTest, PositiveExecute) {
 }
 
 TEST(GetIscsiTargetInfoTest, NegativeIscsiTargetNotFound) {
-    storage::json::GetIscsiTargetInfo command_json;
-    GetIscsiTargetInfo* command = new GetIscsiTargetInfo("TestIscsiTarget");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetIscsiTargetInfo command{"TestIscsiTarget"};
+    GetIscsiTargetInfo::Request request{""};
+    GetIscsiTargetInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[literals::IscsiTarget::TARGET] = "OtherTestIscsiTarget";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetIscsiTargetInfo::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

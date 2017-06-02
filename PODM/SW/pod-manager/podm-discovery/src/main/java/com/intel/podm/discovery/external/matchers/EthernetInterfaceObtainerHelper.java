@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.intel.podm.discovery.external.matchers;
 
-import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
+import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
 import com.intel.podm.client.api.resources.redfish.EthernetInterfaceResource;
@@ -28,21 +28,21 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Dependent
-public class EthernetInterfaceObtainerHelper implements DomainObjectObtainerHelper<EthernetInterfaceResource> {
+public class EthernetInterfaceObtainerHelper implements EntityObtainerHelper<EthernetInterfaceResource> {
     @Override
     public ComputerSystemResource findComputerSystemResourceFor(EthernetInterfaceResource resource) throws ExternalServiceApiReaderException {
         return (ComputerSystemResource) resource.getComputerSystem().get();
     }
 
     @Override
-    public Optional<EthernetInterface> findDomainObjectFor(ComputerSystem computerSystem, EthernetInterfaceResource resource) {
+    public Optional<EthernetInterface> findEntityFor(ComputerSystem computerSystem, EthernetInterfaceResource resource) {
         return computerSystem.getEthernetInterfaces().stream()
-                .filter(eth -> Objects.equals(eth.getMacAddress(), resource.getMacAddress()))
+                .filter(eth -> Objects.equals(eth.getMacAddress(), resource.getMacAddress().orElse(null)))
                 .findFirst();
     }
 
     @Override
-    public Class<? extends DomainObject> getDomainObjectClass() {
+    public Class<? extends Entity> getEntityClass() {
         return EthernetInterface.class;
     }
 

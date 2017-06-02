@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.intel.podm.client.api.ExternalServiceApiReaderConnectionException;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.WebClient;
 import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.client.redfish.RedfishClientImpl;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.client.resources.redfish.RedfishErrorResponseImpl;
 import com.intel.podm.common.logger.Logger;
@@ -30,10 +31,14 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
-import java.net.ConnectException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.util.Optional;
+import static java.util.Optional.of;
 
 import static com.intel.podm.common.logger.LoggerFactory.getLogger;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static javax.ws.rs.client.Entity.json;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
@@ -43,16 +48,20 @@ import static org.apache.commons.lang.exception.ExceptionUtils.getRootCause;
 /**
  * Web client for REST API
  * Each instance of WebClient uses one JAX-RS client for all its requests
+ *
+ * @deprecated it will be replaced with {@link RedfishClientImpl}
  */
-public class WebClientImpl implements WebClient {
+@Deprecated
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+class WebClientImpl implements WebClient {
     private static final Logger LOGGER = getLogger(WebClientImpl.class);
     private static final String HTTP_METHOD_PATCH = "PATCH";
     private final URI baseUri;
     private final Client client;
 
-    public WebClientImpl(URI baseUri) {
+    WebClientImpl(Client client, URI baseUri) {
         this.baseUri = baseUri;
-        client = ResteasyClientProvider.getClientWithJacksonProvider();
+        this.client = client;
     }
 
     @Override
@@ -102,7 +111,7 @@ public class WebClientImpl implements WebClient {
     }
 
     private void checkConnectException(URI requestUri, Throwable e) throws ExternalServiceApiReaderConnectionException {
-        if (getRootCause(e) instanceof ConnectException) {
+        if (getRootCause(e) instanceof SocketException || getRootCause(e) instanceof SocketTimeoutException) {
             throw new ExternalServiceApiReaderConnectionException(e.getMessage(), requestUri, e.getCause());
         }
     }
@@ -127,7 +136,7 @@ public class WebClientImpl implements WebClient {
      * @throws ExternalServiceApiActionException
      */
     @Override
-    public <T> void patch(URI uri, T obj) throws ExternalServiceApiActionException {
+    public <T> Optional<ExternalServiceResource> patch(URI uri, T obj) throws ExternalServiceApiActionException {
         validateParameters(uri, obj);
         URI requestUri = buildUri(uri);
         try {
@@ -143,6 +152,7 @@ public class WebClientImpl implements WebClient {
                 throw new ExternalServiceApiActionException("PATCH action was not successful (status: " + statusCode + ")", requestUri, redfishErrorResponse);
             } else {
                 response.close();
+                return of(response.readEntity(ExternalServiceResource.class));
             }
         } catch (ProcessingException e) {
             throw new ExternalServiceApiActionException(e.getMessage(), requestUri, e.getCause());
@@ -150,13 +160,8 @@ public class WebClientImpl implements WebClient {
     }
 
     private <T> void validateParameters(URI requestUri, T obj) {
-        if (requestUri == null) {
-            throw new IllegalArgumentException("requestUri should not be null");
-        }
-
-        if (obj == null) {
-            throw new IllegalArgumentException("obj should not be null");
-        }
+        requiresNonNull(requestUri, "requestUri");
+        requiresNonNull(obj, "obj");
     }
 
     private boolean isUnsuccessful(Response response) {
@@ -175,7 +180,8 @@ public class WebClientImpl implements WebClient {
      */
     @Override
     public <T> URI post(URI uri, T obj) throws ExternalServiceApiActionException {
-        validateParameters(uri, obj);
+        requiresNonNull(uri, "uri");
+
         URI requestUri = buildUri(uri);
         try {
             Response response = client
@@ -206,9 +212,7 @@ public class WebClientImpl implements WebClient {
      */
     @Override
     public void delete(URI uri) throws ExternalServiceApiActionException {
-        if (uri == null) {
-            throw new IllegalArgumentException("requestUri should not be null");
-        }
+        requiresNonNull(uri, "uri");
         URI requestUri = buildUri(uri);
         try {
             Response response = client
@@ -237,7 +241,4 @@ public class WebClientImpl implements WebClient {
         client.close();
     }
 
-    public static WebClient createRetryable(URI baseUri) {
-        return new WebClientWithRetrying(new WebClientImpl(baseUri));
-    }
 }

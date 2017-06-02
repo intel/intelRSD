@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief Module software status implementation
 */
 
-#ifndef AGENT_CHASSIS_STATUS_STATUS_MANAGER_HPP
-#define AGENT_CHASSIS_STATUS_STATUS_MANAGER_HPP
-
+#pragma once
 #include "agent-framework/status/status_manager.hpp"
 
 /*! Agent namespace */
@@ -75,4 +73,3 @@ private:
 }
 }
 
-#endif /* AGENT_CHASSIS_STATUS_STATUS_MANAGER_HPP */

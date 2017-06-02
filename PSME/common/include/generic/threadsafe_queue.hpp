@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,9 +21,7 @@
  * */
 
 
-#ifndef AGENT_FRAMEWORK_GENERIC_THREADSAFE_QUEUE_HPP
-#define AGENT_FRAMEWORK_GENERIC_THREADSAFE_QUEUE_HPP
-
+#pragma once
 #include <list>
 #include <mutex>
 #include <condition_variable>
@@ -162,4 +160,3 @@ ThreadSafeQueue<T>::~ThreadSafeQueue() {}
 
 }
 
-#endif /* AGENT_FRAMEWORK_GENERIC_THREADSAFE_QUEUE_HPP */

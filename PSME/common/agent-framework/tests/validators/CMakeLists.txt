@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,9 +31,6 @@ target_link_libraries(
     ${SAFESTRING_LIBRARIES}
     agent-mocks
     ${JSONCXX_LIBRARIES}
-    ${JSONRPC_LIBRARIES}
-        jsonrpccpp-server
-        jsonrpccpp-client
-        jsonrpccpp-common
-        jsoncpp
+    ${JSONCPP_LIBRARIES}
+    ${JSONRPCCPP_LIBRARIES}
 )

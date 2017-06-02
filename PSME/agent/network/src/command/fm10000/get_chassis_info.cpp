@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,26 +22,15 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/network/get_chassis_info.hpp"
-#include "agent-framework/module-ref/network_manager.hpp"
+#include "agent-framework/module/common_components.hpp"
+#include "agent-framework/command-ref/registry.hpp"
+#include "agent-framework/command-ref/network_commands.hpp"
 
-using namespace agent_framework::model;
-using namespace agent_framework::command;
+using namespace agent_framework::command_ref;
+using namespace agent_framework::module;
 
-class GetChassisInfo : public agent_framework::command::network::GetChassisInfo {
-public:
-    using agent_framework::command::network::GetChassisInfo::execute;
-
-    using NetworkManager = agent_framework::module::NetworkManager;
-
-    void execute(const Request& request, Response& response) {
-        response.set_chassis(NetworkManager::get_instance()->
-            get_chassis_manager().get_entry(request.get_chassis()));
+REGISTER_COMMAND(GetChassisInfo,
+    [] (const GetChassisInfo::Request& req, GetChassisInfo::Response& rsp) {
+        rsp = CommonComponents::get_instance()->get_chassis_manager().get_entry(req.get_uuid());
     }
-
-    ~GetChassisInfo();
-};
-
-GetChassisInfo::~GetChassisInfo() { }
-
-static Command::Register<GetChassisInfo> g("fm10000");
+);

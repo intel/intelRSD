@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,17 +22,24 @@
  * @section DESCRIPTION
 */
 
+
+
 #include "logger/logger_factory.hpp"
 #include "status/state_machine_action.hpp"
-#include "agent-framework/state_machine/module_state.hpp"
-#include "agent-framework/module-ref/chassis_manager.hpp"
+#include "tree_stability/chassis_tree_stabilizer.hpp"
+
+#include "agent-framework/module/common_components.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
+
+
 
 using namespace agent::chassis;
 using namespace agent_framework::state_machine;
 using namespace agent_framework::module;
 
-using ChassisComponents = agent_framework::module::ChassisManager;
+using agent_framework::module::CommonComponents;
+
+
 
 namespace {
     bool is_enabled(const agent_framework::state_machine::enums::State state) {
@@ -40,11 +47,17 @@ namespace {
     }
 }
 
-void StateMachineAction::execute(const std::string& module,
-                                 const agent_framework::state_machine::enums::State state,
-                                 const agent_framework::state_machine::enums::Transition) {
+
+
+void StateMachineAction::execute(StateThreadEntrySharedPtr entry) {
+    const auto state = entry->get_state();
+    auto module = entry->get_module();
+
     const auto is_up = ::is_enabled(state);
 
-    ChassisComponents::get_instance()->
+    CommonComponents::get_instance()->
         get_module_manager().get_entry_reference(module)->set_presence(is_up);
+
+    module = ChassisTreeStabilizer().stabilize(module);
+    entry->update_module(module);
 }

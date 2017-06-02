@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@
 /**
  * @Ex: "2013-01-10T01:09:57"
  */
-static int get_local_time(char *output)
+static int get_local_time(char *output, int *minutes_west)
 {
 	struct tm *tm;
 	time_t timep;
@@ -45,6 +45,10 @@ static int get_local_time(char *output)
 
 	time(&timep);
 	tm = localtime(&timep);
+	if (minutes_west) {
+		/* tm_gmtoff holds seconds to east, we need minutes to west */
+		*minutes_west = -tm->tm_gmtoff / 60;
+	}
 
 	//snprintf(timestamp, sizeof(timestamp), "%d-%02d-%02dT%02d:%02d:%02d",
 				//(tm->tm_year + 1900), (tm->tm_mon + 1), tm->tm_mday,
@@ -78,32 +82,25 @@ static int get_local_time(char *output)
 #define GET_TZ   1
 static int get_iso8601_time(int type, char *output)
 {
-	struct timeval tv;
-	struct timezone tz;
 	char buff[TIMESTAMP_LENGTH] = {0};
 	char timestamp[TIMESTAMP_LENGTH + 4] = {0};
 	char time_zone[TIMESTAMP_LENGTH] = {0};
 	int tz_min = 0;
 	int len = 0;
+	int minutes_west = 0;
 
 	if (NULL == output)
 		return -1;
 
-	get_local_time(buff);
+	get_local_time(buff, &minutes_west);
 
-	gettimeofday(&tv, &tz);
-
-	tz_min = abs(tz.tz_minuteswest);
-	if (0 == tz.tz_minuteswest) {
+	tz_min = abs(minutes_west);
+	if (0 == minutes_west) {
 		snprintf_s_s(timestamp, sizeof(timestamp), "%sZ", buff);
-		snprintf_s_i(time_zone, sizeof(time_zone), "%d", 0);
+		snprintf_s_s(time_zone, sizeof(time_zone), "%s", "+00:00");
 	} else {
-		//snprintf(timestamp, sizeof(timestamp), "%s%s%02d:%02d", buff,
-				//(tz.tz_minuteswest < 0) ? "+" : "-",
-				//(tz_min / 60), tz_min % 60);
-
 		len = snprintf_s_ss(timestamp, sizeof(timestamp), "%s%s", buff,
-				(tz.tz_minuteswest < 0) ? "+" : "-");
+				(minutes_west < 0) ? "+" : "-");
 		if (len < 0)
 			return -1;
 
@@ -112,12 +109,8 @@ static int get_iso8601_time(int type, char *output)
 		if (len < 0)
 			return -1;
 
-		//snprintf(time_zone, sizeof(time_zone), "%s%02d:%02d", 
-				//(tz.tz_minuteswest < 0) ? "+" : "-",
-				//(tz_min / 60), tz_min % 60);
-
 		len = snprintf_s_s(time_zone, sizeof(time_zone), "%s", 
-				(tz.tz_minuteswest < 0) ? "+" : "-");
+				(minutes_west < 0) ? "+" : "-");
 		if (len < 0)
 			return -1;
 

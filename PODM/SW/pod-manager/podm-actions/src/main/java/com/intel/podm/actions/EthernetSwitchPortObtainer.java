@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package com.intel.podm.actions;
 
-import com.intel.podm.business.entities.dao.EthernetSwitchDao;
-import com.intel.podm.business.entities.redfish.EthernetSwitch;
+import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.entities.redfish.ExternalService;
@@ -26,30 +25,22 @@ import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActions;
 import com.intel.podm.client.api.actions.EthernetSwitchPortResourceActionsFactory;
 import com.intel.podm.client.api.reader.ResourceSupplier;
 import com.intel.podm.client.api.resources.redfish.EthernetSwitchPortResource;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
-import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
-import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.mappers.redfish.EthernetSwitchPortMapper;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.transaction.Transactional;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 
 import static com.intel.podm.client.api.reader.ResourceSupplier.getUrisFromResources;
 import static com.intel.podm.common.utils.Collector.toSingle;
-import static java.lang.String.format;
 import static java.net.URI.create;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
-@Interceptors(RetryOnRollbackInterceptor.class)
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class EthernetSwitchPortObtainer {
     @Inject
     private EthernetSwitchPortResourceActionsFactory actionsFactory;
@@ -58,100 +49,64 @@ public class EthernetSwitchPortObtainer {
     private EthernetSwitchPortMapper switchPortMapper;
 
     @Inject
-    private EthernetSwitchDao ethernetSwitchDao;
+    private ExternalServiceDao externalServiceDao;
 
     @Inject
     private EthernetSwitchPortVlanObtainer vlanObtainer;
 
-    @Inject
-    private Logger logger;
+    @Transactional(MANDATORY)
+    public EthernetSwitchPort discoverPort(ExternalService service, URI portUri) throws ExternalServiceApiReaderException {
+        try (EthernetSwitchPortResourceActions resourceActions = actionsFactory.create(service.getBaseUri())) {
+            EthernetSwitchPortResource switchPortResource = resourceActions.getSwitchPort(portUri);
+            EthernetSwitchPort targetSwitchPort = readEthernetSwitchPortResource(service, portUri, switchPortResource);
+            updatePortMembers(resourceActions, switchPortResource, targetSwitchPort);
 
-    @NumberOfRetriesOnRollback(3)
-    @Transactional(REQUIRES_NEW)
-    public EthernetSwitchPort discoverPort(Id switchId, URI portUri) throws ExternalServiceApiReaderException, ActionException {
-        EthernetSwitch currentSwitch = getCurrentEthernetSwitch(switchId);
-        ExternalService externalService = currentSwitch.getService();
-        if (externalService == null) {
-            throw new IllegalStateException("There is no Service associated with selected switch port");
-        }
-        EthernetSwitchPortResourceActions resourceActions = actionsFactory.create(externalService.getBaseUri());
-        EthernetSwitchPortResource switchPortResource = resourceActions.getSwitchPort(portUri);
-        EthernetSwitchPort targetSwitchPort = readEthernetSwitchPortResource(externalService, portUri, switchPortResource);
-        updatePortMembers(externalService, switchPortResource, targetSwitchPort);
-        List<EthernetSwitchPortVlan> vlans = discoverPortVlans(switchPortResource, targetSwitchPort);
-        setPrimaryVlanInSwitchPort(switchPortResource, targetSwitchPort, vlans);
+            Set<EthernetSwitchPortVlan> vlans = vlanObtainer.discoverEthernetSwitchPortVlans(service,
+                    getUrisFromResources(switchPortResource.getVlans()));
+            vlans.forEach(targetSwitchPort::addEthernetSwitchPortVlan);
 
-        Optional<EthernetSwitchPort> possiblyExistingPort = currentSwitch.getPortCollection().stream()
-                .filter(port -> Objects.equals(port.getId(), targetSwitchPort.getId()))
-                .findFirst();
-        if (!possiblyExistingPort.isPresent()) {
-            currentSwitch.addPort(targetSwitchPort);
-        }
-        targetSwitchPort.getService().setIsDirty(true);
-        return targetSwitchPort;
-    }
+            setPrimaryVlanInSwitchPort(switchPortResource, targetSwitchPort, vlans);
 
-    private EthernetSwitch getCurrentEthernetSwitch(Id switchId) throws ActionException {
-        try {
-            return ethernetSwitchDao.getOrThrow(switchId);
-        } catch (IllegalStateException e) {
-            String errorMessage = format("EthernetSwitch %s was removed while performing action on switch port!", switchId);
-            logger.w(errorMessage);
-            throw new ActionException(errorMessage);
+            return targetSwitchPort;
         }
     }
 
-    private EthernetSwitchPort readEthernetSwitchPortResource(ExternalService externalService, URI switchPortUri,
+    private EthernetSwitchPort readEthernetSwitchPortResource(ExternalService service, URI switchPortUri,
                                                               EthernetSwitchPortResource switchPortResource) {
         URI sourceSwitchPortUri = create(switchPortUri.getPath());
-        EthernetSwitchPort targetSwitchPort = externalService.findOrCreate(sourceSwitchPortUri, EthernetSwitchPort.class);
+        EthernetSwitchPort targetSwitchPort = externalServiceDao.findOrCreateEntity(service, sourceSwitchPortUri, EthernetSwitchPort.class);
         switchPortMapper.map(switchPortResource, targetSwitchPort);
         return targetSwitchPort;
     }
 
-    private void updatePortMembers(ExternalService externalService, EthernetSwitchPortResource switchPortResource,
+    private void updatePortMembers(EthernetSwitchPortResourceActions resourceActions, EthernetSwitchPortResource switchPortResource,
                                    EthernetSwitchPort targetSwitchPort) throws ExternalServiceApiReaderException {
-        List<URI> portMemberUris = getUrisFromResources(switchPortResource.getPortMembers());
-        portMemberUris.stream().forEach(portMemberUri -> {
-            EthernetSwitchPort memberSwitchPort = externalService.findOrCreate(portMemberUri, EthernetSwitchPort.class);
+        ExternalService externalService = targetSwitchPort.getService();
+        Set<URI> portMemberUris = getUrisFromResources(switchPortResource.getPortMembers());
+        for (URI portMemberUri: portMemberUris) {
+            EthernetSwitchPort memberSwitchPort = externalServiceDao.findOrCreateEntity(externalService, portMemberUri, EthernetSwitchPort.class);
             targetSwitchPort.addPortMember(memberSwitchPort);
-        });
 
-        targetSwitchPort.getPortMembers().stream()
-                .filter(memberPort -> !portMemberUris.contains(memberPort.getSourceUri()))
-                .forEach(targetSwitchPort::removePortMember);
-    }
-
-    private List<EthernetSwitchPortVlan> discoverPortVlans(EthernetSwitchPortResource portResource, EthernetSwitchPort targetSwitchPort)
-            throws ExternalServiceApiReaderException {
-
-        List<URI> vlanUris = getUrisFromResources(portResource.getVlans());
-        List<EthernetSwitchPortVlan> vlans = new ArrayList<>();
-        for (URI vlanUri : vlanUris) {
-            vlans.add(vlanObtainer.discoverNewEthernetSwitchPortVlan(targetSwitchPort, vlanUri));
+            EthernetSwitchPortResource memberSwitchPortResource = resourceActions.getSwitchPort(portMemberUri);
+            readEthernetSwitchPortResource(externalService, portMemberUri, memberSwitchPortResource);
         }
 
-        return vlans;
+        targetSwitchPort.uncouplePortMembers(portMember -> !portMemberUris.contains(portMember.getSourceUri()));
     }
 
-    private void setPrimaryVlanInSwitchPort(EthernetSwitchPortResource switchPortResource, EthernetSwitchPort targetPort, List<EthernetSwitchPortVlan> vlans)
+    private void setPrimaryVlanInSwitchPort(EthernetSwitchPortResource switchPortResource, EthernetSwitchPort targetPort, Set<EthernetSwitchPortVlan> vlans)
             throws ExternalServiceApiReaderException {
 
         EthernetSwitchPortVlan oldPvid = targetPort.getPrimaryVlan();
         ResourceSupplier potentiallyNewPvid = switchPortResource.getPrimaryVlan();
         if (potentiallyNewPvid == null) {
-            if (oldPvid != null) {
-                targetPort.removePrimaryVlan(oldPvid);
-            }
+            targetPort.setPrimaryVlan(null);
         } else {
             EthernetSwitchPortVlan newPrimaryVlan = vlans.stream()
                     .filter(vlan -> vlan.getSourceUri().equals(potentiallyNewPvid.getUri()))
                     .collect(toSingle());
 
             if (!Objects.equals(oldPvid, newPrimaryVlan)) {
-                if (oldPvid != null) {
-                    targetPort.removePrimaryVlan(oldPvid);
-                }
                 targetPort.setPrimaryVlan(newPrimaryVlan);
             }
         }

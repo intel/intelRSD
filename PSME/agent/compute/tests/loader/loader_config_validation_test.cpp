@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -225,6 +225,17 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWitho
 
     // Remove slot field from first manager.
     config["managers"].as_array().front()["slot"] = json::Value::Type::ARRAY;
+
+    bool is_loaded = loader.load(config);
+
+    ASSERT_FALSE(is_loaded);
+}
+
+TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWithoutSwitchPort_LoadShouldBeNegative) {
+    deserializer >> config;
+
+    // Remove switch port identifier field from first manager.
+    config["managers"].as_array().front()["switchPortIdentifier"] = json::Value::Type::ARRAY;
 
     bool is_loaded = loader.load(config);
 

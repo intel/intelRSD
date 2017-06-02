@@ -1,6 +1,0 @@
-#!/bin/bash
-
-service psme-compute-stubs stop
-if [ -f /etc/init/psme-compute-stubs.conf ]; then
-        rm /etc/init/psme-compute-stubs.conf
-fi

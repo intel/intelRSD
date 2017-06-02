@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,26 @@
 
 package com.intel.podm.common.types;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
 public enum State implements EnumeratedType {
     ENABLED("Enabled"),
     DISABLED("Disabled"),
-    OFFLINE("UnavailableOffline"),
-    STANDBY_SPARE("StandbySpare"),
+    UNAVAILABLE_OFFLINE("UnavailableOffline", "Offline"),
     STANDBY_OFFLINE("StandbyOffline"),
+    STANDBY_SPARE("StandbySpare"),
     IN_TEST("InTest"),
     STARTING("Starting"),
     ABSENT("Absent");
 
-    private String value;
+    private final String value;
+    private final List<String> aliases;
 
-    State(String value) {
+    State(String value, String... aliases) {
         this.value = value;
+        this.aliases = asList(aliases);
     }
 
     @Override
@@ -38,7 +44,13 @@ public enum State implements EnumeratedType {
     }
 
     @Override
+    public List<String> getAliases() {
+        return aliases;
+    }
+
+    @Override
     public String toString() {
         return getValue();
     }
+
 }

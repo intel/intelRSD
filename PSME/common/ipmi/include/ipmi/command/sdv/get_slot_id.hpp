@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief Implementation of GetSlotId Request and Response.
  * */
 
-#ifndef IPMI_COMMAND_SDV_GET_SLOT_ID_HPP
-#define	IPMI_COMMAND_SDV_GET_SLOT_ID_HPP
+#pragma once
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
@@ -42,7 +41,7 @@ namespace request {
 /*!
  * @brief Represents request message for Get Slot Id command.
  */
-class GetSlotId final : public Request {
+class GetSlotId : public Request {
 public:
 
     /*!
@@ -50,19 +49,13 @@ public:
      */
     GetSlotId();
 
-    /*!
-     * @brief Constructor.
-     * @param net_fn Network function.
-     */
-    GetSlotId(uint8_t net_fn);
-
-    /*! Copy constrcutor. */
+    /*! Copy constructor. */
     GetSlotId(const GetSlotId&) = default;
 
     /*! Assignment operator */
     GetSlotId& operator=(const GetSlotId&) = default;
 
-    void pack(vector<uint8_t>& data) const final {
+    void pack(std::vector<std::uint8_t>& data) const final {
         // GetSlotId without request parameters.
         (void)data;
     }
@@ -87,19 +80,13 @@ public:
      */
     GetSlotId();
 
-    /*!
-     * @brief Constructor.
-     * @param net_fn Network function.
-     */
-    GetSlotId(uint8_t net_fn);
-
-    /*! Copy constrcutor. */
+    /*! Copy constructor. */
     GetSlotId(const GetSlotId&) = default;
 
     /*! Assignment operator */
     GetSlotId& operator=(const GetSlotId&) = default;
 
-    void unpack(const vector<uint8_t>& data) final;
+    void unpack(const std::vector<std::uint8_t>& data) final;
 
     /*!
      * @brief Default destructor
@@ -110,37 +97,37 @@ public:
      * @brief Gets Slot Id
      * @return Slot Id
      */
-    uint8_t get_slot_id() const;
+    std::uint8_t get_slot_id() const;
 
     /*!
      * @brief Gets Board Id
      * @return Board Id
      */
-    uint8_t get_board_id() const;
+    std::uint8_t get_board_id() const;
 
     /*!
      * @brief Gets Revision Id
      * @return Revision Id
      */
-    uint8_t get_revision_id() const;
+    std::uint8_t get_revision_id() const;
 
     /*!
      * @brief Gets Reserved Id
      * @return Reserved Id
      */
-    uint8_t get_reserved_id() const;
+    std::uint8_t get_reserved_id() const;
 
 private:
-    uint8_t m_slot_id{};
-    uint8_t m_board_id{};
-    uint8_t m_revision_id{};
-    uint8_t m_reserved_id{};
+    std::uint8_t m_slot_id{};
+    std::uint8_t m_board_id{};
+    std::uint8_t m_revision_id{};
+    std::uint8_t m_reserved_id{};
 
-    static constexpr size_t OFFSET_SLOT_ID = 1;
-    static constexpr size_t OFFSET_BOARD_ID = 2;
-    static constexpr size_t OFFSET_REVISION_ID = 3;
-    static constexpr size_t OFFSET_RESERVED_ID = 4;
-    static constexpr size_t RESPONSE_SIZE = 5;
+    static constexpr std::size_t OFFSET_SLOT_ID = 1;
+    static constexpr std::size_t OFFSET_BOARD_ID = 2;
+    static constexpr std::size_t OFFSET_REVISION_ID = 3;
+    static constexpr std::size_t OFFSET_RESERVED_ID = 4;
+    static constexpr std::size_t RESPONSE_SIZE = 5;
 };
 }
 
@@ -148,5 +135,4 @@ private:
 }
 }
 
-#endif	/* IPMI_COMMAND_SDV_GET_SLOT_ID_HPP */
 

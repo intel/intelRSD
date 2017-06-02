@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,10 @@ public enum ComposedNodeState implements EnumeratedType {
     ALLOCATING("Allocating"),
     ALLOCATED("Allocated"),
     ASSEMBLING("Assembling"),
-    POWERED_ON("PoweredOn"),
-    POWERED_OFF("PoweredOff"),
+    ASSEMBLED("Assembled"),
     FAILED("Failed");
 
-    private String value;
+    private final String value;
 
     ComposedNodeState(String value) {
         this.value = value;

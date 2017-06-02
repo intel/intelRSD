@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,10 @@
  * @brief Object Reference class implementation
  * */
 
-#ifndef AGENT_FRAMEWORK_GENERIC_OBJ_REFERENCE_HPP
-#define AGENT_FRAMEWORK_GENERIC_OBJ_REFERENCE_HPP
+#pragma once
+
+#include <mutex>
+#include <type_traits>
 
 /*! Psme namespace */
 namespace agent_framework {
@@ -37,7 +39,13 @@ public:
     ObjReference() = delete;
 
     /*! @brief Copy constructors */
-    ObjReference(ObjReference&) = delete;
+    ObjReference(ObjReference& other) : m_mutex(other.m_mutex), m_data(other.m_data) {
+        static_assert(
+                std::is_base_of<std::recursive_mutex, Mutex>::value,
+                "Works only with recursive mutex."
+        );
+        m_mutex.lock();
+    }
     ObjReference(const ObjReference&) = delete;
 
     /*! @brief Copy assignments */
@@ -71,9 +79,23 @@ public:
 
     /*!
      * @brief Get const data reference
-     * @return data reference
+     * @return const data reference
      */
     const T& operator*() const {
+        return m_data;
+    }
+
+    /*!
+     * @brief Get data reference
+     *
+     * This might be used to pass object wrapped by ObjReference to another function.
+     * As an alternative programmers used to pass ObjReference&, which does not make sense,
+     * since ObjReference does not have reference counting that could protect us from
+     * doing manipulations on ObjReference that was already released.
+     *
+     * @return data reference
+     */
+    T& get_raw_ref() {
         return m_data;
     }
 
@@ -90,4 +112,3 @@ private:
 }
 }
 
-#endif /* AGENT_FRAMEWORK_GENERIC_OBJ_REFERENCE_HPP */

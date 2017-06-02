@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,6 @@
 
 #include "network_config.hpp"
 
-#include "agent-framework/eventing/event_data.hpp"
-#include "agent-framework/eventing/events_queue.hpp"
-
 #include "agent-framework/logger_loader.hpp"
 #include "logger/logger_factory.hpp"
 
@@ -30,13 +27,9 @@
 #include "agent-framework/state_machine/state_machine_thread.hpp"
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
-#include "agent-framework/module-ref/network_manager.hpp"
+#include "agent-framework/module/common_components.hpp"
 
-#include "agent-framework/command/command.hpp"
-#include "agent-framework/command/command_factory.hpp"
-#include "agent-framework/command/command_json.hpp"
-#include "agent-framework/command/command_json_server.hpp"
-#include "agent-framework/command-ref/registry.hpp"
+#include "agent-framework/command-ref/command_server.hpp"
 
 #include "loader/network_loader.hpp"
 #include "configuration/configuration.hpp"
@@ -45,13 +38,11 @@
 
 #include "status/status_manager.hpp"
 #include "status/state_machine_action.hpp"
+#include "discovery/discovery_manager.hpp"
 
 #include <jsonrpccpp/server/connectors/httpserver.h>
 
 #include <csignal>
-#include <cstdio>
-#include <memory>
-#include <iostream>
 
 using namespace std;
 using namespace agent_framework;
@@ -59,10 +50,8 @@ using namespace agent_framework::generic;
 using namespace agent_framework::state_machine;
 using namespace logger_cpp;
 
-using command::Command;
-using command::CommandFactory;
-using command::CommandJson;
-using command::CommandJsonServer;
+using namespace agent::network;
+using namespace agent::network::discovery;
 
 using configuration::Configuration;
 
@@ -74,10 +63,8 @@ using agent::generic::DEFAULT_FILE;
 static constexpr unsigned int DEFAULT_SERVER_PORT = 7779;
 static constexpr int CONFIGURATION_VALIDATION_ERROR_CODE = -1;
 static constexpr int INVALID_MODULES_CONFIGURATION_ERROR_CODE = -2;
-static constexpr int INVALID_AGENT_CONFIGURATION_ERROR_CODE = -10;
-static constexpr const char COMMANDS_IMPLEMENTATION[] = "fm10000";
 
-void add_state_machine_entries(StateMachineThread* machine_thread);
+void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action);
 const json::Value& init_configuration(int argc, const char** argv);
 bool check_configuration(const json::Value& json);
 
@@ -86,8 +73,6 @@ bool check_configuration(const json::Value& json);
  * */
 int main(int argc, const char* argv[]) {
     unsigned int server_port = DEFAULT_SERVER_PORT;
-
-    StateMachineThreadUniquePtr state_machine_thread_u_ptr = nullptr;
 
     /* Initialize configuration */
     const json::Value& configuration = ::init_configuration(argc, argv);
@@ -121,50 +106,26 @@ int main(int argc, const char* argv[]) {
     AmcConnectionManager amc_connection(event_dispatcher);
     amc_connection.start();
 
-    ::agent::network::StateMachineAction state_action{};
     try {
+        /* Start discovery manager */
+        DiscoveryManager discovery_manager{};
+        StateMachineAction state_action{discovery_manager};
         /* Start state machine */
-        state_machine_thread_u_ptr.reset(new StateMachineThread(state_action));
-
-        ::add_state_machine_entries(state_machine_thread_u_ptr.get());
-
+        StateMachineThreadUniquePtr state_machine_thread_u_ptr{new StateMachineThread()};
+        ::add_state_machine_entries(state_machine_thread_u_ptr.get(), state_action);
         state_machine_thread_u_ptr->start();
+        /* Wait for discovery to complete */
+        discovery_manager.wait_for_complete();
+        log_debug(GET_LOGGER("network-agent"), "Done waiting for discovery complete");
     }
     catch (exception & e) {
         log_error(GET_LOGGER("network-agent"), e.what());
     }
 
-    /* Initialize command server */
-    auto& commands_factory = CommandFactory::get_instance();
-    try {
-        auto agent_type = configuration["agent"]["capabilities"].as_array();
-        commands_factory.add_commands(agent_type.front().as_string(),
-               COMMANDS_IMPLEMENTATION);
-    }
-    catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("network-agent"),
-                "Invalid agent configuration: " << e.what());
-        return INVALID_AGENT_CONFIGURATION_ERROR_CODE;
-    }
-    auto commands_initialization =
-        commands_factory.create_initialization();
-    auto commands = commands_factory.create();
-
     jsonrpc::HttpServer http_server((int(server_port)));
-    CommandJsonServer server(http_server);
-
+    agent_framework::command_ref::CommandServer server(http_server);
     server.add(command_ref::Registry::get_instance()->get_commands());
-    server.add(commands);
     server.start();
-
-    for (const auto& elem : ::module::NetworkManager::get_instance()->
-            get_module_manager().get_keys()) {
-        ::agent_framework::eventing::EventData edat;
-        edat.set_component(elem);
-        edat.set_type(::agent_framework::model::enums::Component::Manager);
-        edat.set_notification(::agent_framework::eventing::Notification::Add);
-        ::agent_framework::eventing::EventsQueue::get_instance()->push_back(edat);
-    }
 
     /* Stop the program and wait for interrupt */
     wait_for_interrupt();
@@ -175,10 +136,6 @@ int main(int argc, const char* argv[]) {
     server.stop();
     amc_connection.stop();
     event_dispatcher.stop();
-    commands_initialization.clear();
-    command::Command::Map::cleanup();
-    command::CommandJson::Map::cleanup();
-    command::CommandFactory::cleanup();
     Configuration::cleanup();
     LoggerFactory::cleanup();
 
@@ -201,12 +158,14 @@ const json::Value& init_configuration(int argc, const char** argv) {
     return basic_config.to_json();
 }
 
-void add_state_machine_entries(StateMachineThread* machine_thread) {
-    auto keys = ::agent_framework::module::NetworkManager::get_instance()->
+void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action) {
+    auto keys = ::agent_framework::module::CommonComponents::get_instance()->
                 get_module_manager().get_keys();
     for (const auto& key : keys) {
-        machine_thread->add_entry(std::make_shared<StateThreadEntry>(key,
-                std::make_shared<::agent::network::status::StatusManager>()));
+        auto status_manager = std::make_shared<::agent::network::status::StatusManager>();
+        auto state_thread_entry = std::make_shared<StateThreadEntry>(key, status_manager);
+        auto module_thread = std::make_shared<StateMachineModuleThread>(state_thread_entry, action);
+        machine_thread->add_module_thread(module_thread);
     }
 }
 

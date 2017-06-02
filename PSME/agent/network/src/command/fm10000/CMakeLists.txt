@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,15 +17,17 @@
 # </license_header>
 
 set(SOURCES
-    initialization.cpp
-    get_manager_collection.cpp
+    get_managers_collection.cpp
     get_collection.cpp
+    get_tasks_collection.cpp
     set_component_attributes.cpp
     get_manager_info.cpp
     get_chassis_info.cpp
     get_ethernet_switch_info.cpp
     get_ethernet_switch_port_info.cpp
     get_port_vlan_info.cpp
+    get_task_info.cpp
+    get_task_result_info.cpp
     add_port_vlan.cpp
     add_ethernet_switch_port_members.cpp
     delete_port_vlan.cpp
@@ -44,6 +46,7 @@ set(SOURCES
     get_port_static_mac_info.cpp
     add_port_static_mac.cpp
     delete_port_static_mac.cpp
+    delete_task.cpp
 )
 
 add_library(network-command-fm10000 OBJECT ${SOURCES})

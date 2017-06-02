@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.intel.podm.discovery.external.matchers;
 
-import com.intel.podm.business.entities.base.DomainObject;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Memory;
+import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
 import com.intel.podm.client.api.resources.redfish.MemoryResource;
@@ -28,22 +28,24 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Dependent
-public class MemoryObtainerHelper implements DomainObjectObtainerHelper<MemoryResource> {
+public class MemoryObtainerHelper implements EntityObtainerHelper<MemoryResource> {
     @Override
     public ComputerSystemResource findComputerSystemResourceFor(MemoryResource memoryResource) throws ExternalServiceApiReaderException {
         return (ComputerSystemResource) memoryResource.getComputerSystem().get();
     }
 
     @Override
-    public Optional<? extends DomainObject> findDomainObjectFor(ComputerSystem computerSystem, MemoryResource resource) {
+    public Optional<? extends Entity> findEntityFor(ComputerSystem computerSystem, MemoryResource resource) {
+        String resourceMemoryDeviceLocator = resource.getDeviceLocator().orElse(null);
+
         return computerSystem.getMemoryModules()
                 .stream()
-                .filter(memory -> Objects.equals(memory.getDeviceLocator(), resource.getDeviceLocator()))
+                .filter(memory -> Objects.equals(memory.getDeviceLocator(), resourceMemoryDeviceLocator))
                 .findFirst();
     }
 
     @Override
-    public Class<? extends DomainObject> getDomainObjectClass() {
+    public Class<? extends Entity> getEntityClass() {
         return Memory.class;
     }
 

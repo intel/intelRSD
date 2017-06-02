@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,49 +16,27 @@
 
 package com.intel.podm.mappers.redfish;
 
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
-import com.intel.podm.business.entities.redfish.properties.RemoteTargetIscsiAddress;
-import com.intel.podm.client.api.resources.redfish.IscsiAddressObject;
 import com.intel.podm.client.api.resources.redfish.RemoteTargetResource;
-import com.intel.podm.client.api.resources.redfish.TargetLunObject;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.mappers.EntityMapper;
+import com.intel.podm.mappers.subresources.RemoteTargetIscsiAddressMapper;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 @Dependent
-public class RemoteTargetMapper extends DomainObjectMapper<RemoteTargetResource, RemoteTarget> {
-
+public class RemoteTargetMapper extends EntityMapper<RemoteTargetResource, RemoteTarget> {
     @Inject
-    private GenericDao genericDao;
+    private RemoteTargetIscsiAddressMapper remoteTargetIscsiAddressMapper;
 
     public RemoteTargetMapper() {
         super(RemoteTargetResource.class, RemoteTarget.class);
     }
 
     @Override
-    public void performNotAutomatedMapping(RemoteTargetResource source, RemoteTarget target) {
-        target.getRemoteTargetIscsiAddresses().forEach(genericDao::remove);
-        createIscsiAddresses(source, target);
-    }
-
-    private void createIscsiAddresses(RemoteTargetResource source, RemoteTarget target) {
-        for (IscsiAddressObject iscsiAddressObject : source.getAddresses()) {
-            RemoteTargetIscsiAddress remoteTargetIscsiAddress = genericDao.create(RemoteTargetIscsiAddress.class);
-            remoteTargetIscsiAddress.setTargetIqn(iscsiAddressObject.getTargetIqn());
-            remoteTargetIscsiAddress.setTargetLun(getLuns(iscsiAddressObject.getTargetLuns()));
-            remoteTargetIscsiAddress.setTargetPortalIp(iscsiAddressObject.getTargetPortalIp());
-            remoteTargetIscsiAddress.setTargetPortalPort(iscsiAddressObject.getTargetPortalPort());
-
-            target.linkRemoteTargetIscsiAddresses(remoteTargetIscsiAddress);
-        }
-    }
-
-    private List<Integer> getLuns(List<TargetLunObject> targetLuns) {
-        return targetLuns.stream().map(TargetLunObject::getLun).collect(toList());
+    public void performNotAutomatedMapping(RemoteTargetResource sourceRemoteTarget, RemoteTarget targetRemoteTarget) {
+        super.performNotAutomatedMapping(source, target);
+        remoteTargetIscsiAddressMapper.map(sourceRemoteTarget.getAddresses(),
+            targetRemoteTarget.getRemoteTargetIscsiAddresses(), targetRemoteTarget::addRemoteTargetIscsiAddress);
     }
 }

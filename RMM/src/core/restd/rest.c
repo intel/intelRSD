@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 struct http_response_status {
 	int32 status;
 	int8 *title;
+	int8 report_error;
 };
 
 static struct rest_uri_node root_uri_node = {
@@ -35,27 +36,30 @@ static struct rest_uri_node root_uri_node = {
 };
 
 static const struct http_response_status http_resp[] = {
-	{HTTP_OK, "OK"},
-	{HTTP_CREATED, "Created"},
-	{HTTP_ACCEPTED, "Accepted"},
-	{HTTP_NO_CONTENT, "No Content"},
-	{HTTP_MOVED_PERMANENTLY, "Moved Permanently"},
-	{HTTP_FOUND, "Found"},
-	{HTTP_NOT_MODIFIED, "Not Modified"},
-	{HTTP_BAD_REQUEST, "Bad Request"},
-	{HTTP_FORBIDDEN, "Forbidden"},
-	{HTTP_UNAUTHORIZED, "Unauthorized"},
-	{HTTP_RESOURCE_NOT_FOUND, "Resource not found"},
-	{HTTP_METHOD_NOT_ALLOWED, "Method not allowed"},
-	{HTTP_NOT_ACCEPTABLE, "Not acceptable"},
-	{HTTP_CONFLICT, "Conflict"},
-	{HTTP_GONE, "Gone"},
-	{HTTP_LENGTH_REQUIRED, "Length Required"},
-	{HTTP_PRECONDITION_FAILED, "Precondition Failed"},
-	{HTTP_UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type"},
-	{HTTP_INTERNAL_SERVER_ERROR, "Application Error"},
-	{HTTP_NOT_IMPLEMENTED, "Not Implemented"},
-	{HTTP_SERVICE_UNAVAILABLE, "Service Unavailable"},
+    /* "no error" conditions */
+	{HTTP_OK, "OK", false},
+	{HTTP_CREATED, "Created", false},
+	{HTTP_ACCEPTED, "Accepted", false},
+	{HTTP_NO_CONTENT, "No Content", false},
+	{HTTP_MOVED_PERMANENTLY, "Moved Permanently", false},
+	{HTTP_FOUND, "Found", false},
+	{HTTP_NOT_MODIFIED, "Not Modified", false},
+
+    /* report error with rest-comilant json body */
+	{HTTP_BAD_REQUEST, "Bad Request", true},
+	{HTTP_FORBIDDEN, "Forbidden", true},
+	{HTTP_UNAUTHORIZED, "Unauthorized", true},
+	{HTTP_RESOURCE_NOT_FOUND, "Resource not found", true},
+	{HTTP_METHOD_NOT_ALLOWED, "Method not allowed", true},
+	{HTTP_NOT_ACCEPTABLE, "Not acceptable", true},
+	{HTTP_CONFLICT, "Conflict", true},
+	{HTTP_GONE, "Gone", true},
+	{HTTP_LENGTH_REQUIRED, "Length Required", true},
+	{HTTP_PRECONDITION_FAILED, "Precondition Failed", true},
+	{HTTP_UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type", true},
+	{HTTP_INTERNAL_SERVER_ERROR, "Application Error", true},
+	{HTTP_NOT_IMPLEMENTED, "Not Implemented", true},
+	{HTTP_SERVICE_UNAVAILABLE, "Service Unavailable", true}
 };
 
 
@@ -80,7 +84,7 @@ void rest_register_handlers(void)
 	register_psu_handler();
 	register_drawer_handler();
 	register_tzone_handler();
-	//register_fan_handler();
+	register_fan_handler();
 }
 
 void register_handler(const int8 *url, const struct rest_handler *handler)
@@ -109,7 +113,7 @@ int8 *rest_path_value(const struct rest_uri_param *param, const int8 *name)
 			return param->path_keys[i].value;
 	}
 
-	return "";
+	return NULL;
 }
 
 int8 *rest_query_value(struct rest_uri_param *param, int8 *name)
@@ -212,37 +216,52 @@ void rest_process(struct http_request *req)
 		param.status = HTTP_RESOURCE_NOT_FOUND;
 	}
 
-	if (result != NULL) {
+	{
 		int32 sz;
 		int8 body[100*1024];
-
-		sz = json_format(result, body, sizeof(body));
+		int resp = -1;
 
 		for (i = 0; i < sizeof(http_resp)/sizeof(struct http_response_status); i++) {
 			if (param.status == http_resp[i].status) {
-				send_json_reply(req->fd, http_resp[i].status,
-								http_resp[i].title, body, sz);
-
-				json_free(result);
-				return;
+				resp = i;
+				break;
+			}
+		}
+		/* if wrong response was returned, it should be bad_request then! */
+		if (resp < 0) {
+			// This will secure resp variable from -1 value. If somehow HTTP_BAD_REQUEST will not be found in table,
+			// we return Internal Server Error. 18 is inde in htt_resp table.
+			resp = 18;
+			for (i = 0; i < sizeof(http_resp)/sizeof(struct http_response_status); i++) {
+				if (HTTP_BAD_REQUEST == http_resp[i].status) {
+					resp = i;
+					break;
+				}
 			}
 		}
 
-		send_json_reply(req->fd, HTTP_OK, "OK", body, sz);
-	} else {
-		for (i = 0; i < sizeof(http_resp)/sizeof(struct http_response_status); i++) {
-			if (param.status == http_resp[i].status) {
-				if (param.status == HTTP_CREATED || param.status == HTTP_NO_CONTENT) {
-					send_http_reply_no_body(req->fd, http_resp[i].status,
-									http_resp[i].title, &param);
-				} else
-					send_json_reply(req->fd, http_resp[i].status,
-									http_resp[i].title, NULL, 0);
-				return;
-			}
+		if (http_resp[resp].report_error) {
+			/* unconditionally send redfish compilant json error message */
+			sz = sprintf(body,
+				"{"
+				"\"error\": {"
+				"\"code\": \"Base.1.0.0.GeneralError\","
+				"\"message\": \"%s\","
+				"\"@Message.ExtendedInfo\": []"
+				"}"
+				"}", http_resp[resp].title);
+		} else if (result != NULL) {
+			sz = json_format(result, body, sizeof(body));
+		} else {
+			sz = 0;
 		}
-
-		send_json_reply(req->fd, HTTP_BAD_REQUEST, "Bad Request", "{}", 2);
+		if (0 != sz) {
+			send_json_reply(req->fd, http_resp[resp].status,
+							http_resp[resp].title, body, sz);
+		} else {
+			send_http_reply_no_body(req->fd, http_resp[resp].status,
+									http_resp[resp].title, &param);
+		}
 	}
 
 	if (NULL != result)
@@ -439,7 +458,7 @@ void send_json_reply_redirect(int32 fd, const char *redirected_url)
 	int8 header[1024];
 
 	len = snprintf_s_si(header, sizeof(header),
-			"%s %d", 
+			"%s %d",
 			HTTPD_PROTOCOL, HTTP_FOUND);
 	if (len < 0)
 		return;

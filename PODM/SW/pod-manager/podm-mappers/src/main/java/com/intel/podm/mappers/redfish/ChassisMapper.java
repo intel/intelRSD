@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,53 @@
 
 package com.intel.podm.mappers.redfish;
 
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.Chassis;
-import com.intel.podm.business.entities.redfish.properties.RackChassisAttributes;
+import com.intel.podm.business.entities.redfish.embeddables.RackChassisAttributes;
 import com.intel.podm.client.api.resources.redfish.ChassisResource;
 import com.intel.podm.client.api.resources.redfish.ChassisResource.RackScaleRackChassisOem;
-import com.intel.podm.client.api.resources.redfish.OemVendor;
-import com.intel.podm.mappers.DomainObjectMapper;
+import com.intel.podm.common.types.Ref;
+import com.intel.podm.common.types.Status;
+import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
 
-import static java.util.Objects.nonNull;
+import static com.intel.podm.common.types.Health.OK;
+import static com.intel.podm.common.types.State.ENABLED;
 
 @Dependent
-public class ChassisMapper extends DomainObjectMapper<ChassisResource, Chassis> {
-    @Inject
-    private GenericDao genericDao;
-
+public class ChassisMapper extends EntityMapper<ChassisResource, Chassis> {
     public ChassisMapper() {
         super(ChassisResource.class, Chassis.class);
-        registerProvider(RackChassisAttributes.class, this::addRackChassisAttributes);
+        registerProvider(RackChassisAttributes.class, target -> provideRackChassisAttributes());
     }
 
     @Override
-    protected void performNotAutomatedMapping(ChassisResource source, Chassis target) {
+    protected void performNotAutomatedMapping(ChassisResource sourceChassis, Chassis targetChassis) {
         super.performNotAutomatedMapping(source, target);
-        RackScaleRackChassisOem attributes = source.getRackChassisAttributes();
-        if (nonNull(attributes) && nonNull(attributes.getRackPuid())) {
-            target.setLocationId(attributes.getRackPuid().toString());
+
+        mapRackChassis(sourceChassis, targetChassis);
+    }
+
+    private void mapRackChassis(ChassisResource sourceChassis, Chassis targetChassis) {
+        RackScaleRackChassisOem rackScaleRackChassisOem = sourceChassis.getRackChassisAttributes();
+        if (rackScaleRackChassisOem != null) {
+            if (sourceChassis.getStatus() == null) {
+                targetChassis.setStatus(new Status(ENABLED, OK, null));
+            }
+
+            final Ref<String> refLocationId = rackScaleRackChassisOem.getLocation().getId();
+            String locationId = null;
+            if (refLocationId.isAssigned()) {
+                locationId = refLocationId.get();
+            } else if (rackScaleRackChassisOem.getRackPuid() != null) {
+                locationId = rackScaleRackChassisOem.getRackPuid().toString();
+            }
+            targetChassis.setLocationId(locationId);
         }
     }
 
-    private RackChassisAttributes addRackChassisAttributes(OemVendor o) {
-        RackChassisAttributes rackChassisAttributes = target.getRackChassisAttributes();
-        if (rackChassisAttributes != null) {
-            genericDao.remove(rackChassisAttributes);
-        }
-
-        return genericDao.create(RackChassisAttributes.class);
+    private RackChassisAttributes provideRackChassisAttributes() {
+        RackChassisAttributes attributes = target.getRackChassisAttributes();
+        return attributes == null ? new RackChassisAttributes() : attributes;
     }
 }

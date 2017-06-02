@@ -14,7 +14,7 @@ public enum BaseModuleType implements EnumeratedType {
 
     private final String value;
 
-    BaseModuleType(final String value) {
+    BaseModuleType(String value) {
         this.value = value;
     }
 

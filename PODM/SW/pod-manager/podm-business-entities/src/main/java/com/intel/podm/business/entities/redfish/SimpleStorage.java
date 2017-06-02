@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,95 +16,117 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.base.DomainObjectProperty;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.business.entities.redfish.properties.SimpleStorageDevice;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.listeners.SimpleStorageListener;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.common.types.Id;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
-import java.util.Collection;
+import javax.persistence.Column;
+import javax.persistence.EntityListeners;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.SIMPLE_STORAGE_DEVICES;
-import static com.intel.podm.business.entities.base.DomainObjectProperties.stringProperty;
-import static com.intel.podm.common.utils.IterableHelper.single;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class SimpleStorage extends DomainObject implements Discoverable, StatusPossessor, Descriptable {
-    public static final DomainObjectProperty<String> UEFI_DEVICE_PATH = stringProperty("uefiDevicePath");
+@javax.persistence.Entity
+@Table(name = "simple_storage", indexes = @Index(name = "idx_simple_storage_entity_id", columnList = "entity_id", unique = true))
+@EntityListeners(SimpleStorageListener.class)
+@Eventable
+public class SimpleStorage extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @Column(name = "uefi_device_path")
+    private String uefiDevicePath;
+
+    @OneToMany(mappedBy = "simpleStorage", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<SimpleStorageDevice> devices = new HashSet<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "computer_system_id")
+    private ComputerSystem computerSystem;
 
     @Override
-    public String getName() {
-        return getProperty(NAME);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
-    }
-
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public String getUefiDevicePath() {
-        return getProperty(UEFI_DEVICE_PATH);
+        return uefiDevicePath;
     }
 
     public void setUefiDevicePath(String uefiDevicePath) {
-        setProperty(UEFI_DEVICE_PATH, uefiDevicePath);
+        this.uefiDevicePath = uefiDevicePath;
     }
 
-    public SimpleStorageDevice addDevice() {
-        return addDomainObject(SIMPLE_STORAGE_DEVICES, SimpleStorageDevice.class);
+    public Set<SimpleStorageDevice> getDevices() {
+        return devices;
     }
 
-    public Collection<SimpleStorageDevice> getDevices() {
-        return getLinked(SIMPLE_STORAGE_DEVICES, SimpleStorageDevice.class);
+    public void addDevice(SimpleStorageDevice simpleStorageDevice) {
+        requiresNonNull(simpleStorageDevice, "simpleStorageDevice");
+
+        devices.add(simpleStorageDevice);
+        if (!this.equals(simpleStorageDevice.getSimpleStorage())) {
+            simpleStorageDevice.setSimpleStorage(this);
+        }
     }
 
-
-    @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
-    }
-
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
+    public void unlinkDevice(SimpleStorageDevice simpleStorageDevice) {
+        if (devices.contains(simpleStorageDevice)) {
+            devices.remove(simpleStorageDevice);
+            if (simpleStorageDevice != null) {
+                simpleStorageDevice.unlinkSimpleStorage(this);
+            }
+        }
     }
 
     public ComputerSystem getComputerSystem() {
-        return single(getLinked(CONTAINED_BY, ComputerSystem.class));
+        return computerSystem;
+    }
+
+    public void setComputerSystem(ComputerSystem computerSystem) {
+        if (!Objects.equals(this.computerSystem, computerSystem)) {
+            unlinkComputerSystem(this.computerSystem);
+            this.computerSystem = computerSystem;
+            if (computerSystem != null && !computerSystem.getSimpleStorages().contains(this)) {
+                computerSystem.addSimpleStorage(this);
+            }
+        }
+    }
+
+    public void unlinkComputerSystem(ComputerSystem computerSystem) {
+        if (Objects.equals(this.computerSystem, computerSystem)) {
+            this.computerSystem = null;
+            if (computerSystem != null) {
+                computerSystem.unlinkSimpleStorage(this);
+            }
+        }
+    }
+
+    @Override
+    public void preRemove() {
+        unlinkCollection(devices, this::unlinkDevice);
+        unlinkComputerSystem(computerSystem);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return isContainedBy(possibleParent, computerSystem);
     }
 }

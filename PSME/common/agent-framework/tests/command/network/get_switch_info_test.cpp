@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,35 +22,33 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/network/get_ethernet_switch_info.hpp"
-#include "agent-framework/command/network/json/get_ethernet_switch_info.hpp"
-#include "agent-framework/module-ref/constants/network.hpp"
+#include "agent-framework/module/constants/network.hpp"
+#include "agent-framework/module/network_components.hpp"
+#include "agent-framework/command-ref/network_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 using namespace agent_framework::model;
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 
 static constexpr enums::SwitchTechnology TEST_TECHNOLOGY
     { enums::SwitchTechnology::Ethernet };
 
-class GetEthernetSwitchInfo : public network::GetEthernetSwitchInfo {
+class MyGetEthernetSwitchInfo {
 private:
     std::string m_switch{};
 public:
-    GetEthernetSwitchInfo(const std::string& uuid) { m_switch = uuid; }
+    MyGetEthernetSwitchInfo(const std::string& uuid) { m_switch = uuid; }
 
-    using network::GetEthernetSwitchInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto uuid = request.get_switch();
+    void execute(const GetEthernetSwitchInfo::Request& request,
+                 GetEthernetSwitchInfo::Response& response) {
+        auto uuid = request.get_uuid();
 
         if (uuid != m_switch) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not Found");
         }
 
-        Switch eth_switch{};
+        EthernetSwitch eth_switch{};
         eth_switch.set_location(std::uint32_t(1));
         eth_switch.set_technology(enums::SwitchTechnology::Ethernet);
         eth_switch.set_mac_address("Test Mac Address");
@@ -59,69 +57,57 @@ public:
                                                    "TestModelNumber",
                                                    "TestPartNumber"));
         eth_switch.set_oem(attribute::Oem());
-        response.set_switch(eth_switch);
+        response = eth_switch;
     }
 
-    virtual ~GetEthernetSwitchInfo();
+    virtual ~MyGetEthernetSwitchInfo();
 };
 
-GetEthernetSwitchInfo::~GetEthernetSwitchInfo() { }
+MyGetEthernetSwitchInfo::~MyGetEthernetSwitchInfo() { }
 
 TEST(GetEthernetSwitchInfoTest, PositiveExecute) {
-    network::json::GetEthernetSwitchInfo command_json;
-    GetEthernetSwitchInfo* command = new GetEthernetSwitchInfo("8d2c1ac0-2f82-11e5-8333-0002a5d5c51b");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetEthernetSwitchInfo command{"8d2c1ac0-2f82-11e5-8333-0002a5d5c51b"};
+    GetEthernetSwitchInfo::Request request{""};
+    GetEthernetSwitchInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
-    params[literals::Switch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51b";
+    params[literals::EthernetSwitch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51b";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetEthernetSwitchInfo::Request::from_json(params));
+
+    EXPECT_NO_THROW(command.execute(request, response));
+
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
-    ASSERT_TRUE(result[literals::Switch::LOCATION].isUInt());
-    ASSERT_TRUE(result[literals::Switch::TECHNOLOGY].isString());
-    ASSERT_TRUE(result[literals::Switch::MAC_ADDRESS].isString());
-    ASSERT_TRUE(result[literals::Switch::FRU_INFO].isObject());
-    ASSERT_TRUE(result[literals::Switch::FRU_INFO][literals::FruInfo::SERIAL].isString());
-    ASSERT_TRUE(result[literals::Switch::FRU_INFO][literals::FruInfo::MANUFACTURER].isString());
-    ASSERT_TRUE(result[literals::Switch::FRU_INFO][literals::FruInfo::MODEL].isString());
-    ASSERT_TRUE(result[literals::Switch::FRU_INFO][literals::FruInfo::PART].isString());
-    ASSERT_TRUE(result[literals::Switch::OEM].isObject());
-    ASSERT_EQ(result[literals::Switch::TECHNOLOGY].asString(), TEST_TECHNOLOGY.to_string());
-    ASSERT_EQ(result[literals::Switch::MAC_ADDRESS].asString(), "Test Mac Address");
-    ASSERT_EQ(result[literals::Switch::FRU_INFO][literals::FruInfo::SERIAL], "TestSerialNumber");
-    ASSERT_EQ(result[literals::Switch::FRU_INFO][literals::FruInfo::MANUFACTURER], "TestManufacturer");
-    ASSERT_EQ(result[literals::Switch::FRU_INFO][literals::FruInfo::MODEL], "TestModelNumber");
-    ASSERT_EQ(result[literals::Switch::FRU_INFO][literals::FruInfo::PART], "TestPartNumber");
+    ASSERT_TRUE(result[literals::EthernetSwitch::LOCATION].isUInt());
+    ASSERT_TRUE(result[literals::EthernetSwitch::TECHNOLOGY].isString());
+    ASSERT_TRUE(result[literals::EthernetSwitch::MAC_ADDRESS].isString());
+    ASSERT_TRUE(result[literals::EthernetSwitch::FRU_INFO].isObject());
+    ASSERT_TRUE(result[literals::EthernetSwitch::FRU_INFO][literals::FruInfo::SERIAL].isString());
+    ASSERT_TRUE(result[literals::EthernetSwitch::FRU_INFO][literals::FruInfo::MANUFACTURER].isString());
+    ASSERT_TRUE(result[literals::EthernetSwitch::FRU_INFO][literals::FruInfo::MODEL].isString());
+    ASSERT_TRUE(result[literals::EthernetSwitch::FRU_INFO][literals::FruInfo::PART].isString());
+    ASSERT_TRUE(result[literals::EthernetSwitch::OEM].isObject());
+    ASSERT_EQ(result[literals::EthernetSwitch::TECHNOLOGY].asString(), TEST_TECHNOLOGY.to_string());
+    ASSERT_EQ(result[literals::EthernetSwitch::MAC_ADDRESS].asString(), "Test Mac Address");
+    ASSERT_EQ(result[literals::EthernetSwitch::FRU_INFO][literals::FruInfo::SERIAL], "TestSerialNumber");
+    ASSERT_EQ(result[literals::EthernetSwitch::FRU_INFO][literals::FruInfo::MANUFACTURER], "TestManufacturer");
+    ASSERT_EQ(result[literals::EthernetSwitch::FRU_INFO][literals::FruInfo::MODEL], "TestModelNumber");
+    ASSERT_EQ(result[literals::EthernetSwitch::FRU_INFO][literals::FruInfo::PART], "TestPartNumber");
 }
 
 TEST(GetEthernetSwitchInfoTest, NegativeComponentNotFound) {
-    network::json::GetEthernetSwitchInfo command_json;
-    GetEthernetSwitchInfo* command = new GetEthernetSwitchInfo("8d2c1ac0-2f82-11e5-8333-0002a5d5c51b");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetEthernetSwitchInfo command{"8d2c1ac0-2f82-11e5-8333-0002a5d5c51b"};
+    GetEthernetSwitchInfo::Request request{""};
+    GetEthernetSwitchInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
-    params[literals::Switch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
+    params[literals::EthernetSwitch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
-}
+    EXPECT_NO_THROW(request = GetEthernetSwitchInfo::Request::from_json(params));
 
-TEST(GetEthernetSwitchInfoTest, NegativeInvalidUUIDFormat) {
-    network::json::GetEthernetSwitchInfo command_json;
-    GetEthernetSwitchInfo* command = new GetEthernetSwitchInfo("8d2c1ac0-2f82-11e5-8333-0002a5d5c51b");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
-    Json::Value params;
-    Json::Value result;
-
-    params[literals::Switch::SWITCH] = "TestUUID";
-
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,7 @@
  * @brief GetAuthorizationCertificateHash IPMI command.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_COMMAND_GET_AUTHORIZATION_CERTIFICATE_HASH_HPP
-#define AGENT_CHASSIS_IPMB_COMMAND_GET_AUTHORIZATION_CERTIFICATE_HASH_HPP
-
+#pragma once
 #include <ipmb/command/command.hpp>
 #include "ipmb/certificate.hpp"
 
@@ -136,4 +134,3 @@ private:
 }
 }
 }
-#endif /* AGENT_CHASSIS_IPMB_COMMAND_GET_AUTHORIZATION_CERTIFICATE_HPP */

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,9 @@
 
 /* Internal headers */
 #include "api/netlink/acl_message.hpp"
+#include "netlink/nl_exception.hpp"
+
+#include <functional>
 
 extern "C" {
 #include <acl_nl_cmds.h>
@@ -275,42 +278,42 @@ namespace {
         }
     }
 
-    static inline void nla_put(AclMessage::Pointer& msg,
+    static inline void nla_put(struct nl_msg* msg,
                                uint32_t attr, uint16_t value) {
-        if (0 > nla_put_u16(msg.get(), attr, value)) {
+        if (0 > nla_put_u16(msg, attr, value)) {
             throw runtime_error("nla_put_u16 failed");
         }
     }
 
-    static inline void nla_put(AclMessage::Pointer& msg,
+    static inline void nla_put(struct nl_msg* msg,
                                uint32_t attr, uint32_t value) {
-        if (0 > nla_put_u32(msg.get(), attr, value)) {
+        if (0 > nla_put_u32(msg, attr, value)) {
             throw runtime_error("nla_put_u32 failed");
         }
     }
 
-    static inline void nla_put(AclMessage::Pointer& msg,
+    static inline void nla_put(struct nl_msg* msg,
                                uint32_t attr, uint64_t value) {
-        if (0 > nla_put_u64(msg.get(), attr, value)) {
+        if (0 > nla_put_u64(msg, attr, value)) {
             throw runtime_error("nla_put_u64 failed");
         }
     }
 
-    static inline void prepare_port_list(AclMessage::Pointer& msg,
+    static inline void prepare_port_list(struct nl_msg* msg,
                                          const vector<uint32_t>& ifindexes) {
         nlattr *attr{};
-        attr = nla_nest_start(msg.get(), ACL_ATTR_PORT_LIST);
+        attr = nla_nest_start(msg, ACL_ATTR_PORT_LIST);
         if (!attr) {
             throw runtime_error("nla_nest_start failed for port list");
         }
         for (const auto& ifindex : ifindexes) {
             nla_put(msg, ACL_ATTR_PORT_IFINDEX, ifindex);
         }
-        nla_nest_end(msg.get(), attr);
+        nla_nest_end(msg, attr);
     }
 
     template<class T>
-    static inline void put_condition(AclMessage::Pointer& msg,
+    static inline void put_condition(struct nl_msg* msg,
                                      const AclMessage::AclCondition& condition,
                                      uint32_t value_attr,
                                      uint32_t mask_attr) {
@@ -320,7 +323,7 @@ namespace {
         }
     }
 
-    static void put_ip_condition(AclMessage::Pointer& msg,
+    static void put_ip_condition(struct nl_msg* msg,
                                  const AclMessage::AclCondition& condition) {
         switch (condition.type) {
             case ACL_ATTR_COND_IP_SRC:
@@ -338,7 +341,7 @@ namespace {
         }
     }
 
-    static void put_mac_condition(AclMessage::Pointer& msg,
+    static void put_mac_condition(struct nl_msg* msg,
                                   const AclMessage::AclCondition& condition) {
         switch (condition.type) {
             case ACL_ATTR_COND_MAC_SRC:
@@ -356,7 +359,7 @@ namespace {
         }
     }
 
-    static void put_port_condition(AclMessage::Pointer& msg,
+    static void put_port_condition(struct nl_msg* msg,
                                    const AclMessage::AclCondition& condition) {
         switch (condition.type) {
             case ACL_ATTR_COND_L4_PORT_SRC:
@@ -374,22 +377,22 @@ namespace {
         }
     }
 
-    static void put_vlan_condition(AclMessage::Pointer& msg,
+    static void put_vlan_condition(struct nl_msg* msg,
                                    const AclMessage::AclCondition& condition) {
         put_condition<uint16_t>(msg, condition,
                                 ACL_ATTR_COND_VLAN,
                                 ACL_ATTR_COND_VLAN_MASK);
     }
 
-    static void put_protocol_condition(AclMessage::Pointer& msg,
+    static void put_protocol_condition(struct nl_msg* msg,
                                        const AclMessage::AclCondition& condition) {
-        if (0 > nla_put_u8(msg.get(), ACL_ATTR_COND_PROTOCOL,
+        if (0 > nla_put_u8(msg, ACL_ATTR_COND_PROTOCOL,
                            uint8_t(condition.value))) {
             throw runtime_error("nla_put_u8 failed for rule condition");
         }
     }
 
-    static inline void put_condition(AclMessage::Pointer& msg,
+    static inline void put_condition(struct nl_msg* msg,
                                      const AclMessage::AclCondition& condition) {
         switch (condition.type) {
             case ACL_ATTR_COND_IP_SRC:
@@ -415,14 +418,14 @@ namespace {
         }
     }
 
-    static void prepare_for_command(AclMessage::Pointer& msg, uint8_t command,
+    static void prepare_for_command(struct nl_msg* msg, uint8_t command,
                                     uint16_t rule_id,
                                     const vector<uint32_t>& ifindexes) {
         switch (command) {
             case ACL_ADD_RULE_CMD:
             case ACL_DEL_RULE_CMD:
                 if (rule_id) {
-                    NLA_PUT_U16(msg.get(), ACL_ATTR_RULE_ID, rule_id);
+                    NLA_PUT_U16(msg, ACL_ATTR_RULE_ID, rule_id);
                 }
                 break;
             case ACL_BIND_PORT_CMD:
@@ -438,20 +441,20 @@ nla_put_failure:
         throw runtime_error("NLA_PUT_U16 failed for rule command");
     }
 
-    static void prepare_for_action(AclMessage::Pointer& msg, uint16_t action,
+    static void prepare_for_action(struct nl_msg* msg, uint16_t action,
                                    uint32_t ifindex, uint16_t mirror_type,
                                    const vector<uint32_t>& ifindexes) {
         switch (action) {
             case ACL_ATTR_ACTION_DENY:
             case ACL_ATTR_ACTION_PERM:
-                NLA_PUT_FLAG(msg.get(), action);
+                NLA_PUT_FLAG(msg, action);
                 break;
             case ACL_ATTR_ACTION_FORWARD:
-                NLA_PUT_U32(msg.get(), ACL_ATTR_ACTION_FORWARD, ifindex);
+                NLA_PUT_U32(msg, ACL_ATTR_ACTION_FORWARD, ifindex);
                 break;
             case ACL_ATTR_ACTION_MIRROR_PORT:
-                NLA_PUT_U32(msg.get(), ACL_ATTR_ACTION_MIRROR_PORT, ifindex);
-                NLA_PUT_U16(msg.get(), ACL_ATTR_ACTION_MIRROR_TYPE,
+                NLA_PUT_U32(msg, ACL_ATTR_ACTION_MIRROR_PORT, ifindex);
+                NLA_PUT_U16(msg, ACL_ATTR_ACTION_MIRROR_TYPE,
                             mirror_type);
                 ::prepare_port_list(msg, ifindexes);
                 break;
@@ -466,35 +469,45 @@ nla_put_failure:
     }
 }
 
-AclMessage::AclMessage(uint8_t cmd, const string& name) : Message(),
+AclMessage::AclMessage(uint8_t cmd, const string& name) :
+    NlMessage(Protocol::USER),
     m_cmd(cmd), m_name(name), m_errno(NL_ERR), m_action(ACL_ATTR_UNSPEC),
-    m_mirror_type(ACL_MIRROR_UNSUPPORTED) {}
+    m_mirror_type(ACL_MIRROR_UNSUPPORTED) {
+    nl_socket_disable_auto_ack(get_sock());
+    nl_socket_disable_seq_check(get_sock());
+    nl_socket_set_peer_port(get_sock(), ACL_TOOL_SOCKET_PORT);
+    auto status = nl_socket_set_msg_buf_size(get_sock(), ACL_NL_MSG_SIZE_BIG);
+    if (status) {
+        throw NlException(string("ACL: nl_socket_set_msg_buf_size failed ") +
+                          to_string(status));
+    }
+    status = nl_socket_set_buffer_size(get_sock(), ACL_NL_MSG_SIZE_BIG,
+                                       ACL_NL_MSG_SIZE_BIG);
+    if (status) {
+        throw NlException(string("ACL: nl_socket_set_buffer_size failed ") +
+                          to_string(status));
+    }
+}
 
 AclMessage::~AclMessage() {}
 
-Message::Pointer AclMessage::prepare_netlink_msg() const {
-    /* Allocate the netlink message */
-    Pointer msg(nlmsg_alloc());
-    if (!msg) {
-        return nullptr;
-    }
-
-    if (!genlmsg_put(msg.get(), NL_AUTO_PORT, NL_AUTO_SEQ, 0, 0, 0, m_cmd, 0)) {
-        return nullptr;
+void AclMessage::prepare_message(struct nl_msg* msg) {
+    if (!genlmsg_put(msg, NL_AUTO_PORT, NL_AUTO_SEQ, 0, 0, 0, m_cmd, 0)) {
+        throw NlException("Cannot put NL_AUTO_PORT attributes");
     }
     if (0 < m_name.length()) {
-        NLA_PUT_STRING(msg.get(), ACL_ATTR_NAME, m_name.c_str());
+        NLA_PUT_STRING(msg, ACL_ATTR_NAME, m_name.c_str());
     }
     ::prepare_for_command(msg, m_cmd, m_rule_id, m_ifindexes);
     ::prepare_for_action(msg, m_action, m_ifindex, m_mirror_type, m_ifindexes);
     for (const auto& condition : m_conditions) {
         put_condition(msg, condition);
     }
-    return msg;
+    return;
 
     // following goto label is needed by NLA_PUT_ macros
 nla_put_failure:
-    return nullptr;
+    throw NlException("Cannot put attribute into the netlink message");
 }
 
 void AclMessage::parse_acl_list (const genlmsghdr* genl_hdr) {
@@ -509,17 +522,13 @@ void AclMessage::parse_acl_list (const genlmsghdr* genl_hdr) {
         m_errno = NL_OK;
 }
 
-int AclMessage::parse_reply(nl_msg* msg) {
-    if (!msg) {
-        return NL_ERR;
-    }
+void AclMessage::process_message(struct nl_msg* msg) {
     nlmsghdr *hdr = nlmsg_hdr(msg);
     genlmsghdr *genl_hdr = static_cast<genlmsghdr*>(nlmsg_data(hdr));
     nlattr *attrs[ACL_ATTR_MAX + 1]{};
     int status = genlmsg_parse(hdr, 0, attrs, ACL_ATTR_MAX, nullptr);
-    set_last();
     if (status || !genl_hdr) {
-        return NL_ERR;
+        throw NlException("failed parsing message header");
     }
 
     if (ACL_GET_CMD_REPLY == genl_hdr->cmd) {
@@ -530,10 +539,9 @@ int AclMessage::parse_reply(nl_msg* msg) {
             m_errno = nla_get_u32(attrs[ACL_ATTR_ERRNO]);
         }
         else {
-            return NL_ERR;
+            throw NlException("Missing attribute ACL_ATTR_ERRNO");
         }
     }
-    return NL_OK;
 }
 
 void AclMessage::set_rule(uint16_t rule_id, uint16_t action, uint32_t ifindex,

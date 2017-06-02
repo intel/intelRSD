@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,17 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import static com.intel.podm.rest.resources.ResourceNames.CHASSIS_RESOURCE_NAME;
-import static com.intel.podm.rest.resources.ResourceNames.COMPOSED_NODES_RESOURCE_NAME;
-import static com.intel.podm.rest.resources.ResourceNames.COMPUTER_SYSTEM_RESOURCE_NAME;
-import static com.intel.podm.rest.resources.ResourceNames.ETHERNET_SWITCHES_RESOURCE_NAME;
-import static com.intel.podm.rest.resources.ResourceNames.MANAGERS_RESOURCE_NAME;
-import static com.intel.podm.rest.resources.ResourceNames.STORAGE_SERVICES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.CHASSIS_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.COMPOSED_NODES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.COMPUTER_SYSTEM_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCHES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.FABRIC_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.MANAGERS_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.STORAGE_SERVICES_RESOURCE_NAME;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class ServiceRootResource extends BaseResource {
 
     @Inject
@@ -73,12 +75,17 @@ public class ServiceRootResource extends BaseResource {
         return getResource(ManagerCollectionResource.class);
     }
 
+    @Path(FABRIC_RESOURCE_NAME)
+    public FabricCollectionResource getFabrics() {
+        return getResource(FabricCollectionResource.class);
+    }
+
     @Path(STORAGE_SERVICES_RESOURCE_NAME)
     public ServicesCollectionResource getStorageServices() {
         return getResource(ServicesCollectionResource.class);
     }
 
-    @Path("/EventService")
+    @Path("EventService")
     public EventServiceResource getEventService() {
         return getResource(EventServiceResource.class);
     }
@@ -86,5 +93,10 @@ public class ServiceRootResource extends BaseResource {
     @Path(ETHERNET_SWITCHES_RESOURCE_NAME)
     public EthernetSwitchCollectionResource getEthernetSwitches() {
         return getResource(EthernetSwitchCollectionResource.class);
+    }
+
+    @Path("odata")
+    public ODataServiceDocumentResource getOData() {
+        return getResource(ODataServiceDocumentResource.class);
     }
 }

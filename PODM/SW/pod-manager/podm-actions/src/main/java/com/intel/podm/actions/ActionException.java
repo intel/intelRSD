@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 package com.intel.podm.actions;
 
 import com.intel.podm.common.types.redfish.RedfishErrorResponse;
+import com.intel.podm.common.types.redfish.RedfishErrorResponseCarryingException;
 
-public class ActionException extends Exception {
+public class ActionException extends Exception implements RedfishErrorResponseCarryingException {
     private final RedfishErrorResponse errorResponse;
 
     public ActionException(String msg) {

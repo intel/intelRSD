@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,77 +22,57 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/delete_logical_drive.hpp"
-#include "agent-framework/command/storage/json/delete_logical_drive.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
 
-class DeleteLogicalDrive : public storage::DeleteLogicalDrive {
+class MyDeleteLogicalDrive {
 private:
     std::string m_drive{};
 public:
-    DeleteLogicalDrive(std::string drive) { m_drive = drive; }
+    MyDeleteLogicalDrive(std::string drive) { m_drive = drive; }
 
-    using storage::DeleteLogicalDrive::execute;
-
-    void execute(const Request& request, Response& response) {
-        auto drive = request.get_drive();
+    void execute(const DeleteLogicalDrive::Request& request,
+                 DeleteLogicalDrive::Response&) {
+        auto drive = request.get_uuid();
 
         if (drive != m_drive) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
-
-        response.set_oem(agent_framework::model::attribute::Oem());
     }
-
-    virtual ~DeleteLogicalDrive();
 };
 
-DeleteLogicalDrive::~DeleteLogicalDrive() { }
+static constexpr char DRIVE[] = "drive";
+static constexpr char OEM[] = "oem";
 
-class DeleteLogicalDriveTest : public ::testing::Test {
-protected:
-    static constexpr char DRIVE[] = "drive";
-    static constexpr char OEM[] = "oem";
-
-    virtual ~DeleteLogicalDriveTest();
-};
-
-constexpr char DeleteLogicalDriveTest::DRIVE[];
-constexpr char DeleteLogicalDriveTest::OEM[];
-
-DeleteLogicalDriveTest::~DeleteLogicalDriveTest() { }
-
-TEST_F(DeleteLogicalDriveTest, PositiveExecute) {
-    storage::json::DeleteLogicalDrive command_json;
-    DeleteLogicalDrive* command = new DeleteLogicalDrive("TestDrive");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(DeleteLogicalDriveTest, PositiveExecute) {
+    MyDeleteLogicalDrive command{"TestDrive"};
+    DeleteLogicalDrive::Request request{""};
+    DeleteLogicalDrive::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[DRIVE] = "TestDrive";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = DeleteLogicalDrive::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[OEM].isObject());
 }
 
-TEST_F(DeleteLogicalDriveTest, NegativeDriveNotFound) {
-    storage::json::DeleteLogicalDrive command_json;
-    DeleteLogicalDrive* command = new DeleteLogicalDrive("TestDrive");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+TEST(DeleteLogicalDriveTest, NegativeDriveNotFound) {
+    MyDeleteLogicalDrive command{"TestDrive"};
+    DeleteLogicalDrive::Request request{""};
+    DeleteLogicalDrive::Response response{};
     Json::Value params;
     Json::Value result;
 
     params[DRIVE] = "OtherTestDrive";
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = DeleteLogicalDrive::Request::from_json(params));
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

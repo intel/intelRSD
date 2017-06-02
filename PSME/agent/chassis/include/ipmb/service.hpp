@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,20 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
  * @file ipmb/service.hpp
  * @brief IPMI IPMB Service.
  * */
-#ifndef AGENT_CHASSIS_IPMB_SERVICE_HPP
-#define AGENT_CHASSIS_IPMB_SERVICE_HPP
+
+#pragma once
 #include <ipmb/ipmi_message.hpp>
-#include <ipmb/worker_thread.hpp>
-#include <ipmb/receiver_thread.hpp>
 #include <ipmb/responder.hpp>
 
-#include "generic/threadsafe_queue.hpp"
-#include <agent-framework/generic/singleton.hpp>
+#include "generic/worker_thread.hpp"
+#include <agent-framework/threading/thread.hpp>
+#include <mutex>
 
 /*! Agent namespace */
 namespace agent {
@@ -41,114 +36,55 @@ namespace chassis {
 /*! IPMB namespace */
 namespace ipmb {
 
-using std::uint16_t;
-using std::uint32_t;
-
 using namespace agent_framework::generic;
 
 /*! IpmiService interface for IPMB. */
-class Service : public Singleton<Service> {
+class Service final : public agent_framework::threading::Thread {
 public:
+    /*! Default MUX socket address */
+    static const net::SocketAddress MUX_SOCKET_ADDRESS;
+
+    /*! Default timeout on recv from MUX, after which we assume connection is lost. */
+    static constexpr const std::uint16_t MUX_RECV_TIMEOUT_SEC = 30;
 
     /*!
-     * @brief Message queue for incomming requests
-     * */
-    ::generic::ThreadSafeQueue <IpmiMessage> rcvd_msg_queue{};
+     * Sends request, waits for and process response.
+     * @param[in] request IPMI request message.
+     */
+    static void send_request_process_response(IpmiMessage& request);
 
     /*!
-     * @brief MUX initialization
-     * @param mux_port MUX port
-     * @return initialization status
-     * */
-    bool init(::in_port_t mux_port);
+     * @brief Returns SocketAddress cyMUX is listening on.
+     * @return SocketAddress cyMUX is listening on.
+     */
+    static net::SocketAddress get_mux_address();
 
-    /*!
-     * @brief MUX deinitialization
-     * @return deinitialization status
-     * */
-    bool deinit();
+private:
 
-    /*!
-     * @brief Start IPMI IPMB Service
-     * @return Starting status
-     * */
-    bool start();
+    void execute() override;
 
-    /*!
-     * @brief Stop IPMI IPMB Serice
-     * @return Stoping status
-     * */
-    bool stop();
-
-    /*!
-     * @brief Returns Slave address
-     * @return Slave address
-     * */
-    uint8_t get_slave_address() const {
-        return m_slave_addr;
-    }
+    void init_mux_connection(Responder& socket, const net::SocketAddress& mux_address);
 
     /*!
      * @brief Slave read from MUX
-     * @param msg IPMI message
-     * @return read status
      * */
-    bool slave_read(IpmiMessage& msg);
+    void slave_read_and_dispatch();
 
     /*!
      * @brief Master write to MUX
      * @param msg IPMI message
-     * @return write status
      * */
-    bool master_write(IpmiMessage& msg);
+    void master_write(IpmiMessage& msg);
 
-    /*!
-     * @brief Return initialized flag
-     * @return initialized flag
-     * */
-    bool is_initialized() {
-        return m_is_initialized;
-    }
-
-    /*!
-     * @brief Destructor
-     * */
-    virtual ~Service();
-
-private:
-    /*! Data processing thread */
-    WorkerThreadUniquePtr m_worker_thread{};
-    /*! Receiver thread. */
-    ReceiverThreadUniquePtr m_receiver_thread{};
-
-    /*! I2C slave address. 0x10 for communication between IPMB and PSME. */
-    uint8_t m_slave_addr{I2C_SLAVE_ADDRESS};
-
-    /*! Mutex for communications */
-    std::mutex m_mutex{};
-    std::mutex m_client_mutex{};
-
-    /*! Set to true if library is already initialized */
-    volatile bool m_is_initialized{};
-    /*! Set to true if IPMI IPMB Service is started */
-    volatile bool m_is_working{};
-
-    /*! flags used to show if failures have already been logged and prevent
-     *  logging again until the next success occurs (as attempts are retried
-     *  until succeeded)
-     */
-    volatile bool m_server_failure_logged{};
-    volatile bool m_client_failure_logged{};
+    ::generic::WorkerThread m_worker{};
 
     /*! Socket connection to cyMUX */
     Responder m_mux{};
 
-    bool verify_chcksum(const IpmiMessage &msg, const byte_vec_t &read_buffer);
-    void message_builder(IpmiMessage& msg, const byte_vec_t& read_buffer);
+    static bool verify_chcksum(const IpmiMessage &msg, const byte_vec_t &read_buffer);
+    static IpmiMessage message_builder(const byte_vec_t& read_buffer);
 };
 
 }
 }
 }
-
-#endif  /* AGENT_CHASSIS_IPMB_SERVICE_HPP */

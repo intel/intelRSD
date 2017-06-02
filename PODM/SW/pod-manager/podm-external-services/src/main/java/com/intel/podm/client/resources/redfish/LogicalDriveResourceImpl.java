@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
@@ -36,9 +35,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static java.util.Collections.emptyList;
 
 @OdataTypes({
-        "#LogicalDrive.1.0.0.LogicalDrive",
-        "#LogicalDrive.v1_0_0.LogicalDrive"
+    "#LogicalDrive" + OdataTypes.VERSION_PATTERN + "LogicalDrive"
 })
+@SuppressWarnings({"checkstyle:MethodCount"})
 public class LogicalDriveResourceImpl extends ExternalServiceResourceImpl implements LogicalDriveResource {
     @JsonProperty("Type")
     private LogicalDriveType type;
@@ -127,20 +126,19 @@ public class LogicalDriveResourceImpl extends ExternalServiceResourceImpl implem
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("type", type)
-                .add("mode", mode)
-                .add("writeProtected", writeProtected)
-                .add("capacityGib", capacityGib)
-                .add("image", image)
-                .add("bootable", bootable)
-                .add("snapshot", snapshot)
-                .add("status", status)
-                .add("links", links)
-                .toString();
+            .add("type", type)
+            .add("mode", mode)
+            .add("writeProtected", writeProtected)
+            .add("capacityGib", capacityGib)
+            .add("image", image)
+            .add("bootable", bootable)
+            .add("snapshot", snapshot)
+            .add("status", status)
+            .add("links", links)
+            .toString();
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class Links {
+    public class Links extends RedfishLinks {
         @JsonProperty("LogicalDrives")
         private List<ODataId> logicalDrives = emptyList();
         @JsonProperty("PhysicalDrives")

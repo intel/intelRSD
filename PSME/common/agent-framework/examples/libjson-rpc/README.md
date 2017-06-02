@@ -1,3 +1,5 @@
+@dir common/agent-framework/examples/libjson-rpc
+
 README
 ======
 
@@ -32,3 +34,5 @@ Workarounds
 
 Run client site with root privileges, there is problem with network access
 using curl.
+
+@header{Dependencies}

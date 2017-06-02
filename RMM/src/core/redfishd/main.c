@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,9 +46,11 @@ static void record_rf_log(int32 level, int32 msg_num, int8 *str_args)
 	RF_RECORD_EVT(level, "%d %s", msg_num, str_args);
 }
 
-static void rf_get_event_type(int8 *msg_id_str, int8 *output, int32 len)
+static char* rf_get_event_type(int8 *msg_id_str)
 {
-	sscanf(msg_id_str, "RMM1.0.0MSG%s", output);
+	char evt_type[32] = {0};
+	sscanf(msg_id_str, "RMM1.0.0MSG%31s", evt_type);
+	return strdup(evt_type);
 }
 
 static int32 get_general_msg_sn(int32 msg_sn)
@@ -147,7 +149,6 @@ static int32 get_msg_origin(int32 msg_sn, int8 *output, int32 len, int8 *str_arg
 static int32 rf_pack_json_msg(int8 *output, int32 len, int8 *str_args, int8 *msg_id_str, int8 *msg_origin, int8 *context)
 {
 	int8 *args[10];
-	int8 evt_type[32] = {};
 	int8 odata_id[128] = {};
 	int32 count = rf_get_args_count(str_args, args);
 	int32 i = 0;
@@ -156,6 +157,7 @@ static int32 rf_pack_json_msg(int8 *output, int32 len, int8 *str_args, int8 *msg
 	json_t *evt = NULL;
 	json_t *evt_array = NULL;
 	json_t *origin = NULL;
+	char* evt_type = NULL;
 
 
 	result = json_object();
@@ -183,8 +185,9 @@ static int32 rf_pack_json_msg(int8 *output, int32 len, int8 *str_args, int8 *msg
 		return -1;
 	}
 
-	rf_get_event_type(msg_id_str, evt_type, sizeof(evt_type));
+	evt_type = rf_get_event_type(msg_id_str);
 	json_object_add(evt, RMM_JSON_MSG_EVT_TYPE, json_string(evt_type));
+	free(evt_type);
 	json_object_add(evt, RMM_JSON_MSG_ID, json_string(msg_id_str));
 
 
@@ -322,7 +325,7 @@ static void parser_log(int8 *data, int8 *out)
 
 	int8 msg[RF_MSG_MAX_LEN] = {0};
 
-	if (sscanf(data, "%d %s %s %s %s %d %s", &line_num, date, ct, level, func_name, &msg_sn, str_args) == -1)
+	if (sscanf(data, "%d %15s %31s %15s %31s %d %127s", &line_num, date, ct, level, func_name, &msg_sn, str_args) == -1)
 		rmm_log(ERROR, "%s", "sscanf return error.\n");
 	msg_reg_get_msg_str(msg, msg_sn, str_args);
 	//snprintf(out, RF_MSG_MAX_LEN, "%d %s %s %s %s %s", line_num, date, ct, level, func_name, msg);

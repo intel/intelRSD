@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -465,8 +465,10 @@ int main(int argc, char **argv)
 	libjsonrpcapi_init(JSONRPCINIT_MEMDB | JSONRPCINIT_JIPMI, port);
 
 	char *rsp_str = malloc(JSONRPC_MAX_STRING_LEN);
-	if (rsp_str == NULL)
+	if (rsp_str == NULL) {
+		close(fd);
 		return -1;
+	}
 
 	for (;;) {
 		FD_ZERO(&fds);

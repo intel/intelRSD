@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,21 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
-public final class EthernetSwitchDto {
-    private final Id id;
-    private final String switchId;
+@SuppressWarnings({"checkstyle:MethodCount"})
+public final class EthernetSwitchDto extends BaseDto implements RedfishResource {
+    private final String id;
     private final String name;
     private final String description;
+    private final List<UnknownOemDto> unknownOems;
+    private final String switchId;
     private final String manufacturer;
     private final String model;
     private final String manufacturingDate;
@@ -36,15 +40,14 @@ public final class EthernetSwitchDto {
     private final String firmwareVersion;
     private final String role;
     private final Status status;
-
-    private final Context chassis;
-    private final Collection<Context> managedBy;
+    private final Links links;
 
     private EthernetSwitchDto(Builder builder) {
         id = builder.id;
-        switchId = builder.switchId;
         name = builder.name;
         description = builder.description;
+        unknownOems = builder.unknownOems;
+        switchId = builder.switchId;
         manufacturer = builder.manufacturer;
         model = builder.model;
         manufacturingDate = builder.manufacturingDate;
@@ -54,28 +57,35 @@ public final class EthernetSwitchDto {
         firmwareVersion = builder.firmwareVersion;
         role = builder.role;
         status = builder.status;
-        chassis = builder.chassis;
-        managedBy = builder.managedBy;
+        links = new Links(builder.chassis, builder.managedBy);
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
-    public String getSwitchId() {
-        return switchId;
-    }
-
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
+    }
+
+    public String getSwitchId() {
+        return switchId;
     }
 
     public String getManufacturer() {
@@ -114,19 +124,35 @@ public final class EthernetSwitchDto {
         return status;
     }
 
-    public Context getChassis() {
-        return chassis;
+    @Override
+    public Links getLinks() {
+        return links;
     }
 
-    public Collection<Context> getManagedBy() {
-        return managedBy;
+    public static final class Links implements RedfishResource.Links {
+        private final Context chassis;
+        private final Set<Context> managedBy;
+
+        Links(Context chassis, Set<Context> managedBy) {
+            this.chassis = chassis;
+            this.managedBy = managedBy;
+        }
+
+        public Context getChassis() {
+            return chassis;
+        }
+
+        public Set<Context> getManagedBy() {
+            return managedBy;
+        }
     }
 
     public static final class Builder {
-        private Id id;
-        private String switchId;
+        private String id;
         private String name;
         private String description;
+        private List<UnknownOemDto> unknownOems;
+        private String switchId;
         private String manufacturer;
         private String model;
         private String manufacturingDate;
@@ -137,83 +163,88 @@ public final class EthernetSwitchDto {
         private String role;
         private Status status;
         private Context chassis;
-        private Collection<Context> managedBy;
+        private Set<Context> managedBy;
 
         private Builder() {
         }
 
-        public Builder id(Id val) {
-            id = val;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public Builder switchId(String val) {
-            switchId = val;
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder name(String val) {
-            name = val;
+        public Builder description(String description) {
+            this.description = description;
             return this;
         }
 
-        public Builder description(String val) {
-            description = val;
+        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
+            this.unknownOems = unknownOems;
             return this;
         }
 
-        public Builder manufacturer(String val) {
-            manufacturer = val;
+        public Builder switchId(String switchId) {
+            this.switchId = switchId;
             return this;
         }
 
-        public Builder model(String val) {
-            model = val;
+        public Builder manufacturer(String manufacturer) {
+            this.manufacturer = manufacturer;
             return this;
         }
 
-        public Builder manufacturingDate(String val) {
-            manufacturingDate = val;
+        public Builder model(String model) {
+            this.model = model;
             return this;
         }
 
-        public Builder serialNumber(String val) {
-            serialNumber = val;
+        public Builder manufacturingDate(String manufacturingDate) {
+            this.manufacturingDate = manufacturingDate;
             return this;
         }
 
-        public Builder partNumber(String val) {
-            partNumber = val;
+        public Builder serialNumber(String serialNumber) {
+            this.serialNumber = serialNumber;
             return this;
         }
 
-        public Builder firmwareName(String val) {
-            firmwareName = val;
+        public Builder partNumber(String partNumber) {
+            this.partNumber = partNumber;
             return this;
         }
 
-        public Builder firmwareVersion(String val) {
-            firmwareVersion = val;
+        public Builder firmwareName(String firmwareName) {
+            this.firmwareName = firmwareName;
             return this;
         }
 
-        public Builder role(String val) {
-            role = val;
+        public Builder firmwareVersion(String firmwareVersion) {
+            this.firmwareVersion = firmwareVersion;
             return this;
         }
 
-        public Builder status(Status val) {
-            status = val;
+        public Builder role(String role) {
+            this.role = role;
             return this;
         }
 
-        public Builder chassis(Context val) {
-            chassis = val;
+        public Builder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public Builder managedBy(Collection<Context> val) {
-            managedBy = val;
+        public Builder chassis(Context chassis) {
+            this.chassis = chassis;
+            return this;
+        }
+
+        public Builder managedBy(Set<Context> managedBy) {
+            this.managedBy = managedBy;
             return this;
         }
 

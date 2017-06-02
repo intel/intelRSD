@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class EventSubscriptionTask extends DefaultManagedTask implements Runnabl
     public void run() {
         boolean subscribed = eventSubscribeRunner.subscribeIfNotAlreadySubscribed(serviceUuid);
         if (subscribed) {
-            discoveryScheduler.triggerDiscovery(serviceUuid);
+            discoveryScheduler.enqueueDiscovery(serviceUuid);
         }
     }
 }

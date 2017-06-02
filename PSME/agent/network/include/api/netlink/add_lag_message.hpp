@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Switch Add Lag configuration
  * */
 
-#ifndef AGENT_NETWORK_NETLINK_ADD_LAG_MESSAGE_HPP
-#define AGENT_NETWORK_NETLINK_ADD_LAG_MESSAGE_HPP
-
+#pragma once
 #include "lag_message.hpp"
 
 namespace agent {
@@ -40,12 +38,12 @@ public:
     /*!
      * @brief Default constructor.
      * @param[in] lag Lag interface name.
-     */
-    AddLagMessage(const IfName& lag);
+     * */
+    AddLagMessage(const std::string& lag);
 
     /*!
      * @brief Default destructor.
-     */
+     * */
     virtual ~AddLagMessage();
 };
 
@@ -54,4 +52,3 @@ public:
 }
 }
 
-#endif /* AGENT_NETWORK_NETLINK_ADD_LAG_MESSAGE_HPP */

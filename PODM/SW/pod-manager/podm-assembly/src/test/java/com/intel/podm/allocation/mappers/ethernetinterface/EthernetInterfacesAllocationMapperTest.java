@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.intel.podm.allocation.mappers.ethernetinterface;
 
-import com.intel.podm.business.dto.redfish.RequestedEthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.types.Id;
 import org.testng.annotations.Test;
 
@@ -26,27 +26,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_INTERFACE;
 import static com.intel.podm.common.types.Id.id;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName"})
 public class EthernetInterfacesAllocationMapperTest {
 
     @Test
     public void whenMappingSingleRequestedInterfaceAndSingleAvailable_shouldMapAvailableToRequested() throws Exception {
         EthernetInterfacesAllocationMapper mapper = new EthernetInterfacesAllocationMapper();
         EthernetInterface availableSlower = mockEthernetInterface(1);
-        RequestedEthernetInterface requestedSlower = new RequestedEthernetInterfaceImpl(1);
+        RequestedNode.EthernetInterface requestedSlower = new RequestedEthernetInterfaceImpl(1);
         List<EthernetInterface> available = singletonList(availableSlower);
-        List<RequestedEthernetInterface> requestedEthernetInterfaces = singletonList(requestedSlower);
+        List<RequestedNode.EthernetInterface> requestedEthernetInterfaces = singletonList(requestedSlower);
 
-        Map<EthernetInterface, RequestedEthernetInterface> map = mapper.map(available, requestedEthernetInterfaces);
+        Map<EthernetInterface, RequestedNode.EthernetInterface> map = mapper.map(requestedEthernetInterfaces, available);
 
         assertEquals(map.get(availableSlower), requestedSlower);
     }
@@ -56,11 +57,11 @@ public class EthernetInterfacesAllocationMapperTest {
         EthernetInterfacesAllocationMapper mapper = new EthernetInterfacesAllocationMapper();
         EthernetInterface availableSlower = mockEthernetInterface(1);
         EthernetInterface availableFaster = mockEthernetInterface(100);
-        RequestedEthernetInterface requestedFaster = new RequestedEthernetInterfaceImpl(100);
-        List<EthernetInterface> available = newArrayList(availableSlower, availableFaster);
-        List<RequestedEthernetInterface> requestedEthernetInterfaces = newArrayList(requestedFaster);
+        RequestedNode.EthernetInterface requestedFaster = new RequestedEthernetInterfaceImpl(100);
+        List<EthernetInterface> available = asList(availableSlower, availableFaster);
+        List<RequestedNode.EthernetInterface> requestedEthernetInterfaces = singletonList(requestedFaster);
 
-        Map<EthernetInterface, RequestedEthernetInterface> map = mapper.map(available, requestedEthernetInterfaces);
+        Map<EthernetInterface, RequestedNode.EthernetInterface> map = mapper.map(requestedEthernetInterfaces, available);
 
         assertEquals(map.get(availableFaster), requestedFaster);
     }
@@ -70,12 +71,12 @@ public class EthernetInterfacesAllocationMapperTest {
         EthernetInterfacesAllocationMapper mapper = new EthernetInterfacesAllocationMapper();
         EthernetInterface availableSlower = mockEthernetInterface(1);
         EthernetInterface availableFaster = mockEthernetInterface(100);
-        RequestedEthernetInterface requestedSlower = new RequestedEthernetInterfaceImpl(1);
-        RequestedEthernetInterface requestedFaster = new RequestedEthernetInterfaceImpl(100);
-        List<EthernetInterface> available = newArrayList(availableSlower, availableFaster);
-        List<RequestedEthernetInterface> requestedEthernetInterfaces = newArrayList(requestedSlower, requestedFaster);
+        RequestedNode.EthernetInterface requestedSlower = new RequestedEthernetInterfaceImpl(1);
+        RequestedNode.EthernetInterface requestedFaster = new RequestedEthernetInterfaceImpl(100);
+        List<EthernetInterface> available = asList(availableSlower, availableFaster);
+        List<RequestedNode.EthernetInterface> requestedEthernetInterfaces = asList(requestedSlower, requestedFaster);
 
-        Map<EthernetInterface, RequestedEthernetInterface> map = mapper.map(available, requestedEthernetInterfaces);
+        Map<EthernetInterface, RequestedNode.EthernetInterface> map = mapper.map(requestedEthernetInterfaces, available);
 
         assertEquals(map.get(availableSlower), requestedSlower);
         assertEquals(map.get(availableFaster), requestedFaster);
@@ -86,11 +87,11 @@ public class EthernetInterfacesAllocationMapperTest {
         EthernetInterfacesAllocationMapper mapper = new EthernetInterfacesAllocationMapper();
         EthernetInterface availableSlower = mockEthernetInterface(1, id(1));
         EthernetInterface availableFaster = mockEthernetInterface(100, id(2));
-        RequestedEthernetInterface requestedSlower = new RequestedEthernetInterfaceImpl(1, contextOf(id(2), ETHERNET_INTERFACE));
-        List<EthernetInterface> available = newArrayList(availableSlower, availableFaster);
-        List<RequestedEthernetInterface> requestedEthernetInterfaces = newArrayList(requestedSlower);
+        RequestedNode.EthernetInterface requestedSlower = new RequestedEthernetInterfaceImpl(1, contextOf(id(2), ETHERNET_INTERFACE));
+        List<EthernetInterface> available = asList(availableSlower, availableFaster);
+        List<RequestedNode.EthernetInterface> requestedEthernetInterfaces = singletonList(requestedSlower);
 
-        Map<EthernetInterface, RequestedEthernetInterface> map = mapper.map(available, requestedEthernetInterfaces);
+        Map<EthernetInterface, RequestedNode.EthernetInterface> map = mapper.map(requestedEthernetInterfaces, available);
 
         assertEquals(map.get(availableFaster), requestedSlower);
     }
@@ -106,7 +107,7 @@ public class EthernetInterfacesAllocationMapperTest {
         return ethernetInterface;
     }
 
-    static class RequestedEthernetInterfaceImpl implements RequestedEthernetInterface {
+    static class RequestedEthernetInterfaceImpl implements RequestedNode.EthernetInterface {
         final Integer speedMbps;
         final Context resourceContext;
 

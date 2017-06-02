@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,6 @@
 
 #include "agent-framework/exceptions/exception.hpp"
 #include <ipmb/certificate.hpp>
-#include <logger/logger_factory.hpp>
 #include <algorithm>
 
 extern "C" {
@@ -35,6 +34,11 @@ extern "C" {
 }
 
 using namespace agent::chassis::ipmb;
+
+namespace {
+    static const constexpr char PODM_TYPE[] = "PODM";
+    static const constexpr char RMM_TYPE[] = "RMM";
+}
 
 void Certificate::add_chunk(size_t cert_length, size_t chunk_number,
                             const std::vector<uint8_t>& data) {
@@ -94,13 +98,19 @@ std::vector<std::uint8_t> Certificate::get_data() const {
 }
 
 Certificate::Type Certificate::from_string(const std::string& type) {
-    if (0 == type.compare("PODM")) {
+    if (0 == type.compare(::PODM_TYPE)) {
         return Type::PODM;
     }
-    else if (0 == type.compare("RMM")) {
+    else if (0 == type.compare(::RMM_TYPE)) {
         return Type::RMM;
     }
-    THROW(::agent_framework::exceptions::InvalidParameters, "user", type + " is not a valid certificate type.");
+    else if (type.empty()) {
+        THROW(agent_framework::exceptions::InvalidValue,
+              "chassis-agent", "Empty certificate type is not valid.");
+    }
+
+    THROW(agent_framework::exceptions::InvalidValue,
+          "chassis-agent", "'" + type + "' is not a valid certificate type.");
 }
 
 bool Certificate::is_complete() const {

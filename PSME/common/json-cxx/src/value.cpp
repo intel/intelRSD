@@ -110,6 +110,14 @@ Value::Value(Int value) : m_type(Type::NUMBER) {
     new (&m_number) Number(value);
 }
 
+Value::Value(Uint64 value) : m_type(Type::NUMBER) {
+    new (&m_number) Number(value);
+}
+
+Value::Value(Int64 value) : m_type(Type::NUMBER) {
+    new (&m_number) Number(value);
+}
+
 Value::Value(Double value) : m_type(Type::NUMBER) {
     new (&m_number) Number(value);
 }
@@ -566,6 +574,20 @@ Uint Value::as_uint() const {
         throw Value::Exception("JSON isn't a number");
     }
     return Uint(m_number);
+}
+
+Int64 Value::as_int64() const {
+    if (Type::NUMBER != m_type) {
+        throw Value::Exception("JSON isn't a number");
+    }
+    return Int64(m_number);
+}
+
+Uint64 Value::as_uint64() const {
+    if (Type::NUMBER != m_type) {
+        throw Value::Exception("JSON isn't a number");
+    }
+    return Uint64(m_number);
 }
 
 Double Value::as_double() const {

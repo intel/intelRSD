@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,15 +21,4 @@ if (CMAKE_CROSSCOMPILING)
     return()
 endif()
 
-if (NOT UDEV_FOUND)
-    find_path(udev_include "libudev.h")
-    find_library(udev_library udev)
-
-    if (udev_include AND udev_library)
-        set(UDEV_LIBRARIES udev)
-        set(UDEV_FOUND TRUE)
-    else()
-        message(WARNING "udev library or its headers were not found!")
-    endif()
-endif()
-
+find_package_local(UDEV libudev)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import javax.enterprise.context.Dependent;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
 
 @Dependent
@@ -32,8 +32,8 @@ class ConfigMap {
     private final Object lock = new Object();
 
     public boolean update(String fileName, BaseConfig config) {
-        checkNotNull(fileName, "fileName should not be null");
-        checkNotNull(config, "config should not be null");
+        requiresNonNull(fileName, "fileName");
+        requiresNonNull(config, "config");
 
         synchronized (lock) {
             if (!canBeUpdatedWith(fileName, config)) {
@@ -46,8 +46,8 @@ class ConfigMap {
     }
 
     public <T extends BaseConfig> T get(String fileName, Class<T> configClass) {
-        checkNotNull(fileName, "fileName should not be null");
-        checkNotNull(configClass, "configClass should not be null");
+        requiresNonNull(fileName, "fileName");
+        requiresNonNull(configClass, "configClass");
 
         synchronized (lock) {
             if (map.containsKey(fileName)) {

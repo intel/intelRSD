@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,32 +24,35 @@
 
 #include "agent-framework/eventing/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
-#include "agent-framework/module-ref/compute_manager.hpp"
-#include "agent-framework/module-ref/enum/compute.hpp"
+#include "agent-framework/module/compute_components.hpp"
+#include "agent-framework/module/common_components.hpp"
+#include "agent-framework/module/enum/compute.hpp"
+
 #include "ipmi/command/generic/get_chassis_status.hpp"
 #include "ipmi/management_controller.hpp"
 #include "ipmi/manager/ipmitool/management_controller.hpp"
+
 #include "status/system_power_state_thread.hpp"
-#include "discovery/components/utils.hpp"
 
 using namespace ipmi;
 using namespace ipmi::manager;
-using namespace agent::compute::discovery;
 using namespace agent::compute::status;
 using namespace agent_framework::model;
 using namespace agent_framework::eventing;
 
-using ComputeComponents = agent_framework::module::ComputeManager;
+using agent_framework::module::ComputeComponents;
+using agent_framework::module::CommonComponents;
+
 /*! Default system power state update interval */
 constexpr const SystemPowerStateThread::Seconds
 SystemPowerStateThread::DEFAULT_POWER_STATE_UPDATE_INTERVAL;
 
 namespace {
 Manager find_parent_manager(const string& system_uuid) {
-    auto& sm = ComputeComponents::get_instance()->get_system_manager();
+    auto& sm = CommonComponents::get_instance()->get_system_manager();
     auto system = sm.get_entry(system_uuid);
 
-    auto& mm = ComputeComponents::get_instance()->get_module_manager();
+    auto& mm = CommonComponents::get_instance()->get_module_manager();
     auto managers = mm.get_keys("", [&system](const Manager& manager) {
         return manager.get_uuid() == system.get_parent_uuid();
     });
@@ -74,7 +77,7 @@ void set_connection_data(ManagementController& mc, const string& system_uuid) {
 enums::PowerState get_ipmi_system_power_state(const std::string& system_uuid) {
     using namespace ipmi::command::generic;
     ipmi::manager::ipmitool::ManagementController mc{};
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     auto system = system_manager.get_entry(system_uuid);
 
     set_connection_data(mc, system_uuid);
@@ -93,7 +96,7 @@ enums::PowerState get_ipmi_system_power_state(const std::string& system_uuid) {
 
     if (response.get_completion_code()) {
         log_error(GET_LOGGER("agent"), "Bad GetChassisStatus response: "
-                  << to_string(unsigned(response.get_completion_code())));
+                  << std::to_string(unsigned(response.get_completion_code())));
     }
 
     return response.is_power_on() ? enums::PowerState::On : enums::PowerState::Off;
@@ -101,7 +104,7 @@ enums::PowerState get_ipmi_system_power_state(const std::string& system_uuid) {
 
 void notify(const std::string& system_uuid) {
     EventData event_data{};
-    event_data.set_parent(ComputeComponents::get_instance()->
+    event_data.set_parent(CommonComponents::get_instance()->
         get_system_manager().get_entry_reference(system_uuid)->get_parent_uuid());
     event_data.set_component(system_uuid);
     event_data.set_type(agent_framework::model::enums::Component::System);
@@ -112,7 +115,7 @@ void notify(const std::string& system_uuid) {
 }
 
 bool system_model_update(const std::string& system_uuid) {
-    auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
     if (!system_manager.entry_exists(system_uuid)){
         log_warning(GET_LOGGER("status"), "System: " << system_uuid
             << " is not present any more. ");
@@ -174,7 +177,7 @@ void SystemPowerStateThread::m_task() {
     log_debug(GET_LOGGER("status"), "System power state thread started.");
 
     while (m_running) {
-        auto& system_manager = ComputeComponents::get_instance()->get_system_manager();
+        auto& system_manager = CommonComponents::get_instance()->get_system_manager();
         for (const auto& system_uuid : system_manager.get_keys()) {
             update_and_notify(system_uuid);
         }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,7 @@
  * @brief Response object from IPMI.
  * */
 
-#ifndef IPMI_RESPONSE_HPP
-#define IPMI_RESPONSE_HPP
+#pragma once
 
 #include "message.hpp"
 
@@ -33,29 +32,26 @@
 #include <vector>
 #include <string>
 
-using std::size_t;
-using std::uint8_t;
-using std::runtime_error;
-using std::vector;
-using std::to_string;
-using Cmd = std::uint8_t;
-using NetFn = std::uint8_t;
-
 namespace ipmi {
 
 /*!
  * @brief Response object from IPMI.
  * */
-class Response: public Message {
+class Response : public Message {
 public:
 
     /*!
      * @brief Represents response completion code,
      */
-    enum COMPLETION_CODE: uint8_t {
+    enum COMPLETION_CODE : std::uint8_t {
         COMPLETION_CODE_NORMAL = 0x00,
+        COMPLETION_CODE_REQUEST_DATA_LENGTH_INVALID = 0xc7,
+        COMPLETION_CODE_REQUEST_DATA_FIELD_LENGTH_LIMIT_EXCEEDED = 0xc8,
+        COMPLETION_CODE_PARAMETER_OUT_OF_RANGE = 0xc9,
         COMPLETION_CODE_INVALID_DATA_FIELD = 0xcc,
+        COMPLETION_CODE_NODE_NOT_PRESENT = 0xd3,
         COMPLETION_CODE_NOT_SUPPORTED_IN_PRESENT_STATE = 0xd5,
+        COMPLETION_CODE_UPDATE_IN_PROGRESS = 0x81,
         COMPLETION_CODE_UNSPECIFIED_ERROR = 0xff
     };
 
@@ -65,7 +61,7 @@ public:
      * @param cmd Command.
      * @param response_size Response size.
      */
-    Response(NetFn fn, Cmd cmd, size_t response_size);
+    Response(NetFn fn, Cmd cmd, std::size_t response_size);
 
     /*! Copy constructor. */
     Response(const Response&) = default;
@@ -90,14 +86,14 @@ public:
      *
      * @param data which will be unpacked into object.
      */
-    virtual void unpack(const vector<uint8_t> & data) = 0;
+    virtual void unpack(const std::vector<std::uint8_t>& data) = 0;
 
 protected:
 
     /*!
      * @brief offset in data vector where completion code is stored.
      */
-    static constexpr size_t OFFSET_COMPLETION_CODE = 0;
+    static constexpr std::size_t OFFSET_COMPLETION_CODE = 0;
 
     /*!
      * @brief code completion received from IPMI MC.
@@ -106,22 +102,23 @@ protected:
 
     /*!
      * @brief Checks if response data size is equal to expected data size.
+     *
      * If response size is 1 byte long return false, if response is correct return true.
      * Otherwise throws runtime_error.
-     * @return true if response is correct, if response is error (1byte long) return false. Otherwsie throws exception
+     *
+     * @return true if response is correct, if response is error (1byte long) return false. Otherwise throws exception
      */
-    bool is_response_correct(const vector<uint8_t> & data);
+    virtual bool is_response_correct(const std::vector<std::uint8_t>& data);
 
     /*!
      * @brief Response length for IPMI error response. Only completion code is received.
      */
-    static constexpr size_t ERROR_DATA_SIZE = 1;
+    static constexpr std::size_t ERROR_DATA_SIZE = 1;
 private:
-    const size_t DATA_SIZE;
+    const std::size_t DATA_SIZE;
 
 };
 
 }
 
-#endif	/* IPMI_RESPONSE_HPP */
 

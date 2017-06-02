@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,10 @@ public final class Networking {
             }
 
             return list(networkInterface.getInetAddresses())
-                    .stream()
-                    .filter(inetAddress -> inetAddress instanceof Inet4Address)
-                    .map(inet4Address -> inet4Address.getHostAddress())
-                    .collect(toList());
+                .stream()
+                .filter(inetAddress -> inetAddress instanceof Inet4Address)
+                .map(inet4Address -> inet4Address.getHostAddress())
+                .collect(toList());
         } catch (SocketException e) {
             return emptyList();
         }

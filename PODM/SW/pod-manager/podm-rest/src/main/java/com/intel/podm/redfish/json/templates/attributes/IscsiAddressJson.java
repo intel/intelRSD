@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,16 @@ package com.intel.podm.redfish.json.templates.attributes;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.common.types.ChapType;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.util.List;
 
-@JsonPropertyOrder({"TargetLUN", "TargetIQN", "TargetPortalIP", "TargetPortalPort"})
-@JsonInclude(JsonInclude.Include.NON_NULL)
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
+@JsonPropertyOrder({"TargetLUN", "TargetIQN", "TargetPortalIP", "TargetPortalPort", "Chap"})
+@JsonInclude(NON_NULL)
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class IscsiAddressJson {
 
     @JsonProperty("TargetLUN")
@@ -36,7 +40,10 @@ public class IscsiAddressJson {
     @JsonProperty("TargetPortalIP")
     public String targetPortalIp;
 
-    public int targetPortalPort;
+    public Integer targetPortalPort;
+
+    @JsonProperty("CHAP")
+    public Chap chap = new Chap();
 
     public static final class TargetLun {
         @JsonProperty("LUN")
@@ -48,5 +55,25 @@ public class IscsiAddressJson {
             this.value = value;
             this.drive = drive;
         }
+    }
+
+    public static final class Chap {
+        @JsonProperty("@odata.type")
+        public String oDataType = "#RemoteTarget.v1_1_0.Chap";
+
+        @JsonProperty("Type")
+        public ChapType type;
+
+        @JsonProperty("Username")
+        public String username;
+
+        @JsonProperty("Secret")
+        public String secret;
+
+        @JsonProperty("MutualUsername")
+        public String mutualUsername;
+
+        @JsonProperty("MutualSecret")
+        public String mutualSecret;
     }
 }

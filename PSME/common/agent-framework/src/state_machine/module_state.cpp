@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ namespace {
 std::array<const char*, 5> g_state_names = {{
     "Unknown",
     "Enabled",
-    "StandbyOffline",
+    "UnavailableOffline",
     "Absent",
     "Starting"
 }};

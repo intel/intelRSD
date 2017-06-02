@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.redfish.json.templates.attributes.IscsiAddressJson;
 import com.intel.podm.redfish.json.templates.attributes.IscsiInitiatorJson;
@@ -27,22 +26,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 @JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "id", "name",
-        "description", "status", "type", "addresses", "initiator", "oem", "links"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name",
+    "description", "status", "type", "addresses", "initiator", "oem", "links"
 })
-public class RemoteTargetJson extends BaseJson {
-    public Id id;
-    public String name;
-    public String description;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class RemoteTargetJson extends BaseResourceJson {
     public Status status;
     public String type;
     public List<AddressWrapper> addresses = new ArrayList<>();
     public List<InitiatorWrapper> initiator = new ArrayList<>();
-    public Object oem = new Object();
     public Links links = new Links();
 
     public RemoteTargetJson() {
-        super("#RemoteTarget.1.0.0.RemoteTarget");
+        super("#RemoteTarget.v1_1_0.RemoteTarget");
     }
 
     public static class AddressWrapper {
@@ -55,7 +51,6 @@ public class RemoteTargetJson extends BaseJson {
         public IscsiInitiatorJson iscsiInitiatorJson = new IscsiInitiatorJson();
     }
 
-    public static class Links {
-        public Object oem = new Object();
+    public class Links extends RedfishLinksJson {
     }
 }

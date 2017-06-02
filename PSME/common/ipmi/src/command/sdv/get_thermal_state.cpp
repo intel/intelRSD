@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,19 +31,19 @@
 using namespace ipmi;
 using namespace ipmi::command::sdv;
 
-request::GetThermalState::GetThermalState():
-        Request(uint8_t(NetFn::RACKSCALE), uint8_t(Cmd::GET_THERMAL_STATE)) {}
+request::GetThermalState::GetThermalState() :
+        Request(sdv::NetFn::RACKSCALE, sdv::Cmd::GET_THERMAL_STATE) {}
 request::GetThermalState::~GetThermalState() {}
 
-void request::GetThermalState::pack(vector<uint8_t>& data) const {
+void request::GetThermalState::pack(std::vector<std::uint8_t>& data) const {
     (void)data;
 }
 
-response::GetThermalState::GetThermalState():
-        Response(uint8_t(NetFn::RACKSCALE), uint8_t(Cmd::GET_THERMAL_STATE), RESPONSE_SIZE) {}
+response::GetThermalState::GetThermalState() :
+        Response(sdv::NetFn::RACKSCALE, sdv::Cmd::GET_THERMAL_STATE, RESPONSE_SIZE) {}
 response::GetThermalState::~GetThermalState() {}
 
-void response::GetThermalState::unpack(const vector<uint8_t>& data) {
+void response::GetThermalState::unpack(const std::vector<std::uint8_t>& data) {
     if(!is_response_correct(data)) {
         return; // received only completion code, do not unpack.
     }

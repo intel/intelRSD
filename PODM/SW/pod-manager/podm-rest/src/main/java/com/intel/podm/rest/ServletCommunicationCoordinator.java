@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ public class ServletCommunicationCoordinator {
 
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
+    private final SensitiveParametersRequestFilter filterForHazardousParameters = new SensitiveParametersRequestFilter();
 
     private final boolean requestLoggable;
 
@@ -40,12 +41,11 @@ public class ServletCommunicationCoordinator {
         requestLoggable = !isGetRequest(servletRequest);
 
         httpServletRequest = requestLoggable
-                ? new ResettableStreamHttpServletRequest(servletRequest)
-                : servletRequest;
+            ? new ResettableStreamHttpServletRequest(servletRequest)
+            : servletRequest;
 
         httpServletResponse = new ReplicatedStreamHttpServletResponse(servletResponse);
     }
-
 
     private boolean isGetRequest(HttpServletRequest servletRequest) {
         return GET.equalsIgnoreCase(servletRequest.getMethod());
@@ -61,10 +61,13 @@ public class ServletCommunicationCoordinator {
 
     public void logServletRequest() throws IOException {
         if (requestLoggable) {
+            String request = IOUtils.toString(httpServletRequest.getReader());
+            request = filterForHazardousParameters.filterSecretPropertiesFromRequest(request);
+
             LOGGER.i("{} request to '{}': '{}'",
-                    httpServletRequest.getMethod().toUpperCase(),
-                    httpServletRequest.getRequestURI(),
-                    IOUtils.toString(httpServletRequest.getReader()));
+                httpServletRequest.getMethod().toUpperCase(),
+                httpServletRequest.getRequestURI(),
+                request);
 
             ((ResettableStreamHttpServletRequest) httpServletRequest).resetInputStream();
         }
@@ -73,10 +76,10 @@ public class ServletCommunicationCoordinator {
     public void logServletResponse() throws IOException {
         if (!isSuccessfulGetResponse(httpServletRequest, httpServletResponse)) {
             LOGGER.i("Response for {} request to '{}' (status {}): '{}'",
-                    httpServletRequest.getMethod().toUpperCase(),
-                    httpServletRequest.getRequestURI(),
-                    httpServletResponse.getStatus(),
-                    httpServletResponse.toString());
+                httpServletRequest.getMethod().toUpperCase(),
+                httpServletRequest.getRequestURI(),
+                httpServletResponse.getStatus(),
+                httpServletResponse.toString());
         }
     }
 

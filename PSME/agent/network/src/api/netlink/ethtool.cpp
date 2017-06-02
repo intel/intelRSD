@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@
  * */
 
 #include "api/netlink/ethtool.hpp"
+#include "netlink/nl_exception_invalid_input.hpp"
 
 #include <safe-string/safe_lib.hpp>
 
@@ -92,11 +93,17 @@ void Ethtool::set_settings(struct ethtool_cmd& edata) {
     /* get ethtool settings */
     edata.cmd = ETHTOOL_SSET;
     if (ioctl(m_sock, SIOCETHTOOL, &ifr)) {
+        switch (errno) {
+            case EINVAL:
+                throw netlink_base::NlExceptionInvalidInput();
+            default:
+                break;
+        }
         throw std::runtime_error(std::string("set_settings ioctl(): ")
                                  + std::string(strerror(errno))
                                  + " [ ifname=" + m_ifname + ", speed="
                                  + std::to_string(ethtool_cmd_speed(&edata))
-                                 + "]");
+                                 + " ]");
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,12 @@ package com.intel.podm.client.api.actions;
 import com.intel.podm.common.types.AdministrativeState;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 public interface EthernetSwitchPortResourceModificationRequest {
     void setAdministrativeState(AdministrativeState administrativeState);
     void setLinkSpeed(Integer linkSpeed);
     void setFrameSize(Integer frameSize);
     void setAutosense(Boolean autosense);
-    void setLinks(Optional<List<URI>> portsUris, URI primaryVlanUri);
+    void setLinks(Set<URI> portsUris, URI primaryVlanUri);
 }

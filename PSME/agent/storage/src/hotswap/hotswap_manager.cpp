@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,207 +23,226 @@
  *
  * @file HotswapManager.cpp
  *
- * @brief ...
+ * @brief Implementation of Hotswap manager
  * */
 #include "hotswap/hotswap_manager.hpp"
-#include "hotswap/hotswap_event.hpp"
-#include "sysfs/sysfs_api.hpp"
+#include "event/storage_event.hpp"
 #include "lvm/lvm_api.hpp"
 #include "lvm/lvm_attribute.hpp"
 #include "iscsi/manager.hpp"
 #include "iscsi/response.hpp"
 #include "iscsi/target_parser.hpp"
+#include "tree_stability/storage_tree_stabilizer.hpp"
 
-#include "agent-framework/module/hard_drive.hpp"
-#include "agent-framework/module/hard_drive_partition.hpp"
-#include "agent-framework/module/target.hpp"
-#include "agent-framework/module/logical_drive.hpp"
-#include "agent-framework/module/storage_controller.hpp"
-#include "agent-framework/module-ref/enum/common.hpp"
+#include "agent-framework/module/storage_components.hpp"
+#include "agent-framework/module/common_components.hpp"
 
-#include <mutex>
-#include <condition_variable>
-#include <algorithm>
 
+
+using std::vector;
+using namespace agent_framework::module;
+using namespace agent_framework::model;
+using namespace agent_framework::model::enums;
 using namespace agent::storage::hotswap_discovery;
-using namespace agent::storage::iscsi;
-using namespace agent::storage::lvm;
+using namespace agent::storage::sysfs;
+using namespace agent::storage::event;
 
-using SysfsAPI = agent::storage::sysfs::SysfsAPI;
-using HardDrive = agent_framework::generic::HardDrive;
-using HardDrivePartition = agent_framework::generic::HardDrivePartition;
-using FruInfo = agent_framework::generic::FruInfo;
-using Target = agent_framework::generic::Target;
 
-bool HotswapManager::compare_disks(const SysfsAPI::HardDrive& hd_detected, HardDriveSharedPtr hd_model) {
-    return ((hd_detected.get_serial_number() == hd_model->get_fru_info().get_serial_number()) &&
-            (hd_detected.get_model() == hd_model->get_fru_info().get_model_number()) &&
-            (hd_detected.get_device_path() == hd_model->get_device_path()));
+bool HotswapManager::compare_disks(const SysfsAPI::HardDrive& hd_detected,
+                                   const PhysicalDrive& phy_drive) {
+    const auto& fru_info = phy_drive.get_fru_info();
+    return ((hd_detected.get_serial_number() == fru_info.get_serial_number()) &&
+            (hd_detected.get_model() == fru_info.get_model_number()) &&
+            (hd_detected.get_device_path() == phy_drive.get_device_path()));
 }
 
-void HotswapManager::fill_disk_parameters(HardDriveSharedPtr& hard_drive, SysfsAPI::HardDrive& new_drive) {
-    hard_drive->set_name(new_drive.get_name());
-    hard_drive->set_device_path(new_drive.get_device_path());
-    hard_drive->set_capacity_gb(new_drive.get_capacity_gb());
-    hard_drive->set_type(new_drive.get_type());
-    hard_drive->set_interface(new_drive.get_interface());
-    hard_drive->set_rpm(new_drive.get_rpm());
-    FruInfo fru_info;
-    fru_info.set_manufacturer(new_drive.get_manufacturer());
-    fru_info.set_model_number(new_drive.get_model());
-    fru_info.set_serial_number(new_drive.get_serial_number());
-    hard_drive->set_fru_info(fru_info);
-    hard_drive->set_status({lvm::attribute::STATE_ENABLED, lvm::attribute::HEALTH_OK_STATUS});
+
+void HotswapManager::add_disk(const SysfsAPI::HardDrive& new_hdrive) {
+    PhysicalDrive phy_drive{};
+    /* fill physical drive parameters using sysfs drive info */
+    phy_drive.set_device_path(new_hdrive.get_device_path());
+    phy_drive.set_capacity_gb(new_hdrive.get_capacity_gb());
+    phy_drive.set_type(PhysicalDriveType::from_string(new_hdrive.get_type()));
+    PhysicalDriveInterface interface{PhysicalDriveInterface::SATA};
+    if (!new_hdrive.get_interface().empty()) {
+        interface = PhysicalDriveInterface::from_string(
+            new_hdrive.get_interface());
+    }
+    phy_drive.set_interface(interface);
+    phy_drive.set_rpm(new_hdrive.get_rpm());
+    phy_drive.set_fru_info({new_hdrive.get_serial_number(),
+                            new_hdrive.get_manufacturer(),
+                            new_hdrive.get_model(), ""});
+    phy_drive.set_status({State::Enabled, Health::OK});
+    /* add new physical drive to the storage manager */
+    get_manager<PhysicalDrive>().add_entry(phy_drive);
+    /* Stabilize added drive */
+    const std::string phy_drive_persistent_uuid =
+        StorageTreeStabilizer().stabilize_physical_drive(phy_drive.get_uuid());
+    /* send event notification about adding new physical drive */
+    auto storage_uuid = get_manager<StorageServices>().get_keys().front();
+    send_event(phy_drive_persistent_uuid, Component::PhysicalDrive,
+               agent_framework::eventing::Notification::Add, storage_uuid);
+    /* log about success adding */
+    log_debug(GET_LOGGER("storage-agent"), "Added disk path: "
+                                           << phy_drive.get_device_path());
+    log_debug(GET_LOGGER("storage-agent"), "Added serial number: "
+                                           << phy_drive.get_fru_info().get_serial_number());
 }
 
-void HotswapManager::add_disk(agent_framework::generic::StorageController* storage_controller,
-        SysfsAPI::HardDrive& new_drive, const SubmoduleUniquePtr& submodule) {
-    auto hard_drive = std::make_shared<HardDrive>();
-    fill_disk_parameters(hard_drive, new_drive);
-    log_debug(GET_LOGGER("storage-agent"), "Added disk path: " << hard_drive->get_device_path());
-    log_debug(GET_LOGGER("storage-agent"), "Added serial number: " << hard_drive->get_fru_info().get_serial_number());
-    (*storage_controller).add_hard_drive(std::move(hard_drive));
 
-    agent::storage::hotswap_event::send_event(hard_drive->get_uuid(), ::agent_framework::model::enums::Component::PhysicalDrive,
-            ::agent_framework::eventing::Notification::Add, submodule->get_name());
+void HotswapManager::remove_disk(const PhysicalDrive& phy_drive) {
+    auto storage_uuid = get_manager<StorageServices>().get_keys().front();
+    /* send event notification about removing physical drive */
+    send_event(phy_drive.get_uuid(), Component::PhysicalDrive,
+               agent_framework::eventing::Notification::Remove, storage_uuid);
+    /* resolve dependencies */
+    resolve_dependencies(phy_drive);
+    /* remove physical srive from storage manager */
+    get_manager<PhysicalDrive>().remove_entry(phy_drive.get_uuid());
+    /* log about success removing */
+    log_debug(GET_LOGGER("storage-agent"), "Removed disk path: "
+                                           << phy_drive.get_device_path());
+    log_debug(GET_LOGGER("storage-agent"), "Removed serial number: "
+                                           << phy_drive.get_fru_info().get_serial_number());
 }
 
-void HotswapManager::remove_disk(agent_framework::generic::StorageController* storage_controller,
-        HardDriveSharedPtr& hd_removed, const SubmoduleUniquePtr& submodule) {
 
-    agent::storage::hotswap_event::send_event((*hd_removed).get_uuid(), ::agent_framework::model::enums::Component::PhysicalDrive,
-        ::agent_framework::eventing::Notification::Remove, submodule->get_name());
-
-    log_debug(GET_LOGGER("storage-agent"), "Removed disk path: " << (*hd_removed).get_device_path());
-    log_debug(GET_LOGGER("storage-agent"), "Removed serial number: " << (*hd_removed).get_fru_info().get_serial_number());
-
-    resolve_dependencies(hd_removed);
-
-    storage_controller->remove_hard_drive(hd_removed);
-
-}
-
-bool HotswapManager::check_physical_volumes_state(const SubmoduleUniquePtr& submodule, HardDriveSharedPtr& hd_removed) {
-    bool pv_found = false;
-    for (const auto& ld : submodule->get_logical_drives()) {
-        const string& logical_drive_mode = ld->get_mode();
-        if ((0 == logical_drive_mode.compare(agent_framework::generic::LogicalDrive::LvmTypes::PHYSICAL_VOLUME))
-                            && (ld->get_device_path() == (*hd_removed).get_device_path())) {
-            if (ld->get_status().get_state() == lvm::attribute::STATE_STANDBY_OFFLINE &&
-                    ld->get_status().get_health() == lvm::attribute::HEALTH_CRITICAL_STATUS) {
+bool HotswapManager::check_physical_volumes_state(const PhysicalDrive& phy_drive,
+                                                  const string& storage_uuid) {
+    for (const auto& uuid : get_manager<LogicalDrive>().get_keys()) {
+        auto logical_drive = get_manager<LogicalDrive>().get_entry_reference(uuid);
+        if (LogicalDriveMode::PV == logical_drive->get_mode() &&
+            logical_drive->get_device_path() == phy_drive.get_device_path()) {
+            /* check PV status */
+            if ((Health::Critical == logical_drive->get_status().get_health()) &&
+                (State::UnavailableOffline == logical_drive->get_status().get_state())) {
                 break;
             }
-            ld->set_status({lvm::attribute::STATE_STANDBY_OFFLINE, lvm::attribute::HEALTH_CRITICAL_STATUS});
-            ld->remove_hard_drive(hd_removed);
-            log_debug(GET_LOGGER("storage-agent"), "Physical Volume in Critical and StandbyOffline state: " << ld->get_name());
-            agent::storage::hotswap_event::send_event(ld->get_uuid(), ::agent_framework::model::enums::Component::LogicalDrive,
-                        ::agent_framework::eventing::Notification::Update, submodule->get_name());
-            pv_found = true;
-            break;
+            /* change status of logical drive to critical */
+            logical_drive->set_status({State::UnavailableOffline, Health::Critical});
+            /* remove physical drive from manager */
+            get_manager<PhysicalDrive>().remove_entry(phy_drive.get_uuid());
+            log_debug(GET_LOGGER("storage-agent"),
+                      "Critical PV health and Offline state: "
+                      << logical_drive->get_device_path());
+            /* send event about physical drive status change */
+            send_event(logical_drive->get_uuid(), Component::LogicalDrive,
+                       agent_framework::eventing::Notification::Update, storage_uuid);
+            return true;
         }
     }
-    return pv_found;
+    return false;
 }
 
-void HotswapManager::check_volume_groups_state(const SubmoduleUniquePtr& submodule) {
-    for (const auto& ld : submodule->get_logical_drives()) {
-        const string& logical_drive_mode = ld->get_mode();
-        if ((0 == logical_drive_mode.compare(agent_framework::generic::LogicalDrive::LvmTypes::VOLUME_GROUP))) {
-            if (ld->get_status().get_health() == lvm::attribute::HEALTH_CRITICAL_STATUS) {
+
+void HotswapManager::check_volume_groups_state(const string& storage_uuid) {
+    for (const auto& uuid : get_manager<LogicalDrive>().get_keys()) {
+        auto logical_drive = get_manager<LogicalDrive>().get_entry_reference(uuid);
+        if (LogicalDriveMode::LVG == logical_drive->get_mode()) {
+            /* check the VG status */
+            const auto& status = logical_drive->get_status();
+            if (Health::Critical == status.get_health()) {
                 continue;
             }
-            ld->set_status({ld->get_status().get_state(), lvm::attribute::HEALTH_CRITICAL_STATUS});
-            log_debug(GET_LOGGER("storage-agent"), "Volume Group in Critical state: " << ld->get_name());
-            agent::storage::hotswap_event::send_event(ld->get_uuid(), ::agent_framework::model::enums::Component::LogicalDrive,
-                            ::agent_framework::eventing::Notification::Update, submodule->get_name());
+            /* change status of logical drive to critical */
+            logical_drive->set_status({status.get_state(), Health::Critical});
+            log_debug(GET_LOGGER("storage-agent"), "Critical VG state: "
+                                                   << logical_drive->get_device_path());
+            /* send event about volume group status change */
+            send_event(logical_drive->get_uuid(), Component::LogicalDrive,
+                       agent_framework::eventing::Notification::Update, storage_uuid);
         }
     }
 }
 
-void HotswapManager::check_logical_volumes_state(const SubmoduleUniquePtr& submodule) {
-    for (const auto& ld : submodule->get_logical_drives()) {
-        const string& logical_drive_mode = ld->get_mode();
-        if ((0 == logical_drive_mode.compare(agent_framework::generic::LogicalDrive::LvmTypes::LOGICAL_VOLUME))) {
-            if (ld->get_status().get_health() == lvm::attribute::HEALTH_CRITICAL_STATUS) {
+
+void HotswapManager::check_logical_volumes_state(const string& storage_uuid) {
+    for (const auto& uuid : get_manager<LogicalDrive>().get_keys()) {
+        auto logical_drive = get_manager<LogicalDrive>().get_entry_reference(uuid);
+        if (LogicalDriveMode::LV == logical_drive->get_mode()) {
+            /* check the VG status */
+            const auto& status = logical_drive->get_status();
+            if (Health::Critical == status.get_health()) {
                 continue;
             }
-            check_targets_state(submodule, ld);
-            ld->set_status({ld->get_status().get_state(), lvm::attribute::HEALTH_CRITICAL_STATUS});
-            log_debug(GET_LOGGER("storage-agent"), "Logical Volume in Critical state: " << ld->get_name());
-            agent::storage::hotswap_event::send_event(ld->get_uuid(), ::agent_framework::model::enums::Component::LogicalDrive,
-                            ::agent_framework::eventing::Notification::Update, submodule->get_name());
+            /* check iSCSI target state */
+            check_targets_state(*logical_drive, storage_uuid);
+            /* change status of logical drive to critical */
+            logical_drive->set_status({status.get_state(), Health::Critical});
+            log_debug(GET_LOGGER("storage-agent"), "Critical LV state: "
+                                                   << logical_drive->get_device_path());
+            /* send event about logical volume status change */
+            send_event(logical_drive->get_uuid(), Component::LogicalDrive,
+                       agent_framework::eventing::Notification::Update, storage_uuid);
         }
     }
 }
 
-void HotswapManager::check_targets_state(const SubmoduleUniquePtr& submodule, const agent_framework::generic::LogicalDriveSharedPtr& ld) {
-    auto& target_manager = submodule->get_target_manager();
-    auto& targets = target_manager.get_targets();
-    for (auto& target : targets) {
-        auto& target_lun_vec = target->get_target_lun();
-        for (auto& target_lun : target_lun_vec) {
-            if (target_lun.get_device_path() == ld->get_device_path()) {
-                log_debug(GET_LOGGER("storage-agent"), "iSCSI Target in Critical state: " << target->get_target_iqn());
-                target->set_status({target->get_status().get_state(), lvm::attribute::HEALTH_CRITICAL_STATUS});
-                agent::storage::hotswap_event::send_event(target->get_uuid(), ::agent_framework::model::enums::Component::IscsiTarget,
-                                        ::agent_framework::eventing::Notification::Update, submodule->get_name());
+
+void HotswapManager::check_targets_state(const LogicalDrive& ldrive,
+                                         const string& storage_uuid) {
+    for (const auto& uuid : get_manager<IscsiTarget>().get_keys()) {
+        auto target = get_manager<IscsiTarget>().get_entry_reference(uuid);
+        for (const auto& lun : target->get_target_lun()) {
+            if (lun.get_logical_drive() == ldrive.get_uuid()) {
+                log_debug(GET_LOGGER("storage-agent"), "Critical iSCSI target state: "
+                                                       << target->get_target_iqn());
+                /* change status of iSCSI target to critical */
+                target->set_status({target->get_status().get_state(), Health::Critical});
+                /* send event about iSCSI target status change */
+                send_event(target->get_uuid(), Component::IscsiTarget,
+                           agent_framework::eventing::Notification::Update, storage_uuid);
             }
         }
     }
 }
 
-void HotswapManager::resolve_dependencies(HardDriveSharedPtr& hd_removed) {
-    for (const auto& module : ModuleManager::get_modules()) {
-        if (!module->get_submodules().size()) {
-            log_error(GET_LOGGER("storage-agent"), "Submodules empty!");
-            continue;
-        }
 
-        auto& submodule = module->get_submodules().front();
-        bool pv_found = check_physical_volumes_state(submodule, hd_removed);
-        if (pv_found) {
-            check_volume_groups_state(submodule);
-            check_logical_volumes_state(submodule);
+void HotswapManager::resolve_dependencies(const PhysicalDrive& phy_drive) {
+    auto& module = CommonComponents().get_instance()->get_module_manager();
+    for (const auto& manager_uuid : module.get_keys()) {
+        for (const auto& storage_uuid :
+            get_manager<StorageServices>().get_keys(manager_uuid)) {
+            if (check_physical_volumes_state(phy_drive, storage_uuid)) {
+                check_volume_groups_state(storage_uuid);
+                check_logical_volumes_state(storage_uuid);
+            }
         }
     }
 }
+
 
 void HotswapManager::hotswap_discover_hard_drives() {
-
-    auto sc = ModuleManager::get_storage_controllers();
-    auto& storage_submodule = ModuleManager::get_modules().front()->get_submodules().front();
-
-    std::vector<SysfsAPI::HardDrive> hds_detected;
-    SysfsAPI* sysfs = SysfsAPI::get_instance();
-
-    sysfs->get_hard_drives(hds_detected);
-
-    for (auto storage_controller = sc.begin(); storage_controller != sc.end(); storage_controller++) {
-
-        auto hds_in_model = (*storage_controller)->get_hard_drives();
-        auto hds_removed = (*storage_controller)->get_hard_drives();
-        std::vector<SysfsAPI::HardDrive> hds_added(hds_detected.begin(), hds_detected.end());
-        log_debug(GET_LOGGER("storage-agent"), "Disks in model: " << hds_in_model.size());
-        log_debug(GET_LOGGER("storage-agent"), "Disks detected: " << hds_detected.size());
-        for (auto hd_model = hds_in_model.begin(); hd_model != hds_in_model.end(); hd_model++) {
-            for (auto& hd_detected : hds_detected) {
-                if (HotswapManager::compare_disks(hd_detected, *hd_model)) {
-                    hds_removed.erase(std::remove(hds_removed.begin(), hds_removed.end(), (*hd_model)), hds_removed.end());
-                    hds_added.erase(std::remove(hds_added.begin(), hds_added.end(), hd_detected));
-                    break;
-                }
+    /* get list of hard drives on a system */
+    vector<SysfsAPI::HardDrive> hds_detected{};
+    SysfsAPI::get_instance()->get_hard_drives(hds_detected);
+    vector<SysfsAPI::HardDrive> hard_drives(hds_detected.begin(), hds_detected.end());
+    auto phy_drive_uuids = get_manager<PhysicalDrive>().get_keys();
+    auto phy_drive_end_it = phy_drive_uuids.end();
+    auto hdrive_end_it = hard_drives.end();
+    /* find new/removed drives */
+    for (const auto& uuid : get_manager<PhysicalDrive>().get_keys()) {
+        auto phy_drive = get_manager<PhysicalDrive>().get_entry(uuid);
+        for (const auto& hd_detected : hds_detected) {
+            if (compare_disks(hd_detected, phy_drive)) {
+                phy_drive_end_it = std::remove(phy_drive_uuids.begin(), phy_drive_end_it, uuid);
+                hdrive_end_it = std::remove(hard_drives.begin(), hdrive_end_it, hd_detected);
             }
         }
-
-        log_debug(GET_LOGGER("storage-agent"), "New disks: " << hds_added.size());
-        for (auto& new_drive : hds_added) {
-            add_disk(*storage_controller, new_drive, storage_submodule);
-        }
-
-        log_debug(GET_LOGGER("storage-agent"), "Removed disks: " << hds_removed.size());
-        for (auto& hd_removed : hds_removed) {
-            remove_disk(*storage_controller, hd_removed, storage_submodule);
-
-        }
+    }
+    /* if phy_drive_uuids list isn't empty then some physical
+     * drives have been removed from the system. Remove physical drives
+     * from the storage manager */
+    for (auto it = phy_drive_uuids.begin(); it != phy_drive_end_it; ++it) {
+        log_debug(GET_LOGGER("storage-agent"), "Remove disk: " << *it);
+        auto phy_drive = get_manager<PhysicalDrive>().get_entry(*it);
+        remove_disk(phy_drive);
+    }
+    /* if hard_drives list is not empty, it means new hard(physical) drives
+     * have been attached/added. Add these new drives to the storage manager */
+    for (auto it = hard_drives.begin(); it != hdrive_end_it; ++it) {
+        log_debug(GET_LOGGER("storage-agent"), "Add new disk: " << (*it).get_device_path());
+        add_disk(*it);
     }
 }

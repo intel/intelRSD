@@ -1,33 +1,23 @@
 /*!
- * @section LICENSE
+ * @brief C++ logger interface
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
  *
- * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
+ * @header{Files}
  * @file logger.hpp
- *
- * @brief Logger C++ interface
- * */
+ */
 
-#ifndef LOGGER_HPP
-#define LOGGER_HPP
+#pragma once
 
 #include <sstream>
 #include <string>
@@ -37,94 +27,20 @@
 #include <memory>
 #include <list>
 
+/*!
+ * @def LOGGER_CPP_OVER_LOGGER_C_MACROS
+ * If defined, disable C logger macros that can redefine C++ logger macros
+ * */
+#ifndef LOGGER_CPP_OVER_LOGGER_C_MACROS
+#define LOGGER_CPP_OVER_LOGGER_C_MACROS
+#endif
+#include "logger/logger.h"
+
+#include "logger/logger_options.hpp"
+
 namespace logger_cpp {
 
 class Stream;
-
-/*!
- * @enum Level
- * @brief Log level
- * */
-enum class Level {
-    EMERGENCY   = 0,
-    ALERT       = 1,
-    CRITICAL    = 2,
-    ERROR       = 3,
-    WARNING     = 4,
-    NOTICE      = 5,
-    INFO        = 6,
-    DEBUG       = 7
-};
-
-/*!
- * @enum TimeFormat
- * @brief Time stamp format
- * */
-enum class TimeFormat {
-    NONE        = 0,
-    DATE_SEC    = 1,
-    DATE_MS     = 2,
-    DATE_US     = 3,
-    DATE_NS     = 4
-};
-
-/*!
- * @class logger_cpp::Options
- * @brief Options for #logger_cpp::Logger and #logger_cpp::Stream objects
- * */
-class Options {
-private:
-    unsigned int m_raw;
-    friend class Logger;
-    friend class Stream;
-public:
-    /*!
-     * @brief Default constructor. Set options to default:
-     *  * Debug level
-     *  * Time stamp format set to date with seconds precision
-     *  * Coloring output is disabled
-     *  * Tagging output is enabled
-     *  * More debug information is enabled
-     *  * Output is enabled
-     * */
-	explicit Options();
-
-    /*!
-     * @brief Set log level options @see logger_cpp::Level
-     * @param[in]   level   Log level
-     * */
-    void set_level(enum Level level);
-
-    /*!
-     * @brief Set time stamp format @see logger_cpp::TimeFormat
-     * @param[in]   time_format  Time stamp format
-     * */
-    void set_time_format(enum TimeFormat time_format);
-
-    /*!
-     * @brief Enable/disable output coloring
-     * @param[in]   enable      Enable/disable coloring
-     * */
-    void enable_color(bool enable);
-
-    /*!
-     * @brief Enable/disable output
-     * @param[in]   enable      Enable/disable output
-     * */
-    void enable_output(bool enable);
-
-    /*!
-     * @brief Enable/disable output tagging
-     * @param[in]   enable      Enable/disable tagging
-     * */
-    void enable_tagging(bool enable);
-
-    /*!
-     * @brief Enable/disable more debug to output
-     * @param[in]   enable      Enable/disable more debug
-     * */
-    void enable_more_debug(bool enable);
-};
 
 /*!
  * @class logger_cpp::Logger
@@ -132,12 +48,14 @@ public:
  * */
 class Logger {
 private:
-    void* m_impl = nullptr;
+    struct logger* m_impl = nullptr;
+
     Logger(Logger&&) = delete;
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
     std::list<std::shared_ptr<const Stream>> m_streams;
+
 public:
     /*!
      * @brief Create logger instance with tag string and override logger
@@ -146,12 +64,26 @@ public:
      * @param[in]   tag     Tag string, if nullptr disable tagging
      * @param[in]   options Logger options, if nullptr set default options
      * */
-	Logger(const char* tag = nullptr, const Options& options = Options());
+    Logger(const char* tag = nullptr, const Options& options = Options());
 
     /*!
      * @brief Destroy logger object instance
      * */
     virtual ~Logger();
+
+    /*!
+     * @brief Get "C" struct with logger instance
+     * @return logger instance
+     * @warning It must be public, it is called from static function
+     */
+    struct logger* get_instance() const;
+
+    /*!
+     * @brief Check if message should be logged
+     * @param level message level
+     * @return true if should be logged
+     */
+    bool is_loggable(Level level) const;
 
     /*!
      * @brief Set logger options @see logger_cpp::Options
@@ -192,13 +124,16 @@ public:
     /*!
      * @brief Write log message. Use log_* functions instead this method
      *
+     * @param[in]   logger_name     Logger name to be put in the log file
      * @param[in]   level           Log level
      * @param[in]   file_name       File name string
      * @param[in]   function_name   Function name string
      * @param[in]   line_number     Line number
      * @param[in]   str             Log message string to write
      * */
-    virtual void write(enum Level level,
+    virtual void write(
+            const char* logger_name,
+            enum Level level,
             const char* file_name,
             const char* function_name,
             unsigned int line_number,
@@ -311,14 +246,6 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
 }
 
 /*!
- * @def LOGGER_CPP_OVER_LOGGER_C_MACROS
- * If defined, disable C logger macros that can redefine C++ logger macros
- * */
-#ifndef LOGGER_CPP_OVER_LOGGER_C_MACROS
-#define LOGGER_CPP_OVER_LOGGER_C_MACROS
-#endif
-
-/*!
  * @def LOGGER_FILE_NAME
  * Generate file name for log_* functions called in that file
  *
@@ -343,23 +270,59 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
 #endif
 
 /*!
+ * @brief Get name of the logger requested by name
+ *
+ * @param logger_name name of the logger to be returned
+ * @return logger_name
+ */
+const char* logger_get_logger_name(const char* logger_name);
+
+/*!
+ * @brief Get name of the requested logger
+ *
+ * @param logger logger shared poiter
+ * @return logger_name
+ */
+const char* logger_get_logger_name(LoggerSPtr logger);
+
+/*!
+ * @brief Get logger by name
+ *
+ * Loggers are always found by name. This allow to log the name from log_xxx()
+ * instead of the name of the configured logger.
+ */
+#define GET_LOGGER(name) name
+
+/*!
+ * @brief Get system logger
+ *
+ * Always return the name for default system logger.
+ */
+#define LOGUSR GET_LOGGER("default")
+
+/*!
  * @brief Logger output stream write
  *
  * @param[in]   inst    Logger buffer instance
  * @param[in]   level   Log level
  * @param[in]   stream  Stream
  * */
-#define log_write(inst, level, stream)\
-    if (nullptr != (inst)) {\
-        std::stringstream _log_string_stream;\
-        _log_string_stream << stream;\
-        (inst)->write((level),\
-            LOGGER_FILE_NAME,\
-            LOGGER_FUNCTION_NAME,\
-            LOGGER_LINE_NUMBER,\
-            _log_string_stream.str()\
-        );\
-    }
+#define log_write(inst, level, stream) \
+    do {\
+        logger_cpp::LoggerSPtr __ptr = logger_cpp::LoggerFactory::instance().get_logger(inst);\
+        if (__ptr && __ptr->is_loggable(level)) {\
+            std::stringstream __stream;\
+            __stream << std::string("") << stream;\
+            __ptr->write(\
+                logger_cpp::logger_get_logger_name(inst),\
+                level,\
+                LOGGER_FILE_NAME,\
+                LOGGER_FUNCTION_NAME,\
+                LOGGER_LINE_NUMBER,\
+                __stream.str()\
+            );\
+        }\
+    } while (0)
 
 /*!
  * @brief Emergency message, system is about to crash or is unstable
@@ -368,7 +331,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
  * @param[in]       stream String stream object
  * */
 #define log_emergency(inst, stream)\
-    log_write((inst), logger_cpp::Level::EMERGENCY, stream)
+    log_write(inst, logger_cpp::Level::EMERGENCY, stream)
 
 /*!
  * @brief Something bad happened and action must be taken immediately
@@ -377,7 +340,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
  * @param[in]       stream  String stream object
  * */
 #define log_alert(inst, stream)\
-   log_write((inst), logger_cpp::Level::ALERT, stream)
+   log_write(inst, logger_cpp::Level::ALERT, stream)
 
 /*!
  * @brief A critical condition occured like serious hardware/software failure
@@ -386,17 +349,17 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
  * @param[in]       stream  String stream object
  * */
 #define log_critical(inst, stream)\
-   log_write((inst), logger_cpp::Level::CRITICAL, stream)
+   log_write(inst, logger_cpp::Level::CRITICAL, stream)
 
 /*!
- * @brief An error condition, often used by drivers to indicate diffulties
+ * @brief An error condition, often used by drivers to indicate difficulties
  * with the hardware
  *
  * @param[in]       inst    Logger instance
  * @param[in]       stream  String stream object
  * */
 #define log_error(inst, stream)\
-   log_write((inst), logger_cpp::Level::ERROR, stream)
+   log_write(inst, logger_cpp::Level::ERROR, stream)
 
 /*!
  * @brief A warning, meaning nothing serious by itself but might indicate
@@ -406,7 +369,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
  * @param[in]       stream  String stream object
  * */
 #define log_warning(inst, stream)\
-   log_write((inst), logger_cpp::Level::WARNING, stream)
+   log_write(inst, logger_cpp::Level::WARNING, stream)
 
 /*!
  * @brief Nothing serious, but notable nevertheless. Often used to report
@@ -416,7 +379,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
  * @param[in]       stream  String stream object
  * */
 #define log_notice(inst, stream)\
-   log_write((inst), logger_cpp::Level::NOTICE, stream)
+   log_write(inst, logger_cpp::Level::NOTICE, stream)
 
 /*!
  * @brief Informational message e.g. startup information
@@ -425,7 +388,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
  * @param[in]       stream  String stream object
  * */
 #define log_info(inst, stream)\
-   log_write((inst), logger_cpp::Level::INFO, stream)
+   log_write(inst, logger_cpp::Level::INFO, stream)
 
 /*!
  * @brief Debug messages
@@ -434,8 +397,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
  * @param[in]       stream  String stream object
  * */
 #define log_debug(inst, stream)\
-   log_write((inst), logger_cpp::Level::DEBUG, stream)
+   log_write(inst, logger_cpp::Level::DEBUG, stream)
 
 } /* namespace logger_cpp */
 
-#endif /* LOGGER_HPP */

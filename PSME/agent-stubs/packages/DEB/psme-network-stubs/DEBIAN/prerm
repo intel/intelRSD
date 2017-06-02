@@ -1,5 +1,0 @@
-#!/bin/bash
-service psme-network-stubs stop
-if [ -f /etc/init/psme-network-stubs.conf ]; then
-        rm /etc/init/psme-network-stubs.conf
-fi

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,12 +25,9 @@
  * @brief IPMI commands handlers for RMM.
  * */
 
-#include <ipmb/command/get-lan-selector/mask_selector.hpp>
-#include <ipmb/ipmi_message.hpp>
-#include <ipmb/utils.hpp>
-#include <ipmb/network_utils.hpp>
-
-#include <logger/logger_factory.hpp>
+#include "ipmb/command/get-lan-selector/mask_selector.hpp"
+#include "ipmb/network_utils.hpp"
+#include "logger/logger_factory.hpp"
 #include "configuration/configuration.hpp"
 
 #include <algorithm>
@@ -67,7 +64,8 @@ void MaskSelector::pack(IpmiMessage& msg){
 
         m_response.set_mask_data(std::move(mask_addr));
 
-    } catch (const std::runtime_error& e) {
+    }
+    catch (const std::runtime_error& e) {
         log_debug(LOGUSR, "Read interface mask error : " << e.what());
         m_response.set_cc(CompletionCode::CC_CANNOT_RETURN_REQ_DATA);
     }
@@ -80,5 +78,3 @@ void MaskSelector::pack(IpmiMessage& msg){
     m_response.add_data(msg);
     msg.set_to_response();
 }
-
-

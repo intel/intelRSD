@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,16 +132,22 @@ static void print_node(memdb_integer db_name, struct node *root)
 							//root->node_id, type_str);
 
 	len = snprintf_s_ss(out_buff, sizeof(out_buff), "%sN(%s)", indent, tmp);
-	if (len < 0)
+	if (len < 0) {
+		fclose(file_out);
 		return;
+	}
 
 	len += snprintf_s_ll(out_buff+len, sizeof(out_buff)-len, ":%lld", root->node_id);
-	if (len < 0)
+	if (len < 0) {
+		fclose(file_out);
 		return;
+	}
 
 	len += snprintf_s_s(out_buff+len, sizeof(out_buff)-len, ":(%s)\n", type_str);
-	if (len < 0)
+	if (len < 0) {
+		fclose(file_out);
 		return;
+	}
 
 	printf("%s", out_buff);
 	fprintf(file_out, "%s", out_buff);
@@ -589,6 +595,14 @@ static inline unsigned char *alloc_attr_data(struct node_attr *pa, int datalen)
 		return pa->buf;
 }
 
+static inline void free_attr_data(struct node_attr *pa)
+{
+	if ((NULL != pa->data) && (pa->buf != pa->data)) {
+		free(pa->data);
+		pa->data = NULL;
+	}
+}
+
 int set_node_attr(memdb_integer db_name, struct node *node, memdb_integer cookie,
 				  unsigned char *name, unsigned short namelen,
 				  unsigned char *data, unsigned short datalen,
@@ -640,6 +654,7 @@ int set_node_attr(memdb_integer db_name, struct node *node, memdb_integer cookie
 		else if (DB_POD == db_name)
 			list_add_tail(&pa->list, &pod_attr_list);
 		else {
+			free_attr_data(pa);
 			free(pa);
 			return -1;
 		}
@@ -728,15 +743,15 @@ int remove_node_attr(memdb_integer db_name, struct node *node, unsigned char *na
 				memdb_log(DB_RMM, MEMDB_LOG_RMM_FILE, pa,
 						  MEMDB_LOG_REMOVE_ATTR);
 			}
-			del_node_attr(pa);
 			node_attr_notify(DB_RMM, pa, EVENT_ATTR_ACTION_DEL);
+			del_node_attr(pa);
 		} else if (DB_POD == db_name) {
 			if (SNAPSHOT_NEED == pa->snapshot_flag && log_load == FALSE) {
 				memdb_log(DB_POD, MEMDB_LOG_POD_FILE, pa,
 						  MEMDB_LOG_REMOVE_ATTR);
 			}
-			del_node_attr(pa);
 			node_attr_notify(DB_POD, pa, EVENT_ATTR_ACTION_DEL);
+			del_node_attr(pa);
 		} else
 			return 0;
 

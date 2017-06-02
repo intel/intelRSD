@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.services.redfish.PhysicalDriveService;
+import com.intel.podm.business.dto.redfish.PhysicalDriveDto;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
@@ -27,10 +28,10 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 public class PhysicalDriveResource extends BaseResource {
 
     @Inject
-    private PhysicalDriveService service;
+    private ReaderService<PhysicalDriveDto> readerService;
 
     @Override
-    public Object get() {
-        return getOrThrow(() -> service.getPhysicalDrive(getCurrentContext()));
+    public PhysicalDriveDto get() {
+        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
     }
 }

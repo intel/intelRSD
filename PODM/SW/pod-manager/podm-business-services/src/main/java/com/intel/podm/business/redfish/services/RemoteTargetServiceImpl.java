@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,77 +16,99 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.business.EntityNotFoundException;
+import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.dto.redfish.RemoteTargetDto;
 import com.intel.podm.business.dto.redfish.RemoteTargetIscsiAddressDto;
+import com.intel.podm.business.dto.redfish.attributes.ChapDto;
 import com.intel.podm.business.entities.redfish.LogicalDrive;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
+import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
 import com.intel.podm.business.entities.redfish.StorageService;
-import com.intel.podm.business.entities.redfish.properties.RemoteTargetIscsiAddress;
-import com.intel.podm.business.redfish.Contexts;
-import com.intel.podm.business.redfish.DomainObjectTreeTraverser;
+import com.intel.podm.business.entities.redfish.embeddables.Chap;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.RemoteTargetService;
+import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.Collection;
 import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.REMOTE_TARGETS;
+import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.redfish.Contexts.toContext;
 import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Transactional(REQUIRED)
-public class RemoteTargetServiceImpl implements RemoteTargetService {
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+public class RemoteTargetServiceImpl implements ReaderService<RemoteTargetDto> {
     @Inject
-    private DomainObjectTreeTraverser traverser;
+    private EntityTreeTraverser traverser;
+
+    @Inject
+    private UnknownOemTranslator unknownOemTranslator;
 
     @Override
-    public CollectionDto getRemoteTargetsCollection(Context serviceContext) throws EntityNotFoundException {
+    public CollectionDto getCollection(Context serviceContext) throws ContextResolvingException {
         StorageService storageService = (StorageService) traverser.traverse(serviceContext);
-        return new CollectionDto(REMOTE_TARGETS, Contexts.getAsIdList(storageService.getRemoteTargets()));
+        return new CollectionDto(REMOTE_TARGETS, getAsIdSet(storageService.getRemoteTargets()));
     }
 
     @Override
-    public RemoteTargetDto getRemoteTarget(Context remoteTargetContext) throws EntityNotFoundException {
+    public RemoteTargetDto getResource(Context remoteTargetContext) throws ContextResolvingException {
         RemoteTarget remoteTarget = (RemoteTarget) traverser.traverse(remoteTargetContext);
         LogicalDrive logicalDrive = remoteTarget.getLogicalDrives().stream().findAny().orElse(null);
 
         return RemoteTargetDto.newBuilder()
-                .id(remoteTargetContext.getId())
-                .name(remoteTarget.getName())
-                .description(remoteTarget.getDescription())
-                .status(remoteTarget.getStatus())
-                .type(remoteTarget.getType())
-                .iscsiAddresses(buildRemoteTargetIscsiAddresses(remoteTarget.getRemoteTargetIscsiAddresses(), Contexts.toContext(logicalDrive)))
-                .iscsiInitiatorIqn(remoteTarget.getIscsiInitiatorIqn())
-                .build();
+            .id(remoteTargetContext.getId().toString())
+            .name(remoteTarget.getName())
+            .description(remoteTarget.getDescription())
+            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(remoteTarget.getService(), remoteTarget.getUnknownOems()))
+            .status(remoteTarget.getStatus())
+            .type(remoteTarget.getType())
+            .iscsiAddresses(buildRemoteTargetIscsiAddresses(remoteTarget.getRemoteTargetIscsiAddresses(), toContext(logicalDrive)))
+            .iscsiInitiatorIqn(remoteTarget.getIscsiInitiatorIqn())
+            .build();
     }
 
-    private List<RemoteTargetIscsiAddressDto> buildRemoteTargetIscsiAddresses(List<RemoteTargetIscsiAddress> remoteTargetIscsiAddresses,
+    private List<RemoteTargetIscsiAddressDto> buildRemoteTargetIscsiAddresses(Collection<RemoteTargetIscsiAddress> remoteTargetIscsiAddresses,
                                                                               Context logicalDriveContext) {
         return remoteTargetIscsiAddresses
-                .stream()
-                .map(remoteTargetIscsiAddress -> toRemoteTargetIscsiAddressDto(remoteTargetIscsiAddress, logicalDriveContext))
-                .collect(toList());
+            .stream()
+            .map(remoteTargetIscsiAddress -> toRemoteTargetIscsiAddressDto(remoteTargetIscsiAddress, logicalDriveContext))
+            .collect(toList());
     }
 
     private RemoteTargetIscsiAddressDto toRemoteTargetIscsiAddressDto(RemoteTargetIscsiAddress remoteTargetIscsiAddress, Context logicalDriveContext) {
         return RemoteTargetIscsiAddressDto.newBuilder()
-                .targetIqn(remoteTargetIscsiAddress.getTargetIqn())
-                .targetLun(buildTargetLunDtos(remoteTargetIscsiAddress.getTargetLun(), logicalDriveContext))
-                .targetPortalIp(remoteTargetIscsiAddress.getTargetPortalIp())
-                .targetPortalPort(remoteTargetIscsiAddress.getTargetPortalPort())
-                .build();
+            .targetIqn(remoteTargetIscsiAddress.getTargetIqn())
+            .targetLun(buildTargetLunDtos(remoteTargetIscsiAddress.getTargetLuns(), logicalDriveContext))
+            .targetPortalIp(remoteTargetIscsiAddress.getTargetPortalIp())
+            .targetPortalPort(remoteTargetIscsiAddress.getTargetPortalPort())
+            .chap(toChapDto(remoteTargetIscsiAddress.getChap()))
+            .build();
     }
 
     private List<RemoteTargetIscsiAddressDto.TargetLunDto> buildTargetLunDtos(List<Integer> targetLuns, Context logicalDriveContext) {
         return targetLuns
-                .stream()
-                .map(targetLun -> new RemoteTargetIscsiAddressDto.TargetLunDto(targetLun, logicalDriveContext))
-                .collect(toList());
+            .stream()
+            .map(targetLun -> new RemoteTargetIscsiAddressDto.TargetLunDto(targetLun, logicalDriveContext))
+            .collect(toList());
     }
 
+    public ChapDto toChapDto(Chap chap) {
+        if (chap == null) {
+            return null;
+        }
 
+        return ChapDto
+            .newBuilder()
+            .type(chap.getType())
+            .username(chap.getUsername())
+            .mutualUsername(chap.getMutualUsername())
+            .build();
+    }
 }

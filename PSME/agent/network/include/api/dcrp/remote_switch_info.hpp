@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,7 +86,7 @@ public:
      * */
     void fill_response_with_switch_info(const string& id,
                                         agent_framework::model::
-                                        RemoteSwitch& response);
+                                        RemoteEthernetSwitch& response);
 
     /*!
      * @brief Get remote switch identifier on a specified port.

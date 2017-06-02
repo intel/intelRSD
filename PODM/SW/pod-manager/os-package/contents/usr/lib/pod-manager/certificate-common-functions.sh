@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2015 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,13 +73,24 @@ function cleanup() {
     ${verbose}
 }
 
-function retrieve_vault_password() {
-  local vault_decrypter_result=$(java -jar /usr/lib/pod-manager/vault-decrypter.jar)
+function retrieve_db_password() {
+  vault_decrypter_result=$(java -jar /usr/lib/pod-manager/vault-decrypter.jar --password-type database)
 
   if [ $? -ne 0 ]; then
-    print_error "Password has not been retrieved. Due to errors."
+    print_error "Database password has not been retrieved due to errors."
+    print_error "Database can not be created."
+    exit_on_error
+  else
+    echo ${vault_decrypter_result}
+  fi
+}
+
+function retrieve_vault_password() {
+  vault_decrypter_result=$(java -jar /usr/lib/pod-manager/vault-decrypter.jar --password-type keystore)
+
+  if [ $? -ne 0 ]; then
+    print_error "Keystore password has not been retrieved due to errors."
     print_error "Keystore file can not be created."
-    print_error "Error: ${vault_decrypter_result}"
     exit_on_error
   else
     JKS_PASSWORD=${vault_decrypter_result}

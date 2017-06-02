@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,10 @@ import com.intel.podm.common.logger.Logger;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.Objects;
+import java.util.UUID;
 
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static javax.transaction.Transactional.TxType.NOT_SUPPORTED;
 
 /**
@@ -30,6 +33,7 @@ import static javax.transaction.Transactional.TxType.NOT_SUPPORTED;
  */
 @Dependent
 @Transactional(NOT_SUPPORTED)
+@SuppressWarnings({"checkstyle:IllegalCatch"})
 public class DeepDiscoveryTriggeringTask extends DefaultManagedTask implements Runnable {
 
     @Inject
@@ -41,9 +45,37 @@ public class DeepDiscoveryTriggeringTask extends DefaultManagedTask implements R
     @Inject
     private DeepDiscoveryRunner runner;
 
+    private UUID serviceUuid;
+
     @Override
     public void run() {
-        selector.markComputerSystemsForDeepDiscovery();
-        runner.deepDiscoverComputerSystems();
+        try {
+            requiresNonNull(serviceUuid, "serviceUuid");
+            selector.markComputerSystemsForDeepDiscovery(serviceUuid);
+            runner.deepDiscoverComputerSystems(serviceUuid);
+        } catch (RuntimeException e) {
+            logger.e("DeepDiscoveryTriggeringTask error: " + e.getMessage(), e);
+        }
+    }
+
+    public void setServiceUuid(UUID serviceUuid) {
+        this.serviceUuid = serviceUuid;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DeepDiscoveryTriggeringTask that = (DeepDiscoveryTriggeringTask) o;
+        return Objects.equals(serviceUuid, that.serviceUuid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serviceUuid);
     }
 }

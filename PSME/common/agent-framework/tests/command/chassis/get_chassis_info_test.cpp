@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,13 +22,13 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/chassis/get_chassis_info.hpp"
-#include "agent-framework/command/chassis/json/get_chassis_info.hpp"
+#include "agent-framework/module/constants/compute.hpp"
+#include "agent-framework/command-ref/compute_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
+using namespace agent_framework::command_ref;
+using namespace agent_framework::model::literals;
 using namespace agent_framework::model;
 
 static constexpr int TEST_SIZE = 2048;
@@ -38,22 +38,21 @@ static constexpr char TEST_MANUFACTURER[] = "TestManufacturer";
 static constexpr char TEST_MODEL[] = "TestModelNumber";
 static constexpr char TEST_PART[] = "TestPartNumber";
 
-class GetChassisInfo : public chassis::GetChassisInfo {
+class MyGetChassisInfo {
 private:
     std::string m_chassis{};
 public:
-    GetChassisInfo(const std::string& chassis) { m_chassis = chassis; }
+    MyGetChassisInfo(const std::string& chassis) { m_chassis = chassis; }
 
-    using chassis::GetChassisInfo::execute;
-
-    void execute(const Request& request, Response& response) {
-        const auto& chassis_uuid = request.get_chassis();
+    void execute(const GetChassisInfo::Request& request,
+                 GetChassisInfo::Response& response) {
+        const auto& chassis_uuid = request.get_uuid();
 
         if (chassis_uuid != m_chassis) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
 
-	Chassis chassis{};
+        agent_framework::model::Chassis chassis{};
         chassis.set_status(attribute::Status(enums::State::InTest, enums::Health::Warning));
         chassis.set_type(enums::ChassisType::Rack);
         chassis.set_size(TEST_SIZE);
@@ -61,26 +60,26 @@ public:
         chassis.set_fru_info(agent_framework::model::attribute::FruInfo(
           TEST_SERIAL, TEST_MANUFACTURER, TEST_MODEL, TEST_PART));
         chassis.set_oem(attribute::Oem());
-        response.set_chassis(std::move(chassis));
+        response = chassis;
     }
 
-    virtual ~GetChassisInfo();
+    virtual ~MyGetChassisInfo();
 };
 
-GetChassisInfo::~GetChassisInfo() { }
+MyGetChassisInfo::~MyGetChassisInfo() { }
 
 TEST(GetChassisInfoTest, PositiveExecute) {
-    chassis::json::GetChassisInfo command_json;
-    GetChassisInfo* command = new GetChassisInfo("TestChassis");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetChassisInfo command{"TestChassis"};
+    GetChassisInfo::Request request{""};
+    GetChassisInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params["chassis"] = "TestChassis";
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    EXPECT_NO_THROW(request = GetChassisInfo::Request::from_json(params));
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result["type"].isString());
@@ -107,16 +106,15 @@ TEST(GetChassisInfoTest, PositiveExecute) {
 }
 
 TEST(GetChassisInfoTest, NegativeModuleNotFound) {
-    chassis::json::GetChassisInfo command_json;
-    GetChassisInfo* command = new GetChassisInfo("TestChassis");
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyGetChassisInfo command{"TestChassis"};
+    GetChassisInfo::Request request{""};
+    GetChassisInfo::Response response{};
     Json::Value params;
     Json::Value result;
 
     params["chassis"] = "OtherTestChassis";
 
-    EXPECT_THROW(command_json.method(params, result), exception::NotFound);
+    EXPECT_NO_THROW(request = GetChassisInfo::Request::from_json(params));
+    EXPECT_THROW(command.execute(request, response), std::runtime_error);
 }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ static void load_ssa_dest_url(memdb_integer nid)
 		memset(com, 0, DEST_URL_LEN);
 		memset(str_snmp_session, 0, 16);
 		libdb_attr_get_string(DB_RMM, ssa_dest_node_info[i].node_id, DEST_URL, dest_url, DEST_URL_LEN, LOCK_ID_NULL);
-		sscanf(dest_url, "%[^:],%s", sink, com);
+		sscanf(dest_url, "%63[^:],%63s", sink, com);
 		snmp_seesion = add_trap_ip(sink, NULL, com);
 		snprintf_s_p(str_snmp_session, sizeof(str_snmp_session), "%p", snmp_seesion);
 		rc = libdb_attr_set_string(DB_RMM, ssa_dest_node_info[i].node_id,

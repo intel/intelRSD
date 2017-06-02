@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,7 @@
  * @brief Signal interface
  * */
 
-#ifndef AGENT_FRAMEWORK_SIGNAL_HPP
-#define AGENT_FRAMEWORK_SIGNAL_HPP
-
+#pragma once
 /*! Agent framework namespace */
 namespace agent_framework {
 /*! Generic namespace */
@@ -37,4 +35,3 @@ void wait_for_interrupt();
 }
 }
 
-#endif /* AGENT_FRAMEWORK_SIGNAL_HPP */

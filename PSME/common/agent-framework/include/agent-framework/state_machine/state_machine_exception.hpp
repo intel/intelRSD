@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief %StateMachine error exception.
  * */
 
-#ifndef AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_EXCEPTION_HPP
-#define AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_EXCEPTION_HPP
-
+#pragma once
 #include <exception>
 
 /*! Psme namespace */
@@ -65,6 +63,5 @@ public:
 
 }
 }
-#endif /* AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_EXCEPTION_HPP */
 
 

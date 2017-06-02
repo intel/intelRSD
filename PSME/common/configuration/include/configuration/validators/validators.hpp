@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,9 +26,7 @@
  * @brief Application configuration interface
  * */
 
-#ifndef CONFIGURATION_VALIDATORS_HPP
-#define CONFIGURATION_VALIDATORS_HPP
-
+#pragma once
 #include "min.hpp"
 #include "morethan.hpp"
 #include "max.hpp"
@@ -37,4 +35,3 @@
 #include "address.hpp"
 #include "anyof.hpp"
 
-#endif /* CONFIGURATION_VALIDATORS_HPP */

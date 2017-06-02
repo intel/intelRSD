@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,7 +84,7 @@ LvmDiscovery::VolumeGroupVec LvmDiscovery::discovery() {
     lvm_str_list* elem{nullptr};
     auto vg_names = ::get_volume_group_list(m_lvm);
 
-    if(dm_list_empty(vg_names)) {
+    if (dm_list_empty(vg_names)) {
         return groups;
     }
 
@@ -114,7 +114,8 @@ VolumeGroup LvmDiscovery::make_volume_group(volume_group* handle,
     lvm_property_value vg_prop =
         lvm_vg_get_property(handle, attribute::VG_ATTR_PROPERTY);
     volume_group.set_protection_status(
-            vg_prop.value.string[attribute::VG_RW_ATTR] != attribute::WRITE_MODE_ATTR);
+        vg_prop.value.string[attribute::VG_RW_ATTR] !=
+                                                attribute::WRITE_MODE_ATTR);
     volume_group.set_health(attribute::HEALTH_OK_STATUS);
     volume_group.set_status(attribute::STATE_ENABLED);
     if (vg_prop.value.string[attribute::VG_STATUS_HEALTH_ATTR] ==
@@ -140,7 +141,7 @@ namespace {
 
     void log_physical_volume(const PhysicalVolume& physical_volume) {
         log_debug(GET_LOGGER("lvm"),
-                "Found physical volume " << physical_volume.get_name());
+                "Found physical volume: " << physical_volume.get_name());
         log_debug(GET_LOGGER("lvm"),
                 "Capacity: " << physical_volume.get_capacity_gb());
         log_debug(GET_LOGGER("lvm"),
@@ -168,9 +169,15 @@ void LvmDiscovery::discovery_physical_volumes(volume_group* vg_handle,
 PhysicalVolume
 LvmDiscovery::make_physical_volume(volume_group* vg_handle,
                                    physical_volume* handle) const {
+    auto pv_name = ::lvm_pv_get_name(handle);
+    auto vg_name = lvm_vg_get_name(vg_handle);
+    if (!pv_name || !vg_name) {
+        THROW(agent_framework::exceptions::LvmError, "lvm",
+            "Could not read physical volume properties");
+    }
     PhysicalVolume physical_volume;
 
-    physical_volume.set_name(::lvm_pv_get_name(handle));
+    physical_volume.set_name(pv_name);
     physical_volume.set_capacity_gb(
             double(lvm_pv_get_size(handle)) * attribute::B_TO_GB);
     physical_volume.set_health(attribute::HEALTH_OK_STATUS);
@@ -184,7 +191,7 @@ LvmDiscovery::make_physical_volume(volume_group* vg_handle,
         physical_volume.set_status(attribute::STATE_DISABLED);
     }
 
-    physical_volume.set_volume_group(lvm_vg_get_name(vg_handle));
+    physical_volume.set_volume_group(vg_name);
 
     return physical_volume;
 }
@@ -258,43 +265,43 @@ void LvmDiscovery::discovery_logical_volumes(volume_group* vg_handle,
 
 LogicalVolume LvmDiscovery::make_logical_volume(volume_group* vg_handle,
                                                 logical_volume* handle) const {
+        auto lv_name = lvm_lv_get_name(handle);
+        auto master_name = lvm_lv_get_origin(handle);
+        auto vg_name = ::lvm_vg_get_name(vg_handle);
+        if (!lv_name || !vg_name) {
+            THROW(agent_framework::exceptions::LvmError, "lvm",
+                "Could not read logical volume properties");
+        }
 
-    auto lv_name = lvm_lv_get_name(handle);
-    auto master_name = lvm_lv_get_origin(handle);
-    auto vg_name = ::lvm_vg_get_name(vg_handle);
-    if (!lv_name || !vg_name) {
-        THROW(agent_framework::exceptions::LvmError, "lvm",
-            "Could not read logical volume properties!");
-    }
+        lvm_property_value lv_prop = ::lvm_lv_get_property(handle,
+                                                attribute::LV_ATTR_PROPERTY);
+        LogicalVolume logical_volume;
+        logical_volume.set_capacity_gb(
+                double(lvm_lv_get_size(handle)) * attribute::B_TO_GB);
+        logical_volume.set_name(lv_name);
+        logical_volume.set_protection_status(
+                lv_prop.value.string[attribute::LV_RW_ATTR] != attribute::WRITE_MODE_ATTR);
+        logical_volume.set_health(
+                lv_prop.value.string[attribute::LV_HEALTH_ATTR] ==
+                                    attribute::HEALTH_CRITICAL ?
+                                    attribute::HEALTH_CRITICAL_STATUS :
+                                    attribute::HEALTH_OK_STATUS);
+        logical_volume.set_status(
+                lv_prop.value.string[attribute::LV_STATUS_ATTR] ==
+                                                attribute::STATE_ACTIVE ?
+                                                attribute::STATE_ENABLED :
+                                                attribute::STATE_DISABLED);
+        if (lv_prop.value.string[attribute::LV_TYPE_ATTR] ==
+                                    attribute::LV_SNAPSHOT_TYPE){
+            logical_volume.set_snapshot(true);
+            logical_volume.set_master_name(master_name);
+        }
+        else {
+            logical_volume.set_snapshot(false);
+        }
 
-    lvm_property_value lv_prop = ::lvm_lv_get_property(handle,
-                                            attribute::LV_ATTR_PROPERTY);
-    LogicalVolume logical_volume;
-    logical_volume.set_capacity_gb(
-            double(lvm_lv_get_size(handle)) * attribute::B_TO_GB);
-    logical_volume.set_name(lv_name);
-    logical_volume.set_protection_status(
-            lv_prop.value.string[attribute::LV_RW_ATTR] != attribute::WRITE_MODE_ATTR);
-    logical_volume.set_health(
-            lv_prop.value.string[attribute::LV_HEALTH_ATTR] ==
-                                attribute::HEALTH_CRITICAL ?
-                                attribute::HEALTH_CRITICAL_STATUS :
-                                attribute::HEALTH_OK_STATUS);
-    logical_volume.set_status(
-            lv_prop.value.string[attribute::LV_STATUS_ATTR] ==
-                                            attribute::STATE_ACTIVE ?
-                                            attribute::STATE_ENABLED :
-                                            attribute::STATE_DISABLED);
-    if (lv_prop.value.string[attribute::LV_TYPE_ATTR] == attribute::LV_SNAPSHOT_TYPE){
-        logical_volume.set_snapshot(true);
-        logical_volume.set_master_name(master_name);
-    }
-    else {
-        logical_volume.set_snapshot(false);
-    }
+        check_bootable_tag(handle) ? logical_volume.set_bootable(true) : logical_volume.set_bootable(false);
 
-    check_bootable_tag(handle) ? logical_volume.set_bootable(true) : logical_volume.set_bootable(false);
-
-    logical_volume.set_volume_group(vg_name);
-    return logical_volume;
+        logical_volume.set_volume_group(vg_name);
+        return logical_volume;
 }

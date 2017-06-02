@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,10 +25,9 @@
  * @brief IPMI command.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_COMMAND_COMMAND_HPP
-#define AGENT_CHASSIS_IPMB_COMMAND_COMMAND_HPP
-
+#pragma once
 #include <ipmb/ipmi_message.hpp>
+#include <memory>
 
 /*! Agnet namespace */
 namespace agent {
@@ -118,4 +117,3 @@ using CommandSharedPtr = std::shared_ptr<Command>;
 }
 }
 
-#endif /* AGENT_CHASSIS_IPMB_COMMAND_COMMAND_HPP */

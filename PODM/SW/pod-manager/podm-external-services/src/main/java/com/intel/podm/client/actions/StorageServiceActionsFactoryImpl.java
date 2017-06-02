@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,27 @@
 
 package com.intel.podm.client.actions;
 
+import com.intel.podm.client.WebClientBuilder;
 import com.intel.podm.client.api.actions.StorageServiceActions;
 import com.intel.podm.client.api.actions.StorageServiceActionsFactory;
+import com.intel.podm.config.base.Config;
+import com.intel.podm.config.base.Holder;
+import com.intel.podm.config.base.dto.ExternalServiceConfig;
 
+import javax.inject.Inject;
 import java.net.URI;
 
 public class StorageServiceActionsFactoryImpl implements StorageServiceActionsFactory {
+
+    @Inject
+    @Config
+    private Holder<ExternalServiceConfig> configHolder;
+
+    @Inject
+    private WebClientBuilder webClientBuilder;
+
     @Override
     public StorageServiceActions create(URI baseUri) {
-        return new StorageServiceActionsImpl(baseUri);
+        return new StorageServiceActionsImpl(configHolder.get(), webClientBuilder.newInstance(baseUri).retryable().build());
     }
 }

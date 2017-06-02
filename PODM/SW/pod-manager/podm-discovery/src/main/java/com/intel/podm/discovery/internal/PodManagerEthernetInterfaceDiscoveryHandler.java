@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.entities.redfish.Manager;
-import com.intel.podm.business.entities.redfish.properties.IpV4Address;
+import com.intel.podm.business.entities.redfish.embeddables.IpV4Address;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.config.network.NetworkConfigurationIOException;
@@ -34,11 +34,12 @@ import javax.inject.Inject;
 import java.util.Objects;
 
 import static com.intel.podm.common.types.Health.OK;
+import static com.intel.podm.common.types.Id.id;
 import static com.intel.podm.common.types.State.ENABLED;
 
 @Dependent
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class PodManagerEthernetInterfaceDiscoveryHandler {
-
     @Inject
     Logger logger;
 
@@ -59,6 +60,7 @@ public class PodManagerEthernetInterfaceDiscoveryHandler {
 
     private void addNetworkInterface(Manager manager, EthernetInterfaceDto fromSystem) {
         EthernetInterface ethernetInterface = genericDao.create(EthernetInterface.class);
+        ethernetInterface.setId(id(fromSystem.getName()));
         ethernetInterface.setName(fromSystem.getName());
         ethernetInterface.setDescription(fromSystem.getDescription());
         ethernetInterface.setMacAddress(fromSystem.getMacAddress());
@@ -75,6 +77,7 @@ public class PodManagerEthernetInterfaceDiscoveryHandler {
     private void addNetworkInterfaceVlans(EthernetInterfaceDto fromSystem, EthernetInterface ethernetInterface) {
         for (VlanEthernetInterfaceDto vlan : fromSystem.getVlans()) {
             EthernetSwitchPortVlan ethernetSwitchPortVlan = genericDao.create(EthernetSwitchPortVlan.class);
+            ethernetSwitchPortVlan.setId(id(vlan.getVlanId()));
             ethernetSwitchPortVlan.setName(vlan.getName());
             ethernetSwitchPortVlan.setDescription(vlan.getDescription());
             ethernetSwitchPortVlan.setVlanId(vlan.getVlanId());
@@ -82,14 +85,15 @@ public class PodManagerEthernetInterfaceDiscoveryHandler {
             ethernetSwitchPortVlan.setTagged(vlan.getTagged());
             ethernetSwitchPortVlan.setStatus(new Status(ENABLED, OK, null));
 
-            ethernetInterface.addVlan(ethernetSwitchPortVlan);
+            ethernetInterface.addEthernetSwitchPortVlan(ethernetSwitchPortVlan);
         }
     }
 
     private void addNetworkIpV4Addresses(EthernetInterfaceDto fromSystem, EthernetInterface ethernetInterface) {
         for (NetworkIpV4AddressDto dto : fromSystem.getIpV4Addresses()) {
-            IpV4Address ipAddress = ethernetInterface.addIpV4Address();
+            IpV4Address ipAddress = new IpV4Address();
             ipAddress.setAddress(dto.getAddress());
+            ethernetInterface.addIpV4Address(ipAddress);
         }
     }
 
@@ -122,6 +126,6 @@ public class PodManagerEthernetInterfaceDiscoveryHandler {
                 .forEach(ipAddress -> {
                     ipAddress.setGateway(fromConfig.getIpV4Address().getGateway());
                     ipAddress.setSubnetMask(fromConfig.getIpV4Address().getSubnetMask());
-        });
+                });
     }
 }

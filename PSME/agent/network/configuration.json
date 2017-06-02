@@ -56,6 +56,7 @@
             ]
         }
     ],
+    "service-uuid-file" : "/var/opt/psme/network-service-uuid.json",
     "logger" : {
         "agent" : {
             "level" : "WARNING",

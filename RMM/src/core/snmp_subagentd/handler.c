@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 #include <net-snmp/session_api.h>
 #include <net-snmp/agent/net-snmp-agent-includes.h>
 #include "libsecurec/safe_lib.h"
-
+#include <stdlib.h>
 
 void *add_trap_ip(char* sink, const char* sinkport, char *com)
 {
@@ -28,7 +28,7 @@ void *add_trap_ip(char* sink, const char* sinkport, char *com)
     int version = SNMP_VERSION_2c;
     memset(&session, 0, sizeof(netsnmp_session));
 
-    //snmp_sess_init( &session ); 
+    //snmp_sess_init( &session );
     session.version = version;
     session.community = (u_char *)com;
     session.community_len = strnlen_s(com, RSIZE_MAX_STR);
@@ -40,6 +40,9 @@ void *add_trap_ip(char* sink, const char* sinkport, char *com)
         sesp = snmp_add(&session, t, NULL, NULL);
     }
     add_trap_session(sesp, pdutype, (pdutype == SNMP_MSG_INFORM), version);
+
+    // snmp_add copy session.
+    free(session.localname);
     return sesp;
 }
 

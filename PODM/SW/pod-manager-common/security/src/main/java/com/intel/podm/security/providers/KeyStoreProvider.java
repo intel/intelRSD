@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,12 @@
 package com.intel.podm.security.providers;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
+import com.intel.podm.config.base.Config;
+import com.intel.podm.config.base.Holder;
+import com.intel.podm.config.base.dto.SecurityConfig;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -26,14 +30,18 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-public class KeyStoreProvider {
+@Singleton
+class KeyStoreProvider {
 
-    private static final String CLIENT_KEYSTORE_PATH = "/var/lib/pod-manager/client.jks";
+    @Inject
+    private Logger logger;
 
-    private Logger logger = LoggerFactory.getLogger(KeyStoreProvider.class);
+    @Inject
+    @Config
+    private Holder<SecurityConfig> configHolder;
 
     KeyStore loadCertificate(String password) {
-        try (FileInputStream keystoreStream = new FileInputStream(CLIENT_KEYSTORE_PATH)) {
+        try (FileInputStream keystoreStream = new FileInputStream(configHolder.get().getClientKeystorePath())) {
             KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(keystoreStream, password.toCharArray());
             return keyStore;

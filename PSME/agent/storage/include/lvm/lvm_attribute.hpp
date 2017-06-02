@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief All Lvm attributes
  * */
 
-#ifndef PSME_AGENT_STORAGE_LVM_ATTRIBUTES_HPP
-#define PSME_AGENT_STORAGE_LVM_ATTRIBUTES_HPP
-
+#pragma once
 #include <cstdint>
 
 namespace agent {
@@ -41,7 +39,7 @@ static constexpr const char* STATE_ENABLED = "Enabled";
 /*! @brief Lvm state */
 static constexpr const char* STATE_DISABLED = "Disabled";
 /*! @brief Lvm state */
-static constexpr const char* STATE_STANDBY_OFFLINE = "StandbyOffline";
+static constexpr const char* STATE_OFFLINE = "Offline";
 
 /*! @brief Default flag for lvm handle */
 static constexpr const std::uint32_t FLAGS = 0;
@@ -96,4 +94,3 @@ static constexpr const char* LV_BOOTABLE_ATTR = "bootable";
 }
 }
 }
-#endif	/* PSME_AGENT_STORAGE_LVM_ATTRIBUTES_HPP */

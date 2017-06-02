@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,20 @@
 
 package com.intel.podm.assembly.tasks;
 
-import com.google.common.collect.Lists;
+import com.intel.podm.allocation.ComposedNodeStateChanger;
 import com.intel.podm.assembly.AssemblyException;
+import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.Id;
 
 import javax.ejb.Lock;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.collect.Maps.newHashMap;
+import static com.intel.podm.common.types.ComposedNodeState.FAILED;
+import static java.util.Collections.unmodifiableList;
 import static javax.ejb.LockType.WRITE;
 
 @Singleton
@@ -35,14 +38,20 @@ public class NodeTasksCoordinator {
     @Inject
     private NodeAssemblyTaskRunner nodeAssemblyTaskRunner;
 
-    private final Map<Id, List<NodeAssemblyTask>> tasks = newHashMap();
+    @Inject
+    private Logger logger;
+
+    @Inject
+    private ComposedNodeStateChanger composedNodeStateChanger;
+
+    private final Map<Id, List<NodeAssemblyTask>> tasks = new HashMap<>();
 
     public void setTasksForNode(Id composedNodeId, List<NodeAssemblyTask> tasksToAdd) {
         if (tasks.containsKey(composedNodeId)) {
             throw new IllegalStateException("Tasks for Composed Node [" + composedNodeId + "] have already been set.");
         }
 
-        tasks.put(composedNodeId, Lists.newArrayList(tasksToAdd));
+        tasks.put(composedNodeId, unmodifiableList(tasksToAdd));
     }
 
     public void runTasks(Id composedNodeId) throws AssemblyException {
@@ -51,7 +60,16 @@ public class NodeTasksCoordinator {
         }
 
         List<NodeAssemblyTask> tasksToRun = tasks.remove(composedNodeId);
-        nodeAssemblyTaskRunner.submitAll(composedNodeId, tasksToRun);
+
+        NodeAssemblyTaskChainBuilder.instance()
+                .prepareTaskChain(tasksToRun)
+                .forComposedNode(composedNodeId)
+                .useExceptionHandler(e -> {
+                    logger.e("Error when running task for ComposedNode: {}, details: {}", composedNodeId, e.getMessage(), e);
+                    composedNodeStateChanger.change(composedNodeId, FAILED);
+                })
+                .executeWith(nodeAssemblyTaskRunner);
+
     }
 
     public void removeAllTasks(Id composedNodeId) {

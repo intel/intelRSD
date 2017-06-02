@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,24 +18,22 @@ package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.PhysicalContext;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.IgnoreAutomaticOem;
 import com.intel.podm.redfish.json.templates.attributes.RackLocationAttributeJson;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "rackLocation",
-        "presence", "desiredSpeedPwm", "desiredSpeedRpm", "maxFansSupported", "numberOfFansPresent",
-        "volumetricAirflow", "temperatures", "status", "fans", "actions", "links"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "rackLocation",
+    "presence", "desiredSpeedPwm", "desiredSpeedRpm", "maxFansSupported", "numberOfFansPresent",
+    "volumetricAirflow", "temperatures", "status", "fans", "actions", "links"
 })
-public class ThermalZoneJson extends BaseJson {
-    public Id id;
-    public String name;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class ThermalZoneJson extends BaseResourceJson {
     public RackLocationAttributeJson rackLocation;
-    public String description;
     public String presence;
     public Integer maxFansSupported;
     @JsonProperty("DesiredSpeedPWM")
@@ -47,17 +45,18 @@ public class ThermalZoneJson extends BaseJson {
     public List<Temperature> temperatures = new ArrayList<>();
     public Status status;
     public List<Fan> fans = new ArrayList<>();
+    @IgnoreAutomaticOem
     public Object actions = new Object();
+    @IgnoreAutomaticOem
     public Object links = new Object();
 
-
     public ThermalZoneJson() {
-        super("#ThermalZone.1.0.0.ThermalZone");
+        super("#ThermalZone.v1_0_0.ThermalZone");
     }
 
     @JsonPropertyOrder({
-            "odataId", "memberId", "name",
-            "status", "reading", "readingUnits", "relatedItem", "oem"
+        "odataId", "memberId", "name",
+        "status", "reading", "readingUnits", "relatedItem", "oem"
     })
     public static class Fan {
         public String name;
@@ -68,8 +67,8 @@ public class ThermalZoneJson extends BaseJson {
     }
 
     @JsonPropertyOrder({
-            "odataId", "memberId", "name", "sensorNumber", "status",
-            "readingCelsius", "physicalContext", "relatedItem"
+        "odataId", "memberId", "name", "sensorNumber", "status",
+        "readingCelsius", "physicalContext", "relatedItem"
     })
     public static class Temperature {
         public String name;

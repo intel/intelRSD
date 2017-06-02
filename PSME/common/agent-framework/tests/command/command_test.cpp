@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,6 +93,7 @@ TEST_F(CommandTest, NegativeCommandExecuteNotImplemented) {
 
     EXPECT_THROW(command->execute(dummyArgIn, dummyArgOut),
                     agent_framework::exceptions::NotImplemented);
+    delete command;
 }
 
 TEST_F(CommandTest, NegativeCommandExecuteInvalidArgument) {
@@ -107,6 +108,7 @@ TEST_F(CommandTest, NegativeCommandExecuteInvalidArgument) {
     Command::Argument dummyArgOut;
 
     EXPECT_THROW(command->execute(dummyArgIn, dummyArgOut), InvalidArgument);
+    delete command;
 }
 
 TEST_F(CommandTest, NegativeGetCommandNotFound) {

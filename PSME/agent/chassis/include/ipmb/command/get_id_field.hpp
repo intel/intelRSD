@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,7 @@
  * @brief GetIdField IPMI command.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_COMMAND_GET_ID_FIELD_HPP
-#define AGENT_CHASSIS_IPMB_COMMAND_GET_ID_FIELD_HPP
-
+#pragma once
 #include <ipmb/command/command.hpp>
 
 #include <vector>
@@ -41,15 +39,15 @@ namespace ipmb {
 /*! Command namesapce */
 namespace command {
 
-/*! GetIDField command */
-class GetIDField final : public Command {
+/*! GetIdField command */
+class GetIdField final : public Command {
 public:
     /*! Default constructor */
-    GetIDField(){}
+    GetIdField(){}
     /*! Copy constructor */
-    GetIDField(const GetIDField&) = default;
+    GetIdField(const GetIdField&) = default;
     /*! Assigment construcor */
-    GetIDField& operator=(const GetIDField&) = default;
+    GetIdField& operator=(const GetIdField&) = default;
 
     /*!
      * Unpacks IPMI Message
@@ -65,22 +63,13 @@ public:
 
 private:
     static const constexpr uint8_t CMD_REQUEST_DATA_LENGTH = 1;
-    static const constexpr uint8_t CMD_MAX_FIELD_SIZE = 4;
-    static const constexpr uint8_t CMD_CURR_FIELD_SIZE = 4;
-    static const constexpr uint8_t CMD_RESPONSE_DATA_LENGTH = 3;
-
+    static const constexpr uint8_t CMD_MAX_STRING_FIELD_SIZE = 128;
+    static const constexpr uint8_t CMD_MAX_NUMERIC_FIELD_SIZE = sizeof(std::uint32_t);
     static const constexpr uint8_t CMD_TYPE_DEFAULT = 0x00;
 
-    static const constexpr uint8_t OFFSET_CC = 0;
-    static const constexpr uint8_t OFFSET_MAX_FIELD_SIZE = 1;
-    static const constexpr uint8_t OFFSET_CURR_FIELD_SIZE = 2;
-    static const constexpr uint8_t OFFSET_ID_FIELD_0 = 3;
-    static const constexpr uint8_t OFFSET_ID_FIELD_1 = 4;
-    static const constexpr uint8_t OFFSET_ID_FIELD_2 = 5;
-    static const constexpr uint8_t OFFSET_ID_FIELD_3 = 6;
-
-    uint32_t get_tray_ruid();
-    uint32_t get_rack_puid();
+    std::vector<uint8_t> get_tray_ruid() const;
+    std::vector<uint8_t> get_rack_puid() const;
+    std::vector<uint8_t> get_rack_location_id() const;
     void populate(IpmiMessage& msg);
 
     class Request final : public Command::Request {
@@ -104,9 +93,8 @@ private:
     };
 
     class Response final : public Command::Response {
-        uint8_t m_max_field_size{4};
-        uint8_t m_curr_field_size{4};
-        uint32_t m_id_field{};
+        uint8_t m_max_field_size{};
+        std::vector<uint8_t> m_field{};
     public:
         /*!
          * Fill data buffer
@@ -130,35 +118,27 @@ private:
         }
 
         /*!
-         * Set curr field size.
-         * @param size Curr field size
-         * */
-        void set_curr_field_size(const uint8_t size) {
-            m_curr_field_size = size;
-        }
-
-        /*!
          * Get curr field size
          * @return Returns curr field size
          * */
-        uint8_t get_curr_field_size() {
-            return m_curr_field_size;
+        uint8_t get_curr_field_size() const {
+            return uint8_t(m_field.size());
         }
 
         /*!
-         * Set ID Field
-         * @param id Id Field
+         * Set Field
+         * @param field Field
          * */
-        void set_id_field(const uint32_t id) {
-            m_id_field = id;
+        void set_field(std::vector<uint8_t>&& field) {
+            m_field = std::move(field);
         }
 
         /*!
          * Get ID Filed
          * @returns ID Field
          * */
-        uint32_t get_id_field() const {
-            return m_id_field;
+        const std::vector<uint8_t>& get_field() const {
+            return m_field;
         }
     };
 
@@ -172,4 +152,3 @@ private:
 }
 }
 
-#endif /* AGENT_CHASSIS_IPMB_COMMAND_GET_ID_FIELD_HPP */

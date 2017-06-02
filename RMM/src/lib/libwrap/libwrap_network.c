@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -238,7 +238,7 @@ result_t libwrap_manager_eth_inf_init(mngr_eth_inf_t *eth_inf, int32 inf_id)
 
 	libutils_net_get_ip(ifname, eth_inf->ipv4_addr.address, IPV4_ADDR_LEN);
 	libutils_net_get_mask(ifname, eth_inf->ipv4_addr.subnet_mask, IPV4_ADDR_LEN);
-	snprintf_s_s(eth_inf->ipv4_addr.addr_origin, NAME_LEN, "%s", "DHCP");
+	libutils_net_get_origin(ifname, eth_inf->ipv4_addr.addr_origin);
 	libutils_net_get_gateway(ifname, eth_inf->ipv4_addr.gateway, IPV4_ADDR_LEN);
 
 	snprintf_s_i(eth_inf->vlans, URL_LEN, "/redfish/v1/Managers/RMC/EthernetInterfaces/%d/VLANs", inf_id);
@@ -269,7 +269,7 @@ static result_t libwrap_pack_vlan_inf_ipv4_addr(json_t *ipv4_array, int32 inf_id
 		libutils_net_get_mask(ifname, eth_inf.ipv4_addr.subnet_mask, IPV4_ADDR_LEN);
 		if ((strlen(eth_inf.ipv4_addr.address) == 0) || (strlen(eth_inf.ipv4_addr.subnet_mask) == 0))
 			continue;
-		snprintf_s_s(eth_inf.ipv4_addr.addr_origin, NAME_LEN, "%s", "DHCP");
+		libutils_net_get_origin(ifname, eth_inf.ipv4_addr.addr_origin);
 		libutils_net_get_gateway(ifname, eth_inf.ipv4_addr.gateway, IPV4_ADDR_LEN);
 
 		ipv4_addr = json_object();
@@ -492,7 +492,7 @@ void update_href_host(int8 *href, int32 len, int8 *host)
 	int32 port = 0;
 	char url[96] = {};
 
-	sscanf(href, "http://%d.%d.%d.%d:%d%s", &ip[0],&ip[1],&ip[2],&ip[3], &port, url);
+	sscanf(href, "http://%d.%d.%d.%d:%d%95s", &ip[0],&ip[1],&ip[2],&ip[3], &port, url);
 	snprintf_s_ss(href, len, "http://%s%s", host, url);
 }
 

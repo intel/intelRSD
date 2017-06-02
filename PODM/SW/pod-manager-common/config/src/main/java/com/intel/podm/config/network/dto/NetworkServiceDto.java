@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,21 @@ package com.intel.podm.config.network.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.Health;
 import com.intel.podm.common.types.State;
+import com.intel.podm.common.types.Status;
 
+import static com.intel.podm.common.types.State.DISABLED;
+
+@SuppressWarnings({"checkstyle:MethodCount"})
 public class NetworkServiceDto {
+
+    private static final String DEFAULT_NAME = "Pod Manager Network Service";
+
     @JsonProperty("Name")
-    private String name;
+    private String name = DEFAULT_NAME;
     @JsonProperty("Description")
-    private String description;
+    private String description = DEFAULT_NAME;
     @JsonProperty("State")
-    private State state;
+    private State state = DISABLED;
     @JsonProperty("Health")
     private Health health;
     @JsonProperty("HostName")
@@ -66,6 +73,10 @@ public class NetworkServiceDto {
 
     public State getState() {
         return state;
+    }
+
+    public Status getStatus() {
+        return new Status(getState(), getHealth(), null);
     }
 
     public String getHostName() {

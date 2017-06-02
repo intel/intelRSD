@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,15 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.intel.podm.client.api.resources.redfish.SimpleStorageDeviceResource;
 import com.intel.podm.common.types.Status;
+import com.intel.podm.common.types.redfish.IgnoreAutomaticOem;
 
 import java.math.BigDecimal;
+
+import static com.intel.podm.client.resources.UnknownOemsHelper.convertJsonNodeToString;
 
 public class SimpleStorageDeviceResourceImpl implements SimpleStorageDeviceResource {
     @JsonProperty("Name")
@@ -37,6 +42,9 @@ public class SimpleStorageDeviceResourceImpl implements SimpleStorageDeviceResou
 
     @JsonProperty("CapacityBytes")
     private BigDecimal capacityBytes;
+
+    @IgnoreAutomaticOem
+    private String oem;
 
     @Override
     public String getName() {
@@ -61,5 +69,15 @@ public class SimpleStorageDeviceResourceImpl implements SimpleStorageDeviceResou
     @Override
     public BigDecimal getCapacityBytes() {
         return capacityBytes;
+    }
+
+    @Override
+    public String getOem() {
+        return oem;
+    }
+
+    @JsonProperty("Oem")
+    public void setOem(JsonNode jsonNode) throws JsonProcessingException {
+        oem = convertJsonNodeToString(jsonNode);
     }
 }

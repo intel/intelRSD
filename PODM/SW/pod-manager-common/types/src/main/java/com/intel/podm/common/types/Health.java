@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,30 @@
 
 package com.intel.podm.common.types;
 
-public enum Health {
-    OK(1),
-    Warning(2),
-    Critical(3),
-    Degraded(4); //TODO: only for Dell's PSME integration
+public enum Health implements EnumeratedType {
+    OK("OK"),
+    WARNING("Warning"),
+    CRITICAL("Critical"),
 
-    /* Used for state aggregation */
-    private int severity;
+    /**
+     * @deprecated this value is for backward compatibility only, to be removed in next SW versions
+     */
+    @Deprecated
+    DEGRADED("Degraded");
 
-    Health(int severity) {
-        this.severity = severity;
+    private final String value;
+
+    Health(String value) {
+        this.value = value;
     }
 
-    public Integer getSeverity() {
-        return severity;
+    @Override
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
+        return getValue();
     }
 }

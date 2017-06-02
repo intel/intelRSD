@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,15 +16,11 @@
 #
 # </license_header>
 
+if (NOT FM10KD_FOUND)
+    find_path(fm10kd_include acl_nl_cmds.h)
 
-find_file(FM10K_ACL_LIBRARY acl_nl_cmds.h
-        PATHS "/usr"
-    )
-
-if (FM10K_ACL_LIBRARY)
-    set(FM10K_ACL_FOUND TRUE)
-else()
-    set(FM10K_ACL_FOUND FALSE)
-    message(WARNING "PSME Network will not be compiled, a header from fm10kd-devel package is missing.")
+    if (fm10kd_include)
+        set(FM10KD_INCLUDE_DIRS ${fm10kd_include})
+        set(FM10KD_FOUND TRUE)
+    endif()
 endif()
-

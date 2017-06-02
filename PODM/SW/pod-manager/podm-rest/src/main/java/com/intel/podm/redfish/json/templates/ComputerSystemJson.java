@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,33 +18,39 @@ package com.intel.podm.redfish.json.templates;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.common.types.BootSourceMode;
 import com.intel.podm.common.types.BootSourceState;
 import com.intel.podm.common.types.BootSourceType;
-import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.DiscoveryState;
 import com.intel.podm.common.types.IndicatorLed;
 import com.intel.podm.common.types.PowerState;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.SystemType;
-import com.intel.podm.redfish.json.templates.actions.ResetActionJson;
-import com.intel.podm.redfish.json.templates.actions.StartDeepDiscoveryActionJson;
-import com.intel.podm.redfish.json.templates.attributes.SystemOemJson;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.common.types.redfish.OemType;
+import com.intel.podm.redfish.json.templates.attributes.ComputerSystemDeviceJson;
+import com.intel.podm.redfish.json.templates.attributes.ResetActionJson;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
-@JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "id", "name", "systemType", "assetTag", "manufacturer", "model",
-        "sku", "serialNumber", "partNumber", "description", "uuid", "hostName", "status", "indicatorLed", "powerState",
-        "boot", "biosVersion", "processorSummary", "memorySummary", "processors", "ethernetInterfaces", "simpleStorage",
-        "memory", "memoryChunks", "links", "actions", "oem"
-})
-public class ComputerSystemJson extends BaseJson {
+import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_ACTIONS;
+import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
-    public Id id;
-    public String name;
+@JsonPropertyOrder({
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "systemType", "assetTag", "manufacturer", "model",
+    "sku", "serialNumber", "partNumber", "description", "uuid", "hostName", "status", "indicatorLed", "powerState",
+    "boot", "biosVersion", "processorSummary", "memorySummary", "processors", "ethernetInterfaces", "simpleStorage",
+    "storage", "memory", "pcieDevices", "pcieDeviceFunctions", "networkInterfaces", "links", "actions", "oem"
+})
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:VisibilityModifier"})
+public class ComputerSystemJson extends BaseResourceJson {
     public SystemType systemType;
     public String assetTag;
     public String manufacturer;
@@ -53,7 +59,6 @@ public class ComputerSystemJson extends BaseJson {
     public String sku;
     public String serialNumber;
     public String partNumber;
-    public String description;
     @JsonProperty("UUID")
     public UUID uuid;
     public String hostName;
@@ -68,21 +73,19 @@ public class ComputerSystemJson extends BaseJson {
     public ODataId processors;
     public ODataId ethernetInterfaces;
     public ODataId simpleStorage;
+    public ODataId storage;
     public ODataId memory;
-    public ODataId memoryChunks;
+    @JsonProperty("PCIeDevices")
+    public Set<ODataId> pcieDevices = new HashSet<>();
+    @JsonProperty("PCIeFunctions")
+    public Set<ODataId> pcieDeviceFunctions = new HashSet<>();
+    public ODataId networkInterfaces;
     public Links links = new Links();
     public Actions actions = new Actions();
-    public SystemOemJson oem = new SystemOemJson();
+    public Oem oem = new Oem();
 
-    public ComputerSystemJson(String oDataType) {
-        super(oDataType);
-    }
-
-    @JsonPropertyOrder({"chassis", "managedBy", "oem"})
-    public static final class Links {
-        public List<ODataId> chassis = new ArrayList<>();
-        public List<ODataId> managedBy = new ArrayList<>();
-        public Object oem = new Object();
+    public ComputerSystemJson() {
+        super("#ComputerSystem.v1_3_0.ComputerSystem");
     }
 
     @JsonPropertyOrder({"count", "model", "status"})
@@ -94,33 +97,74 @@ public class ComputerSystemJson extends BaseJson {
 
     @JsonPropertyOrder({"totalSystemMemoryGiB", "status"})
     public static final class MemorySummary {
-        public Integer totalSystemMemoryGiB;
+        public BigDecimal totalSystemMemoryGiB;
         public Status status;
     }
 
-    @JsonPropertyOrder({"bootSourceOverrideEnabled", "bootSourceOverrideTarget", "bootSourceAllowableValues"})
+    @JsonPropertyOrder({"@odata.type", "bootSourceOverrideEnabled", "bootSourceOverrideTarget", "bootSourceAllowableValues",
+        "bootSourceOverrideMode", "bootSourceOverrideModeAllowableValues"})
     public static class Boot {
+        @JsonProperty("@odata.type")
+        public String oDataType;
         public BootSourceState bootSourceOverrideEnabled;
         public BootSourceType bootSourceOverrideTarget;
         @JsonProperty("BootSourceOverrideTarget@Redfish.AllowableValues")
         public List<BootSourceType> bootSourceAllowableValues = new LinkedList<>();
+        public BootSourceMode bootSourceOverrideMode;
+        @JsonProperty("BootSourceOverrideMode@Redfish.AllowableValues")
+        public List<BootSourceMode> bootSourceOverrideModeAllowableValues = new LinkedList<>();
     }
 
-    @JsonPropertyOrder({"resetActionJson", "oem"})
-    public static class Actions {
-        @JsonProperty("#ComputerSystem.Reset")
-        public ResetActionJson resetActionJson = new ResetActionJson();
-
+    @JsonPropertyOrder({"@odata.type", "chassis", "managedBy", "endpoints", "oem"})
+    public class Links extends RedfishLinksJson {
+        @JsonProperty("@odata.type")
+        public final String oDataType = "#ComputerSystem.v1_2_0.Links";
+        public Set<ODataId> chassis = new HashSet<>();
+        public Set<ODataId> managedBy = new HashSet<>();
+        public Set<ODataId> endpoints = new HashSet<>();
         public Oem oem = new Oem();
 
-        public static class Oem {
-            @JsonProperty("Intel_RackScale")
-            public RackScaleOem rackScaleOem = new RackScaleOem();
+        @OemType(OEM_IN_LINKS)
+        public class Oem extends RedfishOemJson {
+        }
+    }
 
-            public static class RackScaleOem {
-                @JsonProperty("#ComputerSystem.StartDeepDiscovery")
-                public StartDeepDiscoveryActionJson startDeepDiscoveryActionJson = new StartDeepDiscoveryActionJson();
+    @JsonPropertyOrder({"reset", "oem"})
+    public class Actions extends RedfishActionsJson {
+        @JsonProperty("#ComputerSystem.Reset")
+        public ResetActionJson reset = new ResetActionJson();
+        @JsonProperty("Oem")
+        public Oem oem = new Oem();
+
+        @OemType(OEM_IN_ACTIONS)
+        public class Oem extends RedfishOemJson {
+            @JsonProperty("#Intel.Oem.StartDeepDiscovery")
+            public StartDeepDiscoveryAction startDeepDiscovery = new StartDeepDiscoveryAction();
+
+            public class StartDeepDiscoveryAction {
+                @JsonProperty("target")
+                public String target;
             }
+        }
+    }
+
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOemJson {
+        @JsonProperty("Intel_RackScale")
+        public RackScaleOem rackScaleOem = new RackScaleOem();
+
+        @JsonPropertyOrder({
+            "odataType", "pciDevices", "pcieConnectionId", "discoveryState", "processorSockets", "memorySockets"
+        })
+        public class RackScaleOem {
+            @JsonProperty("@odata.type")
+            public String odataType;
+            public List<ComputerSystemDeviceJson> pciDevices = new ArrayList<>();
+            public DiscoveryState discoveryState;
+            public Integer processorSockets;
+            public Integer memorySockets;
+            @JsonProperty("PCIeConnectionId")
+            public List<String> pcieConnectionId;
         }
     }
 }

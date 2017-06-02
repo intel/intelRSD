@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,20 +26,19 @@
  * @brief Netlink utilities.
  * */
 
-#include "netlink/socket.hpp"
 #include "netlink/utils.hpp"
+#include "netlink/fdb_info_message.hpp"
 
 using namespace netlink_base;
+using namespace std;
 
-std::string netlink_base::utils::get_neighbor_mac_address(const std::string& port_identifier) {
-    Socket socket{};
-    Message message{port_identifier};
-    /* connect to the netlink */
-    socket.connect();
-    message.set_type(RTM_GETNEIGH);
-    message.set_flags(NLM_F_DUMP | NLM_F_REQUEST);
-    socket.modify_callback(Message::read_neighbour, &message);
-    socket.send_rtnl_message(message);
-    socket.receive_to_callback(message);
-    return message.get_address();
+string netlink_base::utils::get_neighbor_mac_address(const string& port_identifier) {
+    FdbInfoMessage msg{port_identifier};
+    string address{};
+
+    msg.send();
+    if (!msg.get_entries().empty()) {
+        address = msg.get_entries()[0].get_mac();
+    }
+    return address;
 }

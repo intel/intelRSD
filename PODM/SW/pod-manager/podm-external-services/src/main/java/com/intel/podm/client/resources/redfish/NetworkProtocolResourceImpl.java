@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import com.intel.podm.common.types.NotifyIpV6Scope;
 import com.intel.podm.common.types.Status;
 
 @OdataTypes({
-        "#ManagerNetworkProtocol.1.0.0.ManagerNetworkProtocol",
-        "#ManagerNetworkService.1.0.0.ManagerNetworkService",
-        "#NetworkService.1.0.0.NetworkService",
-        "#ManagerNetworkProtocol.v1_0_0.ManagerNetworkProtocol"
+        "#ManagerNetworkProtocol" + OdataTypes.VERSION_PATTERN + "ManagerNetworkProtocol",
+        "#ManagerNetworkService" + OdataTypes.VERSION_PATTERN + "ManagerNetworkService",
+        "#NetworkService" + OdataTypes.VERSION_PATTERN + "NetworkService"
 })
+@SuppressWarnings({"checkstyle:MethodCount"})
 public class NetworkProtocolResourceImpl extends ExternalServiceResourceImpl implements NetworkProtocolResource {
     @JsonProperty ("Status")
     private Status status;

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---->
+<!--################################################################################       -->
+<!--# Redfish Schema:  NetworkDeviceFunction  v1.0.0-->
+<!--#                                                                                      -->
+<!--# For a detailed change log, see the README file contained in the DSP8010 bundle,      -->
+<!--# available at http://www.dmtf.org/standards/redfish                                   -->
+<!--# Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF).                  -->
+<!--# For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright -->
+<!--################################################################################       -->
+<!---->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation" />
+  </edmx:Reference>
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="NetworkDeviceFunction">
+
+      <EntityType Name="NetworkDeviceFunction" BaseType="Resource.v1_0_0.Resource" Abstract="true">
+        <Annotation Term="OData.Description" String="A Network Device Function represents a logical interface exposed by the network adapter."/>
+        <Annotation Term="OData.LongDescription" String="A Network Device Function represents a logical interface exposed by the network adapter."/>
+      </EntityType>
+
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="NetworkDeviceFunction.v1_0_0">
+
+      <EntityType Name="NetworkDeviceFunction" BaseType="NetworkDeviceFunction.NetworkDeviceFunction">
+        <Annotation Term="OData.Description" String="A Network Device Function represents a logical interface exposed by the network adapter."/>
+        <Annotation Term="OData.LongDescription" String="A Network Device Function represents a logical interface exposed by the network adapter."/>
+        <Property Name="Status" Type="Resource.Status"/>
+        <Property Name="DeviceEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Whether the network device function is enabled."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a boolean indicating whether the network device function is enabled.  Disabled network device functions shall not be enumerated or seen by the operating system."/>
+        </Property>
+        <Property Name="Ethernet" Type="NetworkDeviceFunction.v1_0_0.Ethernet">
+          <Annotation Term="OData.Description" String="Ethernet."/>
+          <Annotation Term="OData.LongDescription" String="This object shall contain Ethernet capabilities for this network device function."/>
+        </Property>
+        <Property Name="iSCSIBoot" Type="NetworkDeviceFunction.v1_0_0.iSCSIBoot">
+          <Annotation Term="OData.Description" String="iSCSI Boot."/>
+          <Annotation Term="OData.LongDescription" String="This object shall contain iSCSI boot capabilities, status, and configuration values for this network device function."/>
+        </Property>
+        <Property Name="Links" Type="NetworkDeviceFunction.v1_0_0.Links" Nullable="false">
+          <Annotation Term="OData.Description" String="Links."/>
+          <Annotation Term="OData.LongDescription" String="Links for this NetworkDeviceFunction."/>
+        </Property>
+      </EntityType>
+
+      <ComplexType Name="Ethernet">
+        <Property Name="MACAddress" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="This is the currently configured MAC address of the (logical port) network device function."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the effective current MAC Address of this network device function. If an assignable MAC address is not supported, this is a read only alias of the PermanentMACAddress."/>
+          <Annotation Term="Validation.Pattern" String="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$" />
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="Links">
+      </ComplexType>
+
+      <ComplexType Name="iSCSIBoot">
+        <Property Name="IPAddressType" Type="NetworkDeviceFunction.v1_0_0.IPAddressType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The type of IP address (IPv6 or IPv4) being populated in the iSCSIBoot IP address fields."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be type of IP address (IPv6 or IPv4) being populated in the iSCSIBoot IP address fields.  Mixing of IPv6 and IPv4 addresses on the same network device function shall not be permissible."/>
+        </Property>
+        <Property Name="InitiatorIPAddress" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The IPv6 or IPv4 address of the iSCSI initiator."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the IPv6 or IPv4 address of the iSCSI boot initiator."/>
+        </Property>
+        <Property Name="InitiatorName" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The iSCSI initiator name."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the iSCSI boot initiator name."/>
+        </Property>
+        <Property Name="InitiatorDefaultGateway" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The IPv6 or IPv4 iSCSI boot default gateway."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the IPv6 or IPv4 iSCSI boot default gateway."/>
+        </Property>
+        <Property Name="InitiatorNetmask" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The IPv6 or IPv4 netmask of the iSCSI boot initiator."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the IPv6 or IPv4 netmask of the iSCSI boot initiator."/>
+        </Property>
+        <Property Name="TargetInfoViaDHCP" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Whether the iSCSI boot target name, LUN, IP address, and netmask should be obtained from DHCP."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a boolean indicating whether the iSCSI boot target name, LUN, IP address, and netmask should be obtained from DHCP."/>
+        </Property>
+        <Property Name="PrimaryTargetName" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The name of the iSCSI primary boot target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the name of the primary iSCSI boot target (iSCSI Qualified Name, IQN)."/>
+        </Property>
+        <Property Name="PrimaryTargetIPAddress" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The IP address (IPv6 or IPv4) for the primary iSCSI boot target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the IP address (IPv6 or IPv4) for the primary iSCSI boot target."/>
+        </Property>
+        <Property Name="PrimaryTargetTCPPort" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The TCP port for the primary iSCSI boot target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the TCP port for the primary iSCSI boot target."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="65535"/>
+        </Property>
+        <Property Name="PrimaryLUN" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The logical unit number (LUN) for the primary iSCSI boot target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the logical unit number (LUN) for the primary iSCSI boot target."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+        </Property>
+        <Property Name="PrimaryVLANEnable" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="This indicates if the primary VLAN is enabled."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be used to indicate if PrimaryVLANId is enabled for the primary iSCSI boot target."/>
+        </Property>
+        <Property Name="PrimaryVLANId" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The 802.1q VLAN ID to use for iSCSI boot from the primary target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the 802.1q VLAN ID to use for iSCSI boot from the primary target.  This VLAN ID is only used if PrimaryVLANEnable is true."/>
+          <Annotation Term="Validation.Minimum" Int="1"/>
+          <Annotation Term="Validation.Minimum" Int="4094"/>
+        </Property>
+        <Property Name="PrimaryDNS" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The IPv6 or IPv4 address of the primary DNS server for the iSCSI boot initiator."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the IPv6 or IPv4 address of the primary DNS server for the iSCSI boot initiator."/>
+        </Property>
+        <Property Name="SecondaryTargetName" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The name of the iSCSI secondary boot target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the name of the secondary iSCSI boot target (iSCSI Qualified Name, IQN)."/>
+        </Property>
+        <Property Name="SecondaryTargetIPAddress" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The IP address (IPv6 or IPv4) for the secondary iSCSI boot target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the IP address (IPv6 or IPv4) for the secondary iSCSI boot target."/>
+        </Property>
+        <Property Name="SecondaryTargetTCPPort" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The TCP port for the secondary iSCSI boot target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the TCP port for the secondary iSCSI boot target."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Minimum" Int="65535"/>
+        </Property>
+        <Property Name="SecondaryLUN" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The logical unit number (LUN) for the secondary iSCSI boot target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the logical unit number (LUN) for the secondary iSCSI boot target."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+        </Property>
+        <Property Name="SecondaryVLANEnable" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="This indicates if the secondary VLAN is enabled."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be used to indicate if this VLAN is enabled for the secondary iSCSI boot target."/>
+        </Property>
+        <Property Name="SecondaryVLANId" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The 802.1q VLAN ID to use for iSCSI boot from the secondary target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the 802.1q VLAN ID to use for iSCSI boot from the secondary target.  This VLAN ID is only used if SecondaryVLANEnable is true."/>
+          <Annotation Term="Validation.Minimum" Int="1"/>
+          <Annotation Term="Validation.Minimum" Int="4094"/>
+        </Property>
+        <Property Name="SecondaryDNS" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The IPv6 or IPv4 address of the secondary DNS server for the iSCSI boot initiator."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the IPv6 or IPv4 address of the secondary DNS server for the iSCSI boot initiator."/>
+        </Property>
+        <Property Name="IPMaskDNSViaDHCP" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Whether the iSCSI boot initiator uses DHCP to obtain the iniator name, IP address, and netmask."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a boolean indicating whether the iSCSI boot initiator uses DHCP to obtain the iniator name, IP address, and netmask."/>
+        </Property>
+        <Property Name="RouterAdvertisementEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Whether IPv6 router advertisement is enabled for the iSCSI boot target."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a boolean indicating whether IPv6 router advertisement is enabled for the iSCSI boot target.  This setting shall only apply to IPv6 configurations."/>
+        </Property>
+        <Property Name="AuthenticationMethod" Type="NetworkDeviceFunction.v1_0_0.AuthenticationMethod">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The iSCSI boot authentication method for this network device function."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the iSCSI boot authentication method for this network device function."/>
+        </Property>
+        <Property Name="CHAPUsername" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The username for CHAP authentication."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be username for CHAP authentication."/>
+        </Property>
+        <Property Name="CHAPSecret" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The shared secret for CHAP authentication."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the shared secret for CHAP authentication."/>
+        </Property>
+        <Property Name="MutualCHAPUsername" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The CHAP Username for 2-way CHAP authentication."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the CHAP Username for 2-way CHAP authentication."/>
+        </Property>
+        <Property Name="MutualCHAPSecret" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The CHAP Secret for 2-way CHAP authentication."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the CHAP Secret for 2-way CHAP authentication."/>
+        </Property>
+      </ComplexType>
+
+      <EnumType Name="IPAddressType">
+        <Member Name="IPv4">
+          <Annotation Term="OData.Description" String="IPv4 addressing is used for all IP-fields in this object." />
+        </Member>
+        <Member Name="IPv6">
+          <Annotation Term="OData.Description" String="IPv6 addressing is used for all IP-fields in this object." />
+        </Member>
+      </EnumType>
+
+      <EnumType Name="AuthenticationMethod">
+        <Member Name="None">
+          <Annotation Term="OData.Description" String="No iSCSI authentication is used." />
+        </Member>
+        <Member Name="CHAP">
+          <Annotation Term="OData.Description" String="iSCSI Challenge Handshake Authentication Protocol (CHAP) authentication is used." />
+        </Member>
+        <Member Name="MutualCHAP">
+          <Annotation Term="OData.Description" String="iSCSI Mutual Challenge Handshake Authentication Protocol (CHAP) authentication is used." />
+        </Member>
+      </EnumType>
+
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

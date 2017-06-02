@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @brief Lvm clone task
  * */
 
-#ifndef PSME_AGENT_STORAGE_LVM_LVM_CLONE_TASK_HPP
-#define PSME_AGENT_STORAGE_LVM_LVM_CLONE_TASK_HPP
-
+#pragma once
 #include "lvm_create_data.hpp"
 
 namespace agent {
@@ -52,5 +50,4 @@ private:
 }
 }
 }
-#endif	/* PSME_AGENT_STORAGE_LVM_VOLUME_GROUP_HPP */
 

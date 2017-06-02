@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,23 +24,23 @@
 
 #include "iscsi/tgt/config/tgt_target_config.hpp"
 #include "iscsi/tgt/config/tgt_target_lun_config.hpp"
-#include <cstring>
-#include <sstream>
-#include <exception>
+
+
 
 using namespace agent::storage::iscsi::tgt::config;
+using namespace agent_framework::model;
 using namespace std;
 
 constexpr const char* TGT_CONFIG_PROPERTY_INITIATOR_NAME = "initiator-name";
 constexpr const char* TAB = "\t";
 
 const string TgtTargetConfig::to_string() const {
-    const auto& target_iqn = m_target->get_target_iqn();
-    if (target_iqn.empty()) {
+    const auto& target_iqn = m_target.get_target_iqn();
+    if (!target_iqn) {
         throw invalid_argument("Target iqn is empty");
     }
-    const auto& target_luns = m_target->get_target_lun();
-    if (0 == target_luns.size()) {
+    const auto& target_luns = m_target.get_target_lun();
+    if (0 == target_luns.get_array().size()) {
         throw invalid_argument("No lun for target");
     }
     ostringstream content;
@@ -49,7 +49,8 @@ const string TgtTargetConfig::to_string() const {
         TgtTargetLunConfig lunConf(lun);
         content << lunConf.to_string();
     }
-    if (!m_target->get_initiator_iqn().empty()) {
+
+    if (m_target.get_initiator_iqn().has_value() && !m_target.get_initiator_iqn().value().empty()) {
         content << TAB << get_target_initiator_address() << endl;
     }
     content << get_target_end_tag() << endl;
@@ -57,7 +58,9 @@ const string TgtTargetConfig::to_string() const {
 }
 
 const string TgtTargetConfig::get_target_begin_tag() const {
-    return "<target " + m_target->get_target_iqn() + ">";
+    ostringstream content{};
+    content << "<target " << m_target.get_target_iqn() << ">";
+    return content.str();
 }
 
 const string TgtTargetConfig::get_target_end_tag() const {
@@ -65,6 +68,6 @@ const string TgtTargetConfig::get_target_end_tag() const {
 }
 
 const string TgtTargetConfig::get_target_initiator_address() const {
-    return TGT_CONFIG_PROPERTY_INITIATOR_NAME + string(" ") + m_target->get_initiator_iqn();
+    return TGT_CONFIG_PROPERTY_INITIATOR_NAME + string(" ") + m_target.get_initiator_iqn();
 }
 

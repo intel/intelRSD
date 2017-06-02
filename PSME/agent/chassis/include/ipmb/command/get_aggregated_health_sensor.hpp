@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,7 @@
  * @brief GetAggregatedHealthSensor IPMI command.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_COMMAND_GET_AGGREGATED_HEALTH_SENSOR_HPP
-#define AGENT_CHASSIS_IPMB_COMMAND_GET_AGGREGATED_HEALTH_SENSOR_HPP
-
+#pragma once
 #include <ipmb/command/command.hpp>
 
 #include <vector>
@@ -108,5 +106,4 @@ private:
 }
 }
 }
-#endif /* AGENT_CHASSIS_IPMB_COMMAND_GET_AGGREGATED_HEALTH_SENSOR_HPP */
 

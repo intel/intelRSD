@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,12 +26,19 @@
 #include <sstream>
 
 using namespace agent::chassis::ipmb;
+using agent_framework::generic::Version;
 
-/* IPMI General */
-uint8_t agent::chassis::ipmb::IPMI_AUX_FW_REV_0() { return agent_framework::generic::Version::BUILD & 0xff; }
-uint8_t agent::chassis::ipmb::IPMI_AUX_FW_REV_1() { return (agent_framework::generic::Version::BUILD >> 8) & 0xff; }
-uint8_t agent::chassis::ipmb::IPMI_AUX_FW_REV_2() { return (agent_framework::generic::Version::BUILD >> 16) & 0xff; }
-uint8_t agent::chassis::ipmb::IPMI_AUX_FW_REV_3() { return (agent_framework::generic::Version::BUILD >> 24) & 0xff; }
+uint8_t agent::chassis::ipmb::IPMI_DEVICE_REV_MAJOR() {
+    return uint8_t(agent_framework::generic::get_version_component(Version::VERSION_STRING, Version::MAJOR_INDEX));
+}
+
+uint8_t agent::chassis::ipmb::IPMI_DEVICE_REV_MINOR() {
+    return uint8_t(agent_framework::generic::get_version_component(Version::VERSION_STRING, Version::MINOR_INDEX));
+}
+
+uint32_t agent::chassis::ipmb::IPMI_AUX_FW_REV() {
+    return uint32_t(agent_framework::generic::get_version_component(Version::VERSION_STRING, Version::BUILD_INDEX));
+}
 
 uint8_t agent::chassis::ipmb::IPMI_IANA_INTEL_0() { return (IPMI_IANA_INTEL & 0xff); }
 uint8_t agent::chassis::ipmb::IPMI_IANA_INTEL_1() { return (IPMI_IANA_INTEL >> 8) & 0xff; }

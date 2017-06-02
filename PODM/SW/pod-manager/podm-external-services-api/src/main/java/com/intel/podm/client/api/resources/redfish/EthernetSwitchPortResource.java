@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import com.intel.podm.common.types.net.MacAddress;
 
 import java.util.List;
 
-
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public interface EthernetSwitchPortResource extends ExternalServiceResource {
     String getPortId();
     Status getStatus();
@@ -45,8 +45,8 @@ public interface EthernetSwitchPortResource extends ExternalServiceResource {
     Boolean getAutosense();
     Boolean getFullDuplex();
     MacAddress getMacAddress();
-    List<? extends IpV4AddressObject> getIpV4Addresses();
-    List<? extends IpV6AddressObject> getIpV6Addresses();
+    List<IpV4AddressObject> getIpV4Addresses();
+    List<IpV6AddressObject> getIpV6Addresses();
     PortClass getPortClass();
     PortMode getPortMode();
     PortType getPortType();

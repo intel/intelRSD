@@ -12,6 +12,7 @@
         "interval": 3
     },
     "cyMux": {
+        "ipv4": "127.0.0.1",
         "port": 5623
     },
     "managers": [
@@ -21,7 +22,7 @@
              "size": 4,
              "locationOffset": 1,
              "networkInterface": "enp0s20f0.4094",
-             "parentId" : 1,
+             "parentId" : "1",
              "platform" : "BDCR",
              "type": "Drawer"
          },
@@ -62,6 +63,7 @@
          ]
        }
     ],
+    "service-uuid-file" : "/var/opt/psme/chassis-service-uuid.json",
     "logger" : {
         "agent" : {
             "level" : "INFO",

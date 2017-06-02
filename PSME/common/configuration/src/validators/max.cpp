@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,5 +40,5 @@ bool MaxValidator::is_valid(const json::Value& value) const {
 }
 
 std::string MaxValidator::get_error() const {
-    return "is not lower than " + std::to_string(m_max_value) + ".";
+    return "Field value is not lower than " + std::to_string(m_max_value) + ".";
 }

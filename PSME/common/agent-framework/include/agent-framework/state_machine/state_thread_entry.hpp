@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,9 @@
  * @brief State thread entry
  * */
 
-#ifndef AGENT_FRAMEWORK_STATE_MACHINE_STATE_THREAD_ENTRY_HPP
-#define AGENT_FRAMEWORK_STATE_MACHINE_STATE_THREAD_ENTRY_HPP
+#pragma once
+
+
 
 #include "agent-framework/state_machine/state_machine.hpp"
 
@@ -39,13 +40,23 @@ class StateThreadEntry {
 public:
     using StatusManagerSharedPtr = std::shared_ptr<StatusManager>;
 
+
     explicit StateThreadEntry(const std::string& module,
                               const StatusManagerSharedPtr& manager);
+
+
     ~StateThreadEntry();
+
 
     const std::string& get_module() const {
         return m_module;
     }
+
+
+    void update_module(const std::string& module) {
+        m_module = module;
+    }
+
 
     /*!
      * @brief Get module state.
@@ -55,24 +66,46 @@ public:
         return m_state_machine.get_state();
     }
 
+
     state_machine::enums::Transition get_transition() const {
         return m_state_machine.get_transition();
     }
 
+
     void next_state();
+
 
     bool is_state_changed() const {
         return m_state_machine.is_state_changed();
     }
+
+
+    /*!
+     * @brief Determine if the resources under a module has already been discovered.
+     * @return True if module has been discovered, false otherwise.
+     * */
+    bool was_discovered() const {
+        return m_was_discovered;
+    }
+
+
+    /*!
+     * @brief Set module discovery status.
+     * @param[in] discovered Module discovery status.
+     * */
+    void set_discovered(bool discovered) {
+        m_was_discovered = discovered;
+    }
+
 
 private:
     std::string m_module{};
     std::uint32_t m_starting_counter{0};
     StatusManagerSharedPtr m_manager;
     state_machine::StateMachine m_state_machine{};
+    bool m_was_discovered{false};
 };
 
 }
 }
 
-#endif /* AGENT_FRAMEWORK_STATE_MACHINE_STATE_THREAD_ENTRY_HPP */

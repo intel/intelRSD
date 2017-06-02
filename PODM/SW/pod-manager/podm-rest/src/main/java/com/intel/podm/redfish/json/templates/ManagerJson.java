@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,38 @@
 
 package com.intel.podm.redfish.json.templates;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.common.types.GeneralConnectType;
 import com.intel.podm.common.types.GraphicalConnectType;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.ManagerType;
+import com.intel.podm.common.types.PowerState;
 import com.intel.podm.common.types.Status;
-import com.intel.podm.rest.odataid.ODataId;
+import com.intel.podm.common.types.redfish.OemType;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.google.common.collect.Lists.newArrayList;
+import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
 
 @JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "id", "name", "managerType", "description",
-        "serviceEntryPointUuid", "uuid", "model", "status", "graphicalConsole", "serialConsole",
-        "commandShell", "firmwareVersion", "networkProtocol", "ethernetInterfaces", "links", "actions", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "managerType", "description",
+    "serviceEntryPointUuid", "uuid", "model", "status", "powerState", "graphicalConsole", "serialConsole",
+    "commandShell", "firmwareVersion", "networkProtocol", "ethernetInterfaces", "links", "actions", "oem"
 })
-public class ManagerJson extends BaseJson {
-    public Id id;
-    public String name;
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class ManagerJson extends BaseResourceJson {
     public ManagerType managerType;
-    public String description;
     @JsonProperty("ServiceEntryPointUUID")
     @JsonInclude(NON_NULL)
     public UUID serviceEntryPointUuid;
@@ -52,20 +55,21 @@ public class ManagerJson extends BaseJson {
     public UUID uuid;
     public String model;
     public Status status;
-    @JsonInclude(NON_NULL)
+    public PowerState powerState;
+    @JsonInclude(NON_DEFAULT)
     public GraphicalConsole graphicalConsole;
-    @JsonInclude(NON_NULL)
+    @JsonInclude(NON_DEFAULT)
     public Console serialConsole;
-    @JsonInclude(NON_NULL)
+    @JsonInclude(NON_DEFAULT)
     public Console commandShell;
     public String firmwareVersion;
+    @JsonInclude(NON_NULL)
     public ODataId networkProtocol;
     public ODataId ethernetInterfaces;
-    public final Links links = new Links();
-    public final Object oem = new Object();
+    public Links links = new Links();
 
     public ManagerJson() {
-        super("#Manager.1.1.0.Manager");
+        super("#Manager.v1_2_0.Manager");
     }
 
     @JsonPropertyOrder({"serviceEnabled", "maxConcurrentSessions", "connectTypesSupported"})
@@ -77,7 +81,35 @@ public class ManagerJson extends BaseJson {
         public Integer maxConcurrentSessions;
 
         @JsonInclude(NON_EMPTY)
-        public final List<GeneralConnectType> connectTypesSupported = newArrayList();
+        public final List<GeneralConnectType> connectTypesSupported = new ArrayList<>();
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Console console = (Console) o;
+
+            return new EqualsBuilder()
+                .append(serviceEnabled, console.serviceEnabled)
+                .append(maxConcurrentSessions, console.maxConcurrentSessions)
+                .append(connectTypesSupported, console.connectTypesSupported)
+                .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder()
+                .append(serviceEnabled)
+                .append(maxConcurrentSessions)
+                .append(connectTypesSupported)
+                .toHashCode();
+        }
     }
 
     @JsonPropertyOrder({"serviceEnabled", "maxConcurrentSessions", "connectTypesSupported"})
@@ -89,39 +121,69 @@ public class ManagerJson extends BaseJson {
         public Integer maxConcurrentSessions;
 
         @JsonInclude(NON_EMPTY)
-        public final List<GraphicalConnectType> connectTypesSupported = newArrayList();
+        public final List<GraphicalConnectType> connectTypesSupported = new ArrayList<>();
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            GraphicalConsole that = (GraphicalConsole) o;
+
+            return new EqualsBuilder()
+                .append(serviceEnabled, that.serviceEnabled)
+                .append(maxConcurrentSessions, that.maxConcurrentSessions)
+                .append(connectTypesSupported, that.connectTypesSupported)
+                .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder()
+                .append(serviceEnabled)
+                .append(maxConcurrentSessions)
+                .append(connectTypesSupported)
+                .toHashCode();
+        }
     }
 
-    @JsonPropertyOrder({"@odata.type", "managedComputerSystems", "managedChassisCollection", "managerInChassis", "managedEthernetSwitches", "oem"})
-    public static final class Links {
+    @JsonPropertyOrder({"@odata.type", "managedComputerSystems", "managedChassisCollection", "managerInChassis", "oem"})
+    public final class Links extends RedfishLinksJson {
         @JsonProperty("@odata.type")
-        public String oDataType = "#Manager.1.1.0.Links";
+        public String oDataType;
 
         @JsonProperty("ManagerForServers")
-        public Collection<ODataId> managedComputerSystems = newArrayList();
+        public Set<ODataId> managedComputerSystems = new HashSet<>();
 
         @JsonProperty("ManagerForChassis")
-        public Collection<ODataId> managedChassisCollection = newArrayList();
+        public Set<ODataId> managedChassisCollection = new HashSet<>();
 
+        @JsonInclude(NON_NULL)
         public ODataId managerInChassis;
-
-        @JsonProperty("ManagerForSwitches")
-        public Collection<ODataId> managedEthernetSwitches = newArrayList();
 
         @JsonProperty("Oem")
         public Oem oem = new Oem();
 
-        public static final class Oem {
+        @OemType(OEM_IN_LINKS)
+        public final class Oem extends RedfishOemJson {
             @JsonProperty("Intel_RackScale")
             public RackScaleOem rackScaleOem = new RackScaleOem();
 
-            @JsonIgnoreProperties(ignoreUnknown = true)
-            public static final class RackScaleOem {
+            @JsonPropertyOrder({"@odata.type", "managerForServices", "managedEthernetSwitches", "managerForPcieSwitches", "managerForPcieDevices"})
+            public final class RackScaleOem {
                 @JsonProperty("@odata.type")
                 public String oDataType;
 
                 @JsonProperty("ManagerForServices")
-                public Collection<ODataId> managerForServices = newArrayList();
+                public Set<ODataId> managerForServices = new HashSet<>();
+
+                @JsonProperty("ManagerForSwitches")
+                public Set<ODataId> managedEthernetSwitches = new HashSet<>();
             }
         }
     }

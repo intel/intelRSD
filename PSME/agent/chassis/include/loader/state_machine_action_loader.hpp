@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,8 @@
  * @brief Module loader interface
  * */
 
-#ifndef AGENT_CHASSIS_STATE_MACHINE_ACTION_LOADER_HPP
-#define AGENT_CHASSIS_STATE_MACHINE_ACTION_LOADER_HPP
-
-#include "agent-framework/module-ref/loader/loader.hpp"
+#pragma once
+#include "agent-framework/module/loader/loader.hpp"
 #include <memory>
 
 namespace agent {
@@ -65,4 +63,3 @@ private:
 }
 }
 }
-#endif	/* AGENT_CHASSIS_STATE_MACHINE_ACTION_LOADER_HPP */

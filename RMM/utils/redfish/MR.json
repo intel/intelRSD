@@ -12,14 +12,14 @@
 			"Message":      "Resource status change.\n",
 			"Severity":     "N/A",
 			"NumberOfArgs": 0,
-			"ParamTypes":   ["string"]
+			"ParamTypes":   []
 		},
 		"MSGResourceUpdated": {
 			"Description":  "Resource Update",
 			"Message":      "Resource updated.\n",
 			"Severity":     "N/A",
 			"NumberOfArgs": 0,
-			"ParamTypes":   ["string"]
+			"ParamTypes":   []
 		},
 		"MSGResourceAdded": {
 			"_ArgPos": 0,
@@ -27,7 +27,7 @@
 			"Message":      "Resource add\n",
 			"Severity":     "OK",
 			"NumberOfArgs": 0,
-			"ParamTypes":   ["string"]
+			"ParamTypes":   []
 		},
 		"MSGResourceRemoved": {
 			"_ArgPos": 0,
@@ -35,7 +35,7 @@
 			"Message":      "Resource removed.\n",
 			"Severity":     "OK",
 			"NumberOfArgs": 0,
-			"ParamTypes":   ["string"]
+			"ParamTypes":   []
 		},
 		"MSGAlert": {
 			"_ArgPos": 0,
@@ -43,7 +43,7 @@
 			"Message":      "Resource alert.\n",
 			"Severity":     "OK",
 			"NumberOfArgs": 0,
-			"ParamTypes":   ["string"]
+			"ParamTypes":   []
 		},
 		"MSGRackStatusChange": {
 			"Description":  "Rack Status Change",

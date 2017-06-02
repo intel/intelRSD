@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @JsonPropertyOrder({
-        "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "uefiDevicePath", "status", "devices"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "uefiDevicePath", "status", "devices"
 })
-public class SimpleStorageJson extends BaseJson {
-    public String id;
-    public String name;
-    public String description;
-    @JsonProperty("UefiDevicePath")
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class SimpleStorageJson extends BaseResourceJson {
+    @JsonProperty("UEFIDevicePath")
     public String uefiDevicePath;
     public Status status;
     public List<SimpleStorageDeviceJson> devices = new ArrayList<>();
 
     public SimpleStorageJson() {
-        super("#SimpleStorage.1.1.0.SimpleStorage");
+        super("#SimpleStorage.v1_1_0.SimpleStorage");
     }
 }

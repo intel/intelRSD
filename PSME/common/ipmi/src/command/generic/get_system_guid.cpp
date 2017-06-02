@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,14 +35,16 @@
 using namespace ipmi;
 using namespace ipmi::command::generic;
 
-request::GetSystemGuid::GetSystemGuid(): Request(uint8_t(NetFn::APP), std::uint8_t(Cmd::GET_SYSTEM_GUID)) {}
+request::GetSystemGuid::GetSystemGuid() :
+        Request(generic::NetFn::APP, generic::Cmd::GET_SYSTEM_GUID) {}
 request::GetSystemGuid::~GetSystemGuid() {}
 
-void request::GetSystemGuid::pack(vector<uint8_t>& data) const {
+void request::GetSystemGuid::pack(std::vector<std::uint8_t>& data) const {
     (void)data;
 }
 
-response::GetSystemGuid::GetSystemGuid(): Response(uint8_t(NetFn::APP), uint8_t(Cmd::GET_SYSTEM_GUID), RESPONSE_SIZE) {}
+response::GetSystemGuid::GetSystemGuid() :
+        Response(generic::NetFn::APP, generic::Cmd::GET_SYSTEM_GUID, RESPONSE_SIZE) {}
 response::GetSystemGuid::~GetSystemGuid() {}
 
 
@@ -63,14 +65,14 @@ void response::GetSystemGuid::unpack(const std::vector<std::uint8_t>& data) {
                                static_cast<unsigned int>(data[OFFSET_TIME_MID]),
                                static_cast<unsigned int>(data[OFFSET_TIME_HIGH_AND_VER + 1]),
                                static_cast<unsigned int>(data[OFFSET_TIME_HIGH_AND_VER]),
-                               static_cast<unsigned int>(data[OFFSET_CLK_SEQ_AND_RESERVED + 1]),
                                static_cast<unsigned int>(data[OFFSET_CLK_SEQ_AND_RESERVED]),
-                               static_cast<unsigned int>(data[OFFSET_NODE + 5]),
-                               static_cast<unsigned int>(data[OFFSET_NODE + 4]),
-                               static_cast<unsigned int>(data[OFFSET_NODE + 3]),
-                               static_cast<unsigned int>(data[OFFSET_NODE + 2]),
+                               static_cast<unsigned int>(data[OFFSET_CLK_SEQ_AND_RESERVED + 1]),
+                               static_cast<unsigned int>(data[OFFSET_NODE]),
                                static_cast<unsigned int>(data[OFFSET_NODE + 1]),
-                               static_cast<unsigned int>(data[OFFSET_NODE]));
+                               static_cast<unsigned int>(data[OFFSET_NODE + 2]),
+                               static_cast<unsigned int>(data[OFFSET_NODE + 3]),
+                               static_cast<unsigned int>(data[OFFSET_NODE + 4]),
+                               static_cast<unsigned int>(data[OFFSET_NODE + 5]));
     guid[GUID_LENGTH - 1] = '\0';
     if (result == GUID_LENGTH - 1) {
         m_guid = std::string(guid);

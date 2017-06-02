@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,22 +23,28 @@
  */
 
 #pragma once
-#include "ipmb/socket.hpp"
+
+#include "net/stream_socket.hpp"
+#include <vector>
 
 namespace agent {
 namespace chassis {
 namespace ipmb {
 
+using byte_vec_t = std::vector<std::uint8_t>;
+
 /*! General class for multiplex connectivity with I2C device */
-class Mux : public Socket {
+class Mux {
 
 public:
-    static constexpr const ::in_port_t DEFAULT_IPMB_MUX_PORT = 5623;
-    static constexpr const ::time_t MUX_TIMEOUT_MSEC = 2000;
-    static constexpr const auto TIMEDOUT = "Timed out";
+    /*! Default timeout value */
+    static constexpr const std::uint16_t MUX_TIMEOUT_SEC = 2;
 
-    /*! @brief Default constructo */
-    Mux() : Socket() {}
+    /*! @brief Default constructor */
+    Mux() = default;
+
+    /*! @brief Destructor */
+    virtual ~Mux();
 
     /*! @brief Copy constructor */
     Mux(const Mux&) = delete;
@@ -48,36 +54,40 @@ public:
 
     /*!
      * @brief Mux connect, throw exception on error
-     * @param port MUX port
-     * @param address MUX ip address
+     * @param mux_address MUX socket address
      * */
-    void connect(in_port_t port = DEFAULT_IPMB_MUX_PORT, ::in_addr_t address = LOOPBACK);
+    virtual void connect(const net::SocketAddress& mux_address);
 
-    /*!
-     * @brief Send character string to socket (wrapped with timeout support)
+    /**
+     * @brief Attempt to send data stream to MUX, time out if necessary.
      * @param[in] in stream to send
+     * @param[in] timeout timeout value
      */
-    void send(const byte_vec_t& in);
+    virtual void send(const byte_vec_t& in, const net::Duration& timeout = std::chrono::seconds(MUX_TIMEOUT_SEC));
+
+    /**
+     * @brief Attempt to receive stream from MUX, time out if necessary.
+     *
+     * @param size   maximum number of bytes to receive
+     * @param[in] timeout timeout value
+     * @return byte_vec_t - byte stream read
+     */
+    virtual byte_vec_t recv(std::size_t size, const net::Duration& timeout = std::chrono::seconds(MUX_TIMEOUT_SEC));
 
     /*!
-     * @brief Read character string from socket (wrapped with timeout support)
-     * @param size is maximum number of bytes to expect
-     * @return byte vector
-     */
-    byte_vec_t recv(std::size_t size);
-
-    /*!
-     * @brief Retrns mode or type of MUX connection (client/responder/etc.)
-     *  @return mode or type of MUX connection
-     * */
+     * @brief Returns mode or type of MUX connection (client/responder/etc.)
+     * @return mode or type of MUX connection
+     **/
     virtual byte_vec_t mode() const = 0;   // Must be defined by derived class
 
-private:
-    struct timeval  m_timeout{(MUX_TIMEOUT_MSEC / 1000), (MUX_TIMEOUT_MSEC % 1000) * 1000};
+    /*! Closes underlying socket */
+    void close();
+
+protected:
+    /*! Socket to MUX */
+    net::StreamSocket m_socket{};
 };
 
 }
 }
 }
-
-

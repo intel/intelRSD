@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -138,7 +138,7 @@ TEST_F(StateMachineTest, PositiveTransitionFromUnknownToDown) {
 
     ASSERT_EQ(state_machine->get_transition(),
             enums::Transition::DISCOVERY_DOWN);
-    ASSERT_EQ(state_machine->get_state(), enums::State::STANDBY_OFFLINE);
+    ASSERT_EQ(state_machine->get_state(), enums::State::UNAVAILABLE_OFFLINE);
 }
 
 TEST_F(StateMachineTest, PositiveTransitiontoMissingWhenStatusUnknown) {
@@ -232,7 +232,7 @@ TEST_F(StateMachineTest, PositiveTransitionStayInDown) {
 
     ASSERT_EQ(state_machine->get_transition(),
             enums::Transition::IDLE);
-    ASSERT_EQ(state_machine->get_state(), enums::State::STANDBY_OFFLINE);
+    ASSERT_EQ(state_machine->get_state(), enums::State::UNAVAILABLE_OFFLINE);
 }
 
 /* UP */
@@ -264,7 +264,7 @@ TEST_F(StateMachineTest, PositiveTransitionFromUpToDown) {
 
     ASSERT_EQ(state_machine->get_transition(),
             enums::Transition::WENT_DOWN);
-    ASSERT_EQ(state_machine->get_state(), enums::State::STANDBY_OFFLINE);
+    ASSERT_EQ(state_machine->get_state(), enums::State::UNAVAILABLE_OFFLINE);
 }
 
 TEST_F(StateMachineTest, PositiveTransitionStayInUp) {

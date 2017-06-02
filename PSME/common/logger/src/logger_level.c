@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,4 +41,37 @@ static const char *logger_level_table[] = {
 
 const char *logger_level_get_string(unsigned int options) {
     return logger_level_table[LOG_LEVEL_MASK & options];
+}
+
+unsigned logger_level_get_number_of_levels(void)
+{
+    return sizeof(logger_level_table) / sizeof(logger_level_table[0]);
+}
+
+#define toupper(c) \
+    ((('a' <= c) && (c <= 'z')) ? c - ('a' - 'A') : c)
+
+int logger_level_get_level(const char* level)
+{
+    int id;
+    int i;
+
+    if (!level) {
+        return -1;
+    }
+    for (id = (int) logger_level_get_number_of_levels(); id--; ) {
+        for (i = 0; /* no exit cond */; i++) {
+            char c = logger_level_table[id][i];
+            if ((c == ' ') || (c == '\0')) {
+                if (level[i] == '\0') {
+                    return id;
+                }
+                break;
+            }
+            if (toupper(level[i]) != c) {
+                break;
+            }
+        }
+    }
+    return -1;
 }

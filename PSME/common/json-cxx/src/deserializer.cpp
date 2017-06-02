@@ -46,6 +46,7 @@
 #include <safe-string/safe_lib.hpp>
 #include <cmath>
 #include <cstring>
+#include <limits>
 
 using namespace json;
 
@@ -83,7 +84,8 @@ Deserializer::Deserializer() :
     m_current(nullptr),
     m_end(nullptr),
     m_limit(MAX_LIMIT_PER_OBJECT),
-    m_error_code(Code::NONE) { }
+    m_error_code(Code::NONE),
+    m_error_data() { }
 
 Deserializer::Deserializer(const Deserializer& deserializer) : Deserializer() {
     m_array = deserializer.m_array;
@@ -219,12 +221,14 @@ void Deserializer::set_limit(size_t limit) {
 
 inline void Deserializer::clear_error() {
     m_error_code = Code::NONE;
+    m_error_data.clear();
 }
 
 Deserializer::Error Deserializer::get_error() const {
     Error error;
 
     error.code = m_error_code;
+    error.data = m_error_data;
     error.line = 1;
     error.column = 1;
     error.offset = size_t(m_current - m_begin);
@@ -266,6 +270,18 @@ bool Deserializer::read_object(Value& value) {
     return read_object_member(value, count);
 }
 
+bool Deserializer::is_duplicate(const Value& value, const String& key, const size_t& count) {
+    // In Json-CXX, the m_object vector is first allocated to contain all key-value pairs in the object,
+    // and then it is filled IN REVERSE DIRECTION. That's why we look for duplicates from "count" position forward.
+    for (size_t i = count; i < value.m_object.size(); ++i) {
+        if (value.m_object[i].first == key) {
+            m_error_data = key;
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Deserializer::read_object_member(Value& value, size_t& count) {
     String key;
     Value tmp;
@@ -281,11 +297,13 @@ bool Deserializer::read_object_member(Value& value, size_t& count) {
     if (',' == *m_current) {
         ++m_current;
         if (!read_object_member(value, count)) { return false; }
+        if (is_duplicate(value, key, count)) {return set_error(Code::DUPLICATE_KEY);}
         value.m_object[--count].first = std::move(key);
         value.m_object[count].second = std::move(tmp);
     }
     else if ('}' == *m_current) {
         ++m_current;
+        if (is_duplicate(value, key, count)) {return set_error(Code::DUPLICATE_KEY);}
         value.m_object.resize(count);
         value.m_object[--count].first = std::move(key);
         value.m_object[count].second = std::move(tmp);
@@ -596,6 +614,7 @@ bool Deserializer::read_whitespaces() {
 }
 
 bool Deserializer::read_number_digit(Uint64& value) {
+    static Uint64 max_uint64 = std::numeric_limits<Uint64>::max();
     using std::isdigit;
 
     if ((m_current < m_end) && isdigit(*m_current)) {
@@ -605,7 +624,15 @@ bool Deserializer::read_number_digit(Uint64& value) {
 
     while (m_current < m_end) {
         if (isdigit(*m_current)) {
-            value = (10 * value) + Uint64(*m_current - '0');
+            Uint64 new_value = 10 * value;
+            if (new_value / 10 != value) { // multiplication overflowed
+                return false;
+            }
+            Uint64 new_last_digit(*m_current - '0');
+            if (new_value > max_uint64 - new_last_digit) { // addition will overflow
+                return false;
+            }
+            value = new_value + new_last_digit;
             ++m_current;
         } else { return true; }
     }
@@ -614,6 +641,9 @@ bool Deserializer::read_number_digit(Uint64& value) {
 }
 
 inline bool Deserializer::read_number_integer(Number& number) {
+    // the absolute value of the minimal Int64
+    static Uint64 abs_min_int64 = Uint64(std::numeric_limits<Int64>::max()) + 1;
+
     using std::isdigit;
 
     Uint64 value;
@@ -623,6 +653,9 @@ inline bool Deserializer::read_number_integer(Number& number) {
     if (Number::Type::UINT == number.m_type) {
         number.m_uint = value;
     } else {
+        if (value > abs_min_int64) { // the digits read after '-' sign cannot fit in Int64
+            return false;
+        }
         number.m_int = Int64(-value);
     }
 
@@ -803,24 +836,24 @@ struct ErrorCodes {
 };
 
 static const struct ErrorCodes g_error_codes[] = {
-    { Code::NONE,               "No error"},
-    { Code::END_OF_FILE,        "End of file reached"},
-    { Code::MISS_QUOTE,         "Missing quote '\"' for string"},
-    { Code::MISS_COLON,         "Missing colon ':' in member pair"},
-    { Code::MISS_CURLY_CLOSE,   "Missing comma ','"
-        " or closing curly '}' for object"},
-    { Code::MISS_SQUARE_CLOSE,  "Missing comma ','"
-        " or closing square ']' for array"},
-    { Code::NOT_MATCH_NULL,     "Did you mean 'null'?"},
-    { Code::NOT_MATCH_TRUE,     "Did you mean 'true'?"},
-    { Code::NOT_MATCH_FALSE,    "Did you mean 'false'?"},
-    { Code::MISS_VALUE,         "Missing value in array/member"},
-    { Code::INVALID_WHITESPACE, "Invalid whitespace character"},
-    { Code::INVALID_ESCAPE,     "Invalid escape character"},
-    { Code::INVALID_UNICODE,    "Invalid unicode"},
-    { Code::INVALID_NUMBER_INTEGER, "Invalid number integer part"},
-    { Code::INVALID_NUMBER_FRACTION,"Invalid number fractional part"},
-    { Code::INVALID_NUMBER_EXPONENT,"Invalid number exponent part"}
+    { Code::NONE,                    "No error." },
+    { Code::END_OF_FILE,             "End of file reached." },
+    { Code::MISS_QUOTE,              "Missing quote '\"' for string." },
+    { Code::MISS_COLON,              "Missing colon ':' in member pair." },
+    { Code::MISS_CURLY_CLOSE,        "Missing comma ',' or closing curly '}' for object." },
+    { Code::MISS_SQUARE_CLOSE,       "Missing comma ',' or closing square ']' for array." },
+    { Code::NOT_MATCH_NULL,          "Did you mean 'null'?" },
+    { Code::NOT_MATCH_TRUE,          "Did you mean 'true'?" },
+    { Code::NOT_MATCH_FALSE,         "Did you mean 'false'?" },
+    { Code::MISS_VALUE,              "Missing value in array/member." },
+    { Code::INVALID_WHITESPACE,      "Invalid whitespace character." },
+    { Code::INVALID_ESCAPE,          "Invalid escape character." },
+    { Code::INVALID_UNICODE,         "Invalid unicode." },
+    { Code::INVALID_NUMBER_INTEGER,  "Invalid integral part of a number. Check for possible overflows beyond "
+                                         "the range of uint64 (for positive numbers) or int64 (for negative numbers)" },
+    { Code::INVALID_NUMBER_FRACTION, "Invalid number fractional part." },
+    { Code::INVALID_NUMBER_EXPONENT, "Invalid number exponent part." },
+    { Code::DUPLICATE_KEY,           "Duplicate key in object." }
 };
 
 const char* Deserializer::Error::decode() {
@@ -829,5 +862,5 @@ const char* Deserializer::Error::decode() {
             return error.message;
         }
     }
-    return "Unknown error";
+    return "Unknown error.";
 }

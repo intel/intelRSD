@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,7 +157,7 @@ static json_t *rack_patch(struct rest_uri_param *param)
 
 	rs = libwrap_update_put_rack_info(req, &put_rack_info);
 	if (rs != RESULT_OK) {
-		update_response_info(param, HTTP_FORBIDDEN);
+		update_response_info(param, HTTP_BAD_REQUEST);
 		HTTPD_ERR("libwrap_update_put_rack_info fail, result is %d\n", rs);
 		json_free(req);
 		return NULL;
@@ -278,7 +278,7 @@ static json_t *rack_post(struct rest_uri_param *param)
 	}
 
 	if (rs == RESULT_OK)
-		update_response_info(param, HTTP_OK);
+		update_response_info(param, HTTP_NO_CONTENT);
 	else if (rs == RESULT_NO_NODE) {
 		update_response_info(param, HTTP_RESOURCE_NOT_FOUND);
 		goto err;
@@ -296,7 +296,6 @@ static json_t *rack_post(struct rest_uri_param *param)
 		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
 		return NULL;
 	}
-	json_object_add(result, RMM_JSON_RESULT, json_string("Success"));
 	return result;
 
 err:
@@ -324,27 +323,25 @@ static json_t *log_patch(struct rest_uri_param *param)
 	return NULL;
 }
 
-static json_t *rf_log_get(struct rest_uri_param *param)
-{
-	json_t *result = NULL;
-	json_t *json_log = NULL;
-	int8 *buff = NULL;
-	int8 *p_count;
-	rf_msg_info_t *info = NULL;
-	void *offset = NULL;
+static json_t *rf_log_get(struct rest_uri_param *param) {
+	json_t* result = NULL;
+	json_t* json_log = NULL;
+	int8* p_count;
+	rf_msg_info_t* info = NULL;
+	void* offset = NULL;
 	int32 count, index = 0;
 
 	update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
 	p_count = rest_query_value(param, "count");
 
-	if(p_count == NULL) {
+	if (p_count == NULL) {
 		update_response_info(param, HTTP_BAD_REQUEST);
 		goto expt_end;
 	}
 
-	info = (rf_msg_info_t *)malloc(sizeof(rf_msg_info_t));
+	info = (rf_msg_info_t*) malloc(sizeof(rf_msg_info_t));
 
-	if(!info) {
+	if (!info) {
 		update_response_info(param, HTTP_INTERNAL_SERVER_ERROR);
 		goto expt_end;
 	}
@@ -365,35 +362,35 @@ static json_t *rf_log_get(struct rest_uri_param *param)
 
 	json_log = json_array();
 	if (NULL != json_log) {
-		if(info->dsc.count < 1024) {
-			offset = (void *)info->data;
-			while(index < info->dsc.count) {
-				json_array_add(json_log, json_string((int8*)(offset + index * 256)));
+		if (info->dsc.count < 1024) {
+			offset = (void*) info->data;
+			while (index < info->dsc.count) {
+				json_array_add(json_log, json_string((int8*) (offset + index * 256)));
 				index++;
 			}
 			json_object_add(result, RMM_JSON_LOG_INFO, json_log);
-			if(info) {
-				free(info);
-				info = NULL;
-			}
-		} else {
+
+		}
+		else {
 			json_array_add(json_log, json_string("log request size is too long"));
 			json_object_add(result, RMM_JSON_LOG_INFO, json_log);
 		}
 
+		free(info);
 		update_response_info(param, HTTP_OK);
 		return result;
 	}
 
-expt_end:
-	if(info) {
+	expt_end:
+	if (info) {
 		free(info);
-		info = NULL;
 	}
-	if(result)
+	if (result) {
 		json_free(result);
-	if(json_log)
+	}
+	if (json_log) {
 		json_free(json_log);
+	}
 	HTTPD_ERR("file %s line %d: %s fail\n", __FILE__, __LINE__, __func__);
 
 	return NULL;

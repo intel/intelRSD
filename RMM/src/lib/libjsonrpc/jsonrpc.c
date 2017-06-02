@@ -1,5 +1,5 @@
 /**
- * Copyright (c)  2015, Intel Corporation.
+ * Copyright (c)  2015-2017 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -317,11 +317,15 @@ int jrpc_verify_version(json_t * object)
 json_t * jrpc_parse_string(char * string)
 {
 	json_t * obj = NULL;
-	
+
 	if(jrpc_verify_string(string) ||
-		NULL == (obj = json_parse(string)) || 
-		jrpc_verify_version(obj))
+		NULL == (obj = json_parse(string)) ||
+		jrpc_verify_version(obj)) {
+		if (obj) {
+			json_free(obj);
+		}
 		return NULL;
+	}
 
 	return obj;
 }
@@ -418,14 +422,15 @@ char * jrpc_do_create_req_string(jrpc_req_type_t type, int64 id, char * method, 
 	if (NULL != (req = jrpc_do_create_req(type, id, method, num_of_params, param_t))) {
 		if (NULL != (string = malloc(JSONRPC_MAX_STRING_LEN))) {
 			memset(string, 0, JSONRPC_MAX_STRING_LEN);
-			if (JSONRPC_SUCCESS == jrpc_format_string(req, string, JSONRPC_MAX_STRING_LEN)) {
-				json_free(req);
-				return string;
+			if (JSONRPC_SUCCESS != jrpc_format_string(req, string, JSONRPC_MAX_STRING_LEN)) {
+				free(string);
+				string = NULL;
 			}
 		}
+		json_free(req);
 	}
 
-	return NULL;
+	return string;
 }
 
 
@@ -741,8 +746,10 @@ int jrpc_parse_rsp(char * string, json_t ** rsp, jrpc_rsp_type_t *type)
 	2. result and error should not both exist
 	3. either result or error should exist
 	*/
-	if ( !id || ( result && error) || (!result && !error))
+	if ( !id || ( result && error) || (!result && !error)) {
+		json_free(value);
 		return JSONRPC_FAILED;
+	}
 
 	if (result)
 		*type = JSONRPC_RSP_RESULT;

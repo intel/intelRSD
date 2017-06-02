@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,10 @@ import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.intel.podm.common.utils.Contracts.requires;
 import static java.util.Optional.ofNullable;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.status;
 import static org.apache.commons.lang.StringUtils.trimToNull;
 
 public final class ErrorResponseCreator {
@@ -64,10 +65,10 @@ public final class ErrorResponseCreator {
 
     public Response create() {
         String message = ofNullable(this.message).orElse(errorType.getMessage());
-        checkArgument(message != null, "Could not create error response with null message");
+        requires(message != null, "Could not create error response with null message");
         ErrorResponseJson entity = new ErrorResponseJson(errorType.getErrorType(), message, errorResponse, details);
-        return Response
-                .status(errorType.getErrorCode())
+        return
+                status(errorType.getErrorCode())
                 .type(APPLICATION_JSON)
                 .entity(entity)
                 .build();

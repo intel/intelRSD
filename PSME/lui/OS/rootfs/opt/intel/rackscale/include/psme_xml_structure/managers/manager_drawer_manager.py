@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,8 @@ class ManagerDrawerManager(Manager):
 
         manager_drawer = cls.set_fields(manager_drawer, data, context=context)
 
+        cls.move_drives_to_chassis(manager_drawer)
+
         return manager_drawer
 
     @classmethod
@@ -51,3 +53,11 @@ class ManagerDrawerManager(Manager):
     @staticmethod
     def my_context():
         return ManagersTypes.MANAGER_DRAWER_MANAGER
+
+    @classmethod
+    def move_drives_to_chassis(cls, manager_drawer):
+        if hasattr(manager_drawer.manager.ComputeSystem.storageSubsystem, 'storageController'):
+            for storageSubsystem in manager_drawer.manager.ComputeSystem.storageSubsystem.storageController:
+                for drive in list(storageSubsystem.drive):
+                    storageSubsystem.drive.remove(drive)
+                    manager_drawer.manager.chassis.drive.append(drive)

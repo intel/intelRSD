@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package com.intel.podm.allocation.strategy;
 
-import com.intel.podm.allocation.validation.Violations;
-import com.intel.podm.business.dto.redfish.RequestedMasterDrive;
-import com.intel.podm.business.dto.redfish.RequestedRemoteDrive;
-import com.intel.podm.business.entities.DomainObjectNotFoundException;
+import com.intel.podm.business.Violations;
+import com.intel.podm.business.entities.EntityNotFoundException;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.LogicalDrive;
 import com.intel.podm.business.entities.redfish.StorageService;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -36,7 +35,7 @@ public class NewRemoteDriveResourcesFinder {
 
     private Optional<LogicalDrive> lvg;
 
-    public NewRemoteDriveAllocationResources find(RequestedRemoteDrive drive) {
+    public NewRemoteDriveAllocationResources find(RequestedNode.RemoteDrive drive) {
         NewRemoteDriveAllocationResources resources = new NewRemoteDriveAllocationResources();
         Violations violations = new Violations();
 
@@ -54,15 +53,15 @@ public class NewRemoteDriveResourcesFinder {
         return resources;
     }
 
-    private LogicalDrive getMasterDrive(RequestedMasterDrive masterDrive) {
+    private LogicalDrive getMasterDrive(RequestedNode.RemoteDrive.MasterDrive masterDrive) {
         try {
             return genericDao.find(LogicalDrive.class, masterDrive.getResourceContext().getId());
-        } catch (DomainObjectNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             throw new IllegalStateException("Provided master drive no longer exist.");
         }
     }
 
-    private void findLvg(RequestedRemoteDrive drive, Violations violations) {
+    private void findLvg(RequestedNode.RemoteDrive drive, Violations violations) {
         StorageService storageService = genericDao.find(StorageService.class, drive.getMaster().getResourceContext().getParent().getId());
         lvg = findLvgMatchingFreeSpaceRequirement(storageService, drive.getCapacityGib());
 
@@ -73,9 +72,9 @@ public class NewRemoteDriveResourcesFinder {
 
     private Optional<LogicalDrive> findLvgMatchingFreeSpaceRequirement(StorageService storageService, BigDecimal capacityGib) {
         return storageService.getLogicalVolumeGroups()
-                .stream()
-                .filter(lvg -> capacityGib.compareTo(lvg.getFreeSpaceGib()) <= 0)
-                .findFirst();
+            .stream()
+            .filter(lvg -> capacityGib.compareTo(lvg.getFreeSpaceGib()) <= 0)
+            .findFirst();
     }
 
     static class NewRemoteDriveAllocationResources {

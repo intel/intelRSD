@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,8 @@
  * @brief StateMachine thread.
  * */
 
-#ifndef AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_THREAD_HPP
-#define AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_THREAD_HPP
-
+#pragma once
+#include "agent-framework/state_machine/state_machine_module_thread.hpp"
 #include "agent-framework/state_machine/state_machine_thread_action.hpp"
 #include "agent-framework/state_machine/state_thread_entry.hpp"
 
@@ -43,10 +42,13 @@ class StateMachineThread {
 public:
     using StateThreadEntrySharedPtr = std::shared_ptr<StateThreadEntry>;
     using StateThreadEntryVec = std::vector<StateThreadEntrySharedPtr>;
+
+    using StateMachineModuleThreadSharedPtr = std::shared_ptr<StateMachineModuleThread>;
+    using StateMachineModuleThreadVec = std::vector<StateMachineModuleThreadSharedPtr>;
     /*!
      * Default constructor.
      * */
-    explicit StateMachineThread(StateMachineThreadAction& action);
+    explicit StateMachineThread();
 
     /*! Default destructor. */
     ~StateMachineThread();
@@ -56,9 +58,11 @@ public:
      */
     void start();
 
-    void add_entry(const StateThreadEntrySharedPtr& entry);
-
-    void remove_entry(const std::string& module_uuid);
+    /*!
+     * @brief Add Module Thread
+     * @param module_thread Module Thread
+     */
+    void add_module_thread(const StateMachineModuleThreadSharedPtr& module_thread);
 
 private:
     void task();
@@ -68,10 +72,10 @@ private:
     std::mutex m_mutex{};
     std::atomic<bool> m_is_running{false};
 
-    std::mutex m_entry_mutex{};
+    std::mutex m_module_thread_mutex{};
     StateThreadEntryVec m_entries{};
 
-    StateMachineThreadAction& m_action;
+    StateMachineModuleThreadVec m_module_threads{};
 };
 
 /*! State Machine Thread unique pointer */
@@ -79,5 +83,4 @@ using StateMachineThreadUniquePtr = std::unique_ptr<StateMachineThread>;
 
 }
 }
-#endif /* AGENT_FRAMEWORK_STATE_MACHINE_STATE_MACHINE_THREAD_HPP */
 

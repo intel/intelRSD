@@ -1,42 +1,44 @@
 /*!
- * @section LICENSE
+ * @brief C logger implementation
  *
- * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * @copyright Copyright (c) 2016-2017 Intel Corporation
  *
- * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
+ * @header{Files}
  * @file logger.c
- *
- * @brief Logger implementation
- * */
+ */
+
 
 #include "logger/logger.h"
+#include "logger_level.h"
 #include "logger/stream.h"
 
 #include "logger_list.h"
 #include "logger_assert.h"
 #include "logger_memory.h"
 #include "logger_stream_message.h"
+#include "logger_stream_instance.h"
 
 #include <safe-string/safe_lib.h>
 #include <stdio.h>
 #include <string.h>
+#include <logger/logger.h>
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 static const union logger_options g_logger_default_options = {
     .option = {
@@ -63,12 +65,90 @@ static const union logger_options g_logger_default_options = {
  * Control options for logger how to handle log message
  * */
 struct logger {
-    const char *tag;
+    const char* tag;
     struct logger_list stream_list;
     union logger_options options;
 };
 
-static void __log_write(struct logger *inst,
+struct logger* logger_get_logger_by_name(const char* name);
+
+void logger_set_level(struct logger* inst, unsigned level)
+{
+    inst->options.option.level = (level & LOG_LEVEL_MASK);
+}
+
+void logger_execute_command(const char* logger_command)
+{
+    #define MAX_ASSUMED_COMMAND_LENGHT 512
+    char command[MAX_ASSUMED_COMMAND_LENGHT];
+
+    char* level = NULL;
+    char* file = NULL;
+    char* enabled = NULL;
+
+    struct logger* inst;
+    char* c;
+
+    if (!logger_command) {
+        return;
+    }
+
+    /* parse command by looking for "special" separators */
+    strncpy_s(command, sizeof(command), logger_command, strnlen_s(logger_command, sizeof(command)));
+    command[sizeof(command) - 1] = '\0';
+
+    for (c = command; *c; c++) {
+        switch (*c) {
+            case '=': /* log level */
+                *c = '\0';
+                level = c + 1;
+                break;
+
+            case '@': /* output file */
+                *c = '\0';
+                file = c + 1;
+                break;
+            case ':': /* enable/disable the logger */
+                *c = '\0';
+                enabled = c + 1;
+                break;
+
+            default:
+                /* nothing, just next char, necessary for GCC */
+                break;
+        }
+    }
+
+    inst = logger_get_logger_by_name(command);
+    if (!inst) {
+        log_error(logger_get_logger_by_name(NULL),
+                  "Logger '%s' doesn't exist", command);
+        return;
+    }
+
+    if (level) {
+        int id = logger_level_get_level(level);
+        if (id >= 0) {
+            logger_set_level(inst, (unsigned) id);
+            log_info(logger_get_logger_by_name(NULL),
+                     "Set log level '%s' for logger '%s'", level, command);
+        } else {
+            log_error(logger_get_logger_by_name(NULL),
+                     "Unknown logging level '%s', cannot set logger '%s'", level, command);
+        }
+    }
+
+    if (file) {
+        log_error(logger_get_logger_by_name(NULL), "Files not handled yet");
+    }
+    if (enabled) {
+        log_error(logger_get_logger_by_name(NULL), "Enabling not handled yet");
+    }
+}
+
+static void __log_write(
+        struct logger* inst,
+        const char* logger_name,
         const unsigned int level,
         const char *file_name,
         const char *function_name,
@@ -78,7 +158,7 @@ static void __log_write(struct logger *inst,
     int err;
 
     /* Additional debug information */
-    if (true == inst->options.option.more_debug) {
+    if (inst->options.option.more_debug) {
         /* We don't need to allocate memory for string, because constant string
          * are located in read-only section by the compiler/linker and they
          * have non-volatile constant address that will never change during
@@ -89,7 +169,7 @@ static void __log_write(struct logger *inst,
     }
 
     /* Set log level, tag, flags and time stamp format */
-    msg->tag = inst->tag;
+    msg->tag = logger_name;
     msg->options.raw = inst->options.raw;
     msg->options.option.level = LOG_LEVEL_MASK & level;
 
@@ -126,16 +206,15 @@ static void __log_write(struct logger *inst,
     }
 }
 
-LOGGER_PRINTF_FORMAT(6, 0)
-static void __vlog_write(struct logger *inst,
+LOGGER_PRINTF_FORMAT(7, 0)
+static void __vlog_write(
+        struct logger* inst,
+        const char* logger_name,
         const unsigned int level,
         const char *file_name,
         const char *function_name,
         const unsigned int line_number,
-        const char *fmt, va_list args) {
-
-    if (false == inst->options.option.output_enable) return;
-    if (inst->options.option.level < level) return;
+        const char* fmt, va_list args) {
 
     va_list args_copy;
     va_copy(args_copy, args);
@@ -157,15 +236,20 @@ static void __vlog_write(struct logger *inst,
         return;
     }
 
-    __log_write(inst, level, file_name, function_name, line_number, msg, size);
- }
+    __log_write(inst, logger_name, level, file_name, function_name, line_number, msg, size);
+}
 
-void _log_write(struct logger *inst, const unsigned int level,
+void _log_write(
+        struct logger *inst,
+        const char* logger_name,
+        const unsigned int level,
         const char *file_name,
         const char *function_name,
         const unsigned int line_number,
         const char *message) {
+
     logger_assert(NULL != inst);
+    logger_assert(NULL != message);
 
     size_t message_length = strnlen_s(message, RSIZE_MAX_STR);
     size_t size =  sizeof(struct logger_stream_message) + message_length + 1;
@@ -178,34 +262,41 @@ void _log_write(struct logger *inst, const unsigned int level,
     memcpy_s(msg->message, message_length, message, message_length);
     msg->message[message_length] = '\0';
 
-    __log_write(inst, level, file_name, function_name, line_number, msg, size);
+    __log_write(inst, logger_name, level, file_name, function_name, line_number, msg, size);
 }
 
-LOGGER_PRINTF_FORMAT(6, 0)
-void _log_vwrite(struct logger *inst, const unsigned int level,
+void _log_vwrite(
+        struct logger *inst,
+        const char* logger_name,
+        const unsigned int level,
         const char *file_name,
         const char *function_name,
         const unsigned int line_number,
         const char *fmt, va_list args) {
+
     logger_assert(NULL != inst);
+    logger_assert(NULL != logger_name);
     logger_assert(NULL != fmt);
 
-    __vlog_write(inst, level, file_name, function_name, line_number, fmt, args);
+    __vlog_write(inst, logger_name, level, file_name, function_name, line_number, fmt, args);
 }
 
-LOGGER_PRINTF_FORMAT(6, 0)
-void _log_fwrite(struct logger *inst, const unsigned int level,
-        const char *file_name,
-        const char *function_name,
+void _log_fwrite(
+        struct logger *inst,
+        const char* logger_name,
+        const unsigned int level,
+        const char* file_name,
+        const char* function_name,
         const unsigned int line_number,
-        const char *fmt, ...) {
+        const char* fmt, ...) {
+
     logger_assert(NULL != inst);
     logger_assert(NULL != fmt);
 
     va_list args;
     va_start(args, fmt);
 
-    __vlog_write(inst, level, file_name, function_name, line_number, fmt, args);
+    __vlog_write(inst, logger_name, level, file_name, function_name, line_number, fmt, args);
 
     va_end(args);
 }
@@ -274,3 +365,20 @@ void logger_get_options(struct logger *inst, union logger_options *options) {
         options->raw = inst->options.raw;
     }
 }
+
+int logger_is_loggable(struct logger* inst, unsigned level) {
+    logger_assert(NULL != inst);
+
+    return (inst->options.option.output_enable) && (level <= inst->options.option.level);
+}
+
+const char* logger_get_tag(struct logger* inst) {
+    logger_assert(NULL != inst);
+
+    return inst->tag;
+}
+
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif

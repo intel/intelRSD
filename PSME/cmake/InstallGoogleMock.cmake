@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,88 +21,58 @@ if (CMAKE_CROSSCOMPILING)
     return()
 endif()
 
+
 function(install_google_mock_framework)
     include(ConfigurationPackage OPTIONAL)
+    assure_package(gmock 1.7.0 "https://github.com/google/googlemock/archive/release-1.7.0.zip" "1a01b2efb9253cb6cd3214faef1263da")
 
-    set(GMOCK_SOURCE_PACKAGE
-        "https://github.com/google/googlemock/archive/release-1.7.0.zip"
+    set(ARGS)
+    list(APPEND ARGS -DCMAKE_PREFIX_PATH:PATH=${CMAKE_BINARY_DIR})
+    list(APPEND ARGS -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR})
+
+    if (CMAKE_CROSSCOMPILING)
+        if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
+            list(APPEND ARGS -DCMAKE_TOOLCHAIN_FILE:FILEPATH=${CMAKE_TOOLCHAIN_FILE})
+        endif()
+
+        list(APPEND ARGS -DCMAKE_FIND_ROOT_PATH:PATH=${CMAKE_BINARY_DIR})
+    endif()
+
+    if (CMAKE_BUILD_TYPE)
+        list(APPEND ARGS -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
+    endif()
+
+    list(APPEND ARGS -DCMAKE_CXX_FLAGS:STRING=-fPIC)
+
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} ${ARGS} ${source_dir}
+        WORKING_DIRECTORY ${binary_dir}
+        RESULT_VARIABLE result
     )
-
-    set(download_dir ${CMAKE_CURRENT_LIST_DIR}/../third_party)
-    set(source_package ${GMOCK_SOURCE_PACKAGE})
-    get_filename_component(source_package_fname ${source_package} NAME)
-    set(source_package_name "googlemock-${source_package_fname}")
-    string(REGEX REPLACE ".zip" "" source_dir ${source_package_name})
-    set(source_dir ${CMAKE_BINARY_DIR}/${source_dir})
-    set(binary_dir ${source_dir}/build)
-    file(MAKE_DIRECTORY ${source_dir})
-    file(MAKE_DIRECTORY ${binary_dir})
-
-    if (NOT EXISTS ${download_dir}/${source_package_name})
-        file(DOWNLOAD
-            ${source_package}
-            ${download_dir}/${source_package_name}
-            SHOW_PROGRESS
-        )
+    if (NOT ${result} EQUAL 0)
+        message(FATAL_ERROR "Error occurs when configure project")
     endif()
 
-    if (EXISTS ${download_dir}/${source_package_name})
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E tar xvf
-                ${download_dir}/${source_package_name}
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        )
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} --build ${binary_dir} --target all -- ${BUILD_EXTRA_ARGS}
+        WORKING_DIRECTORY ${binary_dir}
+        RESULT_VARIABLE result
+    )
+    if (NOT ${result} EQUAL 0)
+        message(FATAL_ERROR "Error occurs when build project")
     endif()
 
-    if (EXISTS ${source_dir})
-        set(ARGS)
-        list(APPEND ARGS -DCMAKE_PREFIX_PATH:PATH=${CMAKE_BINARY_DIR})
-        list(APPEND ARGS -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR})
-
-        if (CMAKE_CROSSCOMPILING)
-            if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
-                list(APPEND ARGS -DCMAKE_TOOLCHAIN_FILE:FILEPATH=${CMAKE_TOOLCHAIN_FILE})
-            endif()
-
-            list(APPEND ARGS -DCMAKE_FIND_ROOT_PATH:PATH=${CMAKE_BINARY_DIR})
-        endif()
-
-        if (CMAKE_BUILD_TYPE)
-            list(APPEND ARGS -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
-        endif()
-
-        list(APPEND ARGS -DCMAKE_CXX_FLAGS:STRING=-fPIC)
-
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} ${ARGS} ${source_dir}
-            WORKING_DIRECTORY ${binary_dir}
-            RESULT_VARIABLE result
-        )
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Error occurs when configure project")
-        endif()
-
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} --build ${binary_dir} --target all
-                -- ${BUILD_EXTRA_ARGS}
-            WORKING_DIRECTORY ${binary_dir}
-            RESULT_VARIABLE result
-        )
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Error occurs when build project")
-        endif()
-
-        file(INSTALL ${binary_dir}/libgmock.a
-            DESTINATION ${CMAKE_BINARY_DIR}/lib
-        )
-        file(INSTALL ${source_dir}/include
-            DESTINATION ${CMAKE_BINARY_DIR}
-        )
-    else()
-        message(FATAL_ERROR "${source_dir} not found")
-    endif()
+    file(INSTALL ${binary_dir}/libgmock.a
+        DESTINATION ${CMAKE_BINARY_DIR}/lib
+    )
+    file(INSTALL ${source_dir}/include
+        DESTINATION ${CMAKE_BINARY_DIR}
+    )
+    configure_file(
+        ${CMAKE_CURRENT_LIST_DIR}/../tools/pkg-config/gmock.pc.in
+        ${CMAKE_BINARY_DIR}/pkg-config/gmock.pc
+        @ONLY
+    )
 endfunction()
 
 install_google_mock_framework()

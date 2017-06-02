@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,4 +16,17 @@
 #
 # </license_header>
 
-add_subdirectory(sdv)
+add_library(chassis-command-sdv OBJECT
+    get_manager_info.cpp
+    get_collection.cpp
+    get_chassis_info.cpp
+    get_authorization_certificate.cpp
+    get_managers_collection.cpp
+    set_component_attributes.cpp
+    get_tasks_collection.cpp
+    get_task_info.cpp
+    get_task_result_info.cpp
+    delete_task.cpp
+)
+
+set_psme_command_target_properties(chassis-command-sdv)

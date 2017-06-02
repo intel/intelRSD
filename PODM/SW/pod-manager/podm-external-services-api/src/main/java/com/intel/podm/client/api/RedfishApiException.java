@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package com.intel.podm.client.api;
 
 import com.intel.podm.common.types.redfish.RedfishErrorResponse;
+import com.intel.podm.common.types.redfish.RedfishErrorResponseCarryingException;
 
 import java.net.URI;
 
-public abstract class RedfishApiException extends Exception {
+public abstract class RedfishApiException extends Exception implements RedfishErrorResponseCarryingException {
     private final URI resourceUri;
     private final RedfishErrorResponse errorResponse;
 

@@ -41,9 +41,7 @@
  * @brief JSON writter interface
  * */
 
-#ifndef JSON_CXX_WRITTER_COUNTER_HPP
-#define JSON_CXX_WRITTER_COUNTER_HPP
-
+#pragma once
 #include "json/writter.hpp"
 
 #include <cstring>
@@ -108,4 +106,3 @@ private:
 }
 }
 
-#endif /* JSON_CXX_WRITTER_COUNTER_HPP */

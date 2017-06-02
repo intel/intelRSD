@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,113 +16,172 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.base.DomainObject;
-import com.intel.podm.business.entities.redfish.base.Descriptable;
-import com.intel.podm.business.entities.redfish.base.Discoverable;
-import com.intel.podm.business.entities.redfish.base.Manageable;
-import com.intel.podm.business.entities.redfish.base.StatusPossessor;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.SuppressEvents;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.common.types.Id;
 
-import javax.enterprise.context.Dependent;
-import javax.transaction.Transactional;
-import java.net.URI;
-import java.util.Collection;
+import javax.persistence.Column;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import static com.intel.podm.business.entities.base.DomainObjectLink.CONTAINS;
-import static com.intel.podm.business.entities.base.DomainObjectLink.MANAGED_BY;
-import static com.intel.podm.business.entities.base.DomainObjectLink.OWNED_BY;
 import static com.intel.podm.common.types.VolumeMode.LVG;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.util.stream.Collectors.toList;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.FetchType.LAZY;
 
-@Dependent
-@Transactional(MANDATORY)
-public class StorageService extends DomainObject implements Discoverable, Manageable, StatusPossessor, Descriptable {
+@javax.persistence.Entity
+@Table(name = "storage_service", indexes = @Index(name = "idx_storage_service_entity_id", columnList = "entity_id", unique = true))
+@Eventable
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class StorageService extends DiscoverableEntity {
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
+    private Id entityId;
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "storageService", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<RemoteTarget> remoteTargets = new HashSet<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "storageService", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<LogicalDrive> logicalDrives = new HashSet<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "storageService", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<PhysicalDrive> physicalDrives = new HashSet<>();
+
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "storage_service_manager",
+        joinColumns = {@JoinColumn(name = "storage_service_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "manager_id", referencedColumnName = "id")})
+    private Set<Manager> managers = new HashSet<>();
+
     @Override
-    public String getName() {
-        return getProperty(NAME);
-    }
-
-    @Override
-    public void setName(String name) {
-        setProperty(NAME, name);
-    }
-
-    @Override
-    public String getDescription() {
-        return getProperty(DESCRIPTION);
-    }
-
-    @Override
-    public void setDescription(String description) {
-        setProperty(DESCRIPTION, description);
-    }
-
-    @Override
-    public Status getStatus() {
-        return getProperty(STATUS);
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        setProperty(STATUS, status);
-    }
-
-    public List<RemoteTarget> getRemoteTargets() {
-        return getLinked(CONTAINS, RemoteTarget.class);
+    public Id getId() {
+        return entityId;
     }
 
     @Override
-    public URI getSourceUri() {
-        return getProperty(SOURCE_URI);
+    public void setId(Id id) {
+        entityId = id;
     }
 
-    @Override
-    public void setSourceUri(URI sourceUri) {
-        setProperty(SOURCE_URI, sourceUri);
-    }
-
-    @Override
-    public ExternalService getService() {
-        return singleOrNull(getLinked(OWNED_BY, ExternalService.class));
-    }
-
-    @Override
-    public Collection<Manager> getManagers() {
-        return getLinked(MANAGED_BY, Manager.class);
-    }
-
-    @Override
-    public void addManager(Manager manager) {
-        link(MANAGED_BY, manager);
-    }
-
-    public Collection<LogicalDrive> getLogicalDrives() {
-        return getLinked(CONTAINS, LogicalDrive.class);
-    }
-
-    public Collection<PhysicalDrive> getPhysicalDrives() {
-        return getLinked(CONTAINS, PhysicalDrive.class);
-    }
-
-    public void addPhysicalDrive(PhysicalDrive physicalDrive) {
-        link(CONTAINS, physicalDrive);
-    }
-
-    public void addLogicalDrive(LogicalDrive logicalDrive) {
-        link(CONTAINS, logicalDrive);
+    public Set<RemoteTarget> getRemoteTargets() {
+        return remoteTargets;
     }
 
     public void addRemoteTarget(RemoteTarget remoteTarget) {
-        link(CONTAINS, remoteTarget);
+        requiresNonNull(remoteTarget, "remoteTarget");
+
+        remoteTargets.add(remoteTarget);
+        if (!this.equals(remoteTarget.getStorageService())) {
+            remoteTarget.setStorageService(this);
+        }
+    }
+
+    public void unlinkRemoteTarget(RemoteTarget remoteTarget) {
+        if (remoteTargets.contains(remoteTarget)) {
+            remoteTargets.remove(remoteTarget);
+            if (remoteTarget != null) {
+                remoteTarget.unlinkStorageService(this);
+            }
+        }
+    }
+
+    public Set<LogicalDrive> getLogicalDrives() {
+        return logicalDrives;
+    }
+
+    public void addLogicalDrive(LogicalDrive logicalDrive) {
+        requiresNonNull(logicalDrive, "logicalDrive");
+
+        logicalDrives.add(logicalDrive);
+        if (!this.equals(logicalDrive.getStorageService())) {
+            logicalDrive.setStorageService(this);
+        }
+    }
+
+    public void unlinkLogicalDrive(LogicalDrive logicalDrive) {
+        if (logicalDrives.contains(logicalDrive)) {
+            logicalDrives.remove(logicalDrive);
+            if (logicalDrive != null) {
+                logicalDrive.unlinkStorageService(this);
+            }
+        }
     }
 
     public List<LogicalDrive> getLogicalVolumeGroups() {
         return getLogicalDrives()
-                .stream()
-                .filter(ld -> ld.getMode().equals(LVG))
-                .collect(toList());
+            .stream()
+            .filter(ld -> ld.getMode().equals(LVG))
+            .collect(toList());
+    }
+
+    public Set<PhysicalDrive> getPhysicalDrives() {
+        return physicalDrives;
+    }
+
+    public void addPhysicalDrive(PhysicalDrive physicalDrive) {
+        requiresNonNull(physicalDrive, "physicalDrive");
+
+        physicalDrives.add(physicalDrive);
+        if (!this.equals(physicalDrive.getStorageService())) {
+            physicalDrive.setStorageService(this);
+        }
+    }
+
+    public void unlinkPhysicalDrive(PhysicalDrive physicalDrive) {
+        if (physicalDrives.contains(physicalDrive)) {
+            physicalDrives.remove(physicalDrive);
+            if (physicalDrive != null) {
+                physicalDrive.unlinkStorageService(this);
+            }
+        }
+    }
+
+    public Set<Manager> getManagers() {
+        return managers;
+    }
+
+    public void addManager(Manager manager) {
+        requiresNonNull(manager, "manager");
+
+        managers.add(manager);
+        if (!manager.getStorageServices().contains(this)) {
+            manager.addStorageService(this);
+        }
+    }
+
+    public void unlinkManager(Manager manager) {
+        if (managers.contains(manager)) {
+            managers.remove(manager);
+            if (manager != null) {
+                manager.unlinkStorageService(this);
+            }
+        }
+    }
+
+    @Override
+    public void preRemove() {
+        unlinkCollection(remoteTargets, this::unlinkRemoteTarget);
+        unlinkCollection(logicalDrives, this::unlinkLogicalDrive);
+        unlinkCollection(physicalDrives, this::unlinkPhysicalDrive);
+        unlinkCollection(managers, this::unlinkManager);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return false;
     }
 }

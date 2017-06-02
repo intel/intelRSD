@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,11 @@ import java.util.UUID;
 
 public interface RackscaleServiceRootResource extends ExternalServiceResource {
     UUID getUuid();
+    String getApiVersion();
     Iterable<ResourceSupplier> getChassis() throws ExternalServiceApiReaderException;
     Iterable<ResourceSupplier> getComputerSystems() throws ExternalServiceApiReaderException;
     Iterable<ResourceSupplier> getEthernetSwitches() throws ExternalServiceApiReaderException;
     Iterable<ResourceSupplier> getServices() throws ExternalServiceApiReaderException;
     Iterable<ResourceSupplier> getManagers() throws ExternalServiceApiReaderException;
+    Iterable<ResourceSupplier> getFabrics() throws ExternalServiceApiReaderException;
 }

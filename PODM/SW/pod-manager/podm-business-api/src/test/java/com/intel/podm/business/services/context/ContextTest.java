@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,17 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static com.intel.podm.business.services.context.Context.contextOf;
+import static com.intel.podm.business.services.context.Context.hasParentOfTypeOnTopOf;
 import static com.intel.podm.business.services.context.Context.isAcceptableChildOf;
 import static com.intel.podm.business.services.context.ContextType.CHASSIS;
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM;
-import static com.intel.podm.business.services.context.ContextType.MEMORY;
+import static com.intel.podm.business.services.context.ContextType.DRIVE;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT_VLAN;
-import static com.intel.podm.business.services.context.ContextType.MEMORY_CHUNK;
+import static com.intel.podm.business.services.context.ContextType.MEMORY;
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR;
+import static com.intel.podm.business.services.context.ContextType.SIMPLE_STORAGE;
 import static com.intel.podm.common.types.Id.id;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -36,6 +38,7 @@ import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
+@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName", "checkstyle:MethodCount"})
 public class ContextTest {
     @Test
     public void whenCreatingComputerSystemContext_ShouldNotReturnFalse() {
@@ -78,10 +81,6 @@ public class ContextTest {
                         contextOf(id(3), COMPUTER_SYSTEM)
                 },
                 {
-                        contextOf(id(2), COMPUTER_SYSTEM),
-                        contextOf(id(2), COMPUTER_SYSTEM).child(id(2), MEMORY_CHUNK)
-                },
-                {
                         contextOf(id(4), COMPUTER_SYSTEM).child(id(2), MEMORY),
                         contextOf(id(4), COMPUTER_SYSTEM).child(id(2), PROCESSOR)
                 },
@@ -113,13 +112,6 @@ public class ContextTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void whenCreatingMemoryChunkChildFromProcessor_ShouldThrow() {
-        contextOf(id(1), COMPUTER_SYSTEM)
-                .child(id(2), PROCESSOR)
-                .child(id(2), MEMORY_CHUNK);
-    }
-
-    @Test(expectedExceptions = IllegalArgumentException.class)
     public void whenCheckingAcceptableChildForNullChildType_shouldThrow() {
         isAcceptableChildOf(null, contextOf(id(1), COMPUTER_SYSTEM));
     }
@@ -129,7 +121,6 @@ public class ContextTest {
     public void testAcceptableChild(ContextType childType, Context parent) {
         assertTrue(isAcceptableChildOf(childType, parent));
     }
-
 
     @DataProvider
     public Object[][] acceptableChildren() {
@@ -168,6 +159,52 @@ public class ContextTest {
                 {
                         PROCESSOR,
                         null
+                }
+        };
+    }
+
+    @Test(dataProvider = "acceptableParentOnTopOf")
+    public void testAcceptableParentOnTopOf(Context context, ContextType possibleParentType) {
+        assertTrue(hasParentOfTypeOnTopOf(context, possibleParentType));
+    }
+
+    @DataProvider
+    public Object[][] acceptableParentOnTopOf() {
+        return new Object[][] {
+                {
+                        contextOf(id(1), COMPUTER_SYSTEM).child(id(2), SIMPLE_STORAGE),
+                        COMPUTER_SYSTEM
+                },
+                {
+                        contextOf(id(1), CHASSIS),
+                        null
+                },
+                {
+                        contextOf(id(1), ETHERNET_SWITCH).child(id(2), ETHERNET_SWITCH_PORT).child(id(3), ETHERNET_SWITCH_PORT_VLAN),
+                        ETHERNET_SWITCH_PORT
+                }
+        };
+    }
+
+    @Test(dataProvider = "unacceptableParentOnTopOf")
+    public void testUnacceptableParentOnTopOf(Context context, ContextType possibleParentType) {
+        assertFalse(hasParentOfTypeOnTopOf(context, possibleParentType));
+    }
+
+    @DataProvider
+    public Object[][] unacceptableParentOnTopOf() {
+        return new Object[][] {
+                {
+                        contextOf(id(1), CHASSIS),
+                        COMPUTER_SYSTEM
+                },
+                {
+                        contextOf(id(1), CHASSIS).child(id(2), DRIVE),
+                        COMPUTER_SYSTEM
+                },
+                {
+                        contextOf(id(1), ETHERNET_SWITCH).child(id(2), ETHERNET_SWITCH_PORT).child(id(3), ETHERNET_SWITCH_PORT_VLAN),
+                        SIMPLE_STORAGE
                 }
         };
     }

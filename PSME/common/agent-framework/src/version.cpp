@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,26 +26,24 @@
 
 using namespace agent_framework::generic;
 
-std::string Version::to_string() {
-    return std::to_string(agent_framework::generic::Version::MAJOR) + "." +
-           std::to_string(agent_framework::generic::Version::MINOR) + "." +
-           std::to_string(agent_framework::generic::Version::BUILD) + "." +
-           std::to_string(agent_framework::generic::Version::HOTFIX);
+constexpr const char* Version::BUILD_TIME;
+constexpr const char* Version::VERSION_STRING;
+constexpr int Version::MAJOR_INDEX;
+constexpr int Version::MINOR_INDEX;
+constexpr int Version::BUILD_INDEX;
+
+namespace {
+const char SEP = '.';
 }
 
 std::string Version::build_info() {
-    std::string build_prefix;
+    std::string build_prefix{};
     switch(Version::BUILD_TYPE) {
         case ENG:
-                build_prefix = "ENGINEERING PSME BUILD " +
-                    std::to_string(agent_framework::generic::Version::MAJOR)
-                    + "." +
-                    std::to_string(agent_framework::generic::Version::MINOR)
-                    + "." +
-                    std::to_string(agent_framework::generic::Version::BUILD);
+                build_prefix = "ENGINEERING PSME BUILD " +  std::string(Version::VERSION_STRING);
             break;
         case REL:
-                build_prefix = "RELEASE PSME BUILD " + to_string();
+                build_prefix = "RELEASE PSME BUILD " + std::string(Version::VERSION_STRING);
             break;
         // treating MAN case the same as default
         case MAN:
@@ -55,3 +53,37 @@ std::string Version::build_info() {
     }
     return build_prefix + "; Built " + std::string(Version::BUILD_TIME);
 }
+
+int agent_framework::generic::get_version_component(const char* version_string, int index) {
+    if (nullptr == version_string) {
+        return 0;
+    }
+
+    const char* s = version_string;
+
+    int i = 0;
+    while (i < index && *s) {
+        if (SEP == *(s++)) {
+            ++i;
+        }
+    }
+    if (i != index) {
+        return 0;
+    }
+
+    int value{0};
+    while (*s) {
+        if (isdigit(*s)) {
+            value = (value * 10) + (*s - '0');
+        }
+        else if (SEP == *s) {
+            break;
+        }
+        else {
+            return 0;
+        }
+        ++s;
+    }
+    return value;
+}
+

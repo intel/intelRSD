@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,23 +60,23 @@ public final class MemoryRegionDto {
         private Builder() {
         }
 
-        public Builder regionId(String val) {
-            regionId = val;
+        public Builder regionId(String regionId) {
+            this.regionId = regionId;
             return this;
         }
 
-        public Builder memoryClassification(MemoryClassification val) {
-            memoryClassification = val;
+        public Builder memoryClassification(MemoryClassification memoryClassification) {
+            this.memoryClassification = memoryClassification;
             return this;
         }
 
-        public Builder offsetMib(Integer val) {
-            offsetMib = val;
+        public Builder offsetMib(Integer offsetMib) {
+            this.offsetMib = offsetMib;
             return this;
         }
 
-        public Builder sizeMib(Integer val) {
-            sizeMib = val;
+        public Builder sizeMib(Integer sizeMib) {
+            this.sizeMib = sizeMib;
             return this;
         }
 

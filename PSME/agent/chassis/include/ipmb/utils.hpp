@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,8 @@
  * @brief IPMI IPMB Service utils.
  * */
 
-#ifndef AGENT_CHASSIS_IPMB_UTILS_HPP
-#define AGENT_CHASSIS_IPMB_UTILS_HPP
+#pragma once
+
 #include <agent-framework/version.hpp>
 
 #include <cstdint>
@@ -63,18 +63,11 @@ static constexpr const uint8_t IPMI_DEVICE_IPMI_VER = 0x51;
 /*! Chassis device */
 static constexpr const uint8_t IPMI_CHASSIS_DEVICE = 0x80;
 /*! Device major version */
-static constexpr const uint8_t IPMI_DEVICE_REV_MAJOR = agent_framework::generic::Version::MAJOR;
+uint8_t IPMI_DEVICE_REV_MAJOR();
 /*! Device minor version */
-static constexpr const uint8_t IPMI_DEVICE_REV_MINOR = agent_framework::generic::Version::MINOR;
-
-/*! Device firmware revision 0 */
-uint8_t IPMI_AUX_FW_REV_0();
-/*! Device firmware revision 1 */
-uint8_t IPMI_AUX_FW_REV_1();
-/*! Device firmware revision 2 */
-uint8_t IPMI_AUX_FW_REV_2();
-/*! Device firmware revision 3 */
-uint8_t IPMI_AUX_FW_REV_3();
+uint8_t IPMI_DEVICE_REV_MINOR();
+/*! Device firmware revision */
+uint32_t IPMI_AUX_FW_REV();
 
 /*! Maximum IPMI message lenght */
 static constexpr const uint16_t IPMI_MAX_MSG_LENGTH = 272;
@@ -177,12 +170,16 @@ uint8_t GET_BYTE(uint32_t value, uint8_t byte);
  *
  * @var InstanceField TRAYRUID
  * Tray RUID
+ *
+ * @var InstanceField RACKID
+ * Rack Id as string
  * */
 enum class InstanceField: uint8_t {
     RESERVED = 0x00,
     RACKPUID = 0x01,
     RACKBPID = 0x02,
-    TRAYRUID = 0x03
+    TRAYRUID = 0x03,
+    RACKID = 0x04
 };
 
 /*!
@@ -248,35 +245,17 @@ enum class CmdCode {
 };
 
 /*!
- * @enum IPMI Net function
+ * @enum NetFn IPMI Net function
  * @brief Set of net functions used in IPMI communication.
- *
- * @var NetFn Utils::IPMI_NETFN_CHASSIS
- * IPMI Chassis Net function
- *
- * @var NetFn Utils::IPMI_NETFN_BRIDGE
- * IPMI Bridge Net function
- *
- * @var NetFn Utils::IPMI_NETFN_APP
- * IPMI Application Net function
- *
- * @var NetFn Utils::IPMI_NETFN_TRANSPORT
- * IPMI Transport Net function
- *
- * @var NetFn Utils::IPMI_NETFN_OEM
- * IPMI OEM Net function
- *
- * @var NetFn Utils::IPMI_NETFN_INTEL
- * IPMI Intel Net function
- * */
+ */
 enum class NetFn: uint8_t {
-    IPMI_NETFN_CHASSIS      = 0x00,
-    IPMI_NETFN_BRIDGE       = 0x02,
-    IPMI_NETFN_APP          = 0x06,
-    IPMI_NETFN_TRANSPORT    = 0x0c,
-    IPMI_NETFN_OEM          = 0x30,
-    IPMI_NETFN_INTEL_REQ    = 0x38,
-    IPMI_NETFN_INTEL_RSP    = 0x39
+    IPMI_NETFN_CHASSIS      = 0x00, //!< IPMI Chassis Net function
+    IPMI_NETFN_BRIDGE       = 0x02, //!< IPMI Bridge Net function
+    IPMI_NETFN_APP          = 0x06, //!< IPMI Application Net function
+    IPMI_NETFN_TRANSPORT    = 0x0c, //!< IPMI Transport Net function
+    IPMI_NETFN_OEM          = 0x30, //!< IPMI OEM Net function
+    IPMI_NETFN_INTEL_REQ    = 0x38, //!< IPMI Intel Net function (request)
+    IPMI_NETFN_INTEL_RSP    = 0x39  //!< IPMI Intel Net function (response)
 };
 
 /*!
@@ -311,16 +290,20 @@ enum class CompletionCode: uint8_t {
 /*! Utils */
 namespace utils {
 
-    /*! Print buffer
+    /*!
+     * @brief Print buffer
      * @param buffer pointer to buffer to be printed
-     * @param len buffer lenght
-     * @return formated string */
+     * @param len buffer length
+     * @return Formatted string
+     * */
     std::string print_frame(const uint8_t* buffer, const uint16_t len);
 
-    /*! Calculate chceksum
+    /*!
+     * @brief Calculate checksum
      * @param buffer pointer to data buffer
      * @param len data buffer length
-     * @return calculated checksum */
+     * @return Calculated checksum
+     * */
     uint8_t ipmi_checksum(const uint8_t* buffer, uint16_t len);
 
 
@@ -330,4 +313,3 @@ namespace utils {
 }
 }
 
-#endif /* AGENT_CHASSIS_RRM_UTILS_HPP */

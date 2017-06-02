@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,8 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/module-ref/compute_manager.hpp"
-#include "agent-framework/module-ref/model/manager.hpp"
+#include "agent-framework/module/common_components.hpp"
+#include "agent-framework/module/model/manager.hpp"
 #include "loader/compute_loader.hpp"
 
 #include "configuration_full.hpp"
@@ -35,7 +35,7 @@
 using namespace agent::compute::loader;
 
 // TODO: For refactor purpose only. Remove after name unification.
-using ComputeComponents = agent_framework::module::ComputeManager;
+using agent_framework::module::CommonComponents;
 
 class ComputeLoaderBuildComputeTest: public ::testing::Test {
 protected:
@@ -81,7 +81,7 @@ ComputeLoaderBuildComputeTest::~ComputeLoaderBuildComputeTest() { }
  * Recognizes a entry basing on slot, then compare read data to known data from test config file.
  */
 TEST_F(ComputeLoaderBuildComputeTest, LoadFullConfiguration_ManagersShouldHaveProperData) {
-    auto& module_manager = ComputeComponents::get_instance()->get_module_manager();
+    auto& module_manager = CommonComponents::get_instance()->get_module_manager();
 
     auto keys_vector = module_manager.get_keys("");
 
@@ -98,24 +98,28 @@ TEST_F(ComputeLoaderBuildComputeTest, LoadFullConfiguration_ManagersShouldHavePr
             ASSERT_STREQ("user1", conn.get_username().c_str());
             ASSERT_STREQ("password1", conn.get_password().c_str());
             ASSERT_EQ(623, conn.get_port());
+            ASSERT_STREQ("sw0p37", manager.get_switch_port_identifier().c_str());
         }
         else if(2 == slot) {
             ASSERT_STREQ("1.1.2.2", conn.get_ip_address().c_str());
             ASSERT_STREQ("user2", conn.get_username().c_str());
             ASSERT_STREQ("password2", conn.get_password().c_str());
             ASSERT_EQ(624, conn.get_port());
+            ASSERT_STREQ("sw0p41", manager.get_switch_port_identifier().c_str());
         }
         else if(3 == slot) {
             ASSERT_STREQ("1.1.2.3", conn.get_ip_address().c_str());
             ASSERT_STREQ("user3", conn.get_username().c_str());
             ASSERT_STREQ("password3", conn.get_password().c_str());
             ASSERT_EQ(625, conn.get_port());
+            ASSERT_STREQ("sw0p39", manager.get_switch_port_identifier().c_str());
         }
         else if(4 == slot) {
             ASSERT_STREQ("1.1.2.4", conn.get_ip_address().c_str());
             ASSERT_STREQ("user4", conn.get_username().c_str());
             ASSERT_STREQ("password4", conn.get_password().c_str());
             ASSERT_EQ(626, conn.get_port());
+            ASSERT_STREQ("sw0p43", manager.get_switch_port_identifier().c_str());
         }
         else {
             // Only 1 - 4 slots are defined in test-config file.
@@ -125,8 +129,8 @@ TEST_F(ComputeLoaderBuildComputeTest, LoadFullConfiguration_ManagersShouldHavePr
 }
 
 TEST_F(ComputeLoaderBuildComputeTest, LoadFullConfiguration_EachManagerShouldHaveChassis) {
-    auto& module_manager = ComputeComponents::get_instance()->get_module_manager();
-    auto& chassis_manager = ComputeComponents::get_instance()->get_chassis_manager();
+    auto& module_manager = CommonComponents::get_instance()->get_module_manager();
+    auto& chassis_manager = CommonComponents::get_instance()->get_chassis_manager();
 
     auto managers_keys_vector = module_manager.get_keys("");
 
@@ -144,7 +148,7 @@ TEST_F(ComputeLoaderBuildComputeTest, LoadFullConfiguration_EachManagerShouldHav
           try {
               auto chassis = chassis_manager.get_entry(chassis_key);
           }
-          catch (const agent_framework::exceptions::InvalidParameters&) {
+          catch (const agent_framework::exceptions::InvalidUuid&) {
               ASSERT_TRUE(false) << "Each Manager should have a Chassis.";
           }
       }
@@ -153,8 +157,8 @@ TEST_F(ComputeLoaderBuildComputeTest, LoadFullConfiguration_EachManagerShouldHav
 }
 
 TEST_F(ComputeLoaderBuildComputeTest, LoadFullConfiguration_EachChassisShouldBeModule) {
-    auto& module_manager = ComputeComponents::get_instance()->get_module_manager();
-    auto& chassis_manager = ComputeComponents::get_instance()->get_chassis_manager();
+    auto& module_manager = CommonComponents::get_instance()->get_module_manager();
+    auto& chassis_manager = CommonComponents::get_instance()->get_chassis_manager();
 
     auto managers_keys_vector = module_manager.get_keys("");
 

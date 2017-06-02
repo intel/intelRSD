@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,7 @@
  * @brief Application configuration interface
  * */
 
-#ifndef CONFIGURATION_CONFIGURATION_HPP
-#define CONFIGURATION_CONFIGURATION_HPP
-
+#pragma once
 #include "json/json.hpp"
 
 #include <string>
@@ -164,4 +162,3 @@ private:
 
 } /* namespace configuration */
 
-#endif /* CONFIGURATION_CONFIGURATION_HPP */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License;
  * you may not use this file except in compliance with the License.
@@ -21,137 +21,81 @@ import com.intel.podm.business.dto.redfish.attributes.ComposedNodeMemoryDto;
 import com.intel.podm.business.dto.redfish.attributes.ComposedNodeProcessorsDto;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.ComposedNodeState;
-import com.intel.podm.common.types.Id;
-import com.intel.podm.common.types.NodeSystemType;
 import com.intel.podm.common.types.PowerState;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.actions.ResetType;
+import com.intel.podm.common.types.redfish.RedfishResource;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
-import static com.google.common.collect.Lists.newArrayList;
-
-public final class ComposedNodeDto {
-    private final Id id;
+@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ExecutableStatementCount"})
+public final class ComposedNodeDto implements RedfishResource {
+    private final String id;
     private final String name;
     private final String description;
-    private final NodeSystemType systemType;
-    private final String assetTag;
-    private final String manufacturer;
-    private final String model;
-    private final String sku;
-    private final String serialNumber;
-    private final String partNumber;
     private final UUID uuid;
-    private final String hostName;
     private final PowerState powerState;
-    private final String biosVersion;
     private final Status status;
     private final ComposedNodeProcessorsDto composedNodeProcessors;
     private final ComposedNodeMemoryDto composedNodeMemory;
     private final ComposedNodeState composedNodeState;
     private final BootDto boot;
-
-    private final Context computerSystem;
-    private final List<ResetType> allowableResetTypes;
-    private final List<Context> processors;
-    private final List<Context> memoryModules;
-    private final List<Context> ethernetInterfaces;
-    private final List<Context> localDrives;
-    private final List<Context> simpleStorage;
-    private final List<Context> remoteDrives;
-    private final List<Context> managedBy;
+    private final Actions actions;
+    private final Links links;
 
     private ComposedNodeDto(Builder builder) {
         id = builder.id;
         name = builder.name;
         description = builder.description;
-        systemType = builder.systemType;
-        assetTag = builder.assetTag;
-        manufacturer = builder.manufacturer;
-        model = builder.model;
-        sku = builder.sku;
-        serialNumber = builder.serialNumber;
-        partNumber = builder.partNumber;
         uuid = builder.uuid;
-        hostName = builder.hostName;
         powerState = builder.powerState;
-        biosVersion = builder.biosVersion;
         status = builder.status;
         composedNodeProcessors = builder.composedNodeProcessors;
         composedNodeMemory = builder.composedNodeMemory;
         composedNodeState = builder.composedNodeState;
         boot = builder.boot;
-        computerSystem = builder.computerSystem;
-        allowableResetTypes = builder.allowableResetTypes;
-        processors = builder.processors;
-        memoryModules = builder.memoryModules;
-        ethernetInterfaces = builder.ethernetInterfaces;
-        localDrives = builder.localDrives;
-        simpleStorage = builder.simpleStorage;
-        remoteDrives = builder.remoteDrives;
-        managedBy = builder.managedBy;
+        actions = new Actions(builder.allowableResetTypes);
+        Links builderLinks = new Links(builder.computerSystem);
+        builderLinks.setProcessors(builder.processors);
+        builderLinks.setMemoryModules(builder.memoryModules);
+        builderLinks.setEthernetInterfaces(builder.ethernetInterfaces);
+        builderLinks.setLocalDrives(builder.localDrives);
+        builderLinks.setSimpleStorage(builder.simpleStorage);
+        builderLinks.setRemoteDrives(builder.remoteDrives);
+        builderLinks.setManagedBy(builder.managedBy);
+        builderLinks.setPcieDrives(builder.pcieDrives);
+        builderLinks.setAvailablePcieDrives(builder.availablePcieDrives);
+        links = builderLinks;
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    public Id getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getDescription() {
         return description;
-    }
-
-    public NodeSystemType getSystemType() {
-        return systemType;
-    }
-
-    public String getAssetTag() {
-        return assetTag;
-    }
-
-    public String getManufacturer() {
-        return manufacturer;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public String getSku() {
-        return sku;
-    }
-
-    public String getSerialNumber() {
-        return serialNumber;
-    }
-
-    public String getPartNumber() {
-        return partNumber;
     }
 
     public UUID getUuid() {
         return uuid;
     }
 
-    public String getHostName() {
-        return hostName;
-    }
-
     public PowerState getPowerState() {
         return powerState;
-    }
-
-    public String getBiosVersion() {
-        return biosVersion;
     }
 
     public Status getStatus() {
@@ -174,76 +118,148 @@ public final class ComposedNodeDto {
         return boot;
     }
 
-    public Context getComputerSystem() {
-        return computerSystem;
+    public Actions getActions() {
+        return actions;
     }
 
-    public List<ResetType> getAllowableResetTypes() {
-        return allowableResetTypes;
+    @Override
+    public Links getLinks() {
+        return links;
     }
 
-    public List<Context> getProcessors() {
-        return processors;
+    public static final class Actions {
+        private final Set<ResetType> allowableResetTypes;
+
+        public Actions(Set<ResetType> allowableResetTypes) {
+            this.allowableResetTypes = allowableResetTypes;
+        }
+
+        public Set<ResetType> getAllowableResetTypes() {
+            return allowableResetTypes;
+        }
     }
 
-    public List<Context> getMemoryModules() {
-        return memoryModules;
-    }
+    public static final class Links implements RedfishResource.Links {
+        private final Context computerSystem;
 
-    public List<Context> getEthernetInterfaces() {
-        return ethernetInterfaces;
-    }
+        private Set<Context> processors;
+        private Set<Context> memoryModules;
+        private Set<Context> ethernetInterfaces;
+        private Set<Context> localDrives;
+        private Set<Context> simpleStorage;
+        private Set<Context> remoteDrives;
+        private Set<Context> managedBy;
+        private Set<Context> pcieDrives;
+        private Set<Context> availablePcieDrives;
 
-    public List<Context> getLocalDrives() {
-        return localDrives;
-    }
+        public Links(Context computerSystem) {
+            this.computerSystem = computerSystem;
+        }
 
-    public List<Context> getSimpleStorage() {
-        return simpleStorage;
-    }
+        public Context getComputerSystem() {
+            return computerSystem;
+        }
 
-    public List<Context> getRemoteDrives() {
-        return remoteDrives;
-    }
+        public Set<Context> getProcessors() {
+            return processors;
+        }
 
-    public List<Context> getManagedBy() {
-        return managedBy;
+        public void setProcessors(Set<Context> processors) {
+            this.processors = processors;
+        }
+
+        public Set<Context> getMemoryModules() {
+            return memoryModules;
+        }
+
+        public void setMemoryModules(Set<Context> memoryModules) {
+            this.memoryModules = memoryModules;
+        }
+
+        public Set<Context> getEthernetInterfaces() {
+            return ethernetInterfaces;
+        }
+
+        public void setEthernetInterfaces(Set<Context> ethernetInterfaces) {
+            this.ethernetInterfaces = ethernetInterfaces;
+        }
+
+        public Set<Context> getLocalDrives() {
+            return localDrives;
+        }
+
+        public void setLocalDrives(Set<Context> localDrives) {
+            this.localDrives = localDrives;
+        }
+
+        public Set<Context> getSimpleStorage() {
+            return simpleStorage;
+        }
+
+        public void setSimpleStorage(Set<Context> simpleStorage) {
+            this.simpleStorage = simpleStorage;
+        }
+
+        public Set<Context> getRemoteDrives() {
+            return remoteDrives;
+        }
+
+        public void setRemoteDrives(Set<Context> remoteDrives) {
+            this.remoteDrives = remoteDrives;
+        }
+
+        public Set<Context> getManagedBy() {
+            return managedBy;
+        }
+
+        public void setManagedBy(Set<Context> managedBy) {
+            this.managedBy = managedBy;
+        }
+
+        public Set<Context> getPcieDrives() {
+            return pcieDrives;
+        }
+
+        public void setPcieDrives(Set<Context> pcieDrives) {
+            this.pcieDrives = pcieDrives;
+        }
+
+        public Set<Context> getAvailablePcieDrives() {
+            return availablePcieDrives;
+        }
+
+        public void setAvailablePcieDrives(Set<Context> availablePcieDrives) {
+            this.availablePcieDrives = availablePcieDrives;
+        }
     }
 
     public static final class Builder {
-        private Id id;
+        private String id;
         private String name;
         private String description;
-        private NodeSystemType systemType;
-        private String assetTag;
-        private String manufacturer;
-        private String model;
-        private String sku;
-        private String serialNumber;
-        private String partNumber;
         private UUID uuid;
-        private String hostName;
         private PowerState powerState;
-        private String biosVersion;
         private Status status;
         private ComposedNodeProcessorsDto composedNodeProcessors;
         private ComposedNodeMemoryDto composedNodeMemory;
         private ComposedNodeState composedNodeState;
         private BootDto boot;
         private Context computerSystem;
-        private List<ResetType> allowableResetTypes = newArrayList();
-        private List<Context> processors = newArrayList();
-        private List<Context> memoryModules = newArrayList();
-        private List<Context> ethernetInterfaces = newArrayList();
-        private List<Context> localDrives = newArrayList();
-        private List<Context> simpleStorage = newArrayList();
-        private List<Context> remoteDrives = newArrayList();
-        private List<Context> managedBy = newArrayList();
+        private Set<ResetType> allowableResetTypes = new HashSet<>();
+        private Set<Context> processors = new HashSet<>();
+        private Set<Context> memoryModules = new HashSet<>();
+        private Set<Context> ethernetInterfaces = new HashSet<>();
+        private Set<Context> localDrives = new HashSet<>();
+        private Set<Context> simpleStorage = new HashSet<>();
+        private Set<Context> remoteDrives = new HashSet<>();
+        private Set<Context> managedBy = new HashSet<>();
+        private Set<Context> pcieDrives = new HashSet<>();
+        private Set<Context> availablePcieDrives = new HashSet<>();
 
         private Builder() {
         }
 
-        public Builder id(Id id) {
+        public Builder id(String id) {
             this.id = id;
             return this;
         }
@@ -258,58 +274,13 @@ public final class ComposedNodeDto {
             return this;
         }
 
-        public Builder systemType(NodeSystemType systemType) {
-            this.systemType = systemType;
-            return this;
-        }
-
-        public Builder assetTag(String assetTag) {
-            this.assetTag = assetTag;
-            return this;
-        }
-
-        public Builder manufacturer(String manufacturer) {
-            this.manufacturer = manufacturer;
-            return this;
-        }
-
-        public Builder model(String model) {
-            this.model = model;
-            return this;
-        }
-
-        public Builder sku(String sku) {
-            this.sku = sku;
-            return this;
-        }
-
-        public Builder serialNumber(String serialNumber) {
-            this.serialNumber = serialNumber;
-            return this;
-        }
-
-        public Builder partNumber(String partNumber) {
-            this.partNumber = partNumber;
-            return this;
-        }
-
         public Builder uuid(UUID uuid) {
             this.uuid = uuid;
             return this;
         }
 
-        public Builder hostName(String hostName) {
-            this.hostName = hostName;
-            return this;
-        }
-
         public Builder powerState(PowerState powerState) {
             this.powerState = powerState;
-            return this;
-        }
-
-        public Builder biosVersion(String biosVersion) {
-            this.biosVersion = biosVersion;
             return this;
         }
 
@@ -343,43 +314,53 @@ public final class ComposedNodeDto {
             return this;
         }
 
-        public Builder allowableResetTypes(List<ResetType> allowableResetTypes) {
-            this.allowableResetTypes = allowableResetTypes;
+        public Builder allowableResetTypes(Collection<ResetType> allowableResetTypes) {
+            this.allowableResetTypes.addAll(allowableResetTypes);
             return this;
         }
 
-        public Builder processors(List<Context> processors) {
+        public Builder processors(Set<Context> processors) {
             this.processors = processors;
             return this;
         }
 
-        public Builder memoryModules(List<Context> memoryModules) {
+        public Builder memoryModules(Set<Context> memoryModules) {
             this.memoryModules = memoryModules;
             return this;
         }
 
-        public Builder ethernetInterfaces(List<Context> ethernetInterfaces) {
+        public Builder ethernetInterfaces(Set<Context> ethernetInterfaces) {
             this.ethernetInterfaces = ethernetInterfaces;
             return this;
         }
 
-        public Builder localDrives(List<Context> localDrives) {
+        public Builder localDrives(Set<Context> localDrives) {
             this.localDrives = localDrives;
             return this;
         }
 
-        public Builder simpleStorage(List<Context> simpleStorage) {
+        public Builder simpleStorage(Set<Context> simpleStorage) {
             this.simpleStorage = simpleStorage;
             return this;
         }
 
-        public Builder remoteDrives(List<Context> remoteDrives) {
+        public Builder remoteDrives(Set<Context> remoteDrives) {
             this.remoteDrives = remoteDrives;
             return this;
         }
 
-        public Builder managedBy(List<Context> managedBy) {
+        public Builder managedBy(Set<Context> managedBy) {
             this.managedBy = managedBy;
+            return this;
+        }
+
+        public Builder pcieDrives(Set<Context> pcieDrives) {
+            this.pcieDrives = pcieDrives;
+            return this;
+        }
+
+        public Builder availablePcieDrives(Set<Context> availablePcieDrives) {
+            this.availablePcieDrives = availablePcieDrives;
             return this;
         }
 

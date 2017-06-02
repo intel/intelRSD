@@ -1,7 +1,7 @@
 
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,90 +23,86 @@
 #include "logger/logger_factory.hpp"
 
 extern "C" {
-#include "sys/inotify.h"
-#include "sys/types.h"
-#include "sys/poll.h"
+#include <sys/inotify.h>
+#include <sys/types.h>
+#include <sys/poll.h>
+#include <unistd.h>
+#include <string.h>
+#include <linux/limits.h>
 }
 
 using namespace agent::storage;
+using namespace agent::storage::hotswap_discovery;
 
-void HotswapWatcher::start() {
-    if (!m_running) {
-        m_running = true;
-        log_debug(GET_LOGGER("storage-agent"), "Hotswap disk watcher job started.");
-        m_thread = std::thread(&HotswapWatcher::watch, this);
-    }
-}
+namespace {
+    constexpr int TIMEOUT_MS = 10000;
+    constexpr int BUFFER_LEN = sizeof(struct inotify_event) + NAME_MAX + 1;
+    constexpr char WATCH_DISK_PATH[] = "/dev/disk/by-id/";
+    constexpr char DEVICE_MAPPER_PREFIX[] = "dm-";
 
-void HotswapWatcher::stop() {
-    if (m_running) {
-        m_running = false;
-        if (m_thread.joinable()) {
-            m_thread.join();
-            log_debug(GET_LOGGER("storage-agent"), "Hotswap disk watcher job done.");
+    /* INotify event message deleter */
+    struct INotifyDeleter {
+        void operator()(struct inotify_event* event) const {
+            delete event;
         }
-    }
+    };
+    using INotify = std::unique_ptr<struct inotify_event, INotifyDeleter>;
 }
 
 void HotswapWatcher::handle_hotswap() {
     try {
-        agent::storage::hotswap_discovery::HotswapManager hotswap_manager;
+        HotswapManager hotswap_manager{};
         hotswap_manager.hotswap_discover_hard_drives();
-    } catch (const std::runtime_error& error) {
+    }
+    catch (const std::exception& error) {
         log_debug(GET_LOGGER("storage-agent"), "Hotswap exception occured "
                 << error.what());
     }
 }
-namespace {
-    constexpr int TIMEOUT_MS = 10000;
-    //inotify watcher standard event buffer length
-    constexpr int BUFFER_LEN = (1024 * ((sizeof (struct inotify_event)) + 16));
-    constexpr char DEVICE_MAPPER_PREFIX[] = "dm-";
-    constexpr int CHARS_TO_COMPARE = 3;
-
-    union inotify_event_map {
-        char buffer[BUFFER_LEN];
-        inotify_event event;
-    };
-
-    bool is_ret_ok(int ret) {
-        return ret > 0;
-    }
-}
 
 bool HotswapWatcher::detect_hotswap(int fd, int wd) {
-    inotify_event_map i_map;
-    struct pollfd pfd = {fd, POLLIN | POLLPRI, 0};
-    nfds_t nfds = 1;
+    INotify ievent_buffer(INotify::pointer((::operator new (BUFFER_LEN))));
+    auto ievent = ievent_buffer.get();
+    struct pollfd pfds[] = {{fd, POLLIN | POLLPRI, 0}};
 
-    if (is_ret_ok(poll(&pfd, nfds, TIMEOUT_MS))) {
-        if (0 > read(fd, i_map.buffer, BUFFER_LEN)) {
-            log_warning(GET_LOGGER("storage-agent"), "Could not read disks notification.");
-            return false;
+    /* poll inotify events */
+    if (0 < poll(pfds, sizeof(pfds)/sizeof(pfds[0]), TIMEOUT_MS)) {
+        if (0 < read(fd, ievent, BUFFER_LEN)) {
+            return (0 < ievent->len) && (wd == ievent->wd) &&
+                (0 != strncmp(DEVICE_MAPPER_PREFIX, ievent->name,
+                strlen(DEVICE_MAPPER_PREFIX)));
         }
-        if (i_map.event.len && wd == i_map.event.wd &&
-                0 != strncmp(DEVICE_MAPPER_PREFIX, i_map.event.name, CHARS_TO_COMPARE)) {
-            return true;
-        }
+        log_warning(GET_LOGGER("storage-agent"),
+            "Could not read disks notification.");
     }
     return false;
 }
 
-void HotswapWatcher::watch() {
+void HotswapWatcher::execute() {
+    /* init an inotify instance */
     auto fd = inotify_init();
-    if (fd < 0) {
-        log_warning(GET_LOGGER("storage-agent"), "Could not watch disks directory.");
+    if (0 > fd) {
+        log_warning(GET_LOGGER("storage-agent"),
+            "Could not initialize an inotify instance");
         return;
     }
-    auto wd = inotify_add_watch(fd, m_watch_disk_dir, IN_CREATE | IN_DELETE);
-    while (m_running) {
+    /* add watch directory */
+    auto wd = inotify_add_watch(fd, WATCH_DISK_PATH, IN_CREATE | IN_DELETE);
+    if (0 > wd) {
+        log_warning(GET_LOGGER("storage-agent"),
+            "Could not watch disks directory.");
+        close(fd);
+        return;
+    }
+    /* listen for inotify events and handle them */
+    while (is_running()) {
         if (detect_hotswap(fd, wd)) {
             handle_hotswap();
         }
     }
+    /* close inotify instance */
     inotify_rm_watch(fd, wd);
     close(fd);
-
 }
 
-
+HotswapWatcher::~HotswapWatcher() { }

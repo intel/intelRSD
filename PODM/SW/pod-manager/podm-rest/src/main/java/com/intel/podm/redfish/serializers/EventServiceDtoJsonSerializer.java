@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,12 @@
 package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.EventServiceDto;
+import com.intel.podm.business.services.redfish.odataid.ODataContextProvider;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.redfish.json.templates.EventServiceJson;
-import com.intel.podm.rest.odataid.ODataContextProvider;
-import com.intel.podm.rest.odataid.ODataId;
 import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
 
-import static com.intel.podm.rest.odataid.ODataId.oDataId;
-import static java.net.URI.create;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 
 public class EventServiceDtoJsonSerializer extends DtoJsonSerializer<EventServiceDto> {
 
@@ -35,17 +34,18 @@ public class EventServiceDtoJsonSerializer extends DtoJsonSerializer<EventServic
     protected EventServiceJson translate(EventServiceDto dto) {
         EventServiceJson eventServiceJson = new EventServiceJson();
 
-        ODataId oDataId = oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         eventServiceJson.oDataId = oDataId;
         eventServiceJson.oDataContext = ODataContextProvider.getContextFromId(oDataId);
-
+        eventServiceJson.deliveryRetryAttempts = dto.getDeliveryRetryAttempts();
+        eventServiceJson.deliveryRetryIntervalSeconds = dto.getDeliveryRetryIntervalSeconds();
+        eventServiceJson.eventTypesForSubscription = dto.getEventTypesForSubscription();
+        eventServiceJson.description = dto.getDescription();
         eventServiceJson.id = dto.getId();
         eventServiceJson.name = dto.getName();
-        eventServiceJson.status = dto.getStatus();
-        eventServiceJson.subscriptions = oDataId(create(oDataId + "/Subscriptions"));
         eventServiceJson.serviceEnabled = dto.getServiceEnabled();
-        eventServiceJson.eventTypesForSubscription = dto.getEventTypesForSubscription();
-
+        eventServiceJson.status = dto.getStatus();
+        eventServiceJson.subscriptions = dto.getSubscriptions();
         return eventServiceJson;
     }
 }

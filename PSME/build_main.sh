@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2015-2016 Intel Corporation
+# Copyright (c) 2015-2017 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,11 +46,11 @@ NOT_FOUND="no"
 FOUND="yes"
 BUILD_ALL="all"
 UNIT_TEST_PREFIX="unittest"
-TARGET_SUBDIRECTORIES=("agent" "agent-intel" "agent-simulator" "agent-stubs" "application-ref" "encrypter" "common")
-VERSION_REGEXP="^[0-9]+(\.[0-9]+){2,3}$"
+TARGET_SUBDIRECTORIES=("agent" "agent-simulator" "agent-stubs" "application" "encrypter" "common")
+VERSION_REGEXP="^[0-9]+(\.[0-9]+){2,4}$"
 
 # POSSIBLE CONFIGURATIONS
-POSSIBLE_BUILD_TYPES=("debug" "release" "coverage")
+POSSIBLE_BUILD_TYPES=("debug" "release" "coverage" "asanitize" "tsanitize")
 POSSIBLE_COMPILERS=("gcc" "clang")
 POSSIBLE_ARCHITECTURES=("32" "64")
 POSSIBLE_BRANCHES=("man" "eng" "rel")
@@ -106,7 +106,8 @@ DEFAULT_BUILD_BRANCH="man"
 # DEFAULTS - others
 DEFAULT_JOBS=$((($(getconf _NPROCESSORS_ONLN)*2)))
 DEFAULT_PRINT="no"
-DEFAULT_SILENT="no"
+DEFAULT_QUIET="no"
+DEFAULT_STYLE_CHECK="no"
 DEFAULT_UNIT_TESTS="no"
 
 function usage() {
@@ -123,10 +124,12 @@ function usage() {
     echo "      -j | --jobs [NUMBER]: Specify number of threads for make. Default: number of online processors * 2."
     echo "      -l | --list: Lists all targets and exits."
     echo "      -n | --nop: Doesn't actually build anything, only prints what would be done. Default: ${DEFAULT_PRINT}."
-    echo "      -s | --silent: Surpresses output and only prints the build results. Default: ${DEFAULT_SILENT}."
+    echo "      -q | --quiet: Surpresses output and only prints the build results. Default: ${DEFAULT_QUIET}."
+    echo "      -s | --style: Run style check. Default: ${DEFAULT_STYLE_CHECK}."
     echo "      -x | --suffix : Adds a suffix to the build path. By default, path is as follows: BUILD_PATH=build.\${BUILD_TYPE}.\${COMPILER}.\${ARCHITECTURE}bit. The suffix is added at the end: \${BUILD_PATH}.\${SUFFIX}."
     echo "      -u | --unit-tests: Run unit tests associated with the given targets. Default: ${DEFAULT_UNIT_TESTS}."
     echo "      -v | --version: Set the build branch and version of the build. Possible build branches: [${POSSIBLE_BRANCHES[*]}]. The following version number is matched by regex to be v.v.v or v.v.v.v. Default: branch ${DEFAULT_BUILD_BRANCH}, no version."
+    echo "      -d | --download: download thirdparty files, ON-always, OFF-dont, download missin"
 }
 
 function set_default_values {
@@ -136,10 +139,12 @@ function set_default_values {
     ARCHITECTURES=("${DEFAULT_ARCHITECTURES[@]}")
     JOBS="$DEFAULT_JOBS"
     PRINT="$DEFAULT_PRINT"
-    SILENT="$DEFAULT_SILENT"
+    QUIET="$DEFAULT_QUIET"
+    STYLE_CHECK="$DEFAULT_STYLE_CHECK"
     SUFFIX=""
     UNIT_TESTS="$DEFAULT_UNIT_TESTS"
     BUILD_BRANCH="$DEFAULT_BUILD_BRANCH"
+    THIRDPARTY=""
 }
 
 function list_targets {
@@ -202,8 +207,11 @@ function parse_input {
             -n|--nop)
                 PRINT="yes"
                 ;;
-            -s|--silent)
-                SILENT="yes"
+            -q|--quiet)
+                QUIET="yes"
+                ;;
+            -s|--style)
+                STYLE_CHECK="yes"
                 ;;
             -x|--suffix)
                 shift
@@ -224,6 +232,10 @@ function parse_input {
                 BUILD_BRANCH="$1"
                 shift
                 BUILD_VERSION="$1"
+                ;;
+            -d|--download)
+                shift
+                THIRDPARTY="-DDOWNLOAD_THIRDPARTY=$1"
                 ;;
             *)
                 echo "Unknown parameter $1"
@@ -321,16 +333,6 @@ function prepare {
             echo "Invalid version $BUILD_VERSION detected, exiting..."
             exit 1
         fi
-
-        VERSION_MAJOR=$(echo $BUILD_VERSION | cut -d. -f1)
-        VERSION_MINOR=$(echo $BUILD_VERSION | cut -d. -f2)
-        VERSION_BUILD=$(echo $BUILD_VERSION | cut -d. -f3)
-        VERSION_HOTFIX=$(echo $BUILD_VERSION | cut -d. -f4)
-
-        # if hotfix version is not set, let it be 0
-        if [[ -z $VERSION_HOTFIX ]] ; then
-            VERSION_HOTFIX=0
-        fi
     fi
 
     # Print summary
@@ -340,7 +342,8 @@ function prepare {
     echo "TARGET ARCH:  ${ARCHITECTURES[*]}"
     echo "TARGETS:      ${TARGETS[*]}"
     echo "JOBS:         ${JOBS}"
-    echo "SILENT:       ${SILENT}"
+    echo "QUIET:        ${QUIET}"
+    echo "STYLE_CHECK:  ${STYLE_CHECK}"
     echo "UNIT TESTS:   ${UNIT_TESTS}"
     # print version info only if it's set
     if [[ $BUILD_BRANCH != "$DEFAULT_BUILD_BRANCH" ]] ; then
@@ -366,6 +369,9 @@ function prepare {
             for BUILD_TYPE in "${BUILD_TYPES[@]}" ; do
                 # Coverage only for GCC
                 if [[ $BUILD_TYPE == "coverage" && $COMPILER != "gcc" ]] ; then continue ; fi
+                # Sanitize only for GCC
+                if [[ $BUILD_TYPE == "asanitize" && $COMPILER != "gcc" ]] ; then continue ; fi
+                if [[ $BUILD_TYPE == "tsanitize" && $COMPILER != "gcc" ]] ; then continue ; fi
                 RESULTS_CONFIGURATIONS+=("build.${BUILD_TYPE}.${COMPILER}.${ARCHITECTURE}bit")
             done
         done
@@ -378,56 +384,40 @@ function report {
     MAKE_RESULT=$3
     MAKE_TIME=$4
     UNIT_TEST_RESULT=$5
+    STYLE_CHECK_RESULT=$6
 
     RESULTS_CMAKE_STATUSES+=("$CMAKE_RESULT")
     RESULTS_CMAKE_TIMES+=("$CMAKE_TIME")
     RESULTS_MAKE_STATUSES+=("$MAKE_RESULT")
     RESULTS_MAKE_TIMES+=("$MAKE_TIME")
     RESULTS_UNIT_TEST_STATUSES+=("$UNIT_TEST_RESULT")
+    RESULTS_STYLE_CHECK_STATUSES+=("$STYLE_CHECK_RESULT")
 }
 
 function run_unit_tests
 {
-    RESULT=0
-
-    for TARGET in "${TARGETS[@]}" ; do
-        # Get all targets from Makefile
-        ALL_TARGETS=$(make -qp | awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$)/ {split($1,A,/ /);for(i in A)print A[i]}')
-
-        # Recover desired targets - either all or just those associated with current target
-        if [[ $TARGET == "$BUILD_ALL" ]] ; then
-            UNIT_TEST_TARGETS=$(echo "$ALL_TARGETS" | grep "^${UNIT_TEST_PREFIX}_" | tr '\n' ' ')
+    RETCODE=0
+    TARGET=${TARGETS[0]}
+    if [ $TARGET == $BUILD_ALL ] ; then
+        UT_TARGETS=(`cat unittest_targets.txt`)
+    else
+        UT_TARGETS=(${TARGETS[@]})
+    fi
+    for TARGET in "${UT_TARGETS[@]}" ; do
+        UT_TARGET=${UNIT_TEST_PREFIX}_${TARGET}
+        make -n ${UT_TARGET}
+        RESULT=$?
+        if [ $RESULT -eq 2 ] ; then
+            echo No unit tests defined for target ${TARGET}
+            RETCODE=255
         else
-            UNIT_TEST_TARGETS=$(echo "$ALL_TARGETS" | grep "^${UNIT_TEST_PREFIX}_${TARGET}_" | tr '\n' ' ')
-        fi
-
-        if [[ -z $UNIT_TEST_TARGETS ]] ; then
-            continue
-        fi
-
-        # Compile all unit tests
-        make -j"${JOBS}" $UNIT_TEST_TARGETS
-        UT_CMP_RESULT=$?
-        if [[ $UT_CMP_RESULT != 0 ]] ; then
-            echo "Unit tests compilation failed!"
-            if [[ $RESULT == 0 ]] ; then
-                RESULT=$UT_CMP_RESULT
-            fi
-            continue
-        fi
-
-        # Now run them all together
-        ctest -R "^${UNIT_TEST_PREFIX}_${TARGET}_"
-        UT_RESULT=$?
-        if [[ $UT_RESULT != 0 ]] ; then
-            echo "Unit tests execution failed!"
-            if [[ $RESULT == 0 ]] ; then
-                RESULT=$UT_RESULT
-            fi
+            # build tests
+            make -j"${JOBS}" ${UT_TARGET} || return 1
+            # run tests
+            make -j"${JOBS}" ${UT_TARGET}_run || return 1
         fi
     done
-
-    return "$RESULT"
+    return $RETCODE
 }
 
 function build {
@@ -446,13 +436,13 @@ function build {
     # Don't build this configuration if compiler wasn't found
     if [[ -z "$CC" || -z "$CXX" ]]; then
         echo "CC or CXX are not set!"
-        report $STATUS_SKIPPED 0 $STATUS_SKIPPED 0 $STATUS_SKIPPED
+        report $STATUS_SKIPPED 0 $STATUS_SKIPPED 0 $STATUS_SKIPPED $STATUS_SKIPPED
         exit 1
     fi
 
     if [[ ! -x "$CC" || ! -x "$CXX" ]]; then
         echo "CC=${CC} or CXX=${CXX} doesn't exist!"
-        report $STATUS_SKIPPED 0 $STATUS_SKIPPED 0 $STATUS_SKIPPED
+        report $STATUS_SKIPPED 0 $STATUS_SKIPPED 0 $STATUS_SKIPPED $STATUS_SKIPPED
         exit 1
     fi
 
@@ -471,20 +461,20 @@ function build {
 
     if [[ ! -f Makefile ]] ; then
         # Generate build directories if there is no Makefile
-        CMAKE_COMMAND="$CMAKE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=$BUILD_TYPE"
+        CMAKE_COMMAND="$CMAKE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=$BUILD_TYPE $THIRDPARTY"
 
         if [[ $ARCHITECTURE == "64" ]] ; then
             CMAKE_COMMAND="$CMAKE_COMMAND -DCMAKE_CXX_FLAGS=-m64 -DCMAKE_C_FLAGS=-m64"
         fi
 
         if [[ $BUILD_BRANCH != "$DEFAULT_BUILD_BRANCH" ]] ; then
-            CMAKE_COMMAND="$CMAKE_COMMAND -DBUILD_BRANCH=${BUILD_BRANCH^^} -DVER_MAJOR=$VERSION_MAJOR -DVER_MINOR=$VERSION_MINOR -DVER_BUILD=$VERSION_BUILD -DVER_HOTFIX=$VERSION_HOTFIX"
+            CMAKE_COMMAND="$CMAKE_COMMAND -DBUILD_BRANCH=${BUILD_BRANCH^^} -DVER_STRING=$BUILD_VERSION"
         fi
 
         CMAKE_COMMAND="$CMAKE_COMMAND .."
 
         # Run CMAKE
-        if [[ $SILENT == 'yes' ]] ; then
+        if [[ $QUIET == 'yes' ]] ; then
             CMAKE_TIME=$({ time $CMAKE_COMMAND &> /dev/null ; } 2>&1)
             RESULT=$?
         else
@@ -494,10 +484,9 @@ function build {
             RESULT=$?
             # If cmake failed then just fail the build
             if [[ $RESULT != 0 ]] ; then
-                report "$STATUS_FAILURE" "$CMAKE_TIME" "$STATUS_SKIPPED" 0  "$STATUS_SKIPPED"
+                report "$STATUS_FAILURE" "$CMAKE_TIME" "$STATUS_SKIPPED" 0  "$STATUS_SKIPPED" "$STATUS_SKIPPED"
                 cd "$STARTING_DIR"
-                RETVAL=$RESULT
-                return
+                return $RESULT
             fi
             # Revert changes in redirection
             exec 3>&- 4>&-
@@ -512,7 +501,7 @@ function build {
     MAKE_COMMAND="$MAKE -j$JOBS ${TARGETS[*]}"
 
     # Run MAKE
-    if [[ $SILENT == 'yes' ]] ; then
+    if [[ $QUIET == 'yes' ]] ; then
         MAKE_TIME=$({ time $MAKE_COMMAND &> /dev/null ; } 2>&1)
         RESULT=$?
     else
@@ -524,10 +513,9 @@ function build {
 
     # Report failed make
     if [[ $RESULT != 0 ]] ; then
-        report "$STATUS_SUCCESS" "$CMAKE_TIME" "$STATUS_FAILURE" "$MAKE_TIME" "$STATUS_SKIPPED"
+        report "$STATUS_SUCCESS" "$CMAKE_TIME" "$STATUS_FAILURE" "$MAKE_TIME" "$STATUS_SKIPPED" "$STATUS_SKIPPED"
         cd "$STARTING_DIR"
-        RETVAL=$RESULT
-        return
+        return $RESULT
     fi
 
     # Run unit tests
@@ -535,20 +523,29 @@ function build {
         run_unit_tests
         # Mark failed unit tests
         RESULT=$?
-        if [[ $RESULT -ne 0 ]] ; then
-            UNIT_TESTS_STATUS="$STATUS_FAILURE"
-            RETVAL=$RESULT
-        else
+        if [[ $RESULT -eq 255 ]]; then
+            UNIT_TESTS_STATUS="$STATUS_SKIPPED"
+        elif [[ $RESULT -eq 0 ]] ; then
             UNIT_TESTS_STATUS="$STATUS_SUCCESS"
+        else
+            UNIT_TESTS_STATUS="$STATUS_FAILURE"
         fi
     else
         UNIT_TESTS_STATUS="$STATUS_SKIPPED"
     fi
 
+    # Run style check; mock method for now
+    if [[ $STYLE_CHECK == "yes" ]] ; then
+        STYLE_CHECK_STATUS="$STATUS_SUCCESS"
+    else
+        STYLE_CHECK_STATUS="$STATUS_SKIPPED"
+    fi
+
     # Report status and go back to original directory
-    report "$STATUS_SUCCESS" "$CMAKE_TIME" "$STATUS_SUCCESS" "$MAKE_TIME" "$UNIT_TESTS_STATUS"
+    report "$STATUS_SUCCESS" "$CMAKE_TIME" "$STATUS_SUCCESS" "$MAKE_TIME" "$UNIT_TESTS_STATUS" "$STYLE_CHECK_STATUS"
 
     cd "$STARTING_DIR"
+    return 0
 }
 
 function build_all
@@ -558,7 +555,11 @@ function build_all
             for BUILD_TYPE in "${BUILD_TYPES[@]}" ; do
                 # Coverage only for GCC
                 if [[ $BUILD_TYPE == "coverage" && $COMPILER != "gcc" ]] ; then continue ; fi
-                build $BUILD_TYPE
+               # Sanitize only for GCC
+                if [[ $BUILD_TYPE == "asanitize" && $COMPILER != "gcc" ]] ; then continue ; fi
+                if [[ $BUILD_TYPE == "tsanitize" && $COMPILER != "gcc" ]] ; then continue ; fi
+
+                build $BUILD_TYPE || exit 1
             done
         done
     done
@@ -568,12 +569,13 @@ function report_results
 {
     echo ""
     echo ""
-    echo "+       CONFIGURATION       +  CMAKE  +  TIME  +  MAKE   +  TIME  + UNIT TEST +"
+    echo "+       CONFIGURATION       +  CMAKE  +  TIME  +  MAKE   +  TIME  + UNIT TEST + STYLE CHECK +"
     for ((i = 0; i < ${#RESULTS_CONFIGURATIONS[@]}; i++)) ; do
         RESULTS_CONFIGURATION="${RESULTS_CONFIGURATIONS[$i]}"
         CMAKE_STATUS="${RESULTS_CMAKE_STATUSES[$i]}"
         MAKE_STATUS="${RESULTS_MAKE_STATUSES[$i]}"
         UNIT_TEST_STATUS="${RESULTS_UNIT_TEST_STATUSES[$i]}"
+        STYLE_CHECK_STATUS="${RESULTS_STYLE_CHECK_STATUSES[$i]}"
         CMAKE_TIME="${RESULTS_CMAKE_TIMES[$i]}"
         MAKE_TIME="${RESULTS_MAKE_TIMES[$i]}"
 
@@ -605,6 +607,14 @@ function report_results
             printf "  ${RED}%-7s${COLOR_END}  |" "$STATUS_FAILURE"
         elif [[ $UNIT_TEST_STATUS == "$STATUS_SKIPPED" ]] ; then
             printf "  ${YELLOW}%-7s${COLOR_END}  |" "$STATUS_SKIPPED"
+        fi
+
+        if [[ $STYLE_CHECK_STATUS == "$STATUS_SUCCESS" ]] ; then
+            printf "   ${GREEN}%-7s${COLOR_END}   |" "$STATUS_SUCCESS"
+        elif [[ $STYLE_CHECK_STATUS == "$STATUS_FAILURE" ]] ; then
+            printf "   ${RED}%-7s${COLOR_END}   |" "$STATUS_FAILURE"
+        elif [[ $STYLE_CHECK_STATUS == "$STATUS_SKIPPED" ]] ; then
+            printf "   ${YELLOW}%-7s${COLOR_END}   |" "$STATUS_SKIPPED"
         fi
 
         printf "\n"

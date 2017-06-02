@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@ package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.ServiceRootDto;
 import com.intel.podm.redfish.json.templates.ServiceRootJson;
-import com.intel.podm.rest.odataid.ODataId;
-import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.rest.representation.json.serializers.BaseDtoJsonSerializer;
 
-import static com.intel.podm.rest.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 import static java.net.URI.create;
 
-public final class ServiceRootDtoJsonSerializer extends DtoJsonSerializer<ServiceRootDto> {
+@SuppressWarnings({"checkstyle:ExecutableStatementCount"})
+public final class ServiceRootDtoJsonSerializer extends BaseDtoJsonSerializer<ServiceRootDto> {
     public ServiceRootDtoJsonSerializer() {
         super(ServiceRootDto.class);
     }
@@ -33,22 +35,24 @@ public final class ServiceRootDtoJsonSerializer extends DtoJsonSerializer<Servic
     protected ServiceRootJson translate(ServiceRootDto dto) {
         ServiceRootJson result = new ServiceRootJson();
 
-        ODataId oDataId = ODataId.oDataId(context.getRequestPath());
+        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
 
         result.oDataId = oDataId;
         result.oDataContext = getContextFromId(oDataId);
 
         result.id = dto.getId();
-        result.uuid = dto.getUuid();
         result.name = dto.getName();
-        result.nodes = ODataId.oDataId(create(oDataId + "/Nodes"));
-        result.systems = ODataId.oDataId(create(oDataId + "/Systems"));
-        result.chassis = ODataId.oDataId(create(oDataId + "/Chassis"));
-        result.managers = ODataId.oDataId(create(oDataId + "/Managers"));
-        result.services = ODataId.oDataId(create(oDataId + "/Services"));
-        result.eventService = ODataId.oDataId(create(oDataId + "/EventService"));
+        result.description = dto.getDescription();
+        result.uuid = dto.getUuid();
+        result.nodes = oDataIdFromUri(create(oDataId + "/Nodes"));
+        result.systems = oDataIdFromUri(create(oDataId + "/Systems"));
+        result.chassis = oDataIdFromUri(create(oDataId + "/Chassis"));
+        result.managers = oDataIdFromUri(create(oDataId + "/Managers"));
+        result.services = oDataIdFromUri(create(oDataId + "/Services"));
+        result.eventService = oDataIdFromUri(create(oDataId + "/EventService"));
         result.redfishVersion = dto.getRedfishVersion();
-        result.ethernetSwitches = ODataId.oDataId(create(oDataId + "/EthernetSwitches"));
+        result.ethernetSwitches = oDataIdFromUri(create(oDataId + "/EthernetSwitches"));
+        result.fabrics = oDataIdFromUri(create(oDataId + "/Fabrics"));
 
         return result;
     }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@
 
 #pragma once
 /* Internal headers */
-#include "netlink/message.hpp"
+#include "netlink/neigh_message.hpp"
 
 /* C/C++ standard headers */
 #include <string>
@@ -36,7 +36,7 @@ namespace api {
 namespace netlink {
 
 /*! Static MAC Message class */
-class StaticMacMessage: public netlink_base::Message {
+class StaticMacMessage: public netlink_base::NeighMessage {
 public:
     /*!
      * @brief Default constructor.
@@ -62,13 +62,11 @@ public:
     /*!
      * @brief Prepare Static MAC netlink message.
      *
-     * @return Netlink message ready to be sent.
+     * @param[out] msg Message to be sent.
      * */
-    Pointer prepare_netlink_msg() const override;
+    void prepare_neigh_message(struct nl_msg* msg) override;
 
 private:
-    bool m_add{true};
-    std::string m_port{};
     std::string m_address{};
     uint16_t m_vlan_id{};
 };

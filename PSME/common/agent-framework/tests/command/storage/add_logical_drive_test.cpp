@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,16 +22,14 @@
  * @section DESCRIPTION
  * */
 
-#include "agent-framework/command/storage/add_logical_drive.hpp"
-#include "agent-framework/command/storage/json/add_logical_drive.hpp"
+#include "agent-framework/command-ref/storage_commands.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+using namespace agent_framework::command_ref;
 using namespace agent_framework::model;
-using namespace agent_framework::command;
-using namespace agent_framework::command::exception;
 
-class AddLogicalDrive : public storage::AddLogicalDrive {
+class MyAddLogicalDrive {
 private:
     enums::LogicalDriveType m_type{ enums::LogicalDriveType::LVM };
     enums::LogicalDriveMode m_mode{ enums::LogicalDriveMode::JBOD };
@@ -40,7 +38,7 @@ private:
     bool m_protected{};
     std::vector<std::string> m_drives{};
 public:
-    AddLogicalDrive(
+    MyAddLogicalDrive(
         agent_framework::model::enums::LogicalDriveType type,
         agent_framework::model::enums::LogicalDriveMode mode,
         std::string master,
@@ -53,39 +51,29 @@ public:
         m_protected = prot;
         }
 
-    using storage::AddLogicalDrive::execute;
-
-    void execute(const Request& request, Response& response) {
+    void execute(const AddLogicalDrive::Request& request,
+                 AddLogicalDrive::Response& response) {
         auto type = request.get_type();
         auto mode = request.get_mode();
         auto master = request.get_master();
         auto snapshot = request.is_snapshot();
         auto prot = request.is_protected();
 
-        if (type != m_type
-            || mode != m_mode
+        if (type != m_type.to_string()
+            || mode != m_mode.to_string()
             || master != m_master
             || snapshot != m_snapshot
             || prot != m_protected) {
-            throw exception::NotFound();
+            throw std::runtime_error("Not found");
         }
-
-        response.set_oem(agent_framework::model::attribute::Oem());
-        response.set_drive_uuid("Test Drive UUID");
+        response.set_drive("Test Drive UUID");
     }
-
-    virtual ~AddLogicalDrive();
 };
 
-AddLogicalDrive::~AddLogicalDrive() { }
-
 TEST(AddLogicalDriveTest, PositiveExecute) {
-    storage::json::AddLogicalDrive command_json;
-    AddLogicalDrive* command = new AddLogicalDrive(enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+    AddLogicalDrive::Response response{};
     Json::Value params;
     Json::Value result;
 
@@ -95,7 +83,9 @@ TEST(AddLogicalDriveTest, PositiveExecute) {
     params[literals::LogicalDrive::SNAPSHOT] = true;
     params[literals::LogicalDrive::PROTECTED] = true;
 
-    EXPECT_NO_THROW(command_json.method(params, result));
+    auto request = AddLogicalDrive::Request::from_json(params);
+    EXPECT_NO_THROW(command.execute(request, response));
+    EXPECT_NO_THROW(result = response.to_json());
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::LogicalDrive::OEM].isObject());
@@ -104,12 +94,9 @@ TEST(AddLogicalDriveTest, PositiveExecute) {
 }
 
 TEST(AddLogicalDriveTest, NegativeTypeNotFound) {
-    storage::json::AddLogicalDrive command_json;
-    AddLogicalDrive* command = new AddLogicalDrive(enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+    AddLogicalDrive::Response response{};
     Json::Value params;
     Json::Value result;
 
@@ -119,16 +106,14 @@ TEST(AddLogicalDriveTest, NegativeTypeNotFound) {
     params[literals::LogicalDrive::SNAPSHOT] = true;
     params[literals::LogicalDrive::PROTECTED] = true;
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    auto request = AddLogicalDrive::Request::from_json(params);
+    EXPECT_ANY_THROW(command.execute(request, response));
 }
 
 TEST(AddLogicalDriveTest, NegativeModeNotFound) {
-    storage::json::AddLogicalDrive command_json;
-    AddLogicalDrive* command = new AddLogicalDrive(enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+    AddLogicalDrive::Response response{};
     Json::Value params;
     Json::Value result;
 
@@ -138,16 +123,14 @@ TEST(AddLogicalDriveTest, NegativeModeNotFound) {
     params[literals::LogicalDrive::SNAPSHOT] = true;
     params[literals::LogicalDrive::PROTECTED] = true;
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    auto request = AddLogicalDrive::Request::from_json(params);
+    EXPECT_ANY_THROW(command.execute(request, response));
 }
 
 TEST(AddLogicalDriveTest, NegativeMasterNotFound) {
-    storage::json::AddLogicalDrive command_json;
-    AddLogicalDrive* command = new AddLogicalDrive(enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+    AddLogicalDrive::Response response{};
     Json::Value params;
     Json::Value result;
 
@@ -157,16 +140,14 @@ TEST(AddLogicalDriveTest, NegativeMasterNotFound) {
     params[literals::LogicalDrive::SNAPSHOT] = true;
     params[literals::LogicalDrive::PROTECTED] = true;
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    auto request = AddLogicalDrive::Request::from_json(params);
+    EXPECT_ANY_THROW(command.execute(request, response));
 }
 
 TEST(AddLogicalDriveTest, NegativeSnapshotNotFound) {
-    storage::json::AddLogicalDrive command_json;
-    AddLogicalDrive* command = new AddLogicalDrive(enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+    AddLogicalDrive::Response response{};
     Json::Value params;
     Json::Value result;
 
@@ -176,16 +157,14 @@ TEST(AddLogicalDriveTest, NegativeSnapshotNotFound) {
     params[literals::LogicalDrive::SNAPSHOT] = false;
     params[literals::LogicalDrive::PROTECTED] = true;
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    auto request = AddLogicalDrive::Request::from_json(params);
+    EXPECT_ANY_THROW(command.execute(request, response));
 }
 
 TEST(AddLogicalDriveTest, NegativeProtectedNotFound) {
-    storage::json::AddLogicalDrive command_json;
-    AddLogicalDrive* command = new AddLogicalDrive(enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true);
-
-    EXPECT_NO_THROW(command_json.set_command(command));
-
+    MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+    AddLogicalDrive::Response response{};
     Json::Value params;
     Json::Value result;
 
@@ -195,5 +174,6 @@ TEST(AddLogicalDriveTest, NegativeProtectedNotFound) {
     params[literals::LogicalDrive::SNAPSHOT] = true;
     params[literals::LogicalDrive::PROTECTED] = false;
 
-    EXPECT_ANY_THROW(command_json.method(params, result));
+    auto request = AddLogicalDrive::Request::from_json(params);
+    EXPECT_ANY_THROW(command.execute(request, response));
 }

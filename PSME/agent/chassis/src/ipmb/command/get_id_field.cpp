@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,11 +25,11 @@
  * @brief Get ID Field for RMM.
  * */
 
-#include <ipmb/command/get_id_field.hpp>
-#include <ipmb/ipmi_message.hpp>
-#include <ipmb/utils.hpp>
+#include "agent-framework/module/common_components.hpp"
 
-#include <agent-framework/module-ref/chassis_manager.hpp>
+#include <ipmb/utils.hpp>
+#include <ipmb/ipmi_message.hpp>
+#include <ipmb/command/get_id_field.hpp>
 
 #include <logger/logger_factory.hpp>
 
@@ -37,26 +37,49 @@ using namespace agent::chassis::ipmb;
 using namespace agent::chassis::ipmb::command;
 using namespace agent_framework::module;
 
-using ChassisComponents = agent_framework::module::ChassisManager;
+using agent_framework::module::CommonComponents;
 
-void GetIDField::Response::add_data(IpmiMessage& msg) {
-    auto data = msg.get_data();
+namespace {
 
-    data[OFFSET_CC] = uint8_t(m_cc);
-    data[OFFSET_MAX_FIELD_SIZE] = uint8_t(m_max_field_size);
-    data[OFFSET_CURR_FIELD_SIZE] = uint8_t(m_curr_field_size);
+agent_framework::model::Chassis get_chassis() {
+    auto drawer_manager_keys = CommonComponents::get_instance()->get_module_manager().get_keys("");
 
-    auto data_ptr = data + OFFSET_ID_FIELD_0;
-    for (std::uint8_t i = 0u; i < m_curr_field_size; ++i) {
-        data_ptr[i] =
-            GET_BYTE(m_id_field,
-                    static_cast<std::uint8_t>(m_curr_field_size - 1 - i));
+    if (drawer_manager_keys.empty()) {
+        return agent_framework::model::Chassis{};
     }
 
-    msg.add_len(static_cast<std::uint16_t>(m_curr_field_size + get_len()));
+    auto chassis_keys = CommonComponents::get_instance()->
+                get_chassis_manager().get_keys(drawer_manager_keys.front());
+
+    return CommonComponents::get_instance()->
+                get_chassis_manager().get_entry(chassis_keys.front());
 }
 
-void  GetIDField::unpack(IpmiMessage& msg) {
+std::vector<uint8_t> uint32_as_msb_array(std::uint32_t number) {
+    std::vector<uint8_t> array(4);
+    array[0] = static_cast<uint8_t>(number >> 24);
+    array[1] = static_cast<uint8_t>(number >> 16);
+    array[2] = static_cast<uint8_t>(number >> 8);
+    array[3] = static_cast<uint8_t>(number);
+    return array;
+}
+
+}
+
+void GetIdField::Response::add_data(IpmiMessage& msg) {
+    auto data = msg.get_data();
+
+    std::uint16_t offset = 0;
+    data[offset++] = static_cast<uint8_t>(get_cc());
+    data[offset++] = get_max_field_size();
+    data[offset++] = get_curr_field_size();
+    for (const auto& byte: m_field) {
+        data[offset++] = byte;
+    }
+    msg.add_len(offset);
+}
+
+void  GetIdField::unpack(IpmiMessage& msg) {
     log_debug(GET_LOGGER("ipmb"), "Unpacking Get ID Field message.");
 
     msg.set_to_request();
@@ -75,14 +98,12 @@ void  GetIDField::unpack(IpmiMessage& msg) {
     }
 }
 
-void GetIDField::pack(IpmiMessage& msg) {
+void GetIdField::pack(IpmiMessage& msg) {
 
     if (CompletionCode::CC_OK != m_response.get_cc()) {
         populate(msg);
         return;
     }
-
-    m_response.set_max_field_size(CMD_MAX_FIELD_SIZE);
 
     switch (InstanceField(m_request.get_instance())) {
     case InstanceField::RESERVED:
@@ -90,13 +111,20 @@ void GetIDField::pack(IpmiMessage& msg) {
         m_response.set_cc(CompletionCode::CC_PARAMETER_OUT_OF_RANGE);
         break;
     case InstanceField::RACKPUID:
-        m_response.set_id_field(get_rack_puid());
+        m_response.set_max_field_size(CMD_MAX_NUMERIC_FIELD_SIZE);
+        m_response.set_field(get_rack_puid());
         break;
     case InstanceField::RACKBPID:
-        m_response.set_id_field(0);
+        m_response.set_max_field_size(CMD_MAX_NUMERIC_FIELD_SIZE);
+        m_response.set_field({0,0,0,0});
         break;
     case InstanceField::TRAYRUID:
-        m_response.set_id_field(get_tray_ruid());
+        m_response.set_max_field_size(CMD_MAX_NUMERIC_FIELD_SIZE);
+        m_response.set_field(get_tray_ruid());
+        break;
+    case InstanceField::RACKID:
+        m_response.set_max_field_size(CMD_MAX_STRING_FIELD_SIZE);
+        m_response.set_field(get_rack_location_id());
         break;
     default:
         log_error(GET_LOGGER("ipmb"), "Unknown field instance.");
@@ -107,48 +135,34 @@ void GetIDField::pack(IpmiMessage& msg) {
     populate(msg);
 }
 
-uint32_t GetIDField::get_tray_ruid() {
-    auto drawer_manager_keys = ChassisComponents::get_instance()->get_module_manager().get_keys("");
-    if (!drawer_manager_keys.size()) {
-        return 0;
-    }
-
-    auto chassis_keys = ChassisComponents::get_instance()->
-        get_chassis_manager().get_keys(drawer_manager_keys.front());
-
-    auto chassis = ChassisComponents::get_instance()->
-        get_chassis_manager().get_entry_reference(chassis_keys.front());
-
-    m_response.set_curr_field_size(chassis->get_location_offset_size());
-
-    log_debug(GET_LOGGER("ipmb"), "Get Drawer Chassis=" << chassis->get_uuid()
-                        << " DrawerRUID=" << chassis->get_location_offset());
-
-    return chassis->get_location_offset();
+std::vector<uint8_t> GetIdField::get_tray_ruid() const {
+    const auto chassis = get_chassis();
+    const auto location_offset = chassis.get_location_offset();
+    log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid()
+                        << " DrawerRUID=" << location_offset);
+    return uint32_as_msb_array(location_offset);
 }
 
-uint32_t GetIDField::get_rack_puid() {
-    auto drawer_manager_keys = ChassisManager::get_instance()->
-                                    get_module_manager().get_keys("");
-    if (!drawer_manager_keys.size()) {
-        return 0;
-    }
-
-    auto chassis_keys = ChassisComponents::get_instance()->
-        get_chassis_manager().get_keys(drawer_manager_keys.front());
-
-    auto chassis = ChassisManager::get_instance()->
-        get_chassis_manager().get_entry_reference(chassis_keys.front());
-
-    m_response.set_curr_field_size(chassis->get_parent_id_size());
-
-    log_debug(GET_LOGGER("ipmb"), "Get Rack Chassis=" << chassis->get_uuid()
-                        << " RackPUID=" << chassis->get_parent_id());
-    return chassis->get_parent_id_as_uint();
+std::vector<uint8_t> GetIdField::get_rack_puid() const {
+    const auto chassis = get_chassis();
+    std::uint32_t parent_id{0};
+    try {
+        parent_id = static_cast<std::uint32_t>(std::stoul(chassis.get_parent_id(), nullptr, 10));
+    } catch (...) {/*not a number*/}
+    log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid()
+                << " RackPUID=" << parent_id);
+    return uint32_as_msb_array(parent_id);
 }
 
-void GetIDField::populate(IpmiMessage& msg) {
-    m_response.set_len(CMD_RESPONSE_DATA_LENGTH);
+std::vector<uint8_t> GetIdField::get_rack_location_id() const {
+    const auto chassis = get_chassis();
+    const auto& parent_id = chassis.get_parent_id();
+    log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid()
+                << " Rack location id=" << parent_id);
+    return {parent_id.begin(), parent_id.end()};;
+}
+
+void GetIdField::populate(IpmiMessage& msg) {
     m_response.add_data(msg);
     msg.set_to_response();
 }

@@ -1,3 +1,5 @@
+@dir common/json-cxx
+
 # JSON-C++
 JSON library written in C++11
 
@@ -18,3 +20,5 @@ JSON library written in C++11
     wget https://raw.githubusercontent.com/sanSS/json-bechmarks/master/data/small-dict.json
     wget https://raw.githubusercontent.com/sanSS/json-bechmarks/master/data/medium-dict.json
     wget https://raw.githubusercontent.com/sanSS/json-bechmarks/master/data/large-dict.json
+
+@header{Dependencies}

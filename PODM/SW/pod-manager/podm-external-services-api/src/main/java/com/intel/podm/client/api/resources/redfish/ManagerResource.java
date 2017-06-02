@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,12 @@ import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.reader.ResourceSupplier;
 import com.intel.podm.client.api.resources.ExternalServiceResource;
 import com.intel.podm.common.types.ManagerType;
+import com.intel.podm.common.types.PowerState;
 import com.intel.podm.common.types.Status;
 
 import java.util.UUID;
 
+@SuppressWarnings({"checkstyle:MethodCount"})
 public interface ManagerResource extends ExternalServiceResource {
     UUID getUuid();
     ManagerType getManagerType();
@@ -34,6 +36,7 @@ public interface ManagerResource extends ExternalServiceResource {
     ConsoleObject getSerialConsole();
     ConsoleObject getCommandShell();
     String getFirmwareVersion();
+    PowerState getPowerState();
     ResourceSupplier getNetworkProtocol();
     Iterable<ResourceSupplier> getEthernetInterfaces() throws ExternalServiceApiReaderException;
     Iterable<ResourceSupplier> getManagedComputerSystems() throws ExternalServiceApiReaderException;

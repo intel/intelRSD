@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.intel.podm.client.api.resources.EventServiceResource;
 import com.intel.podm.client.api.resources.EventSubscriptionResource;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.events.EventType;
+import org.apache.commons.lang.StringUtils;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -73,16 +74,6 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManager {
         return true;
     }
 
-    @Override
-    public void deleteSubscription() throws ExternalServiceApiReaderException, ExternalServiceApiActionException {
-        String podDescription = POD_DESCRIPTION_BEGINNING + eventServiceDefinition.getPodmUuid().toString();
-        EventServiceResource eventServiceResource = getEventService();
-
-        for (EventSubscriptionResource sub : getSubscriptions(podDescription, eventServiceResource)) {
-            eventActions.deleteSubscription(sub.getUri());
-        }
-    }
-
     private List<EventSubscriptionResource> getSubscriptions(String podDescription, EventServiceResource eventServiceResource)
             throws ExternalServiceApiReaderException, ExternalServiceApiActionException {
         List<EventSubscriptionResource> subscriptions = new ArrayList<>();
@@ -118,10 +109,10 @@ public class EventSubscriptionManagerImpl implements EventSubscriptionManager {
             throws ExternalServiceApiActionException, ExternalServiceApiReaderException {
         EventSubscribeRequest eventSubscribeRequest = EventSubscribeRequest
                 .newBuilder()
-                .description(podDescription)
                 .destination(eventServiceDefinition.getPodmEventServiceDestinationUri())
                 .eventTypes(copyOf(eventServiceResource.getEventTypesForSubscription().stream()
                         .filter(EventType::isStringRedfishEventType)
+                        .filter(StringUtils::isNotBlank)
                         .map(eventTypeString -> stringToEnum(EventType.class, eventTypeString))
                         .collect(toSet())))
                 .context(podDescription)

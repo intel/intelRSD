@@ -1,0 +1,15 @@
+#############################
+# Pkg-Config file for gmock #
+#############################
+
+Name: gmock
+Description: Google C++ mocking framework
+URL: https://code.google.com/p/googlemock/
+Version: 1.7.0
+
+prefix=@CMAKE_BINARY_DIR@
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Cflags: -I${includedir}/gmock
+Libs: -L${libdir} -lgmock

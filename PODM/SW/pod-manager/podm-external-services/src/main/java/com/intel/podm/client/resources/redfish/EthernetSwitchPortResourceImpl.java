@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2016-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.api.ExternalServiceApiReaderException;
 import com.intel.podm.client.api.reader.ResourceSupplier;
 import com.intel.podm.client.api.resources.redfish.EthernetSwitchPortResource;
+import com.intel.podm.client.api.resources.redfish.IpV4AddressObject;
+import com.intel.podm.client.api.resources.redfish.IpV6AddressObject;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.client.resources.ODataId;
 import com.intel.podm.common.types.AdministrativeState;
@@ -39,8 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @OdataTypes({
-        "#EthernetSwitchPort.1.0.0.EthernetSwitchPort",
-        "#EthernetSwitchPort.v1_0_0.EthernetSwitchPort"
+    "#EthernetSwitchPort" + OdataTypes.VERSION_PATTERN + "EthernetSwitchPort"
 })
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public class EthernetSwitchPortResourceImpl extends ExternalServiceResourceImpl implements EthernetSwitchPortResource {
@@ -82,8 +82,6 @@ public class EthernetSwitchPortResourceImpl extends ExternalServiceResourceImpl 
     private ODataId vlans;
     @JsonProperty("Links")
     private Links links = new Links();
-    @JsonProperty("Oem")
-    private Object oem = new Object();
 
     @Override
     public String getPortId() {
@@ -146,13 +144,13 @@ public class EthernetSwitchPortResourceImpl extends ExternalServiceResourceImpl 
     }
 
     @Override
-    public List<IpV4AddressObjectImpl> getIpV4Addresses() {
-        return ipv4Addresses;
+    public List<IpV4AddressObject> getIpV4Addresses() {
+        return (List) ipv4Addresses;
     }
 
     @Override
-    public List<IpV6AddressObjectImpl> getIpV6Addresses() {
-        return ipv6Addresses;
+    public List<IpV6AddressObject> getIpV6Addresses() {
+        return (List) ipv6Addresses;
     }
 
     @Override
@@ -191,12 +189,7 @@ public class EthernetSwitchPortResourceImpl extends ExternalServiceResourceImpl 
         return processMembersListResource(vlans);
     }
 
-    public Object getOem() {
-        return oem;
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class Links {
+    public class Links extends RedfishLinks {
         @JsonProperty("PrimaryVLAN")
         private ODataId primaryVlan;
         @JsonProperty("Switch")
@@ -205,7 +198,5 @@ public class EthernetSwitchPortResourceImpl extends ExternalServiceResourceImpl 
         private ODataId memberOfPort;
         @JsonProperty("PortMembers")
         private List<ODataId> portMembers;
-        @JsonProperty("Oem")
-        private Object oem = new Object();
     }
 }

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,19 +30,11 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include "agent-framework/command/command.hpp"
-#include "agent-framework/command/command_json.hpp"
-
-using agent_framework::command::Command;
-using agent_framework::command::CommandJson;
-
 int main(int argc, char* argv[]) {
     testing::InitGoogleMock(&argc, argv);
     int test_result = RUN_ALL_TESTS();
 
     /* After tests, do general cleanup here */
-    Command::Map::cleanup();
-    CommandJson::Map::cleanup();
 
     return test_result;
 }

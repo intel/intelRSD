@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,7 @@
  * @section DESCRIPTION
  * */
 
-#ifndef MOCK_MODULE_STATUS_HPP
-#define MOCK_MODULE_STATUS_HPP
-
+#pragma once
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "agent-framework/status/module_status.hpp"
@@ -41,4 +39,3 @@ public:
 }
 }
 
-#endif /* MOCK_MODULE_STATUS_HPP */

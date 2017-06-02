@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,7 @@
  * @brief Module software status implementation
 */
 
-#ifndef AGENT_COMPUTE_STATUS_STATUS_MANAGER_HPP
-#define AGENT_COMPUTE_STATUS_STATUS_MANAGER_HPP
+#pragma once
 
 #include "agent-framework/status/status_manager.hpp"
 #include "agent-framework/status/module_status.hpp"
@@ -45,13 +44,16 @@ public:
     /*!
      * Default constructor
      * */
-    explicit StatusManager(const std::uint32_t slot, const std::string& ip);
+    explicit StatusManager(const std::uint32_t slot, const std::string& ip, const std::string& uuid);
+
 
     /*! Copy constructor */
     StatusManager(const StatusManager&) = default;
 
+
     /*! Assignment operator */
     StatusManager& operator=(const StatusManager&) = default;
+
 
     /*!
      * @brief Gets hardware status basing on GPIO presence.
@@ -60,6 +62,7 @@ public:
      * */
     ModuleStatus::Status get_hw_status();
 
+
     /*!
      * @brief Gets software status basing on PING.
      *
@@ -67,18 +70,17 @@ public:
      * */
     ModuleStatus::Status get_sw_status();
 
+
     ~StatusManager();
 
+
 private:
-    std::uint32_t m_slot{};
-    std::string m_ip_address{};
-    ModuleSoftwareStatus m_sw_status{};
-    ModuleHardwareStatus m_hw_status{};
+    ModuleSoftwareStatus m_sw_status;
+    ModuleHardwareStatus m_hw_status;
 };
 
 }
 }
 }
 
-#endif /* AGENT_COMPUTE_STATUS_STATUS_MANAGER_HPP */
 

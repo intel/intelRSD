@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2016 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,6 @@
 #pragma once
 #include "agent-framework/generic/singleton.hpp"
 #include "agent-framework/validators/procedure_validator.hpp"
-
-#include <jsonrpccpp/common/procedure.h>
 
 #include <bits/stl_bvector.h>
 #include <assert.h>

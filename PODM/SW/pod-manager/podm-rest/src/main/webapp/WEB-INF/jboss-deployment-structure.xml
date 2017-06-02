@@ -1,6 +1,6 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!--
-  ~ Copyright (c) 2015 Intel Corporation
+  ~ Copyright (c) 2016-2017 Intel Corporation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,8 +18,12 @@
 <jboss-deployment-structure>
     <deployment>
         <dependencies>
-            <module name="deployment.orient-rar-0.3.0.rar" />
+            <system export="true">
+                <paths>
+                    <path name="sun/net/www/protocol/http"/>
+                    <path name="com/sun/net/httpserver"/>
+                </paths>
+            </system>
         </dependencies>
     </deployment>
 </jboss-deployment-structure>
-
