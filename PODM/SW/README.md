@@ -7,7 +7,7 @@ This chapter contains shortened information about building POD Manager solution 
 
 ### Prerequisites
 #### OS
-POD Manager software can be installed on both Ubuntu Server 14.04.4 or Ubuntu Server 16.04.1 **(preffered)**.
+POD Manager software can be installed on both Ubuntu Server 14.04.4 or Ubuntu Server 16.04.1 **(preferred)**.
 
 #### Database
 POD Manager requires [PostgreSQL](https://www.postgresql.org/) database preinstalled on the OS. Currently supported version is **9.5**
