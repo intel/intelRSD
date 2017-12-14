@@ -23,6 +23,9 @@
  * */
 
 #pragma once
+
+
+
 #include "agent-framework/generic/singleton.hpp"
 #include "agent-framework/module/managers/generic_manager.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
@@ -42,8 +45,11 @@ public:
     using FanManager = GenericManager<model::Fan>;
     using PowerZoneManager = GenericManager<model::PowerZone>;
     using ThermalZoneManager = GenericManager<model::ThermalZone>;
+    using ChassisSensorManager = GenericManager<model::ChassisSensor>;
+
 
     virtual ~ChassisComponents();
+
 
     /*!
      * @brief Get certificate manager
@@ -62,6 +68,7 @@ public:
         return m_psu_manager;
     }
 
+
     /*!
      * @brief Get manager for Fan
      * @return manager for Fan
@@ -69,6 +76,7 @@ public:
     FanManager& get_fan_manager() {
         return m_fan_manager;
     }
+
 
     /*!
      * @brief Get manager for PowerZone
@@ -78,6 +86,7 @@ public:
         return m_power_zone_manager;
     }
 
+
     /*!
      * @brief Get manager for ThermalZone
      * @return manager for ThermalZone
@@ -86,12 +95,22 @@ public:
         return m_thermal_zone_manager;
     }
 
+
+    /*!
+     * @brief Get manager for ChassisSensor
+     * @return manager for ChassisSensor
+     * */
+    ChassisSensorManager& get_chassis_sensor_manager() {
+        return m_chassis_sensor_manager;
+    }
+
 private:
     CertificateManager m_certificate_manager{};
     PsuManager m_psu_manager{};
     FanManager m_fan_manager{};
     PowerZoneManager m_power_zone_manager{};
     ThermalZoneManager m_thermal_zone_manager{};
+    ChassisSensorManager m_chassis_sensor_manager{};
 };
 
 }

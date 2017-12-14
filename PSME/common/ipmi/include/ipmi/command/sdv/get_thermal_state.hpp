@@ -61,7 +61,7 @@ public:
      */
     virtual ~GetThermalState();
 
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
 
 };
 
@@ -111,7 +111,7 @@ public:
     }
 
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
 
 private:
     THERMAL_STATE m_thermal_state{};
@@ -125,4 +125,3 @@ private:
 }
 }
 }
-

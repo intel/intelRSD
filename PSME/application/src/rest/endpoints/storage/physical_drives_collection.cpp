@@ -31,7 +31,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Drives";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#PhysicalDriveCollection.PhysicalDriveCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#PhysicalDriveCollection.PhysicalDriveCollection";
     r[Common::NAME] = "Physical Drives Collection";
@@ -51,7 +51,8 @@ void PhysicalDrivesCollection::get(const server::Request& req, server::Response&
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    auto service_uuid = psme::rest::model::Find<agent_framework::model::StorageServices>(req.params[PathParam::SERVICE_ID]).get_uuid();
+    auto service_uuid =
+        psme::rest::model::Find<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get_uuid();
 
     auto keys = StorageComponents::get_instance()->
                         get_physical_drive_manager().get_ids(service_uuid);

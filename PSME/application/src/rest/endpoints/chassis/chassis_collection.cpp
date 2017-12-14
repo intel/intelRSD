@@ -32,7 +32,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Chassis";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#ChassisCollection.ChassisCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#ChassisCollection.ChassisCollection";
     r[Common::NAME] = "Chassis Collection";
@@ -48,22 +48,20 @@ ChassisCollection::ChassisCollection(const std::string& path) : EndpointBase(pat
 
 ChassisCollection::~ChassisCollection() {}
 
-void ChassisCollection::get(const server::Request& req, server::Response& res) {
+void ChassisCollection::get(const server::Request& request, server::Response& response) {
     auto json = ::make_prototype();
 
-    json[Common::ODATA_ID] = PathBuilder(req).build();
+    auto chassis_ids = agent_framework::module::CommonComponents::get_instance()->get_chassis_manager()
+        .get_ids();
 
-    auto chassis_ids = agent_framework::module::CommonComponents::get_instance()
-        ->get_chassis_manager().get_ids();
-
-
+    json[Common::ODATA_ID] = PathBuilder(request).build();
     json[Collection::ODATA_COUNT] = std::uint32_t(chassis_ids.size());
 
     for (const auto& id : chassis_ids) {
-        json::Value link;
-        link[Common::ODATA_ID] = PathBuilder(req).append(id).build();
+        json::Value link{};
+        link[Common::ODATA_ID] = PathBuilder(request).append(id).build();
         json[Collection::MEMBERS].push_back(std::move(link));
     }
 
-    set_response(res, json);
+    set_response(response, json);
 }

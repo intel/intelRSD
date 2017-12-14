@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.intel.podm.common.enterprise.utils.beans;
 
 import org.testng.annotations.Test;

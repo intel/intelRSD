@@ -104,6 +104,13 @@ public:
     bool update_drive_status(const std::string& port_uuid, const std::string& drive_uuid)const;
 
     /*!
+     * @brief Function updates metric indicating port health
+     * @param[in] port the port whose metric is to be updated
+     * @return True if update was successful
+     * */
+    bool update_port_health_metric(const agent_framework::model::Port& port) const;
+
+    /*!
      * @brief Function updates port status and width/speed of the link
      * @param[in] gas Instance of GAS registers
      * @param[in] port_uuid Uuid of the physical port to be updated

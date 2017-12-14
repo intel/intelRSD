@@ -20,11 +20,10 @@
 
 #include "psme/rest/endpoints/ethernet/static_mac_collection.hpp"
 #include "psme/rest/validators/json_validator.hpp"
+#include "psme/rest/validators/schemas/static_mac_collection.hpp"
 #include "psme/rest/model/handlers/handler_manager.hpp"
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
-#include "psme/core/agent/agent_manager.hpp"
-
 #include "agent-framework/module/requests/network.hpp"
 #include "agent-framework/module/responses/network.hpp"
 
@@ -41,8 +40,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitches/"
-            "Members/__SWITCH_ID__/Ports/Members/__PORT_ID__/StaticMACs";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchStaticMACCollection.EthernetSwitchStaticMACCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#EthernetSwitchStaticMACCollection.EthernetSwitchStaticMACCollection";
     r[Common::NAME] = "Static MAC Collection";
@@ -52,17 +50,6 @@ json::Value make_prototype() {
 
     return r;
 }
-
-json::Value validate_post_request(const server::Request& request) {
-    json::Value schema({
-        JsonValidator::mandatory(constants::Common::MAC_ADDRESS,
-            JsonValidator::has_type(JsonValidator::STRING_TYPE)),
-        JsonValidator::optional(constants::StaticMac::VLAN_ID,
-            JsonValidator::has_type(JsonValidator::UINT_TYPE))
-    });
-
-    return JsonValidator::validate_request_body(request, schema);
-}
 }
 
 StaticMacCollection::StaticMacCollection(const std::string& path) : EndpointBase(path) {}
@@ -71,23 +58,12 @@ StaticMacCollection::~StaticMacCollection() {}
 void StaticMacCollection::get(const server::Request& req, server::Response& res) {
     auto json = ::make_prototype();
 
-    json[Common::ODATA_CONTEXT] = std::regex_replace(
-            json[Common::ODATA_CONTEXT].as_string(),
-            std::regex("__SWITCH_ID__"),
-            req.params[PathParam::ETHERNET_SWITCH_ID]);
-
-    json[Common::ODATA_CONTEXT] = std::regex_replace(
-            json[Common::ODATA_CONTEXT].as_string(),
-            std::regex("__PORT_ID__"),
-            req.params[PathParam::SWITCH_PORT_ID]);
-
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    const auto port_uuid = NetworkComponents::get_instance()->
-            get_port_manager().rest_id_to_uuid(
-            endpoint::utils::id_to_uint64(req.params[PathParam::SWITCH_PORT_ID]),
-            NetworkComponents::get_instance()->get_switch_manager().rest_id_to_uuid(
-            endpoint::utils::id_to_uint64(req.params[PathParam::ETHERNET_SWITCH_ID])));
+    const auto port_uuid =
+        psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(req.params[PathParam::SWITCH_PORT_ID])
+        .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
+        .get_uuid();
 
     const auto keys = NetworkComponents::get_instance()->
             get_static_mac_manager().get_ids(port_uuid);
@@ -110,12 +86,12 @@ void endpoint::StaticMacCollection::post(const server::Request& req, server::Res
                             .via<agent_framework::model::EthernetSwitch>
                             (req.params[PathParam::ETHERNET_SWITCH_ID]).get();
 
-    const auto json = validate_post_request(req);
+    const auto json = JsonValidator::validate_request_body<schema::StaticMacCollectionPostSchema>(req);
 
     const requests::AddPortStaticMac add_port_static_mac_request{
            parent_port.get_uuid(),
            json[constants::Common::MAC_ADDRESS].as_string(),
-           json.is_member(constants::StaticMac::VLAN_ID) ? json[constants::StaticMac::VLAN_ID].as_uint() : Json::Value::null,
+           json[constants::StaticMac::VLAN_ID],
            attribute::Oem()
     };
 

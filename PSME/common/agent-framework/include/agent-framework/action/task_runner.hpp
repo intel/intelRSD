@@ -42,13 +42,10 @@ public:
      *
      * @param f Function of F type
      * @param args Function arguments
-     *
-     * @return Return future
      */
     template <typename F, typename... Args>
-    auto run(F&& f, Args&&... args) ->
-                    std::future<typename std::result_of<F(Args...)>::type> {
-        return m_threadpool.run(std::forward<F>(f), std::forward<Args>(args)...);
+    void run(F&& f, Args&&... args) {
+        m_threadpool.run(std::forward<F>(f), std::forward<Args>(args)...);
     }
 
     /*!

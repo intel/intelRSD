@@ -23,13 +23,12 @@
  * */
 
 #pragma once
+
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/utils/utils.hpp"
-#include <string>
+#include "json-wrapper/json-wrapper.hpp"
 
-namespace Json {
-    class Value;
-}
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -42,7 +41,7 @@ public:
 
     explicit Status();
 
-    Status(const enums::State state, const enums::Health health);
+    Status(const enums::State state, const OptionalField<enums::Health>& health);
 
     Status(const std::string& state, const std::string& health);
 
@@ -82,16 +81,16 @@ public:
      * Converts this object to json representation
      * @return Json representation of this object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief construct an object of class Status from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed Status object
      */
-    static Status from_json(const Json::Value& json);
+    static Status from_json(const json::Json& json);
 
 private:
     enums::State m_state{enums::State::Disabled};
@@ -101,4 +100,3 @@ private:
 }
 }
 }
-

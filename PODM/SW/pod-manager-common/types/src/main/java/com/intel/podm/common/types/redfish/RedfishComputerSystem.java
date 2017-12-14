@@ -21,7 +21,10 @@ import com.intel.podm.common.types.BootSourceState;
 import com.intel.podm.common.types.BootSourceType;
 import com.intel.podm.common.types.DiscoveryState;
 import com.intel.podm.common.types.IndicatorLed;
+import com.intel.podm.common.types.InterfaceType;
+import com.intel.podm.common.types.InterfaceTypeSelection;
 import com.intel.podm.common.types.PowerState;
+import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.SystemType;
 import com.intel.podm.common.types.actions.ResetType;
@@ -130,8 +133,11 @@ public interface RedfishComputerSystem extends RedfishResource {
         return null;
     }
 
-    @Override
-    default Links getLinks() {
+    default Set<TrustedModule> getTrustedModules() {
+        return emptySet();
+    }
+
+    default Boolean getUserModeEnabled() {
         return null;
     }
 
@@ -155,7 +161,14 @@ public interface RedfishComputerSystem extends RedfishResource {
 
     interface Device {
         String getVendorId();
-
         String getDeviceId();
+    }
+
+    interface TrustedModule {
+        Ref<String> getFirmwareVersion();
+        Ref<String> getFirmwareVersion2();
+        Ref<InterfaceType> getInterfaceType();
+        Ref<InterfaceTypeSelection> getInterfaceTypeSelection();
+        Ref<Status> getStatus();
     }
 }

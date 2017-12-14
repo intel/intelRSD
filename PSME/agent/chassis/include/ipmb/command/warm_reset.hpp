@@ -33,8 +33,6 @@ namespace chassis {
 namespace ipmb {
 namespace command {
 
-const constexpr int CMD_REBOOT_TIMEOUT_SEC = 2;
-
 /*!
  * @brief WarmReset class definition
  */

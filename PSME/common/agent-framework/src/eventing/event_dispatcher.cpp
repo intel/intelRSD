@@ -21,14 +21,15 @@
 #include "agent-framework/eventing/event_dispatcher.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 #include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/requests/psme/component_notification.hpp"
+#include "json-rpc/connectors/http_client_connector.hpp"
+#include "json-rpc/handlers/json_rpc_request_invoker.hpp"
 
-#include <jsonrpccpp/client.h>
-#include <jsonrpccpp/client/connectors/httpclient.h>
 #include <string>
 
 using namespace std;
 using namespace agent_framework::generic;
-using agent_framework::eventing::EventData;
+using agent_framework::eventing::ComponentNotification;
 
 namespace {
 const size_t QUEUE_WAIT_TIME = 1000;
@@ -39,47 +40,69 @@ namespace generic {
 
 class EventSender final {
 public:
-    explicit EventSender(const std::string& url = "") :
-        m_url{url},
-        m_http_connector(new jsonrpc::HttpClient(m_url)),
-        m_jsonrpc_client(new jsonrpc::Client(*m_http_connector)) {}
+    EventSender() :
+        m_connector(new json_rpc::HttpClientConnector({})),
+        m_invoker(new json_rpc::JsonRpcRequestInvoker())
+        {}
 
-    void send_event(EventData& event) {
-        std::lock_guard<std::mutex> lk(m_mutex);
-        if (m_url.empty()) {
+    explicit EventSender(const std::string& url) :
+        m_url{url},
+        m_connector(new json_rpc::HttpClientConnector(url)),
+        m_invoker(new json_rpc::JsonRpcRequestInvoker()),
+        m_is_enabled(true) {}
+
+    void send_notifications(ComponentNotification&& notification) {
+        /* is_enabled lock should NOT protect sending a message: in case of timeout
+         * it makes the thread troubles (event collection grows infinitly)
+         */
+        if (!send_enabled()) {
+            log_warning("eventing", "Discard notifications, sending not enabled");
             return;
         }
 
+        const auto& gami_id = ServiceUuid::get_instance()->get_service_uuid();
+        notification.set_gami_id(gami_id);
+
+        agent_framework::model::requests::ComponentNotification rpc_notification{};
+        rpc_notification.set_notifications(notification.get_notifications());
+        rpc_notification.set_gami_id(notification.get_gami_id());
+
         try {
-            event.set_gami_id(ServiceUuid::get_instance()->get_service_uuid());
-            m_jsonrpc_client->CallNotification("componentNotification", event.to_json());
-        } catch (const jsonrpc::JsonRpcException& e) {
-            log_error(GET_LOGGER("eventing"), "send_event error: " << e.what());
+            json::Json json = rpc_notification.to_json();
+            log_debug("eventing", "Sending notification: " << json);
+            m_invoker->prepare_notification("componentNotification", json);
+            m_invoker->call(m_connector);
+        }
+        catch (const json_rpc::JsonRpcException& e) {
+            log_error("eventing", "send_notification error: " << e.what());
         }
     }
 
     bool send_enabled() const {
         std::lock_guard<std::mutex> lk(m_mutex);
-        return !m_url.empty();
+        return m_is_enabled;
     }
 
     void enable_send(const std::string& url) {
         std::lock_guard<std::mutex> lk(m_mutex);
         m_url = url;
-        m_http_connector->SetUrl(m_url);
+        m_connector->set_url(url);
+        m_is_enabled = true;
     }
 
     void disable_send() {
         std::lock_guard<std::mutex> lk(m_mutex);
         m_url.clear();
-        m_http_connector->SetUrl(m_url);
+        m_connector->set_url(m_url);
+        m_is_enabled = false;
     }
 
 private:
     std::string m_url{};
     mutable std::mutex m_mutex{};
-    std::unique_ptr<jsonrpc::HttpClient> m_http_connector{};
-    std::unique_ptr<jsonrpc::Client> m_jsonrpc_client{};
+    std::shared_ptr<json_rpc::HttpClientConnector> m_connector{};
+    std::shared_ptr<json_rpc::JsonRpcRequestInvoker> m_invoker{};
+    bool m_is_enabled{false};
 };
 
 }
@@ -91,12 +114,12 @@ EventDispatcher::~EventDispatcher() {}
 
 void EventDispatcher::enable_send_notifications(const std::string& url) {
     m_event_sender->enable_send(url);
-    log_info(GET_LOGGER("eventing"), "Sending AMC notifications enabled.");
+    log_info("eventing", "Sending AMC notifications enabled.");
 }
 
 void EventDispatcher::disable_send_notifications() {
     m_event_sender->disable_send();
-    log_info(GET_LOGGER("eventing"), "Sending AMC notifications disabled.");
+    log_info("eventing", "Sending AMC notifications disabled.");
 }
 
 bool EventDispatcher::send_notifications_enabled() const {
@@ -105,16 +128,19 @@ bool EventDispatcher::send_notifications_enabled() const {
 
 void EventDispatcher::execute() {
     using agent_framework::eventing::EventsQueue;
-    log_info(GET_LOGGER("eventing"), "Starting EventDispatcher thread...");
+    log_info("eventing", "Starting EventDispatcher thread...");
 
     while (is_running()) {
-        auto event = EventsQueue::get_instance()->wait_for_and_pop(chrono::milliseconds(QUEUE_WAIT_TIME));
+        auto notification = EventsQueue::get_instance()->wait_for_and_pop(chrono::milliseconds(QUEUE_WAIT_TIME));
 
-        if (event) {
-            log_debug(GET_LOGGER("eventing"), "Popped event: " << event->to_json().toStyledString());
+        if (notification) {
+            if (notification->get_notifications().empty()) {
+                log_debug("eventing", "Discarding empty notification");
+                continue;
+            }
 
-            m_event_sender->send_event(*event);
+            m_event_sender->send_notifications(std::move(*notification));
         }
     }
-    log_info(GET_LOGGER("eventing"), "EventDispatcher thread stopped.");
+    log_info("eventing", "EventDispatcher thread stopped.");
 }

@@ -25,6 +25,8 @@ import javax.inject.Inject;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
 
+import static java.lang.String.format;
+
 @Dependent
 public class LoggingTaskListener implements ManagedTaskListener {
     @Inject
@@ -52,7 +54,7 @@ public class LoggingTaskListener implements ManagedTaskListener {
         if (future.isCancelled()) { // :(
             logger.t("Task {} was cancelled", task);
         } else if (exception != null) {
-            logger.e("Task {} has failed with exception", task, exception);
+            logger.e(format("Task %s has failed with exception", task), exception);
         }
     }
 

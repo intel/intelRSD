@@ -41,10 +41,6 @@ response::GetNodeInfo::GetNodeInfo() : Response(sdv::NetFn::INTEL, sdv::Cmd::GET
 response::GetNodeInfo::~GetNodeInfo() { }
 
 void response::GetNodeInfo::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
-
     m_nodes_no = data[OFFSET_NODES_NUMBER];
 
     m_nodes_present.reserve(NODE_NUMBER);

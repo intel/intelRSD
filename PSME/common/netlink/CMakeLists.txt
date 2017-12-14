@@ -41,7 +41,6 @@ include_directories(
 )
 
 include_directories(SYSTEM
-    ${JSONRPCCPP_INCLUDE_DIRS}
     ${NL3_INCLUDE_DIRS}
 )
 

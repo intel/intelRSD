@@ -97,6 +97,16 @@ public:
     PathBuilder& append_regex(const std::string& name, const std::string& regex);
 
     /*!
+     * @brief Appends jsonptr segment to build path.
+     *
+     * ex. append_jsonptr("/key/3") results in appending "#/key/3" segment to build path.
+     *
+     * @param[in] jsonptr Variable jsonptr segment appended to build path.
+     * @return PathBuilder reference for chaining.
+     */
+    PathBuilder& append_jsonptr(const std::string& jsonptr);
+
+    /*!
      * @brief Builds URL path.
      *
      * @return Resulting URL path.

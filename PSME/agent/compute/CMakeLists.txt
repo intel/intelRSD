@@ -19,10 +19,6 @@
 cmake_minimum_required(VERSION 2.8)
 project("PSME Compute" C CXX)
 
-if (CMAKE_CROSSCOMPILING)
-    message(WARNING "Not supported for crosscompiling.")
-    return()
-endif()
 
 set(AGENT_COMPUTE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(AGENT_COMPUTE_LIBRARIES
@@ -31,14 +27,20 @@ set(AGENT_COMPUTE_LIBRARIES
 
 include_directories(
     ${COMMON_INCLUDE_DIRS}
+    ${JSON_INCLUDE_DIRS}
+    ${JSON_RPC_INCLUDE_DIRS}
     ${JSONCXX_INCLUDE_DIRS}
     ${IPMI_INCLUDE_DIRS}
     ${CONFIGURATION_INCLUDE_DIRS}
     ${LOGGER_INCLUDE_DIRS}
     ${AGENT_FRAMEWORK_INCLUDE_DIRS}
+    ${TELEMETRY_INCLUDE_DIRS}
     ${NETLINK_INCLUDE_DIRS}
     ${SMBIOS_INCLUDE_DIRS}
+
     ${NET_INCLUDE_DIRS}
+    ${GENERIC_MDR_INCLUDE_DIRS}
+    ${ISCSI_MDR_INCLUDE_DIRS}
 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
@@ -46,8 +48,6 @@ include_directories(
 include_directories(SYSTEM
     ${SAFESTRING_INCLUDE_DIRS}
     ${UUID_INCLUDE_DIRS}
-    ${JSONCPP_INCLUDE_DIRS}
-    ${JSONRPCCPP_INCLUDE_DIRS}
 )
 
 add_subdirectory(src)

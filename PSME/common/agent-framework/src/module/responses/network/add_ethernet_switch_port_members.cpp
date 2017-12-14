@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/network/add_ethernet_switch_port_members.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -33,14 +33,14 @@ AddEthernetSwitchPortMembers::AddEthernetSwitchPortMembers(Oem oem):
         m_oem{oem} {}
 
 
-Json::Value AddEthernetSwitchPortMembers::to_json() const {
-    Json::Value value;
+json::Json AddEthernetSwitchPortMembers::to_json() const {
+    json::Json value;
     value[EthernetSwitchPort::OEM] = m_oem.to_json();
     return value;
 }
 
 AddEthernetSwitchPortMembers AddEthernetSwitchPortMembers::from_json
-    (const Json::Value& json) {
+    (const json::Json& json) {
     return AddEthernetSwitchPortMembers{Oem::from_json(
         json[EthernetSwitchPort::OEM])};
 }

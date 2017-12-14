@@ -19,14 +19,22 @@ package com.intel.podm.common.types.actions;
 import com.intel.podm.common.types.BootSourceMode;
 import com.intel.podm.common.types.BootSourceState;
 import com.intel.podm.common.types.BootSourceType;
+import com.intel.podm.common.types.redfish.RedfishComputerSystem.TrustedModule;
 
+import java.util.HashSet;
+import java.util.Set;
+
+@SuppressWarnings({"checkstyle:MethodCount"})
 public class ComputerSystemUpdateDefinition {
     private String assetTag;
     private BootSourceMode bootSourceMode;
     private BootSourceType bootSourceType;
     private BootSourceState bootSourceState;
+    private Boolean userModeEnabled;
+    private Set<TrustedModule> trustedModules = new HashSet<>();
 
-    public ComputerSystemUpdateDefinition() { }
+    public ComputerSystemUpdateDefinition() {
+    }
 
     public ComputerSystemUpdateDefinition(BootSourceMode bootSourceMode, BootSourceType bootSourceType, BootSourceState bootSourceState) {
         this.bootSourceMode = bootSourceMode;
@@ -64,5 +72,21 @@ public class ComputerSystemUpdateDefinition {
 
     public void setBootSourceType(BootSourceType bootSourceType) {
         this.bootSourceType = bootSourceType;
+    }
+
+    public Boolean getUserModeEnabled() {
+        return userModeEnabled;
+    }
+
+    public void setUserModeEnabled(Boolean userModeEnabled) {
+        this.userModeEnabled = userModeEnabled;
+    }
+
+    public Set<TrustedModule> getTrustedModules() {
+        return trustedModules;
+    }
+
+    public void setTrustedModules(Set<TrustedModule> trustedModules) {
+        this.trustedModules = trustedModules;
     }
 }

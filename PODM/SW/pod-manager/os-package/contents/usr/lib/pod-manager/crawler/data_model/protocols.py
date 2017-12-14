@@ -18,3 +18,7 @@ from enum import Enum
 class Protocols(Enum):
     HTTP = 1
     HTTPS = 2
+
+    @staticmethod
+    def from_string(string):
+        return Protocols.HTTP if string == 'http' else Protocols.HTTPS

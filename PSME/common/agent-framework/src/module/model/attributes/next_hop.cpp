@@ -31,8 +31,8 @@ NextHop::NextHop() { }
 
 NextHop::~NextHop() { }
 
-Json::Value NextHop::to_json() const {
-    Json::Value json;
+json::Json NextHop::to_json() const {
+    json::Json json;
     json[literals::NextHop::METRIC] = get_metric();
     json[literals::NextHop::PORT_IDENTIFIER] = get_port_identifier();
     json[literals::NextHop::IPV4_ADDRESS] = get_ipv4_address();
@@ -40,11 +40,11 @@ Json::Value NextHop::to_json() const {
     return json;
 }
 
-NextHop NextHop::from_json(const Json::Value& json) {
+NextHop NextHop::from_json(const json::Json& json) {
     attribute::NextHop next_hop;
-    next_hop.set_metric(json[literals::NextHop::METRIC].asUInt());
-    next_hop.set_port_identifier(json[literals::NextHop::PORT_IDENTIFIER].asString());
-    next_hop.set_ipv4_address(json[literals::NextHop::IPV4_ADDRESS].asString());
-    next_hop.set_ipv6_address(json[literals::NextHop::IPV6_ADDRESS].asString());
+    next_hop.set_metric(json[literals::NextHop::METRIC]);
+    next_hop.set_port_identifier(json[literals::NextHop::PORT_IDENTIFIER]);
+    next_hop.set_ipv4_address(json[literals::NextHop::IPV4_ADDRESS]);
+    next_hop.set_ipv6_address(json[literals::NextHop::IPV6_ADDRESS]);
     return next_hop;
 }

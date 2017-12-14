@@ -26,8 +26,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import static com.intel.podm.rest.error.ErrorResponseCreator.from;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.MALFORMED_URI;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.MALFORMED_URI;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
@@ -69,7 +69,7 @@ public class MalformedUriErrorResource {
     }
 
     private Response getMalformedUriResponse() {
-        return from(MALFORMED_URI).create();
+        return newErrorResponseBuilder(MALFORMED_URI).build();
     }
 
 }

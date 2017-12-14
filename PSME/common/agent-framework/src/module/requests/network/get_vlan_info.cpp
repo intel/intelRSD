@@ -19,21 +19,21 @@
 
 #include "agent-framework/module/requests/network/get_vlan_info.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetVlanInfo::GetVlanInfo(const std::string& vlan): m_vlan(vlan){}
 
-Json::Value GetVlanInfo::to_json() const {
-    Json::Value value;
+json::Json GetVlanInfo::to_json() const {
+    json::Json value;
     value[Vlan::VLAN] = m_vlan;
     return value;
 }
 
-GetVlanInfo GetVlanInfo::from_json(const Json::Value& json) {
+GetVlanInfo GetVlanInfo::from_json(const json::Json& json) {
     return GetVlanInfo{
-        json[Vlan::VLAN].asString()
+        json[Vlan::VLAN].get<std::string>()
     };
 }

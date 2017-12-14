@@ -48,10 +48,14 @@ public final class ResourceNames {
     public static final String POWER_SUPPLY_RESOURCE_NAME = "PowerSupplies";
     public static final String COMPOSED_NODES_RESOURCE_NAME = "Nodes";
     public static final String ETHERNET_SWITCHES_RESOURCE_NAME = "EthernetSwitches";
+    public static final String ETHERNET_SWITCH_METRICS_RESOURCE_NAME = "Metrics";
+    public static final String ACLS_RESOURCE_NAME = "ACLs";
+    public static final String RULES_RESOURCE_NAME = "Rules";
     public static final String PORTS_RESOURCE_NAME = "Ports";
+    public static final String PORT_METRICS_RESOURCE_NAME = "Metrics";
     public static final String ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME = "VLANs";
-    public static final String THERMAL_ZONES_RESOURCE_NAME = "ThermalZones";
-    public static final String POWER_ZONES_RESOURCE_NAME = "PowerZones";
+    public static final String ETHERNET_SWITCH_STATIC_MACS_RESOURCE_NAME = "StaticMACs";
+    public static final String ETHERNET_SWITCH_PORT_METRICS_RESOURCE_NAME = "Metrics";
     public static final String PCIE_DRIVES_RESOURCE_NAME = "Drives";
     public static final String PCIE_DEVICES_RESOURCE_NAME = "PCIeDevices";
     public static final String PCIE_DEVICE_FUNCTIONS_RESOURCE_NAME = "Functions";
@@ -61,6 +65,12 @@ public final class ResourceNames {
     public static final String ENDPOINTS_RESOURCE_NAME = "Endpoints";
     public static final String EVENT_SUBSCRIPTION_RESOURCE_NAME = "Subscriptions";
     public static final String EVENT_SERVICE_RESOURCE_NAME = "EventService";
+    public static final String TELEMETRY_SERVICE_RESOURCE_NAME = "TelemetryService";
+    public static final String METRIC_DEFINITION_RESOURCE_NAME = "MetricDefinitions";
+    public static final String METRIC_REPORT_DEFINITION_RESOURCE_NAME = "MetricReportDefinitions";
+    public static final String COMPUTER_SYSTEM_METRICS_RESOURCE_NAME = "Metrics";
+    public static final String PROCESSOR_METRICS_RESOURCE_NAME = "Metrics";
+    public static final String MEMORY_METRICS_RESOURCE_NAME = "Metrics";
     public static final String NETWORK_INTERFACES_RESOURCE_NAME = "NetworkInterfaces";
     public static final String NETWORK_DEVICE_FUNCTIONS_RESOURCE_NAME = "NetworkDeviceFunctions";
 

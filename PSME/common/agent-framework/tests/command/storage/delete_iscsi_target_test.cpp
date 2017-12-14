@@ -51,8 +51,8 @@ TEST(DeleteIscsiTargetTest, PositiveExecute) {
     MyDeleteIscsiTarget command{"TestTarget"};
     DeleteIscsiTarget::Request request{""};
     DeleteIscsiTarget::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[TARGET] = "TestTarget";
 
@@ -68,8 +68,8 @@ TEST(DeleteIscsiTargetTest, NegativeTargetNotFound) {
     MyDeleteIscsiTarget command{"TestTarget"};
     DeleteIscsiTarget::Request request{""};
     DeleteIscsiTarget::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[TARGET] = "OtherTestTarget";
 

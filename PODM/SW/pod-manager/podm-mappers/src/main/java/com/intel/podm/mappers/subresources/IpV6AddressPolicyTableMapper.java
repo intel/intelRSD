@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.subresources;
 
 import com.intel.podm.business.entities.redfish.embeddables.IpV6AddressPolicy;
-import com.intel.podm.client.api.resources.redfish.IpV6AddressPolicyObject;
+import com.intel.podm.client.resources.redfish.IpV6AddressPolicyObject;
 import com.intel.podm.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 
 import javax.enterprise.context.Dependent;

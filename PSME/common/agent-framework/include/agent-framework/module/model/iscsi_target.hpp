@@ -22,6 +22,7 @@
  * @brief Target model interface
  * */
 #pragma once
+
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "agent-framework/module/model/resource.hpp"
 #include "agent-framework/module/enum/storage.hpp"
@@ -33,8 +34,10 @@ namespace model {
 /*! Target */
 class IscsiTarget : public Resource {
 public:
-    explicit IscsiTarget(const std::string& parent_uuid = {}, enums::Component parent_type = enums::Component::StorageServices);
-    ~IscsiTarget();
+    explicit IscsiTarget(const std::string& parent_uuid = {},
+                         enums::Component parent_type = enums::Component::StorageService);
+
+    virtual ~IscsiTarget();
 
     IscsiTarget(const IscsiTarget&) = default;
     IscsiTarget& operator=(const IscsiTarget&) = default;
@@ -62,25 +65,25 @@ public:
     /*!
      * @brief construct an object of class IscsiTarget from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed IscsiTarget object
      */
-    static IscsiTarget from_json(const Json::Value& json);
+    static IscsiTarget from_json(const json::Json& json);
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief return an object initiator_iqn of class string
      *
      * @return the initiator_iqn value
      */
-    const OptionalField<string>& get_initiator_iqn() const {
+    const OptionalField<std::string>& get_initiator_iqn() const {
         return m_initiator_iqn;
     }
 
@@ -89,7 +92,7 @@ public:
      *
      * @param initiator_iqn of type string
      */
-    void set_initiator_iqn(const OptionalField<string>& initiator_iqn) {
+    void set_initiator_iqn(const OptionalField<std::string>& initiator_iqn) {
         m_initiator_iqn = initiator_iqn;
     }
 
@@ -98,7 +101,7 @@ public:
      *
      * @return the target_address value
      */
-    const OptionalField<string>& get_target_address() const {
+    const OptionalField<std::string>& get_target_address() const {
         return m_target_address;
     }
 
@@ -107,7 +110,7 @@ public:
      *
      * @param target_address of type string
      */
-    void set_target_address(const OptionalField<string>& target_address) {
+    void set_target_address(const OptionalField<std::string>& target_address) {
         m_target_address = target_address;
     }
 
@@ -116,7 +119,7 @@ public:
      *
      * @return the target_iqn value
      */
-    const OptionalField<string>& get_target_iqn() const {
+    const OptionalField<std::string>& get_target_iqn() const {
         return m_target_iqn;
     }
 
@@ -125,7 +128,7 @@ public:
      *
      * @param target_port of type string
      */
-    void set_target_port(const OptionalField<string>& target_port) {
+    void set_target_port(const OptionalField<std::string>& target_port) {
         m_target_port = target_port;
     }
 
@@ -134,7 +137,7 @@ public:
      *
      * @return the target_port value
      */
-    const OptionalField<string>& get_target_port() const {
+    const OptionalField<std::string>& get_target_port() const {
         return m_target_port;
     }
 
@@ -143,7 +146,7 @@ public:
      *
      * @param target_iqn of type string
      */
-    void set_target_iqn(const OptionalField<string>& target_iqn) {
+    void set_target_iqn(const OptionalField<std::string>& target_iqn) {
         m_target_iqn = target_iqn;
     }
 
@@ -199,7 +202,7 @@ public:
      *
      * @return the authentication_method value
      */
-    const OptionalField<string>& get_authentication_method() const {
+    const OptionalField<std::string>& get_authentication_method() const {
         return m_authentication_method;
     }
 
@@ -208,7 +211,7 @@ public:
      *
      * @param authentication_method of type string
      */
-    void set_authentication_method(const OptionalField<string>& authentication_method) {
+    void set_authentication_method(const OptionalField<std::string>& authentication_method) {
         m_authentication_method = authentication_method;
     }
 
@@ -217,7 +220,7 @@ public:
      *
      * @return the chap_username value
      */
-    const OptionalField<string>& get_chap_username() const {
+    const OptionalField<std::string>& get_chap_username() const {
         return m_chap_username;
     }
 
@@ -226,7 +229,7 @@ public:
      *
      * @param chap_username of type string
      */
-    void set_chap_username(const OptionalField<string>& chap_username) {
+    void set_chap_username(const OptionalField<std::string>& chap_username) {
         m_chap_username = chap_username;
     }
 
@@ -235,7 +238,7 @@ public:
      *
      * @return the chap_secret value
      */
-    const OptionalField<string>& get_chap_secret() const {
+    const OptionalField<std::string>& get_chap_secret() const {
         return m_chap_secret;
     }
 
@@ -244,7 +247,7 @@ public:
      *
      * @param chap_secret of type string
      */
-    void set_chap_secret(const OptionalField<string>& chap_secret) {
+    void set_chap_secret(const OptionalField<std::string>& chap_secret) {
         m_chap_secret = chap_secret;
     }
 
@@ -253,7 +256,7 @@ public:
      *
      * @return the mutual_chap_username value
      */
-    const OptionalField<string>& get_mutual_chap_username() const {
+    const OptionalField<std::string>& get_mutual_chap_username() const {
         return m_mutual_chap_username;
     }
 
@@ -262,7 +265,7 @@ public:
      *
      * @param mutual_chap_username of type string
      */
-    void set_mutual_chap_username(const OptionalField<string>& mutual_chap_username) {
+    void set_mutual_chap_username(const OptionalField<std::string>& mutual_chap_username) {
         m_mutual_chap_username = mutual_chap_username;
     }
 
@@ -271,7 +274,7 @@ public:
      *
      * @return the mutual_chap_secret value
      */
-    const OptionalField<string>& get_mutual_chap_secret() const {
+    const OptionalField<std::string>& get_mutual_chap_secret() const {
         return m_mutual_chap_secret;
     }
 
@@ -280,7 +283,7 @@ public:
      *
      * @param mutual_chap_secret of type string
      */
-    void set_mutual_chap_secret(const OptionalField<string>& mutual_chap_secret) {
+    void set_mutual_chap_secret(const OptionalField<std::string>& mutual_chap_secret) {
         m_mutual_chap_secret = mutual_chap_secret;
     }
 

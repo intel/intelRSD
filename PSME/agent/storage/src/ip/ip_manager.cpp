@@ -34,7 +34,6 @@
 #include "tree_stability/storage_tree_stabilizer.hpp"
 
 
-using std::vector;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
@@ -43,7 +42,7 @@ using namespace agent::storage::ip_discovery;
 using namespace agent::storage::event;
 
 
-void IpManager::update_portal_ip(const string& portal_ip) {
+void IpManager::update_portal_ip(const std::string& portal_ip) {
     auto& target_manager = get_manager<IscsiTarget, IscsiTargetManager>();
     auto iscsi_data = target_manager.get_iscsi_data();
     iscsi_data.set_portal_ip(portal_ip);
@@ -53,7 +52,7 @@ void IpManager::update_portal_ip(const string& portal_ip) {
     auto& module = CommonComponents().get_instance()->get_module_manager();
     for (const auto& manager_uuid : module.get_keys()) {
         for (const auto& storage_uuid :
-            get_manager<StorageServices>().get_keys(manager_uuid)) {
+            get_manager<StorageService>().get_keys(manager_uuid)) {
             for (const auto& uuid : get_manager<IscsiTarget>().get_keys()) {
                 auto target = get_manager<IscsiTarget>().get_entry_reference(uuid);
                 log_debug(GET_LOGGER("storage-agent"), "Updated iSCSI Target Portal IP: "

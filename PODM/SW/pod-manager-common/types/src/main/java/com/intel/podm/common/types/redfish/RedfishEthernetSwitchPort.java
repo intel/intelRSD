@@ -32,6 +32,7 @@ import static java.util.Collections.emptySet;
 
 @SuppressWarnings({"checkstyle:MethodCount"})
 public interface RedfishEthernetSwitchPort extends RedfishResource {
+    @Override
     default String getName() {
         return null;
     }
@@ -96,12 +97,11 @@ public interface RedfishEthernetSwitchPort extends RedfishResource {
         return null;
     }
 
-    @Override
     default Links getLinks() {
         return null;
     }
 
-    interface Links extends RedfishResource.Links {
+    interface Links {
         default <T extends NavigationProperty> T getPrimaryVlan() {
             return null;
         }
@@ -116,10 +116,6 @@ public interface RedfishEthernetSwitchPort extends RedfishResource {
 
         default <T extends NavigationProperty> Set<T> getPortMembers() {
             return emptySet();
-        }
-
-        default <T extends NavigationProperty> T getNeighborInterface() {
-            return null;
         }
     }
 }

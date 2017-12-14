@@ -36,6 +36,11 @@ public final class ChassisPartialRepresentation implements RedfishChassis {
         return oem.rackScaleOem.location.id;
     }
 
+    @Override
+    public String getGeoTag() {
+        return oem.rackScaleOem.geoTag;
+    }
+
     public static class Oem {
         @JsonProperty("Intel_RackScale")
         private RackScaleOem rackScaleOem = new RackScaleOem();
@@ -43,6 +48,9 @@ public final class ChassisPartialRepresentation implements RedfishChassis {
         public static class RackScaleOem {
             @JsonProperty("Location")
             private Location location = new Location();
+
+            @JsonProperty("GeoTag")
+            private String geoTag;
 
             public static class Location {
                 @JsonProperty("Id")

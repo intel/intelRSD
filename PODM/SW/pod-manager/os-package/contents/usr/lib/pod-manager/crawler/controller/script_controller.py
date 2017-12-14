@@ -12,27 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import subprocess
 import sys
 import threading
+import time
 
-from subprocess import call
-
-from bot.bot import Bot
+from crawling.bot import Bot
+from crawling.security_context_initializer import SecurityContextInitializer
 from data_model.converters.data_to_json_converter import DataToJsonConverter
 from data_model.converters.json_to_data_converter import JsonToDataConverter
 from data_model.data import Data
+from data_model.service_description import ServiceDescription
 from mock_server.mock_handler import MockHandler
 from mock_server.mock_server import MockServer
-from parsers.leases_parser import LeasesParser
-from parsers.pod_manager_log_parser import PodManagerLogParser
-from utils.json_utils import JsonUtils
+from services_retrieval.parsers.leases_parser import LeasesParser
+from services_retrieval.parsers.pod_manager_log_parser import PodManagerLogParser
+from services_retrieval.parsers.services_list_parser import ServicesListParser
+from services_retrieval.service_retriever import ServiceRetriever
 
 
 class ScriptController:
     @staticmethod
     def crawl(arguments):
+        service_description = ServiceDescription.from_uri(arguments.uri)
+        data = ScriptController._crawl_services([service_description])
+        print(DataToJsonConverter.dumps(data, False))
+
+    @staticmethod
+    def full_crawl(arguments):
         if arguments.remote is not None:
-            call(['scp', '-r', '.', '{}:crawler'.format(arguments.remote)])
+            subprocess.call(['scp', '-r', '.', '{}:crawler'.format(arguments.remote)])
 
             if arguments.minimal:
                 minimal_option = '--minimal'
@@ -44,38 +54,34 @@ class ScriptController:
             else:
                 parse_log_option = ''
 
-            call(['ssh', '-t', arguments.remote, 'python3 -B crawler/crawler.py crawl {} {} crawler/output.json'.format(minimal_option, parse_log_option)])
-            call(['scp', '{}:crawler/output.json'.format(arguments.remote), arguments.output_file_name])
-            call(['ssh', arguments.remote, 'rm -rf crawler'])
+            subprocess.call(['ssh', '-t', arguments.remote, './crawler/crawler.py --log-file-name crawler/crawler.log crawl {minimal_option} {parse_log_option} crawler/output.json'.format(
+                minimal_option=minimal_option,
+                parse_log_option=parse_log_option)
+            ])
+            subprocess.call(['scp', '{}:crawler/output.json'.format(arguments.remote), arguments.output_file_name])
+            subprocess.call(['scp', '{}:crawler/crawler.log'.format(arguments.remote), arguments.log_file_name])
+            subprocess.call(['ssh', arguments.remote, 'rm -rf crawler'])
             sys.exit()
 
+        ServiceRetriever.add_parser(LeasesParser)
+        ServiceRetriever.add_parser(ServicesListParser)
+
         if arguments.parse_log:
-            service_retrieval_class = PodManagerLogParser
-        else:
-            service_retrieval_class = LeasesParser
+            ServiceRetriever.add_parser(PodManagerLogParser)
 
-        service_descriptions = service_retrieval_class.retrieve_service_descriptions()
+        service_descriptions = ServiceRetriever.retrieve_service_descriptions()
 
-        data = Data()
+        logging.debug('========== Crawling services')
 
-        for service_description in service_descriptions:
-            bot = Bot(service_description)
-            service = bot.crawl()
-            data.add_service(service)
+        data = ScriptController._crawl_services(service_descriptions)
 
-        json_data_representation = DataToJsonConverter.convert(data, arguments.minimal)
+        logging.debug('========== Outcome\n{data}'.format(data=data))
 
-        with open(arguments.output_file_name, 'w') as output_file:
-            JsonUtils.dump(json_data_representation, output_file, indent=4)
+        print(DataToJsonConverter.dumps(data, arguments.minimal))
 
     @staticmethod
     def mock(arguments):
-        with open(arguments.input_file_name) as input_file:
-            content = input_file.read()
-
-        json_data_representation = JsonUtils.loads(content)
-
-        data = JsonToDataConverter.convert(json_data_representation)
+        data = JsonToDataConverter.load(arguments.input_file_name)
 
         print('SERVICE-URI SERVICE-TYPE => LOCAL-PORT')
 
@@ -101,3 +107,22 @@ class ScriptController:
 
         for thread in server_threads:
             thread.join()
+
+    @staticmethod
+    def _crawl_services(service_descriptions):
+        security_context = SecurityContextInitializer.init_security_context()
+        Bot.set_security_context(security_context)
+
+        data = Data()
+
+        for service_description in service_descriptions:
+            logging.debug('Retrieving SERVICE: {service_description}'.format(service_description=service_description))
+            bot = Bot(service_description)
+            begin = time.time()
+            service = bot.crawl()
+            end = time.time()
+            duration = end - begin
+            service.set_retrieval_duration(duration)
+            data.add_service(service)
+
+        return data

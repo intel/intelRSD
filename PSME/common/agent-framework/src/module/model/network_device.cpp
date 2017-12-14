@@ -39,8 +39,8 @@ NetworkDevice::NetworkDevice(const std::string& parent_uuid, enums::Component pa
 
 NetworkDevice::~NetworkDevice() {}
 
-Json::Value NetworkDevice::to_json() const {
-    Json::Value result;
+json::Json NetworkDevice::to_json() const {
+    json::Json result;
     result[literals::NetworkDevice::STATUS] = get_status().to_json();
     result[literals::NetworkDevice::COLLECTIONS] =
         get_collections().to_json();
@@ -48,7 +48,7 @@ Json::Value NetworkDevice::to_json() const {
     return result;
 }
 
-NetworkDevice NetworkDevice::from_json(const Json::Value& json) {
+NetworkDevice NetworkDevice::from_json(const json::Json& json) {
     NetworkDevice device;
 
     device.set_status(attribute::Status::from_json(

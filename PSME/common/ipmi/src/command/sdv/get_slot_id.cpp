@@ -32,19 +32,15 @@
 using namespace ipmi;
 using namespace ipmi::command::sdv;
 
-request::GetSlotId::GetSlotId() : Request(sdv::NetFn::INTEL, sdv::Cmd::GET_SLOT_ID) { }
+request::GetSlotId::GetSlotId() : Request(sdv::NetFn::RACKSCALE, sdv::Cmd::GET_SLOT_ID) { }
 
 request::GetSlotId::~GetSlotId() { }
 
-response::GetSlotId::GetSlotId() : Response(sdv::NetFn::INTEL, sdv::Cmd::GET_SLOT_ID, RESPONSE_SIZE) { }
+response::GetSlotId::GetSlotId() : Response(sdv::NetFn::RACKSCALE + 1, sdv::Cmd::GET_SLOT_ID, RESPONSE_SIZE) { }
 
 response::GetSlotId::~GetSlotId() { }
 
 void response::GetSlotId::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
-
     m_slot_id = data[OFFSET_SLOT_ID];
     m_board_id = data[OFFSET_BOARD_ID];
     m_revision_id = data[OFFSET_REVISION_ID];

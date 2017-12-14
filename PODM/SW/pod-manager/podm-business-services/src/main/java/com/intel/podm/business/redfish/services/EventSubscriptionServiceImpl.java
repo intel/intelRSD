@@ -17,53 +17,48 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.EventSubscriptionDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.EventSubscriptionDto;
 import com.intel.podm.business.entities.EntityNotFoundException;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.EventSubscription;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
-import com.intel.podm.business.services.redfish.odataid.ODataId;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.EVENT_SUBSCRIPTIONS;
-import static java.util.stream.Collectors.toList;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.EVENT_SUBSCRIPTION;
 import static java.util.stream.Collectors.toSet;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
+@RequestScoped
 class EventSubscriptionServiceImpl implements ReaderService<EventSubscriptionDto> {
     @Inject
     private GenericDao genericDao;
 
+    @Inject
+    private EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context eventServiceContext) throws ContextResolvingException {
         return new CollectionDto(
-            EVENT_SUBSCRIPTIONS,
+            EVENT_SUBSCRIPTION,
             genericDao.findAll(EventSubscription.class).stream()
                 .map(EventSubscription::getId)
                 .collect(toSet())
         );
     }
 
+    @Transactional(REQUIRED)
     @Override
     public EventSubscriptionDto getResource(Context context) throws ContextResolvingException {
         try {
             EventSubscription eventSubscription = genericDao.find(EventSubscription.class, context.getId());
-            return EventSubscriptionDto.newBuilder()
-                .id(eventSubscription.getId().toString())
-                .description(eventSubscription.getDescription())
-                .name(eventSubscription.getName())
-                .eventTypesForSubscription(eventSubscription.getEventTypes())
-                .subscriptionContext(eventSubscription.getSubscriptionContext())
-                .protocol(eventSubscription.getProtocol())
-                .destination(eventSubscription.getDestination())
-                .originResources(eventSubscription.getOriginResources().stream().map(ODataId::new).collect(toList()))
-                .build();
+            return (EventSubscriptionDto) entityToDtoMapper.map(eventSubscription);
         } catch (EntityNotFoundException e) {
             throw new ContextResolvingException(e.getMessage(), context, e);
         }

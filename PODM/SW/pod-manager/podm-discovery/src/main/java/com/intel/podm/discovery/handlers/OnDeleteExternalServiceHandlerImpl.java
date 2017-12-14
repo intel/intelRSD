@@ -19,12 +19,15 @@ package com.intel.podm.discovery.handlers;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.handlers.OnDeleteExternalServiceHandler;
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.business.entities.redfish.ExternalLink;
+import com.intel.podm.business.entities.redfish.ExternalLinkDao;
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.discovery.external.ExternalServiceAvailabilityChecker;
+import com.intel.podm.discovery.ServiceExplorer;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.Collection;
 import java.util.Set;
 
 import static com.intel.podm.common.types.ChassisType.DRAWER;
@@ -38,7 +41,10 @@ public class OnDeleteExternalServiceHandlerImpl implements OnDeleteExternalServi
     private GenericDao genericDao;
 
     @Inject
-    private ExternalServiceAvailabilityChecker availabilityChecker;
+    private ExternalLinkDao externalLinkDao;
+
+    @Inject
+    private ServiceExplorer serviceExplorer;
 
     @Override
     public void preRemove(ExternalService externalService) {
@@ -48,27 +54,16 @@ public class OnDeleteExternalServiceHandlerImpl implements OnDeleteExternalServi
             case RMM:
                 handleRmmServiceDelete(externalService);
                 break;
-            case RSS:
-                handleRssServiceRemoval(externalService);
-                break;
             default:
                 deleteAllOwnedEntities(externalService);
         }
     }
 
-    private void handleRssServiceRemoval(ExternalService externalService) {
-        deleteAllOwnedEntities(externalService);
-    }
-
-    private void deleteAllOwnedEntities(ExternalService externalService) {
-        genericDao.removeAndClear(externalService.getAllOwnedEntities());
-    }
-
     private void handleRmmServiceDelete(ExternalService externalService) {
         externalService.getOwned(Chassis.class).stream()
-                .filter(chassis -> chassis.is(RACK))
-                .findFirst()
-                .ifPresent(rackChassis -> this.deleteRmmAssociatedObjects(externalService, rackChassis));
+            .filter(chassis -> chassis.is(RACK))
+            .findFirst()
+            .ifPresent(rackChassis -> this.deleteRmmAssociatedObjects(externalService, rackChassis));
     }
 
     private void deleteRmmAssociatedObjects(ExternalService externalService, Chassis rackChassis) {
@@ -77,28 +72,42 @@ public class OnDeleteExternalServiceHandlerImpl implements OnDeleteExternalServi
             return;
         }
 
-        triggerPsmeServicesCheck(rackChassis);
-
-        genericDao.removeAndClear(externalService.getAllOwnedEntities(), object -> !(object instanceof Chassis));
-        externalService.getOwned(Chassis.class).stream()
-                .filter(chassis -> chassis.is(RACK))
-                .forEach(chassis -> chassis.unlinkExternalService(externalService));
+        triggerExternalServicesCheck(rackChassis);
+        removeAllEntitiesButRack(externalService, rackChassis);
+        clearReferenceToExternalService(externalService, rackChassis);
     }
 
-    private void triggerPsmeServicesCheck(Chassis rackChassis) {
-        Set<Chassis> rackChassisSet = rackChassis.getContainedChassis();
+    private void removeAllEntitiesButRack(ExternalService externalService, Chassis rackChassis) {
+        externalLinkDao.removeAll(externalService, externalLink -> !externalLink.getDiscoverableEntity().equals(rackChassis));
+    }
 
-        rackChassisSet.stream()
-                .filter(chassis -> chassis.is(DRAWER))
-                .map(Chassis::getService)
-                .map(ExternalService::getUuid)
-                .forEach(availabilityChecker::verifyServiceAvailabilityByUuid);
+    private void clearReferenceToExternalService(ExternalService externalService, Chassis rackChassis) {
+        Set<ExternalLink> existingLinks = rackChassis.getExternalLinks();
+        for (ExternalLink existingLink : existingLinks) {
+            externalService.unlinkOwnedLink(existingLink);
+            genericDao.remove(existingLink);
+        }
     }
 
     private boolean canDeleteAllOwnedEntities(Chassis rackChassis) {
         return !rackChassis.getContainedChassis().stream()
-                .filter(chassis -> chassis.is(DRAWER))
-                .findAny()
-                .isPresent();
+            .filter(chassis -> chassis.is(DRAWER))
+            .findAny()
+            .isPresent();
+    }
+
+    private void triggerExternalServicesCheck(Chassis rackChassis) {
+        Set<Chassis> rackChassisSet = rackChassis.getContainedChassis();
+
+        rackChassisSet.stream()
+            .filter(chassis -> chassis.is(DRAWER))
+            .map(Chassis::getExternalServices)
+            .flatMap(Collection::stream)
+            .map(ExternalService::getUuid)
+            .forEach(serviceExplorer::enqueueVerification);
+    }
+
+    private void deleteAllOwnedEntities(ExternalService externalService) {
+        externalLinkDao.removeAll(externalService, id -> true);
     }
 }

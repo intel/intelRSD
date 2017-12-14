@@ -1,7 +1,0 @@
-Package: rmm-base
-Version: 
-Section: utils
-Priority: optional
-Architecture: amd64
-Maintainer: guanglin.shen <guanglingx.shen@intel.com>
-Description: all other little scripts required.

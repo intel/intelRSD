@@ -34,8 +34,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "ethernet_switch_port_vlan", indexes = @Index(name = "idx_ethernet_switch_port_vlan_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class EthernetSwitchPortVlan extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;

@@ -34,20 +34,13 @@ interface SerialExecutor {
      * If there is no other task running, provided task will be executed immediately.
      * If any other task is running, current thread will wait until the end of this task (no longer than timeToWaitFor).
      *
-     * @param timeToWaitFor accepted timeout
-     * @param task task to perform
      * @param <R> type of result which will be returned
+     * @param timeToWaitFor accepted timeout
+     * @param executable task to perform
      * @return result of synchronous task
      * @throws TimeoutException if previous task is still running, even after applying accepted timeout
      */
-    <E extends Exception, R> R executeSync(Duration timeToWaitFor, ThrowingCallable<R, E> task) throws TimeoutException, E;
-
-    void executeSync(Duration timeToWaitFor, Runnable task) throws TimeoutException;
-
-    /**
-     * {@link #executeSync(Duration, ThrowingCallable)}
-     */
-    <E extends Exception> void executeSync(Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E;
+    <E extends Exception, R> R executeSync(Duration timeToWaitFor, Executable<E, R> executable) throws TimeoutException, E;
 
 
     /**

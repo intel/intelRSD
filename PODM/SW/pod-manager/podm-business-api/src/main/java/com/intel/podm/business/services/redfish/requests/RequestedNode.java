@@ -19,9 +19,11 @@ package com.intel.podm.business.services.redfish.requests;
 import com.intel.podm.business.dto.redfish.ContextPossessor;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.InstructionSet;
+import com.intel.podm.common.types.InterfaceType;
 import com.intel.podm.common.types.MediaType;
 import com.intel.podm.common.types.MemoryDeviceType;
 import com.intel.podm.common.types.ProcessorBrand;
+import com.intel.podm.common.types.ProcessorType;
 import com.intel.podm.common.types.Protocol;
 import com.intel.podm.common.types.ReplicationMethod;
 
@@ -43,6 +45,7 @@ public interface RequestedNode {
     List<RemoteDrive> getRemoteDrives();
     List<LocalDrive> getLocalDrives();
     List<EthernetInterface> getEthernetInterfaces();
+    Security getSecurity();
     Object getOem();
 
     interface Processor extends ContextPossessor {
@@ -51,6 +54,7 @@ public interface RequestedNode {
         Integer getTotalCores();
         Integer getAchievableSpeedMhz();
         InstructionSet getInstructionSet();
+        ProcessorType getProcessorType();
         List<String> getCapabilities();
     }
 
@@ -92,5 +96,11 @@ public interface RequestedNode {
             ReplicationMethod getType();
             Context getResourceContext();
         }
+    }
+
+    interface Security {
+        Boolean getTpmPresent();
+        InterfaceType getTpmInterfaceType();
+        Boolean getTxtEnabled();
     }
 }

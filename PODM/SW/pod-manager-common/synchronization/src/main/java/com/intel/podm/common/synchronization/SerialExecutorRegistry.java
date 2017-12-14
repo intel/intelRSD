@@ -18,14 +18,22 @@ package com.intel.podm.common.synchronization;
 
 import com.codahale.metrics.MetricRegistry;
 import com.intel.podm.common.logger.Logger;
+import com.intel.podm.common.synchronization.monitoring.MetricRegistryFactory;
 
+import javax.annotation.PostConstruct;
+import javax.ejb.AccessTimeout;
 import javax.ejb.Lock;
-import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
+
+import static com.intel.podm.common.enterprise.utils.beans.JndiNames.SYNCHRONIZED_TASK_EXECUTOR;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ejb.LockType.WRITE;
+import static javax.transaction.Transactional.TxType.SUPPORTS;
 
 @Singleton
 public class SerialExecutorRegistry {
@@ -33,17 +41,27 @@ public class SerialExecutorRegistry {
     private Logger log;
 
     @Inject
-    @Named("TasksExecutor")
+    @Named(SYNCHRONIZED_TASK_EXECUTOR)
     private ExecutorService executorService;
 
     @Inject
+    private MetricRegistryFactory metricRegistryFactory;
+
     private MetricRegistry metricRegistry;
 
     private HashMap<Object, SerialExecutor> registry = new HashMap<>();
 
-    private TaskExecutorProvider taskExecutorProvider = new TaskExecutorProvider();
+    @PostConstruct
+    private void init() {
+        this.metricRegistry = metricRegistryFactory.getOrRegisterNew("PodM.Synchronization");
+    }
 
-    @Lock(LockType.WRITE)
+    /**
+     * LockType.WRITE used due to concurrent access to registry map that modifies it (put operation).
+     */
+    @Lock(WRITE)
+    @Transactional(SUPPORTS)
+    @AccessTimeout(value = 5, unit = SECONDS)
     public SerialExecutor getExecutor(Object key) {
         if (!registry.containsKey(key)) {
             log.i("Creating serial executorService for {}", key);
@@ -52,15 +70,20 @@ public class SerialExecutorRegistry {
         return registry.get(key);
     }
 
-    private SerialExecutor createExecutor(Object key) {
-        return new InstrumentedSerialExecutor(
-            new SerialExecutorImpl(key, executorService, taskExecutorProvider),
-            metricRegistry
-        );
-    }
-
-    @Lock(LockType.WRITE)
+    /**
+     * LockType.WRITE used due to concurrent access to registry map that modifies it (remove operation).
+     */
+    @Lock(WRITE)
+    @Transactional(SUPPORTS)
+    @AccessTimeout(value = 5, unit = SECONDS)
     public void unregisterExecutor(Object synchronizationKey) {
         registry.remove(synchronizationKey);
+    }
+
+    private SerialExecutor createExecutor(Object key) {
+        return new InstrumentedSerialExecutor(
+            new SerialExecutorImpl(key, executorService),
+            metricRegistry
+        );
     }
 }

@@ -33,7 +33,7 @@ Status::Status() { }
 
 Status::~Status() { }
 
-Status::Status(const enums::State state, const enums::Health health):
+Status::Status(const enums::State state, const OptionalField<enums::Health>& health):
                     m_state(state), m_health(health) { }
 
 Status::Status(const std::string& state, const std::string& health):
@@ -50,16 +50,16 @@ Status::Status(const bool ok) {
     }
 }
 
-Json::Value Status::to_json() const {
-    Json::Value json;
+json::Json Status::to_json() const {
+    json::Json json;
     json[literals::Status::STATE] = m_state.to_string();
     json[literals::Status::HEALTH] = m_health;
     return json;
 }
 
-Status Status::from_json(const Json::Value& json) {
+Status Status::from_json(const json::Json& json) {
     attribute::Status status;
-    status.set_state(enums::State::from_string(json[literals::Status::STATE].asString()));
+    status.set_state(enums::State::from_string(json[literals::Status::STATE]));
     status.set_health(json[literals::Status::HEALTH]);
     return status;
 }

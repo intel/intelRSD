@@ -39,14 +39,14 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Chassis/Members/__CHASSIS_ID__/Drives/Members/__DRIVE_ID__/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Drive.Drive";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#Drive.v1_1_1.Drive";
     r[Common::ID] = json::Value::Type::NIL;
     r[Common::NAME] = "Drive";
     r[Common::DESCRIPTION] = "Drive description";
 
-    r[Common::ACTIONS][PncDrive::SECURE_ERASE][PncDrive::TARGET] = json::Value::Type::NIL;
+    r[Common::ACTIONS][PncDrive::SECURE_ERASE][Common::TARGET] = json::Value::Type::NIL;
     r[Common::ASSET_TAG] = json::Value::Type::NIL;
     r[PncDrive::INDICATOR_LED] = json::Value::Type::NIL;
 
@@ -70,10 +70,10 @@ json::Value make_prototype() {
     r[Common::OEM][Common::RACKSCALE][PncDrive::PCIE_FUNCTION] = json::Value::Type::NIL;
     r[Common::PART_NUMBER] = json::Value::Type::NIL;
     r[PncDrive::PROTOCOL] = json::Value::Type::NIL;
-    r[Common::SERIAL] = json::Value::Type::NIL;
+    r[Common::SERIAL_NUMBER] = json::Value::Type::NIL;
     r[PncDrive::CAPACITY_BYTES] = json::Value::Type::NIL;
 
-    r[PncDrive::SKU] = json::Value::Type::NIL;
+    r[Common::SKU] = json::Value::Type::NIL;
     r[PncDrive::STATUS_INDICATOR] = json::Value::Type::NIL;
     r[PncDrive::REVISION] = json::Value::Type::NIL;
     r[PncDrive::FAILURE_PREDICTED] = json::Value::Type::NIL;
@@ -145,7 +145,12 @@ void add_links(const agent_framework::model::Drive& drive, json::Value& json) {
 
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
     {agent_framework::model::literals::Drive::ASSET_TAG, constants::Common::ASSET_TAG},
-    {agent_framework::model::literals::Drive::ERASED,    constants::PncDrive::DRIVE_ERASED}
+    {agent_framework::model::literals::Drive::ERASED,
+     endpoint::PathBuilder(Common::OEM)
+         .append(Common::RACKSCALE)
+         .append(constants::PncDrive::DRIVE_ERASED)
+         .build()
+    }
 };
 
 }
@@ -160,22 +165,14 @@ endpoint::Drive::~Drive() {}
 void endpoint::Drive::get(const server::Request& req, server::Response& res) {
     auto r = make_prototype();
 
-    auto chassis_id = psme::rest::model::Find<agent_framework::model::Chassis>(
-        req.params[PathParam::CHASSIS_ID]).get_one()->get_id();
-
     r[Common::ODATA_ID] = PathBuilder(req).build();
-    r[Common::ODATA_CONTEXT] = std::regex_replace(r[Common::ODATA_CONTEXT].as_string(), std::regex("__CHASSIS_ID__"),
-                                                  std::to_string(chassis_id));
 
-    auto drive = psme::rest::model::Find<agent_framework::model::Drive>(req.params[PathParam::DRIVE_ID]).
-        via<agent_framework::model::Chassis>(req.params[PathParam::CHASSIS_ID]).get();
-
-    r[Common::ODATA_CONTEXT] = std::regex_replace(r[Common::ODATA_CONTEXT].as_string(), std::regex("__DRIVE_ID__"),
-                                                  std::to_string(drive.get_id()));
+    auto drive = psme::rest::model::Find<agent_framework::model::Drive>(req.params[PathParam::DRIVE_ID])
+        .via<agent_framework::model::Chassis>(req.params[PathParam::CHASSIS_ID]).get();
 
     r[Common::ID] = req.params[PathParam::DRIVE_ID];
 
-    r[Common::ACTIONS][PncDrive::SECURE_ERASE][PncDrive::TARGET] = endpoint::PathBuilder(req)
+    r[Common::ACTIONS][PncDrive::SECURE_ERASE][Common::TARGET] = endpoint::PathBuilder(req)
         .append(Common::ACTIONS)
         .append(PncDrive::SECURE_ERASE_ENDPOINT).build();
 
@@ -185,7 +182,7 @@ void endpoint::Drive::get(const server::Request& req, server::Response& res) {
     r[Common::MANUFACTURER] = fru.get_manufacturer();
     r[Common::MODEL] = fru.get_model_number();
     r[Common::PART_NUMBER] = fru.get_part_number();
-    r[Common::SERIAL] = fru.get_serial_number();
+    r[Common::SERIAL_NUMBER] = fru.get_serial_number();
 
     r[Common::ASSET_TAG] = drive.get_asset_tag();
     r[PncDrive::MEDIA_TYPE] = drive.get_type();
@@ -193,7 +190,7 @@ void endpoint::Drive::get(const server::Request& req, server::Response& res) {
     r[PncDrive::PROTOCOL] = drive.get_interface();
     r[PncDrive::NEGOTIATED_SPEED] = drive.get_negotiated_speed_gbs();
 
-    r[PncDrive::SKU] = drive.get_sku();
+    r[Common::SKU] = drive.get_sku();
     r[PncDrive::STATUS_INDICATOR] = drive.get_status_indicator();
     r[PncDrive::REVISION] = drive.get_revision();
     r[PncDrive::FAILURE_PREDICTED] = drive.get_failure_predicted();
@@ -208,14 +205,14 @@ void endpoint::Drive::get(const server::Request& req, server::Response& res) {
     r[Common::OEM][Common::RACKSCALE][PncDrive::FIRMWARE_VERSION] = drive.get_firmware_version();
 
     for (const auto& location : drive.get_locations()) {
-        json::Value loc;
-        loc[PncDrive::INFO] = location.get_info();
-        loc[PncDrive::INFO_FORMAT] = location.get_info_format();
-        r[Common::LOCATION].push_back(std::move(loc));
+        json::Value l{};
+        l[PncDrive::INFO] = location.get_info();
+        l[PncDrive::INFO_FORMAT] = location.get_info_format();
+        r[Common::LOCATION].push_back(std::move(l));
     }
 
     for (const auto& identifier : drive.get_identifiers()) {
-        json::Value id;
+        json::Value id{};
         id[PncDrive::DURABLE_NAME] = identifier.get_durable_name();
         id[PncDrive::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format().to_string();
         r[PncDrive::IDENTIFIERS].push_back(std::move(id));
@@ -235,7 +232,8 @@ void endpoint::Drive::get(const server::Request& req, server::Response& res) {
 
 void endpoint::Drive::patch(const server::Request& request, server::Response& response) {
 
-    auto drive = model::Find<agent_framework::model::Drive>(request.params[PathParam::DRIVE_ID]).get();
+    auto drive = psme::rest::model::Find<agent_framework::model::Drive>(request.params[PathParam::DRIVE_ID])
+        .via<agent_framework::model::Chassis>(request.params[PathParam::CHASSIS_ID]).get();
     agent_framework::model::attribute::Attributes attributes{};
 
     const auto& json = JsonValidator::validate_request_body<schema::DrivePatchSchema>(request);

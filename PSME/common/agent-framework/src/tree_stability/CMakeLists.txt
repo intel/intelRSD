@@ -17,7 +17,7 @@
 # </license_header>
 
 set(SOURCES
-    key_generator.cpp
+    key_value_missing_error.cpp
     tree_stabilizer.cpp
 )
 

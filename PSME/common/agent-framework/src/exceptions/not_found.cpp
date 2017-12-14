@@ -41,7 +41,7 @@ NotFound::NotFound(const std::string& msg, const std::string& uri) :
 NotFound::~NotFound() {}
 
 
-std::string NotFound::get_uri_from_json_data(const Json::Value& data, bool should_return_empty) {
+std::string NotFound::get_uri_from_json_data(const json::Json& data, bool should_return_empty) {
     const auto& uri = get_string_from_data(data, NotFound::URI);
     if(uri.empty() && !should_return_empty) {
         return NOT_SPECIFIED;
@@ -49,8 +49,8 @@ std::string NotFound::get_uri_from_json_data(const Json::Value& data, bool shoul
     return uri;
 }
 
-Json::Value NotFound::create_json_data_from_uri(const std::string& uri) {
-    Json::Value json_data{};
+json::Json NotFound::create_json_data_from_uri(const std::string& uri) {
+    json::Json json_data{};
     json_data[NotFound::URI] = uri;
     return json_data;
 }

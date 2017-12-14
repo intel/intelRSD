@@ -17,72 +17,52 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.PcieDeviceFunctionDto;
+import com.intel.podm.business.dto.StorageControllerDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.PcieDeviceFunctionDto;
 import com.intel.podm.business.entities.redfish.PcieDevice;
 import com.intel.podm.business.entities.redfish.PcieDeviceFunction;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.StorageControllerDtoHelper;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PCIE_DEVICE_FUNCTIONS;
-import static com.intel.podm.business.redfish.ContextCollections.asDriveContexts;
-import static com.intel.podm.business.redfish.ContextCollections.asEthernetInterfaceContexts;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
-import static com.intel.podm.business.redfish.Contexts.toContext;
-import static java.util.stream.Collectors.toSet;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
+import static java.lang.String.format;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class PcieDeviceFunctionServiceImpl implements ReaderService<PcieDeviceFunctionDto> {
+@RequestScoped
+class PcieDeviceFunctionServiceImpl implements ReaderService<PcieDeviceFunctionDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
-    @Inject
-    private StorageControllerDtoHelper storageControllerDtoHelper;
-
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context pcieDeviceContext) throws ContextResolvingException {
         PcieDevice pcieDevice = (PcieDevice) traverser.traverse(pcieDeviceContext);
         return new CollectionDto(PCIE_DEVICE_FUNCTIONS, getAsIdSet(pcieDevice.getPcieDeviceFunctions()));
     }
 
+    @Transactional(REQUIRED)
     @Override
-    public PcieDeviceFunctionDto getResource(Context pcieDeviceFunctionContext) throws ContextResolvingException {
-        PcieDeviceFunction pcieDeviceFunction = (PcieDeviceFunction) traverser.traverse(pcieDeviceFunctionContext);
-        return map(pcieDeviceFunction);
-    }
+    public PcieDeviceFunctionDto getResource(Context context) throws ContextResolvingException {
+        PcieDeviceFunction pcieDeviceFunction = (PcieDeviceFunction) traverser.traverse(context);
 
-    private PcieDeviceFunctionDto map(PcieDeviceFunction pcieDeviceFunction) {
-        return PcieDeviceFunctionDto.newBuilder()
-            .id(pcieDeviceFunction.getId().toString())
-            .name(pcieDeviceFunction.getName())
-            .description(pcieDeviceFunction.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(pcieDeviceFunction.getService(), pcieDeviceFunction.getUnknownOems()))
-            .functionId(pcieDeviceFunction.getFunctionId())
-            .deviceClass(pcieDeviceFunction.getDeviceClass())
-            .functionType(pcieDeviceFunction.getFunctionType())
-            .deviceId(pcieDeviceFunction.getDeviceId())
-            .vendorId(pcieDeviceFunction.getVendorId())
-            .classCode(pcieDeviceFunction.getClassCode())
-            .revisionId(pcieDeviceFunction.getRevisionId())
-            .subsystemId(pcieDeviceFunction.getSubsystemId())
-            .subsystemVendorId(pcieDeviceFunction.getSubsystemVendorId())
-            .status(pcieDeviceFunction.getStatus())
-            .pcieDevice(toContext(pcieDeviceFunction.getPcieDevice()))
-            .drives(asDriveContexts(pcieDeviceFunction.getDrives()))
-            .ethernetInterfaces(asEthernetInterfaceContexts(pcieDeviceFunction.getEthernetInterfaces()))
-            .storageControllers(pcieDeviceFunction.getStorageControllers().stream()
-                .map(storageController -> storageControllerDtoHelper.createStorageControllerDto(storageController))
-                .collect(toSet()))
-            .build();
+        PcieDeviceFunctionDto dto = (PcieDeviceFunctionDto) entityToDtoMapper.map(pcieDeviceFunction);
+        ODataId oDataId = asOdataId(context);
+        for (StorageControllerDto storageControllerDto : dto.getLinks().getStorageControllers()) {
+            storageControllerDto.setoDataId(format("%s#/StorageControllers/%s", oDataId, storageControllerDto.getId()));
+        }
+        return dto;
     }
 }

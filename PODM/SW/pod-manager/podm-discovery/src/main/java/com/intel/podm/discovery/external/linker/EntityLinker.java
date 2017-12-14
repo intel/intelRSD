@@ -34,7 +34,7 @@ public class EntityLinker {
 
     public void link(Entity source, Entity target, String linkName) {
         for (Linker linker : linkers) {
-            if (linker.tryLink(source, target, linkName))  {
+            if (linker.tryLink(source, target, linkName)) {
                 return;
             }
         }

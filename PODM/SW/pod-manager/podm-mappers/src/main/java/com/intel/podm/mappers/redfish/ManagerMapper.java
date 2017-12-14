@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Manager;
-import com.intel.podm.client.api.resources.redfish.ManagerResource;
+import com.intel.podm.client.resources.redfish.ManagerResource;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.SimpleTypeMapper;
 
@@ -38,8 +38,8 @@ public class ManagerMapper extends EntityMapper<ManagerResource, Manager> {
     }
 
     @Override
-    protected void performNotAutomatedMapping(ManagerResource sourceManager, Manager targetManager) {
-        super.performNotAutomatedMapping(sourceManager, targetManager);
+    protected void performNotAutomatedMapping(ManagerResource source, Manager target) {
+        super.performNotAutomatedMapping(source, target);
         mapSerialConsole(source, target);
         mapGraphicalConsole(source, target);
         mapCommandShell(source, target);

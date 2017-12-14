@@ -23,14 +23,13 @@
  * */
 
 #pragma once
+
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/enum/pnc.hpp"
 #include "agent-framework/module/utils/utils.hpp"
-#include <string>
+#include "json-wrapper/json-wrapper.hpp"
 
-namespace Json {
-    class Value;
-}
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -43,9 +42,9 @@ public:
 
     /*! Default constructor */
     explicit ConnectedEntity(){}
-    ConnectedEntity(ConnectedEntity&) = default;
+    ConnectedEntity(ConnectedEntity&&) = default;
     ConnectedEntity(const ConnectedEntity&) = default;
-    ConnectedEntity& operator=(ConnectedEntity&) = default;
+    ConnectedEntity& operator=(ConnectedEntity&&) = default;
     ConnectedEntity& operator=(const ConnectedEntity&) = default;
 
     ~ConnectedEntity();
@@ -102,14 +101,14 @@ public:
      * Converts this object to json representation
      * @return Json representation of this object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief construct an object of class ConnectedEntity from JSON
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      * @return the newly constructed ConnectedEntity object
      */
-    static ConnectedEntity from_json(const Json::Value& json);
+    static ConnectedEntity from_json(const json::Json& json);
 
 private:
     OptionalField<enums::EntityType> m_entity_type{};

@@ -20,19 +20,26 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
-add_gtest(get_chassis_status ipmi
+add_gtest(generic_commands ipmi
     get_chassis_status.cpp
+    get_lan_config_params_test.cpp
+    get_sdr_repository_info_test.cpp
+    reserve_sdr_repository_test.cpp
+    get_sdr_test.cpp
+    get_fru_inventory_area_info.cpp
+    read_fru_data.cpp
     test_runner.cpp
 )
 
-add_library(ipmi_get_chassis_status_test
+add_library(ipmi_generic_commands_test
     $<TARGET_OBJECTS:ipmi-base>
     $<TARGET_OBJECTS:ipmi-command-generic>
     $<TARGET_OBJECTS:ipmi-manager-ipmitool>
 )
 
 target_link_libraries(${test_target}
-    ipmi_get_chassis_status_test
+    ipmi_generic_commands_test
+    ${LOGGER_LIBRARIES}
     ${IPMITOOL_LIBRARIES}
     ${GTEST_LIBRARIES}
 )

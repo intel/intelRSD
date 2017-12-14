@@ -21,24 +21,23 @@ import com.intel.podm.common.types.Id;
 import java.net.URI;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.net.URI.create;
-import static org.apache.commons.lang.StringUtils.removeEnd;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
 
 public final class ODataIdHelper {
     private ODataIdHelper() {
     }
 
     public static ODataId oDataIdFromUri(URI uri) {
-        URI uriPathWithoutTrailingSlash = create(removeEnd(uri.getPath(), "/"));
+        URI uriPathWithoutTrailingSlash = URI.create(removeEnd(uri.getPath(), "/"));
         if (!isNullOrEmpty(uri.getFragment())) {
-            return new ODataId(create(uriPathWithoutTrailingSlash + "#" + uri.getFragment()));
+            return new ODataId(URI.create(uriPathWithoutTrailingSlash + "#" + uri.getFragment()));
         }
 
         return new ODataId(uriPathWithoutTrailingSlash);
     }
 
     public static ODataId oDataIdFromString(String uriString) {
-        return oDataIdFromUri(create(uriString));
+        return oDataIdFromUri(URI.create(uriString));
     }
 
     public static ODataId appendOdataId(ODataId oDataId, Id id) {

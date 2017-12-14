@@ -38,22 +38,27 @@ const enums::CollectionName Task::collection_name = enums::CollectionName::Tasks
 
 
 Task::Task(const std::string& parent_uuid, enums::Component parent_type) :
-    Resource{parent_uuid, parent_type} { }
+    Resource{parent_uuid, parent_type} {
+    // Status is unused for Tasks. Its value is always "Enabled".
+    // The default Health for Task is "OK"
+    set_status(attribute::Status(true));
+}
 
 
 Task::~Task() { }
 
-
-Task Task::from_json(const Json::Value& json) {
+Task Task::from_json(const json::Json& json) {
     Task task{};
 
     task.set_state(json[literals::Task::STATE]);
     task.set_start_time(json[literals::Task::START_TIME]);
     task.set_end_time(json[literals::Task::END_TIME]);
-    task.set_status(json[literals::Task::STATUS]);
+    auto status = attribute::Status::from_json(json[literals::Task::STATUS]);
+    status.set_state(enums::State::Enabled);
+    task.set_status(status);
     task.set_messages(Messages::from_json(json[literals::Task::MESSAGES]));
     task.set_name(json[literals::Task::NAME]);
-    task.set_oem(attribute::Oem::from_json(json[literals::Task::OEM]));
+    task.set_oem(attribute::Oem::from_json(json.value(literals::Task::OEM, json::Json())));
 
     task.set_resource_hash(json);
 
@@ -61,17 +66,16 @@ Task Task::from_json(const Json::Value& json) {
 }
 
 
-Json::Value Task::to_json() const {
-    Json::Value json{};
+json::Json Task::to_json() const {
+    json::Json json{};
 
     json[literals::Task::STATE] = get_state();
     json[literals::Task::START_TIME] = get_start_time();
     json[literals::Task::END_TIME] = get_end_time();
-    json[literals::Task::STATUS] = get_status();
+    json[literals::Task::STATUS] = get_status().to_json();
     json[literals::Task::MESSAGES] = get_messages().to_json();
     json[literals::Task::NAME] = get_name();
     json[literals::Task::OEM] = get_oem().to_json();
-
 
     return json;
 }
@@ -103,7 +107,7 @@ void Task::stop() {
         message = "Cannot end task " + get_uuid() + ", task not started yet";
     }
     if (m_end_time.has_value()) {
-        message = "Cannot end task " + get_uuid() + ", task already finieshed";
+        message = "Cannot end task " + get_uuid() + ", task already finished";
     }
 
     if (!message.empty()) {

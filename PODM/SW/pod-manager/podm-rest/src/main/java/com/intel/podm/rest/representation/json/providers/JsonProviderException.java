@@ -19,6 +19,8 @@ package com.intel.podm.rest.representation.json.providers;
 import java.io.IOException;
 
 public final class JsonProviderException extends IOException {
+    private static final long serialVersionUID = -3117662698154071519L;
+
     public JsonProviderException(Throwable cause) {
         super(cause);
     }

@@ -156,11 +156,11 @@ TEST(SetComponentAttributesTest, PositiveExecuteBooleanValue) {
     MySetComponentAttributes command{"TestModule", &test_component_attributes};
     SetComponentAttributes::Request request{""};
     SetComponentAttributes::Response response{};
-    Json::Value params;
-    Json::Value result;
-    Json::Value attributes;
-    Json::Value json_attribute;
-    Json::Value boolean_value;
+    json::Json params;
+    json::Json result;
+    json::Json attributes;
+    json::Json json_attribute;
+    json::Json boolean_value;
     boolean_value[BOOLEAN] = true;
     json_attribute[NAME] = BOOLEAN;
     json_attribute[VALUE] = boolean_value;
@@ -183,11 +183,11 @@ TEST(SetComponentAttributesTest, PositiveExecuteStringValue) {
     SetComponentAttributes::Request request{""};
     SetComponentAttributes::Response response{};
 
-    Json::Value params;
-    Json::Value result;
-    Json::Value attributes;
-    Json::Value json_attribute;
-    Json::Value string_value;
+    json::Json params;
+    json::Json result;
+    json::Json attributes;
+    json::Json json_attribute;
+    json::Json string_value;
     string_value[STRING] = "TestString";
     json_attribute[NAME] = STRING;
     json_attribute[VALUE] = string_value;
@@ -210,11 +210,11 @@ TEST(SetComponentAttributesTest, PositiveExecuteNumberValue) {
     SetComponentAttributes::Request request{""};
     SetComponentAttributes::Response response{};
 
-    Json::Value params;
-    Json::Value result;
-    Json::Value attributes;
-    Json::Value json_attribute;
-    Json::Value number_value;
+    json::Json params;
+    json::Json result;
+    json::Json attributes;
+    json::Json json_attribute;
+    json::Json number_value;
     number_value[NUMBER] = 1.0;
     json_attribute[NAME] = NUMBER;
     json_attribute[VALUE] = number_value;
@@ -237,12 +237,12 @@ TEST(SetComponentAttributesTest, PositiveExecuteArrayString) {
     SetComponentAttributes::Request request{""};
     SetComponentAttributes::Response response{};
 
-    Json::Value params;
-    Json::Value result;
-    Json::Value attributes;
-    Json::Value json_attribute;
-    Json::Value json_array;
-    Json::Value array_string_value;
+    json::Json params;
+    json::Json result;
+    json::Json attributes;
+    json::Json json_attribute;
+    json::Json json_array;
+    json::Json array_string_value;
     json_array[0] = "FirstTestString";
     json_array[1] = "SecondTestString";
     array_string_value[ARRAY_STRING] = json_array;
@@ -269,12 +269,12 @@ TEST(SetComponentAttributesTest, PositiveExecuteArrayNumber) {
     SetComponentAttributes::Request request{""};
     SetComponentAttributes::Response response{};
 
-    Json::Value params;
-    Json::Value result;
-    Json::Value attributes;
-    Json::Value json_attribute;
-    Json::Value json_array;
-    Json::Value array_number_value;
+    json::Json params;
+    json::Json result;
+    json::Json attributes;
+    json::Json json_attribute;
+    json::Json json_array;
+    json::Json array_number_value;
     json_array[0] = 0.0;
     json_array[1] = 1.0;
     array_number_value[ARRAY_NUMBER] = json_array;
@@ -301,12 +301,12 @@ TEST(SetComponentAttributesTest, PositiveExecuteArrayBoolean) {
     SetComponentAttributes::Request request{""};
     SetComponentAttributes::Response response{};
 
-    Json::Value params;
-    Json::Value result;
-    Json::Value attributes;
-    Json::Value json_attribute;
-    Json::Value json_array;
-    Json::Value array_boolean_value;
+    json::Json params;
+    json::Json result;
+    json::Json attributes;
+    json::Json json_attribute;
+    json::Json json_array;
+    json::Json array_boolean_value;
     json_array[0] = true;
     json_array[1] = false;
     array_boolean_value[ARRAY_BOOLEAN] = json_array;
@@ -332,9 +332,9 @@ TEST(SetComponentAttributesTest, NegativeNotFound) {
     MySetComponentAttributes command{"TestModule", &test_component_attributes};
     SetComponentAttributes::Request request{""};
     SetComponentAttributes::Response response{};
-    Json::Value params;
-    Json::Value result;
-    Json::Value attributes;
+    json::Json params;
+    json::Json result;
+    json::Json attributes;
 
     params[COMPONENT] = "OtherTestModule";
     params[ATTRIBUTES] = attributes;

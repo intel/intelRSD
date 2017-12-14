@@ -21,18 +21,38 @@
  * */
 
 #pragma once
-#include "event_data.hpp"
+#include "component_notification.hpp"
 #include "generic/threadsafe_queue.hpp"
 #include "agent-framework/generic/singleton.hpp"
 
 namespace agent_framework {
-/*! Eventing namespace */
 namespace eventing {
 
-class EventsQueue : public ::generic::ThreadSafeQueue<EventData>,
+class EventsQueue : public ::generic::ThreadSafeQueue<ComponentNotification>,
         public agent_framework::generic::Singleton<EventsQueue> {
 public:
     virtual ~EventsQueue();
+
+    void push_back(ComponentNotification notification) {
+        ::generic::ThreadSafeQueue<ComponentNotification>::push_back(std::move(notification));
+    }
+
+    void push_back(ComponentNotification&& notification) {
+        ::generic::ThreadSafeQueue<ComponentNotification>::push_back(std::move(notification));
+    }
+
+    void push_back(EventDataVec events) {
+        ComponentNotification notification{};
+        notification.set_notifications(std::move(events));
+        ::generic::ThreadSafeQueue<ComponentNotification>::push_back(std::move(notification));
+    }
+
+    void push_back(EventData event) {
+        ComponentNotification notification{};
+        notification.set_notifications({std::move(event)});
+        ::generic::ThreadSafeQueue<ComponentNotification>::push_back(std::move(notification));
+    }
+
 
 private:
     friend class agent_framework::generic::Singleton<EventsQueue>;

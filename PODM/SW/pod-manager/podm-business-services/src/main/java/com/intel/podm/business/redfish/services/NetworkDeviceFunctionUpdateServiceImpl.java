@@ -23,9 +23,11 @@ import com.intel.podm.business.services.redfish.UpdateService;
 import com.intel.podm.common.synchronization.TaskCoordinator;
 import com.intel.podm.common.types.redfish.RedfishNetworkDeviceFunction;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import java.util.concurrent.TimeoutException;
 
+@RequestScoped
 public class NetworkDeviceFunctionUpdateServiceImpl implements UpdateService<RedfishNetworkDeviceFunction> {
 
     @Inject
@@ -39,7 +41,7 @@ public class NetworkDeviceFunctionUpdateServiceImpl implements UpdateService<Red
 
     @Override
     public void perform(Context target, RedfishNetworkDeviceFunction representation) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(traverser.traverseServiceUuid(target), () -> actionsService.updateNetworkDeviceFunction(target, representation));
+        taskCoordinator.run(traverser.traverseServiceUuid(target), () -> actionsService.updateNetworkDeviceFunction(target, representation));
     }
 }
 

@@ -1,0 +1,11 @@
+prefix=@CMAKE_BINARY_DIR@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: gcrypt 
+Description: Libgcrypt - a general purpose cryptographic library
+URL: https://gnupg.org/software/libgpg-error/index.html
+Version: @GCRYPT_VERSION@
+Libs: -L${libdir} -lgcrypt
+Cflags: -I${includedir}

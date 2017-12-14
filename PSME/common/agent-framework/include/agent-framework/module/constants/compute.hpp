@@ -23,6 +23,7 @@
  * */
 
 #pragma once
+
 namespace agent_framework {
 namespace model {
 namespace literals {
@@ -53,6 +54,20 @@ public:
     static constexpr const char OEM[] = "oem";
     static constexpr const char GUID[] = "systemGuid";
     static constexpr const char CABLE_IDS[] = "cableIds";
+    static constexpr const char TXT_ENABLED[] = "txtEnabled";
+    static constexpr const char USER_MODE_ENABLED[] = "userModeEnabled";
+};
+
+/*!
+ * @brief Class consisting of literals for Fpga model objects
+ */
+class Fpga {
+public:
+    static constexpr char TYPE[] = "type";
+    static constexpr char BIT_STREAM_VERSION[] = "bitStreamVersion";
+    static constexpr char HSSI_CONFIGURATION[] = "hssiConfiguration";
+    static constexpr char HSSI_SIDEBAND[] = "hssiSideband";
+    static constexpr char RECONFIGURATION_SLOTS[] = "reconfigurationSlots";
 };
 
 /*!
@@ -69,6 +84,42 @@ public:
 };
 
 /*!
+ * @brief Class consisting of literals for ExtendedCpuId attribute objects
+ */
+class ExtendedCpuId {
+public:
+    static constexpr const char EAX_00H[] = "eax00h";
+    static constexpr const char EAX_01H[] = "eax01h";
+    static constexpr const char EAX_02H[] = "eax02h";
+    static constexpr const char EAX_03H[] = "eax03h";
+    static constexpr const char EAX_04H[] = "eax04h";
+    static constexpr const char EAX_05H[] = "eax05h";
+    static constexpr const char EAX_06H[] = "eax06h";
+    static constexpr const char EAX_07H[] = "eax07h";
+    static constexpr const char EAX_09H[] = "eax09h";
+    static constexpr const char EAX_0aH[] = "eax0ah";
+    static constexpr const char EAX_0bH[] = "eax0bh";
+    static constexpr const char EAX_0dH[] = "eax0dh";
+    static constexpr const char EAX_0fH[] = "eax0fh";
+    static constexpr const char EAX_10H[] = "eax10h";
+    static constexpr const char EAX_14H[] = "eax14h";
+    static constexpr const char EAX_15H[] = "eax15h";
+    static constexpr const char EAX_16H[] = "eax16h";
+    static constexpr const char EAX_17H_ECX_00H[] = "eax17hecx00h";
+    static constexpr const char EAX_17H_ECX_01H[] = "eax17hecx01h";
+    static constexpr const char EAX_17H_ECX_02H[] = "eax17hecx02h";
+    static constexpr const char EAX_17H_ECX_03H[] = "eax17hecx03h";
+    static constexpr const char EAX_80000000H[] = "eax80000000h";
+    static constexpr const char EAX_80000001H[] = "eax80000001h";
+    static constexpr const char EAX_80000002H[] = "eax80000002h";
+    static constexpr const char EAX_80000003H[] = "eax80000003h";
+    static constexpr const char EAX_80000004H[] = "eax80000004h";
+    static constexpr const char EAX_80000006H[] = "eax80000006h";
+    static constexpr const char EAX_80000007H[] = "eax80000007h";
+    static constexpr const char EAX_80000008H[] = "eax80000008h";
+};
+
+/*!
  * @brief Class consisting of literals for Processor model objects
  */
 class Processor {
@@ -82,13 +133,17 @@ public:
     static constexpr const char MANUFACTURER[] = "manufacturer";
     static constexpr const char MODEL[] = "model";
     static constexpr const char MODEL_NAME[] = "modelName";
-    static constexpr const char CPU_ID[] = "cpuid";
+    static constexpr const char CPU_ID[] = "cpuId";
+    static constexpr const char EXTENDED_CPU_ID[] = "extendedCpuId";
     static constexpr const char MAX_SPEED[] = "maxSpeedMHz";
     static constexpr const char TOTAL_CORES[] = "totalCores";
     static constexpr const char ENABLED_CORES[] = "enabledCores";
     static constexpr const char TOTAL_THREADS[] = "totalThreads";
     static constexpr const char ENABLED_THREADS[] = "enabledThreads";
     static constexpr const char CAPABILITIES[] = "capabilities";
+    static constexpr const char THERMAL_DESIGN_POWER_WATT[] = "thermalDesignPowerWatt";
+    static constexpr const char FPGA[] = "fpga";
+    static constexpr const char ON_PACKAGE_MEMORY[] = "onPackageMemory";
     static constexpr const char OEM[] = "oem";
 };
 
@@ -126,7 +181,7 @@ public:
     static constexpr const char DEVICE_TYPE[] = "deviceType";
     static constexpr const char MODULE_TYPE[] = "moduleType";
     static constexpr const char MEDIA[] = "media";
-    static constexpr const char MEMORY_MODES[] = "memoryModes";
+    static constexpr const char OPERATING_MEMORY_MODES[] = "operatingMemoryModes";
     static constexpr const char CAPACITY_MB[] = "capacityMB";
     static constexpr const char DATA_WIDTH_BITS[] = "dataWidthBits";
     static constexpr const char BUS_WIDTH_BITS[] = "busWidthBits";
@@ -230,15 +285,6 @@ public:
 };
 
 /*!
- * @brief Class consisting of literals for InterleaveSets in MemoryChunk objects
- */
-class InterleaveSet {
-public:
-    static constexpr const char DIMM[] = "dimm";
-    static constexpr const char REGION_ID[] = "regionId";
-};
-
-/*!
  * @brief Class consisting of literals for StorageSubsystem model objects
  */
 class StorageSubsystem {
@@ -249,6 +295,19 @@ public:
     static constexpr const char OEM[] = "oem";
     static constexpr const char ASSET_TAG[] = "assetTag";
     static constexpr const char ENCRYPTION_KEY[] = "encryptionKey";
+};
+
+/*!
+ * @brief Class consisting of literals for TrustedModule attribute in System objects
+ */
+class TrustedModule {
+public:
+    static constexpr const char INTERFACE_TYPE[] = "interfaceType";
+    static constexpr const char FIRMWARE_VERSION[] = "firmwareVersion";
+    static constexpr const char TRUSTED_MODULE[] = "trustedModule";
+    static constexpr const char CLEAR_OWNERSHIP[] = "clearOwnership";
+    static constexpr const char DEVICE_ENABLED[] = "deviceEnabled";
+    static constexpr const char OEM[] = "oem";
 };
 
 /*!
@@ -264,7 +323,6 @@ public:
     static constexpr const char ISCSI_BOOT[] = "iSCSIBoot";
     static constexpr const char OEM[] = "oem";
 };
-
 
 /*!
  * @brief Class consisting of literals for IscsiBoot model attribute

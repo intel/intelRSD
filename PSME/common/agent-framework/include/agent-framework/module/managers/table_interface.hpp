@@ -33,6 +33,13 @@ namespace module {
  */
 class TableInterface {
 public:
+    enum class UpdateStatus {
+        NoUpdate,
+        StatusChanged,
+        Updated,
+        Added
+    };
+
     /*!
      * @brief Destructor
      */

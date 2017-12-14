@@ -19,10 +19,10 @@ package com.intel.podm.business.entities.listeners;
 import com.intel.podm.business.entities.handlers.OnDeleteComputerSystemHandler;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.PreRemove;
 
-@Dependent
+@ApplicationScoped
 public class ComputerSystemListener extends EntityListener {
     @PreRemove
     public void preRemove(ComputerSystem computerSystem) {

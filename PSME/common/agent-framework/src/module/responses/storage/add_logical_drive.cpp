@@ -26,7 +26,7 @@
 #include "agent-framework/module/constants/storage.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -40,8 +40,8 @@ AddLogicalDrive::AddLogicalDrive(const std::string& drive, const std::string& ta
     m_oem{oem} { }
 
 
-Json::Value AddLogicalDrive::to_json() const {
-    Json::Value value;
+json::Json AddLogicalDrive::to_json() const {
+    json::Json value{};
     if (m_task.empty()) {
         value[LogicalDrive::DRIVE] = m_drive;
     }
@@ -54,8 +54,10 @@ Json::Value AddLogicalDrive::to_json() const {
 }
 
 
-AddLogicalDrive AddLogicalDrive::from_json
-    (const Json::Value& json) {
-    return AddLogicalDrive{json[LogicalDrive::DRIVE].asString(), json[TaskEntry::TASK].asString(), Oem::from_json(
-        json[LogicalDrive::OEM])};
+AddLogicalDrive AddLogicalDrive::from_json(const json::Json& json) {
+    return AddLogicalDrive{
+        json.value(LogicalDrive::DRIVE, std::string{}),
+        json.value(TaskEntry::TASK, std::string{}),
+        Oem::from_json(json[LogicalDrive::OEM])
+    };
 }

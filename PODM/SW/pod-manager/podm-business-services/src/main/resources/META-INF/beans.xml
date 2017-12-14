@@ -15,10 +15,12 @@
   ~ limitations under the License.
   -->
 
-<beans
-        xmlns="http://xmlns.jcp.org/xml/ns/javaee"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
-                      http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
-        bean-discovery-mode="all">
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+       xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                           http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
+       version="1.2" bean-discovery-mode="annotated">
+    <interceptors>
+        <class>com.intel.podm.common.enterprise.utils.logger.MethodInvocationLoggingInterceptor</class>
+    </interceptors>
 </beans>

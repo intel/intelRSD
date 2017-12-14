@@ -22,10 +22,10 @@ import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.intel.podm.redfish.OptionsResponseBuilder.newDefaultOptionsResponseBuilder;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsResponseBuilder;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
-import static org.apache.commons.lang.StringUtils.countMatches;
+import static org.apache.commons.lang3.StringUtils.countMatches;
 import static org.jboss.resteasy.util.HttpResponseCodes.SC_OK;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -34,13 +34,13 @@ public class OptionResponseBuilderTests {
 
     @Test
     public void basicConstructorReturns200OkResponse() {
-        Response response = newOptionsResponseBuilder().buildResponse();
+        Response response = newOptionsResponseBuilder().build();
         assertEquals(response.getStatus(), SC_OK);
     }
 
     @Test
     public void basicConstructorReturnsWithAllowHeader() {
-        Response response = newOptionsResponseBuilder().buildResponse();
+        Response response = newOptionsResponseBuilder().build();
         assertNotNull(response.getHeaders().get(ALLOW));
     }
 
@@ -51,7 +51,7 @@ public class OptionResponseBuilderTests {
                 add("OPTIONS");
             }
         };
-        Set<String> actualAllowedMethods = newOptionsResponseBuilder().buildResponse().getAllowedMethods();
+        Set<String> actualAllowedMethods = newOptionsResponseBuilder().build().getAllowedMethods();
 
         assertEquals(actualAllowedMethods, expectedAllowedMethods);
     }
@@ -65,7 +65,7 @@ public class OptionResponseBuilderTests {
                 add("GET");
             }
         };
-        Set<String> actualAllowedMethods = newDefaultOptionsResponseBuilder().buildResponse().getAllowedMethods();
+        Set<String> actualAllowedMethods = newOptionsForResourceBuilder().build().getAllowedMethods();
 
         assertEquals(actualAllowedMethods, expectedAllowedMethods);
     }
@@ -91,7 +91,7 @@ public class OptionResponseBuilderTests {
                 .addPatchMethod()
                 .addPostMethod()
                 .addPutMethod()
-                .buildResponse()
+                .build()
                 .getAllowedMethods();
 
         assertEquals(actualAllowedMethods, expectedAllowedMethods);
@@ -105,7 +105,7 @@ public class OptionResponseBuilderTests {
                 .addGetMethod()
                 .addGetMethod()
                 .addGetMethod()
-                .buildResponse()
+                .build()
                 .getHeaderString(ALLOW);
 
         int foundGetsStrings = countMatches(allowedMethodsLine, "GET");

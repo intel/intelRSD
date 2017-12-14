@@ -22,8 +22,11 @@ import static java.util.Arrays.asList;
 
 public final class PathParamConstants {
     public static final String ETHERNET_SWITCH_ID = "{ethernetSwitchId}";
+    public static final String ETHERNET_SWITCH_ACL_ID = "{ethernetSwitchAclId}";
+    public static final String ETHERNET_SWITCH_ACL_RULE_ID = "{ethernetSwitchAclRuleId}";
     public static final String ETHERNET_SWITCH_PORT_ID = "{ethernetSwitchPortId}";
     public static final String ETHERNET_SWITCH_PORT_VLAN_ID = "{ethernetSwitchPortVlanId}";
+    public static final String ETHERNET_SWITCH_STATIC_MAC_ID = "{ethernetSwitchStaticMacId}";
     public static final String COMPOSED_NODE_ID = "composedNodeId";
     public static final String PROCESSOR_ID = "{processorId}";
     public static final String ETHERNET_INTERFACE_ID = "{ethernetInterfaceId}";
@@ -48,8 +51,6 @@ public final class PathParamConstants {
     public static final String POWER_VOLTAGE_ID = "{powerVoltageId}";
     public static final String POWER_CONTROL_ID = "{powerControlId}";
     public static final String POWER_SUPPLY_ID = "{powerSupplyId}";
-    public static final String THERMAL_ZONE_ID = "{thermalZoneId}";
-    public static final String POWER_ZONE_ID = "{powerZoneId}";
     public static final String PCIE_DRIVE_ID = "{pcieDriveId}";
     public static final String PCIE_DEVICE_ID = "{pcieDeviceId}";
     public static final String PCIE_DEVICE_FUNCTION_ID = "{pcieDeviceFunctionId}";
@@ -60,6 +61,15 @@ public final class PathParamConstants {
     public static final String ENDPOINT_ID = "{endpointId}";
     public static final String EVENT_SERVICE_ID = "{eventServiceId}";
     public static final String EVENT_SUBSCRIPTION_ID = "{eventSubscriptionId}";
+    public static final String TELEMETRY_SERVICE_ID = "{telemetryServiceId}";
+    public static final String METRIC_DEFINITION_ID = "{metricDefinitionId}";
+    public static final String METRIC_REPORT_DEFINITION_ID = "metricReportDefinitionId";
+    public static final String COMPUTER_SYSTEM_METRICS_ID = "{computerSystemMetricsId}";
+    public static final String PROCESSOR_METRICS_ID = "{processorMetricsId}";
+    public static final String MEMORY_METRICS_ID = "{memoryMetricsId}";
+    public static final String PORT_METRICS_ID = "{portMetricsId}";
+    public static final String ETHERNET_SWITCH_METRICS_ID = "{ethernetSwitchMetricsId}";
+    public static final String ETHERNET_SWITCH_PORT_METRICS_ID = "{ethernetSwitchPortMetricsId}";
 
     private static final List<String> TOPOLOGICALLY_ORDERED_PARAMETERS;
 
@@ -78,9 +88,17 @@ public final class PathParamConstants {
             SIMPLE_STORAGE_ID,
             STORAGE_ID,
             MEMORY_ID,
+            MEMORY_METRICS_ID,
+            COMPUTER_SYSTEM_METRICS_ID,
+            PROCESSOR_METRICS_ID,
             ETHERNET_SWITCH_ID,
+            ETHERNET_SWITCH_METRICS_ID,
+            ETHERNET_SWITCH_ACL_ID,
+            ETHERNET_SWITCH_ACL_RULE_ID,
             ETHERNET_SWITCH_PORT_ID,
+            ETHERNET_SWITCH_PORT_METRICS_ID,
             ETHERNET_SWITCH_PORT_VLAN_ID,
+            ETHERNET_SWITCH_STATIC_MAC_ID,
             NETWORK_INTERFACE_ID,
             NETWORK_DEVICE_FUNCTION_ID,
             NETWORK_PROTOCOL_ID,
@@ -92,8 +110,6 @@ public final class PathParamConstants {
             POWER_CONTROL_ID,
             POWER_VOLTAGE_ID,
             POWER_SUPPLY_ID,
-            THERMAL_ZONE_ID,
-            POWER_ZONE_ID,
             PCIE_DEVICE_ID,
             PCIE_DEVICE_FUNCTION_ID,
             PCIE_DRIVE_ID,
@@ -101,9 +117,13 @@ public final class PathParamConstants {
             ZONE_ID,
             SWITCH_ID,
             PORT_ID,
+            PORT_METRICS_ID,
             ENDPOINT_ID,
             EVENT_SERVICE_ID,
-            EVENT_SUBSCRIPTION_ID
+            EVENT_SUBSCRIPTION_ID,
+            TELEMETRY_SERVICE_ID,
+            METRIC_DEFINITION_ID,
+            METRIC_REPORT_DEFINITION_ID
         );
     }
 

@@ -46,6 +46,9 @@ namespace exceptions {
  * @var ErrorCode::NOT_IMPLEMENTED
  * Error code for not implemented method
  *
+ * @var ErrorCode::NOT_ALLOWED
+ * Error code for not allowed method
+ *
  * @var ErrorCode::UNSUPPORTED_VALUE
  * A value is not supported
  *
@@ -98,6 +101,7 @@ enum class ErrorCode {
 
     NOT_FOUND = 10000,
     NOT_IMPLEMENTED = 11000,
+    METHOD_NOT_ALLOWED = 12000,
 
     INVALID_VALUE = 14000,
     UNSUPPORTED_VALUE = 14100,
@@ -130,8 +134,9 @@ enum class ErrorCode {
 };
 
 /*!
- * @brief Check if the error code indicates an exception that should be hidden by the REST api,
- * because it refers to internal GAMI-REST communication errors
+ * @brief Check if the error code indicates an exception that should be hidden by the REST API,
+ * because it refers to internal GAMI-REST communication errors.
+ *
  * @param error_code error code to be checked
  * @return is it an error code of a communication error
  */

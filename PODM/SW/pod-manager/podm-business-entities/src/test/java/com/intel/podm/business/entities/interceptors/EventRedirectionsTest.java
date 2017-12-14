@@ -33,7 +33,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class EventRedirectionsTest {
 
-
     private EventRedirections eventRedirections = new EventRedirections();
 
     @DataProvider
@@ -51,9 +50,7 @@ public class EventRedirectionsTest {
             {source, "property1", target1},
             {source, "property2", target2},
             {computerSystem, "powerState", composedNode},
-            {computerSystem, "processorsCount", composedNode},
-            {computerSystem, "processorModel", composedNode},
-            {computerSystem, "processorStatus", composedNode},
+            {computerSystem, "processorSummary", composedNode},
             {computerSystem, "boot", composedNode},
         };
     }
@@ -62,9 +59,7 @@ public class EventRedirectionsTest {
     public Object[][] notRedirectedInvocations() {
         return new Object[][]{
             {new ComputerSystem(), "powerState"},
-            {new ComputerSystem(), "processorsCount"},
-            {new ComputerSystem(), "processorModel"},
-            {new ComputerSystem(), "processorStatus"},
+            {new ComputerSystem(), "processorSummary"},
             {new ComputerSystem(), "boot"},
         };
     }

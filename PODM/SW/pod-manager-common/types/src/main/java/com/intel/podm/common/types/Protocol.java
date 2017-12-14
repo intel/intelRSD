@@ -17,33 +17,41 @@
 package com.intel.podm.common.types;
 
 public enum Protocol implements EnumeratedType {
-    PCIE("PCIe"),
-    AHCI("AHCI"),
-    UHCI("UHCI"),
-    SAS("SAS"),
-    SATA("SATA"),
-    USB("USB"),
-    NVME("NVMe"),
-    FC("FC"),
-    ISCSI("iSCSI"),
-    FCOE("FCoE"),
-    NVME_OVER_FABRICS("NVMeOverFabrics"),
-    SMB("SMB"),
-    NFS_V3("NFSv3"),
-    NFS_V4("NFSv4"),
-    HTTP("HTTP"),
-    HTTPS("HTTPS"),
-    FTP("FTP"),
-    SFTP("SFTP");
+    PCIE("PCIe", 1),
+    AHCI("AHCI", 2),
+    UHCI("UHCI", 3),
+    SAS("SAS", 4),
+    SATA("SATA", 5),
+    USB("USB", 6),
+    NVME("NVMe", 7),
+    FC("FC", 8),
+    ISCSI("iSCSI", 9),
+    FCOE("FCoE", 10),
+    NVME_OVER_FABRICS("NVMeOverFabrics", 11),
+    SMB("SMB", 12),
+    NFS_V3("NFSv3", 13),
+    NFS_V4("NFSv4", 14),
+    HTTP("HTTP", 15),
+    HTTPS("HTTPS", 16),
+    FTP("FTP", 17),
+    SFTP("SFTP", 18);
 
     private final String value;
+    private final Integer priority;
 
-    Protocol(String value) {
+    Protocol(String value, Integer priority) {
         this.value = value;
+        this.priority = priority;
     }
 
+    @Override
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public Integer getPriority() {
+        return priority;
     }
 
     @Override

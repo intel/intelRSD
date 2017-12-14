@@ -42,10 +42,6 @@ response::GetProcessorInfo::GetProcessorInfo() : Response(sdv::NetFn::QUANTA, sd
 response::GetProcessorInfo::~GetProcessorInfo() {}
 
 void response::GetProcessorInfo::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
-
     m_cpu_type = CPU_TYPE(data[OFFSET_CPU_TYPE]);
     m_cpu_frequency = extract_cpu_frequency(data);
     m_presence = data[OFFSET_CPU_PRESENCE] == 1 ? true : false;

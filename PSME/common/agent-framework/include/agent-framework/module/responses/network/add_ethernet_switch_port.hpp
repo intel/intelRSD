@@ -27,13 +27,9 @@
 
 
 #include "agent-framework/module/model/attributes/oem.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 #include <string>
-
-
-
-namespace Json {
-class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -74,7 +70,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
@@ -84,7 +80,7 @@ public:
      *
      * @return new AddEthernetSwitchPort
      */
-    static AddEthernetSwitchPort from_json(const Json::Value& json);
+    static AddEthernetSwitchPort from_json(const json::Json& json);
 
 
 private:

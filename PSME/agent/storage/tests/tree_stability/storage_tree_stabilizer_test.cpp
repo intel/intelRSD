@@ -68,7 +68,7 @@ const unsigned ISCSI_TARGET_2_ID = 2;
 
 // Expected values of generated persistnet UUIDs
 constexpr const char MANAGER_PERSISTENT_UUID[] = "bd124990-083f-5dc5-ab57-d75870917b5f";
-constexpr const char STORAGE_SERVICES_PERSISTENT_UUID[] = "49291515-1049-5734-8c7a-7537898ece1b";
+constexpr const char STORAGE_SERVICE_PERSISTENT_UUID[] = "49291515-1049-5734-8c7a-7537898ece1b";
 const std::vector <std::string> PHYSICAL_DRIVES_UUIDS{"a878d5b2-e6f1-5cda-b764-79e27fa4ce70",
                                                       "6e49d771-9988-5fa9-9b07-c0d0145c34cc"};
 const std::vector <std::string> LOGICAL_DRIVES_UUIDS{"88586a93-e31c-58ea-a4c6-c50147968d5c",
@@ -101,10 +101,10 @@ void StorageTreeStabilizerTest::SetUp() {
     Manager manager{};
 
     // Create storage service
-    StorageServices services{manager.get_uuid()};
+    StorageService service{manager.get_uuid()};
 
     // Create a LVG logical volume
-    LogicalDrive volume_group{services.get_uuid()};
+    LogicalDrive volume_group{service.get_uuid()};
     volume_group.set_mode(enums::LogicalDriveMode::LVG);
     volume_group.set_device_path(constants::LVG_DEVICE_PATH);
 
@@ -130,12 +130,12 @@ void StorageTreeStabilizerTest::SetUp() {
     lv_logical_drive.set_mode(enums::LogicalDriveMode::LV);
 
     // Create 2 iSCSI targets
-    IscsiTarget target_1{services.get_uuid()};
+    IscsiTarget target_1{service.get_uuid()};
     target_1.set_target_iqn(constants::ISCSI_TARGET_1_IQN);
     target_1.add_target_lun({constants::ISCSI_TARGET_1_LUN, pv_logical_drive_1.get_uuid()});
     target_1.set_target_id(constants::ISCSI_TARGET_1_ID);
 
-    IscsiTarget target_2{services.get_uuid()};
+    IscsiTarget target_2{service.get_uuid()};
     target_2.set_target_iqn(constants::ISCSI_TARGET_2_IQN);
     target_2.add_target_lun({constants::ISCSI_TARGET_2_LUN, lv_logical_drive.get_uuid()});
     target_2.set_target_id(constants::ISCSI_TARGET_2_ID);
@@ -143,7 +143,7 @@ void StorageTreeStabilizerTest::SetUp() {
     // Add all created resources to the model
     CommonComponents::get_instance()->get_module_manager().add_entry(manager);
 
-    StorageComponents::get_instance()->get_storage_services_manager().add_entry(services);
+    StorageComponents::get_instance()->get_storage_service_manager().add_entry(service);
 
     StorageComponents::get_instance()->get_physical_drive_manager().add_entry(physical_drive_1);
     StorageComponents::get_instance()->get_physical_drive_manager().add_entry(physical_drive_2);
@@ -165,7 +165,7 @@ void StorageTreeStabilizerTest::SetUp() {
 
 void StorageTreeStabilizerTest::TearDown() {
     CommonComponents::get_instance()->get_module_manager().clear_entries();
-    StorageComponents::get_instance()->get_storage_services_manager().clear_entries();
+    StorageComponents::get_instance()->get_storage_service_manager().clear_entries();
     StorageComponents::get_instance()->get_logical_drive_manager().clear_entries();
     StorageComponents::get_instance()->get_physical_drive_manager().clear_entries();
     StorageComponents::get_instance()->get_iscsi_target_manager().clear_entries();
@@ -175,7 +175,7 @@ void StorageTreeStabilizerTest::TearDown() {
 TEST_F(StorageTreeStabilizerTest, NoNewOrDeletedResourcesTest) {
     // Assert that all resources are still present in the resource tree
     ASSERT_EQ(1, CommonComponents::get_instance()->get_module_manager().get_keys().size());
-    ASSERT_EQ(1, StorageComponents::get_instance()->get_storage_services_manager().get_keys().size());
+    ASSERT_EQ(1, StorageComponents::get_instance()->get_storage_service_manager().get_keys().size());
     ASSERT_EQ(2, StorageComponents::get_instance()->get_physical_drive_manager().get_keys().size());
     ASSERT_EQ(3, StorageComponents::get_instance()->get_logical_drive_manager().get_keys().size());
     ASSERT_EQ(2, StorageComponents::get_instance()->get_iscsi_target_manager().get_keys().size());
@@ -187,7 +187,7 @@ TEST_F(StorageTreeStabilizerTest, PersistentUUIDsGeneratedTest) {
     ASSERT_NO_THROW(CommonComponents::get_instance()->
                     get_module_manager().get_entry(constants::MANAGER_PERSISTENT_UUID));
     ASSERT_NO_THROW(StorageComponents::get_instance()->
-                    get_storage_services_manager().get_entry(constants::STORAGE_SERVICES_PERSISTENT_UUID));
+                    get_storage_service_manager().get_entry(constants::STORAGE_SERVICE_PERSISTENT_UUID));
 
     for (const auto& PHYSICAL_DRIVE_UUID : constants::PHYSICAL_DRIVES_UUIDS) {
         ASSERT_NO_THROW(StorageComponents::get_instance()->

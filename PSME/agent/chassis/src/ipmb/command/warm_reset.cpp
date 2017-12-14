@@ -31,9 +31,10 @@
 #include <future>
 
 extern "C" {
+
 #include <unistd.h>
-#include <errno.h>
-#include <sys/reboot.h>
+#include <signal.h>
+
 }
 
 using namespace agent::chassis::ipmb::command;
@@ -41,14 +42,25 @@ using namespace agent::chassis::ipmb::command;
 WarmReset::~WarmReset() {}
 
 namespace {
+
+static constexpr int CMD_REBOOT_TIMEOUT_SEC = 2;
+static constexpr pid_t LINUX_INIT_PROCESS = 1;
+
 void execute_reset() {
     std::thread([] () {
-        std::this_thread::sleep_for(
-                std::chrono::seconds{CMD_REBOOT_TIMEOUT_SEC});
+        if (system("wall Drawer is going to reboot on API request.") != 0) {
+            /* wall failed? no message on the console */
+            log_error(LOGUSR, "Cannot log reboot warning on all consoles.");
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds{CMD_REBOOT_TIMEOUT_SEC});
+
+        /* request kernel restart, just by sending SIGINT to init process */
         sync();
-        reboot(RB_AUTOBOOT);
+        kill(LINUX_INIT_PROCESS, SIGINT);
     }).detach();
 }
+
 }
 
 void WarmReset::Response::add_data(IpmiMessage& msg) {

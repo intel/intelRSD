@@ -39,8 +39,8 @@ Endpoint::Endpoint(const std::string& parent_uuid, enums::Component parent_type)
 
 Endpoint::~Endpoint() {}
 
-Json::Value Endpoint::to_json() const {
-    Json::Value result;
+json::Json Endpoint::to_json() const {
+    json::Json result;
     result[literals::Endpoint::PROTOCOL] = get_protocol();
     result[literals::Endpoint::IDENTIFIERS] = get_identifiers().to_json();
     result[literals::Endpoint::ENTITIES] = get_connected_entities().to_json();
@@ -50,7 +50,7 @@ Json::Value Endpoint::to_json() const {
     return result;
 }
 
-Endpoint Endpoint::from_json(const Json::Value& json) {
+Endpoint Endpoint::from_json(const json::Json& json) {
     Endpoint endpoint;
     endpoint.set_protocol(json[literals::Endpoint::PROTOCOL]);
     endpoint.set_connected_entities(
@@ -61,6 +61,8 @@ Endpoint Endpoint::from_json(const Json::Value& json) {
         Collections::from_json(json[literals::Endpoint::COLLECTIONS]));
     endpoint.set_status(attribute::Status::from_json(json[literals::Endpoint::STATUS]));
     endpoint.set_oem(attribute::Oem::from_json(json[literals::Endpoint::OEM]));
+
+    endpoint.set_resource_hash(json);
     return endpoint;
 }
 

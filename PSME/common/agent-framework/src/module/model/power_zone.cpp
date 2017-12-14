@@ -21,7 +21,7 @@
  * */
 
 #include "agent-framework/module/model/power_zone.hpp"
-#include "agent-framework/module/constants/chassis.hpp"
+#include "agent-framework/module/constants/rmm.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::utils;
@@ -35,27 +35,30 @@ PowerZone::PowerZone(const std::string& parent_uuid, enums::Component parent_typ
 
 PowerZone::~PowerZone() {}
 
-Json::Value PowerZone::to_json() const {
-    Json::Value result;
+json::Json PowerZone::to_json() const {
+    json::Json result{};
+
     result[literals::PowerZone::STATUS] = get_status().to_json();
-    result[literals::PowerZone::POWER_INPUT] = get_power_input();
-    result[literals::PowerZone::POWER_OUTPUT] = get_power_output();
-    result[literals::PowerZone::POWER_CAPACITY] = get_power_capacity();
+    result[literals::PowerZone::POWER_CONSUMED] = get_power_consumed_watts();
+    result[literals::PowerZone::POWER_REQUESTED] = get_power_requested_watts();
+    result[literals::PowerZone::POWER_CAPACITY] = get_power_capacity_watts();
+    result[literals::PowerZone::POWER_ALLOCATED] = get_power_allocated_watts();
+    result[literals::PowerZone::POWER_AVAILABLE] = get_power_available_watts();
     result[literals::PowerZone::COLLECTIONS] = get_collections().to_json();
     result[literals::PowerZone::OEM] = get_oem().to_json();
     return result;
 }
 
-PowerZone PowerZone::from_json(const Json::Value& json) {
-    PowerZone zone;
+PowerZone PowerZone::from_json(const json::Json& json) {
+    PowerZone zone{};
 
     zone.set_status(attribute::Status::from_json(json[literals::PowerZone::STATUS]));
-    zone.set_power_input(json[literals::PowerZone::POWER_INPUT]);
-    zone.set_power_output(json[literals::PowerZone::POWER_OUTPUT]);
-    zone.set_power_capacity(
-        json[literals::PowerZone::POWER_CAPACITY]);
-    zone.set_collections(Collections::from_json(
-        json[literals::PowerZone::COLLECTIONS]));
+    zone.set_power_allocated_watts(json[literals::PowerZone::POWER_ALLOCATED]);
+    zone.set_power_available_watts(json[literals::PowerZone::POWER_AVAILABLE]);
+    zone.set_power_capacity_watts(json[literals::PowerZone::POWER_CAPACITY]);
+    zone.set_power_requested_watts(json[literals::PowerZone::POWER_REQUESTED]);
+    zone.set_power_consumed_watts(json[literals::PowerZone::POWER_CONSUMED]);
+    zone.set_collections(Collections::from_json(json[literals::PowerZone::COLLECTIONS]));
     zone.set_oem(attribute::Oem::from_json(json[literals::PowerZone::OEM]));
     zone.set_resource_hash(json);
 

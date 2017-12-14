@@ -17,14 +17,15 @@
 package com.intel.podm.common.synchronization;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 
 import java.util.ArrayDeque;
 import java.util.function.Supplier;
 
+import static com.intel.podm.common.logger.LoggerFactory.getLogger;
+
 class InBox {
 
-    private static final Logger LOG = LoggerFactory.getLogger(InBox.class);
+    private static final Logger LOG = getLogger(InBox.class);
 
     private Object identity;
 

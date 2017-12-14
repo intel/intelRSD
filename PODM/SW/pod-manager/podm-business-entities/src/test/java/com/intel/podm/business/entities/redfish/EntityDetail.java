@@ -59,21 +59,31 @@ import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.
 import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.isAnnotationPresent;
 import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.isAnyAnnotationPresent;
 import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.unproxy;
+import static java.util.Arrays.stream;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.exception.ExceptionUtils.getStackTrace;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 import static org.mockito.Mockito.spy;
 
 @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
 class EntityDetail {
-    private static final Set<Class<? extends Annotation>> TO_MANY_ANNOTATIONS = new HashSet<Class<? extends Annotation>>() {{
-        add(javax.persistence.OneToMany.class);
-        add(javax.persistence.ManyToMany.class);
-    }};
-    private static final Set<Class<? extends Annotation>> TO_ONE_ANNOTATIONS = new HashSet<Class<? extends Annotation>>() {{
-        add(javax.persistence.OneToOne.class);
-        add(javax.persistence.ManyToOne.class);
-    }};
+    private static final Set<Class<? extends Annotation>> TO_MANY_ANNOTATIONS = new HashSet<Class<? extends Annotation>>() {
+        private static final long serialVersionUID = -2890901643767185488L;
+
+        {
+            add(javax.persistence.OneToMany.class);
+            add(javax.persistence.ManyToMany.class);
+        }
+    };
+    private static final Set<Class<? extends Annotation>> TO_ONE_ANNOTATIONS = new HashSet<Class<? extends Annotation>>() {
+        private static final long serialVersionUID = 9044405964812232788L;
+
+        {
+            add(javax.persistence.OneToOne.class);
+            add(javax.persistence.ManyToOne.class);
+        }
+    };
 
     private final Class<? extends Entity> entityClass;
     private final Set<EntityRelationshipDetail> entityRelationshipDetails;
@@ -104,9 +114,10 @@ class EntityDetail {
     List<String> validate() {
         List<String> errors = new ArrayList<>();
 
-        for (EntityRelationshipDetail entityRelationshipDetail : entityRelationshipDetails) {
-            errors.addAll(entityRelationshipDetail.validate());
-        }
+        entityRelationshipDetails.stream()
+            .map(EntityRelationshipDetail::validate)
+            .forEach(errors::addAll);
+
         preRemoveMethods.stream()
             .filter(PossibleObject::hasError)
             .forEach(preRemoveMethod -> errors.add(preRemoveMethod.getError()));
@@ -134,13 +145,10 @@ class EntityDetail {
     }
 
     Set<Method> getUnlinkerMethods(Class<? extends Entity> argumentType) {
-        Set<Method> unlinkerMethods = new HashSet<>();
-        for (EntityRelationshipDetail entityRelationshipDetail : entityRelationshipDetails) {
-            if (entityRelationshipDetail.getTypeOfRelatedEntity().equals(argumentType)) {
-                unlinkerMethods.add(entityRelationshipDetail.getUnlinkerMethod().get());
-            }
-        }
-        return unlinkerMethods;
+        return entityRelationshipDetails.stream()
+            .filter(entityRelationshipDetail -> entityRelationshipDetail.getTypeOfRelatedEntity().equals(argumentType))
+            .map(entityRelationshipDetail -> entityRelationshipDetail.getUnlinkerMethod().get())
+            .collect(toSet());
     }
 
     private Set<EntityRelationshipDetail> createEntityRelationshipDetails() {
@@ -156,7 +164,7 @@ class EntityDetail {
         return entityRelationshipDetails;
     }
 
-    private Map<Method, Class<? extends Entity>> getMethodsWithOneArgumentOfEntityType(String methodPrefix, Class returnType) {
+    private Map<Method, Class<? extends Entity>> getMethodsWithOneArgumentOfEntityType(String methodPrefix, Class<?> returnType) {
         Map<Method, Class<? extends Entity>> methodsMap = new HashMap<>();
         Method[] methods = entityClass.getDeclaredMethods();
 
@@ -189,24 +197,22 @@ class EntityDetail {
                                                                                 Map<Method, Class<? extends Entity>> unlinkerMethods) {
         Set<EntityRelationshipDetail> entityRelationshipDetails = new HashSet<>();
 
-        for (Field collectionField : findAnnotatedFields(TO_MANY_ANNOTATIONS)) {
-            if (isAnnotationPresent(collectionField, IgnoreUnlinkingRelationship.class)) {
-                continue;
-            }
+        findAnnotatedFields(TO_MANY_ANNOTATIONS).stream()
+            .filter(collectionField -> !isAnnotationPresent(collectionField, IgnoreUnlinkingRelationship.class))
+            .forEach(collectionField -> {
+                Class<?> collectionFieldType = collectionField.getType();
+                Class<? extends Entity> typeOfRelatedEntity = getEntityTypeFromEntityFieldOrCollectionOfEntitiesField(collectionField);
 
-            Class collectionFieldType = collectionField.getType();
-            Class<? extends Entity> typeOfRelatedEntity = getEntityTypeFromEntityFieldOrCollectionOfEntitiesField(collectionField);
+                PossibleObject<Method> getterMethod = extractPossibleMethod(collectionField, typeOfRelatedEntity, GETTER_PREFIX,
+                    extractMethodsByEntityTypeContainedInCollectionReturnedByMethod(getMethods(getterMethods, collectionFieldType), typeOfRelatedEntity));
+                PossibleObject<Method> adderMethod = extractPossibleMethod(collectionField, typeOfRelatedEntity, ADDER_PREFIX,
+                    getMethods(adderMethods, Void.TYPE, typeOfRelatedEntity), true);
+                PossibleObject<Method> unlinkerMethod = extractPossibleMethod(collectionField, typeOfRelatedEntity, UNLINKER_PREFIX,
+                    getMethods(unlinkerMethods, Void.TYPE, typeOfRelatedEntity), true);
 
-            PossibleObject getterMethod = extractPossibleMethod(collectionField, typeOfRelatedEntity, GETTER_PREFIX,
-                extractMethodsByEntityTypeContainedInCollectionReturnedByMethod(getMethods(getterMethods, collectionFieldType), typeOfRelatedEntity));
-            PossibleObject adderMethod = extractPossibleMethod(collectionField, typeOfRelatedEntity, ADDER_PREFIX,
-                getMethods(adderMethods, Void.TYPE, typeOfRelatedEntity), true);
-            PossibleObject unlinkerMethod = extractPossibleMethod(collectionField, typeOfRelatedEntity, UNLINKER_PREFIX,
-                getMethods(unlinkerMethods, Void.TYPE, typeOfRelatedEntity), true);
-
-            entityRelationshipDetails.add(
-                new EntityRelationshipDetail(collectionField, typeOfRelatedEntity, TO_MANY, unlinkerMethod, null, adderMethod, getterMethod));
-        }
+                entityRelationshipDetails.add(
+                    new EntityRelationshipDetail(collectionField, typeOfRelatedEntity, TO_MANY, unlinkerMethod, null, adderMethod, getterMethod));
+            });
 
         return entityRelationshipDetails;
     }
@@ -216,44 +222,37 @@ class EntityDetail {
                                                                                Map<Method, Class<? extends Entity>> unlinkerMethods) {
         Set<EntityRelationshipDetail> entityRelationshipDetails = new HashSet<>();
 
-        for (Field field : findAnnotatedFields(TO_ONE_ANNOTATIONS)) {
-            if (isAnnotationPresent(field, IgnoreUnlinkingRelationship.class)) {
-                continue;
-            }
+        findAnnotatedFields(TO_ONE_ANNOTATIONS).stream()
+            .filter(field -> !isAnnotationPresent(field, IgnoreUnlinkingRelationship.class))
+            .forEach(field -> {
+                Class<? extends Entity> typeOfRelatedEntity = getEntityTypeFromEntityFieldOrCollectionOfEntitiesField(field);
 
-            Class<? extends Entity> typeOfRelatedEntity = getEntityTypeFromEntityFieldOrCollectionOfEntitiesField(field);
+                PossibleObject<Method> getterMethod = extractPossibleMethod(field, typeOfRelatedEntity, GETTER_PREFIX,
+                    getMethods(getterMethods, typeOfRelatedEntity));
+                PossibleObject<Method> setterMethod = extractPossibleMethod(field, typeOfRelatedEntity, SETTER_PREFIX,
+                    getMethods(setterMethods, Void.TYPE, typeOfRelatedEntity));
+                PossibleObject<Method> unlinkerMethod = extractPossibleMethod(field, typeOfRelatedEntity, UNLINKER_PREFIX,
+                    getMethods(unlinkerMethods, Void.TYPE, typeOfRelatedEntity));
 
-            PossibleObject getterMethod = extractPossibleMethod(field, typeOfRelatedEntity, GETTER_PREFIX,
-                getMethods(getterMethods, typeOfRelatedEntity));
-            PossibleObject setterMethod = extractPossibleMethod(field, typeOfRelatedEntity, SETTER_PREFIX,
-                getMethods(setterMethods, Void.TYPE, typeOfRelatedEntity));
-            PossibleObject unlinkerMethod = extractPossibleMethod(field, typeOfRelatedEntity, UNLINKER_PREFIX,
-                getMethods(unlinkerMethods, Void.TYPE, typeOfRelatedEntity));
-
-            entityRelationshipDetails.add(new EntityRelationshipDetail(field, typeOfRelatedEntity, TO_ONE, unlinkerMethod, setterMethod, null, getterMethod));
-        }
+                entityRelationshipDetails.add(
+                    new EntityRelationshipDetail(field, typeOfRelatedEntity, TO_ONE, unlinkerMethod, setterMethod, null, getterMethod));
+            });
 
         return entityRelationshipDetails;
     }
 
     private Set<Field> findAnnotatedFields(Set<Class<? extends Annotation>> annotations) {
-        Set<Field> fields = new HashSet<>();
-
-        for (Field field : entityClass.getDeclaredFields()) {
-            if (isAnyAnnotationPresent(field, annotations)) {
-                fields.add(field);
-            }
-        }
-
-        return fields;
+        return stream(entityClass.getDeclaredFields())
+            .filter(field -> isAnyAnnotationPresent(field, annotations))
+            .collect(toSet());
     }
 
-    private PossibleObject extractPossibleMethod(Field field, Class<? extends Entity> typeOfRelatedEntity, String prefix, Set<Method> methods) {
+    private PossibleObject<Method> extractPossibleMethod(Field field, Class<? extends Entity> typeOfRelatedEntity, String prefix, Set<Method> methods) {
         return extractPossibleMethod(field, typeOfRelatedEntity, prefix, methods, false);
     }
 
-    private PossibleObject extractPossibleMethod(Field field, Class<? extends Entity> typeOfRelatedEntity, String prefix, Set<Method> methods,
-                                                 boolean depluralizeName) {
+    private PossibleObject<Method> extractPossibleMethod(Field field, Class<? extends Entity> typeOfRelatedEntity, String prefix, Set<Method> methods,
+                                                         boolean depluralizeName) {
         if (methods.isEmpty()) {
             return new PossibleObject<>(null, entityClass.getName() + ": " + prefix + " method not found for field: " + field.toGenericString() + ".");
         } else if (methods.size() == 1) {
@@ -272,14 +271,12 @@ class EntityDetail {
     }
 
     private Set<PossibleObject<Method>> extractPreRemoveMethods() {
-        Set<Method> foundMethods = new HashSet<>();
+        Set<Method> foundMethods;
 
         Method[] methods = entityClass.getMethods();
-        for (Method method : methods) {
-            if (isAnnotationPresent(method, PreRemove.class)) {
-                foundMethods.add(method);
-            }
-        }
+        foundMethods = stream(methods)
+            .filter(method -> isAnnotationPresent(method, PreRemove.class))
+            .collect(toSet());
 
         Set<PossibleObject<Method>> possibleMethods = new HashSet<>();
         if (foundMethods.isEmpty()) {
@@ -287,9 +284,10 @@ class EntityDetail {
             return possibleMethods;
         }
 
-        for (Method foundMethod : foundMethods) {
-            possibleMethods.add(new PossibleObject<>(foundMethod));
-        }
+        possibleMethods = foundMethods.stream()
+            .map(PossibleObject::new)
+            .collect(toSet());
+
         return possibleMethods;
     }
 
@@ -315,7 +313,7 @@ class EntityDetail {
     private Set<PossibleObject<Method>> gatherMethodsInOrder(CompilationUnit compilationUnit) {
         Set<PossibleObject<Method>> relationshipMethods = new LinkedHashSet<>();
 
-        new VoidVisitorAdapter() {
+        new VoidVisitorAdapter<Object>() {
             @Override
             public void visit(MethodDeclaration methodDeclaration, Object arg) {
                 super.visit(methodDeclaration, arg);
@@ -327,7 +325,7 @@ class EntityDetail {
 
                 Method method = extractMethodByMethodDeclaration(entityClass, methodDeclaration);
                 if (method == null) {
-                    relationshipMethods.add(new PossibleObject<>(method, entityClass.getName() + ": Could not found method: "
+                    relationshipMethods.add(new PossibleObject<>(null, entityClass.getName() + ": Could not found method: "
                         + methodDeclaration.getName() + "."));
                 } else {
                     relationshipMethods.add(new PossibleObject<>(method));

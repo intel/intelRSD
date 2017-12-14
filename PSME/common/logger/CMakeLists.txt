@@ -88,6 +88,10 @@ include_directories(SYSTEM
     ${SAFESTRING_INCLUDE_DIRS}
 )
 
+target_link_libraries(logger
+    ${SAFESTRING_LIBRARIES}
+)
+
 install (TARGETS logger
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib

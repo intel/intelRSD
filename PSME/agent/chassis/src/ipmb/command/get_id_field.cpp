@@ -42,17 +42,13 @@ using agent_framework::module::CommonComponents;
 namespace {
 
 agent_framework::model::Chassis get_chassis() {
-    auto drawer_manager_keys = CommonComponents::get_instance()->get_module_manager().get_keys("");
-
+    auto drawer_manager_keys = get_manager<agent_framework::model::Manager>().get_keys("");
     if (drawer_manager_keys.empty()) {
         return agent_framework::model::Chassis{};
     }
 
-    auto chassis_keys = CommonComponents::get_instance()->
-                get_chassis_manager().get_keys(drawer_manager_keys.front());
-
-    return CommonComponents::get_instance()->
-                get_chassis_manager().get_entry(chassis_keys.front());
+    auto chassis_keys = get_manager<agent_framework::model::Chassis>().get_keys(drawer_manager_keys.front());
+    return get_manager<agent_framework::model::Chassis>().get_entry(chassis_keys.front());
 }
 
 std::vector<uint8_t> uint32_as_msb_array(std::uint32_t number) {
@@ -148,18 +144,24 @@ std::vector<uint8_t> GetIdField::get_rack_puid() const {
     std::uint32_t parent_id{0};
     try {
         parent_id = static_cast<std::uint32_t>(std::stoul(chassis.get_parent_id(), nullptr, 10));
-    } catch (...) {/*not a number*/}
-    log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid()
-                << " RackPUID=" << parent_id);
+    } catch (...) { /*not a number*/ }
+
+    log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid() << " RackPUID=" << parent_id);
     return uint32_as_msb_array(parent_id);
 }
 
 std::vector<uint8_t> GetIdField::get_rack_location_id() const {
     const auto chassis = get_chassis();
     const auto& parent_id = chassis.get_parent_id();
-    log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid()
-                << " Rack location id=" << parent_id);
-    return {parent_id.begin(), parent_id.end()};;
+
+    if (parent_id.has_value()) {
+        log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid() << " Rack location id=" << parent_id.value());
+        return { parent_id.value().begin(), parent_id.value().end() };
+    }
+    else {
+        std::string empty_id{};
+        return { empty_id.begin(), empty_id.end() };
+    }
 }
 
 void GetIdField::populate(IpmiMessage& msg) {

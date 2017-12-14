@@ -21,7 +21,7 @@ import com.intel.podm.business.entities.types.RedfishEvent;
 import com.intel.podm.common.types.Pair;
 import com.intel.podm.common.types.events.EventType;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -37,19 +37,11 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-@Dependent
+@ApplicationScoped
 class ByEventSourceContextGroupingConverter implements Function<List<Pair<Entity, EventType>>, List<RedfishEvent>> {
-
     @Override
     public List<RedfishEvent> apply(List<Pair<Entity, EventType>> pairs) {
-        List<RedfishEvent> result = toRedfishEventList(groupByEventContext(filterNonNullEventSourceContexts(pairs)));
-        return result;
-    }
-
-    private List<Pair<Entity, EventType>> filterNonNullEventSourceContexts(List<Pair<Entity, EventType>> pairs) {
-        return pairs.stream()
-            .filter(pair -> pair.first().getEventSourceContext() != null)
-            .collect(toList());
+        return toRedfishEventList(groupByEventContext(pairs));
     }
 
     private List<RedfishEvent> toRedfishEventList(Map<URI, Set<EventType>> eventsByUri) {

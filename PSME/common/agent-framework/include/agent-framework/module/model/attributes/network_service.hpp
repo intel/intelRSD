@@ -25,7 +25,7 @@
 #pragma once
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/enum/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 namespace agent_framework {
 namespace model {
@@ -100,18 +100,18 @@ public:
     /*!
 	 * @brief construct an object of class NetworkService from JSON
 	 *
-	 * @param json the Json::Value deserialized to object
+	 * @param json the json::Json deserialized to object
 	 *
 	 * @return the newly constructed NetworkService object
 	 */
-	static NetworkService from_json(const Json::Value& json);
+	static NetworkService from_json(const json::Json& json);
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 private:
     enums::NetworkServiceName m_name{enums::NetworkServiceName::HTTP};

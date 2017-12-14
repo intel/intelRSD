@@ -30,6 +30,6 @@ dependencies {
     compile "ch.qos.logback:logback-classic:1.1.1"
     compile group: 'org.picketbox', name: 'picketbox', version: '4.9.4.Final'
     compile 'org.jboss.logging:jboss-logging:3.3.0.Final'
-    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    compile JACKSON_DATABIND_DEPENDENCY
     compile 'com.beust:jcommander:1.48'
 }

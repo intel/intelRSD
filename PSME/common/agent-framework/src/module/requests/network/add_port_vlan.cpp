@@ -29,7 +29,7 @@
 #include "agent-framework/module/requests/network/add_port_vlan.hpp"
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -45,8 +45,8 @@ AddPortVlan::AddPortVlan(const std::string& port,
                 m_tagged(tagged),
                 m_oem{} {}
 
-Json::Value AddPortVlan::to_json() const {
-    Json::Value value;
+json::Json AddPortVlan::to_json() const {
+    json::Json value;
     value[EthernetSwitchPortVlan::PORT] = m_port;
     value[EthernetSwitchPortVlan::VLAN_NAME] = m_vlan_name;
     value[EthernetSwitchPortVlan::VLAN_ID] = m_vlan_id;
@@ -55,12 +55,12 @@ Json::Value AddPortVlan::to_json() const {
     return value;
 }
 
-AddPortVlan AddPortVlan::from_json(const Json::Value& json) {
+AddPortVlan AddPortVlan::from_json(const json::Json& json) {
     return AddPortVlan{
-        json[EthernetSwitchPortVlan::PORT].asString(),
+        json[EthernetSwitchPortVlan::PORT],
         json[EthernetSwitchPortVlan::VLAN_NAME],
-        json[EthernetSwitchPortVlan::VLAN_ID].asUInt(),
-        json[EthernetSwitchPortVlan::TAGGED].asBool(),
+        json[EthernetSwitchPortVlan::VLAN_ID],
+        json[EthernetSwitchPortVlan::TAGGED],
         agent_framework::model::attribute::Oem::from_json(json[EthernetSwitchPortVlan::OEM])
     };
 }

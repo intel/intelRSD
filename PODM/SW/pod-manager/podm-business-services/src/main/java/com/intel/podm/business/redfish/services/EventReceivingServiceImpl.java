@@ -17,15 +17,18 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.EventDispatchingException;
-import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.business.redfish.services.handlers.EventHandler;
-import com.intel.podm.business.redfish.services.handlers.EventHandlerFactory;
 import com.intel.podm.business.services.redfish.EventReceivingService;
 import com.intel.podm.common.types.redfish.RedfishEventArray;
+import com.intel.podm.config.base.Config;
+import com.intel.podm.config.base.Holder;
+import com.intel.podm.config.base.dto.EventsConfig;
+import com.intel.podm.config.base.dto.EventsConfig.BufferedEventProcessing;
+import com.intel.podm.config.base.dto.EventsConfig.SouthboundConfiguration;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.UUID;
@@ -33,30 +36,41 @@ import java.util.UUID;
 import static java.lang.String.format;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
-@Dependent
-public class EventReceivingServiceImpl implements EventReceivingService {
+@ApplicationScoped
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
+class EventReceivingServiceImpl implements EventReceivingService {
     @Inject
     private ExternalServiceDao externalServiceDao;
 
     @Inject
-    private EventHandlerFactory eventHandlerFactory;
+    private EventsProcessor activeProcessor;
 
     @Override
     @Transactional(REQUIRES_NEW)
     public void dispatch(UUID originatingServiceUuid, RedfishEventArray eventArray) throws EventDispatchingException {
-        ExternalService service = getExternalServiceByUuid(originatingServiceUuid);
+        ExternalService service = externalServiceDao.tryGetUniqueExternalServiceByUuid(originatingServiceUuid);
         if (service == null) {
             throw new EventDispatchingException(format("Service with UUID: %s does not exist.", originatingServiceUuid));
         }
-        EventHandler eventHandler = eventHandlerFactory.createEventHandler(service.getServiceType());
-        eventHandler.handle(originatingServiceUuid, eventArray);
+
+        activeProcessor.handle(service.getUuid(), eventArray);
     }
 
-    private ExternalService getExternalServiceByUuid(UUID originatingServiceUuid) {
-        try {
-            return externalServiceDao.getExternalServiceByUuid(originatingServiceUuid);
-        } catch (NonUniqueResultException e) {
-            return null;
+    @ApplicationScoped
+    @Produces
+    public EventsProcessor createEventProcessor(@Config Holder<EventsConfig> eventsConfig,
+                                                IncomingEventsProcessor incomingEventsProcessor,
+                                                AutoEvictingIncomingEventsBuffer autoEvictingIncomingEventsBuffer) {
+
+        SouthboundConfiguration southboundEventingConfig = eventsConfig.get().getSouthboundConfiguration();
+        EventsProcessor activeEventProcessor;
+        if (southboundEventingConfig.isBufferedEventProcessingEnabled()) {
+            BufferedEventProcessing bufferedEventProcessingConfig = southboundEventingConfig.getBufferedEventProcessing();
+            autoEvictingIncomingEventsBuffer.scheduleEvictionAtFixedRate(bufferedEventProcessingConfig.getProcessingWindowSizeInSeconds());
+            activeEventProcessor = (serviceUuid, events) -> autoEvictingIncomingEventsBuffer.handle(serviceUuid, events);
+        } else {
+            activeEventProcessor = (serviceUuid, events) -> incomingEventsProcessor.handle(serviceUuid, events);
         }
+        return activeEventProcessor;
     }
 }

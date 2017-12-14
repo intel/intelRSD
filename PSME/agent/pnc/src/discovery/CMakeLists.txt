@@ -36,6 +36,8 @@ set(SOURCES
     builders/zone_builder.cpp
     builders/chassis_builder.cpp
     builders/chassis_builder_mf3.cpp
+    builders/metric_builder.cpp
+    builders/metric_definition_builder.cpp
 
     # MF3 specific implementation
     discoverer_mf3.cpp

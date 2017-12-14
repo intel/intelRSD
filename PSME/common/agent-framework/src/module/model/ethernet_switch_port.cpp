@@ -38,8 +38,8 @@ EthernetSwitchPort::EthernetSwitchPort(const std::string& parent_uuid, enums::Co
 
 EthernetSwitchPort::~EthernetSwitchPort() {}
 
-Json::Value EthernetSwitchPort::to_json() const {
-    Json::Value result;
+json::Json EthernetSwitchPort::to_json() const {
+    json::Json result;
     result[literals::EthernetSwitchPort::STATUS] = get_status().to_json();
     result[literals::EthernetSwitchPort::PORT_IDENTIFIER] = get_port_identifier();
     result[literals::EthernetSwitchPort::PORT_CLASS] = get_port_class();
@@ -75,7 +75,7 @@ Json::Value EthernetSwitchPort::to_json() const {
     return result;
 }
 
-EthernetSwitchPort EthernetSwitchPort::from_json(const Json::Value& json) {
+EthernetSwitchPort EthernetSwitchPort::from_json(const json::Json& json) {
     EthernetSwitchPort port;
 
     port.set_status(attribute::Status::from_json(json[literals::EthernetSwitchPort::STATUS]));

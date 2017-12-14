@@ -17,14 +17,14 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.ThermalTemperature;
-import com.intel.podm.client.api.resources.redfish.ThermalResource;
+import com.intel.podm.client.resources.redfish.TemperatureItem;
 import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
 
 @Dependent
-public class ThermalTemperatureMapper extends EntityMapper<ThermalResource.Temperature, ThermalTemperature> {
+public class ThermalTemperatureMapper extends EntityMapper<TemperatureItem, ThermalTemperature> {
     protected ThermalTemperatureMapper() {
-        super(ThermalResource.Temperature.class, ThermalTemperature.class);
+        super(TemperatureItem.class, ThermalTemperature.class);
     }
 }

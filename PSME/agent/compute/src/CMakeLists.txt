@@ -22,6 +22,9 @@ add_subdirectory(discovery)
 add_subdirectory(loader)
 add_subdirectory(tree_stability)
 add_subdirectory(status)
+add_subdirectory(ipmb)
+add_subdirectory(telemetry)
+add_subdirectory(utils)
 
 add_library(compute-commands STATIC
     $<TARGET_OBJECTS:compute-command-sdv>
@@ -30,10 +33,17 @@ add_library(compute-commands STATIC
 add_library(compute-utils
     $<TARGET_OBJECTS:compute-status-impl>
     $<TARGET_OBJECTS:compute-discovery>
-    $<TARGET_OBJECTS:compute-discovery-basic>
-    $<TARGET_OBJECTS:compute-discovery-smbios>
+    $<TARGET_OBJECTS:compute-discovery-discoverers>
+    $<TARGET_OBJECTS:compute-discovery-builders>
     $<TARGET_OBJECTS:compute-loader>
+    $<TARGET_OBJECTS:compute-telemetry>
     $<TARGET_OBJECTS:compute-tree-stability>
+    $<TARGET_OBJECTS:compute-utils-obj>
+)
+
+add_library(compute-ipmb
+    $<TARGET_OBJECTS:ipmb-compute-service>
+    $<TARGET_OBJECTS:ipmb-compute-service-command>
 )
 
 add_executable(psme-compute
@@ -43,19 +53,18 @@ add_executable(psme-compute
 target_link_libraries(psme-compute
     ${AGENT_COMPUTE_LIBRARIES}
     compute-utils
+    compute-ipmb
+    ${TELEMETRY_LIBRARIES}
     ${AGENT_FRAMEWORK_LIBRARIES}
     ${UUID_LIBRARIES}
     ${PCA95XX_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
+    ${ISCSI_MDR_LIBRARIES}
     ipmi
     ${IPMITOOL_LIBRARIES}
-    ${JSONRPCCPP_LIBRARIES}
-    ${JSONCPP_LIBRARIES}
-        ${NET_LIBRARIES}
+    ${NET_LIBRARIES}
     md5
-    netlink
-    ${NL3_LIBRARIES}
     smbios
     ${LOGGER_LIBRARIES}
     ${SAFESTRING_LIBRARIES}

@@ -24,17 +24,6 @@ namespace psme {
 namespace rest {
 namespace constants {
 
-namespace FabricCommon {
-const char FIRMWARE_VERSION[] = "FirmwareVersion";
-const char ACTIONS[] = "Actions";
-const char ALLOWABLE_RESET_TYPES[] = "ResetType@Redfish.AllowableValues";
-const char FORCE_ON[] = "ForceOn";
-const char FORCE_OFF[] = "ForceOff";
-const char FORCE_RESTART[] = "ForceRestart";
-const char SKU[] = "SKU";
-const char TARGET[] = "target";
-}
-
 namespace Fabric {
 const char ZONES[] = "Zones";
 const char ENDPOINTS[] = "Endpoints";
@@ -48,7 +37,6 @@ namespace Switch {
 const char DOMAIN_ID[] = "DomainID";
 const char TOTAL_SWITCH_WIDTH[] = "TotalSwitchWidth";
 const char IS_MANAGED[] = "IsManaged";
-const char REDUNDANCY[] = "Redundancy";
 const char SWITCH_RESET[] = "#Switch.Reset";
 const char SWITCH_RESET_ENDPOINT[] = "Switch.Reset";
 const char ON[] = "On";
@@ -92,7 +80,6 @@ const char PCI_FUNCTION_NUMBER[] = "PciFunctionNumber";
 const char PCI_CLASS_CODE[] = "PciClassCode";
 const char ENTITY_PCI_ID[] = "EntityPciId";
 const char ENTITY_LINK[] = "EntityLink";
-const char REDUNDANCY[] = "Redundancy";
 const char HOST_RESERVATION_MEMORY_BYTES[] = "HostReservationMemoryBytes";
 }
 

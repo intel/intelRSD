@@ -30,9 +30,8 @@ add_library(chassis_test_objects
 target_link_libraries(${test_target}
     chassis_test_objects
     agent-framework
+    database
     json-cxx
-    jsoncpp
-    jsonrpccpp-common
     ${LOGGER_LIBRARIES}
     ${UUID_LIBRARIES}
     ${SAFESTRING_LIBRARIES}

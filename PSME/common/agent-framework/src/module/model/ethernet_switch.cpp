@@ -39,8 +39,8 @@ EthernetSwitch::EthernetSwitch(const std::string& parent_uuid, enums::Component 
 
 EthernetSwitch::~EthernetSwitch() {}
 
-Json::Value EthernetSwitch::to_json() const {
-    Json::Value result;
+json::Json EthernetSwitch::to_json() const {
+    json::Json result;
     result[literals::EthernetSwitch::STATUS] = get_status().to_json();
     result[literals::EthernetSwitch::SWITCH_IDENTIFIER] = get_switch_identifier();
     result[literals::EthernetSwitch::TECHNOLOGY] = get_technology();
@@ -58,7 +58,7 @@ Json::Value EthernetSwitch::to_json() const {
     return result;
 }
 
-EthernetSwitch EthernetSwitch::from_json(const Json::Value& json) {
+EthernetSwitch EthernetSwitch::from_json(const json::Json& json) {
     EthernetSwitch sw;
 
     sw.set_status(attribute::Status::from_json(json[literals::EthernetSwitch::STATUS]));

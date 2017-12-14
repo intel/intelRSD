@@ -20,7 +20,7 @@
 
 #include "agent-framework/module/model/attributes/usb_device.hpp"
 #include "agent-framework/module/constants/compute.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::model;
@@ -29,16 +29,16 @@ UsbDevice::UsbDevice() { }
 
 UsbDevice::~UsbDevice() { }
 
-Json::Value attribute::UsbDevice::to_json() const {
-    Json::Value json;
+json::Json attribute::UsbDevice::to_json() const {
+    json::Json json;
     json[literals::UsbDevice::DEVICE_ID] = get_device_id();
     json[literals::UsbDevice::VENDOR_ID] = get_vendor_id();
     return json;
 }
 
-UsbDevice UsbDevice::from_json(const Json::Value& json) {
+UsbDevice UsbDevice::from_json(const json::Json& json) {
     UsbDevice usb_device;
-    usb_device.set_device_id(json[literals::UsbDevice::DEVICE_ID].asString());
-    usb_device.set_vendor_id(json[literals::UsbDevice::VENDOR_ID].asString());
+    usb_device.set_device_id(json[literals::UsbDevice::DEVICE_ID]);
+    usb_device.set_vendor_id(json[literals::UsbDevice::VENDOR_ID]);
     return usb_device;
 }

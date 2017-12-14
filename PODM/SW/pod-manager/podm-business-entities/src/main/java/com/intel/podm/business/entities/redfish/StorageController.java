@@ -18,17 +18,15 @@ package com.intel.podm.business.entities.redfish;
 
 import com.intel.podm.business.entities.EventOriginProvider;
 import com.intel.podm.business.entities.Eventable;
-import com.intel.podm.business.entities.converters.IdToLongConverter;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
 import com.intel.podm.business.entities.redfish.embeddables.Identifier;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Protocol;
-import com.intel.podm.common.types.Status;
-import org.hibernate.annotations.Generated;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Enumerated;
 import javax.persistence.Index;
@@ -36,6 +34,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import java.math.BigDecimal;
@@ -51,23 +51,30 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.LAZY;
-import static org.hibernate.annotations.GenerationTime.INSERT;
 
 @javax.persistence.Entity
 @Table(name = "storage_controller", indexes = @Index(name = "idx_storage_controller_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
-public class StorageController extends Entity {
-    @Generated(INSERT)
-    @Convert(converter = IdToLongConverter.class)
-    @Column(name = "entity_id", columnDefinition = ENTITY_ID_NUMERIC_COLUMN_DEFINITION, insertable = false, nullable = false)
+@Eventable
+@NamedQueries({
+    @NamedQuery(name = StorageController.GET_STORAGE_CONTROLLER_MULTI_SOURCE,
+        query = "SELECT storageController "
+            + "FROM StorageController storageController "
+            + "WHERE storageController.multiSourceDiscriminator = :multiSourceDiscriminator "
+            + "AND storageController.isComplementary = :isComplementary"
+    )
+})
+public class StorageController extends DiscoverableEntity implements MultiSourceResource {
+    public static final String GET_STORAGE_CONTROLLER_MULTI_SOURCE = "GET_STORAGE_CONTROLLER_MULTI_SOURCE";
+
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
+
+    @Column(name = "multi_source_discriminator")
+    private String multiSourceDiscriminator;
 
     @Column(name = "member_id")
     private String memberId;
-
-    @Column(name = "status")
-    private Status status;
 
     @Column(name = "manufacturer")
     private String manufacturer;
@@ -108,9 +115,16 @@ public class StorageController extends Entity {
     private List<Protocol> supportedDeviceProtocols = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "storage_controller_identifiers", joinColumns = @JoinColumn(name = "storage_controller_id"))
-    @OrderColumn(name = "storage_controller_identifiers_order")
+    @CollectionTable(name = "storage_controller_identifier", joinColumns = @JoinColumn(name = "storage_controller_id"))
+    @OrderColumn(name = "identifier_order")
     private List<Identifier> identifiers = new ArrayList<>();
+
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "storage_controller_pcie_device_function",
+        joinColumns = {@JoinColumn(name = "storage_controller_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "pcie_device_function_id", referencedColumnName = "id")})
+    private Set<PcieDeviceFunction> pcieDeviceFunctions = new HashSet<>();
 
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "storage_id")
@@ -120,15 +134,14 @@ public class StorageController extends Entity {
     @JoinColumn(name = "storage_adapter_id")
     private Storage storageAdapter;
 
-    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
-    @JoinTable(
-        name = "storage_controller_pcie_functions",
-        joinColumns = {@JoinColumn(name = "ethernet_interface_id", referencedColumnName = "id")},
-        inverseJoinColumns = {@JoinColumn(name = "pcie_function_id", referencedColumnName = "id")})
-    private Set<PcieDeviceFunction> pcieDeviceFunctions = new HashSet<>();
-
+    @Override
     public Id getId() {
         return entityId;
+    }
+
+    @Override
+    public void setId(Id id) {
+        this.entityId = id;
     }
 
     public String getMemberId() {
@@ -145,14 +158,6 @@ public class StorageController extends Entity {
 
     public void setMemberId(String memberId) {
         this.memberId = memberId;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
     }
 
     public String getManufacturer() {
@@ -243,6 +248,28 @@ public class StorageController extends Entity {
         identifiers.add(identifier);
     }
 
+    public Set<PcieDeviceFunction> getPcieDeviceFunctions() {
+        return pcieDeviceFunctions;
+    }
+
+    public void addPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        requiresNonNull(pcieDeviceFunction, "pcieDeviceFunction");
+
+        pcieDeviceFunctions.add(pcieDeviceFunction);
+        if (!pcieDeviceFunction.getStorageControllers().contains(this)) {
+            pcieDeviceFunction.addStorageController(this);
+        }
+    }
+
+    public void unlinkPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        if (pcieDeviceFunctions.contains(pcieDeviceFunction)) {
+            pcieDeviceFunctions.remove(pcieDeviceFunction);
+            if (pcieDeviceFunction != null) {
+                pcieDeviceFunction.unlinkStorageController(this);
+            }
+        }
+    }
+
     @EventOriginProvider
     public Storage getStorage() {
         return storage;
@@ -267,38 +294,16 @@ public class StorageController extends Entity {
         }
     }
 
-    public Set<PcieDeviceFunction> getPcieDeviceFunctions() {
-        return pcieDeviceFunctions;
-    }
-
-    public void addPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
-        requiresNonNull(pcieDeviceFunction, "pcieDeviceFunction");
-
-        pcieDeviceFunctions.add(pcieDeviceFunction);
-        if (!pcieDeviceFunction.getStorageControllers().contains(this)) {
-            pcieDeviceFunction.addStorageController(this);
-        }
-    }
-
-    public void unlinkPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
-        if (pcieDeviceFunctions.contains(pcieDeviceFunction)) {
-            pcieDeviceFunctions.remove(pcieDeviceFunction);
-            if (pcieDeviceFunction != null) {
-                pcieDeviceFunction.unlinkStorageController(this);
-            }
-        }
-    }
-
     public Storage getStorageAdapter() {
         return storageAdapter;
     }
 
-    public void setStorageAdapter(Storage storage) {
-        if (!Objects.equals(this.storageAdapter, storage)) {
-            unlinkStorage(this.storageAdapter);
-            this.storageAdapter = storage;
-            if (storage != null && !storage.getAdapters().contains(this)) {
-                storage.addAdapter(this);
+    public void setStorageAdapter(Storage storageAdapter) {
+        if (!Objects.equals(this.storageAdapter, storageAdapter)) {
+            unlinkStorageAdapter(this.storageAdapter);
+            this.storageAdapter = storageAdapter;
+            if (storageAdapter != null && !storageAdapter.getAdapters().contains(this)) {
+                storageAdapter.addAdapter(this);
             }
         }
     }
@@ -313,10 +318,20 @@ public class StorageController extends Entity {
     }
 
     @Override
+    public String getMultiSourceDiscriminator() {
+        return multiSourceDiscriminator;
+    }
+
+    @Override
+    public void setMultiSourceDiscriminator(String multiSourceDiscriminator) {
+        this.multiSourceDiscriminator = multiSourceDiscriminator;
+    }
+
+    @Override
     public void preRemove() {
+        unlinkCollection(pcieDeviceFunctions, this::unlinkPcieDeviceFunction);
         unlinkStorage(storage);
         unlinkStorageAdapter(storageAdapter);
-        unlinkCollection(pcieDeviceFunctions, this::unlinkPcieDeviceFunction);
     }
 
     @Override

@@ -16,12 +16,12 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.assembly.AssemblyException;
-import com.intel.podm.assembly.NodeAssembler;
 import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.EntityOperationException;
 import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.assembly.AssemblyException;
+import com.intel.podm.business.redfish.services.assembly.NodeAssembler;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ActionService;
 import com.intel.podm.business.services.redfish.requests.AssemblyRequest;
@@ -37,7 +37,7 @@ import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @RequestScoped
 @Interceptors(RetryOnRollbackInterceptor.class)
-public class AssemblyActionServiceImpl implements ActionService<AssemblyRequest> {
+class AssemblyActionServiceImpl implements ActionService<AssemblyRequest> {
     @Inject
     private NodeAssembler nodeAssembler;
 

@@ -28,6 +28,7 @@
 
 #include <netlink/msg.h>
 #include <linux/if_ether.h>
+#include <linux/neighbour.h>
 
 #include <cstring>
 #include <iomanip>
@@ -47,7 +48,9 @@ FdbInfoMessage::FdbInfoMessage(const string& ifname) :
     set_ifindex(get_ifindex());
     set_family(PF_BRIDGE);
     set_state(NUD_NOARP);
+#ifdef NTF_SELF
     set_flags(NTF_SELF);
+#endif
 }
 
 void FdbInfoMessage::prepare_neigh_message(struct nl_msg*) {
@@ -65,7 +68,9 @@ void FdbInfoMessage::process_neigh_message(struct nl_msg* msg, const struct ndms
     uint16_t vlan{0};
 
     /* parse message attributes */
+#ifdef NDA_VLAN
     neigh_policy[NDA_VLAN].type = NLA_U16;
+#endif
     neigh_policy[NDA_LLADDR].maxlen = ETH_ALEN;
     neigh_policy[NDA_LLADDR].minlen = ETH_ALEN;
     int err = nlmsg_parse(nlmsg_hdr(msg), sizeof(struct ndmsg),
@@ -96,10 +101,12 @@ void FdbInfoMessage::process_neigh_message(struct nl_msg* msg, const struct ndms
         type = EntryType::DYNAMIC;
     }
 
+#ifdef NDA_VLAN
     /* get vlan id (optional) */
     if (attrs[NDA_VLAN]) {
         vlan = nla_get_u16(attrs[NDA_VLAN]);
     }
+#endif
 
     /* store the information */
     m_entries.emplace_back(mac.str(), vlan, type);

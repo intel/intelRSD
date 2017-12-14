@@ -17,9 +17,6 @@
 package com.intel.podm.common.types.exceptions;
 
 public class NoRetriesLeftException extends RuntimeException {
-    public NoRetriesLeftException() {
-    }
-
     public NoRetriesLeftException(Throwable cause) {
         super(cause);
     }

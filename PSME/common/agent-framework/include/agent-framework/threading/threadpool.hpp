@@ -106,20 +106,11 @@ public:
      * @brief Run function or callable object in threadpool
      * @param f Function or callable object
      * @param args Arguments
-     * @return Future
      */
     template<typename F, typename... Args>
-    auto
-    run(F&& f, Args&&... args) -> std::future<typename
-                                            std::result_of<F(Args...)>::type>  {
-        using ReturnType = typename std::result_of<F(Args...)>::type;
-
-        std::packaged_task<ReturnType()> task(
-                    std::bind(std::forward<F>(f), std::forward<Args>(args)...));
-
-        auto future = task.get_future();
+    void run(F&& f, Args&&... args) {
+        auto task = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
         m_tasks.push_back(std::move(task));
-        return future;
     }
 
     /*! Stop threadpool */

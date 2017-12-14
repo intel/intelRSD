@@ -29,7 +29,6 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& StorageSubsystemPatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "storage_subsystem_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::StorageSubsystem::ASSET_TAG, VALID_OPTIONAL(VALID_JSON_STRING),
         nullptr

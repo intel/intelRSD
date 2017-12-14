@@ -74,6 +74,22 @@ extern const char STATIC_MACS[];
 }
 
 /*!
+ * @brief Constant literals for EthernetSwitchPortMetrics endpoint.
+ */
+namespace EthernetSwitchPortMetrics {
+extern const char RECEIVED[];
+extern const char TRANSMITTED[];
+extern const char COLLISIONS[];
+extern const char PACKETS[];
+extern const char DROPPED_PACKETS[];
+extern const char ERROR_PACKETS[];
+extern const char BROADCAST_PACKETS[];
+extern const char MULTICAST_PACKETS[];
+extern const char BYTES[];
+extern const char ERRORS[];
+}
+
+/*!
  * @brief Constant Vlan literals for rest endpoints.
  */
 namespace Vlan {
@@ -87,11 +103,10 @@ namespace Acl {
 extern const char ACL[];
 extern const char BOUND_PORTS[];
 extern const char RULES[];
-extern const char TARGET[];
 extern const char PORT_ALLOWABLE_VALUES[];
 extern const char BIND_ACL[];
 extern const char UNBIND_ACL[];
-extern const char BIND_PORT[];
+extern const char PORT[];
 }
 
 namespace Rule {

@@ -16,27 +16,29 @@
 
 package com.intel.podm.business.entities.dao;
 
-import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
 
+import static com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress.GET_REMOTE_TARGET_ISCSI_ADDRESSES_BY_TARGET_IQN;
+import static com.intel.podm.common.utils.IterableHelper.single;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Dependent
-@Transactional(MANDATORY)
+@ApplicationScoped
 public class RemoteTargetIscsiAddressDao extends Dao<RemoteTargetIscsiAddress> {
+    @Transactional(MANDATORY)
     public List<RemoteTargetIscsiAddress> getRemoteTargetIscsiAddressesByTargetIqn(String targetIqn) {
         TypedQuery<RemoteTargetIscsiAddress> query = entityManager.createNamedQuery(
-            RemoteTargetIscsiAddress.GET_REMOTE_TARGET_ISCSI_ADDRESSES_BY_TARGET_IQN, RemoteTargetIscsiAddress.class);
+            GET_REMOTE_TARGET_ISCSI_ADDRESSES_BY_TARGET_IQN, RemoteTargetIscsiAddress.class);
         query.setParameter("targetIqn", targetIqn);
         return query.getResultList();
     }
 
-    public RemoteTargetIscsiAddress getRemoteTargetIscsiAddressByTargetIqn(String targetIqn) throws NonUniqueResultException {
-        return singleEntityOrNull(getRemoteTargetIscsiAddressesByTargetIqn(targetIqn));
+    @Transactional(MANDATORY)
+    public RemoteTargetIscsiAddress getRemoteTargetIscsiAddressByTargetIqn(String targetIqn) {
+        return single(getRemoteTargetIscsiAddressesByTargetIqn(targetIqn));
     }
 }

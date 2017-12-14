@@ -28,12 +28,9 @@ add_library(agent-framework STATIC ${SOURCES}
     $<TARGET_OBJECTS:discovery>
     $<TARGET_OBJECTS:module>
     $<TARGET_OBJECTS:state_machine>
-    $<TARGET_OBJECTS:status>
     $<TARGET_OBJECTS:command>
-    $<TARGET_OBJECTS:command-ref>
     $<TARGET_OBJECTS:eventing>
     $<TARGET_OBJECTS:threading>
-    $<TARGET_OBJECTS:client>
     $<TARGET_OBJECTS:registration>
     $<TARGET_OBJECTS:agent-action>
     $<TARGET_OBJECTS:exceptions>
@@ -42,8 +39,9 @@ add_library(agent-framework STATIC ${SOURCES}
 )
 
 target_link_libraries(agent-framework
-    jsonrpccpp-common
-    jsoncpp
+    json-cxx
+    json-rpc
+    json
     md5
 )
 
@@ -66,12 +64,9 @@ add_subdirectory(action)
 add_subdirectory(exceptions)
 add_subdirectory(threading)
 add_subdirectory(command)
-add_subdirectory(command-ref)
 add_subdirectory(module)
 add_subdirectory(state_machine)
-add_subdirectory(status)
 add_subdirectory(eventing)
-add_subdirectory(client)
 add_subdirectory(registration)
 add_subdirectory(discovery)
 add_subdirectory(validators)

@@ -19,9 +19,9 @@ package com.intel.podm.discovery.external.matchers;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Memory;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
-import com.intel.podm.client.api.resources.redfish.MemoryResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
+import com.intel.podm.client.resources.redfish.MemoryResource;
 
 import javax.enterprise.context.Dependent;
 import java.util.Objects;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @Dependent
 public class MemoryObtainerHelper implements EntityObtainerHelper<MemoryResource> {
     @Override
-    public ComputerSystemResource findComputerSystemResourceFor(MemoryResource memoryResource) throws ExternalServiceApiReaderException {
+    public ComputerSystemResource findComputerSystemResourceFor(MemoryResource memoryResource) throws WebClientRequestException {
         return (ComputerSystemResource) memoryResource.getComputerSystem().get();
     }
 
@@ -38,10 +38,9 @@ public class MemoryObtainerHelper implements EntityObtainerHelper<MemoryResource
     public Optional<? extends Entity> findEntityFor(ComputerSystem computerSystem, MemoryResource resource) {
         String resourceMemoryDeviceLocator = resource.getDeviceLocator().orElse(null);
 
-        return computerSystem.getMemoryModules()
-                .stream()
-                .filter(memory -> Objects.equals(memory.getDeviceLocator(), resourceMemoryDeviceLocator))
-                .findFirst();
+        return computerSystem.getMemoryModules().stream()
+            .filter(memory -> Objects.equals(memory.getDeviceLocator(), resourceMemoryDeviceLocator))
+            .findFirst();
     }
 
     @Override

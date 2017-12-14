@@ -19,11 +19,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(FruEeprom CXX)
 
-if (CMAKE_CROSSCOMPILING)
-    message(WARNING "Not supported for crosscompiling.")
-    return()
-endif()
-
 set(FRU_EEPROM_LIBRARIES
         )
 set(FRU_EEPROM_INCLUDE_DIRS

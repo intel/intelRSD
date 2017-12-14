@@ -17,8 +17,9 @@
 package com.intel.podm.discovery.external;
 
 import com.intel.podm.business.entities.redfish.ExternalService;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.common.enterprise.utils.logger.TimeMeasured;
 import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
 import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
@@ -29,6 +30,7 @@ import com.intel.podm.discovery.external.restgraph.ResourceLink;
 import com.intel.podm.discovery.external.restgraph.RestGraph;
 
 import javax.ejb.AccessTimeout;
+import javax.ejb.Lock;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
 import javax.interceptor.Interceptors;
@@ -36,12 +38,13 @@ import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static com.intel.podm.common.utils.Maps.filterNonNullValues;
 import static com.intel.podm.common.utils.Maps.inverse;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static javax.ejb.LockType.WRITE;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Singleton
@@ -59,32 +62,33 @@ public class EntityGraphMapper {
     @Inject
     private DiscoveryFinalizer discoveryFinalizer;
 
+    /**
+     * LockType.WRITE used due to concurrent operations on entities created during discovery process.
+     */
+    @Lock(WRITE)
     @Transactional(REQUIRES_NEW)
-    @AccessTimeout(value = 5, unit = MINUTES)
+    @AccessTimeout(value = 10, unit = MINUTES)
     @NumberOfRetriesOnRollback(3)
     @TimeMeasured(tag = "[Discovery]")
     public void map(RestGraph graph) {
         requiresNonNull(graph, "graph");
 
         ExternalService service = repository.find(graph.findServiceUuid());
+        Map<ExternalServiceResource, DiscoverableEntity> map = filterNonNullValues(multiMapper.map(graph.getResources(), service));
 
-        Map<ExternalServiceResource, Entity> map = filterNonNullValues(multiMapper.map(graph.getResources(), service));
         updateLinks(graph, map);
 
-        Set<Entity> entities = new HashSet<>(map.values());
-        discoveryFinalizer.finalizeDiscovery(entities, service);
+        discoveryFinalizer.finalizeDiscovery(new HashSet<>(map.values()), service);
     }
 
-    private void updateLinks(RestGraph graph, Map<ExternalServiceResource, Entity> map) {
-        for (ResourceLink link : graph.getLinks()) {
-            EntityLink entityLink = toEntityLink(link, map);
+    @TimeMeasured(tag = "[Discovery]")
+    private void updateLinks(RestGraph graph, Map<ExternalServiceResource, DiscoverableEntity> map) {
+        graph.getLinks().stream()
+            .map(link -> toEntityLink(link, map))
+            .filter(Objects::nonNull)
+            .forEach(entityLink -> links.link(entityLink));
 
-            if (entityLink != null) {
-                links.link(entityLink);
-            }
-        }
-
-        Collection<Entity> entities = map.values();
+        Collection<DiscoverableEntity> entities = map.values();
         for (EntityLink entityLink : links.getLinksThatMayBeRemoved(entities)) {
             ResourceLink resourceLink = toResourceLink(entityLink, inverse(map));
 
@@ -94,22 +98,22 @@ public class EntityGraphMapper {
         }
     }
 
-    private EntityLink toEntityLink(ResourceLink link, Map<ExternalServiceResource, Entity> map) {
+    private EntityLink toEntityLink(ResourceLink link, Map<ExternalServiceResource, DiscoverableEntity> map) {
         String linkName = link.getName();
         Entity source = map.get(link.getSource());
         Entity target = map.get(link.getTarget());
 
-        return source != null && target != null
+        return (source != null && target != null)
             ? new EntityLink(source, target, linkName)
             : null;
     }
 
-    private ResourceLink toResourceLink(EntityLink link, Map<Entity, ExternalServiceResource> map) {
+    private ResourceLink toResourceLink(EntityLink link, Map<DiscoverableEntity, ExternalServiceResource> map) {
         String linkName = link.getName();
         ExternalServiceResource source = map.get(link.getSource());
         ExternalServiceResource target = map.get(link.getTarget());
 
-        return source != null && target != null
+        return (source != null && target != null)
             ? new ResourceLink(source, target, linkName)
             : null;
     }

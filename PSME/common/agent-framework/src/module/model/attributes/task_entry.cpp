@@ -25,7 +25,7 @@
 #include "agent-framework/module/model/attributes/task_entry.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -39,15 +39,15 @@ TaskEntry::TaskEntry() { }
 TaskEntry::~TaskEntry() { }
 
 
-Json::Value TaskEntry::to_json() const {
-    Json::Value entry;
+json::Json TaskEntry::to_json() const {
+    json::Json entry;
     entry[literals::TaskEntry::TASK] = get_task();
     return entry;
 }
 
 
-TaskEntry TaskEntry::from_json(const Json::Value& json) {
+TaskEntry TaskEntry::from_json(const json::Json& json) {
     TaskEntry task_entry;
-    task_entry.set_task(json[literals::TaskEntry::TASK].asString());
+    task_entry.set_task(json[literals::TaskEntry::TASK]);
     return task_entry;
 }

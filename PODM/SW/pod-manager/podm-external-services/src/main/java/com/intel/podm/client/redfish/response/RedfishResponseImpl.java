@@ -16,8 +16,6 @@
 
 package com.intel.podm.client.redfish.response;
 
-import com.intel.podm.client.api.redfish.response.RedfishEntityResponseBody;
-import com.intel.podm.client.api.redfish.response.RedfishResponse;
 import com.intel.podm.client.redfish.http.HttpResponse;
 
 import javax.ws.rs.core.Response.Status;
@@ -26,6 +24,9 @@ import java.util.Optional;
 
 import static com.intel.podm.common.utils.Contracts.requires;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 public final class RedfishResponseImpl implements RedfishResponse {
     private final RedfishEntityResponseBodyImpl entity;
@@ -34,18 +35,20 @@ public final class RedfishResponseImpl implements RedfishResponse {
 
     RedfishResponseImpl(HttpResponse response) {
         requiresNonNull(response, "response");
-        response.getEntity().ifPresent(e -> {
-            requires(e instanceof RedfishEntityResponseBodyImpl, "response.entity must be of RedfishEntityResponseBodyImpl type");
-        });
 
-        this.entity = response.getEntity().map(RedfishEntityResponseBodyImpl.class::cast).orElse(null);
+        Optional<Object> responseEntity = response.getEntity();
+        responseEntity.ifPresent(
+            e -> requires(e instanceof RedfishEntityResponseBodyImpl, "response.entity must be of RedfishEntityResponseBodyImpl type")
+        );
+
+        this.entity = responseEntity.map(RedfishEntityResponseBodyImpl.class::cast).orElse(null);
         this.location = response.getLocation().orElse(null);
-        this.status = Status.fromStatusCode(response.getStatusCode().toInt());
+        this.status = fromStatusCode(response.getStatusCode().toInt());
     }
 
     @Override
     public Optional<RedfishEntityResponseBody> getEntity() {
-        return Optional.ofNullable(entity);
+        return ofNullable(entity);
     }
 
     @Override
@@ -55,7 +58,7 @@ public final class RedfishResponseImpl implements RedfishResponse {
 
     @Override
     public Optional<URI> getLocation() {
-        return Optional.ofNullable(location);
+        return ofNullable(location);
     }
 
     @Override
@@ -65,6 +68,6 @@ public final class RedfishResponseImpl implements RedfishResponse {
 
     @Override
     public String toString() {
-        return String.format("Response{body=%s, location=%s}", entity, location);
+        return format("Response{body=%s, location=%s}", entity, location);
     }
 }

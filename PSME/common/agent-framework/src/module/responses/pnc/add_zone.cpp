@@ -25,7 +25,7 @@
 #include "agent-framework/module/responses/pnc/add_zone.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -34,14 +34,14 @@ AddZone::AddZone(const std::string& zone, const attribute::Oem& oem):
     m_zone(zone), m_oem{oem} {}
 
 
-Json::Value AddZone::to_json() const {
-    Json::Value value;
+json::Json AddZone::to_json() const {
+    json::Json value;
     value[Zone::ZONE] = m_zone;
     value[Zone::OEM] = m_oem.to_json();
     return value;
 }
 
-AddZone AddZone::from_json(const Json::Value& json) {
-    return AddZone{json[Zone::ZONE].asString(),
+AddZone AddZone::from_json(const json::Json& json) {
+    return AddZone{json[Zone::ZONE],
                        attribute::Oem::from_json(json[Zone::OEM])};
 }

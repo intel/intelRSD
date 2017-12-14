@@ -28,14 +28,14 @@ AclPort::AclPort() { }
 
 AclPort::~AclPort() { }
 
-Json::Value AclPort::to_json() const {
-    Json::Value result;
+json::Json AclPort::to_json() const {
+    json::Json result;
     result[literals::AclRule::PORT] = get_port();
     result[literals::AclRule::MASK] = get_mask();
     return result;
 }
 
-AclPort AclPort::from_json(const Json::Value& json) {
+AclPort AclPort::from_json(const json::Json& json) {
     AclPort acl_port;
     acl_port.set_port(json[literals::AclRule::PORT]);
     acl_port.set_mask(json[literals::AclRule::MASK]);

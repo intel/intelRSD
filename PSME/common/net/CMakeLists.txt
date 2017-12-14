@@ -85,7 +85,7 @@ endif()
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     set_source_files_properties(
         src/network_change_notifier_impl.cpp
-        PROPERTIES COMPILE_FLAGS "-Wno-cast-align -Wstrict-aliasing=3"
+        PROPERTIES COMPILE_FLAGS "-Wno-cast-align -Wstrict-aliasing=3 -Wno-logical-op"
     )
 endif()
 

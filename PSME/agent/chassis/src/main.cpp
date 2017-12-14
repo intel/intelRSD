@@ -21,37 +21,33 @@
 #include "agent-framework/registration/amc_connection_manager.hpp"
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
-#include "agent-framework/state_machine/state_machine_thread.hpp"
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 
-#include "agent-framework/eventing/event_data.hpp"
-#include "agent-framework/eventing/events_queue.hpp"
+#include "agent-framework/eventing/utils.hpp"
 
-#include "agent-framework/command-ref/command_server.hpp"
+#include "agent-framework/command/command_server.hpp"
 
 #include "loader/chassis_loader.hpp"
-#include "loader/state_machine_action_loader.hpp"
-#include "status/status_manager.hpp"
-#include "status/state_machine_action.hpp"
 
 #include "configuration/configuration.hpp"
 #include "configuration/configuration_validator.hpp"
 #include "default_configuration.hpp"
 
 #include "ipmb/service.hpp"
-#include "ipmb/watcher/thermal_sensor_task.hpp"
-#include "ipmb/watcher/drawer_power_task.hpp"
 #include "ipmb/mux.hpp"
-#include "ipmb/watcher/watcher.hpp"
 
-#include <jsonrpccpp/server/connectors/httpserver.h>
+#include "status/bmc.hpp"
+#include "ipmb/gpio.hpp"
+#include "ipmi/management_controller.hpp"
+#include "ipmi/command/generic/get_device_id.hpp"
+#include "tree_stability/chassis_tree_stabilizer.hpp"
+
+#include "json-rpc/connectors/http_server_connector.hpp"
 #include <csignal>
 
-using namespace std;
 using namespace agent_framework;
 using namespace agent_framework::generic;
-using namespace agent_framework::state_machine;
 using namespace logger_cpp;
 using namespace configuration;
 using namespace agent::chassis;
@@ -67,21 +63,16 @@ using agent_framework::module::CommonComponents;
 
 static constexpr unsigned int DEFAULT_SERVER_PORT = 7780;
 
-void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action);
 const json::Value& init_configuration(int argc, const char** argv);
 bool check_configuration(const json::Value& json);
+
+BmcCollection load_bmcs(const json::Value& configuration);
 
 /*!
  * @brief Generic Agent main method.
  * */
 int main(int argc, const char* argv[]) {
-    using agent::chassis::StateMachineAction;
-    using StateMachineActionUnique = unique_ptr<StateMachineAction>;
-
-    unsigned int server_port = DEFAULT_SERVER_PORT;
-
-    StateMachineThreadUniquePtr state_machine_thread_u_ptr = nullptr;
-    StateMachineActionUnique state_action = nullptr;
+    std::uint16_t server_port = DEFAULT_SERVER_PORT;
 
     /* Initialize configuration */
     const json::Value& configuration = ::init_configuration(argc, argv);
@@ -95,70 +86,61 @@ int main(int argc, const char* argv[]) {
     LoggerFactory::set_main_logger_name("agent");
     log_info(GET_LOGGER("agent"), "Running PSME Chassis SDV...\n");
 
-    ::agent::chassis::loader::ChassisLoader module_loader{};
+    try {
+        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
+    } catch (const json::Value::Exception& e) {
+        log_error(GET_LOGGER("compute-agent"),
+                  "Cannot read server port " << e.what());
+    }
+
+    agent::chassis::loader::ChassisLoader module_loader{};
     if (!module_loader.load(configuration)) {
         std::cerr << "Invalid modules configuration" << std::endl;
         return -2;
     }
 
-    EventDispatcher event_dispatcher;
-    event_dispatcher.start();
-
-    AmcConnectionManager amc_connection(event_dispatcher);
-    amc_connection.start();
-
-    /* Initialize command server */
-    jsonrpc::HttpServer http_server((int(server_port)));
-    agent_framework::command_ref::CommandServer server(http_server);
-    server.add(command_ref::Registry::get_instance()->get_commands());
-    server.start();
-
-    watcher::Watcher ipmb_watcher{};
-    ipmb_watcher.add_task(std::make_shared<watcher::ThermalSensorTask>());
-    ipmb_watcher.add_task(std::make_shared<watcher::DrawerPowerTask>());
-    ipmb_watcher.start();
+    BmcCollection bmcs{};
+    try {
+        bmcs = load_bmcs(configuration);
+    }
+    catch(const std::exception& e) {
+        log_error("chassis-agent", e.what());
+        return -1;
+    }
 
     ipmb::Service ipmb_service;
     ipmb_service.start();
 
-    /* Start state machine */
-    try {
-        ::agent::chassis::loader::StateMachineActionLoader state_machine_loader{};
-        if (!state_machine_loader.load(configuration)) {
-            std::cerr << "Invalid IPMI and/or Discovery configuration" << std::endl;
-            return -3;
-        }
-        state_action = state_machine_loader.get_state_machine();
-        state_machine_thread_u_ptr.reset(new StateMachineThread());
-        ::add_state_machine_entries(state_machine_thread_u_ptr.get(), *state_action);
-        state_machine_thread_u_ptr->start();
-    }
-    catch (const std::exception& e) {
-        log_error(GET_LOGGER("agent"), "State Machine error.");
-        log_debug(GET_LOGGER("agent"), e.what());
-        return -10;
-    }
+    EventDispatcher event_dispatcher;
+    event_dispatcher.start();
 
-    ::agent::chassis::loader::ChassisLoader::wait_for_complete();
+    RegistrationData registration_data{configuration};
 
-    auto cc = CommonComponents::get_instance();
-    auto managers_uuids_vec = cc->get_module_manager().get_keys("");
+    AmcConnectionManager amc_connection(event_dispatcher, registration_data);
+    amc_connection.start();
 
-    for (const auto& manager_uuid: managers_uuids_vec) {
-        EventData event_data{};
-        event_data.set_component(manager_uuid);
-        event_data.set_type(agent_framework::model::enums::Component::Manager);
-        event_data.set_notification(eventing::Notification::Add);
-        EventsQueue::get_instance()->push_back(event_data);
+    /* Initialize command server */
+    auto http_server_connector = new json_rpc::HttpServerConnector(server_port, registration_data.get_ipv4_address());
+    json_rpc::AbstractServerConnectorPtr http_server(http_server_connector);
+    agent_framework::command::CommandServer server(http_server);
+    server.add(command::Registry::get_instance()->get_commands());
+
+    bool server_started = server.start();
+    if (!server_started) {
+        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+            << server_port << " restricted to " << registration_data.get_ipv4_address()
+            << ". " << "Quitting now...");
+        amc_connection.stop();
+        event_dispatcher.stop();
+        ipmb_service.stop();
+        return -3;
     }
 
-    /* Stop the program and wait for interrupt */
     wait_for_interrupt();
+    log_info(GET_LOGGER("chassis-agent"), "Stopping SDV PSME Chassis Agent.\n");
 
     /* Cleanup */
-    ipmb_watcher.stop();
     ipmb_service.stop();
-
     server.stop();
     amc_connection.stop();
     event_dispatcher.stop();
@@ -166,33 +148,8 @@ int main(int argc, const char* argv[]) {
     LoggerFactory::cleanup();
 
     return 0;
-
 }
 
-void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action) {
-    auto drawer_keys = CommonComponents::get_instance()->
-            get_module_manager().get_keys("");
-
-    if (drawer_keys.empty()) {
-        log_error(GET_LOGGER("agent"), "No drawer manager found!");
-        std::exit(-1);
-    }
-
-    log_debug(GET_LOGGER("agent"), "Drawer: " << drawer_keys.front());
-
-    /* Process Blade manager */
-    auto blade_keys = CommonComponents::get_instance()->
-            get_module_manager().get_keys(drawer_keys.front());
-
-    for (const auto& key : blade_keys) {
-        auto entry = CommonComponents::get_instance()->get_module_manager().get_entry(key);
-        auto status_manager = std::make_shared<::agent::chassis::status::StatusManager>(
-                entry.get_slot(),entry.get_connection_data().get_ip_address());
-        auto state_thread_entry = std::make_shared<StateThreadEntry>(key, status_manager);
-        auto module_thread = std::make_shared<StateMachineModuleThread>(state_thread_entry, action);
-        machine_thread->add_module_thread(module_thread);
-    }
-}
 const json::Value& init_configuration(int argc, const char** argv) {
     log_info(GET_LOGGER("agent"),
         agent_framework::generic::Version::build_info());
@@ -200,7 +157,6 @@ const json::Value& init_configuration(int argc, const char** argv) {
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
     basic_config.set_default_file(DEFAULT_FILE);
     basic_config.set_default_env_file(DEFAULT_ENV_FILE);
-    /* @TODO This should be replaced with nice arguments parsing class */
     while (argc > 1) {
         basic_config.add_file(argv[argc - 1]);
         --argc;
@@ -227,4 +183,48 @@ bool check_configuration(const json::Value& json) {
         }
     }
     return true;
+}
+
+BmcCollection load_bmcs(const json::Value&) {
+    BmcCollection bmcs{};
+    agent::chassis::Bmc::Duration state_update_interval = agent::chassis::ipmb::Gpio::get_instance()->get_minimal_update_interval();
+
+    auto drawer_manager_keys = CommonComponents::get_instance()->get_module_manager().get_keys("");
+    auto sled_manager_keys = CommonComponents::get_instance()->
+            get_module_manager().get_keys(drawer_manager_keys.front());
+
+    for (const auto& manager_key: sled_manager_keys) {
+        const auto manager = agent_framework::module::get_manager<agent_framework::model::Manager>()
+            .get_entry(manager_key);
+        const auto manager_uuid = agent::chassis::ChassisTreeStabilizer().stabilize(manager_key);
+        auto slot = manager.get_slot();
+        auto read_presence_fn = [slot]() {
+            log_debug(GET_LOGGER("bmc"), "reading presence on slot: " << slot);
+            return agent::chassis::ipmb::Gpio::get_instance()->is_present(uint8_t(slot));
+        };
+
+        const auto& connection = manager.get_connection_data();
+        ipmi::ManagementController mc{connection.get_ip_address(), connection.get_port(),
+            connection.get_username(), connection.get_password()};
+        auto read_online_state_fn = [mc]() mutable {
+            try {
+                log_debug(GET_LOGGER("bmc"), "reading online state...");
+                ipmi::command::generic::response::GetDeviceId device_rsp{};
+                mc.send(ipmi::command::generic::request::GetDeviceId{}, device_rsp);
+                return true;
+            }
+            catch (std::exception& e) {
+                log_debug(GET_LOGGER("bmc"), "reading online state error: " << e.what());
+            }
+            return false;
+        };
+        bmcs.push_back(agent_framework::Bmc::Ptr(new agent::chassis::Bmc(manager_uuid, connection,
+                state_update_interval, read_presence_fn, read_online_state_fn)));
+    }
+
+    if (bmcs.empty()) {
+        throw std::runtime_error("Invalid modules configuration");
+    }
+
+    return bmcs;
 }

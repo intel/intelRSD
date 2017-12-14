@@ -37,8 +37,8 @@ RegistrationRequest::RegistrationRequest() {
     load_configuration();
 }
 
-Json::Value RegistrationRequest::to_json() {
-    Json::Value request;
+json::Json RegistrationRequest::to_json() {
+    json::Json request;
     request["gamiId"] = ServiceUuid::get_instance()->get_service_uuid();
     request["version"] = m_version;
     request["vendor"] = m_vendor;
@@ -74,22 +74,18 @@ void RegistrationRequest::load_configuration() {
     }
 
     if (capabilities.is_array()) {
-        for(auto capability : capabilities) {
-            m_capabilities.emplace_back(
-                    Capability(capability["name"].as_string()));
+        for (const auto& capability : capabilities) {
+            m_capabilities.emplace_back(Capability(capability.as_string()));
         }
     }
 }
 
-Json::Value RegistrationRequest::get_capabilities() {
+json::Json RegistrationRequest::get_capabilities() {
 
-    Json::Value ret{Json::arrayValue};
+    json::Json ret = json::Json::array();
     for (const auto& c : m_capabilities) {
-        Json::Value capability;
-        capability = c.get_name();
-        ret.append(std::move(capability));
+        ret.emplace_back(c.get_name());
     }
 
     return ret;
 }
-

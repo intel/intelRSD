@@ -25,19 +25,19 @@
 #include "agent-framework/module/responses/network/delete_acl_rule.hpp"
 #include "agent-framework/module/constants/network.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
 
 DeleteAclRule::DeleteAclRule(Oem oem): m_oem{oem} {}
 
-Json::Value DeleteAclRule::to_json() const {
-    Json::Value value;
+json::Json DeleteAclRule::to_json() const {
+    json::Json value;
     value[Acl::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteAclRule DeleteAclRule::from_json(const Json::Value& json) {
+DeleteAclRule DeleteAclRule::from_json(const json::Json& json) {
     return DeleteAclRule{Oem::from_json(json[Acl::OEM])};
 }

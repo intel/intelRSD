@@ -17,24 +17,31 @@
 package com.intel.podm.common.types;
 
 public enum InstructionSet implements EnumeratedType {
-    X86("x86"),
-    X86_64("x86-64"),
-    IA_64("IA-64"),
-    ARM_A32("ARM-A32"),
-    ARM_A64("ARM-A64"),
-    MIPS32("MIPS32"),
-    MIPS64("MIPS64"),
-    OEM("OEM");
+    X86("x86", 1),
+    X86_64("x86-64", 2),
+    IA_64("IA-64", 3),
+    ARM_A32("ARM-A32", 4),
+    ARM_A64("ARM-A64", 5),
+    MIPS32("MIPS32", 6),
+    MIPS64("MIPS64", 7),
+    OEM("OEM", 8);
 
     private final String value;
+    private final Integer priority;
 
-    InstructionSet(String value) {
+    InstructionSet(String value, Integer priority) {
         this.value = value;
+        this.priority = priority;
     }
 
     @Override
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public Integer getPriority() {
+        return priority;
     }
 
     @Override

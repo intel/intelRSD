@@ -28,8 +28,8 @@ CpuId::CpuId() { }
 
 CpuId::~CpuId() { }
 
-Json::Value CpuId::to_json() const {
-    Json::Value result;
+json::Json CpuId::to_json() const {
+    json::Json result;
     result[literals::CpuId::VENDOR_ID] = get_vendor_id();
     result[literals::CpuId::NUMERIC_ID] = get_numeric_id();
     result[literals::CpuId::FAMILY] = get_family();
@@ -39,7 +39,7 @@ Json::Value CpuId::to_json() const {
     return result;
 }
 
-CpuId CpuId::from_json(const Json::Value& json) {
+CpuId CpuId::from_json(const json::Json& json) {
     CpuId cpu_id;
     cpu_id.set_vendor_id(json[literals::CpuId::VENDOR_ID]);
     cpu_id.set_numeric_id(json[literals::CpuId::NUMERIC_ID]);

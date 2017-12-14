@@ -33,10 +33,6 @@
 #include <vector>
 #include <string>
 
-namespace Json {
-    class Value;
-}
-
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -53,6 +49,7 @@ public:
         const std::string& master,
         const OptionalField<std::string>& image,
         bool snapshot,
+        bool bootable,
         bool mark_as_protected,
         const std::vector<std::string>& drives,
         const Oem& oem
@@ -121,6 +118,15 @@ public:
 
     /*!
      * @brief Indicates if the logical drive should be marked
+     * as bootable after creation.
+     * @return true if bootable
+     * */
+    bool is_bootable() const {
+        return m_bootable;
+    }
+
+    /*!
+     * @brief Indicates if the logical drive should be marked
      * as write/delete protected after creation.
      * @return true if protected
      * */
@@ -152,7 +158,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create AddLogicalDrive form Json
@@ -161,7 +167,7 @@ public:
      *
      * @return new AddLogicalDrive
      */
-    static AddLogicalDrive from_json(const Json::Value& json);
+    static AddLogicalDrive from_json(const json::Json& json);
 
     /*!
      * @brief Returns procedure scheme
@@ -178,6 +184,7 @@ public:
                 literals::LogicalDrive::MASTER, jsonrpc::JSON_STRING,
                 literals::LogicalDrive::IMAGE, VALID_NULLABLE(VALID_OPTIONAL(VALID_JSON(STRING))),
                 literals::LogicalDrive::SNAPSHOT, jsonrpc::JSON_BOOLEAN,
+                literals::LogicalDrive::BOOTABLE, jsonrpc::JSON_BOOLEAN,
                 literals::LogicalDrive::PROTECTED, jsonrpc::JSON_BOOLEAN,
                 literals::LogicalDrive::DRIVES, jsonrpc::JSON_ARRAY,
                 literals::LogicalDrive::OEM, VALID_NULLABLE(VALID_OPTIONAL(VALID_JSON(OBJECT))),
@@ -193,6 +200,7 @@ private:
     std::string m_mode{};
     std::string m_master{};
     bool m_snapshot{};
+    bool m_bootable{};
     bool m_protected{};
     std::vector<std::string> m_drives{};
     Oem m_oem{};

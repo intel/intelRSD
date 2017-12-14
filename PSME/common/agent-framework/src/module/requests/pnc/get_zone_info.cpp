@@ -28,19 +28,19 @@
 
 #include "agent-framework/module/requests/pnc/get_zone_info.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetZoneInfo::GetZoneInfo(const std::string& zone): m_zone{zone} {}
 
-Json::Value GetZoneInfo::to_json() const {
-    Json::Value value;
+json::Json GetZoneInfo::to_json() const {
+    json::Json value;
     value[Zone::ZONE] = m_zone;
     return value;
 }
 
-GetZoneInfo GetZoneInfo::from_json(const Json::Value& json) {
-    return GetZoneInfo{json[Zone::ZONE].asString()};
+GetZoneInfo GetZoneInfo::from_json(const json::Json& json) {
+    return GetZoneInfo{json[Zone::ZONE].get<std::string>()};
 }

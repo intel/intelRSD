@@ -16,7 +16,7 @@
 
 package com.intel.podm.ipxesupplier;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.text.MessageFormat;
 

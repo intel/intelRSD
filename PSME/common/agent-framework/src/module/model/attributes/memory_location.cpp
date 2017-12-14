@@ -33,8 +33,8 @@ MemoryLocation::MemoryLocation() { }
 
 MemoryLocation::~MemoryLocation() { }
 
-Json::Value MemoryLocation::to_json() const {
-    Json::Value result{};
+json::Json MemoryLocation::to_json() const {
+    json::Json result{};
     result[literals::MemoryLocation::SOCKET] = get_socket();
     result[literals::MemoryLocation::CONTROLLER] = get_controller();
     result[literals::MemoryLocation::CHANNEL] = get_channel();
@@ -42,11 +42,8 @@ Json::Value MemoryLocation::to_json() const {
     return result;
 }
 
-MemoryLocation MemoryLocation::from_json(const Json::Value& json) {
+MemoryLocation MemoryLocation::from_json(const json::Json& json) {
     attribute::MemoryLocation location{};
-    if (!json) {
-        return location;
-    }
     location.set_socket(json[literals::MemoryLocation::SOCKET]);
     location.set_controller(json[literals::MemoryLocation::CONTROLLER]);
     location.set_channel(json[literals::MemoryLocation::CHANNEL]);

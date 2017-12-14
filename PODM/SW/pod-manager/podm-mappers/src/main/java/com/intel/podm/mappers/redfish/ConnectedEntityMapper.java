@@ -18,7 +18,7 @@ package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
 import com.intel.podm.business.entities.redfish.embeddables.PciId;
-import com.intel.podm.client.api.resources.redfish.ConnectedEntityResource;
+import com.intel.podm.client.resources.redfish.ConnectedEntityResource;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.IdentifierMapper;
 
@@ -39,6 +39,7 @@ public class ConnectedEntityMapper extends EntityMapper<ConnectedEntityResource,
 
     @Override
     public void performNotAutomatedMapping(ConnectedEntityResource sourceConnectedEntity, ConnectedEntity targetConnectedEntity) {
+        super.performNotAutomatedMapping(source, target);
         if (sourceConnectedEntity.getEntityPciId() != null) {
             PciId pciId = new PciId();
             pciIdMapper.map(sourceConnectedEntity.getEntityPciId(), pciId);

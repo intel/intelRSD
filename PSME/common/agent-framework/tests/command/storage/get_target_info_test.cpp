@@ -64,8 +64,8 @@ TEST(GetIscsiTargetInfoTest, PositiveExecute) {
     MyGetIscsiTargetInfo command{"TestIscsiTarget"};
     GetIscsiTargetInfo::Request request{""};
     GetIscsiTargetInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::IscsiTarget::TARGET] = "TestIscsiTarget";
 
@@ -90,8 +90,8 @@ TEST(GetIscsiTargetInfoTest, NegativeIscsiTargetNotFound) {
     MyGetIscsiTargetInfo command{"TestIscsiTarget"};
     GetIscsiTargetInfo::Request request{""};
     GetIscsiTargetInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::IscsiTarget::TARGET] = "OtherTestIscsiTarget";
 

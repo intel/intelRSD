@@ -50,9 +50,6 @@ constexpr const char Collections::SLOT_MASK[];
 constexpr const char Collection::COMPONENT[];
 constexpr const char Collection::NAME[];
 
-constexpr const char HeartBeat::TIME_STAMP[];
-constexpr const char HeartBeat::MIN_DELAY[];
-
 constexpr const char Oem::OEM[];
 
 constexpr const char Component::COMPONENT[];
@@ -84,6 +81,10 @@ constexpr const char SerialConsole::ENABLED[];
 constexpr const char SerialConsole::MAX_SESSIONS[];
 constexpr const char SerialConsole::TYPES_SUPPORTED[];
 
+constexpr const char ProcessorMemory::TYPE[];
+constexpr const char ProcessorMemory::CAPACITY_MB[];
+constexpr const char ProcessorMemory::SPEED_MHZ[];
+
 constexpr const char NetworkService::NETWORK_SERVICES[];
 constexpr const char NetworkService::NAME[];
 constexpr const char NetworkService::PORT[];
@@ -106,6 +107,10 @@ constexpr const char Manager::PARENT_ID[];
 constexpr const char Manager::GUID[];
 constexpr const char Manager::DATE_TIME[];
 constexpr const char Manager::DATE_TIME_LOCAL_OFFSET[];
+constexpr const char Manager::RESET[];
+constexpr const char Manager::FACTORY_DEFAULTS[];
+constexpr const char Manager::PACKAGE_URL[];
+constexpr const char Manager::ALLOWED_ACTIONS[];
 
 constexpr const char GraphicalConsole::ENABLED[];
 constexpr const char GraphicalConsole::MAX_SESSIONS[];
@@ -131,7 +136,6 @@ constexpr const char Intel::INTEL_CORP[];
 
 constexpr const char Drive::DRIVE[];
 constexpr const char Drive::STATUS[];
-constexpr const char Drive::PHYSICAL_ID[];
 constexpr const char Drive::INTERFACE[];
 constexpr const char Drive::TYPE[];
 constexpr const char Drive::RPM[];
@@ -165,7 +169,7 @@ constexpr const char Identifier::DURABLE_NAME[];
 constexpr const char Identifier::DURABLE_NAME_FORMAT[];
 
 constexpr const char Message::MESSAGE_ID[];
-constexpr const char Message::MESSAGE[];
+constexpr const char Message::MESSAGE_CONTENT[];
 constexpr const char Message::RELATED_PROPERTIES[];
 constexpr const char Message::MESSAGE_ARGS[];
 constexpr const char Message::SEVERITY[];
@@ -185,6 +189,49 @@ constexpr const char Task::OEM[];
 constexpr const char ConnectedEntity::ENTITY_TYPE[];
 constexpr const char ConnectedEntity::ENTITY_ROLE[];
 constexpr const char ConnectedEntity::ENTITY[];
+
+constexpr const char Metric::METRIC[];
+constexpr const char Metric::UUID[];
+constexpr const char Metric::NAME[];
+constexpr const char Metric::TIMESTAMP[];
+constexpr const char Metric::COMPONENT[];
+constexpr const char Metric::COMPONENT_TYPE[];
+constexpr const char Metric::VALUE[];
+constexpr const char Metric::METRIC_DEFINITION[];
+constexpr const char Metric::STATUS[];
+
+constexpr const char MetricDefinition::METRIC_DEFINITION[];
+constexpr const char MetricDefinition::NAME[];
+constexpr const char MetricDefinition::DESCRIPTION[];
+constexpr const char MetricDefinition::IMPLEMENTATION[];
+constexpr const char MetricDefinition::CALCULABLE[];
+constexpr const char MetricDefinition::UNITS[];
+constexpr const char MetricDefinition::DATA_TYPE[];
+constexpr const char MetricDefinition::IS_LINEAR[];
+constexpr const char MetricDefinition::METRIC_TYPE[];
+constexpr const char MetricDefinition::WILDCARDS[];
+constexpr const char MetricDefinition::CALCULATION_PARAMETERS[];
+constexpr const char MetricDefinition::PHYSICAL_CONTEXT[];
+constexpr const char MetricDefinition::SENSOR_TYPE[];
+constexpr const char MetricDefinition::SENSING_INTERVAL[];
+constexpr const char MetricDefinition::DISCRETE_VALUES[];
+constexpr const char MetricDefinition::PRECISION[];
+constexpr const char MetricDefinition::ACCURACY[];
+constexpr const char MetricDefinition::CALIBRATION[];
+constexpr const char MetricDefinition::TIME_STAMP_ACCURACY[];
+constexpr const char MetricDefinition::MIN_READING_RANGE[];
+constexpr const char MetricDefinition::MAX_READING_RANGE[];
+constexpr const char MetricDefinition::CALCULATION_ALGORITHM[];
+constexpr const char MetricDefinition::CALCULATION_TIME_INTERVAL[];
+constexpr const char MetricDefinition::CALCULATION_PRECISION[];
+constexpr const char MetricDefinition::DISCRETE_METRIC_TYPE[];
+constexpr const char MetricDefinition::SHOREUP_PERIOD[];
+
+constexpr const char Wildcard::NAME[];
+constexpr const char Wildcard::VALUES[];
+
+constexpr const char CalculationParameters::SOURCE_METRIC[];
+constexpr const char CalculationParameters::RESULT_METRIC[];
 
 }
 }

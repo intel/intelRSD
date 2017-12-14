@@ -17,16 +17,19 @@
 package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.ComposedNodeCollectionDto;
-import com.intel.podm.redfish.json.templates.ComposedNodeCollectionJson;
 import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.redfish.json.templates.ComposedNodeCollectionJson;
 import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
 
-import java.util.stream.Collectors;
+import javax.enterprise.context.Dependent;
 
-import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromODataType;
 import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.appendOdataId;
 import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
+import static com.intel.podm.redfish.serializers.CollectionTypeToCollectionODataMapping.getOdataForCollectionType;
+import static java.util.stream.Collectors.toList;
 
+@Dependent
 public class ComposedNodeCollectionDtoJsonSerializer extends DtoJsonSerializer<ComposedNodeCollectionDto> {
 
     public ComposedNodeCollectionDtoJsonSerializer() {
@@ -35,17 +38,17 @@ public class ComposedNodeCollectionDtoJsonSerializer extends DtoJsonSerializer<C
 
     @Override
     protected ComposedNodeCollectionJson translate(ComposedNodeCollectionDto composedNodeCollectionDto) {
-        ODataForCollection oData = CollectionTypeToCollectionODataMapping.getOdataForCollectionType(composedNodeCollectionDto.getType());
+        ODataForCollection oData = getOdataForCollectionType(composedNodeCollectionDto.getType());
 
         ComposedNodeCollectionJson composedNodeCollectionJson = new ComposedNodeCollectionJson(oData.getODataType());
 
         ODataId oDataId = oDataIdFromUri(context.getRequestPath());
-        composedNodeCollectionJson.oDataContext = getContextFromId(oDataId);
+        composedNodeCollectionJson.oDataContext = getContextFromODataType(oData.getODataType());
         composedNodeCollectionJson.oDataId = oDataId;
         composedNodeCollectionJson.name = oData.getName();
         composedNodeCollectionJson.members.addAll(composedNodeCollectionDto.getMembers().stream()
             .map(id -> appendOdataId(composedNodeCollectionJson.oDataId, id))
-            .collect(Collectors.toList()));
+            .collect(toList()));
         composedNodeCollectionJson.actions.allocate.target = composedNodeCollectionJson.oDataId + "/Actions/Allocate";
 
         return composedNodeCollectionJson;

@@ -18,7 +18,7 @@
  * limitations under the License.
  *
  *
- * @file manager_utils.hpp
+ * @file manager_utils.cpp
  * @brief Utilities used by managers.
  * */
 
@@ -27,6 +27,7 @@
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/network_components.hpp"
 #include "agent-framework/module/storage_components.hpp"
+#include "agent-framework/module/chassis_components.hpp"
 #include "agent-framework/module/pnc_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 
@@ -42,6 +43,11 @@ GenericManager<model::Manager>& get_manager<model::Manager>() { return CommonCom
 template<>
 GenericManager<model::Task>& get_manager<model::Task>() { return CommonComponents::get_instance()->get_task_manager(); }
 
+template<>
+GenericManager<model::Metric>& get_manager<model::Metric>() { return CommonComponents::get_instance()->get_metric_manager(); }
+
+template<>
+GenericManager<model::MetricDefinition>& get_manager<model::MetricDefinition>() { return CommonComponents::get_instance()->get_metric_definition_manager(); }
 
 template<>
 GenericManager<model::Chassis>& get_manager<model::Chassis>() { return CommonComponents::get_instance()->get_chassis_manager(); }
@@ -57,18 +63,17 @@ template<>
 GenericManager<model::StorageSubsystem>& get_manager<model::StorageSubsystem>() { return CommonComponents::get_instance()->get_storage_subsystem_manager(); }
 
 
+template<>
+GenericManager<model::NetworkInterface>& get_manager<model::NetworkInterface>() { return CommonComponents::get_instance()->get_network_interface_manager(); }
+
 // template specializations for compute components
 
 template<>
-GenericManager<model::Processor>& get_manager<model::Processor>() { return ComputeComponents::get_instance()->get_processor_manager(); }
+GenericManager<model::Processor>& get_manager<model::Processor>() { return CommonComponents::get_instance()->get_processor_manager(); }
 
 
 template<>
 GenericManager<model::Memory>& get_manager<model::Memory>() { return ComputeComponents::get_instance()->get_memory_manager(); }
-
-
-template<>
-GenericManager<model::NetworkInterface>& get_manager<model::NetworkInterface>() { return ComputeComponents::get_instance()->get_network_interface_manager(); }
 
 
 template<>
@@ -81,6 +86,10 @@ GenericManager<model::NetworkDevice>& get_manager<model::NetworkDevice>() { retu
 
 template<>
 GenericManager<model::NetworkDeviceFunction>& get_manager<model::NetworkDeviceFunction>() { return ComputeComponents::get_instance()->get_network_device_function_manager(); }
+
+
+template<>
+GenericManager<model::TrustedModule>& get_manager<model::TrustedModule>() { return ComputeComponents::get_instance()->get_trusted_module_manager(); }
 
 // template specializations for network components
 
@@ -118,7 +127,7 @@ GenericManager<model::StaticMac>& get_manager<model::StaticMac>() { return Netwo
 // template specializations for storage components
 
 template<>
-GenericManager<model::StorageServices>& get_manager<model::StorageServices>() { return StorageComponents::get_instance()->get_storage_services_manager(); }
+GenericManager<model::StorageService>& get_manager<model::StorageService>() { return StorageComponents::get_instance()->get_storage_service_manager(); }
 
 
 template<>
@@ -159,6 +168,22 @@ GenericManager<model::PcieDevice>& get_manager<model::PcieDevice>() { return Pnc
 template<>
 GenericManager<model::PcieFunction>& get_manager<model::PcieFunction>() { return PncComponents::get_instance()->get_pcie_function_manager(); }
 
+// template specializations for chassis/rmm components
+
+template<>
+GenericManager<model::PowerZone>& get_manager<model::PowerZone>() { return ChassisComponents::get_instance()->get_power_zone_manager(); }
+
+template<>
+GenericManager<model::ThermalZone>& get_manager<model::ThermalZone>() { return ChassisComponents::get_instance()->get_thermal_zone_manager(); }
+
+template<>
+GenericManager<model::Fan>& get_manager<model::Fan>() { return ChassisComponents::get_instance()->get_fan_manager(); }
+
+template<>
+GenericManager<model::Psu>& get_manager<model::Psu>() { return ChassisComponents::get_instance()->get_psu_manager(); }
+
+template<>
+GenericManager<model::ChassisSensor>& get_manager<model::ChassisSensor>() { return ChassisComponents::get_instance()->get_chassis_sensor_manager(); }
 
 // template specializations for ManyToMany managers
 

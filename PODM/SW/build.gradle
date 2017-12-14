@@ -41,7 +41,7 @@ def readBuildVersion() {
 
 def buildVersion = readBuildVersion()
 def reportsDir = new File(rootDir, 'reports')
-def checkstyleReportsDir =  new File(reportsDir, 'checkstyle')
+def checkstyleReportsDir = new File(reportsDir, 'checkstyle')
 
 allprojects {
     apply plugin: 'idea'
@@ -60,21 +60,22 @@ project.ext {
     jacocoToolVersion = "0.7.9"
 
     // library versions
-    checkstyleVer = '7.1.2'
+    checkstyleVer = '7.5'
     hamcrestVer = '1.3'
     mockitoVer = '1.10.19'
     testNgVer = '6.9.13.6'
     junitVer = '4.12'
+    guavaVer = '18.0'
+    assertjVer = '3.8.0'
     cornCpsVer = '1.1.10'
-    dnaCommonVer = '0.7'
+    modeshapeCommonVer = '5.4.1.Final'
     javaParserCoreVer = '2.5.1'
     wildflyVer = '10.0.0.Final'
     commonsValVer = '1.5.0'
-    commonsLangVer = '2.6'
+    commonsLangVer = '3.6'
     commonsCollectionsVer = '3.2.2'
     commonsIoVer = '2.4'
     commonsNetVer = '3.4'
-    classIndexVer = '3.4'
     metricsVer = '1.3.5'
     clingVer = '2.0.1'
     liquibaseVer = '3.5.2'
@@ -92,14 +93,15 @@ project.ext {
     JACKSON_PROVIDER_DEPENDENCY = "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:$JACKSON_VERSION"
     JACKSON_JSR310_DEPENDENCY = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$JACKSON_VERSION"
 
-    GUAVA_DEPENDENCY = 'com.google.guava:guava:18.0'
+    GUAVA_DEPENDENCY = "com.google.guava:guava:$guavaVer"
+    JUNIT_DEPENDENCY = "junit:junit:$junitVer"
+    ASSERTJ_DEPENDENCY = "org.assertj:assertj-core:$assertjVer"
 
-    APACHE_COMMONS_VALIDATOR = "commons-validator:commons-validator:$commonsValVer";
-    APACHE_COMMONS_LANG = "commons-lang:commons-lang:$commonsLangVer";
-    APACHE_COMMONS_COLLECTIONS = "commons-collections:commons-collections:$commonsCollectionsVer";
-    APACHE_COMMONS_IO = "commons-io:commons-io:$commonsIoVer";
+    APACHE_COMMONS_VALIDATOR = "commons-validator:commons-validator:$commonsValVer"
+    APACHE_COMMONS_LANG = "org.apache.commons:commons-lang3:$commonsLangVer"
+    APACHE_COMMONS_COLLECTIONS = "commons-collections:commons-collections:$commonsCollectionsVer"
+    APACHE_COMMONS_IO = "commons-io:commons-io:$commonsIoVer"
     APACHE_COMMONS_NET = "commons-net:commons-net:$commonsNetVer"
-    CLASS_INDEX = "org.atteo.classindex:classindex:$classIndexVer";
 
     CLING_CORE = "org.fourthline.cling:cling-core:$clingVer"
 
@@ -132,7 +134,7 @@ jacoco {
     toolVersion = jacocoToolVersion
 }
 
-configure (subprojects - project(':pod-manager-common')) {
+configure(subprojects - project(':pod-manager-common')) {
 
     apply plugin: 'java'
     apply plugin: 'checkstyle'
@@ -181,11 +183,11 @@ configure (subprojects - project(':pod-manager-common')) {
         testCompile "org.testng:testng:$testNgVer"
         testCompile "org.hamcrest:hamcrest-all:$hamcrestVer"
         testCompile "org.mockito:mockito-all:$mockitoVer"
-        testRuntime "junit:junit:$junitVer" //needed in runtime by mockito...
+        testRuntime "$JUNIT_DEPENDENCY" //needed in runtime by mockito...
         testCompile SLF4J_DEPENDENCY
         testCompile "net.sf.corn:corn-cps:$cornCpsVer"
-        testCompile "$CLASS_INDEX"
-        testCompile "org.jboss.dna:dna-common:$dnaCommonVer"
+        testCompile(project(':classindex'))
+        testCompile "org.modeshape:modeshape-common:$modeshapeCommonVer"
         testCompile "com.github.javaparser:javaparser-core:$javaParserCoreVer"
     }
 
@@ -209,7 +211,7 @@ configure (subprojects - project(':pod-manager-common')) {
         testLogging {
             showStandardStreams = false
             //event to log on gradle output
-            events = [ "skipped", "passed", "failed" ]
+            events = ["skipped", "passed", "failed"]
             exceptionFormat = "full"
             showExceptions = true
             showCauses = true
@@ -222,8 +224,8 @@ configure (subprojects - project(':pod-manager-common')) {
  * podm-rest is configured at this point because all projects
  * have to be aware that this project produces war artifact
  */
-configure (project(':podm-rest')) {
-    apply plugin:'war'
+configure(project(':podm-rest')) {
+    apply plugin: 'war'
 }
 
 task gatherSrc << {
@@ -242,35 +244,59 @@ task gatherSrc << {
     }
 
     copy {
-        from (".")
+        from(".")
         into buildDir + "/" + project.name
         include "*.gradle", "gradlew*", "README", "LICENSE"
         // It intentionally omits gradle.properties from resulting tgz package
     }
 
     copy {
-        from ("gradle")
+        from("gradle")
         into buildDir + "/" + project.name + "/gradle"
     }
 
     copy {
-        from ("config")
+        from("config")
         into buildDir + "/" + project.name + "/config"
     }
 
     copy {
-        from ("node_scripts")
+        from("node_scripts")
         into buildDir + "/" + project.name + "/node_scripts"
     }
 
     copy {
-        from ("external")
+        from("external")
         into buildDir + "/" + project.name + "/external"
     }
 
     copy {
-        from ("licences")
+        from("licences")
         into buildDir + "/" + project.name + "/licences"
+    }
+
+    copy {
+        from(".")
+        include "pod-manager-install.py"
+        into buildDir + "/" + project.name
+    }
+}
+
+subprojects {
+    task listAllDependencies(type: DependencyReportTask) {
+        outputFile = file('module_dependencies.txt')
+    }
+}
+
+task createDependenciesFile() {
+    dependsOn subprojects.listAllDependencies
+}
+
+task createIpPlan(type: Exec, dependsOn: ':createDependenciesFile') {
+    workingDir 'ip_plan'
+    commandLine 'python3', "ip_plan_generator.py"
+    doLast {
+        delete fileTree(dir: '.', include: '**/module_dependencies.txt')
     }
 }
 
@@ -289,7 +315,7 @@ task srcTar(type: Tar, dependsOn: gatherSrc) {
 task copyJacocoAgentJar(type: Copy) {
     description """Copies jacocoAgent jar file to location specified by jacocoJarDestination property - default value: jacocoAgent.
 Usage: ./gradlew copyJacocoAgentJar -PjacocoJarDestinationDir=/home/podm/jacocoAgent"""
-    from (zipTree(configurations.jacocoAgent.singleFile)) {
+    from(zipTree(configurations.jacocoAgent.singleFile)) {
         include "jacocoagent.jar"
     }
     into project.jacocoJarDestinationDir

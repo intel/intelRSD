@@ -17,13 +17,11 @@
 package com.intel.podm.redfish.json.templates.assembly;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.types.MediaType;
 import com.intel.podm.common.types.Protocol;
-import com.intel.podm.common.types.deserialization.PositiveIntegerDeserializer;
-import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.math.BigDecimal;
 
@@ -40,7 +38,6 @@ public final class RequestedLocalDriveImpl implements RequestedNode.LocalDrive {
     private MediaType type;
 
     @JsonProperty("MinRPM")
-    @JsonDeserialize(using = PositiveIntegerDeserializer.class)
     private BigDecimal minRpm;
 
     @JsonProperty
@@ -49,12 +46,12 @@ public final class RequestedLocalDriveImpl implements RequestedNode.LocalDrive {
     @JsonProperty("Interface")
     private Protocol protocol;
 
-    @JsonProperty("FabricSwitch")
-    private Boolean isFromFabricSwitch;
-
     private Context resourceContext;
 
     private Context chassisContext;
+
+    @JsonProperty("FabricSwitch")
+    private Boolean isFromFabricSwitch;
 
     @Override
     public BigDecimal getCapacityGib() {

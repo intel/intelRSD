@@ -1,6 +1,4 @@
 /*!
- * @section LICENSE
- *
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation
  *
@@ -19,8 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
  * */
 
 #include "agent-framework/version.hpp"
@@ -37,8 +33,6 @@
 #include <ifaddrs.h>
 #include <thread>
 
-using std::string;
-using std::runtime_error;
 using namespace agent::storage::loader;
 using namespace agent_framework::module;
 using namespace agent_framework::generic;
@@ -55,7 +49,7 @@ void StorageLoader::IfAddrsDeleter::operator()(struct ifaddrs *ifa) const {
     freeifaddrs(ifa);
 }
 
-const string StorageLoader::get_iface_ipaddress(const string& iface) const {
+const std::string StorageLoader::get_iface_ipaddress(const std::string& iface) const {
     /* Agent is useless without portal IP, will not continue until it is set */
     while (true) {
         struct ifaddrs *ifa = nullptr;
@@ -73,15 +67,13 @@ const string StorageLoader::get_iface_ipaddress(const string& iface) const {
                 }
             }
         }
-        log_error(GET_LOGGER("storage-agent"),
-                    "Could not read IP address from interface " << iface);
+        log_error(GET_LOGGER("storage-agent"), "Could not read IP address from interface " << iface);
         std::this_thread::sleep_for(std::chrono::seconds(WAIT_FOR_ADDRESS_SEC));
     }
 }
 
 void StorageLoader::read_managers(const json::Value& json) {
-    if (json.is_member("managers") && json["managers"].is_array() &&
-        json["managers"].size()) {
+    if (json.is_member("managers") && json["managers"].is_array() && json["managers"].size()) {
         for (const auto& manager_json : json["managers"].as_array()) {
             CommonComponents::get_instance()->
                 get_module_manager().add_entry(make_manager(manager_json));
@@ -97,8 +89,11 @@ Manager StorageLoader::make_manager(const json::Value& json) {
     Manager manager{};
     manager.set_manager_type(enums::ManagerInfoType::EnclosureManager);
     manager.set_status({enums::State::Enabled, enums::Health::OK});
-    manager.add_collection({CollectionName::StorageServices,
-        CollectionType::StorageServices, ""});
+    manager.add_collection({
+        CollectionName::StorageServices,
+        CollectionType::StorageServices,
+        ""
+    });
     manager.set_firmware_version(Version::VERSION_STRING);
     /* check manager config type */
     if (!json.is_object()) {
@@ -112,17 +107,14 @@ Manager StorageLoader::make_manager(const json::Value& json) {
     manager.set_serial_console(std::move(console));
 
     /* check if storage services exists */
-    Component storage_name{Component::StorageServices};
-    if (json.is_member(storage_name.to_string()) &&
-        json[storage_name.to_string()].is_array() &&
-        json[storage_name.to_string()].size()) {
+    std::string storage_name{"storageServices"};
+    if (json.is_member(storage_name) &&
+        json[storage_name].is_array() &&
+        json[storage_name].size()) {
         /* read storage services */
-        for (const auto& storage_json :
-            json[storage_name.to_string()].as_array()) {
-            get_manager<StorageServices>().add_entry(
-                make_storage_services(storage_json, manager.get_uuid()));
-            log_debug(GET_LOGGER("storage-agenta"),
-                "Create StorageServices model");
+        for (const auto& storage_json : json[storage_name].as_array()) {
+            get_manager<StorageService>().add_entry(make_storage_service(storage_json, manager.get_uuid()));
+            log_debug(GET_LOGGER("storage-agent"), "Create StorageService model");
         }
     }
     else {
@@ -131,12 +123,11 @@ Manager StorageLoader::make_manager(const json::Value& json) {
     return manager;
 }
 
-StorageServices StorageLoader::make_storage_services(const json::Value& json,
-    const std::string& uuid) {
-    StorageServices storage_services{uuid};
+StorageService StorageLoader::make_storage_service(const json::Value& json, const std::string& uuid) {
+    StorageService storage_service{uuid};
     /* check storage config type */
     if (!json.is_object()) {
-        throw std::runtime_error("'StorageServices' field invalid type");
+        throw std::runtime_error("'storageServices' field invalid type");
     }
     /* read iscsi configuration */
     if (json.is_member("iscsi") && json["iscsi"].is_object()) {
@@ -151,22 +142,17 @@ StorageServices StorageLoader::make_storage_services(const json::Value& json,
         if (iscsi_json.is_member("port") && iscsi_json["port"].is_uint()) {
             iscsi_data.set_portal_port(iscsi_json["port"].as_uint());
         }
-        if (iscsi_json.is_member("username") &&
-                                    iscsi_json["username"].is_string()) {
+        if (iscsi_json.is_member("username") && iscsi_json["username"].is_string()) {
             iscsi_data.set_username(iscsi_json["username"].as_string());
         }
-        if (iscsi_json.is_member("password") &&
-                                    iscsi_json["password"].is_string()) {
+        if (iscsi_json.is_member("password") && iscsi_json["password"].is_string()) {
             iscsi_data.set_password(iscsi_json["password"].as_string());
         }
-        if (iscsi_json.is_member("initiator") &&
-                                    iscsi_json["initiator"].is_string()) {
+        if (iscsi_json.is_member("initiator") && iscsi_json["initiator"].is_string()) {
             iscsi_data.set_initiator(iscsi_json["initiator"].as_string());
         }
-        if (iscsi_json.is_member("config-path") &&
-                                iscsi_json["config-path"].is_string()) {
-            iscsi_data.set_configuration_path(
-                                iscsi_json["config-path"].as_string());
+        if (iscsi_json.is_member("config-path") && iscsi_json["config-path"].is_string()) {
+            iscsi_data.set_configuration_path(iscsi_json["config-path"].as_string());
         }
         auto& iscsi_manager = get_manager<IscsiTarget, IscsiTargetManager>();
         iscsi_manager.set_iscsi_data(std::move(iscsi_data));
@@ -174,14 +160,20 @@ StorageServices StorageLoader::make_storage_services(const json::Value& json,
     else {
         throw std::runtime_error("StorageServices iSCSI data is missing");
     }
-    storage_services.set_status({State::Enabled, Health::OK});
-    storage_services.add_collection({CollectionName::PhysicalDrives,
-                                    CollectionType::PhysicalDrives, ""});
-    storage_services.add_collection({CollectionName::LogicalDrives,
-                                    CollectionType::LogicalDrives, ""});
-    storage_services.add_collection({CollectionName::iSCSITargets,
-                                    CollectionType::iSCSITargets, ""});
-    return storage_services;
+    storage_service.set_status({State::Enabled, Health::OK});
+    storage_service.add_collection({
+        CollectionName::PhysicalDrives,
+        CollectionType::PhysicalDrives, ""
+    });
+    storage_service.add_collection({
+        CollectionName::LogicalDrives,
+        CollectionType::LogicalDrives, ""
+    });
+    storage_service.add_collection({
+        CollectionName::iSCSITargets,
+        CollectionType::iSCSITargets, ""
+    });
+    return storage_service;
 }
 
 bool StorageLoader::load(const json::Value& json) {

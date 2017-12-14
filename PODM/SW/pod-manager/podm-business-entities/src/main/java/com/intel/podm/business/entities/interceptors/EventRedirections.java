@@ -39,13 +39,14 @@ import java.util.stream.Stream;
 
 import static com.google.common.cache.CacheBuilder.newBuilder;
 import static com.intel.podm.common.types.Pair.pairOf;
-import static com.intel.podm.common.utils.FieldUtils.getFieldsListWithAnnotation;
-import static com.intel.podm.common.utils.MethodUtils.getMethodsListWithAnnotation;
 import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.reflect.FieldUtils.getFieldsListWithAnnotation;
+import static org.apache.commons.lang3.reflect.MethodUtils.getMethodsListWithAnnotation;
 
 @ApplicationScoped
 public class EventRedirections {
@@ -83,15 +84,13 @@ public class EventRedirections {
     }
 
     private Map<String, List<Field>> findSources(Class<?> clazz) {
-        return getFieldsListWithAnnotation(clazz, EventRedirectionSource.class)
-            .stream()
+        return getFieldsListWithAnnotation(clazz, EventRedirectionSource.class).stream()
             .map(redirectionSource -> pairOf(findRedirectionKey(redirectionSource), redirectionSource))
             .collect(groupingBy(pair -> pair.first(), mapping(Pair::second, toList())));
     }
 
     private Map<String, Method> findTargets(Class<?> clazz) {
-        return getMethodsListWithAnnotation(clazz, EventRedirectionTarget.class)
-            .stream()
+        return getMethodsListWithAnnotation(clazz, EventRedirectionTarget.class).stream()
             .map(redirectionTarget -> pairOf(findRedirectionKey(redirectionTarget), redirectionTarget))
             .collect(toMap(Pair::first, Pair::second));
     }
@@ -127,7 +126,7 @@ public class EventRedirections {
 
         public Optional<Entity> findTargetEntity(Entity sourceEntity) {
             try {
-                return Optional.ofNullable((Entity) targetProvider.invoke(sourceEntity));
+                return ofNullable((Entity) targetProvider.invoke(sourceEntity));
             } catch (IllegalAccessException | InvocationTargetException e) {
                 LOGGER.e("Redirection target cannot be found for entity({})", sourceEntity);
                 return empty();

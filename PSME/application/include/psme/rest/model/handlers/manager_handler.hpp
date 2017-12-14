@@ -43,8 +43,7 @@ protected:
     template<typename T>
     using Array = agent_framework::model::attribute::Array<T>;
     using Managers = Array<agent_framework::model::attribute::ManagerEntry>;
-    using SubcomponentEntry =
-        agent_framework::model::attribute::SubcomponentEntry;
+    using SubcomponentEntry = agent_framework::model::attribute::SubcomponentEntry;
 
     Array<SubcomponentEntry> fetch_sibling_uuid_list(Context& ctx,
             const std::string& parent_uuid, const std::string& collection_name) override {
@@ -57,24 +56,21 @@ protected:
                     <<  "Fetching list of all managers from agent "
                     << ctx.agent->get_gami_id());
 
-                agent_framework::model::requests::GetManagersCollection
-                    collection{};
-                auto manager_entries = ctx.agent->execute<Managers>(
-                    collection);
+                agent_framework::model::requests::GetManagersCollection collection{};
+                auto manager_entries = ctx.agent->execute<Managers>(collection);
 
                 // Convert array of ManagerEntry to Array of SubcomponentEntry
-                Array<SubcomponentEntry> res;
+                Array<SubcomponentEntry> response;
                 for (const auto& entry : manager_entries) {
-                    res.add_entry(entry.get_manager());
+                    response.add_entry(entry.get_manager());
                 }
-                return res;
+                return response;
             }
             else {
-                return ManagerHandlerBase::fetch_sibling_uuid_list(ctx,
-                    parent_uuid, collection_name);
+                return ManagerHandlerBase::fetch_sibling_uuid_list(ctx, parent_uuid, collection_name);
             }
         }
-        catch (const jsonrpc::JsonRpcException& e) {
+        catch (const json_rpc::JsonRpcException& e) {
             log_error(GET_LOGGER("rest"), ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Agent exception while fetching list of all components of "

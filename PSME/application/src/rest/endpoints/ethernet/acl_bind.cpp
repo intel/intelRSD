@@ -26,6 +26,7 @@
 #include "psme/rest/constants/constants.hpp"
 #include "psme/core/agent/agent_manager.hpp"
 #include "psme/rest/validators/json_validator.hpp"
+#include "psme/rest/validators/schemas/acl.hpp"
 #include "psme/rest/endpoints/ethernet/acl_bind.hpp"
 #include "psme/rest/server/error/error_factory.hpp"
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
@@ -40,26 +41,13 @@ using namespace agent_framework::model;
 using NetworkComponents = agent_framework::module::NetworkComponents;
 
 namespace {
-json::Value validate_post_request(const server::Request& request) {
-    json::Value schema({
-        JsonValidator::object(constants::Acl::BIND_PORT, {
-            JsonValidator::mandatory(Common::ODATA_ID,
-                JsonValidator::has_type(JsonValidator::STRING_TYPE))
-        })
-    });
-    return  JsonValidator::validate_request_body(request, schema);
-}
 
-std::pair<std::string, std::string> get_acl_and_port_uuid(const server::Request& request) {
-    const auto json = validate_post_request(request);
-    const auto acl_uuid = NetworkComponents::get_instance()->
-        get_acl_manager().rest_id_to_uuid(
-        endpoint::utils::id_to_uint64(request.params[PathParam::ACL_ID]),
-        NetworkComponents::get_instance()->
-        get_switch_manager().rest_id_to_uuid(
-        endpoint::utils::id_to_uint64(request.params[PathParam::ETHERNET_SWITCH_ID])));
-    const auto port_uuid = endpoint::utils::get_port_uuid_from_url(
-        json[constants::Acl::BIND_PORT][Common::ODATA_ID].as_string());
+std::pair<std::string, std::string> get_acl_and_port_uuid(const server::Request& request, const json::Value& json) {
+    const auto acl_uuid = psme::rest::model::Find<agent_framework::model::Acl>(request.params[PathParam::ACL_ID])
+        .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
+        .get_uuid();
+    const auto port_uuid =
+        endpoint::utils::get_port_uuid_from_url(json[constants::Acl::PORT][Common::ODATA_ID].as_string());
 
     return std::make_pair(acl_uuid, port_uuid);
 }
@@ -72,7 +60,8 @@ namespace endpoint {
 // Action Bind
 template<>
 void endpoint::AclBind<true>::post(const server::Request& request, server::Response& response) {
-    const auto acl_port_pair = get_acl_and_port_uuid(request);
+    const auto json = JsonValidator::validate_request_body<schema::AclPostSchema>(request);
+    const auto acl_port_pair = get_acl_and_port_uuid(request, json);
 
     if (NetworkComponents::get_instance()->get_acl_port_manager().entry_exists(acl_port_pair.first, acl_port_pair.second)) {
         THROW(agent_framework::exceptions::InvalidValue, "rest",
@@ -99,7 +88,8 @@ void endpoint::AclBind<true>::post(const server::Request& request, server::Respo
 // Action UnBind
 template<>
 void endpoint::AclBind<false>::post(const server::Request& request, server::Response& response) {
-    const auto acl_port_pair = get_acl_and_port_uuid(request);
+    const auto json = JsonValidator::validate_request_body<schema::AclPostSchema>(request);
+    const auto acl_port_pair = get_acl_and_port_uuid(request, json);
 
     if (!NetworkComponents::get_instance()->get_acl_port_manager().entry_exists(acl_port_pair.first, acl_port_pair.second)) {
         THROW(agent_framework::exceptions::InvalidValue, "rest",
@@ -113,8 +103,10 @@ void endpoint::AclBind<false>::post(const server::Request& request, server::Resp
         attribute::Oem()
     };
 
-    const auto agent_id = model::Find<agent_framework::model::EthernetSwitch>
-        (request.params[PathParam::ETHERNET_SWITCH_ID]).get().get_agent_id();
+    const auto agent_id =
+        model::Find<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
+            .get()
+            .get_agent_id();
 
     const auto delete_acl_port_response = AgentManager::get_instance()->
         call_method<responses::DeleteAclPort>(agent_id, delete_acl_port_request);

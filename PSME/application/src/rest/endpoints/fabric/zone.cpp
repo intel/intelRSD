@@ -30,7 +30,7 @@
 #include "psme/rest/utils/status_helpers.hpp"
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/zone.hpp"
-#include "psme/rest/endpoints/monitor_content_builder.hpp"
+#include "psme/rest/endpoints/task_service/monitor_content_builder.hpp"
 
 
 
@@ -141,7 +141,7 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
     const auto& zone_uuid = zone.get_uuid();
     auto gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(agent_id);
 
-    auto response_renderer = [this, request](Json::Value /* in_json */) -> server::Response {
+    auto response_renderer = [this, request](json::Json /* in_json */) -> server::Response {
         // on finished task, the agent sends a command response. In the case od addZoneEndpoint and deleteZoneEndpoint
         // it has only an Oem field.
         server::Response finished_task_response{};

@@ -23,15 +23,18 @@
  * */
 
 #include "agent-framework/module/storage_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/storage_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/storage_commands.hpp"
 
 #include "lvm/lvm_api.hpp"
 #include "agent-framework/eventing/event_data.hpp"
+#include "agent-framework/action/task_runner.hpp"
+#include "agent-framework/action/task.hpp"
+#include "agent-framework/action/task_creator.hpp"
 #include "event/storage_event.hpp"
 #include "common/utils.hpp"
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
 using namespace agent_framework::module;
@@ -51,10 +54,8 @@ namespace {
         return false;
     }
 
-    void delete_logical_drive(const DeleteLogicalDrive::Request& request, DeleteLogicalDrive::Response&) {
-        const auto logical_drive_uuid = request.get_uuid();
-        const auto logical_drive = get_manager<LogicalDrive>().get_entry(logical_drive_uuid);
 
+    void validate_drive_can_be_deleted(const std::string& logical_drive_uuid, const LogicalDrive& logical_drive) {
         if (State::Starting == logical_drive.get_status().get_state()) {
             THROW(agent_framework::exceptions::InvalidValue, "storage-agent",
                   "Cannot remove logical drive with status Starting");
@@ -80,14 +81,50 @@ namespace {
             THROW(agent_framework::exceptions::InvalidValue,
                   "storage-agent", "Volume group for logical drive not found!");
         }
+    }
 
-        LvmAPI lvm_api;
+
+    void delete_volume(const LogicalDrive& logical_drive) {
+        const auto volume_group = get_manager<LogicalDrive>().get_entry(logical_drive.get_parent_uuid());
+        LvmAPI lvm_api{};
         lvm_api.remove_logical_volume(get_name_from_device_path(volume_group.get_device_path()),
                                       get_name_from_device_path(logical_drive.get_device_path()));
 
-        log_info(GET_LOGGER("storage-agent"), "Logical volume removed: " << logical_drive_uuid);
+        log_info("storage-agent", "Logical volume removed: " << logical_drive.get_uuid());
         // remove from the model
-        get_manager<LogicalDrive>().remove_entry(logical_drive_uuid);
+        get_manager<LogicalDrive>().remove_entry(logical_drive.get_uuid());
+
+        agent::storage::event::send_event(logical_drive.get_uuid(), enums::Component::LogicalDrive,
+                                          agent_framework::eventing::Notification::Remove,
+                                          get_manager<StorageService>().get_keys().front());
+    }
+
+
+    void delete_logical_drive(const DeleteLogicalDrive::Request& request, DeleteLogicalDrive::Response& response) {
+        const auto logical_drive_uuid = request.get_uuid();
+        const auto logical_drive = get_manager<LogicalDrive>().get_entry(logical_drive_uuid);
+
+        validate_drive_can_be_deleted(logical_drive_uuid, logical_drive);
+
+        agent_framework::action::TaskCreator task_creator{};
+        task_creator.prepare_task();
+
+        task_creator.add_subtask(std::bind(delete_volume, logical_drive));
+        task_creator.set_promised_response([]() {
+            DeleteLogicalDrive::Response res{};
+            return res.to_json();
+        });
+        task_creator.set_promised_error_thrower([] () {
+            return agent_framework::exceptions::LvmError("Could not delete logical volume");
+        });
+
+        task_creator.register_task();
+        auto delete_task = task_creator.get_task();
+        agent_framework::action::TaskRunner::get_instance().run(delete_task);
+
+        log_info("storage-agent", "Started task deleting logical volume");
+
+        response.set_task(task_creator.get_task_resource().get_uuid());
     }
 
 }

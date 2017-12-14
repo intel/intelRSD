@@ -38,57 +38,10 @@ using namespace configuration;
 using namespace psme::rest::validators;
 using namespace psme::rest::server;
 using namespace psme::rest::error;
-using json::Pair;
-
-constexpr const char JsonValidator::STRING_TYPE[];
-constexpr const char JsonValidator::DOUBLE_TYPE[];
-constexpr const char JsonValidator::ARRAY_TYPE[];
-constexpr const char JsonValidator::BOOL_TYPE[];
-constexpr const char JsonValidator::UINT_TYPE[];
-constexpr const char JsonValidator::OBJECT_TYPE[];
-constexpr const char JsonValidator::NUMBER_TYPE[];
-
-namespace {
-    void set_mandatory(json::Value& constraints, bool is_mandatory) {
-        constraints[SchemaProperty::MANDATORY] = is_mandatory;
-    }
-}
 
 json::Value JsonValidator::validate_request_body(const Request& request, const jsonrpc::ProcedureValidator& schema) {
     auto json = deserialize_json_from_request(request);
     schema.validate(json);
-    log_debug(GET_LOGGER("rest"), "Request validation passed.");
-    return json;
-}
-
-json::Value JsonValidator::validate_request_body(const Request& request, const json::Value& schema) {
-    auto json = deserialize_json_from_request(request);
-    log_debug(GET_LOGGER("rest"), "Request validation passed.");
-    return validate_request_body(json, schema);
-}
-
-json::Value JsonValidator::validate_request_body(const json::Value& json, const json::Value& schema) {
-    SchemaErrors errors;
-    SchemaValidator validator;
-    SchemaReader reader;
-
-    reader.load_schema(schema, validator);
-    validator.validate(json, errors);
-
-    // Error(s) occurred
-    if (errors.count() > 0) {
-        log_error(GET_LOGGER("rest"), "Bad request:\n" << errors.to_string());
-        ServerError error = ErrorFactory::create_invalid_payload_error();
-        for (const auto& e : errors.get_errors()) {
-            MessageObject message_object{error.get_code(), e.get_message()};
-            for (const auto& path : e.get_paths()) {
-                message_object.add_related_property(path);
-            }
-            error.add_extended_message(message_object);
-        }
-        throw ServerException(error);
-    }
-
     log_debug(GET_LOGGER("rest"), "Request validation passed.");
     return json;
 }
@@ -100,42 +53,6 @@ void JsonValidator::validate_empty_request(const rest::server::Request& request)
     }
 }
 
-
-json::Value JsonValidator::any_of(const std::string& type_to_validate, const json::Value& any_of_values) {
-    return json::Value({
-        Pair(SchemaProperty::VALIDATOR, true),
-        Pair(SchemaProperty::TYPE, type_to_validate),
-        Pair(SchemaProperty::ANY_OF, any_of_values)
-    });
-}
-
-json::Value JsonValidator::has_type(const std::string& type_to_validate) {
-    return json::Value({
-        Pair(SchemaProperty::VALIDATOR, true),
-        Pair(SchemaProperty::TYPE, type_to_validate)
-    });
-}
-
-json::Value JsonValidator::more_than(const double min_value) {
-    return json::Value({
-        Pair(SchemaProperty::VALIDATOR, true),
-        Pair(SchemaProperty::MORE_THAN, min_value)
-    });
-}
-
-json::Value JsonValidator::optional(const std::string& field_name, json::Value constraints) {
-    set_mandatory(constraints, false);
-    return Pair(field_name, constraints);
-}
-
-json::Value JsonValidator::mandatory(const std::string& field_name, json::Value constraints) {
-    set_mandatory(constraints, true);
-    return Pair(field_name, constraints);
-}
-
-json::Value JsonValidator::object(const std::string& field_name, const json::Value& object_of) {
-    return Pair(field_name, object_of);
-}
 
 json::Value JsonValidator::deserialize_json_from_request(const Request& request) {
     json::Deserializer deserializer(request.get_body());

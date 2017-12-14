@@ -24,18 +24,15 @@
 
 #include "agent-framework/eventing/events_queue.hpp"
 #include "agent-framework/eventing/event_data.hpp"
-#include "agent-framework/state_machine/state_machine.hpp"
-#include "agent-framework/state_machine/state_machine_transition.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 using namespace agent_framework::eventing;
-using namespace agent_framework::state_machine;
 
 /* Positive. */
 
 TEST(EventsQueueTest, PositiveEmptyQueue) {
-    std::shared_ptr<EventData> msg = EventsQueue::get_instance()->try_pop();
+    auto msg = EventsQueue::get_instance()->try_pop();
     ASSERT_EQ(msg.get(), nullptr);
 }
 
@@ -48,8 +45,8 @@ TEST(EventsQueueTest, PositiveQueuePushPop) {
 
     EventsQueue::get_instance()->push_back(event_data);
 
-    std::shared_ptr<EventData> out_msg = EventsQueue::get_instance()->try_pop();
+    auto out_msg = EventsQueue::get_instance()->try_pop();
 
     ASSERT_NE(out_msg.get(), nullptr);
-    ASSERT_EQ(out_msg->get_component(), "TestComponentUUID");
+    ASSERT_EQ(out_msg->get_notifications().at(0).get_component(), "TestComponentUUID");
 }

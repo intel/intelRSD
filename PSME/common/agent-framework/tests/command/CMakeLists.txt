@@ -28,9 +28,6 @@ add_gtest(command agent-framework
 target_link_libraries(${test_target}
     ${AGENT_FRAMEWORK_LIB}
     microhttpd
-    jsoncpp
-    jsonrpccpp-server
-    jsonrpccpp-common
     ${UUID_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}

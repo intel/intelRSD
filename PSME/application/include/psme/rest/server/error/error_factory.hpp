@@ -155,11 +155,16 @@ public:
 
     /*!
      * @brief Create Redfish-defined error for missing property.
+     *
      * @param[in] property Name of missing property.
      * @param[in] message Optional extended message.
+     * @param[in] related_properties Optional list of related JSON properties.
+     *
      * @return Property missing error object.
      * */
-    static ServerError create_property_missing_error(const std::string& property, const std::string& message = {});
+    static ServerError create_property_missing_error(const std::string& property,
+                                                     const std::string& message = {},
+                                                     const std::vector<std::string>& related_properties = {});
 
 
     /*!
@@ -224,14 +229,14 @@ public:
      *
      * @param[in] message Extended error message.
      * @param[in] property_name Name of property with not allowable value.
-     * @param[in] allowable_values_property_name Name of property with allowable values.
+     * @param[in] allowable_values_property_name Optional name of property with allowable values.
      *
      * @return Value not in list error.
      * */
     static ServerError create_error_for_not_allowable_value(const std::string& message,
                                                             const std::string& property_name,
                                                             const std::string& property_value,
-                                                            const std::string& allowable_values_property_name);
+                                                            const std::string& allowable_values_property_name = {});
 
 
     /*!

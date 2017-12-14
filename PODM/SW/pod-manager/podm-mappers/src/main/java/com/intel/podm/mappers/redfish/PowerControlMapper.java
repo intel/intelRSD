@@ -17,14 +17,14 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.PowerControl;
-import com.intel.podm.client.api.resources.redfish.PowerResource;
+import com.intel.podm.client.resources.redfish.PowerControlItem;
 import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
 
 @Dependent
-public class PowerControlMapper extends EntityMapper<PowerResource.PowerControl, PowerControl> {
+public class PowerControlMapper extends EntityMapper<PowerControlItem, PowerControl> {
     protected PowerControlMapper() {
-        super(PowerResource.PowerControl.class, PowerControl.class);
+        super(PowerControlItem.class, PowerControl.class);
     }
 }

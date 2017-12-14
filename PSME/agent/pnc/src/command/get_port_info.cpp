@@ -22,10 +22,10 @@
  * */
 
 #include "agent-framework/module/pnc_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/pnc_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/pnc_commands.hpp"
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 

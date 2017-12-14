@@ -29,7 +29,7 @@
 #include "agent-framework/exceptions/gami_exception.hpp"
 #include "agent-framework/generic/singleton.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <map>
 #include <mutex>
@@ -51,7 +51,7 @@ public:
 
     // The first parameter is a task response, second is an exception flag, third is an associated exception object
     // (only classes derived from agent_framework::exceptions::ExceptionBase are supported)
-    using TaskResultValue = std::tuple<Json::Value, bool, agent_framework::exceptions::GamiException>;
+    using TaskResultValue = std::tuple<json::Json, bool, agent_framework::exceptions::GamiException>;
     using TaskResultMap = std::map<std::string, TaskResultValue>;
 
 
@@ -60,18 +60,18 @@ public:
      *
      * @param[in] task_uuid Task UUID
      *
-     * @return Json::Value object representing task result
+     * @return json::Json object representing task result
      * */
-    const Json::Value get_result(const std::string& task_uuid);
+    const json::Json get_result(const std::string& task_uuid);
 
 
     /*!
      * Set task result.
      *
      * @param[in] task_uuid Task UUID
-     * @param[in] result Json::Value object representing task result
+     * @param[in] result json::Json object representing task result
      * */
-    void set_result(const std::string& task_uuid, Json::Value result);
+    void set_result(const std::string& task_uuid, json::Json result);
 
 
     /*!

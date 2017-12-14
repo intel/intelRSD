@@ -16,13 +16,7 @@
 
 package com.intel.podm.common.types.redfish;
 
-import com.intel.podm.common.types.Status;
-
 public interface RedfishVlanNetworkInterface extends RedfishResource {
-    default Status getStatus() {
-        return null;
-    }
-
     default Boolean getVlanEnable() {
         return null;
     }
@@ -32,10 +26,6 @@ public interface RedfishVlanNetworkInterface extends RedfishResource {
     }
 
     default Boolean getTagged() {
-        return null;
-    }
-
-    default Links getLinks() {
         return null;
     }
 }

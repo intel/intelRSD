@@ -28,12 +28,4 @@ public interface RedfishResource {
     default String getDescription() {
         return null;
     }
-
-    default Links getLinks() {
-        return null;
-    }
-
-    interface Links {
-
-    }
 }

@@ -17,77 +17,75 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.StorageControllerDto;
+import com.intel.podm.business.dto.StorageDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.StorageDto;
-import com.intel.podm.business.dto.redfish.attributes.StorageControllerDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Storage;
-import com.intel.podm.business.entities.redfish.StorageController;
-import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.StorageControllerDtoHelper;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.aggregation.ComputerSystemSubResourcesFinder;
+import com.intel.podm.business.redfish.services.aggregation.MultiSourceEntityTreeTraverser;
+import com.intel.podm.business.redfish.services.aggregation.StorageControllerCollectionMerger;
+import com.intel.podm.business.redfish.services.aggregation.StorageMerger;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Set;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.STORAGE;
-import static com.intel.podm.business.redfish.ContextCollections.asChassisContexts;
-import static com.intel.podm.business.redfish.ContextCollections.asDriveContexts;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
-import static java.util.Comparator.comparingLong;
-import static java.util.stream.Collectors.toList;
+import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
+import static java.lang.String.format;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
+@RequestScoped
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
-public class StorageServiceImpl implements ReaderService<StorageDto> {
+class StorageServiceImpl implements ReaderService<StorageDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private StorageControllerDtoHelper storageControllerDtoHelper;
+    private MultiSourceEntityTreeTraverser multiTraverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private ComputerSystemSubResourcesFinder computerSystemSubResourcesFinder;
 
+    @Inject
+    private StorageMerger storageMerger;
+
+    @Inject
+    private StorageControllerCollectionMerger storageControllerCollectionMerger;
+
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context context) throws ContextResolvingException {
         ComputerSystem system = (ComputerSystem) traverser.traverse(context);
-        return new CollectionDto(STORAGE, getAsIdSet(system.getStorages()));
+
+        // Multi-source resources sanity check
+        if (system.isComplementary()) {
+            throw new ContextResolvingException("Specified resource is not a primary resource representation!", context, null);
+        }
+
+        return new CollectionDto(STORAGE, getAsIdSet(computerSystemSubResourcesFinder.getUniqueSubResourcesOfClass(system, Storage.class)));
     }
 
+    @Transactional(REQUIRED)
     @Override
     public StorageDto getResource(Context context) throws ContextResolvingException {
-        Storage storage = (Storage) traverser.traverse(context);
-        return StorageDto.newBuilder()
-            .id(storage.getId().toString())
-            .name(storage.getName())
-            .description(storage.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(storage.getService(), storage.getUnknownOems()))
-            .enclosures(asChassisContexts(storage.getComputerSystem().getChassis()))
-            .drives(asDriveContexts(storage.getDrives()))
-            .storageControllers(mergeDataForStorageController(storage.getAdapters(), storage.getStorageControllers()))
-            .status(storage.getStatus())
-            .build();
-    }
+        Storage storage = (Storage) multiTraverser.traverse(context);
+        StorageDto storageDto = storageMerger.toDto(storage);
+        storageDto.setId(storage.getId().toString());
 
-    private List<StorageControllerDto> mergeDataForStorageController(Set<StorageController> adapters,
-                                                                     Set<StorageController> storageControllers) {
-        List<StorageControllerDto> mergedCollections = adapters.stream()
-            .sorted(comparingLong(Entity::getPrimaryKey))
-            .map(adapter -> storageControllerDtoHelper.createStorageControllerDto(adapter))
-            .collect(toList());
-
-        mergedCollections.addAll(storageControllers.stream()
-            .sorted(comparingLong(Entity::getPrimaryKey))
-            .map(storageController -> storageControllerDtoHelper.createStorageControllerDto(storageController))
-            .collect(toList()));
-
-        return mergedCollections;
+        List<StorageControllerDto> controllers = storageControllerCollectionMerger.getMergedStorageControllerCollection(storage);
+        ODataId oDataId = asOdataId(context);
+        for (StorageControllerDto storageControllerDto : controllers) {
+            storageControllerDto.setoDataId(format("%s#/StorageControllers/%s", oDataId, controllers.indexOf(storageControllerDto)));
+        }
+        storageDto.setStorageControllers(controllers);
+        return storageDto;
     }
 }

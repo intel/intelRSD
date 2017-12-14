@@ -16,9 +16,11 @@
 
 package com.intel.podm.common.types.actions;
 
-
 import com.intel.podm.common.types.ChapType;
 import com.intel.podm.common.types.Ref;
+import com.intel.podm.common.types.actions.RemoteTargetUpdateDefinition.Address.IScsiAddress;
+import com.intel.podm.common.types.actions.RemoteTargetUpdateDefinition.Address.IScsiAddress.Chap;
+import com.intel.podm.common.types.actions.RemoteTargetUpdateDefinition.Initiator.IScsiInitiator;
 import com.intel.podm.common.types.redfish.RedfishRemoteTarget;
 
 import java.util.List;
@@ -36,32 +38,6 @@ public class RemoteTargetUpdateDefinition {
         addInitiatorsToDefinition(representation);
     }
 
-    private void addInitiatorsToDefinition(RedfishRemoteTarget representation) {
-        List<RedfishRemoteTarget.Initiator> initiators = representation.getInitiator();
-
-        if (initiators == null) {
-            return;
-        }
-
-        this.initiator = initiators.stream()
-            .map(this::mapInitiators)
-            .collect(toList());
-    }
-
-    private RemoteTargetUpdateDefinition.Initiator mapInitiators(RedfishRemoteTarget.Initiator initiator) {
-        RemoteTargetUpdateDefinition.Initiator initiatorDef = new RemoteTargetUpdateDefinition.Initiator();
-        ofNullable(initiator.getIScsiInitators()).map(this::mapIScsiInitiator).ifPresent(initiatorDef::setIScsiInitiator);
-
-        return initiatorDef;
-    }
-
-    private RemoteTargetUpdateDefinition.Initiator.IScsiInitiator mapIScsiInitiator(RedfishRemoteTarget.Initiator.IScsiInitiator iScsiInitiator) {
-        RemoteTargetUpdateDefinition.Initiator.IScsiInitiator iScsiInitiatorDef = new RemoteTargetUpdateDefinition.Initiator.IScsiInitiator();
-        ofNullable(iScsiInitiator.getInitiatorIqn()).ifPresent(iScsiInitiatorDef::setInitiatorIqn);
-        return iScsiInitiatorDef;
-    }
-
-
     private void addAddressesToDefinition(RedfishRemoteTarget representation) {
         List<RedfishRemoteTarget.Address> addresses = representation.getAddresses();
 
@@ -74,22 +50,48 @@ public class RemoteTargetUpdateDefinition {
             .collect(toList());
     }
 
-    private RemoteTargetUpdateDefinition.Address mapAddress(RedfishRemoteTarget.Address address) {
-        RemoteTargetUpdateDefinition.Address addressDef = new RemoteTargetUpdateDefinition.Address();
+    private void addInitiatorsToDefinition(RedfishRemoteTarget representation) {
+        List<RedfishRemoteTarget.Initiator> initiators = representation.getInitiator();
+
+        if (initiators == null) {
+            return;
+        }
+
+        this.initiator = initiators.stream()
+            .map(this::mapInitiators)
+            .collect(toList());
+    }
+
+    private Initiator mapInitiators(RedfishRemoteTarget.Initiator initiator) {
+        Initiator initiatorDef = new Initiator();
+        ofNullable(initiator.getIScsiInitators()).map(this::mapIScsiInitiator).ifPresent(initiatorDef::setIScsiInitiator);
+
+        return initiatorDef;
+    }
+
+    private IScsiInitiator mapIScsiInitiator(RedfishRemoteTarget.Initiator.IScsiInitiator iScsiInitiator) {
+        IScsiInitiator iScsiInitiatorDef = new IScsiInitiator();
+        ofNullable(iScsiInitiator.getInitiatorIqn()).ifPresent(iScsiInitiatorDef::setInitiatorIqn);
+        return iScsiInitiatorDef;
+    }
+
+
+    private Address mapAddress(RedfishRemoteTarget.Address address) {
+        Address addressDef = new Address();
         ofNullable(address.getIScsiAddresses()).map(this::mapIScsiAddress).ifPresent(addressDef::setIScsiAddress);
         return addressDef;
     }
 
-    private RemoteTargetUpdateDefinition.Address.IScsiAddress mapIScsiAddress(RedfishRemoteTarget.Address.IScsiAddress iScsiAddress) {
-        RemoteTargetUpdateDefinition.Address.IScsiAddress iScsiAddressDef = new RemoteTargetUpdateDefinition.Address.IScsiAddress();
+    private IScsiAddress mapIScsiAddress(RedfishRemoteTarget.Address.IScsiAddress iScsiAddress) {
+        IScsiAddress iScsiAddressDef = new IScsiAddress();
         iScsiAddress.getChap().ifAssigned(chap -> iScsiAddressDef.setChap(mapChap(chap)));
         return iScsiAddressDef;
     }
 
-    private Ref<RemoteTargetUpdateDefinition.Address.IScsiAddress.Chap> mapChap(RedfishRemoteTarget.Address.IScsiAddress.Chap chap) {
-        RemoteTargetUpdateDefinition.Address.IScsiAddress.Chap chapDef = null;
+    private Ref<Chap> mapChap(RedfishRemoteTarget.Address.IScsiAddress.Chap chap) {
+        Chap chapDef = null;
         if (chap != null) {
-            chapDef = new RemoteTargetUpdateDefinition.Address.IScsiAddress.Chap();
+            chapDef = new Chap();
             chapDef.setType(chap.getType());
             chapDef.setUsername(chap.getUsername());
             chapDef.setSecret(chap.getSecret());

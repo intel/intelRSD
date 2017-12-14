@@ -32,15 +32,16 @@
 #include <algorithm>
 
 using namespace agent::pnc::sysfs;
+using namespace ::sysfs;
 
 namespace {
-    const char DRIVER_NVME[] = "nvme";
-    const char CLASS_BLOCK[] = "block";
+
+    const char PATH_DRIVER_NVME_UNBIND[] = "/sys/bus/pci/drivers/nvme/unbind";
+    const char PATH_BUS_PCI_DEVICES[] = "/sys/bus/pci/devices";
+    const char PATH_CLASS_BLOCK[] = "/sys/block";
     const char ATTRIBUTE_PHYS_FN[] = "physfn";
     const char ATTRIBUTE_CONFIG[] = "config";
     const char ATTRIBUTE_SIZE[] = "size";
-    const char ATTRIBUTE_UNBIND[] = "unbind";
-    const char BUS_NAME[] = "pci";
     const double BLOCK_SIZE = 512.0;
 }
 
@@ -48,144 +49,135 @@ SysfsReader::~SysfsReader() {}
 
 void SysfsReader::update_drive_info(const std::string& drive_name, RawSysfsDevice& device) const {
     // get class device
-    sysfs_class_device* drive_classdev = sysfs_open_class_device(CLASS_BLOCK, drive_name.c_str());
-    if (drive_classdev != nullptr) {
-        // get class device size
-        sysfs_attribute* size_attr = sysfs_get_classdev_attr(drive_classdev, ATTRIBUTE_SIZE);
-        if (size_attr != nullptr) {
-            double drive_size = std::stod(size_attr->value) * ::BLOCK_SIZE;
-            device.drive_names.emplace_back(drive_name);
-            device.drive_sizes.emplace_back(drive_size);
-        }
-        else {
-            log_error(GET_LOGGER("sysfs-reader"), "Cannot read drive size for " << drive_name);
-        }
+    try {
+        SysfsFile size_file = m_sysfs_interface->get_file(Path(PATH_CLASS_BLOCK) / drive_name / ATTRIBUTE_SIZE);
+        double drive_size = std::stod(size_file.value) * ::BLOCK_SIZE;
+        device.drive_names.emplace_back(drive_name);
+        device.drive_sizes.emplace_back(drive_size);
     }
-    else {
-        log_error(GET_LOGGER("sysfs-reader"), "Cannot open block device for " << drive_name);
+    catch (const std::exception& e){
+        log_error("sysfs-reader", "Exception while reading drive info for drive " << drive_name
+            << ": " << e.what());
     }
 }
 
-void SysfsReader::update_pci_device_drives(sysfs_device* sys_device, RawSysfsDevice& device) const {
+void SysfsReader::update_pci_device_drives(const Path& device_path, RawSysfsDevice& device) const {
 
-    // open block device class
-    sysfs_class* block_class = sysfs_open_class(::CLASS_BLOCK);
+    // read all block devices
+    SysfsDir block_devices{};
+    try {
+        block_devices = m_sysfs_interface->get_dir(Path(PATH_CLASS_BLOCK));
+    }
+    catch (const std::exception& e) {
+        log_error("sysfs-reader", "Exception while reading block devices: " << e.what());
+        return;
+    }
 
-    if (block_class != nullptr) {
+    // prepare regexp
+    std::string reg_expr_str_pre = "/sys/devices/pci....:../(?:....:..:..\\../)*";
+    std::string reg_expr_str_post = "/(.*)";
+    std::string reg_expr_str = reg_expr_str_pre + device_path.basename() + reg_expr_str_post;
+    static const int NUM_OF_SUB_EXPR = 2;
 
-        // prepare regexp
-        std::string reg_expr_str_pre = "/sys/devices/pci....:../(?:....:..:..\\../)*";
-        std::string reg_expr_str_post = "/(.*)";
-        std::string reg_expr_str = reg_expr_str_pre + sys_device->name + reg_expr_str_post;
-
-        // check each block device
-        dlist* block_devices = sysfs_get_class_devices(block_class);
-        sysfs_class_device* block_device = 0;
-        dlist_for_each_data(block_devices, block_device, struct sysfs_class_device) {
-
-            // check if this is a device on the bus - look for a specific path pattern
-            static const int NUM_OF_SUB_EXPR = 2;
-            std::string path = block_device->path;
-
+    for (const auto& link_path : block_devices.links) {
+        try {
+            std::string absolute_path_str = m_sysfs_interface->get_absolute_path(link_path).to_string();
             std::smatch matches{};
-            std::regex_match(path, matches, std::regex(reg_expr_str, std::regex_constants::icase));
 
+            std::regex_match(absolute_path_str, matches, std::regex(reg_expr_str, std::regex_constants::icase));
             if (NUM_OF_SUB_EXPR == matches.size()) {
-                update_drive_info(block_device->name, device);
+                update_drive_info(link_path.basename(), device);
             }
         }
-        sysfs_close_class(block_class);
-    }
-    else {
-        log_error(GET_LOGGER("sysfs-reader"), "Cannot open block device class");
+        catch (const std::exception& e) {
+            log_error("sysfs-reader", "Exception while reading symlink " << link_path.to_string()
+                << ": " << e.what());
+        }
     }
 }
 
-void SysfsReader::update_pci_device_virtual(sysfs_device* sys_device, RawSysfsDevice& device) const {
+void SysfsReader::update_pci_device_virtual(const Path& device_path, RawSysfsDevice& device) const {
     // check if function is virtual, if attribute physfn exists then it is virtual
-    sysfs_attribute* sys_attribute = sysfs_get_device_attr(sys_device, ::ATTRIBUTE_PHYS_FN);
-    device.is_virtual = (sys_attribute == nullptr ? false : true);
+    device.is_virtual = m_sysfs_interface->file_exists(device_path / ::ATTRIBUTE_PHYS_FN);
 }
 
-bool SysfsReader::update_pci_device_config(sysfs_device* sys_device, RawSysfsDevice& device) const {
-    sysfs_attribute* sys_attribute = sysfs_get_device_attr(sys_device, ::ATTRIBUTE_CONFIG);
-    if (sys_attribute != nullptr) {
-        return EOK == memcpy_s(&device.configuration, RawSysfsDevice::PCI_CONFIGURATION_SPACE_SIZE,
-            sys_attribute->value, std::min(std::uint32_t{sys_attribute->len}, RawSysfsDevice::PCI_CONFIGURATION_SPACE_SIZE));
-    }
-    log_error(GET_LOGGER("sysfs-reader"), "Cannot read PCI configuration space");
-    return false;
-}
-
-bool SysfsReader::update_pci_device_ids(sysfs_device* sys_device, RawSysfsDevice& device) const {
-    device.path = sys_device->path;
-    device.name = sys_device->name;
+bool SysfsReader::update_pci_device_config(const Path& device_path, RawSysfsDevice& device) const {
     try {
-        device.id = SysfsId::from_string(sys_device->name);
+        auto config = m_sysfs_interface->get_file(device_path / ::ATTRIBUTE_CONFIG);
+        if (config.value.size() > std::numeric_limits<uint32_t>::max()) {
+            throw std::runtime_error("PCI configuration space size is too large!");
+        }
+        return EOK == memcpy_s(&device.configuration, RawSysfsDevice::PCI_CONFIGURATION_SPACE_SIZE,
+            config.value.c_str(), std::min(uint32_t(config.value.size()), RawSysfsDevice::PCI_CONFIGURATION_SPACE_SIZE));
+    }
+    catch (const std::exception& e) {
+        log_error("sysfs-reader", "Exception while reading PCI configuration space: " << e.what());
+        return false;
+    }
+}
+
+bool SysfsReader::update_pci_device_ids(const Path& device_path, RawSysfsDevice& device) const {
+    device.path = m_sysfs_interface->get_absolute_path(device_path).to_string();
+    device.name = device_path.basename();
+    try {
+        device.id = SysfsId::from_string(device.name);
     }
     catch (const std::invalid_argument& e) {
-        log_error(GET_LOGGER("sysfs-reader"), "Invalid path format while processing device: " << e.what());
+        log_error("sysfs-reader", "Invalid path format while processing device: " << e.what());
         return false;
     }
     return true;
 }
 
-bool SysfsReader::update_pci_device(sysfs_device* sys_device, RawSysfsDevice& device) const {
+bool SysfsReader::update_pci_device(const Path& device_path, RawSysfsDevice& device) const {
     RawSysfsDevice result{};
-    if (sys_device != nullptr && update_pci_device_config(sys_device, result)
-                              && update_pci_device_ids(sys_device, result)) {
+    if (update_pci_device_config(device_path, result) && update_pci_device_ids(device_path, result)) {
 
-        update_pci_device_virtual(sys_device, result);
-        update_pci_device_drives(sys_device, result);
+        update_pci_device_virtual(device_path, result);
+        update_pci_device_drives(device_path, result);
         device = result;
         return true;
     }
-    log_error(GET_LOGGER("sysfs-reader"), "PCI device discovery failed");
+    log_error("sysfs-reader", "PCI device discovery failed");
     return false;
 }
 
-bool SysfsReader::is_path_matched(sysfs_device* sys_device, const std::string& path) const {
-    if (sys_device == nullptr) {
+bool SysfsReader::is_path_matched(const Path& device_path, const std::string& path) const {
+    std::string device_path_str = device_path.to_string();
+    if (device_path_str.empty()) {
         return false;
     }
     if (path.empty()) {
         return true;
     }
-    std::string dev_path = sys_device->path;
     std::smatch matches{};
-    std::regex_match(dev_path, matches, std::regex(".*" + path + ".*", std::regex_constants::icase));
+    std::regex_match(device_path_str, matches, std::regex(".*" + path + ".*", std::regex_constants::icase));
     return (matches.size() == 1);
 }
 
 std::vector<RawSysfsDevice> SysfsReader::get_raw_sysfs_devices(const std::string& path) const {
+
     std::vector<RawSysfsDevice> devices{};
 
-    // open bus
-    struct sysfs_bus* sys_bus = sysfs_open_bus(::BUS_NAME);
-    if (sys_bus != nullptr) {
-        // get list of all devices
-        struct dlist* sys_devices = sysfs_get_bus_devices(sys_bus);
-        if (sys_devices != nullptr) {
-            // iterate through the list and read data about each drive
-            struct sysfs_device* sys_device = nullptr;
-            dlist_for_each_data(sys_devices, sys_device, struct sysfs_device) {
-                RawSysfsDevice device{};
-                if (is_path_matched(sys_device, path)) {
-                    if (update_pci_device(sys_device, device)) {
-                        devices.emplace_back(device);
-                    }
-                }
-            }
-        }
-        else {
-            log_error(GET_LOGGER("sysfs-reader"), "Cannot read PCI bus devices");
-        }
-        sysfs_close_bus(sys_bus);
+    // open bus directory
+    SysfsDir pci_devices{};
+    try {
+        pci_devices = m_sysfs_interface->get_dir(PATH_BUS_PCI_DEVICES);
     }
-    else {
-        log_error(GET_LOGGER("sysfs-reader"), "Cannot open PCI bus");
+    catch (const std::exception& e) {
+        log_error("sysfs-reader", "Exception while reading PCI devices: " << e.what());
+        return {};
     }
 
+    // check all links in the dir
+    for (const Path& device_link_path : pci_devices.links) {
+        RawSysfsDevice sysfs_device{};
+
+        // if path is matched, try reading device data and add it to the returned vector
+        if (is_path_matched(device_link_path, path) && update_pci_device(device_link_path, sysfs_device)) {
+            devices.push_back(std::move(sysfs_device));
+        }
+    }
     return devices;
 }
 
@@ -194,61 +186,51 @@ std::vector<std::string> SysfsReader::get_drives_for_device(
 
     std::vector<std::string> drives{};
 
-    // open block device class
-    sysfs_class* block_class = sysfs_open_class(::CLASS_BLOCK);
+    // open bus directory
+    SysfsDir block_devices{};
+    try {
+        block_devices = m_sysfs_interface->get_dir(PATH_CLASS_BLOCK);
+    }
+    catch (const std::exception& e) {
+        log_error("sysfs-reader", "Exception while reading block devices: " << e.what());
+        return {};
+    }
 
-    if (block_class != nullptr) {
+    // build device name
+    std::stringstream str_dev{};
+    // there is '.' in the switch name - but that should not be a problem
+    str_dev << std::hex << switch_bridge_path << "/....:";
+    str_dev << std::setw(2) << std::setfill('0') << unsigned(bus_num) << ":";
+    str_dev << std::setw(2) << std::setfill('0') << unsigned(device_num) << "\\../";
+    str_dev << "(?:....:..:..\\../)*(.*)/(\\1.*)/(\\2.*)";
+    std::string regex_str = str_dev.str();
+    static constexpr int NUM_OF_SUB_EXPR = 4;
 
-        // build device name
-        std::stringstream str_dev{};
-        // there is '.' in the switch name - but that should not be a problem
-        str_dev << std::hex << switch_bridge_path << "/....:";
-        str_dev << std::setw(2) << std::setfill('0') << unsigned(bus_num) << ":";
-        str_dev << std::setw(2) << std::setfill('0') << unsigned(device_num) << "\\../";
-        str_dev << "(?:....:..:..\\../)*(.*)/(\\1.*)/(\\2.*)";
-        std::string regex_str = str_dev.str();
-
-        // check each block device
-        dlist* block_devices = sysfs_get_class_devices(block_class);
-        sysfs_class_device* block_device = 0;
-        dlist_for_each_data(block_devices, block_device, struct sysfs_class_device) {
-
-            // check if there is a drive on the device
-            static const int NUM_OF_SUB_EXPR = 4;
-            std::string path = block_device->path;
+    for (const auto& link_path : block_devices.links) {
+        try {
+            std::string absolute_path_str = m_sysfs_interface->get_absolute_path(link_path).to_string();
 
             std::smatch matches{};
-            std::regex_match(path, matches, std::regex(regex_str, std::regex_constants::icase));
+            std::regex_match(absolute_path_str, matches, std::regex(regex_str, std::regex_constants::icase));
             if (NUM_OF_SUB_EXPR == matches.size()) {
                 drives.push_back(matches[3]);
             }
         }
-        sysfs_close_class(block_class);
+        catch (const std::exception& e) {
+            log_error("sysfs-reader", "Exception while reading symlink " << link_path.to_string() << ": " << e.what());
+        }
     }
-    else {
-        log_error(GET_LOGGER("sysfs-reader"), "Cannot open block device class");
-    }
-
     return drives;
 }
 
 bool SysfsReader::unbind_nvme_driver(const SysfsId& id) const {
-    struct sysfs_driver* driver = sysfs_open_driver(BUS_NAME, DRIVER_NVME);
-    if (nullptr == driver) {
-        log_error(GET_LOGGER("sysfs-reader"), "Cannot open driver");
+    try {
+        m_sysfs_interface->set_file(Path(PATH_DRIVER_NVME_UNBIND), id.to_string());
+    }
+    catch (const std::exception& e) {
+        log_error("sysfs-reader", "Exception while unbinding NVMe driver for device " << id.to_string()
+            << ": " << e.what());
         return false;
     }
-    struct sysfs_attribute* attr = sysfs_get_driver_attr(driver, ATTRIBUTE_UNBIND);
-    if (nullptr == attr) {
-        log_error(GET_LOGGER("sysfs-reader"), "Cannot open unbind attribute");
-        return false;
-    }
-    std::string device = id.to_string();
-    if (-1 == sysfs_write_attribute(attr, device.c_str(), device.size())) {
-        log_error(GET_LOGGER("sysfs-reader"), "Cannot unbind driver");
-        return false;
-    }
-
-    sysfs_close_driver(driver);
     return true;
 }

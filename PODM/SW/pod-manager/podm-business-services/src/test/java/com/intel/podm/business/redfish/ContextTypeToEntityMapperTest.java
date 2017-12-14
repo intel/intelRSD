@@ -28,6 +28,7 @@ import java.util.Set;
 import static com.google.common.collect.Sets.symmetricDifference;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR;
+import static com.intel.podm.business.services.context.ContextType.TELEMETRY_SERVICE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
 import static org.testng.Assert.assertEquals;
@@ -37,13 +38,13 @@ public class ContextTypeToEntityMapperTest {
     @Test
     public void whenGettingMappedClassForProcessorContextType_ShouldReturnCorrectClass() {
         ContextTypeToEntityMapper sut = new ContextTypeToEntityMapper();
-        assertEquals(sut.get(PROCESSOR), Processor.class);
+        assertEquals(sut.getEntityClass(PROCESSOR), Processor.class);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void whenGettingMappedClassForNullContextType_shouldThrow() {
         ContextTypeToEntityMapper sut = new ContextTypeToEntityMapper();
-        sut.get(null);
+        sut.getEntityClass(null);
     }
 
     @Test
@@ -59,6 +60,7 @@ public class ContextTypeToEntityMapperTest {
 
     private void excludeTopLevelSingletonServices(Set<ContextType> allContextTypes) {
         allContextTypes.remove(EVENT_SERVICE);
+        allContextTypes.remove(TELEMETRY_SERVICE);
     }
 
     @Test

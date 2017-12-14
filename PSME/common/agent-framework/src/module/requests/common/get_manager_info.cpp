@@ -28,7 +28,7 @@
 
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/requests/common/get_manager_info.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -36,13 +36,12 @@ using namespace agent_framework::model::literals;
 GetManagerInfo::GetManagerInfo(const std::string& manager):
     m_manager{manager} {}
 
-Json::Value GetManagerInfo::to_json() const {
-    Json::Value value;
+json::Json GetManagerInfo::to_json() const {
+    json::Json value;
     value[Manager::MANAGER] = m_manager;
     return value;
 }
 
-GetManagerInfo GetManagerInfo::from_json(const Json::Value& json) {
-    return GetManagerInfo{
-        json[Manager::MANAGER].asString()};
+GetManagerInfo GetManagerInfo::from_json(const json::Json& json) {
+    return GetManagerInfo{json[Manager::MANAGER].get<std::string>()};
 }

@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/network/delete_port_static_mac.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -33,12 +33,12 @@ DeletePortStaticMac::DeletePortStaticMac(Oem oem):
     m_oem{oem} {}
 
 
-Json::Value DeletePortStaticMac::to_json() const {
-    Json::Value value;
+json::Json DeletePortStaticMac::to_json() const {
+    json::Json value;
     value[StaticMac::OEM] = m_oem.to_json();
     return value;
 }
 
-DeletePortStaticMac DeletePortStaticMac::from_json(const Json::Value& json) {
+DeletePortStaticMac DeletePortStaticMac::from_json(const json::Json& json) {
     return DeletePortStaticMac{Oem::from_json(json[StaticMac::OEM])};
 }

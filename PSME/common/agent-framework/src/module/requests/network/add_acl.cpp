@@ -24,31 +24,31 @@
 #include "agent-framework/module/requests/network/add_acl.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 using namespace agent_framework::model;
 
 AddAcl::AddAcl(const std::string& switch_id,
-               const attribute::Array<string>& ports,
+               const attribute::Array<std::string>& ports,
                const attribute::Oem& oem):
     m_switch(switch_id),
     m_ports(ports),
     m_oem(oem) {}
 
-Json::Value AddAcl::to_json() const {
-    Json::Value value;
+json::Json AddAcl::to_json() const {
+    json::Json value;
     value[Acl::SWITCH] = m_switch;
     value[Acl::PORTS] = m_ports.to_json();
     value[Acl::OEM] = m_oem.to_json();
     return value;
 }
 
-AddAcl AddAcl::from_json(const Json::Value& json) {
+AddAcl AddAcl::from_json(const json::Json& json) {
     return AddAcl{
-        json[Acl::SWITCH].asString(),
-        attribute::Array<string>::from_json(json[Acl::PORTS]),
+        json[Acl::SWITCH],
+        attribute::Array<std::string>::from_json(json[Acl::PORTS]),
         attribute::Oem::from_json(json[Acl::OEM])
     };
 }

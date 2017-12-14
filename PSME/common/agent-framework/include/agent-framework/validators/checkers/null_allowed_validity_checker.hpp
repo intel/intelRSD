@@ -26,7 +26,7 @@ class NullAllowedValidityChecker final : public ValidityChecker {
 public:
     NullAllowedValidityChecker(ValidityChecker::Ptr& _checker);
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
     ValidityChecker::Ptr checker{};

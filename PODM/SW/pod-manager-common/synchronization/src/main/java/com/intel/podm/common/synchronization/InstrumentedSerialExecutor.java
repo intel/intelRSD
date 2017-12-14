@@ -38,30 +38,10 @@ class InstrumentedSerialExecutor implements SerialExecutor {
     }
 
     @Override
-    public <E extends Exception, R> R executeSync(Duration timeToWaitFor, ThrowingCallable<R, E> task) throws TimeoutException, E {
+    public <E extends Exception, R> R executeSync(Duration timeToWaitFor, Executable<E, R> executable) throws TimeoutException, E {
         final Timer.Context context = duration.time();
         try {
-            return delegate.executeSync(timeToWaitFor, task);
-        } finally {
-            context.stop();
-        }
-    }
-
-    @Override
-    public void executeSync(Duration timeToWaitFor, Runnable task) throws TimeoutException {
-        final Timer.Context context = duration.time();
-        try {
-            delegate.executeSync(timeToWaitFor, task);
-        } finally {
-            context.stop();
-        }
-    }
-
-    @Override
-    public <E extends Exception> void executeSync(Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E {
-        final Timer.Context context = duration.time();
-        try {
-            delegate.executeSync(timeToWaitFor, task);
+            return delegate.executeSync(timeToWaitFor, executable);
         } finally {
             context.stop();
         }

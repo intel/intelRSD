@@ -54,6 +54,23 @@ public class EntityEventCollectorTest {
     private EventTypeConverter eventTypeConverter = new EventTypeConverter();
     private ByEventSourceContextGroupingConverter converter = new ByEventSourceContextGroupingConverter();
 
+    private static <A extends Entity> A entity(Class<A> aClass, long id) {
+        A mock = Mockito.mock(aClass, CALLS_REAL_METHODS);
+        Whitebox.setInternalState(mock, "id", id);
+        Whitebox.setInternalState(mock, "eventSourceContext", URI.create(aClass.getSimpleName()));
+
+        return mock;
+    }
+
+    private static <A extends Entity> A complementaryEntity(Class<A> aClass, long id) {
+        A mock = Mockito.mock(aClass, CALLS_REAL_METHODS);
+        Whitebox.setInternalState(mock, "id", id);
+        Whitebox.setInternalState(mock, "isComplementary", true);
+        Whitebox.setInternalState(mock, "eventSourceContext", URI.create(aClass.getSimpleName()));
+
+        return mock;
+    }
+
     @Test
     public void whenThereWasSingleResourceAddedEventCollected_shouldBeIncludedInOutputResult() {
         Chassis chassis = entity(Chassis.class, 1);
@@ -73,9 +90,10 @@ public class EntityEventCollectorTest {
     }
 
     @Test
-    public void whenThereIsSingleResourceRemovedEventCollected_shouldBeIncludedInOutputResult() {
-        ComputerSystem computerSystem = entity(ComputerSystem.class, 1);
-        collector.add(computerSystem, RESOURCE_REMOVED);
+    public void whenThereWasComplementaryResourceAddedEventCollected_eventTypeShouldBeConvertedToResourceUpdated() throws Exception {
+        ComputerSystem computerSystem = complementaryEntity(ComputerSystem.class, 1);
+
+        collector.add(computerSystem, RESOURCE_ADDED);
         collector.convertEventTypes(eventTypeConverter);
         List<RedfishEvent> output = collector.convertThenEvict(converter);
         assertThat(output, hasSize(1));
@@ -84,8 +102,30 @@ public class EntityEventCollectorTest {
             hasItem(
                 allOf(
                     hasProperty(URI_PROPERTY, equalTo(computerSystem.getEventSourceContext())),
-                    hasProperty(EVENT_TYPE_PROPERTY, equalTo(RESOURCE_REMOVED))
-                )
+                    hasProperty(EVENT_TYPE_PROPERTY, equalTo(RESOURCE_UPDATED)))
+            )
+        );
+    }
+
+    @Test
+    public void whenThereWasPrimaryResourceEventsCollected_eventTypeShouldNotBeConverted() throws Exception {
+        ComputerSystem computerSystem = entity(ComputerSystem.class, 1);
+        Chassis chassis = entity(Chassis.class, 2);
+
+        collector.add(computerSystem, RESOURCE_ADDED);
+        collector.add(chassis, RESOURCE_REMOVED);
+        collector.convertEventTypes(eventTypeConverter);
+        List<RedfishEvent> output = collector.convertThenEvict(converter);
+        assertThat(output, hasSize(2));
+        assertThat(
+            output,
+            hasItems(
+                allOf(
+                    hasProperty(URI_PROPERTY, equalTo(computerSystem.getEventSourceContext())),
+                    hasProperty(EVENT_TYPE_PROPERTY, equalTo(RESOURCE_ADDED))),
+                allOf(
+                    hasProperty(URI_PROPERTY, equalTo(chassis.getEventSourceContext())),
+                    hasProperty(EVENT_TYPE_PROPERTY, equalTo(RESOURCE_REMOVED)))
             )
         );
     }
@@ -146,13 +186,5 @@ public class EntityEventCollectorTest {
                 allOf(hasProperty(URI_PROPERTY, equalTo(drive.getEventSourceContext())), hasProperty(EVENT_TYPE_PROPERTY, equalTo(STATUS_CHANGE))),
                 allOf(hasProperty(URI_PROPERTY, equalTo(system.getEventSourceContext())), hasProperty(EVENT_TYPE_PROPERTY, equalTo(RESOURCE_UPDATED)))
             ));
-    }
-
-    private static <A extends Entity> A entity(Class<A> aClass, long id) {
-        A mock = Mockito.mock(aClass, CALLS_REAL_METHODS);
-        Whitebox.setInternalState(mock, "id", id);
-        Whitebox.setInternalState(mock, "eventSourceContext", URI.create(aClass.getSimpleName()));
-
-        return mock;
     }
 }

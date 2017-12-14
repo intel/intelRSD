@@ -16,20 +16,31 @@
 
 package com.intel.podm.discovery.handlers;
 
+import com.intel.podm.business.entities.dao.ComputerSystemDao;
+import com.intel.podm.business.entities.dao.DiscoverableEntityDao;
+import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.handlers.OnDeleteComputerSystemHandler;
+import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
+import com.intel.podm.business.entities.redfish.Drive;
 import com.intel.podm.business.entities.redfish.ExternalService;
+import com.intel.podm.config.base.Config;
+import com.intel.podm.config.base.Holder;
+import com.intel.podm.config.base.dto.InBandServiceConfig;
 import com.intel.podm.discovery.ComposedNodeUpdater;
-import com.intel.podm.discovery.external.ExternalServiceAvailabilityChecker;
-import com.intel.podm.discovery.external.ExternalServiceRepository;
+import com.intel.podm.discovery.ServiceExplorer;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
+import java.util.Set;
 
 import static com.intel.podm.common.types.ServiceType.LUI;
 import static com.intel.podm.common.types.ServiceType.RSS;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
@@ -38,26 +49,56 @@ public class OnDeleteComputerSystemHandlerImpl implements OnDeleteComputerSystem
     private GenericDao genericDao;
 
     @Inject
-    private ExternalServiceRepository externalServiceRepository;
+    private ExternalServiceDao externalServiceDao;
 
     @Inject
-    private ExternalServiceAvailabilityChecker availabilityChecker;
+    private ServiceExplorer serviceExplorer;
 
     @Inject
     private ComposedNodeUpdater composedNodeUpdater;
 
+    @Inject
+    private ComputerSystemDao computerSystemDao;
+
+    @Inject
+    private DiscoverableEntityDao discoverableEntityDao;
+
+    @Inject
+    @Config
+    private Holder<InBandServiceConfig> inBandServiceConfigHolder;
+
     @Override
     @Transactional(MANDATORY)
     public void preRemove(ComputerSystem computerSystem) {
+        removeAffectedEntitiesFromComplementaryService(computerSystem);
         genericDao.remove(computerSystem.getMetadata());
-        removeLuiProperties(computerSystem);
+        removeEthernetInterfacesReadFromLui(computerSystem);
+        removeDrivesReadFromLui(computerSystem);
         triggerStorageServicesCheck();
 
         composedNodeUpdater.disableComposedNode(computerSystem.getComposedNode());
     }
 
-    private void removeLuiProperties(ComputerSystem computerSystem) {
+    private void removeAffectedEntitiesFromComplementaryService(ComputerSystem computerSystem) {
+        if (!computerSystem.isComplementary() && inBandServiceConfigHolder.get().isInBandServiceSupportEnabled()) {
+            List<ComputerSystem> inBandComputerSystems = computerSystemDao.findComplementarySystems(computerSystem);
+            inBandComputerSystems.forEach(this::removeComplementaryComputerSystem);
+        }
+    }
+
+    private void removeEthernetInterfacesReadFromLui(ComputerSystem computerSystem) {
         genericDao.removeAndClear(computerSystem.getEthernetInterfaces(), ethernetInterface -> isLui(ethernetInterface.getService()));
+    }
+
+    private void removeDrivesReadFromLui(ComputerSystem computerSystem) {
+        genericDao.removeAndClear(getDrivesFromComputerSystemStorage(computerSystem), drive -> isLui(drive.getService()));
+    }
+
+    private Set<Drive> getDrivesFromComputerSystemStorage(ComputerSystem computerSystem) {
+        return computerSystem.getStorages()
+                             .stream()
+                             .flatMap(storage -> storage.getDrives().stream())
+                             .collect(toSet());
     }
 
     private boolean isLui(ExternalService service) {
@@ -65,8 +106,18 @@ public class OnDeleteComputerSystemHandlerImpl implements OnDeleteComputerSystem
     }
 
     private void triggerStorageServicesCheck() {
-        for (ExternalService service : externalServiceRepository.getAllByType(RSS)) {
-            availabilityChecker.verifyServiceAvailabilityByUuid(service.getUuid());
+        for (ExternalService service : externalServiceDao.getExternalServicesByServicesTypes(singleton(RSS))) {
+            serviceExplorer.enqueueVerification(service.getUuid());
         }
+    }
+
+    private void removeComplementaryComputerSystem(ComputerSystem computerSystem) {
+        discoverableEntityDao.removeWithConnectedExternalLinks(computerSystem.getEthernetInterfaces());
+        discoverableEntityDao.removeWithConnectedExternalLinks(computerSystem.getMemoryModules());
+        discoverableEntityDao.removeWithConnectedExternalLinks(computerSystem.getProcessors());
+        discoverableEntityDao.removeWithConnectedExternalLinks(computerSystem.getSimpleStorages());
+        discoverableEntityDao.removeWithConnectedExternalLinks(computerSystem.getStorages());
+        discoverableEntityDao.removeWithConnectedExternalLinks(computerSystem.getChassis(), Chassis::getDrives);
+        discoverableEntityDao.removeWithConnectedExternalLinks(computerSystem);
     }
 }

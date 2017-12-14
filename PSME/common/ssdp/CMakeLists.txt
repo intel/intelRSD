@@ -56,6 +56,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
         src/ssdp_packet.cpp
         PROPERTIES COMPILE_FLAGS "-Wno-unsafe-loop-optimizations"
     )
+    set_source_files_properties(
+        src/message_queue.cpp
+        PROPERTIES COMPILE_FLAGS "-Wno-logical-op"
+    )
 endif()
 
 add_library(ssdp STATIC ${SRC})

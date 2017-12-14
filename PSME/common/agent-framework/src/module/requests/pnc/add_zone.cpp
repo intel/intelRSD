@@ -28,7 +28,7 @@
 
 #include "agent-framework/module/requests/pnc/add_zone.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::requests;
@@ -38,17 +38,17 @@ AddZone::AddZone(const std::string& pcie_fabric, const StringArray& endpoints,
                          const attribute::Oem& oem)
                          : m_fabric(pcie_fabric), m_endpoints(endpoints), m_oem(oem) {}
 
-Json::Value AddZone::to_json() const {
-    Json::Value value;
+json::Json AddZone::to_json() const {
+    json::Json value;
     value[Zone::FABRIC] = m_fabric;
     value[Zone::ENDPOINTS] = m_endpoints.to_json();
     value[Zone::OEM] = m_oem.to_json();
     return value;
 }
 
-AddZone AddZone::from_json(const Json::Value& json) {
+AddZone AddZone::from_json(const json::Json& json) {
     return AddZone{
-        json[Zone::FABRIC].asString(),
+        json[Zone::FABRIC],
         StringArray::from_json(json[Zone::ENDPOINTS]),
         attribute::Oem::from_json(json[Zone::OEM])};
 }

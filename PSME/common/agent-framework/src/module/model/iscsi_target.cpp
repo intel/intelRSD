@@ -39,8 +39,8 @@ IscsiTarget::IscsiTarget(const std::string& parent_uuid, enums::Component parent
 
 IscsiTarget::~IscsiTarget() {}
 
-Json::Value IscsiTarget::to_json() const {
-    Json::Value result;
+json::Json IscsiTarget::to_json() const {
+    json::Json result;
     result[literals::IscsiTarget::STATUS] = get_status().to_json();
     result[literals::IscsiTarget::INITIATOR_IQN] = get_initiator_iqn();
     result[literals::IscsiTarget::TARGET_ADDRESS] = get_target_address();
@@ -56,7 +56,7 @@ Json::Value IscsiTarget::to_json() const {
     return result;
 }
 
-IscsiTarget IscsiTarget::from_json(const Json::Value& json) {
+IscsiTarget IscsiTarget::from_json(const json::Json& json) {
     IscsiTarget target;
 
     target.set_status(attribute::Status::from_json(

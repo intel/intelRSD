@@ -18,12 +18,18 @@ package com.intel.podm.common.types.actions;
 
 public class BaseChassisUpdateDefinition {
     protected final String assetTag;
+    protected final String geoTag;
 
-    public BaseChassisUpdateDefinition(String assetTag) {
+    public BaseChassisUpdateDefinition(String assetTag, String geoTag) {
         this.assetTag = assetTag;
+        this.geoTag = geoTag;
     }
 
     public String getAssetTag() {
         return assetTag;
+    }
+
+    public String getGeoTag() {
+        return geoTag;
     }
 }

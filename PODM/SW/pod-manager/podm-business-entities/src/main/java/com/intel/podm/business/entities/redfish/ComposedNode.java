@@ -29,6 +29,7 @@ import javax.persistence.Convert;
 import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -57,6 +58,8 @@ import static org.hibernate.annotations.GenerationTime.INSERT;
 
 @javax.persistence.Entity
 @NamedQueries({
+    @NamedQuery(name = ComposedNode.GET_ALL_NODES_IDS,
+        query = "SELECT composedNode.entityId FROM ComposedNode composedNode"),
     @NamedQuery(name = ComposedNode.GET_NODES_ELIGIBLE_FOR_RECOVERY,
         query = "SELECT composedNode FROM ComposedNode composedNode WHERE composedNode.eligibleForRecovery = true")
 })
@@ -64,6 +67,7 @@ import static org.hibernate.annotations.GenerationTime.INSERT;
 @Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class ComposedNode extends Entity {
+    public static final String GET_ALL_NODES_IDS = "GET_ALL_NODES_IDS";
     public static final String GET_NODES_ELIGIBLE_FOR_RECOVERY = "GET_NODES_ELIGIBLE_FOR_RECOVERY";
     public static final Status OFFLINE_CRITICAL_STATUS = new Status(UNAVAILABLE_OFFLINE, CRITICAL, null);
 
@@ -103,6 +107,9 @@ public class ComposedNode extends Entity {
     @Column(name = "eligible_for_recovery")
     private boolean eligibleForRecovery;
 
+    @Column(name = "prior_untagged_vlan_id")
+    private Integer priorUntaggedVlanId;
+
     @Column(name = "number_of_requested_drives")
     private int numberOfRequestedDrives;
 
@@ -112,7 +119,7 @@ public class ComposedNode extends Entity {
     @OneToMany(mappedBy = "composedNode", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Drive> drives = new HashSet<>();
 
-    @OneToMany(mappedBy = "composedNode", fetch = LAZY, cascade = {MERGE, PERSIST})
+    @ManyToMany(mappedBy = "composedNodes", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<LogicalDrive> logicalDrives = new HashSet<>();
 
     @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
@@ -203,6 +210,14 @@ public class ComposedNode extends Entity {
         this.eligibleForRecovery = eligibleForRecovery;
     }
 
+    public Integer getPriorUntaggedVlanId() {
+        return priorUntaggedVlanId;
+    }
+
+    public void setPriorUntaggedVlanId(Integer untaggedVlanId) {
+        this.priorUntaggedVlanId = untaggedVlanId;
+    }
+
     public int getNumberOfRequestedDrives() {
         return numberOfRequestedDrives;
     }
@@ -267,8 +282,8 @@ public class ComposedNode extends Entity {
         requiresNonNull(logicalDrive, "logicalDrive");
 
         logicalDrives.add(logicalDrive);
-        if (!this.equals(logicalDrive.getComposedNode())) {
-            logicalDrive.setComposedNode(this);
+        if (!logicalDrive.getComposedNodes().contains(this)) {
+            logicalDrive.addComposedNode(this);
         }
     }
 

@@ -17,6 +17,8 @@
 package com.intel.podm.redfish.resources.context;
 
 public final class ContextBuilderException extends RuntimeException {
+    private static final long serialVersionUID = 3492486230778205805L;
+
     ContextBuilderException(String msg) {
         super(msg);
     }

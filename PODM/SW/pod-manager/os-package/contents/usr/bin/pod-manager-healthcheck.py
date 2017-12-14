@@ -54,8 +54,10 @@ COMMANDS_TO_EXECUTE = {
     'top -n 1 -b': ('top.txt', 'both'),
     'dpkg-query -s pod-manager': ('dpkg-query-s-pod-manager.txt', 'full'),
     'dpkg-query -s pod-manager-networking': ('dpkg-query-s-pod-manager-networking.txt', 'full'),
-    'python3 -B /usr/lib/pod-manager/crawler/crawler.py crawl %s'
-    % os.path.join(SETTINGS['OUTPUT_DIR'], 'resources.json'): ('', 'both')
+    '/usr/lib/pod-manager/crawler/crawler.py full-crawl --log-file-name {crawler_log_file_name} > {crawler_output_file_name}'.format(
+        crawler_output_file_name=os.path.join(SETTINGS['OUTPUT_DIR'], 'resources.json'),
+        crawler_log_file_name=os.path.join(SETTINGS['OUTPUT_DIR'], 'pod-manager-crawler.log')
+    ): ('', 'both')
 }
 
 

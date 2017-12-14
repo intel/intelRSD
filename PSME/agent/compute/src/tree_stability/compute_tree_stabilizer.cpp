@@ -59,11 +59,12 @@ constexpr const char NETWORK_DEVICE_FUNCTION_KEY_BASE[] = "Function_";
 constexpr const char STORAGE_CONTROLLER_KEY_BASE[] = "StorageController_";
 constexpr const char STORAGE_SUBSYSTEM_KEY_BASE[] = "StorageSubsystem_";
 constexpr const char DRIVE_KEY_BASE[] = "Drive_";
+constexpr const char TRUSTED_MODULE_KEY_BASE[] = "TrustedModule_";
 
 }
 
 
-ComputeTreeStabilizer::~ComputeTreeStabilizer() { }
+ComputeTreeStabilizer::~ComputeTreeStabilizer() {}
 
 
 const std::string ComputeTreeStabilizer::stabilize_network_device_function(
@@ -75,10 +76,11 @@ const std::string ComputeTreeStabilizer::stabilize_network_device_function(
     const auto& network_device = network_device_manager.get_entry(network_device_function.get_parent_uuid());
 
     if (network_device.has_persistent_uuid()) {
-        const std::string& network_device_function_persistent_uuid = stabilize_single_resource(network_device_function_uuid,
-                                                                                               network_device_function_manager,
-                                                                                               literals::NETWORK_DEVICE_FUNCTION_KEY_BASE +
-                                                                                               network_device.get_uuid());
+        const std::string& network_device_function_persistent_uuid = stabilize_single_resource(
+            network_device_function_uuid,
+            network_device_function_manager,
+            literals::NETWORK_DEVICE_FUNCTION_KEY_BASE +
+            network_device.get_uuid());
         return network_device_function_persistent_uuid;
     }
     else {
@@ -98,9 +100,9 @@ const std::string ComputeTreeStabilizer::stabilize_network_device(const std::str
 
     if (parent_system.has_persistent_uuid()) {
         const std::string& network_device_persistent_uuid = stabilize_single_resource(network_device_uuid,
-                                                                                         network_device_manager,
-                                                                                         literals::NETWORK_DEVICE_KEY_BASE +
-                                                                                         parent_system.get_uuid());
+                                                                                      network_device_manager,
+                                                                                      literals::NETWORK_DEVICE_KEY_BASE +
+                                                                                      parent_system.get_uuid());
 
         const auto& network_device_function_uuids = network_device_function_manager.get_keys(network_device.get_uuid());
         for (const auto& network_device_function_uuid : network_device_function_uuids) {
@@ -170,7 +172,7 @@ const std::string ComputeTreeStabilizer::stabilize_storage_subsystem(const std::
 
 
 const std::string ComputeTreeStabilizer::stabilize_nic(const std::string& nic_uuid) {
-    auto& nic_manager = ComputeComponents::get_instance()->get_network_interface_manager();
+    auto& nic_manager = get_manager<agent_framework::model::NetworkInterface>();
     auto& system_manager = CommonComponents::get_instance()->get_system_manager();
 
     const auto& nic = nic_manager.get_entry(nic_uuid);
@@ -213,7 +215,7 @@ const std::string ComputeTreeStabilizer::stabilize_memory(const std::string& mem
 
 
 const std::string ComputeTreeStabilizer::stabilize_processor(const std::string& processor_uuid) {
-    auto& processor_manager = ComputeComponents::get_instance()->get_processor_manager();
+    auto& processor_manager = get_manager<agent_framework::model::Processor>();
     auto& system_manager = CommonComponents::get_instance()->get_system_manager();
 
     const auto& processor = processor_manager.get_entry(processor_uuid);
@@ -221,10 +223,10 @@ const std::string ComputeTreeStabilizer::stabilize_processor(const std::string& 
 
     if (parent_system.has_persistent_uuid() && processor.get_socket().has_value()) {
         const auto socket = processor.get_socket().value();
-        const std::string& processor_persisitent_uuid = stabilize_single_resource(processor_uuid, processor_manager,
+        const std::string& processor_persistent_uuid = stabilize_single_resource(processor_uuid, processor_manager,
                                                                                   literals::PROCESSOR_KEY_BASE +
                                                                                   parent_system.get_uuid() + socket);
-        return processor_persisitent_uuid;
+        return processor_persistent_uuid;
     }
     else {
         log_key_value_missing(processor.get_component().to_string(), processor_uuid);
@@ -233,13 +235,35 @@ const std::string ComputeTreeStabilizer::stabilize_processor(const std::string& 
 }
 
 
+const std::string ComputeTreeStabilizer::stabilize_trusted_module(const std::string& uuid) {
+    auto& manager = get_manager<agent_framework::model::TrustedModule>();
+    auto& system_manager = get_manager<agent_framework::model::System>();
+
+    const auto& module = manager.get_entry(uuid);
+    const auto& parent_system = system_manager.get_entry(module.get_parent_uuid());
+
+    if (parent_system.has_persistent_uuid() && module.get_interface_type().has_value()) {
+        const auto interface_type = module.get_interface_type().value().to_string();
+        const std::string& persistent_uuid = stabilize_single_resource(uuid, manager,
+                                                                       literals::TRUSTED_MODULE_KEY_BASE +
+                                                                       parent_system.get_uuid() + interface_type);
+        return persistent_uuid;
+    }
+    else {
+        log_key_value_missing(module.get_component().to_string(), uuid);
+        return uuid;
+    }
+}
+
+
 const std::string ComputeTreeStabilizer::stabilize_system(const std::string& system_uuid) {
     auto& system_manager = CommonComponents::get_instance()->get_system_manager();
-    auto& processor_manager = ComputeComponents::get_instance()->get_processor_manager();
+    auto& processor_manager = get_manager<agent_framework::model::Processor>();
     auto& memory_manager = ComputeComponents::get_instance()->get_memory_manager();
-    auto& nic_manager = ComputeComponents::get_instance()->get_network_interface_manager();
+    auto& nic_manager = get_manager<agent_framework::model::NetworkInterface>();
     auto& storage_subsystem_manager = CommonComponents::get_instance()->get_storage_subsystem_manager();
     auto& network_device_manager = ComputeComponents::get_instance()->get_network_device_manager();
+    auto& trusted_module_manager = get_manager<agent_framework::model::TrustedModule>();
 
     const auto& system = system_manager.get_entry(system_uuid);
 
@@ -250,9 +274,11 @@ const std::string ComputeTreeStabilizer::stabilize_system(const std::string& sys
         const auto& nics_uuids = nic_manager.get_keys(system_uuid);
         const auto& storage_subsystem_uuids = storage_subsystem_manager.get_keys(system_uuid);
         const auto& network_device_uuids = network_device_manager.get_keys(system_uuid);
+        const auto& trusted_module_uuids = trusted_module_manager.get_keys(system_uuid);
 
         const std::string& system_persistent_uuid = stabilize_single_resource(system_uuid, system_manager,
-                                                                              literals::SYSTEM_KEY_BASE + system_guid.value());
+                                                                              literals::SYSTEM_KEY_BASE +
+                                                                              system_guid.value());
 
         for (const auto& processor_uuid : processors_uuids) {
             processor_manager.get_entry_reference(processor_uuid)->set_parent_uuid(system_persistent_uuid);
@@ -279,6 +305,11 @@ const std::string ComputeTreeStabilizer::stabilize_system(const std::string& sys
             network_device_manager.get_entry_reference(network_device_uuid)->set_parent_uuid(
                 system_persistent_uuid);
             stabilize_network_device(network_device_uuid);
+        }
+
+        for (const auto& trusted_module_uuid: trusted_module_uuids) {
+            trusted_module_manager.get_entry_reference(trusted_module_uuid)->set_parent_uuid(system_persistent_uuid);
+            stabilize_trusted_module(trusted_module_uuid);
         }
         return system_persistent_uuid;
     }

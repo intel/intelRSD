@@ -31,9 +31,14 @@ static std::string Manager1 =
                "state": "Enabled"
             },
             "type": "ManagementController",
+            "guid": "guid",
+            "parentId": "parent",
+            "allowedActions": [],
             "model": null,
             "location": null,
             "firmwareVersion": "2112",
+            "dateTime": "10H23",
+            "dateTimeLocalOffset": "3",
             "ipv4Address": "2.1.1.2",
             "networkServices": [
                 {
@@ -45,7 +50,7 @@ static std::string Manager1 =
             "graphicalConsole": {
                 "enabled": true,
                 "maxSessions": null,
-                "types": []
+                "typesSupported": []
             },
             "serialConsole": {
                 "signalType": "Rs232",
@@ -56,17 +61,19 @@ static std::string Manager1 =
                 "flowControl": "None",
                 "pinOut": "Cisco",
                 "enabled": false,
-                "types": []
+                "maxSessions": 1,
+                "typesSupported": []
             },
             "commandShell": {
                 "enabled": null,
                 "maxSessions": null,
-                "types": []
+                "typesSupported": []
             },
             "collections": [
                 {
                     "name": "Systems",
-                    "type": "Systems"
+                    "type": "Systems",
+                    "slotMask": "11"
                 }
             ],
             "oem": {}
@@ -78,6 +85,7 @@ static std::string System1 =
                "health": "OK",
                "state": "Enabled"
             },
+            "type": "Physical",
             "biosVersion": "A20F21_A0",
             "bootOverride": "Once",
             "bootOverrideMode": "Legacy",
@@ -85,12 +93,19 @@ static std::string System1 =
             "bootOverrideSupported": [ "Hdd", "Pxe" ],
             "uefiTarget": "system_1_uefi_target",
             "powerState": "On",
+            "assetTag": "tag",
+            "cableIds": ["132"],
+            "systemGuid": "guid123",
+            "txtEnabled": true,
+            "userModeEnabled": true,
+            "sku": "123",
             "pciDevices": [
                 {
                     "vendorId": "0x2112",
                     "deviceId": "0x1000"
                 }
             ],
+            "usbDevices": [],
             "indicatorLED": "Off",
             "fruInfo": {
                 "serialNumber": "System1",
@@ -110,6 +125,7 @@ static std::string System2 =
                "health": "OK",
                "state": "Enabled"
             },
+            "type": "Physical",
             "biosVersion": "A20F21_A0",
             "bootOverride": "Once",
             "bootOverrideMode": "Legacy",
@@ -117,12 +133,19 @@ static std::string System2 =
             "bootOverrideSupported": [ "Hdd", "Pxe" ],
             "uefiTarget": "system_2_uefi_target",
             "powerState": "On",
+            "assetTag": "tag",
+            "cableIds": ["132"],
+            "systemGuid": "guid123",
+            "txtEnabled": true,
+            "userModeEnabled": true,
+            "sku": "123",
             "pciDevices": [
                 {
                     "vendorId": "0x2112",
                     "deviceId": "0x1000"
                 }
             ],
+            "usbDevices": [],
             "indicatorLED": "Off",
             "fruInfo": {
                 "serialNumber": "System1",
@@ -134,7 +157,7 @@ static std::string System2 =
                 {
                     "name": "Processors",
                     "type": "Processors",
-                    "slotMask": 11
+                    "slotMask": "11"
                 }
             ],
             "chassis": "none",
@@ -147,6 +170,7 @@ static std::string System2Modified =
                "health": "OK",
                "state": "Enabled"
             },
+            "type": "Physical",
             "biosVersion": "B20F21_A0",
             "bootOverride": "Once",
             "bootOverrideMode": "Legacy",
@@ -154,12 +178,19 @@ static std::string System2Modified =
             "bootOverrideSupported": [ "Hdd", "Pxe" ],
             "uefiTarget": "system_2_uefi_target",
             "powerState": "On",
+            "assetTag": "tag",
+            "cableIds": ["132"],
+            "systemGuid": "guid123",
+            "txtEnabled": true,
+            "userModeEnabled": true,
+            "sku": "123",
             "pciDevices": [
                 {
                     "vendorId": "0x2112",
                     "deviceId": "0x1000"
                 }
             ],
+            "usbDevices": [],
             "indicatorLED": "Off",
             "fruInfo": {
                 "serialNumber": "System1",
@@ -171,7 +202,7 @@ static std::string System2Modified =
                 {
                     "name": "Processors",
                     "type": "Processors",
-                    "slotMask": 11
+                    "slotMask": "11"
                 }
             ],
             "chassis": "none",
@@ -185,25 +216,66 @@ static std::string Processor1 =
                "state": "Enabled"
             },
             "socket": "1151",
+            "capabilities": [],
             "processorType": "CPU",
             "processorArchitecture": "x86",
-            "instructionSet": "x64",
+            "instructionSet": "x86-64",
             "manufacturer": "Intel Corporation",
             "model": "I7",
             "modelName": "Cool Model Name",
-            "cpuid": {
+            "cpuId": {
                 "vendorId": "GenuineIntel",
                 "numericId": "1001001",
-                "family": 6,
-                "model": 5,
-                "step": 4,
-                "microcodeInfo": 3
+                "family": "6",
+                "model": "5",
+                "step": "4",
+                "microcodeInfo": "3"
+            },
+            "extendedCpuId": {
+                "eax00h": "test",
+                "eax01h": "test",
+                "eax02h": "test",
+                "eax03h": "test",
+                "eax04h": "test",
+                "eax05h": "test",
+                "eax06h": "test",
+                "eax07h": "test",
+                "eax09h": "test",
+                "eax0ah": "test",
+                "eax0bh": "test",
+                "eax0dh": "test",
+                "eax0fh": "test",
+                "eax10h": "test",
+                "eax14h": "test",
+                "eax15h": "test",
+                "eax16h": "test",
+                "eax17hecx00h": "test",
+                "eax17hecx01h": "test",
+                "eax17hecx02h": "test",
+                "eax17hecx03h": "test",
+                "eax80000000h": "test",
+                "eax80000001h": "test",
+                "eax80000002h": "test",
+                "eax80000003h": "test",
+                "eax80000004h": "test",
+                "eax80000006h": "test",
+                "eax80000007h": "test",
+                "eax80000008h": "test"
+            },
+            "fpga": {
+                "type": "Integrated",
+                "bitStreamVersion": "1.0",
+                "hssiConfiguration": "PCIe",
+                "hssiSideband": "I2C",
+                "reconfigurationSlots": 2
             },
             "maxSpeedMHz": 2400,
             "totalCores": 16,
             "enabledCores": 16,
             "totalThreads": 32,
             "enabledThreads": 32,
+            "thermalDesignPowerWatt": 1.0,
+            "onPackageMemory": [],
             "oem": {}
         })";
 
@@ -214,25 +286,66 @@ static std::string Processor2 =
                "state": "Disabled"
             },
             "socket": "1151",
+            "capabilities": [],
             "processorType": "CPU",
             "processorArchitecture": "x86",
-            "instructionSet": "x64",
+            "instructionSet": "x86-64",
             "manufacturer": "Intel Corporation",
             "model": "I5",
             "modelName": "Cool Model Name",
-            "cpuid": {
+            "cpuId": {
                 "vendorId": "GenuineIntel",
                 "numericId": "1001001",
-                "family": 6,
-                "model": 5,
-                "step": 4,
-                "microcodeInfo": 3
+                "family": "6",
+                "model": "5",
+                "step": "4",
+                "microcodeInfo": "3"
+            },
+            "extendedCpuId": {
+                "eax00h": "test",
+                "eax01h": "test",
+                "eax02h": "test",
+                "eax03h": "test",
+                "eax04h": "test",
+                "eax05h": "test",
+                "eax06h": "test",
+                "eax07h": "test",
+                "eax09h": "test",
+                "eax0ah": "test",
+                "eax0bh": "test",
+                "eax0dh": "test",
+                "eax0fh": "test",
+                "eax10h": "test",
+                "eax14h": "test",
+                "eax15h": "test",
+                "eax16h": "test",
+                "eax17hecx00h": "test",
+                "eax17hecx01h": "test",
+                "eax17hecx02h": "test",
+                "eax17hecx03h": "test",
+                "eax80000000h": "test",
+                "eax80000001h": "test",
+                "eax80000002h": "test",
+                "eax80000003h": "test",
+                "eax80000004h": "test",
+                "eax80000006h": "test",
+                "eax80000007h": "test",
+                "eax80000008h": "test"
+            },
+            "fpga": {
+                "type": "Integrated",
+                "bitStreamVersion": "1.0",
+                "hssiConfiguration": "PCIe",
+                "hssiSideband": "I2C",
+                "reconfigurationSlots": 2
             },
             "maxSpeedMHz": 1200,
             "totalCores": 4,
             "enabledCores": 3,
             "totalThreads": 8,
             "enabledThreads": 2,
+            "thermalDesignPowerWatt": 2,
+            "onPackageMemory": [],
             "oem": {}
         })";
 
@@ -243,25 +356,66 @@ static std::string Processor2Modified =
                "state": "Disabled"
             },
             "socket": "666",
+            "capabilities": [],
             "processorType": "CPU",
             "processorArchitecture": "x86",
-            "instructionSet": "x64",
+            "instructionSet": "x86-64",
             "manufacturer": "Intel Corporation",
             "model": "I5",
             "modelName": "Cool Model Name",
-            "cpuid": {
+            "cpuId": {
                 "vendorId": "GenuineIntel",
                 "numericId": "1001001",
-                "family": 6,
-                "model": 5,
-                "step": 4,
-                "microcodeInfo": 3
+                "family": "6",
+                "model": "5",
+                "step": "4",
+                "microcodeInfo": "3"
+            },
+            "extendedCpuId": {
+                "eax00h": "test",
+                "eax01h": "test",
+                "eax02h": "test",
+                "eax03h": "test",
+                "eax04h": "test",
+                "eax05h": "test",
+                "eax06h": "test",
+                "eax07h": "test",
+                "eax09h": "test",
+                "eax0ah": "test",
+                "eax0bh": "test",
+                "eax0dh": "test",
+                "eax0fh": "test",
+                "eax10h": "test",
+                "eax14h": "test",
+                "eax15h": "test",
+                "eax16h": "test",
+                "eax17hecx00h": "test",
+                "eax17hecx01h": "test",
+                "eax17hecx02h": "test",
+                "eax17hecx03h": "test",
+                "eax80000000h": "test",
+                "eax80000001h": "test",
+                "eax80000002h": "test",
+                "eax80000003h": "test",
+                "eax80000004h": "test",
+                "eax80000006h": "test",
+                "eax80000007h": "test",
+                "eax80000008h": "test"
+            },
+            "fpga": {
+                "type": "Integrated",
+                "bitStreamVersion": "1.0",
+                "hssiConfiguration": "PCIe",
+                "hssiSideband": "I2C",
+                "reconfigurationSlots": 2
             },
             "maxSpeedMHz": 1200,
             "totalCores": 4,
             "enabledCores": 3,
             "totalThreads": 8,
             "enabledThreads": 2,
+            "thermalDesignPowerWatt": 2,
+            "onPackageMemory": [],
             "oem": {}
         })";
 
@@ -272,7 +426,14 @@ static std::string Manager2 =
                "state": "Enabled"
             },
             "type": "ManagementController",
+            "guid": "guid",
+            "parentId": "parent",
+            "allowedActions": [],
+            "model": null,
+            "location": null,
             "firmwareVersion": "21122",
+            "dateTime": "10H23",
+            "dateTimeLocalOffset": "3",
             "ipv4Address": "2.1.1.2",
             "networkServices": [
                 {
@@ -284,7 +445,7 @@ static std::string Manager2 =
             "graphicalConsole": {
                 "enabled": true,
                 "maxSessions": null,
-                "types": []
+                "typesSupported": []
             },
             "serialConsole": {
                 "signalType": "Rs232",
@@ -295,17 +456,19 @@ static std::string Manager2 =
                 "flowControl": "None",
                 "pinOut": "Cisco",
                 "enabled": false,
-                "types": []
+                "maxSessions": 1,
+                "typesSupported": []
             },
             "commandShell": {
                 "enabled": null,
                 "maxSessions": null,
-                "types": []
+                "typesSupported": []
             },
             "collections": [
                 {
                     "name": "Systems",
-                    "type": "Systems"
+                    "type": "Systems",
+                    "slotMask": "11"
                 }
             ],
             "oem": {}
@@ -317,6 +480,7 @@ static std::string System3 =
                "health": "OK",
                "state": "Enabled"
             },
+            "type": "Physical",
             "biosVersion": "A20F21_A0",
             "bootOverride": "Once",
             "bootOverrideMode": "Legacy",
@@ -324,12 +488,19 @@ static std::string System3 =
             "bootOverrideSupported": [ "Hdd", "Pxe" ],
             "uefiTarget": "system_3_uefi_target",
             "powerState": "On",
+            "assetTag": "tag",
+            "cableIds": ["132"],
+            "systemGuid": "guid123",
+            "txtEnabled": true,
+            "userModeEnabled": true,
+            "sku": "123",
             "pciDevices": [
                 {
                     "vendorId": "0x2112",
                     "deviceId": "0x1000"
                 }
             ],
+            "usbDevices": [],
             "indicatorLED": "Off",
             "fruInfo": {
                 "serialNumber": "System1",
@@ -341,7 +512,7 @@ static std::string System3 =
                 {
                     "name": "Processors",
                     "type": "Processors",
-                    "slotMask": 11
+                    "slotMask": "11"
                 }
             ],
             "chassis": "none",
@@ -355,25 +526,66 @@ static std::string Processor1OnSystem3 =
                "state": "Disabled"
             },
             "socket": "1151",
+            "capabilities": [],
             "processorType": "CPU",
             "processorArchitecture": "x86",
-            "instructionSet": "x64",
+            "instructionSet": "x86-64",
             "manufacturer": "Intel Corporation",
             "model": "I3",
             "modelName": "Cool Model Name",
-            "cpuid": {
+            "cpuId": {
                 "vendorId": "GenuineIntel",
                 "numericId": "1001001",
-                "family": 6,
-                "model": 5,
-                "step": 4,
-                "microcodeInfo": 3
+                "family": "6",
+                "model": "5",
+                "step": "4",
+                "microcodeInfo": "3"
+            },
+            "extendedCpuId": {
+                "eax00h": "test",
+                "eax01h": "test",
+                "eax02h": "test",
+                "eax03h": "test",
+                "eax04h": "test",
+                "eax05h": "test",
+                "eax06h": "test",
+                "eax07h": "test",
+                "eax09h": "test",
+                "eax0ah": "test",
+                "eax0bh": "test",
+                "eax0dh": "test",
+                "eax0fh": "test",
+                "eax10h": "test",
+                "eax14h": "test",
+                "eax15h": "test",
+                "eax16h": "test",
+                "eax17hecx00h": "test",
+                "eax17hecx01h": "test",
+                "eax17hecx02h": "test",
+                "eax17hecx03h": "test",
+                "eax80000000h": "test",
+                "eax80000001h": "test",
+                "eax80000002h": "test",
+                "eax80000003h": "test",
+                "eax80000004h": "test",
+                "eax80000006h": "test",
+                "eax80000007h": "test",
+                "eax80000008h": "test"
+            },
+            "fpga": {
+                "type": "Integrated",
+                "bitStreamVersion": "1.0",
+                "hssiConfiguration": "PCIe",
+                "hssiSideband": "I2C",
+                "reconfigurationSlots": 2
             },
             "maxSpeedMHz": 1200,
             "totalCores": 2,
             "enabledCores": 1,
             "totalThreads": 2,
             "enabledThreads": 2,
+            "thermalDesignPowerWatt": 5.5,
+            "onPackageMemory": [],
             "oem": {}
         })";
 
@@ -384,25 +596,66 @@ static std::string Processor1OnSystem3Modified =
                "state": "Enabled"
             },
             "socket": "1151",
+            "capabilities": [],
             "processorType": "CPU",
             "processorArchitecture": "x86",
-            "instructionSet": "x64",
+            "instructionSet": "x86-64",
             "manufacturer": "Intel Corporation",
             "model": "I3",
             "modelName": "Cool Model Name",
-            "cpuid": {
+            "cpuId": {
                 "vendorId": "GenuineIntel",
                 "numericId": "1001001",
-                "family": 6,
-                "model": 5,
-                "step": 4,
-                "microcodeInfo": 3
+                "family": "6",
+                "model": "5",
+                "step": "4",
+                "microcodeInfo": "3"
+            },
+            "extendedCpuId": {
+                "eax00h": "test",
+                "eax01h": "test",
+                "eax02h": "test",
+                "eax03h": "test",
+                "eax04h": "test",
+                "eax05h": "test",
+                "eax06h": "test",
+                "eax07h": "test",
+                "eax09h": "test",
+                "eax0ah": "test",
+                "eax0bh": "test",
+                "eax0dh": "test",
+                "eax0fh": "test",
+                "eax10h": "test",
+                "eax14h": "test",
+                "eax15h": "test",
+                "eax16h": "test",
+                "eax17hecx00h": "test",
+                "eax17hecx01h": "test",
+                "eax17hecx02h": "test",
+                "eax17hecx03h": "test",
+                "eax80000000h": "test",
+                "eax80000001h": "test",
+                "eax80000002h": "test",
+                "eax80000003h": "test",
+                "eax80000004h": "test",
+                "eax80000006h": "test",
+                "eax80000007h": "test",
+                "eax80000008h": "test"
+            },
+            "fpga": {
+                "type": "Integrated",
+                "bitStreamVersion": "1.0",
+                "hssiConfiguration": "PCIe",
+                "hssiSideband": "I2C",
+                "reconfigurationSlots": 2
             },
             "maxSpeedMHz": 1200,
             "totalCores": 2,
             "enabledCores": 1,
             "totalThreads": 2,
             "enabledThreads": 2,
+            "thermalDesignPowerWatt": 5.5,
+            "onPackageMemory": [],
             "oem": {}
         })";
 
@@ -412,6 +665,7 @@ static std::string System4 =
                "health": "OK",
                "state": "Enabled"
             },
+            "type": "Physical",
             "biosVersion": "A20F21_A0",
             "bootOverride": "Once",
             "bootOverrideMode": "Legacy",
@@ -419,12 +673,19 @@ static std::string System4 =
             "bootOverrideSupported": [ "Hdd", "Pxe" ],
             "uefiTarget": "system_4_uefi_target",
             "powerState": "On",
+            "assetTag": "tag",
+            "cableIds": ["132"],
+            "systemGuid": "guid123",
+            "txtEnabled": true,
+            "userModeEnabled": true,
+            "sku": "123",
             "pciDevices": [
                 {
                     "vendorId": "0x2112",
                     "deviceId": "0x1000"
                 }
             ],
+            "usbDevices": [],
             "indicatorLED": "Off",
             "fruInfo": {
                 "serialNumber": "System1",
@@ -436,7 +697,7 @@ static std::string System4 =
                 {
                     "name": "Processors",
                     "type": "Processors",
-                    "slotMask": 11
+                    "slotMask": "11"
                 }
             ],
             "chassis": "none",
@@ -450,25 +711,66 @@ static std::string Processor1OnSystem4 =
                "state": "Disabled"
             },
             "socket": "1158",
+            "capabilities": [],
             "processorType": "CPU",
             "processorArchitecture": "x86",
-            "instructionSet": "x64",
+            "instructionSet": "x86-64",
             "manufacturer": "Intel Corporation",
             "model": "I3",
             "modelName": "Cool Model Name",
-            "cpuid": {
+            "cpuId": {
                 "vendorId": "GenuineIntel",
                 "numericId": "1001001",
-                "family": 6,
-                "model": 5,
-                "step": 4,
-                "microcodeInfo": 3
+                "family": "6",
+                "model": "5",
+                "step": "4",
+                "microcodeInfo": "3"
+            },
+            "extendedCpuId": {
+                "eax00h": "test",
+                "eax01h": "test",
+                "eax02h": "test",
+                "eax03h": "test",
+                "eax04h": "test",
+                "eax05h": "test",
+                "eax06h": "test",
+                "eax07h": "test",
+                "eax09h": "test",
+                "eax0ah": "test",
+                "eax0bh": "test",
+                "eax0dh": "test",
+                "eax0fh": "test",
+                "eax10h": "test",
+                "eax14h": "test",
+                "eax15h": "test",
+                "eax16h": "test",
+                "eax17hecx00h": "test",
+                "eax17hecx01h": "test",
+                "eax17hecx02h": "test",
+                "eax17hecx03h": "test",
+                "eax80000000h": "test",
+                "eax80000001h": "test",
+                "eax80000002h": "test",
+                "eax80000003h": "test",
+                "eax80000004h": "test",
+                "eax80000006h": "test",
+                "eax80000007h": "test",
+                "eax80000008h": "test"
+            },
+            "fpga": {
+                "type": "Integrated",
+                "bitStreamVersion": "1.0",
+                "hssiConfiguration": "PCIe",
+                "hssiSideband": "I2C",
+                "reconfigurationSlots": 2
             },
             "maxSpeedMHz": 1200,
             "totalCores": 2,
             "enabledCores": 1,
             "totalThreads": 2,
             "enabledThreads": 2,
+            "thermalDesignPowerWatt": 1,
+            "onPackageMemory": [],
             "oem": {}
         })";
 
@@ -479,9 +781,14 @@ static std::string Manager3 =
                "state": "Enabled"
             },
             "type": "ManagementController",
+            "guid": "guid",
+            "parentId": "parent",
+            "allowedActions": [],
             "model": null,
             "location": null,
             "firmwareVersion": "2112",
+            "dateTime": "10H23",
+            "dateTimeLocalOffset": "3",
             "ipv4Address": "2.1.1.2",
             "networkServices": [
                 {
@@ -493,7 +800,7 @@ static std::string Manager3 =
             "graphicalConsole": {
                 "enabled": true,
                 "maxSessions": null,
-                "types": []
+                "typesSupported": []
             },
             "serialConsole": {
                 "signalType": "Rs232",
@@ -504,21 +811,24 @@ static std::string Manager3 =
                 "flowControl": "None",
                 "pinOut": "Cisco",
                 "enabled": false,
-                "types": []
+                "maxSessions": 1,
+                "typesSupported": []
             },
             "commandShell": {
                 "enabled": null,
                 "maxSessions": null,
-                "types": []
+                "typesSupported": []
             },
             "collections": [
                 {
                     "name": "FastSystems",
-                    "type": "Systems"
+                    "type": "Systems",
+                    "slotMask": "11"
                 },
                 {
                     "name": "SlowSystems",
-                    "type": "Systems"
+                    "type": "Systems",
+                    "slotMask": "11"
                 }
             ],
             "oem": {}
@@ -530,6 +840,7 @@ static std::string System5 =
                "health": "OK",
                "state": "Enabled"
             },
+            "type": "Physical",
             "biosVersion": "A20F21_A0",
             "bootOverride": "Once",
             "bootOverrideMode": "Legacy",
@@ -537,12 +848,19 @@ static std::string System5 =
             "bootOverrideSupported": [ "Hdd", "Pxe" ],
             "uefiTarget": "system_4_uefi_target",
             "powerState": "On",
+            "assetTag": "tag",
+            "cableIds": ["132"],
+            "systemGuid": "guid123",
+            "txtEnabled": true,
+            "userModeEnabled": true,
+            "sku": "123",
             "pciDevices": [
                 {
                     "vendorId": "0x2112",
                     "deviceId": "0x1000"
                 }
             ],
+            "usbDevices": [],
             "indicatorLED": "Off",
             "fruInfo": {
                 "serialNumber": "System1",
@@ -553,11 +871,13 @@ static std::string System5 =
             "collections": [
                 {
                     "name": "FastProcessors",
-                    "type": "Processors"
+                    "type": "Processors",
+                    "slotMask": "11"
                 },
                 {
                     "name": "SlowProcessors",
-                    "type": "Processors"
+                    "type": "Processors",
+                    "slotMask": "11"
                 }
             ],
             "chassis": "none",
@@ -570,6 +890,7 @@ static std::string System6 =
                "health": "OK",
                "state": "Enabled"
             },
+            "type": "Physical",
             "biosVersion": "A20F21_A0",
             "bootOverride": "Once",
             "bootOverrideMode": "Legacy",
@@ -577,12 +898,19 @@ static std::string System6 =
             "bootOverrideSupported": [ "Hdd", "Pxe" ],
             "uefiTarget": "system_5_uefi_target",
             "powerState": "On",
+            "assetTag": "tag",
+            "cableIds": ["132"],
+            "systemGuid": "guid123",
+            "txtEnabled": true,
+            "userModeEnabled": true,
+            "sku": "123",
             "pciDevices": [
                 {
                     "vendorId": "0x2112",
                     "deviceId": "0x1000"
                 }
             ],
+            "usbDevices": [],
             "indicatorLED": "Off",
             "fruInfo": {
                 "serialNumber": "System1",
@@ -593,14 +921,29 @@ static std::string System6 =
             "collections": [
                 {
                     "name": "Anything",
-                    "type": "Processors"
+                    "type": "Processors",
+                    "slotMask": "11"
                 },
                 {
                     "name": "whAtever",
-                    "type": "Processors"
+                    "type": "Processors",
+                    "slotMask": "11"
                 }
             ],
             "chassis": "none",
             "oem": {}
         })";
 
+static std::string Task1 =
+    R"({
+        "status": {
+           "health": "OK",
+           "state": "Enabled"
+        },
+        "name" : "test task",
+        "startTime" : "then",
+        "endTime" : "now",
+        "state" : "Exception",
+        "messages" : [],
+        "oem": {}
+    })";

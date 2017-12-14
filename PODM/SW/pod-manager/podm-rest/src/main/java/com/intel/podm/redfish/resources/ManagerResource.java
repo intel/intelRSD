@@ -16,28 +16,35 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.ManagerDto;
+import com.intel.podm.business.dto.ManagerDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_INTERFACES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.NETWORK_PROTOCOL_RESOURCE_NAME;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ManagerResource extends BaseResource {
-
     @Inject
     private ReaderService<ManagerDto> readerService;
 
     @GET
     @Override
-    public ManagerDto get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        ManagerDto managerDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, managerDto);
     }
 
     @Path(NETWORK_PROTOCOL_RESOURCE_NAME)
@@ -48,5 +55,10 @@ public class ManagerResource extends BaseResource {
     @Path(ETHERNET_INTERFACES_RESOURCE_NAME)
     public EthernetInterfaceCollectionResource getEthernetInterfaces() {
         return getResource(EthernetInterfaceCollectionResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

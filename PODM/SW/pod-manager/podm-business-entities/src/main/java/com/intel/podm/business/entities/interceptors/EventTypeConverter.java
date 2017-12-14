@@ -18,10 +18,11 @@ package com.intel.podm.business.entities.interceptors;
 
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.types.events.EventType;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -30,9 +31,8 @@ import static com.intel.podm.business.entities.interceptors.EventableAnnotations
 import static com.intel.podm.common.types.events.EventType.RESOURCE_UPDATED;
 import static java.util.function.Function.identity;
 
-@Dependent
+@ApplicationScoped
 public class EventTypeConverter implements BiFunction<Entity, EventType, EventType> {
-
     private static final int CACHE_SIZE = 1000;
 
     private static final Function<EventType, EventType> ANY_AS_UPDATE_STATE_AND_ALERT_UNCHANGED = eventType -> {
@@ -45,12 +45,12 @@ public class EventTypeConverter implements BiFunction<Entity, EventType, EventTy
         }
     };
 
-    private LoadingCache<Class, Function<EventType, EventType>> eventConvertersByClass
+    private LoadingCache<Class<?>, Function<EventType, EventType>> eventConvertersByClass
         = newBuilder()
         .maximumSize(CACHE_SIZE)
-        .build(new CacheLoader<Class, Function<EventType, EventType>>() {
+        .build(new CacheLoader<Class<?>, Function<EventType, EventType>>() {
             @Override
-            public Function<EventType, EventType> load(Class key) throws Exception {
+            public Function<EventType, EventType> load(Class<?> key) throws Exception {
                 if (hasEventOriginProvider(key)) {
                     return ANY_AS_UPDATE_STATE_AND_ALERT_UNCHANGED;
                 }
@@ -60,6 +60,20 @@ public class EventTypeConverter implements BiFunction<Entity, EventType, EventTy
 
     @Override
     public EventType apply(Entity sourceEntity, EventType sourceEventType) {
-        return eventConvertersByClass.getUnchecked(sourceEntity.getClass()).apply(sourceEventType);
+        EventType eventType;
+        if (isComplementaryEntity(sourceEntity)) {
+            eventType = RESOURCE_UPDATED;
+        } else {
+            eventType = eventConvertersByClass.getUnchecked(sourceEntity.getClass()).apply(sourceEventType);
+        }
+
+        return eventType;
+    }
+
+    private boolean isComplementaryEntity(Entity entity) {
+        if (entity instanceof DiscoverableEntity) {
+            return ((DiscoverableEntity) entity).isComplementary();
+        }
+        return false;
     }
 }

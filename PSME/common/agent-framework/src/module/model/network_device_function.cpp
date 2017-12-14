@@ -33,8 +33,8 @@ NetworkDeviceFunction::NetworkDeviceFunction(const std::string& parent_uuid, enu
 
 NetworkDeviceFunction::~NetworkDeviceFunction() {}
 
-Json::Value NetworkDeviceFunction::to_json() const {
-    Json::Value result;
+json::Json NetworkDeviceFunction::to_json() const {
+    json::Json result;
     result[literals::NetworkDeviceFunction::STATUS] = get_status().to_json();
     result[literals::NetworkDeviceFunction::DEVICE_ENABLED] = m_device_enabled;
     result[literals::NetworkDeviceFunction::ETHERNET][literals::NetworkDeviceFunction::MAC_ADDRESS] = m_mac_address;
@@ -43,12 +43,12 @@ Json::Value NetworkDeviceFunction::to_json() const {
     return result;
 }
 
-NetworkDeviceFunction NetworkDeviceFunction::from_json(const Json::Value& json) {
+NetworkDeviceFunction NetworkDeviceFunction::from_json(const json::Json& json) {
     NetworkDeviceFunction function;
     function.set_status(attribute::Status::from_json(json[literals::NetworkDeviceFunction::STATUS]));
-    function.set_device_enabled(json[literals::NetworkDeviceFunction::DEVICE_ENABLED].asBool());
-    if (json.isMember(literals::NetworkDeviceFunction::ETHERNET)
-        && json[literals::NetworkDeviceFunction::ETHERNET].isObject()) {
+    function.set_device_enabled(json[literals::NetworkDeviceFunction::DEVICE_ENABLED]);
+    if (json.count(literals::NetworkDeviceFunction::ETHERNET)
+        && json[literals::NetworkDeviceFunction::ETHERNET].is_object()) {
 
         function.set_mac_address(
             json[literals::NetworkDeviceFunction::ETHERNET][literals::NetworkDeviceFunction::MAC_ADDRESS]);

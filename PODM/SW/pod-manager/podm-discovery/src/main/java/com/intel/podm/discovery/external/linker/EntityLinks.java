@@ -18,7 +18,7 @@ package com.intel.podm.discovery.external.linker;
 
 import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.Zone;
-import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -44,7 +44,7 @@ public class EntityLinks {
     @Inject
     private EntityLinker linker;
 
-    public Collection<EntityLink> getLinksThatMayBeRemoved(Collection<Entity> entities) {
+    public Collection<EntityLink> getLinksThatMayBeRemoved(Collection<DiscoverableEntity> entities) {
         requiresNonNull(entities, "entities");
 
         return entities

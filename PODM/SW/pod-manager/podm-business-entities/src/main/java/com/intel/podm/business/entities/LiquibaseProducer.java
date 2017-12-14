@@ -29,7 +29,6 @@ import java.sql.SQLException;
 
 @ApplicationScoped
 public class LiquibaseProducer {
-
     @Resource(lookup = "java:jboss/datasources/PostgreSqlDS")
     private DataSource myDataSource;
 
@@ -37,6 +36,7 @@ public class LiquibaseProducer {
     @LiquibaseType
     public CDILiquibaseConfig createConfig() {
         CDILiquibaseConfig config = new CDILiquibaseConfig();
+        config.setContexts("production");
         config.setChangeLog("META-INF/sql/changelog/createdb.xml");
         return config;
     }

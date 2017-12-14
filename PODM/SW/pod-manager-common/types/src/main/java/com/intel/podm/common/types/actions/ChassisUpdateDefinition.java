@@ -19,8 +19,8 @@ package com.intel.podm.common.types.actions;
 public class ChassisUpdateDefinition extends BaseChassisUpdateDefinition {
     private final String locationId;
 
-    public ChassisUpdateDefinition(String assetTag, String locationId) {
-        super(assetTag);
+    public ChassisUpdateDefinition(String assetTag, String geoTag, String locationId) {
+        super(assetTag, geoTag);
         this.locationId = locationId;
     }
 

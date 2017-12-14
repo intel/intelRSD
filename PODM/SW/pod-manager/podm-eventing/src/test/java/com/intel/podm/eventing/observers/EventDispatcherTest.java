@@ -49,28 +49,6 @@ import static org.testng.Assert.assertEquals;
 @SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodName"})
 public class EventDispatcherTest {
 
-    @Test(dataProvider = "dataProvider")
-    public void whenThereAreRegisteredConsumers_shouldProperlyDispatchEvents(
-        Pair<Set<RedfishEvent>, Set<EventSubscription>> testData, Map<EventSubscription, Set<RedfishEvent>> expectedResults
-    ) {
-        Map<EventSubscription, Set<RedfishEvent>> dispatched = dispatch(testData.first(), testData.second());
-
-        assertThat(dispatched.entrySet(), everyItem(isIn(expectedResults.entrySet())));
-        assertThat(expectedResults.entrySet(), everyItem(isIn(dispatched.entrySet())));
-    }
-
-    @Test
-    public void whenThereAreNoConsumers_shouldReturnEmptyMap() {
-        Map<EventSubscription, Set<RedfishEvent>> dispatched = dispatch(
-            newHashSet(
-                event(RESOURCE_ADDED, URI.create("/redfish/v1/Chassis/2"))
-            ),
-            emptySet()
-        );
-
-        assertEquals(dispatched.entrySet().size(), 0);
-    }
-
     @DataProvider
     @SuppressWarnings({"checkstyle:MethodLength"})
     public static Object[][] dataProvider() {
@@ -110,5 +88,27 @@ public class EventDispatcherTest {
         when(mock.getEventTypes()).thenReturn(eventTypes);
         when(mock.getOriginResources()).thenReturn(originResources);
         return mock;
+    }
+
+    @Test(dataProvider = "dataProvider")
+    public void whenThereAreRegisteredConsumers_shouldProperlyDispatchEvents(
+        Pair<Set<RedfishEvent>, Set<EventSubscription>> testData, Map<EventSubscription, Set<RedfishEvent>> expectedResults
+    ) {
+        Map<EventSubscription, Set<RedfishEvent>> dispatched = dispatch(testData.first(), testData.second());
+
+        assertThat(dispatched.entrySet(), everyItem(isIn(expectedResults.entrySet())));
+        assertThat(expectedResults.entrySet(), everyItem(isIn(dispatched.entrySet())));
+    }
+
+    @Test
+    public void whenThereAreNoConsumers_shouldReturnEmptyMap() {
+        Map<EventSubscription, Set<RedfishEvent>> dispatched = dispatch(
+            newHashSet(
+                event(RESOURCE_ADDED, URI.create("/redfish/v1/Chassis/2"))
+            ),
+            emptySet()
+        );
+
+        assertEquals(dispatched.entrySet().size(), 0);
     }
 }

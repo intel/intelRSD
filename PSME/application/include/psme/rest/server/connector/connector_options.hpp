@@ -52,6 +52,8 @@ public:
     static constexpr const char CERTS_DIR[] = "certs-directory";
     /*! @brief Property name of flag indicating if client certificate is required */
     static constexpr const char CLIENT_CERT_REQUIRED[] = "client-cert-required";
+    /*! @brief Property hostname for certificate verification */
+    static constexpr const char HOSTNAME[] = "hostname";
     /*! @brief Property name of threading mode */
     static constexpr const char THREAD_MODE[] = "thread-mode";
     /*! @brief Value of threading mode property */
@@ -133,6 +135,11 @@ public:
     bool is_client_cert_required() const;
 
     /*!
+     * @return Hostname for certificate verification.
+     */
+    const std::string& get_hostname() const;
+
+    /*!
      * @return Thread pool size of Connector.
      */
     unsigned int get_thread_pool_size() const;
@@ -148,6 +155,7 @@ private:
     bool m_use_ssl{true};
     std::string m_certs_dir{};
     bool m_is_client_cert_required{true};
+    std::string m_hostname{};
     unsigned int m_thread_pool_size{0};
     ThreadMode m_thread_mode{ThreadMode::SELECT};
     bool m_use_debug{false};

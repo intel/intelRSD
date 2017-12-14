@@ -25,9 +25,17 @@
 #include "utils/port.hpp"
 
 #include "agent-framework/module/network_components.hpp"
-#include "api/netlink/switch_port_info.hpp"
+#include "hal/switch_port_info_impl.hpp"
+#include "agent-framework/eventing/event_data.hpp"
+#include "agent-framework/eventing/events_queue.hpp"
 
-using namespace agent::network::api::netlink;
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/network_commands.hpp"
+
+
+
+
+using namespace agent::network::hal;
 
 using namespace agent_framework::module;
 using namespace agent_framework::model;
@@ -37,7 +45,7 @@ using namespace agent_framework::model::attribute;
 using std::string;
 
 void agent::network::utils::init_switch_vlan_port(const string& port_identifier) {
-    SwitchPortInfo port_info{port_identifier};
+    SwitchPortInfoImpl port_info{port_identifier};
     std::string port_uuid{};
     if (!get_port_uuid_by_identifier(port_identifier, port_uuid)) {
         throw std::runtime_error("UUID not found for port identifier " +
@@ -48,14 +56,14 @@ void agent::network::utils::init_switch_vlan_port(const string& port_identifier)
     for (const auto& vlan : port_info.get_vlans()) {
         EthernetSwitchPortVlan portvlan_model{port_uuid};
         portvlan_model.set_vlan_id(vlan.get_vlan_id());
-        portvlan_model.set_tagged(vlan.get_vlan_tag());
+        portvlan_model.set_tagged(vlan.is_tagged());
         portvlan_model.set_vlan_enable(true);
         portvlan_model.set_status({State::Enabled, Health::OK});
         port_vlan_manager.add_entry(std::move(portvlan_model));
         log_debug(GET_LOGGER("network-agent"), "Adding port-vlan ["
                   << "port=" << port_identifier
                   << " vlan=" << vlan.get_vlan_id()
-                  << " tag=" << vlan.get_vlan_tag()
+                  << " tag=" << vlan.is_tagged()
                   << "]");
     }
 }
@@ -72,4 +80,41 @@ bool agent::network::utils::get_port_uuid_by_identifier(
         }
     }
     return false;
+}
+
+void agent::network::utils::send_update_event(const std::string& parent_uuid,
+                                              const std::string& uuid) {
+    agent_framework::eventing::EventData edat;
+    edat.set_component(uuid);
+    edat.set_type(::agent_framework::model::enums::Component::EthernetSwitchPort);
+    edat.set_notification(::agent_framework::eventing::Notification::Update);
+    edat.set_parent(parent_uuid);
+    agent_framework::eventing::EventsQueue::get_instance()->push_back(edat);
+}
+
+
+void agent::network::utils::set_port_neighbor_mac(const std::string& port_name,
+                                                  const std::string& neighbor_mac) {
+    auto& port_manager = get_manager<EthernetSwitchPort>();
+    for (const auto& port_uuid : port_manager.get_keys()) {
+        auto port_model = port_manager.get_entry_reference(port_uuid);
+        auto switch_uuid = port_model->get_parent_uuid();
+
+        if (PortType::Downstream == port_model->get_port_type()) {
+            if (port_model->get_port_identifier() == port_name) {
+                port_model->set_neighbor_mac(neighbor_mac);
+                log_debug(GET_LOGGER("network-agent"), "Adding neighbor MAC address " + neighbor_mac +
+                                                       " to interface " + port_name);
+                send_update_event(switch_uuid, port_uuid);
+
+            } else {
+                if (port_model->get_neighbor_mac() == neighbor_mac) {
+                    log_debug(GET_LOGGER("network-agent"), "Deleting neighbor MAC address " + neighbor_mac +
+                                                           " from interface " + port_name);
+                    port_model->set_neighbor_mac({});
+                    send_update_event(switch_uuid, port_uuid);
+                }
+            }
+        }
+    }
 }

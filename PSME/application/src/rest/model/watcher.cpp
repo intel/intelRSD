@@ -111,15 +111,15 @@ private:
 RetentionPolicyTask::RetentionPolicyTask() : WatcherTask("RetentionPolicy") {
     auto config = configuration::Configuration::get_instance().to_json();
 
-    auto interval_value = config["retention-policy"]["interval-sec"];
+    auto interval_value = config["database"]["retention-interval-sec"];
     interval = std::chrono::seconds(interval_value.is_uint() ? interval_value.as_uint() : 0);
 
-    auto outdated_value = config["retention-policy"]["outdated-sec"];
+    auto outdated_value = config["database"]["retention-outdated-sec"];
     outdated = outdated_value.is_uint() ? std::chrono::seconds(outdated_value.as_uint()) : std::chrono::hours(24);
 }
 
 void RetentionPolicyTask::started() {
-    unsigned invalidated = handler::Database::invalidate_all(outdated);
+    unsigned invalidated = database::Database::invalidate_all(outdated);
     log_info(GET_LOGGER("rest"), "Initially invalidated " << invalidated << " persistence entries");
 }
 
@@ -132,7 +132,7 @@ void RetentionPolicyTask::execute() {
     if (0 == interval.count()) {
         throw WatcherTask::StopWatching();
     }
-    unsigned removed = handler::Database::remove_outdated(outdated);
+    unsigned removed = database::Database::remove_outdated(outdated);
     if (0 != removed) {
         log_info(GET_LOGGER("rest"), "Removed " << removed << " persistance entries on outdate," <<
             " interval " << outdated.count());
@@ -141,7 +141,7 @@ void RetentionPolicyTask::execute() {
 
 void RetentionPolicyTask::stopped() {
     if (0 != interval.count()) {
-        unsigned invalidated = handler::Database::invalidate_all(outdated);
+        unsigned invalidated = database::Database::invalidate_all(outdated);
         log_info(GET_LOGGER("rest"), "Invalidated " << invalidated << " persistance entries");
     }
 }
@@ -244,11 +244,11 @@ void Watcher::watch() {
             /* add "modified" task back to the queue */
             insert(std::move(found));
         } else {
-            /*! @todo events are starved and queue grows if tasks took too much time. */
-            auto event = agent_framework::eventing::EventsQueue::get_instance()->
+            /*! @todo component notifications are starved and queue grows if tasks took too much time. */
+            auto notification = agent_framework::eventing::EventsQueue::get_instance()->
                     wait_for_and_pop(std::chrono::seconds(1));
-            if (event && m_running) {
-                process_event(event.get());
+            if (notification && m_running) {
+                process_notification(*notification);
             }
         }
     }
@@ -259,22 +259,38 @@ void Watcher::watch() {
     }
 }
 
-void Watcher::process_event(const Watcher::EventData* const event) {
+void Watcher::process_notification(const agent_framework::eventing::ComponentNotification& gami_notification) {
+    if (gami_notification.get_notifications().size() == 0) {
+        return;
+    }
+
     try {
-        auto agent = core::agent::AgentManager::get_instance()->get_agent(event->get_gami_id());
-        if(nullptr == agent) {
-            log_error(GET_LOGGER("rest"), "Agent GAMI ID " << event->get_gami_id() << " not recognized");
+        auto agent = core::agent::AgentManager::get_instance()->get_agent(gami_notification.get_gami_id());
+        if (nullptr == agent) {
+            log_error(GET_LOGGER("rest"), "Agent GAMI ID " << gami_notification.get_gami_id() << " not recognized");
             return;
         }
 
-        auto event_handling = [this,agent,event] {
-            auto handler = handler::HandlerManager::get_instance()->get_handler(event->get_type());
-            if (!handler->handle(agent, *event)) {
-                log_info(GET_LOGGER("rest"), "Event not processed corectly. event->get_type() = "
-                    << event->get_type() << "; event->get_notification() = " << event->get_notification().to_string());
+        psme::rest::eventing::EventVec collected_northbound_events{};
+
+        auto handle_notifications = [this, agent, &gami_notification, &collected_northbound_events] {
+
+            for (const auto& notification : gami_notification.get_notifications()) {
+                psme::rest::eventing::EventVec events_from_handling{};
+                auto handler = handler::HandlerManager::get_instance()->get_handler(notification.get_type());
+                if (!handler->handle(agent, notification, events_from_handling)) {
+                    log_info("rest", "Notification not processed correctly"
+                        << "; Component = " << notification.get_type()
+                        << "; notification type = " << notification.get_notification().to_string());
+                }
+                collected_northbound_events.insert(
+                    collected_northbound_events.end(), events_from_handling.begin(), events_from_handling.end());
             }
         };
-        agent->execute_in_transaction(event_handling);
+        agent->execute_in_transaction(handle_notifications);
+
+        // send all collected events in one batch
+        psme::rest::eventing::manager::SubscriptionManager::get_instance()->notify(collected_northbound_events);
 
     } catch (const std::exception &error) {
         log_error(GET_LOGGER("rest"), "Event exception occured: " << error.what());

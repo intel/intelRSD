@@ -73,8 +73,8 @@ TEST(GetStorageControllerInfoTest, PositiveExecute) {
     MyGetStorageControllerInfo command{"TestControllerId"};
     GetStorageControllerInfo::Request request{""};
     GetStorageControllerInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::StorageController::CONTROLLER] = "TestControllerId";
 
@@ -103,8 +103,8 @@ TEST(GetStorageControllerInfoTest, NegativeModuleNotFound) {
     MyGetStorageControllerInfo command{"TestControllerId"};
     GetStorageControllerInfo::Request request{""};
     GetStorageControllerInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::StorageController::CONTROLLER] = "OtherTestControllerId";
 

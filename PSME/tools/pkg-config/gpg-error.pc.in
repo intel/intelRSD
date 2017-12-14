@@ -1,0 +1,11 @@
+prefix=@CMAKE_BINARY_DIR@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: gpg-error
+Description: Libgpg-error - The GNU Privacy Guard
+URL: https://gnupg.org/software/libgpg-error/index.html
+Version: @GPG-ERROR_VERSION@
+Libs: -L${libdir} -lgpg-error
+Cflags: -I${includedir}

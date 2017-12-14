@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.subresources;
 
 import com.intel.podm.business.entities.redfish.SimpleStorageDevice;
-import com.intel.podm.client.api.resources.redfish.SimpleStorageDeviceResource;
+import com.intel.podm.client.resources.redfish.SimpleStorageDeviceResource;
 import com.intel.podm.mappers.subresources.strategies.EntityCleanAndCreateStrategy;
 
 import javax.enterprise.context.Dependent;

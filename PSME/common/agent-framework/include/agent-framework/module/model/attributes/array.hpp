@@ -22,18 +22,14 @@
  * */
 
 #pragma once
-#include <json/json.h>
+
+
+
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <vector>
 #include <string>
 #include <type_traits>
-
-using std::string;
-
-namespace Json {
-    /* Forward declaration */
-    class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -42,7 +38,7 @@ namespace attribute {
 /*! Class representing arrays in commands response
  * */
 
-template <typename T>
+template<typename T>
 class Array {
 private:
     using ArrayObject = std::vector<T>;
@@ -50,28 +46,38 @@ private:
 public:
     explicit Array();
 
+
     /*!
      * @brief Constructor from vector
      * @param[in] v vector<T>
      */
-    Array(const ArrayObject& v) : m_array(v) { }
+    Array(const ArrayObject& v) : m_array(v) {}
+
 
     /*!
      * @brief Constructor from initializer list
      * @param[in] list initializer list
      */
-    Array(const std::initializer_list<T> list) : m_array(list) { }
+    Array(const std::initializer_list<T> list) : m_array(list) {}
+
 
     /*! @brief Destructor */
     ~Array();
 
+
     /*! Enable copy */
     Array(const Array&) = default;
+
+
     Array& operator=(const Array&) = default;
+
 
     /*! Enable move */
     Array(Array&&) = default;
+
+
     Array& operator=(Array&&) = default;
+
 
     /*!
      * @brief Sets array
@@ -81,6 +87,7 @@ public:
         m_array = array;
     }
 
+
     /*!
      * @brief Returns array
      * @return Array
@@ -88,6 +95,7 @@ public:
     const ArrayObject& get_array() const {
         return m_array;
     }
+
 
     /*!
      * @brief Adds entry to the array
@@ -97,18 +105,21 @@ public:
         m_array.emplace_back(entry);
     }
 
-     /*!
-      * @brief Creates array from the json object
-      * @param json Json object
-      * @return Array
-      */
-    static Array<T> from_json(const Json::Value& json);
+
+    /*!
+     * @brief Creates array from the json object
+     * @param json Json object
+     * @return Array
+     */
+    static Array<T> from_json(const json::Json& json);
+
 
     /*!
      * @brief Converts array into json object
      * @return Json object
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
+
 
     /*!
      * @brief Creates a subarray consisting to this array's
@@ -121,6 +132,7 @@ public:
         return Array<T>(ArrayObject(&m_array[first], &m_array[last]));
     }
 
+
     /*!
      * @brief Returns iterator to the first element of the array
      * @return iterator
@@ -128,6 +140,7 @@ public:
     typename ArrayObject::iterator begin() {
         return m_array.begin();
     }
+
 
     /*!
      * @brief Returns iterator to the element after the last element
@@ -137,6 +150,7 @@ public:
         return m_array.end();
     }
 
+
     /*!
      * @brief Returns const iterator to the first element of the array
      * @return iterator
@@ -144,6 +158,7 @@ public:
     typename ArrayObject::const_iterator begin() const {
         return m_array.begin();
     }
+
 
     /*!
      * @brief Returns const iterator to the element after the last element
@@ -153,6 +168,7 @@ public:
         return m_array.end();
     }
 
+
     /*!
      * @brief Checks if the array is empty.
      * @return Returns true if array is empty, false otherwise.
@@ -161,31 +177,35 @@ public:
         return m_array.empty();
     }
 
+
     /*!
      * @brief Element access [] operator
      * @param[in] index Index of element
      * @return Reference to the element
      * */
-    T& operator[](size_t index) {
+    T& operator[](std::size_t index) {
         return m_array[index];
     }
+
 
     /*!
      * @brief Element access [] operator (const version)
      * @param[in] index Index of element
      * @return Const reference to the element
      * */
-    const T& operator[](size_t index) const {
+    const T& operator[](std::size_t index) const {
         return m_array[index];
     }
+
 
     /*!
      * @brief Returns size of the array
      * @return Size of the array
      * */
-    size_t size() const {
+    std::size_t size() const {
         return m_array.size();
     }
+
 
 private:
     ArrayObject m_array{};

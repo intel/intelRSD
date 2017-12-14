@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Zone;
-import com.intel.podm.client.api.resources.redfish.ZoneResource;
+import com.intel.podm.client.resources.redfish.ZoneResource;
 import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;

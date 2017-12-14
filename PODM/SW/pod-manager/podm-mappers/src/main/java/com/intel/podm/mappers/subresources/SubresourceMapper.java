@@ -53,7 +53,7 @@ public abstract class SubresourceMapper<SOURCE, TARGET> {
         }
     }
 
-    private boolean equalAndDontContainNulls(Collection sourceCollection, Collection targetCollection) {
+    public boolean equalAndDontContainNulls(Collection sourceCollection, Collection targetCollection) {
         if (!nonEmptyAndSameSize(sourceCollection, targetCollection)) {
             return false;
         }

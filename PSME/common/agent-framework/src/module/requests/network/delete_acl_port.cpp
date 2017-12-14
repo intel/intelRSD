@@ -25,7 +25,7 @@
 #include "agent-framework/module/requests/network/delete_acl_port.hpp"
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -34,16 +34,16 @@ DeleteAclPort::DeleteAclPort(const std::string& acl, const Ports& ports,
                        const Oem& oem)
     : m_acl(acl), m_ports(ports), m_oem(oem) {}
 
-Json::Value DeleteAclPort::to_json() const {
-    Json::Value value;
+json::Json DeleteAclPort::to_json() const {
+    json::Json value;
     value[Acl::ACL] = m_acl;
     value[Acl::PORTS] = m_ports.to_json();
     value[Acl::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteAclPort DeleteAclPort::from_json(const Json::Value& json) {
-    return DeleteAclPort{json[Acl::ACL].asString(),
+DeleteAclPort DeleteAclPort::from_json(const json::Json& json) {
+    return DeleteAclPort{json[Acl::ACL],
         Ports::from_json(json[Acl::PORTS]),
         Oem::from_json(json[Acl::OEM])
     };

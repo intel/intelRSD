@@ -149,6 +149,8 @@ private:
     Configuration() { }
     Configuration(const Configuration&) = delete;
     Configuration(Configuration&&) = delete;
+    Configuration& operator=(const Configuration&) = delete;
+    Configuration& operator=(Configuration&&) = delete;
 
     std::string load_file(const std::string& file_name) const;
     std::string get_key_file_path(const std::string& configuration_file_name) const;

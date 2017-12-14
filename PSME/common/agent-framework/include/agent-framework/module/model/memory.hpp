@@ -44,18 +44,18 @@ public:
     /*!
      * @brief construct an object of class Memory from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed Memory object
      */
-    static Memory from_json(const Json::Value& json);
+    static Memory from_json(const json::Json& json);
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief Get collection name
@@ -501,6 +501,39 @@ public:
         return m_regions;
     }
 
+    /*!
+     * @brief Set smbios handle
+     * @param[in] smbios_handle smbios handle
+     * */
+    void set_smbios_handle(const OptionalField<std::uint16_t>& smbios_handle) {
+        m_smbios_handle = smbios_handle;
+    }
+
+    /*!
+     * @brief Get smbios handle
+     * @return smbios handle
+     * */
+    const OptionalField<std::uint16_t>& get_smbios_handle() const {
+        return m_smbios_handle;
+    }
+
+    /*!
+     * @brief Set max tdp milliwats
+     * @param[in] max_tdp_milliwats max tdp milliwats
+     * */
+    void set_max_tdp_milliwats(const OptionalField<std::uint32_t>& max_tdp_milliwats) {
+        m_max_tdp_milliwats = max_tdp_milliwats;
+    }
+
+    /*!
+     * @brief Get max tdp milliwats
+     * @return max tdp milliwats
+     * */
+    const OptionalField<std::uint32_t>& get_max_tdp_milliwats() const {
+        return m_max_tdp_milliwats;
+    }
+
+
 private:
     OptionalField<enums::MemoryType> m_memory_type{};
     OptionalField<enums::DeviceType> m_device_type{};
@@ -518,6 +551,7 @@ private:
     OptionalField<std::string> m_device_id{};
     OptionalField<std::uint32_t> m_operating_speed_mhz{};
     attribute::Array<std::uint32_t> m_allowed_speeds_mhz{};
+    OptionalField<std::uint32_t> m_max_tdp_milliwats{};
     OptionalField<double> m_voltage_volt{};
     OptionalField<double> m_min_voltage_volt{};
     OptionalField<double> m_max_voltage_volt{};
@@ -526,6 +560,9 @@ private:
     OptionalField<std::uint32_t> m_rank_count{};
     OptionalField<enums::ErrorCorrection> m_error_correction{};
     attribute::Array<attribute::Region> m_regions{};
+
+    // needed for matching with smbios device extended structs
+    OptionalField<std::uint16_t> m_smbios_handle{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

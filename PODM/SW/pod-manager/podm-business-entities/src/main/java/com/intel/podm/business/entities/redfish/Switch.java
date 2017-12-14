@@ -53,8 +53,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "switch", indexes = @Index(name = "idx_switch_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
+@Eventable
 public class Switch extends DiscoverableEntity implements Resettable {
     private static final String ENTITY_NAME = "Switch";
 
@@ -100,16 +100,23 @@ public class Switch extends DiscoverableEntity implements Resettable {
     @Enumerated(STRING)
     private PowerState powerState;
 
+    @ElementCollection
+    @Enumerated(STRING)
+    @CollectionTable(name = "switch_allowable_reset_type", joinColumns = @JoinColumn(name = "switch_id"))
+    @Column(name = "allowable_reset_type")
+    @OrderColumn(name = "allowable_reset_type_order")
+    private List<ResetType> allowableResetTypes = new ArrayList<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "fabricSwitch", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Port> ports = new HashSet<>();
+
     @ManyToMany(mappedBy = "fabricSwitches", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Chassis> chassis = new HashSet<>();
 
-    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
-    @JoinColumn(name = "fabric_id")
-    private Fabric fabric;
-
     @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinTable(
-        name = "zone_switches",
+        name = "switch_zone",
         joinColumns = {@JoinColumn(name = "switch_id", referencedColumnName = "id")},
         inverseJoinColumns = {@JoinColumn(name = "zone_id", referencedColumnName = "id")})
     private Set<Zone> zones = new HashSet<>();
@@ -121,16 +128,67 @@ public class Switch extends DiscoverableEntity implements Resettable {
         inverseJoinColumns = {@JoinColumn(name = "manager_id", referencedColumnName = "id")})
     private Set<Manager> managers = new HashSet<>();
 
-    @SuppressEvents
-    @OneToMany(mappedBy = "fabricSwitch", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<Port> ports = new HashSet<>();
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "fabric_id")
+    private Fabric fabric;
 
-    @ElementCollection
-    @Enumerated(STRING)
-    @CollectionTable(name = "switch_allowable_reset_type", joinColumns = @JoinColumn(name = "switch_id"))
-    @Column(name = "allowable_reset_type")
-    @OrderColumn(name = "allowable_reset_type_order")
-    private List<ResetType> allowableResetTypes = new ArrayList<>();
+    @Override
+    public Id getId() {
+        return entityId;
+    }
+
+    @Override
+    public void setId(Id id) {
+        entityId = id;
+    }
+
+    public String getManufacturer() {
+        return manufacturer;
+    }
+
+    public void setManufacturer(String manufacturer) {
+        this.manufacturer = manufacturer;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
+
+    public String getSerialNumber() {
+        return serialNumber;
+    }
+
+    public void setSerialNumber(String serialNumber) {
+        this.serialNumber = serialNumber;
+    }
+
+    public String getPartNumber() {
+        return partNumber;
+    }
+
+    public void setPartNumber(String partNumber) {
+        this.partNumber = partNumber;
+    }
+
+    public String getAssetTag() {
+        return assetTag;
+    }
+
+    public void setAssetTag(String assetTag) {
+        this.assetTag = assetTag;
+    }
 
     public Integer getDomainId() {
         return domainId;
@@ -138,6 +196,14 @@ public class Switch extends DiscoverableEntity implements Resettable {
 
     public void setDomainId(Integer domainId) {
         this.domainId = domainId;
+    }
+
+    public Protocol getSwitchType() {
+        return switchType;
+    }
+
+    public void setSwitchType(Protocol switchType) {
+        this.switchType = switchType;
     }
 
     public Boolean getManaged() {
@@ -172,62 +238,7 @@ public class Switch extends DiscoverableEntity implements Resettable {
         this.powerState = powerState;
     }
 
-    public String getAssetTag() {
-        return assetTag;
-    }
-
-    public void setAssetTag(String assetTag) {
-        this.assetTag = assetTag;
-    }
-
-    public Protocol getSwitchType() {
-        return switchType;
-    }
-
-    public void setSwitchType(Protocol switchType) {
-        this.switchType = switchType;
-    }
-
-    public String getManufacturer() {
-        return manufacturer;
-    }
-
-    public void setManufacturer(String manufacturer) {
-        this.manufacturer = manufacturer;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getSerialNumber() {
-        return serialNumber;
-    }
-
-    public void setSerialNumber(String serialNumber) {
-        this.serialNumber = serialNumber;
-    }
-
-    public String getPartNumber() {
-        return partNumber;
-    }
-
-    public void setPartNumber(String partNumber) {
-        this.partNumber = partNumber;
-    }
-
-    public String getSku() {
-        return sku;
-    }
-
-    public void setSku(String sku) {
-        this.sku = sku;
-    }
-
+    @Override
     public List<ResetType> getAllowableResetTypes() {
         return allowableResetTypes;
     }
@@ -236,24 +247,45 @@ public class Switch extends DiscoverableEntity implements Resettable {
         this.allowableResetTypes.add(allowableResetType);
     }
 
-    public Set<Manager> getManagers() {
-        return managers;
+    public Set<Port> getPorts() {
+        return ports;
     }
 
-    public void addManager(Manager manager) {
-        requiresNonNull(manager, "manager");
-
-        managers.add(manager);
-        if (!manager.getSwitches().contains(this)) {
-            manager.addSwitch(this);
+    public void addPort(Port port) {
+        requiresNonNull(port, "port");
+        ports.add(port);
+        if (!this.equals(port.getSwitch())) {
+            port.setSwitch(this);
         }
     }
 
-    public void unlinkManager(Manager manager) {
-        if (managers.contains(manager)) {
-            managers.remove(manager);
-            if (manager != null) {
-                manager.unlinkSwitch(this);
+    public void unlinkPort(Port port) {
+        if (ports.contains(port)) {
+            ports.remove(port);
+            if (port != null) {
+                port.unlinkSwitch(this);
+            }
+        }
+    }
+
+    public Set<Chassis> getChassis() {
+        return chassis;
+    }
+
+    public void addChassis(Chassis newChassis) {
+        requiresNonNull(newChassis, "newChassis");
+
+        chassis.add(newChassis);
+        if (!newChassis.getSwitch().contains(this)) {
+            newChassis.addSwitch(this);
+        }
+    }
+
+    public void unlinkChassis(Chassis chassisToUnlink) {
+        if (chassis.contains(chassisToUnlink)) {
+            chassis.remove(chassisToUnlink);
+            if (chassisToUnlink != null) {
+                chassisToUnlink.unlinkSwitch(this);
             }
         }
     }
@@ -280,24 +312,24 @@ public class Switch extends DiscoverableEntity implements Resettable {
         }
     }
 
-    public Set<Chassis> getChassis() {
-        return chassis;
+    public Set<Manager> getManagers() {
+        return managers;
     }
 
-    public void addChassis(Chassis newChassis) {
-        requiresNonNull(newChassis, "newChassis");
+    public void addManager(Manager manager) {
+        requiresNonNull(manager, "manager");
 
-        chassis.add(newChassis);
-        if (!newChassis.getSwitch().contains(this)) {
-            newChassis.addSwitch(this);
+        managers.add(manager);
+        if (!manager.getSwitches().contains(this)) {
+            manager.addSwitch(this);
         }
     }
 
-    public void unlinkChassis(Chassis chassisToUnlink) {
-        if (chassis.contains(chassisToUnlink)) {
-            chassis.remove(chassisToUnlink);
-            if (chassisToUnlink != null) {
-                chassisToUnlink.unlinkSwitch(this);
+    public void unlinkManager(Manager manager) {
+        if (managers.contains(manager)) {
+            managers.remove(manager);
+            if (manager != null) {
+                manager.unlinkSwitch(this);
             }
         }
     }
@@ -326,43 +358,12 @@ public class Switch extends DiscoverableEntity implements Resettable {
         }
     }
 
-    public Set<Port> getPorts() {
-        return ports;
-    }
-
-    public void addPort(Port port) {
-        requiresNonNull(port, "port");
-        ports.add(port);
-        if (!this.equals(port.getSwitch())) {
-            port.setSwitch(this);
-        }
-    }
-
-    public void unlinkPort(Port port) {
-        if (ports.contains(port)) {
-            ports.remove(port);
-            if (port != null) {
-                port.unlinkSwitch(this);
-            }
-        }
-    }
-
-    @Override
-    public Id getId() {
-        return entityId;
-    }
-
-    @Override
-    public void setId(Id id) {
-        entityId = id;
-    }
-
     @Override
     public void preRemove() {
-        unlinkCollection(chassis, this::unlinkChassis);
-        unlinkCollection(managers, this::unlinkManager);
         unlinkCollection(ports, this::unlinkPort);
+        unlinkCollection(chassis, this::unlinkChassis);
         unlinkCollection(zones, this::unlinkZone);
+        unlinkCollection(managers, this::unlinkManager);
         unlinkFabric(fabric);
     }
 

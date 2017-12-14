@@ -26,7 +26,7 @@
 
 
 
-#include "agent-framework/tree_stability/key_generator.hpp"
+#include "agent-framework/tree_stability/key_value_missing_error.hpp"
 #include "agent-framework/module/model/model_pnc.hpp"
 
 #include <map>
@@ -45,10 +45,8 @@ namespace pnc {
  * If it happens that the key generation method needs to be changed, this is the only
  * placeto do so.
  * */
-class PncKeyGenerator : public agent_framework::KeyGeneratorBase {
+class PncKeyGenerator {
 public:
-    ~PncKeyGenerator();
-
     /*!
      * @brief Generate unique key for resource of type T.
      *

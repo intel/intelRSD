@@ -26,7 +26,7 @@ import java.util.List;
 
 @JsonPropertyOrder({
     "oDataId", "odataContext", "odataType",
-    "id", "name", "description", "events"
+    "id", "name", "description", "events", "context"
 })
 @SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class EventArrayJson {
@@ -44,17 +44,17 @@ public class EventArrayJson {
     public String description;
     @JsonProperty("Events")
     public List<EventJson> events = new ArrayList<>();
+    @JsonProperty("Context")
+    public String context;
 
     @JsonPropertyOrder({
-        "eventType", "messageId", "context", "originOfCondition"
+        "eventType", "messageId", "originOfCondition"
     })
     public static class EventJson {
         @JsonProperty("EventType")
         public EventType eventType;
         @JsonProperty("MessageId")
         public String messageId;
-        @JsonProperty("Context")
-        public String context;
         @JsonProperty("OriginOfCondition")
         public String originOfCondition;
     }

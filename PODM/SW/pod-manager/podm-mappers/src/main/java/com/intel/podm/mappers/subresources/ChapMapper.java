@@ -17,9 +17,9 @@
 package com.intel.podm.mappers.subresources;
 
 import com.intel.podm.business.entities.redfish.embeddables.Chap;
-import com.intel.podm.client.api.resources.redfish.ChapObject;
+import com.intel.podm.client.resources.redfish.ChapObject;
 import com.intel.podm.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;

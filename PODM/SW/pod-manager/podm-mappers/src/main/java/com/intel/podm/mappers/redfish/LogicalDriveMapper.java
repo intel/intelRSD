@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.LogicalDrive;
-import com.intel.podm.client.api.resources.redfish.LogicalDriveResource;
+import com.intel.podm.client.resources.redfish.LogicalDriveResource;
 import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
@@ -26,5 +26,6 @@ import javax.enterprise.context.Dependent;
 public class LogicalDriveMapper extends EntityMapper<LogicalDriveResource, LogicalDrive> {
     public LogicalDriveMapper() {
         super(LogicalDriveResource.class, LogicalDrive.class);
+        ignoredProperties("masterDrive");
     }
 }

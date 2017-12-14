@@ -27,7 +27,6 @@ namespace constants {
 
 namespace Chassis {
 const char CHASSIS_TYPE[] = "ChassisType";
-const char SKU[] = "SKU";
 const char INDICATOR_LED[] = "IndicatorLED";
 const char LOCATION[] = "Location";
 const char PARENT_ID[] = "ParentId";
@@ -35,52 +34,86 @@ const char CONTAINS[] = "Contains";
 const char COMPUTER_SYSTEMS[] = "ComputerSystems";
 const char SWITCHES[] = "Switches";
 const char MANAGERS_IN_CHASSIS[] = "ManagersInChassis";
-const char THERMAL_ZONES[] = "ThermalZones";
-const char POWER_ZONES[] = "PowerZones";
+const char POWERED_BY[] = "PoweredBy";
+const char COOLED_BY[] = "CooledBy";
+const char THERMAL[] = "Thermal";
+const char POWER[] = "Power";
 const char DRIVES[] = "Drives";
 const char STORAGE[] = "Storage";
 const char PCIE_DEVICES[] = "PCIeDevices";
-}
-
-namespace Zone {
-const char RACK_LOCATION[] = "RackLocation";
-const char UHEIGHT[] = "Uheight";
-const char ULOCATION[] = "ULocation";
-const char UNIT[] = "Unit";
-const char XLOCATION[] = "XLocation";
-const char MEMBER_ID[] = "MemberId";
-const char RELATED_ITEM[] = "RelatedItem";
+const char GEO_TAG[] = "GeoTag";
+const char RACK_SUPPORTS_DISAGGREGATED_POWER_COOLING[] = "RackSupportsDisaggregatedPowerCooling";
+const char POWER_STATE[] = "PowerState";
+const char HASH_CHASSIS_RESET[] = "#Chassis.Reset";
+const char CHASSIS_RESET[] = "Chassis.Reset";
 }
 
 namespace PowerZone {
+const char VOLTAGES[] = "Voltages";
 const char POWER_CONTROL[] = "PowerControl";
-const char MAX_PSUS_SUPPORTED[] = "MaxPSUsSupported";
-const char POWER_AVAILABLE[] = "PowerAvailableWatts";
-const char POWER_CAPACITY[] = "PowerCapacity";
-const char POWER_CONSUMED[] = "PowerConsumedWatts";
+const char POWER_AVAILABLE_WATTS[] = "PowerAvailableWatts";
+const char POWER_CAPACITY_WATTS[] = "PowerCapacityWatts";
+const char POWER_CONSUMED_WATTS[] = "PowerConsumedWatts";
+const char POWER_CONSUMED_WATTS_PATH[] = "/PowerConsumedWatts";
+const char POWER_REQUESTED_WATTS[] = "PowerRequestedWatts";
+const char POWER_ALLOCATED_WATTS[] = "PowerAllocatedWatts";
 const char POWER_SUPPLIES[] = "PowerSupplies";
-const char LAST_POWER_OUTPUT[] = "LastPowerOutputWatts";
+const char POWER_METRICS[] = "PowerMetrics";
+const char POWER_LIMIT[] = "PowerLimit";
+const char INTERVAL_IN_MIN[] = "IntervalInMin";
+const char MIN_CONSUMED_WATTS[] = "MinConsumedWatts";
+const char MAX_CONSUMED_WATTS[] = "MaxConsumedWatts";
+const char AVERAGE_CONSUMED_WATTS[] = "AverageConsumedWatts";
+const char LIMIT_IN_WATTS[] = "LimitInWatts";
+const char LIMIT_EXCEPTION[] = "LimitException";
+const char CORRECTION_IN_MS[] = "CorrectionInMs";
+const char POWER_SUPPLY_TYPE[] = "PowerSupplyType";
+const char LINE_INPUT_VOLTAGE_TYPE[] = "LineInputVoltageType";
+const char LINE_INPUT_VOLTAGE[] = "LineInputVoltage";
+const char LAST_POWER_OUTPUT_WATTS[] = "LastPowerOutputWatts";
+const char SPARE_PART_NUMBER[] = "SparePartNumber";
+const char INPUT_RANGES[] = "InputRanges";
+const char INTEL_OEM_REQUEST_POWER_SUPPLY_STATE_CHANGE[] = "Intel.Oem.RequestPowerSupplyStateChange";
+const char HASH_INTEL_OEM_REQUEST_POWER_SUPPLY_STATE_CHANGE[] = "#Intel.Oem.RequestPowerSupplyStateChange";
+const char STATE_ALLOWABLE_VALUES[] = "State@AllowableValues";
+const char MEMBER_ID_ALLOWABLE_VALUES[] = "MemberId@AllowableValues";
+const char INPUT_AC_POWER_WATTS[] = "InputACPowerWatts";
+const char INPUT_AC_POWER_WATTS_PATH[] = "/Oem/Intel_RackScale/InputACPowerWatts";
 }
 
 namespace ThermalZone {
 const char FANS[] = "Fans";
-const char FAN_NAME[] = "FanName";
-const char PHYSICAL_CONTEXT[] = "PhysicalContext";
 const char READING[] = "Reading";
+const char READING_PATH[] = "/Reading";
 const char READING_UNITS[] = "ReadingUnits";
-const char DESIRED_SPEED_RPM[] = "DesiredSpeedRPM";
-const char MAX_FANS_SUPPORTED[] = "MaxFansSupported";
-const char PWM[] = "PWM";
-const char POLICY[] = "Policy";
 const char TEMPERATURES[] = "Temperatures";
-const char READING_CELCIUS[] = "Intake";
+const char DESIRED_SPEED_PWM[] = "DesiredSpeedPwm";
+const char VOLUMETRIC_AIRFLOW_CFM[] = "VolumetricAirflowCfm";
+const char VOLUMETRIC_AIRFLOW_CFM_PATH[] = "/Oem/Intel_RackScale/VolumetricAirflowCfm";
+}
+
+namespace ChassisSensor {
+const char PHYSICAL_CONTEXT[] = "PhysicalContext";
+const char UPPER_THRESHOLD_NON_CRITICAL[] = "UpperThresholdNonCritical";
+const char UPPER_THRESHOLD_CRITICAL[] = "UpperThresholdCritical";
+const char UPPER_THRESHOLD_FATAL[] = "UpperThresholdFatal";
+const char LOWER_THRESHOLD_NON_CRITICAL[] = "LowerThresholdNonCritical";
+const char LOWER_THRESHOLD_CRITICAL[] = "LowerThresholdCritical";
+const char LOWER_THRESHOLD_FATAL[] = "LowerThresholdFatal";
+const char MIN_READING_RANGE[] = "MinReadingRange";
+const char MAX_READING_RANGE[] = "MaxReadingRange";
+const char MIN_READING_RANGE_TEMP[] = "MinReadingRangeTemp";
+const char MAX_READING_RANGE_TEMP[] = "MaxReadingRangeTemp";
 const char SENSOR_NUMBER[] = "SensorNumber";
+const char READING_CELSIUS[] = "ReadingCelsius";
+const char READING_CELSIUS_PATH[] = "/ReadingCelsius";
+const char READING_VOLTS[] = "ReadingVolts";
+const char READING_VOLTS_PATH[] = "/ReadingVolts";
 }
 
 namespace PncDrive {
 const char SECURE_ERASE[] = "#Drive.SecureErase";
 const char SECURE_ERASE_ENDPOINT[] = "Drive.SecureErase";
-const char TARGET[] = "target";
 const char CAPABLE_SPEED[] = "CapableSpeedGbs";
 const char INDICATOR_LED[] = "IndicatorLED";
 const char ENDPOINTS[] = "Endpoints";
@@ -97,7 +130,6 @@ const char FIRMWARE_VERSION[] = "FirmwareVersion";
 const char IDENTIFIERS[] = "Identifiers";
 const char DURABLE_NAME[] = "DurableName";
 const char DURABLE_NAME_FORMAT[] = "DurableNameFormat";
-const char SKU[] = "SKU";
 const char STATUS_INDICATOR[] = "StatusIndicator";
 const char REVISION[] = "Revision";
 const char FAILURE_PREDICTED[] = "FailurePredicted";

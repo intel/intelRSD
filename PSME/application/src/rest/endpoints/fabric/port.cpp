@@ -36,16 +36,17 @@ json::Value make_prototype() {
     r[Common::NAME] = "PCIe Port";
 
     json::Value actions;
-    actions[constants::Port::PORT_RESET][FabricCommon::TARGET] = json::Value::Type::NIL;
-    actions[constants::Port::PORT_RESET][FabricCommon::ALLOWABLE_RESET_TYPES] = json::Value::Type::ARRAY;
+    actions[constants::Port::PORT_RESET][Common::TARGET] = json::Value::Type::NIL;
+    actions[constants::Port::PORT_RESET][Common::ALLOWABLE_RESET_TYPES] = json::Value::Type::ARRAY;
     actions[Common::OEM] = json::Value::Type::OBJECT;
-    r[FabricCommon::ACTIONS] = std::move(actions);
+    r[Common::ACTIONS] = std::move(actions);
 
     r[Common::DESCRIPTION] = "PCIe Port description";
     r[Common::ID] = json::Value::Type::NIL;
     r[constants::Port::MAX_SPEED] = json::Value::Type::NIL;
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.Port";
     r[Common::OEM][Common::RACKSCALE][constants::Port::PCIE_CONNECTION_ID] = json::Value::Type::ARRAY;
+    r[Common::OEM][Common::RACKSCALE][constants::Common::METRICS] = json::Value::Type::NIL;
     r[constants::Port::PORT_ID] = json::Value::Type::NIL;
     r[constants::Port::PORT_PROTOCOL] = json::Value::Type::NIL;
     r[constants::Port::PORT_TYPE] = json::Value::Type::NIL;
@@ -83,16 +84,20 @@ void endpoint::Port::get(const server::Request& req, server::Response& res) {
 
     json[Common::ID] = req.params[PathParam::PORT_ID];
 
-    json[FabricCommon::ACTIONS][constants::Port::PORT_RESET][FabricCommon::TARGET] = endpoint::PathBuilder(req)
+    json[Common::ACTIONS][constants::Port::PORT_RESET][Common::TARGET] = endpoint::PathBuilder(req)
         .append(Common::ACTIONS)
-        .append(constants::Port::PORT_RESET_ENDPOINT).build();
+        .append(constants::Port::PORT_RESET_ENDPOINT)
+        .build();
+
     for(const auto& allowed_reset_type : port.get_allowed_actions()) {
-        json[FabricCommon::ACTIONS][constants::Port::PORT_RESET][FabricCommon::ALLOWABLE_RESET_TYPES].push_back(allowed_reset_type.to_string());
+        json[Common::ACTIONS][constants::Port::PORT_RESET][Common::ALLOWABLE_RESET_TYPES].push_back(allowed_reset_type.to_string());
     }
 
-    for (const auto& cable_id : port.get_cables_ids()) {
-        json[Common::OEM][Common::RACKSCALE][constants::Port::PCIE_CONNECTION_ID].push_back(cable_id);
-    }
+    endpoint::utils::string_array_to_json(
+        json[Common::OEM][Common::RACKSCALE][constants::Port::PCIE_CONNECTION_ID], port.get_cables_ids());
+
+    json[Common::OEM][Common::RACKSCALE][constants::Common::METRICS][Common::ODATA_ID] =
+        PathBuilder(req).append(constants::Common::METRICS).build();
 
     json[constants::Port::PORT_ID] = port.get_port_id();
     json[constants::Port::PORT_PROTOCOL] = port.get_protocol();

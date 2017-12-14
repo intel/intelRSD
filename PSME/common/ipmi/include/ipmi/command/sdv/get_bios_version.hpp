@@ -60,9 +60,13 @@ public:
      */
     virtual ~GetBiosVersion();
 
-    virtual void pack(std::vector<std::uint8_t>& data) const {
+    virtual void pack(std::vector<std::uint8_t>& data) const override {
         // Request without parameters. Pack is empty.
         (void)data;
+    }
+
+    virtual const char* get_command_name() const override {
+        return "GetBiosVersion";
     }
 
 private:
@@ -95,10 +99,14 @@ public:
      */
     virtual ~GetBiosVersion();
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
 
     const std::string& get_version() const {
         return m_full_version;
+    }
+
+    virtual const char* get_command_name() const override {
+        return "GetBiosVersion";
     }
 
 private:
@@ -114,4 +122,3 @@ private:
 }
 }
 }
-

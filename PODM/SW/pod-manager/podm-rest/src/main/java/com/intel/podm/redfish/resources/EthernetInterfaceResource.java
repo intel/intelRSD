@@ -16,28 +16,41 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.EthernetInterfaceDto;
+import com.intel.podm.business.dto.EthernetInterfaceDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class EthernetInterfaceResource extends BaseResource {
     @Inject
     private ReaderService<EthernetInterfaceDto> readerService;
 
     @Override
-    public EthernetInterfaceDto get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        EthernetInterfaceDto ethernetInterfaceDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, ethernetInterfaceDto);
     }
 
     @Path(ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME)
     public VlanNetworkInterfaceCollectionResource getVlanCollection() {
         return getResource(VlanNetworkInterfaceCollectionResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

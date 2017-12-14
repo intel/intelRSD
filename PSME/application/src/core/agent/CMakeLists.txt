@@ -25,4 +25,4 @@ set(SOURCES
     rpc_client.cpp
 )
 
-add_library(core-agent OBJECT ${SOURCES})
+add_library(application-core ${SOURCES})

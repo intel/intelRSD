@@ -19,7 +19,7 @@ echo_log() {
 cleanup_psql_data() {
     echo_log "Removing PostgreSQL data"
     #kill remaining connections
-    service postgresql restart
+    invoke-rc.d postgresql restart
     sudo -u postgres dropdb --if-exists podm
     sudo -u postgres dropuser --if-exists podm
 }

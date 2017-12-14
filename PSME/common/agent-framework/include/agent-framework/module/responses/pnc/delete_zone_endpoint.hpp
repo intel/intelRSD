@@ -27,13 +27,9 @@
 
 
 #include "agent-framework/module/model/attributes/oem.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 #include <string>
-
-
-
-namespace Json {
-class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -72,7 +68,7 @@ public:
      * @brief Transform request to Json
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
@@ -80,7 +76,7 @@ public:
      * @param[in] json the input argument
      * @return new DeleteZoneEndpoint
      */
-    static DeleteZoneEndpoint from_json(const Json::Value& json);
+    static DeleteZoneEndpoint from_json(const json::Json& json);
 
 
 private:

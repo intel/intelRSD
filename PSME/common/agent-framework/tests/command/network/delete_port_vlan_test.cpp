@@ -62,8 +62,8 @@ TEST(DeletePortVlanTest, PositiveExecute) {
     MyDeletePortVlan command{TEST_UUID};
     DeletePortVlan::Request request{""};
     DeletePortVlan::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitchPortVlan::PORT_VLAN] = TEST_UUID;
 
@@ -79,8 +79,8 @@ TEST(DeletePortVlanTest, NegativeVlanPortNotFound) {
     MyDeletePortVlan command{TEST_UUID};
     DeletePortVlan::Request request{""};
     DeletePortVlan::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitchPortVlan::PORT_VLAN] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
 
@@ -93,8 +93,8 @@ TEST(DeletePortVlanTest, NegativeInvalidUUIDFormat) {
     MyDeletePortVlan command{TEST_UUID};
     DeletePortVlan::Request request{""};
     DeletePortVlan::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitchPortVlan::PORT_VLAN] = "TestUUID";
 

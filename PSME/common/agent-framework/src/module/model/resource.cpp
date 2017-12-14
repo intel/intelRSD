@@ -44,7 +44,6 @@ std::string make_uuid() {
 }
 
 
-
 std::string make_persistent_uuid(const std::string& namespace_uuid, const std::string& unique_name) {
     uuid id{};
     uuid ns_uuid(namespace_uuid.c_str());
@@ -62,8 +61,7 @@ namespace model {
 const char Resource::STATUS_KEY[] = "status";
 
 
-Resource::Resource(const std::string& parent_uuid, enums::Component
-parent_type) :
+Resource::Resource(const std::string& parent_uuid, enums::Component parent_type) :
     m_temporary_uuid{::make_uuid()},
     m_parent_uuid{parent_uuid},
     m_parent_type{parent_type} {
@@ -87,7 +85,7 @@ const std::string Resource::make_random_uuid() {
 }
 
 
-Resource::~Resource() { }
+Resource::~Resource() {}
 
 }
 }

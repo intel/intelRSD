@@ -44,8 +44,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "pcie_device_function", indexes = @Index(name = "idx_pcie_device_function_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class PcieDeviceFunction extends DiscoverableEntity implements NetworkInterfacePossessor {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -79,14 +79,6 @@ public class PcieDeviceFunction extends DiscoverableEntity implements NetworkInt
     @Column(name = "subsystem_vendor_id")
     private String subsystemVendorId;
 
-    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
-    @JoinColumn(name = "pcie_device_id")
-    private PcieDevice pcieDevice;
-
-    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
-    @JoinColumn(name = "computer_system_id")
-    private ComputerSystem computerSystem;
-
     @OneToMany(mappedBy = "pcieDeviceFunction", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Drive> drives = new HashSet<>();
 
@@ -95,6 +87,14 @@ public class PcieDeviceFunction extends DiscoverableEntity implements NetworkInt
 
     @ManyToMany(mappedBy = "pcieDeviceFunctions", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<StorageController> storageControllers = new HashSet<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "pcie_device_id")
+    private PcieDevice pcieDevice;
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "computer_system_id")
+    private ComputerSystem computerSystem;
 
     @Override
     public Id getId() {
@@ -176,6 +176,28 @@ public class PcieDeviceFunction extends DiscoverableEntity implements NetworkInt
 
     public void setSubsystemVendorId(String subsystemVendorId) {
         this.subsystemVendorId = subsystemVendorId;
+    }
+
+    public Set<Drive> getDrives() {
+        return drives;
+    }
+
+    public void addDrive(Drive drive) {
+        requiresNonNull(drive, "drive");
+
+        drives.add(drive);
+        if (!this.equals(drive.getPcieDeviceFunction())) {
+            drive.setPcieDeviceFunction(this);
+        }
+    }
+
+    public void unlinkDrive(Drive drive) {
+        if (drives.contains(drive)) {
+            drives.remove(drive);
+            if (drive != null) {
+                drive.unlinkPcieDeviceFunction(this);
+            }
+        }
     }
 
     @Override
@@ -270,34 +292,12 @@ public class PcieDeviceFunction extends DiscoverableEntity implements NetworkInt
         }
     }
 
-    public Set<Drive> getDrives() {
-        return drives;
-    }
-
-    public void addDrive(Drive drive) {
-        requiresNonNull(drive, "drive");
-
-        drives.add(drive);
-        if (!this.equals(drive.getPcieDeviceFunction())) {
-            drive.setPcieDeviceFunction(this);
-        }
-    }
-
-    public void unlinkDrive(Drive drive) {
-        if (drives.contains(drive)) {
-            drives.remove(drive);
-            if (drive != null) {
-                drive.unlinkPcieDeviceFunction(this);
-            }
-        }
-    }
-
     @Override
     public void preRemove() {
-        unlinkPcieDevice(pcieDevice);
         unlinkCollection(drives, this::unlinkDrive);
         unlinkCollection(ethernetInterfaces, this::unlinkEthernetInterface);
         unlinkCollection(storageControllers, this::unlinkStorageController);
+        unlinkPcieDevice(pcieDevice);
         unlinkComputerSystem(computerSystem);
     }
 

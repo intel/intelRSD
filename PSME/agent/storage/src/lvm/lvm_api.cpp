@@ -36,24 +36,41 @@ using namespace agent::storage::lvm;
 #include "lvm_api_default.cpp"
 #endif
 
+std::mutex LvmAPI::g_lvm_mutex{};
+
 LvmAPI::LvmAPI() : m_impl{new LvmAPI::LvmImpl} {}
 
 LvmAPI::~LvmAPI() {}
 
 LvmAPI::VolumeGroupVec LvmAPI::discovery_volume_groups() {
+    std::lock_guard<std::mutex> lock{g_lvm_mutex};
     return m_impl->discover_volume_groups();
 }
 
 void LvmAPI::create_snapshot(const LvmCreateData& data) {
+    std::lock_guard<std::mutex> lock{g_lvm_mutex};
     m_impl->create_snapshot(data);
 }
 
 void LvmAPI::create_clone(const LvmCreateData& data) {
+    std::lock_guard<std::mutex> lock{g_lvm_mutex};
     m_impl->create_clone(data);
 }
 
 void LvmAPI::remove_logical_volume(const std::string& vg_name,
                                    const std::string& lg_name) {
+    std::lock_guard<std::mutex> lock{g_lvm_mutex};
     m_impl->remove_logical_volume(vg_name, lg_name);
 }
 
+void LvmAPI::add_logical_volume_tag(const std::string& vg_name,
+                               const std::string& lv_name, const std::string& tag){
+    std::lock_guard<std::mutex> lock{g_lvm_mutex};
+    m_impl->add_lv_tag(vg_name, lv_name, tag);
+}
+
+void LvmAPI::remove_logical_volume_tag(const std::string& vg_name,
+                               const std::string& lv_name, const std::string& tag){
+    std::lock_guard<std::mutex> lock{g_lvm_mutex};
+    m_impl->remove_lv_tag(vg_name, lv_name, tag);
+}

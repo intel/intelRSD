@@ -55,8 +55,7 @@ void StorageSubsystemsCollection::get(const server::Request& req, server::Respon
 
     auto json = ::make_prototype();
     json[Common::ODATA_ID] = PathBuilder(req).build();
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__SYSTEM_ID__"), std::to_string(system->get_id()));
+
     auto keys = CommonComponents::get_instance()->
         get_storage_subsystem_manager().get_ids(system->get_uuid());
     json[Collection::ODATA_COUNT] =

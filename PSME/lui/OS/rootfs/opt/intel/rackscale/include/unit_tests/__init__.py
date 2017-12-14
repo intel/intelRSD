@@ -1,0 +1,1 @@
+from .dmidecode import DmiDecodeUnitTest

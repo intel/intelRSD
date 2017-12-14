@@ -24,6 +24,27 @@
  * */
 
 #include "agent-framework/eventing/event_data.hpp"
+#include "agent-framework/module/constants/psme.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 
 using namespace agent_framework::eventing;
+using namespace agent_framework::model;
 
+json::Json EventData::to_json() const {
+    json::Json json{};
+    json[literals::ComponentNotification::COMPONENT] = get_component();
+    json[literals::ComponentNotification::NOTIFICATION] = get_notification().to_string();
+    json[literals::ComponentNotification::TYPE] = get_type().to_string();
+    json[literals::ComponentNotification::PARENT] = get_parent();
+    return json;
+}
+
+EventData EventData::from_json(const json::Json& json) {
+    EventData data{};
+    data.set_component(json[literals::ComponentNotification::COMPONENT]);
+    data.set_notification(Notification::from_string(json[literals::ComponentNotification::NOTIFICATION].get<std::string>()));
+    data.set_type(enums::Component::from_string(json[literals::ComponentNotification::TYPE].get<std::string>()));
+    data.set_parent(json[literals::ComponentNotification::PARENT]);
+    return data;
+}

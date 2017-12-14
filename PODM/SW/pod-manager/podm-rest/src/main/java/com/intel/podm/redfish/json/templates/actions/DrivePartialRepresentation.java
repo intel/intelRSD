@@ -19,12 +19,13 @@ package com.intel.podm.redfish.json.templates.actions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.redfish.RedfishDrive;
 
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class DrivePartialRepresentation implements RedfishDrive {
     @JsonProperty("Oem")
-    private Oem oem = new Oem();
+    public Oem oem = new Oem();
 
     @JsonProperty("AssetTag")
-    private String assetTag;
+    public String assetTag;
 
     @Override
     public String getAssetTag() {
@@ -37,12 +38,12 @@ public class DrivePartialRepresentation implements RedfishDrive {
     }
 
     public static class Oem {
+
         @JsonProperty("Intel_RackScale")
-        private RackScaleOem rackScaleOem = new RackScaleOem();
+        public RackScaleOem rackScaleOem = new RackScaleOem();
 
         public static class RackScaleOem {
-            @JsonProperty("EraseOnDetach")
-            private Boolean eraseOnDetach;
+            public Boolean eraseOnDetach;
         }
     }
 }

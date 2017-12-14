@@ -18,4 +18,4 @@
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples)
 
-add_subdirectory(libjson-rpc)
+add_subdirectory(command-server)

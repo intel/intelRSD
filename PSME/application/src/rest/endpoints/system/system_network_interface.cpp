@@ -46,7 +46,7 @@ json::Value make_prototype() {
     r[Common::OEM] = json::Value::Type::OBJECT;
     r[constants::NetworkInterface::PERMANENT_MAC_ADDRESS] = json::Value::Type::NIL;
     r[constants::Common::MAC_ADDRESS] = json::Value::Type::NIL;
-    r[constants::NetworkInterface::SPEED] = json::Value::Type::NIL;
+    r[constants::NetworkInterface::SPEED_MBPS] = json::Value::Type::NIL;
     r[constants::NetworkInterface::AUTO_NEG] = json::Value::Type::NIL;
     r[constants::NetworkInterface::FULL_DUPLEX] = json::Value::Type::NIL;
     r[constants::NetworkInterface::HOST_NAME] = json::Value::Type::NIL;
@@ -70,7 +70,7 @@ json::Value make_prototype() {
     json::Value links;
     links[Fabric::ENDPOINTS] = json::Value::Type::ARRAY;
     links[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EthernetInterface";
-    links[Common::OEM][Common::RACKSCALE][NetworkInterface::NEIGHBOR_PORT][Common::ODATA_ID] = json::Value::Type::NIL;
+    links[Common::OEM][Common::RACKSCALE][NetworkInterface::NEIGHBOR_PORT] = json::Value::Type::NIL;
     r[Common::LINKS] = std::move(links);
     return r;
 }
@@ -92,7 +92,7 @@ void endpoint::SystemNetworkInterface::get(const server::Request& req, server::R
 
     r[constants::NetworkInterface::PERMANENT_MAC_ADDRESS] = ni.get_factory_mac_address();
     r[constants::Common::MAC_ADDRESS] = ni.get_mac_address();
-    r[constants::NetworkInterface::SPEED] = ni.get_speed_mbps();
+    r[constants::NetworkInterface::SPEED_MBPS] = ni.get_speed_mbps();
     r[constants::NetworkInterface::AUTO_NEG] = ni.get_autosense();
     r[constants::NetworkInterface::FULL_DUPLEX] = ni.get_full_duplex();
     r[constants::NetworkInterface::MAX_IPv6_STATIC_ADDRESSES] = ni.get_max_ipv6_static_addresses();
@@ -130,7 +130,7 @@ void endpoint::SystemNetworkInterface::get(const server::Request& req, server::R
         r[constants::NetworkInterface::INTERFACE_ENABLED] = true;
     }
     else {
-       r[constants::NetworkInterface::INTERFACE_ENABLED] = false;
+        r[constants::NetworkInterface::INTERFACE_ENABLED] = false;
     }
 
     set_response(res, r);

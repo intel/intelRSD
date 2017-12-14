@@ -24,6 +24,7 @@ import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.PhysicalContext;
 
 import javax.persistence.Column;
+import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -33,12 +34,13 @@ import java.util.Objects;
 
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "thermal_temperature", indexes = @Index(name = "idx_thermal_temperature_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class ThermalTemperature extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -70,13 +72,14 @@ public class ThermalTemperature extends DiscoverableEntity {
     @Column(name = "lower_threshold_fatal")
     private BigDecimal lowerThresholdFatal;
 
-    @Column(name = "min_reading_range")
-    private BigDecimal minReadingRange;
+    @Column(name = "min_reading_range_temp")
+    private BigDecimal minReadingRangeTemp;
 
-    @Column(name = "max_reading_range")
-    private BigDecimal maxReadingRange;
+    @Column(name = "max_reading_range_temp")
+    private BigDecimal maxReadingRangeTemp;
 
     @Column(name = "physical_context")
+    @Enumerated(STRING)
     private PhysicalContext physicalContext;
 
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
@@ -165,20 +168,20 @@ public class ThermalTemperature extends DiscoverableEntity {
         this.lowerThresholdFatal = lowerThresholdFatal;
     }
 
-    public BigDecimal getMinReadingRange() {
-        return minReadingRange;
+    public BigDecimal getMinReadingRangeTemp() {
+        return minReadingRangeTemp;
     }
 
-    public void setMinReadingRange(BigDecimal minReadingRange) {
-        this.minReadingRange = minReadingRange;
+    public void setMinReadingRangeTemp(BigDecimal minReadingRange) {
+        this.minReadingRangeTemp = minReadingRange;
     }
 
-    public BigDecimal getMaxReadingRange() {
-        return maxReadingRange;
+    public BigDecimal getMaxReadingRangeTemp() {
+        return maxReadingRangeTemp;
     }
 
-    public void setMaxReadingRange(BigDecimal maxReadingRange) {
-        this.maxReadingRange = maxReadingRange;
+    public void setMaxReadingRangeTemp(BigDecimal maxReadingRange) {
+        this.maxReadingRangeTemp = maxReadingRange;
     }
 
     public PhysicalContext getPhysicalContext() {

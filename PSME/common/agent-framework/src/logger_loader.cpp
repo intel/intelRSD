@@ -106,7 +106,8 @@ StreamSPtr LoggerLoader::get_stream(const json::Value& stream) {
     int index = LoggerLoader::check_enums(g_stream_type, type);
     if (-1 != index) {
         auto type_enum = Stream::Type(index);
-        auto stream_ptr = std::make_shared<Stream>(type_enum, stream["tag"].is_null() ? g_stream_type[unsigned(index)] : stream["tag"].as_string().data());
+        auto stream_ptr = std::make_shared<Stream>(type_enum,
+            stream["tag"].is_null() ? g_stream_type[unsigned(index)] : stream["tag"].as_string().c_str());
         stream_ptr->set_options(get_options(stream));
         set_stream_output(type_enum, stream_ptr, stream);
         return stream_ptr;

@@ -17,29 +17,16 @@
 package com.intel.podm.services.detection.ssdp;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.config.base.Config;
-import com.intel.podm.config.base.Holder;
-import com.intel.podm.config.base.dto.ServiceDetectionConfig;
+import com.intel.podm.config.base.dto.ServiceDetectionConfig.Protocols.Ssdp;
 import org.fourthline.cling.UpnpService.Start;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
-import static com.intel.podm.common.types.discovery.DiscoveryProtocols.SSDP;
-
-@Startup
-@Singleton
-@DependsOn({"DiscoveryStartup"})
+@ApplicationScoped
 public class SsdpServiceDetector {
     public static final String AL_HEADER = "AL";
-
-    @Inject
-    @Config
-    private Holder<ServiceDetectionConfig> configuration;
 
     @Inject
     private Event<Start> upnpServiceStartEvent;
@@ -50,16 +37,9 @@ public class SsdpServiceDetector {
     @Inject
     private SsdpRegularActionsScheduler regularActionsScheduler;
 
-    @PostConstruct
-    private void init() {
-
-        if (!configuration.get().isProtocolEnabled(SSDP)) {
-            logger.t("SSDP protocol is disabled.");
-            return;
-        }
-
+    public void init(Ssdp ssdp) {
         logger.i("Initializing SSDP based service detector...");
         upnpServiceStartEvent.fire(new Start());
-        regularActionsScheduler.schedule();
+        regularActionsScheduler.schedule(ssdp);
     }
 }

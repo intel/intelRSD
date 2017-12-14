@@ -19,29 +19,32 @@ package com.intel.podm.discovery.internal;
 import com.intel.podm.business.entities.dao.ChassisDao;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.DiscoveryConfig;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.AccessTimeout;
 import javax.ejb.DependsOn;
+import javax.ejb.Lock;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 
 import static com.intel.podm.common.types.ChassisType.POD;
 import static com.intel.podm.common.types.Health.OK;
+import static com.intel.podm.common.types.Id.id;
 import static com.intel.podm.common.types.State.ENABLED;
 import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ejb.LockType.WRITE;
+import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Singleton
 @Startup
-@DependsOn("DatabaseSchemaUpdateFinalizer")
-@TransactionAttribute(TransactionAttributeType.REQUIRED)
+@DependsOn({"DatabaseSchemaUpdateFinalizer"})
 public class PodStartupDiscovery {
     @Inject
     @Config
@@ -56,9 +59,16 @@ public class PodStartupDiscovery {
     @Inject
     private ChassisDao chassisDao;
 
+    /**
+     * This method needs to be executed within a transaction context thus it must be public and by default LockType.WRITE is used implicitly
+     * for public methods in singleton bean.
+     * In real-life scenario it is called only once and does not need any locking mechanism.
+     */
     @PostConstruct
-    private void initInitialPod() {
-        logger.i("Initializing {}", getClass().getSimpleName());
+    @Lock(WRITE)
+    @Transactional(REQUIRED)
+    @AccessTimeout(value = 5, unit = SECONDS)
+    public void initInitialPod() {
         Chassis podChassis = singleOrNull(chassisDao.getAllByChassisType(POD));
         if (podChassis == null) {
             String podLocation = discoveryConfig.get().getPodLocationId();
@@ -74,7 +84,7 @@ public class PodStartupDiscovery {
         pod.setName(discoveryConfig.get().getPodName());
         pod.setChassisType(POD);
         pod.setLocationId(podLocation);
-        pod.setId(Id.id("pod"));
+        pod.setId(id("pod"));
         pod.setStatus(new Status(ENABLED, OK, null));
 
         return pod;

@@ -16,21 +16,34 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.LogicalDriveDto;
+import com.intel.podm.business.dto.LogicalDriveDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
-public final class LogicalDriveResource extends BaseResource {
-
+public class LogicalDriveResource extends BaseResource {
     @Inject
     private ReaderService<LogicalDriveDto> readerService;
 
-    public LogicalDriveDto get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    @Override
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        LogicalDriveDto logicalDriveDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, logicalDriveDto);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

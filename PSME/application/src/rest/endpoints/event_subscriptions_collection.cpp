@@ -42,7 +42,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EventService/Members/Events/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EventDestinationCollection.EventDestinationCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#EventDestinationCollection.EventDestinationCollection";
     r[Common::NAME] = "Event Subscriptions Collection";
@@ -51,25 +51,6 @@ json::Value make_prototype() {
     r[Collection::MEMBERS] = json::Value::Type::ARRAY;
 
     return r;
-}
-
-
-Subscription to_model(const json::Value& json) {
-    Subscription s;
-    const auto& name = json[Common::NAME].as_string();
-    const auto& destination = json[EventSubscription::DESTINATION].as_string();
-    const auto& context = json[EventSubscription::CONTEXT].as_string();
-    const auto& protocol = json[EventSubscription::PROTOCOL].as_string();
-    EventTypes event_types;
-    for (const auto& event_type : json[EventSubscription::EVENT_TYPES]) {
-        event_types.add(EventType::from_string(event_type.as_string()));
-    }
-    s.set_name(name);
-    s.set_destination(destination);
-    s.set_context(context);
-    s.set_protocol(protocol);
-    s.set_event_types(event_types);
-    return s;
 }
 
 }
@@ -98,7 +79,7 @@ void SubscriptionCollection::get(const server::Request& req, server::Response& r
 
 void SubscriptionCollection::post(const server::Request& request, server::Response& response) {
     const auto& json = JsonValidator::validate_request_body<schema::SubscriptionCollectionPostSchema>(request);
-    Subscription subscription = to_model(json);
+    Subscription subscription = Subscription::from_json(json);
     uint64_t id = SubscriptionManager::get_instance()->add(subscription);
     SubscriptionConfig::get_instance()->save();
     endpoint::utils::set_location_header(response, PathBuilder(request).append(id).build());

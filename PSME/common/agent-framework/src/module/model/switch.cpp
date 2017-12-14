@@ -21,7 +21,7 @@
 
 #include "agent-framework/module/model/switch.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
@@ -35,8 +35,8 @@ Switch::Switch(const std::string& parent_uuid, enums::Component parent_type) :
 
 Switch::~Switch() {}
 
-Json::Value Switch::to_json() const {
-    Json::Value result{};
+json::Json Switch::to_json() const {
+    json::Json result{};
     result[literals::Switch::SWITCH_ID] = get_switch_id();
     result[literals::Switch::CHASSIS] = get_chassis();
     result[literals::Switch::ASSET_TAG] = get_asset_tag();
@@ -52,7 +52,7 @@ Json::Value Switch::to_json() const {
     return result;
 }
 
-Switch Switch::from_json(const Json::Value& json) {
+Switch Switch::from_json(const json::Json& json) {
     Switch fabric_switch{};
     fabric_switch.set_switch_id(json[literals::Switch::SWITCH_ID]);
     fabric_switch.set_chassis(json[literals::Switch::CHASSIS]);
@@ -66,5 +66,7 @@ Switch Switch::from_json(const Json::Value& json) {
     fabric_switch.set_allowed_actions(AllowedActions::from_json(json[literals::Switch::ALLOWED_ACTIONS]));
     fabric_switch.set_indicator_led(json[literals::Switch::INDICATOR_LED]);
     fabric_switch.set_protocol(json[literals::Switch::PROTOCOL]);
+
+    fabric_switch.set_resource_hash(json);
     return fabric_switch;
 }

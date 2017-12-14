@@ -18,6 +18,7 @@ package com.intel.podm.rest.representation.json.exceptionmappers;
 
 import org.jboss.resteasy.spi.DefaultOptionsMethodException;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -28,8 +29,10 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 /**
  * Allows default HTTP OPTIONS method handler from Resteasy to be used.
  * This exception mapper must be provided because we have wider one - RuntimeExceptionMapper
+ *
  * @see RuntimeExceptionMapper
  */
+@ApplicationScoped
 @Provider
 @Produces(APPLICATION_JSON)
 public class DefaultOptionsMethodExceptionMapper implements ExceptionMapper<DefaultOptionsMethodException> {

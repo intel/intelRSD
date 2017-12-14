@@ -16,33 +16,42 @@
 
 package com.intel.podm.redfish.resources;
 
+import com.intel.podm.business.dto.redfish.ServiceRootContext;
 import com.intel.podm.business.dto.redfish.ServiceRootDto;
 import com.intel.podm.business.services.redfish.ServiceRootService;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.common.types.redfish.ResourceNames.CHASSIS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.COMPOSED_NODES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.COMPUTER_SYSTEM_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCHES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.EVENT_SERVICE_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.FABRIC_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.MANAGERS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.STORAGE_SERVICES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.TELEMETRY_SERVICE_RESOURCE_NAME;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class ServiceRootResource extends BaseResource {
-
     @Inject
-    private ServiceRootService service;
+    private ServiceRootService readerService;
 
     @GET
-    public ServiceRootDto get() {
-        return service.getServiceRoot();
+    @Override
+    public RedfishResourceAmazingWrapper get() {
+        ServiceRootDto serviceRootDto = readerService.getServiceRoot();
+        return new RedfishResourceAmazingWrapper(new ServiceRootContext(), serviceRootDto);
     }
 
     @Path("$metadata")
@@ -85,7 +94,7 @@ public class ServiceRootResource extends BaseResource {
         return getResource(ServicesCollectionResource.class);
     }
 
-    @Path("EventService")
+    @Path(EVENT_SERVICE_RESOURCE_NAME)
     public EventServiceResource getEventService() {
         return getResource(EventServiceResource.class);
     }
@@ -95,8 +104,18 @@ public class ServiceRootResource extends BaseResource {
         return getResource(EthernetSwitchCollectionResource.class);
     }
 
+    @Path(TELEMETRY_SERVICE_RESOURCE_NAME)
+    public TelemetryServiceResource getTelemetryService() {
+        return getResource(TelemetryServiceResource.class);
+    }
+
     @Path("odata")
     public ODataServiceDocumentResource getOData() {
         return getResource(ODataServiceDocumentResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

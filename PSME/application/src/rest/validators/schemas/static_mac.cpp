@@ -26,7 +26,6 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& StaticMacPatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "static_mac_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::MAC_ADDRESS, VALID_OPTIONAL(VALID_JSON_STRING),
         constants::StaticMac::VLAN_ID, VALID_OPTIONAL(VALID_NUMERIC_TYPED(UINT32)),

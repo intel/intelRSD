@@ -16,7 +16,6 @@
 
 package com.intel.podm.business.services.context;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,6 +26,7 @@ import static com.intel.podm.business.services.context.ContextType.REDUNDANCY;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_FAN;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_TEMPERATURE;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static java.util.Collections.unmodifiableSet;
 
 public class ContextTypeToEmbeddableMapper {
     private static final Set<ContextType> MAPPING;
@@ -40,7 +40,7 @@ public class ContextTypeToEmbeddableMapper {
         set.add(THERMAL_FAN);
         set.add(REDUNDANCY);
 
-        MAPPING = Collections.unmodifiableSet(set);
+        MAPPING = unmodifiableSet(set);
     }
 
     public boolean isEmbeddable(ContextType contextType) {

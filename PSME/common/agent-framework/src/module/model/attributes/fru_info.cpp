@@ -33,8 +33,8 @@ FruInfo::FruInfo() { }
 
 FruInfo::~FruInfo() { }
 
-Json::Value FruInfo::to_json() const {
-    Json::Value json;
+json::Json FruInfo::to_json() const {
+    json::Json json;
     json[literals::FruInfo::MANUFACTURER] = get_manufacturer();
     json[literals::FruInfo::PART] = get_part_number();
     json[literals::FruInfo::SERIAL] = get_serial_number();
@@ -42,7 +42,7 @@ Json::Value FruInfo::to_json() const {
     return json;
 }
 
-FruInfo FruInfo::from_json(const Json::Value& json) {
+FruInfo FruInfo::from_json(const json::Json& json) {
     attribute::FruInfo fru_info;
     fru_info.set_serial_number(json[literals::FruInfo::SERIAL]);
     fru_info.set_manufacturer(json[literals::FruInfo::MANUFACTURER]);

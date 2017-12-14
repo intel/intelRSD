@@ -77,6 +77,11 @@ static constexpr const char DEFAULT_CONFIGURATION[] = R"({
     "announce-interval-seconds" : 0,
     "ttl" : 2
 },
+"database": {
+    "location": "/var/opt/psme",
+    "retention-interval-sec": 600,
+    "retention-outdated-sec": 2419200
+},
 "rmm-present" : true,
 "registration": {"port": 8383, "minDelay": 3},
 "commands": { "generic": "Registration" },
@@ -172,6 +177,20 @@ static constexpr char DEFAULT_VALIDATOR_JSON[] = R"({
         "validator" : true,
         "type" : "uint",
         "max": 255
+    }
+},
+"database": {
+    "location": {
+        "validator": true,
+        "type": "string"
+    },
+    "retention-interval-sec": {
+        "validator": true,
+        "type": "uint"
+    },
+    "retention-outdated-sec": {
+        "validator": true,
+        "type": "uint"
     }
 },
 "rmm-present" : {

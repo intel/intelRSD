@@ -54,7 +54,7 @@ configure_dhcp() {
     add_listening_interfaces_for_dhcpd
 
     echo_log "Restarting isc-dhcp-server"
-    service isc-dhcp-server restart || :
+    invoke-rc.d isc-dhcp-server restart || :
 }
 
 disable_apparmor() {
@@ -73,17 +73,13 @@ configure_ethernet_interfaces() {
 
     echo_log "Adding POD Manager specific network configuration to current interfaces configuration"
     grep "$INTERFACE_SOURCE" $INTERFACES_CONF > /dev/null || echo "$INTERFACE_SOURCE" >> $INTERFACES_CONF
-
-    # FIXME: Ubuntu 14.04 disabled restarting networking
-    echo_log "Restarting networking service"
-    service networking restart || :
 }
 
 configure_ntp() {
     echo_log "Overriding /etc/ntp.conf to pod-manager specific configuration"
     cp -f /etc/pod-manager/opt/ntp.conf /etc/ntp.conf
     echo_log "Restarting ntp service"
-    service ntp restart || :
+    invoke-rc.d ntp restart || :
 }
 
 configure_tftpd() {

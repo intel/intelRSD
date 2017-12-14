@@ -19,7 +19,7 @@ package com.intel.podm.business.entities.dao;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.types.Id;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Collection;
@@ -29,36 +29,42 @@ import java.util.function.Predicate;
 
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Dependent
-@Transactional(MANDATORY)
+@ApplicationScoped
 public class GenericDao {
     @Inject
     private EntityRepository repository;
 
+    @Transactional(MANDATORY)
     public <T extends Entity> T create(Class<T> entityClass) {
         return repository.create(entityClass);
     }
 
+    @Transactional(MANDATORY)
     public <T extends Entity> Optional<T> tryFind(Class<T> entityClass, Id id) {
         return repository.tryFind(entityClass, id);
     }
 
+    @Transactional(MANDATORY)
     public <T extends Entity> T find(Class<T> entityClass, Id id) {
         return repository.find(entityClass, id);
     }
 
+    @Transactional(MANDATORY)
     public <T extends Entity> List<T> findAll(Class<T> entityClass) {
         return repository.findAll(entityClass);
     }
 
+    @Transactional(MANDATORY)
     public <T extends Entity> void remove(T entity) {
         repository.remove(entity);
     }
 
+    @Transactional(MANDATORY)
     public <T extends Entity> void removeAndClear(Collection<T> entities) {
         repository.removeAndClear(entities);
     }
 
+    @Transactional(MANDATORY)
     public <T extends Entity> void removeAndClear(Collection<T> entities, Predicate<T> predicate) {
         repository.removeAndClear(entities, predicate);
     }

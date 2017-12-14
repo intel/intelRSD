@@ -29,7 +29,7 @@
 #include "agent-framework/module/requests/network/add_vlan.hpp"
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -43,8 +43,8 @@ AddVlan::AddVlan(const std::string& switch_id,
                 m_vlan_id(vlan_id),
                 m_oem{} {}
 
-Json::Value AddVlan::to_json() const {
-    Json::Value value;
+json::Json AddVlan::to_json() const {
+    json::Json value;
     value[Vlan::SWITCH] = m_switch;
     value[Vlan::VLAN_NAME] = m_vlan_name;
     value[Vlan::VLAN_ID] = m_vlan_id;
@@ -52,11 +52,11 @@ Json::Value AddVlan::to_json() const {
     return value;
 }
 
-AddVlan AddVlan::from_json(const Json::Value& json) {
+AddVlan AddVlan::from_json(const json::Json& json) {
     return AddVlan{
-        json[Vlan::SWITCH].asString(),
-        json[Vlan::VLAN_NAME].asString(),
-        json[Vlan::VLAN_ID].asUInt(),
+        json[Vlan::SWITCH],
+        json[Vlan::VLAN_NAME],
+        json[Vlan::VLAN_ID],
         agent_framework::model::attribute::Oem::from_json(
           json[Vlan::OEM])
     };

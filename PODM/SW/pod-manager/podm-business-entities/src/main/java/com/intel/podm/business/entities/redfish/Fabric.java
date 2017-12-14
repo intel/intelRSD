@@ -22,11 +22,12 @@ import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Protocol;
-import org.hibernate.annotations.Generated;
 
 import javax.persistence.Column;
 import javax.persistence.Enumerated;
 import javax.persistence.Index;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.HashSet;
@@ -37,14 +38,17 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.LAZY;
-import static org.hibernate.annotations.GenerationTime.INSERT;
 
 @javax.persistence.Entity
+@NamedQueries({
+    @NamedQuery(name = Fabric.GET_ALL_FABRIC_IDS, query = "SELECT fabric.entityId FROM Fabric fabric")
+})
 @Table(name = "fabric", indexes = @Index(name = "idx_fabric_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class Fabric extends DiscoverableEntity {
-    @Generated(INSERT)
+    public static final String GET_ALL_FABRIC_IDS = "GET_ALL_FABRIC_IDS";
+
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
@@ -67,6 +71,16 @@ public class Fabric extends DiscoverableEntity {
     @OneToMany(mappedBy = "fabric", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Endpoint> endpoints = new HashSet<>();
 
+    @Override
+    public Id getId() {
+        return entityId;
+    }
+
+    @Override
+    public void setId(Id id) {
+        this.entityId = id;
+    }
+
     public Integer getMaxZones() {
         return maxZones;
     }
@@ -81,20 +95,6 @@ public class Fabric extends DiscoverableEntity {
 
     public void setFabricType(Protocol fabricType) {
         this.fabricType = fabricType;
-    }
-
-    public void setEntityId(Id entityId) {
-        this.entityId = entityId;
-    }
-
-    @Override
-    public Id getId() {
-        return entityId;
-    }
-
-    @Override
-    public void setId(Id id) {
-        this.entityId = id;
     }
 
     public Set<Zone> getZones() {

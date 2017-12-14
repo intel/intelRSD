@@ -16,8 +16,8 @@
 
 package com.intel.podm.mappers;
 
-import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.client.resources.ExternalServiceResource;
 
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Instance;
@@ -32,17 +32,17 @@ import static java.util.stream.StreamSupport.stream;
 @Dependent
 public class MapperFinder {
     @Inject
-    private Instance<EntityMapper<? extends ExternalServiceResource, ? extends Entity>> mapperPool;
+    private Instance<EntityMapper<? extends ExternalServiceResource, ? extends DiscoverableEntity>> mapperPool;
 
-    private Collection<EntityMapper<? extends ExternalServiceResource, ? extends Entity>> cache;
+    private Collection<EntityMapper<? extends ExternalServiceResource, ? extends DiscoverableEntity>> cache;
 
-    public Optional<EntityMapper<? extends ExternalServiceResource, ? extends Entity>> find(ExternalServiceResource resource) {
+    public Optional<EntityMapper<? extends ExternalServiceResource, ? extends DiscoverableEntity>> find(ExternalServiceResource resource) {
         return StreamSupport.stream(getMapperPool().spliterator(), false)
-                .filter(mapper -> mapper.canMap(resource))
-                .findFirst();
+            .filter(mapper -> mapper.canMap(resource))
+            .findFirst();
     }
 
-    private Iterable<EntityMapper<? extends ExternalServiceResource, ? extends Entity>> getMapperPool() {
+    private Iterable<EntityMapper<? extends ExternalServiceResource, ? extends DiscoverableEntity>> getMapperPool() {
         if (cache == null) {
             cache = stream(mapperPool.spliterator(), false).collect(toList());
         }

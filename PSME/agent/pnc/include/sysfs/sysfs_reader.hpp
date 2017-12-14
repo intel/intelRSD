@@ -18,14 +18,15 @@
  * limitations under the License.
  *
  * @file sysfs/sysfs_reader.hpp
- * @brief SysfsReader - implementation of the SysfsReaderInterface using libsysfs
+ * @brief SysfsReader - implementation of the SysfsReaderInterface common sysfs lib
  * */
 
 #pragma once
 
 #include "sysfs/sysfs_reader_interface.hpp"
+#include "sysfs/sysfs_interface.hpp"
 
-#include "libsysfs.h"
+#include <memory>
 
 namespace agent {
 namespace pnc {
@@ -36,7 +37,7 @@ namespace sysfs {
  */
 class SysfsReader : public SysfsReaderInterface {
 public:
-    SysfsReader() {}
+    SysfsReader(): m_sysfs_interface(std::make_shared<::sysfs::SysfsInterface>()) {}
     SysfsReader(const SysfsReader&) = default;
     SysfsReader& operator=(const SysfsReader&) = default;
     virtual ~SysfsReader();
@@ -69,25 +70,27 @@ public:
 private:
 
     /* checks if the sys_device has a path that has a part mathing 'path' parameter */
-    bool is_path_matched(sysfs_device* sys_device, const std::string& path) const;
+    bool is_path_matched(const ::sysfs::Path& device_path, const std::string& path) const;
 
     /* updates drive data, if successful, adds drive to the device */
     void update_drive_info(const std::string& drive_name, RawSysfsDevice& device) const;
 
     /* updates pci device drives (if present), result is stored in provided device reference */
-    void update_pci_device_drives(sysfs_device* sys_device, RawSysfsDevice& device) const;
+    void update_pci_device_drives(const ::sysfs::Path& device_path, RawSysfsDevice& device) const;
 
     /* used to check if given device is a virtual function, result is stored in provided device reference */
-    void update_pci_device_virtual(sysfs_device* sys_device, RawSysfsDevice& device) const;
+    void update_pci_device_virtual(const ::sysfs::Path& device_path, RawSysfsDevice& device) const;
 
     /* updates device configuration space, result is stored in provided device reference */
-    bool update_pci_device_config(sysfs_device* sys_device, RawSysfsDevice& device) const;
+    bool update_pci_device_config(const ::sysfs::Path& device_path, RawSysfsDevice& device) const;
 
     /* parses device name to read ids, result is stored in provided device reference */
-    bool update_pci_device_ids(sysfs_device* sys_device, RawSysfsDevice& device) const;
+    bool update_pci_device_ids(const ::sysfs::Path& device_path, RawSysfsDevice& device) const;
 
     /* updates all information about the device, result is stored in provided device reference */
-    bool update_pci_device(sysfs_device* sys_device, RawSysfsDevice& device) const;
+    bool update_pci_device(const ::sysfs::Path& device_path, RawSysfsDevice& device) const;
+
+    std::shared_ptr<::sysfs::AbstractSysfsInterface> m_sysfs_interface{nullptr};
 };
 
 }

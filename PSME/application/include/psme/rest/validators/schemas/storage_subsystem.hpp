@@ -31,6 +31,7 @@ namespace rest {
 namespace validators {
 namespace schema {
 
+/*! @brief Schema for validating PATCH requests on storage subsystem resource. */
 class StorageSubsystemPatchSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure();

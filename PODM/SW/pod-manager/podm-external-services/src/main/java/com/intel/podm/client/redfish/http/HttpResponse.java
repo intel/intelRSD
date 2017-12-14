@@ -16,11 +16,15 @@
 
 package com.intel.podm.client.redfish.http;
 
+import com.intel.podm.common.types.net.HttpStatusCode;
+
 import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.intel.podm.common.types.net.HttpStatusCode.httpStatusCode;
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 
 public final class HttpResponse {
     private final HttpStatusCode statusCode;
@@ -28,7 +32,7 @@ public final class HttpResponse {
     private final URI location;
 
     public HttpResponse(int statusCode, Object entity, URI location) {
-        this.statusCode = HttpStatusCode.httpStatusCode(statusCode);
+        this.statusCode = httpStatusCode(statusCode);
         this.entity = entity;
         this.location = location;
     }
@@ -38,11 +42,11 @@ public final class HttpResponse {
     }
 
     public Optional<Object> getEntity() {
-        return Optional.ofNullable(entity);
+        return ofNullable(entity);
     }
 
     public Optional<URI> getLocation() {
-        return Optional.ofNullable(location);
+        return ofNullable(location);
     }
 
     @Override
@@ -54,8 +58,8 @@ public final class HttpResponse {
         HttpResponse that = (HttpResponse) other;
 
         return Objects.equals(statusCode, that.statusCode)
-                && Objects.equals(entity, that.entity)
-                && Objects.equals(location, that.location);
+            && Objects.equals(entity, that.entity)
+            && Objects.equals(location, that.location);
     }
 
     @Override

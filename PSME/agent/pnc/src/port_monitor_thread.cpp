@@ -140,14 +140,14 @@ uint64_t initialize_dsps(const PsmVector& psms, const DiscoveryManager& dm, cons
         bool is_link_up = get_is_link_up(get_manager<Port>().get_entry(port_uuid));
         psm->init_presence(is_link_up);
         if (is_link_up) {
-            presence_mask |= (1u << port.get_phys_port_id());
+            presence_mask |= (uint64_t(1u) << port.get_phys_port_id());
         }
     }
     return presence_mask;
 }
 
 void update_downstream_ports(const PsmVector& psms, const DiscoveryManager& dm, const GlobalAddressSpaceRegisters& gas,
-        const Toolset&, uint64_t presence_bitmask, PortBindingInfo pbi) {
+        const Toolset&, uint64_t presence_bitmask, const PortBindingInfo& pbi) {
 
     for (auto& psm : psms) {
 
@@ -172,7 +172,7 @@ void update_downstream_ports(const PsmVector& psms, const DiscoveryManager& dm, 
             auto drive_ref = get_manager<Drive>().get_entry_reference(psm->get_device_uuid());
             // we only 'touch' drives that have no state overrides
             if (!(drive_ref->get_is_being_erased() || drive_ref->get_is_in_warning_state()
-                || drive_ref->get_is_in_critical_discovery_state())) {
+                || drive_ref->get_is_in_critical_discovery_state() || drive_ref->get_is_being_discovered())) {
 
                 if (is_bound) {
                     // drive is present and bound -> read smart
@@ -274,6 +274,6 @@ void PortMonitorThread::task() {
 }
 
 void PortMonitorThread::start() {
-    m_thread = std::thread(&PortMonitorThread::task, this);
     m_is_running = true;
+    m_thread = std::thread(&PortMonitorThread::task, this);
 }

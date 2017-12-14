@@ -18,8 +18,8 @@
  * limitations under the License.
  *
  *
- * @file json_to_string_vector.cpp
- * @brief json to vector<string> converting function
+ * @file extensions.cpp
+ * @brief Optional extensions
  * */
 
 #include "agent-framework/module/utils/optional/extensions.hpp"
@@ -33,10 +33,8 @@ namespace experimental {
 /* Template specialization for safe FP numbers comparison */
 template<>
 bool operator==(const std::experimental::optional<double>& lhs, const std::experimental::optional<double>& rhs) {
-    if(!lhs || !rhs) {
-        return false;
-    }
-    return std::abs(lhs.value() - rhs.value()) < std::numeric_limits<double>::epsilon();
+    return (bool(lhs) != bool(rhs)) ? false : !bool(rhs) ? true
+               : std::abs(*lhs - *rhs) < std::numeric_limits<double>::epsilon();
 }
 
 template<>
@@ -49,59 +47,41 @@ bool operator==(const std::experimental::optional<double>& lhs, const double& rh
 
 template<>
 bool operator==(const double& lhs, const std::experimental::optional<double>& rhs) {
-    if(!rhs) {
-        return false;
-    }
-    return std::abs(lhs - rhs.value()) < std::numeric_limits<double>::epsilon();
+    /* forward to operator==(optional, double) */
+    return (rhs == lhs);
 }
 
 template<>
 bool operator!=(const std::experimental::optional<double>& lhs, const std::experimental::optional<double>& rhs) {
-    if(!lhs || !rhs) {
-        return true;
-    }
-    return std::abs(lhs.value() - rhs.value()) > std::numeric_limits<double>::epsilon();
+    return !(lhs == rhs);
 }
 
 template<>
 bool operator!=(const std::experimental::optional<double>& lhs, const double& rhs) {
-    if(!lhs) {
-        return true;
-    }
-    return std::abs(lhs.value() - rhs) > std::numeric_limits<double>::epsilon();
+    return !(lhs == rhs);
 }
 
 template<>
 bool operator!=(const double& lhs, const std::experimental::optional<double>& rhs) {
-    if(!rhs) {
-        return true;
-    }
-    return std::abs(lhs - rhs.value()) > std::numeric_limits<double>::epsilon();
+    return !(lhs == rhs);
 }
 
 /* Logical operators for safe string comparison */
-bool operator==(const std::experimental::optional<std::string>& lhs, const std::experimental::optional<std::string>& rhs) {
-    return (bool(lhs) && bool(rhs) ? lhs.value()==rhs.value() : false );
+bool operator==(const std::experimental::optional<std::string>& lhs, const char* rhs) {
+    return (bool(lhs) != (rhs != nullptr)) ? false : bool(lhs) ? *lhs == rhs : true;
 }
 
 bool operator==(const char* lhs, const std::experimental::optional<std::string>& rhs) {
-    return ( bool(rhs) ? lhs==rhs.value() : false );
-}
-
-bool operator==(const std::experimental::optional<std::string>& lhs, const char* rhs) {
-    return ( bool(lhs) ? lhs.value()==rhs : false );
-}
-
-bool operator!=(const std::experimental::optional<std::string>& lhs, const std::experimental::optional<std::string>& rhs) {
-    return lhs.value()!=rhs.value();
+    /* forward to operator==(optional, char*) */
+    return (rhs == lhs);
 }
 
 bool operator!=(const char* lhs, const std::experimental::optional<std::string>& rhs) {
-    return lhs!=rhs.value();
+    return !(lhs == rhs);
 }
 
 bool operator!=(const std::experimental::optional<std::string>& lhs, const char* rhs) {
-    return lhs.value()!=rhs;
+    return !(lhs == rhs);
 }
 
 }

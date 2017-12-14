@@ -16,29 +16,22 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.actions.ActionException;
-import com.intel.podm.actions.PcieDriveActionsInvoker;
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.ResourceStateMismatchException;
-import com.intel.podm.business.entities.redfish.Drive;
-import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.ServiceTraverser;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ActionService;
 import com.intel.podm.business.services.redfish.requests.SecureEraseRequest;
 import com.intel.podm.common.synchronization.TaskCoordinator;
 
-import javax.enterprise.context.Dependent;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.concurrent.TimeoutException;
 
 import static javax.transaction.Transactional.TxType.NEVER;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @RequestScoped
-public class SecureEraseActionServiceImpl implements ActionService<SecureEraseRequest> {
+class SecureEraseActionServiceImpl implements ActionService<SecureEraseRequest> {
     @Inject
     private PcieDriveEraser pcieDriveEraser;
 
@@ -51,34 +44,6 @@ public class SecureEraseActionServiceImpl implements ActionService<SecureEraseRe
     @Override
     @Transactional(NEVER)
     public void perform(Context target, SecureEraseRequest request) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(traverser.traverseServiceUuid(target), () -> pcieDriveEraser.secureErase(target));
-    }
-
-    @Dependent
-    public static class PcieDriveEraser {
-        @Inject
-        private EntityTreeTraverser traverser;
-
-        @Inject
-        private PcieDriveActionsInvoker pcieDriveActionsInvoker;
-
-        @Transactional(REQUIRES_NEW)
-        public void secureErase(Context context) throws BusinessApiException {
-            Drive drive = (Drive) traverser.traverse(context);
-
-            if (!drive.isPresent()) {
-                throw new ResourceStateMismatchException("SecureErase action cannot be performed on PCIeDrive which is not in 'Present' state");
-            }
-
-            if (drive.getMetadata().isAllocated()) {
-                throw new ResourceStateMismatchException("SecureErase action cannot be performed on allocated PCIeDrive");
-            }
-
-            try {
-                pcieDriveActionsInvoker.secureErase(drive);
-            } catch (ActionException e) {
-                throw new BusinessApiException(e.getMessage(), e);
-            }
-        }
+        taskCoordinator.run(traverser.traverseServiceUuid(target), () -> pcieDriveEraser.secureErase(target));
     }
 }

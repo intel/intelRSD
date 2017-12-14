@@ -35,6 +35,7 @@ namespace agent {
 namespace pnc {
 
 using map_value_type = std::map<std::string, std::string>::value_type;
+using agent_framework::KeyValueMissingError;
 
 const std::map<std::string, std::string> PncKeyGenerator::m_keys_base_map{
     map_value_type(Manager::get_component().to_string(), "_PCIeModule_"),
@@ -52,9 +53,6 @@ const std::map<std::string, std::string> PncKeyGenerator::m_keys_base_map{
 };
 
 std::string PncKeyGenerator::m_agent_id{};
-
-
-PncKeyGenerator::~PncKeyGenerator() {}
 
 
 template<>
@@ -245,6 +243,16 @@ const std::string PncKeyGenerator::generate_key(const System& system) {
 template<>
 const std::string PncKeyGenerator::generate_key(const StorageSubsystem& storage_subsystem) {
     return generate_key_base(storage_subsystem);
+}
+
+
+template<>
+const std::string PncKeyGenerator::generate_key(const MetricDefinition& metric_def) {
+    std::string key = metric_def.get_component().to_string() + metric_def.get_metric_jsonptr();
+    if (metric_def.get_name().has_value()) {
+        key += metric_def.get_name();
+    }
+    return key;
 }
 
 }

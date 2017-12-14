@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.subresources;
 
 import com.intel.podm.business.entities.redfish.embeddables.RedfishLocation;
-import com.intel.podm.client.api.resources.redfish.RedfishLocationObject;
+import com.intel.podm.client.resources.redfish.RedfishLocationObject;
 import com.intel.podm.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 
 import javax.enterprise.context.Dependent;

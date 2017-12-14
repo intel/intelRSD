@@ -29,13 +29,12 @@
 #include "psme/rest/endpoints/storage/logical_drive.hpp"
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/logical_drive.hpp"
-#include "psme/rest/utils/mapper.hpp"
+#include "psme/rest/server/multiplexer.hpp"
 #include "psme/rest/model/handlers/handler_manager.hpp"
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
-#include "psme/rest/endpoints/monitor_content_builder.hpp"
-//#include "psme/rest/endpoints/task.hpp"
-#include "psme/rest/endpoints/task_service_utils.hpp"
+#include "psme/rest/endpoints/task_service/monitor_content_builder.hpp"
+#include "psme/rest/endpoints/task_service/task_service_utils.hpp"
 
 
 #include <vector>
@@ -53,7 +52,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#LogicalDrives";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#LogicalDriveCollection.LogicalDriveCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#LogicalDriveCollection.LogicalDriveCollection";
     r[Common::NAME] = "Logical Drives Collection";
@@ -67,9 +66,9 @@ json::Value make_prototype() {
 
 std::string get_master_drive_uuid(const std::string& link) {
     try {
-        auto params = psme::rest::model::Mapper::get_params(link, constants::Routes::LOGICAL_DRIVE_PATH);
+        auto params = server::Multiplexer::get_instance()->get_params(link, constants::Routes::LOGICAL_DRIVE_PATH);
         auto drive = psme::rest::model::Find<agent_framework::model::LogicalDrive>(params[PathParam::LOGICAL_DRIVE_ID])
-            .via<agent_framework::model::StorageServices>(params[PathParam::SERVICE_ID])
+            .via<agent_framework::model::StorageService>(params[PathParam::SERVICE_ID])
             .get_one();
 
         if (drive->get_mode() == agent_framework::model::enums::LogicalDriveMode::LV) {
@@ -88,9 +87,9 @@ std::string get_master_drive_uuid(const std::string& link) {
 
 std::string get_logical_volume_group_uuid(const std::string& link) {
     try {
-        auto params = psme::rest::model::Mapper::get_params(link, constants::Routes::LOGICAL_DRIVE_PATH);
+        auto params = server::Multiplexer::get_instance()->get_params(link, constants::Routes::LOGICAL_DRIVE_PATH);
         auto drive = psme::rest::model::Find<agent_framework::model::LogicalDrive>(params[PathParam::LOGICAL_DRIVE_ID])
-            .via<agent_framework::model::StorageServices>(params[PathParam::SERVICE_ID])
+            .via<agent_framework::model::StorageService>(params[PathParam::SERVICE_ID])
             .get_one();
 
         if (drive->get_mode() == agent_framework::model::enums::LogicalDriveMode::LVG) {
@@ -120,8 +119,8 @@ void LogicalDriveCollection::get(const server::Request& req, server::Response& r
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    auto service_uuid = psme::rest::model::Find<agent_framework::model::StorageServices>(
-        req.params[PathParam::SERVICE_ID]).get_uuid();
+    auto service_uuid =
+        psme::rest::model::Find<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get_uuid();
 
     auto keys = StorageComponents::get_instance()->
         get_logical_drive_manager().get_ids(service_uuid);
@@ -166,23 +165,24 @@ void LogicalDriveCollection::post(const server::Request& req, server::Response& 
         master_drive_uuid,
         image,
         json[constants::LogicalDrive::SNAPSHOT].as_bool(),
+        json[constants::LogicalDrive::BOOTABLE].as_bool(),
         json[constants::LogicalDrive::PROTECTED].as_bool(),
         std::vector<std::string>{logical_volume_group_uuid},
         agent_framework::model::attribute::Oem()
     };
 
-    auto parent = psme::rest::model::Find<agent_framework::model::StorageServices>(
-        req.params[PathParam::SERVICE_ID]).get();
+    auto parent =
+        psme::rest::model::Find<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get();
 
     auto agent_id = parent.get_agent_id();
     auto parent_uuid = parent.get_uuid();
 
     auto grandparent_uuid = StorageComponents::get_instance()->
-        get_storage_services_manager().get_entry_reference(parent_uuid)->
+        get_storage_service_manager().get_entry_reference(parent_uuid)->
         get_parent_uuid();
 
     // prepare response which will be presented on task completion
-    auto response_renderer = [req](Json::Value in_json) -> server::Response {
+    auto response_renderer = [req](json::Json in_json) -> server::Response {
         auto command_response = agent_framework::model::responses::AddLogicalDrive::from_json(in_json);
         auto created_drive_id = StorageComponents::get_instance()->
             get_logical_drive_manager().get_entry(
@@ -213,7 +213,7 @@ void LogicalDriveCollection::post(const server::Request& req, server::Response& 
         }
 
         psme::rest::model::handler::HandlerManager::get_instance()->get_handler(
-            agent_framework::model::enums::Component::StorageServices)->
+            agent_framework::model::enums::Component::StorageService)->
             load(lambda_agent_manager->get_agent(agent_id),
                  grandparent_uuid, agent_framework::model::enums::Component::Manager, parent_uuid, true);
     };
@@ -228,7 +228,7 @@ void LogicalDriveCollection::post(const server::Request& req, server::Response& 
         // otherwise a task needs to be created
         if (add_drive_response.get_task().empty()) {
             psme::rest::model::handler::HandlerManager::get_instance()->get_handler(
-                agent_framework::model::enums::Component::StorageServices)->
+                agent_framework::model::enums::Component::StorageService)->
                 load(gami_agent,
                      grandparent_uuid, agent_framework::model::enums::Component::Manager, parent_uuid, true);
 

@@ -27,7 +27,6 @@
 
 using namespace agent_framework::exceptions;
 using namespace agent_framework::module;
-using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 
 namespace agent_framework {
@@ -37,7 +36,6 @@ namespace validation {
 
 void NetworkValidator::validate_set_port_attributes(const Attributes& attributes) {
     jsonrpc::ProcedureValidator validator(
-        "set_ethernet_switch_port_attributes",
         jsonrpc::PARAMS_BY_NAME,
         literals::EthernetSwitchPort::LINK_SPEED_MBPS, VALID_OPTIONAL(VALID_NUMERIC_TYPED(UINT32)),
         literals::EthernetSwitchPort::FRAME_SIZE, VALID_OPTIONAL(VALID_NUMERIC_TYPED(UINT32)),
@@ -52,12 +50,11 @@ void NetworkValidator::validate_set_port_attributes(const Attributes& attributes
     validator.validate(attributes.to_json());
 
     // additional check: does the default VLAN exist?
-    if (attributes.to_json().isMember(literals::EthernetSwitchPort::DEFAULT_VLAN)) {
-        const auto& vlan_uuid = attributes.get_value(literals::EthernetSwitchPort::DEFAULT_VLAN).asString();
+    if (attributes.to_json().count(literals::EthernetSwitchPort::DEFAULT_VLAN)) {
+        const auto& vlan_uuid = attributes.get_value(literals::EthernetSwitchPort::DEFAULT_VLAN);
 
         if(!NetworkComponents::get_instance()->get_port_vlan_manager().entry_exists(vlan_uuid)) {
-            THROW(exceptions::InvalidValue, "network-agent",
-                  "Provided default VLAN does not exist!");
+            THROW(exceptions::InvalidValue, "network-agent", "Provided default VLAN does not exist!");
         }
     }
 
@@ -65,11 +62,11 @@ void NetworkValidator::validate_set_port_attributes(const Attributes& attributes
 }
 
 namespace {
+
 class VlanIdSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure() {
         static jsonrpc::ProcedureValidator procedure{
-            "vlan_id",
             jsonrpc::PARAMS_BY_NAME,
             literals::AclRule::ID, VALID_NUMERIC_TYPED(UINT32),
             literals::AclRule::MASK, VALID_OPTIONAL(VALID_NUMERIC_TYPED(UINT32)),
@@ -78,11 +75,11 @@ public:
         return procedure;
     }
 };
+
 class AddressSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure() {
         static jsonrpc::ProcedureValidator procedure{
-            "address",
             jsonrpc::PARAMS_BY_NAME,
             literals::AclRule::ADDRESS, VALID_JSON_STRING,
             literals::AclRule::MASK, VALID_OPTIONAL(VALID_JSON_STRING),
@@ -91,11 +88,11 @@ public:
         return procedure;
     }
 };
+
 class PortSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure() {
         static jsonrpc::ProcedureValidator procedure{
-            "port",
             jsonrpc::PARAMS_BY_NAME,
             literals::AclRule::PORT, VALID_NUMERIC_TYPED(UINT32),
             literals::AclRule::MASK, VALID_OPTIONAL(VALID_NUMERIC_TYPED(UINT32)),
@@ -104,11 +101,11 @@ public:
         return procedure;
     }
 };
+
 }
 
 void NetworkValidator::validate_set_acl_rule_attributes(const Attributes& attributes) {
     static jsonrpc::ProcedureValidator validator(
-        "set_acl_rule_attributes",
         jsonrpc::PARAMS_BY_NAME,
         literals::AclRule::ACTION, VALID_OPTIONAL(VALID_ENUM(enums::AclAction)),
         literals::AclRule::FORWARD_MIRROR_PORT, VALID_OPTIONAL(VALID_JSON_STRING),
@@ -161,6 +158,9 @@ void NetworkValidator::validate_set_port_vlan_attributes(const Attributes& attri
         }
         else if (literals::Vlan::VLAN_ENABLE == name) {
             check_boolean(value, name, "network-agent");
+        }
+        else if (literals::Vlan::VLAN_ID == name) {
+            check_number(value, name, "network-agent");
         }
         else if (literals::Vlan::OEM == name) {
             Oem::from_json(value);

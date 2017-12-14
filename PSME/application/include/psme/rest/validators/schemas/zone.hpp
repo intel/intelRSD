@@ -31,7 +31,7 @@ namespace rest {
 namespace validators {
 namespace schema {
 
-/*! @brief  ZonePatchSchema schema for Zone PATCH request */
+/*! @brief Schema for validating PATCH requests on zone resource. */
 class ZonePatchSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure();

@@ -30,7 +30,7 @@
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -39,16 +39,16 @@ DeletePortStaticMac::DeletePortStaticMac(const std::string& static_mac, Oem oem)
                 m_static_mac{static_mac},
                 m_oem{oem} {}
 
-Json::Value DeletePortStaticMac::to_json() const {
-    Json::Value value;
+json::Json DeletePortStaticMac::to_json() const {
+    json::Json value;
     value[StaticMac::STATIC_MAC] = m_static_mac;
     value[StaticMac::OEM] = m_oem.to_json();
     return value;
 }
 
-DeletePortStaticMac DeletePortStaticMac::from_json(const Json::Value& json) {
+DeletePortStaticMac DeletePortStaticMac::from_json(const json::Json& json) {
     return DeletePortStaticMac{
-        json[StaticMac::STATIC_MAC].asString(),
+        json[StaticMac::STATIC_MAC],
         Oem{}
     };
 }

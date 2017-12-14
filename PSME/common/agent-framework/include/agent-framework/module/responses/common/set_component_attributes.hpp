@@ -26,12 +26,9 @@
 
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "agent-framework/module/constants/command.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
-
-namespace Json {
-class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -82,7 +79,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * Set task UUID
@@ -110,7 +107,7 @@ public:
      *
      * @return new SetComponentAttributes
      */
-    static SetComponentAttributes from_json(const Json::Value& json);
+    static SetComponentAttributes from_json(const json::Json& json);
 
 private:
     std::string m_task{};

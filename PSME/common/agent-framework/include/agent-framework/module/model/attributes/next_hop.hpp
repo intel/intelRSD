@@ -23,8 +23,10 @@
  * @brief Next hop
  * */
 #pragma once
-#include "agent-framework/module/types/common.hpp"
-#include <json/json.h>
+
+#include "json-wrapper/json-wrapper.hpp"
+
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -34,15 +36,12 @@ namespace attribute {
 class NextHop {
 public:
 
-    using String = types::String;
-    using Number = types::Number;
-
     explicit NextHop();
 
-    NextHop(const Number& metric,
-            const String& port_identifier,
-            const String& ipv4_address,
-            const String& ipv6_address):
+    NextHop(const uint32_t& metric,
+            const std::string& port_identifier,
+            const std::string& ipv4_address,
+            const std::string& ipv6_address):
             m_metric{metric},
             m_port_identifier{port_identifier},
             m_ipv4_address{ipv4_address},
@@ -64,14 +63,14 @@ public:
      *
      * @param[in] metric Metric.
      * */
-    void set_metric(Number metric) {
+    void set_metric(uint32_t metric) {
         m_metric = metric;
     }
 
     /*!
      * Gets metric
      * */
-    Number get_metric() const {
+    uint32_t get_metric() const {
         return m_metric;
     }
 
@@ -80,14 +79,14 @@ public:
      *
      * @param[in] port_identifier Port identifier
      * */
-    void set_port_identifier(const String& port_identifier) {
+    void set_port_identifier(const std::string& port_identifier) {
             m_port_identifier = port_identifier;
         }
 
     /*!
      * Gets port identifier
      * */
-    const String& get_port_identifier() const {
+    const std::string& get_port_identifier() const {
         return m_port_identifier;
     }
 
@@ -96,14 +95,14 @@ public:
      *
      * @param[in] ipv4_address IPv4 address
      * */
-    void set_ipv4_address(const String& ipv4_address) {
+    void set_ipv4_address(const std::string& ipv4_address) {
         m_ipv4_address = ipv4_address;
     }
 
     /*!
      * Gets IPv4 address
      * */
-    const String& get_ipv4_address() const {
+    const std::string& get_ipv4_address() const {
         return m_ipv4_address;
     }
 
@@ -112,14 +111,14 @@ public:
      *
      * @param[in] ipv6_address IPv4 address
      * */
-    void set_ipv6_address(const String& ipv6_address) {
+    void set_ipv6_address(const std::string& ipv6_address) {
         m_ipv6_address = ipv6_address;
     }
 
     /*!
       * Gets IPv6 address
      * */
-    const String& get_ipv6_address() const {
+    const std::string& get_ipv6_address() const {
         return m_ipv6_address;
     }
 
@@ -128,22 +127,21 @@ public:
      *
      * //return json representation of this class.
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * Converts Json to a NextHop object
      * */
-    static NextHop from_json(const Json::Value& json);
+    static NextHop from_json(const json::Json& json);
 
 
 private:
-    Number m_metric{};
-    String m_port_identifier{};
-    String m_ipv4_address{};
-    String m_ipv6_address{};
+    uint32_t m_metric{};
+    std::string m_port_identifier{};
+    std::string m_ipv4_address{};
+    std::string m_ipv6_address{};
 };
 
 }
 }
 }
-

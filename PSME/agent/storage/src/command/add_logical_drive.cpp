@@ -23,8 +23,8 @@
  * */
 
 #include "agent-framework/module/storage_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/storage_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/storage_commands.hpp"
 #include "agent-framework/action/task_runner.hpp"
 #include "agent-framework/action/task.hpp"
 #include "agent-framework/action/task_creator.hpp"
@@ -36,7 +36,7 @@
 #include "tree_stability/storage_tree_stabilizer.hpp"
 
 using namespace agent_framework;
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
 using namespace agent_framework::module;
@@ -46,9 +46,6 @@ using namespace agent::storage::utils;
 using agent::storage::StorageTreeStabilizer;
 
 namespace {
-
-std::mutex lvm_mutex{};
-
 void validate_type_and_mode(const AddLogicalDrive::Request& request) {
     // storage agent can only create LVM type of a drive
     LogicalDriveType type = LogicalDriveType::from_string(request.get_type());
@@ -139,7 +136,7 @@ void add_logical_drive(const AddLogicalDrive::Request& req, AddLogicalDrive::Res
     logical_drive.set_master(req.get_master());
     logical_drive.set_is_snapshot(req.is_snapshot());
     logical_drive.set_image(req.get_image());
-    logical_drive.set_bootable(master_drive.get_bootable());
+    logical_drive.set_bootable(req.is_bootable());
     logical_drive.set_status(attribute::Status({State::Enabled, Health::OK}));
 
     LvmCreateData lvm_create_data{};
@@ -148,8 +145,7 @@ void add_logical_drive(const AddLogicalDrive::Request& req, AddLogicalDrive::Res
     lvm_create_data.set_volume_group(volume_group_name);
     lvm_create_data.set_logical_volume(master_drive_name);
     lvm_create_data.set_create_name(logical_drive_uuid);
-    // @TODO: add bootable flag to GAMI command
-    lvm_create_data.set_bootable(true);
+    lvm_create_data.set_bootable(req.is_bootable());
 
     if (req.is_snapshot()) {
         LvmAPI lvm_api;
@@ -164,13 +160,11 @@ void add_logical_drive(const AddLogicalDrive::Request& req, AddLogicalDrive::Res
         rsp.set_drive(logical_drive_persistent_uuid);
     } else {
         auto lvm_create_clone_subtask = [lvm_create_data] () {
-            lvm_mutex.lock();
             LvmAPI local_lvm_api{};
             local_lvm_api.create_clone(lvm_create_data);
         };
 
         auto promised_response_builder = [logical_drive, logical_drive_uuid] () {
-            lvm_mutex.unlock();
             get_manager<LogicalDrive>().add_entry(std::move(logical_drive));
 
             const std::string& logical_drive_persistent_uuid = StorageTreeStabilizer().stabilize_logical_drive(
@@ -179,7 +173,7 @@ void add_logical_drive(const AddLogicalDrive::Request& req, AddLogicalDrive::Res
             log_debug(GET_LOGGER("storage-agent"), "Logical volume added: " << logical_drive.get_uuid());
 
             agent::storage::event::send_event(logical_drive_persistent_uuid, enums::Component::LogicalDrive,
-                       eventing::Notification::Add, get_manager<StorageServices>().get_keys().front());
+                       eventing::Notification::Add, get_manager<StorageService>().get_keys().front());
 
             AddLogicalDrive::Response res{};
             res.set_drive(logical_drive_persistent_uuid);
@@ -187,7 +181,6 @@ void add_logical_drive(const AddLogicalDrive::Request& req, AddLogicalDrive::Res
         };
 
         auto promised_exception_builder = [] () {
-            lvm_mutex.unlock();
             return exceptions::LvmError("Could not create clone");
         };
 

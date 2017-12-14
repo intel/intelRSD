@@ -24,8 +24,7 @@ import java.util.regex.Pattern;
 import static com.intel.podm.common.utils.Contracts.requires;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
-import static java.util.regex.Pattern.compile;
-import static org.apache.commons.lang.StringUtils.trimToNull;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 /**
  * Provides lower case string representation of provided MAC Address.
@@ -49,7 +48,7 @@ public class MacAddress implements Serializable {
         String localMacAddressString = trimToNull(macAddressString);
         requires(localMacAddressString != null, "MAC Address must not be empty or null");
 
-        Pattern pattern = compile(MAC_PATTERN);
+        Pattern pattern = Pattern.compile(MAC_PATTERN);
         Matcher matcher = pattern.matcher(localMacAddressString);
 
         requires(matcher.matches(), "MAC Address must contain 12 hex digits separated pairwise by ':' (provided MAC Address: [" + macAddressString + "])");

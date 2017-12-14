@@ -24,7 +24,7 @@
  * */
 
 #include "agent-framework/module/model/attributes/oem.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::model;
@@ -33,10 +33,10 @@ Oem::Oem() { }
 
 Oem::~Oem() { }
 
-Json::Value Oem::to_json() const {
-    return Json::Value{Json::objectValue};
+json::Json Oem::to_json() const {
+    return json::Json::object();
 }
 
-Oem Oem::from_json(const Json::Value&) {
+Oem Oem::from_json(const json::Json&) {
     return Oem();
 }

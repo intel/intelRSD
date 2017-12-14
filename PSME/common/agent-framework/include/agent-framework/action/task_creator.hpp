@@ -46,7 +46,7 @@ class TaskCreator {
 // @TODO: improve move semantics by overloading methods taking rvalue references
 public:
     using TaskResource = agent_framework::model::Task;
-    using PromisedResponseType = std::function<Json::Value(void)>;
+    using PromisedResponseType = std::function<json::Json(void)>;
     using PromisedErrorThrowerType = std::function<agent_framework::exceptions::GamiException(void)>;
 
 
@@ -128,7 +128,7 @@ public:
     /*!
      * Register a stateless functional object that will be used to pass the result
      * to the task result manager after task completion. The functional object must
-     * have signature Json::Value(void) in order to work properly. Statelessness is
+     * have signature json::Json(void) in order to work properly. Statelessness is
      * required as it may be called long after state variables have been destroyed.
      *
      * @param[in] promised_response Functional object that is used to render task response

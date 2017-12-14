@@ -33,11 +33,6 @@ set(SOURCES
 
     certificate.cpp
     certificate_manager.cpp
-
-    watcher/watcher.cpp
-    watcher/task.cpp
-    watcher/drawer_power_task.cpp
-    watcher/thermal_sensor_task.cpp
 )
 
 set_property (

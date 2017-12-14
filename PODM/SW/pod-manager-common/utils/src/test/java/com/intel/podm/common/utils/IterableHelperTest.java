@@ -32,7 +32,7 @@ public class IterableHelperTest {
      * Tests for IterableHelper.single
      */
     @Test
-    public void whenPassingOneElementIterableToSingleMethod_ShouldReturnContainedElement()  {
+    public void whenPassingOneElementIterableToSingleMethod_ShouldReturnContainedElement() {
         String originalTestString = "testString";
         final Iterable<String> stringIterable = asList(originalTestString);
 
@@ -60,7 +60,7 @@ public class IterableHelperTest {
      * Tests for IterableHelper.singleOrNull
      */
     @Test
-    public void whenPassingOneElementIterableToSingleOrNullMethod_ShouldReturnContainedElement()  {
+    public void whenPassingOneElementIterableToSingleOrNullMethod_ShouldReturnContainedElement() {
         String originalTestString = "testString";
         final Iterable<String> stringIterable = asList(originalTestString);
 

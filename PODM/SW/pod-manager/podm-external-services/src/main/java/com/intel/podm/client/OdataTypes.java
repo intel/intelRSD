@@ -25,7 +25,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Target(TYPE)
 public @interface OdataTypes {
-    String VERSION_PATTERN = "(\\.v\\d_\\d_\\d\\.|\\.\\d\\.\\d\\.\\d\\.)";
 
     String[] value();
 }

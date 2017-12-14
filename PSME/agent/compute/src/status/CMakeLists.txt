@@ -17,24 +17,10 @@
 # </license_header>
 
 set(SOURCES
-    status_manager.cpp
-    module_software_status.cpp
-    module_hardware_status.cpp
-    state_machine_action.cpp
     system_power_state_thread.cpp
     system_boot_options_thread.cpp
-    gpio/gpio_status.cpp
-    icmp/icmp.cpp
-    smbios/smbios_checksum.cpp
+    gpio/gpio_manager.cpp
+    bmc.cpp
 )
-
-set_source_files_properties(module_software_status.cpp PROPERTIES COMPILE_FLAGS
-    "-Wno-old-style-cast")
-
-if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-    # GCC bug. In C++11 initializtion with {} is correct
-    set_source_files_properties(module_hardware_status.cpp PROPERTIES
-        COMPILE_FLAGS "-Wno-missing-field-initializers")
-endif()
 
 add_library(compute-status-impl OBJECT ${SOURCES})

@@ -17,11 +17,9 @@
 # </license_header>
 
 set(SOURCES
-    command.cpp
-    command_json.cpp
-    command_factory.cpp
-    command_json_server.cpp
-    command_exception.cpp
-)
+        command.cpp
+        command_server.cpp
+        registry.cpp
+        )
 
 add_library(command OBJECT ${SOURCES})

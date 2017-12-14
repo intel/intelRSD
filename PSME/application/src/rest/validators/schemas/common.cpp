@@ -29,7 +29,6 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& SimpleObjectSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "simple_object",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::ODATA_ID, VALID_JSON_STRING,
         nullptr
@@ -40,7 +39,6 @@ const jsonrpc::ProcedureValidator& SimpleObjectSchema::get_procedure() {
 
 const jsonrpc::ProcedureValidator& EmptyObjectSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "empty_object",
         jsonrpc::PARAMS_BY_NAME,
         nullptr
     };

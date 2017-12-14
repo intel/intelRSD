@@ -30,6 +30,8 @@ namespace netlink_base {
 namespace utils {
 
 std::string get_neighbor_mac_address(const std::string& port_identifier);
+std::string get_port_mac_address(const std::string& port_identifier);
+std::string get_port_ip_address(int ifindex, std::string& mask);
 
 }
 }

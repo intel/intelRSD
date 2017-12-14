@@ -54,6 +54,12 @@ PathBuilder& PathBuilder::append_regex(const std::string& name, const std::strin
     return *this;
 }
 
+PathBuilder& PathBuilder::append_jsonptr(const std::string& jsonptr) {
+    m_str << Common::HASH << jsonptr;
+    return *this;
+}
+
+
 std::string PathBuilder::build() {
     return m_str.str();
 }

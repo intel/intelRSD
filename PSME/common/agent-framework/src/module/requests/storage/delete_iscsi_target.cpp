@@ -24,20 +24,20 @@
 
 #include "agent-framework/module/requests/storage/delete_iscsi_target.hpp"
 #include "agent-framework/module/constants/storage.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 DeleteIscsiTarget::DeleteIscsiTarget(const std::string& target): m_target{target} {}
 
-Json::Value DeleteIscsiTarget::to_json() const {
-    Json::Value value;
+json::Json DeleteIscsiTarget::to_json() const {
+    json::Json value;
     value[IscsiTarget::TARGET] = m_target;
     return value;
 }
 
-DeleteIscsiTarget DeleteIscsiTarget::from_json(const Json::Value& json) {
+DeleteIscsiTarget DeleteIscsiTarget::from_json(const json::Json& json) {
     return DeleteIscsiTarget{
-        json[IscsiTarget::TARGET].asString()};
+        json[IscsiTarget::TARGET].get<std::string>()};
 }

@@ -29,6 +29,7 @@ import java.util.concurrent.TimeoutException;
 
 import static com.intel.podm.common.logger.LoggerFactory.getLogger;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
@@ -38,14 +39,13 @@ class SerialExecutorImpl implements SerialExecutor {
     private final ExecutorService delegate;
     private final Object asyncExecutorSynchronizer = new Object();
     private final Object identity;
-    private final TaskExecutorProvider taskExecutorProvider;
+    private final Locker syncLocker = new Locker();
     private final InBox inBox;
     private final CompletableFutureWrapper running = new CompletableFutureWrapper();
 
-    SerialExecutorImpl(final Object identity, final ExecutorService executor, final TaskExecutorProvider taskExecutorProvider) {
+    SerialExecutorImpl(final Object identity, final ExecutorService executor) {
         this.identity = identity;
         this.delegate = executor;
-        this.taskExecutorProvider = taskExecutorProvider;
         this.inBox = new InBox(identity);
     }
 
@@ -55,18 +55,13 @@ class SerialExecutorImpl implements SerialExecutor {
     }
 
     @Override
-    public synchronized <E extends Exception, R> R executeSync(Duration timeToWaitFor, ThrowingCallable<R, E> task) throws TimeoutException, E {
-        return execute(timeToWaitFor, taskExecutorProvider.getExecutableExecutor(), task);
-    }
-
-    @Override
-    public synchronized void executeSync(Duration timeToWaitFor, Runnable task) throws TimeoutException {
-        execute(timeToWaitFor, taskExecutorProvider.getRunnableTaskExecutor(), task);
-    }
-
-    @Override
-    public synchronized <E extends Exception> void executeSync(Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E {
-        execute(timeToWaitFor, taskExecutorProvider.getExecutableExecutor(), task);
+    public <E extends Exception, R> R executeSync(Duration timeToWaitFor, Executable<E, R> executable) throws TimeoutException, E {
+        syncLocker.lockOrThrow(timeToWaitFor);
+        try {
+            return execute(timeToWaitFor, executable);
+        } finally {
+            syncLocker.unlockIfHeldByCurrentThread();
+        }
     }
 
     @Override
@@ -80,14 +75,14 @@ class SerialExecutorImpl implements SerialExecutor {
         }
     }
 
-    private <E extends Exception, R, T> R execute(Duration timeToWaitFor, TaskExecutor<T> executor, T task) throws TimeoutException, E {
+    private <E extends Exception, R> R execute(Duration timeToWaitFor, Executable<E, R> task) throws TimeoutException, E {
         LOG.t("Synchronous task({}) execution has been requested, pausing asynchronous task queue for {}", task, identity);
         inBox.pause();
         try {
             cancelRunnableIfApplicable(running.getCurrentRunnable());
             waitForCurrentlyRunning(timeToWaitFor);
             LOG.t("Running synchronous task({}) for {}", task, identity);
-            return executor.execute(task);
+            return task.execute();
         } finally {
             inBox.resume();
             scheduleNext();
@@ -139,7 +134,7 @@ class SerialExecutorImpl implements SerialExecutor {
 
         public synchronized void runAsyncAndThenRunAsync(Runnable runnable, Executor executor, Runnable action) {
             this.runnable = runnable;
-            this.running = CompletableFuture.runAsync(runnable, executor);
+            this.running = runAsync(runnable, executor);
             this.running.thenRunAsync(action);
         }
 

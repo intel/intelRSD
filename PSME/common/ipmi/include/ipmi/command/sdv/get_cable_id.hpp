@@ -62,7 +62,7 @@ public:
      */
     virtual ~GetCableId();
 
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
 
     /*!
      * @brief Set channel on which the cable id will be read
@@ -70,6 +70,10 @@ public:
      * @param channel from 0 to 4
      * */
     virtual void set_channel(size_t channel);
+
+    virtual const char* get_command_name() const override {
+        return "GetCableId";
+    }
 
 private:
     std::size_t CHANNEL = 0x00;
@@ -103,7 +107,7 @@ public:
      */
     virtual ~GetCableId();
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
 
     /*!
      * @brief Gets cable ID
@@ -111,6 +115,10 @@ public:
      */
     const std::string& get_cable_id() const {
         return m_cable_id;
+    }
+
+    virtual const char* get_command_name() const override {
+        return "GetCableId";
     }
 
 private:

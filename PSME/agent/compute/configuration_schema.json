@@ -42,6 +42,23 @@
                 "port"
             ]
         },
+        "cyMUX" : {
+            "description" : "cyMUX connection data.",
+            "name" : "cyMUX",
+            "type" : "object",
+            "properties" : {
+                "ipv4" : {
+                    "description" : "cyMUX server IP.",
+                    "name" : "ipv4",
+                    "type" : "string"
+                },
+                "port" : {
+                    "description" : "cyMUX server port.",
+                    "name" : "port",
+                    "type" : "string"
+                }
+            }
+        },
         "registration": {
             "description": "Registration to server configuration container.",
             "name": "registration",

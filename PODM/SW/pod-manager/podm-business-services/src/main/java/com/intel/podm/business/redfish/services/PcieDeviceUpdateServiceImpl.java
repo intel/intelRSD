@@ -44,7 +44,7 @@ public class PcieDeviceUpdateServiceImpl implements UpdateService<RedfishPcieDev
     @Override
     @Transactional(NEVER)
     public void perform(Context target, RedfishPcieDevice representation) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(
+        taskCoordinator.run(
             traverser.traverseServiceUuid(target),
             () -> updateService.updatePcieDeviceAssetTag(target, representation)
         );

@@ -16,26 +16,26 @@
 
 package com.intel.podm.business.entities.interceptors;
 
-import com.google.common.collect.Lists;
 import com.intel.podm.business.entities.Diff;
 import com.intel.podm.common.types.Pair;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.events.EventType;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.intel.podm.common.types.Health.CRITICAL;
 import static com.intel.podm.common.types.events.EventType.ALERT;
 import static com.intel.podm.common.types.events.EventType.RESOURCE_UPDATED;
 import static com.intel.podm.common.types.events.EventType.STATUS_CHANGE;
 
-@Dependent
+@ApplicationScoped
 class DiffProcessor {
-
     public List<EventType> determineEventTypes(Diff diff) {
-        List<EventType> events = Lists.newArrayList(RESOURCE_UPDATED);
+        List<EventType> events = newArrayList(RESOURCE_UPDATED);
         if (isEligibleForStatusChangeNotification(diff)) {
             events.add(STATUS_CHANGE);
         }
@@ -56,8 +56,8 @@ class DiffProcessor {
 
         return previousStatus != null
             && currentStatus != null
-            && !CRITICAL.equals(previousStatus.getHealth())
-            && CRITICAL.equals(currentStatus.getHealth());
+            && !Objects.equals(CRITICAL, previousStatus.getHealth())
+            && Objects.equals(CRITICAL, currentStatus.getHealth());
     }
 
     private boolean isEligibleForStatusChangeNotification(Diff diff) {

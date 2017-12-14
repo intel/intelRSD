@@ -26,7 +26,7 @@
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/constants/command.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -34,12 +34,12 @@ using namespace agent_framework::model;
 
 GetAclInfo::GetAclInfo(const std::string& acl): m_acl(acl) {}
 
-Json::Value GetAclInfo::to_json() const {
-    Json::Value value;
+json::Json GetAclInfo::to_json() const {
+    json::Json value;
     value[Acl::ACL] = m_acl;
     return value;
 }
 
-GetAclInfo GetAclInfo::from_json(const Json::Value& json) {
-    return GetAclInfo{json[Acl::ACL].asString()};
+GetAclInfo GetAclInfo::from_json(const json::Json& json) {
+    return GetAclInfo{json[Acl::ACL].get<std::string>()};
 }

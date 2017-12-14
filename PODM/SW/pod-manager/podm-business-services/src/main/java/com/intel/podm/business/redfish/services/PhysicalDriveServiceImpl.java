@@ -17,54 +17,42 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.PhysicalDriveDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.PhysicalDriveDto;
 import com.intel.podm.business.entities.redfish.PhysicalDrive;
 import com.intel.podm.business.entities.redfish.StorageService;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PHYSICAL_DRIVES;
-import static com.intel.podm.business.redfish.ContextCollections.asLogicalDriveContexts;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class PhysicalDriveServiceImpl implements ReaderService<PhysicalDriveDto> {
+@RequestScoped
+class PhysicalDriveServiceImpl implements ReaderService<PhysicalDriveDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context serviceContext) throws ContextResolvingException {
         StorageService service = (StorageService) traverser.traverse(serviceContext);
         return new CollectionDto(PHYSICAL_DRIVES, getAsIdSet(service.getPhysicalDrives()));
     }
 
+    @Transactional(REQUIRED)
     @Override
-    public PhysicalDriveDto getResource(Context physicalDriveContext) throws ContextResolvingException {
-        PhysicalDrive drive = (PhysicalDrive) traverser.traverse(physicalDriveContext);
-        return PhysicalDriveDto.newBuilder()
-            .id(drive.getId().toString())
-            .status(drive.getStatus())
-            .description(drive.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(drive.getService(), drive.getUnknownOems()))
-            .capacityGib(drive.getCapacityGib())
-            .controllerInterface(drive.getControllerInterface())
-            .manufacturer(drive.getManufacturer())
-            .model(drive.getModel())
-            .serialNumber(drive.getSerialNumber())
-            .name(drive.getName())
-            .rpm(drive.getRpm())
-            .type(drive.getType())
-            .usedBy(asLogicalDriveContexts(drive.getLogicalDrives()))
-            .build();
+    public PhysicalDriveDto getResource(Context context) throws ContextResolvingException {
+        PhysicalDrive drive = (PhysicalDrive) traverser.traverse(context);
+        return (PhysicalDriveDto) entityToDtoMapper.map(drive);
     }
 }

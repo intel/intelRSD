@@ -1,6 +1,4 @@
 /*!
- * @section LICENSE
- *
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation
  *
@@ -18,9 +16,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
- *
  * */
 
 #include "agent-framework/module/model/ethernet_switch_port_vlan.hpp"
@@ -38,8 +33,8 @@ EthernetSwitchPortVlan::EthernetSwitchPortVlan(const std::string& parent_uuid, e
 
 EthernetSwitchPortVlan::~EthernetSwitchPortVlan() {}
 
-Json::Value EthernetSwitchPortVlan::to_json() const {
-    Json::Value result;
+json::Json EthernetSwitchPortVlan::to_json() const {
+    json::Json result;
     result[literals::EthernetSwitchPortVlan::STATUS] = get_status().to_json();
     result[literals::EthernetSwitchPortVlan::VLAN_ID] = get_vlan_id();
     result[literals::EthernetSwitchPortVlan::VLAN_NAME] = get_vlan_name();
@@ -49,7 +44,7 @@ Json::Value EthernetSwitchPortVlan::to_json() const {
     return result;
 }
 
-EthernetSwitchPortVlan EthernetSwitchPortVlan::from_json(const Json::Value& json) {
+EthernetSwitchPortVlan EthernetSwitchPortVlan::from_json(const json::Json& json) {
     EthernetSwitchPortVlan vlan;
 
     vlan.set_status(attribute::Status::from_json(json[literals::EthernetSwitchPortVlan::STATUS]));

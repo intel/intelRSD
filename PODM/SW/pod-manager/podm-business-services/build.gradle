@@ -17,10 +17,8 @@
 dependencies {
     compile "$JAVA_EE_API_DEPENDENCY"
     compile "$JACKSON_DATABIND_DEPENDENCY"
-    compile project(":podm-actions")
     compile project(":podm-business-api")
     compile project(":podm-business-entities")
-    compile project(":podm-assembly")
     compile project(":podm-discovery")
     compile project(":utils")
     compile project(":types")

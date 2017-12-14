@@ -29,9 +29,12 @@ set(AGENT_PNC_LIBRARIES -Wl,--whole-archive pnc-commands -Wl,--no-whole-archive)
 
 include_directories(
     ${LOGGER_INCLUDE_DIRS}
+    ${JSON_INCLUDE_DIRS}
+    ${JSON_RPC_INCLUDE_DIRS}
     ${JSONCXX_INCLUDE_DIRS}
     ${IPMI_INCLUDE_DIRS}
     ${FRU_EEPROM_INCLUDE_DIRS}
+    ${SYSFSREF_INCLUDE_DIRS}
     ${AGENT_FRAMEWORK_INCLUDE_DIRS}
     ${COMMON_INCLUDE_DIRS}
     ${CONFIGURATION_INCLUDE_DIRS}
@@ -41,9 +44,6 @@ include_directories(
 include_directories(SYSTEM
     ${SAFESTRING_INCLUDE_DIRS}
     ${UUID_INCLUDE_DIRS}
-    ${JSONCPP_INCLUDE_DIRS}
-    ${JSONRPCCPP_INCLUDE_DIRS}
-    ${SYSFS_INCLUDE_DIRS}
 )
 
 add_subdirectory(src)

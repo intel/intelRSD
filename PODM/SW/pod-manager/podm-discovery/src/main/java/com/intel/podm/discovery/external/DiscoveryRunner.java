@@ -17,10 +17,9 @@
 package com.intel.podm.discovery.external;
 
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.client.api.ExternalServiceApiReaderConnectionException;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.reader.ExternalServiceReader;
-import com.intel.podm.client.api.reader.ExternalServiceReaderFactory;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ExternalServiceReader;
+import com.intel.podm.client.reader.ExternalServiceReaderFactory;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.synchronization.CancelableRunnable;
 import com.intel.podm.common.synchronization.TaskCanceledException;
@@ -34,9 +33,13 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
+import static com.intel.podm.client.WebClientExceptionUtils.isConnectionExceptionTheRootCause;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Dependent
@@ -66,22 +69,27 @@ public class DiscoveryRunner extends CancelableRunnable {
 
     private UUID serviceUuid;
 
+    @Inject
+    private DiscoveryRunnerHooks discoveryRunnerHooks;
+
     @Override
     @Transactional(REQUIRES_NEW)
     public void run() {
         try {
             requiresNonNull(serviceUuid, "Service UUID cannot be null, discovery action has not been configured correctly");
-            ExternalService service = externalServiceRepository.findOrNull(serviceUuid);
-
-            if (service == null) {
-                logger.e("Service with UUID: {} does not exist", serviceUuid);
-                return;
-            }
-
-            discover(service);
+            findService(serviceUuid).ifPresent(this::discover);
         } finally {
             clearCancellationFlag();
         }
+    }
+
+    private Optional<ExternalService> findService(UUID serviceUuid) {
+        requiresNonNull(serviceUuid, "Service UUID cannot be null, discovery action has not been configured correctly");
+        ExternalService externalService = externalServiceRepository.findOrNull(serviceUuid);
+        if (externalService == null) {
+            logger.e("Service with UUID: {} does not exist", serviceUuid);
+        }
+        return ofNullable(externalService);
     }
 
     private void discover(ExternalService service) {
@@ -94,18 +102,23 @@ public class DiscoveryRunner extends CancelableRunnable {
                 return;
             }
             RestGraph graph = restGraphBuilderFactory.createWithCancelableChecker(this::throwIfEligibleForCancellation).build(reader);
+            discoveryRunnerHooks.onRestGraphCreated(graph, service);
             mapper.map(graph);
             logger.i("Polling data from {} finished", service);
-        } catch (ExternalServiceApiReaderConnectionException e) {
-            logger.w("Connection error while getting data from {} service - performing check on this service", service);
-            availabilityChecker.verifyServiceAvailabilityByUuid(serviceUuid);
-        } catch (ExternalServiceApiReaderException e) {
-            logger.w("Unable to process data from {} service, error: {}", service, e.getErrorResponse());
+        } catch (WebClientRequestException e) {
+            triggerAvailabilityCheckOnConnectionException(service, e);
+            logger.w(format("Unable to process data from %s service", service), e);
         } catch (TaskCanceledException e) {
-            logger.i("Discovery was canceled for {}", service);
-            throw e;
+            logger.i("Discovery was canceled for {} due to: {}", service, e.getMessage());
         } catch (RuntimeException e) {
             logger.e("Error while polling data from " + service, e);
+        }
+    }
+
+    private void triggerAvailabilityCheckOnConnectionException(ExternalService service, WebClientRequestException e) {
+        if (isConnectionExceptionTheRootCause(e)) {
+            logger.w("Connection error while getting data from {} service - performing check on this service", service);
+            availabilityChecker.verifyServiceAvailabilityByUuid(serviceUuid);
         }
     }
 
@@ -138,6 +151,6 @@ public class DiscoveryRunner extends CancelableRunnable {
 
     @Override
     public String toString() {
-        return String.format("DiscoveryRunner(%s)", serviceUuid);
+        return format("DiscoveryRunner(%s)", serviceUuid);
     }
 }

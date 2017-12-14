@@ -28,7 +28,7 @@ import javax.inject.Inject;
 import java.util.concurrent.TimeoutException;
 
 @RequestScoped
-public class VlanNetworkInterfaceRemovalServiceImpl implements RemovalService<RedfishVlanNetworkInterface> {
+class VlanNetworkInterfaceRemovalServiceImpl implements RemovalService<RedfishVlanNetworkInterface> {
     @Inject
     private ServiceTraverser traverser;
 
@@ -40,6 +40,6 @@ public class VlanNetworkInterfaceRemovalServiceImpl implements RemovalService<Re
 
     @Override
     public void perform(Context target) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(traverser.traverseServiceUuid(target), () -> actionsService.deleteVlan(target));
+        taskCoordinator.run(traverser.traverseServiceUuid(target), () -> actionsService.deleteVlan(target));
     }
 }

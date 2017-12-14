@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.common.enterprise.utils.beans.JndiNames.SYNCHRONIZED_TASK_EXECUTOR;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @ApplicationScoped
@@ -44,7 +45,7 @@ public class TaskCoordinatorImpl implements TaskCoordinator {
     private Holder<TaskCoordinatorConfig> configHolder;
 
     @Inject
-    @Named("TasksExecutor")
+    @Named(SYNCHRONIZED_TASK_EXECUTOR)
     private ScheduledExecutorService synchronizedTaskExecutor;
 
     @Override
@@ -54,18 +55,13 @@ public class TaskCoordinatorImpl implements TaskCoordinator {
 
     @Override
     @Metered(name = "coordinated-synchronous-tasks")
-    public <E extends Exception> void runThrowing(Object synchronizationKey, Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E {
+    public <E extends Exception> void run(Object synchronizationKey, Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E {
         executorsRegistry.getExecutor(synchronizationKey).executeSync(timeToWaitFor, task);
     }
 
     @Override
-    public <E extends Exception> void runThrowing(Object synchronizationKey, ThrowingRunnable<E> task) throws TimeoutException, E {
-        runThrowing(synchronizationKey, configHolder.get().getMaxTimeToWaitForAsyncTaskSeconds(), task);
-    }
-
-    @Override
-    public void run(Object synchronizationKey, Runnable task) throws TimeoutException {
-        executorsRegistry.getExecutor(synchronizationKey).executeSync(configHolder.get().getMaxTimeToWaitForAsyncTaskSeconds(), task);
+    public <E extends Exception> void run(Object synchronizationKey, ThrowingRunnable<E> task) throws TimeoutException, E {
+        run(synchronizationKey, configHolder.get().getMaxTimeToWaitForAsyncTaskSeconds(), task);
     }
 
     @Override

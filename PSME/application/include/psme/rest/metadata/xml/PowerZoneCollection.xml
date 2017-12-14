@@ -5,7 +5,7 @@
     <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="PowerZone.xml">
     <edmx:Include Namespace="PowerZone.v1_0_0"/>
@@ -20,7 +20,8 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="PowerZoneCollection">
 
       <EntityType Name="PowerZoneCollection" BaseType="Resource.v1_0_0.ResourceCollection">
-        <Annotation Term="Redfish.Deprecated" String="Entity type will be removed in the future and functionality will be provided in a different way"/>
+        <Annotation Term="Redfish.Deprecated"
+                    String="Entity type will be removed in the future and functionality will be provided in a different way"/>
 
         <NavigationProperty Name="Members" Type="Collection(PowerZone.v1_0_0.PowerZone)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>

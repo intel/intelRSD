@@ -199,6 +199,53 @@ struct SMBIOS_MEMORY_DEVICE {
     MEMORY_DEVICE data;
 };
 
+/*!
+ * @brief Memory Device Extended - Type
+ */
+enum class MemoryDeviceExtendedType : uint8_t {
+    DIMM = 0x00,
+    NVDIMM_N = 0x01,
+    NVDIMM_F = 0x02,
+    NVDIMM_P = 0x03
+};
+
+/*!
+ * @brief Memory Device Extended - Media
+ */
+enum class MemoryDeviceExtendedMedia : uint8_t {
+    DRAM = 0x00,
+    NAND = 0x01,
+    PROPRIETARY = 0x02
+};
+
+/*!
+ * @brief Memory Device info data
+ */
+struct MEMORY_DEVICE_EXTENDED_INFO_DATA {
+    uint16_t memory_device_handle;
+    MemoryDeviceExtendedType type;
+    MemoryDeviceExtendedMedia media;
+    uint8_t firmware_revision;
+    uint8_t firmware_api_version;
+    uint32_t max_tdp;
+    uint8_t smbus_address;
+};
+
+/*!
+ * @brief Memory Device Extended (Type 197)
+ *
+ * This structure is used to declare extended information of the memory devices present on the system.
+ * Each of the memory device extended information OEM record structure shall match the SMBIOS spec defined,
+ * Type 17 memory device structure.
+ *
+ */
+struct SMBIOS_MEMORY_DEVICE_EXTENDED_INFO_DATA {
+    static constexpr uint8_t ID = 197;
+    SMBIOS_OOB_HEADER header;
+    MEMORY_DEVICE_EXTENDED_INFO_DATA data;
+};
+
+
 
 #pragma pack(pop)
 

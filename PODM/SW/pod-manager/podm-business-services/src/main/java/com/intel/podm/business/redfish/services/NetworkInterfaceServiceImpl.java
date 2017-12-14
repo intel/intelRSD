@@ -17,45 +17,47 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.NetworkInterfaceDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.NetworkInterfaceDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.NetworkInterface;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.NETWORK_INTERFACES;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.NETWORK_DEVICE_FUNCTIONS_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
+@RequestScoped
 public class NetworkInterfaceServiceImpl implements ReaderService<NetworkInterfaceDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context context) throws ContextResolvingException {
         ComputerSystem system = (ComputerSystem) traverser.traverse(context);
         return new CollectionDto(NETWORK_INTERFACES, getAsIdSet(system.getNetworkInterfaces()));
     }
 
+    @Transactional(REQUIRED)
     @Override
     public NetworkInterfaceDto getResource(Context context) throws ContextResolvingException {
         NetworkInterface networkInterface = (NetworkInterface) traverser.traverse(context);
-        return NetworkInterfaceDto.newBuilder()
-            .id(networkInterface.getId().toString())
-            .name(networkInterface.getName())
-            .description(networkInterface.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(networkInterface.getService(), networkInterface.getUnknownOems()))
-            .status(networkInterface.getStatus())
-            .build();
+
+        NetworkInterfaceDto dto = (NetworkInterfaceDto) entityToDtoMapper.map(networkInterface);
+        dto.setNetworkDeviceFunctions(singletonContextOf(context, NETWORK_DEVICE_FUNCTIONS_RESOURCE_NAME));
+        return dto;
     }
 }

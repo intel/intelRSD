@@ -22,14 +22,18 @@ import com.intel.podm.discovery.external.ServiceDetectionListener;
 import com.intel.podm.discovery.external.ServiceEndpoint;
 import com.intel.podm.discovery.external.UnrecognizedServiceTypeException;
 
+import javax.ejb.AccessTimeout;
 import javax.ejb.Lock;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ejb.LockType.WRITE;
+import static javax.transaction.Transactional.TxType.SUPPORTS;
 
 /**
  * Class responsible for detecting service presence and notifying
@@ -38,7 +42,6 @@ import static javax.ejb.LockType.WRITE;
  * discovered services are not repeated.
  */
 @Singleton
-@Lock(WRITE)
 public class ServiceChecker {
 
     @Inject
@@ -58,7 +61,12 @@ public class ServiceChecker {
 
     /**
      * Method initiates service detection for all provided Service Endpoint Candidates.
+     *
+     * LockType.WRITE used due to concurrent access to service endpoints processor.
      */
+    @Lock(WRITE)
+    @Transactional(SUPPORTS)
+    @AccessTimeout(value = 5, unit = SECONDS)
     public void triggerEndpointCandidatesCheck() {
         Set<DhcpServiceCandidate> candidateSet = candidatesProvider.getEndpointCandidates();
         for (URI staleCandidateUri : serviceEndpointsProcessor.getKnownUrisNotPresentInFreshCandidateSet(candidateSet)) {
@@ -76,11 +84,29 @@ public class ServiceChecker {
         candidatesForPoll.forEach(this::detectServiceUsingServiceEndpointCandidate);
     }
 
+    /**
+     * LockType.WRITE used due to concurrent access to service endpoints processor.
+     */
+    @Lock(WRITE)
+    @Transactional(SUPPORTS)
+    @AccessTimeout(value = 5, unit = SECONDS)
     public void reCheckForFailedUris() {
         serviceEndpointsProcessor.updateServicesListForReCheck();
     }
 
-    public void removeServiceEndpointIfItBecameUnavailable(ServiceEndpoint serviceEndpoint) {
+    /**
+     * Method initiates retry of service detection for previously failed URIs
+     *
+     * LockType.WRITE used due to concurrent access to service endpoints processor.
+     */
+    @Lock(WRITE)
+    @Transactional(SUPPORTS)
+    @AccessTimeout(value = 5, unit = SECONDS)
+    public void retryFailedEndpointCandidates() {
+        serviceEndpointsProcessor.getCandidatesForRetry().forEach(this::detectServiceUsingServiceEndpointCandidate);
+    }
+
+    private void removeServiceEndpointIfItBecameUnavailable(ServiceEndpoint serviceEndpoint) {
         if (!isServiceAvailable(serviceEndpoint.getEndpointUri())) {
             serviceDetectionListener.onServiceRemoved(serviceEndpoint.getServiceUuid());
             serviceEndpointsProcessor.removeKnownService(serviceEndpoint.getEndpointUri());
@@ -98,16 +124,9 @@ public class ServiceChecker {
     }
 
     /**
-     * Method initiates retry of service detection for previously failed URIs
-     */
-    public void retryFailedEndpointCandidates() {
-        serviceEndpointsProcessor.getCandidatesForRetry().forEach(this::detectServiceUsingServiceEndpointCandidate);
-    }
-
-    /**
      * Method tries to detect a single service using service endpoint candidate
      * and notify discovery service upon success.
-     *
+     * <p>
      * Detected service is added to knownLocations so it won't be unnecessarily polled later.
      *
      * @param candidate

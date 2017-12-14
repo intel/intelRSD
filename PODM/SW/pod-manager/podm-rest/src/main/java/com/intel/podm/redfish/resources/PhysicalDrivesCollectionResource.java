@@ -16,18 +16,22 @@
 
 package com.intel.podm.redfish.resources;
 
+import com.intel.podm.business.dto.PhysicalDriveDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.PhysicalDriveDto;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.business.services.context.PathParamConstants.PHYSICAL_DRIVE_ID;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class PhysicalDrivesCollectionResource extends BaseResource {
     @Inject
@@ -42,5 +46,10 @@ public class PhysicalDrivesCollectionResource extends BaseResource {
     @Path(PHYSICAL_DRIVE_ID)
     public PhysicalDriveResource getDrives() {
         return getResource(PhysicalDriveResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

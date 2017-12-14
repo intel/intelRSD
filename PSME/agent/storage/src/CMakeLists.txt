@@ -22,7 +22,6 @@ add_subdirectory(discovery)
 add_subdirectory(sysfs)
 add_subdirectory(iscsi)
 add_subdirectory(lvm)
-add_subdirectory(status)
 add_subdirectory(event)
 add_subdirectory(hotswap)
 add_subdirectory(ip)
@@ -43,7 +42,6 @@ add_library(storage-discovery-status-utils-ref
     $<TARGET_OBJECTS:iscsi-tgt-config-ref>
     $<TARGET_OBJECTS:sysfs-api-ref>
     $<TARGET_OBJECTS:lvm-api-ref>
-    $<TARGET_OBJECTS:storage-status-impl-ref>
     $<TARGET_OBJECTS:event-impl-storage>
     $<TARGET_OBJECTS:hotswap-impl-storage>
     $<TARGET_OBJECTS:ip-impl-storage>
@@ -58,6 +56,7 @@ target_link_libraries(psme-storage
     storage-loader-utils-ref
     storage-common-utils-ref
     ${NET_LIBRARIES}
+    ${SYSFSREF_LIBRARIES}
     ${AGENT_FRAMEWORK_LIBRARIES}
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
@@ -65,11 +64,8 @@ target_link_libraries(psme-storage
     ${PCA95XX_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
-    ${SYSFS_LIBRARIES}
     ${LVM2APP_LIBRARIES}
     ${LVM2DEVMAPPER_LIBRARIES}
-    ${JSONCPP_LIBRARIES}
-    ${JSONRPCCPP_LIBRARIES}
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
     ${MD5_LIBRARIES}

@@ -40,7 +40,7 @@ public:
      *
      * @param value The value of the element to append
      */
-    void push_back(T value) {
+    void push_back(T&& value) {
         std::lock_guard<std::mutex> lock{m_mutex};
         m_data.push_back(std::move(value));
         m_cv.notify_all();

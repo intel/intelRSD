@@ -28,13 +28,13 @@ class RegexValidityChecker final : public ValidityChecker {
 
 public:
 
-    RegexValidityChecker(va_list args);
+    RegexValidityChecker(va_list& args);
 
     virtual ~RegexValidityChecker();
 
     RegexValidityChecker(const RegexValidityChecker&) = default;
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
 

@@ -1,3 +1,19 @@
+//
+// SocketAddress.h
+//
+// $Id: //poco/1.4/Net/include/Poco/Net/SocketAddress.h#2 $
+//
+// Library: Net
+// Package: NetCore
+// Module:  SocketAddress
+//
+// Definition of the SocketAddress class.
+//
+// Copyright (c) 2005-2006, Applied Informatics Software Engineering GmbH.
+// and Contributors.
+//
+// SPDX-License-Identifier:	BSL-1.0
+//
 /*!
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation

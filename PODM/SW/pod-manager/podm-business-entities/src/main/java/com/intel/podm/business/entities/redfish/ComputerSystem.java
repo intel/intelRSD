@@ -16,23 +16,27 @@
 
 package com.intel.podm.business.entities.redfish;
 
-import com.intel.podm.business.entities.Eventable;
-import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
 import com.intel.podm.business.entities.EventRedirectionSource;
 import com.intel.podm.business.entities.EventRedirectionTarget;
+import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
 import com.intel.podm.business.entities.SuppressEvents;
 import com.intel.podm.business.entities.listeners.ComputerSystemListener;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.base.MemoryModule;
+import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
 import com.intel.podm.business.entities.redfish.base.NetworkInterfacePossessor;
 import com.intel.podm.business.entities.redfish.base.Resettable;
 import com.intel.podm.business.entities.redfish.embeddables.Boot;
 import com.intel.podm.business.entities.redfish.embeddables.ComputerSystemDevice;
+import com.intel.podm.business.entities.redfish.embeddables.MemorySummary;
+import com.intel.podm.business.entities.redfish.embeddables.ProcessorSummary;
+import com.intel.podm.business.entities.redfish.embeddables.TrustedModule;
 import com.intel.podm.common.types.DiscoveryState;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.IndicatorLed;
-import com.intel.podm.common.types.MemoryDeviceType;
+import com.intel.podm.common.types.InterfaceType;
 import com.intel.podm.common.types.PowerState;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.SystemType;
@@ -68,6 +72,7 @@ import static com.intel.podm.common.types.ChassisType.DRAWER;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.FetchType.LAZY;
@@ -75,19 +80,22 @@ import static javax.persistence.FetchType.LAZY;
 @javax.persistence.Entity
 @Table(name = "computer_system", indexes = @Index(name = "idx_computer_system_entity_id", columnList = "entity_id", unique = true))
 @NamedQueries({
-    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE,
-        query = "SELECT computerSystem FROM ComputerSystem computerSystem "
-            + "WHERE computerSystem.metadata.allocated = :allocated AND computerSystem.systemType = :systemType"),
-    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID,
-        query = "SELECT computerSystem FROM ComputerSystem computerSystem WHERE :pcieConnectionId MEMBER computerSystem.pcieConnectionId")
+    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEM_IDS_FROM_PRIMARY_DATA_SOURCE,
+        query = ComputerSystemQueries.GET_COMPUTER_SYSTEM_IDS_FROM_PRIMARY_DATA_SOURCE),
+    @NamedQuery(name = ComputerSystem.GET_PRIMARY_COMPUTER_SYSTEM, query = ComputerSystemQueries.GET_PRIMARY_COMPUTER_SYSTEM),
+    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEM_MULTI_SOURCE, query = ComputerSystemQueries.GET_COMPUTER_SYSTEM_MULTI_SOURCE),
+    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE, query = ComputerSystemQueries.GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE),
+    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID, query = ComputerSystemQueries.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID)
 })
 @EntityListeners(ComputerSystemListener.class)
 @Eventable
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
-public class ComputerSystem extends DiscoverableEntity implements NetworkInterfacePossessor, Resettable {
+public class ComputerSystem extends DiscoverableEntity implements NetworkInterfacePossessor, MultiSourceResource, Resettable {
+    public static final String GET_COMPUTER_SYSTEM_IDS_FROM_PRIMARY_DATA_SOURCE = "GET_COMPUTER_SYSTEM_IDS_FROM_PRIMARY_DATA_SOURCE";
+    public static final String GET_PRIMARY_COMPUTER_SYSTEM = "GET_PRIMARY_COMPUTER_SYSTEM";
+    public static final String GET_COMPUTER_SYSTEM_MULTI_SOURCE = "GET_COMPUTER_SYSTEM_MULTI_SOURCE";
     public static final String GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE = "GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE";
     public static final String GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID = "GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID";
-
     private static final String ENTITY_NAME = "ComputerSystem";
 
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
@@ -128,26 +136,8 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
     @Column(name = "memory_sockets")
     private Integer memorySockets;
 
-    @Column(name = "memory_status")
-    private Status memoryStatus;
-
-    @Column(name = "total_system_memory_gib")
-    private BigDecimal totalSystemMemoryGiB;
-
-    @EventRedirectionSource
-    @Column(name = "processors_count")
-    private Integer processorsCount;
-
-    @EventRedirectionSource
-    @Column(name = "processor_model")
-    private String processorModel;
-
-    @Column(name = "processor_socket")
+    @Column(name = "processor_sockets")
     private Integer processorSockets;
-
-    @EventRedirectionSource
-    @Column(name = "processor_status")
-    private Status processorStatus;
 
     @Column(name = "discovery_state")
     @Enumerated(STRING)
@@ -161,15 +151,28 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
     @Column(name = "part_number")
     private String partNumber;
 
-    @ElementCollection
-    @CollectionTable(name = "computer_system_pcie_connection_id", joinColumns = @JoinColumn(name = "computer_system_id"))
-    @Column(name = "pcie_connection_id")
-    @OrderColumn(name = "pcie_connection_id_order")
-    private List<String> pcieConnectionId = new ArrayList<>();
+    @Column(name = "user_mode_enabled")
+    private Boolean userModeEnabled;
+
+    @Column(name = "trusted_execution_technology_enabled")
+    private Boolean trustedExecutionTechnologyEnabled;
 
     @EventRedirectionSource
     @Embedded
     private Boot boot;
+
+    @Embedded
+    @EventRedirectionSource
+    private ProcessorSummary processorSummary;
+
+    @Embedded
+    private MemorySummary memorySummary;
+
+    @ElementCollection
+    @CollectionTable(name = "computer_system_pcie_connection_id", joinColumns = @JoinColumn(name = "computer_system_id"))
+    @Column(name = "pcie_connection_id")
+    @OrderColumn(name = "pcie_connection_id_order")
+    private List<String> pcieConnectionIds = new ArrayList<>();
 
     @ElementCollection
     @Enumerated(STRING)
@@ -179,9 +182,21 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
     private List<ResetType> allowableResetTypes = new ArrayList<>();
 
     @ElementCollection
+    @Enumerated(STRING)
+    @CollectionTable(name = "computer_system_allowable_interface_type", joinColumns = @JoinColumn(name = "computer_system_id"))
+    @Column(name = "allowable_interface_type")
+    @OrderColumn(name = "allowable_interface_type_order")
+    private List<InterfaceType> allowableInterfaceTypes = new ArrayList<>();
+
+    @ElementCollection
     @CollectionTable(name = "computer_system_pci_device", joinColumns = @JoinColumn(name = "computer_system_id"))
     @OrderColumn(name = "pci_device_order")
     private List<ComputerSystemDevice> pciDevices = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "computer_system_trusted_module", joinColumns = @JoinColumn(name = "computer_system_id"))
+    @OrderColumn(name = "trusted_module_order")
+    private List<TrustedModule> trustedModules = new ArrayList<>();
 
     @SuppressEvents
     @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
@@ -203,6 +218,18 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
     @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<EthernetInterface> ethernetInterfaces = new HashSet<>();
 
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Endpoint> endpoints = new HashSet<>();
+
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<PcieDevice> pcieDevices = new HashSet<>();
+
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<PcieDeviceFunction> pcieDeviceFunctions = new HashSet<>();
+
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<NetworkInterface> networkInterfaces = new HashSet<>();
+
     @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinTable(
         name = "computer_system_manager",
@@ -213,25 +240,16 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
     @ManyToMany(mappedBy = "computerSystems", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Chassis> chassis = new HashSet<>();
 
-    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<Endpoint> endpoints = new HashSet<>();
-
     @IgnoreUnlinkingRelationship
-    @OneToOne(fetch = EAGER, cascade = {MERGE, PERSIST})
+    @OneToOne(fetch = EAGER, cascade = {MERGE, PERSIST, REMOVE})
     @JoinColumn(name = "computer_system_metadata_id")
     private ComputerSystemMetadata metadata = new ComputerSystemMetadata();
 
     @OneToOne(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
     private ComposedNode composedNode;
 
-    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<PcieDevice> pcieDevices = new HashSet<>();
-
-    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<PcieDeviceFunction> pcieDeviceFunctions = new HashSet<>();
-
-    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<NetworkInterface> networkInterfaces = new HashSet<>();
+    @OneToOne(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private ComputerSystemMetrics computerSystemMetrics;
 
     @Override
     public Id getId() {
@@ -331,52 +349,12 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         this.memorySockets = memorySockets;
     }
 
-    public Status getMemoryStatus() {
-        return memoryStatus;
-    }
-
-    public void setMemoryStatus(Status memoryStatus) {
-        this.memoryStatus = memoryStatus;
-    }
-
-    public BigDecimal getTotalSystemMemoryGiB() {
-        return totalSystemMemoryGiB;
-    }
-
-    public void setTotalSystemMemoryGiB(BigDecimal totalSystemMemoryGiB) {
-        this.totalSystemMemoryGiB = totalSystemMemoryGiB;
-    }
-
-    public Integer getProcessorsCount() {
-        return processorsCount;
-    }
-
-    public void setProcessorsCount(Integer processorsCount) {
-        this.processorsCount = processorsCount;
-    }
-
-    public String getProcessorModel() {
-        return processorModel;
-    }
-
-    public void setProcessorModel(String processorModel) {
-        this.processorModel = processorModel;
-    }
-
     public Integer getProcessorSockets() {
         return processorSockets;
     }
 
     public void setProcessorSockets(Integer processorSockets) {
         this.processorSockets = processorSockets;
-    }
-
-    public Status getProcessorStatus() {
-        return processorStatus;
-    }
-
-    public void setProcessorStatus(Status processorStatus) {
-        this.processorStatus = processorStatus;
     }
 
     public DiscoveryState getDiscoveryState() {
@@ -403,6 +381,22 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         this.partNumber = partNumber;
     }
 
+    public Boolean getUserModeEnabled() {
+        return userModeEnabled;
+    }
+
+    public void setUserModeEnabled(Boolean userModeEnabled) {
+        this.userModeEnabled = userModeEnabled;
+    }
+
+    public Boolean getTrustedExecutionTechnologyEnabled() {
+        return trustedExecutionTechnologyEnabled;
+    }
+
+    public void setTrustedExecutionTechnologyEnabled(Boolean trustedExecutionTechnologyEnabled) {
+        this.trustedExecutionTechnologyEnabled = trustedExecutionTechnologyEnabled;
+    }
+
     public Boot getBoot() {
         return boot;
     }
@@ -411,20 +405,65 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         this.boot = boot;
     }
 
+    public ProcessorSummary getProcessorSummary() {
+        return processorSummary;
+    }
+
+    public void setProcessorSummary(ProcessorSummary processorSummary) {
+        this.processorSummary = processorSummary;
+    }
+
+    public Integer getProcessorsCount() {
+        return getProcessorSummary().getCount();
+    }
+
+    public String getProcessorsModel() {
+        return getProcessorSummary().getModel();
+    }
+
+    public Status getProcessorsStatus() {
+        return getProcessorSummary().getStatus();
+    }
+
+    public MemorySummary getMemorySummary() {
+        return memorySummary;
+    }
+
+    public void setMemorySummary(MemorySummary memorySummary) {
+        this.memorySummary = memorySummary;
+    }
+
+    public Status getMemoryStatus() {
+        return getMemorySummary().getStatus();
+    }
+
+    public BigDecimal getTotalSystemMemoryGiB() {
+        return getMemorySummary().getTotalSystemMemoryGiB();
+    }
+
+    public List<String> getPcieConnectionIds() {
+        return pcieConnectionIds;
+    }
+
+    public void addPcieConnectionId(String pcieConnectionId) {
+        pcieConnectionIds.add(pcieConnectionId);
+    }
+
+    @Override
     public List<ResetType> getAllowableResetTypes() {
         return allowableResetTypes;
+    }
+
+    public List<InterfaceType> getAllowableInterfaceTypes() {
+        return allowableInterfaceTypes;
     }
 
     public void addAllowableResetType(ResetType allowableResetType) {
         allowableResetTypes.add(allowableResetType);
     }
 
-    public List<String> getPcieConnectionId() {
-        return pcieConnectionId;
-    }
-
-    public void addPcieConnectionId(String pcieConnectionId) {
-        this.pcieConnectionId.add(pcieConnectionId);
+    public void addAllowableInterfaceType(InterfaceType interfaceType) {
+        allowableInterfaceTypes.add(interfaceType);
     }
 
     public List<ComputerSystemDevice> getPciDevices() {
@@ -435,26 +474,12 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         pciDevices.add(pciDevice);
     }
 
-    public Optional<Chassis> getDrawerChassis() {
-        Set<Chassis> chassisList = getChassis();
-        Set<Chassis> allChassisSet = new HashSet<>(chassisList);
-
-        for (Chassis chassis : chassisList) {
-            allChassisSet.addAll(chassis.getAllOnTopOfChassis());
-        }
-
-        return allChassisSet.stream()
-            .filter(chassis -> DRAWER.equals(chassis.getChassisType()))
-            .findFirst();
+    public List<TrustedModule> getTrustedModules() {
+        return trustedModules;
     }
 
-    private void linkChassisToStoragesContainedByThisSystem(Storage storage) {
-        Iterator<Chassis> iterator = this.chassis.iterator();
-        if (iterator.hasNext()) {
-            Chassis chassis = iterator.next();
-            storage.setChassis(chassis);
-            storage.getDrives().forEach(drive -> drive.setChassis(chassis));
-        }
+    public void addTrustedModule(TrustedModule trustedModule) {
+        trustedModules.add(trustedModule);
     }
 
     public Set<Memory> getMemoryModules() {
@@ -479,10 +504,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         }
     }
 
-    public MemoryModule getMemoryModuleFromMemorySummary() {
-        return new MemoryModuleFromMemorySummary(this);
-    }
-
     public Set<Processor> getProcessors() {
         return processors;
     }
@@ -501,28 +522,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
             processors.remove(processor);
             if (processor != null) {
                 processor.unlinkComputerSystem(this);
-            }
-        }
-    }
-
-    public Set<Endpoint> getEndpoints() {
-        return endpoints;
-    }
-
-    public void addEndpoint(Endpoint endpoint) {
-        requiresNonNull(endpoint, "endpoint");
-
-        endpoints.add(endpoint);
-        if (!this.equals(endpoint.getComputerSystem())) {
-            endpoint.setComputerSystem(this);
-        }
-    }
-
-    public void unlinkEndpoint(Endpoint endpoint) {
-        if (endpoints.contains(endpoint)) {
-            endpoints.remove(endpoint);
-            if (endpoint != null) {
-                endpoint.unlinkComputerSystem(this);
             }
         }
     }
@@ -577,16 +576,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         }
     }
 
-    private void linkToStorages(Chassis newChassis) {
-        getStorages().forEach(storage -> storage.setChassis(newChassis));
-        getStorages().forEach(storage -> storage.getDrives().forEach(drive -> drive.setChassis(newChassis)));
-    }
-
-    private void uncoupleFromStorages(Chassis chassisToUnlink) {
-        getStorages().forEach(storage -> storage.unlinkChassis(chassisToUnlink));
-        getStorages().forEach(storage -> storage.getDrives().forEach(drive -> drive.unlinkChassis(chassisToUnlink)));
-    }
-
     @Override
     public Set<EthernetInterface> getEthernetInterfaces() {
         return ethernetInterfaces;
@@ -606,6 +595,94 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
             ethernetInterfaces.remove(ethernetInterface);
             if (ethernetInterface != null) {
                 ethernetInterface.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<Endpoint> getEndpoints() {
+        return endpoints;
+    }
+
+    public void addEndpoint(Endpoint endpoint) {
+        requiresNonNull(endpoint, "endpoint");
+
+        endpoints.add(endpoint);
+        if (!this.equals(endpoint.getComputerSystem())) {
+            endpoint.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkEndpoint(Endpoint endpoint) {
+        if (endpoints.contains(endpoint)) {
+            endpoints.remove(endpoint);
+            if (endpoint != null) {
+                endpoint.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<PcieDevice> getPcieDevices() {
+        return pcieDevices;
+    }
+
+    public void addPcieDevice(PcieDevice pcieDevice) {
+        requiresNonNull(pcieDevice, "pcieDevice");
+
+        pcieDevices.add(pcieDevice);
+        if (!this.equals(pcieDevice.getComputerSystem())) {
+            pcieDevice.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkPcieDevice(PcieDevice pcieDevice) {
+        if (pcieDevices.contains(pcieDevice)) {
+            pcieDevices.remove(pcieDevice);
+            if (pcieDevice != null) {
+                pcieDevice.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<PcieDeviceFunction> getPcieDeviceFunctions() {
+        return pcieDeviceFunctions;
+    }
+
+    public void addPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        requiresNonNull(pcieDeviceFunction, "pcieDeviceFunction");
+
+        pcieDeviceFunctions.add(pcieDeviceFunction);
+        if (!this.equals(pcieDeviceFunction.getComputerSystem())) {
+            pcieDeviceFunction.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        if (pcieDeviceFunctions.contains(pcieDeviceFunction)) {
+            pcieDeviceFunctions.remove(pcieDeviceFunction);
+            if (pcieDeviceFunction != null) {
+                pcieDeviceFunction.unlinkComputerSystem(this);
+            }
+        }
+    }
+
+    public Set<NetworkInterface> getNetworkInterfaces() {
+        return networkInterfaces;
+    }
+
+    public void addNetworkInterface(NetworkInterface networkInterface) {
+        requiresNonNull(networkInterface, "networkInterface");
+
+        networkInterfaces.add(networkInterface);
+        if (!this.equals(networkInterface.getComputerSystem())) {
+            networkInterface.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkNetworkInterface(NetworkInterface networkInterface) {
+        if (networkInterfaces.contains(networkInterface)) {
+            networkInterfaces.remove(networkInterface);
+            if (networkInterface != null) {
+                networkInterface.unlinkComputerSystem(this);
             }
         }
     }
@@ -685,70 +762,44 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         }
     }
 
-    public Set<PcieDevice> getPcieDevices() {
-        return pcieDevices;
+    public ComputerSystemMetrics getComputerSystemMetrics() {
+        return computerSystemMetrics;
     }
 
-    public void addPcieDevice(PcieDevice pcieDevice) {
-        requiresNonNull(pcieDevice, "pcieDevice");
-
-        pcieDevices.add(pcieDevice);
-        if (!this.equals(pcieDevice.getComputerSystem())) {
-            pcieDevice.setComputerSystem(this);
-        }
-    }
-
-    public void unlinkPcieDevice(PcieDevice pcieDevice) {
-        if (pcieDevices.contains(pcieDevice)) {
-            pcieDevices.remove(pcieDevice);
-            if (pcieDevice != null) {
-                pcieDevice.unlinkComputerSystem(this);
+    public void setComputerSystemMetrics(ComputerSystemMetrics computerSystemMetrics) {
+        if (!Objects.equals(this.computerSystemMetrics, computerSystemMetrics)) {
+            unlinkComputerSystemMetrics(this.computerSystemMetrics);
+            this.computerSystemMetrics = computerSystemMetrics;
+            if (computerSystemMetrics != null && !this.equals(computerSystemMetrics.getComputerSystem())) {
+                computerSystemMetrics.setComputerSystem(this);
             }
         }
     }
 
-    public Set<PcieDeviceFunction> getPcieDeviceFunctions() {
-        return pcieDeviceFunctions;
-    }
-
-    public void addPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
-        requiresNonNull(pcieDeviceFunction, "pcieDeviceFunction");
-
-        pcieDeviceFunctions.add(pcieDeviceFunction);
-        if (!this.equals(pcieDeviceFunction.getComputerSystem())) {
-            pcieDeviceFunction.setComputerSystem(this);
-        }
-    }
-
-    public void unlinkPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
-        if (pcieDeviceFunctions.contains(pcieDeviceFunction)) {
-            pcieDeviceFunctions.remove(pcieDeviceFunction);
-            if (pcieDeviceFunction != null) {
-                pcieDeviceFunction.unlinkComputerSystem(this);
+    public void unlinkComputerSystemMetrics(ComputerSystemMetrics computerSystemMetrics) {
+        if (Objects.equals(this.computerSystemMetrics, computerSystemMetrics)) {
+            this.computerSystemMetrics = null;
+            if (computerSystemMetrics != null) {
+                computerSystemMetrics.unlinkComputerSystem(this);
             }
         }
     }
 
-    public Set<NetworkInterface> getNetworkInterfaces() {
-        return networkInterfaces;
+    public MemoryModule getMemoryModuleFromMemorySummary() {
+        return new MemoryModuleFromMemorySummary(this);
     }
 
-    public void addNetworkInterface(NetworkInterface networkInterface) {
-        requiresNonNull(networkInterface, "networkInterface");
+    public Optional<Chassis> getDrawerChassis() {
+        Set<Chassis> chassisList = getChassis();
+        Set<Chassis> allChassisSet = new HashSet<>(chassisList);
 
-        networkInterfaces.add(networkInterface);
-        if (!this.equals(networkInterface.getComputerSystem())) {
-            networkInterface.setComputerSystem(this);
-        }
-    }
+        chassisList.stream()
+            .map(Chassis::getAllOnTopOfChassis)
+            .forEach(allChassisSet::addAll);
 
-    public void unlinkNetworkInterface(NetworkInterface networkInterface) {
-        if (networkInterfaces.contains(networkInterface)) {
-            networkInterfaces.remove(networkInterface);
-            if (networkInterface != null) {
-                networkInterface.unlinkComputerSystem(this);
-            }
-        }
+        return allChassisSet.stream()
+            .filter(chassis -> DRAWER.equals(chassis.getChassisType()))
+            .findFirst();
     }
 
     @Override
@@ -758,13 +809,14 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         unlinkCollection(simpleStorages, this::unlinkSimpleStorage);
         unlinkCollection(storages, this::unlinkStorage);
         unlinkCollection(ethernetInterfaces, this::unlinkEthernetInterface);
-        unlinkCollection(managers, this::unlinkManager);
-        unlinkCollection(chassis, this::unlinkChassis);
         unlinkCollection(endpoints, this::unlinkEndpoint);
-        unlinkComposedNode(composedNode);
         unlinkCollection(pcieDevices, this::unlinkPcieDevice);
         unlinkCollection(pcieDeviceFunctions, this::unlinkPcieDeviceFunction);
         unlinkCollection(networkInterfaces, this::unlinkNetworkInterface);
+        unlinkCollection(managers, this::unlinkManager);
+        unlinkCollection(chassis, this::unlinkChassis);
+        unlinkComposedNode(composedNode);
+        unlinkComputerSystemMetrics(computerSystemMetrics);
     }
 
     @Override
@@ -773,50 +825,31 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
     }
 
     @Override
+    public String getMultiSourceDiscriminator() {
+        return uuid.toString();
+    }
+
+    @Override
     public String getResetName() {
         return ENTITY_NAME;
     }
 
-    public static class MemoryModuleFromMemorySummary implements MemoryModule {
-        public static final BigDecimal GIB_TO_MIB_RATIO = new BigDecimal(1024);
-        private BigDecimal capacityMib;
+    private void linkToStorages(Chassis newChassis) {
+        getStorages().forEach(storage -> storage.setChassis(newChassis));
+        getStorages().forEach(storage -> storage.getDrives().forEach(drive -> drive.setChassis(newChassis)));
+    }
 
-        public MemoryModuleFromMemorySummary(ComputerSystem computerSystem) {
-            BigDecimal totalSystemMemoryGiB = computerSystem.getTotalSystemMemoryGiB();
-            capacityMib = totalSystemMemoryGiB != null ? totalSystemMemoryGiB.multiply(GIB_TO_MIB_RATIO) : null;
-        }
+    private void uncoupleFromStorages(Chassis chassisToUnlink) {
+        getStorages().forEach(storage -> storage.unlinkChassis(chassisToUnlink));
+        getStorages().forEach(storage -> storage.getDrives().forEach(drive -> drive.unlinkChassis(chassisToUnlink)));
+    }
 
-        @Override
-        public Id getId() {
-            return null;
-        }
-
-        @Override
-        public MemoryDeviceType getMemoryDeviceType() {
-            return null;
-        }
-
-        @Override
-        public Integer getCapacityMib() {
-            if (capacityMib != null) {
-                return capacityMib.intValueExact();
-            }
-            return null;
-        }
-
-        @Override
-        public Integer getDataWidthBits() {
-            return null;
-        }
-
-        @Override
-        public String getManufacturer() {
-            return null;
-        }
-
-        @Override
-        public Integer getOperatingSpeedMhz() {
-            return null;
+    private void linkChassisToStoragesContainedByThisSystem(Storage storage) {
+        Iterator<Chassis> iterator = this.chassis.iterator();
+        if (iterator.hasNext()) {
+            Chassis chassis = iterator.next();
+            storage.setChassis(chassis);
+            storage.getDrives().forEach(drive -> drive.setChassis(chassis));
         }
     }
 }

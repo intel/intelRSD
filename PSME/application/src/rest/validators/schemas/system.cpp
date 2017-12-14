@@ -28,9 +28,9 @@ using namespace agent_framework::model;
 
 const jsonrpc::ProcedureValidator& SystemPatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "system_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::System::BOOT, VALID_OPTIONAL(VALID_ATTRIBUTE(BootSchema)),
+        constants::Common::OEM, VALID_OPTIONAL(VALID_ATTRIBUTE(OemSchema)),
         constants::Common::ASSET_TAG, VALID_OPTIONAL(VALID_JSON_STRING),
         nullptr
     };
@@ -39,11 +39,28 @@ const jsonrpc::ProcedureValidator& SystemPatchSchema::get_procedure() {
 
 const jsonrpc::ProcedureValidator& SystemPatchSchema::BootSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "boot_object",
         jsonrpc::PARAMS_BY_NAME,
         constants::System::BOOT_SOURCE_OVERRIDE_ENABLED, VALID_OPTIONAL(VALID_ENUM(enums::BootOverride)),
         constants::System::BOOT_SOURCE_OVERRIDE_TARGET, VALID_OPTIONAL(VALID_ENUM(enums::BootOverrideTarget)),
         constants::System::BOOT_SOURCE_OVERRIDE_MODE, VALID_OPTIONAL(VALID_ENUM(enums::BootOverrideMode)),
+        nullptr
+    };
+    return procedure;
+}
+
+const jsonrpc::ProcedureValidator& SystemPatchSchema::OemSchema::get_procedure() {
+    static jsonrpc::ProcedureValidator procedure{
+        jsonrpc::PARAMS_BY_NAME,
+        constants::Common::RACKSCALE, VALID_OPTIONAL(VALID_ATTRIBUTE(RackScaleSchema)),
+        nullptr
+    };
+    return procedure;
+}
+
+const jsonrpc::ProcedureValidator& SystemPatchSchema::OemSchema::RackScaleSchema::get_procedure() {
+    static jsonrpc::ProcedureValidator procedure{
+        jsonrpc::PARAMS_BY_NAME,
+        constants::System::USER_MODE_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
         nullptr
     };
     return procedure;

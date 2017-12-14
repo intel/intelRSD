@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
-import com.intel.podm.client.api.resources.redfish.EthernetSwitchPortResource;
+import com.intel.podm.client.resources.redfish.EthernetSwitchPortResource;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.IpV4AddressMapper;
 import com.intel.podm.mappers.subresources.IpV6AddressMapper;

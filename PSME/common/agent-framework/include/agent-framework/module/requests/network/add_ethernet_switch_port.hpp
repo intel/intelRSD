@@ -36,12 +36,6 @@
 #include <string>
 #include <vector>
 
-
-
-namespace Json {
-class Value;
-}
-
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -111,7 +105,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
@@ -121,7 +115,7 @@ public:
      *
      * @return new AddEthernetSwitchPort
      */
-    static AddEthernetSwitchPort from_json(const Json::Value& json);
+    static AddEthernetSwitchPort from_json(const json::Json& json);
 
 
     /*!
@@ -156,4 +150,3 @@ private:
 }
 }
 }
-

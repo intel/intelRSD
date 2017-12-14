@@ -16,12 +16,12 @@
 
 package com.intel.podm.discovery.external;
 
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.reader.ExternalServiceReader;
-import com.intel.podm.client.api.reader.ExternalServiceReaderFactory;
-import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.redfish.RackscaleServiceRootResource;
-import com.intel.podm.common.logger.Logger;
+import com.intel.podm.client.WebClient;
+import com.intel.podm.client.WebClientBuilder;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ResourceSupplier;
+import com.intel.podm.client.redfish.response.UnexpectedRedirectionException;
+import com.intel.podm.client.resources.redfish.ServiceRootResource;
 import com.intel.podm.common.types.ServiceType;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
@@ -31,51 +31,85 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.Iterator;
+import java.util.Objects;
+import java.util.Optional;
 
+import static com.intel.podm.client.WebClientExceptionUtils.tryGetUnderlyingRedirectionException;
 import static com.intel.podm.common.types.ServiceType.LUI;
 import static com.intel.podm.common.types.ServiceType.PSME;
+import static org.apache.commons.lang3.StringUtils.stripEnd;
 
 /**
  * Service Detection implementation based on obtaining UUID of service
  * being detected at given URI using REST client.
  */
 @ApplicationScoped
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class ServiceDescriptor {
-
     private static final String LUI_COMPUTER_SYSTEM_URI_PART = "/redfish/v1/Systems/1";
-
     private static final ServiceType UNDEFINED_SERVICE_TYPE = null;
 
     @Inject
-    private ExternalServiceReaderFactory externalServiceReaderFactory;
+    private WebClientBuilder webClientBuilder;
 
     @Config
     @Inject
     private Holder<ServiceDetectionConfig> serviceDetectionConfig;
-
-    @Inject
-    private Logger logger;
 
     public ServiceEndpoint describe(URI serviceUri) throws UnrecognizedServiceTypeException {
         return describe(serviceUri, UNDEFINED_SERVICE_TYPE);
     }
 
     public ServiceEndpoint describe(URI serviceUri, ServiceType predefinedServiceType) throws UnrecognizedServiceTypeException {
-        try (ExternalServiceReader reader = externalServiceReaderFactory.createExternalServiceReader(serviceUri)) {
-            RackscaleServiceRootResource redfishService = reader.getServiceRoot();
-            ServiceType serviceType = determineServiceType(predefinedServiceType, redfishService);
+        try (WebClient webClient = webClientBuilder.newInstance(serviceUri).retryable().build()) {
+            ServiceRootResource serviceRoot = fetchServiceRoot(webClient, serviceUri);
+            ServiceType serviceType = determineServiceType(predefinedServiceType, serviceRoot);
             if (LUI.equals(serviceType)) {
-                if (!checkIfLuiIsReady(redfishService)) {
+                if (!checkIfLuiIsReady(serviceRoot)) {
                     throw new UnrecognizedServiceTypeException("LUI service is not ready yet.");
                 }
             }
-            return new ServiceEndpoint(serviceType, redfishService.getUuid(), serviceUri);
-        } catch (ExternalServiceApiReaderException e) {
-            throw new UnrecognizedServiceTypeException("Unable to retrieve Rack Scale service root.", e);
+            return new ServiceEndpoint(serviceType, serviceRoot.getUuid(), serviceUri.resolve(serviceRoot.getUri()));
+        } catch (WebClientRequestException e) {
+            throw new UnrecognizedServiceTypeException("Unable to retrieve Rack Scale service root for: " + serviceUri, e);
         }
     }
 
-    private ServiceType determineServiceType(ServiceType predefinedServiceType, RackscaleServiceRootResource redfishService) {
+    private ServiceRootResource fetchServiceRoot(WebClient webClient, URI serviceRootUri) throws WebClientRequestException {
+        try {
+            return getServiceRootResource(webClient, serviceRootUri);
+        } catch (WebClientRequestException e) {
+            Optional<UnexpectedRedirectionException> redirectionException = tryGetUnderlyingRedirectionException(e);
+            if (redirectionException.isPresent() && isValidRedfishServiceRootRedirect(redirectionException.get())) {
+                URI redirectUri = redirectionException.get().getRedirectUri();
+                try (WebClient webClientForRedirect = webClientBuilder.newInstance(redirectUri).retryable().build()) {
+                    return getServiceRootResource(webClientForRedirect, redirectUri);
+                }
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private ServiceRootResource getServiceRootResource(WebClient webClient, URI serviceRootUri) throws WebClientRequestException {
+        ServiceRootResource serviceRootResource = (ServiceRootResource) webClient.get(URI.create(serviceRootUri.getPath()));
+        serviceRootResource.setUri(serviceRootUri);
+        return serviceRootResource;
+    }
+
+    private boolean isValidRedfishServiceRootRedirect(UnexpectedRedirectionException e) {
+        URI redirectUri = e.getRedirectUri();
+        if (redirectUri == null) {
+            return false;
+        }
+
+        return Objects.equals(
+            stripEnd(e.getExpectedUri().toString(), "/"),
+            stripEnd(redirectUri.toString(), "/")
+        );
+    }
+
+    private ServiceType determineServiceType(ServiceType predefinedServiceType, ServiceRootResource redfishService) {
         ServiceType serviceType = predefinedServiceType;
         if (serviceType == UNDEFINED_SERVICE_TYPE) {
             serviceType = serviceDetectionConfig.get().getServiceTypeMapping().getServiceTypeForName(redfishService.getName());
@@ -86,7 +120,7 @@ public class ServiceDescriptor {
         return serviceType;
     }
 
-    private boolean checkIfLuiIsReady(RackscaleServiceRootResource redfishService) throws ExternalServiceApiReaderException {
+    private boolean checkIfLuiIsReady(ServiceRootResource redfishService) throws WebClientRequestException {
         Iterator chassisCollection = redfishService.getComputerSystems().iterator();
         if (chassisCollection.hasNext()) {
             ResourceSupplier resourceSupplier = (ResourceSupplier) chassisCollection.next();

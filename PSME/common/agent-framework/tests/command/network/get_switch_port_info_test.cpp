@@ -90,8 +90,8 @@ TEST(GetEthernetSwitchPortInfoTest, PositiveExecute) {
     MyGetEthernetSwitchPortInfo command{"8d2c1ac0-2f82-11e5-8333-0002a5d5c51b"};
     GetEthernetSwitchPortInfo::Request request{""};
     GetEthernetSwitchPortInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitchPort::PORT] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51b";
 
@@ -153,8 +153,8 @@ TEST(GetEthernetSwitchPortInfoTest, NegativeComponentNotFound) {
     MyGetEthernetSwitchPortInfo command{"8d2c1ac0-2f82-11e5-8333-0002a5d5c51b"};
     GetEthernetSwitchPortInfo::Request request{""};
     GetEthernetSwitchPortInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitchPort::PORT] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
 

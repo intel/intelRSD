@@ -43,8 +43,8 @@ StorageSubsystem::StorageSubsystem(const std::string& parent_uuid, enums::Compon
 StorageSubsystem::~StorageSubsystem() { }
 
 
-Json::Value StorageSubsystem::to_json() const {
-    Json::Value result;
+json::Json StorageSubsystem::to_json() const {
+    json::Json result;
     result[literals::StorageSubsystem::STATUS] = get_status().to_json();
     result[literals::StorageSubsystem::COLLECTIONS] =
         get_collections().to_json();
@@ -53,7 +53,7 @@ Json::Value StorageSubsystem::to_json() const {
 }
 
 
-StorageSubsystem StorageSubsystem::from_json(const Json::Value& json) {
+StorageSubsystem StorageSubsystem::from_json(const json::Json& json) {
     StorageSubsystem storage;
     storage.set_status(attribute::Status::from_json(
         json[literals::StorageSubsystem::STATUS]));

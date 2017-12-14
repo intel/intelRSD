@@ -24,7 +24,7 @@ import java.util.EnumSet;
 
 import static java.util.EnumSet.noneOf;
 
-public final class EventSubscribeRequest {
+final class EventSubscribeRequest {
     @JsonProperty("Name")
     private final String name = "Event Subscription";
 

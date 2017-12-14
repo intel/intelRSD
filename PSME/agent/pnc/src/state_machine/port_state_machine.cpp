@@ -43,7 +43,7 @@ bool PortStateMachine::do_transition(const Transition& transition) {
     return result;
 }
 
-void PortStateMachine::pre_event_check(const PortEvent& event) {
+void PortStateMachine::do_on_event_action(const PortEvent& event) {
     log_debug(GET_LOGGER("port-state-machine"), "Port state machine (" << m_id << "): In state "
         << get_current_state().to_string() << ": received event: " << event.to_string());
 }

@@ -35,11 +35,13 @@ import java.util.Map;
 
 import static com.intel.podm.common.types.Health.OK;
 import static com.intel.podm.common.types.State.ENABLED;
+import static java.lang.Integer.valueOf;
+import static java.lang.String.format;
 import static java.util.Collections.list;
 
 @Dependent
 @SuppressWarnings({"checkstyle:MethodCount"})
-public class NetworkParametersReader {
+class NetworkParametersReader {
 
     private static final String VLAN_SEPARATOR = ".";
     private static final String VLAN_SEPARATOR_REGEX = "\\.";
@@ -129,7 +131,7 @@ public class NetworkParametersReader {
         try {
             return networkInterface.isLoopback();
         } catch (SocketException e) {
-            logger.e("network interface identification failed for network interface: {}", networkInterface.getName(), e);
+            logger.e(format("Network interface identification failed for Network Interface: %s", networkInterface.getName()), e);
         }
 
         return false;
@@ -159,7 +161,7 @@ public class NetworkParametersReader {
         try {
             hardwareAddress = networkInterface.getHardwareAddress();
         } catch (SocketException e) {
-            logger.e("mac reading failed for network interface: {}", networkInterface.getName(), e);
+            logger.e(format("MAC Address reading failed for Network Interface: %s", networkInterface.getName()), e);
         }
 
         if (hardwareAddress == null) {
@@ -173,7 +175,7 @@ public class NetworkParametersReader {
         try {
             return networkInterface.getMTU();
         } catch (SocketException e) {
-            logger.e("MTU reading failed for network interface: {}", networkInterface.getName(), e);
+            logger.e(format("MTU reading failed for network interface: %s", networkInterface.getName()), e);
             return null;
         }
     }
@@ -187,9 +189,9 @@ public class NetworkParametersReader {
 
         if (parts.length > 1) {
             try {
-                return Integer.valueOf(parts[1]);
+                return valueOf(parts[1]);
             } catch (NumberFormatException e) {
-                logger.e("VlanId parsing failed for network interface: {}", networkInterface.getName(), e);
+                logger.e(format("VlanId parsing failed for network interface: %s", networkInterface.getName()), e);
                 return null;
             }
         }

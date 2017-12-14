@@ -64,8 +64,11 @@ public:
      * @brief Packs data from object to output vector
      * @param[out] data vector where data will be packed.
      */
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
 
+    virtual const char* get_command_name() const override {
+        return "GetSystemGuid";
+    }
 };
 }
 
@@ -97,10 +100,14 @@ public:
      * @brief Unpacks data from vector to object.
      * @param data bytes to be copied to object,
      */
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
 
     const std::string& get_guid() const {
         return m_guid;
+    }
+
+    virtual const char* get_command_name() const override {
+        return "GetSystemGuid";
     }
 
 private:

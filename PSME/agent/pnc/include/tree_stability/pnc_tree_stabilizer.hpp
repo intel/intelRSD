@@ -117,13 +117,22 @@ public:
 
 
     /*!
-     * Stabilzie port and all resources below.
+     * Stabilize port and all resources below.
      *
      * @param port_uuid UUID of port to stabilize.
      *
      * @return Port persistent UUID.
      */
     const std::string stabilize_port(const std::string& port_uuid) const;
+
+
+    /*!
+     * Stabilize port metric
+     *
+     * @param in_port_uuid temporary UUID of the port
+     * @param port_uuid already stabilized UUID of the port whose metric is to be stabilized
+     */
+    void stabilize_port_metric(const std::string& in_port_uuid, const std::string& port_uuid) const;
 
 
     /*!
@@ -164,6 +173,16 @@ public:
      * @return Storage subsystem persistent UUID.
      * */
     const std::string stabilize_storage_subsystem(const std::string& subsystem_uuid) const;
+
+
+    /*!
+     * Stabilize metric definition
+     *
+     * @param definition_uuid UUID of metric definition to stabilize.
+     *
+     * @return Metric definition persistent UUID.
+     * */
+    const std::string stabilize_metric_definition(const std::string& definition_uuid) const;
 };
 
 }

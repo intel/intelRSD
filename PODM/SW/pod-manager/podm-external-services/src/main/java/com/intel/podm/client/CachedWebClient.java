@@ -16,10 +16,7 @@
 
 package com.intel.podm.client;
 
-import com.intel.podm.client.api.ExternalServiceApiActionException;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.WebClient;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.ExternalServiceResource;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -37,7 +34,7 @@ final class CachedWebClient implements WebClient {
     }
 
     @Override
-    public ExternalServiceResource get(URI uri) throws ExternalServiceApiReaderException {
+    public ExternalServiceResource get(URI uri) throws WebClientRequestException {
         synchronized (lock) {
             if (cache.containsKey(uri)) {
                 ExternalServiceResource resource = cache.get(uri);
@@ -62,17 +59,22 @@ final class CachedWebClient implements WebClient {
     }
 
     @Override
-    public <T> Optional<ExternalServiceResource> patch(URI requestUri, T obj) throws ExternalServiceApiActionException {
+    public <T> Optional<ExternalServiceResource> patch(URI requestUri, T obj) throws WebClientRequestException {
         return decoratedClient.patch(requestUri, obj);
     }
 
     @Override
-    public <T> URI post(URI requestUri, T obj) throws ExternalServiceApiActionException {
+    public <T> URI post(URI requestUri, T obj) throws WebClientRequestException {
         return decoratedClient.post(requestUri, obj);
     }
 
     @Override
-    public void delete(URI requestUri) throws ExternalServiceApiActionException {
+    public <T> void postNotMonitored(String requestUri, T obj) throws WebClientRequestException {
+        decoratedClient.postNotMonitored(requestUri, obj);
+    }
+
+    @Override
+    public void delete(URI requestUri) throws WebClientRequestException {
         decoratedClient.delete(requestUri);
     }
 
@@ -80,5 +82,4 @@ final class CachedWebClient implements WebClient {
     public URI getBaseUri() {
         return decoratedClient.getBaseUri();
     }
-
 }

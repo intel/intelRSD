@@ -31,5 +31,5 @@
 #include "psme/core/agent/json_agent.hpp"
 #include "psme/core/agent/agent_manager.hpp"
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
-#include "psme/rest/model/handlers/database.hpp"
+#include "database/database.hpp"
 

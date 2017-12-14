@@ -26,47 +26,39 @@ add_gtest(rest psme-rest-server
     endpoints/utils.cpp
     endpoints/query_entries_test.cpp
     endpoints/id_parsing_test.cpp
-    # endpoints/drawer_collection.cpp
-    # endpoints/compute_module_collection.cpp
-    # endpoints/processor.cpp
-    # endpoints/endpoint_utils.cpp
     endpoints/utils_path_builder_test.cpp
-    # Because of linking problems, GenericHandlerTest is run by FabricHandlerstest
+    # Because of linking problems, GenericHandlerTest is run by FabricHandlersTest
     #model/handler/generic_handler_test.cpp
     model/handler/fabric_handlers_test.cpp
-    model/handler/database_test.cpp
     model/finder_test.cpp
-    model/mapper_test.cpp
     server/mux/split_path_test.cpp
+    server/multiplexer_test.cpp
     ssdp/ssdp_config_loader_test.cpp
     utils/health_rollup_test.cpp
     error/error_factory_test.cpp
     validator/json_validator_test.cpp
+    eventing/subscriptions_test.cpp
 )
 
 target_link_libraries(${test_target}
     ssdp-config-loader
     application-rest
-    application
+    application-core
     ${AGENT_FRAMEWORK_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
-    ${JSONCPP_LIBRARIES}
-    ${JSONRPCCPP_LIBRARIES}
+    ${JSONPTR_LIBRARIES}
     ${CURL_LIBRARIES}
     ${MICROHTTPD_LIBRARIES}
     ${SSDP_LIBRARIES}
     ${LOGGER_LIBRARIES}
+    ${DATABASE_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     ${UUID_LIBRARIES}
     ${MD5_LIBRARIES}
 )
 
 set_source_files_properties(
-        model/handler/generic_handler_test.cpp
-        PROPERTIES COMPILE_FLAGS "-Wno-exit-time-destructors -Wno-global-constructors"
-)
-set_source_files_properties(
-        model/handler/database_test.cpp
-        PROPERTIES COMPILE_FLAGS "-Wno-used-but-marked-unused"
+    model/handler/generic_handler_test.cpp
+    PROPERTIES COMPILE_FLAGS "-Wno-exit-time-destructors -Wno-global-constructors"
 )

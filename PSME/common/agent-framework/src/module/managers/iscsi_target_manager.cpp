@@ -48,7 +48,7 @@ uint32_t IscsiTargetManager::create_target_id() const {
         "storage-agent", "No free target ID available.");
 }
 
-uint32_t IscsiTargetManager::get_target_id(const string& uuid) const {
+uint32_t IscsiTargetManager::get_target_id(const std::string& uuid) const {
     lock_guard<recursive_mutex> lock{m_mutex};
     auto iter = std::find_if(m_target_id_map.begin(), m_target_id_map.end(),
         [&](const std::pair<uint32_t, std::string>& elem) {
@@ -66,7 +66,7 @@ void IscsiTargetManager::remove_target_id(uint32_t target_id) {
     m_target_id_map.erase(target_id);
 }
 
-void IscsiTargetManager::add_target_id(uint32_t target_id, const string& uuid) {
+void IscsiTargetManager::add_target_id(uint32_t target_id, const std::string& uuid) {
     lock_guard<recursive_mutex> lock{m_mutex};
     m_target_id_map[target_id] = uuid;
 }

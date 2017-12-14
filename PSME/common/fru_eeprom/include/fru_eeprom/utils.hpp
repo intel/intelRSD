@@ -95,9 +95,9 @@ enum class SystemEnclosureOrChassisType : uint8_t {
 };
 
 struct Field {
-    uint8_t data_len;
-    uint8_t size;
-    char data[AREA_FIELD_MAX_SIZE];
+    uint8_t data_len{};
+    uint8_t size{};
+    char data[AREA_FIELD_MAX_SIZE]{};
 };
 
 inline uint8_t to_area_length(const uint8_t length) {

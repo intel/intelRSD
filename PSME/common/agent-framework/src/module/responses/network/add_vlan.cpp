@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/network/add_vlan.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -32,16 +32,16 @@ using namespace agent_framework::model::literals;
 AddVlan::AddVlan() {}
 
 
-Json::Value AddVlan::to_json() const {
-    Json::Value value;
+json::Json AddVlan::to_json() const {
+    json::Json value;
     value[Vlan::VLAN] = m_vlan;
     value[Vlan::OEM] = m_oem.to_json();
     return value;
 }
 
-AddVlan AddVlan::from_json(const Json::Value& json) {
+AddVlan AddVlan::from_json(const json::Json& json) {
     AddVlan vlan{};
-    vlan.set_vlan(json[Vlan::VLAN].asString());
+    vlan.set_vlan(json[Vlan::VLAN]);
     vlan.set_oem(Oem::from_json(json[Acl::OEM]));
     return vlan;
 }

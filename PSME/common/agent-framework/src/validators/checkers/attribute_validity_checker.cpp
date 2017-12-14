@@ -23,10 +23,9 @@
 
 using namespace jsonrpc;
 using namespace agent_framework;
-using static_procedure_getter_t = const jsonrpc::ProcedureValidator& (*)(void);
 
 
-AttributeValidityChecker::AttributeValidityChecker(va_list args) {
+AttributeValidityChecker::AttributeValidityChecker(va_list& args) {
     static_procedure_getter_t getter = va_arg(args, static_procedure_getter_t);
     if (getter) {
         validator = &(getter());
@@ -37,9 +36,9 @@ AttributeValidityChecker::AttributeValidityChecker(va_list args) {
 AttributeValidityChecker::~AttributeValidityChecker() {}
 
 
-void AttributeValidityChecker::validate(const Json::Value& value) const {
+void AttributeValidityChecker::validate(const json::Json& value) const {
     ValidityChecker::validate(value);
-    if (!value.isObject()) {
+    if (!value.is_object()) {
         THROW(ValidityChecker::ValidationException, "agent-framework",
               exceptions::ErrorCode::INVALID_FIELD_TYPE, "Property value is not valid object type.", value);
     }

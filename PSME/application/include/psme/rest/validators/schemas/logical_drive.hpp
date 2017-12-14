@@ -31,6 +31,7 @@ namespace rest {
 namespace validators {
 namespace schema {
 
+/*! @brief Schema for validating POST requests on logical drive collection. */
 class LogicalDrivePostSchema {
     class LinksSchema {
     public:
@@ -40,6 +41,7 @@ public:
     static const jsonrpc::ProcedureValidator& get_procedure();
 };
 
+/*! @brief Schema for validating PATCH requests on logical drive resource. */
 class LogicalDrivePatchSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure();

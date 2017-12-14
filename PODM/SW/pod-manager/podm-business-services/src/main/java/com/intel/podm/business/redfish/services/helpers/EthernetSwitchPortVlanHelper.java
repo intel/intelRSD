@@ -16,8 +16,9 @@
 
 package com.intel.podm.business.redfish.services.helpers;
 
-import com.intel.podm.actions.ActionException;
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.EntityOperationException;
+import com.intel.podm.business.RequestValidationException;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
@@ -27,6 +28,7 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import static com.intel.podm.business.Violations.createWithViolations;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
@@ -36,7 +38,7 @@ public class EthernetSwitchPortVlanHelper {
 
     @Transactional(MANDATORY)
     public EthernetSwitchPortVlan validateAndGetVlan(EthernetSwitchPort switchPort, Context primaryVlan)
-            throws ActionException {
+        throws EntityOperationException, RequestValidationException {
         if (primaryVlan == null) {
             return null;
         }
@@ -46,17 +48,17 @@ public class EthernetSwitchPortVlanHelper {
         return vlan;
     }
 
-    private void verifyVlanToSwitchPortRelation(EthernetSwitchPort switchPort, EthernetSwitchPortVlan vlan) throws ActionException {
-        if (!switchPort.equals(vlan.getEthernetSwitchPort())) {
-            throw new ActionException("Provided VLAN doesn't belong to proper switch port");
-        }
-    }
-
-    private EthernetSwitchPortVlan convertVlanContextToVlan(Context vlanContext) throws ActionException {
+    private EthernetSwitchPortVlan convertVlanContextToVlan(Context vlanContext) throws RequestValidationException {
         try {
             return (EthernetSwitchPortVlan) traverser.traverse(vlanContext);
         } catch (ContextResolvingException e) {
-            throw new ActionException("Provided VLAN was not found in specified context");
+            throw new RequestValidationException(createWithViolations("Provided VLAN was not found in specified context"));
+        }
+    }
+
+    private void verifyVlanToSwitchPortRelation(EthernetSwitchPort switchPort, EthernetSwitchPortVlan vlan) throws EntityOperationException {
+        if (!switchPort.equals(vlan.getEthernetSwitchPort())) {
+            throw new EntityOperationException("Provided VLAN doesn't belong to proper switch port");
         }
     }
 }

@@ -23,14 +23,17 @@
  * */
 
 #pragma once
-#include "psme/rest/eventing/event.hpp"
+#include "psme/rest/eventing/event_array.hpp"
+#include "psme/rest/server/error/error_factory.hpp"
+#include "psme/rest/server/error/server_exception.hpp"
 #include "psme/core/agent/agent_unreachable.hpp"
 
 #include "agent-framework/module/requests/common/get_managers_collection.hpp"
 #include "agent-framework/module/requests/common/get_tasks_collection.hpp"
+#include "agent-framework/module/requests/common/get_metric_definitions_collection.hpp"
+#include "agent-framework/module/requests/common/get_metrics.hpp"
 #include "agent-framework/module/requests/common/get_collection.hpp"
 
-#include <jsonrpccpp/client/connectors/httpclient.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -41,13 +44,6 @@
 #define PSME_CORE_AGENT_JSON_AGENT_HPP
 #define PSME_AGENT_MANAGER_HPP
 
-namespace agent_framework {
-namespace model {
-namespace requests {
-class GetManagersCollection;
-}
-}
-}
 
 namespace psme {
 namespace core {
@@ -55,19 +51,20 @@ namespace agent {
 
 struct JsonAgent {
     template<typename Response, typename Request>
-    Response execute(const Request &req) {
+    Response execute(const Request& req) {
 
         m_requests.push_back(req.get_uuid());
 
-        assert(m_responses.size() > m_rsp_idx);
-        Json::Value rr;
-        auto response_s = m_responses[m_rsp_idx++];
-        if (response_s == "[JsonRpcException]") {
-            throw psme::core::agent::AgentUnreachable(get_gami_id());
-        }
-        std::stringstream ss(response_s);
-        ss >> rr;
-        return Response::from_json(rr);
+        return Response::from_json(get_next_response());
+    }
+
+
+    template<typename Response>
+    Response execute(const agent_framework::model::requests::GetMetrics&) {
+
+        m_requests.push_back("GetMetrics");
+
+        return Response::from_json(get_next_response());
     }
 
 
@@ -76,41 +73,58 @@ struct JsonAgent {
 
         m_requests.push_back("GetManagersCollection");
 
-        assert(m_responses.size() > m_rsp_idx);
-        Json::Value rr;
-        std::stringstream ss(m_responses[m_rsp_idx++]);
-        ss >> rr;
-        return Response::from_json(rr);
+        return Response::from_json(get_next_response());
     }
 
 
     template<typename Response>
     Response execute(const agent_framework::model::requests::GetTasksCollection&) {
 
-        m_requests.push_back("GetManagersCollection");
+        m_requests.push_back("GetTasksCollection");
 
-        assert(m_responses.size() > m_rsp_idx);
-        Json::Value rr;
-        std::stringstream ss(m_responses[m_rsp_idx++]);
-        ss >> rr;
-        return Response::from_json(rr);
+        return Response::from_json(get_next_response());
+    }
+
+
+    template<typename Response>
+    Response execute(const agent_framework::model::requests::GetMetricDefinitionsCollection&) {
+
+        m_requests.push_back("GetMetricDefinitionsCollection");
+
+        return Response::from_json(get_next_response());
     }
 
 
     template<typename Response>
     Response execute(
         const agent_framework::model::requests::GetCollection& req) {
-
         m_requests.push_back(req.get_uuid());
 
         m_collections.push_back(
             std::make_pair(req.get_name(), req.get_uuid()));
 
+        return Response::from_json(get_next_response());
+    }
+
+    json::Json get_next_response() {
         assert(m_responses.size() > m_rsp_idx);
-        Json::Value rr;
-        std::stringstream ss(m_responses[m_rsp_idx++]);
-        ss >> rr;
-        return Response::from_json(rr);
+        auto response_string = m_responses[m_rsp_idx++];
+        if (response_string == "[JsonRpcException]") {
+            throw psme::core::agent::AgentUnreachable(get_gami_id());
+        } else if (response_string == "[ServerException]") {
+            auto error = psme::rest::error::ErrorFactory::create_error_from_gami_exception(
+                agent_framework::exceptions::LvmError("could not clone drive"));
+            throw psme::rest::error::ServerException(error);
+        }
+        json::Json response{};
+        try {
+            response = json::Json::parse(response_string);
+        }
+        catch (...) {
+            // this is for tests only, so this exception is not 'silent'
+            throw psme::core::agent::AgentUnreachable("Cannot parse mock response");
+        }
+        return response;
     }
 
     const std::string get_gami_id() const { return "gami_id"; }
@@ -131,9 +145,9 @@ struct JsonAgent {
 typedef std::shared_ptr<JsonAgent> JsonAgentSPtr;
 
 struct AgentManager {
-    static AgentManager &get_instance() {
+    static AgentManager* get_instance() {
         static AgentManager am;
-        return am;
+        return &am;
     }
 
     JsonAgentSPtr get_agent(const std::string& /*gami_id*/) {
@@ -177,19 +191,25 @@ public:
      * @param event Event
      */
     void notify(const psme::rest::eventing::Event& event) {
-        m_events.emplace_back(event);
+        m_event_arrays.emplace_back(EventArray({event}));
     }
 
-    void notify(const psme::rest::eventing::EventVec& events) {
-        m_events.reserve(m_events.size() + events.size());
-        m_events.insert(m_events.end(), events.begin(), events.end());
+    /*!
+     * @brief Notifies subscribers according to events array
+     *
+     * @param events EventArray
+     */
+    void notify(const psme::rest::eventing::EventArray& events) {
+        if (!events.get_events().empty()) {
+            m_event_arrays.emplace_back(events);
+        }
     }
 
     void clear() {
-        m_events.clear();
+        m_event_arrays.clear();
     }
 
-    psme::rest::eventing::EventVec m_events {};
+    std::vector<psme::rest::eventing::EventArray> m_event_arrays{};
 };
 
 }

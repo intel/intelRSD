@@ -17,55 +17,52 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.FabricDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.FabricDto;
-import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.dao.FabricDao;
 import com.intel.podm.business.entities.redfish.Fabric;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRICS;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.ENDPOINTS_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.SWITCHES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.ZONES_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class FabricServiceImpl implements ReaderService<FabricDto> {
+@RequestScoped
+class FabricServiceImpl implements ReaderService<FabricDto> {
     @Inject
     EntityTreeTraverser traverser;
 
     @Inject
-    GenericDao genericDao;
+    FabricDao fabricDao;
 
     @Inject
-    UnknownOemTranslator unknownOemTranslator;
+    EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context serviceRootContext) throws ContextResolvingException {
-        List<Fabric> fabricsCollection = genericDao.findAll(Fabric.class);
-        return new CollectionDto(FABRICS, getAsIdSet(fabricsCollection));
+        return new CollectionDto(FABRICS, fabricDao.getAllFabricIds());
     }
 
+    @Transactional(REQUIRED)
     @Override
     public FabricDto getResource(Context context) throws ContextResolvingException {
         Fabric fabric = (Fabric) traverser.traverse(context);
-        return map(fabric);
-    }
 
-    public FabricDto map(Fabric fabric) throws ContextResolvingException {
-        return FabricDto.newBuilder()
-            .id(fabric.getId().toString())
-            .name(fabric.getName())
-            .description(fabric.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(fabric.getService(), fabric.getUnknownOems()))
-            .status(fabric.getStatus())
-            .maxZones(fabric.getMaxZones())
-            .fabricType(fabric.getFabricType())
-            .build();
+        FabricDto dto = (FabricDto) entityToDtoMapper.map(fabric);
+        dto.setZones(singletonContextOf(context, ZONES_RESOURCE_NAME));
+        dto.setEndpoints(singletonContextOf(context, ENDPOINTS_RESOURCE_NAME));
+        dto.setSwitches(singletonContextOf(context, SWITCHES_RESOURCE_NAME));
+        return dto;
     }
 }

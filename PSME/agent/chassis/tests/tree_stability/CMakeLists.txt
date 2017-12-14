@@ -40,5 +40,4 @@ target_link_libraries(${test_target}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
     ${BASE64_LIBRARIES}
-    jsoncpp
 )

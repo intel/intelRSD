@@ -34,10 +34,9 @@
 #include "agent-framework/version.hpp"
 #include "agent-framework/service_uuid.hpp"
 #include "ssdp/ssdp_service.hpp"
+#include "database/database.hpp"
 
-#include <jsonrpccpp/server/connectors/httpserver.h>
 #include <csignal>
-#include <iostream>
 #include <string>
 
 namespace {
@@ -88,6 +87,10 @@ App::App(int argc, const char* argv[])
 
 App::~App() { cleanup(); }
 
+void App::init_database() {
+    database::Database::set_default(m_configuration["database"]["location"].as_string());
+}
+
 void App::init_logger() {
     logger_cpp::LoggerLoader loader(m_configuration);
     logger_cpp::LoggerFactory::instance().set_loggers(loader.load());
@@ -114,19 +117,11 @@ void App::init_ssdp_service() {
 void App::init_eventing_server() {
     using psme::app::eventing::EventingServer;
     m_eventing_server.reset(new EventingServer{m_configuration});
-    psme::command::CommandJson::Map::set_implementation("Eventing");
-    m_eventing_server->add(psme::command::CommandJson::Map::get_instance());
 }
 
 void App::init_registration_server() {
-    using jsonrpc::HttpServer;
     using psme::app::registration::RegistrationServer;
-    m_reg_server_connector.reset(new HttpServer{
-                        m_configuration["registration"]["port"].as_int(),"","",1});
-    m_registration_server.reset(new RegistrationServer{*m_reg_server_connector});
-    psme::command::CommandJson::Map::set_implementation(
-                        m_configuration["commands"]["generic"].as_string());
-    m_registration_server->add(psme::command::CommandJson::Map::get_instance());
+    m_registration_server.reset(new RegistrationServer{m_configuration});
 }
 
 void App::init_rest_server() {
@@ -154,6 +149,7 @@ void App::init_registries() {
 
 void App::init() {
     try {
+        init_database();
         init_logger();
         agent_framework::generic::ServiceUuid::get_instance();
         init_network_change_notifier();
@@ -217,8 +213,6 @@ void App::wait_for_termination() {
 }
 
 void App::statics_cleanup() {
-    psme::command::Command::Map::cleanup();
-    psme::command::CommandJson::Map::cleanup();
     configuration::Configuration::cleanup();
     logger_cpp::LoggerFactory::cleanup();
 }

@@ -27,7 +27,7 @@ public:
     ArrayValidityChecker(ValidityChecker::Ptr& _checker,
                          unsigned _min = 0, unsigned _max = UINT32_MAX);
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
     ValidityChecker::Ptr checker{};

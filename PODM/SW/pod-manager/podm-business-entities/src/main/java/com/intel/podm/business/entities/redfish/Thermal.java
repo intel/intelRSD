@@ -24,8 +24,9 @@ import com.intel.podm.common.types.Id;
 import javax.persistence.Column;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Objects;
@@ -38,11 +39,17 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "thermal", indexes = @Index(name = "idx_thermal_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class Thermal extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
+
+    @Column(name = "desired_speed_pwm")
+    private Integer desiredSpeedPwm;
+
+    @Column(name = "volumetric_air_flow_cfm")
+    private Integer volumetricAirflowCfm;
 
     @OneToMany(mappedBy = "thermal", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<ThermalTemperature> temperatures = new HashSet<>();
@@ -50,9 +57,12 @@ public class Thermal extends DiscoverableEntity {
     @OneToMany(mappedBy = "thermal", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<ThermalFan> fans = new HashSet<>();
 
-    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "chassis_id")
     private Chassis chassis;
+
+    @ManyToMany(mappedBy = "cooledBy", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Chassis> cooledChassis = new HashSet<>();
 
     @Override
     public Id getId() {
@@ -62,6 +72,22 @@ public class Thermal extends DiscoverableEntity {
     @Override
     public void setId(Id id) {
         this.entityId = id;
+    }
+
+    public Integer getDesiredSpeedPwm() {
+        return desiredSpeedPwm;
+    }
+
+    public void setDesiredSpeedPwm(Integer desiredSpeedPwm) {
+        this.desiredSpeedPwm = desiredSpeedPwm;
+    }
+
+    public Integer getVolumetricAirflowCfm() {
+        return volumetricAirflowCfm;
+    }
+
+    public void setVolumetricAirflowCfm(Integer volumetricAirflowCfm) {
+        this.volumetricAirflowCfm = volumetricAirflowCfm;
     }
 
     public Set<ThermalTemperature> getTemperatures() {
@@ -131,15 +157,39 @@ public class Thermal extends DiscoverableEntity {
         }
     }
 
+    public Set<Chassis> getCooledChassis() {
+        return cooledChassis;
+    }
+
+    public void addCooledChassis(Chassis chassis) {
+        requiresNonNull(chassis, "chassis");
+
+        cooledChassis.add(chassis);
+        if (!chassis.getCooledBy().contains(this)) {
+            chassis.addCooledBy(this);
+        }
+    }
+
+    public void unlinkCooledChassis(Chassis chassis) {
+        if (cooledChassis.contains(chassis)) {
+            cooledChassis.remove(chassis);
+            if (chassis != null) {
+                chassis.unlinkCooledBy(this);
+            }
+        }
+    }
+
     @Override
     public void preRemove() {
         unlinkCollection(temperatures, this::unlinkTemperature);
         unlinkCollection(fans, this::unlinkFan);
         unlinkChassis(chassis);
+        unlinkCollection(cooledChassis, this::unlinkCooledChassis);
     }
 
     @Override
     public boolean containedBy(Entity possibleParent) {
         return isContainedBy(possibleParent, chassis);
     }
+
 }

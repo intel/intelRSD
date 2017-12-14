@@ -91,6 +91,20 @@ bool ModelTool::get_zone_by_id(Zone& zone, const std::string& switch_uuid, const
     }
 }
 
+agent_framework::model::MetricDefinition ModelTool::get_health_metric_definition() const {
+    auto& definition_manager = get_manager<MetricDefinition>();
+    auto keys = definition_manager.get_keys([](const MetricDefinition& definition) {
+        return definition.get_metric_jsonptr() == "/Health";
+    });
+    if (0 == keys.size()) {
+        throw std::runtime_error(std::string{"Unable to get metric definition: none found!"});
+    }
+    if (keys.size() > 1) {
+        throw std::runtime_error(std::string{"Unable to get metric definition: too many entries!"});
+    }
+    return definition_manager.get_entry(keys.front());
+}
+
 std::string ModelTool::get_manager_uuid() const {
     return generic_get_uuid<Manager>("manager");
 }
@@ -297,6 +311,10 @@ void ModelTool::set_drive_is_in_warning_state(const std::string& drive_uuid, boo
 
 void ModelTool::set_drive_is_being_erased(const std::string& drive_uuid, bool is_being_erased) const {
     get_manager<Drive>().get_entry_reference(drive_uuid)->set_is_being_erased(is_being_erased);
+}
+
+void ModelTool::set_drive_is_being_discovered(const std::string& drive_uuid, bool is_being_discovered) const {
+    get_manager<Drive>().get_entry_reference(drive_uuid)->set_is_being_discovered(is_being_discovered);
 }
 
 void ModelTool::set_drive_status(const std::string& drive_uuid,

@@ -29,9 +29,37 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& ChassisPatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "chassis_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::ASSET_TAG, VALID_OPTIONAL(VALID_JSON_STRING),
+        constants::Common::OEM, VALID_OPTIONAL(VALID_ATTRIBUTE(OemSchema)),
+        nullptr
+    };
+    return procedure;
+}
+
+const jsonrpc::ProcedureValidator& ChassisPatchSchema::OemSchema::get_procedure() {
+    static jsonrpc::ProcedureValidator procedure{
+        jsonrpc::PARAMS_BY_NAME,
+        constants::Common::RACKSCALE, VALID_OPTIONAL(VALID_ATTRIBUTE(RackScaleSchema)),
+        nullptr
+    };
+    return procedure;
+}
+
+const jsonrpc::ProcedureValidator& ChassisPatchSchema::OemSchema::RackScaleSchema::get_procedure() {
+    static jsonrpc::ProcedureValidator procedure{
+        jsonrpc::PARAMS_BY_NAME,
+        constants::Chassis::LOCATION, VALID_OPTIONAL(VALID_ATTRIBUTE(LocationSchema)),
+        constants::Chassis::GEO_TAG, VALID_OPTIONAL(VALID_JSON_STRING),
+        nullptr
+    };
+    return procedure;
+}
+
+const jsonrpc::ProcedureValidator& ChassisPatchSchema::OemSchema::RackScaleSchema::LocationSchema::get_procedure() {
+    static jsonrpc::ProcedureValidator procedure{
+        jsonrpc::PARAMS_BY_NAME,
+        constants::Common::ID, VALID_OPTIONAL(VALID_JSON_STRING),
         nullptr
     };
     return procedure;

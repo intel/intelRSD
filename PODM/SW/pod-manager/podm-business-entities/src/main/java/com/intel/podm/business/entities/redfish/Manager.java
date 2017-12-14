@@ -37,6 +37,8 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.HashSet;
@@ -51,10 +53,15 @@ import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
+@NamedQueries({
+    @NamedQuery(name = Manager.GET_ALL_MANAGER_IDS, query = "SELECT manager.entityId FROM Manager manager")
+})
 @Table(name = "manager", indexes = @Index(name = "idx_manager_entity_id", columnList = "entity_id", unique = true))
 @Eventable
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public class Manager extends DiscoverableEntity implements NetworkInterfacePossessor {
+    public static final String GET_ALL_MANAGER_IDS = "GET_ALL_MANAGER_IDS";
+
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
@@ -71,12 +78,39 @@ public class Manager extends DiscoverableEntity implements NetworkInterfacePosse
     @Column(name = "model")
     private String model;
 
+    @Column(name = "date_time")
+    private String dateTime;
+
+    @Column(name = "date_time_local_offset")
+    private String dateTimeLocalOffset;
+
     @Column(name = "firmware_version")
     private String firmwareVersion;
 
     @Column(name = "power_state")
     @Enumerated(STRING)
     private PowerState powerState;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "serviceEnabled", column = @Column(name = "graphical_console_service_enabled")),
+        @AttributeOverride(name = "maxConcurrentSessions", column = @Column(name = "graphical_console_max_concurrent_sessions"))
+    })
+    private GraphicalConsole graphicalConsole;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "serviceEnabled", column = @Column(name = "serial_console_service_enabled")),
+        @AttributeOverride(name = "maxConcurrentSessions", column = @Column(name = "serial_console_max_concurrent_sessions"))
+    })
+    private SerialConsole serialConsole;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "serviceEnabled", column = @Column(name = "command_shell_service_enabled")),
+        @AttributeOverride(name = "maxConcurrentSessions", column = @Column(name = "command_shell_concurrent_sessions"))
+    })
+    private CommandShell commandShell;
 
     @SuppressEvents
     @ManyToMany(mappedBy = "managers", fetch = LAZY, cascade = {MERGE, PERSIST})
@@ -96,27 +130,6 @@ public class Manager extends DiscoverableEntity implements NetworkInterfacePosse
 
     @ManyToMany(mappedBy = "managers", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<StorageService> storageServices = new HashSet<>();
-
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "serviceEnabled", column = @Column(name = "graphical_console_service_enabled")),
-        @AttributeOverride(name = "maxConcurrentSessions", column = @Column(name = "graphical_console_max_concurrent_sessions"))
-    })
-    private GraphicalConsole graphicalConsole;
-
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "serviceEnabled", column = @Column(name = "serial_console_service_enabled")),
-        @AttributeOverride(name = "maxConcurrentSessions", column = @Column(name = "serial_console_max_concurrent_sessions"))
-    })
-    private SerialConsole serialConsole;
-
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "serviceEnabled", column = @Column(name = "command_shell_service_enabled")),
-        @AttributeOverride(name = "maxConcurrentSessions", column = @Column(name = "command_shell_max_concurrent_sessions"))
-    })
-    private CommandShell commandShell;
 
     @OneToOne(mappedBy = "manager", fetch = LAZY, cascade = {MERGE, PERSIST})
     private NetworkProtocol networkProtocol;
@@ -167,6 +180,22 @@ public class Manager extends DiscoverableEntity implements NetworkInterfacePosse
         this.model = model;
     }
 
+    public String getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(String dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public String getDateTimeLocalOffset() {
+        return dateTimeLocalOffset;
+    }
+
+    public void setDateTimeLocalOffset(String dateTimeLocalOffset) {
+        this.dateTimeLocalOffset = dateTimeLocalOffset;
+    }
+
     public String getFirmwareVersion() {
         return firmwareVersion;
     }
@@ -181,6 +210,30 @@ public class Manager extends DiscoverableEntity implements NetworkInterfacePosse
 
     public void setPowerState(PowerState powerState) {
         this.powerState = powerState;
+    }
+
+    public GraphicalConsole getGraphicalConsole() {
+        return graphicalConsole;
+    }
+
+    public void setGraphicalConsole(GraphicalConsole graphicalConsole) {
+        this.graphicalConsole = graphicalConsole;
+    }
+
+    public SerialConsole getSerialConsole() {
+        return serialConsole;
+    }
+
+    public void setSerialConsole(SerialConsole serialConsole) {
+        this.serialConsole = serialConsole;
+    }
+
+    public CommandShell getCommandShell() {
+        return commandShell;
+    }
+
+    public void setCommandShell(CommandShell commandShell) {
+        this.commandShell = commandShell;
     }
 
     @Override
@@ -228,28 +281,6 @@ public class Manager extends DiscoverableEntity implements NetworkInterfacePosse
         }
     }
 
-    public Set<Chassis> getManagedChassis() {
-        return managedChassis;
-    }
-
-    public void addManagedChassis(Chassis chassis) {
-        requiresNonNull(chassis, "chassis");
-
-        managedChassis.add(chassis);
-        if (!chassis.getManagers().contains(this)) {
-            chassis.addManager(this);
-        }
-    }
-
-    public void unlinkManagedChassis(Chassis chassis) {
-        if (managedChassis.contains(chassis)) {
-            managedChassis.remove(chassis);
-            if (chassis != null) {
-                chassis.unlinkManager(this);
-            }
-        }
-    }
-
     public Set<Switch> getSwitches() {
         return fabricSwitches;
     }
@@ -268,6 +299,28 @@ public class Manager extends DiscoverableEntity implements NetworkInterfacePosse
             fabricSwitches.remove(fabricSwitch);
             if (fabricSwitch != null) {
                 fabricSwitch.unlinkManager(this);
+            }
+        }
+    }
+
+    public Set<Chassis> getManagedChassis() {
+        return managedChassis;
+    }
+
+    public void addManagedChassis(Chassis chassis) {
+        requiresNonNull(chassis, "chassis");
+
+        managedChassis.add(chassis);
+        if (!chassis.getManagers().contains(this)) {
+            chassis.addManager(this);
+        }
+    }
+
+    public void unlinkManagedChassis(Chassis chassis) {
+        if (managedChassis.contains(chassis)) {
+            managedChassis.remove(chassis);
+            if (chassis != null) {
+                chassis.unlinkManager(this);
             }
         }
     }
@@ -314,30 +367,6 @@ public class Manager extends DiscoverableEntity implements NetworkInterfacePosse
                 storageService.unlinkManager(this);
             }
         }
-    }
-
-    public GraphicalConsole getGraphicalConsole() {
-        return graphicalConsole;
-    }
-
-    public void setGraphicalConsole(GraphicalConsole graphicalConsole) {
-        this.graphicalConsole = graphicalConsole;
-    }
-
-    public SerialConsole getSerialConsole() {
-        return serialConsole;
-    }
-
-    public void setSerialConsole(SerialConsole serialConsole) {
-        this.serialConsole = serialConsole;
-    }
-
-    public CommandShell getCommandShell() {
-        return commandShell;
-    }
-
-    public void setCommandShell(CommandShell commandShell) {
-        this.commandShell = commandShell;
     }
 
     public NetworkProtocol getNetworkProtocol() {
@@ -390,12 +419,12 @@ public class Manager extends DiscoverableEntity implements NetworkInterfacePosse
     public void preRemove() {
         unlinkCollection(ethernetInterfaces, this::unlinkEthernetInterface);
         unlinkCollection(computerSystems, this::unlinkComputerSystem);
+        unlinkCollection(fabricSwitches, this::unlinkSwitch);
         unlinkCollection(managedChassis, this::unlinkManagedChassis);
         unlinkCollection(ethernetSwitches, this::unlinkEthernetSwitch);
         unlinkCollection(storageServices, this::unlinkStorageService);
         unlinkNetworkProtocol(networkProtocol);
         unlinkInChassisManager(inChassisManager);
-        unlinkCollection(fabricSwitches, this::unlinkSwitch);
     }
 
     @Override

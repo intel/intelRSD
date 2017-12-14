@@ -32,12 +32,6 @@
 
 #include <string>
 
-
-
-namespace Json {
-class Value;
-}
-
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -71,19 +65,19 @@ public:
 
 
     /*!
-     * Convert request object to Json::Value
+     * Convert request object to json::Json
      *
-     * @return Converted Json::Value object
+     * @return Converted json::Json object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
-     * Construct request object from Json::Value object
+     * Construct request object from json::Json object
      *
-     * @param[in] json Json::Value object used for construction
+     * @param[in] json json::Json object used for construction
      * */
-    static GetTaskInfo from_json(const Json::Value& json);
+    static GetTaskInfo from_json(const json::Json& json);
 
 
     static const jsonrpc::ProcedureValidator& get_procedure() {
@@ -91,7 +85,7 @@ public:
             get_command(),
             jsonrpc::PARAMS_BY_NAME,
             jsonrpc::JSON_STRING,
-            literals::Task::TASK, jsonrpc::JSON_STRING,
+            literals::Task::TASK, VALID_UUID,
             nullptr
         };
         return procedure;

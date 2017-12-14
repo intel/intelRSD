@@ -1,0 +1,11 @@
+prefix=@CMAKE_BINARY_DIR@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: eos
+Description: Arista EOS Stub SDK
+URL: https://github.com/aristanetworks/EosSdk
+Version: 0.0.1
+Libs: -L${libdir} -leos
+Cflags: -I${includedir}

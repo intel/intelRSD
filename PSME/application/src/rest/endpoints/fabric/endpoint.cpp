@@ -46,7 +46,7 @@ json::Value make_prototype() {
 
     r[constants::PncDrive::IDENTIFIERS] = json::Value::Type::ARRAY;
     r[constants::Endpoint::CONNECTED_ENTITIES] = json::Value::Type::ARRAY;
-    r[constants::Endpoint::REDUNDANCY] = json::Value::Type::ARRAY;
+    r[constants::Common::REDUNDANCY] = json::Value::Type::ARRAY;
     r[constants::Endpoint::HOST_RESERVATION_MEMORY_BYTES] = json::Value::Type::NIL;
     r[Common::LINKS][Switch::PORTS] = json::Value::Type::ARRAY;
     r[Common::ACTIONS][Common::OEM] = json::Value::Type::OBJECT;

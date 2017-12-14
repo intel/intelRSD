@@ -52,7 +52,7 @@
                  32, 31, 30, 29, 28, 27, 26, 25,\
                  24, 23, 22, 21, 20, 19, 18, 17,\
                  16, 15, 14, 13, 12, 11, 10,  9,\
-                  8,  7,  6,  5,  4,  3,  2,  1)
+                  8,  7,  6,  5,  4,  3,  2,  1, 0)
 
 #define EXPAND(X) X
 #define APPLY(macro, ...) EXPAND(macro(__VA_ARGS__))
@@ -151,6 +151,7 @@ public:                                                                       \
     using underlying_type = T;                                                \
                                                                               \
     enum EnumName ## _enum : T { __VA_ARGS__ };                               \
+    using base_enum = EnumName ## _enum;                                      \
                                                                               \
     const char* to_string() const {                                           \
         for (std::size_t index = 0;                                           \
@@ -214,4 +215,3 @@ public:                                                                       \
 private:                                                                      \
     T m_value{};                                                              \
 }
-

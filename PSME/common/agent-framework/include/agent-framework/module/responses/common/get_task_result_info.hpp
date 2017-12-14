@@ -27,8 +27,7 @@
 
 
 #include "agent-framework/module/constants/command.hpp"
-
-#include <json/value.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
 
@@ -58,7 +57,7 @@ public:
      *
      * @return Task result
      * */
-    const Json::Value& get_result() const {
+    const json::Json& get_result() const {
         return m_task_result;
     }
 
@@ -68,31 +67,31 @@ public:
      *
      * @param[in] result Task result to set
      * */
-    void set_result(const Json::Value& result) {
+    void set_result(const json::Json& result) {
         m_task_result = result;
     }
 
 
     /*!
-     * Convert request object to Json::Value
+     * Convert request object to json::Json
      *
-     * @return Converted Json::Value object
+     * @return Converted json::Json object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
-     * Construct request object from Json::Value object
+     * Construct request object from json::Json object
      *
-     * @param[in] json Json::Value object used for construction
+     * @param[in] json json::Json object used for construction
      * */
-    static GetTaskResultInfo from_json(const Json::Value& json);
+    static GetTaskResultInfo from_json(const json::Json& json);
 
 
 private:
     // As the exact form of the result is not known before runtime, the result must be
-    // held as a generic Json::Value object
-    Json::Value m_task_result{};
+    // held as a generic json::Json object
+    json::Json m_task_result{};
 };
 
 }

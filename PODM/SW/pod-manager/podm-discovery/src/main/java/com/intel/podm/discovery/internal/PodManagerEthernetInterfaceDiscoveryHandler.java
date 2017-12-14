@@ -39,7 +39,7 @@ import static com.intel.podm.common.types.State.ENABLED;
 
 @Dependent
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
-public class PodManagerEthernetInterfaceDiscoveryHandler {
+class PodManagerEthernetInterfaceDiscoveryHandler {
     @Inject
     Logger logger;
 
@@ -100,7 +100,7 @@ public class PodManagerEthernetInterfaceDiscoveryHandler {
     private void enhanceFromConfig(EthernetInterface ethernetInterface) {
         try {
             EthernetInterfaceDto fromConfig = networkConfigurationReader.readConfiguration("interface-" + ethernetInterface.getName(),
-                    EthernetInterfaceDto.class);
+                EthernetInterfaceDto.class);
 
             ethernetInterface.setStatus(new Status(fromConfig.getState(), fromConfig.getHealth(), null));
             ethernetInterface.setPermanentMacAddress(fromConfig.getFactoryMacAddress());
@@ -121,11 +121,11 @@ public class PodManagerEthernetInterfaceDiscoveryHandler {
 
     private void enhanceIpV4AddressesFromConfig(EthernetInterface ethernetInterface, EthernetInterfaceDto fromConfig) {
         ethernetInterface.getIpV4Addresses()
-                .stream()
-                .filter(ipAddress -> Objects.equals(ipAddress.getAddress(), fromConfig.getIpV4Address().getAddress()))
-                .forEach(ipAddress -> {
-                    ipAddress.setGateway(fromConfig.getIpV4Address().getGateway());
-                    ipAddress.setSubnetMask(fromConfig.getIpV4Address().getSubnetMask());
-                });
+            .stream()
+            .filter(ipAddress -> Objects.equals(ipAddress.getAddress(), fromConfig.getIpV4Address().getAddress()))
+            .forEach(ipAddress -> {
+                ipAddress.setGateway(fromConfig.getIpV4Address().getGateway());
+                ipAddress.setSubnetMask(fromConfig.getIpV4Address().getSubnetMask());
+            });
     }
 }

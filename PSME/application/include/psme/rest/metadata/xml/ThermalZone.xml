@@ -11,7 +11,7 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="PhysicalContext.xml">
     <edmx:Include Namespace="PhysicalContext.v1_0_0"/>
@@ -28,7 +28,8 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ThermalZone.v1_0_0">
 
       <EntityType Name="ThermalZone" BaseType="Resource.v1_0_0.Resource">
-        <Annotation Term="Redfish.Deprecated" String="Entity type will be removed in the future and functionality will be provided in a different way"/>
+        <Annotation Term="Redfish.Deprecated"
+                    String="Entity type will be removed in the future and functionality will be provided in a different way"/>
 
         <Property Name="Status" Type="Resource.Status"/>
         <Property Name="RackLocation" Type="RackLocation.RackLocation"/>

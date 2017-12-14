@@ -30,8 +30,8 @@ SerialConsole::SerialConsole() { }
 
 SerialConsole::~SerialConsole() { }
 
-Json::Value SerialConsole::to_json() const {
-    Json::Value result;
+json::Json SerialConsole::to_json() const {
+    json::Json result;
     result[literals::SerialConsole::SIGNAL_TYPE] = get_signal_type();
     result[literals::SerialConsole::BITRATE] = get_bitrate();
     result[literals::SerialConsole::PARITY] = get_parity();
@@ -45,7 +45,7 @@ Json::Value SerialConsole::to_json() const {
     return result;
 }
 
-SerialConsole SerialConsole::from_json(const Json::Value& json) {
+SerialConsole SerialConsole::from_json(const json::Json& json) {
     attribute::SerialConsole serial_console;
     serial_console.set_signal_type(OptionalField<enums::SerialConsoleSignalType>(
         json[literals::SerialConsole::SIGNAL_TYPE]));

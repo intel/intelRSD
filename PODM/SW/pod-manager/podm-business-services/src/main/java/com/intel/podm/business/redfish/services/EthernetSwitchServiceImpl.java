@@ -17,61 +17,54 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.EthernetSwitchDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.EthernetSwitchDto;
-import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.dao.EthernetSwitchDao;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCHES;
-import static com.intel.podm.business.redfish.ContextCollections.asManagerContexts;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
-import static com.intel.podm.business.redfish.Contexts.toContext;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.ACLS_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_METRICS_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.PORTS_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class EthernetSwitchServiceImpl implements ReaderService<EthernetSwitchDto> {
+@RequestScoped
+class EthernetSwitchServiceImpl implements ReaderService<EthernetSwitchDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private GenericDao genericDao;
+    private EthernetSwitchDao ethernetSwitchDao;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context serviceRootContext) throws ContextResolvingException {
-        return new CollectionDto(ETHERNET_SWITCHES, getAsIdSet(genericDao.findAll(EthernetSwitch.class)));
+        return new CollectionDto(ETHERNET_SWITCHES, ethernetSwitchDao.getAllEthernetSwitchIds());
     }
 
+    @Transactional(REQUIRED)
     @Override
-    public EthernetSwitchDto getResource(Context ethernetSwitch) throws ContextResolvingException {
-        EthernetSwitch aSwitch = (EthernetSwitch) traverser.traverse(ethernetSwitch);
+    public EthernetSwitchDto getResource(Context ethernetSwitchContext) throws ContextResolvingException {
+        EthernetSwitch ethernetSwitch = (EthernetSwitch) traverser.traverse(ethernetSwitchContext);
 
-        return EthernetSwitchDto.newBuilder()
-            .id(aSwitch.getId().toString())
-            .name(aSwitch.getName())
-            .description(aSwitch.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(aSwitch.getService(), aSwitch.getUnknownOems()))
-            .switchId(aSwitch.getSwitchId())
-            .manufacturer(aSwitch.getManufacturer())
-            .model(aSwitch.getModel())
-            .manufacturingDate(aSwitch.getManufacturingDate())
-            .serialNumber(aSwitch.getSerialNumber())
-            .partNumber(aSwitch.getPartNumber())
-            .firmwareName(aSwitch.getFirmwareName())
-            .firmwareVersion(aSwitch.getFirmwareVersion())
-            .role(aSwitch.getRole())
-            .status(aSwitch.getStatus())
-            .chassis(toContext(aSwitch.getChassis()))
-            .managedBy(asManagerContexts(aSwitch.getManagers()))
-            .build();
+        EthernetSwitchDto target = (EthernetSwitchDto) entityToDtoMapper.map(ethernetSwitch);
+        target.setAcls(singletonContextOf(ethernetSwitchContext, ACLS_RESOURCE_NAME));
+        target.setPorts(singletonContextOf(ethernetSwitchContext, PORTS_RESOURCE_NAME));
+        if (ethernetSwitch.getEthernetSwitchMetrics() != null) {
+            target.setMetrics(singletonContextOf(ethernetSwitchContext, ETHERNET_SWITCH_METRICS_RESOURCE_NAME));
+        }
+        return target;
     }
 }

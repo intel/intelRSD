@@ -19,8 +19,8 @@ package com.intel.podm.common.utils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +50,7 @@ public final class StringRepresentation {
         Map<String, String> resultMap = splitter
                 .withKeyValueSeparator(KEY_VALUE_SEPARATOR)
                 .split(stringToSplit);
-        resultMap = new HashMap<>(resultMap);
+        resultMap = new LinkedHashMap<>(resultMap);
         convertStringNullValues(resultMap);
         return resultMap;
     }

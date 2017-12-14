@@ -17,40 +17,150 @@
  * @file set_network_device_function_attributes.cpp
  */
 
+#include "utils/compute_conversions.hpp"
 #include "agent-framework/module/requests/validation/compute.hpp"
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "command/set_network_device_function_attributes.hpp"
-#include "ipmi/command/sdv/set_oob_control_boot_options.hpp"
-#include "ipmi/command/sdv/set_oob_heap_boot_options.hpp"
-#include "ipmi/command/sdv/set_oob_initiator_boot_options.hpp"
-#include "ipmi/command/sdv/set_oob_nic_boot_options.hpp"
-#include "ipmi/command/sdv/set_oob_target_boot_options.hpp"
-#include "ipmi/command/sdv/set_oob_reset_boot_options.hpp"
+#include "ipmi/command/sdv/iscsi_oob_boot/set_oob_control_boot_options.hpp"
+#include "ipmi/command/sdv/iscsi_oob_boot/set_oob_heap_boot_options.hpp"
+#include "ipmi/command/sdv/iscsi_oob_boot/set_oob_initiator_boot_options.hpp"
+#include "ipmi/command/sdv/iscsi_oob_boot/set_oob_nic_boot_options.hpp"
+#include "ipmi/command/sdv/iscsi_oob_boot/set_oob_target_boot_options.hpp"
+#include "ipmi/command/sdv/iscsi_oob_boot/set_oob_reset_boot_options.hpp"
+#include "ipmi/command/generic/enums.hpp"
+#include "ipmi/utils/sdv/mdr_region_accessor.hpp"
 
+#include "iscsi/structs/iscsi_mdr_header.hpp"
+#include "iscsi/structs/iscsi_mdr_target.hpp"
 
-using namespace agent_framework::model;
+#include "iscsi/iscsi_mdr_builder.hpp"
+
+#include "json-wrapper/json-wrapper.hpp"
+
+#include <functional>
+
 using namespace agent_framework::exceptions;
-using agent_framework::module::ComputeComponents;
-using agent_framework::module::CommonComponents;
+using namespace agent_framework::model;
 using namespace agent_framework::model::requests::validation;
+using namespace agent_framework::module;
 using namespace ipmi::manager::ipmitool;
 using namespace ipmi::command::sdv;
 using Heap = std::vector<std::uint8_t>;
 
 
 namespace {
+
+struct DeviceFunctionContext final {
+
+    /*!
+     * @brief Constructor
+     */
+
+    DeviceFunctionContext(const NetworkDeviceFunction& network_device_function) :
+        m_net_dev{network_device_function} {
+    }
+
+    /*!
+     * @brief Deleted copy constructor.
+     */
+    DeviceFunctionContext(const DeviceFunctionContext&) = delete;
+
+    /*!
+     * @brief Deleted move constructor.
+     */
+    DeviceFunctionContext(DeviceFunctionContext&&) = delete;
+
+    /*!
+     * @brief Deleted copy assignment.
+     */
+    DeviceFunctionContext& operator=(const DeviceFunctionContext&) = delete;
+
+    /*!
+     * @brief Deleted move assignment.
+     */
+    DeviceFunctionContext& operator=(DeviceFunctionContext&&) = delete;
+
+    /*!
+     * @brief Default destructor.
+     */
+    ~DeviceFunctionContext() = default;
+
+    /*!
+     * @brief Convert model IPAddressType to its iSCSI MDR counterpart.
+     *
+     * @param at the model IP address type.
+     * @return iSCSI MDR IP address type.
+     */
+    iscsi::structs::IpAddressType get_ip_type(const agent_framework::model::enums::IPAddressType& at) const {
+        return agent::compute::utils::IscsiMdrConverter::get_ip_type(at);
+    }
+
+    /*!
+     * @brief Convert model DHCP status to its iSCSI MDR counterpart.
+     *
+     * @param enabled the DHCP status.
+     * @return iSCSI MDR DHCP status.
+     */
+    iscsi::structs::TargetDhcpStatus get_dhcp_enabled(bool enabled) const {
+        return agent::compute::utils::IscsiMdrConverter::get_dhcp_enabled(enabled);
+    }
+
+    /*!
+     * @brief Convert model VLAN status to its iSCSI MDR counterpart.
+     *
+     * @param enabled the VLAN status.
+     * @return iSCSI MDR VLAN status.
+     */
+    iscsi::structs::VlanStatus get_vlan_enabled(bool enabled) const {
+        return agent::compute::utils::IscsiMdrConverter::get_vlan_enabled(enabled);
+    }
+
+    /*!
+     * @brief Convert model router advertisement status to its iSCSI MDR counterpart.
+     *
+     * @param enabled the router advertisement status.
+     * @return iSCSI MDR router advertisement status.
+     */
+    iscsi::structs::RouterAdvertisement get_router_advertisment(bool enabled) const {
+        return agent::compute::utils::IscsiMdrConverter::get_router_advertisment(enabled);
+    }
+
+    /*!
+     * @brief Convert model authentication method to its iSCSI MDR counterpart.
+     *
+     * @param am the model authentication method.
+     * @return iSCSI MDR authentication method.
+     */
+    iscsi::structs::AuthenticationMethod get_authentication_method(
+        const agent_framework::model::enums::FunctionAuthenticationMethod& am) const {
+        return agent::compute::utils::IscsiMdrConverter::get_authentication_method(am);
+    }
+
+    /*!
+     * @brief Get the network device function.
+     *
+     * @return the network device function.
+     */
+    const NetworkDeviceFunction& get_network_device_function() const {
+        return m_net_dev;
+    }
+
+private:
+    const NetworkDeviceFunction& m_net_dev;
+};
+
 void clear_data(ManagementController& mc) {
     request::SetOobResetBootOptions request{};
     response::SetOobResetBootOptions response{};
 
     request.set_params_ready(true);
-
-    mc.send(request, response);
-
-    if (response.get_completion_code()) {
-        THROW(IpmiError, "compute-agent", "Error Sending SetOobClearBootOptions On CC: " +
-                                          std::to_string(unsigned(response.get_completion_code())));
+    try {
+        mc.send(request, response);
+    }
+    catch (const ipmi::ResponseError& response_error) {
+        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobClearBootOptions On CC: ")
+                                          + response_error.what());
     }
 }
 
@@ -62,11 +172,12 @@ void send_control_data(ManagementController& mc, const NetworkDeviceFunction& fu
 
     request.set_bios_enabled(function.get_device_enabled());
     request.set_params_ready(true);
-    mc.send(request, response);
-
-    if (response.get_completion_code()) {
-        THROW(IpmiError, "compute-agent", "Error Sending SetOobControlBootOptions CC: " +
-                                          std::to_string(unsigned(response.get_completion_code())));
+    try {
+        mc.send(request, response);
+    }
+    catch (const ipmi::ResponseError& response_error) {
+        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobControlBootOptions On CC: ")
+                                          + response_error.what());
     }
 }
 
@@ -81,11 +192,12 @@ void send_initiator_data(ManagementController& mc, const NetworkDeviceFunction& 
     request.set_length(uint16_t(initiator_name.size()));
     heap.insert(heap.end(), initiator_name.begin(), initiator_name.end());
 
-    mc.send(request, response);
-
-    if (response.get_completion_code()) {
-        THROW(IpmiError, "compute-agent", "Error Sending SetOobInitiatorBootOptions CC: " +
-                                          std::to_string(unsigned(response.get_completion_code())));
+    try {
+        mc.send(request, response);
+    }
+    catch (const ipmi::ResponseError& response_error) {
+        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobInitiatorBootOptions On CC: ")
+                                          + response_error.what());
     }
 }
 
@@ -131,13 +243,12 @@ void send_nic_data(ManagementController& mc, const NetworkDeviceFunction& functi
     try {
         mc.send(request, response);
     }
+    catch (const ipmi::ResponseError& response_error) {
+        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobNicBootOptions On CC: ")
+                                          + response_error.what());
+    }
     catch (std::runtime_error& error) {
         THROW(IpmiError, "compute-agent", error.what());
-    }
-
-    if (response.get_completion_code()) {
-        THROW(IpmiError, "compute-agent", "Error Sending SetOobNicBootOptions CC: " +
-                                          std::to_string(unsigned(response.get_completion_code())));
     }
 }
 
@@ -209,13 +320,12 @@ void send_target_data(ManagementController& mc, const NetworkDeviceFunction& fun
     try {
         mc.send(request, response);
     }
+    catch (const ipmi::ResponseError& response_error) {
+        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobTargetBootOptions On CC: ")
+                                          + response_error.what());
+    }
     catch (std::runtime_error& error) {
         THROW(IpmiError, "compute-agent", error.what());
-    }
-
-    if (response.get_completion_code()) {
-        THROW(IpmiError, "compute-agent", "Error Sending SetOobTargetBootOptions CC: " +
-                                          std::to_string(unsigned(response.get_completion_code())));
     }
 }
 
@@ -228,14 +338,16 @@ void send_heap_data(ManagementController& mc, const NetworkDeviceFunction&, Heap
         request.set_offset(offset);
         request.set_data({heap.begin() + offset, heap.begin() + offset + length});
 
-        mc.send(request, response);
-        if (response.get_completion_code()) {
-            THROW(IpmiError, "compute-agent", "Error Sending SetOobHeapBootOptions CC: " +
-                                              std::to_string(unsigned(response.get_completion_code())));
+        try {
+            mc.send(request, response);
+        }
+        catch (const ipmi::ResponseError& response_error) {
+            THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobHeapBootOptions On CC: ")
+                                              + response_error.what());
         }
     };
 
-    if (0 == heap.size()) {
+    if (heap.empty()) {
         return;
     }
 
@@ -268,80 +380,80 @@ bool is_unsupported(const std::string& attribute) {
 }
 
 
-void process_iscsi_boot(NetworkDeviceFunction& function, const Json::Value& iscsi_boot,
+void process_iscsi_boot(NetworkDeviceFunction& function, const json::Json& iscsi_boot,
                         responses::SetComponentAttributes& response) {
     auto boot = function.get_iscsi_boot();
-    for (const auto& attribute_name: iscsi_boot.getMemberNames()) {
-        const auto& value = iscsi_boot[attribute_name];
+    for (auto it = iscsi_boot.begin(); it != iscsi_boot.end(); it++) {
+        const auto& value = it.value();
         try {
-            if (is_unsupported(attribute_name)) {
-                THROW(UnsupportedField, "compute-agent", "Setting attribute is not supported.", attribute_name, value);
+            if (is_unsupported(it.key())) {
+                THROW(UnsupportedField, "compute-agent", "Setting attribute is not supported.", it.key(), value);
             }
             else {
-                if (literals::IscsiBoot::IP_ADDRESS_TYPE == attribute_name) {
-                    boot.set_ip_address_type(enums::IPAddressType::from_string((value.asString())));
+                if (literals::IscsiBoot::IP_ADDRESS_TYPE == it.key()) {
+                    boot.set_ip_address_type(enums::IPAddressType::from_string((value.get<std::string>())));
                 }
-                else if (literals::IscsiBoot::INITIATOR_IP_ADDRESS == attribute_name) {
-                    boot.set_initiator_address(value.asString());
+                else if (literals::IscsiBoot::INITIATOR_IP_ADDRESS == it.key()) {
+                    boot.set_initiator_address(value.get<std::string>());
                 }
-                else if (literals::IscsiBoot::INITIATOR_NAME == attribute_name) {
-                    boot.set_initiator_name(value.asString());
+                else if (literals::IscsiBoot::INITIATOR_NAME == it.key()) {
+                    boot.set_initiator_name(value.get<std::string>());
                 }
-                else if (literals::IscsiBoot::INITIATOR_DEFAULT_GATEWAY == attribute_name) {
+                else if (literals::IscsiBoot::INITIATOR_DEFAULT_GATEWAY == it.key()) {
                     boot.set_initiator_default_gateway(value);
                 }
-                else if (literals::IscsiBoot::INITIATOR_NETMASK == attribute_name) {
-                    boot.set_initiator_netmask(value.asString());
+                else if (literals::IscsiBoot::INITIATOR_NETMASK == it.key()) {
+                    boot.set_initiator_netmask(value.get<std::string>());
                 }
-                else if (literals::IscsiBoot::TARGET_INFO_VIA_DHCP == attribute_name) {
-                    boot.set_target_info_via_dhcp(value.asBool());
+                else if (literals::IscsiBoot::TARGET_INFO_VIA_DHCP == it.key()) {
+                    boot.set_target_info_via_dhcp(value.get<bool>());
                 }
-                else if (literals::IscsiBoot::PRIMARY_TARGET_IP_ADDRESS == attribute_name) {
+                else if (literals::IscsiBoot::PRIMARY_TARGET_IP_ADDRESS == it.key()) {
                     boot.set_primary_target_address(value);
                 }
-                else if (literals::IscsiBoot::PRIMARY_TARGET_NAME == attribute_name) {
+                else if (literals::IscsiBoot::PRIMARY_TARGET_NAME == it.key()) {
                     boot.set_primary_target_name(value);
                 }
-                else if (literals::IscsiBoot::PRIMARY_TARGET_TCP_PORT == attribute_name) {
+                else if (literals::IscsiBoot::PRIMARY_TARGET_TCP_PORT == it.key()) {
                     boot.set_primary_target_port(value);
                 }
-                else if (literals::IscsiBoot::PRIMARY_LUN == attribute_name) {
+                else if (literals::IscsiBoot::PRIMARY_LUN == it.key()) {
                     boot.set_primary_lun(value);
                 }
-                else if (literals::IscsiBoot::PRIMARY_VLAN_ENABLE == attribute_name) {
-                    boot.set_primary_vlan_enable(value.asBool());
+                else if (literals::IscsiBoot::PRIMARY_VLAN_ENABLE == it.key()) {
+                    boot.set_primary_vlan_enable(value.get<bool>());
                 }
-                else if (literals::IscsiBoot::PRIMARY_VLAN_ID == attribute_name) {
+                else if (literals::IscsiBoot::PRIMARY_VLAN_ID == it.key()) {
                     boot.set_primary_vlan_id(value);
                 }
-                else if (literals::IscsiBoot::PRIMARY_DNS == attribute_name) {
+                else if (literals::IscsiBoot::PRIMARY_DNS == it.key()) {
                     boot.set_primary_dns(value);
                 }
-                else if (literals::IscsiBoot::SECONDARY_DNS == attribute_name) {
+                else if (literals::IscsiBoot::SECONDARY_DNS == it.key()) {
                     boot.set_secondary_dns(value);
                 }
-                else if (literals::IscsiBoot::IP_MASK_DNS_VIA_DHCP == attribute_name) {
-                    boot.set_ip_mask_dns_via_dhcp(value.asBool());
+                else if (literals::IscsiBoot::IP_MASK_DNS_VIA_DHCP == it.key()) {
+                    boot.set_ip_mask_dns_via_dhcp(value.get<bool>());
                 }
-                else if (literals::IscsiBoot::AUTHENTICATION_METHOD == attribute_name) {
-                    boot.set_authentication_method(enums::FunctionAuthenticationMethod::from_string((value.asString())));
+                else if (literals::IscsiBoot::AUTHENTICATION_METHOD == it.key()) {
+                    boot.set_authentication_method(enums::FunctionAuthenticationMethod::from_string((value.get<std::string>())));
                 }
-                else if (literals::IscsiBoot::CHAP_USERNAME == attribute_name) {
+                else if (literals::IscsiBoot::CHAP_USERNAME == it.key()) {
                     boot.set_chap_username(value);
                 }
-                else if (literals::IscsiBoot::CHAP_SECRET == attribute_name) {
+                else if (literals::IscsiBoot::CHAP_SECRET == it.key()) {
                     boot.set_chap_secret(value);
                 }
-                else if (literals::IscsiBoot::MUTUAL_CHAP_USERNAME == attribute_name) {
+                else if (literals::IscsiBoot::MUTUAL_CHAP_USERNAME == it.key()) {
                     boot.set_mutual_chap_username(value);
                 }
-                else if (literals::IscsiBoot::MUTUAL_CHAP_SECRET == attribute_name) {
+                else if (literals::IscsiBoot::MUTUAL_CHAP_SECRET == it.key()) {
                     boot.set_mutual_chap_secret(value);
                 }
             }
         }
         catch (const GamiException& ex) {
-            response.add_status({std::string(literals::NetworkDeviceFunction::ISCSI_BOOT) + "/" + attribute_name,
+            response.add_status({std::string(literals::NetworkDeviceFunction::ISCSI_BOOT) + "/" + it.key(),
                                  ex.get_error_code(), ex.get_message()});
         }
     }
@@ -350,56 +462,112 @@ void process_iscsi_boot(NetworkDeviceFunction& function, const Json::Value& iscs
 }
 
 
-void send_iscsi_oob_parameters(const NetworkDeviceFunction& function, ManagementController& mc) {
-    Heap heap{};
-    clear_data(mc);
-    send_initiator_data(mc, function, heap);
-    send_nic_data(mc, function);
-    send_target_data(mc, function, heap);
-    send_heap_data(mc, function, heap);
-    send_control_data(mc, function);
-}
+enums::PlatformType get_platform_from_chassis(const std::string& network_device_uuid) {
+    const auto device = get_manager<NetworkDevice>().get_entry(network_device_uuid);
+    const auto system = get_manager<System>().get_entry(device.get_parent_uuid());
+    const auto chassis = get_manager<Chassis>().get_entry(system.get_chassis());
+    return chassis.get_platform();
 }
 
-void agent::compute::process_network_device_function(const std::string& uuid, const attribute::Attributes& attributes,
-                     responses::SetComponentAttributes& response) {
+void send_iscsi_oob_parameters(const NetworkDeviceFunction& function, ManagementController& mc) {
+    const enums::PlatformType platform = get_platform_from_chassis(function.get_parent_uuid());
+
+    if (platform == enums::PlatformType::GRANTLEY) {
+        Heap heap{};
+        clear_data(mc);
+        send_initiator_data(mc, function, heap);
+        send_nic_data(mc, function);
+        send_target_data(mc, function, heap);
+        send_heap_data(mc, function, heap);
+        send_control_data(mc, function);
+    }
+    else if (platform == enums::PlatformType::PURLEY) {
+        ipmi::IpmiInterface::ByteBuffer data{};
+        iscsi::builder::IscsiMdrBuilder::build(data, DeviceFunctionContext(function),
+            request::SetOobInitiatorBootOptions::PURLEY_DEFAULT_WAIT_TIME,
+            request::SetOobInitiatorBootOptions::DEFAULT_RETRY_COUNT);
+
+        try {
+            std::shared_ptr<ipmi::sdv::MdrRegionAccessor> accessor = ipmi::sdv::MdrRegionAccessorFactory().create(
+                ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_PURLEY, mc,
+                ipmi::command::sdv::DataRegionId::ISCSI_BOOT_OPTIONS);
+            accessor->write_mdr_region(data);
+        } catch (std::runtime_error& re) {
+            THROW(IscsiError, "compute-agent", re.what());
+        }
+    }
+    else {
+        THROW(InvalidValue, "compute-agent", "Could not set iSCSI OOB parameters: unsupported platform.");
+    }
+}
+
+void send_clear_iscsi_oob_parameters(const NetworkDeviceFunction& function, ManagementController& mc) {
+    const enums::PlatformType platform = get_platform_from_chassis(function.get_parent_uuid());
+
+    if (platform == enums::PlatformType::GRANTLEY) {
+        clear_data(mc);
+    }
+    else if (platform == enums::PlatformType::PURLEY) {
+        // writing only the version structure clears iSCSI boot options
+        ipmi::IpmiInterface::ByteBuffer data{};
+        iscsi::builder::IscsiMdrBuilder::clear(data, DeviceFunctionContext(function));
+
+        try {
+            std::shared_ptr<ipmi::sdv::MdrRegionAccessor> accessor = ipmi::sdv::MdrRegionAccessorFactory().create(
+                ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_PURLEY, mc,
+                ipmi::command::sdv::DataRegionId::ISCSI_BOOT_OPTIONS);
+            accessor->write_mdr_region(data);
+        } catch (std::runtime_error& re) {
+            THROW(IscsiError, "compute-agent", re.what());
+        }
+    }
+    else {
+        THROW(InvalidValue, "compute-agent", "Could not set iSCSI OOB parameters: unsupported platform.");
+    }
+}
+
+}
+
+void agent::compute::process_network_device_function(const std::string& uuid,
+                                                     const attribute::Attributes& attributes,
+                                                     responses::SetComponentAttributes& response) {
+
     ComputeValidator::validate_set_network_device_function_attributes(attributes);
     const auto attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
         log_debug(GET_LOGGER("compute-agent"), "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
-    auto locked_function = ComputeComponents::get_instance()->
-        get_network_device_function_manager().get_entry_reference(uuid);
+
+    auto locked_function = get_manager<NetworkDeviceFunction>().get_entry_reference(uuid);
     auto& function = locked_function.get_raw_ref();
 
     for (const auto& name : attribute_names) {
-        const auto& value = attributes.get_value(name);
-        if (literals::NetworkDeviceFunction::ETHERNET == name) {
-            if (value.isMember(literals::NetworkDeviceFunction::MAC_ADDRESS)) {
-                function.set_mac_address(value[literals::NetworkDeviceFunction::MAC_ADDRESS]);
+        try {
+            const auto& value = attributes.get_value(name);
+            if (literals::NetworkDeviceFunction::ETHERNET == name) {
+                auto it_mac = value.find(literals::NetworkDeviceFunction::MAC_ADDRESS);
+                if (it_mac != value.end()) {
+                    function.set_mac_address(*it_mac);
+                }
             }
-        }
-        else if (literals::NetworkDeviceFunction::ISCSI_BOOT == name) {
-            process_iscsi_boot(function, value, response);
-        }
-        else if (literals::NetworkDeviceFunction::OEM == name) {
-            try {
+            else if (literals::NetworkDeviceFunction::ISCSI_BOOT == name) {
+                process_iscsi_boot(function, value, response);
+            }
+            else if (literals::NetworkDeviceFunction::OEM == name) {
                 THROW(UnsupportedField, "compute-agent", "Setting attribute is not supported.", name, value);
             }
-            catch (const GamiException& ex) {
-                response.add_status({name, ex.get_error_code(), ex.get_message()});
-            }
+        }
+        catch (const GamiException& ex) {
+            response.add_status({name, ex.get_error_code(), ex.get_message()});
         }
     }
 
     if (function.get_device_enabled()) {
-        const auto system_uuid = ComputeComponents::get_instance()->
-            get_network_device_manager().get_entry_reference(function.get_parent_uuid())->get_parent_uuid();
-        const auto manager_uuid = CommonComponents::get_instance()->
-            get_system_manager().get_entry_reference(system_uuid)->get_parent_uuid();
-        auto connection_data = CommonComponents::get_instance()->
-            get_module_manager().get_entry_reference(manager_uuid)->get_connection_data();
+        const auto system_uuid = get_manager<NetworkDevice>()
+            .get_entry_reference(function.get_parent_uuid())->get_parent_uuid();
+        const auto manager_uuid = get_manager<System>().get_entry_reference(system_uuid)->get_parent_uuid();
+        auto connection_data = get_manager<Manager>().get_entry_reference(manager_uuid)->get_connection_data();
 
         ManagementController mc{};
         mc.set_ip(connection_data.get_ip_address());
@@ -414,20 +582,17 @@ void agent::compute::process_network_device_function(const std::string& uuid, co
 
 
 void agent::compute::set_iscsi_oob_parameters(const System& system, ManagementController& mc) {
-    const auto network_device_uuids = ComputeComponents::get_instance()->
-        get_network_device_manager().get_keys(system.get_uuid());
+    const auto network_device_uuids = get_manager<NetworkDevice>().get_keys(system.get_uuid());
     if (network_device_uuids.empty() || network_device_uuids.size() > 1) {
         THROW(InvalidUuid, "compute-agent",
               "Invalid number of Network Devices for System: '" + system.get_uuid() + "'!");
     }
-    const auto network_function_uuids = ComputeComponents::get_instance()->
-        get_network_device_function_manager().get_keys(network_device_uuids.front());
+    const auto network_function_uuids = get_manager<NetworkDeviceFunction>().get_keys(network_device_uuids.front());
     if (network_function_uuids.empty() || network_function_uuids.size() > 1) {
         THROW(InvalidUuid, "compute-agent",
               "Invalid number of Network Device Functions for Device: '" + network_device_uuids.front() + "'!");
     }
-    auto locked_function = ComputeComponents::get_instance()->
-        get_network_device_function_manager().get_entry_reference(network_function_uuids.front());
+    auto locked_function = get_manager<NetworkDeviceFunction>().get_entry_reference(network_function_uuids.front());
     auto& function = locked_function.get_raw_ref();
 
     if (!function.get_device_enabled()) {
@@ -439,45 +604,41 @@ void agent::compute::set_iscsi_oob_parameters(const System& system, ManagementCo
 
 
 void agent::compute::clear_iscsi_oob_parameters(const System& system, ManagementController& mc) {
-    const auto network_device_uuids = ComputeComponents::get_instance()->
-        get_network_device_manager().get_keys(system.get_uuid());
+    const auto network_device_uuids = get_manager<NetworkDevice>().get_keys(system.get_uuid());
     if (network_device_uuids.empty() || network_device_uuids.size() > 1) {
         THROW(InvalidUuid, "compute-agent",
               "Invalid number of Network Devices for System: '" + system.get_uuid() + "'!");
     }
-    const auto network_function_uuids = ComputeComponents::get_instance()->
-        get_network_device_function_manager().get_keys(network_device_uuids.front());
+    const auto network_function_uuids = get_manager<NetworkDeviceFunction>().get_keys(network_device_uuids.front());
     if (network_function_uuids.empty() || network_function_uuids.size() > 1) {
         THROW(InvalidUuid, "compute-agent",
               "Invalid number of Network Device Functions for Device: '" + network_device_uuids.front() + "'!");
     }
-    auto function = ComputeComponents::get_instance()->
-        get_network_device_function_manager().get_entry_reference(network_function_uuids.front());
+    auto function = get_manager<NetworkDeviceFunction>().get_entry_reference(network_function_uuids.front());
 
     if (function->get_device_enabled()) {
         log_info(GET_LOGGER("compute-agent"), "Clearing iSCSI OOB parameters over IPMI!");
         function->set_device_enabled(false);
-        clear_data(mc);
+        send_clear_iscsi_oob_parameters(function.get_raw_ref(), mc);
     }
 }
 
 
 bool agent::compute::get_iscsi_enabled(const System& system) {
-    const auto network_device_uuids = ComputeComponents::get_instance()->
-        get_network_device_manager().get_keys(system.get_uuid());
+    const auto network_device_uuids = get_manager<NetworkDevice>().get_keys(system.get_uuid());
     if (network_device_uuids.empty() || network_device_uuids.size() > 1) {
         log_error(GET_LOGGER("compute-agent"),
                   "Invalid number of Network Devices for System: '" + system.get_uuid() + "'!");
         return false;
     }
-    const auto network_function_uuids = ComputeComponents::get_instance()->
-        get_network_device_function_manager().get_keys(network_device_uuids.front());
+
+    const auto network_function_uuids = get_manager<NetworkDeviceFunction>().get_keys(network_device_uuids.front());
     if (network_function_uuids.empty() || network_function_uuids.size() > 1) {
         log_error(GET_LOGGER("compute-agent"),
                   "Invalid number of Network Device Functions for Device: '" + network_device_uuids.front() + "'!");
         return false;
     }
-    return ComputeComponents::get_instance()->
-        get_network_device_function_manager().get_entry_reference(
-        network_function_uuids.front())->get_device_enabled();
+
+    return get_manager<NetworkDeviceFunction>()
+        .get_entry_reference(network_function_uuids.front())->get_device_enabled();
 }

@@ -25,7 +25,6 @@
 
 #pragma once
 #include "server/connector/connector_factory.hpp"
-#include "server/multiplexer.hpp"
 #include "json/json.hpp"
 
 #include <vector>
@@ -70,7 +69,6 @@ public:
 
 private:
     std::vector<ConnectorUPtr> m_connectors{};
-    server::Multiplexer m_mp{};
 };
 
 }

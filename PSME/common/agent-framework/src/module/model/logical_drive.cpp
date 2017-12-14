@@ -31,10 +31,8 @@
 using namespace agent_framework::model;
 using namespace agent_framework::model::utils;
 
-const enums::Component LogicalDrive::component =
-    enums::Component::LogicalDrive;
-const enums::CollectionName LogicalDrive::collection_name =
-    enums::CollectionName::LogicalDrives;
+const enums::Component LogicalDrive::component = enums::Component::LogicalDrive;
+const enums::CollectionName LogicalDrive::collection_name = enums::CollectionName::LogicalDrives;
 
 
 LogicalDrive::LogicalDrive(const std::string& parent_uuid, enums::Component parent_type) :
@@ -44,8 +42,8 @@ LogicalDrive::LogicalDrive(const std::string& parent_uuid, enums::Component pare
 LogicalDrive::~LogicalDrive() { }
 
 
-Json::Value LogicalDrive::to_json() const {
-    Json::Value json;
+json::Json LogicalDrive::to_json() const {
+    json::Json json;
     json[literals::LogicalDrive::STATUS] = get_status().to_json();
     json[literals::LogicalDrive::TYPE] = get_type();
     json[literals::LogicalDrive::CAPACITY] = get_capacity_gb();
@@ -61,11 +59,10 @@ Json::Value LogicalDrive::to_json() const {
 }
 
 
-LogicalDrive LogicalDrive::from_json(const Json::Value& json) {
+LogicalDrive LogicalDrive::from_json(const json::Json& json) {
     LogicalDrive logical_drive;
 
-    logical_drive.set_status(attribute::Status::from_json(
-        json[literals::LogicalDrive::STATUS]));
+    logical_drive.set_status(attribute::Status::from_json(json[literals::LogicalDrive::STATUS]));
     logical_drive.set_type(json[literals::LogicalDrive::TYPE]);
     logical_drive.set_capacity_gb(json[literals::LogicalDrive::CAPACITY]);
     logical_drive.set_mode(json[literals::LogicalDrive::MODE]);
@@ -74,10 +71,8 @@ LogicalDrive LogicalDrive::from_json(const Json::Value& json) {
     logical_drive.set_image(json[literals::LogicalDrive::IMAGE]);
     logical_drive.set_bootable(json[literals::LogicalDrive::BOOTABLE]);
     logical_drive.set_protected(json[literals::LogicalDrive::PROTECTED]);
-    logical_drive.set_collections(Collections::from_json(
-        json[literals::LogicalDrive::COLLECTIONS]));
-    logical_drive.set_oem(attribute::Oem::from_json(
-        json[literals::LogicalDrive::OEM]));
+    logical_drive.set_collections(Collections::from_json(json[literals::LogicalDrive::COLLECTIONS]));
+    logical_drive.set_oem(attribute::Oem::from_json(json[literals::LogicalDrive::OEM]));
     logical_drive.set_resource_hash(json);
 
     return logical_drive;

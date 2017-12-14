@@ -18,7 +18,7 @@ package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Memory;
 import com.intel.podm.business.entities.redfish.embeddables.MemoryLocation;
-import com.intel.podm.client.api.resources.redfish.MemoryResource;
+import com.intel.podm.client.resources.redfish.MemoryResource;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.RegionMapper;
 import com.intel.podm.mappers.subresources.SimpleTypeMapper;

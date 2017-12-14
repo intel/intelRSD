@@ -29,19 +29,61 @@
 #include "agent-framework/module/chassis_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 
+
+
 using namespace agent::chassis::ipmb::command;
 
 using agent_framework::module::ChassisComponents;
 using agent_framework::module::CommonComponents;
 
+namespace {
+
+/*!
+ * Checks if the machine running the code is big endian without
+ * resorting to compiler depended macros or architecture dependent code.
+ *
+ * @return true if the machine is big endian, false otherwise
+ */
+bool is_big_endian() {
+    // LSB = 0x00, MSB = 0xff
+    std::uint16_t test_value = 0xff << 8;
+    // Points to LSB on little endian machines or MSB on big endian ones.
+    // This command does not cause undefined behaviour as the dereferenced
+    // value is located on a proper memory boundary.
+    std::uint8_t* probe = reinterpret_cast<std::uint8_t*>(&test_value);
+    // evaluates to false for little endian machines
+    return *probe;
+}
+
+
+/*!
+ * Return 2-byte drawer power in a proper IPMI defined order.
+ *
+ * @param power Drawer power
+ * @return Drawer power in MSB order
+ */
+std::uint16_t drawer_power_ipmi_order(std::uint16_t power) {
+    if (is_big_endian()) {
+        return power;
+    }
+    else {
+        return static_cast<uint16_t>(power << 8u | (power >> 8u));
+    }
+}
+
+}
+
+
 GetDrawerPower::~GetDrawerPower() {}
 
-void GetDrawerPower::unpack(IpmiMessage& msg){
+
+void GetDrawerPower::unpack(IpmiMessage& msg) {
     log_debug(LOGUSR, "Unpacking GetDrawerPower message.");
     msg.set_to_request();
 }
 
-void GetDrawerPower::pack(IpmiMessage& msg){
+
+void GetDrawerPower::pack(IpmiMessage& msg) {
 
     log_debug(LOGUSR, "Packing GetDrawerPower message.");
 
@@ -67,31 +109,35 @@ void GetDrawerPower::pack(IpmiMessage& msg){
 
 }
 
+
 void GetDrawerPower::make_response(DrawerPowerIpmbResponse& response) {
     uint8_t sled_presence_bit_map = 0;
     uint8_t sled_presence_mask = 1;
 
     auto drawer_manager_keys = CommonComponents::get_instance()->
-            get_module_manager().get_keys("");
+        get_module_manager().get_keys("");
     auto blade_manager_keys = CommonComponents::get_instance()->
-            get_module_manager().get_keys(drawer_manager_keys.front());
+        get_module_manager().get_keys(drawer_manager_keys.front());
 
     for (const auto& key: blade_manager_keys) {
         auto manager = CommonComponents::get_instance()->
-                get_module_manager().get_entry(key);
+            get_module_manager().get_entry(key);
         if (manager.get_presence()) {
             sled_presence_bit_map = uint8_t(sled_presence_bit_map | sled_presence_mask << (manager.get_slot() - 1));
             log_debug(LOGUSR, "Sled presence mask: " << std::to_string(static_cast<uint>(sled_presence_mask))
-                      << " Sled presence bit map: " << std::to_string(static_cast<uint>(sled_presence_bit_map)));
+                                                     << " Sled presence bit map: "
+                                                     << std::to_string(static_cast<uint>(sled_presence_bit_map)));
             auto chassis_keys = CommonComponents::get_instance()->
-                    get_chassis_manager().get_keys(manager.get_uuid());
+                get_chassis_manager().get_keys(manager.get_uuid());
             auto power_zone_keys = ChassisComponents::get_instance()->
-                    get_power_zone_manager().get_keys(chassis_keys.front());
+                get_power_zone_manager().get_keys(chassis_keys.front());
 
             auto power_zone = ChassisComponents::get_instance()->
-                    get_power_zone_manager().get_entry_reference(power_zone_keys.front());
+                get_power_zone_manager().get_entry_reference(power_zone_keys.front());
 
-            response.sled_power[response.sled_count] = uint16_t(power_zone->get_power_input());
+            auto power = power_zone->get_power_consumed_watts();
+            response.sled_power[response.sled_count] = drawer_power_ipmi_order(
+                uint16_t(power.has_value() ? power.value() : ~0x00));
 
             response.sled_count++;
             sled_presence_mask = 1;

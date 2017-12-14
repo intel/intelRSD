@@ -22,6 +22,7 @@
  * @brief Physical drive
  * */
 #pragma once
+
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "agent-framework/module/model/block_device.hpp"
 #include "agent-framework/module/enum/storage.hpp"
@@ -33,8 +34,10 @@ namespace model {
 /*! Physical Drive */
 class PhysicalDrive : public BlockDevice {
 public:
-    explicit PhysicalDrive(const std::string& parent_uuid = {}, enums::Component parent_type = enums::Component::StorageServices);
-    ~PhysicalDrive();
+    explicit PhysicalDrive(const std::string& parent_uuid = {},
+                           enums::Component parent_type = enums::Component::StorageService);
+
+    virtual ~PhysicalDrive();
 
     PhysicalDrive(const PhysicalDrive&) = default;
     PhysicalDrive& operator=(const PhysicalDrive&) = default;
@@ -44,18 +47,18 @@ public:
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief construct an object of class PhysicalDrive from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed PhysicalDrive object
      */
-    static PhysicalDrive from_json(const Json::Value& json);
+    static PhysicalDrive from_json(const json::Json& json);
 
     /*!
      * @brief Get collection name

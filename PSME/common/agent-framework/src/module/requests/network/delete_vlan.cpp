@@ -29,7 +29,7 @@
 #include "agent-framework/module/requests/network/delete_vlan.hpp"
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -39,16 +39,16 @@ DeleteVlan::DeleteVlan(const std::string& vlan,
                 m_vlan(vlan),
                 m_oem{} {}
 
-Json::Value DeleteVlan::to_json() const {
-    Json::Value value;
+json::Json DeleteVlan::to_json() const {
+    json::Json value;
     value[Vlan::VLAN] = m_vlan;
     value[Oem::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteVlan DeleteVlan::from_json(const Json::Value& json) {
+DeleteVlan DeleteVlan::from_json(const json::Json& json) {
     return DeleteVlan{
-        json[Vlan::VLAN].asString(),
+        json[Vlan::VLAN],
         agent_framework::model::attribute::Oem{}
 
     };

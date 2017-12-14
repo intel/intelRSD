@@ -24,15 +24,11 @@
 
 #include "agent-framework/eventing/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
-#include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/enum/compute.hpp"
-
 #include "ipmi/command/generic/get_chassis_status.hpp"
-#include "ipmi/management_controller.hpp"
-#include "ipmi/manager/ipmitool/management_controller.hpp"
-
 #include "status/system_power_state_thread.hpp"
+#include "status/bmc.hpp"
 
 using namespace ipmi;
 using namespace ipmi::manager;
@@ -40,152 +36,50 @@ using namespace agent::compute::status;
 using namespace agent_framework::model;
 using namespace agent_framework::eventing;
 
-using agent_framework::module::ComputeComponents;
 using agent_framework::module::CommonComponents;
-
-/*! Default system power state update interval */
-constexpr const SystemPowerStateThread::Seconds
-SystemPowerStateThread::DEFAULT_POWER_STATE_UPDATE_INTERVAL;
+using agent::compute::Bmc;
 
 namespace {
-Manager find_parent_manager(const string& system_uuid) {
-    auto& sm = CommonComponents::get_instance()->get_system_manager();
-    auto system = sm.get_entry(system_uuid);
 
-    auto& mm = CommonComponents::get_instance()->get_module_manager();
-    auto managers = mm.get_keys("", [&system](const Manager& manager) {
-        return manager.get_uuid() == system.get_parent_uuid();
-    });
-
-    if (managers.empty()) {
-        THROW(agent_framework::exceptions::InvalidUuid, "compute-agent",
-              "Manger for System: '" + system_uuid + "' not found!");
-    }
-
-    return mm.get_entry(managers.front());
-}
-
-void set_connection_data(ManagementController& mc, const string& system_uuid) {
-    auto manager = find_parent_manager(system_uuid);
-    auto connection_data = manager.get_connection_data();
-    mc.set_ip(connection_data.get_ip_address());
-    mc.set_port(connection_data.get_port());
-    mc.set_username(connection_data.get_username());
-    mc.set_password(connection_data.get_password());
-}
-
-enums::PowerState get_ipmi_system_power_state(const std::string& system_uuid) {
-    using namespace ipmi::command::generic;
-    ipmi::manager::ipmitool::ManagementController mc{};
-    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
-    auto system = system_manager.get_entry(system_uuid);
-
-    set_connection_data(mc, system_uuid);
-
-    request::GetChassisStatus request;
-    response::GetChassisStatus response;
-
-    try {
-        mc.send(request, response);
-    }
-    catch (const std::exception& e) {
-        log_warning(GET_LOGGER("agent"), "Unable to send GetChassisStatus: "
-                                                            << e.what());
-        throw;
-    }
-
-    if (response.get_completion_code()) {
-        log_error(GET_LOGGER("agent"), "Bad GetChassisStatus response: "
-                  << std::to_string(unsigned(response.get_completion_code())));
-    }
-
-    return response.is_power_on() ? enums::PowerState::On : enums::PowerState::Off;
-}
-
-void notify(const std::string& system_uuid) {
+void notify(const std::string& parent_uuid, const std::string& system_uuid) {
     EventData event_data{};
-    event_data.set_parent(CommonComponents::get_instance()->
-        get_system_manager().get_entry_reference(system_uuid)->get_parent_uuid());
+    event_data.set_parent(parent_uuid);
     event_data.set_component(system_uuid);
     event_data.set_type(agent_framework::model::enums::Component::System);
     event_data.set_notification(Notification::Update);
     EventsQueue::get_instance()->push_back(event_data);
-    log_info(GET_LOGGER("status"), "Adding system power state notification for "
-            << "system uuid: " << system_uuid);
 }
 
-bool system_model_update(const std::string& system_uuid) {
-    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
-    if (!system_manager.entry_exists(system_uuid)){
-        log_warning(GET_LOGGER("status"), "System: " << system_uuid
-            << " is not present any more. ");
-        return false;
-    }
-    auto system = system_manager.get_entry(system_uuid);
-    const auto& last_power_state = system.get_power_state();
-    try {
-        enums::PowerState power_state = get_ipmi_system_power_state(system_uuid);
-        if (last_power_state != power_state) {
-            auto system_ref = system_manager.get_entry_reference(system_uuid);
-            system_ref->set_power_state(power_state);
-            log_info(GET_LOGGER("status"), "Power state for"
-                << " system_uuid: " << system_uuid
-                << " has been changed to: " << power_state);
-            return true;
+enums::PowerState read_power_status(ipmi::IpmiController& ipmi) {
+    ipmi::command::generic::request::GetChassisStatus request;
+    ipmi::command::generic::response::GetChassisStatus response;
+    ipmi.send(request, response);
+    return (response.is_power_on() ? enums::PowerState::On : enums::PowerState::Off);
+}
+
+}
+
+void agent::compute::status::update_system_power_state(Bmc& bmc) {
+    log_debug(GET_LOGGER("bmc"), bmc.get_id() << " reading system power status");
+    if (Bmc::State::ONLINE == bmc.get_state()) {
+        try {
+            auto power_status = read_power_status(bmc.ipmi());
+            const auto system_uuids = CommonComponents::get_instance()->get_system_manager().get_keys(bmc.get_manager_uuid());
+            log_debug(GET_LOGGER("bmc"), bmc.get_id() << " power status: " << power_status.to_string()
+                    << " systems present: " << (system_uuids.empty() ? "no" : "yes"));
+            for (const auto& system_uuid: system_uuids) {
+                auto system_ref = CommonComponents::get_instance()->get_system_manager().get_entry_reference(system_uuid);
+                const auto& last_power_status = system_ref->get_power_state();
+                if (!last_power_status.has_value() || last_power_status.value() != power_status) {
+                    system_ref->set_power_state(power_status);
+                    log_info(GET_LOGGER("status"), bmc.get_id() << " powered " << power_status.to_string()
+                            << " system " << system_uuid);
+                    notify(bmc.get_manager_uuid(), system_uuid);
+                }
+            }
+        }
+        catch (const ipmi::ResponseError& e) {
+            log_warning(GET_LOGGER("agent"), "power status read failed: " << e.what());
         }
     }
-    catch (const std::exception& ex) {
-        log_warning(GET_LOGGER("status"), "Unable to get system power state, system uuid: "
-            << system_uuid <<". "<<ex.what());
-    }
-    return false;
-}
-
-void update_and_notify(const std::string& system_uuid) {
-    bool is_model_updated{false};
-    try {
-        is_model_updated = system_model_update(system_uuid);
-    }
-    catch (const std::exception) {
-            log_warning(GET_LOGGER("status"), "Unable to update system: "
-                << system_uuid);
-    }
-    if (is_model_updated) {
-        notify(system_uuid);
-    }
-}
-
-}
-
-void SystemPowerStateThread::start() {
-    if (!m_running) {
-        m_running = true;
-        m_thread = std::thread(&SystemPowerStateThread::m_task, this);
-    }
-}
-
-void SystemPowerStateThread::stop() {
-    if (m_running) {
-        m_running = false;
-        if (m_thread.joinable()) {
-            m_thread.join();
-        }
-    }
-}
-
-void SystemPowerStateThread::m_task() {
-    log_debug(GET_LOGGER("status"), "System power state thread started.");
-
-    while (m_running) {
-        auto& system_manager = CommonComponents::get_instance()->get_system_manager();
-        for (const auto& system_uuid : system_manager.get_keys()) {
-            update_and_notify(system_uuid);
-        }
-        std::this_thread::sleep_for(m_interval);
-    }
-    log_debug(GET_LOGGER("status"), "System power state thread stopped.");
-}
-
-SystemPowerStateThread::~SystemPowerStateThread() {
-    stop();
 }

@@ -31,9 +31,9 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Chassis/Members/__CHASSIS_ID__/Drives/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#DriveCollection.DriveCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#StorageDriveCollection.StorageDriveCollection";
+    r[Common::ODATA_TYPE] = "#DriveCollection.DriveCollection";
     r[Common::NAME] = "Drive Collection";
     r[Common::DESCRIPTION] = "Collection of Drives";
     r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
@@ -43,25 +43,24 @@ json::Value make_prototype() {
 }
 }
 
-DrivesCollection::DrivesCollection(const std::string& path) : EndpointBase(path) { }
 
-DrivesCollection::~DrivesCollection() { }
+DrivesCollection::DrivesCollection(const std::string& path) : EndpointBase(path) {}
+
+
+DrivesCollection::~DrivesCollection() {}
+
 
 void DrivesCollection::get(const server::Request& req, server::Response& res) {
     auto json = ::make_prototype();
 
-    auto chassis = psme::rest::model::Find<agent_framework::model::Chassis>(
-        req.params[PathParam::CHASSIS_ID]).get_one();
+    auto chassis_uuid = psme::rest::model::Find<agent_framework::model::Chassis>(
+        req.params[PathParam::CHASSIS_ID]).get_uuid();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__CHASSIS_ID__"), std::to_string(chassis->get_id()));
 
+    auto keys = agent_framework::module::get_manager<agent_framework::model::Drive>().get_ids(chassis_uuid);
 
-    auto keys = agent_framework::module::get_manager<agent_framework::model::Drive>().get_ids(chassis->get_uuid());
-
-    json[Collection::ODATA_COUNT] =
-        static_cast<std::uint32_t>(keys.size());
+    json[Collection::ODATA_COUNT] = static_cast<std::uint32_t>(keys.size());
     for (const auto& key : keys) {
         json::Value link_elem(json::Value::Type::OBJECT);
         link_elem[Common::ODATA_ID] = PathBuilder(req).append(key).build();

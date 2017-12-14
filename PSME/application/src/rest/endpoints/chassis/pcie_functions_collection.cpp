@@ -29,7 +29,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#PCIeFunctions/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#PCIeFunctionCollection.PCIeFunctionCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#PCIeFunctionCollection.PCIeFunctionCollection";
     r[Common::DESCRIPTION] = "Collection of PCIe Functions";

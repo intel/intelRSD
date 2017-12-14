@@ -22,11 +22,9 @@ import java.util.concurrent.TimeoutException;
 public interface TaskCoordinator {
     void registerAsync(Object synchronizationKey, Runnable task);
 
-    <E extends Exception> void runThrowing(Object synchronizationKey, Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E;
+    <E extends Exception> void run(Object synchronizationKey, Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E;
 
-    <E extends Exception> void runThrowing(Object synchronizationKey, ThrowingRunnable<E> task) throws TimeoutException, E;
-
-    void run(Object synchronizationKey, Runnable task) throws TimeoutException;
+    <E extends Exception> void run(Object synchronizationKey, ThrowingRunnable<E> task) throws TimeoutException, E;
 
     <E extends Exception, R> R call(Object synchronizationKey, ThrowingCallable<R, E> task) throws TimeoutException, E;
 

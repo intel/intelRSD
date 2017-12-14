@@ -1,6 +1,4 @@
 /*!
- * @section LICENSE
- *
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation
  *
@@ -18,15 +16,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
- *
  * */
 
 #include "agent-framework/module/model/attributes/attributes.hpp"
+#include <algorithm>
 
 using namespace agent_framework::model::attribute;
 
 Attributes::Attributes() { }
 
 Attributes::~Attributes() { }
+
+bool Attributes::contains(const std::string& name) const {
+    const auto& names = get_names();
+    return std::find(names.cbegin(), names.cend(), name) != names.cend();
+}

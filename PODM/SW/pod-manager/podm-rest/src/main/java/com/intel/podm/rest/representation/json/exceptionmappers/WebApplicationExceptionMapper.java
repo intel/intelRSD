@@ -16,6 +16,7 @@
 
 package com.intel.podm.rest.representation.json.exceptionmappers;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -24,6 +25,7 @@ import javax.ws.rs.ext.Provider;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@ApplicationScoped
 @Provider
 @Produces(APPLICATION_JSON)
 public class WebApplicationExceptionMapper implements ExceptionMapper<WebApplicationException> {

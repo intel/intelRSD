@@ -27,16 +27,17 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.intel.podm.common.types.Status.fromMap;
+import static com.intel.podm.common.types.Status.statusFromMap;
 
 public class StatusDeserializer extends JsonDeserializer<Status> {
     @Override
     public Status deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
         Map<String, String> map = jsonParser.getCodec().
-                readValue(jsonParser, new TypeReference<LinkedHashMap<String, Object>>() { });
+            readValue(jsonParser, new TypeReference<LinkedHashMap<String, Object>>() {
+            });
 
         try {
-            return fromMap(map);
+            return statusFromMap(map);
         } catch (IllegalArgumentException e) {
             throw new JsonParseException("Unable to create Status: ", jsonParser.getCurrentLocation(), e);
         }

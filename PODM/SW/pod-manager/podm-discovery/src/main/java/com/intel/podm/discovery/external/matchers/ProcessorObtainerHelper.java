@@ -19,9 +19,9 @@ package com.intel.podm.discovery.external.matchers;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Processor;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
-import com.intel.podm.client.api.resources.redfish.ProcessorResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
+import com.intel.podm.client.resources.redfish.ProcessorResource;
 
 import javax.enterprise.context.Dependent;
 import java.util.Objects;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @Dependent
 public class ProcessorObtainerHelper implements EntityObtainerHelper<ProcessorResource> {
     @Override
-    public ComputerSystemResource findComputerSystemResourceFor(ProcessorResource resource) throws ExternalServiceApiReaderException {
+    public ComputerSystemResource findComputerSystemResourceFor(ProcessorResource resource) throws WebClientRequestException {
         return (ComputerSystemResource) resource.getComputerSystem().get();
     }
 
@@ -38,10 +38,9 @@ public class ProcessorObtainerHelper implements EntityObtainerHelper<ProcessorRe
     public Optional<? extends Entity> findEntityFor(ComputerSystem computerSystem, ProcessorResource resource) {
         String resourceProcessorSocket = resource.getSocket().orElse(null);
 
-        return computerSystem.getProcessors()
-                .stream()
-                .filter(processor -> Objects.equals(processor.getSocket(), resourceProcessorSocket))
-                .findFirst();
+        return computerSystem.getProcessors().stream()
+            .filter(processor -> Objects.equals(processor.getSocket(), resourceProcessorSocket))
+            .findFirst();
     }
 
     @Override

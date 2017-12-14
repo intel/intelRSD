@@ -20,7 +20,7 @@
 
 #include "agent-framework/module/model/attributes/target_lun.hpp"
 #include "agent-framework/module/constants/storage.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::model;
@@ -29,16 +29,16 @@ TargetLun::TargetLun() { }
 
 TargetLun::~TargetLun() { }
 
-Json::Value TargetLun::to_json() const {
-    Json::Value json;
+json::Json TargetLun::to_json() const {
+    json::Json json;
     json[literals::TargetLun::LUN] = get_lun();
     json[literals::TargetLun::LOGICAL_DRIVE] = get_logical_drive();
     return json;
 }
 
-TargetLun TargetLun::from_json(const Json::Value& json) {
+TargetLun TargetLun::from_json(const json::Json& json) {
     TargetLun target_lun;
-    target_lun.set_lun(json[literals::TargetLun::LUN].asUInt());
-    target_lun.set_logical_drive(json[literals::TargetLun::LOGICAL_DRIVE].asString());
+    target_lun.set_lun(json[literals::TargetLun::LUN]);
+    target_lun.set_logical_drive(json[literals::TargetLun::LOGICAL_DRIVE]);
     return target_lun;
 }

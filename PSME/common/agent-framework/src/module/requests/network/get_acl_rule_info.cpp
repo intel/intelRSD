@@ -26,7 +26,7 @@
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/constants/command.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -34,12 +34,12 @@ using namespace agent_framework::model;
 
 GetAclRuleInfo::GetAclRuleInfo(const std::string& rule): m_rule(rule) {}
 
-Json::Value GetAclRuleInfo::to_json() const {
-    Json::Value value;
+json::Json GetAclRuleInfo::to_json() const {
+    json::Json value;
     value[AclRule::RULE] = m_rule;
     return value;
 }
 
-GetAclRuleInfo GetAclRuleInfo::from_json(const Json::Value& json) {
-    return GetAclRuleInfo{json[AclRule::RULE].asString()};
+GetAclRuleInfo GetAclRuleInfo::from_json(const json::Json& json) {
+    return GetAclRuleInfo{json[AclRule::RULE].get<std::string>()};
 }

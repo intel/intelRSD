@@ -25,12 +25,11 @@ namespace jsonrpc {
 class NumberValidityChecker final : public ValidityChecker {
 public:
     NumberValidityChecker();
-    NumberValidityChecker(va_list args);
+    NumberValidityChecker(va_list& args);
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
-    static bool is_integral(double d);
 
     ProcedureValidator::NumberType type{};
 

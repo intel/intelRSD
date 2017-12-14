@@ -29,7 +29,7 @@
 #include "agent-framework/module/requests/storage/add_logical_drive.hpp"
 #include "agent-framework/module/constants/storage.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -41,6 +41,7 @@ AddLogicalDrive::AddLogicalDrive(
     const std::string& master,
     const OptionalField<std::string>& image,
     const bool snapshot,
+    const bool bootable,
     const bool mark_as_protected,
     const std::vector<std::string>& drives,
     const Oem& oem):
@@ -50,40 +51,43 @@ AddLogicalDrive::AddLogicalDrive(
     m_master(master),
     m_image(image),
     m_snapshot(snapshot),
+    m_bootable(bootable),
     m_protected(mark_as_protected),
     m_drives(drives),
     m_oem(oem) {}
 
-Json::Value AddLogicalDrive::to_json() const {
-    Json::Value value;
+json::Json AddLogicalDrive::to_json() const {
+    json::Json value;
     value[LogicalDrive::TYPE] = m_type;
     value[LogicalDrive::CAPACITY] = m_capacityGB;
     value[LogicalDrive::MODE] = m_mode;
     value[LogicalDrive::MASTER] = m_master;
     value[LogicalDrive::IMAGE] = m_image;
     value[LogicalDrive::SNAPSHOT] = m_snapshot;
+    value[LogicalDrive::BOOTABLE] = m_bootable;
     value[LogicalDrive::PROTECTED] = m_protected;
-    value[LogicalDrive::DRIVES] = Json::ValueType::arrayValue;
+    value[LogicalDrive::DRIVES] = json::Json::array();
     for(auto& drive_uuid : m_drives){
-        value[LogicalDrive::DRIVES].append(drive_uuid);
+        value[LogicalDrive::DRIVES].emplace_back(drive_uuid);
     }
     value[LogicalDrive::OEM] = m_oem.to_json();
     return value;
 }
 
-AddLogicalDrive AddLogicalDrive::from_json(const Json::Value& json) {
+AddLogicalDrive AddLogicalDrive::from_json(const json::Json& json) {
     std::vector<std::string> drives;
     for(auto& drive_json : json[LogicalDrive::DRIVES]){
-        drives.push_back(drive_json.asString());
+        drives.push_back(drive_json);
     }
     return AddLogicalDrive{
-        json[LogicalDrive::TYPE].asString(),
-        json[LogicalDrive::CAPACITY].asDouble(),
-        json[LogicalDrive::MODE].asString(),
-        json[LogicalDrive::MASTER].asString(),
+        json[LogicalDrive::TYPE],
+        json[LogicalDrive::CAPACITY],
+        json[LogicalDrive::MODE],
+        json[LogicalDrive::MASTER],
         json[LogicalDrive::IMAGE],
-        json[LogicalDrive::SNAPSHOT].asBool(),
-        json[LogicalDrive::PROTECTED].asBool(),
+        json[LogicalDrive::SNAPSHOT],
+        json[LogicalDrive::BOOTABLE],
+        json[LogicalDrive::PROTECTED],
         std::move(drives),
         Oem::from_json(json[LogicalDrive::OEM])
     };

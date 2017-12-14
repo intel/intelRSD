@@ -24,7 +24,8 @@
 
 #include "agent-framework/module/responses/storage/delete_logical_drive.hpp"
 #include "agent-framework/module/constants/storage.hpp"
-#include <json/json.h>
+#include "agent-framework/module/constants/common.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -33,14 +34,21 @@ DeleteLogicalDrive::DeleteLogicalDrive(Oem oem):
     m_oem{oem} {}
 
 
-Json::Value DeleteLogicalDrive::to_json() const {
-    Json::Value value;
+json::Json DeleteLogicalDrive::to_json() const {
+    json::Json value;
     value[LogicalDrive::OEM] = m_oem.to_json();
+    if (m_task.has_value()) {
+        value[TaskEntry::TASK] = m_task;
+    }
     return value;
 }
 
 DeleteLogicalDrive DeleteLogicalDrive::from_json
-    (const Json::Value& json) {
-    return DeleteLogicalDrive{Oem::from_json(
+    (const json::Json& json) {
+    DeleteLogicalDrive delete_response{Oem::from_json(
         json[LogicalDrive::OEM])};
+    if (json.count(TaskEntry::TASK)) {
+        delete_response.set_task(json[TaskEntry::TASK]);
+    }
+    return delete_response;
 }

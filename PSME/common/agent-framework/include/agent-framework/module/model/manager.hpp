@@ -39,6 +39,7 @@ namespace model {
 class Manager : public Resource {
 public:
     using NetworkServices = attribute::Array<attribute::NetworkService>;
+    using AllowedResetActions = attribute::Array<enums::ResetType>;
 
 
     explicit Manager(const std::string& parent_uuid = {}, enums::Component parent_type = enums::Component::None);
@@ -62,19 +63,19 @@ public:
     /*!
      * @brief construct an object of class Manager from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed Manager object
      */
-    static Manager from_json(const Json::Value& json);
+    static Manager from_json(const json::Json& json);
 
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
@@ -240,6 +241,7 @@ public:
         m_presence = presence;
     }
 
+
     /*!
      * @brief Get presence
      * @return presence
@@ -374,6 +376,7 @@ public:
         m_command_shell = command_shell;
     }
 
+
     /*!
      * @brief Set switch port identifier.
      *
@@ -382,6 +385,7 @@ public:
     void set_switch_port_identifier(const std::string& port) {
         m_switch_port_identifier = port;
     }
+
 
     /*!
      * @brief Get switch port identifier.
@@ -392,6 +396,25 @@ public:
         return m_switch_port_identifier;
     }
 
+
+    /*!
+     * @brief Returns list of all allowed reset actions on the chassis
+     * @return List of allowed reset actions
+     */
+    const AllowedResetActions& get_allowed_reset_actions() const {
+        return m_allowed_reset_actions;
+    }
+
+
+    /*!
+     * @brief Sets list of all allowed reset actions on the chassis
+     * @param allowed_reset_actions List of the allowed reset actions
+     */
+    void set_allowed_reset_actions(const AllowedResetActions& allowed_reset_actions) {
+        m_allowed_reset_actions = allowed_reset_actions;
+    }
+
+
 private:
     attribute::Status m_status{};
     OptionalField<enums::ManagerInfoType> m_type{enums::ManagerInfoType::ManagementController};
@@ -401,15 +424,16 @@ private:
     OptionalField<std::string> m_date_time_local_offset{};
     OptionalField<std::string> m_firmware_version{};
     OptionalField<std::string> m_ipv4_address{};
-    std::uint32_t m_slot{};
     OptionalField<std::string> m_guid{};
     NetworkServices m_network_services{};
+    AllowedResetActions m_allowed_reset_actions{};
     attribute::GraphicalConsole m_graphical_console{};
     attribute::SerialConsole m_serial_console{};
     attribute::CommandShell m_command_shell{};
     attribute::ConnectionData m_connection_data{};
-    bool m_presence{false};
     std::string m_switch_port_identifier{};
+    bool m_presence{false}; // @TODO: remove presence member after old compute discovery removal
+    std::uint32_t m_slot{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

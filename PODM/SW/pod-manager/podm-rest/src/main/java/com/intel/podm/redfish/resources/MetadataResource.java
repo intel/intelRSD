@@ -16,19 +16,28 @@
 
 package com.intel.podm.redfish.resources;
 
+import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
 
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceActionBuilder;
+import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
 
+@RequestScoped
 public class MetadataResource extends BaseResource {
     @Override
     public Object get() {
-        throw notFound();
+        throw invalidHttpMethod();
     }
 
     @Path("{path:.*}")
     public MetadataResourceProvider getMetadata(@PathParam("path") String resourceName) {
         return new MetadataResourceProvider(resourceName);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceActionBuilder().build();
     }
 }

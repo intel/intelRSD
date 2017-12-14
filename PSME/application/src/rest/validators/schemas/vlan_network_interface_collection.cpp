@@ -26,17 +26,15 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& VlanNetworkInterfaceCollectionPostSchema::OemSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "vlan_network_interface_oem",
         jsonrpc::PARAMS_BY_NAME,
-        constants::Common::RACKSCALE, VALID_ATTRIBUTE(RackscaleSchema),
+        constants::Common::RACKSCALE, VALID_ATTRIBUTE(RackScaleSchema),
         nullptr
     };
     return procedure;
 }
 
-const jsonrpc::ProcedureValidator& VlanNetworkInterfaceCollectionPostSchema::OemSchema::RackscaleSchema::get_procedure() {
+const jsonrpc::ProcedureValidator& VlanNetworkInterfaceCollectionPostSchema::OemSchema::RackScaleSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "vlan_network_interface_rackscale",
         jsonrpc::PARAMS_BY_NAME,
         constants::Vlan::TAGGED, VALID_JSON_BOOLEAN,
         nullptr
@@ -46,7 +44,6 @@ const jsonrpc::ProcedureValidator& VlanNetworkInterfaceCollectionPostSchema::Oem
 
 const jsonrpc::ProcedureValidator& VlanNetworkInterfaceCollectionPostSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "vlan_network_interface_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::NAME, VALID_OPTIONAL(VALID_JSON_STRING),
         constants::Common::OEM, VALID_ATTRIBUTE(OemSchema),

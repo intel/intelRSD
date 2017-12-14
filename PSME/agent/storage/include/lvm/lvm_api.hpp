@@ -30,6 +30,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <mutex>
 
 namespace agent {
 namespace storage {
@@ -73,9 +74,28 @@ public:
     void remove_logical_volume(const std::string& vg_name,
                                const std::string& lv_name);
 
+    /*!
+     * @brief Add tag to logical volume
+     * @param[in] vg_name Name of volume group of logical volume to be tagged
+     * @param[in] lv_name Name of logical volume to be tagged
+     * @param[in] tag Tag to be added
+     * */
+    void add_logical_volume_tag(const std::string& vg_name,
+                                const std::string& lv_name, const std::string& tag);
+
+    /*!
+     * @brief Remove tag from logical volume
+     * @param[in] vg_name Name of volume group of logical volume to be untagged
+     * @param[in] lv_name Name of logical volume to be untagged
+     * @param[in] tag Tag to be removed
+     * */
+    void remove_logical_volume_tag(const std::string& vg_name,
+                                const std::string& lv_name, const std::string& tag);
+
 private:
     class LvmImpl;
     std::shared_ptr<LvmImpl> m_impl{};
+    static std::mutex g_lvm_mutex;
 };
 
 }

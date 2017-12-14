@@ -16,10 +16,20 @@
 #
 # </license_header>
 
-set(BUILDROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/../../tools/buildroot)
+# handle absolute and relative paths in BUILDROOT_DIR
+if ("$ENV{BUILDROOT_DIR}" STREQUAL "")
+    set(BUILDROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/../../tools/buildroot)
+else()
+    string(SUBSTRING "$ENV{BUILDROOT_DIR}" 0 1 out)
+    if (out STREQUAL "/")
+        set(BUILDROOT_DIR "$ENV{BUILDROOT_DIR}")
+    else()
+        set(BUILDROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/../../$ENV{BUILDROOT_DIR})
+    endif()
+endif()
 
 if (NOT EXISTS ${BUILDROOT_DIR})
-    message(FATAL_ERROR "Buildroot directory doesn't exist")
+    message(FATAL_ERROR "Buildroot ${BUILDROOT_DIR} directory doesn't exist")
 endif()
 
 set(CMAKE_C_COMPILER

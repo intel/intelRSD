@@ -25,12 +25,9 @@
 #pragma once
 
 #include "agent-framework/module/model/attributes/oem.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
-
-namespace Json {
-    class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -53,7 +50,7 @@ public:
      *
      * @return created Json value
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create deleteAclRule from Json
@@ -62,7 +59,7 @@ public:
      *
      * @return new DeleteAclRule
      * */
-    static DeleteAclRule from_json(const Json::Value& json);
+    static DeleteAclRule from_json(const json::Json& json);
 
 private:
     Oem m_oem{};

@@ -20,7 +20,7 @@
 
 #include "agent-framework/module/model/attributes/pci_device.hpp"
 #include "agent-framework/module/constants/compute.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::model;
@@ -29,16 +29,16 @@ PciDevice::PciDevice() { }
 
 PciDevice::~PciDevice() { }
 
-Json::Value attribute::PciDevice::to_json() const {
-    Json::Value json;
+json::Json attribute::PciDevice::to_json() const {
+    json::Json json;
     json[literals::PciDevice::DEVICE_ID] = get_device_id();
     json[literals::PciDevice::VENDOR_ID] = get_vendor_id();
     return json;
 }
 
-PciDevice PciDevice::from_json(const Json::Value& json) {
+PciDevice PciDevice::from_json(const json::Json& json) {
     attribute::PciDevice pci_device;
-    pci_device.set_device_id(json[literals::PciDevice::DEVICE_ID].asString());
-    pci_device.set_vendor_id(json[literals::PciDevice::VENDOR_ID].asString());
+    pci_device.set_device_id(json[literals::PciDevice::DEVICE_ID]);
+    pci_device.set_vendor_id(json[literals::PciDevice::VENDOR_ID]);
     return pci_device;
 }

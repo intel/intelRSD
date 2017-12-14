@@ -5,16 +5,17 @@
   },
   "ConnectionSecurity": {
     "SslEnabledForRmm": true,
-    "SslPortForRmm": 8091,
-    "DefaultPortForRmm": 8090,
+    "SslPortsForRmm": [ 8443, 8091 ],
+    "DefaultPortsForRmm": [ 8888, 8090 ],
     "SslEnabledForPsme": true,
-    "SslPortForPsme": 8443,
-    "DefaultPortForPsme": 8888,
+    "SslPortsForPsme": [ 8443, 50000 ],
+    "DefaultPortsForPsme": [ 8888, 50000 ],
     "SslEnabledForRss": true,
-    "SslPortForRss": 8443,
-    "DefaultPortForRss": 8888,
+    "SslPortsForRss": [ 8443 ],
+    "DefaultPortsForRss": [ 8888 ],
     "SslEnabledForLui": true,
-    "SslPortForLui": 8443,
-    "DefaultPortForLui": 8888
+    "SslPortsForLui": [ 8443 ],
+    "DefaultPortsForLui": [ 8888 ],
+    "SslPortsForInBand": [ 8448 ]
   }
 }

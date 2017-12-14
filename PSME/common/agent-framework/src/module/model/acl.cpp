@@ -33,15 +33,15 @@ Acl::Acl(const std::string& parent_uuid, enums::Component parent_type) :
 
 Acl::~Acl() {}
 
-Json::Value Acl::to_json() const {
-    Json::Value result;
+json::Json Acl::to_json() const {
+    json::Json result;
     result[literals::Acl::STATUS] = get_status().to_json();
     result[literals::Acl::COLLECTIONS] = get_collections().to_json();
     result[literals::Acl::OEM] = get_oem().to_json();
     return result;
 }
 
-Acl Acl::from_json(const Json::Value& json) {
+Acl Acl::from_json(const json::Json& json) {
     Acl acl;
     acl.set_status(attribute::Status::from_json(json[literals::Acl::STATUS]));
     acl.set_collections(Collections::from_json(

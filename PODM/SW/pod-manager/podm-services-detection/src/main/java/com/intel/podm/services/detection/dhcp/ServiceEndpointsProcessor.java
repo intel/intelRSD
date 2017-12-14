@@ -16,11 +16,11 @@
 
 package com.intel.podm.services.detection.dhcp;
 
-import com.google.common.collect.Sets;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.ServiceDetectionConfig;
+import com.intel.podm.config.base.dto.ServiceDetectionConfig.Protocols.Dhcp;
 import com.intel.podm.discovery.external.ServiceEndpoint;
 
 import javax.enterprise.context.Dependent;
@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 
+import static com.google.common.collect.Sets.difference;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -54,10 +55,10 @@ class ServiceEndpointsProcessor {
     public Set<URI> getKnownUrisNotPresentInFreshCandidateSet(Set<DhcpServiceCandidate> freshCandidateSet) {
         Set<URI> knownUris = knownServiceEndpointsMap.keySet();
         Set<URI> freshCandidatesUris = freshCandidateSet.stream()
-                                            .map(DhcpServiceCandidate::getEndpointUri)
-                                            .collect(toSet());
+            .map(DhcpServiceCandidate::getEndpointUri)
+            .collect(toSet());
 
-        return Sets.difference(knownUris, freshCandidatesUris);
+        return difference(knownUris, freshCandidatesUris);
     }
 
     public ServiceEndpoint getKnownServiceByUri(URI uri) {
@@ -88,9 +89,9 @@ class ServiceEndpointsProcessor {
 
     public void removeUpdatedCandidatesFromFailedServices(Set<DhcpServiceCandidate> candidates) {
         Set<DhcpServiceCandidate> updatedCandidates = candidates.stream()
-                .filter(this::hasCandidateBeenUpdated)
-                .peek(updatedCandidate -> logger.t("Service {} has been updated and is scheduled for recheck", updatedCandidate))
-                .collect(toSet());
+            .filter(this::hasCandidateBeenUpdated)
+            .peek(updatedCandidate -> logger.t("Service {} has been updated and is scheduled for recheck", updatedCandidate))
+            .collect(toSet());
         failedServiceEndpointsMap.values().removeAll(updatedCandidates);
     }
 
@@ -112,17 +113,17 @@ class ServiceEndpointsProcessor {
     }
 
     public List<DhcpServiceCandidate> getCandidatesForRetry() {
-        ServiceDetectionConfig config = configHolder.get();
+        Dhcp dhcpConfig = configHolder.get().getProtocols().getDhcp();
         return failedServiceEndpointsMap.values().stream()
-                .filter(service -> service.getRetries() < config.getRetriesForFailedServiceCheck())
-                .collect(toList());
+            .filter(service -> service.getRetries() < dhcpConfig.getRetriesForFailedServiceCheck())
+            .collect(toList());
     }
 
     public List<DhcpServiceCandidate> getFreshCandidates(Set<DhcpServiceCandidate> candidates) {
         return candidates.stream()
-                .filter(service -> !knownServiceEndpointsMap.containsKey(service.getEndpointUri()))
-                .filter(service -> !failedServiceEndpointsMap.containsKey(service.getEndpointUri()))
-                .collect(toList());
+            .filter(service -> !knownServiceEndpointsMap.containsKey(service.getEndpointUri()))
+            .filter(service -> !failedServiceEndpointsMap.containsKey(service.getEndpointUri()))
+            .collect(toList());
     }
 
     /**
@@ -130,14 +131,14 @@ class ServiceEndpointsProcessor {
      * and schedules them for re-check. This enables detection of services that take a long time to start.
      */
     public void updateServicesListForReCheck() {
-        ServiceDetectionConfig config = configHolder.get();
+        Dhcp dhcpConfig = configHolder.get().getProtocols().getDhcp();
         failedServiceEndpointsMap.values().stream()
-                .filter(service -> service.getRetries() >= config.getRetriesForFailedServiceCheck())
-                .forEach(service -> {
-                    knownServiceEndpointsMap.remove(service.getEndpointUri());
-                    failedServiceEndpointsMap.remove(service.getEndpointUri());
-                    logger.i("Service {} scheduled for re-check", service);
-                });
+            .filter(service -> service.getRetries() >= dhcpConfig.getRetriesForFailedServiceCheck())
+            .forEach(service -> {
+                knownServiceEndpointsMap.remove(service.getEndpointUri());
+                failedServiceEndpointsMap.remove(service.getEndpointUri());
+                logger.i("Service {} scheduled for re-check", service);
+            });
     }
 
     /**

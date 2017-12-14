@@ -34,7 +34,7 @@ class Processor(PsmeStructureElement):
         self.manufacturer = ""
         self.model = ""
         self.modelName = ""
-        self.cpuid = CpuId()
+        self.cpuId = CpuId()
         self.totalCores = 0
         self.enabledCores = 0
         self.totalThreads = 0

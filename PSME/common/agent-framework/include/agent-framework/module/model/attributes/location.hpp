@@ -25,14 +25,9 @@
 #pragma once
 
 
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
-
-
-
-namespace Json {
-class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -94,17 +89,17 @@ public:
      *
      * @return JSON representation of Location object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
      * @brief construct an object of class Location from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed Location object
      */
-    static Location from_json(const Json::Value& json);
+    static Location from_json(const json::Json& json);
 
 
     /*! Default destructor */

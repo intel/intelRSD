@@ -5,7 +5,7 @@
     <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="RedfishExtensions.xml">
     <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
@@ -18,8 +18,10 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Session">
 
       <EntityType Name="Session" BaseType="Resource.v1_0_0.Resource" Abstract="true">
-        <Annotation Term="OData.Description" String="The Session resource describes a single connection (session) between a client and a Redfish service instance."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a session for a Redfish implementation."/>
+        <Annotation Term="OData.Description"
+                    String="The Session resource describes a single connection (session) between a client and a Redfish service instance."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent a session for a Redfish implementation."/>
       </EntityType>
 
     </Schema>
@@ -31,12 +33,15 @@
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="Redfish.RequiredOnCreate"/>
           <Annotation Term="OData.Description" String="The UserName for the account for this session."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be the UserName that matches a registered account identified by a ManagerAccount resource registered with the Account Service."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the UserName that matches a registered account identified by a ManagerAccount resource registered with the Account Service."/>
         </Property>
         <Property Name="Password" Type="Edm.String">
           <Annotation Term="Redfish.RequiredOnCreate"/>
-          <Annotation Term="OData.Description" String="This property is used in a POST to specify a password when creating a new session.  This property is null on a GET."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be the password for this session.  The value shall be null for GET requests."/>
+          <Annotation Term="OData.Description"
+                      String="This property is used in a POST to specify a password when creating a new session.  This property is null on a GET."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the password for this session.  The value shall be null for GET requests."/>
         </Property>
       </EntityType>
 

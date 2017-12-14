@@ -44,7 +44,7 @@ class HotswapManager {
 public:
     using PhysicalDrive = agent_framework::model::PhysicalDrive;
     using LogicalDrive = agent_framework::model::LogicalDrive;
-    using SysfsAPI = agent::storage::sysfs::SysfsAPI;
+    using HardDrive = agent::storage::SysfsAPI::HardDrive;
 
     /*!
      * @brief Update storage physical drive information
@@ -57,8 +57,8 @@ private:
     void check_logical_volumes_state(const std::string&);
     bool check_physical_volumes_state(const PhysicalDrive&, const std::string&);
     void check_targets_state(const LogicalDrive&, const std::string&);
-    bool compare_disks(const SysfsAPI::HardDrive&, const PhysicalDrive&);
-    void add_disk(const SysfsAPI::HardDrive&);
+    bool compare_disks(const HardDrive&, const PhysicalDrive&);
+    void add_disk(const HardDrive&);
     void remove_disk(const PhysicalDrive&);
 };
 

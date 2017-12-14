@@ -17,119 +17,78 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.ComputerSystemDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.ComputerSystemDto;
-import com.intel.podm.business.dto.redfish.attributes.ComputerSystemDeviceDto;
-import com.intel.podm.business.entities.dao.GenericDao;
-import com.intel.podm.business.entities.dao.PciePortDao;
+import com.intel.podm.business.entities.dao.ComputerSystemDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.Endpoint;
-import com.intel.podm.business.entities.redfish.Port;
-import com.intel.podm.business.entities.redfish.embeddables.ComputerSystemDevice;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.BootDtoHelper;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.aggregation.ComputerSystemMerger;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
-import com.intel.podm.common.types.redfish.RedfishComputerSystem;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.Collection;
-import java.util.Set;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SYSTEMS;
-import static com.intel.podm.business.redfish.ContextCollections.asChassisContexts;
-import static com.intel.podm.business.redfish.ContextCollections.asEndpointContexts;
-import static com.intel.podm.business.redfish.ContextCollections.asManagerContexts;
-import static com.intel.podm.business.redfish.ContextCollections.asPcieDeviceContexts;
-import static com.intel.podm.business.redfish.ContextCollections.asPcieDeviceFunctionContexts;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
-import static java.util.stream.Collectors.toSet;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.COMPUTER_SYSTEM_METRICS_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_INTERFACES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.MEMORY_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.NETWORK_INTERFACES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.PROCESSORS_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.SIMPLE_STORAGE_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.STORAGE_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
-@SuppressWarnings({"checkstyle:MethodLength", "checkstyle:ClassFanOutComplexity"})
 @RequestScoped
-public class ComputerSystemServiceImpl implements ReaderService<ComputerSystemDto> {
+class ComputerSystemServiceImpl implements ReaderService<ComputerSystemDto> {
     @Inject
-    private GenericDao genericDao;
+    private ComputerSystemDao computerSystemDao;
 
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private BootDtoHelper bootDtoHelper;
-
-    @Inject
-    private UnknownOemTranslator unknownOemTranslator;
-
-    @Inject
-    private PciePortDao pciePortDao;
+    private ComputerSystemMerger computerSystemMerger;
 
     @Override
     @Transactional(REQUIRES_NEW)
     public CollectionDto getCollection(Context serviceRootContext) throws ContextResolvingException {
-        Collection<ComputerSystem> computerSystemCollection = genericDao.findAll(ComputerSystem.class);
-        return new CollectionDto(SYSTEMS, getAsIdSet(computerSystemCollection));
+        return new CollectionDto(SYSTEMS, computerSystemDao.findAllComputerSystemsFromPrimaryDataSource());
     }
 
     @Override
     @Transactional(REQUIRES_NEW)
-    public ComputerSystemDto getResource(Context system) throws ContextResolvingException {
-        ComputerSystem computerSystem = (ComputerSystem) traverser.traverse(system);
+    public ComputerSystemDto getResource(Context context) throws ContextResolvingException {
+        ComputerSystem system = (ComputerSystem) traverser.traverse(context);
 
-        return ComputerSystemDto
-            .newBuilder()
-            .id(computerSystem.getId().toString())
-            .name(computerSystem.getName())
-            .description(computerSystem.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(computerSystem.getService(), computerSystem.getUnknownOems()))
-            .assetTag(computerSystem.getAssetTag())
-            .biosVersion(computerSystem.getBiosVersion())
-            .sku(computerSystem.getSku())
-            .hostName(computerSystem.getHostName())
-            .indicatorLed(computerSystem.getIndicatorLed())
-            .model(computerSystem.getModel())
-            .memorySockets(computerSystem.getMemorySockets())
-            .memoryStatus(computerSystem.getMemoryStatus())
-            .totalSystemMemoryGiB(computerSystem.getTotalSystemMemoryGiB())
-            .uuid(computerSystem.getUuid())
-            .manufacturer(computerSystem.getManufacturer())
-            .processorsCount(computerSystem.getProcessorsCount())
-            .processorsModel(computerSystem.getProcessorModel())
-            .processorSockets(computerSystem.getProcessorSockets())
-            .processorsStatus(computerSystem.getProcessorStatus())
-            .chassis(asChassisContexts(computerSystem.getChassis()))
-            .boot(bootDtoHelper.buildBootDto(computerSystem.getBoot()))
-            .discoveryState(computerSystem.getDiscoveryState())
-            .status(computerSystem.getStatus())
-            .systemType(computerSystem.getSystemType())
-            .powerState(computerSystem.getPowerState())
-            .serialNumber(computerSystem.getSerialNumber())
-            .partNumber(computerSystem.getPartNumber())
-            .pciDevices(buildDevices(computerSystem.getPciDevices()))
-            .pcieDevices(asPcieDeviceContexts(computerSystem.getPcieDevices()))
-            .endpoints(attachEndpoints(computerSystem))
-            .pcieDeviceFunctions(
-                asPcieDeviceFunctionContexts(computerSystem.getPcieDeviceFunctions()))
-            .allowableResetTypes(computerSystem.getAllowableResetTypes())
-            .managedBy(asManagerContexts(computerSystem.getManagers()))
-            .pcieConnectionId(computerSystem.getPcieConnectionId())
-            .build();
+        // Multi-source resources sanity check
+        if (system.isComplementary()) {
+            throw new ContextResolvingException("Specified resource is not a primary resource representation!", context, null);
+        }
+
+        ComputerSystemDto dto = computerSystemMerger.toDto(system);
+        setSingletonContexts(context, dto);
+
+        if (system.getComputerSystemMetrics() != null) {
+            dto.getOem().getRackScaleOem().setComputerSystemMetrics(singletonContextOf(context, COMPUTER_SYSTEM_METRICS_RESOURCE_NAME));
+        }
+
+        ComputerSystemDto.Actions actions = dto.getActions();
+        actions.getReset().setTarget(singletonContextOf(context, "Actions/ComputerSystem.Reset"));
+        actions.getOem().getStartDeepDiscovery().setTarget(singletonContextOf(context, "Actions/Oem/Intel.Oem.StartDeepDiscovery"));
+        actions.getOem().getChangeTpmState().setTarget(singletonContextOf(context, "Actions/Oem/Intel.Oem.ChangeTPMState"));
+
+        return dto;
     }
 
-    private Set<Context> attachEndpoints(ComputerSystem computerSystem) {
-        Set<Endpoint> endpoints = pciePortDao.getUpstreamPortsByCableIds(computerSystem.getPcieConnectionId()).stream()
-            .map(Port::getEndpoints)
-            .flatMap(Collection::stream)
-            .collect(toSet());
-        return asEndpointContexts(endpoints);
-    }
-
-    private Set<RedfishComputerSystem.Device> buildDevices(Collection<ComputerSystemDevice> devices) {
-        return devices.stream()
-            .map(device -> new ComputerSystemDeviceDto(device.getVendorId(), device.getDeviceId()))
-            .collect(toSet());
+    private void setSingletonContexts(Context context, ComputerSystemDto dto) {
+        dto.setProcessors(singletonContextOf(context, PROCESSORS_RESOURCE_NAME));
+        dto.setMemory(singletonContextOf(context, MEMORY_RESOURCE_NAME));
+        dto.setSimpleStorage(singletonContextOf(context, SIMPLE_STORAGE_RESOURCE_NAME));
+        dto.setStorage(singletonContextOf(context, STORAGE_RESOURCE_NAME));
+        dto.setEthernetInterfaces(singletonContextOf(context, ETHERNET_INTERFACES_RESOURCE_NAME));
+        dto.setNetworkInterfaces(singletonContextOf(context, NETWORK_INTERFACES_RESOURCE_NAME));
     }
 }

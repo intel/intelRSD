@@ -17,55 +17,54 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.StorageServiceDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.ServiceDto;
-import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.dao.StorageServiceDao;
 import com.intel.podm.business.entities.redfish.StorageService;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SERVICES;
 import static com.intel.podm.business.redfish.ContextCollections.asManagerContexts;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.LOGICAL_DRIVES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.PHYSICAL_DRIVES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.REMOTE_TARGETS_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class StorageServiceServiceImpl implements ReaderService<ServiceDto> {
+@RequestScoped
+class StorageServiceServiceImpl implements ReaderService<StorageServiceDto> {
     @Inject
-    private GenericDao genericDao;
+    private StorageServiceDao storageServiceDao;
 
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context serviceRootContext) {
-        List<StorageService> storageServices = genericDao.findAll(StorageService.class);
-        return new CollectionDto(SERVICES, getAsIdSet(storageServices));
+        return new CollectionDto(SERVICES, storageServiceDao.getAllStorageServiceIds());
     }
 
+    @Transactional(REQUIRED)
     @Override
-    public ServiceDto getResource(Context context) throws ContextResolvingException {
-        StorageService service = (StorageService) traverser.traverse(context);
-        return toServiceDto(service);
-    }
+    public StorageServiceDto getResource(Context context) throws ContextResolvingException {
+        StorageService storageService = (StorageService) traverser.traverse(context);
 
-    private ServiceDto toServiceDto(StorageService storageService) {
-        return ServiceDto.newBuilder()
-            .id(storageService.getId().toString())
-            .name(storageService.getName())
-            .description(storageService.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(storageService.getService(), storageService.getUnknownOems()))
-            .status(storageService.getStatus())
-            .managedBy(asManagerContexts(storageService.getManagers()))
-            .build();
+        StorageServiceDto dto = (StorageServiceDto) entityToDtoMapper.map(storageService);
+        dto.setRemoteTargets(singletonContextOf(context, REMOTE_TARGETS_RESOURCE_NAME));
+        dto.setLogicalDrives(singletonContextOf(context, LOGICAL_DRIVES_RESOURCE_NAME));
+        dto.setDrives(singletonContextOf(context, PHYSICAL_DRIVES_RESOURCE_NAME));
+        dto.getLinks().getManagedBy().addAll(asManagerContexts(storageService.getManagers()));
+        return dto;
     }
 }

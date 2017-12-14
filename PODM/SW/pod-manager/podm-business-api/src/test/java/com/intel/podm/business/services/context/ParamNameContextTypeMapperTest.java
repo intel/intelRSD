@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM;
+import static com.intel.podm.business.services.context.PathParamConstants.getPathParameterNames;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -77,7 +78,7 @@ public class ParamNameContextTypeMapperTest {
     @Test
     public void checkWhetherAllParametersAreMapped() {
         Set<String> mappedPathParams = ParamNameContextTypeMapper.MAPPING.keySet();
-        Set<String> allPathParams = new HashSet<>(PathParamConstants.getPathParameterNames());
+        Set<String> allPathParams = new HashSet<>(getPathParameterNames());
         assertEquals(mappedPathParams, allPathParams);
     }
 }

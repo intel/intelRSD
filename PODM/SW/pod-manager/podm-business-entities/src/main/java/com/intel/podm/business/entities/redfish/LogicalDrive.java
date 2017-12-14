@@ -42,6 +42,7 @@ import java.util.Set;
 import static com.intel.podm.common.types.ComposedNodeState.ALLOCATED;
 import static com.intel.podm.common.types.ComposedNodeState.ALLOCATING;
 import static com.intel.podm.common.types.ComposedNodeState.ASSEMBLING;
+import static com.intel.podm.common.types.VolumeMode.LV;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.math.BigDecimal.ZERO;
 import static javax.persistence.CascadeType.MERGE;
@@ -51,8 +52,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "logical_drive", indexes = @Index(name = "idx_logical_drive_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class LogicalDrive extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -105,9 +106,12 @@ public class LogicalDrive extends DiscoverableEntity {
     @JoinColumn(name = "storage_service_id")
     private StorageService storageService;
 
-    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
-    @JoinColumn(name = "composed_node_id")
-    private ComposedNode composedNode;
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "logical_drive_composed_node",
+        joinColumns = {@JoinColumn(name = "logical_drive_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "composed_node_id", referencedColumnName = "id")})
+    private Set<ComposedNode> composedNodes = new HashSet<>();
 
     @Override
     public Id getId() {
@@ -263,6 +267,10 @@ public class LogicalDrive extends DiscoverableEntity {
         }
     }
 
+    public Collection<LogicalDrive> getLogicalVolumeGroups() {
+        return usedByLogicalDrives;
+    }
+
     public LogicalDrive getMasterDrive() {
         return masterDrive;
     }
@@ -303,23 +311,22 @@ public class LogicalDrive extends DiscoverableEntity {
         }
     }
 
-    public ComposedNode getComposedNode() {
-        return composedNode;
+    public Set<ComposedNode> getComposedNodes() {
+        return composedNodes;
     }
 
-    public void setComposedNode(ComposedNode composedNode) {
-        if (!Objects.equals(this.composedNode, composedNode)) {
-            unlinkComposedNode(this.composedNode);
-            this.composedNode = composedNode;
-            if (composedNode != null && !composedNode.getLogicalDrives().contains(this)) {
-                composedNode.addLogicalDrive(this);
-            }
+    public void addComposedNode(ComposedNode composedNode) {
+        requiresNonNull(composedNode, "composedNode");
+
+        composedNodes.add(composedNode);
+        if (!composedNode.getLogicalDrives().contains(this)) {
+            composedNode.addLogicalDrive(this);
         }
     }
 
     public void unlinkComposedNode(ComposedNode composedNode) {
-        if (Objects.equals(this.composedNode, composedNode)) {
-            this.composedNode = null;
+        if (composedNodes.contains(composedNode)) {
+            composedNodes.remove(composedNode);
             if (composedNode != null) {
                 composedNode.unlinkLogicalDrive(this);
             }
@@ -327,25 +334,16 @@ public class LogicalDrive extends DiscoverableEntity {
     }
 
     public BigDecimal getFreeSpaceGib() {
-        Collection<LogicalDrive> usedBy = getUsedByLogicalDrives();
-        BigDecimal freeSpaceGib = getCapacityGib();
-
-        for (LogicalDrive logicalDrive : usedBy) {
-            freeSpaceGib = freeSpaceGib.subtract(logicalDrive.getCapacityGib());
-        }
-
-        freeSpaceGib = freeSpaceGib.subtract(getSpaceReservedByComposedNodes());
-        return freeSpaceGib;
+        return getCapacityGib()
+            .subtract(capacityOfExistingLvDrives())
+            .subtract(capacityOfLvDrivesFromNotAssembledComposedNodes());
     }
 
-    private BigDecimal getSpaceReservedByComposedNodes() {
-        if (composedNode != null
-            && composedNode.isInAnyOfStates(ALLOCATING, ALLOCATED, ASSEMBLING)
-            && composedNode.getRemoteDriveCapacityGib() != null) {
-            return composedNode.getRemoteDriveCapacityGib();
-        }
-
-        return ZERO;
+    private BigDecimal capacityOfExistingLvDrives() {
+        return getUsedLogicalDrives().stream()
+            .filter(logicalDrive -> LV.equals(logicalDrive.getMode()))
+            .map(LogicalDrive::getCapacityGib)
+            .reduce(ZERO, BigDecimal::add);
     }
 
     @Override
@@ -354,13 +352,20 @@ public class LogicalDrive extends DiscoverableEntity {
         unlinkCollection(physicalDrives, this::unlinkPhysicalDrive);
         unlinkCollection(usedLogicalDrives, this::unlinkUsedLogicalDrive);
         unlinkCollection(usedByLogicalDrives, this::unlinkUsedByLogicalDrive);
+        unlinkCollection(composedNodes, this::unlinkComposedNode);
         unlinkMasterDrive(masterDrive);
         unlinkStorageService(storageService);
-        unlinkComposedNode(composedNode);
     }
 
     @Override
     public boolean containedBy(Entity possibleParent) {
         return isContainedBy(possibleParent, storageService);
+    }
+
+    private BigDecimal capacityOfLvDrivesFromNotAssembledComposedNodes() {
+        return composedNodes.stream()
+            .filter(composedNode -> composedNode.isInAnyOfStates(ALLOCATING, ALLOCATED, ASSEMBLING))
+            .map(ComposedNode::getRemoteDriveCapacityGib)
+            .reduce(ZERO, BigDecimal::add);
     }
 }

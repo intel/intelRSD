@@ -54,8 +54,8 @@ TEST(GetStorageServicesInfoTest, PositiveExecute) {
     MyGetStorageServicesInfo command{TEST_SERVICES};
     GetStorageServicesInfo::Request request{""};
     GetStorageServicesInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[SERVICES] = TEST_SERVICES;
 
@@ -68,8 +68,8 @@ TEST(GetStorageServicesInfoTest, NegativeServicesNotFound) {
     MyGetStorageServicesInfo command{TEST_SERVICES};
     GetStorageServicesInfo::Request request{""};
     GetStorageServicesInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[SERVICES] = "OtherTestServices";
 

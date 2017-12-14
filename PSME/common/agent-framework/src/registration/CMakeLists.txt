@@ -20,6 +20,7 @@ set(SOURCES
     amc_client.cpp
     amc_connection_manager.cpp
     registration_request.cpp
+    registration_data.cpp
 )
 
 add_library(registration OBJECT ${SOURCES})

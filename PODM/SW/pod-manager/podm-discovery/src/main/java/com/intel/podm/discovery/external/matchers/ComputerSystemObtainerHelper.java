@@ -18,8 +18,8 @@ package com.intel.podm.discovery.external.matchers;
 
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
 
 import javax.enterprise.context.Dependent;
 import java.util.Optional;
@@ -29,7 +29,7 @@ import static java.util.Optional.of;
 @Dependent
 public class ComputerSystemObtainerHelper implements EntityObtainerHelper<ComputerSystemResource> {
     @Override
-    public ComputerSystemResource findComputerSystemResourceFor(ComputerSystemResource resource) throws ExternalServiceApiReaderException {
+    public ComputerSystemResource findComputerSystemResourceFor(ComputerSystemResource resource) throws WebClientRequestException {
         return resource;
     }
 

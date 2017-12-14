@@ -70,7 +70,11 @@ public:
     virtual ~GetSystemBootOptions();
 
 
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
+
+    virtual const char* get_command_name() const override {
+        return "GetSystemBootOptions";
+    }
 
 
 private:
@@ -141,8 +145,12 @@ public:
     }
 
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
 
+
+    virtual const char* get_command_name() const override {
+        return "GetSystemBootOptions";
+    }
 
 private:
 

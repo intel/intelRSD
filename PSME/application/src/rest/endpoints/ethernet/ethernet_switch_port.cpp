@@ -22,7 +22,7 @@
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
 
-#include "psme/rest/utils/mapper.hpp"
+#include "psme/rest/server/multiplexer.hpp"
 #include "psme/rest/utils/lag_utils.hpp"
 #include "psme/rest/utils/status_helpers.hpp"
 #include "psme/rest/validators/json_validator.hpp"
@@ -51,9 +51,9 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitches/Members/__SWITCH_ID__/Ports/Members/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchPort.EthernetSwitchPort";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#EthernetSwitchPort.v1_0_0.EthernetSwitchPort";
+    r[Common::ODATA_TYPE] = "#EthernetSwitchPort.v1_1_0.EthernetSwitchPort";
     r[Common::ID] = json::Value::Type::NIL;
     r[Common::NAME] = "Ethernet Switch Port";
     r[Common::DESCRIPTION] = "Ethernet Switch Port description";
@@ -67,12 +67,9 @@ json::Value make_prototype() {
     r[constants::EthernetSwitchPort::ADMINISTRATIVE_STATE] = json::Value::Type::NIL;
     r[constants::EthernetSwitchPort::LINK_SPEED] = json::Value::Type::NIL;
 
-    r[constants::EthernetSwitchPort::NEIGHBOR_INFO]
-    [constants::EthernetSwitchPort::SWITCH_ID] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::NEIGHBOR_INFO]
-    [constants::EthernetSwitchPort::PORT_ID] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::NEIGHBOR_INFO]
-    [constants::EthernetSwitchPort::CABLE_ID] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::NEIGHBOR_INFO][constants::EthernetSwitchPort::SWITCH_ID] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::NEIGHBOR_INFO][constants::EthernetSwitchPort::PORT_ID] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::NEIGHBOR_INFO][constants::EthernetSwitchPort::CABLE_ID] = json::Value::Type::NIL;
     r[constants::EthernetSwitchPort::NEIGHBOR_MAC] = json::Value::Type::NIL;
     r[constants::EthernetSwitchPort::FRAME_SIZE] = json::Value::Type::NIL;
     r[constants::EthernetSwitchPort::AUTOSENSE] = json::Value::Type::NIL;
@@ -83,36 +80,18 @@ json::Value make_prototype() {
     r[constants::EthernetSwitchPort::PORT_TYPE] = json::Value::Type::NIL;
     r[Common::OEM] = json::Value::Type::OBJECT;
 
-    r[constants::EthernetSwitchPort::IPv4_ADDRESSES] =
-        json::Value::Type::ARRAY;
-
-    r[constants::EthernetSwitchPort::IPv6_ADDRESSES] =
-        json::Value::Type::ARRAY;
-
-    r[constants::EthernetSwitchPort::VLANS] =
-        json::Value::Type::OBJECT;
-
-    r[constants::EthernetSwitchPort::STATIC_MACS] =
-        json::Value::Type::OBJECT;
+    r[constants::EthernetSwitchPort::IPv4_ADDRESSES] = json::Value::Type::ARRAY;
+    r[constants::EthernetSwitchPort::IPv6_ADDRESSES] = json::Value::Type::ARRAY;
+    r[constants::EthernetSwitchPort::VLANS] = json::Value::Type::OBJECT;
+    r[constants::EthernetSwitchPort::STATIC_MACS] = json::Value::Type::OBJECT;
+    r[constants::EthernetSwitchPort::NEIGHBOR_INTERFACE] = json::Value::Type::NIL;
 
     json::Value links;
-    links[constants::EthernetSwitchPort::PRIMARY_VLAN] =
-        json::Value::Type::NIL;
-    links[constants::EthernetSwitchPort::SWITCH] =
-        json::Value::Type::NIL;
-    links[constants::EthernetSwitchPort::MEMBER_OF_PORT] =
-        json::Value::Type::NIL;
-    links[constants::EthernetSwitchPort::PORT_MEMBERS] =
-        json::Value::Type::ARRAY;
-    links[constants::EthernetSwitchPort::ACTIVE_ACLS] =
-        json::Value::Type::ARRAY;
-    links[Common::OEM] = json::Value::Type::OBJECT;
-
-    links[Common::OEM][Common::RACKSCALE]
-    [Common::ODATA_TYPE] = "#Intel.Oem.EthernetSwitchPort";
-    links[Common::OEM][Common::RACKSCALE]
-    [constants::EthernetSwitchPort::NEIGHBOR_INTERFACE][Common::ODATA_ID] =
-        json::Value::Type::NIL;
+    links[constants::EthernetSwitchPort::PRIMARY_VLAN] = json::Value::Type::NIL;
+    links[constants::EthernetSwitchPort::SWITCH] = json::Value::Type::NIL;
+    links[constants::EthernetSwitchPort::MEMBER_OF_PORT] = json::Value::Type::NIL;
+    links[constants::EthernetSwitchPort::PORT_MEMBERS] = json::Value::Type::ARRAY;
+    links[constants::EthernetSwitchPort::ACTIVE_ACLS] = json::Value::Type::ARRAY;
 
     r[Common::LINKS] = std::move(links);
 
@@ -326,18 +305,16 @@ attribute::Attributes fill_attributes(json::Value& json) {
     attribute::Attributes attributes{};
 
     if (json.is_member(constants::EthernetSwitchPort::LINK_SPEED)) {
-        long long int value{json[constants::EthernetSwitchPort::LINK_SPEED].as_int64()};
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::LINK_SPEED_MBPS,
-                             value);
+                             json[constants::EthernetSwitchPort::LINK_SPEED].as_int64());
     }
     if (json.is_member(constants::EthernetSwitchPort::ADMINISTRATIVE_STATE)) {
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::ADMINISTRATIVE_STATE,
                              json[constants::EthernetSwitchPort::ADMINISTRATIVE_STATE].as_string());
     }
     if (json.is_member(constants::EthernetSwitchPort::FRAME_SIZE)) {
-        long long int value{json[constants::EthernetSwitchPort::FRAME_SIZE].as_int64()};
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::FRAME_SIZE,
-                             value);
+                             json[constants::EthernetSwitchPort::FRAME_SIZE].as_int64());
     }
     if (json.is_member(constants::EthernetSwitchPort::AUTOSENSE)) {
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::AUTO_SENSE,
@@ -347,8 +324,9 @@ attribute::Attributes fill_attributes(json::Value& json) {
         try {
             const auto& primary_vlan_url =
                 json[Common::LINKS][constants::EthernetSwitchPort::PRIMARY_VLAN][Common::ODATA_ID].as_string();
-            auto params = psme::rest::model::Mapper::get_params(primary_vlan_url,
-                                                                constants::Routes::VLAN_NETWORK_INTERFACE_PATH);
+            auto params = server::Multiplexer::get_instance()->
+                get_params(primary_vlan_url, constants::Routes::VLAN_NETWORK_INTERFACE_PATH);
+
             auto pvid =
                 psme::rest::model::Find<agent_framework::model::EthernetSwitchPortVlan>(params[PathParam::VLAN_ID])
                     .via<agent_framework::model::EthernetSwitch>(params[PathParam::ETHERNET_SWITCH_ID])
@@ -377,10 +355,6 @@ void endpoint::EthernetSwitchPort::get(const server::Request& req, server::Respo
     auto r = ::make_prototype();
 
     r[Common::ODATA_ID] = PathBuilder(req).build();
-    auto switch_id = psme::rest::model::Find<agent_framework::model::EthernetSwitch>(
-        req.params[PathParam::ETHERNET_SWITCH_ID]).get_one()->get_id();
-    r[Common::ODATA_CONTEXT] = std::regex_replace(r[Common::ODATA_CONTEXT].as_string(),
-                                                  std::regex("__SWITCH_ID__"), std::to_string(switch_id));
     r[Common::ID] = req.params[PathParam::SWITCH_PORT_ID];
     r[Common::NAME] = constants::EthernetSwitchPort::PORT + req.params[PathParam::SWITCH_PORT_ID];
 

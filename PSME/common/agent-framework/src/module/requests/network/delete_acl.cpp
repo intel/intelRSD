@@ -25,7 +25,7 @@
 #include "agent-framework/module/requests/network/delete_acl.hpp"
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -35,16 +35,16 @@ DeleteAcl::DeleteAcl(const std::string& acl,
     m_acl(acl),
     m_oem{} {}
 
-Json::Value DeleteAcl::to_json() const {
-    Json::Value value;
+json::Json DeleteAcl::to_json() const {
+    json::Json value;
     value[Acl::ACL] = m_acl;
     value[Oem::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteAcl DeleteAcl::from_json(const Json::Value& json) {
+DeleteAcl DeleteAcl::from_json(const json::Json& json) {
     return DeleteAcl{
-        json[Acl::ACL].asString(),
+        json[Acl::ACL],
         agent_framework::model::attribute::Oem::from_json(
           json[Oem::OEM])
     };

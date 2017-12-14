@@ -39,11 +39,11 @@ using namespace agent::storage::ip_discovery;
 
 namespace {
 constexpr int TIMEOUT_S = 5;
-const string OLD{"OLD"};
+const std::string OLD{"OLD"};
 }
 
 
-void IpWatcher::handle_ip_change(const string& new_ip) {
+void IpWatcher::handle_ip_change(const std::string& new_ip) {
     try {
         IpManager ip_manager{};
         ip_manager.update_portal_ip(new_ip);
@@ -55,12 +55,12 @@ void IpWatcher::handle_ip_change(const string& new_ip) {
 }
 
 
-const string IpWatcher::detect_ip() {
+const std::string IpWatcher::detect_ip() {
     auto& target_manager = get_manager<IscsiTarget, IscsiTargetManager>();
     auto& iscsi_data = target_manager.get_iscsi_data();
     struct ifaddrs* ifa = nullptr;
     struct ifaddrs* temp_ifa = nullptr;
-    string ip{};
+    std::string ip{};
     if (0 == getifaddrs(&ifa)) {
         for (temp_ifa = ifa; temp_ifa; temp_ifa = temp_ifa->ifa_next) {
             if (AF_INET == temp_ifa->ifa_addr->sa_family

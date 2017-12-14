@@ -19,21 +19,21 @@
 
 #include "agent-framework/module/requests/network/get_port_vlan_info.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetPortVlanInfo::GetPortVlanInfo(const std::string& port_vlan): m_port_vlan(port_vlan){}
 
-Json::Value GetPortVlanInfo::to_json() const {
-    Json::Value value;
+json::Json GetPortVlanInfo::to_json() const {
+    json::Json value;
     value[EthernetSwitchPortVlan::PORT_VLAN] = m_port_vlan;
     return value;
 }
 
-GetPortVlanInfo GetPortVlanInfo::from_json(const Json::Value& json) {
+GetPortVlanInfo GetPortVlanInfo::from_json(const json::Json& json) {
     return GetPortVlanInfo{
-        json[EthernetSwitchPortVlan::PORT_VLAN].asString()
+        json[EthernetSwitchPortVlan::PORT_VLAN].get<std::string>()
     };
 }

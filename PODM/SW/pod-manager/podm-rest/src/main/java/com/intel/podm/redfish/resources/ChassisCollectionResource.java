@@ -16,19 +16,23 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.ChassisDto;
+import com.intel.podm.business.dto.ChassisDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.services.context.PathParamConstants;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
+import static com.intel.podm.business.services.context.PathParamConstants.CHASSIS_ID;
 import static com.intel.podm.business.services.redfish.ReaderService.SERVICE_ROOT_CONTEXT;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ChassisCollectionResource extends BaseResource {
     @Inject
@@ -40,8 +44,13 @@ public class ChassisCollectionResource extends BaseResource {
         return getOrThrow(() -> readerService.getCollection(SERVICE_ROOT_CONTEXT));
     }
 
-    @Path(PathParamConstants.CHASSIS_ID)
+    @Path(CHASSIS_ID)
     public ChassisResource getChassis() {
         return getResource(ChassisResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

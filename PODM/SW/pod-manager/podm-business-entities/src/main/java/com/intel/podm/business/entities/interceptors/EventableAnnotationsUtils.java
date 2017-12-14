@@ -24,21 +24,20 @@ import java.util.Optional;
 
 import static java.util.Arrays.stream;
 
-public final class EventableAnnotationsUtils {
+final class EventableAnnotationsUtils {
     private EventableAnnotationsUtils() {
     }
 
-    public static boolean isEventable(Class clazz) {
+    public static boolean isEventable(Class<?> clazz) {
         return clazz.isAnnotationPresent(Eventable.class);
     }
 
-    public static boolean hasEventOriginProvider(Class clazz) {
+    public static boolean hasEventOriginProvider(Class<?> clazz) {
         return stream(clazz.getDeclaredMethods())
-            .filter(method -> method.isAnnotationPresent(EventOriginProvider.class))
-            .findFirst().isPresent();
+            .anyMatch(method -> method.isAnnotationPresent(EventOriginProvider.class));
     }
 
-    public static Optional<Method> getEventOriginProvider(Class clazz) {
+    public static Optional<Method> getEventOriginProvider(Class<?> clazz) {
         return stream(clazz.getDeclaredMethods())
             .filter(method -> method.isAnnotationPresent(EventOriginProvider.class))
             .findFirst();

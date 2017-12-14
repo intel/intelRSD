@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id "nebula.os-package" version "2.2.6"
+    id "nebula.ospackage" version "4.4.0"
 }
 
 buildDeb {
@@ -30,6 +30,8 @@ buildDeb {
     requires 'ntp'
     requires 'vlan'
     requires 'pod-manager', "${version}-${release}", EQUAL
+
+    provides packageName
 
     breaks 'pod-manager-config'
     replaces 'pod-manager-config'

@@ -17,7 +17,8 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.InvalidPayloadException;
+import com.intel.podm.business.RequestValidationException;
+import com.intel.podm.business.Violations;
 import com.intel.podm.business.redfish.ServiceTraverser;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.CreationService;
@@ -32,7 +33,7 @@ import java.util.concurrent.TimeoutException;
 import static javax.transaction.Transactional.TxType.NEVER;
 
 @RequestScoped
-public class VlanNetworkInterfaceCreationServiceImpl implements CreationService<RedfishVlanNetworkInterface> {
+class VlanNetworkInterfaceCreationServiceImpl implements CreationService<RedfishVlanNetworkInterface> {
     @Inject
     private TaskCoordinator taskCoordinator;
 
@@ -53,9 +54,18 @@ public class VlanNetworkInterfaceCreationServiceImpl implements CreationService<
         );
     }
 
-    private void validate(RedfishVlanNetworkInterface representation) throws InvalidPayloadException {
-        if (representation.getVlanId() == null || representation.getTagged() == null || representation.getVlanEnable() == null) {
-            throw new InvalidPayloadException("Properties: VLANId, VLANEnable and Tagged are required");
+    private void validate(RedfishVlanNetworkInterface representation) throws RequestValidationException {
+        Violations violations = new Violations();
+        if (representation.getVlanId() == null) {
+            violations.addMissingPropertyViolation("VLANId");
+        } else if (representation.getTagged() == null) {
+            violations.addMissingPropertyViolation("Tagged");
+        } else if (representation.getVlanEnable() == null) {
+            violations.addMissingPropertyViolation("VLANEnable");
+        }
+
+        if (violations.hasViolations()) {
+            throw new RequestValidationException(violations);
         }
     }
 }

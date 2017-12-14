@@ -45,7 +45,7 @@ json::Value make_prototype() {
     r[constants::Fabric::SWITCHES] = json::Value::Type::OBJECT;
 
     r[Common::LINKS][Common::OEM] = json::Value::Type::OBJECT;
-    r[FabricCommon::ACTIONS][Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::ACTIONS][Common::OEM] = json::Value::Type::OBJECT;
 
     r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;

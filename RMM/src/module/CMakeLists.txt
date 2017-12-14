@@ -1,2 +1,0 @@
-ADD_SUBDIRECTORY(asset_module)
-ADD_SUBDIRECTORY(ipmi_module)

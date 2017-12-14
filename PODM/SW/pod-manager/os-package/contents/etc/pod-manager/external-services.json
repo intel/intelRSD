@@ -1,3 +1,4 @@
 {
-  "RetainUnavailableServicesForHours": 720
+  "RetainUnavailableServicesForHours": 720,
+  "CheckStatusAfterLogicalDriveCreationDelayMillis": 5000
 }

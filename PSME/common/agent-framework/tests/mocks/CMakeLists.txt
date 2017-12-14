@@ -22,7 +22,6 @@ endif()
 
 add_library(agent-mocks STATIC
     mock_logger_ext.cpp
-    mock_module_status.cpp
 )
 
 target_include_directories(agent-mocks SYSTEM

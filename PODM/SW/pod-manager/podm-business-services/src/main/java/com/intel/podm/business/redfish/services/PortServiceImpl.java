@@ -17,59 +17,52 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.PortDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.PortDto;
 import com.intel.podm.business.entities.redfish.Port;
 import com.intel.podm.business.entities.redfish.Switch;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRIC_SWITCH_PORTS;
-import static com.intel.podm.business.redfish.ContextCollections.asEndpointContexts;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.PORT_METRICS_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class PortServiceImpl implements ReaderService<PortDto> {
+@RequestScoped
+class PortServiceImpl implements ReaderService<PortDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context switchContext) throws ContextResolvingException {
         Switch fabricSwitch = (Switch) traverser.traverse(switchContext);
         return new CollectionDto(FABRIC_SWITCH_PORTS, getAsIdSet(fabricSwitch.getPorts()));
     }
 
+    @Transactional(REQUIRED)
     @Override
     public PortDto getResource(Context portContext) throws ContextResolvingException {
         Port port = (Port) traverser.traverse(portContext);
-        return map(port);
-    }
 
-    private PortDto map(Port port) {
-        return PortDto.newBuilder()
-            .id(port.getId().toString())
-            .name(port.getName())
-            .description(port.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(port.getService(), port.getUnknownOems()))
-            .status(port.getStatus())
-            .portId(port.getPortId())
-            .portType(port.getPortType())
-            .pcieConnectionId(port.getPcieConnectionIds())
-            .portProtocol(port.getPortProtocol())
-            .currentSpeedGbps(port.getCurrentSpeedGbps())
-            .width(port.getWidth())
-            .maxSpeedGbps(port.getMaxSpeedGbps())
-            .associatedEndpoint(asEndpointContexts(port.getEndpoints()))
-            .allowableResetValues(port.getAllowableResetTypes())
-            .build();
+        PortDto dto = (PortDto) entityToDtoMapper.map(port);
+        dto.getActions().getReset().setTarget(singletonContextOf(portContext, "Actions/Port.Reset"));
+
+        if (port.getPortMetrics() != null) {
+            dto.getOem().getRackScale().setMetrics(singletonContextOf(portContext, PORT_METRICS_RESOURCE_NAME));
+        }
+
+        return dto;
     }
 }

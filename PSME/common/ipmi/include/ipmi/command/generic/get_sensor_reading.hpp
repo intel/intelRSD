@@ -1,25 +1,22 @@
 /*!
- * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * @brief Declaration of GetSensorReading Request/Response.
  *
- * @copyright
+ * @header{License}
+ * @copyright Copyright (c) 2015-2017 Intel Corporation.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
- * @file get_sensor_reading.hpp
- * */
+ * @header{Filesystem}
+ * @file command/generic/get_sensor_reading.hpp
+ */
 
 #pragma once
 
@@ -60,6 +57,10 @@ public:
      */
     virtual ~GetSensorReading();
 
+    const char* get_command_name() const override {
+        return "GetSensorReading";
+    }
+
     /*!
      * @brief Sets sensor number.
      * @param sensor_number Sensor number.
@@ -68,11 +69,10 @@ public:
         m_sensor_number = sensor_number;
     }
 
-    virtual void pack(std::vector<std::uint8_t>& data) const;
-
 private:
     std::uint8_t m_sensor_number{};
 
+    void pack(IpmiInterface::ByteBuffer& data) const override;
 };
 
 }
@@ -101,24 +101,55 @@ public:
      */
     virtual ~GetSensorReading();
 
+    const char* get_command_name() const override {
+        return "GetSensorReading";
+    }
+
     /*!
      * @brief Gets sensor reading.
      * @return Sensor reading.
      */
     std::uint8_t get_sensor_reading() const;
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    /*!
+     * @brief Indicates if the reading is valid.
+     * @return true if reading is valid, false otherwise.
+     */
+    bool is_valid_reading() const;
+
+    /*!
+     * @brief Indicates if sensor scanning is disabled.
+     * @return true if sensor scanning is disabled, false otherwise.
+     */
+    bool is_scanning_disabled() const;
+
+    /*!
+     * @brief Get first data byte
+     * @return First data byte (for threshold or discrete sensors)
+     */
+    std::uint8_t get_data_1() const;
+
+    /*!
+     * @brief Get second data byte
+     * @return Second data byte (for discrete sensors only, optional field)
+     */
+    std::uint8_t get_data_2() const;
 
 private:
+    static constexpr std::size_t MIN_RESPONSE_SIZE = 3;
+    static constexpr std::size_t OFFSET_READING_VALIDITY = OFFSET_DATA + 1;
+    static constexpr std::size_t OFFSET_DATA_1 = OFFSET_DATA + 2;
+    static constexpr std::size_t OFFSET_DATA_2 = OFFSET_DATA + 3;
 
-    static constexpr std::size_t RESPONSE_SIZE = 5;
-    static constexpr std::size_t OFFSET_SENSOR_READING = 1;
+    std::uint8_t m_sensor_reading{0};
+    std::uint8_t m_reading_validity{0};
+    std::uint8_t m_data1{0}; // for treshold-based || discrete
+    std::uint8_t m_data2{0}; // for discrete (optional)
 
-    std::uint8_t m_sensor_reading{};
+    void unpack(const IpmiInterface::ByteBuffer& data) override;
 };
 }
 
 }
 }
 }
-

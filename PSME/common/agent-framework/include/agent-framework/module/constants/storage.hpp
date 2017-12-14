@@ -94,9 +94,9 @@ public:
 /*!
  * @brief Class consisting of literals for StorageServices model objects
  */
-class StorageServices {
+class StorageService {
 public:
-    static constexpr const char SERVICES[] = "services";
+    static constexpr const char SERVICE[] = "service";
     static constexpr const char STATUS[] = "status";
     static constexpr const char COLLECTIONS[] = "collections";
     static constexpr const char OEM[] = "oem";

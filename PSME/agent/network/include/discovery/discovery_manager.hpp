@@ -26,9 +26,6 @@
 
 #include "agent-framework/discovery/discovery.hpp"
 
-#include <mutex>
-#include <condition_variable>
-
 namespace agent {
 namespace network {
 namespace discovery {
@@ -51,12 +48,12 @@ public:
 
     virtual void discovery(const std::string& uuid) override;
 
-    /*! @brief Wait for discovery complete */
-    void wait_for_complete();
-
-private:
-    std::mutex m_mutex{};
-    std::condition_variable m_cv{};
+    /*!
+     * @brief Get switch port prefix name
+     *
+     * @return Port prefix.
+     * */
+    static const std::string get_port_prefix() { return std::string("swp"); }
 };
 
 }

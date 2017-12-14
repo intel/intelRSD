@@ -17,14 +17,14 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Redundancy;
-import com.intel.podm.client.api.resources.redfish.RedundancyObject;
+import com.intel.podm.client.resources.redfish.RedundancyItem;
 import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
 
 @Dependent
-public class RedundancyMapper extends EntityMapper<RedundancyObject, Redundancy> {
+public class RedundancyMapper extends EntityMapper<RedundancyItem, Redundancy> {
     protected RedundancyMapper() {
-        super(RedundancyObject.class, Redundancy.class);
+        super(RedundancyItem.class, Redundancy.class);
     }
 }

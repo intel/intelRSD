@@ -16,27 +16,38 @@
 
 package com.intel.podm.redfish.resources;
 
-
-import com.intel.podm.business.dto.redfish.ChassisDto;
+import com.intel.podm.business.dto.ThermalDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
-import com.intel.podm.rest.error.PodmExceptions;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
-import static java.util.Optional.ofNullable;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.THERMAL_RESOURCE_NAME;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ThermalResource extends BaseResource {
-
     @Inject
-    private ReaderService<ChassisDto> readerService;
+    private ReaderService<ThermalDto> readerService;
 
     @GET
-    public Object get() {
-        ChassisDto chassis = getOrThrow(() -> readerService.getResource(getCurrentContext()));
-        return ofNullable(chassis.getThermalDto()).orElseThrow(PodmExceptions::notFound);
+    @Override
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        ThermalDto thermalDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(singletonContextOf(context, THERMAL_RESOURCE_NAME), thermalDto);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

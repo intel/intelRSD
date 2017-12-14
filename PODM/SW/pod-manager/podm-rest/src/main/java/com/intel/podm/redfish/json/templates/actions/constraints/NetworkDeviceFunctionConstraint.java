@@ -16,6 +16,8 @@
 
 package com.intel.podm.redfish.json.templates.actions.constraints;
 
+import com.intel.podm.common.types.Ref;
+import com.intel.podm.common.types.redfish.RedfishNetworkDeviceFunction;
 import com.intel.podm.redfish.json.templates.actions.NetworkDeviceFunctionPartialRepresentation;
 
 import javax.validation.Constraint;
@@ -27,17 +29,19 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static com.intel.podm.redfish.json.templates.actions.constraints.VlanIdValidationHelper.isVlanIdValid;
+
 @Constraint(validatedBy = NetworkDeviceFunctionConstraint.NetworkDeviceFunctionConstraintValidator.class)
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface NetworkDeviceFunctionConstraint {
-
-    String message() default "Cannot update Network Device Function with empty values";
+    String message() default "Cannot update Network Device Function with incorrect values";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
 
+    @SuppressWarnings({"checkstyle:BooleanExpressionComplexity"})
     class NetworkDeviceFunctionConstraintValidator
         implements ConstraintValidator<NetworkDeviceFunctionConstraint, NetworkDeviceFunctionPartialRepresentation> {
 
@@ -47,7 +51,30 @@ public @interface NetworkDeviceFunctionConstraint {
 
         @Override
         public boolean isValid(NetworkDeviceFunctionPartialRepresentation value, ConstraintValidatorContext context) {
-            return value != null && (value.getEthernet().isAssigned() || value.getIscsiBoot().isAssigned() || value.getDeviceEnabled().isAssigned());
+            return value != null && (value.getEthernet().isAssigned() || iscsiBootIsAssignedAndValid(value) || value.getDeviceEnabled().isAssigned());
+        }
+
+        private boolean iscsiBootIsAssignedAndValid(NetworkDeviceFunctionPartialRepresentation value) {
+            return value.getIscsiBoot().isAssigned() && isPrimaryVlanIdValid(value.getIscsiBoot().get());
+        }
+
+        private boolean isPrimaryVlanIdValid(RedfishNetworkDeviceFunction.IscsiBoot iscsiBoot) {
+            return isNullIscsiBootValue(iscsiBoot)
+                || isNotAssignedPrimaryVlanIdValue(iscsiBoot.getPrimaryVlanId())
+                || isAssignedAndValidPrimaryVlanIdValue(iscsiBoot);
+        }
+
+        private boolean isNullIscsiBootValue(RedfishNetworkDeviceFunction.IscsiBoot iscsiBoot) {
+            return iscsiBoot == null;
+        }
+
+        private boolean isNotAssignedPrimaryVlanIdValue(Ref<Integer> primaryVlanIdRef) {
+            return !primaryVlanIdRef.isAssigned();
+        }
+
+        private boolean isAssignedAndValidPrimaryVlanIdValue(RedfishNetworkDeviceFunction.IscsiBoot iscsiBoot) {
+            return iscsiBoot.getPrimaryVlanId().isAssigned()
+                && isVlanIdValid(iscsiBoot.getPrimaryVlanId().get());
         }
     }
 }

@@ -16,21 +16,20 @@
 
 package com.intel.podm.redfish.json.templates.actions;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.PortMode;
 import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
 
-@JsonIgnoreProperties(ignoreUnknown = false)
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class CreateEthernetSwitchPortActionJson implements RedfishEthernetSwitchPort {
     @JsonProperty("Name")
-    private String name;
+    public String name;
 
     @JsonProperty("PortId")
-    private String portId;
+    public String portId;
 
     @JsonProperty("PortMode")
-    private PortMode portMode;
+    public PortMode portMode;
 
     @JsonProperty("Links")
     private EthernetSwitchPortLinksJson links = new EthernetSwitchPortLinksJson();
@@ -51,7 +50,7 @@ public class CreateEthernetSwitchPortActionJson implements RedfishEthernetSwitch
     }
 
     @Override
-    public Links getLinks() {
+    public RedfishEthernetSwitchPort.Links getLinks() {
         return links;
     }
 }

@@ -17,23 +17,18 @@
 package com.intel.podm.common.enterprise.utils.logger;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
 
+import static com.intel.podm.common.logger.LoggerFactory.getLogger;
+
+@ApplicationScoped
 public class LoggerProducer {
-
     @Produces
-    Logger getLogger(InjectionPoint injectionPoint) {
-        Class loggedClass = injectionPoint.getMember().getDeclaringClass();
-        return LoggerFactory.getLogger(loggedClass);
-    }
-
-    @Produces @NamedLogger(value = "")
-    Logger getLoggerWithName(InjectionPoint injectionPoint) {
-        NamedLogger namedLogger = injectionPoint.getAnnotated().getAnnotation(NamedLogger.class);
-        String loggerName = namedLogger.value();
-        return LoggerFactory.getLogger(loggerName);
+    Logger createLogger(InjectionPoint injectionPoint) {
+        Class<?> loggedClass = injectionPoint.getMember().getDeclaringClass();
+        return getLogger(loggedClass);
     }
 }

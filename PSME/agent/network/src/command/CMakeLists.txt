@@ -16,6 +16,25 @@
 #
 # </license_header>
 
-if (NL3_FOUND)
-    add_subdirectory(fm10000)
-endif()
+set(SOURCES
+    get_managers_collection.cpp
+    get_collection.cpp
+    set_component_attributes.cpp
+    get_tasks_collection.cpp
+    get_manager_info.cpp
+    get_chassis_info.cpp
+    get_ethernet_switch_info.cpp
+    get_ethernet_switch_port_info.cpp
+    get_port_vlan_info.cpp
+    get_task_info.cpp
+    get_task_result_info.cpp
+    add_port_vlan.cpp
+    delete_task.cpp
+    get_metric_definition_info.cpp
+    get_metric_definitions_collection.cpp
+    get_metrics.cpp
+    delete_port_vlan.cpp
+)
+
+add_library(network-command OBJECT ${SOURCES})
+set_psme_command_target_properties(network-command)

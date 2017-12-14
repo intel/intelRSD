@@ -24,7 +24,8 @@
  * */
 
 #pragma once
-#include <json/json.h>
+
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -42,7 +43,7 @@ private:
  * -> For SFINAE to work we need to have compile-error in the declaration of one
  *    of the specializations to remove possible ambiguity. This is done via
  *    return type evaluation and "auto func() -> decltype(expression)" syntax.
- * -> We use comma operator "," in the decltype so that the rightmost decltype
+ * -> We use comma operator "," in the decltype so that the basename decltype
  *    element will determine the deduced type (here it is bool basing on the
  *    'true' value in decltypes).
  * -> For type deduction to work we need these to be template functions.
@@ -81,7 +82,7 @@ public:
     ~is_framework_enum() {}
 
     /* @brief This variable will be equal to true if T is a framework enum
-     * or false if T is an object model. Distincton is made based on the
+     * or false if T is an object model. Distinction is made based on the
      * presence of from_json or from_string member function. This can be used
      * in the same way as any is_* (e.g. is_class) template from the type_trait
      * header.
@@ -93,4 +94,3 @@ public:
 }
 }
 }
-

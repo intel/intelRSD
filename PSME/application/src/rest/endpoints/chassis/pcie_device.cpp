@@ -46,7 +46,7 @@ json::Value make_prototype() {
     r[Common::ASSET_TAG] = json::Value::Type::NIL;
     r[Common::DESCRIPTION] = "PCIe Device Description";
     r[constants::PcieDevice::DEVICE_TYPE] = json::Value::Type::NIL;
-    r[constants::FabricCommon::FIRMWARE_VERSION] = json::Value::Type::NIL;
+    r[constants::Common::FIRMWARE_VERSION] = json::Value::Type::NIL;
     r[Common::ID] = json::Value::Type::NIL;
 
     r[Common::LINKS][Common::CHASSIS] = json::Value::Type::ARRAY;
@@ -57,8 +57,8 @@ json::Value make_prototype() {
     r[Common::MODEL] = json::Value::Type::NIL;
     r[Common::OEM] = json::Value::Type::OBJECT;
     r[Common::PART_NUMBER] = json::Value::Type::NIL;
-    r[FabricCommon::SKU] = json::Value::Type::NIL;
-    r[Common::SERIAL] = json::Value::Type::NIL;
+    r[Common::SKU] = json::Value::Type::NIL;
+    r[Common::SERIAL_NUMBER] = json::Value::Type::NIL;
 
     r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
@@ -129,9 +129,9 @@ void endpoint::PcieDevice::get(const server::Request& req, server::Response& res
 
     json[Common::ASSET_TAG] = device.get_asset_tag();
     json[constants::PcieDevice::DEVICE_TYPE] = device.get_device_class();
-    json[constants::FabricCommon::FIRMWARE_VERSION] = device.get_firmware_version();
+    json[constants::Common::FIRMWARE_VERSION] = device.get_firmware_version();
     json[Common::ID] = req.params[PathParam::DEVICE_ID];
-    json[FabricCommon::SKU] = device.get_sku();
+    json[Common::SKU] = device.get_sku();
 
     fill_links(device, json);
 
@@ -139,7 +139,7 @@ void endpoint::PcieDevice::get(const server::Request& req, server::Response& res
     json[Common::MANUFACTURER] = fru.get_manufacturer();
     json[Common::MODEL] = fru.get_model_number();
     json[Common::PART_NUMBER] = fru.get_part_number();
-    json[Common::SERIAL] = fru.get_serial_number();
+    json[Common::SERIAL_NUMBER] = fru.get_serial_number();
 
     endpoint::status_to_json(device, json);
 

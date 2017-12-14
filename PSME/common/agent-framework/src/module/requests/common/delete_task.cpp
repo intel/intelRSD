@@ -25,7 +25,7 @@
 #include "agent-framework/module/requests/common/delete_task.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -36,13 +36,13 @@ using namespace agent_framework::model::literals;
 DeleteTask::DeleteTask(const std::string& task) : m_task{task} { }
 
 
-Json::Value DeleteTask::to_json() const {
-    Json::Value value;
+json::Json DeleteTask::to_json() const {
+    json::Json value;
     value[Task::TASK] = m_task;
     return value;
 }
 
 
-DeleteTask DeleteTask::from_json(const Json::Value& json) {
-    return DeleteTask{json[Task::TASK].asString()};
+DeleteTask DeleteTask::from_json(const json::Json& json) {
+    return DeleteTask{json[Task::TASK].get<std::string>()};
 }

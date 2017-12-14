@@ -27,7 +27,7 @@
  * */
 
 #include "agent-framework/module/requests/pnc/delete_zone.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -35,12 +35,12 @@ using namespace agent_framework::model;
 
 DeleteZone::DeleteZone(const std::string& zone): m_zone(zone) {}
 
-Json::Value DeleteZone::to_json() const {
-    Json::Value value;
+json::Json DeleteZone::to_json() const {
+    json::Json value;
     value[literals::Zone::ZONE] = m_zone;
     return value;
 }
 
-DeleteZone DeleteZone::from_json(const Json::Value& json) {
-    return DeleteZone{json[Zone::ZONE].asString()};
+DeleteZone DeleteZone::from_json(const json::Json& json) {
+    return DeleteZone{json[Zone::ZONE].get<std::string>()};
 }

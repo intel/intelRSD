@@ -23,7 +23,7 @@
 
 #include "agent-framework/module/model/attributes/identifier.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -36,18 +36,18 @@ Identifier::Identifier() { }
 Identifier::~Identifier() { }
 
 
-Json::Value Identifier::to_json() const {
-    Json::Value json;
+json::Json Identifier::to_json() const {
+    json::Json json;
     json[literals::Identifier::DURABLE_NAME] = get_durable_name();
     json[literals::Identifier::DURABLE_NAME_FORMAT] = get_durable_name_format().to_string();
     return json;
 }
 
 
-Identifier Identifier::from_json(const Json::Value& json) {
+Identifier Identifier::from_json(const json::Json& json) {
     attribute::Identifier location;
-    location.set_durable_name(json[literals::Identifier::DURABLE_NAME].asString());
+    location.set_durable_name(json[literals::Identifier::DURABLE_NAME]);
     location.set_durable_name_format(
-        enums::IdentifierType::from_string(json[literals::Identifier::DURABLE_NAME_FORMAT].asString()));
+        enums::IdentifierType::from_string(json[literals::Identifier::DURABLE_NAME_FORMAT]));
     return location;
 }

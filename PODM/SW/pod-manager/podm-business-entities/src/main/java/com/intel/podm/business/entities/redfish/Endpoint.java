@@ -24,7 +24,6 @@ import com.intel.podm.business.entities.redfish.embeddables.Identifier;
 import com.intel.podm.business.entities.redfish.embeddables.PciId;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Protocol;
-import org.hibernate.annotations.Generated;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -48,14 +47,12 @@ import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.FetchType.LAZY;
-import static org.hibernate.annotations.GenerationTime.INSERT;
 
 @javax.persistence.Entity
 @Table(name = "endpoint", indexes = @Index(name = "idx_endpoint_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
+@Eventable
 public class Endpoint extends DiscoverableEntity {
-    @Generated(INSERT)
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
@@ -63,20 +60,20 @@ public class Endpoint extends DiscoverableEntity {
     @Enumerated(STRING)
     private Protocol protocol;
 
+    @Column(name = "host_reservation_memory_bytes")
+    private Integer hostReservationMemoryBytes;
+
     @Embedded
     @Column(name = "pci_id")
     private PciId pciId;
 
-    @OneToMany(mappedBy = "endpoint", fetch = EAGER, cascade = {MERGE, PERSIST})
-    private Set<ConnectedEntity> connectedEntities = new HashSet<>();
-
     @ElementCollection
-    @CollectionTable(name = "endpoint_identifiers", joinColumns = @JoinColumn(name = "identifiers_id"))
-    @OrderColumn(name = "endpoint_identifiers_order")
+    @CollectionTable(name = "endpoint_identifier", joinColumns = @JoinColumn(name = "endpoint_id"))
+    @OrderColumn(name = "endpoint_identifier_order")
     private Set<Identifier> identifiers = new HashSet<>();
 
-    @Column(name = "host_reservation_memory_bytes")
-    private Integer hostReservationMemoryBytes;
+    @OneToMany(mappedBy = "endpoint", fetch = EAGER, cascade = {MERGE, PERSIST})
+    private Set<ConnectedEntity> connectedEntities = new HashSet<>();
 
     @ManyToMany(mappedBy = "endpoints", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Port> ports = new HashSet<>();
@@ -93,8 +90,18 @@ public class Endpoint extends DiscoverableEntity {
     @JoinColumn(name = "computer_system_id")
     private ComputerSystem computerSystem;
 
-    public void setEntityId(Id entityId) {
-        this.entityId = entityId;
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "processor_id")
+    private Processor processor;
+
+    @Override
+    public Id getId() {
+        return entityId;
+    }
+
+    @Override
+    public void setId(Id id) {
+        entityId = id;
     }
 
     public Protocol getProtocol() {
@@ -105,6 +112,14 @@ public class Endpoint extends DiscoverableEntity {
         this.protocol = protocol;
     }
 
+    public Integer getHostReservationMemoryBytes() {
+        return hostReservationMemoryBytes;
+    }
+
+    public void setHostReservationMemoryBytes(Integer hostReservationMemoryBytes) {
+        this.hostReservationMemoryBytes = hostReservationMemoryBytes;
+    }
+
     public PciId getPciId() {
         return pciId;
     }
@@ -113,12 +128,12 @@ public class Endpoint extends DiscoverableEntity {
         this.pciId = pciId;
     }
 
-    public Integer getHostReservationMemoryBytes() {
-        return hostReservationMemoryBytes;
+    public Set<Identifier> getIdentifiers() {
+        return identifiers;
     }
 
-    public void setHostReservationMemoryBytes(Integer hostReservationMemoryBytes) {
-        this.hostReservationMemoryBytes = hostReservationMemoryBytes;
+    public void addIdentifier(Identifier identifier) {
+        identifiers.add(identifier);
     }
 
     public Set<ConnectedEntity> getConnectedEntities() {
@@ -164,12 +179,28 @@ public class Endpoint extends DiscoverableEntity {
         }
     }
 
-    public Set<Identifier> getIdentifiers() {
-        return identifiers;
+    public Fabric getFabric() {
+        return fabric;
     }
 
-    public void addIdentifier(Identifier identifier) {
-        identifiers.add(identifier);
+    public void setFabric(Fabric fabric) {
+        if (fabric == null) {
+            unlinkFabric(this.fabric);
+        } else {
+            this.fabric = fabric;
+            if (!fabric.getEndpoints().contains(this)) {
+                fabric.addEndpoint(this);
+            }
+        }
+    }
+
+    public void unlinkFabric(Fabric fabric) {
+        if (Objects.equals(this.fabric, fabric)) {
+            this.fabric = null;
+            if (fabric != null) {
+                fabric.unlinkEndpoint(this);
+            }
+        }
     }
 
     public Zone getZone() {
@@ -192,30 +223,6 @@ public class Endpoint extends DiscoverableEntity {
             this.zone = null;
             if (zone != null) {
                 zone.unlinkEndpoint(this);
-            }
-        }
-    }
-
-    public Fabric getFabric() {
-        return fabric;
-    }
-
-    public void setFabric(Fabric fabric) {
-        if (fabric == null) {
-            unlinkFabric(this.fabric);
-        } else {
-            this.fabric = fabric;
-            if (!fabric.getEndpoints().contains(this)) {
-                fabric.addEndpoint(this);
-            }
-        }
-    }
-
-    public void unlinkFabric(Fabric fabric) {
-        if (Objects.equals(this.fabric, fabric)) {
-            this.fabric = null;
-            if (fabric != null) {
-                fabric.unlinkEndpoint(this);
             }
         }
     }
@@ -244,28 +251,42 @@ public class Endpoint extends DiscoverableEntity {
         }
     }
 
-    @Override
-    public Id getId() {
-        return entityId;
+    public Processor getProcessor() {
+        return processor;
     }
 
-    @Override
-    public void setId(Id id) {
-        entityId = id;
+    public void setProcessor(Processor processor) {
+        if (processor == null) {
+            unlinkProcessor(this.processor);
+        } else {
+            this.processor = processor;
+            if (!processor.getEndpoints().contains(this)) {
+                processor.addEndpoint(this);
+            }
+        }
+    }
+
+    public void unlinkProcessor(Processor processor) {
+        if (Objects.equals(this.processor, processor)) {
+            this.processor = null;
+            if (processor != null) {
+                processor.unlinkEndpoint(this);
+            }
+        }
     }
 
     @Override
     public void preRemove() {
         unlinkCollection(connectedEntities, this::unlinkConnectedEntities);
-        unlinkZone(zone);
         unlinkCollection(ports, this::unlinkPort);
-        unlinkComputerSystem(computerSystem);
         unlinkFabric(fabric);
+        unlinkZone(zone);
+        unlinkComputerSystem(computerSystem);
+        unlinkProcessor(processor);
     }
 
     @Override
     public boolean containedBy(Entity possibleParent) {
         return isContainedBy(possibleParent, fabric);
     }
-
 }

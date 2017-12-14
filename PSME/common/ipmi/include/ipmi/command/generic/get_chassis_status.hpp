@@ -25,6 +25,8 @@
 
 #pragma once
 
+
+
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
 
@@ -62,14 +64,14 @@ public:
     GetChassisStatus& operator=(const GetChassisStatus&) = default;
 
 
-    /*!
-     * @brief Default destructor.
-     */
-    virtual ~GetChassisStatus();
+    const char* get_command_name() const override {
+        return "GetChassisStatus";
+    }
+
 
 protected:
 
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
 };
 }
 
@@ -131,10 +133,9 @@ public:
     GetChassisStatus& operator=(const GetChassisStatus&) = default;
 
 
-    /*!
-     * @brief Default destructor.
-     */
-    virtual ~GetChassisStatus();
+    const char* get_command_name() const override {
+        return "GetChassisStatus";
+    }
 
 
     const std::string& get_power_state_name() const {
@@ -160,11 +161,7 @@ public:
     }
 
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
-
-
-protected:
-    virtual bool is_response_correct(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
 
 
 private:

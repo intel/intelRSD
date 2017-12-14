@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/network/delete_port_vlan.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -33,12 +33,12 @@ DeletePortVlan::DeletePortVlan(Oem oem):
     m_oem{oem} {}
 
 
-Json::Value DeletePortVlan::to_json() const {
-    Json::Value value;
+json::Json DeletePortVlan::to_json() const {
+    json::Json value;
     value[EthernetSwitchPortVlan::OEM] = m_oem.to_json();
     return value;
 }
 
-DeletePortVlan DeletePortVlan::from_json(const Json::Value& json) {
+DeletePortVlan DeletePortVlan::from_json(const json::Json& json) {
     return DeletePortVlan{Oem::from_json(json[EthernetSwitchPortVlan::OEM])};
 }

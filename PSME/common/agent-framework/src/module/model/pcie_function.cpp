@@ -21,7 +21,7 @@
 
 #include "agent-framework/module/model/pcie_function.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
@@ -35,8 +35,8 @@ PcieFunction::PcieFunction(const std::string& parent_uuid, enums::Component pare
 
 PcieFunction::~PcieFunction() {}
 
-Json::Value PcieFunction::to_json() const {
-    Json::Value result;
+json::Json PcieFunction::to_json() const {
+    json::Json result;
     result[literals::PcieFunction::FUNCTION_ID] = get_function_id();
     result[literals::PcieFunction::DEVICE_CLASS] = get_device_class();
     result[literals::PcieFunction::FUNCTION_TYPE] = get_function_type();
@@ -52,7 +52,7 @@ Json::Value PcieFunction::to_json() const {
     return result;
 }
 
-PcieFunction PcieFunction::from_json(const Json::Value& json) {
+PcieFunction PcieFunction::from_json(const json::Json& json) {
     PcieFunction pcie_function;
     pcie_function.set_function_id(json[literals::PcieFunction::FUNCTION_ID]);
     pcie_function.set_device_class(json[literals::PcieFunction::DEVICE_CLASS]);
@@ -66,5 +66,7 @@ PcieFunction PcieFunction::from_json(const Json::Value& json) {
     pcie_function.set_functional_device(json[literals::PcieFunction::FUNCTIONAL_DEVICE]);
     pcie_function.set_status(Status::from_json(json[literals::PcieFunction::STATUS]));
     pcie_function.set_oem(Oem::from_json(json[literals::PcieFunction::OEM]));
+
+    pcie_function.set_resource_hash(json);
     return pcie_function;
 }

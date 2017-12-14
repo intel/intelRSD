@@ -24,7 +24,8 @@
  * */
 
 #include "agent-framework/exceptions/gami_exception.hpp"
-#include <json/writer.h>
+
+
 #include <algorithm>
 
 
@@ -39,12 +40,12 @@ const constexpr char GamiException::NOT_SPECIFIED[];
 
 
 GamiException::GamiException(const ErrorCode ec, const std::string& error_message) :
-    jsonrpc::JsonRpcException(static_cast<int>(ec), error_message),
+    json_rpc::JsonRpcException(static_cast<int>(ec), error_message),
     m_error_code{ec}, m_message{error_message} {}
 
 
-GamiException::GamiException(const ErrorCode ec, const std::string& error_message, const Json::Value& data_json) :
-    jsonrpc::JsonRpcException(static_cast<int>(ec), error_message, data_json),
+GamiException::GamiException(const ErrorCode ec, const std::string& error_message, const json::Json& data_json) :
+    json_rpc::JsonRpcException(static_cast<int>(ec), error_message, data_json),
     m_error_code{ec},
     m_message{error_message} {}
 
@@ -62,15 +63,14 @@ const std::string& GamiException::get_message() const {
 }
 
 
-const Json::Value& GamiException::get_data() const {
-    return GetData();
+const json::Json& GamiException::get_data() const {
+    return JsonRpcException::get_data();
 }
 
 
-std::string GamiException::get_styled_string_from_data(const Json::Value& data, const std::string& field_key) {
-    if (data.isMember(field_key)) {
-        Json::FastWriter writer;
-        auto field_value = writer.write(data[field_key]);
+std::string GamiException::get_styled_string_from_data(const json::Json& data, const std::string& field_key) {
+    if (data.count(field_key)) {
+        auto field_value = data[field_key].dump();
 
         field_value.erase(std::remove(field_value.begin(), field_value.end(), LF), field_value.end());
         std::replace(field_value.begin(), field_value.end(), '\"', '\'');
@@ -81,16 +81,16 @@ std::string GamiException::get_styled_string_from_data(const Json::Value& data, 
 }
 
 
-std::string GamiException::get_string_from_data(const Json::Value& data, const std::string& field_key) {
-    if (data.isMember(field_key)) {
-        return data[field_key].asString();
+std::string GamiException::get_string_from_data(const json::Json& data, const std::string& field_key) {
+    if (data.count(field_key)) {
+        return data[field_key];
     }
     return {};
 }
 
 
-Json::Value GamiException::get_json_from_data(const Json::Value& data, const std::string& field_key) {
-    if (data.isMember(field_key)) {
+json::Json GamiException::get_json_from_data(const json::Json& data, const std::string& field_key) {
+    if (data.count(field_key)) {
         return data[field_key];
     }
     return {};

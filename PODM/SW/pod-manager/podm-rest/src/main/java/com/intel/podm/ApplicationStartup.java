@@ -28,7 +28,7 @@ import javax.inject.Inject;
 
 @Singleton
 @Startup
-@DependsOn({"DiscoveryStartup", "SsdpServiceDetector", "DhcpServiceDetector", "MetricActivator"})
+@DependsOn({"DiscoveryStartup", "ServiceDetectionStartup", "MetricRegistryFactory"})
 public class ApplicationStartup {
     @Inject
     private Logger logger;
@@ -37,12 +37,12 @@ public class ApplicationStartup {
     private VersionLoader versionLoader;
 
     @PostConstruct
-    public void initialize() {
+    private void initialize() {
         logger.i("PodM started (version: {})", versionLoader.loadAppVersion());
     }
 
     @PreDestroy
-    public void shutdown() {
+    private void shutdown() {
         logger.i("PodM is shutting down (version: {})", versionLoader.loadAppVersion());
     }
 }

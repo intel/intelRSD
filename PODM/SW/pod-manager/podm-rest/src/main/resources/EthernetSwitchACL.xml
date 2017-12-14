@@ -9,7 +9,7 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="EthernetSwitchPort.xml">
     <edmx:Include Namespace="EthernetSwitchPort"/>
@@ -20,12 +20,13 @@
 
   <edmx:DataServices>
 
-     <!-- This schema defines a switch ACL and its respective properties.-->
+    <!-- This schema defines a switch ACL and its respective properties.-->
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitchACL">
 
       <EntityType Name="EthernetSwitchACL" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="A Ethernet Switch ACL represents Access Control List for switch."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent resources that represent a ethernet switch ACL"/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent resources that represent a ethernet switch ACL"/>
       </EntityType>
 
       <Action Name="Bind" IsBound="true">
@@ -41,7 +42,8 @@
         <Parameter Name="Port" Type="Collection(EthernetSwitchPort.EthernetSwitchPort)">
           <Annotation Term="OData.Description" String="This is array of ports that this ACL should be unbinded."/>
         </Parameter>
-        <Annotation Term="OData.Description" String="The unbind action unbind current ACL from given list of ethernet ports"/>
+        <Annotation Term="OData.Description"
+                    String="The unbind action unbind current ACL from given list of ethernet ports"/>
       </Action>
 
     </Schema>
@@ -50,7 +52,8 @@
 
       <EntityType Name="EthernetSwitchACL" BaseType="EthernetSwitchACL.EthernetSwitchACL">
 
-        <NavigationProperty Name="Rules" Type="EthernetSwitchACLRuleCollection.EthernetSwitchACLRuleCollection" ContainsTarget="true">
+        <NavigationProperty Name="Rules" Type="EthernetSwitchACLRuleCollection.EthernetSwitchACLRuleCollection"
+                            ContainsTarget="true">
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
 

@@ -112,8 +112,6 @@ bool operator!=(const std::experimental::optional<double>& lhs, const double& rh
 template<>
 bool operator!=(const double& lhs, const std::experimental::optional<double>& rhs);
 
-
-/* Functions for safe string comparison */
 /*!
  * @brief Comparison operator for safe std::experimental::optional<std::string> objects comparison
  *
@@ -124,7 +122,7 @@ bool operator!=(const double& lhs, const std::experimental::optional<double>& rh
  *
  * @return True if both objects containt the same string, false otherwise.
  * */
-bool operator==(const optional<std::string>& lhs, const optional<std::string>& rhs);
+bool operator==(const optional<std::string>& lhs, const char* rhs);
 
 /*!
  * @brief Comparison operator for safe std::experimental::optional<std::string> objects comparison
@@ -148,19 +146,7 @@ bool operator==(const char* lhs, const optional<std::string>& rhs);
  *
  * @return True if both objects containt the same string, false otherwise.
  * */
-bool operator==(const optional<std::string>& lhs, const char* rhs);
-
-/*!
- * @brief Comparison operator for safe std::experimental::optional<std::string> objects comparison
- *
- * Extends the functionality defined by Boost library.
- *
- * @param[in] lhs Object on the LHS of the comparison operator
- * @param[in] rhs Object on the RHS of the comparison operator
- *
- * @return True if both objects containt the same string, false otherwise.
- * */
-bool operator!=(const optional<std::string>& lhs, const optional<std::string>& rhs);
+bool operator!=(const optional<std::string>& lhs, const char* rhs);
 
 /*!
  * @brief Comparison operator for safe std::experimental::optional<std::string> objects comparison
@@ -173,18 +159,6 @@ bool operator!=(const optional<std::string>& lhs, const optional<std::string>& r
  * @return True if both objects containt the same string, false otherwise.
  * */
 bool operator!=(const char* lhs, const optional<std::string>& rhs);
-
-/*!
- * @brief Comparison operator for safe std::experimental::optional<std::string> objects comparison
- *
- * Extends the functionality defined by Boost library.
- *
- * @param[in] lhs Object on the LHS of the comparison operator
- * @param[in] rhs Object on the RHS of the comparison operator
- *
- * @return True if both objects containt the same string, false otherwise.
- * */
-bool operator!=(const optional<std::string>& lhs, const char* rhs);
 
 }
 }

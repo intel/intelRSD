@@ -29,10 +29,6 @@
 
 #include <string>
 
-namespace Json {
-    class Value;
-}
-
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -59,16 +55,16 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
-     * @brief create GetNetworkInterfaceInfo form Json
+     * @brief create GetNetworkInterfaceInfo from Json
      *
      * @param[in] json the input argument
      *
      * @return new GetNetworkInterfaceInfo
      */
-    static GetNetworkInterfaceInfo from_json(const Json::Value& json);
+    static GetNetworkInterfaceInfo from_json(const json::Json& json);
 
     /*!
      * @brief Returns procedure scheme
@@ -91,4 +87,3 @@ private:
 }
 }
 }
-

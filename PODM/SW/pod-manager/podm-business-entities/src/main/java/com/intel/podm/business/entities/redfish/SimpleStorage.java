@@ -20,6 +20,7 @@ import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.listeners.SimpleStorageListener;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
 import com.intel.podm.common.types.Id;
 
 import javax.persistence.Column;
@@ -27,6 +28,8 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.HashSet;
@@ -40,14 +43,28 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "simple_storage", indexes = @Index(name = "idx_simple_storage_entity_id", columnList = "entity_id", unique = true))
+@NamedQueries({
+    @NamedQuery(name = SimpleStorage.GET_SIMPLE_STORAGE_MULTI_SOURCE,
+        query = "SELECT simpleStorage "
+            + "FROM SimpleStorage simpleStorage "
+            + "WHERE simpleStorage.multiSourceDiscriminator = :multiSourceDiscriminator "
+            + "AND simpleStorage.isComplementary = :isComplementary"
+    )
+})
 @EntityListeners(SimpleStorageListener.class)
 @Eventable
-public class SimpleStorage extends DiscoverableEntity {
+@SuppressWarnings({"checkstyle:MethodCount"})
+public class SimpleStorage extends DiscoverableEntity implements MultiSourceResource {
+    public static final String GET_SIMPLE_STORAGE_MULTI_SOURCE = "GET_SIMPLE_STORAGE_MULTI_SOURCE";
+
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
     @Column(name = "uefi_device_path")
     private String uefiDevicePath;
+
+    @Column(name = "multi_source_discriminator")
+    private String multiSourceDiscriminator;
 
     @OneToMany(mappedBy = "simpleStorage", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<SimpleStorageDevice> devices = new HashSet<>();
@@ -72,6 +89,16 @@ public class SimpleStorage extends DiscoverableEntity {
 
     public void setUefiDevicePath(String uefiDevicePath) {
         this.uefiDevicePath = uefiDevicePath;
+    }
+
+    @Override
+    public String getMultiSourceDiscriminator() {
+        return multiSourceDiscriminator;
+    }
+
+    @Override
+    public void setMultiSourceDiscriminator(String multiSourceDiscriminator) {
+        this.multiSourceDiscriminator = multiSourceDiscriminator;
     }
 
     public Set<SimpleStorageDevice> getDevices() {

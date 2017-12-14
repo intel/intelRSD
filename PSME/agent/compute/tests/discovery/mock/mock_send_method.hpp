@@ -33,6 +33,10 @@ public:
     /*! Default destructor */
     virtual ~MockSendMethod();
 
+    virtual void send(const ipmi::Request&, const ipmi::BridgeInfo&, ipmi::Response&) {
+        throw std::runtime_error("Testing runtime exception of send method.");
+    }
+
     virtual void send(const ipmi::Request&, ipmi::Response&) {
         throw std::runtime_error("Testing runtime exception of send method.");
     }

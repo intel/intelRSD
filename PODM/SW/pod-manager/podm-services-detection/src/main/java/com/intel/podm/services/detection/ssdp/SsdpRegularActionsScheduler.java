@@ -16,9 +16,6 @@
 
 package com.intel.podm.services.detection.ssdp;
 
-import com.intel.podm.config.base.Config;
-import com.intel.podm.config.base.Holder;
-import com.intel.podm.config.base.dto.ServiceDetectionConfig;
 import com.intel.podm.config.base.dto.ServiceDetectionConfig.Protocols.Ssdp;
 
 import javax.annotation.Resource;
@@ -32,23 +29,18 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class SsdpRegularActionsScheduler {
     private static final long NO_DELAY = 0;
 
-    @Inject
-    @Config
-    private Holder<ServiceDetectionConfig> configuration;
-
     @Resource
     private ManagedScheduledExecutorService managedExecutorService;
 
     @Inject
     private SearchRedfishServiceTask provideEndpointsScheduledTask;
 
-    void schedule() {
-        Ssdp ssdpConf = configuration.get().getProtocols().getSsdp();
+    void schedule(Ssdp ssdp) {
         managedExecutorService.scheduleWithFixedDelay(
-                provideEndpointsScheduledTask,
-                NO_DELAY,
-                ssdpConf.getAnnouncementFrequencyInSeconds(),
-                SECONDS
+            provideEndpointsScheduledTask,
+            NO_DELAY,
+            ssdp.getAnnouncementFrequencyInSeconds(),
+            SECONDS
         );
     }
 }

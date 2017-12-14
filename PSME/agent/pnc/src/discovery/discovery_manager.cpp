@@ -81,8 +81,8 @@ template <typename RESOURCE>
 std::string log_and_remove(const std::string& uuid) {
     using RAW_TYPE = typename std::remove_reference<RESOURCE>::type;
     enums::Component component = RAW_TYPE::get_component();
-    log_info(GET_LOGGER("pnc-discovery"), component.to_string() << " removed");
-    log_debug(GET_LOGGER("pnc-discovery"), "Removed " << component.to_string() << " uuid: " << uuid);
+    log_info("pnc-discovery", component.to_string() << " removed");
+    log_debug("pnc-discovery", "Removed " << component.to_string() << " uuid: " << uuid);
     get_manager<RAW_TYPE>().remove_entry(uuid);
     return uuid;
 }
@@ -95,8 +95,8 @@ std::string log_and_add(const RESOURCE& resource) {
     using RAW_TYPE = typename std::remove_reference<RESOURCE>::type;
     std::string uuid = resource.get_uuid();
     enums::Component component = RAW_TYPE::get_component();
-    log_info(GET_LOGGER("pnc-discovery"), component.to_string() << " found");
-    log_debug(GET_LOGGER("pnc-discovery"), component.to_string() << " uuid: " << uuid);
+    log_info("pnc-discovery", component.to_string() << " found");
+    log_debug("pnc-discovery", component.to_string() << " uuid: " << uuid);
     get_manager<RAW_TYPE>().add_entry(resource);
     return uuid;
 }
@@ -109,7 +109,7 @@ std::string log_and_update(const RESOURCE& resource) {
     using RAW_TYPE = typename std::remove_reference<RESOURCE>::type;
     std::string uuid = resource.get_uuid();
     enums::Component component = RAW_TYPE::get_component();
-    log_debug(GET_LOGGER("pnc-discovery"), component.to_string() << " with uuid: " + uuid << " has been updated");
+    log_debug("pnc-discovery", component.to_string() << " with uuid: " + uuid << " has been updated");
     get_manager<RAW_TYPE>().get_entry_reference(resource.get_uuid()).get_raw_ref() = resource;
     return uuid;
 }
@@ -130,7 +130,7 @@ DiscoveryManager DiscoveryManager::create(const tools::Toolset& t) {
         discoverer = std::make_shared<DiscovererMf3>(factory);
     }
     else {
-        log_error(GET_LOGGER("pnc-discovery"), "Not supported platform specified in the configuration");
+        log_error("pnc-discovery", "Not supported platform specified in the configuration");
         throw std::runtime_error("Not supported platform");
     }
 
@@ -157,14 +157,16 @@ void DiscoveryManager::discover_ports(const std::string& fabric_uuid, const std:
         cmd = m_tools.gas_tool->get_all_port_binding_info(gas);
     }
     catch (const std::exception& e) {
-        log_debug(GET_LOGGER("pnc-discovery"), "Cannot get port binding info for all ports " << e.what());
-        log_error(GET_LOGGER("pnc-discovery"), "Ports discovery failed");
+        log_debug("pnc-discovery", "Cannot get port binding info for all ports " << e.what());
+        log_error("pnc-discovery", "Ports discovery failed");
         return;
     }
     for (uint8_t entry_id = 0; entry_id < cmd.output.fields.info_count; entry_id++) {
         try {
             Port port = m_discoverer->discover_port(switch_uuid, m_tools, gas, cmd, entry_id);
             m_discoverer->update_port(port, gas, m_tools);
+            Metric metric = m_discoverer->discover_port_health_metric(port, m_tools);
+            log_and_add(std::move(metric));
 
             if (enums::PciePortType::UpstreamPort == port.get_port_type()) {
                 std::string endpoint_uuid = log_and_add<Endpoint>(m_discoverer->discover_host_endpoint(fabric_uuid));
@@ -176,11 +178,11 @@ void DiscoveryManager::discover_ports(const std::string& fabric_uuid, const std:
                     get_m2m_manager<Zone, Endpoint>().add_entry(zone.get_uuid(), endpoint_uuid);
                 }
                 else {
-                    log_debug(GET_LOGGER("pnc-discovery"), "Zone with id = " << zone_id << " does not exist!");
-                    log_error(GET_LOGGER("pnc-discovery"), "Cannot link endpoint to a not existing zone");
+                    log_debug("pnc-discovery", "Zone with id = " << zone_id << " does not exist!");
+                    log_error("pnc-discovery", "Cannot link endpoint to a not existing zone");
                 }
             }
-            log_debug(GET_LOGGER("pnc-discovery"), "Discovered port with physical id =  " << port.get_port_id());
+            log_debug("pnc-discovery", "Discovered port with physical id =  " << port.get_port_id());
             log_and_add(std::move(port));
         }
         catch (PncDiscoveryExceptionNoConfiguration&) {
@@ -191,8 +193,14 @@ void DiscoveryManager::discover_ports(const std::string& fabric_uuid, const std:
 
 void DiscoveryManager::discovery(const std::string&) {
 
-    log_info(GET_LOGGER("pnc-discovery"), "Starting discovery for the PNC agent.");
+    log_info("pnc-discovery", "Starting discovery for the PNC agent.");
 
+        PncTreeStabilizer pts{};
+        auto definitions = m_discoverer->discover_metric_definitions();
+        for (auto& definition: definitions) {
+            log_and_add(definition);
+            const std::string new_definition_uuid = pts.stabilize_metric_definition(definition.get_uuid());
+        }
 
         std::string manager_uuid = m_tools.model_tool->get_manager_uuid();
         std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
@@ -227,19 +235,19 @@ void DiscoveryManager::discovery(const std::string&) {
         // Remove all temporary ports that were read from the configuration
         m_tools.model_tool->remove_temporary_ports();
 
-    log_info(GET_LOGGER("pnc-discovery"), "Finished discovery of the PNC agent.");
+    log_info("pnc-discovery", "Finished discovery of the PNC agent.");
 }
 
 bool DiscoveryManager::oob_port_device_discovery(const GlobalAddressSpaceRegisters& gas, const std::string&,
         const std::string& dsp_port_uuid) const {
     try {
-        log_debug(GET_LOGGER("pnc-discovery"), "Discovery: getting switch data...");
+        log_debug("pnc-discovery", "Discovery: getting switch data...");
 
         std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
         std::string fabric_uuid = m_tools.model_tool->get_fabric_uuid();
         auto dsp_port = get_manager<Port>().get_entry(dsp_port_uuid);
 
-        log_debug(GET_LOGGER("pnc-discovery"), "Discovery: drive discovery...");
+        log_debug("pnc-discovery", "Discovery: drive discovery...");
         Drive drive{};
         bool drive_found = false;
         try {
@@ -247,7 +255,7 @@ bool DiscoveryManager::oob_port_device_discovery(const GlobalAddressSpaceRegiste
             drive_found = true;
         }
         catch (PncDiscoveryExceptionDriveNotFound&) {
-            log_debug(GET_LOGGER("pnc-discovery"), "No drive detected on physical port " << dsp_port.get_port_id());
+            log_debug("pnc-discovery", "No drive detected on physical port " << dsp_port.get_port_id());
         }
 
         std::string endpoint_uuid{};
@@ -266,7 +274,7 @@ bool DiscoveryManager::oob_port_device_discovery(const GlobalAddressSpaceRegiste
         return true;
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("pnc-discovery"), "Discovery FAILED: " << e.what());
+        log_error("pnc-discovery", "Discovery FAILED: " << e.what());
         return false;
     }
 }
@@ -276,7 +284,7 @@ std::string DiscoveryManager::add_and_stabilize_drive(const Drive& drive, const 
     std::string storage_uuid = m_tools.model_tool->get_storage_uuid();
     std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
 
-    log_debug(GET_LOGGER("pnc-discovery"), "Drive has been found on a physical port " << port.get_port_id());
+    log_debug("pnc-discovery", "Drive has been found on a physical port " << port.get_port_id());
     get_m2m_manager<StorageSubsystem, Drive>().add_entry(storage_uuid, drive.get_uuid());
     log_and_add(drive);
     std::string uuid = ::agent::pnc::PncTreeStabilizer().stabilize_drive(drive.get_uuid());
@@ -289,23 +297,23 @@ std::string DiscoveryManager::add_and_stabilize_drive(const Drive& drive, const 
 std::string DiscoveryManager::add_and_stabilize_endpoint(Endpoint& endpoint, const Port& port,
         bool was_drive_found, const std::string& drive_uuid) const {
     PncDryStabilizer pds{};
-    const std::string new_endpoint_uuid = pds.stabilize(endpoint, std::vector<Port>{port});
+    const std::string new_endpoint_uuid = pds.generate_persistent_uuid(endpoint, std::vector<Port>{port});
     bool already_exists = get_manager<Endpoint>().entry_exists(new_endpoint_uuid);
     std::string fabric_uuid = m_tools.model_tool->get_fabric_uuid();
 
     if (already_exists) {
         if (was_drive_found) {
-            log_info(GET_LOGGER("pnc-discovery"), "Regenerating existing endpoint");
-            log_debug(GET_LOGGER("pnc-discovery"), "Regenerating endpoint on a physical port " << port.get_port_id());
+            log_info("pnc-discovery", "Regenerating existing endpoint");
+            log_debug("pnc-discovery", "Regenerating endpoint on a physical port " << port.get_port_id());
             m_tools.model_tool->regenerate_endpoint(new_endpoint_uuid, drive_uuid);
         }
         else {
-            log_debug(GET_LOGGER("pnc-discovery"), "Endpoint already exists");
+            log_debug("pnc-discovery", "Endpoint already exists");
         }
 
     }
     else {
-        log_debug(GET_LOGGER("pnc-discovery"), "New endpoint has been found on a physical port " << port.get_port_id());
+        log_debug("pnc-discovery", "New endpoint has been found on a physical port " << port.get_port_id());
         get_m2m_manager<Endpoint, Port>().add_entry(endpoint.get_uuid(), port.get_uuid());
         log_and_add(endpoint);
         m_tools.model_tool->send_event(fabric_uuid,
@@ -343,12 +351,12 @@ bool DiscoveryManager::ib_port_device_discovery(const std::string& switch_uuid, 
         Switch pcie_switch = get_manager<Switch>().get_entry(switch_uuid);
         SysfsBridge sysfs_bridge = decoder.get_bridge_by_switch_path(pcie_switch.get_bridge_path(), bridge_id);
 
-        log_debug(GET_LOGGER("pnc-discovery"), "Discovery: bridge discovery...");
+        log_debug("pnc-discovery", "Discovery: bridge discovery...");
         std::vector<SysfsDevice> devices = decoder.get_devices(sysfs_bridge);
         if (devices.empty()) {
             if (drive_uuid.empty()) {
                 // no oob drive + no ib devices -> nothing new detected
-                log_debug(GET_LOGGER("pnc-discovery"), "Device not present!");
+                log_debug("pnc-discovery", "Device not present!");
             }
             else {
                 // drive was found via OOB discovery and devices are empty -> this should never happen
@@ -358,16 +366,16 @@ bool DiscoveryManager::ib_port_device_discovery(const std::string& switch_uuid, 
         }
         else if (devices.size() > 1) {
             // more than one device - should never happen
-            log_debug(GET_LOGGER("pnc-discovery"), "Found too many (" << devices.size() << ") devices on port uuid = "
+            log_debug("pnc-discovery", "Found too many (" << devices.size() << ") devices on port uuid = "
                 << dsp_port_uuid);
-            log_error(GET_LOGGER("pnc-discovery"), "Too many pcie devices found on port!");
+            log_error("pnc-discovery", "Too many pcie devices found on port!");
             throw std::runtime_error("Too many devices on port");
         }
         else {
             sysfs_device_discovery(dsp_port_uuid, drive_uuid, decoder, devices.front());
             if (drive_uuid.empty()) {
                 // no drives detected but sysfs device found
-                log_warning(GET_LOGGER("pnc-discovery"), "Non drive device found!");
+                log_warning("pnc-discovery", "Non drive device found!");
             }
             else {
                 // normal situation
@@ -377,7 +385,7 @@ bool DiscoveryManager::ib_port_device_discovery(const std::string& switch_uuid, 
         return true;
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("pnc-discovery"), "Discovery FAILED: " << e.what());
+        log_error("pnc-discovery", "Discovery FAILED: " << e.what());
         return false;
     }
 }
@@ -418,11 +426,11 @@ void DiscoveryManager::sysfs_drive_discovery(const std::string drive_uuid,
     }
 
     if (sysfs_drives.empty()) {
-        log_error(GET_LOGGER("pnc-discovery"), "Drive was detected but no sysfs drives were discovered");
+        log_error("pnc-discovery", "Drive was detected but no sysfs drives were discovered");
     }
     else {
         if (sysfs_drives.size() > 1) {
-            log_warning(GET_LOGGER("pnc-discovery"), "More than one sysfs drive found! Taking the first one.");
+            log_warning("pnc-discovery", "More than one sysfs drive found! Taking the first one.");
         }
         Drive drive = get_manager<Drive>().get_entry(drive_uuid);
         drive = m_discoverer->discover_ib_drive(drive, sysfs_device, sysfs_drives.front());
@@ -435,8 +443,8 @@ void DiscoveryManager::sysfs_drive_discovery(const std::string drive_uuid,
 }
 
 void DiscoveryManager::critical_state_drive_discovery(const std::string& drive_uuid) const {
-    log_debug(GET_LOGGER("pnc-discovery"), "Drive is visible via VPD/Smart but not in the sysfs = " << drive_uuid);
-    log_error(GET_LOGGER("pnc-discovery"), "Drive was detected but no pcie devices are present!");
+    log_debug("pnc-discovery", "Drive is visible via VPD/Smart but not in the sysfs = " << drive_uuid);
+    log_error("pnc-discovery", "Drive was detected but no pcie devices are present!");
     Drive drive = get_manager<Drive>().get_entry(drive_uuid);
     drive = m_discoverer->discover_no_sysfs_ib_drive(drive);
     log_and_update(drive);
@@ -448,12 +456,12 @@ void DiscoveryManager::critical_state_drive_discovery(const std::string& drive_u
 bool DiscoveryManager::update_drive_status(const std::string& port_uuid, const std::string& drive_uuid) const {
     Port port{};
     try {
-        log_debug(GET_LOGGER("pnc-discovery"), "Drive status update - gathering data");
+        log_debug("pnc-discovery", "Drive status update - gathering data");
         port = get_manager<Port>().get_entry(port_uuid);
         std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
         Chassis chassis = get_manager<Chassis>().get_entry(chassis_uuid);
 
-        log_debug(GET_LOGGER("pnc-discovery"), "Reading drive status (phys port = " << port.get_port_id()
+        log_debug("pnc-discovery", "Reading drive status (phys port = " << port.get_port_id()
             << "), twi_port = " << unsigned(port.get_twi_port())
             << ", twi_channel = " << unsigned(port.get_twi_channel()));
 
@@ -461,7 +469,7 @@ bool DiscoveryManager::update_drive_status(const std::string& port_uuid, const s
         if (m_tools.i2c_tool->get_smart(smart, port)) {
             attribute::Status status = m_tools.map_tool->get_status_from_smart(smart);
             int media_life_left = 100 - smart.fields.percentage_drive_life_used;
-            log_debug(GET_LOGGER("pnc-discovery"), "Updating drive...");
+            log_debug("pnc-discovery", "Updating drive...");
             m_tools.model_tool->update_drive_status(drive_uuid, status, media_life_left);
         }
         else {
@@ -470,26 +478,60 @@ bool DiscoveryManager::update_drive_status(const std::string& port_uuid, const s
         return true;
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("pnc-discovery"), "Cannot read drive status for drive on port "
+        log_error("pnc-discovery", "Cannot read drive status for drive on port "
             << port.get_port_id() << ", exception: " << e.what());
         return false;
     }
 }
 
+bool DiscoveryManager::update_port_health_metric(const agent_framework::model::Port& port) const {
+    const auto metrics = get_manager<Metric>().get_keys(
+        [&port](const Metric& metric) {
+            return metric.get_component_uuid() == port.get_uuid();
+        }
+    );
+
+    if (metrics.size() != 1) {
+        log_error("pnc-discovery",
+                  "Invalid number of Metrics (" << metrics.size() << ") for port with uuid " + port.get_uuid() );
+        return false;
+    }
+    auto metric = get_manager<Metric>().get_entry_reference(metrics.front());
+
+    bool update = false;
+    const auto& health = port.get_status().get_health();
+    if (metric->get_value().is_null()) {
+        if (health.has_value()) {
+            update = true;
+        }
+    }
+    else if (!health.has_value() || metric->get_value().get<std::string>() != health.value().to_string()) {
+        update = true;
+    }
+    if (update) {
+        metric->set_value(health);
+        m_tools.model_tool->send_event(metric->get_parent_uuid(), metric->get_uuid(),
+                                       enums::Component::Metric, Notification::Update);
+    }
+    return true;
+}
+
 bool DiscoveryManager::update_port_status(const GlobalAddressSpaceRegisters& gas, const std::string& port_uuid) const {
 
     try {
-        auto port = get_manager<Port>().get_entry_reference(port_uuid);
-        log_debug(GET_LOGGER("pnc-discovery"), "Updating status of port id = " << port->get_port_id());
+        auto port_ref = get_manager<Port>().get_entry_reference(port_uuid);
+        auto& port = port_ref.get_raw_ref();
+        log_debug("pnc-discovery", "Updating status of port id = " << port.get_port_id());
 
-        if (m_discoverer->update_port(port.get_raw_ref(), gas, m_tools)) {
-            m_tools.model_tool->send_event(port->get_parent_uuid(), port->get_uuid(),
+        if (m_discoverer->update_port(port, gas, m_tools)) {
+            m_tools.model_tool->send_event(port.get_parent_uuid(), port.get_uuid(),
                                            enums::Component::Port, Notification::Update);
+            return update_port_health_metric(port);
         }
         return true;
     }
     catch (const ::agent_framework::exceptions::InvalidUuid& iue) {
-        log_error(GET_LOGGER("pnc-discovery"), "Cannot update status on nonexisting port " << port_uuid <<
+        log_error("pnc-discovery", "Cannot update status on nonexisting port " << port_uuid <<
                                                                                            ", exception: " << iue.what());
         return false;
     }
@@ -510,7 +552,7 @@ bool DiscoveryManager::remove_devices_on_port(const GlobalAddressSpaceRegisters&
 
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("pnc-discovery"), "Cannot remove devices on port "
+        log_error("pnc-discovery", "Cannot remove devices on port "
             << get_manager<Port>().get_entry(port_uuid).get_port_id() << ", exception: " << e.what());
         return false;
     }

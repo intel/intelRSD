@@ -27,6 +27,8 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.HashSet;
@@ -41,10 +43,16 @@ import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
+@NamedQueries({
+    @NamedQuery(name = StorageService.GET_ALL_STORAGE_SERVICE_IDS,
+        query = "SELECT storageService.entityId FROM StorageService storageService")
+})
 @Table(name = "storage_service", indexes = @Index(name = "idx_storage_service_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class StorageService extends DiscoverableEntity {
+    public static final String GET_ALL_STORAGE_SERVICE_IDS = "GET_ALL_STORAGE_SERVICE_IDS";
+
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 

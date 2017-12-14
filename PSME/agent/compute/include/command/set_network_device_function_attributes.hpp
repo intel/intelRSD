@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "agent-framework/command-ref/compute_commands.hpp"
+#include "agent-framework/command/compute_commands.hpp"
 #include "agent-framework/module/compute_components.hpp"
 #include "ipmi/manager/ipmitool/management_controller.hpp"
 

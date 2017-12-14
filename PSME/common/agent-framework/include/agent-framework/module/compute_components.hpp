@@ -41,23 +41,15 @@ namespace module {
  * */
 class ComputeComponents : public generic::Singleton<ComputeComponents> {
 public:
-    using ProcessorManager = GenericManager<model::Processor>;
+
     using MemoryManager = GenericManager<model::Memory>;
-    using NetworkInterfaceManager = GenericManager<model::NetworkInterface>;
     using NetworkDeviceManager = GenericManager<model::NetworkDevice>;
     using NetworkDeviceFunctionsManager = GenericManager<model::NetworkDeviceFunction>;
     using StorageControllerManager = GenericManager<model::StorageController>;
+    using TrustedModuleManager = GenericManager<model::TrustedModule>;
+
 
     virtual ~ComputeComponents();
-
-
-    /*!
-     * @brief Get processor manager
-     * @return Instance of processor manager
-     * */
-    ProcessorManager& get_processor_manager() {
-        return m_processor_manager;
-    }
 
 
     /*!
@@ -70,20 +62,13 @@ public:
 
 
     /*!
-     * @brief Get network interface manager
-     * @return Instance of network interface manager
-     * */
-    NetworkInterfaceManager& get_network_interface_manager() {
-        return m_network_interface_manager;
-    }
-
-    /*!
      * @brief Get network device manager
      * @return Instance of network device manager
      * */
     NetworkDeviceManager& get_network_device_manager() {
         return m_network_device_manager;
     }
+
 
     /*!
      * @brief Get network device function manager
@@ -92,6 +77,7 @@ public:
     NetworkDeviceFunctionsManager& get_network_device_function_manager() {
         return m_network_device_functions_manager;
     }
+
 
     /*!
      * @brief Get storage controller manager
@@ -102,13 +88,21 @@ public:
     }
 
 
+    /*!
+     * @brief Get trusted module manager
+     * @return Instance of trusted module manager
+     * */
+    TrustedModuleManager& get_trusted_module_manager() {
+        return m_trusted_module_manager;
+    }
+
+
 private:
-    ProcessorManager m_processor_manager{};
     MemoryManager m_memory_manager{};
-    NetworkInterfaceManager m_network_interface_manager{};
     NetworkDeviceManager m_network_device_manager{};
     StorageControllerManager m_storage_controller_manager{};
     NetworkDeviceFunctionsManager m_network_device_functions_manager{};
+    TrustedModuleManager m_trusted_module_manager{};
 };
 
 }

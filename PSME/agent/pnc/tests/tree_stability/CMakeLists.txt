@@ -37,9 +37,5 @@ target_link_libraries(${test_target}
     ${SAFESTRING_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
-    jsonrpccpp-server
-    jsonrpccpp-common
-    jsonrpccpp-client
-    jsoncpp
     md5
 )

@@ -21,14 +21,14 @@ import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import java.util.Collection;
 import java.util.List;
 
 import static com.intel.podm.common.types.DeepDiscoveryState.RUNNING;
 import static com.intel.podm.common.utils.IterableHelper.single;
 
-@Dependent
+@ApplicationScoped
 public class IpxeScriptFactory {
     public IpxeScript create(ComputerSystem computerSystem) throws AssetNotFoundException {
         if (computerSystem.getMetadata().isInAnyOfStates(RUNNING)) {
@@ -47,13 +47,13 @@ public class IpxeScriptFactory {
         Integer lun = findLun(address);
 
         return RemoteTargetIpxeScript
-                .newBuilder()
-                .initiatorIqn(iscsiInitiatorIqn)
-                .serverName(address.getTargetPortalIp())
-                .port(address.getTargetPortalPort())
-                .lun(lun)
-                .targetName(address.getTargetIqn())
-                .build();
+            .newBuilder()
+            .initiatorIqn(iscsiInitiatorIqn)
+            .serverName(address.getTargetPortalIp())
+            .port(address.getTargetPortalPort())
+            .lun(lun)
+            .targetName(address.getTargetIqn())
+            .build();
     }
 
     private ComposedNode findComposedNode(ComputerSystem computerSystem) throws AssetNotFoundException {

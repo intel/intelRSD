@@ -30,11 +30,6 @@
 
 #include "agent-framework/module/loader/loader.hpp"
 
-#include <atomic>
-#include <condition_variable>
-
-
-
 namespace agent {
 namespace chassis {
 namespace loader {
@@ -43,23 +38,7 @@ class ChassisLoader : public agent_framework::module::loader::Loader {
 public:
     ~ChassisLoader();
 
-
     bool load(const json::Value&) override;
-
-
-    /*!
-     * Block thread of execution until all chassis components are fully loaded.
-     * After chassis is loaded, all blocked threads are notified and continue
-     * their execution. This is needed to avoid premature event sending
-     * (before tree stabilization takes places).
-     * */
-    static void wait_for_complete();
-
-
-private:
-    static std::mutex m_mutex;
-    static std::condition_variable m_cv;
-    static std::atomic<bool> m_is_loaded;
 };
 
 }

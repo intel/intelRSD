@@ -28,6 +28,8 @@ import org.hibernate.proxy.HibernateProxy;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
+import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -40,11 +42,12 @@ import java.util.Set;
 
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.LAZY;
 import static org.hibernate.annotations.GenerationTime.INSERT;
 
 @javax.persistence.Entity
-@Table(name = "connected_entity", indexes = @Index(name = "idx_connected_entity_id", columnList = "entity_id", unique = true))
+@Table(name = "connected_entity", indexes = @Index(name = "idx_connected_entity_entity_id", columnList = "entity_id", unique = true))
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class ConnectedEntity extends DiscoverableEntity {
     @Generated(INSERT)
@@ -52,9 +55,11 @@ public class ConnectedEntity extends DiscoverableEntity {
     private Id entityId;
 
     @Column(name = "entity_role")
+    @Enumerated(STRING)
     private EntityRole entityRole;
 
     @Column(name = "entity_type")
+    @Enumerated(STRING)
     private EntityType entityType;
 
     @Column(name = "pci_function_number")
@@ -63,21 +68,21 @@ public class ConnectedEntity extends DiscoverableEntity {
     @Column(name = "pci_class_code")
     private String pciClassCode;
 
-    @Column(name = "entity_pci_id")
+    @Embedded
     private PciId pciId;
 
     @ElementCollection
-    @CollectionTable(name = "connected_entity_identifiers", joinColumns = @JoinColumn(name = "identifiers_id"))
-    @OrderColumn(name = "connected_entity_identifiers_order")
+    @CollectionTable(name = "connected_entity_identifier", joinColumns = @JoinColumn(name = "connected_entity_id"))
+    @OrderColumn(name = "connected_entity_identifier_order")
     private Set<Identifier> identifiers = new HashSet<>();
+
+    @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "discoverable_entity_id")
+    private DiscoverableEntity entityLink;
 
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "endpoint_id")
     private Endpoint endpoint;
-
-    @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
-    @JoinColumn(name = "drive_id")
-    private DiscoverableEntity entityLink;
 
     @Override
     public Id getId() {
@@ -87,12 +92,6 @@ public class ConnectedEntity extends DiscoverableEntity {
     @Override
     public void setId(Id id) {
         entityId = id;
-    }
-
-    @Override
-    public void preRemove() {
-        unlinkEndpoint(endpoint);
-        unlinkEntityLink(entityLink);
     }
 
     public EntityRole getEntityRole() {
@@ -111,14 +110,6 @@ public class ConnectedEntity extends DiscoverableEntity {
         this.entityType = entityType;
     }
 
-    public PciId getPciId() {
-        return pciId;
-    }
-
-    public void setPciId(PciId pciId) {
-        this.pciId = pciId;
-    }
-
     public Integer getPciFunctionNumber() {
         return pciFunctionNumber;
     }
@@ -135,17 +126,20 @@ public class ConnectedEntity extends DiscoverableEntity {
         this.pciClassCode = pciClassCode;
     }
 
+    public PciId getPciId() {
+        return pciId;
+    }
+
+    public void setPciId(PciId pciId) {
+        this.pciId = pciId;
+    }
+
     public Set<Identifier> getIdentifiers() {
         return identifiers;
     }
 
     public void addIdentifier(Identifier identifier) {
         identifiers.add(identifier);
-    }
-
-    @Override
-    public boolean containedBy(Entity possibleParent) {
-        return false;
     }
 
     public DiscoverableEntity getEntityLink() {
@@ -196,5 +190,16 @@ public class ConnectedEntity extends DiscoverableEntity {
                 endpoint.unlinkConnectedEntities(this);
             }
         }
+    }
+
+    @Override
+    public void preRemove() {
+        unlinkEntityLink(entityLink);
+        unlinkEndpoint(endpoint);
+    }
+
+    @Override
+    public boolean containedBy(Entity possibleParent) {
+        return false;
     }
 }

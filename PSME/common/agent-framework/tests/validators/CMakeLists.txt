@@ -31,6 +31,4 @@ target_link_libraries(
     ${SAFESTRING_LIBRARIES}
     agent-mocks
     ${JSONCXX_LIBRARIES}
-    ${JSONCPP_LIBRARIES}
-    ${JSONRPCCPP_LIBRARIES}
 )

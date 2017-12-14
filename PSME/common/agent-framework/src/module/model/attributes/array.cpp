@@ -20,13 +20,15 @@
  * @file command/collection.cpp
  * @brief Arrays specific data
  * */
+
 #include "agent-framework/module/utils/is_framework_enum.hpp"
 #include "agent-framework/module/utils/is_framework_object.hpp"
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
+#include "agent-framework/module/model/metric.hpp"
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/enum/pnc.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
-#include <json/json.h>
 #include <cassert>
 
 
@@ -45,7 +47,7 @@ using is_f_obj = utils::is_framework_object<T>;
 
 // empty template if neither framework enum or object
 template<typename T, typename std::enable_if<(!is_f_obj<T>::value) && (!is_f_enum<T>::value)>::type* = nullptr>
-void append_to_json(Json::Value&, const T&) {
+void append_to_json(json::Json&, const T&) {
     // this should not be used, provide proper specialization instead
     assert(false);
 }
@@ -53,42 +55,42 @@ void append_to_json(Json::Value&, const T&) {
 
 // append framework enum to json
 template<typename T, typename std::enable_if<is_f_enum<T>::value>::type* = nullptr>
-void append_to_json(Json::Value& json, const T& entry) {
-    json.append(entry.to_string());
+void append_to_json(json::Json& json, const T& entry) {
+    json.emplace_back(entry.to_string());
 }
 
 
 // append framework object to json
 template<typename T, typename std::enable_if<is_f_obj<T>::value>::type* = nullptr>
-void append_to_json(Json::Value& json, const T& entry) {
-    json.append(entry.to_json());
+void append_to_json(json::Json& json, const T& entry) {
+    json.emplace_back(entry.to_json());
 }
 
 
 // append string to json
 template<>
-void append_to_json<std::string>(Json::Value& json, const std::string& entry) {
-    json.append(entry);
+void append_to_json<std::string>(json::Json& json, const std::string& entry) {
+    json.emplace_back(entry);
 }
 
 
 // append double to json
 template<>
-void append_to_json<double>(Json::Value& json, const double& entry) {
-    json.append(entry);
+void append_to_json<double>(json::Json& json, const double& entry) {
+    json.emplace_back(entry);
 }
 
 
 // append uint32_t to json
 template<>
-void append_to_json<std::uint32_t>(Json::Value& json, const std::uint32_t& entry) {
-    json.append(entry);
+void append_to_json<std::uint32_t>(json::Json& json, const std::uint32_t& entry) {
+    json.emplace_back(entry);
 }
 
 
 // empty template if neither framework enum or object
 template<typename T, typename std::enable_if<(!is_f_obj<T>::value) && (!is_f_enum<T>::value)>::type* = nullptr>
-void append_to_array(Array<T>&, const Json::Value&) {
+void append_to_array(Array<T>&, const json::Json&) {
     // this should not be used, provide proper specialization instead
     assert(false);
 }
@@ -96,39 +98,36 @@ void append_to_array(Array<T>&, const Json::Value&) {
 
 // append framework enum from json
 template<typename T, typename std::enable_if<is_f_enum<T>::value>::type* = nullptr>
-void append_to_array(Array<T>& array, const Json::Value& json) {
-    array.add_entry(T::from_string(json.asString()));
+void append_to_array(Array<T>& array, const json::Json& json) {
+    array.add_entry(T::from_string(json));
 }
 
 
 // append framework object from json
 template<typename T, typename std::enable_if<is_f_obj<T>::value>::type* = nullptr>
-void append_to_array(Array<T>& array, const Json::Value& json) {
+void append_to_array(Array<T>& array, const json::Json& json) {
     array.add_entry(T::from_json(json));
 }
 
 
 // append string from json
 template<>
-void append_to_array<std::string>(Array<std::string>& array,
-                                  const Json::Value& json) {
-    array.add_entry(json.asString());
+void append_to_array<std::string>(Array<std::string>& array, const json::Json& json) {
+    array.add_entry(json);
 }
 
 
 // append double from json
 template<>
-void append_to_array<double>(Array<double>& array,
-                             const Json::Value& json) {
-    array.add_entry(json.asDouble());
+void append_to_array<double>(Array<double>& array, const json::Json& json) {
+    array.add_entry(json);
 }
 
 
 // append uint32_t from json
 template<>
-void append_to_array<std::uint32_t>(Array<std::uint32_t>& array,
-                                    const Json::Value& json) {
-    array.add_entry(json.asUInt());
+void append_to_array<std::uint32_t>(Array<std::uint32_t>& array, const json::Json& json) {
+    array.add_entry(json);
 }
 
 }
@@ -143,7 +142,7 @@ Array<T>::~Array() { }
 
 
 template<typename T>
-Array<T> Array<T>::from_json(const Json::Value& json) {
+Array<T> Array<T>::from_json(const json::Json& json) {
     Array<T> array;
     for (const auto& val : json) {
         ::append_to_array(array, val);
@@ -153,8 +152,8 @@ Array<T> Array<T>::from_json(const Json::Value& json) {
 
 
 template<typename T>
-Json::Value Array<T>::to_json() const {
-    Json::Value json{Json::arrayValue};
+json::Json Array<T>::to_json() const {
+    json::Json json = json::Json::array();
     for (const auto& entry : *this) {
         ::append_to_json(json, entry);
     }
@@ -166,10 +165,12 @@ namespace agent_framework {
 namespace model {
 namespace attribute {
 
+/* Primitives */
 template class Array<std::string>;
 template class Array<std::uint32_t>;
 template class Array<double>;
 
+/* Model attributes */
 template class Array<Collection>;
 template class Array<TargetLun>;
 template class Array<NetworkService>;
@@ -186,11 +187,19 @@ template class Array<Region>;
 template class Array<ResultStatus>;
 template class Array<TaskEntry>;
 template class Array<ConnectedEntity>;
+template class Array<OnPackageMemory>;
+template class Array<Wildcard>;
+template class Array<CalculationParameters>;
+template class Array<MetricDefinitionEntry>;
+template class Array<NextHop>;
 
-template class Array<enums::GraphicalConsoleSupprtedType>;
-template class Array<enums::SerialConsoleSupprtedType>;
-template class Array<enums::CommandShellSupprtedType>;
+/* Model classes */
+template class Array<Metric>;
 
+/* Enums */
+template class Array<enums::GraphicalConsoleSupportedType>;
+template class Array<enums::SerialConsoleSupportedType>;
+template class Array<enums::CommandShellSupportedType>;
 template class Array<enums::BootOverrideTarget>;
 template class Array<enums::MemoryType>;
 template class Array<enums::Media>;

@@ -18,9 +18,9 @@ package com.intel.podm.discovery.internal;
 
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.Chassis;
-import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.entities.redfish.embeddables.CommandShell;
 import com.intel.podm.business.entities.redfish.embeddables.GraphicalConsole;
+import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.entities.redfish.embeddables.SerialConsole;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.config.base.Config;
@@ -41,7 +41,7 @@ import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static com.intel.podm.common.utils.IterableHelper.single;
 
 @ApplicationScoped
-public class PodManagerDiscoveryHandler {
+class PodManagerDiscoveryHandler {
     @Inject
     GenericDao genericDao;
 

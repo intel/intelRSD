@@ -38,7 +38,7 @@ namespace {
     constexpr int TIMEOUT_MS = 10000;
     constexpr int BUFFER_LEN = sizeof(struct inotify_event) + NAME_MAX + 1;
     constexpr char WATCH_DISK_PATH[] = "/dev/disk/by-id/";
-    constexpr char DEVICE_MAPPER_PREFIX[] = "dm-";
+    constexpr char ATA_DEVICE_PREFIX[] = "ata-";
 
     /* INotify event message deleter */
     struct INotifyDeleter {
@@ -69,8 +69,8 @@ bool HotswapWatcher::detect_hotswap(int fd, int wd) {
     if (0 < poll(pfds, sizeof(pfds)/sizeof(pfds[0]), TIMEOUT_MS)) {
         if (0 < read(fd, ievent, BUFFER_LEN)) {
             return (0 < ievent->len) && (wd == ievent->wd) &&
-                (0 != strncmp(DEVICE_MAPPER_PREFIX, ievent->name,
-                strlen(DEVICE_MAPPER_PREFIX)));
+                (0 == strncmp(ATA_DEVICE_PREFIX, ievent->name,
+                strlen(ATA_DEVICE_PREFIX)));
         }
         log_warning(GET_LOGGER("storage-agent"),
             "Could not read disks notification.");

@@ -26,8 +26,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import static com.intel.podm.rest.error.ErrorResponseCreator.from;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.FORBIDDEN;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.FORBIDDEN;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
@@ -69,7 +69,7 @@ public class ForbiddenErrorResource {
     }
 
     private Response getForbiddenResponse() {
-        return from(FORBIDDEN).create();
+        return newErrorResponseBuilder(FORBIDDEN).build();
     }
 
 }

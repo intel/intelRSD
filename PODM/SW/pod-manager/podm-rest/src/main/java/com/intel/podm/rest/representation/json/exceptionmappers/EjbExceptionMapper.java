@@ -19,6 +19,7 @@ package com.intel.podm.rest.representation.json.exceptionmappers;
 import com.intel.podm.common.logger.Logger;
 
 import javax.ejb.EJBException;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
@@ -26,10 +27,12 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import java.util.concurrent.RejectedExecutionException;
 
-import static com.intel.podm.rest.error.PodmExceptions.internalServerError;
-import static com.intel.podm.rest.error.PodmExceptions.serviceUnavailable;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.SERVICE_UNAVAILABLE;
+import static com.intel.podm.rest.error.ErrorType.UNKNOWN_EXCEPTION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@ApplicationScoped
 @Provider
 @Produces(APPLICATION_JSON)
 public class EjbExceptionMapper implements ExceptionMapper<EJBException> {
@@ -40,9 +43,9 @@ public class EjbExceptionMapper implements ExceptionMapper<EJBException> {
     public Response toResponse(EJBException exception) {
         logger.e("Application Error: " + exception.getMessage(), exception);
         if (exception.getCause() instanceof RejectedExecutionException) {
-            return serviceUnavailable().getResponse();
+            return newErrorResponseBuilder(SERVICE_UNAVAILABLE).build();
         } else {
-            return internalServerError().getResponse();
+            return newErrorResponseBuilder(UNKNOWN_EXCEPTION).build();
         }
     }
 }

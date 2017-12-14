@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/common/set_component_attributes.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -33,8 +33,8 @@ void SetComponentAttributes::add_status(const model::attribute::ResultStatus &st
     m_statuses.add_entry(status);
 }
 
-Json::Value SetComponentAttributes::to_json() const {
-    Json::Value value;
+json::Json SetComponentAttributes::to_json() const {
+    json::Json value{};
     if (!m_task.empty()) {
         value[TaskEntry::TASK] = m_task;
         value[TaskEntry::OEM] = m_oem.to_json();
@@ -45,12 +45,14 @@ Json::Value SetComponentAttributes::to_json() const {
     return value;
 }
 
-SetComponentAttributes SetComponentAttributes::from_json(const Json::Value& json) {
-    if (json.isObject() && json.isMember(TaskEntry::TASK)) {
-        return SetComponentAttributes{json[TaskEntry::TASK].asString(),
-            attribute::Oem::from_json(json[TaskEntry::OEM])};
+SetComponentAttributes SetComponentAttributes::from_json(const json::Json& json) {
+    if (json.is_object() && json.count(TaskEntry::TASK)) {
+        return SetComponentAttributes{
+            json[TaskEntry::TASK],
+            attribute::Oem::from_json(json[TaskEntry::OEM])
+        };
     }
-    else if (json.isArray()) {
+    else if (json.is_array()) {
         return SetComponentAttributes{Statuses::from_json(json)};
     }
     else {

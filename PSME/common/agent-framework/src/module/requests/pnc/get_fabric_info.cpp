@@ -28,19 +28,19 @@
 
 #include "agent-framework/module/requests/pnc/get_fabric_info.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetFabricInfo::GetFabricInfo(const std::string& pcie_fabric): m_fabric{pcie_fabric} {}
 
-Json::Value GetFabricInfo::to_json() const {
-    Json::Value value;
+json::Json GetFabricInfo::to_json() const {
+    json::Json value;
     value[Fabric::FABRIC] = m_fabric;
     return value;
 }
 
-GetFabricInfo GetFabricInfo::from_json(const Json::Value& json) {
-    return GetFabricInfo{json[Fabric::FABRIC].asString()};
+GetFabricInfo GetFabricInfo::from_json(const json::Json& json) {
+    return GetFabricInfo{json[Fabric::FABRIC].get<std::string>()};
 }

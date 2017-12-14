@@ -19,8 +19,10 @@
  * */
 
 #include "psme/rest/validators/schemas/subscription_collection.hpp"
+#include "psme/rest/validators/schemas/common.hpp"
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/eventing/event.hpp"
+#include "psme/rest/eventing/model/subscription.hpp"
 
 
 
@@ -30,13 +32,13 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& SubscriptionCollectionPostSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "subscription_collection_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::NAME, VALID_JSON_STRING,
         constants::EventSubscription::DESTINATION, VALID_JSON_STRING,
         constants::EventSubscription::EVENT_TYPES, VALID_ARRAY_OF(VALID_ENUM(eventing::EventType)),
         constants::EventSubscription::CONTEXT, VALID_JSON_STRING,
-        constants::EventSubscription::PROTOCOL, VALID_JSON_STRING,
+        constants::EventSubscription::PROTOCOL, VALID_ENUM(psme::rest::eventing::model::SubscriptionProtocol),
+        constants::EventSubscription::ORIGIN_RESOURCES, VALID_OPTIONAL(VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema))),
         nullptr
     };
     return procedure;

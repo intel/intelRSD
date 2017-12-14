@@ -16,46 +16,44 @@
 
 package com.intel.podm.redfish.json.templates.actions.constraints;
 
-import com.intel.podm.common.types.redfish.RedfishComputerSystem;
+import com.intel.podm.redfish.json.templates.actions.ComposedNodePartialRepresentation;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Objects;
-import java.util.Optional;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.util.Optional.ofNullable;
 
 @Constraint(validatedBy = ComposedNodeConstraint.ComposedNodeConstraintValidator.class)
-@Target(ElementType.PARAMETER)
-@Retention(RetentionPolicy.RUNTIME)
+@Target(PARAMETER)
+@Retention(RUNTIME)
 public @interface ComposedNodeConstraint {
 
-    String message() default "AssetTag cannot be set or mandatory BootSourceType and/or BootSourceState is missing.";
+    String message() default "Field boot cannot be empty or null.";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
 
-    class ComposedNodeConstraintValidator implements ConstraintValidator<ComposedNodeConstraint, RedfishComputerSystem> {
+    class ComposedNodeConstraintValidator implements ConstraintValidator<ComposedNodeConstraint, ComposedNodePartialRepresentation> {
         @Override
-        public void initialize(ComposedNodeConstraint computerSystemConstraintAnnotation) {
+        public void initialize(ComposedNodeConstraint composedNodeConstraintAnnotation) {
         }
 
         @Override
-        public boolean isValid(RedfishComputerSystem redfishComputerSystem, ConstraintValidatorContext context) {
-            return Optional.ofNullable(redfishComputerSystem)
-                    .filter(json -> isBlank(json.getAssetTag()))
-                    .map(RedfishComputerSystem::getBoot)
-                    .filter(Objects::nonNull)
-                    .filter(boot -> boot.getBootSourceOverrideTarget() != null || boot.getBootSourceOverrideEnabled() != null
-                            || boot.getBootSourceOverrideMode() != null)
-                    .isPresent();
+        public boolean isValid(ComposedNodePartialRepresentation computerSystemPartialRepresentation, ConstraintValidatorContext context) {
+            return ofNullable(computerSystemPartialRepresentation)
+                .map(json -> json.boot)
+                .filter(Objects::nonNull)
+                .filter(boot -> boot.getBootSourceOverrideTarget() != null || boot.getBootSourceOverrideEnabled() != null
+                    || boot.getBootSourceOverrideMode() != null)
+                .isPresent();
         }
     }
 }

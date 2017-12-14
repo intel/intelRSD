@@ -109,10 +109,6 @@ std::string ServerError::as_string() const {
 }
 
 
-Json::Value ServerError::get_extended_messages() const {
-    Json::Value json{};
-    std::string error_string = json::Serializer(m_error[ErrorMessage::ERROR][ErrorMessage::EXTENDED_INFO]);
-
-    Json::Reader().parse(error_string, json);
-    return json;
+json::Value ServerError::get_extended_messages() const {
+    return m_error[ErrorMessage::ERROR][ErrorMessage::EXTENDED_INFO];
 }

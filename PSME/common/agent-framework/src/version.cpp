@@ -24,6 +24,8 @@
 
 #include "agent-framework/version.hpp"
 
+
+
 using namespace agent_framework::generic;
 
 constexpr const char* Version::BUILD_TIME;
@@ -36,23 +38,25 @@ namespace {
 const char SEP = '.';
 }
 
+
 std::string Version::build_info() {
     std::string build_prefix{};
-    switch(Version::BUILD_TYPE) {
+    switch (Version::BUILD_TYPE) {
         case ENG:
-                build_prefix = "ENGINEERING PSME BUILD " +  std::string(Version::VERSION_STRING);
+            build_prefix = "ENGINEERING PSME BUILD " + std::string(Version::VERSION_STRING);
             break;
         case REL:
-                build_prefix = "RELEASE PSME BUILD " + std::string(Version::VERSION_STRING);
+            build_prefix = "RELEASE PSME BUILD " + std::string(Version::VERSION_STRING);
             break;
-        // treating MAN case the same as default
+            // treating MAN case the same as default
         case MAN:
         default:
-                build_prefix = "MANUAL PSME BUILD";
+            build_prefix = "MANUAL PSME BUILD";
             break;
     }
     return build_prefix + "; Built " + std::string(Version::BUILD_TIME);
 }
+
 
 int agent_framework::generic::get_version_component(const char* version_string, int index) {
     if (nullptr == version_string) {
@@ -86,4 +90,3 @@ int agent_framework::generic::get_version_component(const char* version_string, 
     }
     return value;
 }
-

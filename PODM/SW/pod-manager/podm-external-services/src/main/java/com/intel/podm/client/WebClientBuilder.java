@@ -18,9 +18,8 @@ package com.intel.podm.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.intel.podm.client.api.WebClient;
-import com.intel.podm.client.api.redfish.RedfishClient;
-import com.intel.podm.client.redfish.RedfishClientImpl;
+import com.intel.podm.client.redfish.RedfishClient;
+import com.intel.podm.client.redfish.SocketErrorAwareHttpClient;
 import com.intel.podm.client.redfish.http.SimpleHttpClient;
 import com.intel.podm.common.types.ConnectionParameters;
 import com.intel.podm.config.base.Config;
@@ -30,8 +29,8 @@ import com.intel.podm.security.providers.SslContextProvider;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
 
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.ws.rs.client.Client;
 import java.net.URI;
 
@@ -40,7 +39,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder.HostnameVerificationPolicy.ANY;
 
-@Singleton
+@Dependent
 public class WebClientBuilder {
 
     private SslContextProvider sslContextProvider;
@@ -82,7 +81,6 @@ public class WebClientBuilder {
         return clientBuilder.build();
     }
 
-
     public class Builder {
         private URI baseUri;
         private boolean retryable;
@@ -105,7 +103,8 @@ public class WebClientBuilder {
         public WebClient build() {
             Client client = getClientWithJacksonProvider();
             SimpleHttpClient httpClient = new SimpleHttpClient(client);
-            RedfishClient redfishClient = new RedfishClientImpl(baseUri, httpClient);
+            SocketErrorAwareHttpClient socketErrorAwareHttpClient = new SocketErrorAwareHttpClient(httpClient);
+            RedfishClient redfishClient = new RedfishClient(baseUri, socketErrorAwareHttpClient);
             WebClient webClient = new WebClientBasedOnRedfishClient(redfishClient);
 
             if (retryable) {

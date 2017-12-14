@@ -21,7 +21,6 @@
 
 #include "ipmi/command/generic/get_chassis_status.hpp"
 #include <gtest/gtest.h>
-#include <iostream>
 
 using namespace std;
 using namespace ipmi::command::generic;
@@ -35,7 +34,7 @@ TEST(GetChassisStatusResponseUnpack, Unpack5Bytes) {
     vector<uint8_t> byte_vector = {0x00, 0x21, 0x10, 0x40, 0x30};
     response::GetChassisStatus status;
 
-    status.unpack(byte_vector);
+    status.do_unpack(byte_vector);
 
     ASSERT_TRUE(status.is_power_on());
 
@@ -46,7 +45,21 @@ TEST(GetChassisStatusResponseUnpack, Unpack4Bytes) {
     vector<uint8_t> byte_vector = {0x00, 0x21, 0x10, 0x40};
     response::GetChassisStatus status;
 
-    status.unpack(byte_vector);
+    status.do_unpack(byte_vector);
 
     ASSERT_TRUE(status.is_power_on());
+}
+
+TEST(GetChassisStatusResponseUnpack, NonZeroCompletionCode) {
+    vector<uint8_t> byte_vector = {0xD5};
+    response::GetChassisStatus status;
+
+    ASSERT_THROW(status.do_unpack(byte_vector), ipmi::ResponseError);
+}
+
+TEST(GetChassisStatusResponseUnpack, TooShortResponseBody) {
+    vector<uint8_t> byte_vector = {0x00, 0x00};
+    response::GetChassisStatus status;
+
+    ASSERT_THROW(status.do_unpack(byte_vector), ipmi::ResponseLengthError);
 }

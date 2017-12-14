@@ -27,16 +27,20 @@ configure_file (
 )
 
 set(AGENT_COMMANDS_LIB -Wl,-whole-archive -Wl,-no-whole-archive)
-set(AGENT_FRAMEWORK_LIB agent-framework logger)
+set(AGENT_FRAMEWORK_LIB agent-framework database logger)
 set(AGENT_FRAMEWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(AGENT_FRAMEWORK_INCLUDE_DIRS
+    ${JSON_INCLUDE_DIRS}
+    ${JSON_RPC_INCLUDE_DIRS}
+    ${JSONCXX_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE PATH "Agent framework include dir path"
 )
 
 set(AGENT_FRAMEWORK_LIBRARIES
     -Wl,--whole-archive -Wl,--no-whole-archive agent-framework
+    ${DATABASE_LIBRARIES}
     CACHE PATH "Agent framework libraries"
 )
 
@@ -44,29 +48,27 @@ set(CODE_COVERAGE_IGNORE
     '**/safe-string/*'
     '**/pca95xx/*'
     '**/json-cxx/*'
+    '**/json/*'
     '**/logger/*'
-    '**/jsonrpccpp/*'
 )
 
 include_directories(
-    ${PCA95XX_INCLUDE_DIRS}
+    ${DATABASE_INCLUDE_DIRS}
+    ${JSON_INCLUDE_DIRS}
+    ${JSON_RPC_INCLUDE_DIRS}
     ${JSONCXX_INCLUDE_DIRS}
     ${LOGGER_INCLUDE_DIRS}
     ${CONFIGURATION_INCLUDE_DIRS}
     ${COMMON_INCLUDE_DIRS}
-
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 include_directories(SYSTEM
     ${SAFESTRING_INCLUDE_DIRS}
     ${UUID_INCLUDE_DIRS}
     ${MD5_INCLUDE_DIRS}
-    ${JSONCPP_INCLUDE_DIRS}
-    ${JSONRPCCPP_INCLUDE_DIRS}
 )
 
 add_subdirectory(src)
 add_subdirectory(tests)
-#add_subdirectory(examples)
+add_subdirectory(examples)

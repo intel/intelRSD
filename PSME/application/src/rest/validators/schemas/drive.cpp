@@ -29,7 +29,6 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& DrivePatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "drive_patch_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::ASSET_TAG, VALID_OPTIONAL(VALID_JSON_STRING),
         constants::Common::OEM, VALID_OPTIONAL(VALID_ATTRIBUTE(OemSchema)),
@@ -41,7 +40,6 @@ const jsonrpc::ProcedureValidator& DrivePatchSchema::get_procedure() {
 
 const jsonrpc::ProcedureValidator& DrivePatchSchema::OemSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "oem_object",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::RACKSCALE, VALID_OPTIONAL(VALID_ATTRIBUTE(RackScaleSchema)),
         nullptr
@@ -52,7 +50,6 @@ const jsonrpc::ProcedureValidator& DrivePatchSchema::OemSchema::get_procedure() 
 
 const jsonrpc::ProcedureValidator& DrivePatchSchema::OemSchema::RackScaleSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "rackscale_object",
         jsonrpc::PARAMS_BY_NAME,
         constants::PncDrive::DRIVE_ERASED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
         nullptr

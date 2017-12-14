@@ -20,8 +20,8 @@
 NAME=wildfly
 DESC="WildFly Application Server"
 DEFAULT="/etc/default/$NAME"
+CHECKSUM_LOCATION="/var/lib/misc/pod-manager.war.sha512sum"
 
-# todo: remove this after schema creation optimization
 # this was added due to WFLYCTL0348 timeout error
 JBOSS_OPTS="-Djboss.as.management.blocking.timeout=900"
 
@@ -67,6 +67,13 @@ if [ -z "$JBOSS_HOME" ]; then
 	JBOSS_HOME="/opt/pod-manager/wildfly"
 fi
 export JBOSS_HOME
+
+# Check POD Manager integrity
+sha512sum --check $CHECKSUM_LOCATION
+if [ $? != 0 ]; then
+    log_failure_msg "PODM integrity has been breached!"
+    exit 1
+fi
 
 # Check if wildfly is installed
 if [ ! -f "$JBOSS_HOME/jboss-modules.jar" ]; then

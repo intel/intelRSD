@@ -24,11 +24,14 @@
 
 #pragma once
 
+
+
 #include "array.hpp"
 #include "attributes.hpp"
 #include "result_status.hpp"
 #include "collection.hpp"
 #include "cpu_id.hpp"
+#include "extended_cpu_id.hpp"
 #include "memory_location.hpp"
 #include "fru_info.hpp"
 #include "identifier.hpp"
@@ -57,3 +60,8 @@
 #include "acl_vlan_id.hpp"
 #include "task_entry.hpp"
 #include "connected_entity.hpp"
+#include "wildcard.hpp"
+#include "calculation_parameters.hpp"
+#include "metric_definition_entry.hpp"
+#include "on_package_memory.hpp"
+#include "fpga.hpp"

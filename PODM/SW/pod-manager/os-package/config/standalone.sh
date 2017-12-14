@@ -99,7 +99,7 @@ else
 fi
 export JBOSS_HOME
 
-JAVA_OPTS="$JAVA_OPTS -Dlogback.configurationFile=$JBOSS_HOME/standalone/configuration/logback.xml"
+JAVA_OPTS="$JAVA_OPTS -Dlogback.configurationFile=$JBOSS_HOME/standalone/configuration/logback.xml -Xms64m -Xmx512m"
 
 # Read an optional running configuration file
 if [ "x$RUN_CONF" = "x" ]; then

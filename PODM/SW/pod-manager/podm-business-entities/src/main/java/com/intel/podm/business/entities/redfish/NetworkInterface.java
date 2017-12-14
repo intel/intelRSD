@@ -19,7 +19,6 @@ package com.intel.podm.business.entities.redfish;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.types.Id;
-import com.intel.podm.common.types.Status;
 
 import javax.persistence.Column;
 import javax.persistence.Index;
@@ -27,7 +26,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -42,9 +40,6 @@ import static javax.persistence.FetchType.LAZY;
 public class NetworkInterface extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
-
-    @Column(name = "status")
-    private Status status;
 
     @OneToMany(mappedBy = "networkInterface", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<NetworkDeviceFunction> networkDeviceFunctions = new HashSet<>();
@@ -61,33 +56,6 @@ public class NetworkInterface extends DiscoverableEntity {
     @Override
     public void setId(Id id) {
         entityId = id;
-    }
-
-    @Override
-    public Status getStatus() {
-        return status;
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public ComputerSystem getComputerSystem() {
-        return computerSystem;
-    }
-
-    public void setComputerSystem(ComputerSystem computerSystem) {
-        this.computerSystem = computerSystem;
-    }
-
-    public void unlinkComputerSystem(ComputerSystem computerSystem) {
-        if (Objects.equals(this.computerSystem, computerSystem)) {
-            this.computerSystem = null;
-            if (computerSystem != null) {
-                computerSystem.unlinkNetworkInterface(this);
-            }
-        }
     }
 
     public Set<NetworkDeviceFunction> getNetworkDeviceFunctions() {
@@ -108,6 +76,23 @@ public class NetworkInterface extends DiscoverableEntity {
             networkDeviceFunctions.remove(networkDeviceFunction);
             if (networkDeviceFunction != null) {
                 networkDeviceFunction.unlinkNetworkInterface(this);
+            }
+        }
+    }
+
+    public ComputerSystem getComputerSystem() {
+        return computerSystem;
+    }
+
+    public void setComputerSystem(ComputerSystem computerSystem) {
+        this.computerSystem = computerSystem;
+    }
+
+    public void unlinkComputerSystem(ComputerSystem computerSystem) {
+        if (Objects.equals(this.computerSystem, computerSystem)) {
+            this.computerSystem = null;
+            if (computerSystem != null) {
+                computerSystem.unlinkNetworkInterface(this);
             }
         }
     }

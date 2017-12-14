@@ -21,11 +21,10 @@
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "agent-framework/module/requests/storage.hpp"
 #include "agent-framework/module/responses/storage.hpp"
-#include "agent-framework/module/requests/validation/json_check_type.hpp"
 
 #include "psme/core/agent/agent_manager.hpp"
 #include "psme/rest/constants/constants.hpp"
-#include "psme/rest/utils/mapper.hpp"
+#include "psme/rest/server/multiplexer.hpp"
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/remote_targets_collection.hpp"
 #include "psme/rest/model/handlers/handler_manager.hpp"
@@ -49,7 +48,7 @@ using TargetLuns = attribute::Array<attribute::TargetLun>;
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Services/1/RemoteTargets";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#RemoteTargetCollection.RemoteTargetCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#RemoteTargetCollection.RemoteTargetCollection";
     r[Common::NAME] = "Remote Targets Collection";
@@ -68,11 +67,11 @@ TargetLuns process_luns(const json::Value& json) {
         const auto& logical_drive_url = lun[RemoteTarget::LOGICAL_DRIVE][Common::ODATA_ID].as_string();
 
         try {
-            const auto& params = psme::rest::model::Mapper::get_params(logical_drive_url,
-                                                                       constants::Routes::LOGICAL_DRIVE_PATH);
+            auto params = server::Multiplexer::get_instance()->
+                get_params(logical_drive_url, constants::Routes::LOGICAL_DRIVE_PATH);
             auto drive = psme::rest::model::Find<agent_framework::model::LogicalDrive>(
                 params[PathParam::LOGICAL_DRIVE_ID])
-                .via<agent_framework::model::StorageServices>(params[PathParam::SERVICE_ID])
+                .via<agent_framework::model::StorageService>(params[PathParam::SERVICE_ID])
                 .get_one();
 
             if (drive->get_mode() != enums::LogicalDriveMode::LV) {
@@ -109,11 +108,7 @@ agent_framework::model::requests::AddIscsiTarget create_add_iscsi_target_request
     }
     const auto& iscsi = addresses.front()[RemoteTarget::ISCSI];
 
-    std::string target_iqn = iscsi[RemoteTarget::TARGET_IQN].as_string();
-    if (!agent_framework::model::requests::validation::validate_iscsi_name(target_iqn)) {
-        throw agent_framework::exceptions::InvalidValue("TargetIQN should not contain whitespace characters.");
-    }
-    request.set_target_iqn(target_iqn);
+    request.set_target_iqn(iscsi[RemoteTarget::TARGET_IQN].as_string());
 
     request.set_target_luns(process_luns(iscsi[RemoteTarget::TARGET_LUN]));
 
@@ -130,7 +125,6 @@ agent_framework::model::requests::AddIscsiTarget create_add_iscsi_target_request
         request.set_mutual_chap_secret(chap[RemoteTarget::MUTUAL_SECRET]);
     }
 
-
     const auto& initiators = json[RemoteTarget::INITIATOR].as_array();
 
     constexpr const size_t MAX_INITIATOR_IQNS = 1;
@@ -139,11 +133,11 @@ agent_framework::model::requests::AddIscsiTarget create_add_iscsi_target_request
             "Creating remote targets with more than one InitiatorIQN is not supported");
     }
     for (const auto& initiator : initiators) {
-        std::string initiator_iqn = initiator[RemoteTarget::ISCSI][RemoteTarget::INITIATOR_IQN].as_string();
-        if (!agent_framework::model::requests::validation::validate_iscsi_name(initiator_iqn)) {
-            throw agent_framework::exceptions::InvalidValue("InitiatorIQN should not contain whitespace characters.");
+        // empty InitiatorIQN is represented as null, which means the same on tgt level, but is compliant with metadata
+        auto initiator_iqn = initiator[RemoteTarget::ISCSI][RemoteTarget::INITIATOR_IQN].as_string();
+        if (!initiator_iqn.empty()) {
+            request.set_initiator_iqn(initiator_iqn);
         }
-        request.set_initiator_iqn(initiator_iqn);
     }
 
     return request;
@@ -162,8 +156,8 @@ void endpoint::RemoteTargetCollection::get(const server::Request& req, server::R
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    auto service_uuid = psme::rest::model::Find<agent_framework::model::StorageServices>(
-        req.params[PathParam::SERVICE_ID]).get_uuid();
+    auto service_uuid =
+        psme::rest::model::Find<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get_uuid();
 
     auto keys = StorageComponents::get_instance()->
         get_iscsi_target_manager().get_ids(service_uuid);
@@ -182,8 +176,8 @@ void endpoint::RemoteTargetCollection::get(const server::Request& req, server::R
 void endpoint::RemoteTargetCollection::post(const server::Request& request, server::Response& response) {
     using HandlerManager = psme::rest::model::handler::HandlerManager;
 
-    auto service = psme::rest::model::Find<agent_framework::model::StorageServices>(
-        request.params[PathParam::SERVICE_ID]).get();
+    auto service =
+        psme::rest::model::Find<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID]).get();
 
     // Gets agent ID from parent resource
     std::string agent_id{service.get_agent_id()};
@@ -201,7 +195,7 @@ void endpoint::RemoteTargetCollection::post(const server::Request& request, serv
         HandlerManager::get_instance()->
             get_handler(agent_framework::model::enums::Component::IscsiTarget)->
             load(gami_agent,
-                 service.get_uuid(), agent_framework::model::enums::Component::StorageServices,
+                 service.get_uuid(), agent_framework::model::enums::Component::StorageService,
                  add_response.get_target(), true);
 
         auto created_target = agent_framework::module::StorageComponents::get_instance()->

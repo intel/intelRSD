@@ -17,10 +17,10 @@
 package com.intel.podm.common.types.actions;
 
 public class LegacyRackChassisUpdateDefinition extends BaseChassisUpdateDefinition {
-    private Integer rackPuid;
+    private final Integer rackPuid;
 
-    public LegacyRackChassisUpdateDefinition(String assetTag, Integer rackPuid) {
-        super(assetTag);
+    public LegacyRackChassisUpdateDefinition(String assetTag, String geoTag, Integer rackPuid) {
+        super(assetTag, geoTag);
         this.rackPuid = rackPuid;
     }
 

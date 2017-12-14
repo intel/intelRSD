@@ -50,8 +50,8 @@ namespace {
 
 void collect_request_params(Request& req, const mux::SegmentsVec& segments,
         const std::vector<std::string>& req_segments) {
-    auto s_size = segments.size();
-    for (size_t seg_index(0); seg_index < s_size; ++seg_index) {
+    auto segments_size = segments.size();
+    for (size_t seg_index(0); seg_index < segments_size; ++seg_index) {
         segments[seg_index]->get_param(req.params, req_segments[seg_index]);
     }
 }
@@ -96,6 +96,7 @@ void Multiplexer::register_handler(MethodsHandler::UPtr handler, AccessType acce
     // Find existing candidate
     for (auto& candidate : m_handler_candidates) {
         if (std::get<2>(candidate) == path) {
+            log_error(GET_LOGGER("rest"), "Attempted to register a duplicate handler for " + handler->get_path() + ".");
             return;
         }
     }
@@ -164,3 +165,43 @@ EndpointList Multiplexer::get_endpoint_list() {
 	return list;
 }
 
+bool Multiplexer::is_correct_endpoint_url(const std::string& url) const {
+    auto request_segments = mux::split_path(url);
+    auto it = std::find_if(std::begin(m_handler_candidates),
+                           std::end(m_handler_candidates),
+                           [&request_segments](const PathHandlerCandidate& candidate) {
+                               return mux::segments_match(std::get<0>(candidate), request_segments);
+                           });
+
+    return it != std::end(m_handler_candidates);
+}
+
+Parameters Multiplexer::get_params(const std::string& path, const std::string& path_template) const {
+    auto it = std::find_if(m_handler_candidates.begin(), m_handler_candidates.end(),
+                           [&path_template](const PathHandlerCandidate& candidate) {
+                               return std::get<2>(candidate) == path_template;
+                           }
+    );
+    if (it == m_handler_candidates.end()) {
+        // path_template must be an existing endpoint path
+        throw std::logic_error("Unrecognized path template supplied to multiplexer.");
+    }
+
+    const auto& handler = *it;
+    const auto path_segments = mux::split_path(path);
+
+    if (!mux::segments_match(std::get<0>(handler), path_segments)) {
+        std::string message = "'" + path + "' is not a correct URL in /redfish/v1 namespace.";
+        throw agent_framework::exceptions::NotFound(message);
+    }
+
+    Parameters params;
+    auto& handler_segments = std::get<0>(handler);
+    auto segments_size = handler_segments.size();
+    for (size_t seg_index(0); seg_index < segments_size; ++seg_index) {
+        handler_segments[seg_index]->get_param(params, path_segments[seg_index]);
+    }
+    return params;
+}
+
+Multiplexer::~Multiplexer() {}

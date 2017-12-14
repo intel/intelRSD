@@ -86,6 +86,16 @@
                                 "name": "mgmt_port",
                                 "type": "string"
                             },
+                            "locationOffset": {
+                                "description": "Location identifier offset.",
+                                "name": "locationOffset",
+                                "type": "integer"
+                            },
+                            "parentId": {
+                                "description": "Parent Id.",
+                                "name": "parentId",
+                                "type": "integer"
+                            },
                             "ports": {
                                 "description": "List of all ports.",
                                 "name": "ports",
@@ -98,29 +108,9 @@
                                             "name": "id",
                                             "type": "integer"
                                         },
-                                        "linkState": {
-                                            "description": "State of the link stub.",
-                                            "name": "linkState",
-                                            "type": "string"
-                                        },
-                                        "ethmod": {
-                                            "description": "Ethmod name.",
-                                            "name": "ethmod",
-                                            "type": "string"
-                                        },
-                                        "autoneg": {
-                                            "description": "Autonegotiation.",
-                                            "name": "autoneg",
-                                            "type": "string"
-                                        },
                                         "portType": {
                                             "description": "Type of port.",
                                             "name": "portType",
-                                            "type": "string"
-                                        },
-                                        "linkTechnology": {
-                                            "description": "Link technology of port.",
-                                            "name": "linkTechnology",
                                             "type": "string"
                                         }
                                     },
@@ -128,45 +118,7 @@
                                         "id"
                                     ]
                                 }
-                            },
-                            "vlans": {
-                                    "description": "VLANs configuration. Each element is ",
-                                    "name": "vlans",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "description": "VLAN ID number.",
-                                                "name": "id",
-                                                "type": "integer"
-                                            },
-                                            "tagged_ports": {
-                                                "description": "List of tagged ports.",
-                                                "name": "tagged_ports",
-                                                "type": "array",
-                                                "items": {
-                                                    "description": "Number of tagged port.",
-                                                    "type": "integer"
-                                                }
-                                            },
-                                            "untagged_ports": {
-                                                "description": "List of untagged ports",
-                                                "name": "untagged_ports",
-                                                "type": "array",
-                                                "items": {
-                                                    "description": "Number of untagged port.",
-                                                    "type": "integer"
-                                                }
-                                            }
-                                        },
-                                        "required": [
-                                            "id",
-                                            "tagged_ports",
-                                            "untagged_ports"
-                                        ]
-                                    }
-                                }
+                            }
                         }
                     },
                     "ipv4": {

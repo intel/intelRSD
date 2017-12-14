@@ -39,8 +39,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "power_voltage", indexes = @Index(name = "idx_power_voltage_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class PowerVoltage extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -95,7 +95,6 @@ public class PowerVoltage extends DiscoverableEntity {
     public void setId(Id id) {
         entityId = id;
     }
-
 
     public String getMemberId() {
         return memberId;

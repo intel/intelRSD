@@ -16,8 +16,7 @@
  * */
 
 #include "agent-framework/validators/checkers/null_allowed_validity_checker.hpp"
-#include <json/json.h>
-
+#include "json-wrapper/json-wrapper.hpp"
 
 
 using namespace jsonrpc;
@@ -28,9 +27,9 @@ NullAllowedValidityChecker::NullAllowedValidityChecker(ValidityChecker::Ptr& _ch
 }
 
 
-void NullAllowedValidityChecker::validate(const Json::Value& value) const {
+void NullAllowedValidityChecker::validate(const json::Json& value) const {
     /* only if value IS in the document */
-    if ((&value != &(NON_EXISTING_VALUE)) && (value.isNull())) {
+    if ((&value != &(NON_EXISTING_VALUE)) && (value.is_null())) {
         return;
     }
     if (checker) {

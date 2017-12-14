@@ -23,11 +23,10 @@
  * */
 
 #pragma once
-#include <string>
 
-namespace Json{
-    class Value;
-}
+#include "json-wrapper/json-wrapper.hpp"
+
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -41,13 +40,12 @@ namespace utils {
 std::string compute_hash(const std::string& input);
 
 /*!
- * @brief Compute hash of a Json::Value object
- * @param json Json::Value object to compute hash from
+ * @brief Compute hash of a json::Json object
+ * @param json json::Json object to compute hash from
  * @return String object containing calculated hash
  */
-std::string compute_hash(const Json::Value& json);
+std::string compute_hash(const json::Json& json);
 
 }
 }
 }
-

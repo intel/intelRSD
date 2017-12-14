@@ -17,67 +17,52 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.SwitchDto;
+import com.intel.podm.business.dto.actions.ResetActionDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.SwitchDto;
 import com.intel.podm.business.entities.redfish.Fabric;
 import com.intel.podm.business.entities.redfish.Switch;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRIC_SWITCHES;
-import static com.intel.podm.business.redfish.ContextCollections.asChassisContexts;
-import static com.intel.podm.business.redfish.ContextCollections.asManagerContexts;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.PORTS_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class SwitchServiceImpl implements ReaderService<SwitchDto> {
+@RequestScoped
+class SwitchServiceImpl implements ReaderService<SwitchDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context fabricContext) throws ContextResolvingException {
         Fabric fabric = (Fabric) traverser.traverse(fabricContext);
         return new CollectionDto(FABRIC_SWITCHES, getAsIdSet(fabric.getSwitches()));
     }
 
+    @Transactional(REQUIRED)
     @Override
     public SwitchDto getResource(Context context) throws ContextResolvingException {
         Switch fabricSwitch = (Switch) traverser.traverse(context);
-        return map(fabricSwitch);
-    }
 
-    private SwitchDto map(Switch fabricSwitch) {
-        return SwitchDto.newBuilder()
-            .id(fabricSwitch.getId().toString())
-            .name(fabricSwitch.getName())
-            .description(fabricSwitch.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(fabricSwitch.getService(), fabricSwitch.getUnknownOems()))
-            .sku(fabricSwitch.getSku())
-            .model(fabricSwitch.getModel())
-            .status(fabricSwitch.getStatus())
-            .assetTag(fabricSwitch.getAssetTag())
-            .domainId(fabricSwitch.getDomainId())
-            .isManaged(fabricSwitch.getManaged())
-            .powerState(fabricSwitch.getPowerState())
-            .switchType(fabricSwitch.getSwitchType())
-            .partNumber(fabricSwitch.getPartNumber())
-            .manufacturer(fabricSwitch.getManufacturer())
-            .indicatorLed(fabricSwitch.getIndicatorLed())
-            .serialNumber(fabricSwitch.getSerialNumber())
-            .chassis(asChassisContexts(fabricSwitch.getChassis()))
-            .managedBy(asManagerContexts(fabricSwitch.getManagers()))
-            .totalSwitchWidth(fabricSwitch.getTotalSwitchWidth())
-            .chassis(asChassisContexts(fabricSwitch.getChassis()))
-            .allowableResetTypes(fabricSwitch.getAllowableResetTypes())
-            .build();
+        SwitchDto dto = (SwitchDto) entityToDtoMapper.map(fabricSwitch);
+        dto.setPorts(singletonContextOf(context, PORTS_RESOURCE_NAME));
+
+        ResetActionDto resetAction = dto.getActions().getReset();
+        resetAction.setAllowableResetTypes(fabricSwitch.getAllowableResetTypes());
+        resetAction.setTarget(singletonContextOf(context, "Actions/Switch.Reset"));
+        return dto;
     }
 }

@@ -31,15 +31,15 @@ using namespace agent_framework::model;
 
 ConnectedEntity::~ConnectedEntity() { }
 
-Json::Value ConnectedEntity::to_json() const {
-    Json::Value result{};
+json::Json ConnectedEntity::to_json() const {
+    json::Json result{};
     result[literals::ConnectedEntity::ENTITY_TYPE] = get_entity_type();
     result[literals::ConnectedEntity::ENTITY_ROLE] = get_entity_role();
     result[literals::ConnectedEntity::ENTITY] = get_entity();
     return result;
 }
 
-ConnectedEntity ConnectedEntity::from_json(const Json::Value& json) {
+ConnectedEntity ConnectedEntity::from_json(const json::Json& json) {
     attribute::ConnectedEntity ce{};
     ce.set_entity_type(json[literals::ConnectedEntity::ENTITY_TYPE]);
     ce.set_entity_role(json[literals::ConnectedEntity::ENTITY_ROLE]);

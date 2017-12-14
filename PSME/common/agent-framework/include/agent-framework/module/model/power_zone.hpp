@@ -23,9 +23,14 @@
  * */
 
 #pragma once
+
+
+
 #include "agent-framework/module/model/resource.hpp"
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "agent-framework/module/enum/common.hpp"
+
+
 
 namespace agent_framework {
 namespace model {
@@ -34,29 +39,42 @@ namespace model {
 class PowerZone : public Resource {
 public:
 
-    explicit PowerZone(const std::string& parent_uuid = {}, enums::Component parent_type = enums::Component::None);
+    explicit PowerZone(const std::string& parent_uuid = {},
+                       enums::Component parent_type = enums::Component::None);
+
+
     ~PowerZone();
 
+
     PowerZone(const PowerZone&) = default;
+
+
     PowerZone& operator=(const PowerZone&) = default;
+
+
     PowerZone(PowerZone&&) = default;
+
+
     PowerZone& operator=(PowerZone&&) = default;
+
 
     /*!
      * @brief construct an object of class PowerZone from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed PowerZone object
      */
-    static PowerZone from_json(const Json::Value& json);
+    static PowerZone from_json(const json::Json& json);
+
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
+
 
     /*!
      * @brief Get collection name
@@ -66,6 +84,7 @@ public:
         return PowerZone::collection_name;
     }
 
+
     /*!
      * @brief Get component name
      * @return component name
@@ -74,69 +93,109 @@ public:
         return PowerZone::component;
     }
 
-    /*!
-     * @brief return power_capacity of type double
-     *
-     * @return the power_capacity value
-     */
-    OptionalField<double> get_power_capacity() const {
-        return m_power_capacity;
-    }
 
     /*!
-     * @brief setter for power_capacity attribute
-     *
-     * @param power_capacity of type double
-     */
-    void set_power_capacity(const OptionalField<double> power_capacity) {
-        m_power_capacity = power_capacity;
+     * @brief Returns consumed power in Watts
+     * @return The consumed power value [W]
+     * */
+    OptionalField<std::int32_t> get_power_consumed_watts() const {
+        return m_power_consumed_watts;
     }
 
-    /*!
-     * @brief return power_input of type double
-     *
-     * @return the power_input value
-     */
-    OptionalField<double> get_power_input() const {
-        return m_power_input;
-    }
 
     /*!
-     * @brief setter for power_input attribute
-     *
-     * @param power_input of type double
-     */
-    void set_power_input(const OptionalField<double> power_input) {
-        m_power_input = power_input;
+     * @brief Setter for consumed power in Watts
+     * @param power_consumed Consumed power [W]
+     * */
+    void set_power_consumed_watts(const OptionalField<std::int32_t> power_consumed) {
+        m_power_consumed_watts = power_consumed;
     }
 
-    /*!
-     * @brief return power_output of type double
-     *
-     * @return the power_output value
-     */
-    OptionalField<double> get_power_output() const {
-        return m_power_output;
-    }
 
     /*!
-     * @brief setter for power_output attribute
-     *
-     * @param power_output of type double
-     */
-    void set_power_output(const OptionalField<double> power_output) {
-        m_power_output = power_output;
+     * @brief Returns requested power in Watts
+     * @return The requested power value [W]
+     * */
+    OptionalField<std::int32_t> get_power_requested_watts() const {
+        return m_power_requested_watts;
     }
+
+
+    /*!
+     * @brief Setter for requested power in Watts
+     * @param power_requested Requested power [W]
+     * */
+    void set_power_requested_watts(const OptionalField<std::int32_t> power_requested) {
+        m_power_requested_watts = power_requested;
+    }
+
+
+    /*!
+     * @brief Returns available power in Watts
+     * @return The available power value [W]
+     * */
+    OptionalField<std::int32_t> get_power_available_watts() const {
+        return m_power_available_watts;
+    }
+
+
+    /*!
+     * @brief Setter for available power in Watts
+     * @param power_available Available power [W]
+     * */
+    void set_power_available_watts(const OptionalField<std::int32_t> power_available) {
+        m_power_available_watts = power_available;
+    }
+
+
+    /*!
+     * @brief Returns power capacity in Watts
+     * @return The power capacity value [W]
+     * */
+    OptionalField<std::int32_t> get_power_capacity_watts() const {
+        return m_power_capacity_watts;
+    }
+
+
+    /*!
+     * @brief Setter for power capacity in Watts
+     * @param power_capacity Power capacity [W]
+     * */
+    void set_power_capacity_watts(const OptionalField<std::int32_t> power_capacity) {
+        m_power_capacity_watts = power_capacity;
+    }
+
+
+    /*!
+     * @brief Returns allocated power in Watts
+     * @return The allocated power value [W]
+     * */
+    OptionalField<std::int32_t> get_power_allocated_watts() const {
+        return m_power_allocated_watts;
+    }
+
+
+    /*!
+     * @brief Setter for allocated power in Watts
+     * @param power_allocated Allocated power [W]
+     * */
+    void set_power_allocated_watts(const OptionalField<std::int32_t> power_allocated) {
+        m_power_allocated_watts = power_allocated;
+    }
+
 
 private:
 
-    OptionalField<double> m_power_input{0.0};
-    OptionalField<double> m_power_output{0.0};
-    OptionalField<double> m_power_capacity{0.0};
+    // Telemetry: The following field is to be removed
+    OptionalField<std::int32_t> m_power_consumed_watts{};
+
+    OptionalField<std::int32_t> m_power_requested_watts{};
+    OptionalField<std::int32_t> m_power_available_watts{};
+    OptionalField<std::int32_t> m_power_capacity_watts{};
+    OptionalField<std::int32_t> m_power_allocated_watts{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;
-
 };
 
 }

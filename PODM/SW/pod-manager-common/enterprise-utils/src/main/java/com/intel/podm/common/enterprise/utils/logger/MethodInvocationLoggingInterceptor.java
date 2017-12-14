@@ -17,14 +17,15 @@
 package com.intel.podm.common.enterprise.utils.logger;
 
 import com.google.common.base.Stopwatch;
-import com.intel.podm.common.enterprise.utils.proxy.Unproxier;
 import com.intel.podm.common.logger.Logger;
-import org.apache.commons.lang.StringUtils;
 
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
+
+import static com.intel.podm.common.enterprise.utils.proxy.Unproxier.unproxy;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Interceptor
 @TimeMeasured
@@ -34,10 +35,10 @@ public class MethodInvocationLoggingInterceptor {
 
     @AroundInvoke
     public Object interceptingMethod(InvocationContext ctx) throws Exception {
-        String className = Unproxier.unproxy(ctx.getTarget().getClass()).getSimpleName();
+        String className = unproxy(ctx.getTarget().getClass()).getSimpleName();
         String methodName = ctx.getMethod().getName();
         String tag = ctx.getMethod().getAnnotation(TimeMeasured.class).tag();
-        tag += StringUtils.isEmpty(tag) ? "" : " ";
+        tag += isEmpty(tag) ? "" : " ";
 
         logger.d("{}{}.{} - started", tag, className, methodName);
         Stopwatch stopwatch = Stopwatch.createStarted();

@@ -16,62 +16,77 @@
 
 package com.intel.podm.discovery.external.matchers;
 
-import com.intel.podm.business.entities.dao.ExternalServiceDao;
+import com.intel.podm.business.entities.dao.DiscoverableEntityDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
+import com.intel.podm.business.entities.redfish.ExternalLinkDao;
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
 
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.util.stream.StreamSupport.stream;
 
 @Dependent
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class EntityObtainer {
 
     @Inject
     Instance<EntityObtainerHelper<? extends ExternalServiceResource>> helpers;
 
     @Inject
-    ExternalServiceDao externalServiceDao;
-
-    @Inject
     ComputerSystemFinder computerSystemFinder;
 
-    public Entity obtain(ExternalService service, ExternalServiceResource resource) {
-        EntityObtainerHelper helper = getHelper(resource);
-        if (helper == null) {
+    @Inject
+    private ExternalLinkDao externalLinkDao;
+
+    @Inject
+    private DiscoverableEntityDao discoverableEntityDao;
+
+    public DiscoverableEntity obtain(ExternalService service, ExternalServiceResource resource) {
+        EntityObtainerHelper entityObtainerHelper = getHelper(resource);
+        if (entityObtainerHelper == null) {
             return null;
         }
 
-        ComputerSystemResource computerSystemResource = findComputerSystemResource(resource, helper);
+        ComputerSystemResource computerSystemResource = findComputerSystemResource(resource, entityObtainerHelper);
         ComputerSystem computerSystem = computerSystemFinder.findByCorrelatedPsmeComputerSystem(computerSystemResource);
-        Optional<Entity> entity = helper.findEntityFor(computerSystem, resource);
+        return getEntity(service, resource, entityObtainerHelper, computerSystem);
+    }
 
-        return entity.orElseGet(() -> externalServiceDao.createEntity(service, resource.getUri(), helper.getEntityClass()));
+    private DiscoverableEntity getEntity(ExternalService service, ExternalServiceResource resource,
+                                         EntityObtainerHelper entityObtainerHelper, ComputerSystem computerSystem) {
+
+        DiscoverableEntity entity = (DiscoverableEntity) entityObtainerHelper
+            .findEntityFor(computerSystem, resource)
+            .orElseGet(() -> discoverableEntityDao.createEntity(
+                service,
+                resource.getGlobalId(service.getId(), resource.getUri()),
+                entityObtainerHelper.getEntityClass())
+            );
+
+        externalLinkDao.createIfNotExisting(resource.getUri(), service, entity);
+        return entity;
     }
 
     private ComputerSystemResource findComputerSystemResource(ExternalServiceResource resource, EntityObtainerHelper helper) {
         ComputerSystemResource computerSystemResource;
         try {
             computerSystemResource = helper.findComputerSystemResourceFor(resource);
-        } catch (ExternalServiceApiReaderException e) {
-            throw new IllegalStateException(
-                    format("Parent ComputerSystem resource has not been found for '%s'", resource.getUri())
-            );
+        } catch (WebClientRequestException e) {
+            throw new IllegalStateException(format("Parent ComputerSystem resource has not been found for '%s'", resource.getUri()));
         }
         return computerSystemResource;
     }
 
     private EntityObtainerHelper getHelper(ExternalServiceResource resource) {
         return stream(helpers.spliterator(), false)
-                .filter(helper -> helper.getResourceClass().isInstance(resource))
-                .findFirst().orElse(null);
+            .filter(helper -> helper.getResourceClass().isInstance(resource))
+            .findFirst().orElse(null);
     }
 }

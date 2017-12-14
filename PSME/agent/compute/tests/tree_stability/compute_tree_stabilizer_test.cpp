@@ -98,6 +98,7 @@ void ComputeTreeStabilizerTest::SetUp() {
 
     // Create chassis as child of manager
     Chassis chassis{manager.get_uuid()};
+    manager.set_location(chassis.get_uuid());
 
     // Create system as child of manager and set its unique property
     System system{manager.get_uuid()};
@@ -132,21 +133,17 @@ void ComputeTreeStabilizerTest::SetUp() {
     //Create network device function as a child of the system
     NetworkDeviceFunction function{network_device.get_uuid()};
 
-    // Add all created resources to the model
-    auto compute_components = ComputeComponents::get_instance();
-    auto common_components = CommonComponents::get_instance();
-
-    common_components->get_module_manager().add_entry(manager);
-    common_components->get_chassis_manager().add_entry(chassis);
-    common_components->get_system_manager().add_entry(system);
-    compute_components->get_processor_manager().add_entry(processor1);
-    compute_components->get_processor_manager().add_entry(processor2);
-    compute_components->get_memory_manager().add_entry(memory1);
-    compute_components->get_memory_manager().add_entry(memory2);
-    compute_components->get_network_interface_manager().add_entry(nic);
-    common_components->get_storage_subsystem_manager().add_entry(storage);
-    compute_components->get_network_device_manager().add_entry(network_device);
-    compute_components->get_network_device_function_manager().add_entry(function);
+    get_manager<agent_framework::model::Manager>().add_entry(manager);
+    get_manager<agent_framework::model::Chassis>().add_entry(chassis);
+    get_manager<agent_framework::model::System>().add_entry(system);
+    get_manager<agent_framework::model::Processor>().add_entry(processor1);
+    get_manager<agent_framework::model::Processor>().add_entry(processor2);
+    get_manager<agent_framework::model::Memory>().add_entry(memory1);
+    get_manager<agent_framework::model::Memory>().add_entry(memory2);
+    get_manager<agent_framework::model::NetworkInterface>().add_entry(nic);
+    get_manager<agent_framework::model::StorageSubsystem>().add_entry(storage);
+    get_manager<agent_framework::model::NetworkDevice>().add_entry(network_device);
+    get_manager<agent_framework::model::NetworkDeviceFunction>().add_entry(function);
 
     // Stabilize mock resource tree
     ComputeTreeStabilizer().stabilize(module_uuid);
@@ -154,83 +151,87 @@ void ComputeTreeStabilizerTest::SetUp() {
 
 
 void ComputeTreeStabilizerTest::TearDown() {
-    auto compute_components = ComputeComponents::get_instance();
-    auto common_components = CommonComponents::get_instance();
-
-    common_components->get_module_manager().clear_entries();
-    common_components->get_chassis_manager().clear_entries();
-    common_components->get_system_manager().clear_entries();
-    compute_components->get_processor_manager().clear_entries();
-    compute_components->get_memory_manager().clear_entries();
-    compute_components->get_network_interface_manager().clear_entries();
-    compute_components->get_storage_controller_manager().clear_entries();
+    get_manager<agent_framework::model::Manager>().clear_entries();
+    get_manager<agent_framework::model::Chassis>().clear_entries();
+    get_manager<agent_framework::model::System>().clear_entries();
+    get_manager<agent_framework::model::Processor>().clear_entries();
+    get_manager<agent_framework::model::Memory>().clear_entries();
+    get_manager<agent_framework::model::NetworkInterface>().clear_entries();
+    get_manager<agent_framework::model::StorageSubsystem>().clear_entries();
+    get_manager<agent_framework::model::NetworkDevice>().clear_entries();
+    get_manager<agent_framework::model::NetworkDeviceFunction>().clear_entries();
 }
 
 
 TEST_F(ComputeTreeStabilizerTest, NoNewOrDeletedResourcesTest) {
-    auto compute_components = ComputeComponents::get_instance();
-    auto common_components = CommonComponents::get_instance();
-
     // Assert that all resources are still present in the resource tree
-    ASSERT_EQ(1, common_components->get_module_manager().get_keys().size());
-    ASSERT_EQ(1, common_components->get_system_manager().get_keys().size());
-    ASSERT_EQ(1, common_components->get_chassis_manager().get_keys().size());
-    ASSERT_EQ(2, compute_components->get_processor_manager().get_keys().size());
-    ASSERT_EQ(2, compute_components->get_memory_manager().get_keys().size());
-    ASSERT_EQ(1, compute_components->get_network_interface_manager().get_keys().size());
-    ASSERT_EQ(1, common_components->get_storage_subsystem_manager().get_keys().size());
-    ASSERT_EQ(1, compute_components->get_network_device_manager().get_keys().size());
-    ASSERT_EQ(1, compute_components->get_network_device_function_manager().get_keys().size());
+    ASSERT_EQ(1, get_manager<agent_framework::model::Manager>().get_keys().size());
+    ASSERT_EQ(1, get_manager<agent_framework::model::System>().get_keys().size());
+    ASSERT_EQ(1, get_manager<agent_framework::model::Chassis>().get_keys().size());
+    ASSERT_EQ(2, get_manager<agent_framework::model::Processor>().get_keys().size());
+    ASSERT_EQ(2, get_manager<agent_framework::model::Memory>().get_keys().size());
+    ASSERT_EQ(1, get_manager<agent_framework::model::NetworkInterface>().get_keys().size());
+    ASSERT_EQ(1, get_manager<agent_framework::model::StorageSubsystem>().get_keys().size());
+    ASSERT_EQ(1, get_manager<agent_framework::model::NetworkDevice>().get_keys().size());
+    ASSERT_EQ(1, get_manager<agent_framework::model::NetworkDeviceFunction>().get_keys().size());
 }
 
 
 TEST_F(ComputeTreeStabilizerTest, PersistentUUIDsGeneratedTest) {
-    auto compute_components = ComputeComponents::get_instance();
-    auto common_components = CommonComponents::get_instance();
-log_debug(GET_LOGGER("default"),compute_components->get_network_device_manager().get_keys().front());
-log_debug(GET_LOGGER("default"), compute_components->get_network_device_function_manager().get_keys().front());
+
+    log_debug(GET_LOGGER("default"), get_manager<agent_framework::model::NetworkDevice>().get_keys().front());
+    log_debug(GET_LOGGER("default"), get_manager<agent_framework::model::NetworkDeviceFunction>().get_keys().front());
+
     // Assert that all resources now have persistent UUIDs
-    ASSERT_NO_THROW(common_components->get_module_manager().get_entry(constants::MANAGER_PERSISTENT_UUID));
-    ASSERT_NO_THROW(common_components->get_chassis_manager().get_entry(constants::CHASSIS_PERSISTENT_UUID));
-    ASSERT_NO_THROW(common_components->get_system_manager().get_entry(constants::SYSTEM_PERSISTENT_UUID));
-    ASSERT_NO_THROW(compute_components->get_processor_manager().get_entry(constants::PROCESSOR_1_PERSISTENT_UUID));
-    ASSERT_NO_THROW(compute_components->get_processor_manager().get_entry(constants::PROCESSOR_2_PERSISTENT_UUID));
-    ASSERT_NO_THROW(compute_components->get_memory_manager().get_entry(constants::MEMORY_1_PERSISTENT_UUID));
-    ASSERT_NO_THROW(compute_components->get_memory_manager().get_entry(constants::MEMORY_2_PERSISTENT_UUID));
-    ASSERT_NO_THROW(compute_components->get_network_interface_manager().get_entry(constants::NIC_PERSISTENT_UUID));
-    ASSERT_NO_THROW(common_components->
-        get_storage_subsystem_manager().get_entry(constants::STORAGE_SUBSYSTEM_PERSISTENT_UUID));
-    ASSERT_NO_THROW(compute_components->get_network_device_manager().get_entry(constants::NETWORK_DEVICE_PERSISTENT_UUID));
-    ASSERT_NO_THROW(compute_components->get_network_device_function_manager().get_entry(constants::NETWORK_DEVICE_FUNCTION_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::Manager>().get_entry(constants::MANAGER_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::Chassis>().get_entry(constants::CHASSIS_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::System>().get_entry(constants::SYSTEM_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::Processor>().get_entry(constants::PROCESSOR_1_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::Processor>().get_entry(constants::PROCESSOR_2_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::Memory>().get_entry(constants::MEMORY_1_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::Memory>().get_entry(constants::MEMORY_2_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::NetworkInterface>().get_entry(constants::NIC_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::StorageSubsystem>().get_entry(constants::STORAGE_SUBSYSTEM_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::NetworkDevice>().get_entry(constants::NETWORK_DEVICE_PERSISTENT_UUID));
+    ASSERT_NO_THROW(get_manager<agent_framework::model::NetworkDeviceFunction>().get_entry(constants::NETWORK_DEVICE_FUNCTION_PERSISTENT_UUID));
 
 }
 
 
 TEST_F(ComputeTreeStabilizerTest, ParentUUIDChangedTest) {
-    auto compute_components = ComputeComponents::get_instance();
-    auto common_components = CommonComponents::get_instance();
-
     // Assert that the system parent is correct
-    ASSERT_EQ(1, common_components->get_system_manager().get_keys(constants::MANAGER_PERSISTENT_UUID).size());
+    ASSERT_EQ(1, get_manager<agent_framework::model::System>().get_keys(constants::MANAGER_PERSISTENT_UUID).size());
 
     // Assert that the chassis parent is correct
-    ASSERT_EQ(1, common_components->get_chassis_manager().get_keys(constants::MANAGER_PERSISTENT_UUID).size());
+    ASSERT_EQ(1, get_manager<agent_framework::model::Chassis>().get_keys(constants::MANAGER_PERSISTENT_UUID).size());
 
     // Assert that resources under system have correct parent UUID
-    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), compute_components->
-        get_processor_manager().get_entry(constants::PROCESSOR_1_PERSISTENT_UUID).get_parent_uuid());
-    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), compute_components->
-        get_processor_manager().get_entry(constants::PROCESSOR_1_PERSISTENT_UUID).get_parent_uuid());
-    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), compute_components->
-        get_memory_manager().get_entry(constants::MEMORY_1_PERSISTENT_UUID).get_parent_uuid());
-    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), compute_components->
-        get_memory_manager().get_entry(constants::MEMORY_2_PERSISTENT_UUID).get_parent_uuid());
-    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), compute_components->
-        get_network_interface_manager().get_entry(constants::NIC_PERSISTENT_UUID).get_parent_uuid());
-    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), common_components->
-        get_storage_subsystem_manager().get_entry(constants::STORAGE_SUBSYSTEM_PERSISTENT_UUID).get_parent_uuid());
-    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), compute_components->
-        get_network_device_manager().get_entry(constants::NETWORK_DEVICE_PERSISTENT_UUID).get_parent_uuid());
-    ASSERT_EQ(std::string(constants::NETWORK_DEVICE_PERSISTENT_UUID), compute_components->
-        get_network_device_function_manager().get_entry(constants::NETWORK_DEVICE_FUNCTION_PERSISTENT_UUID).get_parent_uuid());
+    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), get_manager<agent_framework::model::Processor>()
+        .get_entry(constants::PROCESSOR_1_PERSISTENT_UUID).get_parent_uuid());
+    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), get_manager<agent_framework::model::Processor>()
+        .get_entry(constants::PROCESSOR_1_PERSISTENT_UUID).get_parent_uuid());
+
+    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), get_manager<agent_framework::model::Memory>()
+        .get_entry(constants::MEMORY_1_PERSISTENT_UUID).get_parent_uuid());
+    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), get_manager<agent_framework::model::Memory>()
+        .get_entry(constants::MEMORY_2_PERSISTENT_UUID).get_parent_uuid());
+
+    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), get_manager<agent_framework::model::NetworkInterface>()
+        .get_entry(constants::NIC_PERSISTENT_UUID).get_parent_uuid());
+    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), get_manager<agent_framework::model::StorageSubsystem>()
+        .get_entry(constants::STORAGE_SUBSYSTEM_PERSISTENT_UUID).get_parent_uuid());
+
+    ASSERT_EQ(std::string(constants::SYSTEM_PERSISTENT_UUID), get_manager<agent_framework::model::NetworkDevice>()
+        .get_entry(constants::NETWORK_DEVICE_PERSISTENT_UUID).get_parent_uuid());
+    ASSERT_EQ(std::string(constants::NETWORK_DEVICE_PERSISTENT_UUID),
+              get_manager<agent_framework::model::NetworkDeviceFunction>()
+                  .get_entry(constants::NETWORK_DEVICE_FUNCTION_PERSISTENT_UUID).get_parent_uuid());
+}
+
+TEST_F(ComputeTreeStabilizerTest, ManagerLocationTest) {
+    // After stabilization, manager should be located in persistent chassis.
+    ASSERT_TRUE(get_manager<agent_framework::model::Manager>()
+        .get_entry(constants::MANAGER_PERSISTENT_UUID).get_location().has_value());
+    ASSERT_EQ(std::string(constants::CHASSIS_PERSISTENT_UUID), get_manager<agent_framework::model::Manager>()
+        .get_entry(constants::MANAGER_PERSISTENT_UUID).get_location().value());
 }

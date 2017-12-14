@@ -19,6 +19,9 @@ package com.intel.podm.business.entities.redfish;
 import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
+import com.intel.podm.business.entities.redfish.embeddables.Fpga;
+import com.intel.podm.business.entities.redfish.embeddables.OnPackageMemory;
 import com.intel.podm.business.entities.redfish.embeddables.ProcessorId;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.InstructionSet;
@@ -34,12 +37,20 @@ import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.EnumType.STRING;
@@ -47,9 +58,19 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "processor", indexes = @Index(name = "idx_processor_entity_id", columnList = "entity_id", unique = true))
+@NamedQueries({
+    @NamedQuery(name = Processor.GET_PROCESSOR_MULTI_SOURCE,
+        query = "SELECT processor "
+            + "FROM Processor processor "
+            + "WHERE processor.multiSourceDiscriminator = :multiSourceDiscriminator "
+            + "AND processor.isComplementary = :isComplementary"
+    )
+})
 @Eventable
-@SuppressWarnings({"checkstyle:MethodCount"})
-public class Processor extends DiscoverableEntity {
+@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
+public class Processor extends DiscoverableEntity implements MultiSourceResource {
+    public static final String GET_PROCESSOR_MULTI_SOURCE = "GET_PROCESSOR_MULTI_SOURCE";
+
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
@@ -87,14 +108,37 @@ public class Processor extends DiscoverableEntity {
     @Enumerated(STRING)
     private ProcessorBrand brand;
 
+    @Column(name = "multi_source_discriminator")
+    private String multiSourceDiscriminator;
+
+    @Column(name = "thermal_design_power_watt")
+    private BigDecimal thermalDesignPowerWatt;
+
+    @Column(name = "extended_identification_registers")
+    private String extendedIdentificationRegisters;
+
     @Embedded
     private ProcessorId processorId;
+
+    @Embedded
+    private Fpga fpga;
 
     @ElementCollection
     @CollectionTable(name = "processor_capability", joinColumns = @JoinColumn(name = "processor_id"))
     @Column(name = "capability")
     @OrderColumn(name = "capability_order")
     private List<String> capabilities = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "processor_on_package_memory", joinColumns = @JoinColumn(name = "processor_id"))
+    @OrderColumn(name = "on_package_memory_order")
+    private List<OnPackageMemory> onPackageMemory = new ArrayList<>();
+
+    @OneToMany(mappedBy = "processor", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Endpoint> endpoints = new HashSet<>();
+
+    @OneToOne(mappedBy = "processor", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private ProcessorMetrics processorMetrics;
 
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "computer_system_id")
@@ -190,6 +234,32 @@ public class Processor extends DiscoverableEntity {
         this.brand = brand;
     }
 
+    @Override
+    public String getMultiSourceDiscriminator() {
+        return multiSourceDiscriminator;
+    }
+
+    @Override
+    public void setMultiSourceDiscriminator(String multiSourceDiscriminator) {
+        this.multiSourceDiscriminator = multiSourceDiscriminator;
+    }
+
+    public BigDecimal getThermalDesignPowerWatt() {
+        return thermalDesignPowerWatt;
+    }
+
+    public void setThermalDesignPowerWatt(BigDecimal thermalDesignPowerWatt) {
+        this.thermalDesignPowerWatt = thermalDesignPowerWatt;
+    }
+
+    public String getExtendedIdentificationRegisters() {
+        return extendedIdentificationRegisters;
+    }
+
+    public void setExtendedIdentificationRegisters(String extendedIdentificationRegisters) {
+        this.extendedIdentificationRegisters = extendedIdentificationRegisters;
+    }
+
     public ProcessorId getProcessorId() {
         return processorId;
     }
@@ -198,12 +268,73 @@ public class Processor extends DiscoverableEntity {
         this.processorId = processorId;
     }
 
+    public Fpga getFpga() {
+        return fpga;
+    }
+
+    public void setFpga(Fpga fpga) {
+        this.fpga = fpga;
+    }
+
     public List<String> getCapabilities() {
         return capabilities;
     }
 
     public void addCapability(String capability) {
         this.capabilities.add(capability);
+    }
+
+    public List<OnPackageMemory> getOnPackageMemory() {
+        return onPackageMemory;
+    }
+
+    public void addOnPackageMemory(OnPackageMemory memory) {
+        this.onPackageMemory.add(memory);
+    }
+
+    public Set<Endpoint> getEndpoints() {
+        return endpoints;
+    }
+
+    public void addEndpoint(Endpoint endpoint) {
+        requiresNonNull(endpoint, "endpoint");
+
+        endpoints.add(endpoint);
+        if (!this.equals(endpoint.getProcessor())) {
+            endpoint.setProcessor(this);
+        }
+    }
+
+    public void unlinkEndpoint(Endpoint endpoint) {
+        if (this.endpoints.contains(endpoint)) {
+            this.endpoints.remove(endpoint);
+            if (endpoint != null) {
+                endpoint.unlinkProcessor(this);
+            }
+        }
+    }
+
+    public ProcessorMetrics getProcessorMetrics() {
+        return processorMetrics;
+    }
+
+    public void setProcessorMetrics(ProcessorMetrics processorMetrics) {
+        if (!Objects.equals(this.processorMetrics, processorMetrics)) {
+            unlinkProcessorMetrics(this.processorMetrics);
+            this.processorMetrics = processorMetrics;
+            if (processorMetrics != null && !this.equals(processorMetrics.getProcessor())) {
+                processorMetrics.setProcessor(this);
+            }
+        }
+    }
+
+    public void unlinkProcessorMetrics(ProcessorMetrics processorMetrics) {
+        if (Objects.equals(this.processorMetrics, processorMetrics)) {
+            this.processorMetrics = null;
+            if (processorMetrics != null) {
+                processorMetrics.unlinkProcessor(this);
+            }
+        }
     }
 
     public ComputerSystem getComputerSystem() {
@@ -231,6 +362,8 @@ public class Processor extends DiscoverableEntity {
 
     @Override
     public void preRemove() {
+        unlinkCollection(endpoints, this::unlinkEndpoint);
+        unlinkProcessorMetrics(processorMetrics);
         unlinkComputerSystem(computerSystem);
     }
 

@@ -28,21 +28,20 @@
 
 #include "agent-framework/module/requests/compute/get_network_interface_info.hpp"
 #include "agent-framework/module/constants/compute.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetNetworkInterfaceInfo::GetNetworkInterfaceInfo(const std::string& interface): m_interface{interface} {}
 
-Json::Value GetNetworkInterfaceInfo::to_json() const {
-    Json::Value value;
+json::Json GetNetworkInterfaceInfo::to_json() const {
+    json::Json value;
     value[NetworkInterface::INTERFACE] = m_interface;
     return value;
 }
 
-GetNetworkInterfaceInfo GetNetworkInterfaceInfo::from_json(const Json::Value& json) {
+GetNetworkInterfaceInfo GetNetworkInterfaceInfo::from_json(const json::Json& json) {
     return GetNetworkInterfaceInfo{
-        json[NetworkInterface::INTERFACE].asString()};
+        json[NetworkInterface::INTERFACE].get<std::string>()};
 }
-

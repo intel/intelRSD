@@ -16,12 +16,12 @@
 
 package com.intel.podm.business.entities.types;
 
-import com.google.common.base.MoreObjects;
 import com.intel.podm.common.types.events.EventType;
 
 import java.net.URI;
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 
 public final class RedfishEvent {
@@ -67,7 +67,7 @@ public final class RedfishEvent {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
+        return toStringHelper(this)
             .add("uri", uri)
             .add("eventType", eventType)
             .toString();

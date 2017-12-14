@@ -28,14 +28,14 @@ AclVlanId::AclVlanId() { }
 
 AclVlanId::~AclVlanId() { }
 
-Json::Value AclVlanId::to_json() const {
-    Json::Value result;
+json::Json AclVlanId::to_json() const {
+    json::Json result;
     result[literals::AclRule::ID] = get_id();
     result[literals::AclRule::MASK] = get_mask();
     return result;
 }
 
-AclVlanId AclVlanId::from_json(const Json::Value& json) {
+AclVlanId AclVlanId::from_json(const json::Json& json) {
     AclVlanId vlan_id;
     vlan_id.set_id(json[literals::AclRule::ID]);
     vlan_id.set_mask(json[literals::AclRule::MASK]);

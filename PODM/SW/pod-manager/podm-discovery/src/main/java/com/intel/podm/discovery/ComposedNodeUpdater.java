@@ -24,7 +24,6 @@ import com.intel.podm.business.entities.redfish.Drive;
 import com.intel.podm.business.entities.redfish.Port;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
-import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.ComposedNodeState;
 import com.intel.podm.common.types.Status;
@@ -61,13 +60,13 @@ public class ComposedNodeUpdater {
     ComposedNodeDao composedNodeDao;
 
     @Inject
-    PciePortDao pciePortDao;
-
-    @Inject
     Logger logger;
 
+    @Inject
+    private PciePortDao pciePortDao;
+
     @Transactional(MANDATORY)
-    public void updateRelatedComposedNodes(Set<Entity> entities) {
+    public void updateRelatedComposedNodes(Set<DiscoverableEntity> entities) {
         List<DiscoverableEntity> enabledAndHealthy = getEnabledAndHealthyDiscoverableEntities(entities);
 
         reattachComposedNodeResources(
@@ -138,7 +137,7 @@ public class ComposedNodeUpdater {
 
         for (ComputerSystem computerSystem : computerSystems) {
 
-            for (String cableId : computerSystem.getPcieConnectionId()) {
+            for (String cableId : computerSystem.getPcieConnectionIds()) {
                 pcieConnectionIdToComputerSystemMap.put(cableId, computerSystem);
             }
         }
@@ -226,15 +225,13 @@ public class ComposedNodeUpdater {
         }
     }
 
-    private List<DiscoverableEntity> getEnabledAndHealthyDiscoverableEntities(Set<Entity> entities) {
+    private List<DiscoverableEntity> getEnabledAndHealthyDiscoverableEntities(Set<DiscoverableEntity> entities) {
         return entities.stream()
-            .filter(entity -> DiscoverableEntity.class.isAssignableFrom(entity.getClass()))
-            .map(DiscoverableEntity.class::cast)
             .filter(DiscoverableEntity::canBeAllocated)
             .collect(toList());
     }
 
-    private <T extends DiscoverableEntity> List<T> getNotEnabledAssetsOfType(Set<Entity> entities, Class<T> clazz) {
+    private <T extends DiscoverableEntity> List<T> getNotEnabledAssetsOfType(Set<DiscoverableEntity> entities, Class<T> clazz) {
         return entities.stream()
             .filter(entity -> clazz.isAssignableFrom(entity.getClass()))
             .map(clazz::cast)
@@ -263,12 +260,12 @@ public class ComposedNodeUpdater {
     private boolean isAssetNotEnabled(DiscoverableEntity discoverableEntity) {
         return discoverableEntity != null
             && (discoverableEntity.getStatus() == null
-            || !of(ENABLED, STANDBY_OFFLINE).anyMatch(state -> state == discoverableEntity.getStatus().getState()))
+            || of(ENABLED, STANDBY_OFFLINE).noneMatch(state -> state == discoverableEntity.getStatus().getState()))
             || of(CRITICAL).anyMatch(state -> state == discoverableEntity.getStatus().getHealth());
     }
 
     private boolean fulfillsComputerSystemRequirements(ComposedNode composedNode) {
-        return composedNode.getComputerSystem() != null ? composedNode.getComputerSystem().isEnabledAndHealthy() : false;
+        return composedNode.getComputerSystem() != null && composedNode.getComputerSystem().isEnabledAndHealthy();
     }
 
     private boolean fulfillsRemoteTargetRequirements(ComposedNode composedNode) {
@@ -277,7 +274,7 @@ public class ComposedNodeUpdater {
 
         if (composedNodeWithRemoteTarget) {
             if (composedNode.getRemoteTargets().size() > 0) {
-                return composedNode.getRemoteTargets().stream().noneMatch(target -> !target.isEnabledAndHealthy());
+                return composedNode.getRemoteTargets().stream().allMatch(DiscoverableEntity::isEnabledAndHealthy);
             } else {
                 return false;
             }

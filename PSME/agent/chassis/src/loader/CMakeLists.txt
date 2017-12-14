@@ -18,7 +18,6 @@
 
 set(SOURCES
     chassis_loader.cpp
-    state_machine_action_loader.cpp
 )
 
 add_library(chassis-loader OBJECT ${SOURCES})

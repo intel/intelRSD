@@ -29,7 +29,6 @@ import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContex
 
 @ApplicationScoped
 public class EntityToUriConverterImpl implements EntityToUriConverter {
-
     @Override
     public Optional<URI> entityToUri(Entity entity) {
         return tryConvertToContext(entity).map(this::contextToUri);

@@ -25,7 +25,7 @@
 #include "agent-framework/module/requests/network/add_acl_rule.hpp"
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -58,8 +58,8 @@ AddAclRule::AddAclRule(const OptionalField<std::string>& acl,
                  m_protocol(protocol),
                  m_oem(oem) {}
 
-Json::Value AddAclRule::to_json() const {
-    Json::Value value;
+json::Json AddAclRule::to_json() const {
+    json::Json value;
     value[Acl::ACL] = m_acl;
     value[AclRule::RULE_ID] = m_rule_id;
     value[AclRule::ACTION] = m_action;
@@ -78,7 +78,7 @@ Json::Value AddAclRule::to_json() const {
     return value;
 }
 
-AddAclRule AddAclRule::from_json(const Json::Value& json) {
+AddAclRule AddAclRule::from_json(const json::Json& json) {
     return AddAclRule{
         json[Acl::ACL], json[AclRule::RULE_ID],
             json[AclRule::ACTION],

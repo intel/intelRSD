@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/requests/common/get_tasks_collection.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -34,12 +34,12 @@ using namespace agent_framework::model::requests;
 GetTasksCollection::GetTasksCollection() { }
 
 
-Json::Value GetTasksCollection::to_json() const {
-    Json::Value json;
+json::Json GetTasksCollection::to_json() const {
+    json::Json json;
     return json;
 }
 
 
-GetTasksCollection GetTasksCollection::from_json(const Json::Value&) {
+GetTasksCollection GetTasksCollection::from_json(const json::Json&) {
     return GetTasksCollection{};
 }

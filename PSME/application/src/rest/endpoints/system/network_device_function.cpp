@@ -38,7 +38,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Systems/Members/__SYSTEM_ID__/NetworkInterfaces/__NETWORK_INTERFACE_ID__/NetworkDeviceFunctions/Members/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#NetworkDeviceFunction.NetworkDeviceFunction";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#NetworkDeviceFunction.v1_0_0.NetworkDeviceFunction";
     r[Common::ID] = json::Value::Type::NIL;
@@ -142,22 +142,22 @@ agent_framework::model::attribute::Attributes fill_attributes(const json::Value&
     agent_framework::model::attribute::Attributes attributes{};
     if (json.is_member(NetworkDeviceFunction::ETHERNET) &&
         json[NetworkDeviceFunction::ETHERNET].is_member(Common::MAC_ADDRESS)) {
-        Json::Value ethernet{Json::ValueType::objectValue};
+        json::Json ethernet = json::Json::object();
         if (json[NetworkDeviceFunction::ETHERNET][Common::MAC_ADDRESS].is_null()) {
-            ethernet[literals::NetworkDeviceFunction::MAC_ADDRESS] = Json::Value::null;
+            ethernet[literals::NetworkDeviceFunction::MAC_ADDRESS] = json::Json{};
         } else {
             ethernet[literals::NetworkDeviceFunction::MAC_ADDRESS] = json[NetworkDeviceFunction::ETHERNET][Common::MAC_ADDRESS].as_string();
         }
         attributes.set_value(literals::NetworkDeviceFunction::ETHERNET, ethernet);
     }
     if (json.is_member(NetworkDeviceFunction::ISCSI_BOOT)) {
-        Json::Value gami_iscsi_boot{Json::ValueType::objectValue};
+        json::Json gami_iscsi_boot = json::Json::object();
         const json::Value& rest_iscsi_boot = json[NetworkDeviceFunction::ISCSI_BOOT];
 
         auto has_value_to_set = [&] (const char* rest_literal, const char* gami_literal) {
             if (rest_iscsi_boot.is_member(rest_literal)) {
                 if (rest_iscsi_boot[rest_literal].is_null()) {
-                    gami_iscsi_boot[gami_literal] = Json::Value::null;
+                    gami_iscsi_boot[gami_literal] = json::Json{};
                 } else {
                     return true;
                 }
@@ -219,23 +219,12 @@ endpoint::NetworkDeviceFunction::~NetworkDeviceFunction() {}
 void endpoint::NetworkDeviceFunction::get(const server::Request& req, server::Response& res) {
     auto json = make_prototype();
 
-    auto system_id = psme::rest::model::Find<agent_framework::model::System>(
-            req.params[PathParam::SYSTEM_ID]).get_one()->get_id();
-    auto network_interface_id = psme::rest::model::Find<agent_framework::model::NetworkDevice>(
-            req.params[PathParam::NETWORK_INTERFACE_ID]).
-            via<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get_one()->get_id();
     auto function = psme::rest::model::Find<agent_framework::model::NetworkDeviceFunction>(
             req.params[PathParam::NETWORK_DEVICE_FUNCTION_ID]).
             via<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).
             via<agent_framework::model::NetworkDevice>(req.params[PathParam::NETWORK_INTERFACE_ID]).get();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__SYSTEM_ID__"),
-                                                     std::to_string(system_id));
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__NETWORK_INTERFACE_ID__"),
-                                                     std::to_string(network_interface_id));
 
     json[constants::Common::ID] = req.params[PathParam::NETWORK_DEVICE_FUNCTION_ID];
     endpoint::status_to_json(function,json);

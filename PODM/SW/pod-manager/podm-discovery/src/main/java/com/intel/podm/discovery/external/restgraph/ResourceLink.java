@@ -16,7 +16,7 @@
 
 package com.intel.podm.discovery.external.restgraph;
 
-import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.ExternalServiceResource;
 
 import java.util.Objects;
 

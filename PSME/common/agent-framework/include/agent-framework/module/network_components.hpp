@@ -42,8 +42,7 @@ public:
     using SwitchManager = GenericManager<model::EthernetSwitch>;
     using PortManager = GenericManager<model::EthernetSwitchPort>;
     using VlanManager = GenericManager<model::Vlan>;
-    using RemoteSwitchManager =
-        GenericManager<model::RemoteEthernetSwitch>;
+    using RemoteSwitchManager = GenericManager<model::RemoteEthernetSwitch>;
     using PortMembersManager = managers::ManyToManyManager;
     using AclManager = GenericManager<model::Acl>;
     using AclRuleManager = GenericManager<model::AclRule>;

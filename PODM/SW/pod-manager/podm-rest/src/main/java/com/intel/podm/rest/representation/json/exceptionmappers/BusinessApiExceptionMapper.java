@@ -18,28 +18,40 @@ package com.intel.podm.rest.representation.json.exceptionmappers;
 
 import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.common.logger.Logger;
+import com.intel.podm.rest.error.ExternalServiceErrorResponseBuilder;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import static com.intel.podm.rest.error.ErrorResponseCreator.from;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.UNKNOWN_EXCEPTION;
+import java.util.Optional;
+
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.UNKNOWN_EXCEPTION;
+import static java.lang.String.format;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@ApplicationScoped
 @Provider
 @Produces(APPLICATION_JSON)
 public class BusinessApiExceptionMapper implements ExceptionMapper<BusinessApiException> {
     @Inject
     private Logger logger;
 
+    @Inject
+    private ExternalServiceErrorResponseBuilder externalServiceErrorResponseBuilder;
+
     @Override
     public Response toResponse(BusinessApiException exception) {
-        logger.e("BusinessApi exception.", exception.getMessage(), exception);
+        Optional<Response> externalServiceErrorInExceptionStack = externalServiceErrorResponseBuilder.getExternalServiceErrorResponse(exception);
+        if (externalServiceErrorInExceptionStack.isPresent()) {
+            return externalServiceErrorInExceptionStack.get();
+        }
 
-        return from(UNKNOWN_EXCEPTION)
-            .create();
+        logger.e(format("BusinessApi exception: %s", exception.getMessage()), exception);
+        return newErrorResponseBuilder(UNKNOWN_EXCEPTION).build();
     }
 }

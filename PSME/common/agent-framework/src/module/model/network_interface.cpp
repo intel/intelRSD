@@ -39,8 +39,8 @@ NetworkInterface::NetworkInterface(const std::string& parent_uuid, enums::Compon
 
 NetworkInterface::~NetworkInterface() {}
 
-Json::Value NetworkInterface::to_json() const {
-    Json::Value result;
+json::Json NetworkInterface::to_json() const {
+    json::Json result;
     result[literals::NetworkInterface::STATUS] = get_status().to_json();
     result[literals::NetworkInterface::FRAME_SIZE] = get_frame_size();
     result[literals::NetworkInterface::SPEED] = get_speed_mbps();
@@ -65,7 +65,7 @@ Json::Value NetworkInterface::to_json() const {
     return result;
 }
 
-NetworkInterface NetworkInterface::from_json(const Json::Value& json) {
+NetworkInterface NetworkInterface::from_json(const json::Json& json) {
     NetworkInterface interface;
 
     interface.set_status(attribute::Status::from_json(

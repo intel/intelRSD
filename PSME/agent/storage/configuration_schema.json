@@ -20,50 +20,13 @@
                     "name": "capabilities",
                     "type": "array",
                     "items" : {
-                        "type" : "object",
-                        "properties" : {
-                            "name" : {
-                                "description" : "Name of capability",
-                                "name" : "name",
-                                "type" : "string"
-                            },
-                            "version" : {
-                                "description" : "Version of capability",
-                                "name" : "version",
-                                "type" : "string"
-                            }
-                        }
+                        "type" : "string"
                     }
                 }
             },
             "required": [
                 "type",
                 "capabilities"
-            ]
-        },
-        "commands": {
-            "description": "Container for agent commands configuration.",
-            "name": "commands",
-            "type": "object",
-            "properties": {
-                "*": {
-                    "description": "Star covers all commands.",
-                    "name": "*",
-                    "type": "object",
-                    "properties": {
-                        "implementation": {
-                            "description": "Type of implementation: ConfigurationBased.",
-                            "name": "implementation",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "implementation"
-                    ]
-                }
-            },
-            "required": [
-                "*"
             ]
         },
         "server": {

@@ -19,12 +19,14 @@ package com.intel.podm.business.entities.listeners;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.types.EntityAdded;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.util.AnnotationLiteral;
 import javax.persistence.PostPersist;
 
+@ApplicationScoped
 public class EntityListenerImpl extends EntityListener {
-
     private static final AnnotationLiteral<EntityAdded> ENTITY_ADDED = new AnnotationLiteral<EntityAdded>() {
+        private static final long serialVersionUID = 1013570273485238779L;
     };
 
     @PostPersist

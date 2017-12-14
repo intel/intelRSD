@@ -119,8 +119,8 @@ subnet 10.5.0.0 netmask 255.255.255.0 {
 	option routers 10.5.0.1;
 	option ntp-servers 10.5.0.1;
 
-	if (option host-name = "lui") {
-		set lease_hostname = "lui";
+    set lease_hostname = option host-name;
+	if ((lease_hostname = "lui") or (lease_hostname = "inband")) {
 		set ip_addr = binary-to-ascii(10, 8, ".", leased-address);
 		set mac_addr = concat(
 				suffix(concat("0",binary-to-ascii(16,8,"",substring(hardware,1,1))),2),":",

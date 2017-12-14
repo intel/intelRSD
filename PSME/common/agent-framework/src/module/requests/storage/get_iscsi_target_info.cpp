@@ -24,20 +24,20 @@
 
 #include "agent-framework/module/requests/storage/get_iscsi_target_info.hpp"
 #include "agent-framework/module/constants/storage.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetIscsiTargetInfo::GetIscsiTargetInfo(const std::string& target): m_target{target} {}
 
-Json::Value GetIscsiTargetInfo::to_json() const {
-    Json::Value value;
+json::Json GetIscsiTargetInfo::to_json() const {
+    json::Json value;
     value[IscsiTarget::TARGET] = m_target;
     return value;
 }
 
-GetIscsiTargetInfo GetIscsiTargetInfo::from_json(const Json::Value& json) {
+GetIscsiTargetInfo GetIscsiTargetInfo::from_json(const json::Json& json) {
     return GetIscsiTargetInfo{
-        json[IscsiTarget::TARGET].asString()};
+        json[IscsiTarget::TARGET].get<std::string>()};
 }

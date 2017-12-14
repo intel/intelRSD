@@ -22,9 +22,7 @@
  * @brief Declaration of EventService class
  * */
 #pragma once
-#include "event_queue.hpp"
-#include "model/subscription.hpp"
-#include "event.hpp"
+#include "event_array_queue.hpp"
 
 #include <atomic>
 #include <thread>
@@ -37,9 +35,9 @@ namespace eventing {
 class EventService;
 
 using psme::rest::eventing::Event;
-using psme::rest::eventing::EventUPtr;
-using psme::rest::eventing::EventQueue;
-using namespace psme::rest::eventing::model;
+using psme::rest::eventing::EventArray;
+using psme::rest::eventing::EventArrayUPtr;
+using psme::rest::eventing::EventArrayQueue;
 
 /*!
  * @brief EventService declaration
@@ -77,21 +75,21 @@ public:
     }
 
     /*!
-     * @brief Post event to subscribers
+     * @brief Enqueue events array to be POST'ed to the subscribers
      *
-     * @param event Event
+     * @param event_array Container with Events
      *
-     * @param delay Event delivery delay (default no delay)
+     * @param delay Events delivery delay (default no delay)
      */
-    static void post_event(EventUPtr event,
+    static void post_events_array(EventArrayUPtr event_array,
         const steady_clock::duration& delay = steady_clock::duration::zero());
 
     /*!
-     * @brief Get Event queue
+     * @brief Get Event array queue
      *
-     * @return Event queue
+     * @return Event array queue
      */
-    static EventQueue& get_event_queue();
+    static EventArrayQueue& get_event_array_queue();
 
     /*!
      * @brief Get delivery retry interval
@@ -115,7 +113,8 @@ public:
     ~EventService();
 private:
     void m_handle_events();
-    SubscriptionVec select_subscribers(const Event& event);
+    std::vector<EventArray> select_events_for_subscribers(const EventArray& event);
+    void send_event_array(const EventArray& event_array);
 
     std::thread m_thread{};
     std::atomic<bool> m_running{false};

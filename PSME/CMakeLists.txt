@@ -35,6 +35,15 @@ set(CMAKE_INCLUDE_PATH "${CMAKE_BINARY_DIR}/include;${CMAKE_SYSTEM_INCLUDE_PATH}
 set(CMAKE_LIBRARY_PATH "${CMAKE_BINARY_DIR}/lib;${CMAKE_SYSTEM_LIBRARY_PATH}")
 set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR};${CMAKE_SYSTEM_PREFIX_PATH}")
 
+if ("${CMAKE_TARGET_ARCH}" STREQUAL "32")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        set(CMAKE_SHARED_LINKER_FLAGS "-L${CMAKE_BINARY_DIR}/lib")
+        set(BUILD_GNUTLS YES)
+        set(BUILD_MICROHTTPD YES)
+        set(BUILD_CURL YES)
+        set(BUILD_EOS_SDK YES)
+endif()
+
 # Path to folder with all cmake scripts
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -80,30 +89,35 @@ find_package(PackageHandleStandardArgs REQUIRED)
 
 # will not link if not ENABLE_HTTPS: some symbols are referenced directly
 if (ENABLE_HTTPS)
-    find_package(GnuTLS REQUIRED)
+    if (BUILD_GNUTLS)
+        install_third_party(Gmp)
+        install_third_party(Nettle)
+        install_third_party(GnuTLS)
+    else()
+        find_package(GnuTLS REQUIRED)
+    endif()
 endif()
 
-find_package(Curl REQUIRED)
-
-find_package(Microhttpd REQUIRED)
-
-install_third_party(JsonCpp)
-install_third_party(JsonRpcCpp)
-
-if (NOT CMAKE_CROSSCOMPILING)
-    find_package(UUID)
+if (BUILD_CURL)
+    install_third_party(Curl)
 else()
-    install_third_party(UUID)
+    find_package(Curl REQUIRED)
+endif()
+
+if (BUILD_MICROHTTPD)
+    install_third_party(GPG-error)
+    install_third_party(GCrypt)
+    install_third_party(Microhttpd)
+else()
+    find_package(Microhttpd REQUIRED)
 endif()
 
 find_package(UDEV REQUIRED)
 install_third_party(Ipmitool)
-find_package(Sysfs)
 
 find_package(Lvm2App REQUIRED)
 find_package(NL3 REQUIRED)
 find_package(DevMapper REQUIRED)
-find_package(Fm10kd)
 
 install_third_party(SafeString)
 
@@ -115,6 +129,10 @@ if (NOT CMAKE_CROSSCOMPILING)
     install_third_party(GoogleTest)
     install_third_party(GoogleMock)
     enable_testing()
+endif()
+
+if (BUILD_EOS_SDK)
+    install_third_party(EosSDK)
 endif()
 
 # Enable sanitizers
@@ -136,6 +154,7 @@ endif()
 
 ###############################################################################
 message(STATUS "Building sources...")
+add_definitions($ENV{OPTIONS})
 
 add_subdirectory(common)
 
@@ -153,6 +172,10 @@ endif()
 
 add_subdirectory(application)
 add_subdirectory(encrypter)
+
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/devtools)
+    add_subdirectory(devtools)
+endif()
 
 if (GTEST_FOUND)
     get_property(ut_targets GLOBAL PROPERTY unittest_all_targets)

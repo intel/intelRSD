@@ -39,13 +39,11 @@ import java.util.concurrent.TimeoutException;
 
 import static com.intel.podm.business.services.context.PathParamConstants.getPathParameterNames;
 import static com.intel.podm.common.types.Id.fromString;
-import static com.intel.podm.redfish.OptionsResponseBuilder.newDefaultOptionsResponseBuilder;
 import static com.intel.podm.rest.error.PodmExceptions.notFound;
 import static java.lang.String.format;
-import static org.apache.commons.lang.StringUtils.removeEnd;
-import static org.apache.commons.lang.StringUtils.removeStart;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.lang3.StringUtils.removeStart;
 
-//TODO: extract some methods since this class brokes CheckStyles MethodCount rule
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public abstract class BaseResource {
     @Context
@@ -115,9 +113,7 @@ public abstract class BaseResource {
         return rc.getResource(resourceClass);
     }
 
-    protected Response createOptionsResponse() {
-        return newDefaultOptionsResponseBuilder().buildResponse();
-    }
+    protected abstract Response createOptionsResponse();
 
     private String unwrapParam(String wrappedParamName) {
         String param = removeStart(wrappedParamName, "{");

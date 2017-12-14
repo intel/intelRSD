@@ -28,20 +28,20 @@
 
 #include "agent-framework/module/requests/storage/get_logical_drive_info.hpp"
 #include "agent-framework/module/constants/storage.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetLogicalDriveInfo::GetLogicalDriveInfo(const std::string& drive): m_drive{drive} {}
 
-Json::Value GetLogicalDriveInfo::to_json() const {
-    Json::Value value;
+json::Json GetLogicalDriveInfo::to_json() const {
+    json::Json value;
     value[LogicalDrive::DRIVE] = m_drive;
     return value;
 }
 
-GetLogicalDriveInfo GetLogicalDriveInfo::from_json(const Json::Value& json) {
+GetLogicalDriveInfo GetLogicalDriveInfo::from_json(const json::Json& json) {
     return GetLogicalDriveInfo{
-        json[LogicalDrive::DRIVE].asString()};
+        json[LogicalDrive::DRIVE].get<std::string>()};
 }

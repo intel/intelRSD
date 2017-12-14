@@ -54,8 +54,5 @@ response::ChassisControlCommand::ChassisControlCommand() :
         Response(generic::NetFn::CHASSIS, generic::Cmd::CHASSIS_CONTROLL_COMMAND, RESPONSE_SIZE) {}
 response::ChassisControlCommand::~ChassisControlCommand() {}
 
-void response::ChassisControlCommand::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return;
-    }
+void response::ChassisControlCommand::unpack(const std::vector<std::uint8_t>&) {
 }

@@ -36,3 +36,5 @@
 #include "fabric.hpp"
 #include "system.hpp"
 #include "storage_subsystem.hpp"
+#include "metric.hpp"
+#include "metric_definition.hpp"

@@ -19,15 +19,18 @@ package com.intel.podm.rest.representation.json.exceptionmappers;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.exceptions.NoRetriesLeftException;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import static com.intel.podm.rest.error.PodmExceptions.serviceUnavailable;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.SERVICE_UNAVAILABLE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@ApplicationScoped
 @Provider
 @Produces(APPLICATION_JSON)
 public class NoRetriesLeftExceptionMapper implements ExceptionMapper<NoRetriesLeftException> {
@@ -37,6 +40,6 @@ public class NoRetriesLeftExceptionMapper implements ExceptionMapper<NoRetriesLe
     @Override
     public Response toResponse(NoRetriesLeftException exception) {
         logger.e("Application Error: " + exception.getMessage(), exception);
-        return serviceUnavailable().getResponse();
+        return newErrorResponseBuilder(SERVICE_UNAVAILABLE).build();
     }
 }

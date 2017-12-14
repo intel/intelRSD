@@ -46,7 +46,7 @@ function (clang_compiler_processing)
         -Wno-float-equal
 
         -Wdocumentation
-        -fcomment-block-commands=anchor,i,header
+        -fcomment-block-commands=anchor,i,header,startuml,enduml
         -Wdocumentation-deprecated-sync
         -Wno-deprecated-declarations
     )

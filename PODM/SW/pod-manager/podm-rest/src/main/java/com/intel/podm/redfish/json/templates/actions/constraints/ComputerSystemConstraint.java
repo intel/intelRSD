@@ -16,59 +16,21 @@
 
 package com.intel.podm.redfish.json.templates.actions.constraints;
 
-import com.intel.podm.common.types.redfish.RedfishComputerSystem;
-
 import javax.validation.Constraint;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = ComputerSystemConstraint.ComputerSystemConstraintValidator.class)
-@Target(ElementType.PARAMETER)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ComputerSystemConstraint {
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+@Constraint(validatedBy = ComputerSystemConstraintValidator.class)
+@Target(PARAMETER)
+@Retention(RUNTIME)
+public @interface ComputerSystemConstraint {
     String message() default "Cannot update Computer System with empty values";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
-
-    class ComputerSystemConstraintValidator implements ConstraintValidator<ComputerSystemConstraint, RedfishComputerSystem> {
-        @Override
-        public void initialize(ComputerSystemConstraint computerSystemConstraintAnnotation) {
-        }
-
-        @Override
-        public boolean isValid(RedfishComputerSystem redfishComputerSystem, ConstraintValidatorContext context) {
-            if (redfishComputerSystem == null) {
-                return false;
-            }
-
-            RedfishComputerSystem.Boot bootJson = redfishComputerSystem.getBoot();
-
-            if (redfishComputerSystem.getAssetTag() == null && bootJson == null) {
-                return false;
-            }
-
-            return !checkIfBootObjectHasOnlyEmptyIfNecessary(redfishComputerSystem, bootJson);
-        }
-
-        private boolean checkIfBootObjectHasOnlyEmptyIfNecessary(
-                RedfishComputerSystem computerSystemPartialRepresentation,
-                RedfishComputerSystem.Boot bootJson) {
-            if (computerSystemPartialRepresentation.getAssetTag() == null && bootJson != null) {
-                if (bootJson.getBootSourceOverrideTarget() == null
-                        && bootJson.getBootSourceOverrideEnabled() == null
-                        && bootJson.getBootSourceOverrideMode() == null) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
 }

@@ -25,15 +25,17 @@ import com.intel.podm.common.types.redfish.RedfishComputerSystem;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.transaction.Transactional;
 import java.util.concurrent.TimeoutException;
 
 import static javax.transaction.Transactional.TxType.NEVER;
 
 @RequestScoped
-public class ComputerSystemUpdateServiceImpl implements UpdateService<RedfishComputerSystem> {
+@Named("ComputerSystem")
+class ComputerSystemUpdateServiceImpl implements UpdateService<RedfishComputerSystem> {
     @Inject
-    private ComputerSystemUpdateService updateService;
+    private ComputerSystemUpdater updateService;
 
     @Inject
     private TaskCoordinator taskCoordinator;
@@ -44,7 +46,7 @@ public class ComputerSystemUpdateServiceImpl implements UpdateService<RedfishCom
     @Override
     @Transactional(NEVER)
     public void perform(Context target, RedfishComputerSystem representation) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(traverser.traverseServiceUuid(target),
+        taskCoordinator.run(traverser.traverseServiceUuid(target),
             () -> updateService.updateComputerSystem(target, representation));
     }
 }

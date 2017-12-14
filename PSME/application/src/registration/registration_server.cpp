@@ -24,7 +24,30 @@
  * */
 
 #include "psme/registration/registration_server.hpp"
+#include "json/json.hpp"
 
 using namespace psme::app::registration;
+using namespace json_rpc;
+using namespace agent_framework::command;
 
-RegistrationServer::~RegistrationServer(){}
+RegistrationServer::RegistrationServer(const json::Value& config) :
+        m_connector(
+            new HttpServerConnector(
+                static_cast<unsigned short>(config["registration"]["port"].as_uint())
+            )
+        ),
+        m_server(new CommandServer(m_connector)) {
+    // this registers commands from the registry in the 'local' translation unit
+    m_server->add(agent_framework::command::Registry::get_instance()->get_commands());
+}
+
+RegistrationServer::~RegistrationServer() {
+    stop();
+}
+void RegistrationServer::start() {
+    m_server->start();
+}
+
+void RegistrationServer::stop() {
+    m_server->stop();
+}

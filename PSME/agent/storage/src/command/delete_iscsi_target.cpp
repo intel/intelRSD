@@ -24,8 +24,8 @@
 
 
 #include "agent-framework/module/storage_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/storage_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/storage_commands.hpp"
 #include "agent-framework/eventing/event_data.hpp"
 
 #include "iscsi/manager.hpp"
@@ -35,7 +35,7 @@
 #include "event/storage_event.hpp"
 
 using namespace agent_framework;
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent::storage::iscsi::tgt::config;
 using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
@@ -49,7 +49,7 @@ namespace {
 
     static const constexpr char EMPTY_VALUE[] = "";
 
-    void remove_tgt_config_file(const string& target_iqn) {
+    void remove_tgt_config_file(const std::string& target_iqn) {
         const auto& iscsi_data =
             get_manager<IscsiTarget, IscsiTargetManager>().get_iscsi_data();
         TgtConfig tgtConfig(iscsi_data.get_configuration_path());

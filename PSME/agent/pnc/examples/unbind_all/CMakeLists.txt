@@ -25,7 +25,7 @@ add_executable(unbind_all_from_mgmt main.cpp)
 
 target_link_libraries(unbind_all_from_mgmt
     pnc-libs
-    ${SYSFS_LIBRARIES}
+    ${SYSFSREF_LIBRARIES}
     ${LOGGER_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     )

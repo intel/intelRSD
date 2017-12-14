@@ -16,12 +16,11 @@
 
 package com.intel.podm.rest;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.rest.HttpServletRequestValidator.HttpServletRequestValidationException;
-import com.intel.podm.rest.representation.json.errors.ErrorType;
+import com.intel.podm.rest.error.ErrorType;
 import org.jboss.resteasy.plugins.server.servlet.FilterDispatcher;
 
 import javax.servlet.FilterChain;
@@ -36,7 +35,7 @@ import java.io.PrintWriter;
 
 import static com.intel.podm.common.logger.LoggerFactory.getLogger;
 import static com.intel.podm.redfish.RedfishResponseHeadersProvider.getRedfishResponseHeaders;
-import static com.intel.podm.rest.error.ErrorResponseCreator.from;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 /**
@@ -54,7 +53,7 @@ public class RequestValidationFilter extends FilterDispatcher {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         ServletCommunicationCoordinator servletCoordinator =
-                new ServletCommunicationCoordinator((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse);
+            new ServletCommunicationCoordinator((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse);
 
         HttpServletRequestValidator requestValidator = new HttpServletRequestValidator();
 
@@ -68,16 +67,14 @@ public class RequestValidationFilter extends FilterDispatcher {
         servletCoordinator.logServletResponse();
     }
 
-    public void setErrorResponse(HttpServletResponse httpServletResponse, ErrorType error) {
+    private void setErrorResponse(HttpServletResponse httpServletResponse, ErrorType errorType) {
         httpServletResponse.reset();
         httpServletResponse.resetBuffer();
 
-        /**
-         * Since we are outside our application we need to provide Redfish headers additionally
-         */
+        // Since we are outside our application we need to provide Redfish headers additionally
         getRedfishResponseHeaders().forEach(httpServletResponse::addHeader);
 
-        Response response = from(error).create();
+        Response response = newErrorResponseBuilder(errorType).build();
         httpServletResponse.setCharacterEncoding(DEFAULT_ENCODING_HTTP);
         httpServletResponse.setContentType(APPLICATION_JSON);
         httpServletResponse.setStatus(response.getStatus());

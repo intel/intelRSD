@@ -10,7 +10,7 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="RedfishExtensions.xml">
     <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
@@ -21,7 +21,8 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="SimpleStorage">
 
       <EntityType Name="SimpleStorage" BaseType="Resource.v1_0_0.Resource" Abstract="true">
-        <Annotation Term="OData.Description" String="This is the schema definition for the Simple Storage resource.  It represents the properties of a storage controller and its directly-attached devices."/>
+        <Annotation Term="OData.Description"
+                    String="This is the schema definition for the Simple Storage resource.  It represents the properties of a storage controller and its directly-attached devices."/>
       </EntityType>
 
     </Schema>
@@ -29,16 +30,19 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="SimpleStorage.v1_0_0">
 
       <EntityType Name="SimpleStorage" BaseType="SimpleStorage.SimpleStorage">
-        <Annotation Term="OData.Description" String="This is the schema definition for the Simple Storage resource.  It represents the properties of a storage controller and its directly-attached devices."/>
+        <Annotation Term="OData.Description"
+                    String="This is the schema definition for the Simple Storage resource.  It represents the properties of a storage controller and its directly-attached devices."/>
         <Property Name="UefiDevicePath" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The UEFI device path used to access this storage controller."/>
-          <Annotation Term="OData.LongDescription" String="This property shall contain the UEFI device path used to identify and locate the specific storage controller"/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain the UEFI device path used to identify and locate the specific storage controller"/>
         </Property>
         <Property Name="Devices" Type="Collection(SimpleStorage.v1_0_0.Device)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The storage devices associated with this resource"/>
-          <Annotation Term="OData.LongDescription" String="This property shall contain a list of storage devices associated with this resource"/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain a list of storage devices associated with this resource"/>
         </Property>
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
       </EntityType>
@@ -48,20 +52,23 @@
         <Property Name="Oem" Type="Resource.Oem" Nullable="false"/>
         <Property Name="Name" Type="Edm.String" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description"  String="The name of the resource or array element."/>
-          <Annotation Term="OData.LongDescription" String="This object represents the Name property.  All values for resources described by this schema shall comply to the requirements as described in the Redfish specification. The value of this string shall be of the format for the reserved word *Name*."/>
+          <Annotation Term="OData.Description" String="The name of the resource or array element."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This object represents the Name property.  All values for resources described by this schema shall comply to the requirements as described in the Redfish specification. The value of this string shall be of the format for the reserved word *Name*."/>
           <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
         <Property Name="Manufacturer" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The name of the manufacturer of this device"/>
-          <Annotation Term="OData.LongDescription" String="This property shall indicate the name of the manufacturer of this storage device."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall indicate the name of the manufacturer of this storage device."/>
         </Property>
         <Property Name="Model" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The product model number of this device"/>
-          <Annotation Term="OData.LongDescription" String="This property shall indicate the model information as provided by the manufacturer of this storage device."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall indicate the model information as provided by the manufacturer of this storage device."/>
         </Property>
       </ComplexType>
 
@@ -77,7 +84,8 @@
         <Property Name="CapacityBytes" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The size of the storage device."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall represent the size (in bytes) of the Storage Device."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall represent the size (in bytes) of the Storage Device."/>
           <Annotation Term="Validation.Minimum" Int="0"/>
           <Annotation Term="Measures.Unit" String="By"/>
         </Property>

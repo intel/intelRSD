@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/network/add_acl_port.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -32,12 +32,12 @@ using namespace agent_framework::model::literals;
 AddAclPort::AddAclPort(Oem oem): m_oem{oem} {}
 
 
-Json::Value AddAclPort::to_json() const {
-    Json::Value value;
+json::Json AddAclPort::to_json() const {
+    json::Json value;
     value[Acl::OEM] = m_oem.to_json();
     return value;
 }
 
-AddAclPort AddAclPort::from_json(const Json::Value& json) {
+AddAclPort AddAclPort::from_json(const json::Json& json) {
     return AddAclPort{Oem::from_json(json[Acl::OEM])};
 }

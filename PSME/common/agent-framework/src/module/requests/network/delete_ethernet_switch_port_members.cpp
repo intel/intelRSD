@@ -37,18 +37,18 @@ DeleteEthernetSwitchPortMembers::DeleteEthernetSwitchPortMembers(const std::vect
                 m_port(port),
                 m_oem{} {}
 
-Json::Value DeleteEthernetSwitchPortMembers::to_json() const {
-    Json::Value value;
-    value[EthernetSwitchPort::MEMBERS] = agent_framework::model::utils::string_vector_to_json(m_members);
+json::Json DeleteEthernetSwitchPortMembers::to_json() const {
+    json::Json value;
+    value[EthernetSwitchPort::MEMBERS] = m_members;
     value[EthernetSwitchPort::PORT] = m_port;
     value[EthernetSwitchPort::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteEthernetSwitchPortMembers DeleteEthernetSwitchPortMembers::from_json(const Json::Value& json) {
+DeleteEthernetSwitchPortMembers DeleteEthernetSwitchPortMembers::from_json(const json::Json& json) {
     return DeleteEthernetSwitchPortMembers{
-        agent_framework::model::utils::json_to_string_vector(json[EthernetSwitchPort::MEMBERS]),
-        json[EthernetSwitchPort::PORT].asString(),
+        json[EthernetSwitchPort::MEMBERS],
+        json[EthernetSwitchPort::PORT],
         agent_framework::model::attribute::Oem::from_json(json[EthernetSwitchPort::OEM])
     };
 }

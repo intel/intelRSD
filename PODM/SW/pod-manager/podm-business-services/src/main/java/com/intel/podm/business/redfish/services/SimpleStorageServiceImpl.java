@@ -17,63 +17,56 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.SimpleStorageDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.SimpleStorageDto;
-import com.intel.podm.business.dto.redfish.SimpleStorageDto.SimpleStorageDeviceDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.aggregation.ComputerSystemSubResourcesFinder;
+import com.intel.podm.business.redfish.services.aggregation.MultiSourceEntityTreeTraverser;
+import com.intel.podm.business.redfish.services.aggregation.SimpleStorageMerger;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SIMPLE_STORAGE;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
-import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class SimpleStorageServiceImpl implements ReaderService<SimpleStorageDto> {
+@RequestScoped
+class SimpleStorageServiceImpl implements ReaderService<SimpleStorageDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private MultiSourceEntityTreeTraverser multiTraverser;
 
+    @Inject
+    private ComputerSystemSubResourcesFinder computerSystemSubResourcesFinder;
+
+    @Inject
+    private SimpleStorageMerger simpleStorageMerger;
+
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context context) throws ContextResolvingException {
         ComputerSystem system = (ComputerSystem) traverser.traverse(context);
-        return new CollectionDto(SIMPLE_STORAGE, getAsIdSet(system.getSimpleStorages()));
+
+        // Multi-source resources sanity check
+        if (system.isComplementary()) {
+            throw new ContextResolvingException("Specified resource is not a primary resource representation!", context, null);
+        }
+
+        return new CollectionDto(SIMPLE_STORAGE, getAsIdSet(computerSystemSubResourcesFinder.getUniqueSubResourcesOfClass(system, SimpleStorage.class)));
     }
 
+    @Transactional(REQUIRED)
     @Override
     public SimpleStorageDto getResource(Context context) throws ContextResolvingException {
-        SimpleStorage simpleStorage = (SimpleStorage) traverser.traverse(context);
-        return SimpleStorageDto.newBuilder()
-            .id(simpleStorage.getId().toString())
-            .name(simpleStorage.getName())
-            .description(simpleStorage.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(simpleStorage.getService(), simpleStorage.getUnknownOems()))
-            .status(simpleStorage.getStatus())
-            .uefiDevicePath(simpleStorage.getUefiDevicePath())
-            .devices(getDevices(simpleStorage))
-            .build();
-    }
-
-    private List<SimpleStorageDeviceDto> getDevices(SimpleStorage simpleStorage) {
-        return simpleStorage.getDevices().stream()
-            .map(simpleStorageDevice -> SimpleStorageDeviceDto.newSimpleStorageDeviceDto()
-                .name(simpleStorageDevice.getName())
-                .manufacturer(simpleStorageDevice.getManufacturer())
-                .model(simpleStorageDevice.getModel())
-                .status(simpleStorageDevice.getStatus())
-                .capacityBytes(simpleStorageDevice.getCapacityBytes())
-                .oem(unknownOemTranslator.translateStringOemToDto(simpleStorage.getService(), simpleStorageDevice.getOem()))
-                .build()
-            ).collect(toList());
+        SimpleStorage simpleStorage = (SimpleStorage) multiTraverser.traverse(context);
+        return simpleStorageMerger.toDto(simpleStorage);
     }
 }

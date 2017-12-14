@@ -21,12 +21,11 @@
  * */
 
 #pragma once
-#include "agent-framework/module/enum/common.hpp"
-#include <string>
 
-namespace Json {
-    class Value;
-}
+#include "agent-framework/module/enum/common.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -109,14 +108,14 @@ public:
      * @brief Make Json from collections array entry
      * @return Json object
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief make collections array entry from Json
      * @param[in] json the Json input
      * @return new collection entry
      */
-    static Collection from_json(const Json::Value& json);
+    static Collection from_json(const json::Json& json);
 
 private:
 

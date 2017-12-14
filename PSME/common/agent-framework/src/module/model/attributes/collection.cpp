@@ -26,7 +26,7 @@
 
 #include "agent-framework/module/model/attributes/collection.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::model;
@@ -35,22 +35,22 @@ Collection::Collection() { }
 
 Collection::~Collection() { }
 
-Json::Value Collection::to_json() const {
-    Json::Value entry;
+json::Json Collection::to_json() const {
+    json::Json entry;
     entry[literals::Collections::NAME] = get_name();
     entry[literals::Collections::TYPE] = get_type().to_string();
     entry[literals::Collections::SLOT_MASK] = get_slot_mask();
     return entry;
 }
 
-Collection Collection::from_json(const Json::Value& json)
+Collection Collection::from_json(const json::Json& json)
 {
     Collection entry;
     entry.set_name(
-        json[literals::Collections::NAME].asString());
+        json[literals::Collections::NAME]);
     entry.set_type(enums::CollectionType::from_string(
-        json[literals::Collections::TYPE].asString()));
+        json[literals::Collections::TYPE]));
     entry.set_slot_mask(
-        json[literals::Collections::SLOT_MASK].asString());
+        json[literals::Collections::SLOT_MASK]);
     return entry;
 }

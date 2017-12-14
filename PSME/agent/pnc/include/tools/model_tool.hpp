@@ -58,7 +58,7 @@ public:
     virtual bool get_port_by_phys_id(agent_framework::model::Port& port, const std::uint32_t phy_port_id,
         bool is_temporary = false) const;
 
-    /*
+    /*!
      * @brief Gets zone by zone id
      * @param[out] zone Reference to the zone that will be filled with data
      * @param[in] switch_uuid Id of the zone's parent switch
@@ -67,6 +67,12 @@ public:
      * */
     virtual bool get_zone_by_id(agent_framework::model::Zone& zone, const std::string& switch_uuid,
         const std::uint32_t zone_id) const;
+
+    /*!
+     * @brief Get a copy of the MetricDefinition for Port Health metric
+     * @return Copy of the definition object
+     */
+    virtual agent_framework::model::MetricDefinition get_health_metric_definition() const;
 
     /*!
      * @brief Gets the uuid of the main manager of the agent
@@ -179,6 +185,13 @@ public:
      * @param[in] is_being_erased 'Being erased' flag value
      * */
     virtual void set_drive_is_being_erased(const std::string& drive_uuid, bool is_being_erased) const;
+
+    /*!
+     * @brief Sets drive to be in 'being discovered' state
+     * @param[in] drive_uuid Uuid of the drive
+     * @param[in] is_being_erased 'Being discovered' flag value
+     * */
+    virtual void set_drive_is_being_discovered(const std::string& drive_uuid, bool is_being_discovered) const;
 
     /*!
      * @brief Sets the state of the drive

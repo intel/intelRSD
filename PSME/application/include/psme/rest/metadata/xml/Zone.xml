@@ -30,12 +30,13 @@
   </edmx:Reference>
 
   <edmx:DataServices>
-  
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Zone">
 
       <EntityType Name="Zone" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="Switch contains properties describing a simple fabric zone."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a simple zone for a Redfish implementation."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent a simple zone for a Redfish implementation."/>
       </EntityType>
 
     </Schema>
@@ -46,22 +47,28 @@
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
         <Property Name="Links" Type="Zone.v1_0_0.Links" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Contains references to other resources that are related to this resource."/>
-          <Annotation Term="OData.LongDescription" String="The Links property, as described by the Redfish Specification, shall contain references to resources that are related to, but not contained by (subordinate to), this resource."/>
+          <Annotation Term="OData.Description"
+                      String="Contains references to other resources that are related to this resource."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The Links property, as described by the Redfish Specification, shall contain references to resources that are related to, but not contained by (subordinate to), this resource."/>
         </Property>
       </EntityType>
 
       <ComplexType Name="Links" BaseType="Resource.Links">
         <NavigationProperty Name="Endpoints" Type="Collection(Endpoint.Endpoint)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
-          <Annotation Term="OData.Description" String="An array of references to the endpoints that are contained in this zone."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this zone is associated with and shall reference a resource of type Endpoint."/>
+          <Annotation Term="OData.Description"
+                      String="An array of references to the endpoints that are contained in this zone."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this zone is associated with and shall reference a resource of type Endpoint."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="InvolvedSwitches" Type="Collection(Switch.Switch)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="An array of references to the switchs that are utilized in this zone."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this zone is associated with and shall reference a resource of type Switch."/>
+          <Annotation Term="OData.Description"
+                      String="An array of references to the switchs that are utilized in this zone."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this zone is associated with and shall reference a resource of type Switch."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </ComplexType>

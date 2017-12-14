@@ -30,7 +30,7 @@
 using namespace agent_framework::exceptions;
 
 
-UnsupportedField::UnsupportedField(const std::string& msg, const std::string& field_name, const Json::Value& field_value) :
+UnsupportedField::UnsupportedField(const std::string& msg, const std::string& field_name, const json::Json& field_value) :
     InvalidField(ErrorCode::UNSUPPORTED_FIELD, msg,
                  InvalidField::create_json_data_from_field(field_name, field_value)) {
 }

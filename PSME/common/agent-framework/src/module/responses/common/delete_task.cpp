@@ -25,18 +25,18 @@
 
 #include "agent-framework/module/responses/common/delete_task.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
 using namespace agent_framework::model::responses;
 
 
-Json::Value DeleteTask::to_json() const {
-    return Json::Value();
+json::Json DeleteTask::to_json() const {
+    return json::Json();
 }
 
 
-DeleteTask DeleteTask::from_json(const Json::Value&) {
+DeleteTask DeleteTask::from_json(const json::Json&) {
     return DeleteTask();
 }

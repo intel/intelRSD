@@ -28,7 +28,7 @@
 
 #include "agent-framework/module/requests/network/get_ethernet_switch_port_info.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -36,14 +36,14 @@ using namespace agent_framework::model::literals;
 GetEthernetSwitchPortInfo::GetEthernetSwitchPortInfo(const std::string& port):
     m_port(port){}
 
-Json::Value GetEthernetSwitchPortInfo::to_json() const {
-    Json::Value value;
+json::Json GetEthernetSwitchPortInfo::to_json() const {
+    json::Json value;
     value[EthernetSwitchPort::PORT] = m_port;
     return value;
 }
 
-GetEthernetSwitchPortInfo GetEthernetSwitchPortInfo::from_json(const Json::Value& json) {
+GetEthernetSwitchPortInfo GetEthernetSwitchPortInfo::from_json(const json::Json& json) {
     return GetEthernetSwitchPortInfo{
-        json[EthernetSwitchPort::PORT].asString()
+        json[EthernetSwitchPort::PORT].get<std::string>()
     };
 }

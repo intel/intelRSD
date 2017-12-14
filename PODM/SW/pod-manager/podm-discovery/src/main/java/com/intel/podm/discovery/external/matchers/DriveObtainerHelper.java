@@ -20,33 +20,32 @@ import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Drive;
 import com.intel.podm.business.entities.redfish.Storage;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.redfish.ChassisResource;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
-import com.intel.podm.client.api.resources.redfish.DriveResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ResourceSupplier;
+import com.intel.podm.client.resources.redfish.ChassisResource;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
+import com.intel.podm.client.resources.redfish.DriveResource;
 
 import javax.enterprise.context.Dependent;
-import java.net.URI;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static java.lang.String.format;
+import static java.util.Objects.isNull;
+
 @Dependent
 public class DriveObtainerHelper implements EntityObtainerHelper<DriveResource> {
 
     @Override
-    public ComputerSystemResource findComputerSystemResourceFor(DriveResource resource) throws ExternalServiceApiReaderException {
+    public ComputerSystemResource findComputerSystemResourceFor(DriveResource resource) throws WebClientRequestException {
         ChassisResource chassisResource = (ChassisResource) resource.getParentChassis().get();
         Iterator<ResourceSupplier> iterator = chassisResource.getComputerSystems().iterator();
 
         if (!iterator.hasNext()) {
-            throw new ExternalServiceApiReaderException(
-                    "We assume that there should be at least one link between Chassis and ComputerSystem for LUI service.",
-                    resource.getUri()
-            );
+            throw new IllegalStateException(format("Parent ComputerSystem resource has not been found for '%s'", resource.getUri()));
         }
         return (ComputerSystemResource) iterator.next().get();
     }
@@ -60,17 +59,21 @@ public class DriveObtainerHelper implements EntityObtainerHelper<DriveResource> 
 
     private Function<Storage, Optional<Drive>> toDriveMatchingCriteria(DriveResource resource) {
         return storage -> storage.getDrives().stream()
-                .filter(byTheSameLastPathSegment(resource))
+                .filter(bySerialNumber(resource))
                 .findFirst();
     }
 
-    private Predicate<? super Drive> byTheSameLastPathSegment(DriveResource resource) {
-        return drive -> Objects.equals(lastPathSegment(drive.getSourceUri()), lastPathSegment(resource.getUri()));
-    }
+    private Predicate<? super Drive> bySerialNumber(DriveResource resource) {
+        return drive -> {
+            String serialNumberFromDrive = drive.getSerialNumber();
+            String serialNumberFromResource = resource.getSerialNumber().orElse(null);
 
-    private String lastPathSegment(URI uri) {
-        String path = uri.getPath();
-        return path.substring(path.lastIndexOf("/") + 1);
+            if (isNull(serialNumberFromDrive) && isNull(serialNumberFromResource)) {
+                return false;
+            }
+
+            return Objects.equals(serialNumberFromDrive, serialNumberFromResource);
+        };
     }
 
     @Override

@@ -44,9 +44,12 @@ public:
     /*!
      * Type definition of the functions used in state machines - used for guards and actions. They accept one
      * parameter that describe the transition and return bool value: for actions, true means that action was
-     * successful, for guards, true means that the transition may be completed.
+     * successful, for guards, true means that the transition may be started.
      * */
     using StateMachineFunction = std::function<bool(const Transition&)>;
+
+    /*! Type declaration of the TransitionTable */
+    using TransitionTable = std::vector<Transition>;
 
     /*! Struct representing single transition of the state machine */
     struct Transition final {
@@ -68,7 +71,7 @@ public:
          * @brief Default action during transitions - does nothing
          * @return Always returns true
          * */
-        static bool do_nothing(const Transition&) { return true; }
+        static constexpr bool do_nothing(const Transition&) { return true; }
 
         /*!
          * @brief Default guard - always true
@@ -92,15 +95,13 @@ public:
         StateMachineFunction  guard;
     };
 
-    /*! Type declaration of the TransitionTable */
-    using TransitionTable = std::vector<Transition>;
-
     /*!
      * @brief Constructor
      * @param[in] init_state Initial state of the machine
-     * @param[in] transition_table Transition table describing transitions allowed in the state machine
+     * @param[in] transition_table Transition table describing transitions allowed in the
+     *            state machine (default = no transitions, empty table)
      * */
-    EnumStateMachine(const STATE& init_state, const TransitionTable& transition_table):
+    EnumStateMachine(const STATE& init_state, const TransitionTable& transition_table = {}):
         m_current_state(init_state), m_transition_table(transition_table) {}
 
     /*! Copy constructor */
@@ -121,6 +122,21 @@ public:
     virtual ~EnumStateMachine() {}
 
     /*!
+     * @brief Adds a transition to the state machine
+     * @param[in] init_state Initial state before the transition
+     * @param[in] event Event that triggers the transition
+     * @param[in] end_state End state after the transition
+     * @param[in] action Action triggered by the transition (default action = no action)
+     * @param[in] guard Guard checking if transition should be performed (default guard = always)
+     * @return Reference to the state machine
+     * */
+    EnumStateMachine& add_transition(const STATE& init_state, const EVENT& event, const STATE& end_state,
+            StateMachineFunction action = Transition::do_nothing, StateMachineFunction guard = Transition::always) {
+        m_transition_table.emplace_back(Transition{init_state, event, end_state, action, guard});
+        return *this;
+    }
+
+    /*!
      * @brief Returns current machine state
      * @return Current machine state
      * */
@@ -135,9 +151,9 @@ public:
      *         failure, state was not changed and transition did not happen.
      * */
     bool send_event(const EVENT& event) {
-        pre_event_check(event);
+        do_on_event_action(event);
         for (const auto& transition : m_transition_table) {
-            if (transition.init_state == m_current_state && transition.event == event && check_guards(transition)) {
+            if (transition.init_state == m_current_state && transition.event == event && do_guard_check(transition)) {
                 if (!do_transition(transition)) {
                     return false;
                 }
@@ -156,7 +172,7 @@ protected:
      * @param[in] transition Information about the transition
      * @return True if the guard returned true
      * */
-    virtual bool check_guards(const Transition& transition) {
+    virtual bool do_guard_check(const Transition& transition) {
         return transition.guard(transition);
     }
 
@@ -174,8 +190,10 @@ protected:
      * @brief Method called as a first method in send_event call
      *        Should be overriden in derived classes if change of the behaviour is desired.
      * */
-    virtual void pre_event_check(const EVENT&) {
+    virtual void do_on_event_action(const EVENT&) {
     }
+
+
 
 private:
 

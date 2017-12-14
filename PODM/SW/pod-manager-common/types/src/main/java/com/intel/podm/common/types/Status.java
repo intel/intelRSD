@@ -27,7 +27,7 @@ import static com.intel.podm.common.types.EnumeratedType.stringToEnum;
 import static java.lang.String.format;
 import static java.util.Objects.hash;
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang.StringUtils.trimToNull;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 /**
  * Provides representation of State, Health and HealthRollup objects.
@@ -51,18 +51,19 @@ public class Status implements Serializable {
 
     /**
      * Creates Status object instance from string
+     *
      * @param statusString string representation of Status, e.g. "State=Enabled,Health=OK,HealthRollup=OK"
      * @return Status object instance
      * @throws IllegalArgumentException if statusString cannot be parsed
      */
-    public static Status fromString(String statusString) {
+    public static Status statusFromString(String statusString) {
         if (trimToNull(statusString) == null) {
             return new Status(null, null, null);
         }
 
         try {
             Map<String, String> map = splitStatusString(statusString);
-            return fromMap(map);
+            return statusFromMap(map);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(format("Cannot create Status instance for string: %s, details: %s", statusString, e.getMessage()), e);
         }
@@ -70,11 +71,12 @@ public class Status implements Serializable {
 
     /**
      * Creates Status object instance from map
+     *
      * @param statusMap map representation of Status
      * @return Status object instance
      * @throws IllegalArgumentException if Status object instance cannot be created
      */
-    public static Status fromMap(Map<String, String> statusMap) {
+    public static Status statusFromMap(Map<String, String> statusMap) {
         if (statusMap == null || statusMap.isEmpty()) {
             return new Status(null, null, null);
         }
@@ -84,6 +86,22 @@ public class Status implements Serializable {
         Health healthRollup = ofNullable(statusMap.get(HEALTH_ROLLUP_PROPERTY)).map(Status::mapHealth).orElse(null);
 
         return new Status(state, health, healthRollup);
+    }
+
+    private static Map<String, String> splitStatusString(String statusString) {
+        try {
+            return StringRepresentation.toMap(statusString, true, true);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Error while parsing: " + statusString, e);
+        }
+    }
+
+    private static Health mapHealth(String healthString) {
+        return stringToEnum(Health.class, healthString);
+    }
+
+    private static State mapState(String stateString) {
+        return stringToEnum(State.class, stateString);
     }
 
     public Health getHealth() {
@@ -140,21 +158,5 @@ public class Status implements Serializable {
         }
 
         return propertiesMap;
-    }
-
-    private static Map<String, String> splitStatusString(String statusString) {
-        try {
-            return StringRepresentation.toMap(statusString, true, true);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Error while parsing: " + statusString, e);
-        }
-    }
-
-    private static Health mapHealth(String healthString) {
-        return stringToEnum(Health.class, healthString);
-    }
-
-    private static State mapState(String stateString) {
-        return stringToEnum(State.class, stateString);
     }
 }

@@ -1,3 +1,17 @@
+//
+// SocketAddress.cpp
+//
+// $Id: //poco/1.4/Net/src/SocketAddress.cpp#5 $
+//
+// Library: Net
+// Package: NetCore
+// Module:  SocketAddress
+//
+// Copyright (c) 2005-2011, Applied Informatics Software Engineering GmbH.
+// and Contributors.
+//
+// SPDX-License-Identifier:	BSL-1.0
+//
 /*!
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation

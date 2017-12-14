@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/model/attributes/subcomponent_entry.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::model;
@@ -33,14 +33,14 @@ SubcomponentEntry::SubcomponentEntry() { }
 
 SubcomponentEntry::~SubcomponentEntry() { }
 
-Json::Value SubcomponentEntry::to_json() const {
-    Json::Value entry;
+json::Json SubcomponentEntry::to_json() const {
+    json::Json entry;
     entry[literals::SubcomponentEntry::SUBCOMPONENT] = get_subcomponent();
     return entry;
 }
 
-SubcomponentEntry SubcomponentEntry::from_json(const Json::Value& json) {
+SubcomponentEntry SubcomponentEntry::from_json(const json::Json& json) {
     SubcomponentEntry entry;
-    entry.set_subcomponent(json[literals::SubcomponentEntry::SUBCOMPONENT].asString());
+    entry.set_subcomponent(json[literals::SubcomponentEntry::SUBCOMPONENT]);
     return entry;
 }

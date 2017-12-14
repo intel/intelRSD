@@ -24,22 +24,14 @@
 
 #include "psme/rest/eventing/event.hpp"
 #include "psme/rest/utils/time_utils.hpp"
+#include "psme/rest/constants/constants.hpp"
 
 #include "json/json.hpp"
 #include "uuid++.hh"
 
 using psme::rest::eventing::Event;
 using namespace psme::rest::utils;
-
-constexpr const char Event::EVENT_TYPE[];
-constexpr const char Event::EVENT_ID[];
-constexpr const char Event::EVENT_TIMESTAMP[];
-constexpr const char Event::SEVERITY[];
-constexpr const char Event::MESSAGE[];
-constexpr const char Event::MESSAGE_ID[];
-constexpr const char Event::MESSAGE_ARGS[];
-constexpr const char Event::CONTEXT[];
-constexpr const char Event::ORIGIN_OF_CONDITION[];
+using namespace psme::rest;
 
 Event::Event(EventType type, const std::string& origin_of_condition)
     : m_type(type), m_origin_of_condition(origin_of_condition) {
@@ -53,20 +45,19 @@ Event::Event(EventType type, const std::string& origin_of_condition)
 json::Value Event::to_json() const {
     json::Value j(json::Value::Type::OBJECT);
 
-    j[EVENT_TYPE] = m_type.to_string();
-    j[EVENT_ID] = m_event_id;
-    j[EVENT_TIMESTAMP] = TimeUtils::get_time_with_zone(m_timestamp);
-    j[SEVERITY] = m_severity;
-    j[MESSAGE] = m_message;
-    j[MESSAGE_ID] = m_message_id;
+    j[constants::Event::EVENT_TYPE] = m_type.to_string();
+    j[constants::Event::EVENT_ID] = m_event_id;
+    j[constants::Event::EVENT_TIMESTAMP] = TimeUtils::get_time_with_zone(m_timestamp);
+    j[constants::Event::SEVERITY] = m_severity;
+    j[constants::Event::MESSAGE] = m_message;
+    j[constants::Event::MESSAGE_ID] = m_message_id;
 
     json::Value args(json::Value::Type::ARRAY);
     for(const auto& argument : m_message_args) {
         args.push_back(argument);
     }
-    j[MESSAGE_ARGS] = args;
-    j[ORIGIN_OF_CONDITION] = m_origin_of_condition;
-    j[CONTEXT] = m_context;
+    j[constants::Event::MESSAGE_ARGS] = args;
+    j[constants::Event::ORIGIN_OF_CONDITION] = m_origin_of_condition;
 
     return j;
 }

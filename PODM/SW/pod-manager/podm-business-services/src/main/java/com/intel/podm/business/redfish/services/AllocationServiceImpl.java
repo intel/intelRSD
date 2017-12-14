@@ -16,14 +16,14 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.allocation.AllocationRequestProcessingException;
-import com.intel.podm.allocation.ComposedNodeStateChanger;
-import com.intel.podm.allocation.CompositionException;
-import com.intel.podm.allocation.NodeAllocator;
-import com.intel.podm.assembly.tasks.NodeTasksCoordinator;
 import com.intel.podm.business.EntityOperationException;
 import com.intel.podm.business.RequestValidationException;
-import com.intel.podm.business.redfish.services.helpers.ComposedNodeValidator;
+import com.intel.podm.business.redfish.services.allocation.AllocationRequestProcessingException;
+import com.intel.podm.business.redfish.services.allocation.ComposedNodeStateChanger;
+import com.intel.podm.business.redfish.services.allocation.CompositionException;
+import com.intel.podm.business.redfish.services.allocation.NodeAllocator;
+import com.intel.podm.business.redfish.services.allocation.validation.ComposedNodeRequestValidator;
+import com.intel.podm.business.redfish.services.assembly.tasks.NodeTasksCoordinator;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.AllocationService;
 import com.intel.podm.business.services.redfish.requests.RequestedNode;
@@ -44,12 +44,12 @@ import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 @RequestScoped
 @Interceptors(RetryOnRollbackInterceptor.class)
 @SuppressWarnings({"checkstyle:IllegalCatch", "checkstyle:ClassFanOutComplexity"})
-public class AllocationServiceImpl implements AllocationService {
+class AllocationServiceImpl implements AllocationService {
     @Inject
     private NodeAllocator nodeAllocator;
 
     @Inject
-    private ComposedNodeValidator composedNodeValidator;
+    private ComposedNodeRequestValidator composedNodeRequestValidator;
 
     @Inject
     private NodeTasksCoordinator nodeTasksCoordinator;
@@ -64,7 +64,7 @@ public class AllocationServiceImpl implements AllocationService {
         String baseExceptionMessage = "Creation failed due to allocation failure: ";
         Id composedNodeId;
         try {
-            composedNodeValidator.validateExistenceOfIncludedResources(requestedNode);
+            composedNodeRequestValidator.validateExistenceOfIncludedResources(requestedNode);
             composedNodeId = nodeAllocator.compose(requestedNode).getId();
         } catch (AllocationRequestProcessingException e) {
             throw new RequestValidationException(baseExceptionMessage + e.getMessage(), e.getViolations(), e);

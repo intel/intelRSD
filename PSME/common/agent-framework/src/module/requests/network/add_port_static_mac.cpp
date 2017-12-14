@@ -30,7 +30,7 @@
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -44,8 +44,8 @@ AddPortStaticMac::AddPortStaticMac(const OptionalField<std::string>& port,
                 m_vlan_id{vlan_id},
                 m_oem{} {}
 
-Json::Value AddPortStaticMac::to_json() const {
-    Json::Value value;
+json::Json AddPortStaticMac::to_json() const {
+    json::Json value;
     value[StaticMac::PORT] = m_port;
     value[StaticMac::ADDRESS] = m_mac_address;
     value[StaticMac::VLAN_ID] = m_vlan_id;
@@ -53,7 +53,7 @@ Json::Value AddPortStaticMac::to_json() const {
     return value;
 }
 
-AddPortStaticMac AddPortStaticMac::from_json(const Json::Value& json) {
+AddPortStaticMac AddPortStaticMac::from_json(const json::Json& json) {
     return AddPortStaticMac{
         json[StaticMac::PORT],
         json[StaticMac::ADDRESS],

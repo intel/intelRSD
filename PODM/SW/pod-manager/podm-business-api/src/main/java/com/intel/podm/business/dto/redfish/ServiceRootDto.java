@@ -16,50 +16,48 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.intel.podm.business.dto.RedfishDto;
 import com.intel.podm.business.dto.redfish.attributes.UnknownOemDto;
+import com.intel.podm.business.services.context.SingletonContext;
+import com.intel.podm.common.types.redfish.OemType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public final class ServiceRootDto extends BaseDto {
-    private final String id;
-    private final String name;
-    private final String description;
-    private final List<UnknownOemDto> unknownOems;
-    private final String redfishVersion;
-    private final UUID uuid;
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
-    private ServiceRootDto(Builder builder) {
-        id = builder.id;
-        name = builder.name;
-        description = builder.description;
-        unknownOems = builder.unknownOems;
-        redfishVersion = builder.redfishVersion;
-        uuid = builder.uuid;
-    }
+@JsonPropertyOrder({
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "redfishVersion", "uuid",
+    "chassis", "systems", "managers", "eventService", "fabrics", "telemetryService", "oem", "links"
+})
+@SuppressWarnings({"checkstyle:MethodCount"})
+public final class ServiceRootDto extends RedfishDto {
+    private List<UnknownOemDto> unknownOems = new ArrayList<>();
+    private String redfishVersion;
+    @JsonProperty("UUID")
+    private UUID uuid;
+    @JsonProperty("Systems")
+    private SingletonContext systems;
+    @JsonProperty("Chassis")
+    private SingletonContext chassis;
+    @JsonProperty("Managers")
+    private SingletonContext managers;
+    @JsonProperty("Fabrics")
+    private SingletonContext fabrics;
+    @JsonProperty("EventService")
+    private SingletonContext eventService;
+    @JsonProperty("TelemetryService")
+    private SingletonContext telemetryService;
+    @JsonProperty("Links")
+    private Links links = new Links();
+    @JsonProperty("Oem")
+    private Oem oem = new Oem();
 
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public List<UnknownOemDto> getUnknownOems() {
-        return unknownOems;
+    public ServiceRootDto() {
+        super("#ServiceRoot.v1_1_1.ServiceRoot");
     }
 
     public String getRedfishVersion() {
@@ -70,49 +68,152 @@ public final class ServiceRootDto extends BaseDto {
         return uuid;
     }
 
-    public static final class Builder {
-        private String id;
-        private String name;
-        private String description;
-        private List<UnknownOemDto> unknownOems;
-        private UUID uuid;
-        private String redfishVersion;
+    @Override
+    public void setUnknownOems(List<UnknownOemDto> unknownOems) {
+        this.unknownOems = unknownOems;
+    }
 
-        private Builder() {
+    public void setRedfishVersion(String redfishVersion) {
+        this.redfishVersion = redfishVersion;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public SingletonContext getSystems() {
+        return systems;
+    }
+
+    public void setSystems(SingletonContext computerSystems) {
+        this.systems = computerSystems;
+    }
+
+    public SingletonContext getChassis() {
+        return chassis;
+    }
+
+    public void setChassis(SingletonContext chassis) {
+        this.chassis = chassis;
+    }
+
+    public SingletonContext getManagers() {
+        return managers;
+    }
+
+    public void setManagers(SingletonContext managers) {
+        this.managers = managers;
+    }
+
+    public SingletonContext getFabrics() {
+        return fabrics;
+    }
+
+    public void setFabrics(SingletonContext fabrics) {
+        this.fabrics = fabrics;
+    }
+
+    public SingletonContext getEventService() {
+        return eventService;
+    }
+
+    public void setEventService(SingletonContext eventService) {
+        this.eventService = eventService;
+    }
+
+
+    public SingletonContext getTelemetryService() {
+        return telemetryService;
+    }
+
+    public void setTelemetryService(SingletonContext telemetryService) {
+        this.telemetryService = telemetryService;
+    }
+
+    @Override
+    public List<UnknownOemDto> getUnknownOems() {
+        return unknownOems;
+    }
+
+    public Oem getOem() {
+        return oem;
+    }
+
+    public void setOem(Oem oem) {
+        this.oem = oem;
+    }
+
+    public Links getLinks() {
+        return links;
+    }
+
+    public void setLinks(Links links) {
+        this.links = links;
+    }
+
+    public final class Links extends RedfishLinksDto {
+    }
+
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOemDto {
+        @JsonProperty("Intel_RackScale")
+        private RackScaleOem rackScaleOem = new RackScaleOem();
+
+        public RackScaleOem getRackScaleOem() {
+            return rackScaleOem;
         }
 
-        public Builder id(String id) {
-            this.id = id;
-            return this;
+        public void setRackScaleOem(RackScaleOem rackScaleOem) {
+            this.rackScaleOem = rackScaleOem;
         }
 
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
+        @JsonPropertyOrder({"oDataType", "apiVersion", "composedNodes", "services", "ethernetSwitches"})
+        public final class RackScaleOem {
+            @JsonProperty("@odata.type")
+            private final String oDataType = "#Intel.Oem.ServiceRoot";
+            private String apiVersion;
+            @JsonProperty("Nodes")
+            private SingletonContext composedNodes;
+            @JsonProperty("Services")
+            private SingletonContext services;
+            @JsonProperty("EthernetSwitches")
+            private SingletonContext ethernetSwitches;
 
-        public Builder description(String description) {
-            this.description = description;
-            return this;
-        }
+            public String getoDataType() {
+                return oDataType;
+            }
 
-        public Builder unknownOems(List<UnknownOemDto> unknownOems) {
-            this.unknownOems = unknownOems;
-            return this;
-        }
+            public String getApiVersion() {
+                return apiVersion;
+            }
 
-        public Builder redfishVersion(String redfishVersion) {
-            this.redfishVersion = redfishVersion;
-            return this;
-        }
+            public void setApiVersion(String apiVersion) {
+                this.apiVersion = apiVersion;
+            }
 
-        public Builder uuid(UUID uuid) {
-            this.uuid = uuid;
-            return this;
-        }
+            public SingletonContext getComposedNodes() {
+                return composedNodes;
+            }
 
-        public ServiceRootDto build() {
-            return new ServiceRootDto(this);
+            public void setComposedNodes(SingletonContext composedNodes) {
+                this.composedNodes = composedNodes;
+            }
+
+            public SingletonContext getServices() {
+                return services;
+            }
+
+            public void setServices(SingletonContext services) {
+                this.services = services;
+            }
+
+            public SingletonContext getEthernetSwitches() {
+                return ethernetSwitches;
+            }
+
+            public void setEthernetSwitches(SingletonContext ethernetSwitches) {
+                this.ethernetSwitches = ethernetSwitches;
+            }
         }
     }
 }

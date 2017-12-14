@@ -21,15 +21,13 @@ if (NOT GTEST_FOUND)
 endif()
 
 add_gtest(discovery_discover psme-compute
-        discovery_discover_test.cpp
-        mock_send_method_test.cpp
-        mdr_region_discovery_test.cpp
-        test_runner.cpp
-)
-
-add_library(compute-discovery-test-libs
-    $<TARGET_OBJECTS:compute-discovery>
-    $<TARGET_OBJECTS:compute-loader>
+#       Intentional. They need to be rethought.
+#        discovery_discover_test.cpp
+#        mock_send_method_test.cpp
+#        smbios_discovery_test.cpp
+    purley_discoverer_test.cpp
+    discovery_manager_test.cpp
+    test_runner.cpp
 )
 
 target_link_libraries(${test_target}
@@ -41,13 +39,10 @@ target_link_libraries(${test_target}
     ${PCA95XX_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
+    ${ISCSI_MDR_LIBRARIES}
     ipmi
     ${IPMITOOL_LIBRARIES}
     pthread
-    jsonrpccpp-server
-    jsonrpccpp-client
-    jsonrpccpp-common
-    jsoncpp
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
     md5
@@ -55,4 +50,6 @@ target_link_libraries(${test_target}
     smbios
     ${SAFESTRING_LIBRARIES}
     ${NL3_LIBRARIES}
+    ${TELEMETRY_LIBRARIES}
+    ${IPMI_LIBRARIES}
 )

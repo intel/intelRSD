@@ -18,7 +18,7 @@
 #include "agent-framework/exceptions/exception.hpp"
 #include "agent-framework/validators/checkers/array_validity_checker.hpp"
 
-#include <cassert>
+#include "generic/assertions.hpp"
 
 
 
@@ -32,14 +32,14 @@ ArrayValidityChecker::ArrayValidityChecker(ValidityChecker::Ptr& _checker,
 }
 
 
-void ArrayValidityChecker::validate(const Json::Value& value) const {
+void ArrayValidityChecker::validate(const json::Json& value) const {
     ValidityChecker::validate(value);
-    if (!value.isArray()) {
+    if (!value.is_array()) {
         THROW(ValidityChecker::ValidationException, "agent-framework",
               ErrorCode::INVALID_FIELD_TYPE, "Property value is not valid array type.", value);
     }
     if (max < min) {
-        assert(fail("Wrong array size."));
+        assert(generic::FAIL("Wrong array size."));
         return;
     }
 

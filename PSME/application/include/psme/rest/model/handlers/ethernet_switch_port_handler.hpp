@@ -91,26 +91,28 @@ protected:
      * This override is necessary to properly clean the Port <-> Port
      * and ACL <-> Port bindings for all the ports.
      *
+     * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param[in] gami_id uuid of the agent whose data is to be removed.
      * */
-    void remove_agent_data(const std::string& gami_id) override {
+    void remove_agent_data(Context& ctx, const std::string& gami_id) override {
         NetworkComponents::get_instance()->
             get_acl_port_manager().clean_resources_for_agent(gami_id);
         NetworkComponents::get_instance()->
             get_port_members_manager().clean_resources_for_agent(gami_id);
-        EthernetSwitchPortHandlerBase::remove_agent_data(gami_id);
+        EthernetSwitchPortHandlerBase::remove_agent_data(ctx, gami_id);
     }
 
 
     /*!
-     * @brief  Specialization ofs remove() from GenericManager.
+     * @brief  Specialization of do_remove() from GenericManager.
      *
      * This override is necessary for clearing the ACL <-> port bindings as
      * well as links to its PortMembers for given port.
      *
+     * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param[in] uuid uuid of the port to be removed.
      * */
-    void remove(const std::string& uuid) override {
+    void do_remove(Context& ctx, const std::string& uuid) override {
         auto& port_members_manager = NetworkComponents::get_instance()->
             get_port_members_manager();
         port_members_manager.remove_if([&uuid](const std::string& parent,
@@ -121,7 +123,7 @@ protected:
         // port is the child in ACL <-> port relation
         NetworkComponents::get_instance()->
             get_acl_port_manager().remove_child(uuid);
-        EthernetSwitchPortHandlerBase::remove(uuid);
+        EthernetSwitchPortHandlerBase::do_remove(ctx, uuid);
     }
 
 };

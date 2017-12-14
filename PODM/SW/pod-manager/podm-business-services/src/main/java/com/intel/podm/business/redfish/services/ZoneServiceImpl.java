@@ -17,31 +17,31 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.ZoneDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.ZoneDto;
 import com.intel.podm.business.entities.redfish.Fabric;
 import com.intel.podm.business.entities.redfish.Zone;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ZONES;
-import static com.intel.podm.business.redfish.ContextCollections.asEndpointContexts;
-import static com.intel.podm.business.redfish.ContextCollections.asFabricSwitchContexts;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
+@RequestScoped
 @Transactional(REQUIRED)
-public class ZoneServiceImpl implements ReaderService<ZoneDto> {
+class ZoneServiceImpl implements ReaderService<ZoneDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
     @Override
     public CollectionDto getCollection(Context fabricContext) throws ContextResolvingException {
@@ -52,18 +52,6 @@ public class ZoneServiceImpl implements ReaderService<ZoneDto> {
     @Override
     public ZoneDto getResource(Context context) throws ContextResolvingException {
         Zone zone = (Zone) traverser.traverse(context);
-        return map(zone);
-    }
-
-    private ZoneDto map(Zone zone) {
-        return ZoneDto.newBuilder()
-            .id(zone.getId().toString())
-            .name(zone.getName())
-            .description(zone.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(zone.getService(), zone.getUnknownOems()))
-            .involvedSwitches(asFabricSwitchContexts(zone.getSwitches()))
-            .endpoints(asEndpointContexts(zone.getEndpoints()))
-            .status(zone.getStatus())
-            .build();
+        return (ZoneDto) entityToDtoMapper.map(zone);
     }
 }

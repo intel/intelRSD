@@ -24,7 +24,6 @@
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/endpoints/root.hpp"
 
-#include "json/json.hpp"
 #include "version.hpp"
 
 
@@ -44,19 +43,21 @@ json::Value make_prototype() {
     r[Common::ID] = "RootService";
     r[Common::NAME] = "PSME Service Root";
     r[Common::DESCRIPTION] = "Service Root description";
-    r[Root::REDFISH_VERSION] = "1.0.2";
+    r[Root::REDFISH_VERSION] = "1.1.0";
     r[Common::UUID] = "00000000000-000000-0000000-00000000000000000";
     r[Root::EVENT_SERVICE][Common::ODATA_ID] = "/redfish/v1/EventService";
+    r[Root::UPDATE_SERVICE][Common::ODATA_ID] = "/redfish/v1/UpdateService";
     r[Root::TASKS][Common::ODATA_ID] = "/redfish/v1/TaskService";
     r[Root::REGISTRIES][Common::ODATA_ID] = "/redfish/v1/Registries";
     r[Common::CHASSIS][Common::ODATA_ID] = "/redfish/v1/Chassis";
     r[Root::SYSTEMS][Common::ODATA_ID] = "/redfish/v1/Systems";
-    r[Root::SERVICES][Common::ODATA_ID] = "/redfish/v1/Services";
     r[Root::MANAGERS][Common::ODATA_ID] = "/redfish/v1/Managers";
-    r[Root::ETHERNET_SWITCHES][Common::ODATA_ID] = "/redfish/v1/EthernetSwitches";
     r[Root::FABRICS][Common::ODATA_ID] = "/redfish/v1/Fabrics";
+    r[Root::TELEMETRY_SERVICE][Common::ODATA_ID] = "/redfish/v1/TelemetryService";
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.ServiceRoot";
     r[Common::OEM][Common::RACKSCALE][Common::API_VERSION] = psme::app::Version::to_string();
+    r[Common::OEM][Common::RACKSCALE][Root::SERVICES][Common::ODATA_ID] = "/redfish/v1/Services";
+    r[Common::OEM][Common::RACKSCALE][Root::ETHERNET_SWITCHES][Common::ODATA_ID] = "/redfish/v1/EthernetSwitches";
     r[Common::LINKS] = json::Value::Type::OBJECT;
     return r;
 }

@@ -17,12 +17,22 @@ class Service:
     def __init__(self, service_description):
         self._service_description = service_description
         self._resources = []
+        self._retrieval_duration = None
+
+    def __str__(self):
+        return 'Service {service_description}: {number_of_resources}'.format(service_description=self._service_description, number_of_resources=len(self._resources))
 
     def get_service_description(self):
         return self._service_description
 
     def get_resources(self):
         return self._resources
+
+    def get_retrieval_duration(self):
+        return self._retrieval_duration
+
+    def set_retrieval_duration(self, retrieval_duration):
+        self._retrieval_duration = retrieval_duration
 
     def add_resource(self, resource):
         self._resources.append(resource)

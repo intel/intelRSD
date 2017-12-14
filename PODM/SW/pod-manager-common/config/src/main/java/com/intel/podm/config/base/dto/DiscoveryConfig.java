@@ -42,6 +42,9 @@ public class DiscoveryConfig extends BaseConfig {
     @JsonProperty("DiscoveryCancelable")
     private boolean discoveryCancelable;
 
+    @JsonProperty("DeepDiscoveryInitialDelaySeconds")
+    private long deepDiscoveryInitialDelaySeconds = 10L;
+
     public int getMaxComputerSystemsCountPerDrawerBeingDeepDiscovered() {
         return maxComputerSystemsCountPerDrawerBeingDeepDiscovered;
     }
@@ -78,5 +81,9 @@ public class DiscoveryConfig extends BaseConfig {
 
         DiscoveryConfig newConfig = (DiscoveryConfig) updatedConfig;
         return newConfig.isDeepDiscoveryEnabled() == isDeepDiscoveryEnabled();
+    }
+
+    public long getDeepDiscoveryInitialDelaySeconds() {
+        return deepDiscoveryInitialDelaySeconds;
     }
 }

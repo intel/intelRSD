@@ -19,11 +19,11 @@ package com.intel.podm.mappers.redfish;
 import com.intel.podm.business.entities.redfish.Memory;
 import com.intel.podm.business.entities.redfish.embeddables.MemoryLocation;
 import com.intel.podm.business.entities.redfish.embeddables.Region;
-import com.intel.podm.client.api.WebClient;
-import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.redfish.MemoryLocationObject;
-import com.intel.podm.client.api.resources.redfish.MemoryRegionObject;
-import com.intel.podm.client.api.resources.redfish.MemoryResource;
+import com.intel.podm.client.WebClient;
+import com.intel.podm.client.reader.ResourceSupplier;
+import com.intel.podm.client.resources.redfish.MemoryLocationObject;
+import com.intel.podm.client.resources.redfish.MemoryRegionObject;
+import com.intel.podm.client.resources.redfish.MemoryResource;
 import com.intel.podm.common.types.BaseModuleType;
 import com.intel.podm.common.types.ErrorCorrection;
 import com.intel.podm.common.types.MemoryClassification;
@@ -54,6 +54,7 @@ import static com.intel.podm.common.types.MemoryMedia.DRAM;
 import static com.intel.podm.common.types.MemoryMedia.NAND;
 import static com.intel.podm.common.types.MemoryType.NVDIMM_P;
 import static com.intel.podm.common.types.OperatingMemoryMode.BLOCK;
+import static com.intel.podm.common.types.Status.statusFromString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -148,7 +149,7 @@ public class MemoryMapperTest {
         Memory target = new Memory();
         target.addRegion(targetRegion);
 
-        MemoryResource source = prepareMockResourceWithRegions();
+        MemoryTestResource source = prepareMockResourceWithRegions();
 
         mapper.map(source, target);
 
@@ -198,100 +199,83 @@ public class MemoryMapperTest {
     }
 
     @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:MagicNumber", "checkstyle:AnonInnerLength"})
-    static class MemoryTestResource implements MemoryResource {
-        @Override
+    static class MemoryTestResource extends MemoryResource {
         public Ref<MemoryDeviceType> getMemoryDeviceType() {
             return Ref.of(DDR4);
         }
 
-        @Override
         public Ref<BaseModuleType> getBaseModuleType() {
             return Ref.of(DIMM_SO_32B);
         }
 
-        @Override
         public Ref<Integer> getDataWidthBits() {
             return Ref.of(1);
         }
 
-        @Override
         public Ref<Integer> getBusWidthBits() {
             return Ref.of(1);
         }
 
-        @Override
         public Ref<String> getManufacturer() {
             return Ref.of("test_man");
         }
 
-        @Override
         public Ref<String> getSerialNumber() {
             return Ref.of("test_sn");
         }
 
-        @Override
         public Ref<String> getPartNumber() {
             return Ref.of("test_pn");
         }
 
-        @Override
         public Ref<List<Integer>> getAllowedSpeedsMhz() {
-            return Ref.of(new ArrayList<Integer>() { {
-                add(1);
-            }});
+            return Ref.of(new ArrayList<Integer>() {
+                {
+                    add(1);
+                }
+            });
         }
 
-        @Override
         public Ref<String> getDeviceLocator() {
             return Ref.of("test_dl");
         }
 
-        @Override
         public Ref<Integer> getRankCount() {
             return Ref.of(2);
         }
 
-        @Override
         public Ref<ErrorCorrection> getErrorCorrection() {
             return Ref.of(SINGLE_BIT_ECC);
         }
 
-        @Override
         public Ref<BigDecimal> getVoltageVolt() {
             return Ref.of(new BigDecimal(3));
         }
 
-        @Override
         public MemoryLocationObject getMemoryLocation() {
             return new MemoryLocationObject() {
-                @Override
                 public Ref<Integer> getSocket() {
                     return Ref.of(11);
                 }
 
-                @Override
                 public Ref<Integer> getMemoryController() {
                     return Ref.of(21);
                 }
 
-                @Override
                 public Ref<Integer> getChannel() {
                     return Ref.of(13);
                 }
 
-                @Override
                 public Ref<Integer> getSlot() {
                     return Ref.of(14);
                 }
             };
         }
 
-        @Override
         public Ref<MemoryType> getMemoryType() {
             return Ref.of(NVDIMM_P);
         }
 
-        @Override
         public Ref<List<MemoryMedia>> getMemoryMedia() {
             return Ref.of(new ArrayList<MemoryMedia>() {{
                 add(DRAM);
@@ -299,41 +283,33 @@ public class MemoryMapperTest {
             }});
         }
 
-        @Override
         public Ref<Integer> getCapacityMib() {
             return Ref.of(4);
         }
 
-        @Override
         public Ref<Status> getStatus() {
-            return Ref.of(Status.fromString("State=Enabled,Health=OK,HealthRollup=OK"));
+            return Ref.of(statusFromString("State=Enabled,Health=OK,HealthRollup=OK"));
         }
 
-        @Override
         public Ref<Integer> getOperatingSpeedMhz() {
             return Ref.of(5);
         }
 
-        @Override
         public Ref<List<MemoryRegionObject>> getRegions() {
             return Ref.of(new ArrayList<MemoryRegionObject>() {{
                 add(new MemoryRegionObject() {
-                    @Override
                     public Ref<String> getRegionId() {
                         return Ref.of("test_reg");
                     }
 
-                    @Override
                     public Ref<MemoryClassification> getMemoryClassification() {
                         return Ref.of(VOLATILE);
                     }
 
-                    @Override
                     public Ref<Integer> getOffsetMib() {
                         return Ref.of(21);
                     }
 
-                    @Override
                     public Ref<Integer> getSizeMib() {
                         return Ref.of(22);
                     }
@@ -341,42 +317,39 @@ public class MemoryMapperTest {
             }});
         }
 
-        @Override
         public Ref<String> getFirmwareRevision() {
             return Ref.of("test_fr");
         }
 
-        @Override
         public Ref<String> getFirmwareApiVersion() {
             return Ref.of("test_fav");
         }
 
-        @Override
         public Ref<List<String>> getFunctionClasses() {
             return Ref.of(new ArrayList<String>() {{
                 add("test_fc1");
             }});
         }
 
-        @Override
         public Ref<String> getVendorId() {
             return Ref.of("test_vi");
         }
 
-        @Override
         public Ref<String> getDeviceId() {
             return Ref.of("test_di");
         }
 
-        @Override
         public Ref<List<OperatingMemoryMode>> getOperatingMemoryModes() {
             return Ref.of(new ArrayList<OperatingMemoryMode>() {{
                 add(BLOCK);
             }});
         }
 
-        @Override
         public ResourceSupplier getComputerSystem() {
+            return null;
+        }
+
+        public ResourceSupplier getMemoryMetrics() {
             return null;
         }
 
@@ -408,11 +381,6 @@ public class MemoryMapperTest {
         @Override
         public String getDescription() {
             return "test_desc";
-        }
-
-        @Override
-        public Links getLinks() {
-            return null;
         }
     }
 }

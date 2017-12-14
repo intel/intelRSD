@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.intel.podm.common.types.ServiceType.INBAND;
 import static com.intel.podm.common.types.ServiceType.LUI;
 import static com.intel.podm.common.types.ServiceType.PSME;
 import static com.intel.podm.common.types.ServiceType.RMM;
@@ -42,12 +43,6 @@ public class ServiceDetectionConfig extends BaseConfig {
     @JsonProperty("EnabledProtocols")
     private List<DiscoveryProtocols> enabledProtocols = singletonList(SSDP);
 
-    @JsonProperty("FailedEndpointRecheckIntervalInSeconds")
-    private long failedEndpointRecheckInterval = 300L;
-
-    @JsonProperty("NumberOfRetriesForFailedServiceCheck")
-    private long retriesForFailedServiceCheck = 5;
-
     @JsonProperty("ServiceTypeMapping")
     private ServiceTypeMapping serviceTypeMapping = new ServiceTypeMapping();
 
@@ -56,14 +51,6 @@ public class ServiceDetectionConfig extends BaseConfig {
 
     public boolean isProtocolEnabled(DiscoveryProtocols protocol) {
         return enabledProtocols.contains(protocol);
-    }
-
-    public long getFailedEndpointRecheckInterval() {
-        return failedEndpointRecheckInterval;
-    }
-
-    public long getRetriesForFailedServiceCheck() {
-        return retriesForFailedServiceCheck;
     }
 
     public ServiceTypeMapping getServiceTypeMapping() {
@@ -76,25 +63,39 @@ public class ServiceDetectionConfig extends BaseConfig {
 
     public static class Protocols {
         @JsonProperty("DHCP")
-        private Dhcp dhcp = new Dhcp();
+        private Dhcp dhcp;
 
         @JsonProperty("SSDP")
-        private Ssdp ssdp = new Ssdp();
+        private Ssdp ssdp;
 
         public Dhcp getDhcp() {
-            return dhcp;
+            return dhcp != null ? dhcp : new Dhcp();
         }
 
         public Ssdp getSsdp() {
-            return ssdp;
+            return ssdp != null ? ssdp : new Ssdp();
         }
 
         public static class Dhcp {
             @JsonProperty("FilesCheckIntervalInSeconds")
             private long filesCheckIntervalInSeconds = 10L;
 
+            @JsonProperty("FailedEndpointRecheckIntervalInSeconds")
+            private long failedEndpointRecheckInterval = 300L;
+
+            @JsonProperty("NumberOfRetriesForFailedServiceCheck")
+            private long retriesForFailedServiceCheck = 5;
+
             public long getFilesCheckIntervalInSeconds() {
                 return filesCheckIntervalInSeconds;
+            }
+
+            public long getFailedEndpointRecheckInterval() {
+                return failedEndpointRecheckInterval;
+            }
+
+            public long getRetriesForFailedServiceCheck() {
+                return retriesForFailedServiceCheck;
             }
         }
 
@@ -110,9 +111,11 @@ public class ServiceDetectionConfig extends BaseConfig {
             private Long announcementFrequencyInSeconds = 600L;
 
             @JsonProperty("Subnets")
-            private List<SubnetUtils> subnets = new ArrayList<SubnetUtils>() { {
-                add(new SubnetUtils(ALL_NETWORKS));
-            } };
+            private List<SubnetUtils> subnets = new ArrayList<SubnetUtils>() {
+                {
+                    add(new SubnetUtils(ALL_NETWORKS));
+                }
+            };
 
             public List<SubnetUtils> getSubnets() {
                 return subnets;
@@ -148,6 +151,9 @@ public class ServiceDetectionConfig extends BaseConfig {
             @JsonProperty("RMM")
             private String rmmServiceName = "Root Service";
 
+            @JsonProperty("INBAND")
+            private String inBandServiceName = "In Band Service";
+
             private Map<String, ServiceType> mappingType = new HashMap<>();
 
             public ServiceType getServiceTypeForName(String serviceName) {
@@ -156,8 +162,8 @@ public class ServiceDetectionConfig extends BaseConfig {
                     mappingType.put(psmeServiceName, PSME);
                     mappingType.put(rmmServiceName, RMM);
                     mappingType.put(rssServiceName, RSS);
+                    mappingType.put(inBandServiceName, INBAND);
                 }
-
                 return mappingType.get(serviceName);
             }
         }

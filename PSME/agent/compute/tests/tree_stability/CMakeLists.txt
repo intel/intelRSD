@@ -36,16 +36,13 @@ target_link_libraries(${test_target}
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
     ${PCA95XX_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
+    ${ISCSI_MDR_LIBRARIES}
     ipmi
     ${IPMITOOL_LIBRARIES}
+    ${SAFESTRING_LIBRARIES}
     pthread
-    jsonrpccpp-server
-    jsonrpccpp-client
-    jsonrpccpp-common
-    jsoncpp
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
     md5

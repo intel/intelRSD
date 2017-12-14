@@ -33,19 +33,19 @@ final class Linker<S extends Entity, T extends Entity> {
         this.method = method;
     }
 
-    public boolean tryLink(Entity source, Entity target, String linkName)  {
+    public boolean tryLink(Entity source, Entity target, String linkName) {
         if (!canLink(source, target, linkName)) {
             return false;
         }
 
         method.link((S) source, (T) target);
-        return  true;
+        return true;
     }
 
     boolean canLink(Entity source, Entity target, String linkName) {
         return sourceClass.isInstance(source)
-                && targetClass.isInstance(target)
-                && Objects.equals(this.linkName, linkName);
+            && targetClass.isInstance(target)
+            && Objects.equals(this.linkName, linkName);
     }
 
     interface LinkMethod<S extends Entity, T extends Entity> {

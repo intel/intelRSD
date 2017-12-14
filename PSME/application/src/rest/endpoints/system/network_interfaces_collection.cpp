@@ -30,7 +30,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Systems/Members/__SYSTEM_ID__/NetworkInterfaces/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#NetworkInterfaceCollection.NetworkInterfaceCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#NetworkInterfaceCollection.NetworkInterfaceCollection";
     r[Common::NAME] = "Network Interfaces Collection";
@@ -49,12 +49,10 @@ void NetworkInterfacesCollection::get(const server::Request& req, server::Respon
     auto json = ::make_prototype();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
-    auto system = psme::rest::model::Find<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get();
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__SYSTEM_ID__"), std::to_string(system.get_id()));
+    auto system_uuid = psme::rest::model::Find<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get_uuid();
 
     auto keys = ComputeComponents::get_instance()->
-        get_network_device_manager().get_ids(system.get_uuid());
+        get_network_device_manager().get_ids(system_uuid);
 
     json[Collection::ODATA_COUNT] =
         static_cast<std::uint32_t>(keys.size());

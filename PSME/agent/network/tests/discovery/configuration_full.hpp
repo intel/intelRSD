@@ -43,6 +43,7 @@ static constexpr const char NETWORK_FULL_CONFIGURATION[] = R"({
             "switches": [
                 {
                     "mgmt_port": "p1p1",
+                    "sysfs_driver": "virtio_net",
                     "ports" : [
                         { "id": "sw0p1", "portType": "Downstream" },
                         { "id": "sw0p2", "portType": "Downstream" },

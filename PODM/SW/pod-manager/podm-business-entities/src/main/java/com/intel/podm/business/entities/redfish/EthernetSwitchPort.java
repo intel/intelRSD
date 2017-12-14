@@ -41,6 +41,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -65,14 +66,17 @@ import static org.hibernate.annotations.NotFoundAction.IGNORE;
 
 @javax.persistence.Entity
 @NamedQueries({
-    @NamedQuery(name = EthernetSwitchPort.GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC,
-        query = "SELECT esp FROM EthernetSwitchPort esp WHERE esp.neighborMac = :neighborMac")
+    @NamedQuery(name = EthernetSwitchPort.GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE,
+        query = "SELECT esp "
+            + "FROM EthernetSwitchPort esp "
+            + "WHERE esp.neighborMac = :neighborMac "
+            + "AND esp.portType = :portType")
 })
 @Table(name = "ethernet_switch_port", indexes = @Index(name = "idx_ethernet_switch_port_entity_id", columnList = "entity_id", unique = true))
 @Eventable
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public class EthernetSwitchPort extends DiscoverableEntity implements VlanPossessor {
-    public static final String GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC = "GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC";
+    public static final String GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE = "GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE";
 
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -126,12 +130,12 @@ public class EthernetSwitchPort extends DiscoverableEntity implements VlanPosses
     private PortType portType;
 
     @ElementCollection
-    @CollectionTable(name = "ethernet_switch_port_ipv4_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @CollectionTable(name = "ethernet_switch_port_ipv4_address", joinColumns = @JoinColumn(name = "ethernet_switch_port_id"))
     @OrderColumn(name = "ipv4_address_order")
     private List<IpV4Address> ipv4Addresses = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "ethernet_switch_port_ipv6_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @CollectionTable(name = "ethernet_switch_port_ipv6_address", joinColumns = @JoinColumn(name = "ethernet_switch_port_id"))
     @OrderColumn(name = "ipv6_address_order")
     private List<IpV6Address> ipv6Addresses = new ArrayList<>();
 
@@ -142,11 +146,28 @@ public class EthernetSwitchPort extends DiscoverableEntity implements VlanPosses
     @OneToMany(mappedBy = "ethernetSwitchPort", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<EthernetSwitchPortVlan> ethernetSwitchPortVlans = new HashSet<>();
 
+    @OneToMany(mappedBy = "ethernetSwitchPort", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitchStaticMac> ethernetSwitchStaticMacs = new HashSet<>();
+
+    @ManyToMany(mappedBy = "boundPorts", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitchAcl> activeAcls = new HashSet<>();
+
+    @ManyToMany(mappedBy = "bindActionAllowableValues", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitchAcl> aclsToBind = new HashSet<>();
+
+    @SuppressEvents
+    @ManyToMany(mappedBy = "mirrorPortRegions", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitchAclRule> mirrorPortRegionForRules = new HashSet<>();
+
     @IgnoreUnlinkingRelationship
     @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "primary_vlan_id")
     @NotFound(action = IGNORE)
     private EthernetSwitchPortVlan primaryVlan;
+
+    @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "ethernet_switch_port_metrics_id")
+    private EthernetSwitchPortMetrics metrics;
 
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "ethernet_switch_id")
@@ -343,6 +364,94 @@ public class EthernetSwitchPort extends DiscoverableEntity implements VlanPosses
         }
     }
 
+    public Set<EthernetSwitchStaticMac> getEthernetSwitchStaticMacs() {
+        return ethernetSwitchStaticMacs;
+    }
+
+    public void addEthernetSwitchStaticMac(EthernetSwitchStaticMac ethernetSwitchStaticMac) {
+        requiresNonNull(ethernetSwitchStaticMac, "ethernetSwitchStaticMac");
+
+        ethernetSwitchStaticMacs.add(ethernetSwitchStaticMac);
+        if (!this.equals(ethernetSwitchStaticMac.getEthernetSwitchPort())) {
+            ethernetSwitchStaticMac.setEthernetSwitchPort(this);
+        }
+    }
+
+    public void unlinkEthernetSwitchStaticMac(EthernetSwitchStaticMac ethernetSwitchStaticMac) {
+        if (ethernetSwitchStaticMacs.contains(ethernetSwitchStaticMac)) {
+            ethernetSwitchStaticMacs.remove(ethernetSwitchStaticMac);
+            if (ethernetSwitchStaticMac != null) {
+                ethernetSwitchStaticMac.unlinkEthernetSwitchPort(this);
+            }
+        }
+    }
+
+    public Set<EthernetSwitchAcl> getActiveAcls() {
+        return activeAcls;
+    }
+
+    public void addActiveAcl(EthernetSwitchAcl ethernetSwitchAcl) {
+        requiresNonNull(ethernetSwitchAcl, "ethernetSwitchAcl");
+
+        activeAcls.add(ethernetSwitchAcl);
+        if (!ethernetSwitchAcl.getBoundPorts().contains(this)) {
+            ethernetSwitchAcl.addBoundPort(this);
+        }
+    }
+
+    public void unlinkActiveAcl(EthernetSwitchAcl ethernetSwitchAcl) {
+        if (activeAcls.contains(ethernetSwitchAcl)) {
+            activeAcls.remove(ethernetSwitchAcl);
+            if (ethernetSwitchAcl != null) {
+                ethernetSwitchAcl.unlinkBoundPort(this);
+            }
+        }
+    }
+
+    public Set<EthernetSwitchAcl> getAclsToBind() {
+        return aclsToBind;
+    }
+
+    public void addAclsToBind(EthernetSwitchAcl ethernetSwitchAcl) {
+        requiresNonNull(ethernetSwitchAcl, "ethernetSwitchAcl");
+
+        aclsToBind.add(ethernetSwitchAcl);
+        if (!ethernetSwitchAcl.getBindActionAllowableValues().contains(this)) {
+            ethernetSwitchAcl.addBindActionAllowableValue(this);
+        }
+    }
+
+    public void unlinkAclsToBind(EthernetSwitchAcl ethernetSwitchAcl) {
+        if (aclsToBind.contains(ethernetSwitchAcl)) {
+            aclsToBind.remove(ethernetSwitchAcl);
+            if (ethernetSwitchAcl != null) {
+                ethernetSwitchAcl.unlinkBindActionAllowableValue(this);
+            }
+        }
+    }
+
+    public Set<EthernetSwitchAclRule> getMirrorPortRegionForRules() {
+        return mirrorPortRegionForRules;
+    }
+
+    public void addMirrorPortRegionForRules(EthernetSwitchAclRule ethernetSwitchAclRule) {
+        requiresNonNull(ethernetSwitchAclRule, "ethernetSwitchAclRule");
+
+        mirrorPortRegionForRules.add(ethernetSwitchAclRule);
+        if (!ethernetSwitchAclRule.getMirrorPortRegions().contains(this)) {
+            ethernetSwitchAclRule.addMirrorPort(this);
+        }
+    }
+
+    public void unlinkMirrorPortRegionForRules(EthernetSwitchAclRule ethernetSwitchAclRule) {
+        if (mirrorPortRegionForRules.contains(ethernetSwitchAclRule)) {
+            mirrorPortRegionForRules.remove(ethernetSwitchAclRule);
+            if (ethernetSwitchAclRule != null) {
+                ethernetSwitchAclRule.unlinkMirrorPortRegion(this);
+            }
+        }
+    }
+
     public EthernetSwitchPortVlan getPrimaryVlan() {
         return primaryVlan;
     }
@@ -357,6 +466,29 @@ public class EthernetSwitchPort extends DiscoverableEntity implements VlanPosses
     public void unlinkPrimaryVlan(EthernetSwitchPortVlan primaryVlan) {
         if (Objects.equals(this.primaryVlan, primaryVlan)) {
             this.primaryVlan = null;
+        }
+    }
+
+    public EthernetSwitchPortMetrics getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(EthernetSwitchPortMetrics metrics) {
+        if (!Objects.equals(this.metrics, metrics)) {
+            unlinkMetrics(this.metrics);
+            this.metrics = metrics;
+            if (metrics != null && !this.equals(metrics.getEthernetSwitchPort())) {
+                metrics.setEthernetSwitchPort(this);
+            }
+        }
+    }
+
+    public void unlinkMetrics(EthernetSwitchPortMetrics metrics) {
+        if (Objects.equals(this.metrics, metrics)) {
+            this.metrics = null;
+            if (metrics != null) {
+                metrics.unlinkEthernetSwitchPort(this);
+            }
         }
     }
 
@@ -410,7 +542,12 @@ public class EthernetSwitchPort extends DiscoverableEntity implements VlanPosses
     public void preRemove() {
         unlinkCollection(portMembers, this::unlinkPortMember);
         unlinkCollection(ethernetSwitchPortVlans, this::unlinkEthernetSwitchPortVlan);
+        unlinkCollection(ethernetSwitchStaticMacs, this::unlinkEthernetSwitchStaticMac);
+        unlinkCollection(activeAcls, this::unlinkActiveAcl);
+        unlinkCollection(aclsToBind, this::unlinkAclsToBind);
+        unlinkCollection(mirrorPortRegionForRules, this::unlinkMirrorPortRegionForRules);
         unlinkPrimaryVlan(primaryVlan);
+        unlinkMetrics(metrics);
         unlinkEthernetSwitch(ethernetSwitch);
         unlinkMemberOfPort(memberOfPort);
     }

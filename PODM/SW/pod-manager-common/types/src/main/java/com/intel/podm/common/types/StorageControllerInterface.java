@@ -3,22 +3,27 @@ package com.intel.podm.common.types;
 /**
  * Interface of StorageController asset.
  */
-//TODO: add "weight" for allocation algorithm,
-// at the moment, the natural order is used (the order in which the values are declared)
 public enum StorageControllerInterface implements EnumeratedType {
-    SATA("SATA"),
-    SAS("SAS"),
-    NVME("NVMe");
+    SATA("SATA", 1),
+    SAS("SAS", 2),
+    NVME("NVMe", 3);
 
     private final String value;
+    private final Integer priority;
 
-    StorageControllerInterface(String value) {
+    StorageControllerInterface(String value, Integer priority) {
         this.value = value;
+        this.priority = priority;
     }
 
     @Override
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public Integer getPriority() {
+        return priority;
     }
 
     @Override

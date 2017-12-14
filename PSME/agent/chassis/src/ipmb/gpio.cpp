@@ -55,6 +55,18 @@ uint8_t Gpio::get_presence() {
     return m_presence;
 }
 
+bool Gpio::is_present(std::uint8_t slot) {
+    const auto presence = get_presence();
+    const auto presence_mask = 1 << (slot - 1);
+    return (presence & presence_mask);
+}
+
+std::chrono::milliseconds Gpio::get_minimal_update_interval() const {
+    // todo: remove hardcode
+    return std::chrono::milliseconds(5000);
+}
+
+
 void Gpio::set_presence(const uint8_t presence) {
     if (m_presence != presence) {
         log_info(LOGUSR, "GPIO presence changed 0x" << std::hex << int(m_presence) << " -> 0x" << int(presence));
@@ -64,22 +76,21 @@ void Gpio::set_presence(const uint8_t presence) {
 }
 
 uint8_t Gpio::read_presence() const {
-    auto drawer_manager_key = CommonComponents::get_instance()->
-            get_module_manager().get_keys("");
-    auto chassis_key = CommonComponents::get_instance()->
-            get_chassis_manager().get_keys(drawer_manager_key.front());
-    auto platform = CommonComponents::get_instance()->
-            get_chassis_manager().get_entry(chassis_key.front()).get_platform();
+    auto drawer_manager_keys = get_manager<Manager>().get_keys("");
+    auto chassis_keys = get_manager<Chassis>().get_keys(drawer_manager_keys.front());
+    auto platform = get_manager<Chassis>().get_entry(chassis_keys.front()).get_platform();
 
     log_debug(LOGUSR, "Platform type: " << platform);
     switch (platform) {
-        case enums::PlatformType::BDCR : return read_bdc_r_gpio();
+        case enums::PlatformType::BDCR:
+            return read_bdc_r_gpio();
         case enums::PlatformType::EDK:
         case enums::PlatformType::MF3:
+        case enums::PlatformType::PURLEY:
+        case enums::PlatformType::GRANTLEY:
         case enums::PlatformType::UNKNOWN:
         default:
-            throw std::runtime_error("Unsupported platform type: "
-                                        + std::string(platform.to_string()));
+            throw std::runtime_error("Unsupported platform type: " + std::string(platform.to_string()));
     }
 }
 

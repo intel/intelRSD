@@ -98,27 +98,19 @@ void Service::slave_read_and_dispatch() {
         return; // Ensure valid message
     }
 
-    m_worker([this, request]() mutable {
-        Dispatcher dispatcher{};
-        auto command = dispatcher.dispatch(request);
-        command->unpack(request);
-        if(request.is_request()) {
-            IpmiMessage response{};
-            command->pack(response);
-            Patcher patcher{};
-            patcher.patch(request, response);
-            master_write(response);
-        }
-    });
+    Dispatcher dispatcher{};
+    auto command = dispatcher.dispatch(request);
+    command->unpack(request);
+    if (request.is_request()) {
+        IpmiMessage response{};
+        command->pack(response);
+        Patcher patcher{};
+        patcher.patch(request, response);
+        master_write(response);
+    }
 }
 
 void Service::master_write(IpmiMessage& msg) {
-    if (msg.is_request()) {
-        log_warning(LOGUSR, "Expected IPMI response, got IPMI request.");
-        send_request_process_response(msg);
-        return;
-    }
-
     // Build the message to send to the MUX (slave address : IPMB message)
     auto buffer = msg.as_byte_array();
 
@@ -172,7 +164,7 @@ void Service::send_request_process_response(IpmiMessage& msg) {
         command->unpack(rsp);
     }
     catch (const std::exception &e) {
-        log_error(LOGUSR, "Unable to send/receive data to/from MUX: " << e.what());
+        log_error(LOGUSR, "Unable process request via MUX: " << e.what());
     }
 }
 

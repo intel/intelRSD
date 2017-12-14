@@ -75,6 +75,7 @@ public class EventSubscriptionRequestJson implements EventSubscriptionRequest {
         return protocol;
     }
 
+    @Override
     public List<ODataId> getOriginResources() {
         return originResources;
     }

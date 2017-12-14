@@ -152,7 +152,7 @@ Value::~Value() {
         m_array.~vector();
         break;
     case Type::STRING:
-        m_string.~basic_string();
+        m_string.~String();
         break;
     case Type::NUMBER:
         m_number.~Number();
@@ -633,9 +633,17 @@ const Number& Value::as_number() const {
 }
 
 Value& Value::operator[](const char* key) {
-    if (!is_object()) {
-        if (is_null()) { *this = Type::OBJECT; }
-        else { return *this; }
+    if (!is_object() && !is_null()) {
+        throw Value::Exception("Cannot traverse JSON by operator[] with string argument, "
+                                   "because it's not an object or a null value.");
+    }
+
+    if (is_null()) {
+        // non-const operator: replace current value with JSON object and insert the requested key with a null value
+        this->~Value();
+        create_container(Type::OBJECT);
+        m_object.emplace_back(key, Value());
+        return m_object.back().second;
     }
 
     for (auto& pair : m_object) {
@@ -650,7 +658,14 @@ Value& Value::operator[](const char* key) {
 }
 
 const Value& Value::operator[](const char* key) const {
-    if (!is_object()) { return *this; }
+    if (!is_object() && !is_null()) {
+        throw Value::Exception("Cannot traverse JSON by operator[] with string argument, "
+                                   "because it's not an object or a null value.");
+    }
+
+    if (is_null()) {
+        return g_null_value;
+    }
 
     for (const auto& pair : m_object) {
         if (key == pair.first) {
@@ -672,7 +687,7 @@ Value& Value::operator[](const size_t index) {
         }
         ptr = &m_array[index];
     }
-    else  if (is_object()) {
+    else if (is_object()) {
         ptr = &m_object[index].second;
     }
     else {

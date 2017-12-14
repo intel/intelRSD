@@ -28,19 +28,19 @@
 
 #include "agent-framework/module/requests/pnc/get_port_info.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetPortInfo::GetPortInfo(const std::string& port): m_port{port} {}
 
-Json::Value GetPortInfo::to_json() const {
-    Json::Value value;
+json::Json GetPortInfo::to_json() const {
+    json::Json value;
     value[Port::PORT] = m_port;
     return value;
 }
 
-GetPortInfo GetPortInfo::from_json(const Json::Value& json) {
-    return GetPortInfo{json[Port::PORT].asString()};
+GetPortInfo GetPortInfo::from_json(const json::Json& json) {
+    return GetPortInfo{json[Port::PORT].get<std::string>()};
 }

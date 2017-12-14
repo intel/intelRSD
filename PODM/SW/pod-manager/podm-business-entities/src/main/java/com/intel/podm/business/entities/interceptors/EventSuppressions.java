@@ -26,12 +26,12 @@ import java.util.List;
 
 import static com.google.common.cache.CacheBuilder.newBuilder;
 import static com.intel.podm.business.entities.interceptors.EventableAnnotationsUtils.isEventable;
-import static com.intel.podm.common.utils.FieldUtils.getFieldsListWithAnnotation;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.reflect.FieldUtils.getFieldsListWithAnnotation;
 
 @ApplicationScoped
 public class EventSuppressions {
-
     private static final int CACHE_SIZE = 1000;
 
     private final LoadingCache<Class<?>, List<String>> fieldLevelSuppressionsByClass =
@@ -57,7 +57,7 @@ public class EventSuppressions {
                 });
 
 
-    boolean isSuppressed(Entity entity, String fieldName) {
+    public boolean isSuppressed(Entity entity, String fieldName) {
         return isSuppressed(entity) || fieldLevelSuppressionsByClass.getUnchecked(entity.getClass()).contains(fieldName);
     }
 
@@ -66,9 +66,8 @@ public class EventSuppressions {
     }
 
     private List<String> suppressedFields(Class<?> clazz) {
-        return getFieldsListWithAnnotation(clazz, SuppressEvents.class)
-            .stream()
-            .map(field -> String.format("%s.%s", clazz.getName(), field.getName()))
+        return getFieldsListWithAnnotation(clazz, SuppressEvents.class).stream()
+            .map(field -> format("%s.%s", clazz.getName(), field.getName()))
             .collect(toList());
     }
 }

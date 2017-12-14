@@ -23,13 +23,17 @@
  * */
 
 #pragma once
+
+
+
+#include "agent-framework/registration/registration_data.hpp"
 #include "agent-framework/eventing/event_dispatcher.hpp"
 #include "agent-framework/threading/thread.hpp"
 #include "agent-framework/logger_ext.hpp"
 
 #include <chrono>
 
-/*! AGENT_FRAMEWORK namespace */
+/*! Agent framework namespace */
 namespace agent_framework {
 /*! Generic namespace */
 namespace generic {
@@ -43,9 +47,8 @@ class AmcClient;
  * In registration response receives ipv4 address and port number
  * on which AMC application listens for events.
  */
-class AmcConnectionManager final: public agent_framework::threading::Thread {
+class AmcConnectionManager final : public agent_framework::threading::Thread {
 public:
-    using Port = std::uint16_t;
     using Seconds = std::chrono::seconds;
 
     /*!
@@ -56,14 +59,17 @@ public:
         REGISTER
     };
 
-    /*! @brief Default registration interval */
     static constexpr const Seconds DEFAULT_REGISTRATION_INTERVAL{3};
 
     /*!
      * @brief Constructor.
+     *
      * @param event_dispatcher Event dispatcher sending events to AMC application.
+     * @param registration_data AMC application data for registration.
      */
-    AmcConnectionManager(EventDispatcher& event_dispatcher);
+    AmcConnectionManager(EventDispatcher& event_dispatcher,
+                         const RegistrationData& registration_data);
+
 
 private:
     EventDispatcher& m_event_dispatcher;
@@ -73,9 +79,12 @@ private:
     Seconds m_heart_beat{0};
     State m_state{State::REGISTER};
 
-    void init();
     void execute() override;
+
+
     void update_connection_state(const AmcClient& client);
+
+
     void wait_until_registered();
 };
 

@@ -17,27 +17,26 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.PcieDeviceDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.PcieDeviceDto;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.PcieDevice;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PCIE_DEVICES;
-import static com.intel.podm.business.redfish.ContextCollections.asChassisContexts;
-import static com.intel.podm.business.redfish.ContextCollections.asPcieDeviceFunctionContexts;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class PcieDeviceServiceImpl implements ReaderService<PcieDeviceDto> {
+@RequestScoped
+class PcieDeviceServiceImpl implements ReaderService<PcieDeviceDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
@@ -45,37 +44,19 @@ public class PcieDeviceServiceImpl implements ReaderService<PcieDeviceDto> {
     private GenericDao genericDao;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context serviceRootContext) throws ContextResolvingException {
         List<PcieDevice> pcieDevices = genericDao.findAll(PcieDevice.class);
         return new CollectionDto(PCIE_DEVICES, getAsIdSet(pcieDevices));
     }
 
+    @Transactional(REQUIRED)
     @Override
     public PcieDeviceDto getResource(Context pcieDeviceContext) throws ContextResolvingException {
         PcieDevice pcieDevice = (PcieDevice) traverser.traverse(pcieDeviceContext);
-        return map(pcieDevice);
-    }
-
-    private PcieDeviceDto map(PcieDevice pcieDevice) {
-        return PcieDeviceDto.newBuilder()
-            .id(pcieDevice.getId().toString())
-            .name(pcieDevice.getName())
-            .description(pcieDevice.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(pcieDevice.getService(), pcieDevice.getUnknownOems()))
-            .assetTag(pcieDevice.getAssetTag())
-            .manufacturer(pcieDevice.getManufacturer())
-            .model(pcieDevice.getModel())
-            .sku(pcieDevice.getSku())
-            .serialNumber(pcieDevice.getSerialNumber())
-            .partNumber(pcieDevice.getPartNumber())
-            .deviceType(pcieDevice.getDeviceType())
-            .firmwareVersion(pcieDevice.getFirmwareVersion())
-            .status(pcieDevice.getStatus())
-            .chassis(asChassisContexts(pcieDevice.getChassis()))
-            .pcieFunctions(asPcieDeviceFunctionContexts(pcieDevice.getPcieDeviceFunctions()))
-            .build();
+        return (PcieDeviceDto) entityToDtoMapper.map(pcieDevice);
     }
 }

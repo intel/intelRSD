@@ -34,12 +34,12 @@ namespace fru_eeprom {
 namespace parser {
 
 struct ChassisInfoArea {
-    uint8_t format;
-    uint8_t length;
-    SystemEnclosureOrChassisType type;
-    Field part_number;
-    Field serial_number;
-    uint8_t checksum;
+    uint8_t format{};
+    uint8_t length{};
+    SystemEnclosureOrChassisType type{};
+    Field part_number{};
+    Field serial_number{};
+    uint8_t checksum{};
 };
 
 }

@@ -26,7 +26,7 @@
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/utils/utils.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -42,24 +42,22 @@ AddEthernetSwitchPort::AddEthernetSwitchPort(const std::string& switch_v,
                 m_members{members},
                 m_oem{} {}
 
-Json::Value AddEthernetSwitchPort::to_json() const {
-    Json::Value value;
+json::Json AddEthernetSwitchPort::to_json() const {
+    json::Json value;
     value[EthernetSwitch::SWITCH] = m_switch;
     value[EthernetSwitchPort::PORT_IDENTIFIER] = m_port_identifier;
     value[EthernetSwitchPort::MODE] = m_mode.to_string();
-    value[EthernetSwitchPort::MEMBERS] =
-        agent_framework::model::utils::string_vector_to_json(m_members);
+    value[EthernetSwitchPort::MEMBERS] = m_members;
     value[Oem::OEM] = m_oem.to_json();
     return value;
 }
 
-AddEthernetSwitchPort AddEthernetSwitchPort::from_json(const Json::Value& json) {
+AddEthernetSwitchPort AddEthernetSwitchPort::from_json(const json::Json& json) {
     return AddEthernetSwitchPort{
-        json[EthernetSwitch::SWITCH].asString(),
-        json[EthernetSwitchPort::PORT_IDENTIFIER].asString(),
-        agent_framework::model::enums::PortMode::from_string(
-            json[EthernetSwitchPort::MODE].asString()),
-        agent_framework::model::utils::json_to_string_vector(json[EthernetSwitchPort::MEMBERS]),
+        json[EthernetSwitch::SWITCH],
+        json[EthernetSwitchPort::PORT_IDENTIFIER],
+        agent_framework::model::enums::PortMode::from_string(json[EthernetSwitchPort::MODE]),
+        json[EthernetSwitchPort::MEMBERS],
         agent_framework::model::attribute::Oem::from_json(json[EthernetSwitchPort::OEM])
     };
 }

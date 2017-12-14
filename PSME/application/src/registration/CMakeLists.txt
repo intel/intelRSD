@@ -18,6 +18,8 @@
 
 set(SOURCES
     registration_server.cpp
+    attach.cpp
+    heart_beat.cpp
 )
 
-add_library(registration-server OBJECT ${SOURCES})
+add_library(application-registration ${SOURCES})

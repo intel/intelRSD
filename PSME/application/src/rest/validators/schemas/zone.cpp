@@ -30,7 +30,6 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& ZonePatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "fabric_zone_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::Fabric::ENDPOINTS, VALID_OPTIONAL(VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema))),
         nullptr

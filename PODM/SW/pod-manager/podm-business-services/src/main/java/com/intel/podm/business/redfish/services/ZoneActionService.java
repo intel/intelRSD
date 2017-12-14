@@ -16,8 +16,6 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.actions.ActionException;
-import com.intel.podm.actions.ZoneUpdateInvoker;
 import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.ResourceStateMismatchException;
 import com.intel.podm.business.entities.redfish.Drive;
@@ -25,6 +23,7 @@ import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.Zone;
 import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.actions.ZoneUpdateInvoker;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.EntityType;
 import com.intel.podm.common.types.redfish.RedfishZone;
@@ -47,6 +46,7 @@ public class ZoneActionService {
     private EntityTreeTraverser traverser;
 
     @Transactional(REQUIRES_NEW)
+    @SuppressWarnings({"unchecked"})
     public void updateZoneEndpointsCollection(Context zoneContext, RedfishZone representation) throws BusinessApiException {
         Zone zone = (Zone) traverser.traverse(zoneContext);
 
@@ -56,11 +56,7 @@ public class ZoneActionService {
         }
 
         Set<Endpoint> endpoints = traverser.traverse(representation.getEndpoints());
-        try {
-            invoker.updateZone(zone, endpoints);
-        } catch (ActionException e) {
-            throw new BusinessApiException("Zone Update task could not be completed!" + e.getMessage());
-        }
+        invoker.updateZone(zone, endpoints);
     }
 
     private boolean zoneAssociatedWithComposedNode(Zone zone) {

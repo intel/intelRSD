@@ -17,6 +17,6 @@
 # </license_header>
 
 set (VER_MAJOR 2)
-set (VER_MINOR 0)
+set (VER_MINOR 2)
 set (VER_HOTFIX 0)
 set (VER_BUILD 0)

@@ -41,7 +41,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Switches.Switches";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Switch.Switch";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#Switch.v1_0_0.Switch";
     r[Common::NAME] = "PCIe Switch";
@@ -54,8 +54,8 @@ json::Value make_prototype() {
 
     r[Common::MANUFACTURER] = json::Value::Type::NIL;
     r[Common::MODEL] = json::Value::Type::NIL;
-    r[FabricCommon::SKU] = json::Value::Type::NIL;
-    r[Common::SERIAL] = json::Value::Type::NIL;
+    r[Common::SKU] = json::Value::Type::NIL;
+    r[Common::SERIAL_NUMBER] = json::Value::Type::NIL;
     r[Common::PART_NUMBER] = json::Value::Type::NIL;
     r[Common::ASSET_TAG] = json::Value::Type::NIL;
     r[constants::Switch::SWITCH_TYPE] = json::Value::Type::NIL;
@@ -65,17 +65,17 @@ json::Value make_prototype() {
     r[constants::Switch::INDICATOR_LED] = json::Value::Type::NIL;
     r[constants::Switch::POWER_STATE] = json::Value::Type::NIL;
     r[constants::Switch::PORTS] = json::Value::Type::NIL;
-    r[constants::Switch::REDUNDANCY] = json::Value::Type::ARRAY;
+    r[constants::Common::REDUNDANCY] = json::Value::Type::ARRAY;
 
     r[Common::LINKS][Common::CHASSIS] = json::Value::Type::ARRAY;
     r[Common::LINKS][Common::MANAGED_BY] = json::Value::Type::ARRAY;
     r[Common::LINKS][Common::OEM] = json::Value::Type::OBJECT;
 
     json::Value actions;
-    actions[constants::Switch::SWITCH_RESET][FabricCommon::TARGET] = json::Value::Type::NIL;
-    actions[constants::Switch::SWITCH_RESET][FabricCommon::ALLOWABLE_RESET_TYPES] = json::Value::Type::ARRAY;
+    actions[constants::Switch::SWITCH_RESET][Common::TARGET] = json::Value::Type::NIL;
+    actions[constants::Switch::SWITCH_RESET][Common::ALLOWABLE_RESET_TYPES] = json::Value::Type::ARRAY;
     actions[Common::OEM] = json::Value::Type::OBJECT;
-    r[FabricCommon::ACTIONS] = std::move(actions);
+    r[Common::ACTIONS] = std::move(actions);
 
     r[Common::OEM] = json::Value::Type::OBJECT;
 
@@ -137,10 +137,10 @@ void endpoint::Switch::get(const server::Request& req, server::Response& res) {
         psme::rest::model::Find<agent_framework::model::Switch>(req.params[PathParam::SWITCH_ID])
             .via<agent_framework::model::Fabric>(req.params[PathParam::FABRIC_ID]).get();
 
-    json[FabricCommon::ACTIONS][constants::Switch::SWITCH_RESET][FabricCommon::TARGET] = endpoint::PathBuilder(
+    json[Common::ACTIONS][constants::Switch::SWITCH_RESET][Common::TARGET] = endpoint::PathBuilder(
         req).append(Common::ACTIONS).append(constants::Switch::SWITCH_RESET_ENDPOINT).build();
     for (const auto& allowed_reset_type : pcie_switch.get_allowed_actions()) {
-        json[FabricCommon::ACTIONS][constants::Switch::SWITCH_RESET][FabricCommon::ALLOWABLE_RESET_TYPES].push_back(
+        json[Common::ACTIONS][constants::Switch::SWITCH_RESET][Common::ALLOWABLE_RESET_TYPES].push_back(
             allowed_reset_type.to_string());
     }
 
@@ -152,13 +152,13 @@ void endpoint::Switch::get(const server::Request& req, server::Response& res) {
     json[Common::MANUFACTURER] = fru.get_manufacturer();
     json[Common::MODEL] = fru.get_model_number();
     json[Common::PART_NUMBER] = fru.get_part_number();
-    json[Common::SERIAL] = fru.get_serial_number();
+    json[Common::SERIAL_NUMBER] = fru.get_serial_number();
 
     json[Common::ASSET_TAG] = pcie_switch.get_asset_tag();
     json[constants::Switch::SWITCH_TYPE] = pcie_switch.get_protocol();
     json[constants::Switch::POWER_STATE] = pcie_switch.get_power_state();
     json[constants::Switch::INDICATOR_LED] = pcie_switch.get_indicator_led();
-    json[FabricCommon::SKU] = pcie_switch.get_sku();
+    json[Common::SKU] = pcie_switch.get_sku();
 
     endpoint::status_to_json(pcie_switch, json);
 

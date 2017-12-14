@@ -28,7 +28,7 @@
 
 #include "agent-framework/module/requests/pnc/delete_zone_endpoint.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::requests;
@@ -38,17 +38,17 @@ DeleteZoneEndpoint::DeleteZoneEndpoint(const std::string& zone, const StringArra
                          const attribute::Oem& oem)
                          : m_zone(zone), m_endpoints(endpoints), m_oem(oem) {}
 
-Json::Value DeleteZoneEndpoint::to_json() const {
-    Json::Value value;
+json::Json DeleteZoneEndpoint::to_json() const {
+    json::Json value;
     value[Zone::ZONE] = m_zone;
     value[Zone::ENDPOINTS] = m_endpoints.to_json();
     value[Zone::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteZoneEndpoint DeleteZoneEndpoint::from_json(const Json::Value& json) {
+DeleteZoneEndpoint DeleteZoneEndpoint::from_json(const json::Json& json) {
     return DeleteZoneEndpoint{
-        json[Zone::ZONE].asString(),
+        json[Zone::ZONE],
         StringArray::from_json(json[Zone::ENDPOINTS]),
         attribute::Oem::from_json(json[Zone::OEM])};
 }

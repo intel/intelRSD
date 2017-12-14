@@ -49,6 +49,10 @@
             "serialConsoleEnabled": true
         }
     ],
+    "cyMux": {
+        "ipv4": "127.0.0.1",
+        "port": 5623
+    },
     "service-uuid-file" : "/var/opt/psme/compute-service-uuid.json",
     "logger" : {
         "agent" : {

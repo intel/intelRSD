@@ -19,10 +19,10 @@ package com.intel.podm.business.entities.listeners;
 import com.intel.podm.business.entities.handlers.OnDeleteRemoteTargetHandler;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.PreRemove;
 
-@Dependent
+@ApplicationScoped
 public class RemoteTargetListener extends EntityListener {
     @PreRemove
     public void preRemove(RemoteTarget remoteTarget) {

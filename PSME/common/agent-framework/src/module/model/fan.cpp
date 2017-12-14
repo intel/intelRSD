@@ -1,6 +1,4 @@
 /*!
- * @section LICENSE
- *
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation
  *
@@ -18,12 +16,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
  * */
 
 #include "agent-framework/module/model/fan.hpp"
-#include "agent-framework/module/constants/chassis.hpp"
+#include "agent-framework/module/constants/rmm.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::utils;
@@ -36,25 +32,24 @@ Fan::Fan(const std::string& parent_uuid, enums::Component parent_type) :
 
 Fan::~Fan() {}
 
-Json::Value Fan::to_json() const {
-    Json::Value result;
+json::Json Fan::to_json() const {
+    json::Json result;
     result[literals::Fan::STATUS] = get_status().to_json();
-    result[literals::Fan::SLOT] = get_slot();
     result[literals::Fan::CURRENT_SPEED] = get_current_speed();
-    result[literals::Fan::DESIRED_SPEED] = get_desired_speed();
+    result[literals::Fan::CURRENT_SPEED_UNITS] = get_current_speed_units();
+    result[literals::Fan::PHYSICAL_CONTEXT] = get_physical_context();
     result[literals::Fan::FRU_INFO] = get_fru_info().to_json();
     result[literals::Fan::OEM] = get_oem().to_json();
     return result;
 }
 
-Fan Fan::from_json(
-    const Json::Value& json) {
+Fan Fan::from_json(const json::Json& json) {
     Fan fan{};
 
     fan.set_status(attribute::Status::from_json(json[literals::Fan::STATUS]));
-    fan.set_slot(json[literals::Fan::SLOT]);
     fan.set_current_speed(json[literals::Fan::CURRENT_SPEED]);
-    fan.set_desired_speed(json[literals::Fan::DESIRED_SPEED]);
+    fan.set_current_speed_units(json[literals::Fan::CURRENT_SPEED_UNITS]);
+    fan.set_physical_context(json[literals::Fan::PHYSICAL_CONTEXT]);
     fan.set_fru_info(attribute::FruInfo::from_json(
         json[literals::Fan::FRU_INFO]));
     fan.set_oem(attribute::Oem::from_json(json[literals::Fan::OEM]));

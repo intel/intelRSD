@@ -18,15 +18,16 @@
  * limitations under the License.
  *
  *
- * @file physical_drive.hpp
- * @brief Physical drive
+ * @file drive.hpp
+ * @brief Drive model
  * */
+
 #pragma once
 
 
 
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
-#include "agent-framework/module/model/block_device.hpp"
+#include "agent-framework/module/model/resource.hpp"
 #include "agent-framework/module/enum/common.hpp"
 
 
@@ -34,8 +35,8 @@
 namespace agent_framework {
 namespace model {
 
-/*! Physical Drive */
-class Drive : public BlockDevice {
+/*! Drive model class */
+class Drive : public Resource {
 public:
     using Locations = attribute::Array<attribute::Location>;
     using Identifiers = attribute::Array<attribute::Identifier>;
@@ -45,7 +46,7 @@ public:
                    enums::Component parent_type = enums::Component::StorageController);
 
 
-    ~Drive();
+    virtual ~Drive();
 
 
     Drive(const Drive&) = default;
@@ -63,19 +64,19 @@ public:
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
      * @brief construct an object of class Drive from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed Drive object
      */
-    static Drive from_json(const Json::Value& json);
+    static Drive from_json(const json::Json& json);
 
 
     /*!
@@ -91,26 +92,8 @@ public:
      * @brief Get component name
      * @return component name
      */
-    static enums::Component get_component() { return Drive::component; }
-
-
-    /*!
-     * @brief Set physical id
-     *
-     * @param physical_id Drive physical location
-     * */
-    void set_physical_id(const OptionalField<std::string>& physical_id) {
-        m_physical_id = physical_id;
-    }
-
-
-    /*!
-     * @brief Get physical id
-     *
-     * @return String with drive physical location
-     * */
-    const OptionalField<std::string>& get_physical_id() const {
-        return m_physical_id;
+    static enums::Component get_component() {
+        return Drive::component;
     }
 
 
@@ -136,7 +119,9 @@ public:
      * Gets FRU info
      * @return FRU info reference
      * */
-    const attribute::FruInfo& get_fru_info() const { return m_fru_info; }
+    const attribute::FruInfo& get_fru_info() const {
+        return m_fru_info;
+    }
 
 
     /*!
@@ -152,7 +137,9 @@ public:
      * Gets drive's capacity in GB
      * @return Drive's capacity in GB
      * */
-    const OptionalField<double>& get_capacity_gb() const { return m_capacity_gb; }
+    const OptionalField<double>& get_capacity_gb() const {
+        return m_capacity_gb;
+    }
 
 
     /*!
@@ -168,7 +155,9 @@ public:
      * Gets drive's rpm (only for HDD drives)
      * @return Drive's rotation per minute
      * */
-    const OptionalField<std::uint32_t>& get_rpm() const { return m_rpm; }
+    const OptionalField<std::uint32_t>& get_rpm() const {
+        return m_rpm;
+    }
 
 
     /*!
@@ -184,7 +173,9 @@ public:
      * Gets the type
      * @return Drive's type
      * */
-    const OptionalField<enums::DriveType>& get_type() const { return m_type; }
+    const OptionalField<enums::DriveType>& get_type() const {
+        return m_type;
+    }
 
 
     /*!
@@ -200,7 +191,9 @@ public:
      * Gets the interface
      * @return Drive's interface
      * */
-    const OptionalField<enums::StorageProtocol>& get_interface() const { return m_interface; }
+    const OptionalField<enums::StorageProtocol>& get_interface() const {
+        return m_interface;
+    }
 
 
     /*!
@@ -216,7 +209,9 @@ public:
      * Gets the indicator_led
      * @return Drive's indicator_led
      * */
-    const OptionalField<enums::IndicatorLed>& get_indicator_led() const { return m_indicator_led; }
+    const OptionalField<enums::IndicatorLed>& get_indicator_led() const {
+        return m_indicator_led;
+    }
 
 
     /*!
@@ -252,7 +247,9 @@ public:
      * Gets drive's capable speed in gigabytes per second
      * @return Drive's capable speed in gigabytes per second
      * */
-    const OptionalField<double>& get_capable_speed_gbs() const { return m_capable_speed_gbs; }
+    const OptionalField<double>& get_capable_speed_gbs() const {
+        return m_capable_speed_gbs;
+    }
 
 
     /*!
@@ -268,7 +265,9 @@ public:
      * Gets drive's negotiated speed in gigabytes per second
      * @return Drive's negotiated speed in gigabytes per second
      * */
-    const OptionalField<double>& get_negotiated_speed_gbs() const { return m_negotiated_speed_gbs; }
+    const OptionalField<double>& get_negotiated_speed_gbs() const {
+        return m_negotiated_speed_gbs;
+    }
 
 
     /*!
@@ -313,7 +312,9 @@ public:
      * Gets the status_indicator
      * @return Drive's status_indicator
      * */
-    const OptionalField<enums::StatusIndicator>& get_status_indicator() const { return m_status_indicator; }
+    const OptionalField<enums::StatusIndicator>& get_status_indicator() const {
+        return m_status_indicator;
+    }
 
 
     /*!
@@ -418,7 +419,9 @@ public:
      * Gets the hotspare_type
      * @return Drive's hotspare_type
      * */
-    const OptionalField<enums::HotspareType>& get_hotspare_type() const { return m_hotspare_type; }
+    const OptionalField<enums::HotspareType>& get_hotspare_type() const {
+        return m_hotspare_type;
+    }
 
 
     /*!
@@ -434,7 +437,9 @@ public:
      * Gets the encryption_ability
      * @return Drive's encryption_ability
      * */
-    const OptionalField<enums::EncryptionAbility>& get_encryption_ability() const { return m_encryption_ability; }
+    const OptionalField<enums::EncryptionAbility>& get_encryption_ability() const {
+        return m_encryption_ability;
+    }
 
 
     /*!
@@ -450,7 +455,9 @@ public:
      * Gets the encryption_status
      * @return Drive's encryption_status
      * */
-    const OptionalField<enums::EncryptionStatus>& get_encryption_status() const { return m_encryption_status; }
+    const OptionalField<enums::EncryptionStatus>& get_encryption_status() const {
+        return m_encryption_status;
+    }
 
 
     /*!
@@ -504,22 +511,21 @@ public:
 
     /*!
      * @brief Set whether the drive has been erased
-     *
      * @param erased Drive's erasure status
      * */
-    void set_erased(const OptionalField<bool>& erased) {
+    void set_erased(bool erased) {
         m_erased = erased;
     }
 
 
     /*!
      * @brief Get erased
-     *
      * @return true if the drive has been erased
      * */
-    const OptionalField<bool>& get_erased() const {
+    bool get_erased() const {
         return m_erased;
     }
+
 
     /*!
      * @brief Sets erase flag
@@ -538,6 +544,7 @@ public:
         return m_is_being_erased;
     }
 
+
     /*!
      * @brief Sets warning flag
      * @param is_in_warning_state New value
@@ -554,6 +561,7 @@ public:
     bool get_is_in_warning_state() const {
         return m_is_in_warning_state;
     }
+
 
     /*!
      * @brief Sets critical discovery flag
@@ -572,6 +580,25 @@ public:
         return m_is_in_critical_discovery_state;
     }
 
+
+    /*!
+     * @brief Sets is being discovered flag
+     * @param is_being_discovered New value of the is being discovered flag
+     * */
+    void set_is_being_discovered(bool is_being_discovered) {
+        m_is_being_discovered = is_being_discovered;
+    }
+
+
+    /*!
+     * @brief Gets is being discovered flag
+     * @return true if the drive is currently being discovered
+     * */
+    bool get_is_being_discovered() const {
+        return m_is_being_discovered;
+    }
+
+
     /*!
      * @brief Get dsp port uuids
      * @return Dsp port uuids
@@ -579,6 +606,7 @@ public:
     const std::vector<std::string>& get_dsp_port_uuids() const {
         return m_dsp_port_uuids;
     }
+
 
     /*!
      * @brief Set dsp port uuids
@@ -588,6 +616,7 @@ public:
         m_dsp_port_uuids = dsp_port_uuids;
     }
 
+
     /*!
      * @brief Add dsp port uuid to the array
      * @param[in] dsp_port_uuid Dsp port uuid
@@ -595,6 +624,7 @@ public:
     void add_dsp_port_uuid(const std::string& dsp_port_uuid) {
         m_dsp_port_uuids.push_back(dsp_port_uuid);
     }
+
 
 private:
 
@@ -620,7 +650,8 @@ private:
     OptionalField<enums::EncryptionStatus> m_encryption_status{};
     OptionalField<int32_t> m_block_size_bytes{};
     OptionalField<int32_t> m_predicted_media_life_left{};
-    OptionalField<bool> m_erased{};
+    bool m_erased{false};
+
     static const enums::CollectionName collection_name;
     static const enums::Component component;
 
@@ -629,6 +660,8 @@ private:
     bool m_is_in_warning_state{false};
     // agent-specific data used to mark if for some reason drive is inaccessible to the management host
     bool m_is_in_critical_discovery_state{false};
+    // agent-specific status override for drives under in-band discovery
+    bool m_is_being_discovered{false};
     // required to locate drive's port on a pnc agent in case of the oob discovery, may be more than one
     std::vector<std::string> m_dsp_port_uuids{};
 

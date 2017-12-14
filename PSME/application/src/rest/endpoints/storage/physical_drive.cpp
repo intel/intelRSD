@@ -31,7 +31,7 @@ namespace {
 
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Drive/Links/Members/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#PhysicalDrive.PhysicalDrive";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#PhysicalDrive.v1_0_0.PhysicalDrive";
     r[Common::ID] = json::Value::Type::NIL;
@@ -43,7 +43,7 @@ json::Value make_prototype() {
     r[constants::Drive::RPM] = json::Value::Type::NIL;
     r[Common::MANUFACTURER] = json::Value::Type::NIL;
     r[Common::MODEL] = json::Value::Type::NIL;
-    r[Common::SERIAL] = json::Value::Type::NIL;
+    r[Common::SERIAL_NUMBER] = json::Value::Type::NIL;
     r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
@@ -111,8 +111,8 @@ void endpoint::PhysicalDrive::get(const server::Request& req, server::Response& 
     r[Common::ID] = req.params[PathParam::DRIVE_ID];
 
     auto drive =
-        psme::rest::model::Find<agent_framework::model::PhysicalDrive>(req.params[PathParam::DRIVE_ID]).
-        via<agent_framework::model::StorageServices>(req.params[PathParam::SERVICE_ID]).get();
+        psme::rest::model::Find<agent_framework::model::PhysicalDrive>(req.params[PathParam::DRIVE_ID])
+            .via<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get();
 
     endpoint::status_to_json(drive, r);
     r[Common::STATUS][Common::HEALTH_ROLLUP] = drive.get_status().get_health();
@@ -125,7 +125,7 @@ void endpoint::PhysicalDrive::get(const server::Request& req, server::Response& 
     r[constants::Drive::RPM] = drive.get_rpm();
     r[Common::MANUFACTURER] = drive.get_fru_info().get_manufacturer();
     r[Common::MODEL] = drive.get_fru_info().get_model_number();
-    r[Common::SERIAL] = drive.get_fru_info().get_serial_number();
+    r[Common::SERIAL_NUMBER] = drive.get_fru_info().get_serial_number();
 
     add_used_by_link(r, req, drive.get_uuid());
 

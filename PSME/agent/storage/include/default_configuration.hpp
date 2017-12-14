@@ -19,7 +19,6 @@
  *
  *
  * @file default_configuration.hpp
- *
  * @brief Application default configuration
  * */
 
@@ -30,12 +29,28 @@ namespace generic {
 /*! Default configuration for the agent */
 /*! Logger agent - main logger in PSME Agent */
 static constexpr const char DEFAULT_CONFIGURATION[] = R"({
-"agent":{"type":"Storage","capabilities":[{"name":"Storage","version":""}]},
-"commands":{"*":{"implementation":"ConfigurationBased"}},
-"server":{"port":7778, "ipv4":"localhost"},
-"registration":{"ipv4":"localhost","port":8383,"interval":3},
-"logger":{"agent":{}},
-"modules":[]
+    "agent": {
+        "type": "Storage",
+        "capabilities": [
+            {
+                "name": "Storage",
+                "version": ""
+            }
+        ]
+    },
+    "server": {
+        "port": 7778,
+        "ipv4": "localhost"
+    },
+    "registration": {
+        "ipv4": "localhost",
+        "port": 8383,
+        "interval": 3
+    },
+    "logger": {
+        "agent": {}
+    },
+    "modules": []
 })";
 
 static constexpr char DEFAULT_VALIDATOR_JSON[] = R"({

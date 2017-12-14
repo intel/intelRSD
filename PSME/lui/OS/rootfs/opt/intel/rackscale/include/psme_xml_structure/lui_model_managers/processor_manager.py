@@ -26,7 +26,7 @@ from include.psme_xml_structure.managers.processor_manager import ProcessorManag
 from include.libs.cpuinfo import cpuinfo
 from include.common.globals import *
 
-PROC_MODELS = ["E3", "E5", "E7", "X3", "X5", "X7", "I3", "I5", "I7", "Unknown"]
+PROC_MODELS = ["E3", "E5", "E7", "X3", "X5", "X7", "I3", "I5", "I7", "Silver", "Gold", "Platinum", "Unknown"]
 MHZ=1000000
 
 class ProcessorManager(ProcessorManager_abstract):
@@ -45,12 +45,12 @@ class ProcessorManager(ProcessorManager_abstract):
         processor.socket = data[LSHW_SLOT]
 
         try:
-            processor.cpuid.numericId = data[XML_AT_ID].split(":")[1]
+            processor.cpuId.numericId = data[XML_AT_ID].split(":")[1]
         except IndexError:
-            processor.cpuid.numericId = 0
+            processor.cpuId.numericId = 0
         processor.manufacturer = str(data[XML_VENDOR])
         for model in PROC_MODELS:
-                if model not in str(data[XML_PRODUCT]).upper():
+                if model.upper() not in str(data[XML_PRODUCT]).upper():
                     continue
                 else:
                     break

@@ -18,10 +18,10 @@ package com.intel.podm.business.dto.redfish;
 
 import com.intel.podm.common.types.Id;
 
-import java.util.Set;
+import java.util.Collection;
 
 public class ComposedNodeCollectionDto extends CollectionDto {
-    public ComposedNodeCollectionDto(Type type, Set<Id> members) {
+    public ComposedNodeCollectionDto(Type type, Collection<Id> members) {
         super(type, members);
     }
 }

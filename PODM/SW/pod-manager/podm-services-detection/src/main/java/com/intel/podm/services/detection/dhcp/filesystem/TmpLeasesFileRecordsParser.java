@@ -23,9 +23,8 @@ import java.util.List;
 import static com.google.common.net.InetAddresses.isInetAddress;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
-import static org.apache.commons.lang.StringUtils.split;
-
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.split;
 
 @Dependent
 public class TmpLeasesFileRecordsParser {

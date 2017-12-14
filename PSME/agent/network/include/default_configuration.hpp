@@ -107,7 +107,7 @@ static constexpr const char DEFAULT_ENV_FILE[] =
     "AGENT_NETWORK_CONFIGURATION_FILE";
 
 /* Default configuration file to load when env isn't present or valid */
-static constexpr const char DEFAULT_FILE[] = "configuration.json";
+static constexpr const char DEFAULT_FILE[] = "/etc/psme/network-config.json";
 
 }
 }

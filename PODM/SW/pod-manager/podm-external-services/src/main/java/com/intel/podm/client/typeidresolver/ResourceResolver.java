@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.common.logger.Logger;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +31,11 @@ import java.util.Optional;
 
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.CUSTOM;
 import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
+import static com.intel.podm.client.typeidresolver.OdataTypeMatcher.odataTypePatternMatcher;
 import static com.intel.podm.common.logger.LoggerFactory.getLogger;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Collections.synchronizedList;
-import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 
 public final class ResourceResolver extends TypeIdResolverBase {
@@ -44,8 +44,8 @@ public final class ResourceResolver extends TypeIdResolverBase {
     private static final List<OdataTypeMatcher> MATCHERS = synchronizedList(new ArrayList<>());
     private JavaType baseType;
 
-    private static void registerResource(Class clazz, String odataType) {
-        register(OdataTypeMatcher.odataTypePatternMatcher(odataType, clazz));
+    private static void registerResource(Class<?> clazz, String odataType) {
+        register(odataTypePatternMatcher(odataType, clazz));
     }
 
     public static void register(OdataTypeMatcher matcher) {
@@ -66,7 +66,7 @@ public final class ResourceResolver extends TypeIdResolverBase {
         }
 
         return stream(odataTypes.value())
-                .collect(toList());
+            .collect(toList());
     }
 
     @Override
@@ -118,10 +118,10 @@ public final class ResourceResolver extends TypeIdResolverBase {
         JsonTypeInfo typeInfo = baseType.getRawClass().getAnnotation(JsonTypeInfo.class);
 
         // defaultImpl by default may be set to None.class or Void.class
-        return nonNull(typeInfo)
-                && nonNull(typeInfo.defaultImpl())
-                && !None.class.isAssignableFrom(typeInfo.defaultImpl())
-                && !Void.class.isAssignableFrom(typeInfo.defaultImpl());
+        return typeInfo != null
+            && typeInfo.defaultImpl() != null
+            && !None.class.isAssignableFrom(typeInfo.defaultImpl())
+            && !Void.class.isAssignableFrom(typeInfo.defaultImpl());
     }
 
     private JavaType createDefaultType(String id) {

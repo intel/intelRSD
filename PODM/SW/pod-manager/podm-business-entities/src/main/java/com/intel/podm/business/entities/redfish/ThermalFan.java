@@ -24,6 +24,7 @@ import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.PhysicalContext;
 
 import javax.persistence.Column;
+import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -32,12 +33,13 @@ import java.util.Objects;
 
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "thermal_fan", indexes = @Index(name = "idx_thermal_fan_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class ThermalFan extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -46,6 +48,7 @@ public class ThermalFan extends DiscoverableEntity {
     private String memberId;
 
     @Column(name = "physical_context")
+    @Enumerated(STRING)
     private PhysicalContext physicalContext;
 
     @Column(name = "reading")

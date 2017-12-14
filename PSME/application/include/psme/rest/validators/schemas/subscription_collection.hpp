@@ -31,6 +31,7 @@ namespace rest {
 namespace validators {
 namespace schema {
 
+/*! @brief Schema for validating POST requests on subscription collection. */
 class SubscriptionCollectionPostSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure();

@@ -3,7 +3,7 @@
 The POD Manager is a Java-based application which provides the REST-based interface that allows full management of Intel® Rack Scale Design solution including asset discovery, configuration and nodes assembly.
 
 ## Getting Started
-This chapter contains shortened information about building POD Manager solution by user. To get more information please check the full version of **POD Manager User Guide** available at the [official Intel® Rack Scale Design Site](http://intel.com/intelRSD).
+This chapter contains shortened information about building POD Manager solution by user. To get more information please check the full version of **POD Manager User Guide** available at the [official Intel® Rack Scale Design Site](http://www.intel.com/content/www/us/en/architecture-and-technology/rack-scale-design/rack-scale-design-resources.html).
 
 ### Prerequisites
 #### OS

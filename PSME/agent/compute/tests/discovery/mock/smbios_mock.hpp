@@ -1,0 +1,353 @@
+/*!
+ * @copyright
+ * Copyright (c) 2017 Intel Corporation
+ *
+ * @copyright
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * @copyright
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * @copyright
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @file mock.hpp
+ * @brief mocked smbios blob for new platform discovery
+ * */
+
+#pragma once
+
+
+
+#include "smbios/smbios_parser.hpp"
+
+
+
+namespace mocked_smbios {
+
+static const uint8_t smbios[] = {
+    /*
+     * 32 bit entry point
+     */
+    0x5f, 0x53, 0x4d, 0x5f,     // anchor string "_SM_"
+    0xef,                       // checksum
+    0x1f,                       // length
+    0x02,                       // major version
+    0x08,                       // minor version
+    0x8a, 0x00,                 // maximum structure size
+    0x00,                       // entry point revision
+    0x00, 0x00, 0x00, 0x00, 0x00, // formatted area
+    0x5f, 0x44, 0x4d, 0x49, 0x5f, // intermediate anchor string "_DMI_"
+    0x50,                       // intermediate checksum
+    0x7f + (0x41 - 0x07), 0x0f,     // structure table length
+    0x20, 0x00, 0x00, 0x00,     // structure table address
+    0x08, 0x00,                 // number of smbios structures
+    0x28,                       // smbios BCD revision
+    0x00,                       // align to 32-bits
+
+
+
+    /*
+    FPGA_DEVICE     @115
+    */
+    0xc6,                   // FPGA
+    35,                     // length
+    0x73, 0x00,             // handle
+    1,                      // uint8_t fpga_index;
+    0,                      // FpgaType fpga_type;
+    1,                      // FpgaStatus fpga_status;
+    0,                      // uint8_t socket_identifier;
+    1,                      // uint8_t fpga_vendor;
+    2,                      // uint8_t fpga_family;
+    3,                      // uint8_t fpga_model;
+    4,                      // uint8_t fpga_bit_stream_version;
+    8,                      // uint8_t fpga_hps_core_count;
+    0x03,                   // uint8_t fpga_hps_isa;
+    0x00,                   // uint8_t fpga_hssi_configuration;
+    0x04,                   // uint8_t fpga_hssi_port_count;
+    0x0a,                   // uint8_t fpga_hssi_port_speed;
+    5,                      // uint8_t fpga_hssi_side_band_configuration;
+    0x36,                   // uint8_t fpga_reconfiguration_slots;
+    0x26, 0x76,             // uint16_t fpga_pcie_slot_number;
+    0x66,                   // uint8_t fpga_pcie_bus_identifier;
+    0x55,                   // uint8_t fpga_pcie_device_identifier;
+    0x21,                   // uint8_t fpga_pcie_function_identifier;
+    0x02, 0x32, 0x61, 0x12, // uint32_t thermal_design_power;
+    0x02,                   // OnPackageMemoryTechnology memory_technology;
+    0x01, 0x55, 0x47, 0x38, // uint32_t on_package_memory_capacity;
+    0x42, 0x63,             // uint16_t on_package_memory_speed;
+    'A', 'L', 'T', 'E', 'R', 'A', 0x00,
+    '0', 'x', 'F', 'F', 0x00,
+    'C', 'P', 'U', ' ', 'I', 'n', 't', 'e', 'g', 'r', 'a', 't', 'e', 'd', ' ',
+    'F', 'P', 'G', 'A', ' ',
+    'A', 'c', 'c', 'e', 'l', 'e', 'r', 'a', 't', 'o', 'r', ' ',
+    'X', 'Y', 'Z', ' ', '8', '0', '0', '8', 0x00,
+    'B', 'L', 'U', 'E', '1', 0x00,
+    'I', '2', 'C', 0x00,
+    0x00,
+
+    /*
+    TPM_DEVICE     @117
+    */
+    0xc3,                               // TPM
+    7,                                  // length
+    0x75, 0x00,                         // handle
+    1,                                  // uint8_t tpm_configuration_index;
+    1,                                  // uint8_t tpm_version;
+    0x01,                               // TPMStatus tpm_status;
+    'T', 'P', 'M', ' ', '2', '.', '0', 0x00,
+    0x00,
+
+    /*
+    TPM_DEVICE     @118
+    */
+    0xc3,                               // TPM
+    7,                                  // length
+    0x76, 0x00,                         // handle
+    2,                                  // uint8_t tpm_configuration_index;
+    1,                                  // uint8_t tpm_version;
+    0x00,                               // TPMStatus tpm_status;
+    'T', 'P', 'M', ' ', '1', '.', '2', 0x00,
+    0x00,
+
+    /*
+    TXT @ 119
+     */
+    0xc4,                               // TXT
+    5,                                  // length
+    0x77, 0x00,                         // handle
+    0x01,                               // status
+    0x00, 0x00,
+
+    /*
+     * CPU ID Socket 1 Subtype 1
+     */
+    0xc1,           // CPUID
+    0xe6,           // length
+    0x6f, 0x01,     // handle
+    0x01,           // Socket Designation
+    0x01,           // SubType
+
+    // EAX 00h
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+
+    // EAX 01h
+    0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70,
+    0x80, 0x90, 0xa0, 0xb0, 0xc0, 0xd0, 0xe0, 0xf0,
+
+    // EAX 02h
+    0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
+    0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00,
+
+    // EAX 03h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 04h
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+    // EAX 05h
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+
+    // EAX 06h
+    0x88, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 07h
+    0x00, 0x88, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 09h
+    0x00, 0x00, 0x88, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 0Ah
+    0x00, 0x00, 0x00, 0x88, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 0Bh
+    0x00, 0x00, 0x00, 0x00, 0x88, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 0Dh ECX 00h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 0Fh ECX 00h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 10h ECX 00h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    'S', 'o', 'c', 'k', 'e', 't', ' ', '5', 0x00, // Socket
+    0x00,
+
+
+    /*
+     * CPU ID Socket 1 Subtype 2
+     */
+    0xc1,           // CPUID
+    0xf6,           // length
+    0x70, 0x01,     // handle
+    0x01,           // Socket Designation
+    0x02,           // SubType
+
+    // EAX 14h ECX 00h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x88, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 15h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x88, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 16h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x88, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 17h ECX 00h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x88, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 17h ECX 01h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x88, 0x00, 0x00, 0x00,
+
+    // EAX 17h ECX 02h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x00, 0x00,
+
+    // EAX 17h ECX 03h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x00,
+
+    // EAX 80000000h
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88,
+
+    // EAX 80000001h
+    0x12, 0x00, 0x34, 0x00, 0x56, 0x00, 0x78, 0x00,
+    0x9a, 0x00, 0xbc, 0x00, 0xde, 0x00, 0xf0, 0x00,
+
+    // EAX 80000002h
+    0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78,
+    0x89, 0x9a, 0xab, 0xbc, 0xcd, 0xde, 0xdf, 0xf0,
+
+    // EAX 80000003h
+    0x00, 0x12, 0x00, 0x34, 0x00, 0x56, 0x00, 0x78,
+    0x00, 0x9a, 0x00, 0xbc, 0x00, 0xde, 0x00, 0xf0,
+
+    // EAX 80000004h
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    // EAX 80000006h
+    0x11, 0x00, 0x11, 0x00, 0x11, 0x00, 0x11, 0x00,
+    0x00, 0x11, 0x00, 0x11, 0x00, 0x11, 0x00, 0x11,
+
+    // EAX 80000007h
+    0x00, 0x11, 0x00, 0x11, 0x00, 0x11, 0x00, 0x11,
+    0x11, 0x00, 0x11, 0x00, 0x11, 0x00, 0x11, 0x00,
+
+    // EAX 80000008h
+    0x80, 0x08, 0x80, 0x08, 0x80, 0x08, 0x80, 0x08,
+    0x08, 0x80, 0x08, 0x80, 0x08, 0x80, 0x08, 0x80,
+
+    'S', 'o', 'c', 'k', 'e', 't', ' ', '5', 0x00, // Socket
+    0x00,
+
+    /*
+     * STORAGE DEVICE @120
+     */
+    0xc2,                               // Storage device
+    27,                                 // length
+    0x78, 0x00,                         // handle
+    1,                                  // port designation
+    1,                                  // device index
+    0x01,                               // connector type
+    0x01,                               // device protocol
+    0x01,                               // device type
+    0xff, 0x00, 0x00, 0x00,             // device capacity
+    0xff, 0x00,                         // device rpm
+    2,                                  // device model
+    3,                                  // device serial
+    0x23,                               // pci class code
+    0x46, 0x78,                         // vendor id
+    0x97, 0xde,                         // device id
+    0x36, 0xca,                         // subvendor id
+    0x52, 0xab,                         // subdevice id
+    4,                                  // firmware version
+    'S', 'A', 'T', 'A', ' ', 'P', 'o', 'r', 't', '0', 0x00,
+    '3', '2', '1', 'M', 'o', 'd', 'e', 'l', 0x00,
+    'I', 'N', 'T', 'E', 'L', '1', '2', '3', 0x00,
+    'A', 'B', 'C', '7', '8', '9', 0x00,
+    0x00,
+
+    /*
+     * Memory device basic
+     */
+    17,                     //    struct MEMORY_DEVICE {
+    28,                     //    length
+    0x79, 0x00,             //    handle
+    0x12, 0x23,             //    uint16_t physical_memory_array_handle;
+    0x12, 0x23,             //    uint16_t memory_error_info_handle;
+    0x12, 0x23,             //    uint16_t total_width;
+    0x12, 0x23,             //    uint16_t data_width;
+    0x12, 0x23,             //    uint16_t size;
+    0x01,                   //    FormFactorEnum form_factor;
+    0x01,                   //    uint8_t device_set;
+    0x01,                   //    uint8_t device_locator;
+    0x02,                   //    uint8_t bank_locator;
+    0x02,                   //    MemoryTypeEnum memory_type;
+    0x12, 0x23,             //    uint16_t type_detail;
+    0x12, 0x23,             //    uint16_t speed;
+    0x03,                   //    uint8_t manufacturer;
+    0x04,                   //    uint8_t serial_number;
+    0x05,                   //    uint8_t asset_tag;
+    0x06,                   //    uint8_t part_number;
+    0x12,                   //    uint8_t attributes;
+    0x12, 0x23, 0x12, 0x23, //    uint32_t extended_size;
+    0x12, 0x23,             //    uint16_t configured_memory_clock_speed;
+    0x12, 0x23,             //    uint16_t voltage_min;
+    0x12, 0x23,             //    uint16_t voltage_max;
+    0x12, 0x23,             //    uint16_t voltage_configured;
+    'S', 'A', 'T', 'A', ' ', 'P', 'o', 'r', 't', '0', 0x00,
+    'S', 'B', 'T', 'A', ' ', 'P', 'o', 'r', 't', 'j', 0x00,
+    'b', 'v', 'g', 0x00,
+    'l', 'w', 'd', 0x00,
+    'j', 'o', 'q', 0x00,
+    't', 'a', 'f', 0x00,
+    0x0,
+
+
+    /*
+     * Memory Device Extended @ 121
+     */
+    0xc5,                               // memory device extended
+    15,                                 // length
+    0x80, 0x00,                         // handle
+    0x79, 0x00,                         // uint16_t memory_device_handle;
+    0x01,                               // MemoryDeviceExtendedType type;
+    0x02,                               // MemoryDeviceExtendedMedia media;
+    1,                                  // uint8_t firmware_revision;
+    2,                                  // uint8_t firmware_api_version;
+    0x12, 0x23, 0x45, 0x67,             // uint32_t max_tdp;
+    0x07,                               // uint8_t smbus_address;
+    '1', '2', '3', 'M', 'E', 'M', 'O', 'R', 'Y', 0x00,
+    'X', 'Y', 'Z', '_', '5', '6', '7', '8', 0x00,
+    0x00
+
+};
+
+}
+

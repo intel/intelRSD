@@ -1,26 +1,22 @@
 /*!
- * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * @brief Declaration of GetMdrDataRegionStatus Request/Response.
  *
- * @copyright
+ * @header{License}
+ * @copyright Copyright (c) 2015-2017 Intel Corporation.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
- * @file get_mdr_data_region_status.hpp
- * @brief Implementation of GetMdrDataRegionStatus Request/Response.
- * */
+ * @header{Filesystem}
+ * @file command/sdv/get_mdr_data_region_status.hpp
+ */
 
 #pragma once
 
@@ -56,11 +52,9 @@ public:
     /*! @brief Destructor. */
     virtual ~GetMdrDataRegionStatus();
 
-    /*!
-     * @brief Packs data from object to output vector
-     * @param[out] data vector where data will be packed.
-     */
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    const char* get_command_name() const override {
+        return "GetMdrDataRegionStatus";
+    }
 
     /*!
      * @brief Sets Data Region ID
@@ -78,26 +72,67 @@ public:
         return m_data_region_id;
     }
 
-private:
+protected:
+    /*! @brief Parametrized constructor for inheritance purposes
+     *  @param[in] net_fn Net Function with which the command is suppose to be called
+     * */
+    GetMdrDataRegionStatus(NetFn net_fn);
+
     DataRegionId m_data_region_id{};
+
+private:
+    void pack(IpmiInterface::ByteBuffer& data) const override;
 };
+
 }
 
 namespace response {
 
+/*!
+ * @brief Exception type for locked MDR data region.
+ */
+class MdrDataRegionLockedError : public ResponseError {
+public:
+    MdrDataRegionLockedError(const Response& response);
+
+    MdrDataRegionLockedError(const MdrDataRegionLockedError&) = default;
+
+    MdrDataRegionLockedError(MdrDataRegionLockedError&&) = default;
+
+    virtual ~MdrDataRegionLockedError();
+};
+
+/*!
+ * @brief Exception type for invalid MDR data region.
+ */
+class MdrDataRegionInvalidError : public ResponseError {
+public:
+    MdrDataRegionInvalidError(const Response& response);
+
+    MdrDataRegionInvalidError(const MdrDataRegionInvalidError&) = default;
+
+    MdrDataRegionInvalidError(MdrDataRegionInvalidError&&) = default;
+
+    virtual ~MdrDataRegionInvalidError();
+};
+
+/*!
+ * @brief Exception type for empty MDR data region.
+ */
+class MdrDataRegionEmptyError : public ResponseError {
+public:
+    MdrDataRegionEmptyError(const Response& response);
+
+    MdrDataRegionEmptyError(const MdrDataRegionEmptyError&) = default;
+
+    MdrDataRegionEmptyError(MdrDataRegionEmptyError&&) = default;
+
+    virtual ~MdrDataRegionEmptyError();
+};
+
 /*! @brief Represents response message for GetMdrDataRegionStatus command. */
 class GetMdrDataRegionStatus : public Response {
 public:
-    enum DataValidation : std::uint8_t {
-        INVALID = 0x0,
-        VALID = 0x1
-    };
-
-    enum LockStatus : std::uint8_t {
-        UNLOCKED = 0x0,
-        STRICT_LOCK = 0x1,
-        PREEMPTABLE_LOCK = 0x2
-    };
 
     /*! @brief Default constructor. */
     GetMdrDataRegionStatus();
@@ -117,11 +152,9 @@ public:
     /*! @brief Destructor. */
     virtual ~GetMdrDataRegionStatus();
 
-    /*!
-     * @brief Unpacks data from vector to object.
-     * @param data bytes to be copied to object,
-     */
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    const char* get_command_name() const override {
+        return "GetMdrDataRegionStatus";
+    }
 
     /*!
      * @brief Gets MDR Version
@@ -187,8 +220,24 @@ public:
         return m_region_checksum;
     }
 
+protected:
+    /*!
+     * @brief Parametrized constructor for inheritance purposes
+     * @param[in] net_fn Net Function with which the command is suppose to be called
+     * */
+    GetMdrDataRegionStatus(NetFn net_fn);
+
+    std::uint8_t m_mdr_version{};
+    DataRegionId m_data_region_id{};
+    DataValidation m_data_validation{};
+    std::uint8_t m_data_update_count{};
+    LockStatus m_lock_status{};
+    std::uint16_t m_region_size{};
+    std::uint16_t m_region_size_used{};
+    std::uint8_t  m_region_checksum{};
+
 private:
-    static constexpr std::size_t RESPONSE_SIZE = 10;
+    static constexpr std::size_t RESPONSE_SIZE = 11;
     static constexpr std::size_t OFFSET_MDR_VERSION = 1;
     static constexpr std::size_t OFFSET_DATA_REGION_ID = 2;
     static constexpr std::size_t OFFSET_DATA_VALIDATION = 3;
@@ -198,14 +247,7 @@ private:
     static constexpr std::size_t OFFSET_REGION_SIZE_USED = 8;
     static constexpr std::size_t OFFSET_REGION_CHECKSUM = 10;
 
-    std::uint8_t m_mdr_version{};
-    DataRegionId m_data_region_id{};
-    DataValidation m_data_validation{};
-    std::uint8_t m_data_update_count{};
-    LockStatus m_lock_status{};
-    std::uint16_t m_region_size{};
-    std::uint16_t m_region_size_used{};
-    std::uint8_t m_region_checksum{};
+    void unpack(const IpmiInterface::ByteBuffer& data) override;
 };
 }
 

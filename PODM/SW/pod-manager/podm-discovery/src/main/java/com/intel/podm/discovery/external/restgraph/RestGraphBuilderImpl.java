@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2015-2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 
 package com.intel.podm.discovery.external.restgraph;
 
-import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.reader.ExternalServiceReader;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
-import com.intel.podm.client.api.resources.redfish.ChassisResource;
-import com.intel.podm.client.api.resources.redfish.RackscaleServiceRootResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ExternalServiceReader;
+import com.intel.podm.client.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.redfish.ServiceRootResource;
 import com.intel.podm.common.enterprise.utils.logger.TimeMeasured;
 import com.intel.podm.common.synchronization.CancelableChecker;
-import com.intel.podm.discovery.external.ExternalServiceRepository;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -33,28 +30,16 @@ import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Predicate;
 
-import static com.intel.podm.common.types.ChassisType.DRAWER;
-import static com.intel.podm.common.types.ServiceType.RMM;
 import static com.intel.podm.common.utils.Contracts.requires;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
-/**
- * Visits all resources from rssClient and creates graph from them
- */
 @Dependent
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 class RestGraphBuilderImpl implements RestGraphBuilder {
-    @Inject
-    private ExternalServiceRepository repository;
-
     @Inject
     private ResourceLinkExtractor extractor;
 
@@ -67,8 +52,8 @@ class RestGraphBuilderImpl implements RestGraphBuilder {
     @Override
     @TimeMeasured(tag = "[Discovery]")
     @Transactional(MANDATORY)
-    public RestGraph build(ExternalServiceReader client) throws ExternalServiceApiReaderException {
-        RackscaleServiceRootResource serviceRoot = client.getServiceRoot();
+    public RestGraph build(ExternalServiceReader client) throws WebClientRequestException {
+        ServiceRootResource serviceRoot = client.getServiceRoot();
         requires(serviceRoot.getUuid() != null, "Service being discovered must have UUID assigned.");
 
         Queue<ExternalServiceResource> queue = new ArrayDeque<>();
@@ -89,29 +74,8 @@ class RestGraphBuilderImpl implements RestGraphBuilder {
             queue.addAll(notVisited);
         }
 
-        graph.addAll(filterDrawerChassisFromRmm(serviceRoot.getUuid(), allLinks));
+        graph.addAll(allLinks);
         return graph;
-    }
-
-    private Set<ResourceLink> filterDrawerChassisFromRmm(UUID serviceUuid, Set<ResourceLink> allLinks) {
-        ExternalService service = repository.find(serviceUuid);
-
-        if (!Objects.equals(service.getServiceType(), RMM)) {
-            return allLinks;
-        }
-
-        Predicate<ResourceLink> isRmmDrawerChassis = resourceLink -> isDrawerChassis(resourceLink.getSource())
-            || isDrawerChassis(resourceLink.getTarget());
-
-        return stream(allLinks.spliterator(), false)
-            .filter(isRmmDrawerChassis.negate())
-            .collect(toSet());
-    }
-
-    private boolean isDrawerChassis(ExternalServiceResource resource) {
-        return resource != null
-            && resource instanceof ChassisResource
-            && Objects.equals(((ChassisResource) resource).getChassisType(), DRAWER);
     }
 
     private Collection<ExternalServiceResource> filterNotVisited(Iterable<ResourceLink> links, Set<URI> visited) {

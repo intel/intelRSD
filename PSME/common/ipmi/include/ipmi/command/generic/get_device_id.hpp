@@ -27,6 +27,7 @@
 
 #include "ipmi/request.hpp"
 #include "ipmi/response.hpp"
+#include "ipmi/command/generic/enums.hpp"
 
 #include <string>
 #include <map>
@@ -64,9 +65,11 @@ public:
      * @brief Packs data from object to output vector
      * @param[out] data vector where data will be packed.
      */
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
 
-private:
+    virtual const char* get_command_name() const override {
+        return "GetDeviceId";
+    }
 
 };
 }
@@ -78,28 +81,6 @@ namespace response {
  */
 class GetDeviceId : public Response {
 public:
-
-    /*!
-     * @brief Represents module's type.
-     */
-    enum PRODUCT_ID : std::uint16_t {
-        PRODUCT_ID_INTEL_XEON_BDC_R = 0x2041,
-        PRODUCT_ID_INTEL_XEON_BDC_A = 0x3036,
-        PRODUCT_ID_INTEL_ATOM = 0x3146,
-        PRODUCT_ID_INTEL_BDX_DE_BDC_R = 0xF20A,
-        PRODUCT_ID_INTEL_LAST,
-        PRODUCT_ID_INTEL_UNKNOWN,
-    };
-
-    /*!
-     * @brief Represents module's type.
-     */
-    enum MANUFACTURER_ID : std::uint32_t {
-        MANUFACTURER_ID_INTEL = 0x000157,
-        MANUFACTURER_ID_QUANTA = 0x001C4C,
-        MANUFACTURER_ID_LAST,
-        MANUFACTURER_ID_UNKNOWN,
-    };
 
     /*!
      * @brief Default constructor.
@@ -121,7 +102,7 @@ public:
      * @brief Unpacks data from vector to object.
      * @param data bytes to be copied to object,
      */
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
 
     /*!
      * @brief Gets firmware version: major.minor.aux0.aux1.aux2.aux3
@@ -136,7 +117,7 @@ public:
      * @brief Gets product ID.
      * @return PRODUCT_ID
      */
-    PRODUCT_ID get_product_id() const {
+    ProductId get_product_id() const {
         return m_product_id;
     }
 
@@ -144,7 +125,7 @@ public:
      * @brief Gets manufacturer ID.
      * @return MANUFACTURER_ID.
      */
-    MANUFACTURER_ID get_manufacturer_id() const {
+    ManufacturerId get_manufacturer_id() const {
         return m_manufacturer_id;
     }
 
@@ -170,23 +151,27 @@ public:
         return m_manufacturer_name_mapping.at(m_manufacturer_id);
     }
 
+    virtual const char* get_command_name() const override {
+        return "GetDeviceId";
+    }
+
 private:
-    std::map<PRODUCT_ID, std::string> m_product_name_mapping = {
+    std::map<ProductId, std::string> m_product_name_mapping = {
         {PRODUCT_ID_INTEL_XEON_BDC_A, "Intel Xeon"},
         {PRODUCT_ID_INTEL_XEON_BDC_R, "Intel Xeon"},
         {PRODUCT_ID_INTEL_ATOM, "Intel Atom"},
         {PRODUCT_ID_INTEL_UNKNOWN, "Unknown product"}
     };
 
-    std::map<MANUFACTURER_ID, std::string> m_manufacturer_name_mapping = {
+    std::map<ManufacturerId, std::string> m_manufacturer_name_mapping = {
         {MANUFACTURER_ID_INTEL, "Intel Corporation"},
         {MANUFACTURER_ID_QUANTA, "Quanta Computers Incorporated"},
         {MANUFACTURER_ID_UNKNOWN, "Unknown manufacturer"}
     };
 
     std::string m_firmware_version{};
-    PRODUCT_ID m_product_id = PRODUCT_ID_INTEL_UNKNOWN;
-    MANUFACTURER_ID m_manufacturer_id = MANUFACTURER_ID_UNKNOWN;
+    ProductId m_product_id{PRODUCT_ID_INTEL_UNKNOWN};
+    ManufacturerId m_manufacturer_id{MANUFACTURER_ID_UNKNOWN};
 
     static constexpr std::size_t OFFSET_FIRMWARE_MAJOR_VERSION = 3;
     static constexpr std::size_t OFFSET_FIRMWARE_MINOR_VERSION = 4;
@@ -198,8 +183,8 @@ private:
 
     static constexpr std::size_t RESPONSE_SIZE = 16;
 
-    PRODUCT_ID extract_product_id(const std::vector<std::uint8_t>& data) const;
-    MANUFACTURER_ID extract_manufacturer_id(const std::vector<std::uint8_t>& data) const;
+    ProductId extract_product_id(const std::vector<std::uint8_t>& data) const;
+    ManufacturerId extract_manufacturer_id(const std::vector<std::uint8_t>& data) const;
 
 };
 }

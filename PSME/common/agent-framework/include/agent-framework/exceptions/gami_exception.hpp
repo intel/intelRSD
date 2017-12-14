@@ -29,8 +29,8 @@
 
 #include "agent-framework/exceptions/error_codes.hpp"
 #include "logger/logger_factory.hpp"
+#include "json-rpc/json_rpc_exception.hpp"
 
-#include <jsonrpccpp/common/exception.h>
 
 
 
@@ -38,7 +38,7 @@ namespace agent_framework {
 namespace exceptions {
 
 /*! @brief Base exception implementation */
-class GamiException : public jsonrpc::JsonRpcException {
+class GamiException : public json_rpc::JsonRpcException {
 public:
 
     /*!
@@ -55,7 +55,7 @@ public:
      * @param[in] message error message
      * @param[in] data JSON object containing additional data
      * */
-    explicit GamiException(const ErrorCode code, const std::string& message, const Json::Value& data);
+    explicit GamiException(const ErrorCode code, const std::string& message, const json::Json& data);
 
 
     GamiException(const GamiException&) = default;
@@ -92,7 +92,7 @@ public:
      * @brief Get exception JSON data
      * @return ExceptionBase JSON data
      */
-    virtual const Json::Value& get_data() const;
+    virtual const json::Json& get_data() const;
 
 
 protected:
@@ -106,7 +106,7 @@ protected:
      * @param field_key JSON key.
      * @return String from JSON data.
      * */
-    static Json::Value get_json_from_data(const Json::Value& data, const std::string& field_key);
+    static json::Json get_json_from_data(const json::Json& data, const std::string& field_key);
 
     /*!
      * @brief Get styled string from JSON data.
@@ -114,7 +114,7 @@ protected:
      * @param field_key JSON key.
      * @return String from JSON data.
      * */
-    static std::string get_styled_string_from_data(const Json::Value& data, const std::string& field_key);
+    static std::string get_styled_string_from_data(const json::Json& data, const std::string& field_key);
 
     /*!
      * @brief Get string from JSON data.
@@ -122,7 +122,7 @@ protected:
      * @param field_key JSON key.
      * @return String from JSON data.
      * */
-    static std::string get_string_from_data(const Json::Value& data, const std::string& field_key);
+    static std::string get_string_from_data(const json::Json& data, const std::string& field_key);
 
 private:
     ErrorCode m_error_code{ErrorCode::UNKNOWN_ERROR};
@@ -131,4 +131,3 @@ private:
 
 } // namespace exceptions
 } // namespace agent_framework
-

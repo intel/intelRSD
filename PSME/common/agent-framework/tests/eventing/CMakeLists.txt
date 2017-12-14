@@ -29,37 +29,13 @@ endif()
  target_link_libraries(${test_target}
      ${JSONCXX_LIBRARIES}
      ${AGENT_FRAMEWORK_LIB}
-
+     ${LOGGER_LIBRARIES}
+     ${SAFESTRING_LIBRARIES}
  )
 
- #add_gtest(eventing_notification agent-framework
- #    test_runner.cpp
- #    eventing_test_notification.cpp
- #)
-
- #target_link_libraries(${test_target}
- #    ${JSONCXX_LIBRARIES}
- #    ${AGENT_FRAMEWORK_LIB}
- #    ${UUID_LIBRARIES}
- #    ${PCA95XX_LIBRARIES}
- #)
-
- #target_include_directories(${test_target} PUBLIC
- #    ${AGENT_FRAMEWORK_DIR}/src/state_machine
- #)
-
- #add_gtest(eventing_subscription agent-framework
- #    test_runner.cpp
- #    eventing_test_subscription.cpp
- #)
-
- #target_link_libraries(${test_target}
- #    ${JSONCXX_LIBRARIES}
- #    ${AGENT_FRAMEWORK_LIB}
- #    ${UUID_LIBRARIES}
- #    ${PCA95XX_LIBRARIES}
- #)
-
- #target_include_directories(${test_target} PUBLIC
- #    ${AGENT_FRAMEWORK_DIR}/src/state_machine
- #)
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    set_source_files_properties(
+        test_worker_thread.cpp
+        COMPILE_FLAGS "-Wno-weak-vtables"
+    )
+endif()

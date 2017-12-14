@@ -16,7 +16,6 @@
 
 package com.intel.podm.redfish.resources;
 
-
 import com.intel.podm.business.EventDispatchingException;
 import com.intel.podm.business.services.redfish.EventReceivingService;
 import com.intel.podm.common.logger.Logger;
@@ -24,9 +23,11 @@ import com.intel.podm.common.types.ServiceType;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.EventsConfig;
+import com.intel.podm.config.base.dto.EventsConfig.EventConfiguration;
 import com.intel.podm.config.base.dto.ServiceConnectionConfig;
 import com.intel.podm.redfish.json.templates.actions.EventArrayJson;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -48,6 +49,7 @@ import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.seeOther;
 import static javax.ws.rs.core.UriBuilder.fromUri;
 
+@RequestScoped
 @Path(EVENT_RECEIVING_ENDPOINT)
 public class EventListenerResource {
     @Inject
@@ -108,7 +110,7 @@ public class EventListenerResource {
 
     private URI getPodmEventServiceDestination(ServiceType serviceType, UUID serviceUuid) {
         EventsConfig eventsConfiguration = eventsConfig.get();
-        EventsConfig.EventConfiguration serviceTypeEventConfig = eventsConfiguration.getEventConfigForServiceType(serviceType);
+        EventConfiguration serviceTypeEventConfig = eventsConfiguration.getEventConfigForServiceType(serviceType);
         boolean sslEnabled = connectionConfig.get().getConnectionSecurity().isSslEnabledForServicesOfType(serviceType);
         URI baseEndpoint = sslEnabled ? serviceTypeEventConfig.getSecurePodManagerEventReceivingEndpoint()
             : serviceTypeEventConfig.getDefaultPodManagerEventReceivingEndpoint();

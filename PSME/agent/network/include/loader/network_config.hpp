@@ -139,6 +139,7 @@ private:
     std::map<std::string, std::string> m_switch_mgmt_map{};
     std::map<std::string, std::string> m_acl_map{};
     const std::string DEFAULT_MGMT_PORT{"None"};
+    const std::string DEFAULT_SYSFS_DRIVER{"None"};
 };
 
 }

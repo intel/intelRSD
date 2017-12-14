@@ -18,6 +18,7 @@ package com.intel.podm.business.entities.redfish.embeddables;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import java.math.BigDecimal;
 import java.util.Objects;
 
 @Embeddable
@@ -26,13 +27,13 @@ public class PowerMetrics {
     private Integer intervalInMin;
 
     @Column(name = "min_consumed_watts")
-    private Integer minConsumedWatts;
+    private BigDecimal minConsumedWatts;
 
     @Column(name = "max_consumed_watts")
-    private Integer maxConsumedWatts;
+    private BigDecimal maxConsumedWatts;
 
     @Column(name = "average_consumed_watts")
-    private Integer averageConsumedWatts;
+    private BigDecimal averageConsumedWatts;
 
     public Integer getIntervalInMin() {
         return intervalInMin;
@@ -42,27 +43,27 @@ public class PowerMetrics {
         this.intervalInMin = intervalInMin;
     }
 
-    public Integer getMinConsumedWatts() {
+    public BigDecimal getMinConsumedWatts() {
         return minConsumedWatts;
     }
 
-    public void setMinConsumedWatts(Integer minConsumedWatts) {
+    public void setMinConsumedWatts(BigDecimal minConsumedWatts) {
         this.minConsumedWatts = minConsumedWatts;
     }
 
-    public Integer getMaxConsumedWatts() {
+    public BigDecimal getMaxConsumedWatts() {
         return maxConsumedWatts;
     }
 
-    public void setMaxConsumedWatts(Integer maxConsumedWatts) {
+    public void setMaxConsumedWatts(BigDecimal maxConsumedWatts) {
         this.maxConsumedWatts = maxConsumedWatts;
     }
 
-    public Integer getAverageConsumedWatts() {
+    public BigDecimal getAverageConsumedWatts() {
         return averageConsumedWatts;
     }
 
-    public void setAverageConsumedWatts(Integer averageConsumedWatts) {
+    public void setAverageConsumedWatts(BigDecimal averageConsumedWatts) {
         this.averageConsumedWatts = averageConsumedWatts;
     }
 

@@ -16,16 +16,12 @@
 
 package com.intel.podm.discovery.external;
 
-import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.types.ServiceType;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.Collection;
 import java.util.UUID;
 
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
@@ -37,13 +33,9 @@ public class ExternalServiceRepository {
     @Inject
     private ExternalServiceDao externalServiceDao;
 
-    @Inject
-    private Logger logger;
-
     @Transactional(MANDATORY)
     public ExternalService find(UUID uuid) {
         ExternalService service = findOrNull(uuid);
-
         if (service == null) {
             String msg = format("there is no service with UUID '%s'", uuid);
             throw new IllegalStateException(msg);
@@ -55,12 +47,7 @@ public class ExternalServiceRepository {
     @Transactional(MANDATORY)
     public ExternalService findOrNull(UUID uuid) {
         requiresNonNull(uuid, "uuid");
-
-        try {
-            return externalServiceDao.getExternalServiceByUuid(uuid);
-        } catch (NonUniqueResultException e) {
-            return null;
-        }
+        return externalServiceDao.tryGetUniqueExternalServiceByUuid(uuid);
     }
 
     @Transactional(MANDATORY)
@@ -78,10 +65,5 @@ public class ExternalServiceRepository {
         service.setUuid(uuid);
         service.setServiceType(endpoint.getServiceType());
         return service;
-    }
-
-    @Transactional(MANDATORY)
-    public Collection<ExternalService> getAllByType(ServiceType serviceType) {
-        return externalServiceDao.getExternalServicesByServicesTypes(serviceType);
     }
 }

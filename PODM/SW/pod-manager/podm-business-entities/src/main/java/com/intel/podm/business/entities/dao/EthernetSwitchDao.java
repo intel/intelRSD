@@ -19,20 +19,17 @@ package com.intel.podm.business.entities.dao;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
 import com.intel.podm.common.types.Id;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.transaction.Transactional;
-import java.util.Optional;
+import java.util.List;
 
+import static com.intel.podm.business.entities.redfish.EthernetSwitch.GET_ALL_ETHERNET_SWITCH_IDS;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Dependent
-@Transactional(MANDATORY)
+@ApplicationScoped
 public class EthernetSwitchDao extends Dao<EthernetSwitch> {
-    public EthernetSwitch getOrThrow(Id switchId) {
-        Optional<EthernetSwitch> expectedSwitch = tryFind(switchId);
-        if (!expectedSwitch.isPresent()) {
-            throw new IllegalStateException("Target EthernetSwitch was not found!");
-        }
-        return expectedSwitch.get();
+    @Transactional(MANDATORY)
+    public List<Id> getAllEthernetSwitchIds() {
+        return entityManager.createNamedQuery(GET_ALL_ETHERNET_SWITCH_IDS, Id.class).getResultList();
     }
 }

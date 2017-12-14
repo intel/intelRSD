@@ -20,21 +20,21 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
-add_gtest(utils_test psme-network-fm10000
-    mock_switch_port_info.cpp
-    port_test.cpp
-    lag_test.cpp
-    test_runner.cpp
-)
+if (BUILD_EOS_SDK)
+    add_gtest(utils_test psme-network
+        mock_switch_port_info.cpp
+        port_test.cpp
+        lag_test.cpp
+        test_runner.cpp
+    )
 
-target_link_libraries(${test_target}
-    network-loader-fm10000
-    network-hw-api-fm10000
-    network-utils
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-)
+    target_link_libraries(${test_target}
+        network-utils
+        ${AGENT_FRAMEWORK_LIBRARIES}
+        ${UUID_LIBRARIES}
+        ${LOGGER_LIBRARIES}
+        ${CONFIGURATION_LIBRARIES}
+        ${JSONCXX_LIBRARIES}
+        ${SAFESTRING_LIBRARIES}
+    )
+endif()

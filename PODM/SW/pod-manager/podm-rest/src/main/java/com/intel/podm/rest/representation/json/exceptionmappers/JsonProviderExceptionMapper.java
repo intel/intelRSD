@@ -18,9 +18,9 @@ package com.intel.podm.rest.representation.json.exceptionmappers;
 
 import com.intel.podm.business.services.context.UriConversionException;
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.rest.representation.json.errors.ErrorType;
 import com.intel.podm.rest.representation.json.providers.JsonProviderException;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
@@ -28,12 +28,14 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import java.util.Arrays;
 
-import static com.intel.podm.rest.error.ErrorResponseCreator.from;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.INVALID_PAYLOAD;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.INVALID_PAYLOAD;
 import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.apache.commons.lang.exception.ExceptionUtils.getRootCause;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 
+@ApplicationScoped
 @Provider
 @Produces(APPLICATION_JSON)
 public class JsonProviderExceptionMapper implements ExceptionMapper<JsonProviderException> {
@@ -44,21 +46,17 @@ public class JsonProviderExceptionMapper implements ExceptionMapper<JsonProvider
     public Response toResponse(JsonProviderException exception) {
         logger.e("JSON Processing error", exception);
 
-        ErrorType errorType = INVALID_PAYLOAD;
-
         Throwable cause = getRootCause(exception);
-
         if (cause instanceof UriConversionException) {
             UriConversionException convertedCause = (UriConversionException) cause;
 
-            String details = format("Cannot parse URI [%s] to any type from %s",
+            String detailedMessage = format("Cannot parse URI [%s] to any type from %s",
                 convertedCause.getSourceUri(),
                 Arrays.toString(convertedCause.getTargetContextTypes())
             );
-
-            return from(errorType).withDetails(details).create();
+            return newErrorResponseBuilder(INVALID_PAYLOAD).withDetails(singletonList(detailedMessage)).build();
         }
 
-        return from(errorType).create();
+        return newErrorResponseBuilder(INVALID_PAYLOAD).build();
     }
 }

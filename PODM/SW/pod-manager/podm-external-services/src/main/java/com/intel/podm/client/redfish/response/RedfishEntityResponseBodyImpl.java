@@ -17,11 +17,21 @@
 package com.intel.podm.client.redfish.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.intel.podm.client.api.redfish.response.RedfishEntityResponseBody;
-import org.atteo.classindex.IndexSubclasses;
 
-@IndexSubclasses
 public abstract class RedfishEntityResponseBodyImpl extends RedfishResponseBodyImpl implements RedfishEntityResponseBody {
     @JsonProperty("@odata.id")
     protected String oDataId;
+
+    @JsonProperty("@odata.type")
+    protected String oDataType;
+
+    @Override
+    public String getOdataId() {
+        return oDataId;
+    }
+
+    @Override
+    public String getOdataType() {
+        return oDataType;
+    }
 }

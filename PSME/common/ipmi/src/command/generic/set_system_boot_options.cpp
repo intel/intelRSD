@@ -88,8 +88,5 @@ response::SetSystemBootOptions::SetSystemBootOptions() :
 response::SetSystemBootOptions::~SetSystemBootOptions() {}
 
 
-void response::SetSystemBootOptions::unpack(const std::vector<std::uint8_t>& data) {
-    if (!is_response_correct(data)) {
-        return;
-    }
+void response::SetSystemBootOptions::unpack(const std::vector<std::uint8_t>&) {
 }

@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Fabric;
-import com.intel.podm.client.api.resources.redfish.FabricResource;
+import com.intel.podm.client.resources.redfish.FabricResource;
 import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;

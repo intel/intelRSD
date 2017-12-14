@@ -24,19 +24,19 @@
 
 #include "agent-framework/module/responses/common/get_task_result_info.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
 using namespace agent_framework::model::responses;
 
 
-Json::Value GetTaskResultInfo::to_json() const {
+json::Json GetTaskResultInfo::to_json() const {
     return m_task_result;
 }
 
 
-GetTaskResultInfo GetTaskResultInfo::from_json(const Json::Value& json) {
+GetTaskResultInfo GetTaskResultInfo::from_json(const json::Json& json) {
     GetTaskResultInfo result;
     result.set_result(json);
     return result;

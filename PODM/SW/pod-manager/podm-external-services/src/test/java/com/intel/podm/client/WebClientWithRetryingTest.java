@@ -16,12 +16,10 @@
 
 package com.intel.podm.client;
 
-import com.intel.podm.client.api.ExternalServiceApiActionException;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.WebClient;
+import com.intel.podm.client.redfish.response.RedfishClientException;
 import org.testng.annotations.Test;
 
-import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.URI;
 
 import static org.mockito.Matchers.any;
@@ -39,24 +37,24 @@ public class WebClientWithRetryingTest {
     public void whenGettingUnavailableUri_shouldRetryThreeTimes() throws Exception {
         WebClient mock = mock(WebClient.class);
         try {
-            when(mock.get(any())).thenThrow(connectionExceptionOnReading());
+            when(mock.get(any())).thenThrow(connectionException());
             WebClientWithRetrying webClientWithRetrying = new WebClientWithRetrying(mock);
             webClientWithRetrying.get(any());
-        } catch (ExternalServiceApiReaderException e) {
+        } catch (WebClientRequestException e) {
             verify(mock, times(3)).get(any());
             return;
         }
-        fail("ExternalServiceApiReaderException was not thrown");
+        fail("WebClientRequestException was not thrown");
     }
 
     @Test
     public void whenPostingUnavailableUri_shouldRetryThreeTimes() throws Exception {
         WebClient mock = mock(WebClient.class);
         try {
-            when(mock.post(any(), any())).thenThrow(connectionExceptionOnAction());
+            when(mock.post(any(), any())).thenThrow(connectionException());
             WebClientWithRetrying webClientWithRetrying = new WebClientWithRetrying(mock);
             webClientWithRetrying.post(any(), any());
-        } catch (ExternalServiceApiActionException e) {
+        } catch (WebClientRequestException e) {
             verify(mock, times(3)).post(any(), any());
             return;
         }
@@ -67,10 +65,10 @@ public class WebClientWithRetryingTest {
     public void whenPatchingUnavailableUri_shouldRetryThreeTimes() throws Exception {
         WebClient mock = mock(WebClient.class);
         try {
-            doThrow(connectionExceptionOnAction()).when(mock).patch(any(), any());
+            doThrow(connectionException()).when(mock).patch(any(), any());
             WebClientWithRetrying webClientWithRetrying = new WebClientWithRetrying(mock);
             webClientWithRetrying.patch(any(), any());
-        } catch (ExternalServiceApiActionException e) {
+        } catch (WebClientRequestException e) {
             verify(mock, times(3)).patch(any(), any());
             return;
         }
@@ -81,65 +79,63 @@ public class WebClientWithRetryingTest {
     public void whenDeletingUnavailableUri_shouldRetryThreeTimes() throws Exception {
         WebClient mock = mock(WebClient.class);
         try {
-            doThrow(connectionExceptionOnAction()).when(mock).delete(any());
+            doThrow(connectionException()).when(mock).delete(any());
             WebClientWithRetrying webClientWithRetrying = new WebClientWithRetrying(mock);
             webClientWithRetrying.delete(any());
-        } catch (ExternalServiceApiActionException e) {
+        } catch (WebClientRequestException e) {
             verify(mock, times(3)).delete(any());
             return;
         }
         fail("ExternalServiceApiActionException was not thrown");
     }
 
-    @Test(expectedExceptions = { ExternalServiceApiReaderException.class })
+    @Test(expectedExceptions = {WebClientRequestException.class})
     public void whenGettingValidUri_shouldThrowExternalServiceApiReaderException() throws Exception {
         WebClient mock = mock(WebClient.class);
-        when(mock.get(any())).thenThrow(nonConnectionExceptionOnReading());
+        when(mock.get(any())).thenThrow(nonConnectionException());
 
         WebClientWithRetrying webClientWithRetrying = new WebClientWithRetrying(mock);
         webClientWithRetrying.get(any());
     }
 
-    @Test(expectedExceptions = { ExternalServiceApiActionException.class })
+    @Test(expectedExceptions = {WebClientRequestException.class})
     public void whenPostingValidUri_shouldThrowExternalServiceApiActionException() throws Exception {
         WebClient mock = mock(WebClient.class);
-        when(mock.post(any(), any())).thenThrow(nonConnectionExceptionOnAction());
+        when(mock.post(any(), any())).thenThrow(nonConnectionException());
 
         WebClientWithRetrying webClientWithRetrying = new WebClientWithRetrying(mock);
         webClientWithRetrying.post(any(), any());
     }
 
-    @Test(expectedExceptions = { ExternalServiceApiActionException.class })
+    @Test(expectedExceptions = {WebClientRequestException.class})
     public void whenPatchingValidUri_shouldThrowExternalServiceApiActionException() throws Exception {
         WebClient mock = mock(WebClient.class);
-        doThrow(nonConnectionExceptionOnAction()).when(mock).patch(any(), any());
+        doThrow(nonConnectionException()).when(mock).patch(any(), any());
 
         WebClientWithRetrying webClientWithRetrying = new WebClientWithRetrying(mock);
         webClientWithRetrying.patch(any(), any());
     }
 
-    @Test(expectedExceptions = { ExternalServiceApiActionException.class })
+    @Test(expectedExceptions = {WebClientRequestException.class})
     public void whenDeletingValidUri_shouldThrowExternalServiceApiActionException() throws Exception {
         WebClient mock = mock(WebClient.class);
-        doThrow(nonConnectionExceptionOnAction()).when(mock).patch(any(), any());
+        doThrow(nonConnectionException()).when(mock).patch(any(), any());
 
         WebClientWithRetrying webClientWithRetrying = new WebClientWithRetrying(mock);
         webClientWithRetrying.patch(any(), any());
     }
 
-    private ExternalServiceApiActionException nonConnectionExceptionOnAction() {
-        return new ExternalServiceApiActionException("", URI.create(""), new IllegalStateException());
+    private WebClientRequestException nonConnectionException() {
+        return new WebClientRequestException("", URI.create(""), new IllegalStateException());
     }
 
-    private ExternalServiceApiReaderException nonConnectionExceptionOnReading() {
-        return new ExternalServiceApiReaderException("", URI.create(""), new IllegalStateException());
+    private WebClientRequestException connectionException() {
+        return new WebClientRequestException("", URI.create(""), createRedfishClientExceptionCausedBySocketConnectionException());
     }
 
-    private ExternalServiceApiActionException connectionExceptionOnAction() {
-        return new ExternalServiceApiActionException("", URI.create(""), new ConnectException(""));
-    }
-
-    private ExternalServiceApiReaderException connectionExceptionOnReading() {
-        return new ExternalServiceApiReaderException("", URI.create(""), new ConnectException(""));
+    private RedfishClientException createRedfishClientExceptionCausedBySocketConnectionException() {
+        return new RedfishClientException(
+            new WebClientConnectionException("", URI.create(""), new SocketException(""))
+        );
     }
 }

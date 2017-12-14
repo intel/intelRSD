@@ -18,16 +18,26 @@ package com.intel.podm.discovery.external.linker;
 
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
+import com.intel.podm.business.entities.redfish.ComputerSystemMetrics;
 import com.intel.podm.business.entities.redfish.Drive;
 import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
+import com.intel.podm.business.entities.redfish.EthernetSwitchAcl;
+import com.intel.podm.business.entities.redfish.EthernetSwitchAclRule;
+import com.intel.podm.business.entities.redfish.EthernetSwitchMetrics;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
+import com.intel.podm.business.entities.redfish.EthernetSwitchPortMetrics;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
+import com.intel.podm.business.entities.redfish.EthernetSwitchStaticMac;
 import com.intel.podm.business.entities.redfish.Fabric;
 import com.intel.podm.business.entities.redfish.LogicalDrive;
 import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.entities.redfish.Memory;
+import com.intel.podm.business.entities.redfish.MemoryMetrics;
+import com.intel.podm.business.entities.redfish.MetricDefinition;
+import com.intel.podm.business.entities.redfish.MetricItem;
+import com.intel.podm.business.entities.redfish.MetricReportDefinition;
 import com.intel.podm.business.entities.redfish.NetworkDeviceFunction;
 import com.intel.podm.business.entities.redfish.NetworkInterface;
 import com.intel.podm.business.entities.redfish.NetworkProtocol;
@@ -35,22 +45,23 @@ import com.intel.podm.business.entities.redfish.PcieDevice;
 import com.intel.podm.business.entities.redfish.PcieDeviceFunction;
 import com.intel.podm.business.entities.redfish.PhysicalDrive;
 import com.intel.podm.business.entities.redfish.Port;
+import com.intel.podm.business.entities.redfish.PortMetrics;
 import com.intel.podm.business.entities.redfish.Power;
 import com.intel.podm.business.entities.redfish.PowerControl;
 import com.intel.podm.business.entities.redfish.PowerSupply;
 import com.intel.podm.business.entities.redfish.PowerVoltage;
-import com.intel.podm.business.entities.redfish.PowerZone;
 import com.intel.podm.business.entities.redfish.Processor;
+import com.intel.podm.business.entities.redfish.ProcessorMetrics;
 import com.intel.podm.business.entities.redfish.Redundancy;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
 import com.intel.podm.business.entities.redfish.Storage;
+import com.intel.podm.business.entities.redfish.StorageController;
 import com.intel.podm.business.entities.redfish.StorageService;
 import com.intel.podm.business.entities.redfish.Switch;
 import com.intel.podm.business.entities.redfish.Thermal;
 import com.intel.podm.business.entities.redfish.ThermalFan;
 import com.intel.podm.business.entities.redfish.ThermalTemperature;
-import com.intel.podm.business.entities.redfish.ThermalZone;
 import com.intel.podm.business.entities.redfish.Zone;
 import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
@@ -71,8 +82,8 @@ public class LinkerCollectionProducer {
         register(Chassis.class, Chassis.class, "containsChassis", Chassis::addContainedChassis);
         register(Chassis.class, ComputerSystem.class, "computerSystems", Chassis::addComputerSystem);
         register(Chassis.class, EthernetSwitch.class, "containsSwitches", Chassis::addEthernetSwitch);
-        register(Chassis.class, ThermalZone.class, "thermalZones", Chassis::addThermalZone);
-        register(Chassis.class, PowerZone.class, "powerZones", Chassis::addPowerZone);
+        register(Chassis.class, Power.class, "poweredBy", Chassis::addPoweredBy);
+        register(Chassis.class, Thermal.class, "cooledBy", Chassis::addCooledBy);
         register(Chassis.class, Drive.class, "drives", Chassis::addDrive);
         register(Chassis.class, Storage.class, "storage", Chassis::addStorage);
         register(Chassis.class, Thermal.class, "thermal", Chassis::setThermal);
@@ -104,15 +115,33 @@ public class LinkerCollectionProducer {
         register(ComputerSystem.class, PcieDevice.class, "pcieDevices", ComputerSystem::addPcieDevice);
         register(ComputerSystem.class, PcieDeviceFunction.class, "pcieFunctions", ComputerSystem::addPcieDeviceFunction);
         register(ComputerSystem.class, NetworkInterface.class, "networkInterfaces", ComputerSystem::addNetworkInterface);
+        register(NetworkInterface.class, NetworkDeviceFunction.class, "networkDeviceFunctions", NetworkInterface::addNetworkDeviceFunction);
+        register(ComputerSystem.class, ComputerSystemMetrics.class, "computerSystemMetrics", ComputerSystem::setComputerSystemMetrics);
+
+        register(Processor.class, ProcessorMetrics.class, "processorMetrics", Processor::setProcessorMetrics);
+
+        register(Memory.class, MemoryMetrics.class, "memoryMetrics", Memory::setMemoryMetrics);
+
         register(Storage.class, Drive.class, "drives", Storage::addDrive);
         register(Storage.class, Drive.class, "devices", Storage::addDrive);
-        register(NetworkInterface.class, NetworkDeviceFunction.class, "networkDeviceFunctions", NetworkInterface::addNetworkDeviceFunction);
+        register(Storage.class, StorageController.class, "storageControllers", Storage::addStorageController);
 
         register(EthernetInterface.class, EthernetSwitchPortVlan.class, "ethernetInterfaceVlans", EthernetInterface::addEthernetSwitchPortVlan);
 
+        register(EthernetSwitch.class, EthernetSwitchAcl.class, "switchAcls", EthernetSwitch::addAcl);
         register(EthernetSwitch.class, EthernetSwitchPort.class, "switchPorts", EthernetSwitch::addPort);
+        register(EthernetSwitch.class, EthernetSwitchMetrics.class, "switchMetrics", EthernetSwitch::setSwitchMetrics);
 
+        register(EthernetSwitchAcl.class, EthernetSwitchAclRule.class, "rules", EthernetSwitchAcl::addRule);
+        register(EthernetSwitchAcl.class, EthernetSwitchPort.class, "boundPorts", EthernetSwitchAcl::addBoundPort);
+        register(EthernetSwitchAcl.class, EthernetSwitchPort.class, "bindActionAllowableValues", EthernetSwitchAcl::addBindActionAllowableValue);
+
+        register(EthernetSwitchAclRule.class, EthernetSwitchPort.class, "forwardMirrorInterface", EthernetSwitchAclRule::setForwardMirrorInterface);
+        register(EthernetSwitchAclRule.class, EthernetSwitchPort.class, "mirrorPortRegion", EthernetSwitchAclRule::addMirrorPort);
+
+        register(EthernetSwitchPort.class, EthernetSwitchPortMetrics.class, "switchPortMetrics", EthernetSwitchPort::setMetrics);
         register(EthernetSwitchPort.class, EthernetSwitchPortVlan.class, "vlans", EthernetSwitchPort::addEthernetSwitchPortVlan);
+        register(EthernetSwitchPort.class, EthernetSwitchStaticMac.class, "staticMacs", EthernetSwitchPort::addEthernetSwitchStaticMac);
         register(EthernetSwitchPort.class, EthernetSwitchPort.class, "portMembers", EthernetSwitchPort::addPortMember);
         register(EthernetSwitchPort.class, EthernetSwitchPortVlan.class, "primaryVlan", EthernetSwitchPort::setPrimaryVlan);
 
@@ -141,6 +170,7 @@ public class LinkerCollectionProducer {
         register(Fabric.class, Endpoint.class, "endpointInFabric", Fabric::addEndpoint);
         register(Fabric.class, Switch.class, "switchInFabric", Fabric::addSwitch);
         register(Fabric.class, Zone.class, "zoneInFabric", Fabric::addZone);
+        register(Port.class, PortMetrics.class, "portMetrics", Port::setPortMetrics);
 
         register(Switch.class, Port.class, "portsInFabricSwitch", Switch::addPort);
         register(Switch.class, Chassis.class, "chassisInSwitch", Switch::addChassis);
@@ -158,15 +188,20 @@ public class LinkerCollectionProducer {
 
         register(PcieDeviceFunction.class, PcieDevice.class, "pcieDevice", PcieDeviceFunction::setPcieDevice);
         register(PcieDeviceFunction.class, Drive.class, "functionOfDrives", PcieDeviceFunction::addDrive);
-    }
+        register(PcieDeviceFunction.class, StorageController.class, "functionStorageControllers", PcieDeviceFunction::addStorageController);
+        register(PcieDeviceFunction.class, EthernetInterface.class, "functionEthernetInterfaces", PcieDeviceFunction::addEthernetInterface);
 
-    @Produces
-    public Collection<Linker> create() {
-        return unmodifiableCollection(LINKERS);
+        register(MetricReportDefinition.class, MetricItem.class, "metricsInMetricReportDefinition", MetricReportDefinition::addMetricItem);
+        register(MetricItem.class, MetricDefinition.class, "metricDefinitionsInMetrics", MetricItem::setMetricDefinition);
     }
 
     private static <S extends Entity, T extends Entity>
     void register(Class<S> sourceClass, Class<T> targetClass, String linkName, Linker.LinkMethod<S, T> method) {
         LINKERS.add(new Linker(sourceClass, targetClass, linkName, method));
+    }
+
+    @Produces
+    public Collection<Linker> create() {
+        return unmodifiableCollection(LINKERS);
     }
 }

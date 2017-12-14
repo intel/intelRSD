@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.intel.podm.rest.resources;
 
+import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
@@ -22,6 +24,7 @@ import javax.ws.rs.core.Context;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Path("/rest/errors")
 @Produces(APPLICATION_JSON)
 public class ErrorResource {

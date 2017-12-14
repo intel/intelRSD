@@ -17,20 +17,20 @@
 package com.intel.podm.services.detection.dhcp.filesystem;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.intel.podm.common.logger.LoggerFactory.getLogger;
 import static java.nio.file.Files.lines;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 public class ServicesFileReader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServicesFileReader.class);
+    private static final Logger LOGGER = getLogger(ServicesFileReader.class);
 
     private Path filePath;
 

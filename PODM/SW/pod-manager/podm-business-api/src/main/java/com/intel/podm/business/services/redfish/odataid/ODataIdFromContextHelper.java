@@ -18,16 +18,20 @@ package com.intel.podm.business.services.redfish.odataid;
 
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.context.ContextType;
-import com.intel.podm.business.services.context.ContextTypeToResourceNameMapper;
+import com.intel.podm.business.services.context.ContextTypeToEmbeddableMapper;
 import com.intel.podm.common.types.Id;
 
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromString;
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -35,6 +39,7 @@ import static java.util.stream.Collectors.toSet;
  */
 public final class ODataIdFromContextHelper {
     private static final ContextTypeToResourceNameMapper RESOURCE_NAME_MAPPER = new ContextTypeToResourceNameMapper();
+    private static final ContextTypeToEmbeddableMapper CONTEXT_EMBEDDABLE_MAPPER = new ContextTypeToEmbeddableMapper();
 
     private ODataIdFromContextHelper() {
     }
@@ -45,15 +50,30 @@ public final class ODataIdFromContextHelper {
             : buildODataId(context);
     }
 
-    public static Set<ODataId> asOdataIdSet(Set<Context> contexts) {
-        return contexts == null ? emptySet() : asOdataIdSet(contexts.stream().toArray(Context[]::new));
+    public static Collection<ODataId> asOdataIdCollection(Collection<Context> contexts) {
+        return contexts == null ? emptyList() : asOdataIdList(contexts.stream().toArray(Context[]::new));
     }
 
-    private static Set<ODataId> asOdataIdSet(Context... contexts) {
-        return Arrays.stream(contexts)
+    public static List<ODataId> asOdataIdList(List<Context> contexts) {
+        return contexts == null ? emptyList() : asOdataIdList(contexts.stream().toArray(Context[]::new));
+    }
+
+    private static List<ODataId> asOdataIdList(Context... contexts) {
+        return stream(contexts)
             .filter(Objects::nonNull)
             .map(ODataIdFromContextHelper::asOdataId)
-            .collect(toSet());
+            .collect(toList());
+    }
+
+    public static Set<ODataId> asOdataIdSet(Set<Context> contexts) {
+        if (contexts == null) {
+            return emptySet();
+        } else {
+            return contexts.stream()
+                .filter(Objects::nonNull)
+                .map(ODataIdFromContextHelper::asOdataId)
+                .collect(toSet());
+        }
     }
 
     public static ODataId oDataIdOfCollectionInContext(Context context, ContextType collectionType) {
@@ -63,6 +83,15 @@ public final class ODataIdFromContextHelper {
 
     public static ODataId oDataIdOfResourceInContext(Context context, String resourceName) {
         return oDataIdFromString(format("%s/%s", buildODataId(context), resourceName));
+    }
+
+    public static ODataId oDataIdOfServiceRoot() {
+        return oDataIdFromString("/redfish/v1");
+    }
+
+    private static ODataId build(ODataId parent, ContextType type, Id id) {
+        String resourceName = RESOURCE_NAME_MAPPER.get(type);
+        return oDataIdFromString(format(CONTEXT_EMBEDDABLE_MAPPER.isEmbeddable(type) ? "%s#/%s/%s" : "%s/%s/%s", parent, resourceName, id));
     }
 
     private static ODataId buildODataId(Context context) {
@@ -78,14 +107,5 @@ public final class ODataIdFromContextHelper {
         Id id = context.getId();
 
         return build(parent, type, id);
-    }
-
-    static ODataId oDataIdOfServiceRoot() {
-        return oDataIdFromString("/redfish/v1");
-    }
-
-    private static ODataId build(ODataId parent, ContextType type, Id id) {
-        String resourceName = RESOURCE_NAME_MAPPER.get(type);
-        return oDataIdFromString(format("%s/%s/%s", parent, resourceName, id));
     }
 }

@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.subresources.legacy;
 
 import com.intel.podm.business.entities.redfish.StorageController;
-import com.intel.podm.client.api.resources.legacy.AdapterResource;
+import com.intel.podm.client.resources.legacy.AdapterResource;
 import com.intel.podm.mappers.subresources.SubresourceMapper;
 import com.intel.podm.mappers.subresources.strategies.EntityCleanAndCreateStrategy;
 

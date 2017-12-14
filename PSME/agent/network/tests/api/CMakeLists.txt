@@ -16,5 +16,4 @@
 #
 # </license_header>
 
-add_subdirectory(dcrp)
-add_subdirectory(lldp)
+#add_subdirectory(lldp)

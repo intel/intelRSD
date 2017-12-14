@@ -26,6 +26,7 @@ import com.intel.podm.redfish.json.templates.actions.AttachEndpointJson;
 import com.intel.podm.redfish.json.templates.actions.DetachEndpointJson;
 import com.intel.podm.redfish.json.templates.actions.ResetActionJson;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -34,10 +35,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceActionBuilder;
+import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ComposedNodeActionsResource extends BaseResource {
     @Inject
@@ -54,7 +57,7 @@ public class ComposedNodeActionsResource extends BaseResource {
 
     @Override
     public Object get() {
-        throw notFound();
+        throw invalidHttpMethod();
     }
 
     @POST
@@ -84,5 +87,10 @@ public class ComposedNodeActionsResource extends BaseResource {
     public Response detachEndpoint(DetachEndpointJson detachEndpointJson) throws TimeoutException, BusinessApiException {
         detachEndpointRequestActionService.perform(getCurrentContext(), detachEndpointJson);
         return noContent().build();
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceActionBuilder().build();
     }
 }

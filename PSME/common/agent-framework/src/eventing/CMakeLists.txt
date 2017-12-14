@@ -20,10 +20,7 @@ set(SOURCES
     event_dispatcher.cpp
     event_data.cpp
     events_queue.cpp
-)
-
-include_directories(SYSTEM
-    ${COMMON_INCLUDE_DIRS}
+    component_notification.cpp
 )
 
 add_library(eventing OBJECT ${SOURCES})

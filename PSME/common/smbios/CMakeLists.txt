@@ -19,19 +19,17 @@
 cmake_minimum_required(VERSION 2.8)
 project(Smbios CXX)
 
-if (CMAKE_CROSSCOMPILING)
-    message(WARNING "Not supported for crosscompiling.")
-    return()
-endif()
-
 set(SMBIOS_LIBRARIES
+	generic_mdr
         )
+
 set(SMBIOS_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         CACHE PATH "Smbios include directory"
         )
 
 include_directories(
+	${GENERIC_MDR_INCLUDE_DIRS}
         include
         )
 
@@ -41,9 +39,15 @@ include_directories(SYSTEM
 
 add_library(smbios STATIC
         src/smbios_parser.cpp
-
+        src/smbios_entry_point.cpp
+        src/smbios_21_entry_point.cpp
+        src/smbios_30_entry_point.cpp
         src/utilities/conversions.cpp
         )
+
+target_link_libraries(smbios
+	${SMBIOS_LIBRARIES}
+	)
 
 install(TARGETS smbios
         RUNTIME DESTINATION bin

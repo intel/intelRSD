@@ -16,8 +16,10 @@
 
 package com.intel.podm.business.services.context;
 
+import com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.redfish.NavigationProperty;
+import com.intel.podm.common.types.redfish.OdataIdProvider;
 
 import java.util.Objects;
 
@@ -29,7 +31,7 @@ import static java.util.Objects.hash;
 /**
  * Represents path to Entity located in Entity Tree.
  */
-public final class Context implements NavigationProperty {
+public final class Context implements NavigationProperty, OdataIdProvider {
     private final Id id;
     private final ContextType type;
     private final Context parent;
@@ -117,5 +119,10 @@ public final class Context implements NavigationProperty {
         }
 
         return hasParentOfTypeOnTopOf(context.getParent(), possibleParentType);
+    }
+
+    @Override
+    public ODataId asOdataId() {
+        return ODataIdFromContextHelper.asOdataId(this);
     }
 }

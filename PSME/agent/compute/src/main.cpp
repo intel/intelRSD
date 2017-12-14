@@ -21,19 +21,12 @@
 #include "agent-framework/registration/amc_connection_manager.hpp"
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
-#include "agent-framework/state_machine/state_machine_thread.hpp"
 #include "agent-framework/module/common_components.hpp"
 
 #include "agent-framework/eventing/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 
-#include "agent-framework/command-ref/command_server.hpp"
-
-#include "discovery/discovery_manager.hpp"
-#include "status/status_manager.hpp"
-#include "status/state_machine_action.hpp"
-#include "status/system_power_state_thread.hpp"
-#include "status/system_boot_options_thread.hpp"
+#include "agent-framework/command/command_server.hpp"
 
 #include "logger/logger_factory.hpp"
 #include "agent-framework/logger_loader.hpp"
@@ -43,15 +36,20 @@
 #include "configuration/configuration_validator.hpp"
 #include "default_configuration.hpp"
 
-#include <jsonrpccpp/server/connectors/httpserver.h>
+#include "json-rpc/connectors/http_server_connector.hpp"
 
 #include <csignal>
 
-using namespace std;
+#include "status/bmc.hpp"
+#include "status/gpio/gpio_manager.hpp"
+#include "ipmi/manager/ipmitool/management_controller.hpp"
+#include "ipmi/command/generic/get_device_id.hpp"
+
+
+
 using namespace agent::compute::status;
 using namespace agent_framework;
 using namespace agent_framework::generic;
-using namespace agent_framework::state_machine;
 using namespace logger_cpp;
 using namespace configuration;
 
@@ -65,25 +63,43 @@ using agent::generic::DEFAULT_FILE;
 
 using agent_framework::module::CommonComponents;
 
+namespace {
+
+#define ENABLE_CONFIGURATION_ENCRYPTION // Enable by default.
+
+#ifdef ENABLE_CONFIGURATION_ENCRYPTION
+
+
+inline std::string decrypt_value(const std::string& value) {
+    return configuration::Configuration::get_instance().decrypt_value(value);
+}
+
+
+#else
+inline std::string decrypt_value(const std::string& value) {
+        return value;
+    }
+#endif
+
+}
+
 static constexpr unsigned int DEFAULT_SERVER_PORT = 7777;
 
-void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action);
+
 const json::Value& init_configuration(int argc, const char** argv);
+
+
 bool check_configuration(const json::Value& json);
+
+
+BmcCollection load_bmcs(const json::Value& configuration);
+
 
 /*!
  * @brief PSME SDV Compute Agent main method.
  * */
 int main(int argc, const char* argv[]) {
-    using agent::compute::StateMachineAction;
-    using StateMachineActionUnique = unique_ptr<StateMachineAction>;
-
-    unsigned int server_port = DEFAULT_SERVER_PORT;
-
-    StateMachineThreadUniquePtr state_machine_thread_u_ptr = nullptr;
-    StateMachineActionUnique state_action = nullptr;
-    SystemPowerStateThreadUniquePtr system_power_state_thread_u_ptr = nullptr;
-    SystemBootOptionsThreadUniquePtr system_boot_options_thread_u_ptr = nullptr;
+    std::uint16_t server_port = DEFAULT_SERVER_PORT;
 
     /* Initialize configuration */
     const json::Value& configuration = ::init_configuration(argc, argv);
@@ -91,7 +107,7 @@ int main(int argc, const char* argv[]) {
         return -1;
     }
 
-    ::agent::compute::loader::ComputeLoader module_loader{};
+    agent::compute::loader::ComputeLoader module_loader{};
     if (!module_loader.load(configuration)) {
         std::cerr << "Invalid modules configuration" << std::endl;
         return -2;
@@ -103,44 +119,47 @@ int main(int argc, const char* argv[]) {
     LoggerFactory::set_main_logger_name("agent");
     log_info(GET_LOGGER("compute-agent"), "Running SDV PSME Compute Agent.\n");
 
-    EventDispatcher event_dispatcher;
+    try {
+        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
+    }
+    catch (const json::Value::Exception& e) {
+        log_error("compute-agent", "Cannot read server port: " << e.what());
+    }
+
+    RegistrationData registration_data{configuration};
+
+    EventDispatcher event_dispatcher{};
     event_dispatcher.start();
 
-    AmcConnectionManager amc_connection(event_dispatcher);
+    AmcConnectionManager amc_connection(event_dispatcher, registration_data);
     amc_connection.start();
 
     /* Initialize command server */
-    jsonrpc::HttpServer http_server((int(server_port)));
-    agent_framework::command_ref::CommandServer server(http_server);
-    server.add(command_ref::Registry::get_instance()->get_commands());
-    server.start();
+    auto http_server_connector = new json_rpc::HttpServerConnector(server_port, registration_data.get_ipv4_address());
+    json_rpc::AbstractServerConnectorPtr http_server(http_server_connector);
+    agent_framework::command::CommandServer server(http_server);
+    server.add(command::Registry::get_instance()->get_commands());
+    bool server_started = server.start();
+    if (!server_started) {
+        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+            << server_port << " restricted to " << registration_data.get_ipv4_address()
+            << ". " << "Quitting now...");
+        amc_connection.stop();
+        event_dispatcher.stop();
+        return -3;
+    }
 
     try {
-        state_action.reset(new StateMachineAction());
+        auto bmcs = load_bmcs(configuration);
 
-        /* Start state machine */
-        state_machine_thread_u_ptr.reset(new StateMachineThread());
-
-        ::add_state_machine_entries(state_machine_thread_u_ptr.get(), *state_action);
-        /* Start RPC Client */
-
-        system_power_state_thread_u_ptr.reset(new SystemPowerStateThread());
-        system_power_state_thread_u_ptr->start();
-
-        system_boot_options_thread_u_ptr.reset(new SystemBootOptionsThread());
-        system_boot_options_thread_u_ptr->start();
-
-        state_machine_thread_u_ptr->start();
+        /* Stop the program and wait for interrupt */
+        wait_for_interrupt();
+        log_info(GET_LOGGER("compute-agent"), "Stopping SDV PSME Compute Agent.\n");
     }
     catch (const std::exception& e) {
         log_error(GET_LOGGER("compute-agent"), e.what());
         return -10;
     }
-
-    /* Stop the program and wait for interrupt */
-    wait_for_interrupt();
-
-    log_info(GET_LOGGER("compute-agent"), "Stopping SDV PSME Compute Agent.\n");
 
     /* Cleanup */
     server.stop();
@@ -150,12 +169,12 @@ int main(int argc, const char* argv[]) {
     LoggerFactory::cleanup();
 
     return 0;
-
 }
+
 
 const json::Value& init_configuration(int argc, const char** argv) {
     log_info(GET_LOGGER("compute-agent"),
-        agent_framework::generic::Version::build_info());
+             agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
     basic_config.set_default_file(DEFAULT_FILE);
@@ -169,18 +188,7 @@ const json::Value& init_configuration(int argc, const char** argv) {
     return basic_config.to_json();
 }
 
-void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action) {
-    auto keys = CommonComponents::get_instance()->get_module_manager().get_keys();
 
-    for (const auto& key : keys) {
-        auto entry = CommonComponents::get_instance()->get_module_manager().get_entry(key);
-        auto status_manager = std::make_shared<::agent::compute::status::StatusManager>(
-                entry.get_slot(), entry.get_connection_data().get_ip_address(), key);
-        auto state_thread_entry = std::make_shared<StateThreadEntry>(key, status_manager);
-        auto module_thread = std::make_shared<StateMachineModuleThread>(state_thread_entry, action);
-        machine_thread->add_module_thread(module_thread);
-    }
-}
 bool check_configuration(const json::Value& json) {
     json::Value json_schema;
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
@@ -194,9 +202,50 @@ bool check_configuration(const json::Value& json) {
         validator.validate(json, errors);
         if (!errors.is_valid()) {
             std::cerr << "Configuration invalid: " <<
-                         errors.to_string() << std::endl;
+                      errors.to_string() << std::endl;
             return false;
         }
     }
     return true;
+}
+
+
+BmcCollection load_bmcs(const json::Value& config) {
+    BmcCollection bmcs{};
+    Bmc::Duration state_update_interval = GpioManager::get_instance()->get_minimal_update_interval();
+    for (const auto& manager : config["managers"]) {
+        auto slot = manager["slot"].as_uint();
+        auto read_presence_fn = [slot]() {
+            log_debug(GET_LOGGER("compute-agent"), "reading presence on slot: " << slot);
+            return GpioManager::get_instance()->is_present(uint8_t(slot));
+        };
+
+        ConnectionData connection{};
+        connection.set_ip_address(manager["ipv4"].as_string());
+        connection.set_username(decrypt_value(manager["username"].as_string()));
+        connection.set_password(decrypt_value(manager["password"].as_string()));
+        connection.set_port(manager["port"].as_uint());
+        ipmi::manager::ipmitool::ManagementController mc{
+            connection.get_ip_address(), connection.get_port(),
+            connection.get_username(), connection.get_password()
+        };
+
+        auto read_online_state_fn = [mc]() mutable {
+            try {
+                log_debug(GET_LOGGER("compute-agent"), "reading online state...");
+                ipmi::command::generic::response::GetDeviceId device_rsp{};
+                mc.send(ipmi::command::generic::request::GetDeviceId{}, device_rsp);
+                return true;
+            }
+            catch (std::exception& e) {
+                log_debug(GET_LOGGER("compute-agent"), "reading online state error: " << e.what());
+            }
+            return false;
+        };
+        bmcs.push_back(Bmc::Ptr(new agent::compute::Bmc(connection, state_update_interval, read_presence_fn, read_online_state_fn)));
+    }
+    if (bmcs.empty()) {
+        throw std::runtime_error("Invalid modules configuration");
+    }
+    return bmcs;
 }

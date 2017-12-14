@@ -1,16 +1,122 @@
-diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/ipmi_intf.c ipmitool-1.8.17_patched/src/plugins/ipmi_intf.c
---- ipmitool-1.8.17/src/plugins/ipmi_intf.c	2016-05-06 16:48:54.000000000 +0200
-+++ ipmitool-1.8.17_patched/src/plugins/ipmi_intf.c	2016-10-18 05:07:01.351321383 +0200
-@@ -125,6 +125,9 @@
- 	NULL
- };
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/config.h.in ipmitool-1.8.17_patched/config.h.in
+--- ipmitool-1.8.17/config.h.in	2016-05-06 16:52:09.000000000 +0200
++++ ipmitool-1.8.17_patched/config.h.in	2017-03-28 12:37:53.503624867 +0200
+@@ -181,11 +181,13 @@
+ /* Define to 1 to enable serial interface. */
+ #undef IPMI_INTF_SERIAL
  
++/* Define to 1 to enable serial oem interface. */
++#undef IPMI_INTF_SERIAL_OEM
++
+ /* Define to 1 to enable USB interface. */
+ #undef IPMI_INTF_USB
+ 
+-/* Define to the sub-directory in which libtool stores uninstalled libraries.
+-   */
++/* Define to the sub-directory where libtool stores uninstalled libraries. */
+ #undef LT_OBJDIR
+ 
+ /* Name of package */
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/configure.ac ipmitool-1.8.17_patched/configure.ac
+--- ipmitool-1.8.17/configure.ac	2016-05-06 16:51:58.000000000 +0200
++++ ipmitool-1.8.17_patched/configure.ac	2017-03-28 12:38:07.047624838 +0200
+@@ -247,14 +247,17 @@
+ 	[xenable_intf_serial=$enableval], [xenable_intf_serial=yes])
+ if test "x$enable_intf_serial" = "xstatic" || test "x$enable_intf_serial" = "xplugin"; then
+    xenable_intf_serial=yes
++   xenable_intf_serial_oem=yes
+ fi
+ if test "x$xenable_intf_serial" = "xyes"; then
+     AC_DEFINE(IPMI_INTF_SERIAL, [1], [Define to 1 to enable serial interface.])
++    AC_DEFINE(IPMI_INTF_SERIAL_OEM, [1], [Define to 1 to enable serial oem interface.])
+     AC_SUBST(INTF_SERIAL, [serial])
+     AC_SUBST(INTF_SERIAL_LIB, [libintf_serial.la])
+     IPMITOOL_INTF_LIB="$IPMITOOL_INTF_LIB serial/libintf_serial.la"
+ else
+ 	xenable_intf_serial=no
++        xenable_intf_serial_oem=no
+ fi
+ 
+ dnl look for OpenIPMI header files
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/include/ipmitool/ipmi_intf.h ipmitool-1.8.17_patched/include/ipmitool/ipmi_intf.h
+--- ipmitool-1.8.17/include/ipmitool/ipmi_intf.h	2016-05-06 16:48:54.000000000 +0200
++++ ipmitool-1.8.17_patched/include/ipmitool/ipmi_intf.h	2017-04-03 10:24:36.748653266 +0200
+@@ -194,6 +194,7 @@
+ 
+ 	uint8_t devnum;
+ 
++	void *context;
+ 	int (*setup)(struct ipmi_intf * intf);
+ 	int (*open)(struct ipmi_intf * intf);
+ 	void (*close)(struct ipmi_intf * intf);
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/ipmi_externs.c ipmitool-1.8.17_patched/src/plugins/ipmi_externs.c
+--- ipmitool-1.8.17/src/plugins/ipmi_externs.c	1970-01-01 01:00:00.000000000 +0100
++++ ipmitool-1.8.17_patched/src/plugins/ipmi_externs.c	2017-03-28 13:09:46.239620826 +0200
+@@ -0,0 +1,23 @@
++/*!
++ * @copyright
++ * Copyright (c) 2017 Intel Corporation
++ *
++ * @copyright
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * @copyright
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * @copyright
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ * */
++
 +int verbose = 0;
 +int csv_output = 0;
-+
- /* ipmi_intf_print  -  Print list of interfaces
-  *
-  * no meaningful return code
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/ipmi_intf.c ipmitool-1.8.17_patched/src/plugins/ipmi_intf.c
+--- ipmitool-1.8.17/src/plugins/ipmi_intf.c	2016-05-06 16:48:54.000000000 +0200
++++ ipmitool-1.8.17_patched/src/plugins/ipmi_intf.c	2017-03-28 13:08:42.295620961 +0200
+@@ -83,6 +83,9 @@
+ extern struct ipmi_intf ipmi_serial_term_intf;
+ extern struct ipmi_intf ipmi_serial_bm_intf;
+ #endif
++#ifdef IPMI_INTF_SERIAL_OEM
++extern struct ipmi_intf ipmi_serial_oem_intf;
++#endif
+ #ifdef IPMI_INTF_DUMMY
+ extern struct ipmi_intf ipmi_dummy_intf;
+ #endif
+@@ -116,6 +119,9 @@
+ 	&ipmi_serial_term_intf,
+ 	&ipmi_serial_bm_intf,
+ #endif
++#ifdef IPMI_INTF_SERIAL_OEM
++	&ipmi_serial_oem_intf,
++#endif
+ #ifdef IPMI_INTF_DUMMY
+ 	&ipmi_dummy_intf,
+ #endif
+@@ -488,7 +494,7 @@
+ 	/* check if request size is not specified */
+ 	if (!size) {
+ 		/*
+-		 * The IPMB standard overall message length for ‘non -bridging’
++		 * The IPMB standard overall message length for non-bridging
+ 		 * messages is specified as 32 bytes, maximum, including slave
+ 		 * address. This sets the upper limit for typical IPMI messages.
+ 		 * With the exception of messages used for bridging messages to
+@@ -545,7 +551,7 @@
+ 	/* check if response size is not specified */
+ 	if (!size) {
+ 		/*
+-		 * The IPMB standard overall message length for ‘non -bridging’
++		 * The IPMB standard overall message length for non-bridging
+ 		 * messages is specified as 32 bytes, maximum, including slave
+ 		 * address. This sets the upper limit for typical IPMI messages.
+ 		 * With the exception of messages used for bridging messages to
 diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/lan/auth.c ipmitool-1.8.17_patched/src/plugins/lan/auth.c
 --- ipmitool-1.8.17/src/plugins/lan/auth.c	2016-05-06 16:48:54.000000000 +0200
 +++ ipmitool-1.8.17_patched/src/plugins/lan/auth.c	2016-10-18 04:54:42.223330728 +0200
@@ -61,210 +167,1103 @@ diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/lan/auth.c ipmito
  	memset(challenge, 0, 16);
 diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/lan/lan.c ipmitool-1.8.17_patched/src/plugins/lan/lan.c
 --- ipmitool-1.8.17/src/plugins/lan/lan.c	2016-05-06 16:48:54.000000000 +0200
-+++ ipmitool-1.8.17_patched/src/plugins/lan/lan.c	2016-10-18 04:54:23.527330964 +0200
-@@ -82,9 +82,9 @@
++++ ipmitool-1.8.17_patched/src/plugins/lan/lan.c	2017-04-03 15:02:00.368618107 +0200
+@@ -82,9 +82,13 @@
  extern const struct valstr ipmi_authtype_session_vals[];
  extern int verbose;
  
 -struct ipmi_rq_entry * ipmi_req_entries;
 -static struct ipmi_rq_entry * ipmi_req_entries_tail;
 -static uint8_t bridge_possible = 0;
-+static __thread struct ipmi_rq_entry * ipmi_req_entries;
-+static __thread struct ipmi_rq_entry * ipmi_req_entries_tail;
-+static __thread uint8_t bridge_possible = 0;
++struct context {
++	int bridge_possible;
++	struct ipmi_rs rsp;
++	int curr_seq;
++	struct ipmi_rq_entry *request_entries;
++	struct ipmi_rq_entry *request_entries_tail;
++};
  
  static int ipmi_lan_send_packet(struct ipmi_intf * intf, uint8_t * data, int data_len);
  static struct ipmi_rs * ipmi_lan_recv_packet(struct ipmi_intf * intf);
-@@ -147,11 +147,12 @@
+@@ -116,12 +120,14 @@
+ 	.set_max_request_data_size = ipmi_lan_set_max_rq_data_size,
+ 	.set_max_response_data_size = ipmi_lan_set_max_rp_data_size,
+ 	.target_addr = IPMI_BMC_SLAVE_ADDR,
++	.context = NULL
+ };
+ 
+ static struct ipmi_rq_entry *
+ ipmi_req_add_entry(struct ipmi_intf * intf, struct ipmi_rq * req, uint8_t req_seq)
+ {
+-	struct ipmi_rq_entry * e;
++	struct ipmi_rq_entry *e;
++	struct context* ctx = (struct context*)intf->context;
+ 
+ 	e = malloc(sizeof(struct ipmi_rq_entry));
+ 	if (e == NULL) {
+@@ -135,23 +141,24 @@
+ 	e->intf = intf;
+ 	e->rq_seq = req_seq;
+ 
+-	if (ipmi_req_entries == NULL)
+-		ipmi_req_entries = e;
++	if (NULL == ctx->request_entries)
++		ctx->request_entries = e;
+ 	else
+-		ipmi_req_entries_tail->next = e;
++		(ctx->request_entries_tail)->next = e;
+ 
+-	ipmi_req_entries_tail = e;
++	ctx->request_entries_tail = e;
+ 	lprintf(LOG_DEBUG+3, "added list entry seq=0x%02x cmd=0x%02x",
+ 		e->rq_seq, e->req.msg.cmd);
+ 	return e;
  }
  
  static struct ipmi_rq_entry *
 -ipmi_req_lookup_entry(uint8_t seq, uint8_t cmd)
-+ipmi_req_lookup_entry(struct ipmi_intf* intf, uint8_t seq, uint8_t cmd)
++ipmi_req_lookup_entry(struct context* ctx, uint8_t seq, uint8_t cmd)
  {
- 	struct ipmi_rq_entry * e = ipmi_req_entries;
--	while (e && (e->rq_seq != seq || e->req.msg.cmd != cmd)) {
--		if (e->next == NULL || e == e->next)
+-	struct ipmi_rq_entry * e = ipmi_req_entries;
++	struct ipmi_rq_entry *e = ctx->request_entries;
 +
-+	while (e && (e->intf != intf || e->rq_seq != seq || e->req.msg.cmd != cmd)) {
+ 	while (e && (e->rq_seq != seq || e->req.msg.cmd != cmd)) {
+-		if (e->next == NULL || e == e->next)
 +		if (e == e->next)
  			return NULL;
  		e = e->next;
  	}
-@@ -159,13 +160,13 @@
+@@ -159,11 +166,11 @@
  }
  
  static void
 -ipmi_req_remove_entry(uint8_t seq, uint8_t cmd)
-+ipmi_req_remove_entry(struct ipmi_intf* intf, uint8_t seq, uint8_t cmd)
++ipmi_req_remove_entry(struct context* ctx, uint8_t seq, uint8_t cmd)
  {
  	struct ipmi_rq_entry * p, * e, * saved_next_entry;
  
- 	e = p = ipmi_req_entries;
+-	e = p = ipmi_req_entries;
++	e = p = ctx->request_entries;
  
--	while (e && (e->rq_seq != seq || e->req.msg.cmd != cmd)) {
-+	while (e && (e->intf != intf || e->rq_seq != seq || e->req.msg.cmd != cmd)) {
+ 	while (e && (e->rq_seq != seq || e->req.msg.cmd != cmd)) {
  		p = e;
- 		e = e->next;
- 	}
-@@ -187,37 +188,55 @@
- 				ipmi_req_entries_tail = p;
- 			else
- 				ipmi_req_entries_tail = NULL;
--		}
--		if (e->msg_data) {
--			free(e->msg_data);
--			e->msg_data = NULL;
--		}
-+                }
-+                if (e->msg_data) {
-+                    free(e->msg_data);
-+                    e->msg_data = NULL;
-+                }
- 		free(e);
- 		e = NULL;
- 	}
+@@ -175,18 +182,20 @@
+ 		saved_next_entry = e->next;
+ 		p->next = (p->next == e->next) ? NULL : e->next;
+ 		/* If entry being removed is first in list, fix up list head */
+-		if (ipmi_req_entries == e) {
+-			if (ipmi_req_entries != p)
+-				ipmi_req_entries = p;
+-			else
+-				ipmi_req_entries = saved_next_entry;
++		if (ctx->request_entries == e) {
++			if (ctx->request_entries != p) {
++				ctx->request_entries = p;
++			} else {
++				ctx->request_entries = saved_next_entry;
++			}
+ 		}
+ 		/* If entry being removed is last in list, fix up list tail */
+-		if (ipmi_req_entries_tail == e) {
+-			if (ipmi_req_entries_tail != p)
+-				ipmi_req_entries_tail = p;
+-			else
+-				ipmi_req_entries_tail = NULL;
++		if (ctx->request_entries_tail == e) {
++			if (ctx->request_entries_tail != p) {
++				ctx->request_entries_tail = p;
++			} else {
++				ctx->request_entries_tail = NULL;
++			}
+ 		}
+ 		if (e->msg_data) {
+ 			free(e->msg_data);
+@@ -198,11 +207,11 @@
  }
  
  static void
 -ipmi_req_clear_entries(void)
--{
--	struct ipmi_rq_entry * p, * e;
-+ipmi_req_clear_entries(struct ipmi_intf* intf) {
-+    struct ipmi_rq_entry *e = ipmi_req_entries;
-+    struct ipmi_rq_entry *prev = NULL;
-+    struct ipmi_rq_entry *next = NULL;
-+
-+    while (e) {
-+        next = e->next;
-+
-+        /* Is it the node we want to remove? */
-+        if (e->intf == intf) {
-+            if (prev) {
-+                /* Link the previous node to the next one. */
-+                prev->next = next;
-+            } else {
-+                /* If entry being removed is first in list, fix up list head */
-+                ipmi_req_entries = next;
-+            }
-+
-+            /* If entry being removed is last in list, fix up list tail */
-+            if (e == ipmi_req_entries_tail) {
-+                ipmi_req_entries_tail = prev;
-+            }
-+
-+            lprintf(LOG_DEBUG + 3, "cleared list entry seq=0x%02x cmd=0x%02x intf=%p",
-+                    e->rq_seq, e->req.msg.cmd, e->intf);
-+            if (e->msg_data) {
-+                free(e->msg_data);
-+                e->msg_data = NULL;
-+            }
-+            free(e);
-+            e = NULL;
-+        } else {
-+            /* Remember previous visited node */
-+            prev = e;
-+        }
++ipmi_req_clear_entries(struct context* ctx)
+ {
+ 	struct ipmi_rq_entry * p, * e;
  
 -	e = ipmi_req_entries;
--	while (e) {
--		lprintf(LOG_DEBUG+3, "cleared list entry seq=0x%02x cmd=0x%02x",
--			e->rq_seq, e->req.msg.cmd);
--		if (e->next != NULL) {
--			p = e->next;
--			free(e);
--			e = p;
--		} else {
--			free(e);
--			e = NULL;
--			break;
--		}
--	}
++	e = ctx->request_entries;
+ 	while (e) {
+ 		lprintf(LOG_DEBUG+3, "cleared list entry seq=0x%02x cmd=0x%02x",
+ 			e->rq_seq, e->req.msg.cmd);
+@@ -216,8 +225,8 @@
+ 			break;
+ 		}
+ 	}
 -	ipmi_req_entries = NULL;
 -	ipmi_req_entries_tail = NULL;
-+        e = next;
-+    }
++	ctx->request_entries = NULL;
++	ctx->request_entries_tail = NULL;
  }
  
  static int
-@@ -251,7 +270,7 @@
+@@ -251,7 +260,7 @@
  static struct ipmi_rs *
  ipmi_lan_recv_packet(struct ipmi_intf * intf)
  {
 -	static struct ipmi_rs rsp;
-+	static __thread struct ipmi_rs rsp;
++	struct context* ctx = (struct context*)intf->context;
  	fd_set read_set;
  	fd_set err_set;
  	struct timeval tmout;
-@@ -593,7 +612,7 @@
+@@ -280,7 +289,7 @@
+ 	 * regardless of the order they were sent out.  (unless the
+ 	 * response is read before the connection refused is returned)
+ 	 */
+-	ret = recv(intf->fd, &rsp.data, IPMI_BUF_SIZE, 0);
++	ret = recv(intf->fd, &ctx->rsp.data, IPMI_BUF_SIZE, 0);
+ 
+ 	if (ret < 0) {
+ 		FD_ZERO(&read_set);
+@@ -296,7 +305,7 @@
+ 		if (ret < 0 || FD_ISSET(intf->fd, &err_set) || !FD_ISSET(intf->fd, &read_set))
+ 			return NULL;
+ 
+-		ret = recv(intf->fd, &rsp.data, IPMI_BUF_SIZE, 0);
++		ret = recv(intf->fd, &ctx->rsp.data, IPMI_BUF_SIZE, 0);
+ 		if (ret < 0)
+ 			return NULL;
+ 	}
+@@ -304,13 +313,13 @@
+ 	if (ret == 0)
+ 		return NULL;
+ 
+-	rsp.data[ret] = '\0';
+-	rsp.data_len = ret;
++	ctx->rsp.data[ret] = '\0';
++	ctx->rsp.data_len = ret;
+ 
+ 	if (verbose > 2)
+-		printbuf(rsp.data, rsp.data_len, "recv_packet");
++		printbuf(ctx->rsp.data, ctx->rsp.data_len, "recv_packet");
+ 
+-	return &rsp;
++	return &ctx->rsp;
+ }
+ 
+ /*
+@@ -593,11 +602,11 @@
  				rsp->ccode);
  			
  			/* now see if we have outstanding entry in request list */
 -			entry = ipmi_req_lookup_entry(rsp->payload.ipmi_response.rq_seq,
-+			entry = ipmi_req_lookup_entry(intf, rsp->payload.ipmi_response.rq_seq,
++			entry = ipmi_req_lookup_entry(intf->context, rsp->payload.ipmi_response.rq_seq,
  						      rsp->payload.ipmi_response.cmd);
  			if (entry) {
  				lprintf(LOG_DEBUG+2, "IPMI Request Match found");
-@@ -614,7 +633,7 @@
+-				if ((intf->target_addr != our_address) && bridge_possible) {
++				if ((intf->target_addr != our_address) && ((struct context*)intf->context)->bridge_possible) {
+ 					if ((rsp->data_len) && (rsp->payload.ipmi_response.netfn == 7) &&
+ 					    (rsp->payload.ipmi_response.cmd != 0x34)) {
+ 						if (verbose > 2)
+@@ -610,11 +619,16 @@
+ 					    rsp->payload.ipmi_response.cmd == 0x34) {
+ 						entry->bridging_level--;
+ 						if (rsp->data_len - x - 1 == 0) {
+-							rsp = !rsp->ccode ? ipmi_lan_recv_packet(intf) : NULL;
++							if (!rsp->ccode) {
++								lprintf(LOG_DEBUG+1, " ipmi_lan_recv_packet for bridged msg");
++								rsp = ipmi_lan_recv_packet(intf);
++							} else {
++								rsp = NULL;
++							}
  							if (!entry->bridging_level)
  								entry->req.msg.cmd = entry->req.msg.target_cmd;
  							if (rsp == NULL) {
 -								ipmi_req_remove_entry(entry->rq_seq, entry->req.msg.cmd);
-+								ipmi_req_remove_entry(intf, entry->rq_seq, entry->req.msg.cmd);
++								ipmi_req_remove_entry(intf->context, entry->rq_seq, entry->req.msg.cmd);
  							}
  							continue;
  						} else {
-@@ -637,7 +656,7 @@
+@@ -637,7 +651,7 @@
  								rsp->data[x-1]);
  					}
  				}
 -				ipmi_req_remove_entry(rsp->payload.ipmi_response.rq_seq,
-+				ipmi_req_remove_entry(intf, rsp->payload.ipmi_response.rq_seq,
++				ipmi_req_remove_entry(intf->context, rsp->payload.ipmi_response.rq_seq,
  						      rsp->payload.ipmi_response.cmd);
  			} else {
  				lprintf(LOG_INFO, "IPMI Request Match NOT FOUND");
-@@ -704,7 +723,7 @@
+@@ -704,17 +718,18 @@
  	int cs2 = 0, cs3 = 0;
  	struct ipmi_rq_entry * entry;
  	struct ipmi_session * s = intf->session;
 -	static int curr_seq = 0;
-+	static __thread int curr_seq = 0;
++	struct context* ctx = (struct context*)intf->context;
  	uint8_t our_address = intf->my_addr;
  
  	if (our_address == 0)
-@@ -722,7 +741,7 @@
+ 		our_address = IPMI_BMC_SLAVE_ADDR;
+ 
+-	if (isRetry == 0)
+-		curr_seq++;
++	if (isRetry == 0) {
++		ctx->curr_seq++;
++	}
+ 
+-	if (curr_seq >= 64)
+-		curr_seq = 0;
++	if (ctx->curr_seq >= 64)
++		ctx->curr_seq = 0;
+ 
+ 	// Bug in the existing code where it keeps on adding same command/seq pair 
+ 	// in the lookup entry list.
+@@ -722,7 +737,7 @@
  	// the seq number we have to re-use the node which has existing
  	// command and sequence number. If we add then we will have redundant node with
  	// same cmd,seq pair
 -	entry = ipmi_req_lookup_entry(curr_seq, req->msg.cmd);
-+	entry = ipmi_req_lookup_entry(intf, curr_seq, req->msg.cmd);
++	entry = ipmi_req_lookup_entry(intf->context, ctx->curr_seq, req->msg.cmd);
  	if (entry)
  	{
  		// This indicates that we have already same command and seq in list
-@@ -930,7 +949,7 @@
+@@ -738,7 +753,7 @@
+ 	{
+ 		// We dont have this request in the list so we can add it 
+ 		// to the list
+-		entry = ipmi_req_add_entry(intf, req, curr_seq);
++		entry = ipmi_req_add_entry(intf, req, ctx->curr_seq);
+ 		if (entry == NULL)
+ 			return NULL;
+ 	}
+@@ -777,7 +792,7 @@
+ 	}
+ 
+ 	/* message length */
+-	if ((intf->target_addr == our_address) || !bridge_possible) {
++	if ((intf->target_addr == our_address) || !((struct context*)intf->context)->bridge_possible) {
+ 		entry->bridging_level = 0;
+ 		msg[len++] = req->msg.data_len + 7;
+ 		cs = mp = len;
+@@ -793,7 +808,7 @@
+ 		msg[len++] = ipmi_csum(msg+cs, tmp);
+ 		cs2 = len;
+ 		msg[len++] = IPMI_REMOTE_SWID;
+-		msg[len++] = curr_seq << 2;
++		msg[len++] = ctx->curr_seq << 2;
+ 		msg[len++] = 0x34;			/* Send Message rqst */
+ 		entry->req.msg.target_cmd = entry->req.msg.cmd;	/* Save target command */
+ 		entry->req.msg.cmd = 0x34;		/* (fixup request entry) */
+@@ -801,8 +816,8 @@
+ 		if (intf->transit_addr == intf->my_addr || intf->transit_addr == 0) {
+ 		        msg[len++] = (0x40|intf->target_channel); /* Track request*/
+ 		} else {
+-		        entry->bridging_level++;
+-               		msg[len++] = (0x40|intf->transit_channel); /* Track request*/
++			entry->bridging_level++;
++			msg[len++] = (0x40|intf->transit_channel); /* Track request*/
+ 			cs = len;
+ 			msg[len++] = intf->transit_addr;
+ 			msg[len++] = IPMI_NETFN_APP << 2;
+@@ -810,7 +825,7 @@
+ 			msg[len++] = ipmi_csum(msg+cs, tmp);
+ 			cs3 = len;
+ 			msg[len++] = intf->my_addr;
+-			msg[len++] = curr_seq << 2;
++			msg[len++] = ctx->curr_seq << 2;
+ 			msg[len++] = 0x34;			/* Send Message rqst */
+ 			msg[len++] = (0x40|intf->target_channel); /* Track request */
+ 		}
+@@ -830,7 +845,7 @@
+ 	else if (entry->bridging_level) 
+ 		msg[len++] = intf->my_addr;
+    
+-	entry->rq_seq = curr_seq;
++	entry->rq_seq = ctx->curr_seq;
+ 	msg[len++] = entry->rq_seq << 2;
+ 	msg[len++] = req->msg.cmd;
+ 
+@@ -930,7 +945,7 @@
  		if (ipmi_lan_send_packet(intf, entry->msg_data, entry->msg_len) < 0) {
  			try++;
  			usleep(5000);
 -			ipmi_req_remove_entry(entry->rq_seq, entry->req.msg.target_cmd);	
-+			ipmi_req_remove_entry(intf, entry->rq_seq, entry->req.msg.target_cmd);
++			ipmi_req_remove_entry(intf->context, entry->rq_seq, entry->req.msg.target_cmd);
  			continue;
  		}
  
-@@ -984,7 +1003,7 @@
+@@ -984,7 +999,7 @@
  	//                   <-- [23, 10]
  	//  here if we maintain 23,10 in the list then it will get matched and consider
  	//  23 response as response for 2D.   
 -	ipmi_req_clear_entries();
-+	ipmi_req_clear_entries(intf);
++	ipmi_req_clear_entries(intf->context);
   
  	return rsp;
  }
-@@ -2014,7 +2033,7 @@
+@@ -1860,7 +1875,7 @@
+ 	struct ipmi_rs * rsp;
+ 	struct ipmi_rq req;
+ 	uint8_t privlvl = intf->ssn_params.privlvl;
+-	uint8_t backup_bridge_possible = bridge_possible;
++	uint8_t backup_bridge_possible = ((struct context*)intf->context)->bridge_possible;
+ 
+ 	if (privlvl <= IPMI_SESSION_PRIV_USER)
+ 		return 0;	/* no need to set higher */
+@@ -1871,9 +1886,9 @@
+ 	req.msg.data		= &privlvl;
+ 	req.msg.data_len	= 1;
+ 
+-	bridge_possible = 0;
++	((struct context*)intf->context)->bridge_possible = 0;
+ 	rsp = intf->sendrecv(intf, &req);
+-	bridge_possible = backup_bridge_possible;
++	((struct context*)intf->context)->bridge_possible = backup_bridge_possible;
+ 
+ 	if (rsp == NULL) {
+ 		lprintf(LOG_ERR, "Set Session Privilege Level to %s failed",
+@@ -1908,7 +1923,7 @@
+ 		return -1;
+ 
+ 	intf->target_addr = IPMI_BMC_SLAVE_ADDR;
+-	bridge_possible = 0;  /* Not a bridge message */
++	((struct context*)intf->context)->bridge_possible = 0;  /* Not a bridge message */
+ 
+ 	memcpy(&msg_data, &session_id, 4);
+ 
+@@ -2014,7 +2029,12 @@
  		intf->fd = -1;
  	}
  
 -	ipmi_req_clear_entries();
-+	ipmi_req_clear_entries(intf);
++	ipmi_req_clear_entries(intf->context);
++	if (intf->context) {
++		free(intf->context);
++		intf->context = NULL;
++	}
++
  	ipmi_intf_session_cleanup(intf);
  	intf->opened = 0;
  	intf->manufacturer_id = IPMI_OEM_UNKNOWN;
+@@ -2028,8 +2048,22 @@
+ 	struct ipmi_session *s;
+ 	struct ipmi_session_params *p;
+ 
+-	if (intf == NULL || intf->opened)
++	if (intf == NULL || intf->opened) {
+ 		return -1;
++	}
++
++	if (NULL == intf->context) {
++		intf->context = malloc(sizeof(struct context));
++		if (!intf->context) {
++			lprintf(LOG_ERR, "ipmitool: malloc failure");
++			goto fail;
++		}
++		memset(intf->context, 0, sizeof(struct context));
++	}
++	struct context* ctx = (struct context*)intf->context;
++	ctx->bridge_possible = 0;
++	ctx->curr_seq = 0;
++	ipmi_req_clear_entries(ctx);
+ 
+ 	s = intf->session;
+ 	p = &intf->ssn_params;
+@@ -2086,7 +2120,8 @@
+ 	intf->manufacturer_id = ipmi_get_oem(intf);
+ 
+ 	/* now allow bridging */
+-	bridge_possible = 1;
++	ctx->bridge_possible = 1;
++
+ 	return intf->fd;
+ 
+  fail:
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/serial/Makefile.am ipmitool-1.8.17_patched/src/plugins/serial/Makefile.am
+--- ipmitool-1.8.17/src/plugins/serial/Makefile.am	2016-05-06 16:48:54.000000000 +0200
++++ ipmitool-1.8.17_patched/src/plugins/serial/Makefile.am	2017-03-28 12:37:36.855624902 +0200
+@@ -35,4 +35,4 @@
+ EXTRA_LTLIBRARIES	= libintf_serial.la
+ noinst_LTLIBRARIES	= @INTF_SERIAL_LIB@
+ libintf_serial_la_LIBADD	= $(top_builddir)/lib/libipmitool.la
+-libintf_serial_la_SOURCES	= serial_terminal.c serial_basic.c
++libintf_serial_la_SOURCES	= serial_terminal.c serial_basic.c serial_oem.c
+diff -Naur --ignore-trailing-space ipmitool-1.8.17/src/plugins/serial/serial_oem.c ipmitool-1.8.17_patched/src/plugins/serial/serial_oem.c
+--- ipmitool-1.8.17/src/plugins/serial/serial_oem.c	1970-01-01 01:00:00.000000000 +0100
++++ ipmitool-1.8.17_patched/src/plugins/serial/serial_oem.c	2017-03-28 12:37:15.247624948 +0200
+@@ -0,0 +1,679 @@
++/*!
++ * @copyright
++ * Copyright (c) 2017 Intel Corporation
++ *
++ * @copyright
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * @copyright
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * @copyright
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ *
++ * */
++#define _GNU_SOURCE 1
++
++/* Serial Interface, oem plugin. */
++
++#include <alloca.h>
++#include <stdio.h>
++#include <fcntl.h>
++#include <time.h>
++#include <unistd.h>
++#include <sys/ioctl.h>
++#include <errno.h>
++#include <stdlib.h>
++#include <string.h>
++#include <ctype.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <poll.h>
++#include <termios.h>
++
++#include <ipmitool/ipmi.h>
++#include <ipmitool/ipmi_intf.h>
++#include <ipmitool/helper.h>
++#include <ipmitool/log.h>
++
++#if defined(HAVE_CONFIG_H)
++#include <config.h>
++#endif
++
++#define SERIAL_MAX_MSG_SIZE 250
++#define SERIAL_MAX_RQ_SIZE 243
++#define SERIAL_MAX_RS_SIZE 242
++#define SERIAL_TIMEOUT 2
++#define SERIAL_RETRY_COUNT 5
++
++/*
++ *	IPMB message header
++ */
++struct ipmb_msg_hdr {
++    unsigned char rsSA;
++    unsigned char netFn; /* NET FN | RS LUN */
++    unsigned char csum1;
++    unsigned char rqSA;
++    unsigned char rqSeq; /* RQ SEQ | RQ LUN */
++    unsigned char cmd;
++    unsigned char data[0];
++};
++
++#ifdef HAVE_PRAGMA_PACK
++#pragma pack(1)
++#endif
++struct serial_oem_hdr {
++	uint8_t netFn;
++	uint8_t seq;
++	uint8_t cmd;
++} ATTRIBUTE_PACKING;
++#ifdef HAVE_PRAGMA_PACK
++#pragma pack(0)
++#endif
++
++#define IPMB_MSG_HDR_SIZE 6
++#define IPMB_MSG_HDR_WITH_CHECKSUM_SIZE 7
++#define CC_SIZE 1
++
++/*
++ *	Send Message command request for IPMB-format
++ */
++struct ipmi_send_message_req {
++    unsigned char channel;
++    struct ipmb_msg_hdr msg;
++};
++
++/*
++ *	Sending context
++ */
++struct serial_request_ctx {
++    uint8_t rsSA;
++    uint8_t netFn;
++    uint8_t rqSA;
++    uint8_t rqSeq;
++    uint8_t cmd;
++    int (*match_response)(struct serial_request_ctx*, uint8_t*, int*);
++};
++
++/*
++ *	Table of supported baud rates
++ */
++static const struct {
++    int baudinit;
++    int baudrate;
++} rates[] = {
++    { B2400, 2400},
++    { B9600, 9600},
++    { B19200, 19200},
++    { B38400, 38400},
++    { B57600, 57600},
++    { B115200, 115200},
++    { B230400, 230400},
++#ifdef B460800
++    { B460800, 460800},
++#endif
++};
++
++/*
++ *	Setup serial interface
++ */
++static int
++serial_setup(struct ipmi_intf * intf) {
++    /* setup default maximum request and response sizes */
++    intf->max_request_data_size = SERIAL_MAX_RQ_SIZE;
++    intf->max_response_data_size = SERIAL_MAX_RS_SIZE;
++
++    return 0;
++}
++
++/*
++ *	Open serial interface
++ */
++static int
++serial_open(struct ipmi_intf * intf) {
++    struct termios ti;
++    unsigned int rate = 115200;
++    char *p;
++    int i;
++
++    if (!intf->devfile) {
++        lprintf(LOG_ERR, "Serial device is not specified");
++        return -1;
++    }
++
++    /* check if baud rate is specified */
++    if ((p = strchr(intf->devfile, ':'))) {
++        /* separate device name from baud rate */
++        *p++ = '\0';
++
++        if (str2uint(p, &rate)) {
++            lprintf(LOG_ERR, "Invalid baud rate specified\n");
++            return -1;
++        }
++    }
++
++    intf->fd = open(intf->devfile, O_RDWR | O_NONBLOCK, 0);
++    if (intf->fd < 0) {
++        lperror(LOG_ERR, "Could not open device at %s", intf->devfile);
++        return -1;
++    }
++
++    for (i = 0; i < sizeof (rates) / sizeof (rates[0]); i++) {
++        if (rates[i].baudrate == rate) {
++            break;
++        }
++    }
++    if (i >= sizeof (rates) / sizeof (rates[0])) {
++        lprintf(LOG_ERR, "Unsupported baud rate %i specified", rate);
++        return -1;
++    }
++
++    tcgetattr(intf->fd, &ti);
++
++    cfsetispeed(&ti, rates[i].baudinit);
++    cfsetospeed(&ti, rates[i].baudinit);
++
++    /* 8N1 */
++    ti.c_cflag &= ~PARENB;
++    ti.c_cflag &= ~CSTOPB;
++    ti.c_cflag &= ~CSIZE;
++    ti.c_cflag |= CS8;
++
++    /* enable the receiver and set local mode */
++    ti.c_cflag |= (CLOCAL | CREAD);
++
++    /* no flow control */
++    ti.c_cflag &= ~CRTSCTS;
++    ti.c_iflag &= ~(IGNBRK | IGNCR | INLCR | ICRNL | INPCK | ISTRIP
++            | IXON | IXOFF | IXANY);
++#ifdef IUCLC
++    /* Only disable uppercase-to-lowercase mapping on input for
++       platforms supporting the flag. */
++    ti.c_iflag &= ~(IUCLC);
++#endif
++
++
++    ti.c_oflag &= ~(OPOST);
++    ti.c_lflag &= ~(ICANON | ISIG | ECHO | ECHONL | NOFLSH);
++
++    /* set the new options for the port with flushing */
++    tcsetattr(intf->fd, TCSAFLUSH, &ti);
++
++    if (intf->ssn_params.timeout == 0)
++        intf->ssn_params.timeout = SERIAL_TIMEOUT;
++    if (intf->ssn_params.retry == 0)
++        intf->ssn_params.retry = SERIAL_RETRY_COUNT;
++
++    intf->opened = 1;
++
++    return 0;
++}
++
++/*
++ *	Close serial interface
++ */
++static void
++serial_close(struct ipmi_intf * intf) {
++    if (intf->opened) {
++        close(intf->fd);
++        intf->fd = -1;
++    }
++    ipmi_intf_session_cleanup(intf);
++    intf->opened = 0;
++}
++
++/*
++ *	Allocate sequence number for tracking
++ */
++static uint8_t
++serial_alloc_seq(void) {
++    static __thread uint8_t seq = 0;
++    if (++seq == 64) {
++        seq = 0;
++    }
++    return seq;
++}
++
++/*
++ *	Flush the buffers
++ */
++static int
++serial_flush(struct ipmi_intf * intf) {
++#if defined(TCFLSH)
++    return ioctl(intf->fd, TCFLSH, TCIOFLUSH);
++#elif defined(TIOCFLUSH)
++    return ioctl(intf->fd, TIOCFLUSH);
++#else
++#error "unsupported platform, missing flush support (TCFLSH/TIOCFLUSH)"
++#endif
++}
++
++/*
++ *	Send message to serial port
++ */
++static int
++serial_send_msg(struct ipmi_intf * intf, uint8_t * msg, int msg_len) {
++    int rc = 0;
++
++    if (verbose > 3) {
++        fprintf(stderr, "Sending request:\n");
++        fprintf(stderr, "  NetFN/rsLUN  = 0x%x\n", msg[0]);
++        fprintf(stderr, "  seq          = 0x%x\n", msg[1]);
++        fprintf(stderr, "  cmd          = 0x%x\n", msg[2]);
++        if (msg_len > sizeof(struct serial_oem_hdr)) {
++            fprintf(stderr, "  data_len     = %lu\n", msg_len - sizeof(struct serial_oem_hdr));
++            fprintf(stderr, "  data         = %s\n",
++                    buf2str(msg + sizeof(struct serial_oem_hdr), msg_len - sizeof(struct serial_oem_hdr)));
++        }
++    }
++
++    /* write data to serial port */
++    rc = write(intf->fd, msg, msg_len);
++    if (rc <= 0) {
++        lperror(LOG_ERR, "ipmitool: write error");
++        return -1;
++    }
++
++    return 0;
++}
++
++/*
++ *	This function waits for incoming data
++ */
++static int
++serial_wait_for_data(struct ipmi_intf * intf) {
++    int n;
++    struct pollfd pfd;
++
++    pfd.fd = intf->fd;
++    pfd.events = POLLIN;
++    pfd.revents = 0;
++
++    n = poll(&pfd, 1, intf->ssn_params.timeout * 1000);
++    if (n < 0) {
++        lperror(LOG_ERR, "Poll for serial data failed");
++        return -1;
++    } else if (!n) {
++        return -1;
++    }
++    return 0;
++}
++
++/*
++ *	Read data from serial port
++ */
++static int
++serial_recv_msg(struct ipmi_intf * intf,
++        uint8_t * msg_data, size_t msg_len) {
++    if (serial_wait_for_data(intf)) {
++        return 0;
++    }
++
++    int rc = -1;
++
++    int offset = 0;
++
++    while (1) {
++        rc = read(intf->fd, msg_data + offset, msg_len - offset);
++        if (rc > 0) {
++            if (verbose > 3) {
++                fprintf(stderr, "Received serial data:\n %s\n",
++                        buf2str(msg_data + offset, rc));
++            }
++            offset += rc;
++            usleep(1000);
++        } else {
++            break;
++        }
++    }
++
++    if (verbose > 2) {
++        printf("Received message:\n %s\n",
++                buf2str(msg_data, offset));
++    }
++
++    return offset;
++}
++
++static int
++serial_match_ipmb_response(struct serial_request_ctx* req_ctx,
++        uint8_t *msg, int *msg_len) {
++    int netFn, rqSeq;
++    struct ipmb_msg_hdr *hdr = (struct ipmb_msg_hdr *) msg;
++
++    /* validate message size */
++    if (*msg_len < (IPMB_MSG_HDR_WITH_CHECKSUM_SIZE + CC_SIZE)) {
++        lprintf(LOG_ERR, "ipmitool: response is too short");
++        return -1;
++    }
++
++    /* validate checksum 1 */
++    if (ipmi_csum(msg, 3)) {
++        lprintf(LOG_ERR, "ipmitool: bad checksum 1");
++        return -1;
++    }
++
++    /* validate checksum 2 */
++    if (ipmi_csum(msg + 3, *msg_len - 3)) {
++        lprintf(LOG_ERR, "ipmitool: bad checksum 2");
++        return -1;
++    }
++
++    /* swap requester and responder LUNs */
++    netFn = ((req_ctx->netFn | 4) & ~3) | (req_ctx->rqSeq & 3);
++    rqSeq = (req_ctx->rqSeq & ~3) | (req_ctx->netFn & 3);
++    if (hdr->rsSA == req_ctx->rqSA
++            && hdr->netFn == netFn
++            && hdr->rqSA == req_ctx->rsSA
++            && hdr->rqSeq == rqSeq
++            && hdr->cmd == req_ctx->cmd) {
++
++        if (verbose > 3) {
++            fprintf(stderr, "Got response:\n");
++            fprintf(stderr, "  rsSA            = 0x%x\n", msg[0]);
++            fprintf(stderr, "  NetFN/rsLUN     = 0x%x\n", msg[1]);
++            fprintf(stderr, "  rqSA            = 0x%x\n", msg[3]);
++            fprintf(stderr, "  rqSeq/rqLUN     = 0x%x\n", msg[4]);
++            fprintf(stderr, "  cmd             = 0x%x\n", msg[5]);
++            fprintf(stderr, "  completion code = 0x%x\n", msg[6]);
++            if (*msg_len > (IPMB_MSG_HDR_WITH_CHECKSUM_SIZE + 1)) {
++                fprintf(stderr, "  data_len        = %d\n", *msg_len - (IPMB_MSG_HDR_WITH_CHECKSUM_SIZE + 1));
++                fprintf(stderr, "  data            = %s\n",
++                        buf2str(msg + IPMB_MSG_HDR_WITH_CHECKSUM_SIZE,
++                        *msg_len - (IPMB_MSG_HDR_WITH_CHECKSUM_SIZE + 1)));
++            }
++        }
++
++        /* update message length */
++        *msg_len -= IPMB_MSG_HDR_WITH_CHECKSUM_SIZE;
++        /* copy only completion and response data */
++        memmove(msg, hdr + 1, *msg_len);
++
++        return *msg_len;
++    }
++
++    return -1;
++}
++
++static int
++serial_match_oem_response(struct serial_request_ctx* req_ctx,
++        uint8_t *msg, int *msg_len) {
++    struct serial_oem_hdr *hdr = (struct serial_oem_hdr *) msg;
++
++    /* validate message size */
++    if (*msg_len < sizeof(struct serial_oem_hdr) + CC_SIZE) {
++        lprintf(LOG_ERR, "ipmitool: response is too short");
++        return -1;
++    }
++
++    if (hdr->netFn == req_ctx->netFn | 4
++            && hdr->seq == req_ctx->rqSeq
++            && hdr->cmd == req_ctx->cmd) {
++
++        *msg_len -= sizeof(struct serial_oem_hdr);
++        memmove(msg, hdr + 1, *msg_len);
++
++        if (verbose > 3) {
++            fprintf(stderr, "Got response:\n  msg = %s\n", buf2str(msg, *msg_len));
++        }
++
++        return *msg_len;
++    }
++
++    return -1;
++}
++
++/*
++ *	Build message to be transmitted
++ */
++static int
++serial_build_msg(const struct ipmi_intf * intf,
++        const struct ipmi_rq * req, uint8_t * msg, size_t max_len,
++        struct serial_request_ctx * ctx, int * msg_len) {
++    uint8_t *data = msg, seq;
++    struct serial_oem_hdr *hdr = (struct serial_oem_hdr *) msg;
++    struct ipmi_send_message_req * inner_rq = NULL, * outer_rq = NULL;
++    int bridging_level = 0;
++
++    /* acquire bridging level */
++    if (intf->target_addr && intf->target_addr != intf->my_addr) {
++        if (intf->transit_addr != 0) {
++            bridging_level = 2;
++        } else {
++            bridging_level = 1;
++        }
++    }
++
++    /* check overall packet length */
++    if(req->msg.data_len + sizeof(struct serial_oem_hdr)
++                         + bridging_level * (IPMB_MSG_HDR_WITH_CHECKSUM_SIZE + 1/*channel*/) > max_len) {
++        lprintf(LOG_ERR, "ipmitool: Message data is too long");
++        return -1;
++    }
++
++    /* allocate new sequence number */
++    seq = serial_alloc_seq();
++
++    if (bridging_level) {
++        /* compose send message request */
++        hdr->netFn = IPMI_NETFN_APP << 2;
++        hdr->cmd = 0x34;
++
++        /* set pointer to send message request data */
++        outer_rq = (struct ipmi_send_message_req *) (hdr + 1);
++
++        /* compose the outer send message request */
++        if (2 == bridging_level) {
++            outer_rq->channel = intf->transit_channel | 0x40;
++            outer_rq->msg.rsSA = intf->transit_addr;
++            outer_rq->msg.netFn = IPMI_NETFN_APP << 2;
++            outer_rq->msg.csum1 = -(outer_rq->msg.rsSA + outer_rq->msg.netFn);
++            outer_rq->msg.rqSA = intf->my_addr;
++            outer_rq->msg.rqSeq = seq << 2;
++            outer_rq->msg.cmd = 0x34;
++
++            /* inner send message request is further */
++            inner_rq = (outer_rq + 1);
++        } else {
++            /* there is only outer send message request */
++            inner_rq = outer_rq;
++        }
++
++        /* compose the inner send message request */
++        inner_rq->channel = intf->target_channel | 0x40;
++        inner_rq->msg.rsSA = intf->target_addr;
++        inner_rq->msg.netFn = (req->msg.netfn << 2) | req->msg.lun;
++        inner_rq->msg.csum1 = -(inner_rq->msg.rsSA + inner_rq->msg.netFn);
++        inner_rq->msg.rqSA = intf->my_addr;
++        inner_rq->msg.rqSeq = seq << 2;
++        inner_rq->msg.cmd = req->msg.cmd;
++
++        /* fill-in the second context */
++        ctx[1].rsSA = outer_rq->msg.rsSA;
++        ctx[1].netFn = outer_rq->msg.netFn;
++        ctx[1].rqSA = outer_rq->msg.rqSA;
++        ctx[1].rqSeq = outer_rq->msg.rqSeq;
++        ctx[1].cmd = outer_rq->msg.cmd;
++        ctx[1].match_response = serial_match_ipmb_response;
++
++        /* move write pointer */
++        msg = (uint8_t *) (inner_rq + 1);
++    } else {
++        /* compose direct request */
++        hdr->netFn = (req->msg.netfn << 2) | req->msg.lun;
++        hdr->cmd = req->msg.cmd;
++
++        /* move write pointer */
++        msg = (uint8_t *) (hdr + 1);
++    }
++
++    /* fill-in the rest header fields */
++    hdr->seq = seq;
++
++    /* fill-in the first context */
++    ctx[0].rsSA = 0;
++    ctx[0].netFn = hdr->netFn;
++    ctx[0].rqSA = 0;
++    ctx[0].rqSeq = hdr->seq;
++    ctx[0].cmd = hdr->cmd;
++    ctx[0].match_response = serial_match_oem_response;
++
++    /* write request data */
++    memcpy(msg, req->msg.data, req->msg.data_len);
++
++    /* move write pointer */
++    msg += req->msg.data_len;
++
++    if (bridging_level) {
++        /* write inner message checksum */
++        *msg++ = ipmi_csum(&inner_rq->msg.rqSA, req->msg.data_len + 3);
++
++        /* check for double bridging */
++        if (2 == bridging_level) {
++            /* write outer message checksum */
++            *msg++ = ipmi_csum(&outer_rq->msg.rqSA, 4);
++        }
++    }
++
++    /* save message length */
++    *msg_len = msg - data;
++
++    /* return bridging level */
++    return bridging_level;
++}
++
++/*
++ *	Wait for request response
++ */
++static int
++serial_wait_response(struct ipmi_intf * intf,
++        struct serial_request_ctx * req_ctx,
++        uint8_t * msg, size_t max_len) {
++    int msg_len = 0;
++
++    /* receive and match message */
++    while ((msg_len = serial_recv_msg(intf, msg, max_len)) > 0) {
++       if (req_ctx->match_response(req_ctx, msg, &msg_len) > 0) {
++           break;
++       }
++    }
++
++    return msg_len;
++}
++
++static struct ipmi_rs *
++serial_send_request(struct ipmi_intf * intf, struct ipmi_rq * req) {
++    static __thread struct ipmi_rs rsp;
++    uint8_t msg[SERIAL_MAX_MSG_SIZE];
++    struct serial_request_ctx req_ctx[2];
++    int retry, resp_len, msg_len, bridging_level;
++    int resp_offset = 0;
++
++    if (!intf->opened && intf->open && intf->open(intf) < 0) {
++        return NULL;
++    }
++
++    /* Send the message and receive the answer */
++    for (retry = 0; retry < intf->ssn_params.retry; retry++) {
++        /* build output message */
++        bridging_level = serial_build_msg(intf, req, msg,
++                sizeof (msg), req_ctx, &msg_len);
++        if (msg_len < 0) {
++            return NULL;
++        }
++
++        /* send request */
++        serial_flush(intf);
++        serial_send_msg(intf, msg, msg_len);
++
++        /* wait for response */
++        resp_len = serial_wait_response(intf, &req_ctx[0], msg, sizeof(msg));
++
++        /* check for IO error */
++        if (resp_len < 0) {
++            return NULL;
++        }
++
++        /* check for timeout */
++        if (0 == resp_len) {
++            continue;
++        }
++
++        /* check for bridging */
++        if (bridging_level && IPMI_CC_OK == msg[0]) {
++            /* check if response for inner request is not encapsulated */
++            if (CC_SIZE == resp_len) {
++                /* wait for response for inner request */
++                resp_len = serial_wait_response(intf, &req_ctx[1], msg, sizeof(msg));
++
++                /* check for IO error */
++                if (resp_len < 0) {
++                    return NULL;
++                }
++
++                /* check for timeout */
++                if (resp_len == 0) {
++                    continue;
++                }
++            } else if (resp_len > IPMB_MSG_HDR_WITH_CHECKSUM_SIZE) {
++                /* skip outer level header*/
++                resp_offset += IPMB_MSG_HDR_SIZE + CC_SIZE /*resp cc*/;
++                /* decrement response size */
++                resp_len -= IPMB_MSG_HDR_WITH_CHECKSUM_SIZE + CC_SIZE;
++            } else {
++                fprintf(stderr, "ipmitool: Message response is too short");
++                /* invalid message length */
++                return NULL;
++            }
++
++            /* check response size */
++            if (IPMI_CC_OK == msg[resp_offset] && 2 == bridging_level && resp_len < (IPMB_MSG_HDR_WITH_CHECKSUM_SIZE)) {
++                fprintf(stderr, "ipmitool: Message response is too short");
++                /* invalid message length */
++                return NULL;
++            }
++        } else {
++            resp_len -= CC_SIZE /*resp cc*/;
++        }
++
++        /* check for double bridging */
++        if (2 == bridging_level && IPMI_CC_OK == msg[resp_offset]) {
++            /* move to cc of inner level header */
++            resp_offset += IPMB_MSG_HDR_SIZE + CC_SIZE /*outer level cc*/;
++            /* decrement response size */
++            resp_len -= IPMB_MSG_HDR_WITH_CHECKSUM_SIZE + CC_SIZE;
++        }
++
++        /* copy completion code */
++        rsp.ccode = msg[resp_offset];
++        rsp.data_len = resp_len;
++        /* copy response data (if any) */
++        if (rsp.data_len > 0) {
++            memcpy(rsp.data, msg + resp_offset + CC_SIZE, rsp.data_len);
++        }
++
++        /* return response */
++        return &rsp;
++    }
++
++    /* no valid response */
++    return NULL;
++}
++
++/*
++ *	Serial Oem interface
++ */
++struct ipmi_intf ipmi_serial_oem_intf = {
++    .name = "serial-oem",
++    .desc = "Serial Oem Interface",
++    .setup = serial_setup,
++    .open = serial_open,
++    .close = serial_close,
++    .sendrecv = serial_send_request,
++};

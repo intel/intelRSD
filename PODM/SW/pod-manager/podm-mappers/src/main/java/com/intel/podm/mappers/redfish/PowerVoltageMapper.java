@@ -17,14 +17,14 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.PowerVoltage;
-import com.intel.podm.client.api.resources.redfish.PowerResource;
+import com.intel.podm.client.resources.redfish.VoltageItem;
 import com.intel.podm.mappers.EntityMapper;
 
 import javax.enterprise.context.Dependent;
 
 @Dependent
-public class PowerVoltageMapper extends EntityMapper<PowerResource.Voltage, PowerVoltage> {
+public class PowerVoltageMapper extends EntityMapper<VoltageItem, PowerVoltage> {
     protected PowerVoltageMapper() {
-        super(PowerResource.Voltage.class, PowerVoltage.class);
+        super(VoltageItem.class, PowerVoltage.class);
     }
 }

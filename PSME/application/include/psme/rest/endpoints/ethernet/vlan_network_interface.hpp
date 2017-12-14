@@ -48,6 +48,8 @@ public:
     void get(const server::Request& request, server::Response& response) override;
 
     void del(const server::Request& request, server::Response& response) override;
+
+    void patch(const server::Request& request, server::Response& response) override;
 };
 
 }

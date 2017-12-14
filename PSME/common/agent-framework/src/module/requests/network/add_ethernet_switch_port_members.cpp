@@ -26,7 +26,7 @@
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/utils/utils.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -38,20 +38,18 @@ AddEthernetSwitchPortMembers::AddEthernetSwitchPortMembers(std::vector<std::stri
                 m_port{port},
                 m_oem{} {}
 
-Json::Value AddEthernetSwitchPortMembers::to_json() const {
-    Json::Value value;
+json::Json AddEthernetSwitchPortMembers::to_json() const {
+    json::Json value;
     value[EthernetSwitchPort::PORT] = m_port;
-    value[EthernetSwitchPort::MEMBERS] =
-        agent_framework::model::utils::string_vector_to_json(m_members);
+    value[EthernetSwitchPort::MEMBERS] = m_members;
     value[Oem::OEM] = m_oem.to_json();
     return value;
 }
 
-AddEthernetSwitchPortMembers AddEthernetSwitchPortMembers::from_json(const Json::Value& json) {
+AddEthernetSwitchPortMembers AddEthernetSwitchPortMembers::from_json(const json::Json& json) {
     return AddEthernetSwitchPortMembers{
-        agent_framework::model::utils::json_to_string_vector(
-            json[EthernetSwitchPort::MEMBERS]),
-        json[EthernetSwitchPort::PORT].asString(),
+        json[EthernetSwitchPort::MEMBERS],
+        json[EthernetSwitchPort::PORT],
         agent_framework::model::attribute::Oem::from_json(json[EthernetSwitchPort::OEM])
     };
 }

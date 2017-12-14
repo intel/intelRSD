@@ -21,6 +21,7 @@
 #include "psme/rest/validators/schemas/common.hpp"
 #include "psme/rest/constants/constants.hpp"
 #include "agent-framework/module/enum/storage.hpp"
+#include "agent-framework/module/constants/regular_expressions.hpp"
 
 
 using namespace psme::rest;
@@ -30,7 +31,6 @@ using namespace agent_framework::model;
 
 const jsonrpc::ProcedureValidator& RemoteTargetsCollectionPostSchema::AddressesObjectSchema::IscsiObjectSchema::ChapObjectSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "chap_object",
         jsonrpc::PARAMS_BY_NAME,
         constants::RemoteTarget::TYPE, VALID_NULLABLE(VALID_ENUM(enums::TargetAuthenticationMethod)),
         constants::RemoteTarget::USERNAME, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
@@ -45,7 +45,6 @@ const jsonrpc::ProcedureValidator& RemoteTargetsCollectionPostSchema::AddressesO
 
 const jsonrpc::ProcedureValidator& RemoteTargetsCollectionPostSchema::AddressesObjectSchema::IscsiObjectSchema::TargetLUNObjectSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "target_lun_object",
         jsonrpc::PARAMS_BY_NAME,
         constants::RemoteTarget::LUN, VALID_NUMERIC_TYPED(UINT32),
         constants::RemoteTarget::LOGICAL_DRIVE, VALID_ATTRIBUTE(SimpleObjectSchema),
@@ -60,7 +59,7 @@ const jsonrpc::ProcedureValidator& RemoteTargetsCollectionPostSchema::AddressesO
         "iscsi_object",
         jsonrpc::PARAMS_BY_NAME,
         constants::RemoteTarget::TARGET_LUN, VALID_ARRAY_OF(VALID_ATTRIBUTE(TargetLUNObjectSchema)),
-        constants::RemoteTarget::TARGET_IQN, VALID_JSON_STRING,
+        constants::RemoteTarget::TARGET_IQN, VALID_REGEX(literals::regex::RemoteTarget::TARGET_IQN),
         constants::RemoteTarget::CHAP, VALID_OPTIONAL(VALID_NULLABLE(VALID_ATTRIBUTE(ChapObjectSchema))),
         nullptr
     };
@@ -83,7 +82,7 @@ const jsonrpc::ProcedureValidator& RemoteTargetsCollectionPostSchema::InitiatorO
     static jsonrpc::ProcedureValidator procedure{
         "iscsi_object",
         jsonrpc::PARAMS_BY_NAME,
-        constants::RemoteTarget::INITIATOR_IQN, VALID_JSON_STRING,
+        constants::RemoteTarget::INITIATOR_IQN, VALID_REGEX(literals::regex::Common::NO_WHITESPACE_STRING),
         nullptr
     };
     return procedure;

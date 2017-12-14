@@ -43,6 +43,11 @@ void EndpointBuilder::build_default() {
         enums::CollectionType::Ports,
         ""
     ));
+
+    attribute::Identifier id{};
+    id.set_durable_name_format(enums::IdentifierType::UUID);
+    id.set_durable_name(m_obj.get_uuid());
+    m_obj.add_identifier(std::move(id));
 }
 
 EndpointBuilder::ReturnType EndpointBuilder::add_host_entity() {

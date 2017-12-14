@@ -22,16 +22,16 @@ import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = DriveConstraint.DriveConstraintValidator.class)
-@Target(ElementType.PARAMETER)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface DriveConstraint {
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+@Constraint(validatedBy = DriveConstraint.DriveConstraintValidator.class)
+@Target(PARAMETER)
+@Retention(RUNTIME)
+public @interface DriveConstraint {
     String message() default "Cannot update Drive with empty values";
 
     Class<?>[] groups() default {};
@@ -41,7 +41,6 @@ public @interface DriveConstraint {
     class DriveConstraintValidator implements ConstraintValidator<DriveConstraint, DrivePartialRepresentation> {
         @Override
         public void initialize(DriveConstraint constraintAnnotation) {
-
         }
 
         @Override

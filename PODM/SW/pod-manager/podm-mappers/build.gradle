@@ -17,7 +17,7 @@
 dependencies {
     compile "$JAVA_EE_API_DEPENDENCY"
     compile project(":podm-business-entities")
-    compile project(":podm-external-services-api")
+    compile project(":podm-external-services")
     compile project(":enterprise-utils")
     compile project(":config")
     compile project(":types")

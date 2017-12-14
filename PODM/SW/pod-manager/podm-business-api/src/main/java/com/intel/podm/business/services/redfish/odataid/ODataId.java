@@ -17,14 +17,12 @@
 package com.intel.podm.business.services.redfish.odataid;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.intel.podm.common.types.redfish.OdataIdProvider;
 
 import java.net.URI;
 import java.util.Objects;
 
-import static java.net.URI.create;
-
-public final class ODataId {
-
+public final class ODataId implements OdataIdProvider.ODataId {
     @JsonProperty("@odata.id")
     private URI value;
 
@@ -32,13 +30,14 @@ public final class ODataId {
     }
 
     public ODataId(String uriValue) {
-        this.value = create(uriValue);
+        this.value = URI.create(uriValue);
     }
 
     public ODataId(URI uri) {
         this.value = uri;
     }
 
+    @Override
     public URI toUri() {
         return value;
     }

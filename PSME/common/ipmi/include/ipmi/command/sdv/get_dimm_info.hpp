@@ -70,7 +70,11 @@ public:
         m_dimm_index = index;
     }
 
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
+
+    virtual const char* get_command_name() const override {
+        return "GetDimmInfo";
+    }
 
 private:
     std::uint8_t m_dimm_index{};
@@ -181,7 +185,11 @@ public:
         return m_dimm_presence;
     }
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
+
+    virtual const char* get_command_name() const override {
+        return "GetDimmInfo";
+    }
 
 private:
     std::string m_dimm_type{};
@@ -228,13 +236,6 @@ private:
     std::uint8_t extract_type(std::uint8_t value) const;
     std::uint32_t extract_speed(const std::vector<std::uint8_t>& data) const;
 
-    /*!
-     * Checks if Response is response error. If IPMI return error the data length is equal to 1.
-     *
-     * @param data vector with data to check.
-     * @return true if Response is error, otherwise false.
-     */
-    bool is_error(const std::vector<std::uint8_t>& data) const;
     bool is_xeon(const std::vector<std::uint8_t>& data) const;
     bool is_atom(const std::vector<std::uint8_t>& data) const;
 

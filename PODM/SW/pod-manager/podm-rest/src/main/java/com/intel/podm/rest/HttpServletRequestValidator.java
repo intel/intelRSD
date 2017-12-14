@@ -17,15 +17,15 @@
 package com.intel.podm.rest;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.rest.representation.json.errors.ErrorType;
+import com.intel.podm.rest.error.ErrorType;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 
 import static com.intel.podm.common.logger.LoggerFactory.getLogger;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.MALFORMED_URI;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.URI_TOO_LONG;
+import static com.intel.podm.rest.error.ErrorType.MALFORMED_URI;
+import static com.intel.podm.rest.error.ErrorType.URI_TOO_LONG;
 import static java.lang.String.format;
 import static java.net.URLDecoder.decode;
 import static java.nio.charset.StandardCharsets.UTF_8;

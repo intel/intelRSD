@@ -38,10 +38,5 @@ response::GetFanPwm::GetFanPwm() : Response(sdv::NetFn::RACKSCALE, sdv::Cmd::GET
 response::GetFanPwm::~GetFanPwm() {}
 
 void response::GetFanPwm::unpack(const std::vector<std::uint8_t>& data) {
-
-    if (!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
-
     m_maximum_pwm = data[OFFSET_MAXIMUM_PWM];
 }

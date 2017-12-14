@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.entities.redfish;
 
+import com.intel.podm.business.entities.EventOriginProvider;
 import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
@@ -38,8 +39,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "redundancy", indexes = @Index(name = "idx_redundancy_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class Redundancy extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -138,6 +139,7 @@ public class Redundancy extends DiscoverableEntity {
         }
     }
 
+    @EventOriginProvider
     public DiscoverableEntity getRedundancyOwner() {
         return redundancyOwner;
     }

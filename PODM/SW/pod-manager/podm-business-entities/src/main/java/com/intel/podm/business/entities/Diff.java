@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.function.BiPredicate;
 
 import static java.util.Arrays.asList;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
@@ -58,14 +59,20 @@ public final class Diff {
     }
 
     private Optional<Integer> getIndexForProperty(String propertyName) {
-        return Optional.ofNullable(
+        return ofNullable(
             zipWithIndex(asList(propertyNames)).stream()
                 .collect(toMap(Pair::first, Pair::second))
                 .get(propertyName)
         );
     }
 
-    // TODO: move to some utility class
+    private static <C> List<Pair<C, Integer>> zipWithIndex(List<C> list) {
+        return zip(
+            list,
+            range(0, list.size()).boxed().collect(toList())
+        );
+    }
+
     private static <A, B> List<Pair<A, B>> zip(List<A> firstList, List<B> secondList) {
         Iterator<A> firstIterator = firstList.iterator();
         Iterator<B> secondIterator = secondList.iterator();
@@ -77,13 +84,5 @@ public final class Diff {
         }
 
         return result;
-    }
-
-    // TODO: move to some utility class
-    private static <C> List<Pair<C, Integer>> zipWithIndex(List<C> list) {
-        return zip(
-            list,
-            range(0, list.size()).boxed().collect(toList())
-        );
     }
 }

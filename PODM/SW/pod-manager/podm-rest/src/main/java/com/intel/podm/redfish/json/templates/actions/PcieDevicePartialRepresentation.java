@@ -19,10 +19,11 @@ package com.intel.podm.redfish.json.templates.actions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.redfish.RedfishPcieDevice;
 
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public final class PcieDevicePartialRepresentation implements RedfishPcieDevice {
 
     @JsonProperty("AssetTag")
-    private String assetTag;
+    public String assetTag;
 
     @Override
     public String getAssetTag() {

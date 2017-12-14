@@ -18,8 +18,11 @@ package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.services.redfish.ActionService;
+import com.intel.podm.business.services.redfish.requests.ChangeTpmStateRequest;
 import com.intel.podm.business.services.redfish.requests.StartDeepDiscoveryRequest;
+import com.intel.podm.redfish.json.templates.actions.ChangeTpmStateActionJson;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -27,18 +30,23 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceActionBuilder;
+import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ComputerSystemActionsResource extends BaseResource {
     @Inject
     private ActionService<StartDeepDiscoveryRequest> startDeepDiscoveryRequestActionService;
 
+    @Inject
+    private ActionService<ChangeTpmStateRequest> changeTpmStateRequestActionService;
+
     @Override
     public Object get() {
-        throw notFound();
+        throw invalidHttpMethod();
     }
 
     @Path("ComputerSystem.Reset")
@@ -47,9 +55,21 @@ public class ComputerSystemActionsResource extends BaseResource {
     }
 
     @POST
-    @Path("ComputerSystem.StartDeepDiscovery")
+    @Path("Oem/Intel.Oem.StartDeepDiscovery")
     public Response startDeepDiscovery() throws TimeoutException, BusinessApiException {
         startDeepDiscoveryRequestActionService.perform(getCurrentContext(), null);
         return noContent().build();
+    }
+
+    @POST
+    @Path("Oem/Intel.Oem.ChangeTPMState")
+    public Response changeTpmState(ChangeTpmStateActionJson request) throws TimeoutException, BusinessApiException {
+        changeTpmStateRequestActionService.perform(getCurrentContext(), request);
+        return noContent().build();
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceActionBuilder().build();
     }
 }

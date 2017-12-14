@@ -20,8 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.intel.podm.client.api.resources.redfish.UnknownOemObject;
-import com.intel.podm.client.resources.redfish.properties.UnknownOemObjectImpl;
+import com.intel.podm.client.resources.redfish.UnknownOemObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +42,8 @@ import static java.util.Optional.of;
 public final class UnknownOemsHelper {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private UnknownOemsHelper() { }
+    private UnknownOemsHelper() {
+    }
 
     public static Optional<UnknownOemObject> createUnknownOemObject(List<String> oemNodePath, String oemName, JsonNode oemValue)
         throws JsonProcessingException {
@@ -53,7 +53,7 @@ public final class UnknownOemsHelper {
         List<String> copyOfOemNodePath = new ArrayList<>(oemNodePath);
         copyOfOemNodePath.add(oemName);
 
-        return of(new UnknownOemObjectImpl(fromIterable(copyOfOemNodePath, OEM_ELEMENT_SEPARATOR), convertJsonNodeToString(oemValue)));
+        return of(new UnknownOemObject(fromIterable(copyOfOemNodePath, OEM_ELEMENT_SEPARATOR), convertJsonNodeToString(oemValue)));
     }
 
     public static Collection<UnknownOemObject> extractUnknownOemsFromOemObject(String oemName, JsonNode oemValue) throws JsonProcessingException {

@@ -17,5 +17,7 @@
 dependencies {
     compile "$JACKSON_DATABIND_DEPENDENCY"
     compile project(":types")
+
+    testCompile project(path: ':utils', configuration: 'testOutput')
 }
 

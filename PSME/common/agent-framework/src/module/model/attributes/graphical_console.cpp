@@ -25,20 +25,20 @@
 
 #include "agent-framework/module/model/attributes/graphical_console.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 
-Json::Value GraphicalConsole::to_json() const {
-    Json::Value json;
+json::Json GraphicalConsole::to_json() const {
+    json::Json json;
     json[literals::GraphicalConsole::ENABLED] = get_enabled();
     json[literals::GraphicalConsole::MAX_SESSIONS] = get_max_sessions();
     json[literals::GraphicalConsole::TYPES_SUPPORTED] = get_types_supported().to_json();
     return json;
 }
 
-GraphicalConsole GraphicalConsole::from_json(const Json::Value& json) {
+GraphicalConsole GraphicalConsole::from_json(const json::Json& json) {
     GraphicalConsole console;
     console.set_enabled(json[literals::GraphicalConsole::ENABLED]);
     console.set_max_sessions(json[literals::GraphicalConsole::MAX_SESSIONS]);

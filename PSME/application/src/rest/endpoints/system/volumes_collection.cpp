@@ -30,7 +30,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Systems/Members/__SYSTEM_ID__/Storage/Members/__STORAGE_ID__/Volumes/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#VolumeCollection.VolumeCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#VolumeCollection.VolumeCollection";
     r[Common::NAME] = "Computer Volume Collection";
@@ -50,16 +50,9 @@ void VolumesCollection::get(const server::Request& req, server::Response& res) {
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    auto system = psme::rest::model::Find<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get();
-    auto system_id = system.get_id();
-    auto storage =
-        psme::rest::model::Find<agent_framework::model::StorageSubsystem>(req.params[PathParam::STORAGE_ID]).
+    // run Find to check if System & StorageSubsystem exist
+    psme::rest::model::Find<agent_framework::model::StorageSubsystem>(req.params[PathParam::STORAGE_ID]).
             via<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get();
-
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                  std::regex("__SYSTEM_ID__"), std::to_string(system_id));
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                  std::regex("__STORAGE_ID__"), std::to_string(storage.get_id()));
 
     set_response(res, json);
 }

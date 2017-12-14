@@ -49,10 +49,6 @@ response::GetCableId::GetCableId(): Response(sdv::NetFn::RACKSCALE, sdv::Cmd::GE
 response::GetCableId::~GetCableId() {}
 
 void response::GetCableId::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
-
     m_cable_id = extract_cable_id(data);
 }
 

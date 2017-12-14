@@ -21,9 +21,8 @@ import com.intel.podm.business.entities.redfish.Port;
 import com.intel.podm.business.entities.redfish.Zone;
 import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
-import com.intel.podm.common.types.EntityType;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.Collection;
@@ -33,22 +32,23 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.intel.podm.business.entities.redfish.Port.GET_PORTS_BY_PCIE_CONNECTION_ID;
+import static com.intel.podm.common.types.EntityType.ROOT_COMPLEX;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Dependent
-@Transactional(MANDATORY)
+@ApplicationScoped
 public class PciePortDao extends Dao<Port> {
+    @Transactional(MANDATORY)
     public Set<Port> getUpstreamPortsByCableIds(List<String> pcieConnectionIds) {
         if (pcieConnectionIds.isEmpty()) {
             return emptySet();
         }
 
         Set<Port> ports = new HashSet<>();
-
         for (String pcieConnectionId : pcieConnectionIds) {
-            TypedQuery<Port> query = entityManager.createNamedQuery(Port.GET_PORTS_BY_PCIE_CONNECTION_ID, Port.class);
+            TypedQuery<Port> query = entityManager.createNamedQuery(GET_PORTS_BY_PCIE_CONNECTION_ID, Port.class);
             query.setParameter("pcieConnectionId", pcieConnectionId);
             ports.addAll(query.getResultList());
         }
@@ -56,6 +56,7 @@ public class PciePortDao extends Dao<Port> {
         return ports;
     }
 
+    @Transactional(MANDATORY)
     public Collection<Port> getUpstreamPortsByDiscoverableEntity(DiscoverableEntity entity) {
         return Stream.of(entity.getConnectedEntity())
             .filter(Objects::nonNull)
@@ -65,7 +66,7 @@ public class PciePortDao extends Dao<Port> {
             .flatMap(Collection::stream)
             .map(Endpoint::getConnectedEntities)
             .flatMap(Collection::stream)
-            .filter(connectedEntity -> EntityType.ROOT_COMPLEX.equals(connectedEntity.getEntityType()))
+            .filter(connectedEntity -> Objects.equals(ROOT_COMPLEX, connectedEntity.getEntityType()))
             .map(ConnectedEntity::getEndpoint)
             .map(Endpoint::getPorts)
             .flatMap(Collection::stream)

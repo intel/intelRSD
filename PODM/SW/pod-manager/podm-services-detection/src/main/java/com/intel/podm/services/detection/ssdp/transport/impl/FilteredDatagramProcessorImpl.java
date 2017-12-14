@@ -31,6 +31,8 @@ import javax.inject.Inject;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 
+import static java.lang.String.format;
+
 /**
  * Filter for incoming messages. It drops SSDP frames from networks not included SSDP configuration file
  */
@@ -47,7 +49,7 @@ public class FilteredDatagramProcessorImpl extends DatagramProcessorImpl {
             return super.read(receivedOnAddress, datagram);
         }
 
-        throw new UnsupportedDataException(String.format("Unauthorized datagram source: %s", receivedOnAddress));
+        throw new UnsupportedDataException(format("Unauthorized datagram source: %s", receivedOnAddress));
     }
 
     boolean checkNetworkOrigin(InetAddress receivedOnAddress) {

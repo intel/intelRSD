@@ -26,7 +26,7 @@ import javax.inject.Inject;
 import static javax.enterprise.event.TransactionPhase.AFTER_SUCCESS;
 
 @Dependent
-public class ExternalServiceDeletionObserver {
+class ExternalServiceDeletionObserver {
 
     @Inject
     private SerialExecutorRegistry serialExecutorRegistry;

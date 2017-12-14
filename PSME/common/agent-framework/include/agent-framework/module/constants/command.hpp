@@ -34,12 +34,20 @@ namespace literals {
 class Command {
 public:
 
-// common commands
+    // psme commands
+    static constexpr const char HEART_BEAT[] = "heartBeat";
+    static constexpr const char ATTACH[] = "attach";
+    static constexpr const char COMPONENT_NOTIFICATION[] = "componentNotification";
+
+    // common commands
     static constexpr const char GET_COLLECTION[] = "getCollection";
     static constexpr const char GET_MANAGER_INFO[] = "getManagerInfo";
     static constexpr const char GET_MANAGERS_COLLECTION[] = "getManagersCollection";
     static constexpr const char SET_COMPONENT_ATTRIBUTES[] = "setComponentAttributes";
     static constexpr const char GET_TASKS_COLLECTION[] = "getTasksCollection";
+    static constexpr const char GET_METRICS[] = "getMetrics";
+    static constexpr const char GET_METRIC_DEFINITIONS_COLLECTION[] = "getMetricDefinitionsCollection";
+    static constexpr const char GET_METRIC_DEFINITION_INFO[] = "getMetricDefinitionInfo";
 
     static constexpr const char GET_DRIVE_INFO[] = "getDriveInfo";
     static constexpr const char GET_CHASSIS_INFO[] = "getChassisInfo";
@@ -48,7 +56,7 @@ public:
 
     static constexpr const char DELETE_TASK[] = "deleteTask";
 
-// compute commands
+    // compute commands
     static constexpr const char GET_MEMORY_INFO[] = "getMemoryInfo";
     static constexpr const char GET_NETWORK_INTERFACE_INFO[] = "getNetworkInterfaceInfo";
     static constexpr const char GET_NETWORK_DEVICE_INFO[] = "getNetworkDeviceInfo";
@@ -57,16 +65,18 @@ public:
     static constexpr const char GET_STORAGE_CONTROLLER_INFO[] = "getStorageControllerInfo";
     static constexpr const char GET_SYSTEM_INFO[] = "getComputerSystemInfo";
     static constexpr const char GET_STORAGE_SUBSYSTEM_INFO[] = "getStorageSubsystemInfo";
+    static constexpr const char GET_TRUSTED_MODULE_INFO[] = "getTrustedModuleInfo";
 
-// chassis commands
+    // chassis commands
     static constexpr const char GET_POWER_ZONE_INFO[] = "getPowerZoneInfo";
     static constexpr const char GET_PSU_INFO[] = "getPsuInfo";
     static constexpr const char GET_THERMAL_ZONE_INFO[] = "getThermalZoneInfo";
     static constexpr const char GET_FAN_INFO[] = "getFanInfo";
     static constexpr const char GET_AUTHORIZATION_CERTIFICATE[] = "getAuthorizationCertificate";
+    static constexpr const char GET_CHASSIS_SENSOR_INFO[] = "getChassisSensorInfo";
 
-// storage commands
-    static constexpr const char GET_STORAGE_SERVICES_INFO[] = "getStorageServicesInfo";
+    // storage commands
+    static constexpr const char GET_STORAGE_SERVICE_INFO[] = "getStorageServiceInfo";
     static constexpr const char GET_PHYSICAL_DRIVE_INFO[] = "getPhysicalDriveInfo";
     static constexpr const char GET_LOGICAL_DRIVE_INFO[] = "getLogicalDriveInfo";
     static constexpr const char ADD_LOGICAL_DRIVE[] = "addLogicalDrive";
@@ -75,7 +85,7 @@ public:
     static constexpr const char ADD_ISCSI_TARGET[] = "addiSCSITarget";
     static constexpr const char DELETE_ISCSI_TARGET[] = "deleteiSCSITarget";
 
-// network commands
+    // network commands
     static constexpr const char GET_ETHERNET_SWITCH_INFO[] = "getEthernetSwitchInfo";
     static constexpr const char GET_ETHERNET_SWITCH_PORT_INFO[] = "getEthernetSwitchPortInfo";
     static constexpr const char ADD_ETHERNET_SWITCH_PORT[] = "addEthernetSwitchPort";
@@ -96,7 +106,7 @@ public:
     static constexpr const char DELETE_ACL_RULE[] = "deleteAclRule";
     static constexpr const char DELETE_ACL_PORT[] = "deleteAclPort";
 
-// pnc commands
+    // pnc commands
     static constexpr const char GET_SWITCH_INFO[] = "getSwitchInfo";
     static constexpr const char GET_FABRIC_INFO[] = "getFabricInfo";
     static constexpr const char GET_PORT_INFO[] = "getPortInfo";

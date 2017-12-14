@@ -25,7 +25,7 @@ final class ODataForCollection {
         oDataType = builder.oDataType;
     }
 
-    public static Builder newBuilder() {
+    public static Builder newOdataForCollectionBuilder() {
         return new Builder();
     }
 
@@ -36,7 +36,6 @@ final class ODataForCollection {
     public String getODataType() {
         return oDataType;
     }
-
 
     public static final class Builder {
         private String name;

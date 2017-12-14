@@ -1,0 +1,11 @@
+prefix=@CMAKE_BINARY_DIR@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: gmp
+Description: GNU Multiple Precision Arithmetic Library
+URL: http://gmplib.org
+Version: @GMP_VERSION@
+Libs: -L${libdir} -lgmp
+Cflags: -I${includedir}

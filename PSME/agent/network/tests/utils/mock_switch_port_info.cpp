@@ -19,42 +19,43 @@
  *
  * */
 
-#include "api/netlink/switch_port_info.hpp"
+#include "hal/switch_port_info_impl.hpp"
 
 #include <vector>
 #include <string>
 
-using namespace agent::network::api::netlink;
+using namespace agent::network::hal;
 using namespace std;
 
-SwitchPortInfo::~SwitchPortInfo() {}
+SwitchPortInfoImpl::~SwitchPortInfoImpl() {}
 
-SwitchPortInfo::SwitchPortInfo(const string& port) {
-    m_port_identifier = port;
+SwitchPortInfoImpl::SwitchPortInfoImpl(const string& port) :
+    m_port_identifier{port} {
+    set_is_present(true);
 }
 
-SwitchPortInfo::VlanInfoList SwitchPortInfo::get_vlans() const {
+SwitchPortInfo::VlanInfoList SwitchPortInfoImpl::get_vlans() const {
     SwitchPortInfo::VlanInfoList list{{3000, false}, {4000, true}};
     return list;
 }
 
-bool SwitchPortInfo::is_member() const {
+bool SwitchPortInfoImpl::is_member() const {
     if (m_port_identifier == "sw0p3") {
         return true;
     }
     return false;
 }
 
-SwitchPortInfo::PortList SwitchPortInfo::get_port_members() const {
+SwitchPortInfo::PortList SwitchPortInfoImpl::get_port_members() const {
     SwitchPortInfo::PortList list{"sw0p1"};
     return list;
 }
 
-SwitchPortInfo::PortIdentifier SwitchPortInfo::get_master_port() const {
+SwitchPortInfo::PortIdentifier SwitchPortInfoImpl::get_master_port() const {
     return "team1";
 }
 
-void SwitchPortInfo::get_switch_port_attribute(SwitchPortInfo::PortAttributeType,
+void SwitchPortInfoImpl::get_switch_port_attribute(SwitchPortInfo::PortAttributeType,
                                                SwitchPortInfo::PortAttributeValue& value) {
     value.set(uint32_t(100));
 }

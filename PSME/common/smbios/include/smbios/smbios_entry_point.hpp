@@ -18,41 +18,59 @@
  * limitations under the License.
  *
  *
- * @file signal.hpp
+ * @file smbios_entry_point.hpp
  *
- * @brief Signal interface
+ * @brief Smbios entry point structures
  * */
 
 #pragma once
+#include "mdr/generic_entry_point.hpp"
+
 #include <cstdint>
+#include <memory>
 
 namespace smbios {
 namespace parser {
 
-#pragma pack(push, 1)
 
-/*!
- * @brief Entry point to the SMBIOS table
- * */
-struct SmbiosEntryPoint {
-    uint8_t anchor[4];
-    uint8_t checksum;
-    uint8_t length;
-    uint8_t major;
-    uint8_t minor;
-    uint16_t max_struct_size;
-    uint8_t revision;
-    uint8_t formatted_area[5];
-    uint8_t intermediate_anchor[5];
-    uint8_t intermediate_checksum;
-    uint16_t struct_table_length;
-    uint32_t struct_table_address;
-    uint16_t struct_count;
-    uint8_t bcd_revision;
+/*! SmbiosEntryPoint interface */
+class SmbiosEntryPoint : public mdr::GenericEntryPoint {
+public:
+    using Ptr = std::unique_ptr<SmbiosEntryPoint>;
+
+    /*!
+     * @brief Exception type that will be thrown when error condition is
+     * discovered while parsing Smbios blob
+     */
+    class Exception : public std::runtime_error {
+    public:
+        /*!
+         * @brief constructs exception object
+         * @param what_arg Describes what hapened
+         */
+        explicit Exception(const std::string &what_arg) : std::runtime_error("Smbios entry point - " + what_arg) { }
+
+        Exception(const Exception &) = default;
+        Exception& operator=(const Exception&) = default;
+        Exception(Exception&&) = default;
+        Exception& operator=(Exception&&) = default;
+
+
+        virtual ~Exception();
+    };
+
+    /*!
+     * @brief Create Entry point structure pointer
+     * @param buf pointer to the bytes to be parsed
+     * @param buf_size number of bytes to be parsed
+     * @return SmbiosEntryPoint pointer
+     */
+    static SmbiosEntryPoint::Ptr create(const std::uint8_t* buf, const size_t buf_size);
+
+    /*! Destructor */
+    virtual ~SmbiosEntryPoint();
 };
 
-#pragma pack(pop)
 
 }
 }
-

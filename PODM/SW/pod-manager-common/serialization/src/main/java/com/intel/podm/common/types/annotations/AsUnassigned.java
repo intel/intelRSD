@@ -17,23 +17,21 @@
 package com.intel.podm.common.types.annotations;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotation;
-import com.intel.podm.common.utils.Contracts;
 
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+import static com.intel.podm.common.utils.Contracts.checkState;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@Target({ElementType.FIELD})
-@Retention(RetentionPolicy.RUNTIME)
+@Target({FIELD})
+@Retention(RUNTIME)
 @JacksonAnnotation
 public @interface AsUnassigned {
-
     Strategy[] value();
 
     enum Strategy {
@@ -43,13 +41,12 @@ public @interface AsUnassigned {
                 return false;
             }
 
-            Contracts.checkState(
-                    Collection.class.isAssignableFrom(object.getClass()),
-                    "AsUnassigned::WHEN_EMPTY_COLLECTION can be assigned only for Collection descendants."
+            checkState(
+                Collection.class.isAssignableFrom(object.getClass()),
+                "AsUnassigned::WHEN_EMPTY_COLLECTION can be assigned only for Collection descendants."
             );
 
-            Collection collection = (Collection) object;
-            return collection.isEmpty();
+            return ((Collection<?>) object).isEmpty();
         });
 
         private final Function<Object, Boolean> strategy;

@@ -16,28 +16,38 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.EthernetInterfaceDto;
+import com.intel.podm.business.dto.EthernetInterfaceDto;
+import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.business.services.context.PathParamConstants.ETHERNET_INTERFACE_ID;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class EthernetInterfaceCollectionResource extends BaseResource {
     @Inject
     private ReaderService<EthernetInterfaceDto> readerService;
 
     @Override
-    public Object get() {
+    public CollectionDto get() {
         return getOrThrow(() -> readerService.getCollection(getCurrentContext()));
     }
 
     @Path(ETHERNET_INTERFACE_ID)
     public EthernetInterfaceResource getEthernetInterface() {
         return getResource(EthernetInterfaceResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

@@ -28,6 +28,7 @@ constexpr const char ConnectorOptions::REDIRECT_PORT[];
 constexpr const char ConnectorOptions::USE_SSL[];
 constexpr const char ConnectorOptions::CERTS_DIR[];
 constexpr const char ConnectorOptions::CLIENT_CERT_REQUIRED[];
+constexpr const char ConnectorOptions::HOSTNAME[];
 constexpr const char ConnectorOptions::THREAD_MODE[];
 constexpr const char ConnectorOptions::THREAD_MODE_SELECT[];
 constexpr const char ConnectorOptions::THREAD_MODE_THREAD_PER_CONNECTION[];
@@ -54,9 +55,11 @@ ConnectorOptions::ConnectorOptions(const json::Value& config) {
     m_use_ssl = config[USE_SSL].as_bool();
     if (m_use_ssl) {
         m_certs_dir = config[CERTS_DIR].as_string();
-
         if (config.is_member(CLIENT_CERT_REQUIRED)) {
             m_is_client_cert_required = config[CLIENT_CERT_REQUIRED].as_bool();
+        }
+        if (config.is_member(HOSTNAME)) {
+            m_hostname = config[HOSTNAME].as_string();
         }
     }
 }
@@ -81,6 +84,10 @@ uint16_t ConnectorOptions::get_redirect_port() const {
 
 bool ConnectorOptions::is_client_cert_required() const {
     return m_is_client_cert_required;
+}
+
+const std::string& ConnectorOptions::get_hostname() const {
+    return m_hostname;
 }
 
 ConnectorOptions::ThreadMode ConnectorOptions::get_thread_mode() const {

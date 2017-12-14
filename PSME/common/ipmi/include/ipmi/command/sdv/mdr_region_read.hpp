@@ -1,26 +1,22 @@
 /*!
- * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * @brief Declaration of MdrRegionRead Request/Response.
  *
- * @copyright
+ * @header{License}
+ * @copyright Copyright (c) 2015-2017 Intel Corporation.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
- * @file mdr_region_read.hpp
- * @brief Declaration of MdrRegionRead Request/Response.
- * */
+ * @header{Filesystem}
+ * @file command/sdv/mdr_region_read.hpp
+ */
 
 #pragma once
 
@@ -59,11 +55,9 @@ public:
     /*! @brief Destructor. */
     virtual ~MdrRegionRead();
 
-    /*!
-     * @brief Packs data from object to output vector
-     * @param[out] data Vector where data will be packed.
-     * */
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    const char* get_command_name() const override {
+        return "MdrRegionRead";
+    }
 
     /*!
      * @brief Sets Data Region ID
@@ -113,10 +107,18 @@ public:
         return m_offset;
     }
 
-private:
+protected:
+    /*! @brief Constructor for inheritance purposes.
+     *  @param[in] net_fn Net Function with which the command is suppose to be called
+     * */
+    MdrRegionRead(NetFn net_fn);
+
     DataRegionId m_data_region_id{};
     std::uint8_t m_data_length{};
     std::uint16_t m_offset{};
+
+private:
+    void pack(IpmiInterface::ByteBuffer& data) const override;
 };
 }
 
@@ -147,11 +149,9 @@ public:
     /*! @brief Destructor. */
     virtual ~MdrRegionRead();
 
-    /*!
-     * @brief Unpacks data from vector to object.
-     * @param data bytes to be copied to object,
-     */
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    const char* get_command_name() const override {
+        return "MdrRegionRead";
+    }
 
     /*!
      * @brief Gets read length
@@ -173,18 +173,27 @@ public:
      * @brief Gets data
      * @return MDR region data
      */
-    const std::vector<std::uint8_t> get_data() const {
+    const IpmiInterface::ByteBuffer& get_data() const {
         return m_data;
     }
+
+protected:
+    /*!
+     * @brief Constructor.
+     * @param[in] net_fn Net function
+     * @param[in] data_length Data length to read by command
+     * */
+    explicit MdrRegionRead(NetFn net_fn, const std::uint16_t data_length);
+
+    std::uint8_t m_length{};
+    std::uint8_t m_update_count{};
+    IpmiInterface::ByteBuffer m_data{};
 
 private:
     static const constexpr std::size_t OFFSET_LENGTH = 1;
     static const constexpr std::size_t OFFSET_UPDATE_COUNT = 2;
     static const constexpr std::size_t OFFSET_DATA = 3;
-
-    std::uint8_t m_length{};
-    std::uint8_t m_update_count{};
-    std::vector<std::uint8_t> m_data{};
+    void unpack(const IpmiInterface::ByteBuffer& data) override;
 };
 }
 

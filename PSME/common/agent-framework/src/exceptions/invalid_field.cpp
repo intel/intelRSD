@@ -33,11 +33,11 @@ const constexpr char InvalidField::FIELD_NAME[];
 const constexpr char InvalidField::FIELD_VALUE[];
 
 
-InvalidField::InvalidField(const std::string& msg, const std::string& field_name, const Json::Value& field_value) :
+InvalidField::InvalidField(const std::string& msg, const std::string& field_name, const json::Json& field_value) :
     GamiException(ErrorCode::INVALID_FIELD, msg, create_json_data_from_field(field_name, field_value)) {
 }
 
-InvalidField::InvalidField(const ErrorCode error_code, const std::string& msg, const Json::Value& json_data) :
+InvalidField::InvalidField(const ErrorCode error_code, const std::string& msg, const json::Json& json_data) :
     GamiException(error_code, msg, json_data) { }
 
 
@@ -45,18 +45,18 @@ InvalidField::~InvalidField() {}
 
 
 std::string InvalidField::get_field() const {
-    const auto& json_data = GetData();
-    return json_data.isMember(FIELD_NAME) ? json_data[FIELD_NAME].asString() : std::string{};
+    const auto& json_data = get_data();
+    return (json_data.count(FIELD_NAME) > 0) ? json_data[FIELD_NAME].get<std::string>() : std::string{};
 }
 
-Json::Value InvalidField::create_json_data_from_field(const std::string& field_name, const Json::Value& field_value) {
-    Json::Value json_data{};
+json::Json InvalidField::create_json_data_from_field(const std::string& field_name, const json::Json& field_value) {
+    json::Json json_data{};
     json_data[InvalidField::FIELD_NAME] = field_name;
     json_data[InvalidField::FIELD_VALUE] = field_value;
     return json_data;
 }
 
-std::string InvalidField::get_field_name_from_json_data(const Json::Value& data, bool should_return_empty) {
+std::string InvalidField::get_field_name_from_json_data(const json::Json& data, bool should_return_empty) {
     const auto& field_name = get_string_from_data(data, InvalidField::FIELD_NAME);
     if(field_name.empty() && !should_return_empty) {
         return NOT_SPECIFIED;
@@ -64,7 +64,7 @@ std::string InvalidField::get_field_name_from_json_data(const Json::Value& data,
     return field_name;
 }
 
-std::string InvalidField::get_field_value_from_json_data(const Json::Value& data, bool should_return_empty) {
+std::string InvalidField::get_field_value_from_json_data(const json::Json& data, bool should_return_empty) {
     const auto& field_value = get_styled_string_from_data(data, InvalidField::FIELD_VALUE);
     if(field_value.empty() && !should_return_empty) {
         return NOT_SPECIFIED;
@@ -72,6 +72,6 @@ std::string InvalidField::get_field_value_from_json_data(const Json::Value& data
     return field_value;
 }
 
-Json::Value InvalidField::get_field_value_as_json_from_json_data(const Json::Value& data) {
+json::Json InvalidField::get_field_value_as_json_from_json_data(const json::Json& data) {
     return get_json_from_data(data, InvalidField::FIELD_VALUE);
 }

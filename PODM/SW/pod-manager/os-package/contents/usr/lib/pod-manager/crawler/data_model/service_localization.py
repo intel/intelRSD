@@ -21,6 +21,9 @@ class ServiceLocalization:
     def __eq__(self, other):
         return self._host == other.get_host() and self._port == other.get_port()
 
+    def __str__(self):
+        return '{host}:{port}'.format(host=self._host, port=self._port)
+
     def get_host(self):
         return self._host
 

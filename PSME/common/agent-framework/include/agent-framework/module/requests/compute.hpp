@@ -28,8 +28,8 @@
 
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/requests/compute/get_memory_info.hpp"
+#include "agent-framework/module/requests/compute/get_trusted_module_info.hpp"
 #include "agent-framework/module/requests/compute/get_network_interface_info.hpp"
 #include "agent-framework/module/requests/compute/get_network_device_info.hpp"
 #include "agent-framework/module/requests/compute/get_network_device_function_info.hpp"
-#include "agent-framework/module/requests/compute/get_processor_info.hpp"
 #include "agent-framework/module/requests/compute/get_storage_controller_info.hpp"

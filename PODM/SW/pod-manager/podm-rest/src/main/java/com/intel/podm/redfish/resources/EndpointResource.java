@@ -16,22 +16,35 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.EndpointDto;
+import com.intel.podm.business.dto.EndpointDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class EndpointResource extends BaseResource {
     @Inject
-    private ReaderService<EndpointDto> endpoint;
+    private ReaderService<EndpointDto> readerService;
 
     @Override
-    public EndpointDto get() {
-        return getOrThrow(() -> endpoint.getResource(getCurrentContext()));
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        EndpointDto endpointDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, endpointDto);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 
 }

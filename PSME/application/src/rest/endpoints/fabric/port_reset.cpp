@@ -53,23 +53,21 @@ void endpoint::PortReset::post(const server::Request& request, server::Response&
     if (json.is_member(Common::RESET_TYPE)) {
         const auto port = psme::rest::model::Find<agent_framework::model::Port>(request.params[PathParam::PORT_ID])
             .via<agent_framework::model::Fabric>(request.params[PathParam::FABRIC_ID])
-            .via<agent_framework::model::Switch>(request.params[PathParam::SWITCH_ID]).get();
-        const auto& allowable_reset_types = port.get_allowed_actions();
+            .via<agent_framework::model::Switch>(request.params[PathParam::SWITCH_ID])
+            .get();
 
+        const auto& allowable_reset_types = port.get_allowed_actions();
         const auto reset_type = json[constants::Common::RESET_TYPE].as_string();
         const auto reset_type_enum = ResetType::from_string(reset_type);
 
-        auto predicate = [&reset_type_enum](const ResetType& type) {
-            return reset_type_enum == type;
-        };
-        if (!std::any_of(allowable_reset_types.begin(), allowable_reset_types.end(), predicate)) {
+        if (!JsonValidator::validate_allowable_values(allowable_reset_types.get_array(), reset_type_enum)) {
             throw error::ServerException(
                 error::ErrorFactory::create_error_for_not_allowable_value(
                     "The Port does not support the requested reset target.",
                     Common::RESET_TYPE, reset_type,
-                    endpoint::PathBuilder(constants::FabricCommon::ACTIONS)
+                    endpoint::PathBuilder(constants::Common::ACTIONS)
                         .append(constants::Port::PORT_RESET)
-                        .append(FabricCommon::ALLOWABLE_RESET_TYPES)
+                        .append(Common::ALLOWABLE_RESET_TYPES)
                         .build()
                 )
             );

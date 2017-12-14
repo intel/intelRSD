@@ -77,6 +77,7 @@ public:
     const std::string& get_uuid() const { return m_uuid; }
     const std::string& get_persistent_uuid() const { return m_persistent_uuid; }
     const std::string& get_temporary_uuid() const { return m_temporary_uuid; }
+    bool has_persistent_uuid() const { return true; }
 
     const std::string& get_parent_uuid() const { return m_parent_uuid; }
     void set_parent_uuid(const std::string& parent) { m_parent_uuid = parent; }

@@ -24,13 +24,14 @@
 
 #pragma once
 
+#include "nl_socket.hpp"
+
 #include <linux/netlink.h>
 #include <exception>
 
 /*! forward declarations */
 struct sockaddr_nl;
 struct nlmsgerr;
-struct nl_sock;
 struct nl_msg;
 
 namespace netlink_base {
@@ -41,28 +42,11 @@ namespace netlink_base {
 class NlMessage {
 public:
     /*!
-     * @enum Protocol
-     *
-     * @brief Netlink message protocol
-     *
-     * @var Protocol::ROUTE
-     * Routing Netlink message
-     *
-     * @var Protocol::USER
-     * User space Netlink message
-     *
-     * */
-    enum class Protocol {
-        ROUTE = NETLINK_ROUTE,
-        USER  = NETLINK_USERSOCK
-    };
-
-    /*!
      * @brief Default constructor.
      *
      * @param[in] proto Message protocol
      */
-    NlMessage(Protocol proto);
+    NlMessage(NlSocket::Protocol proto);
 
     /*!
      * @brief Copy constructor.
@@ -114,9 +98,9 @@ protected:
     virtual void prepare_message(struct nl_msg*) { }
 
     /*!
-     * @brief Prepare message to be sent.
+     * @brief Get raw socket.
      */
-    struct nl_sock *get_sock() { return mp_sock; }
+    struct nl_sock *get_sock() { return m_socket.get_sock(); }
 
 private:
     static int valid_message_handler(struct nl_msg*, void*);
@@ -125,8 +109,7 @@ private:
                                         struct nlmsgerr*, void*);
     /* class members */
     std::exception_ptr m_handler_exception{};
-    struct nl_sock* mp_sock;
-    int m_proto;
+    NlSocket m_socket;
     int m_type{};
     int m_flags{};
 };

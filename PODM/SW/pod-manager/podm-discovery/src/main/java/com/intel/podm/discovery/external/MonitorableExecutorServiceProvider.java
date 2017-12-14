@@ -18,9 +18,9 @@ package com.intel.podm.discovery.external;
 
 import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.codahale.metrics.MetricRegistry;
+import com.intel.podm.common.synchronization.monitoring.MetricRegistryFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.Singleton;
 import javax.enterprise.concurrent.ManagedScheduledExecutorService;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
@@ -28,12 +28,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.concurrent.ScheduledExecutorService;
 
-@Singleton
+import static com.intel.podm.common.enterprise.utils.beans.JndiNames.EVENT_SUBSCRIPTION_TASK_EXECUTOR;
+import static com.intel.podm.common.enterprise.utils.beans.JndiNames.SYNCHRONIZED_TASK_EXECUTOR;
+
+@ApplicationScoped
 public class MonitorableExecutorServiceProvider {
-
-    private static final String SYNCHRONIZED_TASK_EXECUTOR = "TasksExecutor";
-    private static final String EVENT_SUBSCRIPTION_TASK_EXECUTOR = "EventsExecutor";
-
     @Resource(lookup = "java:/" + EVENT_SUBSCRIPTION_TASK_EXECUTOR)
     private ScheduledExecutorService eventSubscriptionTaskExecutor;
 
@@ -41,19 +40,23 @@ public class MonitorableExecutorServiceProvider {
     private ManagedScheduledExecutorService synchronizedTaskExecutor;
 
     @Inject
-    private MetricRegistry metricRegistry;
+    private MetricRegistryFactory metricRegistryFactory;
 
     @Produces
     @Named(SYNCHRONIZED_TASK_EXECUTOR)
     @ApplicationScoped
     public ScheduledExecutorService getDiscoveryTaskExecutor() {
-        return new InstrumentedScheduledExecutorService(synchronizedTaskExecutor, metricRegistry, SYNCHRONIZED_TASK_EXECUTOR);
+        return new InstrumentedScheduledExecutorService(synchronizedTaskExecutor, getMetricRegistry(), SYNCHRONIZED_TASK_EXECUTOR);
     }
 
     @Produces
     @Named(EVENT_SUBSCRIPTION_TASK_EXECUTOR)
     @ApplicationScoped
     public ScheduledExecutorService getEventSubscriptionTaskExecutor() {
-        return new InstrumentedScheduledExecutorService(eventSubscriptionTaskExecutor, metricRegistry, EVENT_SUBSCRIPTION_TASK_EXECUTOR);
+        return new InstrumentedScheduledExecutorService(eventSubscriptionTaskExecutor, getMetricRegistry(), EVENT_SUBSCRIPTION_TASK_EXECUTOR);
+    }
+
+    private MetricRegistry getMetricRegistry() {
+        return metricRegistryFactory.getOrRegisterNew("PodM.Misc");
     }
 }

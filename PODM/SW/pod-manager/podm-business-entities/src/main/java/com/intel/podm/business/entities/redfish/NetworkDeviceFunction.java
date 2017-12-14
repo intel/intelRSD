@@ -28,7 +28,6 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
 import java.util.Objects;
 
 import static javax.persistence.CascadeType.MERGE;

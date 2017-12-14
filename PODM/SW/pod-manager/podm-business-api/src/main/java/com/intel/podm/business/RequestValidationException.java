@@ -25,6 +25,11 @@ public final class RequestValidationException extends BusinessApiException imple
         this.violations.addAll(violations);
     }
 
+    public RequestValidationException(Violations violations) {
+        super("Invalid request");
+        this.violations.addAll(violations);
+    }
+
     @Override
     public Violations getViolations() {
         return violations;

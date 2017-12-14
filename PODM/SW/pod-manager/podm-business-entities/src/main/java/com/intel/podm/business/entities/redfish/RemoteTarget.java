@@ -49,12 +49,13 @@ import static javax.persistence.FetchType.LAZY;
 @javax.persistence.Entity
 @NamedQueries({
     @NamedQuery(name = RemoteTarget.GET_REMOTE_TARGET_BY_SOURCE_URI,
-        query = "SELECT rt FROM RemoteTarget rt WHERE rt.sourceUri = :sourceUri")
+        query = "SELECT rt FROM RemoteTarget rt JOIN rt.externalLinks links WHERE links.sourceUri = :sourceUri"
+    )
 })
 @Table(name = "remote_target", indexes = @Index(name = "idx_remote_target_entity_id", columnList = "entity_id", unique = true))
 @EntityListeners(RemoteTargetListener.class)
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class RemoteTarget extends DiscoverableEntity {
     public static final String GET_REMOTE_TARGET_BY_SOURCE_URI = "GET_REMOTE_TARGET_BY_SOURCE_URI";
 
@@ -141,11 +142,10 @@ public class RemoteTarget extends DiscoverableEntity {
     public String getTargetIqn() {
         Optional<RemoteTargetIscsiAddress> firstIscsiAddress = getRemoteTargetIscsiAddresses().stream().findFirst();
 
-        if (!firstIscsiAddress.isPresent()) {
-            return null;
-        }
+        return firstIscsiAddress
+            .map(RemoteTargetIscsiAddress::getTargetIqn)
+            .orElse(null);
 
-        return firstIscsiAddress.get().getTargetIqn();
     }
 
     public Set<LogicalDrive> getLogicalDrives() {

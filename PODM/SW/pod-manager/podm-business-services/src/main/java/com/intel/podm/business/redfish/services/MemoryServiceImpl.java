@@ -1,109 +1,80 @@
+/*
+ * Copyright (c) 2016-2017 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.MemoryDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.MemoryDto;
-import com.intel.podm.business.dto.redfish.attributes.MemoryLocationDto;
-import com.intel.podm.business.dto.redfish.attributes.MemoryRegionDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Memory;
-import com.intel.podm.business.entities.redfish.embeddables.MemoryLocation;
-import com.intel.podm.business.entities.redfish.embeddables.Region;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.aggregation.ComputerSystemSubResourcesFinder;
+import com.intel.podm.business.redfish.services.aggregation.MemoryMerger;
+import com.intel.podm.business.redfish.services.aggregation.MultiSourceEntityTreeTraverser;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.Collection;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.MEMORY_MODULES;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
-import static java.util.stream.Collectors.toList;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.MEMORY_METRICS_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodLength"})
-public class MemoryServiceImpl implements ReaderService<MemoryDto> {
+@RequestScoped
+class MemoryServiceImpl implements ReaderService<MemoryDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private MultiSourceEntityTreeTraverser multiTraverser;
 
+    @Inject
+    private ComputerSystemSubResourcesFinder computerSystemSubResourcesFinder;
+
+    @Inject
+    private MemoryMerger memoryMerger;
+
+    @Transactional(REQUIRED)
     @Override
-    public CollectionDto getCollection(Context systemContext) throws ContextResolvingException {
-        ComputerSystem computerSystem = (ComputerSystem) traverser.traverse(systemContext);
-        return new CollectionDto(MEMORY_MODULES, getAsIdSet(computerSystem.getMemoryModules()));
-    }
+    public CollectionDto getCollection(Context context) throws ContextResolvingException {
+        ComputerSystem system = (ComputerSystem) traverser.traverse(context);
 
-    @Override
-    public MemoryDto getResource(Context memoryContext) throws ContextResolvingException {
-        Memory memory = (Memory) traverser.traverse(memoryContext);
-        return map(memory);
-    }
-
-    private MemoryDto map(Memory memory) {
-        return MemoryDto.newBuilder()
-            .id(memory.getId().toString())
-            .name(memory.getName())
-            .description(memory.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(memory.getService(), memory.getUnknownOems()))
-            .memoryType(memory.getMemoryType())
-            .memoryDeviceType(memory.getMemoryDeviceType())
-            .baseModuleType(memory.getBaseModuleType())
-            .memoryMedia(memory.getMemoryMedia())
-            .capacityMib(memory.getCapacityMib())
-            .dataWidthBits(memory.getDataWidthBits())
-            .busWidthBits(memory.getBusWidthBits())
-            .manufacturer(memory.getManufacturer())
-            .serialNumber(memory.getSerialNumber())
-            .partNumber(memory.getPartNumber())
-            .allowedSpeedsMhz(memory.getAllowedSpeedsMhz())
-            .firmwareRevision(memory.getFirmwareRevision())
-            .firmwareApiVersion(memory.getFirmwareApiVersion())
-            .functionClasses(memory.getFunctionClasses())
-            .vendorId(memory.getVendorId())
-            .deviceId(memory.getDeviceId())
-            .rankCount(memory.getRankCount())
-            .deviceLocator(memory.getDeviceLocator())
-            .memoryLocation(buildMemoryLocationDto(memory.getMemoryLocation()))
-            .errorCorrection(memory.getErrorCorrection())
-            .status(memory.getStatus())
-            .operatingSpeedMhz(memory.getOperatingSpeedMhz())
-            .regions(processMemoryRegions(memory.getRegions()))
-            .operatingMemoryModes(memory.getOperatingMemoryModes())
-            .voltageVolt(memory.getVoltageVolt())
-            .build();
-    }
-
-    private MemoryLocationDto buildMemoryLocationDto(MemoryLocation memoryLocation) {
-        if (memoryLocation == null) {
-            return null;
+        // Multi-source resources sanity check
+        if (system.isComplementary()) {
+            throw new ContextResolvingException("Specified resource is not a primary resource representation!", context, null);
         }
 
-        return MemoryLocationDto.newBuilder()
-            .locationChannel(memoryLocation.getChannel())
-            .locationMemoryController(memoryLocation.getMemoryController())
-            .locationSlot(memoryLocation.getSlot())
-            .locationSocket(memoryLocation.getSocket())
-            .build();
+        return new CollectionDto(MEMORY_MODULES, getAsIdSet(computerSystemSubResourcesFinder.getUniqueSubResourcesOfClass(system, Memory.class)));
     }
 
-    private Collection<MemoryRegionDto> processMemoryRegions(Collection<Region> regions) {
-        Collection<MemoryRegionDto> memoryRegions = regions.stream()
-            .map(this::createMemoryRegionDto)
-            .collect(toList());
-        return memoryRegions;
-    }
+    @Transactional(REQUIRED)
+    @Override
+    public MemoryDto getResource(Context context) throws ContextResolvingException {
+        Memory memory = (Memory) multiTraverser.traverse(context);
+        MemoryDto memoryDto = memoryMerger.toDto(memory);
 
-    private MemoryRegionDto createMemoryRegionDto(Region region) {
-        return MemoryRegionDto.newBuilder()
-            .regionId(region.getRegionId())
-            .memoryClassification(region.getMemoryClassification())
-            .offsetMib(region.getOffsetMib())
-            .sizeMib(region.getSizeMib())
-            .build();
+        if (memory.getMemoryMetrics() != null) {
+            memoryDto.setMemoryMetrics(singletonContextOf(context, MEMORY_METRICS_RESOURCE_NAME));
+        }
+
+        return memoryDto;
     }
 }

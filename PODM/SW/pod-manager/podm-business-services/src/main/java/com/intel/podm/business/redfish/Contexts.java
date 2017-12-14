@@ -19,28 +19,37 @@ package com.intel.podm.business.redfish;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
+import com.intel.podm.business.entities.redfish.ComputerSystemMetrics;
 import com.intel.podm.business.entities.redfish.Drive;
 import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
+import com.intel.podm.business.entities.redfish.EthernetSwitchAcl;
+import com.intel.podm.business.entities.redfish.EthernetSwitchAclRule;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
+import com.intel.podm.business.entities.redfish.EthernetSwitchStaticMac;
 import com.intel.podm.business.entities.redfish.EventSubscription;
 import com.intel.podm.business.entities.redfish.Fabric;
 import com.intel.podm.business.entities.redfish.LogicalDrive;
 import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.entities.redfish.Memory;
+import com.intel.podm.business.entities.redfish.MemoryMetrics;
+import com.intel.podm.business.entities.redfish.MetricDefinition;
+import com.intel.podm.business.entities.redfish.NetworkDeviceFunction;
+import com.intel.podm.business.entities.redfish.NetworkInterface;
 import com.intel.podm.business.entities.redfish.NetworkProtocol;
 import com.intel.podm.business.entities.redfish.PcieDevice;
 import com.intel.podm.business.entities.redfish.PcieDeviceFunction;
 import com.intel.podm.business.entities.redfish.PhysicalDrive;
 import com.intel.podm.business.entities.redfish.Port;
+import com.intel.podm.business.entities.redfish.PortMetrics;
 import com.intel.podm.business.entities.redfish.Power;
 import com.intel.podm.business.entities.redfish.PowerControl;
 import com.intel.podm.business.entities.redfish.PowerSupply;
 import com.intel.podm.business.entities.redfish.PowerVoltage;
-import com.intel.podm.business.entities.redfish.PowerZone;
 import com.intel.podm.business.entities.redfish.Processor;
+import com.intel.podm.business.entities.redfish.ProcessorMetrics;
 import com.intel.podm.business.entities.redfish.Redundancy;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
@@ -50,17 +59,14 @@ import com.intel.podm.business.entities.redfish.Switch;
 import com.intel.podm.business.entities.redfish.Thermal;
 import com.intel.podm.business.entities.redfish.ThermalFan;
 import com.intel.podm.business.entities.redfish.ThermalTemperature;
-import com.intel.podm.business.entities.redfish.ThermalZone;
 import com.intel.podm.business.entities.redfish.Zone;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
+import com.intel.podm.common.types.Id;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -69,53 +75,62 @@ import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.ContextType.CHASSIS;
 import static com.intel.podm.business.services.context.ContextType.COMPOSED_NODE;
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM;
+import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM_METRICS;
 import static com.intel.podm.business.services.context.ContextType.DRIVE;
 import static com.intel.podm.business.services.context.ContextType.ENDPOINT;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_INTERFACE;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH;
+import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_ACL;
+import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_ACL_RULE;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT_VLAN;
+import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_STATIC_MAC;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SUBSCRIPTION;
 import static com.intel.podm.business.services.context.ContextType.FABRIC;
 import static com.intel.podm.business.services.context.ContextType.LOGICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.MANAGER;
 import static com.intel.podm.business.services.context.ContextType.MEMORY;
+import static com.intel.podm.business.services.context.ContextType.MEMORY_METRICS;
+import static com.intel.podm.business.services.context.ContextType.METRIC_DEFINITION;
+import static com.intel.podm.business.services.context.ContextType.NETWORK_DEVICE_FUNCTION;
+import static com.intel.podm.business.services.context.ContextType.NETWORK_INTERFACE;
 import static com.intel.podm.business.services.context.ContextType.NETWORK_PROTOCOL;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE_FUNCTION;
 import static com.intel.podm.business.services.context.ContextType.PHYSICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.PORT;
+import static com.intel.podm.business.services.context.ContextType.PORT_METRICS;
 import static com.intel.podm.business.services.context.ContextType.POWER;
 import static com.intel.podm.business.services.context.ContextType.POWER_CONTROL;
 import static com.intel.podm.business.services.context.ContextType.POWER_SUPPLY;
 import static com.intel.podm.business.services.context.ContextType.POWER_VOLTAGE;
-import static com.intel.podm.business.services.context.ContextType.POWER_ZONE;
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR;
+import static com.intel.podm.business.services.context.ContextType.PROCESSOR_METRICS;
 import static com.intel.podm.business.services.context.ContextType.REDUNDANCY;
 import static com.intel.podm.business.services.context.ContextType.REMOTE_TARGET;
 import static com.intel.podm.business.services.context.ContextType.SIMPLE_STORAGE;
 import static com.intel.podm.business.services.context.ContextType.STORAGE;
 import static com.intel.podm.business.services.context.ContextType.STORAGE_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.SWITCH;
+import static com.intel.podm.business.services.context.ContextType.TELEMETRY_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.THERMAL;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_FAN;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_TEMPERATURE;
-import static com.intel.podm.business.services.context.ContextType.THERMAL_ZONE;
 import static com.intel.podm.business.services.context.ContextType.ZONE;
 import static com.intel.podm.common.enterprise.utils.proxy.Unproxier.unproxy;
 import static com.intel.podm.common.types.Id.id;
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
 import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public final class Contexts {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Contexts.class);
-
-    private static final Map<Class<?>, Method> CLASS_TO_CONTEXT_METHOD_MAPPING = Arrays.stream(Contexts.class.getDeclaredMethods())
+    private static final Map<Class<?>, Method> CLASS_TO_CONTEXT_METHOD_MAPPING = stream(Contexts.class.getDeclaredMethods())
         .filter(method -> method.getReturnType().equals(Context.class))
         .filter(method -> method.getParameterTypes().length == 1)
         .collect(toMap(method -> method.getParameterTypes()[0], m -> m))
@@ -148,12 +163,12 @@ public final class Contexts {
         Optional<Method> method = ofNullable(CLASS_TO_CONTEXT_METHOD_MAPPING.get(unproxy(entity.getClass())));
         try {
             if (method.isPresent()) {
-                return Optional.of((Context) method.get().invoke(null, entity));
+                return of((Context) method.get().invoke(null, entity));
             }
+            return empty();
         } catch (IllegalAccessException | InvocationTargetException e) {
-            LOGGER.e("Cannot generate context for {}", entity);
+            throw new RuntimeException(e);
         }
-        return empty();
     }
 
     private static <T extends DiscoverableEntity, R extends DiscoverableEntity> Context getParentContext(T entity, Function<T, R> function) {
@@ -182,16 +197,12 @@ public final class Contexts {
         return contextOf(chassis.getId(), CHASSIS);
     }
 
-    private static Context toContext(ThermalZone thermalZone) {
-        return getParentContext(thermalZone, ThermalZone::getChassis).child(thermalZone.getId(), THERMAL_ZONE);
-    }
-
-    private static Context toContext(PowerZone powerZone) {
-        return getParentContext(powerZone, PowerZone::getChassis).child(powerZone.getId(), POWER_ZONE);
-    }
-
     private static Context toContext(ComputerSystem computerSystem) {
         return contextOf(computerSystem.getId(), COMPUTER_SYSTEM);
+    }
+
+    private static Context toContext(PortMetrics portMetrics) {
+        return getParentContext(portMetrics, PortMetrics::getPort).child(id(""), PORT_METRICS);
     }
 
     private static Context toContext(Thermal thermal) {
@@ -199,15 +210,16 @@ public final class Contexts {
     }
 
     private static Context toContext(ThermalFan thermalFan) {
-        return getParentContext(thermalFan, ThermalFan::getThermal).child(id(getIndex(thermalFan)), THERMAL_FAN);
+        return getParentContext(thermalFan, ThermalFan::getThermal).child(id(getLastSegment(thermalFan.getId())), THERMAL_FAN);
     }
 
     private static Context toContext(ThermalTemperature thermalTemperature) {
-        return getParentContext(thermalTemperature, ThermalTemperature::getThermal).child(id(getIndex(thermalTemperature)), THERMAL_TEMPERATURE);
+        return getParentContext(thermalTemperature, ThermalTemperature::getThermal)
+            .child(id(getLastSegment(thermalTemperature.getId())), THERMAL_TEMPERATURE);
     }
 
     private static Context toContext(Redundancy redundancy) {
-        return getParentContext(redundancy, Redundancy::getRedundancyOwner).child(id(getIndex(redundancy)), REDUNDANCY);
+        return getParentContext(redundancy, Redundancy::getRedundancyOwner).child(id(getLastSegment(redundancy.getId())), REDUNDANCY);
     }
 
     private static Context toContext(Power power) {
@@ -215,19 +227,23 @@ public final class Contexts {
     }
 
     private static Context toContext(PowerVoltage powerVoltage) {
-        return getParentContext(powerVoltage, PowerVoltage::getPower).child(id(getIndex(powerVoltage)), POWER_VOLTAGE);
+        return getParentContext(powerVoltage, PowerVoltage::getPower).child(id(getLastSegment(powerVoltage.getId())), POWER_VOLTAGE);
     }
 
     private static Context toContext(PowerSupply powerSupply) {
-        return getParentContext(powerSupply, PowerSupply::getPower).child(id(getIndex(powerSupply)), POWER_SUPPLY);
+        return getParentContext(powerSupply, PowerSupply::getPower).child(id(getLastSegment(powerSupply.getId())), POWER_SUPPLY);
     }
 
     private static Context toContext(PowerControl powerControl) {
-        return getParentContext(powerControl, PowerControl::getPower).child(id(getIndex(powerControl)), POWER_CONTROL);
+        return getParentContext(powerControl, PowerControl::getPower).child(id(getLastSegment(powerControl.getId())), POWER_CONTROL);
     }
 
     private static Context toContext(Memory memory) {
         return getParentContext(memory, Memory::getComputerSystem).child(memory.getId(), MEMORY);
+    }
+
+    private static Context toContext(MemoryMetrics memoryMetrics) {
+        return getParentContext(memoryMetrics, MemoryMetrics::getMemory).child(id(""), MEMORY_METRICS);
     }
 
     private static Context toContext(Fabric fabric) {
@@ -258,6 +274,19 @@ public final class Contexts {
             return getParentContext(vlan, EthernetSwitchPortVlan::getEthernetSwitchPort).child(vlan.getId(), ETHERNET_SWITCH_PORT_VLAN);
         }
         return getParentContext(vlan, EthernetSwitchPortVlan::getEthernetInterface).child(vlan.getId(), ETHERNET_SWITCH_PORT_VLAN);
+    }
+
+    private static Context toContext(EthernetSwitchStaticMac ethernetSwitchStaticMac) {
+        return getParentContext(ethernetSwitchStaticMac, EthernetSwitchStaticMac::getEthernetSwitchPort).child(ethernetSwitchStaticMac.getId(),
+            ETHERNET_SWITCH_STATIC_MAC);
+    }
+
+    private static Context toContext(EthernetSwitchAcl acl) {
+        return getParentContext(acl, EthernetSwitchAcl::getEthernetSwitch).child(acl.getId(), ETHERNET_SWITCH_ACL);
+    }
+
+    private static Context toContext(EthernetSwitchAclRule aclRule) {
+        return getParentContext(aclRule, EthernetSwitchAclRule::getEthernetSwitchAcl).child(aclRule.getId(), ETHERNET_SWITCH_ACL_RULE);
     }
 
     private static Context toContext(StorageService storageService) {
@@ -323,8 +352,28 @@ public final class Contexts {
         return contextOf(id(""), EVENT_SERVICE).child(eventSubscription.getId(), EVENT_SUBSCRIPTION);
     }
 
-    public static String getIndex(DiscoverableEntity discoverableEntity) {
-        String idValue = discoverableEntity.getId().getValue();
-        return idValue.substring(idValue.lastIndexOf("/") + 1);
+    private static Context toContext(MetricDefinition metricDefinition) {
+        return contextOf(id(""), TELEMETRY_SERVICE).child(metricDefinition.getId(), METRIC_DEFINITION);
+    }
+
+    private static Context toContext(ComputerSystemMetrics computerSystemMetrics) {
+        return getParentContext(computerSystemMetrics, ComputerSystemMetrics::getComputerSystem).child(id(""), COMPUTER_SYSTEM_METRICS);
+    }
+
+    private static Context toContext(ProcessorMetrics processorMetrics) {
+        return getParentContext(processorMetrics, ProcessorMetrics::getProcessor).child(id(""), PROCESSOR_METRICS);
+    }
+
+    private static Context toContext(NetworkInterface networkInterface) {
+        return getParentContext(networkInterface, NetworkInterface::getComputerSystem).child(networkInterface.getId(), NETWORK_INTERFACE);
+    }
+
+    private static Context toContext(NetworkDeviceFunction networkDeviceFunction) {
+        return getParentContext(networkDeviceFunction, NetworkDeviceFunction::getNetworkInterface).child(networkDeviceFunction.getId(),
+            NETWORK_DEVICE_FUNCTION);
+    }
+
+    private static String getLastSegment(Id id) {
+        return id.getValue().substring(id.getValue().lastIndexOf('-') + 1);
     }
 }

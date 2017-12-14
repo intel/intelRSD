@@ -63,7 +63,6 @@ public class ComposedNodeUpdaterTest {
     private static final UUID STORAGE_SERVICE_UUID = fromString("91f7888a-fec8-44f5-8c0f-c15312ad4f9b");
     private static final String REMOTE_TARGET_IQN = "remote_target_iqn";
 
-
     private static final UUID ANOTHER_COMPUTER_SYSTEM_UUID = fromString("11111111-fec8-44f5-8c0f-c15312ad4f9b");
     private static final UUID ANOTHER_COMPUTE_SERVICE_UUID = fromString("22222222-fec8-44f5-8c0f-c15312ad4f9b");
     private static final UUID ANOTHER_STORAGE_SERVICE_UUID = fromString("33333333-fec8-44f5-8c0f-c15312ad4f9b");
@@ -396,7 +395,6 @@ public class ComposedNodeUpdaterTest {
         composedNodeUpdater.composedNodeDao = mockComposedNodeDao(composedNodes);
         return composedNodeUpdater;
     }
-
 
     private static class ComposedNodeMock extends ComposedNode {
         private Status status;

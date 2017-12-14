@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Endpoint;
-import com.intel.podm.client.api.resources.redfish.EndpointResource;
+import com.intel.podm.client.resources.redfish.EndpointResource;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.IdentifierMapper;
 
@@ -39,6 +39,7 @@ public class EndpointMapper extends EntityMapper<EndpointResource, Endpoint> {
 
     @Override
     protected void performNotAutomatedMapping(EndpointResource sourceEndpoint, Endpoint targetEndpoint) {
+        super.performNotAutomatedMapping(source, target);
         identifierMapper.map(sourceEndpoint.getIdentifiers(), targetEndpoint.getIdentifiers(), targetEndpoint::addIdentifier);
     }
 }

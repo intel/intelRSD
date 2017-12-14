@@ -55,7 +55,7 @@ public:
     static constexpr const char SUBSYSTEM_ID[] = "^0[xX](([a-fA-F]|[0-9]){2}){2}$";
     static constexpr const char SUBSYSTEM_VENDOR_ID[] = "^0[xX](([a-fA-F]|[0-9]){2}){2}$";
     static constexpr const char DATE_TIME_LOCAL_OFFSET[] = "([-+][0-1][0-9]:[0-5][0-9])";
-    static constexpr const char NO_WHITESPACE_STRING[] = "^[\\S]+$";
+    static constexpr const char NO_WHITESPACE_STRING[] = "^[\\S]*$";
 };
 
 /*!

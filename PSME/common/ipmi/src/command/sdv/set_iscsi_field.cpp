@@ -32,8 +32,7 @@
 using namespace ipmi;
 using namespace ipmi::command::sdv;
 
-request::SetIscsiField::SetIscsiField():
-        Request(sdv::NetFn::INTEL, sdv::Cmd::SET_ISCSI_FIELD) {}
+request::SetIscsiField::SetIscsiField() : Request(sdv::NetFn::INTEL, sdv::Cmd::SET_ISCSI_FIELD) {}
 request::SetIscsiField::~SetIscsiField() {}
 
 void request::SetIscsiField::pack(std::vector<std::uint8_t>& data) const {
@@ -54,8 +53,5 @@ response::SetIscsiField::SetIscsiField():
 response::SetIscsiField::~SetIscsiField() {}
 
 void response::SetIscsiField::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return;
-    }
     m_field_max_byte_no = data[OFFSET_MAX_BYTES_NUMBER];
 }

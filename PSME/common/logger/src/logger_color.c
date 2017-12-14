@@ -29,9 +29,9 @@
 #include "logger_color.h"
 
 static const char *glogger_color_table[] = {
-    COLOR_RED_BRIGHT,
-    COLOR_RED_BRIGHT,
-    COLOR_RED_BRIGHT,
+    COLOR_CYAN_BRIGHT,
+    COLOR_MAGENTA_BRIGHT,
+    COLOR_RED_NORMAL,
     COLOR_RED_BRIGHT,
     COLOR_YELLOW_BRIGHT,
     COLOR_BLUE_BRIGHT,

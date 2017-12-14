@@ -50,7 +50,10 @@ static std::string make_base_configuration() {
                     {
                         "Language" : "en",
                         "Type" : "external",
-                        "PublicationUri" : "https://www.dmtf.org/sites/default/files/standards/documents/DSP8011_1.0.0a.json"
+                        "PublicationUri" : "https://www.dmtf.org/sites/default/files/standards/documents/DSP8011_1.0.0a.json",
+                        "Uri" : null,
+                        "ArchiveUri" : null,
+                        "ArchiveFile" : null
                     }
                 ],
                 "Oem" : {}
