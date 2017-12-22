@@ -19,7 +19,7 @@ Please have in mind that adding additional information like including log files,
 
 ## News
 
-##### [2017-12-15] New version of Rack Scale Solution Reference Software (2.2) has been released!
+##### [2017-12-22] New version of Rack Scale Solution Reference Software (2.2) has been released!
 The new version of Rack Scale Solution Reference Software (v2.2) has been released! Here is the list of the most important changes:
 1.	Out of band Telemetry – Discovering, monitoring and reporting Telemetry metrics,  Health Status of RSD assets through the OOB interface (like IPMI). 
 2.	Intel® Xeon® Processor Scalable family (formerly Purley) Platform support – Purley is the next server platform from Intel with lots of improved capabilities around performance, memory architecture and security. The platform is based on cutting-edge technology and provides compelling benefits across a broad variety of usage models including big data, artificial intelligence, high-performance computing, enterprise-class IT, cloud, storage, communication, and the Internet of Things (IoT). 
@@ -32,4 +32,5 @@ The new version of Rack Scale Solution Reference Software (v2.2) has been releas
 
 This code is **reference software only and is not feature complete**. 
 Intel® makes no claims for the quality or completeness of this code.
+
 *Other names and brands may be claimed as the property of others.
