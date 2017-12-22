@@ -17,15 +17,19 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.dto.redfish.ComposedNodeDto;
+import com.intel.podm.business.dto.ComposedNodeDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 import com.intel.podm.business.services.redfish.RemovalService;
 import com.intel.podm.business.services.redfish.UpdateService;
 import com.intel.podm.common.types.redfish.RedfishComputerSystem;
-import com.intel.podm.redfish.json.templates.actions.ComputerSystemPartialRepresentation;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
+import com.intel.podm.redfish.json.templates.actions.ComposedNodePartialRepresentation;
 import com.intel.podm.redfish.json.templates.actions.constraints.ComposedNodeConstraint;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PATCH;
@@ -34,12 +38,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
-import static com.intel.podm.common.types.redfish.ResourceNames.COMPOSED_NODES_RESOURCE_NAME;
-import static com.intel.podm.redfish.OptionsResponseBuilder.newDefaultOptionsResponseBuilder;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.ok;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ComposedNodeResource extends BaseResource {
     @Inject
@@ -49,12 +53,14 @@ public class ComposedNodeResource extends BaseResource {
     private RemovalService<ComposedNodeDto> nodeRemovalService;
 
     @Inject
-    private UpdateService<RedfishComputerSystem> computerSystemUpdateService;
+    @Named("ComposedNode")
+    private UpdateService<RedfishComputerSystem> composedNodeUpdateService;
 
     @GET
     @Override
-    public ComposedNodeDto get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        return new RedfishResourceAmazingWrapper(context, getOrThrow(() -> readerService.getResource(context)));
     }
 
     @DELETE
@@ -66,16 +72,11 @@ public class ComposedNodeResource extends BaseResource {
 
     @PATCH
     @Produces(APPLICATION_JSON)
-    public Response overrideBootSource(@ComposedNodeConstraint ComputerSystemPartialRepresentation representation)
+    public Response overrideBootSource(@ComposedNodeConstraint ComposedNodePartialRepresentation representation)
         throws TimeoutException, BusinessApiException {
 
-        computerSystemUpdateService.perform(getCurrentContext(), representation);
+        composedNodeUpdateService.perform(getCurrentContext(), representation);
         return ok(get()).build();
-    }
-
-    @Path(COMPOSED_NODES_RESOURCE_NAME)
-    public ComposedNodeCollectionResource getComposedNodeCollectionResource() {
-        return getResource(ComposedNodeCollectionResource.class);
     }
 
     @Path("Actions")
@@ -85,9 +86,9 @@ public class ComposedNodeResource extends BaseResource {
 
     @Override
     protected Response createOptionsResponse() {
-        return newDefaultOptionsResponseBuilder()
+        return newOptionsForResourceBuilder()
             .addDeleteMethod()
             .addPatchMethod()
-            .buildResponse();
+            .build();
     }
 }

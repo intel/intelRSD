@@ -42,8 +42,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitches/"
-        "Members/__SWITCH_ID__/ACLs";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchACLCollection.EthernetSwitchACLCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#EthernetSwitchACLCollection.EthernetSwitchACLCollection";
     r[Common::NAME] = "Ethernet Switch Access Control List Collection";
@@ -68,16 +67,11 @@ void endpoint::AclCollection::get(const server::Request& req,
                                   server::Response& res) {
     auto r = ::make_prototype();
 
-    r[Common::ODATA_CONTEXT] = std::regex_replace(
-        r[Common::ODATA_CONTEXT].as_string(),
-        std::regex("__SWITCH_ID__"),
-        req.params[PathParam::ETHERNET_SWITCH_ID]);
-
     r[Common::ODATA_ID] = PathBuilder(req).build();
 
-    const auto switch_uuid = NetworkComponents::get_instance()->
-        get_switch_manager().rest_id_to_uuid(
-        endpoint::utils::id_to_uint64(req.params[PathParam::ETHERNET_SWITCH_ID]));
+    const auto switch_uuid =
+        psme::rest::model::Find<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
+            .get_uuid();
 
     const auto keys =
         agent_framework::module::NetworkComponents::get_instance()->
@@ -95,12 +89,11 @@ void endpoint::AclCollection::get(const server::Request& req,
 }
 
 
-void endpoint::AclCollection::post(const server::Request& req,
-                                   server::Response& res) {
-    validators::JsonValidator::validate_empty_request(req);
+void endpoint::AclCollection::post(const server::Request& request, server::Response& response) {
+    validators::JsonValidator::validate_empty_request(request);
 
-    auto parent_switch = model::Find<agent_framework::model::EthernetSwitch>
-        (req.params[PathParam::ETHERNET_SWITCH_ID]).get();
+    auto parent_switch =
+        model::Find<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID]).get();
 
     const requests::AddAcl add_acl_request{
         parent_switch.get_uuid(),
@@ -118,9 +111,8 @@ void endpoint::AclCollection::post(const server::Request& req,
             load(gami_agent, parent_switch.get_uuid(),
                  enums::Component::EthernetSwitch, add_acl_response.get_acl(), true);
 
-        endpoint::utils::set_location_header(res, PathBuilder(req).append(acl_id).build());
-
-        res.set_status(server::status_2XX::CREATED);
+        endpoint::utils::set_location_header(response, PathBuilder(request).append(acl_id).build());
+        response.set_status(server::status_2XX::CREATED);
     };
 
     gami_agent->execute_in_transaction(add_acl);

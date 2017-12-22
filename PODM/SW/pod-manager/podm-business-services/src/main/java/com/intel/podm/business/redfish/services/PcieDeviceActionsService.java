@@ -16,11 +16,10 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.actions.ActionException;
-import com.intel.podm.actions.PcieDeviceUpdateInvoker;
 import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.entities.redfish.PcieDevice;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.actions.PcieDeviceUpdateInvoker;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.actions.PcieDeviceUpdateDefinition;
 import com.intel.podm.common.types.redfish.RedfishPcieDevice;
@@ -43,10 +42,6 @@ public class PcieDeviceActionsService {
     public void updatePcieDeviceAssetTag(Context pcieDeviceContext, RedfishPcieDevice representation) throws BusinessApiException {
         PcieDeviceUpdateDefinition pcieDeviceUpdateDefinition = new PcieDeviceUpdateDefinition(representation.getAssetTag());
         PcieDevice pcieDevice = (PcieDevice) traverser.traverse(pcieDeviceContext);
-        try {
-            invoker.updatePcieDevice(pcieDevice, pcieDeviceUpdateDefinition);
-        } catch (ActionException e) {
-            throw new BusinessApiException(e.getMessage(), e);
-        }
+        invoker.updatePcieDevice(pcieDevice, pcieDeviceUpdateDefinition);
     }
 }

@@ -19,9 +19,9 @@ package com.intel.podm.discovery.external.matchers;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
-import com.intel.podm.client.api.resources.redfish.EthernetInterfaceResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
+import com.intel.podm.client.resources.redfish.EthernetInterfaceResource;
 
 import javax.enterprise.context.Dependent;
 import java.util.Objects;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @Dependent
 public class EthernetInterfaceObtainerHelper implements EntityObtainerHelper<EthernetInterfaceResource> {
     @Override
-    public ComputerSystemResource findComputerSystemResourceFor(EthernetInterfaceResource resource) throws ExternalServiceApiReaderException {
+    public ComputerSystemResource findComputerSystemResourceFor(EthernetInterfaceResource resource) throws WebClientRequestException {
         return (ComputerSystemResource) resource.getComputerSystem().get();
     }
 

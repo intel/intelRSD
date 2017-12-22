@@ -24,6 +24,7 @@
 #include "agent-framework/logger_ext.hpp"
 
 #include "discovery/discovery_manager.hpp"
+#include "tree_stability/storage_tree_stabilizer.hpp"
 #include "sysfs/sysfs_api.hpp"
 #include "lvm/lvm_api.hpp"
 #include "iscsi/manager.hpp"
@@ -45,8 +46,8 @@ using namespace agent_framework::model::attribute;
 using namespace agent_framework::module;
 using namespace agent_framework::module::managers;
 
+using namespace agent::storage;
 using namespace agent::storage::discovery;
-using namespace agent::storage::sysfs;
 using namespace agent::storage::lvm;
 using namespace agent::storage::iscsi;
 
@@ -225,9 +226,8 @@ void DiscoveryManager::init_logical_volume(LogicalDrive& logical_volume) const {
 
 
 void DiscoveryManager::discovery_physical_drives(const string& uuid) const {
-    vector<SysfsAPI::HardDrive> bd_drives{};
     /* get hard drive list */
-    SysfsAPI::get_instance()->get_hard_drives(bd_drives);
+    vector<SysfsAPI::HardDrive> bd_drives = SysfsAPI::get_instance()->get_hard_drives();
     for (auto& bd_drive : bd_drives) {
         /* create physical drive model */
         PhysicalDrive physical_drive{uuid};
@@ -257,7 +257,7 @@ void DiscoveryManager::discovery_physical_drives(const string& uuid) const {
 
 void DiscoveryManager::discovery(const string& uuid) {
     /* get storage services UUID */
-    auto storage_uuids = get_manager<StorageServices>().get_keys(uuid);
+    auto storage_uuids = get_manager<StorageService>().get_keys(uuid);
     if (storage_uuids.empty()) {
         throw runtime_error("Storage service not found");
     }
@@ -265,6 +265,9 @@ void DiscoveryManager::discovery(const string& uuid) {
     discovery_physical_drives(storage_uuids.front());
     discovery_logical_drives(storage_uuids.front());
     discovery_iscsi_targets(storage_uuids.front());
+
+    StorageTreeStabilizer().stabilize(uuid);
+
     /* notify discovery done */
     m_cv.notify_all();
 }

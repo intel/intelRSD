@@ -26,6 +26,9 @@
  * */
 
 #pragma once
+
+
+
 #include <ipmb/utils.hpp>
 #include <ipmb/ipmi_message.hpp>
 
@@ -42,11 +45,10 @@ namespace ipmb {
 
 /*! GPIO Reader */
 class Gpio : public agent_framework::generic::Singleton<Gpio> {
-    uint8_t read_bdc_r_gpio() const;
-    uint8_t read_presence() const;
 public:
     std::mutex presence_mutex{};
     std::condition_variable presence_cv{};
+
 
     /*!
      * Returns GPIO presence byte
@@ -55,12 +57,35 @@ public:
     uint8_t get_presence();
 
     /*!
+     * @brief Returns presence flag of sled on given slot
+     * @param slot Slot number
+     * @return true if Sled is present, false otherwise.
+     */
+    bool is_present(std::uint8_t slot);
+
+    /*!
+     * @return Minimal update interval between presence readings.
+     */
+    std::chrono::milliseconds get_minimal_update_interval() const;
+
+
+    /*!
      * Read GPIOs and sets GPIO presence byte
      * @param presence GPIO presence byte
      * */
     void set_presence(const uint8_t presence);
 
+
     virtual ~Gpio();
+
+
+protected:
+    uint8_t read_bdc_r_gpio() const;
+
+
+    uint8_t read_presence() const;
+
+
 private:
     volatile uint8_t m_presence{};
 };

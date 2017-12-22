@@ -52,9 +52,6 @@ void response::GetSystemGuid::unpack(const std::vector<std::uint8_t>& data) {
 
     char guid[GUID_LENGTH];
 
-    if(!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
     int result = std::snprintf(&guid[0], GUID_LENGTH,
                                "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
                                static_cast<unsigned int>(data[OFFSET_TIME_LOW + 3]),

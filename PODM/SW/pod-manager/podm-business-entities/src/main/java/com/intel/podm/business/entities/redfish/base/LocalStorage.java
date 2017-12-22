@@ -27,16 +27,15 @@ import java.util.Optional;
 import static java.util.Optional.empty;
 
 public interface LocalStorage {
-
     Id getId();
     DiscoverableEntity getParent();
     BigDecimal getCapacityGib();
     MediaType getType();
     BigDecimal getRpm();
     Protocol getProtocol();
-    Boolean fromFabricSwitch();
     String getSerialNumber();
     boolean needsToBeExplicitlySelected();
+    Boolean fromFabricSwitch();
     default Optional<Chassis> getChassis() {
         return empty();
     }

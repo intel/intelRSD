@@ -1,0 +1,81 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2017 Intel Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="podm (generated)" id="1484851729324-1">
+        <createTable tableName="ethernet_switch_acl_rule">
+            <column name="action" type="TEXT"/>
+            <column name="destination_ip_v4_address" type="TEXT"/>
+            <column name="destination_ip_mask" type="TEXT"/>
+            <column name="source_ip_v4_address" type="TEXT"/>
+            <column name="source_ip_mask" type="TEXT"/>
+            <column name="destination_port_mask" type="BIGINT"/>
+            <column name="destination_port" type="BIGINT"/>
+            <column name="l4_protocol" type="BIGINT"/>
+            <column name="source_port_mask" type="BIGINT"/>
+            <column name="source_port" type="BIGINT"/>
+            <column name="destination_mac_address" type="TEXT"/>
+            <column name="destination_mac_mask" type="TEXT"/>
+            <column name="source_mac_address" type="TEXT"/>
+            <column name="source_mac_mask" type="TEXT"/>
+            <column name="vlan_id" type="TEXT"/>
+            <column name="vlan_mask" type="TEXT"/>
+            <column name="entity_id" type="TEXT"/>
+            <column name="mirror_type" type="TEXT"/>
+            <column name="rule_id" type="BIGINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ethernet_switch_acl_id" type="BIGINT"/>
+            <column name="forward_mirror_interface_ethernet_switch_port_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1484851729324-2">
+        <createTable tableName="ethernet_switch_acl_rule_mirror_port_region_port">
+            <column name="rule_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="port_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1484851729324-3">
+        <addPrimaryKey columnNames="rule_id, port_id" constraintName="ethernet_switch_acl_rule_mirror_port_region_port_pkey" tableName="ethernet_switch_acl_rule_mirror_port_region_port"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1484851729324-4">
+        <addPrimaryKey columnNames="id" constraintName="ethernet_switch_acl_rule_pkey" tableName="ethernet_switch_acl_rule"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1484851729324-5">
+        <addUniqueConstraint columnNames="entity_id" constraintName="idx_ethernet_switch_acl_rule_entity_id" tableName="ethernet_switch_acl_rule"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1484851729324-6">
+        <addForeignKeyConstraint baseColumnNames="port_id" baseTableName="ethernet_switch_acl_rule_mirror_port_region_port" constraintName="fk_18ldx32lfkgq1ek8bgwdi8b28" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_switch_port"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1484851729324-7">
+        <addForeignKeyConstraint baseColumnNames="ethernet_switch_acl_id" baseTableName="ethernet_switch_acl_rule" constraintName="fk_i04bd5ofepgknj35pn132lyqs" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_switch_acl"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1484851729324-8">
+        <addForeignKeyConstraint baseColumnNames="forward_mirror_interface_ethernet_switch_port_id" baseTableName="ethernet_switch_acl_rule" constraintName="fk_ikolm1oo4fasxoo28oe9hn7kt" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName                                                   ="ethernet_switch_port"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1484851729324-9">
+        <addForeignKeyConstraint baseColumnNames="rule_id" baseTableName="ethernet_switch_acl_rule_mirror_port_region_port" constraintName="fk_lxxs9vvpti8ptvwet5ckiyh3o" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_switch_acl_rule"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1484851729324-10">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="ethernet_switch_acl_rule" constraintName="fk_niu6cuhxv3yt39vrr7nidcsn2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+</databaseChangeLog>

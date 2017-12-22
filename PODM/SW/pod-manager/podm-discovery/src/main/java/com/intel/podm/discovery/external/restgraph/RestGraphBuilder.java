@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.intel.podm.discovery.external.restgraph;
 
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.reader.ExternalServiceReader;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ExternalServiceReader;
 
 public interface RestGraphBuilder {
-    RestGraph build(ExternalServiceReader client) throws ExternalServiceApiReaderException;
+    RestGraph build(ExternalServiceReader client) throws WebClientRequestException;
 }

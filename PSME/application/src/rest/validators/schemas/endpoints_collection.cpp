@@ -31,7 +31,6 @@ using namespace agent_framework::model;
 
 const jsonrpc::ProcedureValidator& EndpointsCollectionPostSchema::IdentifierSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "endpoints_collection_identifier_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::PncDrive::DURABLE_NAME_FORMAT, VALID_JSON_STRING,
         constants::PncDrive::DURABLE_NAME, VALID_JSON_STRING,
@@ -42,7 +41,6 @@ const jsonrpc::ProcedureValidator& EndpointsCollectionPostSchema::IdentifierSche
 
 const jsonrpc::ProcedureValidator& EndpointsCollectionPostSchema::EntitySchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "endpoints_collection_entity_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::Endpoint::ENTITY_TYPE, VALID_ENUM(enums::EntityType),
         constants::Endpoint::ENTITY_ROLE, VALID_ENUM(enums::EntityRole),
@@ -55,7 +53,6 @@ const jsonrpc::ProcedureValidator& EndpointsCollectionPostSchema::EntitySchema::
 
 const jsonrpc::ProcedureValidator& EndpointsCollectionPostSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "endpoints_collection_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::NAME, VALID_JSON_STRING,
         constants::Common::DESCRIPTION, VALID_JSON_STRING,

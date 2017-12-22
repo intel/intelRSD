@@ -30,12 +30,19 @@ namespace agent_framework {
 namespace model {
 namespace literals {
 
+constexpr const char Command::HEART_BEAT[];
+constexpr const char Command::ATTACH[];
+constexpr const char Command::COMPONENT_NOTIFICATION[];
+
 // common commands
 constexpr const char Command::GET_COLLECTION[];
 constexpr const char Command::GET_MANAGER_INFO[];
 constexpr const char Command::GET_MANAGERS_COLLECTION[];
 constexpr const char Command::SET_COMPONENT_ATTRIBUTES[];
 constexpr const char Command::GET_TASKS_COLLECTION[];
+constexpr const char Command::GET_METRICS[];
+constexpr const char Command::GET_METRIC_DEFINITIONS_COLLECTION[];
+constexpr const char Command::GET_METRIC_DEFINITION_INFO[];
 constexpr const char Command::GET_TASK_INFO[];
 constexpr const char Command::GET_TASK_RESULT_INFO[];
 constexpr const char Command::GET_DRIVE_INFO[];
@@ -51,6 +58,7 @@ constexpr const char Command::GET_PROCESSOR_INFO[];
 constexpr const char Command::GET_STORAGE_CONTROLLER_INFO[];
 constexpr const char Command::GET_SYSTEM_INFO[];
 constexpr const char Command::GET_STORAGE_SUBSYSTEM_INFO[];
+constexpr const char Command::GET_TRUSTED_MODULE_INFO[];
 
 // chassis commands
 constexpr const char Command::GET_CHASSIS_INFO[];
@@ -59,9 +67,10 @@ constexpr const char Command::GET_PSU_INFO[];
 constexpr const char Command::GET_THERMAL_ZONE_INFO[];
 constexpr const char Command::GET_FAN_INFO[];
 constexpr const char Command::GET_AUTHORIZATION_CERTIFICATE[];
+constexpr const char Command::GET_CHASSIS_SENSOR_INFO[];
 
 // storage commands
-constexpr const char Command::GET_STORAGE_SERVICES_INFO[];
+constexpr const char Command::GET_STORAGE_SERVICE_INFO[];
 constexpr const char Command::GET_PHYSICAL_DRIVE_INFO[];
 constexpr const char Command::GET_LOGICAL_DRIVE_INFO[];
 constexpr const char Command::ADD_LOGICAL_DRIVE[];

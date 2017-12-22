@@ -48,7 +48,7 @@ public class EntityTreeTraverserTest {
 
         when(sut.validator.isValid(any())).thenReturn(true);
 
-        when(sut.mapper.get(any())).thenReturn((Class) Processor.class);
+        when(sut.mapper.getEntityClass(any())).thenReturn((Class) Processor.class);
 
         Processor expectedProcessor = mock(Processor.class);
         when(sut.genericDao.find(any(), any())).thenReturn(expectedProcessor);
@@ -74,7 +74,7 @@ public class EntityTreeTraverserTest {
         EntityTreeTraverser sut = createEntityTreeTraverser();
         when(sut.validator.isValid(any())).thenReturn(true);
 
-        when(sut.mapper.get(PROCESSOR)).thenReturn((Class) MockedProcessor.class);
+        when(sut.mapper.getEntityClass(PROCESSOR)).thenReturn((Class) MockedProcessor.class);
 
         Context processorContext = contextOf(id(2), COMPUTER_SYSTEM)
             .child(id(3), PROCESSOR);
@@ -89,8 +89,8 @@ public class EntityTreeTraverserTest {
         EntityTreeTraverser sut = createEntityTreeTraverser();
         when(sut.validator.isValid(any())).thenReturn(true);
 
-        when(sut.mapper.get(ETHERNET_SWITCH_PORT)).thenReturn((Class) MockedSwitchPort.class);
-        when(sut.mapper.get(PROCESSOR)).thenReturn((Class) MockedProcessor.class);
+        when(sut.mapper.getEntityClass(ETHERNET_SWITCH_PORT)).thenReturn((Class) MockedSwitchPort.class);
+        when(sut.mapper.getEntityClass(PROCESSOR)).thenReturn((Class) MockedProcessor.class);
 
         Context processorContext = contextOf(id(20), COMPUTER_SYSTEM)
             .child(id(30), PROCESSOR);
@@ -101,8 +101,8 @@ public class EntityTreeTraverserTest {
         sut.traverse(processorContext);
         sut.traverse(ethernetSwitchPortContext);
 
-        verify(sut.mapper).get(PROCESSOR);
-        verify(sut.mapper).get(ETHERNET_SWITCH_PORT);
+        verify(sut.mapper).getEntityClass(PROCESSOR);
+        verify(sut.mapper).getEntityClass(ETHERNET_SWITCH_PORT);
     }
 
     @Test
@@ -110,7 +110,7 @@ public class EntityTreeTraverserTest {
         EntityTreeTraverser sut = createEntityTreeTraverser();
 
         when(sut.validator.isValid(any())).thenReturn(true);
-        when(sut.mapper.get(any())).thenReturn((Class) MockedProcessor.class);
+        when(sut.mapper.getEntityClass(any())).thenReturn((Class) MockedProcessor.class);
 
         Context processorContext = contextOf(id(10), COMPUTER_SYSTEM).child(id(20), PROCESSOR);
 

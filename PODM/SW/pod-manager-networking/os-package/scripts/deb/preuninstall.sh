@@ -24,7 +24,7 @@ TMP_DHCPD_CONF=/tmp/dhcpd.conf
 grep -v "$INCLUDE" "$DHCPD_CONF" > "$TMP_DHCPD_CONF"
 mv "$TMP_DHCPD_CONF" "$DHCPD_CONF"
 
-sudo service isc-dhcp-server-fix stop
+invoke-rc.d isc-dhcp-server-fix stop
 rm -f /etc/init.d/isc-dhcp-server-fix
 update-rc.d isc-dhcp-server-fix remove
 

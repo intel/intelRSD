@@ -23,6 +23,7 @@
  * */
 
 #pragma once
+
 #include "agent-framework/generic/singleton.hpp"
 
 #include "agent-framework/module/managers/generic_manager.hpp"
@@ -39,10 +40,9 @@ namespace module {
 /*!
  * @brief Class for managing storage components and subcomponents
  * */
-class StorageComponents final :
-                    public agent_framework::generic::Singleton<StorageComponents> {
+class StorageComponents final : public agent_framework::generic::Singleton<StorageComponents> {
 public:
-    using StorageServicesManager = GenericManager<model::StorageServices>;
+    using StorageServiceManager = GenericManager<model::StorageService>;
     using PhysicalDriveManager = GenericManager<model::PhysicalDrive>;
     using LogicalDriveManager = GenericManager<model::LogicalDrive>;
     using IscsiTargetManager = managers::IscsiTargetManager;
@@ -59,8 +59,8 @@ public:
      * @brief Get storage service manager
      * @return Reference to a storage service manager instance
      * */
-    StorageServicesManager& get_storage_services_manager() {
-        return m_storage_services_manager;
+    StorageServiceManager& get_storage_service_manager() {
+        return m_storage_service_manager;
     }
 
     /*!
@@ -104,7 +104,7 @@ public:
     }
 
 private:
-    StorageServicesManager m_storage_services_manager{};
+    StorageServiceManager m_storage_service_manager{};
     LogicalDriveManager m_logical_drive_manager{};
     PhysicalDriveManager m_physical_drive_manager{};
     IscsiTargetManager m_iscsi_target_manager{};

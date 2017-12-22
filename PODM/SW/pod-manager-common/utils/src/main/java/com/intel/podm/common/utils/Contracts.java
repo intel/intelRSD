@@ -29,8 +29,12 @@ public final class Contracts {
     }
 
     public static void requires(boolean expression, String message) {
+        checkArgument(expression, () -> new IllegalArgumentException(message));
+    }
+
+    public static <T extends Throwable> void checkArgument(boolean expression, Supplier<T> supplier) throws T {
         if (!expression) {
-            throw new IllegalArgumentException(message);
+            throw supplier.get();
         }
     }
 

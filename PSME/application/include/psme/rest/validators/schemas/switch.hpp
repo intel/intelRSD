@@ -31,7 +31,7 @@ namespace rest {
 namespace validators {
 namespace schema {
 
-/*! @brief  SwitchPatchSchema schema for validating PATCH switch requests */
+/*! @brief Schema for validating PATCH requests on switch resource. */
 class SwitchPatchSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure();

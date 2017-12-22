@@ -66,18 +66,6 @@ struct MODULE_INFO_DATA {
     uint16_t chassis_handle;
     BoardType board_type;
     uint8_t number_of_contained_object_handles;
-    /*!
-     * @brief Get Contained Object Handles
-     *
-     * This helper method helps to handle variable-length field
-     * @return pointer to table of contained object handles
-     */
-    uint16_t* getContainedObjectHandles() {
-        if (0 == number_of_contained_object_handles) {
-            return nullptr;
-        }
-        return reinterpret_cast<uint16_t*>(&number_of_contained_object_handles + 1);
-    }
 };
 
 /*!

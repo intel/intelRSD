@@ -20,12 +20,12 @@
  * @brief Implementation of SetComponentAttributes command
  * */
 
-#include "agent-framework/command-ref/chassis_commands.hpp"
-#include "agent-framework/command-ref/registry.hpp"
+#include "agent-framework/command/chassis_commands.hpp"
+#include "agent-framework/command/registry.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/requests/validation/common.hpp"
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::exceptions;
 using namespace agent_framework::model;
 using namespace agent_framework::model::requests::validation;
@@ -48,8 +48,7 @@ void process_chassis(const std::string& uuid, const attribute::Attributes& attri
         const auto& value = attributes.get_value(name);
         try {
             if (literals::Drive::ASSET_TAG == name) {
-                CommonComponents::get_instance()->get_chassis_manager().get_entry_reference(uuid)
-                    ->set_asset_tag(value.asString());
+                agent_framework::module::get_manager<Chassis>().get_entry_reference(uuid)->set_asset_tag(value);
             }
             else {
                 // The response must have a message for every attribute that could not be set.
@@ -71,7 +70,7 @@ void set_component_attributes(const SetComponentAttributes::Request& request,
     const auto& uuid = request.get_component();
     const auto& attributes = request.get_attributes();
 
-    if (CommonComponents::get_instance()->get_chassis_manager().entry_exists(uuid)) {
+    if (agent_framework::module::get_manager<Chassis>().entry_exists(uuid)) {
         process_chassis(uuid, attributes, response);
     }
     else {

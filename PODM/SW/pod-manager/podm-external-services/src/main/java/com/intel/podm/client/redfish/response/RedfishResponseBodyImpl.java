@@ -18,19 +18,17 @@ package com.intel.podm.client.redfish.response;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
-import com.intel.podm.client.api.redfish.response.RedfishResponseBody;
 import com.intel.podm.client.typeidresolver.ResourceResolver;
 
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
 
-
 @JsonTypeInfo(
-        use = NAME,
-        include = PROPERTY,
-        property = "@odata.type",
-        visible = true,
-        defaultImpl = RedfishErrorResponseBodyImpl.class
+    use = NAME,
+    include = PROPERTY,
+    property = "@odata.type",
+    visible = true,
+    defaultImpl = RedfishErrorResponseImpl.class
 )
 @JsonTypeIdResolver(ResourceResolver.class)
 public abstract class RedfishResponseBodyImpl implements RedfishResponseBody {

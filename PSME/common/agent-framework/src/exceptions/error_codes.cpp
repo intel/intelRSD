@@ -29,7 +29,6 @@ bool agent_framework::exceptions::is_communication_error(ErrorCode error_code){
     if (
         error_code == ErrorCode::INVALID_PARAMETER ||
         error_code == ErrorCode::INVALID_FIELD ||
-        error_code == ErrorCode::UNSUPPORTED_FIELD ||
         error_code == ErrorCode::DUPLICATED_FIELD ||
         error_code == ErrorCode::UNEXPECTED_FIELD ||
         error_code == ErrorCode::MISSING_FIELD
@@ -38,5 +37,3 @@ bool agent_framework::exceptions::is_communication_error(ErrorCode error_code){
     }
     return false;
 }
-
-

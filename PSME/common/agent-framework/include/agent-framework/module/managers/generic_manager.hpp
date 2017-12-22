@@ -45,13 +45,6 @@ namespace module {
 template <typename T>
 class GenericManager : public TableInterface {
 public:
-    enum class UpdateStatus {
-        NoUpdate,
-        StatusChanged,
-        Updated,
-        Added
-    };
-
     using value_type = T;
     using ManagerDataVec = std::vector<T>;
     using KeysVec = std::vector<std::string>;
@@ -81,7 +74,7 @@ public:
                     + entry.get_uuid() + "'.");
         }
         entry.touch(++m_current_epoch);
-        m_manager_data.emplace_back(std::move(entry));
+        m_manager_data.push_back(std::move(entry));
     }
 
     template <typename U>
@@ -93,10 +86,10 @@ public:
 
         auto it = find_entry(entry.get_uuid());
         if (m_manager_data.end() != it) {
-            if (it->get_parent_uuid() != entry_r.get_parent_uuid()) {
+            if (it->get_parent_uuid() != entry.get_parent_uuid()) {
                 THROW(::agent_framework::exceptions::InvalidUuid, "model",
-                      "Parent UUID cannot be updated. Entry = '" + entry_r.get_uuid() + "', parent changed from "
-                      + it->get_parent_uuid() + " to " + entry_r.get_parent_uuid());
+                      "Parent UUID cannot be updated. Entry = '" + entry.get_uuid() + "', parent changed from "
+                      + it->get_parent_uuid() + " to " + entry.get_parent_uuid());
             }
             const auto& db_hash = it->get_resource_hash();
             const auto& entry_hash = entry.get_resource_hash();
@@ -108,10 +101,10 @@ public:
                 res = UpdateStatus::Updated;
             }
 
-            (*it) = std::forward<U>(entry);
+            (*it) = std::move(entry);
         }
         else {
-            m_manager_data.emplace_back(std::move(entry));
+            m_manager_data.push_back(std::move(entry));
             res = UpdateStatus::Added;
         }
         return res;
@@ -124,8 +117,27 @@ public:
             return *it;
         }
         THROW(::agent_framework::exceptions::InvalidUuid, "model",
-              std::string(T::get_collection_name().to_string()) +
-                      " [UUID = '" + uuid + "'] not found.");
+              std::string(T::get_collection_name().to_string()) + " [UUID = '" + uuid + "'] not found.");
+    }
+
+
+    ManagerDataVec get_entries(Filter filter = [](const T&) { return true; }) {
+        ManagerDataVec ret{};
+        std::lock_guard<std::recursive_mutex> lock{m_mutex};
+        for (const auto& entry: m_manager_data) {
+            if (filter(entry)) {
+                ret.emplace_back(entry);
+            }
+        }
+        return ret;
+    }
+
+
+    ManagerDataVec get_entries(const std::string& parent_uuid, Filter filter = [](const T&) { return true; }) {
+        std::lock_guard<std::recursive_mutex> lock{m_mutex};
+        return get_entries([&parent_uuid, &filter](const T& entry) {
+            return parent_uuid == entry.get_parent_uuid() && filter(entry);
+        });
     }
 
     Reference get_entry_reference(const std::string& uuid) {
@@ -154,19 +166,34 @@ public:
 
     void remove_by_parent(const std::string& uuid) {
         std::lock_guard<std::recursive_mutex> lock{m_mutex};
-        unsigned n = remove_if([&uuid](const T& entry) { return entry.get_parent_uuid() == uuid; });
+        auto n = remove_if([&uuid](const T& entry) { return entry.get_parent_uuid() == uuid; });
         if (n != 0) {
-            log_info(GET_LOGGER("model"), "Removed " << n << " " << T::get_collection_name().to_string() << ", parent " << uuid);
+            log_info(GET_LOGGER("model"), "Removed " << n << " " << T::get_collection_name().to_string()
+                    << ", parent " << uuid);
         }
     }
-
 
     void clear_entries() {
         std::lock_guard<std::recursive_mutex> lock{m_mutex};
         m_manager_data.clear();
     }
 
+    KeysVec get_keys() const {
+        KeysVec keys{};
+        std::lock_guard<std::recursive_mutex> lock{m_mutex};
+        for (const auto& entry : m_manager_data) {
+            keys.emplace_back(entry.get_uuid());
+        }
+        return keys;
+    }
 
+    /*!
+     * @brief Get keys for all objects that pass through filter
+     *
+     * @param filter A std::function, eg. a lambda, serving as a filter
+     *
+     * @return Vector of UUIDs
+     * */
     KeysVec get_keys(Filter filter = [](const T&) { return true; }) {
         std::lock_guard<std::recursive_mutex> lock{m_mutex};
         KeysVec keys{};
@@ -185,44 +212,6 @@ public:
         });
     }
 
-    IdsVec get_ids(const std::string& parent_uuid) {
-        std::lock_guard<std::recursive_mutex> lock{m_mutex};
-        IdsVec ids{};
-        for (const auto& entry : m_manager_data) {
-            if (entry.get_parent_uuid() == parent_uuid) {
-                ids.emplace_back(entry.get_id());
-            }
-        }
-        return ids;
-    }
-
-    KeysVec get_keys() const {
-        KeysVec keys{};
-        std::lock_guard<std::recursive_mutex> lock{m_mutex};
-        for (const auto& entry : m_manager_data) {
-            keys.emplace_back(entry.get_uuid());
-        }
-        return keys;
-    }
-
-    /*!
-     * @brief get keys for all objects that pass through filter
-     *
-     * @param filter a std::function, eg. a lambda, serving as a filter
-     *
-     * @return vector of UUIDs
-     */
-    KeysVec get_keys(Filter filter) const {
-        KeysVec keys{};
-        std::lock_guard<std::recursive_mutex> lock{m_mutex};
-        for (const auto& entry : m_manager_data) {
-            if (filter(entry)){
-                keys.emplace_back(entry.get_uuid());
-            }
-        }
-        return keys;
-    }
-
     /*!
      * @brief get ids of all objects governed by a manager
      *
@@ -233,6 +222,17 @@ public:
         IdsVec ids{};
         for (const auto& entry : m_manager_data) {
             ids.emplace_back(entry.get_id());
+        }
+        return ids;
+    }
+
+    IdsVec get_ids(const std::string& parent_uuid) {
+        std::lock_guard<std::recursive_mutex> lock{m_mutex};
+        IdsVec ids{};
+        for (const auto& entry : m_manager_data) {
+            if (entry.get_parent_uuid() == parent_uuid) {
+                ids.emplace_back(entry.get_id());
+            }
         }
         return ids;
     }
@@ -302,11 +302,10 @@ public:
      * */
     void clean_resources_for_agent(const std::string& gami_id) {
         std::lock_guard<std::recursive_mutex> lock{m_mutex};
-        auto agent_predicate = [&gami_id](const T& entry) { return entry.get_agent_id() == gami_id; };
-
-        unsigned n = remove_if(agent_predicate);
+        auto n = remove_if([&gami_id](const T& entry) { return entry.get_agent_id() == gami_id; });
         if (n != 0) {
-            log_info(GET_LOGGER("model"), "Removed " << n << " " << T::get_collection_name().to_string() << ", agent " << gami_id);
+            log_info(GET_LOGGER("model"), "Removed " << n << " " << T::get_collection_name().to_string()
+                    << ", agent " << gami_id);
         }
     }
 
@@ -321,7 +320,7 @@ private:
         auto it = std::find_if(m_manager_data.cbegin(),
                             m_manager_data.cend(),
                             [&uuid](const T& entry) {
-                                  return (entry.get_persistent_uuid() == uuid || entry.get_temporary_uuid() == uuid);
+                                  return ((entry.has_persistent_uuid() && entry.get_persistent_uuid() == uuid) || entry.get_temporary_uuid() == uuid);
                             });
         return it;
     }
@@ -330,7 +329,7 @@ private:
         auto it = std::find_if(m_manager_data.begin(),
                                m_manager_data.end(),
                                [&uuid](const T& entry) {
-                                   return (entry.get_persistent_uuid() == uuid || entry.get_temporary_uuid() == uuid);
+                                   return ((entry.has_persistent_uuid() && entry.get_persistent_uuid() == uuid) || entry.get_temporary_uuid() == uuid);
                                });
         return it;
     }
@@ -353,7 +352,7 @@ private:
         const auto& message = std::string("Could not find ") +
                 T::get_collection_name().to_string() + " with id: " + std::to_string(id) + ".";
 
-        log_warning(GET_LOGGER("rpc"), message);
+        log_warning(GET_LOGGER("model"), message);
         throw agent_framework::exceptions::NotFound(message);
     }
 
@@ -375,7 +374,7 @@ private:
 
         const auto& message = std::string("Could not find ") +
                 T::get_collection_name().to_string() + " with id: " + std::to_string(id) + ".";
-        log_warning(GET_LOGGER("rpc"), message + " Parent UUID = " + parent_uuid + ".");
+        log_warning(GET_LOGGER("model"), message + " Parent UUID = " + parent_uuid + ".");
         throw agent_framework::exceptions::NotFound(message);
 
     }
@@ -396,27 +395,21 @@ private:
             "Entry not found in the manager for UUID = " + uuid + ".");
     }
 
-    using Predicate = std::function<bool(const T&)>;
-
     /*!
      * @brief removes entries for which predicate returns true
      * @param predicate predicate to select entries to remove
      * @return number of removed entities
      * */
-    unsigned remove_if(Predicate predicate) {
-        unsigned found = 0;
-        for(auto it = m_manager_data.begin(); it != m_manager_data.end(); ) {
-            if (predicate(*it)) {
-                it = m_manager_data.erase(it);
-                found++;
-            }
-            else {
-                ++it;
-            }
+    template<typename Predicate>
+    typename ManagerDataVec::difference_type remove_if(Predicate predicate){
+        auto last = m_manager_data.end();
+        auto first = std::remove_if(m_manager_data.begin(), last, predicate);
+        auto count_removed = std::distance(first, last);
+        if (count_removed) {
+            m_manager_data.erase(first, last);
         }
-        return found;
+        return count_removed;
     }
-
 
 };
 

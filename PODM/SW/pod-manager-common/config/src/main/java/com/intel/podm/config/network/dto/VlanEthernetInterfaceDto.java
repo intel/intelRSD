@@ -16,7 +16,6 @@
 
 package com.intel.podm.config.network.dto;
 
-
 public class VlanEthernetInterfaceDto {
     private String name;
     private String description;

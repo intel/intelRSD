@@ -94,9 +94,6 @@ public final class NetworkDeviceFunctionUpdateDefinition {
         private Ref<String> mutualChapUsername = unassigned();
         private Ref<String> mutualChapSecret = unassigned();
 
-        public IscsiBootDefinition() {
-        }
-
         public Ref<IpAddressType> getIpAddressType() {
             return ipAddressType;
         }

@@ -28,20 +28,20 @@
 
 #include "agent-framework/module/requests/common/get_system_info.hpp"
 #include "agent-framework/module/constants/compute.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetSystemInfo::GetSystemInfo(const std::string& system): m_system{system} {}
 
-Json::Value GetSystemInfo::to_json() const {
-    Json::Value value;
+json::Json GetSystemInfo::to_json() const {
+    json::Json value;
     value[System::SYSTEM] = m_system;
     return value;
 }
 
-GetSystemInfo GetSystemInfo::from_json(const Json::Value& json) {
+GetSystemInfo GetSystemInfo::from_json(const json::Json& json) {
     return GetSystemInfo{
-        json[System::SYSTEM].asString()};
+        json[System::SYSTEM].get<std::string>()};
 }

@@ -31,7 +31,7 @@ import java.util.concurrent.TimeoutException;
 import static javax.transaction.Transactional.TxType.NEVER;
 
 @RequestScoped
-public class EthernetSwitchPortCreationServiceImpl implements CreationService<RedfishEthernetSwitchPort> {
+class EthernetSwitchPortCreationServiceImpl implements CreationService<RedfishEthernetSwitchPort> {
     @Inject
     private TaskCoordinator taskCoordinator;
 

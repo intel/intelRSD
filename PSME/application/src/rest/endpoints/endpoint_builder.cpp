@@ -33,7 +33,8 @@ using namespace psme::rest::server;
 EndpointBuilder::~EndpointBuilder() {}
 
 
-void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
+void EndpointBuilder::build_endpoints() {
+    auto& mp = *(psme::rest::server::Multiplexer::get_instance());
     mp.use_before([this](const Request&, Response& res) {
         res.set_header(ContentType::CONTENT_TYPE, ContentType::JSON);
     });
@@ -53,6 +54,15 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
     // "/redfish/v1/metadata/{metadata_file:*}"
     mp.register_handler(Metadata::UPtr(new Metadata(constants::Routes::METADATA_PATH)), AccessType::ALL);
 
+    // "/redfish/v1/UpdateService"
+    mp.register_handler(UpdateService::UPtr(new UpdateService(constants::Routes::UPDATE_SERVICE_PATH)));
+
+    // "/redfish/v1/UpdateService/SimpleUpdateActionInfo"
+    mp.register_handler(SimpleUpdateActionInfo::UPtr(new SimpleUpdateActionInfo(constants::Routes::SIMPLE_UPDATE_ACTION_INFO_PATH)));
+
+    // "/redfish/v1/UpdateService/Actions/SimpleUpdate"
+    mp.register_handler(SimpleUpdate::UPtr(new SimpleUpdate(constants::Routes::SIMPLE_UPDATE_PATH)));
+
     // "/redfish/v1/EventService"
     mp.register_handler(EventService::UPtr(new EventService(constants::Routes::EVENT_SERVICE_PATH)));
 
@@ -62,12 +72,6 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
 
     // "/redfish/v1/EventService/Subscriptions/{subscriptionId:[0-9]+}"
     mp.register_handler(Subscription::UPtr(new Subscription(constants::Routes::SUBSCRIPTION_PATH)));
-
-#ifndef NDEBUG
-    // "/redfish/v1/EventService/TestEventSubscription"
-    mp.register_handler(
-        TestEventSubscription::UPtr(new TestEventSubscription(constants::Routes::TEST_EVENT_SUBSCRIPTION_PATH)));
-#endif
 
     // "/redfish/v1/Registries"
     mp.register_handler(MessageRegistryFileCollection::UPtr(
@@ -94,6 +98,9 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
 
     // "/redfish/v1/Chassis/{chassisId:[0-9]+}"
     mp.register_handler(Chassis::UPtr(new Chassis(constants::Routes::CHASSIS_PATH)));
+
+    // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Actions/Chassis.Reset"
+    mp.register_handler(ChassisReset::UPtr(new ChassisReset(constants::Routes::CHASSIS_RESET_PATH)));
 
 #ifndef NDEBUG
     // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Drives"
@@ -124,11 +131,27 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
     // "/redfish/v1/Chassis/{chassisId:[0-9]+}/PCIeDevices/{deviceId:[0-9]+}/Functions/{functionId:[0-9]+}"
     mp.register_handler(PcieFunction::UPtr(new PcieFunction(constants::Routes::PCIE_FUNCTION_PATH)));
 
+    // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Power"
+    mp.register_handler(Power::UPtr(new Power(constants::Routes::POWER_PATH)));
+
+// "/redfish/v1/Chassis/{chassisId:[0-9]+}/Power/Oem/Intel_RackScale/Actions/Intel.Oem.RequestPowerSupplyStateChange"
+    mp.register_handler(PowerSupplyRequestStateChange::UPtr(
+        new PowerSupplyRequestStateChange(constants::Routes::POWER_SUPPLY_REQUEST_STATE_CHANGE_PATH)));
+
+    // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Thermal"
+    mp.register_handler(Thermal::UPtr(new Thermal(constants::Routes::THERMAL_PATH)));
+
     // "/redfish/v1/Managers"
     mp.register_handler(ManagerCollection::UPtr(new ManagerCollection(constants::Routes::MANAGER_COLLECTION_PATH)));
 
     // "/redfish/v1/Managers/{managerId:[0-9]+}"
     mp.register_handler(Manager::UPtr(new Manager(constants::Routes::MANAGER_PATH)));
+
+    // "/redfish/v1/Managers/{managerId:[0-9]+}/Actions/Manager.Reset"
+    mp.register_handler(ManagerReset::UPtr(new ManagerReset(constants::Routes::MANAGER_RESET_PATH)));
+
+    // "/redfish/v1/Managers/{managerId:[0-9]+}/Actions/Manager.LoadFactoryDefaults"
+    mp.register_handler(ManagerLoadFactoryDefaults::UPtr(new ManagerLoadFactoryDefaults(constants::Routes::MANAGER_LOAD_FACTORY_DEFAULTS_PATH)));
 
     // "/redfish/v1/Managers/{managerId:[0-9]+}/EthernetInterfaces"
     mp.register_handler(ManagerNetworkInterfaceCollection::UPtr(
@@ -137,6 +160,14 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
     // "/redfish/v1/Managers/{managerId:[0-9]+}/EthernetInterfaces/{nicId:[0-9]+}"
     mp.register_handler(ManagerNetworkInterface::UPtr(
         new ManagerNetworkInterface(constants::Routes::MANAGER_NETWORK_INTERFACE_PATH)));
+
+    // "/redfish/v1/Managers/{managerId:[0-9]+}/EthernetInterfaces/{nicId:[0-9]+}/VLANs"
+    mp.register_handler(ManagerVlanNetworkInterfaceCollection::UPtr(
+        new ManagerVlanNetworkInterfaceCollection(constants::Routes::MANAGER_VLAN_NETWORK_INTERFACE_COLLECTION_PATH)));
+
+    // "/redfish/v1/Managers/{managerId:[0-9]+}/EthernetInterfaces/{nicId:[0-9]+}/VLANs/{vlanId:[0-9]+}"
+    mp.register_handler(ManagerVlanNetworkInterface::UPtr(
+        new ManagerVlanNetworkInterface(constants::Routes::MANAGER_VLAN_NETWORK_INTERFACE_PATH)));
 
     // "/redfish/v1/Managers/{managerId:[0-9]+}/NetworkProtocol"
     mp.register_handler(NetworkProtocol::UPtr(new NetworkProtocol(constants::Routes::NETWORK_PROTOCOL_PATH)));
@@ -149,6 +180,9 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
 
     // "/redfish/v1/Systems/{systemId:[0-9]+}/Actions/ComputerSystem.Reset"
     mp.register_handler(SystemReset::UPtr(new SystemReset(constants::Routes::SYSTEM_RESET_PATH)));
+
+    // "/redfish/v1/Systems/{systemId:[0-9]+}/Actions/Oem/Intel.Oem.ChangeTPMState"
+    mp.register_handler(SystemReset::UPtr(new SystemChangeTPMState(constants::Routes::SYSTEM_CHANGE_TPM_STATE_PATH)));
 
     // "/redfish/v1/Systems/{systemId:[0-9]+}/Storage"
     mp.register_handler(StorageSubsystemsCollection::UPtr(
@@ -174,6 +208,9 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
     // "/redfish/v1/Systems/{systemId:[0-9]+}/Memory/{memoryId:[0-9]+}"
     mp.register_handler(Memory::UPtr(new Memory(constants::Routes::MEMORY_PATH)));
 
+    // "/redfish/v1/Systems/{systemId:[0-9]+}/Memory/{memoryId:[0-9]+}/Metrics"
+    mp.register_handler(MemoryMetrics::UPtr(new MemoryMetrics(constants::Routes::MEMORY_METRICS_PATH)));
+
     //  "/redfish/v1/Systems/{systemId:[0-9]+}/Processors"
     mp.register_handler(
         ProcessorsCollection::UPtr(new ProcessorsCollection(constants::Routes::PROCESSORS_COLLECTION_PATH)));
@@ -196,6 +233,11 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
     // "/redfish/v1/Systems/{systemId:[0-9]+}/NetworkInterfaces/{networkInterfaceId:[0-9]+}/NetworkDeviceFunctions/{networkDeviceFunctionId:[0-9]+}"
     mp.register_handler(NetworkDeviceFunction::UPtr(new NetworkDeviceFunction(
         constants::Routes::NETWORK_DEVICE_FUNCTION_PATH)));
+    // "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Metrics"
+    mp.register_handler(ProcessorMetrics::UPtr(new ProcessorMetrics(constants::Routes::PROCESSORS_METRICS_PATH)));
+
+    // "/redfish/v1/Systems/{systemId:[0-9]+}/Metrics"
+    mp.register_handler(SystemMetrics::UPtr(new SystemMetrics(constants::Routes::SYSTEM_METRICS_PATH)));
 
     // "/redfish/v1/EthernetSwitches"
     mp.register_handler(EthernetSwitchCollection::UPtr(
@@ -204,7 +246,7 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
     // "/redfish/v1/EthernetSwitches/{ethernetSwitchId:[0-9]+}"
     mp.register_handler(EthernetSwitch::UPtr(new EthernetSwitch(constants::Routes::ETHERNET_SWITCH_PATH)));
 
-    // // "/redfish/v1/EthernetSwitches/{ethernetSwitchId:[0-9]+}/ACLs"
+    // "/redfish/v1/EthernetSwitches/{ethernetSwitchId:[0-9]+}/ACLs"
     mp.register_handler(AclCollection::UPtr(new AclCollection(constants::Routes::ACL_COLLECTION_PATH)));
 
     // "/redfish/v1/EthernetSwitches/{ethernetSwitchId:[0-9]+}/ACLs/{aclId:[0-9]+}"
@@ -312,6 +354,19 @@ void EndpointBuilder::build_endpoints(psme::rest::server::Multiplexer& mp) {
     // "/redfish/v1/Fabrics/{fabricId}/Switches/{switchId}/Ports/{portId:[0-9]+}"
     mp.register_handler(Port::UPtr(new Port(constants::Routes::PORT_PATH)));
 
+    // "/redfish/v1/Fabrics/{fabricId}/Switches/{switchId}/Ports/{portId:[0-9]+}/Metrics"
+    mp.register_handler(PortMetrics::UPtr(new PortMetrics(constants::Routes::PORT_METRICS_PATH)));
+
     // "/redfish/v1/Fabrics/{fabricId}/Switches/{switchId}/Ports/{portId:[0-9]+}/Actions/Port.Reset"
     mp.register_handler(PortReset::UPtr(new PortReset(constants::Routes::PORT_RESET_PATH)));
+
+    // "/redfish/v1/TelemetryService"
+    mp.register_handler(TelemetryService::UPtr(new TelemetryService(constants::Routes::TELEMETRY_SERVICE_PATH)));
+
+    // "/redfish/v1/TelemetryService/MetricDefinitions"
+    mp.register_handler(MetricDefinitionsCollection::UPtr(
+        new MetricDefinitionsCollection(constants::Routes::METRIC_DEFINITIONS_COLLECTION_PATH)));
+
+    // "/redfish/v1/TelemetryService/MetricDefinitions/{metricDefinitionId}"
+    mp.register_handler(MetricDefinition::UPtr(new MetricDefinition(constants::Routes::METRIC_DEFINITION_PATH)));
 }

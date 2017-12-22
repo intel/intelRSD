@@ -33,7 +33,6 @@ add_gtest(configuration agent-framework
 target_link_libraries(${test_target}
     ${AGENT_FRAMEWORK_LIB}
     ${SAFESTRING_LIBRARIES}
-    ${JSONRPCCPP_LIBRARIES}
     agent-mocks
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}

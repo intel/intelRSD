@@ -19,23 +19,19 @@
  * */
 
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/compute_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/compute_commands.hpp"
 
-using namespace agent_framework::command_ref;
+
+
+using namespace agent_framework::command;
 using namespace agent_framework::module;
 
-REGISTER_COMMAND(GetManagersCollection,
-                 [](const GetManagersCollection::Request&, GetManagersCollection::Response& rsp) {
-        log_debug(GET_LOGGER("rpc"), "Getting collection of managers.");
-        auto keys = CommonComponents::get_instance()->
-            get_module_manager().get_keys();
-        for (auto key : keys) {
-            auto presence = CommonComponents::get_instance()->
-            get_module_manager().get_entry(key).get_presence();
-            if (presence) {
-                rsp.add_entry(agent_framework::model::attribute::ManagerEntry{key});
-            }
-        }
+REGISTER_COMMAND(GetManagersCollection, [](const GetManagersCollection::Request&,
+                                           GetManagersCollection::Response& rsp) {
+    log_debug(GET_LOGGER("rpc"), "Getting collection of managers.");
+    auto keys = CommonComponents::get_instance()->get_module_manager().get_keys();
+    for (auto key : keys) {
+        rsp.add_entry(agent_framework::model::attribute::ManagerEntry{key});
     }
-);
+});

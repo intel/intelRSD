@@ -84,8 +84,8 @@ public class ContextValidatorTest {
         sut.genericDao = mock(GenericDao.class);
 
         sut.contextTypeToEntityMapper = mock(ContextTypeToEntityMapper.class);
-        when(sut.contextTypeToEntityMapper.get(PROCESSOR)).thenReturn((Class) Processor.class);
-        when(sut.contextTypeToEntityMapper.get(MANAGER)).thenReturn((Class) Manager.class);
+        when(sut.contextTypeToEntityMapper.getEntityClass(PROCESSOR)).thenReturn((Class) Processor.class);
+        when(sut.contextTypeToEntityMapper.getEntityClass(MANAGER)).thenReturn((Class) Manager.class);
 
         return sut;
     }

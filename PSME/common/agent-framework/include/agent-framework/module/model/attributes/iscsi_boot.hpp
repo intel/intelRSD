@@ -19,12 +19,10 @@
  */
 
 #pragma once
+
 #include "agent-framework/module/utils/utils.hpp"
 #include "agent-framework/module/enum/compute.hpp"
-
-namespace Json {
-class Value;
-}
+#include "json-wrapper/json-wrapper.hpp"
 
 namespace agent_framework {
 namespace model {
@@ -50,17 +48,17 @@ public:
      *
      * @return JSON representation of IscsiBoot object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
      * @brief construct an object of class IscsiBoot from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed IscsiBoot object
      */
-    static IscsiBoot from_json(const Json::Value& json);
+    static IscsiBoot from_json(const json::Json& json);
 
 
     /*! Default destructor */
@@ -534,4 +532,3 @@ private:
 }
 }
 }
-

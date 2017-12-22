@@ -68,8 +68,8 @@ TEST(GetRemoteEthernetSwitchInfoTest, PositiveExecute) {
     MyGetRemoteEthernetSwitchInfo command{TEST_UUID};
     GetRemoteEthernetSwitchInfo::Request request{""};
     GetRemoteEthernetSwitchInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::RemoteEthernetSwitch::SWITCH] = TEST_UUID;
 
@@ -102,8 +102,8 @@ TEST(GetRemoteEthernetSwitchInfoTest, NegativeComponentNotFound) {
     MyGetRemoteEthernetSwitchInfo command{TEST_UUID};
     GetRemoteEthernetSwitchInfo::Request request{""};
     GetRemoteEthernetSwitchInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::RemoteEthernetSwitch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
 
@@ -116,8 +116,8 @@ TEST(GetRemoteEthernetSwitchInfoTest, NegativeInvalidUUIDFormat) {
     MyGetRemoteEthernetSwitchInfo command{TEST_UUID};
     GetRemoteEthernetSwitchInfo::Request request{""};
     GetRemoteEthernetSwitchInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::RemoteEthernetSwitch::SWITCH] = "TestUUID";
 

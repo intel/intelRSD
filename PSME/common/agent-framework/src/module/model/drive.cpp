@@ -1,6 +1,4 @@
 /*!
- * @section LICENSE
- *
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation
  *
@@ -18,28 +16,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
- *
  * */
 
 #include "agent-framework/module/model/drive.hpp"
 #include "agent-framework/module/constants/compute.hpp"
 
+
+
 using namespace agent_framework::model;
 using namespace agent_framework::model::utils;
 
 const enums::Component Drive::component = enums::Component::Drive;
-const enums::CollectionName Drive::collection_name =
-    enums::CollectionName::Drives;
+const enums::CollectionName Drive::collection_name = enums::CollectionName::Drives;
+
 
 Drive::Drive(const std::string& parent_uuid, enums::Component parent_type) :
-    BlockDevice{"", parent_uuid, parent_type} {}
+    Resource{parent_uuid, parent_type} {}
+
 
 Drive::~Drive() {}
 
-Json::Value Drive::to_json() const {
-    Json::Value result;
+
+json::Json Drive::to_json() const {
+    json::Json result;
     result[literals::Drive::STATUS] = get_status().to_json();
     result[literals::Drive::INTERFACE] = get_interface();
     result[literals::Drive::TYPE] = get_type();
@@ -47,7 +46,6 @@ Json::Value Drive::to_json() const {
     result[literals::Drive::FIRMWARE_VERSION] = get_firmware_version();
     result[literals::Drive::CAPACITY] = get_capacity_gb();
     result[literals::Drive::FRU_INFO] = get_fru_info().to_json();
-    result[literals::Drive::PHYSICAL_ID] = get_physical_id();
     result[literals::Drive::INDICATOR_LED] = get_indicator_led();
     result[literals::Drive::ASSET_TAG] = get_asset_tag();
     result[literals::Drive::CAPABLE_SPEED_GBS] = get_capable_speed_gbs();
@@ -69,7 +67,8 @@ Json::Value Drive::to_json() const {
     return result;
 }
 
-Drive Drive::from_json(const Json::Value& json) {
+
+Drive Drive::from_json(const json::Json& json) {
     Drive drive;
 
     drive.set_status(attribute::Status::from_json(json[literals::Drive::STATUS]));
@@ -78,10 +77,7 @@ Drive Drive::from_json(const Json::Value& json) {
     drive.set_firmware_version(json[literals::Drive::FIRMWARE_VERSION]);
     drive.set_rpm(json[literals::Drive::RPM]);
     drive.set_capacity_gb(json[literals::Drive::CAPACITY]);
-    drive.set_fru_info(attribute::FruInfo::from_json(
-        json[literals::Drive::FRU_INFO]));
-    drive.set_physical_id(json[literals::Drive::PHYSICAL_ID]);
-    drive.set_oem(attribute::Oem::from_json(json[literals::Drive::OEM]));
+    drive.set_fru_info(attribute::FruInfo::from_json(json[literals::Drive::FRU_INFO]));
     drive.set_indicator_led(json[literals::Drive::INDICATOR_LED]);
     drive.set_asset_tag(json[literals::Drive::ASSET_TAG]);
     drive.set_capable_speed_gbs(json[literals::Drive::CAPABLE_SPEED_GBS]);
@@ -98,8 +94,8 @@ Drive Drive::from_json(const Json::Value& json) {
     drive.set_block_size_bytes(json[literals::Drive::BLOCK_SIZE_BYTES]);
     drive.set_predicted_media_life_left(json[literals::Drive::PREDICTED_MEDIA_LIFE_LEFT]);
     drive.set_erased(json[literals::Drive::ERASED]);
-    drive.set_collections(Collections::from_json(
-        json[literals::Drive::COLLECTIONS]));
+    drive.set_collections(Collections::from_json(json[literals::Drive::COLLECTIONS]));
+    drive.set_oem(attribute::Oem::from_json(json[literals::Drive::OEM]));
     drive.set_resource_hash(json);
 
     return drive;

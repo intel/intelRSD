@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Switch;
-import com.intel.podm.client.api.resources.redfish.SwitchResource;
+import com.intel.podm.client.resources.redfish.SwitchResource;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.SimpleTypeMapper;
 

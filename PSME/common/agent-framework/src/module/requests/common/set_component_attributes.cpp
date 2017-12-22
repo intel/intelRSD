@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/requests/common/set_component_attributes.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -34,16 +34,16 @@ SetComponentAttributes::SetComponentAttributes(const std::string& component,
         m_component{component},
         m_attributes{attributes} {}
 
-Json::Value SetComponentAttributes::to_json() const {
-    Json::Value value;
+json::Json SetComponentAttributes::to_json() const {
+    json::Json value;
     value[Component::COMPONENT] = m_component;
     value[Component::ATTRIBUTES] = m_attributes.to_json();
     return value;
 }
 
-SetComponentAttributes SetComponentAttributes::from_json(const Json::Value& json) {
+SetComponentAttributes SetComponentAttributes::from_json(const json::Json& json) {
     return SetComponentAttributes{
-        json[Component::COMPONENT].asString(),
+        json[Component::COMPONENT],
         agent_framework::model::attribute::Attributes::from_json(json[Component::ATTRIBUTES])
     };
 }

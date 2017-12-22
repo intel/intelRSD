@@ -14,7 +14,6 @@ further if you wish to read the full text of the license associated with each co
 
 SECTION 1: COMPONENTS UNDER *** Apache License 2.0 ***
    >>> Metrics CDI Library -> 1.3.5
-   >>> Atteo Class Index -> 3.4
    >>> Liquibase Core -> 3.5.2
    >>> Liquibase CDI -> 3.5.2
    >>> Apache Commons Validator -> 1.5.0
@@ -30,7 +29,7 @@ SECTION 1: COMPONENTS UNDER *** Apache License 2.0 ***
    >>> Guava: Google Core Libraries For Java -> 18
    >>> Jackson Datatype: JSR310 -> 2.6.3
    >>> Jackson JAXRS JSON -> 2.6.3
-   >>> Commons Lang -> 2.6
+   >>> Commons Lang3 -> 3.6
    >>> Apache Commons IO -> 2.4
    >>> Jackson Databind -> 2.6.3
    >>> Jackson Annotations -> 2.6.3

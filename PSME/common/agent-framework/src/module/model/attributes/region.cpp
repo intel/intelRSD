@@ -33,8 +33,8 @@ Region::Region() { }
 
 Region::~Region() { }
 
-Json::Value Region::to_json() const {
-    Json::Value result{};
+json::Json Region::to_json() const {
+    json::Json result{};
     result[literals::Region::REGION_ID] = get_region_id();
     result[literals::Region::MEMORY_TYPE] = get_memory_type();
     result[literals::Region::OFFSET_MB] = get_offset_mb();
@@ -42,11 +42,8 @@ Json::Value Region::to_json() const {
     return result;
 }
 
-Region Region::from_json(const Json::Value& json) {
+Region Region::from_json(const json::Json& json) {
     attribute::Region region{};
-    if (!json) {
-        return region;
-    }
     region.set_region_id(json[literals::Region::REGION_ID]);
     region.set_memory_type(json[literals::Region::MEMORY_TYPE]);
     region.set_offset_mb(json[literals::Region::OFFSET_MB]);

@@ -16,9 +16,6 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.actions.ActionException;
-import com.intel.podm.assembly.VlanAllocator;
-import com.intel.podm.assembly.VlanTerminator;
 import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.business.EntityOperationException;
@@ -26,19 +23,24 @@ import com.intel.podm.business.ResourceStateMismatchException;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.actions.EthernetSwitchPortVlanActionsInvoker;
+import com.intel.podm.business.redfish.services.assembly.VlanAllocator;
+import com.intel.podm.business.redfish.services.assembly.VlanTerminator;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.client.actions.UpdateVlanRequest;
 import com.intel.podm.common.types.actions.VlanCreationRequest;
 import com.intel.podm.common.types.redfish.RedfishVlanNetworkInterface;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import static com.intel.podm.business.redfish.Contexts.toContext;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
-@Dependent
+@RequestScoped
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class VlanNetworkInterfaceActionsService {
     @Inject
@@ -50,41 +52,62 @@ public class VlanNetworkInterfaceActionsService {
     @Inject
     private VlanTerminator vlanTerminator;
 
+    @Inject
+    private EthernetSwitchPortVlanActionsInvoker invoker;
+
     @Transactional(REQUIRES_NEW)
     public Context createVlan(Context creationalContext, RedfishVlanNetworkInterface representation) throws BusinessApiException {
-
         EthernetSwitchPort ethernetSwitchPort = (EthernetSwitchPort) traverser.traverse(creationalContext);
-
         validateVlanUniqueness(ethernetSwitchPort, representation);
 
-        VlanCreationRequest vlanCreationRequest = buildRequest(representation);
-        try {
-            EthernetSwitchPortVlan createdVlan = vlanAllocator.createVlan(ethernetSwitchPort, vlanCreationRequest);
-            return toContext(createdVlan);
-        } catch (ActionException e) {
-            throw new EntityOperationException("VLAN creation action could not be completed! " + e.getMessage(), e);
-        }
+        EthernetSwitchPortVlan createdVlan = vlanAllocator.createVlan(ethernetSwitchPort, buildRequest(representation));
+        return toContext(createdVlan);
+    }
+
+    @Transactional(REQUIRES_NEW)
+    public void updateVlan(Context context, RedfishVlanNetworkInterface representation) throws BusinessApiException {
+        EthernetSwitchPortVlan vlan = (EthernetSwitchPortVlan) traverser.traverse(context);
+        validateVlanIdsUniqueness(vlan, representation.getVlanId());
+
+        invoker.update(vlan, new UpdateVlanRequest(representation.getVlanId()));
+    }
+
+    @Transactional(REQUIRES_NEW)
+    public void deleteVlan(Context vlanContext) throws ContextResolvingException, EntityOperationException {
+        EthernetSwitchPortVlan ethernetSwitchPortVlan = (EthernetSwitchPortVlan) traverser.traverse(vlanContext);
+        vlanTerminator.deleteVlan(ethernetSwitchPortVlan);
     }
 
     private void validateVlanUniqueness(EthernetSwitchPort ethernetSwitchPort, RedfishVlanNetworkInterface representation)
         throws ResourceStateMismatchException {
 
-        boolean isVlanUnique = ethernetSwitchPort.getEthernetSwitchPortVlans().stream().noneMatch(vlan ->
-            Objects.equals(vlan.getVlanId(), representation.getVlanId()) && Objects.equals(vlan.getTagged(), representation.getTagged()));
+        boolean isVlanUnique = ethernetSwitchPort.getEthernetSwitchPortVlans().stream()
+            .noneMatch(vlanWithSameVlanIdAndTaggedStateAlreadyExistsPredicate(representation.getVlanId(), representation.getTagged()));
 
         if (!isVlanUnique) {
             throw new ResourceStateMismatchException("VLAN already exists");
         }
     }
 
-    @Transactional(REQUIRES_NEW)
-    public void deleteVlan(Context vlanContext) throws ContextResolvingException, EntityOperationException {
-        try {
-            EthernetSwitchPortVlan ethernetSwitchPortVlan = (EthernetSwitchPortVlan) traverser.traverse(vlanContext);
-            vlanTerminator.deleteVlan(ethernetSwitchPortVlan);
-        } catch (ActionException e) {
-            throw new EntityOperationException("VLAN removal action could not be completed! " + e.getMessage(), e);
+    private void validateVlanIdsUniqueness(EthernetSwitchPortVlan vlan, Integer targetVlanId)
+        throws ResourceStateMismatchException {
+
+        boolean isVlanUnique = vlan.getEthernetSwitchPort()
+            .getEthernetSwitchPortVlans().stream()
+            .filter(excludeSourceVlanPredicate(vlan.getVlanId()))
+            .noneMatch(vlanWithSameVlanIdAndTaggedStateAlreadyExistsPredicate(targetVlanId, vlan.getTagged()));
+
+        if (!isVlanUnique) {
+            throw new ResourceStateMismatchException("VLAN with that VLANId already exists");
         }
+    }
+
+    private Predicate<EthernetSwitchPortVlan> excludeSourceVlanPredicate(Integer sourceVlanId) {
+        return vlan -> !Objects.equals(vlan.getVlanId(), sourceVlanId);
+    }
+
+    private Predicate<EthernetSwitchPortVlan> vlanWithSameVlanIdAndTaggedStateAlreadyExistsPredicate(Integer vlanId, Boolean tagged) {
+        return vlan -> Objects.equals(vlan.getVlanId(), vlanId) && Objects.equals(vlan.getTagged(), tagged);
     }
 
     private VlanCreationRequest buildRequest(RedfishVlanNetworkInterface representation) {

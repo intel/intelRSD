@@ -27,6 +27,9 @@ add_library(chassis-command-sdv OBJECT
     get_task_info.cpp
     get_task_result_info.cpp
     delete_task.cpp
+    get_metric_definition_info.cpp
+    get_metric_definitions_collection.cpp
+    get_metrics.cpp
 )
 
 set_psme_command_target_properties(chassis-command-sdv)

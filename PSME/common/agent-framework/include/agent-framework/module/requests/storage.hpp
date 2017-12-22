@@ -30,6 +30,6 @@
 #include "agent-framework/module/requests/storage/delete_logical_drive.hpp"
 #include "agent-framework/module/requests/storage/get_logical_drive_info.hpp"
 #include "agent-framework/module/requests/storage/get_physical_drive_info.hpp"
-#include "agent-framework/module/requests/storage/get_storage_services_info.hpp"
+#include "agent-framework/module/requests/storage/get_storage_service_info.hpp"
 #include "agent-framework/module/requests/storage/get_iscsi_target_info.hpp"
 

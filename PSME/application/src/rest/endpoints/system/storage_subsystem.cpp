@@ -39,7 +39,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Systems/Members/__SYSTEM_ID__/Storage/Members/__STORAGE_ID__/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Storage.Storage";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#Storage.v1_1_0.Storage";
     r[Common::ID] = json::Value::Type::NIL;
@@ -48,6 +48,7 @@ json::Value make_prototype() {
     r[constants::StorageSubsystem::STORAGE_CONTROLLERS] = json::Value::Type::ARRAY;
     r[constants::StorageSubsystem::VOLUMES] = json::Value::Type::NIL;
     r[constants::StorageSubsystem::DRIVES] = json::Value::Type::ARRAY;
+    r[constants::Common::REDUNDANCY] = json::Value::Type::ARRAY;
     r[Common::LINKS] = json::Value::Type::OBJECT;
     r[Common::ACTIONS] = json::Value::Type::OBJECT;
 
@@ -55,27 +56,12 @@ json::Value make_prototype() {
 }
 
 
-json::Value storage_controller_to_json(size_t index_in_array, const std::string& controller_uuid,
-                                       uint64_t system_id, uint64_t storage_id) {
+json::Value storage_controller_to_json(const std::string& controller_uuid) {
     const auto sc = agent_framework::module::get_manager<agent_framework::model::StorageController>()
         .get_entry(controller_uuid);
+
     json::Value json;
-    json[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Systems/Members/__SYSTEM_ID__/Storage/Members/__STORAGE_ID__/Storage_Controllers/Members/__CONTROLLER_ID__/$entity";
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__SYSTEM_ID__"), std::to_string(system_id));
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__STORAGE_ID__"), std::to_string(storage_id));
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__CONTROLLER_ID__"), std::to_string(sc.get_id()));
-    // the odata.id of this array member should be a Json pointer to itself:
-    // /Systems/x/Storage/y#/StorageControllers/index_in_array of members
-    json[Common::ODATA_ID] = endpoint::PathBuilder(constants::PathParam::BASE_URL)
-        .append(constants::Root::SYSTEMS)
-        .append(system_id)
-        .append(constants::System::STORAGE)
-        .append(std::to_string(storage_id) + constants::StorageSubsystem::STORAGE_CONTROLLERS_POINTER)
-        .append(index_in_array)
-        .build();
+    json[Common::ODATA_ID] = endpoint::utils::get_component_url(enums::Component::StorageController, controller_uuid);
     json[Common::ODATA_TYPE] = "#Storage.v1_1_0.StorageController";
     json[Common::MEMBER_ID] = std::to_string(sc.get_id());
 
@@ -87,11 +73,11 @@ json::Value storage_controller_to_json(size_t index_in_array, const std::string&
     const auto& fru = sc.get_fru_info();
     json[Common::MANUFACTURER] = fru.get_manufacturer();
     json[Common::MODEL] = fru.get_model_number();
-    json[Common::SERIAL] = fru.get_serial_number();
+    json[Common::SERIAL_NUMBER] = fru.get_serial_number();
     json[Common::PART_NUMBER] = fru.get_part_number();
 
     json[Common::ASSET_TAG] = sc.get_asset_tag();
-    json[constants::StorageSubsystem::SKU] = sc.get_sku();
+    json[Common::SKU] = sc.get_sku();
     json[constants::StorageSubsystem::SPEED_GBPS] = sc.get_speed_gbps();
     json[constants::StorageSubsystem::FIRMWARE_VERSION] = sc.get_firmware_version();
 
@@ -138,30 +124,24 @@ endpoint::StorageSubsystem::~StorageSubsystem() {}
 
 void endpoint::StorageSubsystem::get(const server::Request& req, server::Response& res) {
     auto r = make_prototype();
-    auto system = psme::rest::model::Find<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get();
-    auto system_id = system.get_id();
     auto storage =
         psme::rest::model::Find<agent_framework::model::StorageSubsystem>(req.params[PathParam::STORAGE_ID]).
             via<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get();
 
     r[constants::Common::ODATA_ID] = PathBuilder(req).build();
-
-    r[Common::ODATA_CONTEXT] = std::regex_replace(r[Common::ODATA_CONTEXT].as_string(),
-                                                  std::regex("__SYSTEM_ID__"), std::to_string(system_id));
-    r[Common::ODATA_CONTEXT] = std::regex_replace(r[Common::ODATA_CONTEXT].as_string(),
-                                                  std::regex("__STORAGE_ID__"), std::to_string(storage.get_id()));
     r[constants::Common::ID] = req.params[PathParam::STORAGE_ID];
 
     endpoint::status_to_json(storage, r);
 
     const auto controller_uuids = agent_framework::module::get_manager<agent_framework::model::StorageController>()
         .get_keys(storage.get_uuid());
-    for (size_t i = 0; i < controller_uuids.size(); ++i){
+    for (const auto& controller_uuid : controller_uuids){
         r[constants::StorageSubsystem::STORAGE_CONTROLLERS].push_back(
-            std::move(storage_controller_to_json(i, controller_uuids[i], system_id, storage.get_id())));
+            std::move(storage_controller_to_json(controller_uuid)));
     }
 
-    auto& manager_uuid = system.get_parent_uuid();
+    const auto manager_uuid = psme::rest::model::Find<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID])
+        .get().get_parent_uuid();
 
     const auto chassis_uuids = agent_framework::module::get_manager<agent_framework::model::Chassis>().get_keys(
         manager_uuid);

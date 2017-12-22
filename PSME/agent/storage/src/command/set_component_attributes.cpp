@@ -19,21 +19,25 @@
  *
  * */
 
+
 #include "agent-framework/module/storage_components.hpp"
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/storage_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/storage_commands.hpp"
 #include "agent-framework/module/requests/validation/storage.hpp"
 #include "iscsi/errors.hpp"
 #include "iscsi/manager.hpp"
 #include "iscsi/response.hpp"
 #include "iscsi/utils.hpp"
 #include "iscsi/tgt/config/tgt_config.hpp"
+#include "lvm/lvm_api.hpp"
+#include "common/utils.hpp"
+#include "lvm/lvm_attribute.hpp"
 
 
 
 using namespace agent_framework;
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::model::requests::validation;
@@ -41,12 +45,13 @@ using namespace agent_framework::module;
 using namespace agent_framework::module::managers;
 using namespace agent::storage::iscsi::tgt;
 using namespace agent::storage::iscsi::tgt::config;
-
+using namespace agent::storage::utils;
 using Errors = agent::storage::iscsi::tgt::Errors;
 
 namespace {
 
 struct ConfigurableiSCSITargetAttributes {
+    bool InitiatorIQNGiven{false};
     OptionalField<std::string> InitiatorIQN{};
     bool AuthenticationMethodGiven{false};
     OptionalField<enums::TargetAuthenticationMethod> AuthenticationMethod{};
@@ -67,27 +72,28 @@ void get_command_attributes(const attribute::Attributes& attributes,
         const auto& value = attributes.get_value(attribute_name);
 
         log_debug(GET_LOGGER("storage-agent"), "Attribute name: " << attribute_name);
-        log_debug(GET_LOGGER("storage-agent"), "Attribute value: " << value.toStyledString());
+        log_debug(GET_LOGGER("storage-agent"), "Attribute value: " << value.dump());
 
         if (literals::IscsiTarget::INITIATOR_IQN == attribute_name) {
-            attributes_to_configure.InitiatorIQN = OptionalField<std::string>(value.asString());
+            attributes_to_configure.InitiatorIQNGiven = true;
+            attributes_to_configure.InitiatorIQN = OptionalField<std::string>(value);
         }
         else if (literals::IscsiTarget::AUTHENTICATION_METHOD == attribute_name) {
             attributes_to_configure.AuthenticationMethodGiven = true;
             attributes_to_configure.AuthenticationMethod = OptionalField<enums::TargetAuthenticationMethod>(value);
         }
         else if (literals::IscsiTarget::CHAP_USERNAME == attribute_name) {
-            attributes_to_configure.ChapUsername = OptionalField<std::string>(value.isNull() ? EMPTY_VALUE : value);
+            attributes_to_configure.ChapUsername = OptionalField<std::string>(value.is_null() ? EMPTY_VALUE : value);
         }
         else if (literals::IscsiTarget::CHAP_SECRET == attribute_name) {
-            attributes_to_configure.ChapSecret = OptionalField<std::string>(value.isNull() ? EMPTY_VALUE : value);
+            attributes_to_configure.ChapSecret = OptionalField<std::string>(value.is_null() ? EMPTY_VALUE : value);
         }
         else if (literals::IscsiTarget::MUTUAL_CHAP_USERNAME == attribute_name) {
             attributes_to_configure.MutualChapUsername = OptionalField<std::string>(
-                value.isNull() ? EMPTY_VALUE : value);
+                value.is_null() ? EMPTY_VALUE : value);
         }
         else if (literals::IscsiTarget::MUTUAL_CHAP_SECRET == attribute_name) {
-            attributes_to_configure.MutualChapSecret = OptionalField<std::string>(value.isNull() ? EMPTY_VALUE : value);
+            attributes_to_configure.MutualChapSecret = OptionalField<std::string>(value.is_null() ? EMPTY_VALUE : value);
         }
         else {
             log_warning(GET_LOGGER("storage-agent"), "Unsupported attribute: " << attribute_name << ".");
@@ -112,9 +118,10 @@ void update_tgt_config_file(const IscsiTarget& target) {
 
 
 void update_initiator_name(agent::storage::iscsi::tgt::Manager& manager, const std::int32_t target_id,
-                           const std::string& initiator_name_old, const std::string& initiator_name_new) {
+                           const OptionalField<std::string>& initiator_name_old,
+                           const OptionalField<std::string>& initiator_name_new) {
 
-    if (!initiator_name_old.empty()) {
+    if (initiator_name_old.has_value()) {
         agent::storage::iscsi::tgt::Manager::OptionMapper options_old;
         options_old.emplace(std::make_pair("initiator-name", initiator_name_old));
         auto response_old = manager.unbind_target(target_id, options_old);
@@ -124,7 +131,7 @@ void update_initiator_name(agent::storage::iscsi::tgt::Manager& manager, const s
         }
     }
 
-    if (!initiator_name_new.empty()) {
+    if (initiator_name_new.has_value()) {
         agent::storage::iscsi::tgt::Manager::OptionMapper options_new;
         options_new.emplace(std::make_pair("initiator-name", initiator_name_new));
         auto response_new = manager.bind_target(target_id, options_new);
@@ -149,13 +156,9 @@ void process_iscsi_target_intiator_iqn(const std::string& uuid,
         // get current values
         auto prev_initiator_iqn = target->get_initiator_iqn();
 
-        update_initiator_name(manager, target_id,
-                              prev_initiator_iqn.has_value() ? prev_initiator_iqn.value() : EMPTY_VALUE,
-                              attributes_to_configure.InitiatorIQN.value());
+        update_initiator_name(manager, target_id, prev_initiator_iqn, attributes_to_configure.InitiatorIQN);
 
-        target->set_initiator_iqn(
-            attributes_to_configure.InitiatorIQN.value() != EMPTY_VALUE ? attributes_to_configure.InitiatorIQN
-                                                                        : OptionalField<std::string>());
+        target->set_initiator_iqn(attributes_to_configure.InitiatorIQN);
 
         update_tgt_config_file(get_manager<IscsiTarget>().get_entry(uuid));
     }
@@ -225,7 +228,7 @@ void process_iscsi_target_auth_null(const std::string& uuid,
             response.add_status({literals::IscsiTarget::CHAP_USERNAME, ex.get_error_code(), ex.get_message()});
             return;
         }
-        target->set_chap_username(OptionalField<string>());
+        target->set_chap_username(OptionalField<std::string>());
     }
 
     // Delete Mutual CHAP account if exist
@@ -238,10 +241,10 @@ void process_iscsi_target_auth_null(const std::string& uuid,
                 {literals::IscsiTarget::MUTUAL_CHAP_USERNAME, ex.get_error_code(), ex.get_message()});
             return;
         }
-        target->set_mutual_chap_username(OptionalField<string>());
+        target->set_mutual_chap_username(OptionalField<std::string>());
     }
 
-    target->set_authentication_method(OptionalField<string>());
+    target->set_authentication_method(OptionalField<std::string>());
 }
 
 
@@ -330,7 +333,7 @@ void process_iscsi_target_auth_chap(const std::string& uuid,
                 {literals::IscsiTarget::MUTUAL_CHAP_USERNAME, ex.get_error_code(), ex.get_message()});
             return;
         }
-        target->set_mutual_chap_username(OptionalField<string>());
+        target->set_mutual_chap_username(OptionalField<std::string>());
     }
 
     target->set_authentication_method(attributes_to_configure.AuthenticationMethod.value().to_string());
@@ -456,7 +459,7 @@ void process_iscsi_target(const std::string& uuid, const Attributes& attributes,
     // read parameters from command
     get_command_attributes(attributes, attributes_to_configure);
 
-    if (attributes_to_configure.InitiatorIQN.has_value()) {
+    if (attributes_to_configure.InitiatorIQNGiven) {
         process_iscsi_target_intiator_iqn(uuid, attributes_to_configure, response);
     }
 
@@ -497,6 +500,30 @@ void process_iscsi_target(const std::string& uuid, const Attributes& attributes,
 }
 
 
+void process_bootable_tag(const std::string& uuid, const bool value) {
+    auto drive = get_manager<LogicalDrive>().get_entry_reference(uuid);
+    if (agent_framework::model::enums::LogicalDriveMode::LV != drive->get_mode()) {
+        THROW(agent_framework::exceptions::InvalidValue,
+              "storage-agent", "Only logical volume can be tagged!");
+    }
+    drive->set_bootable(value);
+    agent::storage::lvm::LvmAPI lvm_api;
+    const auto vg_name = get_name_from_device_path(
+            (get_manager<LogicalDrive>().get_entry(drive->get_parent_uuid())).get_device_path());
+    const auto lv_name = get_name_from_device_path(drive->get_device_path());
+    if (value) {
+        lvm_api.add_logical_volume_tag(vg_name,lv_name,
+                                       agent::storage::lvm::attribute::LV_BOOTABLE_ATTR);
+    }
+    else {
+        lvm_api.remove_logical_volume_tag(vg_name,lv_name,
+                                          agent::storage::lvm::attribute::LV_BOOTABLE_ATTR);
+    }
+    log_debug(GET_LOGGER("storage-agent"),
+              "Set 'bootable' attribute to " << std::boolalpha << value << ".");
+}
+
+
 void process_logical_drive(const std::string& uuid, const Attributes& attributes,
                            SetComponentAttributes::Response& response) {
 
@@ -510,11 +537,8 @@ void process_logical_drive(const std::string& uuid, const Attributes& attributes
         const auto& field_value = attributes.get_value(attribute_name);
         try {
             if (literals::LogicalDrive::BOOTABLE == attribute_name) {
-                const auto value = attributes.get_value(attribute_name).asBool();
-                auto drive = get_manager<LogicalDrive>().get_entry_reference(uuid);
-                drive->set_bootable(value);
-                log_debug(GET_LOGGER("storage-agent"),
-                          "Set " + attribute_name + " attribute to " << std::boolalpha << value);
+                const auto value = attributes.get_value(attribute_name).get<bool>();
+                process_bootable_tag(uuid, value);
             }
             else if (literals::LogicalDrive::OEM == attribute_name) {
                 THROW(exceptions::UnsupportedField, "storage-agent", "Setting attribute is not supported.",
@@ -533,7 +557,7 @@ bool exists_in_storage_components(const std::string& uuid) {
     const auto& storage_components = StorageComponents::get_instance();
 
     return common_components->get_module_manager().entry_exists(uuid)
-           || storage_components->get_storage_services_manager().entry_exists(uuid)
+           || storage_components->get_storage_service_manager().entry_exists(uuid)
            || storage_components->get_physical_drive_manager().entry_exists(uuid);
 }
 

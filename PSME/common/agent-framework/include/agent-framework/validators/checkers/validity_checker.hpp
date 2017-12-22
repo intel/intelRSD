@@ -20,20 +20,41 @@
 
 
 #include "agent-framework/exceptions/exception.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <memory>
 
 
-
-namespace Json {
-// Forward declaration
-class Value;
-}
-
 namespace jsonrpc {
 
-/*! @brief Report assertion failed with message */
-bool fail(const char* message);
+// Forward declaration
+class ProcedureValidator;
+
+/*!
+ * @brief type mapping from validator to std types
+ * @{
+ */
+using INT32 = std::int32_t;
+using UINT32 = std::uint32_t;
+using INT64 = std::int64_t;
+using UINT64 = std::uint64_t;
+using DOUBLE = double;
+/*! @} */
+
+/*!
+ * @brief Type used to pass <procedure> to validate attribute
+ */
+using static_procedure_getter_t = const ProcedureValidator& (*)(void);
+
+/*!
+ * @brief Type used to pass value checker method to validate enum value
+ */
+using is_allowable_value_t = bool (*)(const std::string&);
+
+/*!
+ * @brief Type used to get all values defined in the enum
+ */
+using get_values_t = std::vector<std::string> (*)();
 
 
 /*!
@@ -56,7 +77,7 @@ public:
          * @param[in] field Name of field.
          * */
         explicit ValidationException(agent_framework::exceptions::ErrorCode code, const std::string& message,
-                                     const Json::Value& field_value, const std::string& field = {});
+                                     const json::Json& field_value, const std::string& field = {});
 
 
         /*!
@@ -97,7 +118,7 @@ public:
          * @brief Get invalid field value
          * @return Field value
          * */
-        const Json::Value& get_field_value() const {
+        const json::Json& get_field_value() const {
             return m_field_value;
         }
 
@@ -105,7 +126,7 @@ public:
     private:
         agent_framework::exceptions::ErrorCode m_code{};
         std::string m_field{};
-        const Json::Value m_field_value{};
+        const json::Json m_field_value{};
         std::string m_message{};
     };
 
@@ -119,7 +140,7 @@ public:
      * @param value json value to be checked
      * @throws InvalidValue/InvalidField exception if not valid
      */
-    virtual void validate(const Json::Value& value) const noexcept(false);
+    virtual void validate(const json::Json& value) const noexcept(false);
 
 
 protected:
@@ -141,7 +162,7 @@ protected:
      * @brief special value for fields not in the object, to distinguish from
      * plain nulls
      * */
-    static const Json::Value NON_EXISTING_VALUE;
+    static const json::Json NON_EXISTING_VALUE;
 
     /*! @brief Type alias for custom validity checkers */
     using Ptr = std::unique_ptr<ValidityChecker>;

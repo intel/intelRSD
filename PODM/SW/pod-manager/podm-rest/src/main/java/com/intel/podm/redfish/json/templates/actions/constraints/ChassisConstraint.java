@@ -22,14 +22,16 @@ import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 @Constraint(validatedBy = ChassisConstraint.ChassisConstraintValidator.class)
-@Target(ElementType.PARAMETER)
-@Retention(RetentionPolicy.RUNTIME)
+@Target(PARAMETER)
+@Retention(RUNTIME)
 public @interface ChassisConstraint {
 
     String message() default "Cannot update Chassis with empty values";
@@ -41,12 +43,14 @@ public @interface ChassisConstraint {
     class ChassisConstraintValidator implements ConstraintValidator<ChassisConstraint, RedfishChassis> {
         @Override
         public void initialize(ChassisConstraint constraintAnnotation) {
-
         }
 
         @Override
         public boolean isValid(RedfishChassis value, ConstraintValidatorContext context) {
-            return value != null && (value.getAssetTag() != null || value.getLocationId() != null);
+            return value != null
+                && (value.getAssetTag() != null
+                || value.getGeoTag() != null
+                || !isNullOrEmpty(value.getLocationId()));
         }
     }
 }

@@ -17,7 +17,6 @@
 package com.intel.podm.config.version;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,27 +26,16 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.jar.Manifest;
 
+import static com.intel.podm.common.logger.LoggerFactory.getLogger;
 import static java.util.Collections.list;
 
 /**
  * Class for obtaining MANIFEST.MF contents. Works within limits of a single class loader.
  */
-public class ManifestReader {
-
+class ManifestReader {
     private static final String MANIFEST_PATH = "/META-INF/MANIFEST.MF";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ManifestReader.class.getSimpleName());
-
-    public Manifest findManifestByEntry(String entryHeader, String entryValue) {
-        Iterable<Manifest> availableManifests = getAvailableManifests();
-
-        for (Manifest manifest : availableManifests) {
-            if (containsEntry(manifest, entryHeader, entryValue)) {
-                return manifest;
-            }
-        }
-        return null;
-    }
+    private static final Logger LOGGER = getLogger(ManifestReader.class.getSimpleName());
 
     private static boolean containsEntry(Manifest manifest, String entryHeader, String entryValue) {
         final String actualManifestTitle = manifest.getMainAttributes().getValue(entryHeader);
@@ -81,6 +69,17 @@ public class ManifestReader {
             return new Manifest(inputStream);
         } catch (IOException e) {
             LOGGER.w("Skipping manifest {} due to IO error.", manifestUrl.getPath());
+        }
+        return null;
+    }
+
+    Manifest findManifestByEntry(String entryHeader, String entryValue) {
+        Iterable<Manifest> availableManifests = getAvailableManifests();
+
+        for (Manifest manifest : availableManifests) {
+            if (containsEntry(manifest, entryHeader, entryValue)) {
+                return manifest;
+            }
         }
         return null;
     }

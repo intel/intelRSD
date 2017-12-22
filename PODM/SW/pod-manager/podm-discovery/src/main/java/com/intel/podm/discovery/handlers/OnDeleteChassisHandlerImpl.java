@@ -24,8 +24,6 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import java.util.Objects;
-
 import static com.intel.podm.common.types.ChassisType.POD;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
@@ -37,10 +35,6 @@ public class OnDeleteChassisHandlerImpl implements OnDeleteChassisHandler {
 
     @Override
     public void preRemove(Chassis chassis) {
-        if (!isTopLevelChassis(chassis)) {
-            return;
-        }
-
         Chassis parentChassis = chassis.getContainedByChassis();
         if (parentChassisShouldBeDeleted(parentChassis)) {
             genericDao.remove(parentChassis);
@@ -54,17 +48,10 @@ public class OnDeleteChassisHandlerImpl implements OnDeleteChassisHandler {
     }
 
     private boolean isNotOwnedByAnyService(Chassis chassis) {
-        return chassis.getService() == null
-            && !chassis.is(POD);
+        return !chassis.hasAnyExternalServiceAssigned() && !chassis.is(POD);
     }
 
     private boolean containsLessThanTwoChassis(Chassis chassis) {
         return chassis.getContainedChassis().size() < 2;
-    }
-
-    private boolean isTopLevelChassis(Chassis chassis) {
-        Chassis parent = chassis.getContainedByChassis();
-        return parent != null
-            && !Objects.equals(parent.getService(), chassis.getService());
     }
 }

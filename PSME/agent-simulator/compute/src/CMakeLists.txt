@@ -49,7 +49,6 @@ add_executable(psme-compute-simulator
 )
 
 target_link_libraries(psme-compute-simulator
-
     ${PSME_COMPUTE_SIMULATOR_LIBRARIES}
     common-discovery
     asset_configuration
@@ -64,10 +63,6 @@ target_link_libraries(psme-compute-simulator
     ${GLIBMM_LIBRARY}
     ${GLIB_LIBRARY}
     pthread
-    jsonrpccpp-server
-    jsonrpccpp-client
-    jsonrpccpp-common
-    jsoncpp
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
     md5

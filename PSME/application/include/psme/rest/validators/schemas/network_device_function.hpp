@@ -19,13 +19,18 @@
 
 #pragma once
 
+
+
 #include "agent-framework/validators/procedure_validator.hpp"
+
+
 
 namespace psme {
 namespace rest {
 namespace validators {
 namespace schema {
 
+/*! @brief Schema for validating PATCH requests on network device function resource. */
 class NetworkDeviceFunctionPatchSchema {
     class EthernetObjectSchema {
     public:

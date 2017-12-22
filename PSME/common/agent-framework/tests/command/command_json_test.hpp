@@ -44,9 +44,9 @@ public:
                 jsonrpc::JSON_OBJECT,
                 "test", jsonrpc::JSON_STRING, nullptr)) { }
 
-    void method(const Json::Value&, Json::Value&) { }
+    void method(const json::Json&, json::Json&) { }
 
-    void notification(const Json::Value&) { }
+    void notification(const json::Json&) { }
 
     Command* call_get_command() { return get_command(); }
 
@@ -63,9 +63,9 @@ public:
             Procedure("DummyNotification", jsonrpc::PARAMS_BY_NAME,
                 "test", jsonrpc::JSON_STRING, nullptr)) { }
 
-    void method(const Json::Value&, Json::Value&) { }
+    void method(const json::Json&, json::Json&) { }
 
-    void notification(const Json::Value&) { }
+    void notification(const json::Json&) { }
 
     virtual ~DummyCommandJsonNotification();
 };

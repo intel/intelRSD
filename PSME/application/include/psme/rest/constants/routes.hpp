@@ -39,19 +39,23 @@ public:
     static const std::string ODATA_SERVICE_DOCUMENT;
     static const std::string METADATA_ROOT_PATH;
     static const std::string METADATA_PATH;
+    static const std::string UPDATE_SERVICE_PATH;
+    static const std::string SIMPLE_UPDATE_PATH;
+    static const std::string SIMPLE_UPDATE_ACTION_INFO_PATH;
     static const std::string EVENT_SERVICE_PATH;
     static const std::string SUBSCRIPTION_COLLECTION_PATH;
     static const std::string SUBSCRIPTION_PATH;
-    static const std::string TEST_EVENT_SUBSCRIPTION_PATH;
     static const std::string TASK_SERVICE_PATH;
     static const std::string TASK_COLLECTION_PATH;
     static const std::string TASK_PATH;
     static const std::string MESSAGE_REGISTRY_FILE_COLLECTION_PATH;
     static const std::string MESSAGE_REGISTRY_FILE_PATH;
+    static const std::string MESSAGE_REGISTRY_PATH;
     static const std::string MONITOR_PATH;
 
     static const std::string CHASSIS_COLLECTION_PATH;
     static const std::string CHASSIS_PATH;
+    static const std::string CHASSIS_RESET_PATH;
     static const std::string DRIVES_COLLECTION_PATH;
     static const std::string DRIVE_PATH;
     static const std::string DRIVE_SECURE_ERASE_PATH;
@@ -59,28 +63,35 @@ public:
     static const std::string PCIE_DEVICE_PATH;
     static const std::string PCIE_FUNCTIONS_COLLECTION_PATH;
     static const std::string PCIE_FUNCTION_PATH;
-    static const std::string THERMAL_ZONE_COLLECTION_PATH;
-    static const std::string THERMAL_ZONE_PATH;
-    static const std::string POWER_ZONE_COLLECTION_PATH;
-    static const std::string POWER_ZONE_PATH;
+    static const std::string THERMAL_PATH;
+    static const std::string POWER_PATH;
+    static const std::string POWER_SUPPLY_REQUEST_STATE_CHANGE_PATH;
 
     static const std::string MANAGER_COLLECTION_PATH;
     static const std::string MANAGER_PATH;
+    static const std::string MANAGER_RESET_PATH;
+    static const std::string MANAGER_LOAD_FACTORY_DEFAULTS_PATH;
     static const std::string MANAGER_NETWORK_INTERFACE_COLLECTION_PATH;
     static const std::string MANAGER_NETWORK_INTERFACE_PATH;
+    static const std::string MANAGER_VLAN_NETWORK_INTERFACE_COLLECTION_PATH;
+    static const std::string MANAGER_VLAN_NETWORK_INTERFACE_PATH;
     static const std::string NETWORK_PROTOCOL_PATH;
 
     static const std::string SYSTEMS_COLLECTION_PATH;
     static const std::string SYSTEM_PATH;
+    static const std::string SYSTEM_METRICS_PATH;
     static const std::string SYSTEM_RESET_PATH;
+    static const std::string SYSTEM_CHANGE_TPM_STATE_PATH;
     static const std::string STORAGE_SUBSYSTEMS_COLLECTION_PATH;
     static const std::string STORAGE_SUBSYSTEM_PATH;
     static const std::string SYSTEM_ETHERNET_INTERFACES_COLLECTION_PATH;
     static const std::string SYSTEM_ETHERNET_INTERFACE_PATH;
     static const std::string MEMORY_COLLECTION_PATH;
     static const std::string MEMORY_PATH;
+    static const std::string MEMORY_METRICS_PATH;
     static const std::string PROCESSORS_COLLECTION_PATH;
     static const std::string PROCESSOR_PATH;
+    static const std::string PROCESSORS_METRICS_PATH;
     static const std::string VOLUMES_COLLECTION_PATH;
     static const std::string NETWORK_INTERFACES_COLLECTION_PATH;
     static const std::string NETWORK_INTERFACE_PATH;
@@ -89,6 +100,7 @@ public:
 
     static const std::string ETHERNET_SWITCHES_COLLECTION_PATH;
     static const std::string ETHERNET_SWITCH_PATH;
+    static const std::string ETHERNET_SWITCH_METRICS_PATH;
     static const std::string ACL_COLLECTION_PATH;
     static const std::string ACL_PATH;
     static const std::string ACL_BIND_PATH;
@@ -97,6 +109,7 @@ public:
     static const std::string RULE_PATH;
     static const std::string ETHERNET_SWITCH_PORT_COLLECTION_PATH;
     static const std::string ETHERNET_SWITCH_PORT_PATH;
+    static const std::string ETHERNET_SWITCH_PORT_METRICS_PATH;
     static const std::string STATIC_MAC_COLLECTION_PATH;
     static const std::string STATIC_MAC_PATH;
     static const std::string VLAN_NETWORK_INTERFACE_COLLECTION_PATH;
@@ -122,7 +135,16 @@ public:
     static const std::string ZONE_PATH;
     static const std::string PORTS_COLLECTION_PATH;
     static const std::string PORT_PATH;
+    static const std::string PORT_METRICS_PATH;
     static const std::string PORT_RESET_PATH;
+
+    static const std::string TELEMETRY_SERVICE_PATH;
+    static const std::string METRIC_DEFINITION_PATH;
+    static const std::string METRIC_DEFINITIONS_COLLECTION_PATH;
+    static const std::string METRIC_REPORT_DEFINITION_PATH;
+    static const std::string METRIC_REPORT_DEFINITIONS_COLLECTION_PATH;
+    static const std::string TRIGGER_PATH;
+    static const std::string TRIGGERS_COLLECTION_PATH;
 };
 
 }

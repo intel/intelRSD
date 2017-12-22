@@ -19,9 +19,11 @@
  * */
 
 #pragma once
+
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/enum/enum_builder.hpp"
 #include <string>
+
 
 namespace agent_framework {
 namespace eventing {
@@ -34,13 +36,24 @@ ENUM(Notification, std::uint32_t,
 
 class EventData {
 public:
-    const std::string& get_gami_id() const {
-        return m_gami_id;
-    }
 
-    void set_gami_id(const std::string& gami_id) {
-        m_gami_id = gami_id;
-    }
+    /*!
+     * Construct an EventData object from json::Json
+     *
+     * @param[in] json Json object representing an EventData
+     *
+     * @return EventData object
+     * */
+    static EventData from_json(const json::Json& json);
+
+
+    /*!
+     * Convert an EventData object to json::Json
+     *
+     * @return json::Json object representing an EventData
+     * */
+    json::Json to_json() const;
+
 
     const std::string& get_component() const {
         return m_component;
@@ -82,17 +95,6 @@ public:
         m_type = ::agent_framework::model::enums::Component::from_string(type);
     }
 
-    Json::Value to_json() const {
-        Json::Value json;
-
-        json["gamiId"] = get_gami_id();
-        json["parent"] = get_parent();
-        json["type"] = get_type().to_string();
-        json["component"] = get_component();
-        json["notification"] = get_notification().to_string();
-
-        return json;
-    }
 
 private:
     ::agent_framework::model::enums::Component m_type{
@@ -100,9 +102,11 @@ private:
     Notification m_notification{Notification::Add};
     std::string m_parent{};
     std::string m_component{};
-    std::string m_gami_id{};
 };
 
-}
-}
 
+using EventDataVec = std::vector<EventData>;
+
+
+}
+}

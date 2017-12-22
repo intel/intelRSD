@@ -21,8 +21,11 @@
 
 #include "psme/rest/eventing/config/subscription_config.hpp"
 #include "psme/rest/eventing/event_service.hpp"
+#include "psme/rest/endpoints/utils.hpp"
 #include <json/json.hpp>
 #include <fstream>
+#include <sstream>
+#include <iterator>
 
 namespace psme {
 namespace rest {
@@ -31,11 +34,21 @@ namespace config {
 
 constexpr const char SubscriptionConfig::DEFAULT_SUBSCRIPTION_FILE_PATH[];
 
+/*!
+ * @attention Subscriptions are stored in the subscription file specified in configuration in the following form:
+ * [{"id" : subscription_as_object}, ...]
+ * for example:
+ * [{"1" : {"Destination" : "10.3.0.2:3434", "EventTypes" : ["ResourceRemoved"] ...}},
+ *  {"3" : {"Destination" : "10.3.0.3:4343", ...}}]
+ */
+
 json::Value SubscriptionConfig::get_subscriptions_json(const SubscriptionMap& subscriptions) const {
     json::Value json(json::Value::Type::ARRAY);
     for (const auto& entry : subscriptions) {
         const auto& subscription = entry.second;
-        json.push_back(subscription.to_json());
+        json::Value value(json::Value::Type::OBJECT);
+        value[std::to_string(entry.first)] = subscription.to_json();
+        json.push_back(std::move(value));
     }
     return json;
 }
@@ -84,13 +97,29 @@ void SubscriptionConfig::load() {
         return;
     }
     try {
+        std::ostringstream info_msg{};
+        info_msg << "Loaded subscriptions:\n";
         const auto& subscriptions_json = get_subscriptions_json(content);
         if (subscriptions_json.is_array()) {
-            SubscriptionManager::get_instance();
+            SubscriptionMap subscriptions;
             for (const auto& subscription_json : subscriptions_json.as_array()) {
-                const auto subscription = Subscription::from_json(subscription_json);
-                SubscriptionManager::get_instance()->add(subscription);
+                auto number_of_keys = std::distance(subscription_json.begin(), subscription_json.end());
+                if (subscription_json.begin().is_array() ||
+                    number_of_keys == 0 ||
+                    number_of_keys > 1) {
+
+                    log_warning(GET_LOGGER("app"), "Invalid subscription object in subscriptions config file.");
+                    continue;
+                }
+                std::string key_as_string = subscription_json.begin().key();
+                uint64_t key = psme::rest::endpoint::utils::id_to_uint64(key_as_string);
+                info_msg << " \"" << key_as_string << "\" : " << subscription_json[key_as_string] << "\n";
+                Subscription subscription = Subscription::from_json(subscription_json[key_as_string], false);
+                subscription.set_id(key);
+                subscriptions.emplace(key, subscription);
             }
+            SubscriptionManager::get_instance()->set_subscriptions(subscriptions);
+            log_info("app", info_msg.str());
         }
     }
     catch (const std::exception& ex) {

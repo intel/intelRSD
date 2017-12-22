@@ -22,7 +22,7 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 @Dependent
-public class PodManagerNetworkDiscoveryHandler {
+class PodManagerNetworkDiscoveryHandler {
 
     @Inject
     PodManagerEthernetInterfaceDiscoveryHandler podManagerEthernetInterfaceDiscoveryHandler;

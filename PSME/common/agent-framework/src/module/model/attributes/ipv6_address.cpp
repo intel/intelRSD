@@ -34,8 +34,8 @@ Ipv6Address::Ipv6Address() { }
 
 Ipv6Address::~Ipv6Address() { }
 
-Json::Value Ipv6Address::to_json() const {
-    Json::Value result{};
+json::Json Ipv6Address::to_json() const {
+    json::Json result{};
     if (get_address()) {
         result[literals::Ipv6Address::ADDRESS] = get_address();
         result[literals::Ipv6Address::PREFIX_LENGTH] = get_prefix_length();
@@ -45,16 +45,15 @@ Json::Value Ipv6Address::to_json() const {
     return result;
 }
 
-Ipv6Address Ipv6Address::from_json(const Json::Value& json) {
+Ipv6Address Ipv6Address::from_json(const json::Json& json) {
     attribute::Ipv6Address ipv6_address{};
-    if (!json) {
-        return ipv6_address;
+    if (!json.is_null()) {
+        ipv6_address.set_address(json[literals::Ipv6Address::ADDRESS]);
+        ipv6_address.set_prefix_length(json[literals::Ipv6Address::PREFIX_LENGTH]);
+        ipv6_address.set_address_origin(OptionalField<enums::Ipv6AddressOrigin>(
+            json[literals::Ipv6Address::ADDRESS_ORIGIN]));
+        ipv6_address.set_address_state(OptionalField<enums::Ipv6AddressState>(
+            json[literals::Ipv6Address::ADDRESS_STATE]));
     }
-    ipv6_address.set_address(json[literals::Ipv6Address::ADDRESS]);
-    ipv6_address.set_prefix_length(json[literals::Ipv6Address::PREFIX_LENGTH]);
-    ipv6_address.set_address_origin(OptionalField<enums::Ipv6AddressOrigin>(
-        json[literals::Ipv6Address::ADDRESS_ORIGIN]));
-    ipv6_address.set_address_state(OptionalField<enums::Ipv6AddressState>(
-        json[literals::Ipv6Address::ADDRESS_STATE]));
     return ipv6_address;
 }

@@ -21,8 +21,9 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.intel.podm.business.entities.redfish.EntityDetail.EntityRelationshipDetail;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import org.jboss.dna.common.text.Inflector;
+import org.modeshape.common.text.Inflector;
 
+import javax.persistence.Enumerated;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -32,7 +33,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +41,8 @@ import static com.intel.podm.business.entities.redfish.EntityDetailsGatherer.get
 import static java.util.Arrays.stream;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static javax.persistence.EnumType.STRING;
 
 @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
 final class EntityRelationshipHelper {
@@ -80,29 +82,21 @@ final class EntityRelationshipHelper {
         throw new EntityRelationshipException("Could not find EntityDetail for class: " + clazz.getName() + ".");
     }
 
-    static Set<Method> getMethods(Map<Method, Class<? extends Entity>> methods, Class returnType, Class... parameterTypes) {
-        Set<Method> foundMethods = new HashSet<>();
-        for (Method method : methods.keySet()) {
-            if (method.getReturnType().equals(returnType) && Arrays.equals(method.getParameterTypes(), parameterTypes)) {
-                foundMethods.add(method);
-            }
-        }
-
-        return foundMethods;
+    static Set<Method> getMethods(Map<Method, Class<? extends Entity>> methods, Class<?> returnType, Class<?>... parameterTypes) {
+        return methods.keySet().stream()
+            .filter(method -> method.getReturnType().equals(returnType) && Arrays.equals(method.getParameterTypes(), parameterTypes))
+            .collect(toSet());
     }
 
     static Method getMethodByName(Set<Method> methods, String expectedMethodName) {
-        for (Method method : methods) {
-            if (method.getName().equals(expectedMethodName)) {
-                return method;
-            }
-        }
-
-        return null;
+        return methods.stream()
+            .filter(method -> method.getName().equals(expectedMethodName))
+            .findFirst()
+            .orElse(null);
     }
 
     static Entity invokeGetMethodAndReturnEntityContained(Entity entity, EntityRelationshipDetail entityRelationshipDetail)
-            throws EntityRelationshipException {
+        throws EntityRelationshipException {
         Method getterMethod = entityRelationshipDetail.getGetterMethod().get();
         Object returnedObject = invokeGetMethod(entity, getterMethod);
 
@@ -116,25 +110,25 @@ final class EntityRelationshipHelper {
             }
 
             throw new EntityRelationshipException(getterMethod.getName() + " in " + unproxy(entity.getClass()).getName() + " returned collection with "
-                    + entities.size() + " entities instead of collection with one entity.");
+                + entities.size() + " entities instead of collection with one entity.");
         }
 
         throw new EntityRelationshipException(getterMethod.getName() + " for " + entity.getClass().getName() + " returned wrong object: " + returnedObject);
     }
 
     static void validateIfGetMethodReturnsNullOrEmptyCollection(Entity entity, EntityRelationshipDetail entityRelationshipDetail)
-            throws EntityRelationshipException {
+        throws EntityRelationshipException {
         Method getterMethod = entityRelationshipDetail.getGetterMethod().get();
         Object returnedObject = invokeGetMethod(entity, getterMethod);
 
         if (returnedObject instanceof Collection<?>) {
-            if (!((Collection) returnedObject).isEmpty()) {
+            if (!((Collection<?>) returnedObject).isEmpty()) {
                 throw new EntityRelationshipException(getterMethod.getName() + " in " + unproxy(entity.getClass()).getName()
-                        + " returned collection with " + ((Collection) returnedObject).size() + " object(s) instead of empty collection.");
+                    + " returned collection with " + ((Collection<?>) returnedObject).size() + " object(s) instead of empty collection.");
             }
         } else if (returnedObject != null) {
             throw new EntityRelationshipException(getterMethod.getName() + " for " + entity.getClass().getName() + " returned: " + returnedObject
-                    + " instead of null.");
+                + " instead of null.");
         }
     }
 
@@ -161,16 +155,15 @@ final class EntityRelationshipHelper {
         return isAnyAnnotationPresent(accessibleObject, singleton(annotation));
     }
 
+    static boolean isEnumeratedAnnotationWithStringValuePresent(Field field) {
+        Enumerated enumerated = field.getAnnotation(Enumerated.class);
+        return enumerated != null && enumerated.value() == STRING;
+    }
+
     static Set<Method> extractMethodsByEntityTypeContainedInCollectionReturnedByMethod(Set<Method> methods, Class<? extends Entity> entityType) {
-        Set<Method> foundMethods = new HashSet<>();
-
-        for (Method method : methods) {
-            if (getEntityTypeIfMethodReturnsEntityOrCollectionOfEntities(method).equals(entityType)) {
-                foundMethods.add(method);
-            }
-        }
-
-        return foundMethods;
+        return methods.stream()
+            .filter(method -> getEntityTypeIfMethodReturnsEntityOrCollectionOfEntities(method).equals(entityType))
+            .collect(toSet());
     }
 
     static Class<? extends Entity> getEntityTypeIfMethodReturnsEntityOrCollectionOfEntities(Method method) {
@@ -179,6 +172,10 @@ final class EntityRelationshipHelper {
 
     static Class<? extends Entity> getEntityTypeFromEntityFieldOrCollectionOfEntitiesField(Field field) {
         return getEntityType(field.getType(), field.getGenericType());
+    }
+
+    static Class<? extends Enum<?>> getEnumTypeFromEnumFieldOrCollectionOfEnumsField(Field field) {
+        return getEnumType(field.getType(), field.getGenericType());
     }
 
     static Method extractMethodByMethodDeclaration(Class<? extends Entity> entityClass, MethodDeclaration methodDeclaration) {
@@ -203,23 +200,32 @@ final class EntityRelationshipHelper {
     }
 
     static boolean isAnyAnnotationPresent(AccessibleObject accessibleObject, Set<Class<? extends Annotation>> annotations) {
-        for (Class<? extends Annotation> annotation : annotations) {
-            if (accessibleObject.isAnnotationPresent(annotation)) {
-                return true;
-            }
-        }
-
-        return false;
+        return annotations.stream()
+            .anyMatch(accessibleObject::isAnnotationPresent);
     }
 
     @SuppressWarnings("unchecked")
-    private static Class<? extends Entity> getEntityType(Class type, Type genericType) {
+    private static Class<? extends Entity> getEntityType(Class<?> type, Type genericType) {
         if (Entity.class.isAssignableFrom(type)) {
             return (Class<? extends Entity>) type;
         } else if (genericType instanceof ParameterizedType) {
             Type actualType = ((ParameterizedType) genericType).getActualTypeArguments()[0];
-            if (actualType instanceof Class && Entity.class.isAssignableFrom((Class) actualType)) {
-                return (Class) actualType;
+            if (actualType instanceof Class && Entity.class.isAssignableFrom((Class<?>) actualType)) {
+                return (Class<? extends Entity>) actualType;
+            }
+        }
+
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Class<? extends Enum<?>> getEnumType(Class<?> type, Type genericType) {
+        if (Enum.class.isAssignableFrom(type)) {
+            return (Class<? extends Enum<?>>) type;
+        } else if (genericType instanceof ParameterizedType) {
+            Type actualType = ((ParameterizedType) genericType).getActualTypeArguments()[0];
+            if (actualType instanceof Class && Enum.class.isAssignableFrom((Class<?>) actualType)) {
+                return (Class<? extends Enum<?>>) actualType;
             }
         }
 
@@ -236,21 +242,21 @@ final class EntityRelationshipHelper {
 
     private static List<String> extractArgumentTypesAsStringsFromMethod(Method method) {
         return stream(method.getParameters())
-                .map(java.lang.reflect.Parameter::getType)
-                .map(Class::getSimpleName)
-                .collect(toList());
+            .map(java.lang.reflect.Parameter::getType)
+            .map(Class::getSimpleName)
+            .collect(toList());
     }
 
     private static List<String> extractArgumentTypesAsStringsFromMethodDeclaration(MethodDeclaration methodDeclaration) {
         return methodDeclaration.getParameters().stream()
-                .map(parameter -> {
-                    String className = parameter.getType().toStringWithoutComments();
-                    if (parameter.getType() instanceof ReferenceType) {
-                        className = ((ClassOrInterfaceType) ((ReferenceType) parameter.getType()).getType()).getName();
-                    }
+            .map(parameter -> {
+                String className = parameter.getType().toStringWithoutComments();
+                if (parameter.getType() instanceof ReferenceType) {
+                    className = ((ClassOrInterfaceType) ((ReferenceType) parameter.getType()).getType()).getName();
+                }
 
-                    return parameter.isVarArgs() ? className + "[]" : className;
-                })
-                .collect(toList());
+                return parameter.isVarArgs() ? className + "[]" : className;
+            })
+            .collect(toList());
     }
 }

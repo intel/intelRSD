@@ -17,7 +17,7 @@
 package com.intel.podm.discovery.external.finalizers;
 
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.common.types.ServiceType;
 
 import java.util.Objects;
@@ -34,5 +34,5 @@ public abstract class ServiceTypeSpecializedDiscoveryFinalizer {
         return Objects.equals(serviceType, this.serviceType);
     }
 
-    public abstract void finalize(Set<Entity> discoveredEntities, ExternalService service);
+    public abstract void finalize(Set<DiscoverableEntity> discoveredEntities, ExternalService service);
 }

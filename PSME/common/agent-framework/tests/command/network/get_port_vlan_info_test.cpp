@@ -67,8 +67,8 @@ TEST(GetPortVlanInfoTest, PositiveExecute) {
     MyGetPortVlanInfo command{TEST_UUID};
     GetPortVlanInfo::Request request{""};
     GetPortVlanInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitchPortVlan::PORT_VLAN] = TEST_UUID;
 
@@ -90,8 +90,8 @@ TEST(GetPortVlanInfoTest, NegativeVlanPortNotFound) {
     MyGetPortVlanInfo command{TEST_UUID};
     GetPortVlanInfo::Request request{""};
     GetPortVlanInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitchPortVlan::PORT_VLAN] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
     EXPECT_NO_THROW(request = GetPortVlanInfo::Request::from_json(params));
@@ -103,8 +103,8 @@ TEST(GetPortVlanInfoTest, NegativeInvalidUUIDFormat) {
     MyGetPortVlanInfo command{TEST_UUID};
     GetPortVlanInfo::Request request{""};
     GetPortVlanInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitchPortVlan::PORT_VLAN] = "TestUUID";
 

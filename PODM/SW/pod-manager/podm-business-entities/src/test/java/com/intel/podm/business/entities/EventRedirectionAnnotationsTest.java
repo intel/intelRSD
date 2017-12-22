@@ -25,21 +25,20 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.intel.podm.common.utils.ClassGatherer.getAllClassesByPackageAndAnnotation;
-import static com.intel.podm.common.utils.FieldUtils.getFieldsListWithAnnotation;
-import static com.intel.podm.common.utils.MethodUtils.getMethodsListWithAnnotation;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.reflect.FieldUtils.getFieldsListWithAnnotation;
+import static org.apache.commons.lang3.reflect.MethodUtils.getMethodsListWithAnnotation;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.collection.IsMapContaining.hasValue;
 import static org.testng.AssertJUnit.assertTrue;
 
-
 public class EventRedirectionAnnotationsTest {
     private static final String ENTITIES_PACKAGE = "com.intel.podm.business.entities.*";
 
-    private Set<Class> eventableEntityClasses;
+    private Set<Class<?>> eventableEntityClasses;
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -56,7 +55,7 @@ public class EventRedirectionAnnotationsTest {
 
             Map<String, Long> countedTargets = declaredTargets.stream()
                 .map(method -> method.getAnnotation(EventRedirectionTarget.class))
-                .collect(groupingBy(annotation -> annotation.value(), counting()));
+                .collect(groupingBy(EventRedirectionTarget::value, counting()));
 
             assertThat(
                 "Multiple @EventRedirectionTarget with same redirection key are not supported. Verify targets declared on " + eventableEntityClass,
@@ -73,21 +72,19 @@ public class EventRedirectionAnnotationsTest {
         for (Class eventableEntityClass : eventableEntityClasses) {
             List<String> sources = getFieldsListWithAnnotation(eventableEntityClass, EventRedirectionSource.class).stream()
                 .map(field -> field.getAnnotation(EventRedirectionSource.class))
-                .map(annotation -> annotation.value())
+                .map(EventRedirectionSource::value)
                 .distinct()
                 .collect(toList());
 
             List<String> targets = getMethodsListWithAnnotation(eventableEntityClass, EventRedirectionTarget.class)
                 .stream()
                 .map(method -> method.getAnnotation(EventRedirectionTarget.class))
-                .map(annotation -> annotation.value())
+                .map(EventRedirectionTarget::value)
                 .collect(toList());
 
-            sources.stream()
-                .forEach(source -> assertTrue(
-                    "@EventRedirectionTarget(\"" + source + "\") should be defined for class: " + eventableEntityClass, targets.contains(source))
-                );
-
+            sources.forEach(source -> assertTrue(
+                "@EventRedirectionTarget(\"" + source + "\") should be defined for class: " + eventableEntityClass, targets.contains(source))
+            );
         }
     }
 }

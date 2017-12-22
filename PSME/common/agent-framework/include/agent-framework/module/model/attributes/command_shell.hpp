@@ -23,9 +23,11 @@
 */
 
 #pragma once
+
 #include "agent-framework/module/utils/utils.hpp"
 #include "agent-framework/module/model/attributes/array.hpp"
 #include "agent-framework/module/enum/common.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 namespace agent_framework {
 namespace model {
@@ -34,7 +36,7 @@ namespace attribute {
 /*! Class representing command shell attribute */
 class CommandShell {
 public:
-   using SupportedConnections = Array<enums::CommandShellSupprtedType>;
+   using SupportedConnections = Array<enums::CommandShellSupportedType>;
 
    explicit CommandShell()
    {}
@@ -59,18 +61,18 @@ public:
    /*!
     * @brief construct an object of class CommandShell from JSON
     *
-    * @param json the Json::Value deserialized to object
+    * @param json the json::Json deserialized to object
     *
     * @return the newly constructed CommandShell object
     */
-   static CommandShell from_json(const Json::Value& json);
+   static CommandShell from_json(const json::Json& json);
 
    /*!
     * @brief transform the object to JSon
     *
-    * @return the object serialized to Json::Value
+    * @return the object serialized to json::Json
     */
-   Json::Value to_json() const;
+   json::Json to_json() const;
 
 
    /*!
@@ -131,4 +133,3 @@ private:
 }
 }
 }
-

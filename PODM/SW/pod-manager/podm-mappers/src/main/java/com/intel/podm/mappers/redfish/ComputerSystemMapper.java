@@ -18,27 +18,33 @@ package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.embeddables.Boot;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
+import com.intel.podm.client.resources.redfish.BootObject;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
 import com.intel.podm.common.types.DiscoveryState;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.ComputerSystemDeviceMapper;
 import com.intel.podm.mappers.subresources.SimpleTypeMapper;
+import com.intel.podm.mappers.subresources.TrustedModuleMapper;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.util.Optional;
 
 import static com.intel.podm.common.types.DeepDiscoveryState.DONE;
 import static com.intel.podm.common.types.DeepDiscoveryState.INITIAL;
 import static com.intel.podm.common.types.DiscoveryState.BASIC;
 import static com.intel.podm.common.types.DiscoveryState.DEEP;
+import static java.util.Optional.ofNullable;
 
 @Dependent
 public class ComputerSystemMapper extends EntityMapper<ComputerSystemResource, ComputerSystem> {
     @Inject
     ComputerSystemDeviceMapper computerSystemDeviceMapper;
+
     @Inject
     SimpleTypeMapper simpleTypeMapper;
+
+    @Inject
+    TrustedModuleMapper trustedModuleMapper;
 
     public ComputerSystemMapper() {
         super(ComputerSystemResource.class, ComputerSystem.class);
@@ -53,8 +59,14 @@ public class ComputerSystemMapper extends EntityMapper<ComputerSystemResource, C
         sourceComputerSystem.getAllowableResetTypes().ifAssigned(allowableResetTypes ->
             simpleTypeMapper.map(allowableResetTypes, targetComputerSystem.getAllowableResetTypes(), targetComputerSystem::addAllowableResetType)
         );
+        sourceComputerSystem.getAllowableInterfaceTypes().ifAssigned(allowableInterfaceTypes ->
+            simpleTypeMapper.map(allowableInterfaceTypes, targetComputerSystem.getAllowableInterfaceTypes(), targetComputerSystem::addAllowableInterfaceType)
+        );
         sourceComputerSystem.getPcieConnectionId().ifAssigned(pcieConnectionId ->
-            simpleTypeMapper.map(pcieConnectionId, targetComputerSystem.getPcieConnectionId(), targetComputerSystem::addPcieConnectionId)
+            simpleTypeMapper.map(pcieConnectionId, targetComputerSystem.getPcieConnectionIds(), targetComputerSystem::addPcieConnectionId)
+        );
+        sourceComputerSystem.getTrustedModules().ifAssigned(trustedModules ->
+            trustedModuleMapper.map(trustedModules, targetComputerSystem.getTrustedModules(), targetComputerSystem::addTrustedModule)
         );
         mapBootProperty(sourceComputerSystem, targetComputerSystem);
         setProperDiscoveryState(sourceComputerSystem, targetComputerSystem);
@@ -73,7 +85,7 @@ public class ComputerSystemMapper extends EntityMapper<ComputerSystemResource, C
     }
 
     private void mapBootProperty(ComputerSystemResource sourceComputerSystem, ComputerSystem targetComputerSystem) {
-        ComputerSystemResource.Boot sourceBoot = sourceComputerSystem.getBootObject();
+        BootObject sourceBoot = sourceComputerSystem.getBootObject();
         if (sourceBoot == null) {
             targetComputerSystem.setBoot(null);
             return;
@@ -83,8 +95,8 @@ public class ComputerSystemMapper extends EntityMapper<ComputerSystemResource, C
         targetComputerSystem.setBoot(updatedBoot);
     }
 
-    private Boot mapBootObjects(ComputerSystemResource.Boot sourceBoot, Boot targetBoot) {
-        Boot updatedBoot = Optional.ofNullable(targetBoot).orElseGet(Boot::new);
+    private Boot mapBootObjects(BootObject sourceBoot, Boot targetBoot) {
+        Boot updatedBoot = ofNullable(targetBoot).orElseGet(Boot::new);
 
         sourceBoot.getBootSourceOverrideEnabled().ifAssigned(updatedBoot::setBootSourceOverrideEnabled);
         sourceBoot.getBootSourceOverrideMode().ifAssigned(updatedBoot::setBootSourceOverrideMode);

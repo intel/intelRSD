@@ -21,9 +21,11 @@ import com.intel.podm.business.dto.redfish.attributes.ODataServiceDto;
 import com.intel.podm.redfish.json.templates.ODataServiceDocumentJson;
 import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
 
+import javax.enterprise.context.Dependent;
 import java.net.URI;
 import java.util.List;
 
+@Dependent
 public class ODataServiceDocumentDtoJsonSerializer extends DtoJsonSerializer<ODataServiceDocumentDto> {
     private static final String METADATA = "/redfish/v1/$metadata";
 

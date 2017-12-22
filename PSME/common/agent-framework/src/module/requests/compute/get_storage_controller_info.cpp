@@ -28,7 +28,7 @@
 
 #include "agent-framework/module/requests/compute/get_storage_controller_info.hpp"
 #include "agent-framework/module/constants/compute.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -39,15 +39,14 @@ using namespace agent_framework::model::literals;
 GetStorageControllerInfo::GetStorageControllerInfo(const std::string& controller) : m_controller{controller} { }
 
 
-Json::Value GetStorageControllerInfo::to_json() const {
-    Json::Value value;
+json::Json GetStorageControllerInfo::to_json() const {
+    json::Json value;
     value[StorageController::CONTROLLER] = m_controller;
     return value;
 }
 
 
-GetStorageControllerInfo GetStorageControllerInfo::from_json(const Json::Value& json) {
+GetStorageControllerInfo GetStorageControllerInfo::from_json(const json::Json& json) {
     return GetStorageControllerInfo{
-        json[StorageController::CONTROLLER].asString()};
+        json[StorageController::CONTROLLER].get<std::string>()};
 }
-

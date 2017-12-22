@@ -93,7 +93,7 @@ const MessageObject create_message_object(const std::string& redfish_code, const
 
 const MessageObject create_message_object_from_gami_code(ErrorCode gami_error_code,
                                                          const std::string& gami_message,
-                                                         const Json::Value& data = {}) {
+                                                         const json::Json& data = {}) {
 
     std::string redfish_code{};
     std::string message{gami_message};
@@ -139,6 +139,11 @@ const MessageObject create_message_object_from_gami_code(ErrorCode gami_error_co
 
         case ErrorCode::METHOD_NOT_FOUND:
         case ErrorCode::NOT_IMPLEMENTED:
+            redfish_code = ServerError::GENERAL_ERROR;
+            severity = Severity::Critical;
+            break;
+
+        case ErrorCode::METHOD_NOT_ALLOWED:
             redfish_code = ServerError::GENERAL_ERROR;
             severity = Severity::Critical;
             break;
@@ -281,7 +286,7 @@ ServerError ErrorFactory::create_resource_in_use_error(const std::string& messag
 }
 
 
-ServerError ErrorFactory::create_malformed_json_error(const string& message) {
+ServerError ErrorFactory::create_malformed_json_error(const std::string& message) {
     auto server_error = create_error(BAD_REQUEST, ServerError::MALFORMED_JSON, ::MALFORMED_JSON_MESSAGE);
     if (!message.empty()) {
         server_error.add_extended_message(
@@ -297,7 +302,7 @@ ServerError ErrorFactory::create_malformed_json_error(const string& message) {
 }
 
 
-ServerError ErrorFactory::create_resource_already_exists_error(const string& message) {
+ServerError ErrorFactory::create_resource_already_exists_error(const std::string& message) {
     auto server_error = create_error(BAD_REQUEST, ServerError::RESOURCE_ALREADY_EXISTS,
                                      ::RESOURCE_ALREADY_EXISTS_MESSAGE);
     if (!message.empty()) {
@@ -398,7 +403,7 @@ ServerError ErrorFactory::create_insufficient_privilege_error(const std::string&
 }
 
 
-ServerError ErrorFactory::create_property_duplicated_error(const std::string& property, const string& message) {
+ServerError ErrorFactory::create_property_duplicated_error(const std::string& property, const std::string& message) {
     auto server_error = create_error(BAD_REQUEST, ServerError::PROPERTY_DUPLICATE,
                                      ::PROPERTY_DUPLICATE_MESSAGE, property.c_str());
     if (!message.empty()) {
@@ -415,7 +420,7 @@ ServerError ErrorFactory::create_property_duplicated_error(const std::string& pr
 }
 
 
-ServerError ErrorFactory::create_property_unknown_error(const std::string& property, const string& message) {
+ServerError ErrorFactory::create_property_unknown_error(const std::string& property, const std::string& message) {
     auto server_error = create_error(BAD_REQUEST, ServerError::PROPERTY_UNKNOWN,
                                      ::PROPERTY_UNKNOWN_MESSAGE, property.c_str());
     if (!message.empty()) {
@@ -434,7 +439,7 @@ ServerError ErrorFactory::create_property_unknown_error(const std::string& prope
 
 ServerError ErrorFactory::create_property_type_error(const std::string& property,
                                                      const std::string& property_value,
-                                                     const string& message) {
+                                                     const std::string& message) {
     auto server_error = create_error(BAD_REQUEST, ServerError::PROPERTY_VALUE_TYPE_ERROR,
                                      ::PROPERTY_VALUE_TYPE_ERROR_MESSAGE, property_value.c_str(), property.c_str());
     if (!message.empty()) {
@@ -451,7 +456,10 @@ ServerError ErrorFactory::create_property_type_error(const std::string& property
 }
 
 
-ServerError ErrorFactory::create_property_missing_error(const std::string& property, const string& message) {
+ServerError ErrorFactory::create_property_missing_error(const std::string& property,
+                                                        const std::string& message,
+                                                        const std::vector<std::string>& related_properties) {
+
     auto server_error = create_error(BAD_REQUEST, ServerError::PROPERTY_MISSING,
                                      ::PROPERTY_MISSING_MESSAGE, property.c_str());
     if (!message.empty()) {
@@ -460,7 +468,8 @@ ServerError ErrorFactory::create_property_missing_error(const std::string& prope
                 ServerError::PROPERTY_MISSING,
                 message,
                 Severity::Warning,
-                ::PROPERTY_MISSING_RESOLUTION
+                ::PROPERTY_MISSING_RESOLUTION,
+                related_properties
             )
         );
     }
@@ -470,7 +479,7 @@ ServerError ErrorFactory::create_property_missing_error(const std::string& prope
 
 ServerError ErrorFactory::create_value_format_error(const std::string& property,
                                                     const std::string& property_value,
-                                                    const string& message) {
+                                                    const std::string& message) {
     auto server_error = create_error(BAD_REQUEST, ServerError::PROPERTY_VALUE_FORMAT_ERROR,
                                      ::PROPERTY_VALUE_FORMAT_ERROR_MESSAGE, property_value.c_str(), property.c_str());
     if (!message.empty()) {
@@ -552,9 +561,11 @@ ServerError ErrorFactory::create_error_for_not_allowable_value(const std::string
                                                                const std::string& property_value,
                                                                const std::string& allowable_values_property_name) {
     std::stringstream resolution{};
-    resolution << "Use one of the allowable values defined in ";
-    resolution << allowable_values_property_name;
-    resolution << " property.";
+    if (!allowable_values_property_name.empty()) {
+        resolution << "Use one of the allowable values defined in ";
+        resolution << allowable_values_property_name;
+        resolution << " property.";
+    }
 
     return error::ErrorFactory::create_value_not_in_list_error(
         property_name, property_value, message, resolution.str(), {property_name});
@@ -683,6 +694,11 @@ ServerError ErrorFactory::create_error_from_gami_exception(const GamiException& 
             server_error = create_not_implemented_error({});
             break;
 
+        case ErrorCode::METHOD_NOT_ALLOWED:
+            // Creates error with empty message because there will be added extended message later.
+            server_error = create_method_not_allowed_error({});
+            break;
+
         case ErrorCode::NOT_FOUND:
             server_error = create_resource_missing_error(NotFound::get_uri_from_json_data(data, false));
             break;
@@ -691,4 +707,3 @@ ServerError ErrorFactory::create_error_from_gami_exception(const GamiException& 
     server_error.add_extended_message(::create_message_object_from_gami_code(gami_error_code, message, data));
     return server_error;
 }
-

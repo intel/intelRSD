@@ -23,11 +23,8 @@ namespace jsonrpc {
 
 /*! @brief Enum validity checker */
 class EnumValidityChecker final : public ValidityChecker {
-    using is_allowable_value_t = bool (*)(const std::string&);
-    using get_values_t = std::vector<std::string> (*)();
-
 public:
-    EnumValidityChecker(va_list args);
+    EnumValidityChecker(va_list& args);
 
     virtual ~EnumValidityChecker();
 
@@ -39,7 +36,7 @@ public:
      */
     EnumValidityChecker(const EnumValidityChecker&) = default;
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
     /*! Default copy operator. Not to be used, must be defined in the class with pointers. */

@@ -25,6 +25,7 @@ set(SOURCES
     invalid_value.cpp
     invalid_collection.cpp
     not_implemented.cpp
+    method_not_allowed.cpp
     iscsi_error.cpp
     lvm_error.cpp
     fm10000_error.cpp
@@ -33,6 +34,7 @@ set(SOURCES
     unsupported_value.cpp
     certificate_error.cpp
     pcie_fabric_error.cpp
+    network_error.cpp
 )
 
 add_library(exceptions OBJECT ${SOURCES})

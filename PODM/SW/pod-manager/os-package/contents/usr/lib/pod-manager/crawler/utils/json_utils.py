@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 
 class JsonUtils:
     @staticmethod
@@ -34,19 +32,3 @@ class JsonUtils:
                     values += JsonUtils.extract_descendants(node[sub_key], descendants_key)
 
         return values
-
-    @staticmethod
-    def loads(string, object_pairs_hook=None):
-        return json.loads(string, strict=False, object_pairs_hook=object_pairs_hook)
-
-    @staticmethod
-    def load(file):
-        return json.load(file)
-
-    @staticmethod
-    def dumps(string, indent):
-        return json.dumps(string, indent=indent)
-
-    @staticmethod
-    def dump(json_node, file, indent):
-        json.dump(json_node, file, indent=indent)

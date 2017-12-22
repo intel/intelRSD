@@ -29,20 +29,20 @@
 
 #include "agent-framework/module/requests/storage/delete_logical_drive.hpp"
 #include "agent-framework/module/constants/storage.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 DeleteLogicalDrive::DeleteLogicalDrive(const std::string& drive): m_drive{drive} {}
 
-Json::Value DeleteLogicalDrive::to_json() const {
-    Json::Value value;
+json::Json DeleteLogicalDrive::to_json() const {
+    json::Json value;
     value[LogicalDrive::DRIVE] = m_drive;
     return value;
 }
 
-DeleteLogicalDrive DeleteLogicalDrive::from_json(const Json::Value& json) {
+DeleteLogicalDrive DeleteLogicalDrive::from_json(const json::Json& json) {
     return DeleteLogicalDrive{
-        json[LogicalDrive::DRIVE].asString()};
+        json[LogicalDrive::DRIVE].get<std::string>()};
 }

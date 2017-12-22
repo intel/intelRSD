@@ -67,8 +67,11 @@ public:
     virtual ~MasterWriteRead();
 
 
-    void pack(std::vector<std::uint8_t>& data) const;
+    void pack(std::vector<std::uint8_t>& data) const override;
 
+    virtual const char* get_command_name() const override {
+        return "MasterWriteRead";
+    }
 
 private:
     std::uint8_t m_bus{0};
@@ -108,7 +111,7 @@ public:
     virtual ~MasterWriteRead();
 
 
-    void unpack(const std::vector<std::uint8_t>& data);
+    void unpack(const std::vector<std::uint8_t>& data) override;
 
     /*!
      * @brief Returns read data
@@ -116,6 +119,9 @@ public:
      * */
     std::vector<std::uint8_t> get_data() const { return m_response; }
 
+    virtual const char* get_command_name() const override {
+        return "MasterWriteRead";
+    }
 
 private:
     std::vector<std::uint8_t> m_response{};

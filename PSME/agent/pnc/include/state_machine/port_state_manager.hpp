@@ -115,7 +115,7 @@ public:
      * @return True if there is a drive attached to the managed port
      * */
     bool is_device_present() const {
-        return (PortState::OobInUse == sm.get_current_state() || PortState::Standby == sm.get_current_state())
+        return (PortState::Oob_Busy == m_sm.get_current_state() || PortState::Full_Standby == m_sm.get_current_state())
                 && !m_device_uuid.empty();
     }
 
@@ -133,8 +133,8 @@ private:
     /*! State machine action: perform full discovery and unbind */
     bool action_full_unbind(const PortTransition&);
 
-    /*! State machine action: bind to the management partition, perform full discovery and unbind */
-    bool action_full_bind_unbind(const PortTransition&);
+    /*! State machine action: bind to the management partition, perform full discovery, unbind and restore bindings */
+    bool action_full_bind_unbind_recover(const PortTransition&);
 
     /*! State machine action: out-of-band discovery */
     bool action_oob(const PortTransition&);
@@ -149,7 +149,7 @@ private:
     PortStateWorkerPtr m_worker;
 
     /*! Instance of the state machine */
-    PortStateMachine sm;
+    PortStateMachine m_sm;
 
     /*! Previous binding state */
     bool m_prev_bound{false};
@@ -165,6 +165,8 @@ private:
 
     /*! Uuid of the device (i.e. drive) on the port */
     std::string m_device_uuid{};
+
+    PortStateWorker::ZoneEndpointVector m_recoverable_bindings{};
 
 };
 

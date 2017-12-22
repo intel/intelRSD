@@ -34,9 +34,12 @@ configure_file(
 
 include_directories(
     ${COMMON_INCLUDE_DIRS}
+    ${SYSFSREF_INCLUDE_DIRS}
     ${NET_INCLUDE_DIRS}
     ${AGENT_FRAMEWORK_INCLUDE_DIRS}
     ${LOGGER_INCLUDE_DIRS}
+    ${JSON_INCLUDE_DIRS}
+    ${JSON_RPC_INCLUDE_DIRS}
     ${JSONCXX_INCLUDE_DIRS}
     ${CONFIGURATION_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -45,9 +48,6 @@ include_directories(
 include_directories(SYSTEM
     ${SAFESTRING_INCLUDE_DIRS}
     ${UUID_INCLUDE_DIRS}
-    ${JSONCPP_INCLUDE_DIRS}
-    ${JSONRPCCPP_INCLUDE_DIRS}
-    ${SYSFS_INCLUDE_DIRS}
 )
 
 add_subdirectory(src)

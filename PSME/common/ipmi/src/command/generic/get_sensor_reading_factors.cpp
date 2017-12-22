@@ -26,6 +26,22 @@
 #include "ipmi/command/generic/get_sensor_reading_factors.hpp"
 #include "ipmi/command/generic/enums.hpp"
 
+extern "C" {
+#include <ipmitool/ipmi_sdr.h>
+}
+
+namespace {
+
+#pragma pack(push, 1)
+struct SensorReadingFactors {
+    std::uint8_t next_reading;
+    std::uint16_t m_tol;
+    std::uint32_t bacc;
+};
+#pragma pack(pop)
+
+}
+
 using namespace ipmi;
 using namespace ipmi::command::generic;
 
@@ -33,7 +49,7 @@ request::GetSensorReadingFactors::GetSensorReadingFactors():
         Request(generic::NetFn::SENSOR_EVENT, generic::Cmd::GET_SENSOR_READING_FACTORS) {}
 request::GetSensorReadingFactors::~GetSensorReadingFactors() {}
 
-void request::GetSensorReadingFactors::pack(std::vector<std::uint8_t>& data) const {
+void request::GetSensorReadingFactors::pack(IpmiInterface::ByteBuffer& data) const {
     data.push_back(m_sensor_number);
     data.push_back(m_reading_byte);
 }
@@ -43,16 +59,10 @@ response::GetSensorReadingFactors::GetSensorReadingFactors():
 response::GetSensorReadingFactors::~GetSensorReadingFactors() {
 }
 
-void response::GetSensorReadingFactors::unpack(const std::vector<std::uint8_t>& data) {
-
-    if (!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
-
-    m_multiplier = extract_multiplier(data);
-}
-
-uint16_t response::GetSensorReadingFactors::extract_multiplier(const std::vector<std::uint8_t>& data) const {
-    return static_cast<std::uint16_t>((((data[OFFSET_MULTIPLIER_MSB] >> 6) & 0x3) << 8) |
-                                 data[OFFSET_MULTIPLIER_LSB]);
+void response::GetSensorReadingFactors::unpack(const IpmiInterface::ByteBuffer& data) {
+    auto reading_factors = *reinterpret_cast<const SensorReadingFactors*>(data.data()+1);
+    m_multiplier = __TO_M(reading_factors.m_tol);
+    m_additive_offset =  __TO_B(reading_factors.bacc);
+    m_exponent = __TO_B_EXP(reading_factors.bacc);
+    m_result_exponent = __TO_R_EXP(reading_factors.bacc);
 }

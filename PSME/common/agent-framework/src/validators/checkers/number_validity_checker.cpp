@@ -18,13 +18,24 @@
 #include "agent-framework/exceptions/exception.hpp"
 #include "agent-framework/validators/checkers/number_validity_checker.hpp"
 
+#include "generic/assertions.hpp"
 #include <safe-string/safe_lib.hpp>
-#include <cassert>
 #include <cmath>
 
 
 
 using namespace jsonrpc;
+
+namespace {
+
+template<typename T>
+std::string get_out_of_range_message(const std::string& type, T min, T max) {
+    return type + " value out of range [" + std::to_string(min) +
+           ", " + std::to_string(max) + "].";
+
+}
+
+}
 
 
 NumberValidityChecker::NumberValidityChecker() :
@@ -34,7 +45,7 @@ NumberValidityChecker::NumberValidityChecker() :
 }
 
 
-NumberValidityChecker::NumberValidityChecker(va_list args) {
+NumberValidityChecker::NumberValidityChecker(va_list& args) {
     memset_s(&min, sizeof(ValueUnion), 0);
     memset_s(&max, sizeof(ValueUnion), 0);
 
@@ -43,8 +54,7 @@ NumberValidityChecker::NumberValidityChecker(va_list args) {
     has_max = ((t & VALID_NUMERIC_TYPE(ANYTHING, MAX)) == VALID_NUMERIC_TYPE(ANYTHING, MAX));
 
     /* clear bits responsible for number of arguments to be taken from args */
-    type = static_cast<ProcedureValidator::NumberType>
-    (t & (~VALID_NUMERIC_TYPE(ANYTHING, BOTH)));
+    type = static_cast<ProcedureValidator::NumberType>(t & (~VALID_NUMERIC_TYPE(ANYTHING, BOTH)));
 
     switch (type) {
         case ProcedureValidator::NumberType::TYPE_INT32:
@@ -92,39 +102,30 @@ NumberValidityChecker::NumberValidityChecker(va_list args) {
         case ProcedureValidator::NumberType::TYPE_ANYTHING:
         case ProcedureValidator::NumberType::WRONG_TYPE:
         default:
-            assert(fail("Not allowed number type"));
+            assert(generic::FAIL("Not allowed number type"));
             type = ProcedureValidator::NumberType::WRONG_TYPE;
             break;
     }
 }
 
 
-bool NumberValidityChecker::is_integral(double d) {
-    double result = std::fabs(std::fmod(d, 1.0));
-    if (result < -0.5) {
-        result += 1.0;
-    }
-    else if (result > 0.5) {
-        result -= 1.0;
-    }
-    if (result < 0) {
-        result = -result;
-    }
-    return result < 1.0e-10;
-}
-
-
-void NumberValidityChecker::validate(const Json::Value& value) const {
+void NumberValidityChecker::validate(const json::Json& value) const {
     ValidityChecker::validate(value);
+
+    double integral{0.0};
+    double fractional{0.0};
+    if (value.is_number()) {
+        fractional = modf(value, &integral);
+    }
 
     switch (type) {
         case ProcedureValidator::NumberType::TYPE_ANYTHING:
-            if (value.isBool()) {
+            if (value.is_boolean()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Boolean value is not a number.", value);
             }
-            if (!value.isNumeric()) {
+            if (!value.is_number()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid number type.", value);
@@ -132,23 +133,23 @@ void NumberValidityChecker::validate(const Json::Value& value) const {
             break;
 
         case ProcedureValidator::NumberType::TYPE_INT32:
-            if (!value.isNumeric() || !value.isConvertibleTo(Json::ValueType::intValue)) {
+            if (!value.is_number()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid 32-bit integer type.", value);
             }
-            if (value.isDouble() && (!is_integral(value.asDouble()))) {
+            if (value.is_number_float() && fractional != 0.0) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
                       "Provided number value with a fractional part.", value);
             }
-            if ((has_min && (value.asInt() < min.i32)) ||
-                (has_max && (value.asInt() > max.i32))) {
+            if ((has_min && (value.get<std::int64_t>() < min.i32)) ||
+                (has_max && (value.get<std::int64_t>() > max.i32))) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
-                      "32-bit integer value out of range.", value);
+                      ::get_out_of_range_message("32-bit integer", min.i32, max.i32), value);
             }
-            if (value.isBool()) {
+            if (value.is_boolean()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Boolean value is not a number.", value);
@@ -156,23 +157,28 @@ void NumberValidityChecker::validate(const Json::Value& value) const {
             break;
 
         case ProcedureValidator::NumberType::TYPE_UINT32:
-            if (!value.isNumeric() || !value.isConvertibleTo(Json::ValueType::uintValue)) {
+            if (!value.is_number()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid unsigned 32-bit number type.", value);
             }
-            if (value.isDouble() && (!is_integral(value.asDouble()))) {
+            if (value.is_number_float() && fractional != 0.0) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
                       "Provided number value with a fractional part.", value);
             }
-            if ((has_min && (value.asUInt() < min.ui32)) ||
-                (has_max && (value.asUInt() > max.ui32))) {
+            if ((value.get<double>() < 0)) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
-                      "Unsigned 32-bit integer value out of range.", value);
+                      "Property value is not valid a positive number.", value);
             }
-            if (value.isBool()) {
+            if ((has_min && (value.get<std::uint64_t>() < min.ui32)) ||
+                (has_max && (value.get<std::uint64_t>() > max.ui32))) {
+                THROW(ValidityChecker::ValidationException, "agent-framework",
+                      agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
+                      ::get_out_of_range_message("Unsigned 32-bit integer", min.ui32, max.ui32), value);
+            }
+            if (value.is_boolean()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Boolean value is not a number.", value);
@@ -180,65 +186,57 @@ void NumberValidityChecker::validate(const Json::Value& value) const {
             break;
 
         case ProcedureValidator::NumberType::TYPE_INT64:
-            if (!value.isNumeric()) {
+            if (!value.is_number()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       " Property value is not valid number type.", value);
             }
-            if (value.isDouble() && (!is_integral(value.asDouble()))) {
+            if (value.is_number_float() && fractional != 0.0) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
                       "Provided number value with a fractional part.", value);
             }
-            if (!value.isInt64() || value.type() == Json::ValueType::realValue ||
-                (has_min && (value.asInt64() < min.i64)) ||
-                (has_max && (value.asInt64() > max.i64))) {
-                THROW(ValidityChecker::ValidationException, "agent-framework",
-                      agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
-                      "Value out of Int64 range.", value);
-            }
-            if (value.isBool()) {
+            if (value.is_boolean()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Boolean value is not a number.", value);
             }
             break;
         case ProcedureValidator::NumberType::TYPE_UINT64:
-            if (!value.isNumeric()) {
+            if (!value.is_number()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid unsigned number type.", value);
             }
-            if (value.isDouble() && (!is_integral(value.asDouble()))) {
+            if (value.is_number_float() && fractional != 0.0) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
                       "Provided number value with a fractional part.", value);
             }
-            if (!value.isUInt64() ||(has_min && (value.asUInt() < min.ui64)) ||
-                (has_max && (value.asUInt() > max.ui64))) {
+            if ((value.get<double>() < 0)) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
-                      "Value out of UInt64 range.", value);
+                      "Property value is not valid a positive number.", value);
             }
-            if (value.isBool()) {
+            if (value.is_boolean()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Boolean value is not a number.", value);
             }
             break;
         case ProcedureValidator::NumberType::TYPE_DOUBLE:
-            if (!value.isNumeric()) {
+            if (!value.is_number()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid number type.", value);
             }
-            if ((has_min && (value.asDouble() < min.d)) ||
-                (has_max && (value.asDouble() > max.d))) {
+            if ((has_min && (value.get<double>() < min.d)) ||
+                (has_max && (value.get<double>() > max.d))) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
-                      "Value out of range.", value);
+                      ::get_out_of_range_message("Double precision number", min.d, max.d), value);
             }
-            if (value.isBool()) {
+            if (value.is_boolean()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Boolean value is not a number.", value);
@@ -247,7 +245,7 @@ void NumberValidityChecker::validate(const Json::Value& value) const {
 
         case ProcedureValidator::NumberType::WRONG_TYPE:
         default:
-            assert(fail("Allowed number type"));
+            assert(generic::FAIL("Not allowed number type."));
             THROW(ValidityChecker::ValidationException, "agent-framework",
                   agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                   "Not allowed number type.", value);

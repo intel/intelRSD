@@ -16,28 +16,38 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.ProcessorDto;
+import com.intel.podm.business.dto.ProcessorDto;
+import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.business.services.context.PathParamConstants.PROCESSOR_ID;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ProcessorsCollectionResource extends BaseResource {
     @Inject
     private ReaderService<ProcessorDto> readerService;
 
     @Override
-    public Object get() {
+    public CollectionDto get() {
         return getOrThrow(() -> readerService.getCollection(getCurrentContext()));
     }
 
     @Path(PROCESSOR_ID)
     public ProcessorResource getProcessor() {
         return getResource(ProcessorResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

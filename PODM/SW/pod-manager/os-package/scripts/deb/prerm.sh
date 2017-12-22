@@ -23,9 +23,10 @@ cleanup_service() {
 
     if [ -f "/etc/init.d/${service_name}" ]; then
         echo_log "Removing ${service_name} service"
-        service ${service_name} stop
+        invoke-rc.d ${service_name} stop
         rm -f /etc/init.d/${service_name}
         update-rc.d ${service_name} remove
+        rm -f /var/lib/misc/pod-manager.war.sha512sum
     fi
 }
 
@@ -43,7 +44,7 @@ cleanup_podm_services() {
 cleanup_configuration_agent() {
     echo_log "Removing Configuration Agent service"
     if [ -f "/etc/init.d/pod-manager-configuration-agent" ]; then
-        service pod-manager-configuration-agent stop
+        invoke-rc.d pod-manager-configuration-agent stop
     fi
 
     rm -f /etc/init.d/pod-manager-configuration-agent

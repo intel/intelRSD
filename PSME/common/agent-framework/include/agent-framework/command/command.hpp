@@ -17,123 +17,100 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ * @file command.cpp
  *
- * @file command.hpp
- *
- * @brief Command interface
+ * @brief Command implementation
  * */
 
 #pragma once
-#include <map>
+#include "agent-framework/generic/singleton.hpp"
+#include "agent-framework/validators/procedure_validator.hpp"
+
+#include <cassert>
 #include <memory>
-#include <string>
-#include <exception>
-#include <functional>
 
-#include "agent-framework/command/command_exception.hpp"
-
+/*! Agent Framework */
 namespace agent_framework {
+/*! Command */
 namespace command {
 
-/*!
- * @brief Command class interface for all generic commands
+/*
+ * @brief Generic interface of the json rpc commands
  * */
-class Command {
+class CommandBase {
 public:
-    class Argument;
-
-    /*!
-     * @brief Execute command with input/output arguments
+    virtual ~CommandBase();
+    /*
+     * @brief Generic JSON RPC Method Call
+     * @param[in] req request
+     * @param[out] rsp response
      * */
-    virtual void execute(const Argument&, Argument&) = 0;
+    virtual void method(const json::Json& req, json::Json& rsp) = 0;
 
-    /*!
-     * @brief Destroy command
+
+    /*
+     * @brief Generic JSON RPC Notification Call
+     * @param[in] req request
      * */
-    virtual ~Command();
+    virtual void notification(const json::Json& req) = 0;
 
-    /*!
-     * @brief Command argument
+    /*
+     * @brief Returns scheme defining procedure format
+     * @return Scheme of the procedure
      * */
-    class Argument {
-    public:
-        /*! Default assignment constructor */
-        Argument& operator=(const Argument&) = default;
-
-        /*! Command virtual destructor */
-        virtual ~Argument();
-    };
-
-    /*!
-     * @brief This class is used to register client command that inherit from
-     * generic command class. Create Register as static global object to
-     * automatically add Register constructor before main starts.
-     * */
-    template<class T>
-    class Register {
-    public:
-       Register(const char* implementation) {
-            if (nullptr == implementation) { return; }
-
-            Map::add(
-                T::AGENT,
-                implementation,
-                T::TAG,
-                [] { return new T; }
-            );
-        }
-    };
-
-    /*!
-     * @brief Singleton pattern. This class is used for registering Command
-     * objects that will be use later
-     * */
-    class Map {
-    public:
-        /*! Function that creates command dynamically at runtime */
-        using CommandCreate = std::function<Command*()>;
-
-        /*! Commands map AGENT:IMPLEMENTATION:COMMAND */
-        using CommandMap = std::map<
-            const std::string, std::map<        /* Agents map */
-            const std::string, std::map<        /* Implementations map */
-            const std::string, CommandCreate>>>;/* Create functions map */
-
-        /*!
-         * @brief Singleton pattern. Get commands register instance that
-         * contains map with unique command create methods that are identify by
-         * key: "AGENT:IMPLEMENTATION:COMMAND"
-         *
-         * @return      Map that contains unique commands with key
-         * */
-        static CommandMap& get_instance();
-
-        /*!
-         * @brief Singleton pattern. Cleanup commands map. This method
-         * should be always call before application exit to avoid memory leaks
-         * */
-        static void cleanup();
-    private:
-        /*!
-         * @brief Singleton pattern. Add command to commands map with
-         * unique key string that is encode from Command class
-         *
-         * @param[in]   agent_type              Agent name
-         * @param[in]   command_implementation  Implementation name
-         * @param[in]   command_name            Command name
-         * @param[in]   command_create          Method that dynamically create
-         *                                      command at runtime
-         * */
-        static void add(
-            const std::string& agent_type,
-            const std::string& command_implementation,
-            const std::string& command_name,
-            CommandCreate command_create);
-
-        template<class T> friend class Register;
-    };
+    virtual const jsonrpc::ProcedureValidator& get_procedure() const = 0;
 };
 
-} /* namespace command */
-} /* namespace agent_framework */
+/*
+ * @brief Generic implementation of the CommandBase based on the agent_framework
+ *        model classes
+ * */
+template <typename REQ, typename RSP>
+class Command : public CommandBase {
+public:
 
+    using Request = REQ;
+    using Response = RSP;
+    using HandlerFunc = std::function<void(REQ, RSP&)>;
+
+    Command(HandlerFunc handler):
+        m_handler(handler)
+    {}
+
+    /*
+     * @brief Method handler implementation based on model request/response classes
+     * @param[in] req request
+     * @param[out] rsp response
+     * */
+    void method(const json::Json& req, json::Json& rsp)  {
+        Request request = Request::from_json(req);
+        Response response{};
+        m_handler(request, response);
+        rsp = response.to_json();
+    }
+
+    /*
+     * @brief Notification handler implementation based on model request classes
+     * @param[in] req request
+     * */
+    void notification(const json::Json& req)  {
+        Request request = Request::from_json(req);
+        Response response{};
+        m_handler(request, response);
+    }
+
+    /*
+     * @brief Returns JSON RPC command scheme
+     * @return Scheme of the procedure, to be used by jsonrpc library
+     * */
+    const jsonrpc::ProcedureValidator& get_procedure() const {
+        return Request::get_procedure();
+    }
+
+private:
+    HandlerFunc m_handler {};
+
+};
+
+}
+}

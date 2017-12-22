@@ -26,7 +26,9 @@ import com.intel.podm.services.detection.dhcp.filesystem.TmpLeasesRecord;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import java.net.URI;
+import java.util.List;
 
+import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.UriBuilder.fromUri;
 
 @Dependent
@@ -47,24 +49,22 @@ public class UrlProvider {
         return fromUri(urlString).build();
     }
 
-    public URI getEndpointUri(TmpLeasesRecord record) {
-        return getUriFromTmpLeasesRecord(record);
-    }
-
-    private URI getUriFromTmpLeasesRecord(TmpLeasesRecord record) {
+    public List<URI> getEndpointUris(TmpLeasesRecord record) {
         ServiceType serviceType = record.getServiceType();
 
         ServiceConnectionConfig config = connectionConfig.get();
         boolean sslEnabled = config.getConnectionSecurity().isSslEnabledForServicesOfType(record.getServiceType());
-        int port = sslEnabled
-                ? config.getConnectionSecurity().getSslPortForServicesOfType(serviceType)
-                : config.getConnectionSecurity().getDefaultPortForServicesOfType(serviceType);
+        List<Integer> ports = sslEnabled
+            ? config.getConnectionSecurity().getSslPortsForServicesOfType(serviceType)
+            : config.getConnectionSecurity().getDefaultPortsForServicesOfType(serviceType);
 
-        return fromUri("{scheme}://{ip}:{port}")
+        return ports.stream()
+            .map(port -> fromUri("{scheme}://{ip}:{port}")
                 .resolveTemplate("scheme", sslEnabled ? HTTPS_SCHEME : HTTP_SCHEME)
                 .resolveTemplate("ip", record.getIpAddress())
                 .resolveTemplate("port", port)
                 .path(DEFAULT_ROOT)
-                .build();
+                .build())
+            .collect(toList());
     }
 }

@@ -17,12 +17,12 @@
 package com.intel.podm.business.redfish;
 
 import com.intel.podm.business.entities.redfish.Chassis;
-import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Drive;
 import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
+import com.intel.podm.business.entities.redfish.EthernetSwitchAcl;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.LogicalDrive;
 import com.intel.podm.business.entities.redfish.Manager;
@@ -31,12 +31,14 @@ import com.intel.podm.business.entities.redfish.PcieDevice;
 import com.intel.podm.business.entities.redfish.PcieDeviceFunction;
 import com.intel.podm.business.entities.redfish.PhysicalDrive;
 import com.intel.podm.business.entities.redfish.Port;
+import com.intel.podm.business.entities.redfish.Power;
 import com.intel.podm.business.entities.redfish.Processor;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
 import com.intel.podm.business.entities.redfish.Storage;
 import com.intel.podm.business.entities.redfish.StorageService;
 import com.intel.podm.business.entities.redfish.Switch;
+import com.intel.podm.business.entities.redfish.Thermal;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.Id;
@@ -57,10 +59,6 @@ public final class ContextCollections {
 
     public static Set<Id> getAsIdSet(Collection<? extends DiscoverableEntity> discoverableEntities) {
         return transform(discoverableEntities, DiscoverableEntity::getId);
-    }
-
-    public static Set<Id> getComposedNodesAsIdSet(Collection<ComposedNode> composedNodes) {
-        return transform(composedNodes, ComposedNode::getId);
     }
 
     public static Set<Context> asLogicalDriveContexts(Set<LogicalDrive> logicalDrives) {
@@ -111,6 +109,10 @@ public final class ContextCollections {
         return transform(ports, Contexts::toContext);
     }
 
+    public static Set<Context> asEthernetSwitchAclContexts(Set<EthernetSwitchAcl> acls) {
+        return transform(acls, Contexts::toContext);
+    }
+
     public static Set<Context> asManagerContexts(Set<Manager> managers) {
         return transform(managers, Contexts::toContext);
     }
@@ -125,6 +127,14 @@ public final class ContextCollections {
 
     public static Set<Context> asDriveContexts(Set<Drive> drives) {
         return transform(drives, Contexts::toContext);
+    }
+
+    public static Set<Context> asPowerContexts(Set<Power> powers) {
+        return transform(powers, Contexts::toContext);
+    }
+
+    public static Set<Context> asThermalContexts(Set<Thermal> thermals) {
+        return transform(thermals, Contexts::toContext);
     }
 
     public static Set<Context> asPortContexts(Set<Port> ports) {

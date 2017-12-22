@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/network/delete_vlan.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -33,12 +33,12 @@ DeleteVlan::DeleteVlan(Oem oem):
     m_oem{oem} {}
 
 
-Json::Value DeleteVlan::to_json() const {
-    Json::Value value;
+json::Json DeleteVlan::to_json() const {
+    json::Json value;
     value[Vlan::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteVlan DeleteVlan::from_json(const Json::Value& json) {
+DeleteVlan DeleteVlan::from_json(const json::Json& json) {
     return DeleteVlan{Oem::from_json(json[Vlan::OEM])};
 }

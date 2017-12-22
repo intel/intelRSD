@@ -18,7 +18,7 @@
 #pragma once
 
 #include "agent-framework/validators/checkers/validity_checker.hpp"
-#include <jsonrpccpp/common/procedure.h>
+#include "agent-framework/validators/procedure_validator.hpp"
 
 namespace jsonrpc {
 
@@ -27,7 +27,7 @@ class JsonrpcValidityChecker final : public ValidityChecker {
 public:
     JsonrpcValidityChecker(jsontype_t _type);
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
     jsontype_t type{};

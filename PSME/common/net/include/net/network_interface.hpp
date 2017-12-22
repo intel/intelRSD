@@ -1,3 +1,19 @@
+//
+// NetworkInterface.h
+//
+// $Id: //poco/1.4/Net/include/Poco/Net/NetworkInterface.h#4 $
+//
+// Library: Net
+// Package: Sockets
+// Module:  NetworkInterface
+//
+// Definition of the NetworkInterface class.
+//
+// Copyright (c) 2005-2006, Applied Informatics Software Engineering GmbH.
+// and Contributors.
+//
+// SPDX-License-Identifier:	BSL-1.0
+//
 /*!
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation

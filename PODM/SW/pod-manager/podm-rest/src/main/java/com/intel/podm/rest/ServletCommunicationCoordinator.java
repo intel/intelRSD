@@ -33,7 +33,7 @@ public class ServletCommunicationCoordinator {
 
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
-    private final SensitiveParametersRequestFilter filterForHazardousParameters = new SensitiveParametersRequestFilter();
+    private final SensitiveParametersRequestFilter hazardousParametersFilter;
 
     private final boolean requestLoggable;
 
@@ -45,6 +45,7 @@ public class ServletCommunicationCoordinator {
             : servletRequest;
 
         httpServletResponse = new ReplicatedStreamHttpServletResponse(servletResponse);
+        hazardousParametersFilter = new SensitiveParametersRequestFilter();
     }
 
     private boolean isGetRequest(HttpServletRequest servletRequest) {
@@ -62,7 +63,7 @@ public class ServletCommunicationCoordinator {
     public void logServletRequest() throws IOException {
         if (requestLoggable) {
             String request = IOUtils.toString(httpServletRequest.getReader());
-            request = filterForHazardousParameters.filterSecretPropertiesFromRequest(request);
+            request = hazardousParametersFilter.filterSecretPropertiesFromRequest(request);
 
             LOGGER.i("{} request to '{}': '{}'",
                 httpServletRequest.getMethod().toUpperCase(),

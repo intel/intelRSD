@@ -19,8 +19,8 @@ package com.intel.podm.security.providers;
 import com.intel.podm.common.logger.Logger;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -29,9 +29,8 @@ import java.security.NoSuchAlgorithmException;
 
 import static javax.net.ssl.SSLContext.getInstance;
 
-@Singleton
+@ApplicationScoped
 public class SslContextProvider {
-
     private static final String PROTOCOL = "TLSv1.2";
 
     @Inject

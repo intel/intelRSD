@@ -17,11 +17,11 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Drive;
-import com.intel.podm.client.api.WebClient;
-import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.redfish.DriveResource;
-import com.intel.podm.client.api.resources.redfish.IdentifierObject;
-import com.intel.podm.client.api.resources.redfish.RedfishLocationObject;
+import com.intel.podm.client.WebClient;
+import com.intel.podm.client.reader.ResourceSupplier;
+import com.intel.podm.client.resources.redfish.DriveResource;
+import com.intel.podm.client.resources.redfish.IdentifierObject;
+import com.intel.podm.client.resources.redfish.RedfishLocationObject;
 import com.intel.podm.common.types.EncryptionAbility;
 import com.intel.podm.common.types.EncryptionStatus;
 import com.intel.podm.common.types.HotspareType;
@@ -51,6 +51,7 @@ import static com.intel.podm.common.types.HotspareType.CHASSIS;
 import static com.intel.podm.common.types.IndicatorLed.BLINKING;
 import static com.intel.podm.common.types.MediaType.SSD;
 import static com.intel.podm.common.types.Protocol.AHCI;
+import static com.intel.podm.common.types.Status.statusFromMap;
 import static com.intel.podm.common.types.StatusIndicator.FAIL;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
@@ -58,7 +59,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
 @SuppressWarnings({
-        "checkstyle:ExecutableStatementCount", "checkstyle:MethodLength", "checkstyle:MethodName"
+    "checkstyle:ExecutableStatementCount", "checkstyle:MethodLength", "checkstyle:MethodName"
 })
 public class DriveMapperTest {
     @InjectMocks
@@ -128,71 +129,60 @@ public class DriveMapperTest {
     }
 
     @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:MagicNumber"})
-    static class DriveTestResource implements DriveResource {
+    static class DriveTestResource extends DriveResource {
 
-        @Override
         public Ref<StatusIndicator> getStatusIndicator() {
             return Ref.of(FAIL);
         }
 
-        @Override
         public Ref<IndicatorLed> getIndicatorLed() {
             return Ref.of(BLINKING);
         }
 
-        @Override
         public Ref<String> getModel() {
             return Ref.of("model");
         }
 
-        @Override
         public Ref<String> getRevision() {
             return Ref.of("revision");
         }
 
-        @Override
         public Ref<Long> getCapacityBytes() {
             return Ref.of(123456L);
         }
 
-        @Override
         public Ref<Boolean> getFailurePredicted() {
             return Ref.of(true);
         }
 
-        @Override
         public Ref<Protocol> getProtocol() {
             return Ref.of(AHCI);
         }
 
-        @Override
         public Ref<MediaType> getMediaType() {
             return Ref.of(SSD);
         }
 
-        @Override
         public Ref<String> getManufacturer() {
             return Ref.of("manufacturer");
         }
 
-        @Override
         public Ref<String> getSku() {
             return Ref.of("sku");
         }
 
-        @Override
         public Ref<String> getSerialNumber() {
             return Ref.of("123456789");
         }
 
-        @Override
         public Ref<String> getPartNumber() {
             return Ref.of("partNumber");
         }
 
-        @Override
         public Ref<Status> getStatus() {
-            return Ref.of(Status.fromMap(new HashMap<String, String>() {
+            return Ref.of(statusFromMap(new HashMap<String, String>() {
+                private static final long serialVersionUID = 4446122284148005533L;
+
                 {
                     put("Health", "OK");
                     put("HealthRollup", "OK");
@@ -200,82 +190,66 @@ public class DriveMapperTest {
             }));
         }
 
-        @Override
         public Ref<String> getAssetTag() {
             return Ref.of("assetTag");
         }
 
-        @Override
         public Ref<List<IdentifierObject>> getIdentifiers() {
             return Ref.of(emptyList());
         }
 
-        @Override
         public Ref<List<RedfishLocationObject>> getLocation() {
             return Ref.of(emptyList());
         }
 
-        @Override
         public Ref<HotspareType> getHotspareType() {
             return Ref.of(CHASSIS);
         }
 
-        @Override
         public Ref<EncryptionAbility> getEncryptionAbility() {
             return Ref.of(OTHER);
         }
 
-        @Override
         public Ref<EncryptionStatus> getEncryptionStatus() {
             return Ref.of(FOREIGN);
         }
 
-        @Override
         public Ref<BigDecimal> getRotationSpeedRpm() {
             return Ref.of(new BigDecimal(123456));
         }
 
-        @Override
         public Ref<Integer> getBlockSizeBytes() {
             return Ref.of(12345);
         }
 
-        @Override
         public Ref<BigDecimal> getCapableSpeedGbs() {
             return Ref.of(new BigDecimal(456));
         }
 
-        @Override
         public Ref<BigDecimal> getNegotiatedSpeedGbs() {
             return Ref.of(new BigDecimal(456));
         }
 
-        @Override
         public Ref<BigDecimal> getPredictedMediaLifeLeftPercent() {
             return Ref.of(new BigDecimal(456));
         }
 
-        @Override
         public Ref<String> getFirmwareVersion() {
             return Ref.of("1.17");
         }
 
-        @Override
         public Ref<Boolean> getDriveErased() {
             return Ref.of(true);
         }
 
-        @Override
         public ResourceSupplier getParentChassis() {
             return null;
         }
 
-        @Override
         public ResourceSupplier getStorage() {
             return null;
         }
 
-        @Override
         public ResourceSupplier getPcieDeviceFunction() {
             return null;
         }
@@ -308,11 +282,6 @@ public class DriveMapperTest {
         @Override
         public String getDescription() {
             return "my description";
-        }
-
-        @Override
-        public Links getLinks() {
-            return null;
         }
     }
 }

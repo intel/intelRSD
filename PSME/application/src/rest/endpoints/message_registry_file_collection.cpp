@@ -34,7 +34,7 @@ json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
     r[constants::Common::ODATA_CONTEXT] =
-        "/redfish/v1/$metadata#Registries";
+        "/redfish/v1/$metadata#MessageRegistryFileCollection.MessageRegistryFileCollection";
     r[constants::Common::ODATA_ID] = json::Value::Type::NIL;
     r[constants::Common::ODATA_TYPE] = "#MessageRegistryFileCollection.MessageRegistryFileCollection";
     r[constants::Common::NAME] = "MessageRegistryFile collection";

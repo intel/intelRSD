@@ -24,30 +24,27 @@
 #include "logger/logger_factory.hpp"
 
 #include "agent-framework/registration/amc_connection_manager.hpp"
-#include "agent-framework/state_machine/state_machine_thread.hpp"
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
 #include "agent-framework/module/common_components.hpp"
 
-#include "agent-framework/command-ref/command_server.hpp"
+#include "agent-framework/command/command_server.hpp"
 
 #include "loader/network_loader.hpp"
 #include "configuration/configuration.hpp"
 #include "configuration/configuration_validator.hpp"
 #include "default_configuration.hpp"
-
-#include "status/status_manager.hpp"
-#include "status/state_machine_action.hpp"
 #include "discovery/discovery_manager.hpp"
 
-#include <jsonrpccpp/server/connectors/httpserver.h>
+#include "hal/switch_agent.hpp"
+
+#include "json-rpc/connectors/http_server_connector.hpp"
 
 #include <csignal>
 
 using namespace std;
 using namespace agent_framework;
 using namespace agent_framework::generic;
-using namespace agent_framework::state_machine;
 using namespace logger_cpp;
 
 using namespace agent::network;
@@ -64,7 +61,6 @@ static constexpr unsigned int DEFAULT_SERVER_PORT = 7779;
 static constexpr int CONFIGURATION_VALIDATION_ERROR_CODE = -1;
 static constexpr int INVALID_MODULES_CONFIGURATION_ERROR_CODE = -2;
 
-void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action);
 const json::Value& init_configuration(int argc, const char** argv);
 bool check_configuration(const json::Value& json);
 
@@ -72,7 +68,7 @@ bool check_configuration(const json::Value& json);
  * @brief PSME Network Agent main method.
  * */
 int main(int argc, const char* argv[]) {
-    unsigned int server_port = DEFAULT_SERVER_PORT;
+    std::uint16_t server_port = DEFAULT_SERVER_PORT;
 
     /* Initialize configuration */
     const json::Value& configuration = ::init_configuration(argc, argv);
@@ -94,38 +90,51 @@ int main(int argc, const char* argv[]) {
     }
 
     try {
-        server_port = configuration["server"]["port"].as_uint();
+        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
     } catch (const json::Value::Exception& e) {
         log_error(GET_LOGGER("network-agent"),
                 "Cannot read server port " << e.what());
     }
 
+    RegistrationData registration_data{configuration};
+
     EventDispatcher event_dispatcher;
     event_dispatcher.start();
 
-    AmcConnectionManager amc_connection(event_dispatcher);
+    AmcConnectionManager amc_connection(event_dispatcher, registration_data);
     amc_connection.start();
+
+    /* Start underlying switch agent before the discovery starts */
+    hal::SwitchAgent::get_instance()->start();
+    /* wait for the initialization */
+    hal::SwitchAgent::get_instance()->wait_until_initialized();
 
     try {
         /* Start discovery manager */
-        DiscoveryManager discovery_manager{};
-        StateMachineAction state_action{discovery_manager};
-        /* Start state machine */
-        StateMachineThreadUniquePtr state_machine_thread_u_ptr{new StateMachineThread()};
-        ::add_state_machine_entries(state_machine_thread_u_ptr.get(), state_action);
-        state_machine_thread_u_ptr->start();
-        /* Wait for discovery to complete */
-        discovery_manager.wait_for_complete();
-        log_debug(GET_LOGGER("network-agent"), "Done waiting for discovery complete");
+        const auto manager_uuids = agent_framework::module::get_manager<agent_framework::model::Manager>().get_keys();
+        for (const auto& uuid : manager_uuids) {
+            DiscoveryManager discovery_manager{};
+            discovery_manager.discovery(uuid);
+        }
     }
-    catch (exception & e) {
+    catch (const std::exception &e) {
         log_error(GET_LOGGER("network-agent"), e.what());
     }
 
-    jsonrpc::HttpServer http_server((int(server_port)));
-    agent_framework::command_ref::CommandServer server(http_server);
-    server.add(command_ref::Registry::get_instance()->get_commands());
-    server.start();
+    /* Initialize command server */
+    auto http_server_connector = new json_rpc::HttpServerConnector(server_port, registration_data.get_ipv4_address());
+    json_rpc::AbstractServerConnectorPtr http_server(http_server_connector);
+    agent_framework::command::CommandServer server(http_server);
+    server.add(command::Registry::get_instance()->get_commands());
+    bool server_started = server.start();
+    if (!server_started) {
+        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+            << server_port << " restricted to " << registration_data.get_ipv4_address()
+            << ". " << "Quitting now...");
+        amc_connection.stop();
+        event_dispatcher.stop();
+        return -3;
+    }
 
     /* Stop the program and wait for interrupt */
     wait_for_interrupt();
@@ -134,6 +143,8 @@ int main(int argc, const char* argv[]) {
 
     /* Cleanup */
     server.stop();
+    /* stop underlying switch agent */
+    hal::SwitchAgent::get_instance()->stop();
     amc_connection.stop();
     event_dispatcher.stop();
     Configuration::cleanup();
@@ -156,17 +167,6 @@ const json::Value& init_configuration(int argc, const char** argv) {
     }
     basic_config.load_key_file();
     return basic_config.to_json();
-}
-
-void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action) {
-    auto keys = ::agent_framework::module::CommonComponents::get_instance()->
-                get_module_manager().get_keys();
-    for (const auto& key : keys) {
-        auto status_manager = std::make_shared<::agent::network::status::StatusManager>();
-        auto state_thread_entry = std::make_shared<StateThreadEntry>(key, status_manager);
-        auto module_thread = std::make_shared<StateMachineModuleThread>(state_thread_entry, action);
-        machine_thread->add_module_thread(module_thread);
-    }
 }
 
 bool check_configuration(const json::Value& json) {

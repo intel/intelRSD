@@ -16,23 +16,20 @@
 
 package com.intel.podm.client;
 
-import com.intel.podm.client.api.ExternalServiceApiActionException;
-import com.intel.podm.client.api.ExternalServiceApiReaderConnectionException;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.WebClient;
-import com.intel.podm.client.api.redfish.RedfishClient;
-import com.intel.podm.client.api.redfish.response.RedfishConnectionException;
-import com.intel.podm.client.api.redfish.response.RedfishEntityResponseBody;
-import com.intel.podm.client.api.redfish.response.RedfishException;
-import com.intel.podm.client.api.redfish.response.RedfishResponse;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.client.redfish.RedfishClient;
+import com.intel.podm.client.redfish.response.RedfishClientException;
+import com.intel.podm.client.redfish.response.RedfishEntityResponseBody;
+import com.intel.podm.client.redfish.response.RedfishResponse;
+import com.intel.podm.client.resources.ExternalServiceResource;
 
+import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static com.intel.podm.common.concurrent.Tasks.newCurrentThreadTaskScheduler;
+import static com.intel.podm.common.utils.Casts.tryCast;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -41,7 +38,7 @@ import static java.util.Optional.of;
 public final class WebClientBasedOnRedfishClient implements WebClient {
     private final RedfishClient redfishClient;
 
-    public WebClientBasedOnRedfishClient(RedfishClient redfishClient) {
+    WebClientBasedOnRedfishClient(RedfishClient redfishClient) {
         requiresNonNull(redfishClient, "redfishClient");
         this.redfishClient = redfishClient;
     }
@@ -57,45 +54,58 @@ public final class WebClientBasedOnRedfishClient implements WebClient {
     }
 
     @Override
-    public ExternalServiceResource get(URI uri) throws ExternalServiceApiReaderException {
+    public ExternalServiceResource get(URI uri) throws WebClientRequestException {
         requiresNonNull(uri, "uri");
 
         try {
             RedfishResponse response = redfishClient.get(uri.getPath());
-
-            // TODO: optimistic casting - avoid it
-            ExternalServiceResource resource = (ExternalServiceResource) response.getEntity().get();
+            ExternalServiceResource resource = tryCast(response.getEntity().get(), ExternalServiceResource.class);
             resource.setWebClient(this);
+            resource.setUri(URI.create(uri.getPath()));
             return resource;
-        } catch (RedfishConnectionException e) {
-            throw new ExternalServiceApiReaderConnectionException("Error while getting resource from the external service", uri, e);
-        } catch (RedfishException e) {
-            throw new ExternalServiceApiReaderException("Error while getting resource from the external service", uri, e);
+        } catch (RedfishClientException e) {
+            throw new WebClientRequestException("Error while getting resource from the external service", uri, e);
         }
     }
 
     @Override
-    public <T> URI post(URI requestUri, T obj) throws ExternalServiceApiActionException {
+    public <T> URI post(URI requestUri, T obj) throws WebClientRequestException {
         requiresNonNull(requestUri, "requestUri");
 
         try {
             Future<RedfishResponse> responseFuture = obj == null
-                    ? redfishClient.postAsync(requestUri.getPath(), newCurrentThreadTaskScheduler())
-                    : redfishClient.postAsync(requestUri.getPath(), obj, newCurrentThreadTaskScheduler());
+                ? redfishClient.postAsync(requestUri.getPath(), newCurrentThreadTaskScheduler())
+                : redfishClient.postAsync(requestUri.getPath(), obj, newCurrentThreadTaskScheduler());
 
             return responseFuture.get().getLocation().orElse(null);
-        } catch (RedfishException e) {
-            throw new ExternalServiceApiActionException("Error while posting to the external service", requestUri, e);
+        } catch (RedfishClientException e) {
+            throw new WebClientRequestException("Error while posting to the external service", requestUri, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ExternalServiceApiActionException("Error while posting to the external service", requestUri, e);
+            throw new WebClientRequestException("Error while posting to the external service", requestUri, e);
         } catch (ExecutionException e) {
-            throw new ExternalServiceApiActionException("Error while posting to the external service", requestUri, e.getCause());
+            throw new WebClientRequestException("Error while posting to the external service", requestUri, e.getCause());
         }
     }
 
     @Override
-    public <T> Optional<ExternalServiceResource> patch(URI requestUri, T obj) throws ExternalServiceApiActionException {
+    public <T> void postNotMonitored(String requestUri, T obj) throws WebClientRequestException {
+        requiresNonNull(requestUri, "requestUri");
+        try {
+            RedfishResponse redfishResponse = redfishClient.post(requestUri, obj);
+            Status operationStatus = redfishResponse.getStatus();
+
+            if (!Status.Family.SUCCESSFUL.equals(operationStatus.getFamily())) {
+                throw new WebClientRequestException("Error while sending post. Operation status not as expected -> " + operationStatus,
+                    URI.create(requestUri), null);
+            }
+        } catch (RedfishClientException e) {
+            throw new WebClientRequestException("Error while sending post to the external service", URI.create(requestUri), e);
+        }
+    }
+
+    @Override
+    public <T> Optional<ExternalServiceResource> patch(URI requestUri, T obj) throws WebClientRequestException {
         requiresNonNull(requestUri, "requestUri");
 
         try {
@@ -104,34 +114,35 @@ public final class WebClientBasedOnRedfishClient implements WebClient {
             if (optionalResource.isPresent()) {
                 ExternalServiceResource resource = (ExternalServiceResource) optionalResource.get();
                 resource.setWebClient(this);
+                resource.setUri(URI.create(requestUri.getPath()));
                 return of(resource);
             }
             return empty();
 
-        } catch (RedfishException e) {
-            throw new ExternalServiceApiActionException("Error while patching to the external service", requestUri, e);
+        } catch (RedfishClientException e) {
+            throw new WebClientRequestException("Error while patching to the external service", requestUri, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ExternalServiceApiActionException("Error while patching to the external service", requestUri, e);
+            throw new WebClientRequestException("Error while patching to the external service", requestUri, e);
         } catch (ExecutionException e) {
-            throw new ExternalServiceApiActionException("Error while patching to the external service", requestUri, e.getCause());
+            throw new WebClientRequestException("Error while patching to the external service", requestUri, e.getCause());
         }
     }
 
     @Override
-    public void delete(URI requestUri) throws ExternalServiceApiActionException {
+    public void delete(URI requestUri) throws WebClientRequestException {
         requiresNonNull(requestUri, "requestUri");
 
         try {
             Future<RedfishResponse> responseFuture = redfishClient.deleteAsync(requestUri.getPath(), newCurrentThreadTaskScheduler());
             responseFuture.get();
-        } catch (RedfishException e) {
-            throw new ExternalServiceApiActionException("Error while posting to the external service", requestUri, e);
+        } catch (RedfishClientException e) {
+            throw new WebClientRequestException("Error while posting to the external service", requestUri, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ExternalServiceApiActionException("Error while posting to the external service", requestUri, e);
+            throw new WebClientRequestException("Error while posting to the external service", requestUri, e);
         } catch (ExecutionException e) {
-            throw new ExternalServiceApiActionException("Error while posting to the external service", requestUri, e.getCause());
+            throw new WebClientRequestException("Error while posting to the external service", requestUri, e.getCause());
         }
     }
 }

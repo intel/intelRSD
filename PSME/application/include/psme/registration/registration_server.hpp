@@ -22,14 +22,14 @@
  * @brief Registration Server declaration.
  * */
 
-#include "psme/command/command_json_server.hpp"
-#include "logger/logger_factory.hpp"
+#pragma once
 
-#include <jsonrpccpp/server.h>
+#include "json-rpc/connectors/http_server_connector.hpp"
+#include "agent-framework/command/command_server.hpp"
+#include "agent-framework/command/registry.hpp"
 
 #include <memory>
 #include <string>
-#include <functional>
 
 /*! PSME namespace */
 namespace psme {
@@ -38,25 +38,28 @@ namespace app {
 /*! Registration namespace */
 namespace registration {
 
-using namespace command;
-using namespace jsonrpc;
-using namespace std;
-
 /*! @brief Registration Server */
-class RegistrationServer : public CommandJsonServer {
+class RegistrationServer {
 public:
     /*!
-     * @brief Default constructor.
+     * @brief EventingServer constructor
      *
-     * @param   connector   Server connector
-     * @param   type        JSON RPC version
-     * */
-    RegistrationServer(AbstractServerConnector& connector,
-            serverVersion_t type = JSONRPC_SERVER_V2) :
-        CommandJsonServer(connector, type){}
+     * @param config Configuration JSON object
+     */
+    explicit RegistrationServer(const ::json::Value& config);
 
-    /*! @brief Destructor */
-    virtual ~RegistrationServer();
+    /*! @brief EventingServer destructor */
+    ~RegistrationServer();
+
+    /*! @brief Start server */
+    void start();
+
+    /*! @brief Stop server */
+    void stop();
+
+private:
+    std::shared_ptr<json_rpc::AbstractServerConnector> m_connector;
+    std::shared_ptr<agent_framework::command::CommandServer> m_server;
 };
 
 }

@@ -27,7 +27,7 @@ class ProcedureValidator;
 /*! @brief Attribute validity checker */
 class AttributeValidityChecker final : public ValidityChecker {
 public:
-    AttributeValidityChecker(va_list args);
+    AttributeValidityChecker(va_list& args);
 
     virtual ~AttributeValidityChecker();
 
@@ -39,7 +39,7 @@ public:
      */
     AttributeValidityChecker(const AttributeValidityChecker&) = default;
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
     /*! Default copy operator. Not to be used, must be defined in the class with pointers. */

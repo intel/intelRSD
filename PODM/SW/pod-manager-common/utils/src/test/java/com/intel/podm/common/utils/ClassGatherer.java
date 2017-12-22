@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 import static net.sf.corn.cps.CPScanner.scanClasses;
@@ -36,20 +37,18 @@ public final class ClassGatherer {
     private ClassGatherer() {
     }
 
-    public static Set<Class> getAllClassesByPackageAndAnnotation(String packageName, Class<? extends Annotation> annotation) {
-        return scanClasses(new ClassFilter()
+    public static Set<Class<?>> getAllClassesByPackageAndAnnotation(String packageName, Class<? extends Annotation> annotation) {
+        return new HashSet<>(scanClasses(new ClassFilter()
             .packageName(packageName)
-            .annotation(annotation))
-            .stream()
-            .collect(toSet());
+            .annotation(annotation)));
     }
 
     //@IndexSubclasses annotation needed on super class
-    public static Set<Class> getAllClassesBySuperType(Class<?> superClass) {
+    public static Set<Class<?>> getAllClassesBySuperType(Class<?> superClass) {
         return stream(getSubclasses(superClass).spliterator(), false).collect(toSet());
     }
 
-    public static Set<Class> getAllClassesByPackageAndSuperTypeWithTheirInnerClasses(String packageName, Class<?> superClass) {
+    public static Set<Class<?>> getAllClassesByPackageAndSuperTypeWithTheirInnerClasses(String packageName, Class<?> superClass) {
         return scanClasses(new ClassFilter()
             .packageName(packageName)
             .superClass(superClass))
@@ -58,45 +57,43 @@ public final class ClassGatherer {
             .collect(toSet());
     }
 
-    public static Set<Class> getAllFieldsTypesDeeplyFromClassesDeclaredInPackage(Set<Class> classes, String packageName) {
+    public static Set<Class<?>> getAllFieldsTypesDeeplyFromClassesDeclaredInPackage(Set<Class<?>> classes, String packageName) {
         Pattern packageNamePattern = Pattern.compile(packageName);
 
-        Set<Class> foundClasses = new HashSet<>();
-        for (Class clazz : classes) {
+        Set<Class<?>> foundClasses = new HashSet<>();
+        for (Class<?> clazz : classes) {
             getAllFieldsDeeplyFromClassDeclaredInPackage(clazz, packageNamePattern, foundClasses);
         }
 
         return foundClasses;
     }
 
-    private static Set<Class> getDeclaredClassesRecursively(Class clazz, Set<Class> foundDeclaredClasses) {
-        for (Class declaredClass : clazz.getDeclaredClasses()) {
-            if (!foundDeclaredClasses.contains(declaredClass)) {
+    private static Set<Class<?>> getDeclaredClassesRecursively(Class<?> clazz, Set<Class<?>> foundDeclaredClasses) {
+        stream(clazz.getDeclaredClasses())
+            .filter(declaredClass -> !foundDeclaredClasses.contains(declaredClass))
+            .forEach(declaredClass -> {
                 foundDeclaredClasses.add(declaredClass);
                 getDeclaredClassesRecursively(declaredClass, foundDeclaredClasses);
-            }
-        }
+            });
 
         return foundDeclaredClasses;
     }
 
-    private static void getAllFieldsDeeplyFromClassDeclaredInPackage(Class clazz, Pattern packageNamePattern, Set<Class> foundClasses) {
+    private static void getAllFieldsDeeplyFromClassDeclaredInPackage(Class<?> clazz, Pattern packageNamePattern, Set<Class<?>> foundClasses) {
         if (foundClasses.contains(clazz)) {
             return;
         }
         foundClasses.add(clazz);
 
-        for (Field field : clazz.getDeclaredFields()) {
-            Class fieldType = extractTypeOfField(field);
-            if (packageNamePattern.matcher(fieldType.getName()).find()) {
-                getAllFieldsDeeplyFromClassDeclaredInPackage(fieldType, packageNamePattern, foundClasses);
-            }
-        }
+        stream(clazz.getDeclaredFields())
+            .map(ClassGatherer::extractTypeOfField)
+            .filter(fieldType -> packageNamePattern.matcher(fieldType.getName()).find())
+            .forEach(fieldType -> getAllFieldsDeeplyFromClassDeclaredInPackage(fieldType, packageNamePattern, foundClasses));
     }
 
-    private static Class extractTypeOfField(Field field) {
+    private static Class<?> extractTypeOfField(Field field) {
         if (field.getGenericType() instanceof ParameterizedType) {
-            return (Class) extractTypeFromParameterizedType(field.getGenericType());
+            return (Class<?>) extractTypeFromParameterizedType(field.getGenericType());
         }
 
         return field.getType();

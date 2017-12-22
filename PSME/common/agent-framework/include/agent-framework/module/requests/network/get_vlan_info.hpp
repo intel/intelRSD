@@ -25,10 +25,6 @@
 
 #include <string>
 
-namespace Json {
-    class Value;
-}
-
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -55,7 +51,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create GetVlanInfo from Json
@@ -64,7 +60,7 @@ public:
      *
      * @return new GetVlanInfo
      */
-    static GetVlanInfo from_json(const Json::Value& json);
+    static GetVlanInfo from_json(const json::Json& json);
 
     /*!
      * @brief Returns procedure scheme
@@ -87,4 +83,3 @@ private:
 }
 }
 }
-

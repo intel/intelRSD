@@ -28,19 +28,19 @@
 
 #include "agent-framework/module/requests/pnc/get_endpoint_info.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetEndpointInfo::GetEndpointInfo(const std::string& pcie_endpoint): m_endpoint{pcie_endpoint} {}
 
-Json::Value GetEndpointInfo::to_json() const {
-    Json::Value value;
+json::Json GetEndpointInfo::to_json() const {
+    json::Json value;
     value[Endpoint::ENDPOINT] = m_endpoint;
     return value;
 }
 
-GetEndpointInfo GetEndpointInfo::from_json(const Json::Value& json) {
-    return GetEndpointInfo{json[Endpoint::ENDPOINT].asString()};
+GetEndpointInfo GetEndpointInfo::from_json(const json::Json& json) {
+    return GetEndpointInfo{json[Endpoint::ENDPOINT].get<std::string>()};
 }

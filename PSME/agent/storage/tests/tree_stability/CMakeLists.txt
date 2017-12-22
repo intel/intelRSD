@@ -42,14 +42,9 @@ target_link_libraries(${test_target}
     ${PCA95XX_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
-    ${SYSFS_LIBRARIES}
     ${LVM2APP_LIBRARIES}
     ${LVM2DEVMAPPER_LIBRARIES}
     pthread
-    jsonrpccpp-server
-    jsonrpccpp-client
-    jsonrpccpp-common
-    jsoncpp
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
     md5

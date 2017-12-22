@@ -141,6 +141,10 @@ public interface RedfishDrive extends RedfishResource {
         return null;
     }
 
+    default NavigationProperty getPcieFunction() {
+        return null;
+    }
+
     interface Location {
         default String getInfo() {
             return null;

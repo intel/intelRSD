@@ -1,6 +1,4 @@
 /*!
- * @section LICENSE
- *
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation
  *
@@ -42,10 +40,18 @@ public:
 
     ~FabricHandlersTest();
 
+    void ProcessNotification(const EventData& event) {
+        auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
+        auto handler = handler::HandlerManager::get_instance()->get_handler(event.get_type());
+        psme::rest::eventing::EventVec northbound_events;
+        handler->handle(agent, event, northbound_events);
+        SubscriptionManager::get_instance()->notify(northbound_events);
+    }
+
     void SetUp() {
         DatabaseTester::drop_all();
 
-        auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+        auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
         agent->m_responses = {
             FabricManager1,
             // Fabrics collection
@@ -89,13 +95,11 @@ public:
         };
 
         EventData event;
-
         event.set_type("Manager");
         event.set_notification(Notification::Add);
         event.set_parent("");
         event.set_component("manager_1_uuid");
-        auto handler = psme::rest::model::handler::HandlerManager::get_instance()->get_handler(event.get_type());
-        handler->handle(agent, event);
+        ProcessNotification(event);
     }
 
     void reset_id_policy() {
@@ -110,7 +114,7 @@ public:
     }
 
     void TearDown() {
-        auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+        auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
         agent->clear();
         agent_framework::module::get_manager<agent_framework::model::Manager>().clear_entries();
         agent_framework::module::get_manager<agent_framework::model::Fabric>().clear_entries();
@@ -130,7 +134,7 @@ using namespace testing;
 using namespace psme::rest::eventing;
 
 TEST_F(FabricHandlersTest, AddEverything) {
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto expectedReq = std::vector<std::string> {"manager_1_uuid",
                                                  "manager_1_uuid",
                                                  "fabric_1_uuid",
@@ -151,7 +155,17 @@ TEST_F(FabricHandlersTest, AddEverything) {
 
     CHECK_REQUESTS;
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceAdded, "/redfish/v1/Managers/1"}};
+    ExpectedEvents expectedEvents {
+        {
+            {EventType::ResourceAdded, "/redfish/v1/Managers/1"},
+            {EventType::ResourceAdded, "/redfish/v1/Fabrics/1"},
+            {EventType::ResourceAdded, "/redfish/v1/Fabrics/1/Zones/1"},
+            {EventType::ResourceAdded, "/redfish/v1/Fabrics/1/Zones/2"},
+            {EventType::ResourceAdded, "/redfish/v1/Fabrics/1/Endpoints/1"},
+            {EventType::ResourceAdded, "/redfish/v1/Fabrics/1/Endpoints/2"},
+            {EventType::ResourceAdded, "/redfish/v1/Fabrics/1/Endpoints/3"}
+        }
+    };
     CHECK_EVENTS;
 
 
@@ -187,10 +201,7 @@ TEST_F(FabricHandlersTest, RemoveZone) {
     event.set_notification(Notification::Remove);
     event.set_parent("fabric_1_uuid");
     event.set_component("zone_1_uuid");
-
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-    auto handler = psme::rest::model::handler::HandlerManager::get_instance()->get_handler(event.get_type());
-    handler->handle(agent, event);
+    ProcessNotification(event);
 
     EXPECT_THROW(psme::rest::model::Find<agent_framework::model::Zone>("1").via<agent_framework::model::Fabric>("1").get_one(), agent_framework::exceptions::NotFound);
     EXPECT_EQ("zone_2_uuid", psme::rest::model::Find<agent_framework::model::Zone>("2").via<agent_framework::model::Fabric>("1").get_uuid());
@@ -203,7 +214,7 @@ TEST_F(FabricHandlersTest, RemoveZone) {
     EXPECT_EQ(zone_1_endpoint_1_parents.size(), 0);
 
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceRemoved, "/redfish/v1/Fabrics/1/Zones/1"}};
+    ExpectedEvents expectedEvents {{{EventType::ResourceRemoved, "/redfish/v1/Fabrics/1/Zones/1"}}};
     CHECK_EVENTS;
 }
 
@@ -216,10 +227,8 @@ TEST_F(FabricHandlersTest, RemoveEndpoint) {
     event.set_notification(Notification::Remove);
     event.set_parent("fabric_1_uuid");
     event.set_component("zone_2_endpoint_1_uuid");
+    ProcessNotification(event);
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-    auto handler = psme::rest::model::handler::HandlerManager::get_instance()->get_handler(event.get_type());
-    handler->handle(agent, event);
 
     EXPECT_THROW(psme::rest::model::Find<agent_framework::model::Endpoint>("2").via<agent_framework::model::Fabric>("1").get_one(), agent_framework::exceptions::NotFound);
     EXPECT_EQ("zone_1_endpoint_1_uuid", psme::rest::model::Find<agent_framework::model::Endpoint>("1").via<agent_framework::model::Fabric>("1").get_uuid());
@@ -237,7 +246,7 @@ TEST_F(FabricHandlersTest, RemoveEndpoint) {
     EXPECT_EQ(zone_2_endpoint_2_parents.size(), 1);
     EXPECT_EQ(zone_2_endpoint_2_parents.front(), "zone_2_uuid");
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceRemoved, "/redfish/v1/Fabrics/1/Endpoints/2"}};
+    ExpectedEvents expectedEvents {{{EventType::ResourceRemoved, "/redfish/v1/Fabrics/1/Endpoints/2"}}};
     CHECK_EVENTS;
 }
 
@@ -245,18 +254,18 @@ TEST_F(FabricHandlersTest, LoadAfterAddingEndpointToFabricZone) {
     // Clear the Add event from Test SetUp
     SubscriptionManager::get_instance()->clear();
 
-    // assumption: an AddZoneEndpoint reqest was sent, adding zone_1_endpoint_1 to zone_2
+    // assumption: an AddZoneEndpoint request was sent, adding zone_1_endpoint_1 to zone_2
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent->clear();
     agent-> m_responses = {
         FabricZone2,
         // Functions on Zone2 collection
         R"([
-                                    {"subcomponent": "zone_2_endpoint_1_uuid"},
-                                    {"subcomponent": "zone_2_endpoint_2_uuid"},
-                                    {"subcomponent": "zone_1_endpoint_1_uuid"}
-                                ])",
+                {"subcomponent": "zone_2_endpoint_1_uuid"},
+                {"subcomponent": "zone_2_endpoint_2_uuid"},
+                {"subcomponent": "zone_1_endpoint_1_uuid"}
+            ])",
     };
     auto handler = psme::rest::model::handler::HandlerManager::get_instance()->get_handler(agent_framework::model::enums::Component::Zone);
     handler->load(agent, "fabric_1_uuid", agent_framework::model::enums::Component::Fabric, "zone_2_uuid", true);
@@ -288,7 +297,7 @@ TEST_F(FabricHandlersTest, LoadAfterAddingEndpointToFabricZone) {
     EXPECT_EQ(zone_2_port_endpoints_set, expected_zone_2_children_set);
 
     // no event expected
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {};
+    ExpectedEvents expectedEvents {};
     CHECK_EVENTS;
 }
 

@@ -39,7 +39,7 @@
         <Annotation Term="OData.LongDescription" String="A Network Device Function represents a logical interface exposed by the network adapter."/>
         <Property Name="Status" Type="Resource.Status"/>
         <Property Name="DeviceEnabled" Type="Edm.Boolean">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Whether the network device function is enabled."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be a boolean indicating whether the network device function is enabled.  Disabled network device functions shall not be enumerated or seen by the operating system."/>
         </Property>
@@ -133,7 +133,7 @@
           <Annotation Term="OData.Description" String="The 802.1q VLAN ID to use for iSCSI boot from the primary target."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be the 802.1q VLAN ID to use for iSCSI boot from the primary target.  This VLAN ID is only used if PrimaryVLANEnable is true."/>
           <Annotation Term="Validation.Minimum" Int="1"/>
-          <Annotation Term="Validation.Minimum" Int="4094"/>
+          <Annotation Term="Validation.Maximum" Int="4094"/>
         </Property>
         <Property Name="PrimaryDNS" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
@@ -155,7 +155,7 @@
           <Annotation Term="OData.Description" String="The TCP port for the secondary iSCSI boot target."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be the TCP port for the secondary iSCSI boot target."/>
           <Annotation Term="Validation.Minimum" Int="0"/>
-          <Annotation Term="Validation.Minimum" Int="65535"/>
+          <Annotation Term="Validation.Maximum" Int="65535"/>
         </Property>
         <Property Name="SecondaryLUN" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
@@ -173,7 +173,7 @@
           <Annotation Term="OData.Description" String="The 802.1q VLAN ID to use for iSCSI boot from the secondary target."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be the 802.1q VLAN ID to use for iSCSI boot from the secondary target.  This VLAN ID is only used if SecondaryVLANEnable is true."/>
           <Annotation Term="Validation.Minimum" Int="1"/>
-          <Annotation Term="Validation.Minimum" Int="4094"/>
+          <Annotation Term="Validation.Maximum" Int="4094"/>
         </Property>
         <Property Name="SecondaryDNS" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
@@ -201,7 +201,7 @@
           <Annotation Term="OData.LongDescription" String="The value of this property shall be username for CHAP authentication."/>
         </Property>
         <Property Name="CHAPSecret" Type="Edm.String">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Write"/>
           <Annotation Term="OData.Description" String="The shared secret for CHAP authentication."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be the shared secret for CHAP authentication."/>
         </Property>
@@ -211,7 +211,7 @@
           <Annotation Term="OData.LongDescription" String="The value of this property shall be the CHAP Username for 2-way CHAP authentication."/>
         </Property>
         <Property Name="MutualCHAPSecret" Type="Edm.String">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Write"/>
           <Annotation Term="OData.Description" String="The CHAP Secret for 2-way CHAP authentication."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be the CHAP Secret for 2-way CHAP authentication."/>
         </Property>

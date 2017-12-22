@@ -48,10 +48,6 @@ response::GetSystemMacAddressHaswell::GetSystemMacAddressHaswell() :
 response::GetSystemMacAddressHaswell::~GetSystemMacAddressHaswell() {}
 
 void response::GetSystemMacAddressHaswell::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
-
     char mac_address[MAC_ADDRESS_LENGTH];
     int result = std::snprintf(&mac_address[0],
                                MAC_ADDRESS_LENGTH ,

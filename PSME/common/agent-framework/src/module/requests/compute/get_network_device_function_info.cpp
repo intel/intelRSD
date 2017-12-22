@@ -28,21 +28,20 @@
 
 #include "agent-framework/module/requests/compute/get_network_device_function_info.hpp"
 #include "agent-framework/module/constants/compute.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetNetworkDeviceFunctionInfo::GetNetworkDeviceFunctionInfo(const std::string& function): m_function{function} {}
 
-Json::Value GetNetworkDeviceFunctionInfo::to_json() const {
-    Json::Value value;
+json::Json GetNetworkDeviceFunctionInfo::to_json() const {
+    json::Json value;
     value[NetworkDeviceFunction::FUNCTION] = m_function;
     return value;
 }
 
-GetNetworkDeviceFunctionInfo GetNetworkDeviceFunctionInfo::from_json(const Json::Value& json) {
+GetNetworkDeviceFunctionInfo GetNetworkDeviceFunctionInfo::from_json(const json::Json& json) {
     return GetNetworkDeviceFunctionInfo{
-        json[NetworkDeviceFunction::FUNCTION].asString()};
+        json[NetworkDeviceFunction::FUNCTION].get<std::string>()};
 }
-

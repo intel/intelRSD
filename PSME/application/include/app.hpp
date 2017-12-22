@@ -85,6 +85,7 @@ private:
      * eventing server and rest server. Does not start the mentioned servers.
      */
     void init();
+    void init_database();
     void init_logger();
     void init_network_change_notifier();
     void init_ssdp_service();
@@ -100,7 +101,6 @@ private:
 
     const json::Value& m_configuration;
     std::unique_ptr<psme::app::eventing::EventingServer> m_eventing_server{};
-    std::unique_ptr<jsonrpc::HttpServer> m_reg_server_connector{};
     std::unique_ptr<psme::app::registration::RegistrationServer> m_registration_server{};
     std::unique_ptr<psme::rest::server::RestServer> m_rest_server{};
     std::unique_ptr<psme::rest::eventing::EventService> m_rest_event_service{};
@@ -111,4 +111,3 @@ private:
 
 }
 }
-

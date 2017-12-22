@@ -62,18 +62,27 @@ int main(int argc, char** argv) {
         cout << "Started." << endl;
 
         cout << "Before send." << endl;
-        mc.send(device_req, device_rsp);
         cout << "Get Device ID." << endl;
-        cout << "Completion code: " << uint32_t(device_rsp.get_completion_code()) << endl;
-        cout << "FW Version: " << device_rsp.get_firmware_version() << endl;
-        cout << "Product ID: " << uint32_t(device_rsp.get_product_id()) << endl;
+        try {
+            mc.send(device_req, device_rsp);
+            cout << "FW Version: " << device_rsp.get_firmware_version() << endl;
+            cout << "Product ID: " << uint32_t(device_rsp.get_product_id()) << endl;
+        }
+        catch (const ipmi::ResponseError& error) {
+            cout << "Completion code: " << uint32_t(error.get_completion_code()) << endl;
+        }
 
         sdv::request::GetBiosVersion bios_req;
         sdv::response::GetBiosVersion bios_rsp;
-        mc.send(bios_req, bios_rsp);
         cout << "Get BIOS Version." << endl;
-        cout << "Completion code: " << uint32_t(bios_rsp.get_completion_code()) << endl;
-        cout << "BIOS version: " << bios_rsp.get_version() << endl;
+        try {
+            mc.send(bios_req, bios_rsp);
+            cout << "BIOS version: " << bios_rsp.get_version() << endl;
+        }
+        catch (const ipmi::ResponseError& error) {
+            cout << "Completion code: " << uint32_t(error.get_completion_code()) << endl;
+        }
+
 
         sdv::request::GetDimmInfo dimm_req;
         sdv::response::GetDimmInfo dimm_rsp;
@@ -81,19 +90,27 @@ int main(int argc, char** argv) {
         // Sets DIMM slot number.
         dimm_req.set_dimm_index(1);
 
-        mc.send(dimm_req, dimm_rsp);
         cout << "Get DIMM Info." << endl;
-        cout << "Completion code: " << uint32_t(dimm_rsp.get_completion_code()) << endl;
-        cout << "Speed [MHz]: " << dimm_rsp.get_dimm_speed_mhz() << endl;
-        cout << "Size [MiB]: " << dimm_rsp.get_dimm_size_mbytes() << endl;
-        cout << "Voltage [V]: " << dimm_rsp.get_dimm_voltage() << endl;
-        cout << "Type: " << dimm_rsp.get_dimm_type() << endl;
+        try {
+            mc.send(dimm_req, dimm_rsp);
+            cout << "Speed [MHz]: " << dimm_rsp.get_dimm_speed_mhz() << endl;
+            cout << "Size [MiB]: " << dimm_rsp.get_dimm_size_mbytes() << endl;
+            cout << "Voltage [V]: " << dimm_rsp.get_dimm_voltage() << endl;
+            cout << "Type: " << dimm_rsp.get_dimm_type() << endl;
+        }
+        catch (const ipmi::ResponseError& error) {
+            cout << "Completion code: " << uint32_t(error.get_completion_code()) << endl;
+        }
 
         sdv::request::GetNodeInfo node_req;
         sdv::response::GetNodeInfo node_rsp;
-        mc.send(node_req, node_rsp);
-        cout << "Completion code: " << uint32_t(node_rsp.get_completion_code()) << endl;
-        cout << "Number of nodes avaible: " << uint32_t(node_rsp.get_nodes_number()) << endl;
+        try {
+            mc.send(node_req, node_rsp);
+            cout << "Number of nodes avaible: " << uint32_t(node_rsp.get_nodes_number()) << endl;
+        }
+        catch (const ipmi::ResponseError& error) {
+            cout << "Completion code: " << uint32_t(error.get_completion_code()) << endl;
+        }
     } catch (runtime_error & error) {
         cout << "error: " << error.what() << endl;
     }

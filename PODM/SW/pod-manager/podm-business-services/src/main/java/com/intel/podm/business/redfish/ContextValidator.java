@@ -22,6 +22,7 @@ import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.context.ContextType;
 import com.intel.podm.common.types.Id;
 
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
@@ -29,6 +30,7 @@ import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 /**
  * Allows to verify whether given {@link ContextType} is correct
  */
+@Dependent
 public class ContextValidator {
     @Inject
     GenericDao genericDao;
@@ -59,7 +61,7 @@ public class ContextValidator {
     private Entity tryGet(ContextType type, Id id) {
         Class<? extends Entity> entityClass;
         try {
-            entityClass = contextTypeToEntityMapper.get(type);
+            entityClass = contextTypeToEntityMapper.getEntityClass(type);
         } catch (UnsupportedOperationException e) {
             return null;
         }

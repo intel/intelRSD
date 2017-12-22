@@ -20,9 +20,11 @@
 
 #include "psme/rest/endpoints/system/system_network_interface_collection.hpp"
 #include "psme/rest/constants/constants.hpp"
+#include "agent-framework/module/managers/utils/manager_utils.hpp"
 
 using namespace psme::rest::endpoint;
 using namespace psme::rest::constants;
+using namespace agent_framework::module;
 
 
 
@@ -30,7 +32,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetInterfacesCollection.EthernetInterfacesCollection";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetInterfaceCollection.EthernetInterfaceCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#EthernetInterfaceCollection.EthernetInterfaceCollection";
     r[Common::NAME] = "Ethernet Network Interface Collection";
@@ -52,8 +54,7 @@ void SystemNetworkInterfaceCollection::get(const server::Request& req, server::R
 
     auto system_uuid = psme::rest::model::Find<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get_uuid();
 
-    auto keys = agent_framework::module::ComputeComponents::get_instance()->
-                        get_network_interface_manager().get_ids(system_uuid);
+    auto keys = get_manager<agent_framework::model::NetworkInterface>().get_ids(system_uuid);
 
     json[Collection::ODATA_COUNT] =
                                     static_cast<std::uint32_t>(keys.size());

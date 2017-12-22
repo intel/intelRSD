@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.intel.podm.ipxesupplier;
 
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.net.MacAddress;
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -26,10 +28,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import java.text.MessageFormat;
+import java.util.UUID;
 
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 
 @Path("ipxe")
+@RequestScoped
 public class IpxeService {
     @Inject
     private IpxeDirectory directory;
@@ -39,33 +43,35 @@ public class IpxeService {
     @GET
     @Produces(TEXT_PLAIN)
     public Object getRemoteTarget(@QueryParam("mac") String macAddressString,
-                                  @QueryParam("uuid") String uuid,
+                                  @QueryParam("uuid") String uuidString,
                                   @QueryParam("ip") String ip) {
         try {
-            logger.d("Got request for IPXE script " + getHostDetailsString(macAddressString, uuid, ip));
+            logger.d("Got request for IPXE script " + getHostDetailsString(macAddressString, uuidString, ip));
 
             MacAddress macAddress;
+            UUID uuid;
             try {
                 macAddress = new MacAddress(macAddressString);
+                uuid = UUID.fromString(uuidString);
             } catch (IllegalArgumentException iae) {
-                throw new AssetNotFoundException("MAC Address is not valid", iae);
+                throw new AssetNotFoundException("MAC Address and/or UUID is not valid", iae);
             }
 
-            String ipxeScript = directory.getIpxeScript(macAddress).toIpxeScript();
+            String ipxeScript = directory.getIpxeScript(macAddress, uuid).toIpxeScript();
             logger.d("IPXE script response: [\n" + ipxeScript + "\n]");
             return ipxeScript;
         } catch (AssetNotFoundException e) {
-            logger.e("Error while handling request for IPXE script " + getHostDetailsString(macAddressString, uuid, ip) + ": " + e.getMessage(), e);
+            logger.e("Error while handling request for IPXE script " + getHostDetailsString(macAddressString, uuidString, ip) + ": " + e.getMessage(), e);
             throw new NotFoundException();
         }
     }
 
     private String getHostDetailsString(String macAddressString, String uuid, String ip) {
         return MessageFormat.format(
-                "(from MAC: [{0}], UUID: [{1}], IP: [{2}])",
-                ObjectUtils.toString(macAddressString),
-                ObjectUtils.toString(uuid),
-                ObjectUtils.toString(ip)
+            "(from MAC: [{0}], UUID: [{1}], IP: [{2}])",
+            ObjectUtils.toString(macAddressString),
+            ObjectUtils.toString(uuid),
+            ObjectUtils.toString(ip)
         );
     }
 }

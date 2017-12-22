@@ -19,8 +19,10 @@ package com.intel.podm.business.entities.listeners;
 import com.intel.podm.business.entities.handlers.OnDeleteSimpleStorageHandler;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.PreRemove;
 
+@ApplicationScoped
 public class SimpleStorageListener extends EntityListener {
     @PreRemove
     public void preRemove(SimpleStorage simpleStorage) {

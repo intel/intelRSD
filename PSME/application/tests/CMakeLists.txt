@@ -26,6 +26,7 @@ if (NOT GTEST_FOUND)
 endif()
 
 add_subdirectory(rest)
+add_subdirectory(endpoints)
 
 add_custom_target(unittest_psme-rest-server
                   make

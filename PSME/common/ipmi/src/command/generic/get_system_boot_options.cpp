@@ -63,10 +63,6 @@ response::GetSystemBootOptions::~GetSystemBootOptions() {}
 
 
 void response::GetSystemBootOptions::unpack(const std::vector<std::uint8_t>& data) {
-    if (!is_response_correct(data)) {
-        return; // Error response, do not unpack values.
-    }
-
     std::size_t data_size = data.size();
 
     // return in case of wrong data size

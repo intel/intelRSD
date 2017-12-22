@@ -24,17 +24,16 @@
 
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/compute_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/compute_commands.hpp"
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 
 namespace {
     void process_collections(System& system) {
-        if (ComputeComponents::get_instance()->
-                get_processor_manager().get_entry_count(system.get_uuid()) > 0) {
+        if (get_manager<agent_framework::model::Processor>().get_entry_count(system.get_uuid()) > 0) {
             system.add_collection(attribute::Collection(
                 enums::CollectionName::Processors,
                 enums::CollectionType::Processors, ""));
@@ -51,8 +50,7 @@ namespace {
                 enums::CollectionName::StorageControllers,
                 enums::CollectionType::StorageControllers,""));
         }
-        if (ComputeComponents::get_instance()->
-                get_network_interface_manager().get_entry_count(system.get_uuid()) > 0) {
+        if (get_manager<NetworkInterface>().get_entry_count(system.get_uuid()) > 0) {
             system.add_collection(attribute::Collection(
                 enums::CollectionName::NetworkInterfaces,
                 enums::CollectionType::NetworkInterfaces,""));

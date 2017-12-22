@@ -28,7 +28,7 @@ public interface EntityEventObserver {
      * 2. State of entity is fulfilled by a mapper.
      * Because of that, passed entity instance doesn't have full state yet.
      */
-    default void resourceAdded(Entity entity) { }
+    void resourceAdded(Entity entity);
 
     /**
      * This method is invoked each time when existing entity will be updated and flush operation will be called.
@@ -36,7 +36,7 @@ public interface EntityEventObserver {
      * @param entity modified entity
      * @param diff information about detected changes
      */
-    default void resourceUpdated(Entity entity, Diff diff) { }
+    void resourceUpdated(Entity entity, Diff diff);
 
     /**
      * This method is invoked each time after persistent collection updated.
@@ -44,18 +44,16 @@ public interface EntityEventObserver {
      * @param entity parent of persistence collection
      * @param collectionName name of collection
      */
-    default void collectionResourceUpdated(Entity entity, String collectionName) { }
+    void collectionResourceUpdated(Entity entity, String collectionName);
 
     /**
      * This method is invoked each time when EntityManager.remove(entity) method is called.
      *
      * @param entity instance of entity which has been removed. Any associations of this entity are already unlinked, so you cannot rely on them.
      */
-    default void resourceRemoved(Entity entity) { }
+    void resourceRemoved(Entity entity);
 
-    default void onBeforeTransactionCompletion() { }
-
-    default void onTransactionCompletion() { }
-
-    default void onTransactionFailed() { }
+    void onBeforeTransactionCompletion();
+    void onTransactionCompletion();
+    void onTransactionFailed();
 }

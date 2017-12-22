@@ -77,8 +77,8 @@ TEST(GetManagerInfoTest, PositiveExecute) {
     MyGetManagerInfo command{"TestModuleId"};
     GetManagerInfo::Request request{""};
     GetManagerInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::Manager::MANAGER] = "TestModuleId";
 
@@ -130,8 +130,8 @@ TEST(GetManagerInfoTest, NegativeModuleNotFound) {
     MyGetManagerInfo command{"TestModuleId"};
     GetManagerInfo::Request request{""};
     GetManagerInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::Manager::MANAGER] = "OtherTestModuleId";
 

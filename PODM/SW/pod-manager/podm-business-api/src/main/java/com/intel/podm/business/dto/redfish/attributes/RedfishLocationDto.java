@@ -39,7 +39,6 @@ public final class RedfishLocationDto implements RedfishDrive.Location {
         return new Builder();
     }
 
-
     public static final class Builder {
         private String info;
         private String infoFormat;

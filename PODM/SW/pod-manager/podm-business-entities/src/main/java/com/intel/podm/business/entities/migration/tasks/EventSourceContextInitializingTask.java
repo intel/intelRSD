@@ -19,11 +19,8 @@ package com.intel.podm.business.entities.migration.tasks;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.observers.EventableEntityEventSourceContextInitializer;
 import com.intel.podm.business.entities.redfish.ComposedNode;
-import com.intel.podm.business.entities.redfish.Fan;
-import com.intel.podm.business.entities.redfish.PowerZonePowerSupply;
 import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
 import com.intel.podm.business.entities.redfish.StorageController;
-import com.intel.podm.business.entities.redfish.Temperature;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.migration.JpaBasedDataMigrationTask;
@@ -44,11 +41,8 @@ public class EventSourceContextInitializingTask extends JpaBasedDataMigrationTas
     private static final List<Class<? extends Entity>> EVENTABLE_CLASSES = newArrayList(
         DiscoverableEntity.class,
         ComposedNode.class,
-        Fan.class,
-        PowerZonePowerSupply.class,
         RemoteTargetIscsiAddress.class,
-        StorageController.class,
-        Temperature.class
+        StorageController.class
     );
 
     @Inject

@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Drive;
-import com.intel.podm.client.api.resources.redfish.DriveResource;
+import com.intel.podm.client.resources.redfish.DriveResource;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.IdentifierMapper;
 import com.intel.podm.mappers.subresources.RedfishLocationMapper;
@@ -44,7 +44,7 @@ public class DriveMapper extends EntityMapper<DriveResource, Drive> {
             identifierMapper.map(identifiers, targetDrive.getIdentifiers(), targetDrive::addIdentifier)
         );
         sourceDrive.getLocation().ifAssigned(locations ->
-            redfishLocationMapper.map(locations, targetDrive.getLocations(), targetDrive::addLocation)
+            redfishLocationMapper.map(locations, targetDrive.getLocation(), targetDrive::addLocation)
         );
 
         if (targetDrive.getEraseOnDetach() == null) {

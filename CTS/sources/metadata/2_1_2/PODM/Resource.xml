@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource">
+
+      <!--Type Definitions-->
+      <TypeDefinition Name="Id" UnderlyingType="Edm.String">
+        <Annotation Term="OData.Description" String="Uniquely identifies the resource within the collection of like resources."/>
+        <Annotation Term="OData.LongDescription" String="This property represents an identifier for the resource.  All values for resources described by this schema shall comply to the requirements as described in the Redfish specification."/>
+      </TypeDefinition>
+
+      <TypeDefinition Name="Description" UnderlyingType="Edm.String">
+        <Annotation Term="OData.Description" String="Provides a description of this resource and is used for commonality  in the schema definitions."/>
+        <Annotation Term="OData.LongDescription" String="This object represents the Description property.  All values for resources described by this schema shall comply to the requirements as described in the Redfish specification."/>
+      </TypeDefinition>
+
+      <TypeDefinition Name="Name" UnderlyingType="Edm.String">
+        <Annotation Term="OData.Description"  String="The name of the resource or array element."/>
+        <Annotation Term="OData.LongDescription" String="This object represents the Name property.  All values for resources described by this schema shall comply to the requirements as described in the Redfish specification. The value of this string shall be of the format for the reserved word *Name*."/>
+      </TypeDefinition>
+
+      <TypeDefinition Name="UUID" UnderlyingType="Edm.Guid"/>
+
+      <!--Base Complex type for Links properties-->
+      <ComplexType Name="Links" Abstract="true">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Oem" Type="Resource.Oem" Nullable="false">
+          <Annotation Term="OData.Description" String="Oem extension object."/>
+          <Annotation Term="OData.LongDescription" String="This object represents the Oem property.  All values for resources described by this schema shall comply to the requirements as described in the Redfish specification."/>
+        </Property>
+      </ComplexType>
+
+      <!--Complex type that serves as a "property bag" for OEM properties-->
+      <ComplexType Name="Oem">
+        <Annotation Term="OData.AdditionalProperties" Bool="true"/>
+        <Annotation Term="Redfish.DynamicPropertyPatterns">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Pattern" String="[A-Za-z0-9_.:]+"/>
+              <PropertyValue Property="Type" String="Resource.OemObject"/>
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="OData.Description" String="Oem extension object."/>
+        <Annotation Term="OData.LongDescription" String="This object represents the Oem properties.  All values for resources described by this schema shall comply to the requirements as described in the Redfish specification."/>
+      </ComplexType>
+
+      <!--Base type for OEM property-->
+      <ComplexType Name="OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="true"/>
+        <Annotation Term="OData.Description" String="Base type for an Oem object."/>
+        <Annotation Term="OData.LongDescription" String="This object represents the base type for an Oem property.  All values for resources described by this schema shall comply to the requirements as described in the Redfish specification."/>
+      </ComplexType>
+
+      <!--Unversioned Base Types-->
+
+      <!--Base type for Resources and ReferenceableMembers-->
+      <EntityType Name="Item" Abstract="true">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="OData.Description" String="This is the base type for resources and referenceable members."/>
+        <Property Name="Oem" Type="Resource.Oem" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the manufacturer/provider specific extension moniker used to divide the Oem object into sections."/>
+          <Annotation Term="OData.LongDescription" String="The value of this string shall be of the format for the reserved word *Oem*."/>
+        </Property>
+      </EntityType>
+
+      <EntityType Name="ReferenceableMember" BaseType="Resource.Item" Abstract="true"/>
+
+      <EntityType Name="Resource" BaseType="Resource.Item" Abstract="true"/>
+
+      <EntityType Name="ResourceCollection" Abstract="true"/>
+
+      <!--Shared types-->
+
+      <!--This object represents the standard status structure for resources.-->
+      <ComplexType Name="Status">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="State" Type="Resource.State">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This indicates the known state of the resource, such as if it is enabled."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent if this component is available or not and why.  Enabled indicates the resource is available.  Disabled indicates the resource has been intentionally made unavailable but it can be enabled.  Offline indicates the resource is unavailable intentionally and requires action to be made available.  InTest indicates that the component is undergoing testing.  Starting indicates that the resource is on its way to becoming available.  Absent indicates the resources is physically unavailable."/>
+        </Property>
+        <Property Name="HealthRollup" Type="Resource.Health">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This represents the overall health state from the view of this resource."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent the HealthState of the resource and its dependent resources.  The values shall conform to those defined in the Redfish specification."/>
+        </Property>
+        <Property Name="Health" Type="Resource.Health">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This represents the health state of this resource in the absence of its dependent resources."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent the HealthState of the resource without considering its dependent resources. The values shall conform to those defined in the Redfish specification."/>
+        </Property>
+        <Property Name="Oem" Type="Resource.Oem" Nullable="false"/>
+      </ComplexType>
+
+      <!--This indicates the known state of the resource, such as if it is enabled.-->
+      <EnumType Name="State">
+        <Member Name="Enabled">
+          <Annotation Term="OData.Description" String="This function or resource has been enabled"/>
+        </Member>
+        <Member Name="Disabled">
+          <Annotation Term="OData.Description" String="This function or resource has been disabled"/>
+        </Member>
+        <Member Name="StandbyOffline">
+          <Annotation Term="OData.Description" String="This function or resource is enabled, but awaiting an external action to activate it"/>
+        </Member>
+        <Member Name="StandbySpare">
+          <Annotation Term="OData.Description" String="This function or resource is part of a redundancy set and is awaiting a failover or other external action to activate it."/>
+        </Member>
+        <Member Name="InTest">
+          <Annotation Term="OData.Description" String="This function or resource is undergoing testing"/>
+        </Member>
+        <Member Name="Starting">
+          <Annotation Term="OData.Description" String="This function or resource is starting"/>
+        </Member>
+        <Member Name="Absent">
+          <Annotation Term="OData.Description" String="This function or resource is not present or not detected"/>
+        </Member>
+        <Member Name="UnavailableOffline">
+          <Annotation Term="OData.Description" String="This function or resource is present but cannot be used"/>
+        </Member>
+        <Member Name="Deferring">
+          <Annotation Term="OData.Description" String="The element will not process any commands but will queue new requests."/>
+        </Member>
+        <Member Name="Quiesced">
+          <Annotation Term="OData.Description" String="The element is enabled but only processes a restricted set of commands."/>
+        </Member>
+        <Member Name="Updating">
+          <Annotation Term="OData.Description" String="The element is updating and may be unavailable or degraded."/>
+        </Member>
+      </EnumType>
+
+      <!--This represents the state of the health of a resource.-->
+      <EnumType Name="Health">
+        <Member Name="OK">
+          <Annotation Term="OData.Description" String="Normal"/>
+        </Member>
+        <Member Name="Warning">
+          <Annotation Term="OData.Description" String="A condition exists that requires attention"/>
+        </Member>
+        <Member Name="Critical">
+          <Annotation Term="OData.Description" String="A critical condition exists that requires immediate attention"/>
+        </Member>
+      </EnumType>
+
+      <!--Common RestType parameter values for Reset Action-->
+      <EnumType Name="ResetType">
+        <Member Name="On">
+          <Annotation Term="OData.Description" String="Turn the system on"/>
+        </Member>
+        <Member Name="ForceOff">
+          <Annotation Term="OData.Description" String="Turn the system off immediately (non-graceful) shutdown"/>
+        </Member>
+        <Member Name="GracefulShutdown">
+          <Annotation Term="OData.Description" String="Perform a graceful system shutdown and power off"/>
+        </Member>
+        <Member Name="GracefulRestart">
+          <Annotation Term="OData.Description" String="Perform a graceful system shutdown followed by a restart of the system"/>
+        </Member>
+        <Member Name="ForceRestart">
+          <Annotation Term="OData.Description" String="Perform an immediate (non-graceful) shutdown, followed by a restart of the system"/>
+        </Member>
+        <Member Name="Nmi">
+          <Annotation Term="OData.Description" String="Generate a Diagnostic Interrupt (usually an NMI on x86 systems) to cease normal operations, perform diagnostic actions and typically halt the system."/>
+        </Member>
+        <Member Name="ForceOn">
+          <Annotation Term="OData.Description" String="Turn the system on immediately"/>
+        </Member>
+        <Member Name="PushPowerButton">
+          <Annotation Term="OData.Description" String="Simulate the pressing of the physical power button on this system"/>
+        </Member>
+      </EnumType>
+
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource.v1_0_0">
+
+      <!--Base entity type for array members-->
+      <EntityType Name="ReferenceableMember" BaseType="Resource.ReferenceableMember" Abstract="true">
+        <Annotation Term="OData.Description" String="This is the base type for addressable members of an array."/>
+        <Annotation Term="OData.LongDescription" String="Array members can be referenced using the value returned in the @odata.id property which may or may not be a dereferenceable URL. The @odata.id of this entity shall be the location of this element within an Item."/>
+        <Key>
+          <PropertyRef Name="MemberId"/>
+        </Key>
+        <Property Name="MemberId" Nullable="false" Type="Edm.String">
+          <Annotation Term="OData.Description" String="This is the identifier for the member within the collection."/>
+          <Annotation Term="OData.LongDescription" String="The value of this string shall uniquely identify the member within the collection."/>
+        </Property>
+      </EntityType>
+
+      <!--Base entity type for all resources-->
+      <EntityType Name="Resource" BaseType="Resource.Resource" Abstract="true">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Resource.Id" Nullable="false">
+          <Annotation Term="Redfish.Required"/>
+        </Property>
+        <Property Name="Description" Type="Resource.Description"/>
+        <Property Name="Name" Type="Resource.Name" Nullable="false">
+          <Annotation Term="Redfish.Required"/>
+        </Property>
+      </EntityType>
+
+      <!--Base entity type for all resource collection objects-->
+      <EntityType Name="ResourceCollection" BaseType="Resource.ResourceCollection" Abstract="true">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Key>
+          <PropertyRef Name="Name"/>
+        </Key>
+        <Property Name="Description" Type="Resource.Description"/>
+        <Property Name="Name" Type="Resource.Name" Nullable="false"/>
+        <Property Name="Oem" Type="Resource.Oem" Nullable="false">
+          <Annotation Term="OData.Description" String="This is the manufacturer/provider specific extension moniker used to divide the Oem object into sections."/>
+          <Annotation Term="OData.LongDescription" String="The value of this string shall be of the format for the reserved word *Oem*."/>
+        </Property>
+      </EntityType>
+
+    </Schema>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource.v1_1_0">
+
+      <ComplexType Name="Identifier">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="DurableName" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This indicates the world wide, persistent name of the resource."/>
+          <Annotation Term="OData.LongDescription" String="This property shall contain the world wide unique identifier for the resource. The string shall be in the format described by the value of the Identifier.DurableNameFormat property"/>
+        </Property>
+        <Property Name="DurableNameFormat" Type="Resource.v1_1_0.DurableNameFormat">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This represents the format of the DurableName property."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent the format of the DurableName property."/>
+        </Property>
+      </ComplexType>
+      <ComplexType Name="Location">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Info" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This indicates the location of the resource."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent the location of the resource."/>
+        </Property>
+        <Property Name="InfoFormat" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This represents the format of the Info property."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent the format of the Info property."/>
+        </Property>
+        <Property Name="Oem" Type="Resource.Oem" Nullable="false"/>
+      </ComplexType>
+      <EnumType Name="DurableNameFormat">
+        <Member Name="NAA">
+          <Annotation Term="OData.Description" String="Name Address Authority Format"/>
+          <Annotation Term="OData.LongDescription" String="This durable name shall be a hexadecimal representation of the Name Address Authority structure as defined in the T11 Fibre Channel - Framing and Signaling - 3 (FC-FS-3) specification."/>
+        </Member>
+        <Member Name="iQN">
+          <Annotation Term="OData.Description" String="iSCSI Qualified Name"/>
+          <Annotation Term="OData.LongDescription" String="This durable name shall be in the iSCSI Qualified Name format as defined in RFC 3720 and RFC 3721."/>
+        </Member>
+        <Member Name="FC_WWN">
+          <Annotation Term="OData.Description" String="Fibre Channel World Wide Name"/>
+          <Annotation Term="OData.LongDescription" String="This durable name shall be a hexadecimal representation of the World Wide Name format as defined in the T11 Fibre Channel Physical and Signaling Interface Specification."/>
+        </Member>
+        <Member Name="UUID">
+          <Annotation Term="OData.Description" String="Universally Unique Identifier"/>
+          <Annotation Term="OData.LongDescription" String="This durable name shall be the hexadecimal representation of the Universal Unique Identifier as defined in the Internation Telecom Union's OSI networking and system aspects - Naming, Addressing and Registration Specification."/>
+        </Member>
+        <Member Name="EUI">
+          <Annotation Term="OData.Description" String="IEEE-defined 64-bit Extended Unique Identifier"/>
+          <Annotation Term="OData.LongDescription" String="This durable name shall be the hexadecimal representation of the IEEE-defined 64-bit Extended Unique Identifier as defined in the IEEE's Guidelines for 64-bit Global Identifier (EUI-64) Specification."/>
+        </Member>
+      </EnumType>
+      <EnumType Name="IndicatorLED">
+        <Member Name="Lit">
+          <Annotation Term="OData.Description" String="The Indicator LED is lit."/>
+        </Member>
+        <Member Name="Blinking">
+          <Annotation Term="OData.Description" String="The Indicator LED is blinking."/>
+        </Member>
+        <Member Name="Off">
+          <Annotation Term="OData.Description" String="The Indicator LED is off."/>
+        </Member>
+      </EnumType>
+    </Schema>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource.v1_2_0">
+      <EnumType Name="PowerState">
+        <Member Name="On">
+          <Annotation Term="OData.Description" String="The state is powered On."/>
+        </Member>
+        <Member Name="Off">
+          <Annotation Term="OData.Description" String="The state is powered Off."/>
+        </Member>
+        <Member Name="PoweringOn">
+          <Annotation Term="OData.Description" String="A temporary state between Off and On."/>
+        </Member>
+        <Member Name="PoweringOff">
+          <Annotation Term="OData.Description" String="A temporary state between On and Off."/>
+        </Member>
+      </EnumType>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

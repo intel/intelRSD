@@ -56,14 +56,16 @@ std::string certificate_verification_status_to_string(unsigned int status,
     return str.str();
 }
 
-int verify_certificate(gnutls_session_t tls_session) {
+int verify_certificate(gnutls_session_t tls_session, const std::string& hostname) {
     unsigned int cert_status;
 
     if (nullptr == tls_session) {
         return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
-    auto ret = gnutls_certificate_verify_peers2(tls_session, &cert_status);
+    auto ret = gnutls_certificate_verify_peers3(tls_session,
+                                                hostname.empty() ? nullptr : hostname.c_str(),
+                                                &cert_status);
     if (ret < 0) {
         log_error(GET_LOGGER("rest"),
                 "Failed to verify certificate: " << gnutls_strerror(ret));
@@ -97,7 +99,7 @@ bool MHDSSLConnector::is_access_allowed(struct MHD_Connection* connection) {
         if (nullptr != ci) {
             gnutls_session_t tls_session =
                                 static_cast<gnutls_session_t>(ci->tls_session);
-            return (0 == verify_certificate(tls_session));
+            return (0 == verify_certificate(tls_session, get_options().get_hostname()));
         } else {
             log_debug(GET_LOGGER("rest"), "Can't obtain ssl session handle.");
             return false;

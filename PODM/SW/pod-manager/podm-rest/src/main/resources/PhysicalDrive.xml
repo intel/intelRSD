@@ -9,7 +9,7 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="Manager.xml">
     <edmx:Include Namespace="Manager.v1_0_0"/>
@@ -26,37 +26,37 @@
         <Property Name="Interface" Type="PhysicalDrive.v1_0_0.Interface">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Controller interface"/>
-          <Annotation Term="OData.LongDescription" String="Controller interface" />
+          <Annotation Term="OData.LongDescription" String="Controller interface"/>
         </Property>
         <Property Name="CapacityGiB" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Drive capacity in GibiBytes."/>
-          <Annotation Term="OData.LongDescription" String="Drive capacity in GibiBytes." />
+          <Annotation Term="OData.LongDescription" String="Drive capacity in GibiBytes."/>
         </Property>
         <Property Name="Type" Type="PhysicalDrive.v1_0_0.Type">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Type of drive"/>
-          <Annotation Term="OData.LongDescription" String="Type of drive" />
+          <Annotation Term="OData.LongDescription" String="Type of drive"/>
         </Property>
         <Property Name="RPM" Type="Edm.Int32">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="For traditional drive, rotation per minute."/>
-          <Annotation Term="OData.LongDescription" String="For traditional drive, rotation per minute." />
+          <Annotation Term="OData.LongDescription" String="For traditional drive, rotation per minute."/>
         </Property>
         <Property Name="Manufacturer" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Drive manufacturer name."/>
-          <Annotation Term="OData.LongDescription" String="Drive manufacturer name." />
+          <Annotation Term="OData.LongDescription" String="Drive manufacturer name."/>
         </Property>
         <Property Name="Model" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Drive model"/>
-          <Annotation Term="OData.LongDescription" String="Drive model" />
+          <Annotation Term="OData.LongDescription" String="Drive model"/>
         </Property>
         <Property Name="SerialNumber" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Drive serial number"/>
-          <Annotation Term="OData.LongDescription" String="Drive serial number" />
+          <Annotation Term="OData.LongDescription" String="Drive serial number"/>
         </Property>
 
         <Property Name="Status" Type="Resource.Status"/>

@@ -383,23 +383,23 @@ TEST_F(PncTreeStabilityTest, DryStability) {
     function_2.make_random_uuid();
 
     PncDryStabilizer dry_stabilizer;
-    ASSERT_EQ(dry_stabilizer.stabilize(manager, pcie_switch), constants::MANAGER_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(fabric), constants::FABRIC_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(pcie_switch), constants::SWITCH_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(port_1, pcie_switch), constants::PORT_1_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(port_2, pcie_switch), constants::PORT_2_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(zone_1, pcie_switch), constants::ZONE_1_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(zone_2, pcie_switch), constants::ZONE_2_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(endpoint_1, std::vector<Port>{port_1}), constants::ENDPOINT_1_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(endpoint_2, std::vector<Port>{port_2}), constants::ENDPOINT_2_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(chassis, pcie_switch), constants::CHASSIS_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(drive_1), constants::DRIVE_1_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(drive_2), constants::DRIVE_2_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(system), constants::SYSTEM_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(storage_subsystem), constants::STORAGE_SUBSYSTEM_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(pcie_device_1), constants::PCIE_DEVICE_1_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(pcie_device_2), constants::PCIE_DEVICE_2_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(function_1, pcie_device_1), constants::PCIE_FUNCTION_1_PERSISTENT_UUID);
-    ASSERT_EQ(dry_stabilizer.stabilize(function_2, pcie_device_2), constants::PCIE_FUNCTION_2_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(manager, pcie_switch), constants::MANAGER_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(fabric), constants::FABRIC_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(pcie_switch), constants::SWITCH_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(port_1, pcie_switch), constants::PORT_1_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(port_2, pcie_switch), constants::PORT_2_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(zone_1, pcie_switch), constants::ZONE_1_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(zone_2, pcie_switch), constants::ZONE_2_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(endpoint_1, std::vector<Port>{port_1}), constants::ENDPOINT_1_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(endpoint_2, std::vector<Port>{port_2}), constants::ENDPOINT_2_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(chassis, pcie_switch), constants::CHASSIS_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(drive_1), constants::DRIVE_1_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(drive_2), constants::DRIVE_2_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(system), constants::SYSTEM_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(storage_subsystem), constants::STORAGE_SUBSYSTEM_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(pcie_device_1), constants::PCIE_DEVICE_1_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(pcie_device_2), constants::PCIE_DEVICE_2_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(function_1, pcie_device_1), constants::PCIE_FUNCTION_1_PERSISTENT_UUID);
+    ASSERT_EQ(dry_stabilizer.generate_persistent_uuid(function_2, pcie_device_2), constants::PCIE_FUNCTION_2_PERSISTENT_UUID);
 
 }

@@ -28,19 +28,19 @@
 
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/requests/common/get_drive_info.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetDriveInfo::GetDriveInfo(const std::string& drive): m_drive{drive} {}
 
-Json::Value GetDriveInfo::to_json() const {
-    Json::Value value;
+json::Json GetDriveInfo::to_json() const {
+    json::Json value;
     value[Drive::DRIVE] = m_drive;
     return value;
 }
 
-GetDriveInfo GetDriveInfo::from_json(const Json::Value& json) {
-    return GetDriveInfo{json[Drive::DRIVE].asString()};
+GetDriveInfo GetDriveInfo::from_json(const json::Json& json) {
+    return GetDriveInfo{json[Drive::DRIVE].get<std::string>()};
 }

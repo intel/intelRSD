@@ -33,7 +33,9 @@
 #include "agent-framework/validators/checkers/attribute_validity_checker.hpp"
 #include "agent-framework/validators/checkers/regex_validity_checker.hpp"
 
-#include <cassert>
+#include "agent-framework/module/utils/json_transformations.hpp"
+
+#include "generic/assertions.hpp"
 
 
 
@@ -75,41 +77,35 @@ const ProcedureValidator::JsonrpcValidators ProcedureValidator::JSONRPC_VALIDATO
 };
 
 ProcedureValidator::ProcedureValidator(const string& name,
-                                       parameterDeclaration_t param_type,
+                                       parameterDeclaration_t,
                                        jsontype_t return_type,
-                                       ...) : Procedure(name, param_type, return_type, nullptr) {
+                                       ...): m_procedure_name(name) {
     va_list parameters;
     va_start(parameters, return_type);
     create_validators(parameters);
     va_end(parameters);
 }
 
-ProcedureValidator::ProcedureValidator(const string& name,
-                                       parameterDeclaration_t param_type,
-                                       ...) : Procedure(name, param_type, nullptr) {
+ProcedureValidator::ProcedureValidator(parameterDeclaration_t param_type, ...) {
     va_list parameters;
     va_start(parameters, param_type);
     create_validators(parameters);
     va_end(parameters);
 }
 
-ProcedureValidator::ProcedureValidator(const Procedure& procedure) : Procedure(procedure) {
-    /* nothing added here, validation done only via JSON validator */
+ProcedureValidator::ProcedureValidator(const string& name,
+                                       parameterDeclaration_t param_type,
+                                       ...): m_procedure_name(name) {
+    va_list parameters;
+    va_start(parameters, param_type);
+    create_validators(parameters);
+    va_end(parameters);
 }
 
-void ProcedureValidator::create_validators(va_list args) {
+void ProcedureValidator::create_validators(va_list& args) {
     const char* name;
     while ((name = va_arg(args, const char*)) != nullptr) {
         unsigned type = va_arg(args, unsigned);
-
-        /*
-         * add validator to JSONRPC if "exact" form. Optionals and nulls
-         * aren't checked here!
-         */
-        JsonrpcValidators::const_iterator jit = JSONRPC_VALIDATORS.find(static_cast<Validators>(type));
-        if (jit != JSONRPC_VALIDATORS.cend()) {
-            /* Procedure:: */ AddParameter(name, (*jit).second);
-        }
 
         /*
          * Check if field was already added, in this case "merge" validators
@@ -134,7 +130,7 @@ void ProcedureValidator::create_validators(va_list args) {
     }
 }
 
-ValidityChecker::Ptr ProcedureValidator::create_validator(unsigned type, va_list args) {
+ValidityChecker::Ptr ProcedureValidator::create_validator(unsigned type, va_list& args) {
     if ((type & (VALID_OPTIONAL(0))) == (VALID_OPTIONAL(0))) {
         ValidityChecker::Ptr cond = create_validator(type & (~(VALID_OPTIONAL(0))), args);
         return ValidityChecker::Ptr(new OptionalValidityChecker(cond));
@@ -191,47 +187,41 @@ ValidityChecker::Ptr ProcedureValidator::create_validator(unsigned type, va_list
         case Validators::valid_enum:
             return ValidityChecker::Ptr(new EnumValidityChecker(args));
 
-	case Validators::valid_regex:
+        case Validators::valid_regex:
             return ValidityChecker::Ptr(new RegexValidityChecker(args));
 
         case Validators::valid_attribute:
             return ValidityChecker::Ptr(new AttributeValidityChecker(args));
 
         default:
-            assert(fail("Handled validator type"));
+            assert(generic::FAIL("Handled validator type"));
             return ValidityChecker::Ptr(new AlwaysFailValidityChecker("Unhandled validator type."));
     }
 }
 
-unsigned ProcedureValidator::remove_from(Json::Value::Members& members, const std::string& name) {
+unsigned ProcedureValidator::remove_from(json::Json& members, const std::string& name) {
     unsigned entries = 0;
-    Json::Value::Members::iterator it = members.begin();
-    while (it != members.end()) {
-        if (name == (*it)) {
-            it = members.erase(it);
-            entries++;
-        }
-        else {
-            it++;
-        }
+    if (members.count(name)) {
+        entries += unsigned(members.count(name));
+        members.erase(name);
     }
     return entries;
 }
 
-void ProcedureValidator::validate(const Json::Value& request) const {
+void ProcedureValidator::validate(const json::Json& request) const {
     try {
-        if (request.isNull()) {
+        if (request.is_null()) {
             if (validators.empty()) {
                 /* nothing to validate */
                 return;
             }
         }
-        else if (!request.isObject()) {
+        else if (!request.is_object()) {
             THROW(ValidityChecker::ValidationException, "agent-framework",
                   ErrorCode::INVALID_FIELD, "Request is not a JSON object.", request);
         }
 
-        Json::Value::Members members = request.getMemberNames();
+        json::Json members = request;
         for (auto const& v : validators) {
             unsigned removed = remove_from(members, v.name);
 
@@ -248,12 +238,6 @@ void ProcedureValidator::validate(const Json::Value& request) const {
                         }
                         break;
                     default:
-                        /*!
-                         * @bug Duplicated values checking is not detected with current JSONCPP.
-                         *
-                         * JSONCPP doesn't handle duplicated values properly (the last one overrides previous ones).
-                         * So checking if duplicated is not available.
-                         * */
                         THROW(ValidityChecker::ValidationException, "agent-framework",
                               ErrorCode::DUPLICATED_FIELD, "Duplicated field in JSON.", request[v.name]);
                         break;
@@ -267,10 +251,10 @@ void ProcedureValidator::validate(const Json::Value& request) const {
         }
 
         if (!members.empty()) {
-            const auto& member = members.front();
+            std::string member = members.begin().key();
             THROW(ValidityChecker::ValidationException, "agent-framework",
                   ErrorCode::UNEXPECTED_FIELD, "Unexpected field in json.",
-                  request[member], member);
+                  request[member].dump(), member);
         }
 
         /* JSON document is valid if no exception is thrown */
@@ -283,49 +267,8 @@ void ProcedureValidator::validate(const Json::Value& request) const {
     }
 }
 
-Json::Value ProcedureValidator::to_json_rpc(const json::Value& src) {
-    switch (src.get_type()) {
-        case json::Value::Type::NIL:
-            return Json::Value();
-        case json::Value::Type::OBJECT: {
-            Json::Value val{Json::objectValue};
-            for (const json::Pair& pair : src.as_object()) {
-                val[pair.first] = to_json_rpc(pair.second);
-            }
-            return val;
-        }
-        case json::Value::Type::ARRAY: {
-            Json::Value val{Json::arrayValue};
-            for (size_t i = 0; i < src.size(); i++) {
-                val[static_cast<int>(i)] = to_json_rpc(src[i]);
-            }
-            return val;
-        }
-        case json::Value::Type::STRING:
-            return Json::Value(src.as_string());
-        case json::Value::Type::NUMBER:
-            if (src.is_int()) {
-                // a workaround for Json-CPP "ambiguous conversion" or "call to constructor is ambiguous" errors.
-                long long int number = src.as_int64();
-                return Json::Value(number);
-            }
-            if (src.is_uint()) {
-                // see comment above
-                unsigned long long int number = src.as_uint64();
-                return Json::Value(number);
-            }
-            return Json::Value(src.as_double());
-        case json::Value::Type::BOOLEAN:
-            return Json::Value(src.as_bool());
-
-        default:
-            assert(fail("Unhandled json value type"));
-            return Json::Value();
-    }
-}
-
 void ProcedureValidator::validate(const json::Value& req) const {
-    Json::Value value = to_json_rpc(req);
+    json::Json value = agent_framework::model::utils::to_json_rpc(req);
     validate(value);
 }
 

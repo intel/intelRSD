@@ -38,8 +38,7 @@ public final class Networking {
                 throw new IllegalArgumentException("There is no network interface with name: " + networkInterfaceName);
             }
 
-            return list(networkInterface.getInetAddresses())
-                .stream()
+            return list(networkInterface.getInetAddresses()).stream()
                 .filter(inetAddress -> inetAddress instanceof Inet4Address)
                 .map(inet4Address -> inet4Address.getHostAddress())
                 .collect(toList());

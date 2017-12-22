@@ -46,7 +46,7 @@ public:
 
 private:
     void handle_ip_change(const std::string&);
-    const string detect_ip();
+    const std::string detect_ip();
 };
 
 }

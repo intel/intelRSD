@@ -27,10 +27,6 @@
 #include "ipmi/response.hpp"
 
 #include <cstdint>
-#include <vector>
-#include <map>
-#include <string>
-#include <iostream>
 
 namespace ipmi {
 namespace command {
@@ -76,7 +72,11 @@ public:
         m_reading_byte = reading_byte;
     }
 
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(IpmiInterface::ByteBuffer& data) const override;
+
+    virtual const char* get_command_name() const override {
+        return "GetSensorReadingFactors";
+    }
 
 private:
     std::uint8_t m_sensor_number{};
@@ -113,26 +113,51 @@ public:
      * @brief Gets reading multiplier.
      * @return Sensor reading multiplier.
      */
-    std::uint16_t get_multiplier() const {
+    int16_t get_multiplier() const {
         return m_multiplier;
     }
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    /*!
+     * @brief Gets additive offset (B).
+     * @return Additive offset (B).
+     */
+    int32_t get_additive_offset() const {
+        return m_additive_offset;
+    }
+
+    /*!
+     * @brief Gets exponent (K1).
+     * @return Exponent. Sets 'decimal point' location for B.
+     */
+    int32_t get_exponent() const {
+        return m_exponent;
+    }
+
+    /*!
+     * @brief Gets result exponent (K2).
+     * @return Result exponent.
+     */
+    int32_t get_result_exponent() const {
+        return m_result_exponent;
+    }
+
+    virtual void unpack(const IpmiInterface::ByteBuffer& data) override;
+
+    virtual const char* get_command_name() const override {
+        return "GetSensorReadingFactors";
+    }
 
 private:
 
-    std::uint16_t extract_multiplier(const std::vector<std::uint8_t>& data) const;
-
     static constexpr std::size_t RESPONSE_SIZE = 8;
 
-    static constexpr std::size_t OFFSET_MULTIPLIER_LSB = 2;
-    static constexpr std::size_t OFFSET_MULTIPLIER_MSB = 3;
-
-    std::uint16_t m_multiplier{};
+    int16_t m_multiplier{};
+    int32_t m_additive_offset{};
+    int32_t m_exponent{};
+    int32_t m_result_exponent{};
 };
 }
 
 }
 }
 }
-

@@ -32,11 +32,16 @@ from include.common.globals import *
 class NetworkInterfaceManager(NetworkInterfaceManager_abstract):
     @classmethod
     def set_fields(cls, network_interface, data, context=None):
-        network_interface.macAddress = str(data[XML_SERIAL])
-        network_interface.factoryMacAddress = network_interface.macAddress
-        interface_logicalname = str(data[NET_LOGICALNAME])
-        network_interface.frameSize = iplink.get_nic_mtu(interface_logicalname)
-        settings = data[LSHW_CONFIGURATION][LSHW_SETTING]
+        try:
+            network_interface.macAddress = str(data[XML_SERIAL])
+            network_interface.factoryMacAddress = network_interface.macAddress
+            interface_logicalname = str(data[NET_LOGICALNAME])
+            network_interface.frameSize = iplink.get_nic_mtu(interface_logicalname)
+            settings = data[LSHW_CONFIGURATION][LSHW_SETTING]
+        except KeyError:
+            # node is not containing information in proper format ->
+            # there are no information about network interfaces
+            return None
         if not isinstance(settings, list):
             settings = [settings]
         for prop in settings:
@@ -78,13 +83,16 @@ class NetworkInterfaceManager(NetworkInterfaceManager_abstract):
                         try:
                             if pci_dev[XML_AT_ID].startswith(LSHW_PCI):
                                 if isinstance(pci_dev[XML_NODE], dict):
-                                    if pci_dev[XML_NODE][XML_AT_ID] == LSHW_NETWORK:
+                                    if pci_dev[XML_NODE][XML_AT_ID].startswith(LSHW_NETWORK):
                                         ret.append(pci_dev[XML_NODE])
                                 elif isinstance(pci_dev[XML_NODE], list):
                                     for dev in pci_dev[XML_NODE]:
-                                        if isinstance(dev[XML_NODE], dict):
-                                            if dev[XML_NODE][XML_AT_ID] == LSHW_NETWORK:
-                                                ret.append(dev[XML_NODE])
+                                        if XML_NODE in dev:
+                                            if isinstance(dev[XML_NODE], dict):
+                                                if dev[XML_NODE][XML_AT_ID].startswith(LSHW_NETWORK):
+                                                    ret.append(dev[XML_NODE])
+                                        elif dev[XML_AT_ID].startswith(LSHW_NETWORK):
+                                            ret.append(dev)
                             elif pci_dev[XML_AT_ID].startswith(LSHW_NETWORK):
                                 ret.append(pci_dev)
                         except KeyError:

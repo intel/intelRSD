@@ -18,8 +18,8 @@ package com.intel.podm.redfish.json.templates.actions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.requests.DetachEndpointRequest;
 import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.business.services.redfish.requests.DetachEndpointRequest;
 
 import static com.intel.podm.business.services.context.ContextType.DRIVE;
 import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUri;

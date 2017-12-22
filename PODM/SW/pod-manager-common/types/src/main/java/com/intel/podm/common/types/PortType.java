@@ -20,13 +20,7 @@ public enum PortType implements EnumeratedType {
     UPSTREAM("Upstream"),
     DOWNSTREAM("Downstream"),
     MESH_PORT("MeshPort"),
-    UNKNOWN("Unknown"),
-    UPSTREAM_PORT("UpstreamPort"),
-    DOWNSTREAM_PORT("DownstreamPort"),
-    INTERSWITCH_PORT("InterswitchPort"),
-    MANAGEMENT_PORT("ManagementPort"),
-    BIDIRECTIONAL_PORT("BidirectionalPort"),
-    UNCONFIGURED_PORT("UnconfiguredPort");
+    UNKNOWN("Unknown");
 
     private final String value;
 

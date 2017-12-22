@@ -19,15 +19,20 @@ package com.intel.podm.business.entities.redfish;
 import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
 import com.intel.podm.common.types.Id;
 
 import javax.persistence.Column;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -38,14 +43,34 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "storage", indexes = @Index(name = "idx_storage_entity_id", columnList = "entity_id", unique = true))
-@Eventable
+@NamedQueries({
+    @NamedQuery(name = Storage.GET_STORAGE_MULTI_SOURCE,
+        query = "SELECT storage "
+            + "FROM Storage storage "
+            + "WHERE storage.computerSystem.uuid = :uuid "
+            + "AND storage.isComplementary = :isComplementary"
+    ),
+    @NamedQuery(name = Storage.GET_PRIMARY_STORAGE,
+        query = "SELECT storage "
+            + "FROM Storage storage "
+            + "WHERE storage.multiSourceDiscriminator = :multiSourceDiscriminator "
+            + "AND storage.isComplementary = false"
+    )
+})
 @SuppressWarnings({"checkstyle:MethodCount"})
-public class Storage extends DiscoverableEntity {
+@Eventable
+public class Storage extends DiscoverableEntity implements MultiSourceResource {
+    public static final String GET_STORAGE_MULTI_SOURCE = "GET_STORAGE_MULTI_SOURCE";
+    public static final String GET_PRIMARY_STORAGE = "GET_PRIMARY_STORAGE";
+
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
+    @Column(name = "multi_source_discriminator")
+    private String multiSourceDiscriminator;
+
     @OneToMany(mappedBy = "storage", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<StorageController> storageControllers = new HashSet<>();
+    private List<StorageController> storageControllers = new ArrayList<>();
 
     @OneToMany(mappedBy = "storageAdapter", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<StorageController> adapters = new HashSet<>();
@@ -71,7 +96,22 @@ public class Storage extends DiscoverableEntity {
         this.entityId = id;
     }
 
-    public Set<StorageController> getStorageControllers() {
+    @Override
+    public String getMultiSourceDiscriminator() {
+        return multiSourceDiscriminator;
+    }
+
+    @Override
+    public void setMultiSourceDiscriminator(String multiSourceDiscriminator) {
+        this.multiSourceDiscriminator = multiSourceDiscriminator;
+    }
+
+    @Override
+    public String getName() {
+        return super.getName() != null ? super.getName() : getMultiSourceDiscriminator();
+    }
+
+    public List<StorageController> getStorageControllers() {
         return storageControllers;
     }
 

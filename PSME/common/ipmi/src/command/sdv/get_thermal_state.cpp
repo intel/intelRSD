@@ -44,8 +44,5 @@ response::GetThermalState::GetThermalState() :
 response::GetThermalState::~GetThermalState() {}
 
 void response::GetThermalState::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
     m_thermal_state = THERMAL_STATE(data[OFFSET_THERMAL_STATE]);
 }

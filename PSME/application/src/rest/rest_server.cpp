@@ -21,6 +21,7 @@
 
 #include "psme/rest/rest_server.hpp"
 #include "psme/rest/endpoints/endpoint_builder.hpp"
+#include "psme/rest/server/multiplexer.hpp"
 #include "configuration/configuration.hpp"
 #include "logger/logger_factory.hpp"
 
@@ -45,14 +46,14 @@ RestServer::RestServer() {
     auto options = load_connectors_options();
 
     endpoint::EndpointBuilder endpoint_builder;
-    endpoint_builder.build_endpoints(m_mp);
+    endpoint_builder.build_endpoints();
 
     ConnectorFactory connector_factory{};
     for (const auto& connector_options: options) {
         m_connectors.emplace_back(
             connector_factory.create_connector(connector_options,
-                [this](const Request& req, Response& res) {
-                    m_mp.forward_to_handler(res, const_cast<Request&>(req));
+                [](const Request& req, Response& res) {
+                    Multiplexer::get_instance()->forward_to_handler(res, const_cast<Request&>(req));
                 }));
     }
 }

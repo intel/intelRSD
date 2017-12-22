@@ -61,12 +61,12 @@ TEST(AddIscsiTargetTest, PositiveExecute) {
     MyAddIscsiTarget command{"TestInitiatorIQN", "TestTargetIQN"};
     AddIscsiTarget::Request request{};
     AddIscsiTarget::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[TARGET_IQN] = "TestTargetIQN";
     params[INITIATOR_IQN] = "TestInitiatorIQN";
-    params[AUTHENTICATION_METHOD] = Json::Value::null;
+    params[AUTHENTICATION_METHOD] = json::Json::null;
 
     EXPECT_NO_THROW(request = AddIscsiTarget::Request::from_json(params));
     EXPECT_NO_THROW(command.execute(request, response));
@@ -82,12 +82,12 @@ TEST(AddIscsiTargetTest, NegativeTargetNotFound) {
     MyAddIscsiTarget command{"TestInitiatorIQN", "TestTargetIQN"};
     AddIscsiTarget::Request request{};
     AddIscsiTarget::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[TARGET_IQN] = "OtherTestTargetIQN";
     params[INITIATOR_IQN] = "TestInitiatorIQN";
-    params[AUTHENTICATION_METHOD] = Json::Value::null;
+    params[AUTHENTICATION_METHOD] = json::Json::null;
 
     EXPECT_NO_THROW(request = AddIscsiTarget::Request::from_json(params));
     EXPECT_ANY_THROW(command.execute(request, response));
@@ -97,12 +97,12 @@ TEST(AddIscsiTargetTest, NegativeInitiatortNotFound) {
     MyAddIscsiTarget command{"TestInitiatorIQN", "TestTargetIQN"};
     AddIscsiTarget::Request request{};
     AddIscsiTarget::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[TARGET_IQN] = "TestTargetIQN";
     params[INITIATOR_IQN] = "OtherTestInitiatorIQN";
-    params[AUTHENTICATION_METHOD] = Json::Value::null;
+    params[AUTHENTICATION_METHOD] = json::Json::null;
 
     EXPECT_NO_THROW(request = AddIscsiTarget::Request::from_json(params));
     EXPECT_ANY_THROW(command.execute(request, response));

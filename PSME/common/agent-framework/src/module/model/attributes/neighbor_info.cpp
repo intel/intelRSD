@@ -32,15 +32,15 @@ NeighborInfo::NeighborInfo() { }
 
 NeighborInfo::~NeighborInfo() { }
 
-Json::Value NeighborInfo::to_json() const {
-    Json::Value result;
+json::Json NeighborInfo::to_json() const {
+    json::Json result;
     result[literals::NeighborInfo::SWITCH_IDENTIFIER] = get_switch_identifier();
     result[literals::NeighborInfo::PORT_IDENTIFIER] = get_port_identifier();
     result[literals::NeighborInfo::CABLE_ID] = get_cable_id();
     return result;
 }
 
-NeighborInfo NeighborInfo::from_json(const Json::Value& json) {
+NeighborInfo NeighborInfo::from_json(const json::Json& json) {
     attribute::NeighborInfo neighbor_info;
     neighbor_info.set_switch_identifier(json[literals::NeighborInfo::SWITCH_IDENTIFIER]);
     neighbor_info.set_port_identifier(json[literals::NeighborInfo::PORT_IDENTIFIER]);

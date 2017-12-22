@@ -23,23 +23,23 @@ import com.intel.podm.business.services.redfish.UpdateService;
 import com.intel.podm.common.synchronization.TaskCoordinator;
 import com.intel.podm.common.types.redfish.RedfishDrive;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import java.util.concurrent.TimeoutException;
 
-@Dependent
-public class DriveUpdateServiceImpl implements UpdateService<RedfishDrive> {
+@RequestScoped
+class DriveUpdateServiceImpl implements UpdateService<RedfishDrive> {
     @Inject
     private ServiceTraverser traverser;
 
     @Inject
-    private DriveActionsService driveActionsService;
+    private DriveUpdater driveUpdater;
 
     @Inject
     private TaskCoordinator taskCoordinator;
 
     @Override
     public void perform(Context target, RedfishDrive representation) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(traverser.traverseServiceUuid(target), () -> driveActionsService.updateDrive(target, representation));
+        taskCoordinator.run(traverser.traverseServiceUuid(target), () -> driveUpdater.updateDrive(target, representation));
     }
 }

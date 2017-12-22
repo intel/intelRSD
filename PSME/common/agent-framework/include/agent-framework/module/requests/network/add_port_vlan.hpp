@@ -31,10 +31,6 @@
 
 #include <string>
 
-namespace Json {
-    class Value;
-}
-
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -118,7 +114,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create AddPortVlan from Json
@@ -127,7 +123,7 @@ public:
      *
      * @return new AddPortVlan
      */
-    static AddPortVlan from_json(const Json::Value& json);
+    static AddPortVlan from_json(const json::Json& json);
 
     /*!
      * @brief Return procedure schema

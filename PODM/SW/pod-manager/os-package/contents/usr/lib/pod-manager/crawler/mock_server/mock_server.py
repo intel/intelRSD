@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from http.server import HTTPServer
+import http.server
 
 
-class MockServer(HTTPServer):
+class MockServer(http.server.HTTPServer):
     def __init__(self, server_address, request_handler_class, service):
-        HTTPServer.__init__(self, server_address, request_handler_class)
+        http.server.HTTPServer.__init__(self, server_address, request_handler_class)
         self.service = service

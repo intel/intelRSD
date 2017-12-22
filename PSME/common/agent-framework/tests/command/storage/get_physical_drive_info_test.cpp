@@ -74,8 +74,8 @@ TEST(GetPhysicalDriveInfoTest, PositiveExecute) {
     MyGetPhysicalDriveInfo command{TEST_DRIVE};
     GetPhysicalDriveInfo::Request request{""};
     GetPhysicalDriveInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::PhysicalDrive::DRIVE] = TEST_DRIVE;
 
@@ -107,8 +107,8 @@ TEST(GetPhysicalDriveInfoTest, NegativeDriveNotFound) {
     MyGetPhysicalDriveInfo command{TEST_DRIVE};
     GetPhysicalDriveInfo::Request request{""};
     GetPhysicalDriveInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::PhysicalDrive::DRIVE] = "OtherTestDrive";
 

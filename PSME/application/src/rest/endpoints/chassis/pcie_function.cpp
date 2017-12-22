@@ -62,8 +62,8 @@ json::Value make_prototype() {
 }
 
 
-void
-fill_links(const agent_framework::model::PcieFunction& function, const std::string& device_uuid, json::Value& json) {
+void fill_links(const agent_framework::model::PcieFunction& function,
+                const std::string& device_uuid, json::Value& json) {
     if (!function.get_functional_device().has_value()) {
         return;
     }

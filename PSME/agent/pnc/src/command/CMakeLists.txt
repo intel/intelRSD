@@ -40,6 +40,9 @@ add_library(pnc-command OBJECT
     delete_zone_endpoint.cpp
     delete_task.cpp
     set_component_attributes.cpp
+    get_metric_definition_info.cpp
+    get_metric_definitions_collection.cpp
+    get_metrics.cpp
 )
 
 set_psme_command_target_properties(pnc-command)

@@ -17,19 +17,18 @@
 package com.intel.podm.security.providers;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import static com.intel.podm.common.logger.LoggerFactory.getLogger;
+
 public enum PasswordProvider {
     INSTANCE;
 
-    // TODO: make Resource(name = "password") to work, not to use below workaround.
-    private static Logger logger = LoggerFactory.getLogger(PasswordProvider.class);
+    private static Logger logger = getLogger(PasswordProvider.class);
 
     public String getPassword() {
-
         try {
             InitialContext ctx = new InitialContext();
             String password = (String) ctx.lookup("java:global/password");
@@ -40,6 +39,5 @@ public enum PasswordProvider {
             throw new RuntimeException("Context not found. Keystore password could not be retrieved.", e);
         }
     }
-
 }
 

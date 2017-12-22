@@ -27,6 +27,10 @@
 
 
 #include "enum_builder.hpp"
+#include "processor_instruction_set.hpp"
+#include "hssi_configuration.hpp"
+#include "hssi_sideband.hpp"
+#include "sensor_type.hpp"
 
 
 
@@ -78,7 +82,7 @@ ENUM(CollectionType, uint32_t, None, Chassis, Systems, EthernetSwitches,
      NetworkDeviceFunctions, PortMembers, PowerZones, ThermalZones, PSUs, Fans, PhysicalDrives,
      LogicalDrives, iSCSITargets, Managers, Ports, PCIeDevices,
      Zones, PCIeFunctions, Switches, Acls, Rules, StaticMacs,
-     StorageSubsystems, Tasks, Fabrics, Endpoints);
+     StorageSubsystems, Tasks, Fabrics, Endpoints, ChassisSensors, MetricDefinitions, Metrics, TrustedModules);
 
 /*!
  * @brief ENUM CollectionName for attribute class Collection subclass
@@ -91,7 +95,7 @@ ENUM(CollectionName, uint32_t, None, AuthorizationCertificates, Processors,
      Managers, EthernetSwitches, Neighbors, Members, EthernetSwitchPortVlans, PortMembers,
      NeighborSwitches, Ports, PcieDevices, Zones, PcieFunctions, Switches, PortAcls,
      Acls, AclRules, AclPorts, StaticMacs, StorageSubsystems, Tasks, Fabrics,
-     Endpoints);
+     Endpoints, ChassisSensors, MetricDefinitions, Metrics, TrustedModules);
 
 /*!
  * @brief ENUM State for attribute class Status State member
@@ -124,36 +128,38 @@ ENUM(ManagerInfoType, uint32_t,
      ManagementController, EnclosureManager, BMC, RackManager, AuxiliaryController);
 
 /*!
- * @brief ENUM SerialConsoleSupprtedType describes type of communication with
+ * @brief ENUM SerialConsoleSupportedType describes type of communication with
  * serial
  */
-ENUM(SerialConsoleSupprtedType, uint32_t,
+ENUM(SerialConsoleSupportedType, uint32_t,
      Telnet, IPMI, SSH);
 
 /*!
- * @brief ENUM GraphicalConsoleSupprtedType describes type of communication with
+ * @brief ENUM GraphicalConsoleSupportedType describes type of communication with
  * graphical console
  */
-ENUM(GraphicalConsoleSupprtedType, uint32_t,
+ENUM(GraphicalConsoleSupportedType, uint32_t,
      KVMIP, dummy);
 
 /*!
- * @brief ENUM CommandShellSupprtedType describes type of communication with
+ * @brief ENUM CommandShellSupportedType describes type of communication with
  * graphical console
  */
-ENUM(CommandShellSupprtedType, uint32_t,
+ENUM(CommandShellSupportedType, uint32_t,
      VirtualMedia, Telnet, SSH);
 
 /*!
  * @brief ENUM Component describes type of the object
  */
-ENUM(Component, uint32_t, None, Root, AuthorizationCertificate, Chassis, Drive,
+ENUM(Component, uint32_t,
+     None, Root, AuthorizationCertificate, Chassis, Drive,
      Fan, PhysicalDrive, IscsiTarget, LogicalDrive, Manager, Memory,
      NetworkInterface, NetworkDevice, PowerZone, Processor, PSU, EthernetSwitch, RemoteEthernetSwitch,
-     NetworkDeviceFunction, StorageController, StorageServices, EthernetSwitchPort, System,
+     NetworkDeviceFunction, StorageController, StorageService, EthernetSwitchPort, System,
      ThermalZone, Vlan, EthernetSwitchPortVlan, PortMember, NeighborSwitch,
      Switch, PcieDevice, Zone, PcieFunction, Port,
-     Acl, AclRule, StaticMac, StorageSubsystem, Task, Fabric, Endpoint);
+     Acl, AclRule, StaticMac, StorageSubsystem, Task, Fabric, Endpoint, ChassisSensor, Metric, MetricDefinition,
+     TrustedModule);
 
 /*!
  * @brief ENUM IdentifierType for Identifier attribute durableNameFormat field
@@ -191,13 +197,83 @@ ENUM(EncryptionStatus, uint32_t, Unencrypted, Unlocked, Locked, Foreign);
  * @brief ENUM TaskState for Task class
  * */
 ENUM(TaskState, uint32_t, New, Starting, Running, Suspended, Interrupted, Pending,
-    Stopping, Completed, Killed, Exception, Service);
+     Stopping, Completed, Killed, Exception, Service);
 
 
 /*!
  * @brief ENUM ManagerPowerState state enum for Manager class
  * */
 ENUM(ManagerPowerState, uint32_t, On, Off);
+
+/*!
+ * @brief ENUM ProcessorType for Processor class member
+ *
+ */
+ENUM(ProcessorType, uint32_t, CPU, GPU, FPGA, DSP, Accelerator, OEM);
+
+/*!
+ * @brief ENUM ProcessorModel for Processor class member
+ *
+ */
+ENUM(ProcessorModel, uint32_t, E3, E5, E7, X3, X5, X7, I3, I5, I7, Silver, Gold, Platinum, Unknown);
+
+/*!
+ * @brief ENUM ProcessorArchitecture for Processor class member
+ */
+ENUM(ProcessorArchitecture, uint32_t, x86, ARM, MIPS, OEM);
+
+
+/*!
+ * @brief ENUM OnPackageMemoryType for OnPackageMemory class type member
+ */
+ENUM(OnPackageMemoryType, uint32_t,
+     L1Cache, L2Cache, L3Cache, HBM2, Flash, DDR, DDR2, DDR3, DDR4, QDR2, QDR4, QDR2P, RL3, GDDR5, EDRAM, HBM);
+
+/*!
+ * @brief ENUM FpgaType enum for Fpga attribute class
+ */
+ENUM(FpgaType, uint32_t, Integrated, Discrete, DiscreteWithSoC);
+
+/*!
+ * @brief ENUM TransferProtocol for Update service
+ * */
+ENUM(TransferProtocol, uint32_t, CIFS, FTP, SFTP, HTTP, HTTPS, NSF, SCP, TFTP, OEM);
+
+/*!
+ * @brief ENUM MetricDataType for Metric Definition class
+ * */
+ENUM(MetricDataType, uint32_t, Binary, Boolean, Byte, Date, DateTimeOffset, Duration,
+     TimeOfDay, Decimal, Double, Single, Int16, Int32, Int64, String, SByte);
+
+/*!
+ * @brief ENUM MetricType for Metric Definition class
+ * */
+ENUM(MetricType, uint32_t, Counter, Gauge, Numeric, Discrete);
+
+/*!
+ * @brief ENUM MetricImplementation for Metric Definition class
+ * */
+ENUM(MetricImplementation, uint32_t, PhysicalSensor, Synthesized, Calculated, DigitalMeter);
+
+/*!
+ * @brief ENUM DiscreteMetricType for Metric Definition
+ */
+ENUM(DiscreteMetricType, uint32_t, Single, Multiple);
+
+/*!
+ * @brief ENUM MetricCalculable for Metric Definition class
+ * */
+ENUM(MetricCalculable, uint32_t, NonCalculatable, Summable, NonSummable);
+
+/*!
+ * @brief ENUM MetricAlgorithm for Metric Definition class
+ * */
+ENUM(MetricAlgorithm, uint32_t, AverageOverInterval, MaximumDuringInterval, MinimumDuringInterval);
+
+/*!
+ * @brief ENUM Interface type for TrustedModule class
+ */
+ENUM(InterfaceType, uint32_t, TPM1_2, TPM2_0, TCM1_0);
 
 }
 }

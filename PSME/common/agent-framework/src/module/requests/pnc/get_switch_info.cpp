@@ -28,19 +28,19 @@
 
 #include "agent-framework/module/requests/pnc/get_switch_info.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetSwitchInfo::GetSwitchInfo(const std::string& pcie_switch): m_switch{pcie_switch} {}
 
-Json::Value GetSwitchInfo::to_json() const {
-    Json::Value value;
+json::Json GetSwitchInfo::to_json() const {
+    json::Json value;
     value[Switch::SWITCH] = m_switch;
     return value;
 }
 
-GetSwitchInfo GetSwitchInfo::from_json(const Json::Value& json) {
-    return GetSwitchInfo{json[Switch::SWITCH].asString()};
+GetSwitchInfo GetSwitchInfo::from_json(const json::Json& json) {
+    return GetSwitchInfo{json[Switch::SWITCH].get<std::string>()};
 }

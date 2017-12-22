@@ -16,9 +16,9 @@
 #
 # </license_header>
 
-
 set(SOURCES
     eventing_server.cpp
+    component_notification.cpp
 )
 
-add_library(eventing-server OBJECT ${SOURCES})
+add_library(application-eventing ${SOURCES})

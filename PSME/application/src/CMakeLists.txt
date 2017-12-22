@@ -23,66 +23,49 @@ set (SOURCES
     version.cpp
     app.cpp
     main.cpp
-)
+    )
 
 include_directories(
     ${PSME_APPLICATION_DIR}/include
+    ${DATABASE_INCLUDE_DIRS}
 )
 
 add_subdirectory(rest)
-add_subdirectory(command)
-add_subdirectory(eventing)
 add_subdirectory(ssdp)
 add_subdirectory(registration)
 add_subdirectory(core)
-
-
-add_library(application
-    $<TARGET_OBJECTS:core-agent>
-    $<TARGET_OBJECTS:command-server>
-    $<TARGET_OBJECTS:command-registration>
-    $<TARGET_OBJECTS:command-heart-beat>
-    $<TARGET_OBJECTS:command-eventing>
-    $<TARGET_OBJECTS:registration-server>
-    $<TARGET_OBJECTS:eventing-server>
-)
-
-add_library(application-commands
-    $<TARGET_OBJECTS:command-heart-beat-json>
-    $<TARGET_OBJECTS:command-heart-beat-definition>
-    $<TARGET_OBJECTS:command-registration-json>
-    $<TARGET_OBJECTS:command-registration-definition>
-    $<TARGET_OBJECTS:command-eventing-json>
-    $<TARGET_OBJECTS:command-eventing-definition>
-)
+add_subdirectory(eventing)
 
 if (ENABLE_HTTPS)
     set(EXTRA_LIBS ${EXTRA_LIBS} ${GNUTLS_LIBRARIES})
 endif()
 
 add_executable(psme-rest-server ${SOURCES})
+
 target_link_libraries(psme-rest-server
     ${LOGGER_LIBRARIES}
-    -Wl,--whole-archive application-commands -Wl,--no-whole-archive
     application-rest
+    application-core
+    -Wl,--whole-archive application-eventing -Wl,--no-whole-archive
+    -Wl,--whole-archive application-registration -Wl,--no-whole-archive
     ssdp-config-loader
-    application
     metadata
     ${UUID_LIBRARIES}
     ${MICROHTTPD_LIBRARIES}
-    ${JSONCPP_LIBRARIES}
-    ${JSONRPCCPP_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
+    ${JSON_LIBRARIES}
+    ${JSON_RPC_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
+    ${JSONPTR_LIBRARIES}
     ${BASE64_LIBRARIES}
     ${CURL_LIBRARIES}
     ${AGENT_FRAMEWORK_LIBRARIES}
     ${MD5_LIBRARIES}
     ${SSDP_LIBRARIES}
     ${NET_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
+    ${DATABASE_LIBRARIES}
     ${EXTRA_LIBS}
+    ${SAFESTRING_LIBRARIES}
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU|Clang)

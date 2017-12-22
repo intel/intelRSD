@@ -1,6 +1,4 @@
 /*!
- * @section LICENSE
- *
  * @copyright
  * Copyright (c) 2016-2017 Intel Corporation
  *
@@ -18,12 +16,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
  * */
 
 #include "agent-framework/module/utils/optional_field.hpp"
 #include "agent-framework/module/enum/enum_builder.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include "gtest/gtest.h"
 
@@ -172,7 +169,7 @@ TEST_F(OptionalFieldTest, MoveConstruction) {
 
 /*!
  * This test verifies that a copy-constructed OptionalField class object
- * contatins a value identical to the one contained by the object used for
+ * contains a value identical to the one contained by the object used for
  * copy-construction
  * */
 TEST_F(OptionalFieldTest, CopyConstruction) {
@@ -218,15 +215,14 @@ TEST_F(OptionalFieldTest, CopyConstruction) {
 }
 
 /*!
- * This test verifies that an OptionalField class constructed from a Json::Value
- * object from JsonCpp library contains a value identical to that held by the
- * Json::Value object
+ * This test verifies that an OptionalField class constructed from a json::Json
+ * object contains a value identical to that held by the json::Json object
  * */
-TEST_F(OptionalFieldTest, JsonCPPValueConstruction) {
-    /* Construct an empty Json::Value object */
-    Json::Value json{};
+TEST_F(OptionalFieldTest, RpcJsonValueConstruction) {
+    /* Construct an empty json::Json object */
+    json::Json json{};
 
-    /* Construct and assign OptionalField objects to Json::Value */
+    /* Construct and assign OptionalField objects to json::Json */
     json[INT] = OptionalField<int>(int_value);
     json[UINT] = OptionalField<unsigned int>(uint_value);
     json[DOUBLE] = OptionalField<double>(double_value);
@@ -234,13 +230,13 @@ TEST_F(OptionalFieldTest, JsonCPPValueConstruction) {
     json[STRING] = OptionalField<string>(string_value);
     json[BOOL] = OptionalField<bool>(bool_value);
 
-    /* Verify that the Json::Value object contains proper values */
-    ASSERT_EQ(int_value, json[INT].asInt());
-    ASSERT_EQ(uint_value, json[UINT].asUInt());
-    ASSERT_TRUE(compare_double(double_value, json[DOUBLE].asDouble()));
-    ASSERT_EQ(string(cstring_value), string(json[CSTRING].asCString()));
-    ASSERT_EQ(string_value, json[STRING].asString());
-    ASSERT_EQ(bool_value, json[BOOL].asBool());
+    /* Verify that the json::Json object contains proper values */
+    ASSERT_EQ(int_value, json[INT]);
+    ASSERT_EQ(uint_value, json[UINT]);
+    ASSERT_TRUE(compare_double(double_value, json[DOUBLE]));
+    ASSERT_EQ(string(cstring_value), json[CSTRING].get<string>().c_str());
+    ASSERT_EQ(string_value, json[STRING].get<std::string>());
+    ASSERT_EQ(bool_value, json[BOOL]);
 }
 
 /*!
@@ -249,10 +245,10 @@ TEST_F(OptionalFieldTest, JsonCPPValueConstruction) {
  * json::Value object
  * */
 TEST_F(OptionalFieldTest, JsonCXXValueConstruction) {
-    /* Construct an empty Json::Value object */
+    /* Construct an empty json::Json object */
     json::Value json{};
 
-    /* Construct and assign OptionalField objects to Json::Value */
+    /* Construct and assign OptionalField objects to json::Json */
     json[INT] = OptionalField<int>(int_value);
     json[UINT] = OptionalField<unsigned int>(uint_value);
     json[DOUBLE] = OptionalField<double>(double_value);
@@ -261,7 +257,7 @@ TEST_F(OptionalFieldTest, JsonCXXValueConstruction) {
     json[BOOL] = OptionalField<bool>(bool_value);
     json[NULL_VALUE] = OptionalField<int>();
 
-    /* Verify that the Json::Value object contains proper values */
+    /* Verify that the json::Json object contains proper values */
     ASSERT_EQ(int_value, json[INT].as_int());
     ASSERT_EQ(uint_value, json[UINT].as_uint());
     ASSERT_TRUE(compare_double(double_value, json[DOUBLE].as_double()));
@@ -322,10 +318,10 @@ TEST_F(OptionalFieldTest, TemplateParameterValueAssignment) {
 
 /*!
  * This test verifies that that an uninitialized OptionalField object converts
- * properly to Json::Value object from JsonCPP library containing a null value.
+ * properly to json::Json object from rpc json library containing a null value.
  * */
-TEST_F(OptionalFieldTest, JsonCPPNullValueConversion) {
-    Json::Value json = Json::ValueType::nullValue;
+TEST_F(OptionalFieldTest, RpcJsonNullValueConversion) {
+    json::Json json{};
 
     OptionalField<int> int_opfield = json[INT];
     OptionalField<unsigned int> uint_opfield = json[UINT];
@@ -344,19 +340,19 @@ TEST_F(OptionalFieldTest, JsonCPPNullValueConversion) {
 }
 
 /*!
- * This test verifies that that an initilized OptionalField object converts
- * properly to Json::Value object from JsonCPP library containing a non-null
+ * This test verifies that that an initialized OptionalField object converts
+ * properly to json::Json object from rpc json library containing a non-null
  * value.
  * */
-TEST_F(OptionalFieldTest, JsonCPPValueConversion) {
-    Json::Value json = Json::ValueType::nullValue;
+TEST_F(OptionalFieldTest, RpcJsonValueConversion) {
+    json::Json json{};
 
     OptionalField<int> int_opfield = (json[INT] = int_value);
     OptionalField<unsigned int> uint_opfield = (json[UINT] = uint_value);
     OptionalField<double> double_opfield = (json[DOUBLE] = double_value);
-    OptionalField<const char*> cstring_opfield = (json[CSTRING] = cstring_value);
     OptionalField<string> string_opfield = (json[STRING] = string_value);
     OptionalField<bool> bool_opfield = (json[BOOL] = bool_value);
+    OptionalField<const char*> cstring_opfield = (json[CSTRING] = cstring_value);
 
     /* Verify that null-constructed OptionalField objects have no value */
     ASSERT_TRUE(int_opfield.has_value());
@@ -376,7 +372,7 @@ TEST_F(OptionalFieldTest, JsonCPPValueConversion) {
 
 /*!
  * This test verifies that an uninitialized OptionalField object converts
- * properly to a json::Value object from JsonCXX library containaing a null
+ * properly to a json::Value object from JsonCXX library containing a null
  * value.
  * */
 TEST_F(OptionalFieldTest, JsonCXXNullValueConversion) {
@@ -400,7 +396,7 @@ TEST_F(OptionalFieldTest, JsonCXXNullValueConversion) {
 
 /*!
  * This test verifies that an initialized OptionalField objects converts
- * properly to a json::Value object from JsonCXX library containin a non-null
+ * properly to a json::Value object from JsonCXX library containing a non-null
  * value.
  * */
 TEST_F(OptionalFieldTest, JsonCXXValueConversion) {
@@ -435,27 +431,27 @@ TEST_F(OptionalFieldTest, JsonCXXValueConversion) {
  * form agent_framework component.
  * */
 TEST_F(OptionalFieldTest, FrameworkEnumsToJson) {
-    Json::Value jsonCPP = Json::ValueType::nullValue;
+    json::Json rpc_json{};
     json::Value jsonCXX = json::Value::Type::NIL;
 
-    jsonCPP["TomSawyer"] = OptionalField<RushCollection>(RushCollection::TomSawyer);
-    jsonCPP["Limelight"] = OptionalField<RushCollection>(RushCollection::Limelight);
-    jsonCPP["Xanadu"] = OptionalField<RushCollection>(RushCollection::Xanadu);
-    jsonCPP["null"] = OptionalField<RushCollection>();
+    rpc_json["TomSawyer"] = OptionalField<RushCollection>(RushCollection::TomSawyer);
+    rpc_json["Limelight"] = OptionalField<RushCollection>(RushCollection::Limelight);
+    rpc_json["Xanadu"] = OptionalField<RushCollection>(RushCollection::Xanadu);
+    rpc_json["null"] = OptionalField<RushCollection>();
 
     jsonCXX["TomSawyer"] = OptionalField<RushCollection>(RushCollection::TomSawyer);
     jsonCXX["Limelight"] = OptionalField<RushCollection>(RushCollection::Limelight);
     jsonCXX["Xanadu"] = OptionalField<RushCollection>(RushCollection::Xanadu);
     jsonCXX["null"] = OptionalField<RushCollection>();
 
-    ASSERT_EQ(jsonCPP["TomSawyer"].asString(), string("TomSawyer"));
-    ASSERT_EQ(jsonCPP["Limelight"].asString(), string("Limelight"));
-    ASSERT_EQ(jsonCPP["Xanadu"].asString(), string("Xanadu"));
-    ASSERT_TRUE(Json::ValueType::nullValue == jsonCPP["null"].type());
+    ASSERT_EQ(rpc_json["TomSawyer"], string("TomSawyer"));
+    ASSERT_EQ(rpc_json["Limelight"], string("Limelight"));
+    ASSERT_EQ(rpc_json["Xanadu"], string("Xanadu"));
+    ASSERT_TRUE(rpc_json["null"].is_null());
 
-    ASSERT_EQ(jsonCXX["TomSawyer"].as_string(), string("TomSawyer"));
-    ASSERT_EQ(jsonCXX["Limelight"].as_string(), string("Limelight"));
-    ASSERT_EQ(jsonCXX["Xanadu"].as_string(), string("Xanadu"));
+    ASSERT_EQ(jsonCXX["TomSawyer"], string("TomSawyer"));
+    ASSERT_EQ(jsonCXX["Limelight"], string("Limelight"));
+    ASSERT_EQ(jsonCXX["Xanadu"], string("Xanadu"));
     ASSERT_TRUE(json::Value::Type::NIL == jsonCXX["null"].get_type());
 }
 
@@ -464,23 +460,23 @@ TEST_F(OptionalFieldTest, FrameworkEnumsToJson) {
  * form agent_framework component.
  * */
 TEST_F(OptionalFieldTest, FrameworkEnumsFromJson) {
-    Json::Value jsonCPP = Json::ValueType::nullValue;
+    json::Json rpc_json{};
     json::Value jsonCXX = json::Value::Type::NIL;
 
-    jsonCPP["TomSawyer"] = "TomSawyer";
-    jsonCPP["Limelight"] = "Limelight";
-    jsonCPP["Xanadu"] = "Xanadu";
-    jsonCPP["null"] = Json::ValueType::nullValue;
+    rpc_json["TomSawyer"] = "TomSawyer";
+    rpc_json["Limelight"] = "Limelight";
+    rpc_json["Xanadu"] = "Xanadu";
+    rpc_json["null"] = json::Json{};
 
     jsonCXX["TomSawyer"] = "TomSawyer";
     jsonCXX["Limelight"] = "Limelight";
     jsonCXX["Xanadu"] = "Xanadu";
     jsonCXX["null"] = json::Value::Type::NIL;
 
-    ASSERT_EQ(OptionalField<RushCollection>(RushCollection::TomSawyer), OptionalField<RushCollection>(jsonCPP["TomSawyer"]));
-    ASSERT_EQ(OptionalField<RushCollection>(RushCollection::Limelight), OptionalField<RushCollection>(jsonCPP["Limelight"]));
-    ASSERT_NE(OptionalField<RushCollection>(RushCollection::Xanadu), OptionalField<RushCollection>(jsonCPP["TomSawyer"]));
-    ASSERT_FALSE(OptionalField<RushCollection>(jsonCPP["null"]).has_value());
+    ASSERT_EQ(OptionalField<RushCollection>(RushCollection::TomSawyer), OptionalField<RushCollection>(rpc_json["TomSawyer"]));
+    ASSERT_EQ(OptionalField<RushCollection>(RushCollection::Limelight), OptionalField<RushCollection>(rpc_json["Limelight"]));
+    ASSERT_NE(OptionalField<RushCollection>(RushCollection::Xanadu), OptionalField<RushCollection>(rpc_json["TomSawyer"]));
+    ASSERT_FALSE(OptionalField<RushCollection>(rpc_json["null"]).has_value());
 
     ASSERT_EQ(OptionalField<RushCollection>(RushCollection::TomSawyer), OptionalField<RushCollection>(jsonCXX["TomSawyer"]));
     ASSERT_EQ(OptionalField<RushCollection>(RushCollection::Limelight), OptionalField<RushCollection>(jsonCXX["Limelight"]));
@@ -530,6 +526,37 @@ TEST_F(OptionalFieldTest, StringComparison) {
     ASSERT_FALSE(OptionalField<string>(string_value) != OptionalField<string>(string_value));
     ASSERT_FALSE(OptionalField<string>(string_value) != cstring_value);
     ASSERT_FALSE(cstring_value != OptionalField<string>(string_value));
+
+    /* deeper tests, checked operators for 'empty' optionals */
+    const std::string FIRST{"first"};
+    const std::string SECOND{"second"};
+    const std::string EMPTY{""};
+
+    OptionalField<std::string> first{FIRST};
+    OptionalField<std::string> second{SECOND};
+    OptionalField<std::string> empty{EMPTY};
+    OptionalField<std::string> not_set{};
+
+    ASSERT_EQ(first, first);
+    ASSERT_EQ(first, FIRST.c_str());
+    ASSERT_EQ(FIRST.c_str(), first);
+    ASSERT_EQ(first, FIRST);
+    ASSERT_EQ(FIRST, first);
+
+    ASSERT_EQ(empty, empty);
+    ASSERT_EQ(empty, EMPTY);
+    ASSERT_EQ(empty, EMPTY.c_str());
+
+    ASSERT_EQ(not_set, not_set);
+    ASSERT_EQ(not_set, nullptr);
+    ASSERT_EQ(nullptr, not_set);
+
+    ASSERT_NE(not_set, empty);
+    ASSERT_NE(empty, not_set);
+
+    ASSERT_NE(first, not_set);
+    ASSERT_NE(first, empty);
+    ASSERT_NE(first, second);
 }
 
 /*!
@@ -559,7 +586,7 @@ TEST_F(OptionalFieldTest, EnumComparison){
 
 TEST_F(OptionalFieldTest, OperatorPlus) {
     /* Operator action between two OptionalField objects */
-    /* Both operatonds are null-initialized */
+    /* Both operands are null-initialized */
     ASSERT_FALSE((OptionalField<int>() + OptionalField<int>()).has_value());
 
     /* One operand is null initialized */
@@ -590,7 +617,7 @@ TEST_F(OptionalFieldTest, OperatorPlus) {
 
 TEST_F(OptionalFieldTest, OperatorMinus) {
     /* Operator action between two OptionalField objects */
-    /* Both operatonds are null-initialized */
+    /* Both operands are null-initialized */
     ASSERT_FALSE((OptionalField<int>() - OptionalField<int>()).has_value());
 
     /* One operand is null initialized */
@@ -621,7 +648,7 @@ TEST_F(OptionalFieldTest, OperatorMinus) {
 
 TEST_F(OptionalFieldTest, OperatorStar) {
     /* Operator action between two OptionalField objects */
-    /* Both operatonds are null-initialized */
+    /* Both operands are null-initialized */
     ASSERT_FALSE((OptionalField<int>() * OptionalField<int>()).has_value());
 
     /* One operand is null initialized */
@@ -647,7 +674,7 @@ TEST_F(OptionalFieldTest, OperatorStar) {
 
 TEST_F(OptionalFieldTest, OperatorSlash) {
     /* Operator action between two OptionalField objects */
-    /* Both operatonds are null-initialized */
+    /* Both operands are null-initialized */
     ASSERT_THROW((OptionalField<int>() / OptionalField<int>()), std::logic_error);
 
     /* One operand is null initialized */
@@ -711,7 +738,7 @@ TEST_F(OptionalFieldTest, ComparisonOperatorsForDouble) {
     ASSERT_TRUE(OptionalField<double>(double_value) == OptionalField<double>(double_value));
     ASSERT_FALSE(OptionalField<double>(double_value) != OptionalField<double>(double_value));
 
-    /* Logical operators for small diference between numbers */
+    /* Logical operators for small difference between numbers */
     ASSERT_FALSE(OptionalField<double>(double_value + epsilon_double) == OptionalField<double>(double_value));
     ASSERT_TRUE(OptionalField<double>(double_value + epsilon_double) != OptionalField<double>(double_value));
 

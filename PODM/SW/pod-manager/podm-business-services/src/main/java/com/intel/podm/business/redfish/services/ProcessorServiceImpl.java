@@ -17,75 +17,62 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.ProcessorDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.ProcessorDto;
-import com.intel.podm.business.dto.redfish.attributes.ProcessorIdDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Processor;
-import com.intel.podm.business.entities.redfish.embeddables.ProcessorId;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.aggregation.ComputerSystemSubResourcesFinder;
+import com.intel.podm.business.redfish.services.aggregation.MultiSourceEntityTreeTraverser;
+import com.intel.podm.business.redfish.services.aggregation.ProcessorMerger;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PROCESSORS;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.PROCESSOR_METRICS_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-public class ProcessorServiceImpl implements ReaderService<ProcessorDto> {
+@RequestScoped
+class ProcessorServiceImpl implements ReaderService<ProcessorDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private MultiSourceEntityTreeTraverser multiTraverser;
 
+    @Inject
+    private ComputerSystemSubResourcesFinder computerSystemSubResourcesFinder;
+
+    @Inject
+    private ProcessorMerger processorMerger;
+
+    @Transactional(REQUIRED)
     @Override
-    public CollectionDto getCollection(Context systemContext) throws ContextResolvingException {
-        ComputerSystem system = (ComputerSystem) traverser.traverse(systemContext);
-        return new CollectionDto(PROCESSORS, getAsIdSet(system.getProcessors()));
-    }
+    public CollectionDto getCollection(Context context) throws ContextResolvingException {
+        ComputerSystem system = (ComputerSystem) traverser.traverse(context);
 
-    @Override
-    public ProcessorDto getResource(Context processorContext) throws ContextResolvingException {
-        Processor processor = (Processor) traverser.traverse(processorContext);
-        return ProcessorDto.newBuilder()
-            .id(processorContext.getId().toString())
-            .name(processor.getName())
-            .description(processor.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(processor.getService(), processor.getUnknownOems()))
-            .socket(processor.getSocket())
-            .processorType(processor.getProcessorType())
-            .processorArchitecture(processor.getProcessorArchitecture())
-            .instructionSet(processor.getInstructionSet())
-            .manufacturer(processor.getManufacturer())
-            .model(processor.getModel())
-            .maxSpeedMhz(processor.getMaxSpeedMhz())
-            .totalCores(processor.getTotalCores())
-            .totalThreads(processor.getTotalThreads())
-            .brand(processor.getBrand())
-            .capabilities(processor.getCapabilities())
-            .processorId(buildProcessorId(processor.getProcessorId()))
-            .status(processor.getStatus())
-            .build();
-
-    }
-
-    private ProcessorIdDto buildProcessorId(ProcessorId processorId) {
-        if (processorId == null) {
-            return null;
+        // Multi-source resources sanity check
+        if (system.isComplementary()) {
+            throw new ContextResolvingException("Specified resource is not a primary resource representation!", context, null);
         }
 
-        return ProcessorIdDto.newBuilder()
-            .vendorId(processorId.getVendorId())
-            .identificationRegisters(processorId.getIdentificationRegisters())
-            .effectiveFamily(processorId.getEffectiveFamily())
-            .effectiveModel(processorId.getEffectiveModel())
-            .step(processorId.getStep())
-            .microcodeInfo(processorId.getMicrocodeInfo())
-            .build();
+        return new CollectionDto(PROCESSORS, getAsIdSet(computerSystemSubResourcesFinder.getUniqueSubResourcesOfClass(system, Processor.class)));
+    }
+
+    @Transactional(REQUIRED)
+    @Override
+    public ProcessorDto getResource(Context context) throws ContextResolvingException {
+        Processor processor = (Processor) multiTraverser.traverse(context);
+        ProcessorDto processorDto = processorMerger.toDto(processor);
+        if (processor.getProcessorMetrics() != null) {
+            processorDto.getOem().getRackScaleOem().setProcessorMetrics(singletonContextOf(context, PROCESSOR_METRICS_RESOURCE_NAME));
+        }
+        return processorDto;
     }
 }

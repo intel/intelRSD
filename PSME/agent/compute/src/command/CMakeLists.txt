@@ -35,7 +35,14 @@ add_library(compute-command-sdv OBJECT
     get_system_info.cpp
     set_component_attributes.cpp
     set_network_device_function_attributes.cpp
+    get_trusted_module_info.cpp
     delete_task.cpp
+    get_metric_definition_info.cpp
+    get_metric_definitions_collection.cpp
+    get_metrics.cpp
+    get_fan_info.cpp
+    get_power_zone_info.cpp
+    get_thermal_zone_info.cpp
 )
 
 set_psme_command_target_properties(compute-command-sdv)

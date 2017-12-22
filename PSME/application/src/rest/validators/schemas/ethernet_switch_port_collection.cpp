@@ -30,7 +30,6 @@ using namespace agent_framework::model;
 
 const jsonrpc::ProcedureValidator& EthernetSwitchPortCollectionPostSchema::LinksSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "ethernet_switch_port_collection_links_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::EthernetSwitchPort::PORT_MEMBERS, VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema)),
         nullptr
@@ -40,7 +39,6 @@ const jsonrpc::ProcedureValidator& EthernetSwitchPortCollectionPostSchema::Links
 
 const jsonrpc::ProcedureValidator& EthernetSwitchPortCollectionPostSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "ethernet_switch_port_collection_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::EthernetSwitchPort::PORT_ID, VALID_JSON_STRING,
         constants::EthernetSwitchPort::PORT_MODE, VALID_ENUM(enums::PortMode),

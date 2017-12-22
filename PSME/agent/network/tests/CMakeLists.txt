@@ -35,9 +35,11 @@ add_subdirectory(discovery)
 add_subdirectory(api)
 add_subdirectory(utils)
 
-add_custom_target(unittest_psme-network-fm10000
-                  make
-)
-add_custom_target(unittest_psme-network-fm10000_run
-                  ctest --output-on-failure
-)
+if (BUILD_EOS_SDK)
+    add_custom_target(unittest_psme-network
+                      make
+    )
+    add_custom_target(unittest_psme-network_run
+                      ctest --output-on-failure
+    )
+endif()

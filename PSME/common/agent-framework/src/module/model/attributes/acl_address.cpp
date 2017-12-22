@@ -28,14 +28,14 @@ AclAddress::AclAddress() { }
 
 AclAddress::~AclAddress() { }
 
-Json::Value AclAddress::to_json() const {
-    Json::Value result;
+json::Json AclAddress::to_json() const {
+    json::Json result;
     result[literals::AclRule::ADDRESS] = get_address();
     result[literals::AclRule::MASK] = get_mask();
     return result;
 }
 
-AclAddress AclAddress::from_json(const Json::Value& json) {
+AclAddress AclAddress::from_json(const json::Json& json) {
     AclAddress address;
     address.set_address(json[literals::AclRule::ADDRESS]);
     address.set_mask(json[literals::AclRule::MASK]);

@@ -17,13 +17,42 @@
 # </license_header>
 
 set(SOURCES
-    # Interface
+    lan_connection_data.cpp
+    lan_ipmi_interface.cpp
+    serial_connection_data.cpp
+    serial_ipmi_interface.cpp
+    ipmi_intf_impl.cpp
     management_controller.cpp
+    serial_controller.cpp
 )
 
 set_source_files_properties(
     management_controller.cpp
     PROPERTIES COMPILE_FLAGS "-Wno-undef -Wno-reserved-id-macro"
 )
+
+# suppress the switch fallthrough warning in clang
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    set_source_files_properties(
+        ipmi_intf_impl.cpp
+        PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough"
+    )
+endif()
+
+
+if (CMAKE_CROSSCOMPILING)
+    set_source_files_properties(
+        management_controller.cpp
+        ipmi_intf_interface.cpp
+        lan_intf_interface.cpp
+        serial_ipmi_interface.cpp
+        lan_ipmi_interface.cpp
+        lan_intf_impl.cpp
+        ipmi_intf_impl.cpp
+        serial_intf_impl.cpp
+        PROPERTIES
+        COMPILE_FLAGS "-Wno-missing-field-initializers"
+    )
+endif()
 
 add_library(ipmi-manager-ipmitool OBJECT ${SOURCES})

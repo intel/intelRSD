@@ -20,6 +20,7 @@ import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.base.MemoryModule;
+import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
 import com.intel.podm.business.entities.redfish.embeddables.MemoryLocation;
 import com.intel.podm.business.entities.redfish.embeddables.Region;
 import com.intel.podm.common.types.BaseModuleType;
@@ -38,6 +39,9 @@ import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import java.math.BigDecimal;
@@ -52,9 +56,19 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "memory", indexes = @Index(name = "idx_memory_entity_id", columnList = "entity_id", unique = true))
+@NamedQueries({
+    @NamedQuery(name = Memory.GET_MEMORY_MULTI_SOURCE,
+        query = "SELECT memory "
+            + "FROM Memory memory "
+            + "WHERE memory.multiSourceDiscriminator = :multiSourceDiscriminator "
+            + "AND memory.isComplementary = :isComplementary"
+    )
+})
 @Eventable
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
-public class Memory extends DiscoverableEntity implements MemoryModule {
+public class Memory extends DiscoverableEntity implements MemoryModule, MultiSourceResource {
+    public static final String GET_MEMORY_MULTI_SOURCE = "GET_MEMORY_MULTI_SOURCE";
+
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
@@ -116,6 +130,9 @@ public class Memory extends DiscoverableEntity implements MemoryModule {
     @Column(name = "voltage_volt")
     private BigDecimal voltageVolt;
 
+    @Column(name = "multi_source_discriminator")
+    private String multiSourceDiscriminator;
+
     @Embedded
     private MemoryLocation memoryLocation;
 
@@ -127,7 +144,7 @@ public class Memory extends DiscoverableEntity implements MemoryModule {
     private List<MemoryMedia> memoryMedia = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "memory_allowed_speed_mhz", joinColumns = @JoinColumn(name = "computer_system_id"))
+    @CollectionTable(name = "memory_allowed_speed_mhz", joinColumns = @JoinColumn(name = "memory_id"))
     @Column(name = "allowed_speed_mhz")
     @OrderColumn(name = "allowed_speed_mhz_order")
     private List<Integer> allowedSpeedsMhz = new ArrayList<>();
@@ -153,6 +170,9 @@ public class Memory extends DiscoverableEntity implements MemoryModule {
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "computer_system_id")
     private ComputerSystem computerSystem;
+
+    @OneToOne(mappedBy = "memory", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private MemoryMetrics memoryMetrics;
 
     @Override
     public Id getId() {
@@ -313,6 +333,16 @@ public class Memory extends DiscoverableEntity implements MemoryModule {
         this.voltageVolt = voltageVolt;
     }
 
+    @Override
+    public String getMultiSourceDiscriminator() {
+        return multiSourceDiscriminator;
+    }
+
+    @Override
+    public void setMultiSourceDiscriminator(String multiSourceDiscriminator) {
+        this.multiSourceDiscriminator = multiSourceDiscriminator;
+    }
+
     public MemoryLocation getMemoryLocation() {
         return memoryLocation;
     }
@@ -384,9 +414,33 @@ public class Memory extends DiscoverableEntity implements MemoryModule {
         }
     }
 
+    public MemoryMetrics getMemoryMetrics() {
+        return memoryMetrics;
+    }
+
+    public void setMemoryMetrics(MemoryMetrics memoryMetrics) {
+        if (!Objects.equals(this.memoryMetrics, memoryMetrics)) {
+            unlinkMemoryMetrics(this.memoryMetrics);
+            this.memoryMetrics = memoryMetrics;
+            if (memoryMetrics != null && !this.equals(memoryMetrics.getMemory())) {
+                memoryMetrics.setMemory(this);
+            }
+        }
+    }
+
+    public void unlinkMemoryMetrics(MemoryMetrics memoryMetrics) {
+        if (Objects.equals(this.memoryMetrics, memoryMetrics)) {
+            this.memoryMetrics = null;
+            if (memoryMetrics != null) {
+                memoryMetrics.unlinkMemory(this);
+            }
+        }
+    }
+
     @Override
     public void preRemove() {
         unlinkComputerSystem(computerSystem);
+        unlinkMemoryMetrics(memoryMetrics);
     }
 
     @Override

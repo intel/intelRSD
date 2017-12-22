@@ -17,17 +17,16 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.EntityOperationException;
+import com.intel.podm.business.dto.EthernetSwitchPortDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.EthernetSwitchPortDto;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.CreationService;
 import com.intel.podm.business.services.redfish.ReaderService;
-import com.intel.podm.common.types.redfish.RedfishErrorResponseCarryingException;
 import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
 import com.intel.podm.redfish.json.templates.actions.CreateEthernetSwitchPortActionJson;
 import com.intel.podm.rest.error.PodmExceptions;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -35,19 +34,18 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.concurrent.TimeoutException;
 
 import static com.intel.podm.business.services.context.PathParamConstants.ETHERNET_SWITCH_PORT_ID;
-import static com.intel.podm.redfish.OptionsResponseBuilder.newDefaultOptionsResponseBuilder;
-import static com.intel.podm.rest.error.PodmExceptions.invalidPayload;
 import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
-import static java.net.URI.create;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static java.util.Optional.ofNullable;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.created;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class EthernetSwitchPortCollectionResource extends BaseResource {
     @Inject
     private ReaderService<EthernetSwitchPortDto> readerService;
@@ -64,30 +62,20 @@ public class EthernetSwitchPortCollectionResource extends BaseResource {
     @POST
     @Consumes(APPLICATION_JSON)
     public Response createSwitchPort(CreateEthernetSwitchPortActionJson representation) throws TimeoutException, BusinessApiException {
-        try {
-            Context createdPortContext = ethernetSwitchPortCreationService.create(getCurrentContext(), representation);
-            Object oDataId = ofNullable(asOdataId(createdPortContext)).orElseThrow(PodmExceptions::internalServerError);
-            return created(create(oDataId.toString())).build();
-        } catch (EntityOperationException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof RedfishErrorResponseCarryingException) {
-                RedfishErrorResponseCarryingException ex = (RedfishErrorResponseCarryingException) cause;
-                throw invalidPayload(e.getMessage(), ex.getErrorResponse());
-            } else {
-                throw invalidPayload(e.getMessage());
-            }
-        }
-    }
-
-    @Override
-    protected Response createOptionsResponse() {
-        return newDefaultOptionsResponseBuilder()
-            .addPostMethod()
-            .buildResponse();
+        Context createdPortContext = ethernetSwitchPortCreationService.create(getCurrentContext(), representation);
+        Object oDataId = ofNullable(asOdataId(createdPortContext)).orElseThrow(PodmExceptions::internalServerError);
+        return created(URI.create(oDataId.toString())).build();
     }
 
     @Path(ETHERNET_SWITCH_PORT_ID)
     public EthernetSwitchPortResource getEthernetSwitchPort() {
         return getResource(EthernetSwitchPortResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder()
+            .addPostMethod()
+            .build();
     }
 }

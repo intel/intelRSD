@@ -64,8 +64,8 @@ TEST(GetLogicalDriveInfoTest, PositiveExecute) {
     MyGetLogicalDriveInfo command{"TestDrive"};
     GetLogicalDriveInfo::Request request{""};
     GetLogicalDriveInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::LogicalDrive::DRIVE] = "TestDrive";
 
@@ -94,8 +94,8 @@ TEST(GetLogicalDriveInfoTest, NegativeDriveNotFound) {
     MyGetLogicalDriveInfo command{"TestDrive"};
     GetLogicalDriveInfo::Request request{""};
     GetLogicalDriveInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::LogicalDrive::DRIVE] = "OtherTestDrive";
 

@@ -20,16 +20,19 @@ import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.SuppressEvents;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
 import com.intel.podm.business.entities.redfish.base.VlanPossessor;
 import com.intel.podm.business.entities.redfish.embeddables.IpV4Address;
 import com.intel.podm.business.entities.redfish.embeddables.IpV6Address;
 import com.intel.podm.business.entities.redfish.embeddables.IpV6AddressPolicy;
 import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.LinkStatus;
 import com.intel.podm.common.types.net.MacAddress;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
+import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -50,26 +53,39 @@ import java.util.Set;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @NamedQueries({
     @NamedQuery(name = EthernetInterface.GET_ETHERNET_INTERFACE_BY_MAC_ADDRESS,
-        query = "SELECT ei FROM EthernetInterface ei WHERE ei.macAddress = :macAddress")
+        query = "SELECT ei FROM EthernetInterface ei WHERE ei.macAddress = :macAddress"
+    ),
+    @NamedQuery(name = EthernetInterface.GET_ETHERNET_INTERFACE_MULTI_SOURCE,
+        query = "SELECT ethernetInterface "
+            + "FROM EthernetInterface ethernetInterface "
+            + "WHERE ethernetInterface.multiSourceDiscriminator = :multiSourceDiscriminator "
+            + "AND ethernetInterface.isComplementary = :isComplementary"
+    )
 })
 @Table(name = "ethernet_interface", indexes = @Index(name = "idx_ethernet_interface_entity_id", columnList = "entity_id", unique = true))
 @Eventable
-@SuppressWarnings({"checkstyle:MethodCount"})
-public class    EthernetInterface extends DiscoverableEntity implements VlanPossessor {
+@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
+public class EthernetInterface extends DiscoverableEntity implements VlanPossessor, MultiSourceResource {
     public static final String GET_ETHERNET_INTERFACE_BY_MAC_ADDRESS = "GET_ETHERNET_INTERFACE_BY_MAC_ADDRESS";
+    public static final String GET_ETHERNET_INTERFACE_MULTI_SOURCE = "GET_ETHERNET_INTERFACE_MULTI_SOURCE";
 
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
+    @Column(name = "link_status")
+    @Enumerated(STRING)
+    private LinkStatus linkStatus;
+
     @Column(name = "interface_enabled")
     private Boolean interfaceEnabled;
 
-    @Column(name = "autoneg")
+    @Column(name = "auto_neg")
     private Boolean autoNeg;
 
     @Column(name = "mtu_size")
@@ -102,8 +118,11 @@ public class    EthernetInterface extends DiscoverableEntity implements VlanPoss
     @Column(name = "fqdn")
     private String fqdn;
 
-    @Column(name = "ip_ipv6_default_gateway")
-    private String iPv6DefaultGateway;
+    @Column(name = "ipv6_default_gateway")
+    private String ipV6DefaultGateway;
+
+    @Column(name = "multi_source_discriminator")
+    private String multiSourceDiscriminator;
 
     @ElementCollection
     @CollectionTable(name = "ethernet_interface_name_server", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
@@ -114,26 +133,26 @@ public class    EthernetInterface extends DiscoverableEntity implements VlanPoss
     @ElementCollection
     @CollectionTable(name = "ethernet_interface_ipv4_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
     @OrderColumn(name = "ipv4_address_order")
-    private List<IpV4Address> ipv4Addresses = new ArrayList<>();
+    private List<IpV4Address> ipV4Addresses = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "ethernet_interface_ipv6_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
     @OrderColumn(name = "ipv6_address_order")
-    private List<IpV6Address> ipv6Addresses = new ArrayList<>();
+    private List<IpV6Address> ipV6Addresses = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "ethernet_interface_ipv6_static_address", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
     @OrderColumn(name = "ipv6_static_address_order")
-    private List<IpV6Address> ipv6StaticAddresses = new ArrayList<>();
+    private List<IpV6Address> ipV6StaticAddresses = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "ethernet_interface_ipv6_address_policy", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
     @OrderColumn(name = "ipv6_address_policy_order")
-    private List<IpV6AddressPolicy> ipV6AddressesPolicyTable = new ArrayList<>();
+    private List<IpV6AddressPolicy> ipV6AddressPolicyTable = new ArrayList<>();
 
     @SuppressEvents
     @OneToMany(mappedBy = "ethernetInterface", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<EthernetSwitchPortVlan> ethernetSwitchPortVlan = new HashSet<>();
+    private Set<EthernetSwitchPortVlan> ethernetSwitchPortVlans = new HashSet<>();
 
     @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinTable(
@@ -144,7 +163,7 @@ public class    EthernetInterface extends DiscoverableEntity implements VlanPoss
 
     @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinTable(
-        name = "ethernet_interface_pcie_functions",
+        name = "ethernet_interface_pcie_function",
         joinColumns = {@JoinColumn(name = "ethernet_interface_id", referencedColumnName = "id")},
         inverseJoinColumns = {@JoinColumn(name = "pcie_function_id", referencedColumnName = "id")})
     private Set<PcieDeviceFunction> pcieDeviceFunctions = new HashSet<>();
@@ -161,6 +180,14 @@ public class    EthernetInterface extends DiscoverableEntity implements VlanPoss
     @Override
     public void setId(Id id) {
         entityId = id;
+    }
+
+    public LinkStatus getLinkStatus() {
+        return linkStatus;
+    }
+
+    public void setLinkStatus(LinkStatus linkStatus) {
+        this.linkStatus = linkStatus;
     }
 
     public Boolean getInterfaceEnabled() {
@@ -260,15 +287,25 @@ public class    EthernetInterface extends DiscoverableEntity implements VlanPoss
     }
 
     public String getIpV6DefaultGateway() {
-        return iPv6DefaultGateway;
+        return ipV6DefaultGateway;
     }
 
     public void setIpV6DefaultGateway(String ipV6DefaultGateway) {
-        this.iPv6DefaultGateway = ipV6DefaultGateway;
+        this.ipV6DefaultGateway = ipV6DefaultGateway;
     }
 
     public List<String> getNameServers() {
         return nameServers;
+    }
+
+    @Override
+    public String getMultiSourceDiscriminator() {
+        return multiSourceDiscriminator;
+    }
+
+    @Override
+    public void setMultiSourceDiscriminator(String multiSourceDiscriminator) {
+        this.multiSourceDiscriminator = multiSourceDiscriminator;
     }
 
     public void addNameServer(String nameServer) {
@@ -276,55 +313,55 @@ public class    EthernetInterface extends DiscoverableEntity implements VlanPoss
     }
 
     public Collection<IpV4Address> getIpV4Addresses() {
-        return ipv4Addresses;
+        return ipV4Addresses;
     }
 
     public void addIpV4Address(IpV4Address ipV4Address) {
-        ipv4Addresses.add(ipV4Address);
+        ipV4Addresses.add(ipV4Address);
     }
 
     public List<IpV6Address> getIpV6Addresses() {
-        return ipv6Addresses;
+        return ipV6Addresses;
     }
 
     public void addIpV6Address(IpV6Address ipV6Address) {
-        ipv6Addresses.add(ipV6Address);
+        ipV6Addresses.add(ipV6Address);
     }
 
     public List<IpV6Address> getIpV6StaticAddresses() {
-        return ipv6StaticAddresses;
+        return ipV6StaticAddresses;
     }
 
     public void addIpV6StaticAddress(IpV6Address ipV6Address) {
-        ipv6StaticAddresses.add(ipV6Address);
+        ipV6StaticAddresses.add(ipV6Address);
     }
 
 
-    public List<IpV6AddressPolicy> getIpV6AddressesPolicyTable() {
-        return ipV6AddressesPolicyTable;
+    public List<IpV6AddressPolicy> getIpV6AddressPolicyTable() {
+        return ipV6AddressPolicyTable;
     }
 
     public void addIpV6Policy(IpV6AddressPolicy ipV6AddressPolicy) {
-        ipV6AddressesPolicyTable.add(ipV6AddressPolicy);
+        ipV6AddressPolicyTable.add(ipV6AddressPolicy);
     }
 
     @Override
     public Set<EthernetSwitchPortVlan> getEthernetSwitchPortVlans() {
-        return ethernetSwitchPortVlan;
+        return ethernetSwitchPortVlans;
     }
 
     public void addEthernetSwitchPortVlan(EthernetSwitchPortVlan ethernetSwitchPortVlan) {
         requiresNonNull(ethernetSwitchPortVlan, "ethernetSwitchPortVlan");
 
-        this.ethernetSwitchPortVlan.add(ethernetSwitchPortVlan);
+        this.ethernetSwitchPortVlans.add(ethernetSwitchPortVlan);
         if (!this.equals(ethernetSwitchPortVlan.getEthernetInterface())) {
             ethernetSwitchPortVlan.setEthernetInterface(this);
         }
     }
 
     public void unlinkEthernetSwitchPortVlan(EthernetSwitchPortVlan ethernetSwitchPortVlan) {
-        if (this.ethernetSwitchPortVlan.contains(ethernetSwitchPortVlan)) {
-            this.ethernetSwitchPortVlan.remove(ethernetSwitchPortVlan);
+        if (this.ethernetSwitchPortVlans.contains(ethernetSwitchPortVlan)) {
+            this.ethernetSwitchPortVlans.remove(ethernetSwitchPortVlan);
             if (ethernetSwitchPortVlan != null) {
                 ethernetSwitchPortVlan.unlinkEthernetInterface(this);
             }
@@ -400,7 +437,7 @@ public class    EthernetInterface extends DiscoverableEntity implements VlanPoss
 
     @Override
     public void preRemove() {
-        unlinkCollection(ethernetSwitchPortVlan, this::unlinkEthernetSwitchPortVlan);
+        unlinkCollection(ethernetSwitchPortVlans, this::unlinkEthernetSwitchPortVlan);
         unlinkCollection(managers, this::unlinkManager);
         unlinkCollection(pcieDeviceFunctions, this::unlinkPcieDeviceFunction);
         unlinkComputerSystem(computerSystem);

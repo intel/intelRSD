@@ -163,6 +163,15 @@ public:
      * @return Drive's persistent UUID
      * */
     const std::string stabilize_drive(const std::string& drive_uuid);
+
+    /*!
+     * Stabilize trusted module and all resources below.
+     *
+     * @param[in] uuid UUID of the module to stabilize
+     *
+     * @return Module's persistent UUID
+     * */
+    const std::string stabilize_trusted_module(const std::string& uuid);
 };
 
 }

@@ -18,6 +18,8 @@ package com.intel.podm.rest.representation.json.providers;
 
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.context.SingletonContext;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.NeighborInfo;
 import com.intel.podm.common.types.Ref;
@@ -34,14 +36,19 @@ import com.intel.podm.common.types.serialization.NeighborInfoSerializer;
 import com.intel.podm.common.types.serialization.OffsetDateTimeSerializer;
 import com.intel.podm.common.types.serialization.StatusSerializer;
 import com.intel.podm.rest.representation.json.serializers.ContextAwareSerializer;
+import com.intel.podm.rest.representation.json.serializers.ContextSerializer;
+import com.intel.podm.rest.representation.json.serializers.DtoSerializerContext;
+import com.intel.podm.rest.representation.json.serializers.SingletonContextSerializer;
 
 import javax.enterprise.inject.Instance;
 import java.time.OffsetDateTime;
 
 import static com.intel.podm.common.types.EnumeratedType.SUB_TYPES;
 
-public class NorthboundObjectMapperModuleProvider {
-    public SimpleModule getSerializerModule(JsonProvider.SerializerContext context, Instance<ContextAwareSerializer> serializers) {
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+class NorthboundObjectMapperModuleProvider {
+    @SuppressWarnings({"unchecked"})
+    SimpleModule getSerializerModule(DtoSerializerContext context, Instance<ContextAwareSerializer> serializers) {
         SimpleModule module = new SimpleModule();
 
         for (ContextAwareSerializer serializer : serializers) {
@@ -53,26 +60,27 @@ public class NorthboundObjectMapperModuleProvider {
             module.addSerializer(subType, new EnumeratedTypeSerializer<>());
         }
 
-        module.addDeserializer(Ref.class, new RefDeserializer());
-        module.addDeserializer(Boolean.class, BooleanDeserializer.INSTANCE);
-
         module.addSerializer(OffsetDateTime.class, OffsetDateTimeSerializer.INSTANCE);
         module.addSerializer(Id.class, IdSerializer.INSTANCE);
         module.addSerializer(MacAddress.class, MacAddressSerializer.INSTANCE);
         module.addSerializer(NeighborInfo.class, NeighborInfoSerializer.INSTANCE);
         module.addSerializer(Status.class, StatusSerializer.INSTANCE);
+        module.addSerializer(Context.class, new ContextSerializer());
+        module.addSerializer(SingletonContext.class, new SingletonContextSerializer());
 
         return module;
     }
 
-    public SimpleModule getDeserializerModule() {
+    @SuppressWarnings({"unchecked"})
+    SimpleModule getDeserializerModule() {
         SimpleModule module = new SimpleModule();
 
         for (Class subType : SUB_TYPES) {
             module.addDeserializer(subType, new StrictEnumeratedTypeDeserializer<>(subType));
         }
-
         module.addDeserializer(MacAddress.class, new MacAddressDeserializer());
+        module.addDeserializer(Ref.class, new RefDeserializer());
+        module.addDeserializer(Boolean.class, BooleanDeserializer.INSTANCE);
 
         return module;
     }

@@ -17,22 +17,32 @@
 package com.intel.podm.rest.representation.json.exceptionmappers;
 
 import com.intel.podm.business.RequestValidationException;
+import com.intel.podm.common.logger.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import static com.intel.podm.rest.error.PodmExceptions.invalidPayload;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.INVALID_PAYLOAD;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @ApplicationScoped
 @Provider
 @Produces(APPLICATION_JSON)
 public class RequestValidationExceptionMapper implements ExceptionMapper<RequestValidationException> {
+    @Inject
+    private Logger logger;
+
     @Override
     public Response toResponse(RequestValidationException exception) {
-        return invalidPayload(exception.getMessage(), exception.getViolations()).getResponse();
+        logger.e(exception.getMessage(), exception);
+        return newErrorResponseBuilder(INVALID_PAYLOAD)
+            .withMessage(exception.getMessage())
+            .withDetails(exception.getViolations().asStringList())
+            .build();
     }
 }

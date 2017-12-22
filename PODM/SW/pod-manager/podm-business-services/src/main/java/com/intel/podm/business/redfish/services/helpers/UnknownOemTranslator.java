@@ -25,19 +25,24 @@ import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.embeddables.UnknownOem;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.client.IdFromUriGenerator;
 import com.intel.podm.common.logger.Logger;
+import com.intel.podm.common.types.Id;
 
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.intel.podm.business.redfish.Contexts.toContext;
-import static java.net.URI.create;
 import static java.util.stream.Collectors.toList;
 
+@Dependent
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class UnknownOemTranslator {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String ODATA_ID = "@odata.id";
@@ -58,21 +63,21 @@ public class UnknownOemTranslator {
         ObjectNode objectNode = convertStringToObjectNode(oem);
         Map<String, Context> foundContexts = getExistingContexts(externalService, objectNode);
 
-        return UnknownOemDto.newBuilder()
-            .oemValue(objectNode)
-            .foundContexts(foundContexts)
-            .build();
+        UnknownOemDto dto = new UnknownOemDto();
+        dto.setOemValue(objectNode);
+        dto.setFoundContexts(foundContexts);
+        return dto;
     }
 
     private UnknownOemDto buildUnknownOemDto(ExternalService externalService, UnknownOem unknownOem) {
         ObjectNode objectNode = convertStringToObjectNode(unknownOem.getOemValue());
         Map<String, Context> foundContexts = getExistingContexts(externalService, objectNode);
 
-        return UnknownOemDto.newBuilder()
-            .oemPath(unknownOem.getOemPath())
-            .oemValue(objectNode)
-            .foundContexts(foundContexts)
-            .build();
+        UnknownOemDto dto = new UnknownOemDto();
+        dto.setOemPath(unknownOem.getOemPath());
+        dto.setOemValue(objectNode);
+        dto.setFoundContexts(foundContexts);
+        return dto;
     }
 
     private ObjectNode convertStringToObjectNode(String value) {
@@ -92,10 +97,11 @@ public class UnknownOemTranslator {
         JsonNode oDataIdJsonNode = jsonNode.get(ODATA_ID);
         if (oDataIdJsonNode != null && oDataIdJsonNode.isTextual()) {
             String sourceUriString = oDataIdJsonNode.asText();
-            List<DiscoverableEntity> discoverableEntities = discoverableEntityDao.getByExternalServiceAndSourceUri(externalService, create(sourceUriString));
+            Id globalId = IdFromUriGenerator.instance().getIdFromUri(URI.create(sourceUriString), externalService.getId().getValue());
+            DiscoverableEntity discoverableEntity = discoverableEntityDao.findByGlobalId(globalId, DiscoverableEntity.class);
 
-            if (discoverableEntities.size() == 1) {
-                Context context = toContext(discoverableEntities.iterator().next());
+            if (discoverableEntity != null) {
+                Context context = toContext(discoverableEntity);
                 foundContexts.put(sourceUriString, context);
             }
         }

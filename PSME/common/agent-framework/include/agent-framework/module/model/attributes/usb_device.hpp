@@ -22,11 +22,10 @@
  * @brief USB device
  * */
 #pragma once
-#include <string>
 
-namespace Json {
-class Value;
-}
+#include "json-wrapper/json-wrapper.hpp"
+
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -92,16 +91,16 @@ public:
      *
      * @return JSON representation of UsbDevice object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief construct an object of class UsbDevice from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed UsbDevice object
      */
-    static UsbDevice from_json(const Json::Value& json);
+    static UsbDevice from_json(const json::Json& json);
 
 private:
     std::string m_vendor_id{};
@@ -112,4 +111,3 @@ private:
 }
 }
 }
-

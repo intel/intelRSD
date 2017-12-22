@@ -25,11 +25,9 @@
 #pragma once
 
 #include "agent-framework/exceptions/error_codes.hpp"
-#include <string>
+#include "json-wrapper/json-wrapper.hpp"
 
-namespace Json {
-    class Value;
-}
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -109,16 +107,16 @@ public:
 
     /*!
      * @brief Transform the object to JSON
-     * @return The object serialized to Json::Value
+     * @return The object serialized to json::Json
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief Construct an object of class Result from JSON
-     * @param json The Json::Value to be deserialized
+     * @param json The json::Json to be deserialized
      * @return The newly constructed Result object
      * */
-    static ResultStatus from_json(const Json::Value& json);
+    static ResultStatus from_json(const json::Json& json);
 
 private:
     std::string m_attribute{};
@@ -129,4 +127,3 @@ private:
 }
 }
 }
-

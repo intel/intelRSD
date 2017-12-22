@@ -36,49 +36,41 @@ namespace manager {
 
 std::uint64_t SubscriptionManager::id = 1;
 
+void SubscriptionManager::set_subscriptions(const SubscriptionMap& subscriptions) {
+    std::lock_guard<std::mutex> lock{m_mutex};
+    m_subscriptions = subscriptions;
+    // set next subscription id after the maximal of those in subscriptions
+    uint64_t max_id =
+        std::max_element(subscriptions.begin(), subscriptions.end(),
+                         [](const SubscriptionMap::value_type& a, const SubscriptionMap::value_type& b) {
+                             return a.first < b.first;
+                         })->first;
+    SubscriptionManager::id = max_id + 1;
+}
+
 uint64_t SubscriptionManager::add(Subscription subscription) {
     std::lock_guard<std::mutex> lock{m_mutex};
-    auto sub = m_subscriptions.find(subscription.get_name());
-    if (m_subscriptions.end() != sub) {
-        throw error::ServerException(error::ErrorFactory::create_resource_already_exists_error(
-            "Subscription '" + subscription.get_name() + "' already exists."
-        ));
+    auto found =  std::find_if(std::begin(m_subscriptions), std::end(m_subscriptions),
+                               [&subscription](const SubscriptionMap::value_type& v) {
+                                   return equal_subscriptions(v.second, subscription);
+                               });
+    if (found != std::end(m_subscriptions)) {
+        log_warning("rest", " subscription already exists: " << found->second.to_json()
+                            << "\n duplicated subscription id: " << id);
     }
     subscription.set_id(id++);
-    m_subscriptions[subscription.get_name()] = subscription;
+    m_subscriptions[subscription.get_id()] = subscription;
     return subscription.get_id();
-}
-
-Subscription SubscriptionManager::get(const std::string& subscription_name) {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    return get_by_name(subscription_name);
-}
-
-Subscription SubscriptionManager::get_by_name(const std::string& subscription_name) {
-    auto subscription = m_subscriptions.find(subscription_name);
-    if (m_subscriptions.end() == subscription) {
-        throw agent_framework::exceptions::NotFound("Subscription '" + subscription_name + "' not found.");
-    }
-    return subscription->second;
 }
 
 Subscription SubscriptionManager::get(uint64_t subscription_id) {
     std::lock_guard<std::mutex> lock{m_mutex};
-    for (const auto& item : m_subscriptions) {
-        const auto& subscription = item.second;
-        if (subscription_id == subscription.get_id()) {
-            return get_by_name(subscription.get_name());
-        }
+    auto it = m_subscriptions.find(subscription_id);
+    if (it == m_subscriptions.end()) {
+        throw agent_framework::exceptions::NotFound(std::string{"Subscription (ID: "}
+            + std::to_string(subscription_id) + ") not found.");
     }
-    throw agent_framework::exceptions::NotFound("Subscription (ID: " + std::to_string(subscription_id) + ") not found.");
-}
-
-void SubscriptionManager::del_by_name(const std::string& subscription_name) {
-    auto subscription = m_subscriptions.find(subscription_name);
-    if (m_subscriptions.end() == subscription) {
-        throw agent_framework::exceptions::NotFound("Subscription '" + subscription_name + "' not found.");
-    }
-    m_subscriptions.erase(subscription);
+    return it->second;
 }
 
 SubscriptionMap SubscriptionManager::get() {
@@ -86,21 +78,14 @@ SubscriptionMap SubscriptionManager::get() {
     return m_subscriptions;
 }
 
-void SubscriptionManager::del(const std::string& subscription_name) {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    del_by_name(subscription_name);
-}
-
 void SubscriptionManager::del(uint64_t subscription_id) {
     std::lock_guard<std::mutex> lock{m_mutex};
-    for (const auto& item : m_subscriptions) {
-        const auto& subscription = item.second;
-        if (subscription_id == subscription.get_id()) {
-            del_by_name(subscription.get_name());
-            return;
-        }
+    auto it = m_subscriptions.find(subscription_id);
+    if (it == m_subscriptions.end()) {
+        throw agent_framework::exceptions::NotFound(std::string{"Subscription (ID: "}
+            + std::to_string(subscription_id) + ") not found.");
     }
-    throw agent_framework::exceptions::NotFound("Subscription (ID: " + std::to_string(subscription_id) + ") not found.");
+    m_subscriptions.erase(it);
 }
 
 uint32_t SubscriptionManager::size() {
@@ -109,22 +94,16 @@ uint32_t SubscriptionManager::size() {
 }
 
 void SubscriptionManager::notify(const Event& event) {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    do_notify(event);
+    EventArrayUPtr event_array(new EventArray({event}));
+    EventService::post_events_array(std::move(event_array));
 }
 
 void SubscriptionManager::notify(const EventVec& events) {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    for (const auto& event : events) {
-        do_notify(event);
+    if (!events.empty()) {
+        EventArrayUPtr event_array(new EventArray(events));
+        event_array->remove_duplicates();
+        EventService::post_events_array(std::move(event_array));
     }
-}
-
-void SubscriptionManager::do_notify(const Event& event) {
-    EventUPtr add_event(new Event(event));
-    EventService::post_event(std::move(add_event));
-    log_info(GET_LOGGER("rest"), "Upstream event enqueued: type=" << event.get_type().to_string()
-                                 << ", link=" << event.get_origin_of_condition());
 }
 
 SubscriptionManager::~SubscriptionManager() { }

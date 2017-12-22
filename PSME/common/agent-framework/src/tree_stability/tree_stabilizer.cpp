@@ -33,7 +33,7 @@
 using namespace agent_framework;
 
 
-TreeStabilizer::~TreeStabilizer() { }
+TreeStabilizer::~TreeStabilizer() {}
 
 
 void TreeStabilizer::log_persistent_uuid_generated(const std::string& resource_name,
@@ -48,5 +48,16 @@ void TreeStabilizer::log_key_value_missing(const std::string& resource_name,
                                            const std::string& temporary_uuid) const {
     log_error(LOGUSR,
               "Persistent UUID for " << resource_name << " with temporary UUID " << temporary_uuid <<
-              " could not be generated");
+                                     " could not be generated");
+}
+
+
+void TreeStabilizer::log_key_value_missing(const std::string& resource_name,
+                                           const std::string& temporary_uuid, const std::exception& e) const {
+    log_error(LOGUSR,
+              "Persistent UUID for " << resource_name << " with temporary UUID " << temporary_uuid <<
+                                     " could not be generated");
+    log_debug(LOGUSR,
+              "Persistent UUID for " << resource_name << " with temporary UUID " << temporary_uuid <<
+                                     " could not be generated: " << e.what());
 }

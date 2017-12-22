@@ -23,13 +23,13 @@
  * */
 
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/pnc_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/pnc_commands.hpp"
 #include "agent-framework/action/task_result_manager.hpp"
 
 
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent_framework::action;
@@ -47,7 +47,7 @@ void get_task_result_info(const GetTaskResultInfo::Request& req, GetTaskResultIn
         THROW(InvalidUuid, "pnc-agent", "Could not find requested task.");
     }
 
-    Json::Value result = TaskResultManager::get_instance()->get_result(task.get_uuid());
+    auto result = TaskResultManager::get_instance()->get_result(task.get_uuid());
     rsp.set_result(result);
 }
 

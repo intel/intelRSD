@@ -28,6 +28,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.HashSet;
@@ -40,10 +42,16 @@ import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
+@NamedQueries({
+    @NamedQuery(name = EthernetSwitch.GET_ALL_ETHERNET_SWITCH_IDS,
+        query = "SELECT ethernetSwitch.entityId FROM EthernetSwitch ethernetSwitch")
+})
 @Table(name = "ethernet_switch", indexes = @Index(name = "idx_ethernet_switch_entity_id", columnList = "entity_id", unique = true))
 @Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class EthernetSwitch extends DiscoverableEntity {
+    public static final String GET_ALL_ETHERNET_SWITCH_IDS = "GET_ALL_ETHERNET_SWITCH_IDS";
+
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
@@ -77,6 +85,14 @@ public class EthernetSwitch extends DiscoverableEntity {
     @SuppressEvents
     @OneToMany(mappedBy = "ethernetSwitch", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<EthernetSwitchPort> ports = new HashSet<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "ethernetSwitch", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<EthernetSwitchAcl> acls = new HashSet<>();
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "ethernet_switch_metrics_id")
+    private EthernetSwitchMetrics ethernetSwitchMetrics;
 
     @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinTable(
@@ -193,6 +209,51 @@ public class EthernetSwitch extends DiscoverableEntity {
         }
     }
 
+    public EthernetSwitchMetrics getEthernetSwitchMetrics() {
+        return ethernetSwitchMetrics;
+    }
+
+    public void setSwitchMetrics(EthernetSwitchMetrics ethernetSwitchMetrics) {
+        if (!Objects.equals(this.ethernetSwitchMetrics, ethernetSwitchMetrics)) {
+            unlinkEthernetSwitchMetrics(this.ethernetSwitchMetrics);
+            this.ethernetSwitchMetrics = ethernetSwitchMetrics;
+            if (ethernetSwitchMetrics != null && !this.equals(ethernetSwitchMetrics.getEthernetSwitch())) {
+                ethernetSwitchMetrics.setEthernetSwitch(this);
+            }
+        }
+    }
+
+    public void unlinkEthernetSwitchMetrics(EthernetSwitchMetrics ethernetSwitchMetrics) {
+        if (Objects.equals(this.ethernetSwitchMetrics, ethernetSwitchMetrics)) {
+            this.ethernetSwitchMetrics = null;
+            if (ethernetSwitchMetrics != null) {
+                ethernetSwitchMetrics.unlinkEthernetSwitch(this);
+            }
+        }
+    }
+
+    public Set<EthernetSwitchAcl> getAcls() {
+        return acls;
+    }
+
+    public void addAcl(EthernetSwitchAcl ethernetSwitchAcl) {
+        requiresNonNull(ethernetSwitchAcl, "ethernetSwitchAcl");
+
+        acls.add(ethernetSwitchAcl);
+        if (!this.equals(ethernetSwitchAcl.getEthernetSwitch())) {
+            ethernetSwitchAcl.setEthernetSwitch(this);
+        }
+    }
+
+    public void unlinkAcl(EthernetSwitchAcl ethernetSwitchAcl) {
+        if (acls.contains(ethernetSwitchAcl)) {
+            acls.remove(ethernetSwitchAcl);
+            if (ethernetSwitchAcl != null) {
+                ethernetSwitchAcl.unlinkEthernetSwitch(this);
+            }
+        }
+    }
+
     public Set<Manager> getManagers() {
         return managers;
     }
@@ -241,8 +302,10 @@ public class EthernetSwitch extends DiscoverableEntity {
     @Override
     public void preRemove() {
         unlinkCollection(ports, this::unlinkPort);
+        unlinkCollection(acls, this::unlinkAcl);
         unlinkCollection(managers, this::unlinkManager);
         unlinkChassis(chassis);
+        unlinkEthernetSwitchMetrics(ethernetSwitchMetrics);
     }
 
     @Override

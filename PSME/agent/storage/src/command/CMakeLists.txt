@@ -21,7 +21,7 @@ add_library(storage-command-conf-based-ref OBJECT
     get_tasks_collection.cpp
     set_component_attributes.cpp
     get_manager_info.cpp
-    get_storage_services_info.cpp
+    get_storage_service_info.cpp
     get_collection.cpp
     get_physical_drive_info.cpp
     get_logical_drive_info.cpp
@@ -33,6 +33,9 @@ add_library(storage-command-conf-based-ref OBJECT
     add_iscsi_target.cpp
     delete_iscsi_target.cpp
     delete_task.cpp
+    get_metric_definition_info.cpp
+    get_metric_definitions_collection.cpp
+    get_metrics.cpp
 )
 
 set_psme_command_target_properties(storage-command-conf-based-ref)

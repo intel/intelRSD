@@ -12,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import http.server
+import json
 import urllib.parse
 
-from http.server import BaseHTTPRequestHandler
 
-from utils.json_utils import JsonUtils
-
-
-class MockHandler(BaseHTTPRequestHandler):
+class MockHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path.endswith('/'):
             self.path = self.path[:-1]
@@ -41,7 +39,7 @@ class MockHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             try:
-                content = JsonUtils.dumps(resource.get_body(), indent=4)
+                content = json.dumps(resource.get_body(), indent=4)
             except:
                 content = resource.get_body()
 

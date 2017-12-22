@@ -16,65 +16,95 @@
 
 package com.intel.podm.client.redfish.response;
 
-import com.intel.podm.client.api.redfish.response.RedfishConnectionException;
-import com.intel.podm.client.api.redfish.response.RedfishException;
-import com.intel.podm.client.api.redfish.response.RedfishResponse;
+import com.intel.podm.client.redfish.http.HttpRequest;
 import com.intel.podm.client.redfish.http.HttpResponse;
-import org.apache.commons.lang.NotImplementedException;
+import com.intel.podm.common.types.net.HttpMethod;
+import com.intel.podm.common.types.net.HttpStatusCode;
+import com.intel.podm.common.types.redfish.ExternalServiceError;
+import com.intel.podm.common.types.redfish.RedfishErrorResponse;
+import org.apache.commons.lang3.NotImplementedException;
 
-import javax.ws.rs.ProcessingException;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
+import java.net.URI;
 
-import static com.intel.podm.common.utils.Contracts.requires;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
-import static org.apache.commons.lang.exception.ExceptionUtils.getRootCause;
 
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public final class RedfishResponseFactory {
     private RedfishResponseFactory() {
     }
 
-    public static RedfishResponse invoke(RedfishCallable callable) throws RedfishException {
-        requiresNonNull(callable, "callable");
-
-        HttpResponse httpResponse;
-        try {
-            httpResponse = callable.call();
-        } catch (ProcessingException e) {
-            throw isCausedBySocketException(e)
-                    ? new RedfishConnectionException(e)
-                    : new RedfishException(e);
-        }
-
-        return create(httpResponse);
-    }
-
-    public static RedfishResponse create(HttpResponse httpResponse) throws RedfishException {
+    public static RedfishResponse redfishResponseFromHttpResponse(HttpResponse httpResponse, HttpRequest httpRequest) throws RedfishClientException {
         requiresNonNull(httpResponse, "httpResponse");
 
         if (httpResponse.getStatusCode().isSuccessful()) {
             return new RedfishResponseImpl(httpResponse);
         } else if (httpResponse.getStatusCode().isError()) {
-            return createException(httpResponse);
+            throw new RedfishClientException(format("Service replied with %s", httpResponse), buildExternalServiceError(httpRequest, httpResponse));
+        } else if (httpResponse.getStatusCode().isRedirection()) {
+            throw new RedfishClientException(new UnexpectedRedirectionException(httpRequest.getRequestUri(), httpResponse.getLocation().orElse(null)));
         }
 
-        throw new NotImplementedException();
+        throw new NotImplementedException(format("HTTP Status Code %s is not supported!", httpResponse.getStatusCode()));
     }
 
-    private static RedfishResponse createException(HttpResponse httpResponse) throws RedfishException {
-        requiresNonNull(httpResponse, "response");
-        requires(httpResponse.getStatusCode().isError(), "status code " + httpResponse.getStatusCode() + " does not indicate error");
+    @SuppressWarnings({"checkstyle:MethodLength", "checkstyle:AnonInnerLength"})
+    private static ExternalServiceError buildExternalServiceError(HttpRequest httpRequest, HttpResponse httpResponse) {
+        return new ExternalServiceError() {
+            @Override
+            public Request getRequest() {
+                return new Request() {
+                    @Override
+                    public HttpMethod getHttpMethod() {
+                        return httpRequest.getHttpMethod();
+                    }
 
-        String msg = format("Service replied with %s", httpResponse);
-        throw new RedfishException(msg);
-    }
+                    @Override
+                    public URI getRequestUri() {
+                        return httpRequest.getRequestUri();
+                    }
 
-    private static boolean isCausedBySocketException(ProcessingException e) {
-        return getRootCause(e) instanceof SocketException || getRootCause(e) instanceof SocketTimeoutException;
-    }
+                    @Override
+                    public Object getRequestBody() {
+                        return httpRequest.getRequestBody().orElse(null);
+                    }
+                };
+            }
 
-    public interface RedfishCallable {
-        HttpResponse call();
+            @Override
+            public Response getResponse() {
+                return new Response() {
+                    @Override
+                    public HttpStatusCode getHttpStatusCode() {
+                        return httpResponse.getStatusCode();
+                    }
+
+                    @Override
+                    public Object getResponseBody() {
+                        return httpResponse.getEntity().orElse(null);
+                    }
+                };
+            }
+
+            @Override
+            public RedfishErrorResponse getRedfishErrorResponse() {
+                Object entity = httpResponse.getEntity().orElse(null);
+                if (entity instanceof RedfishErrorResponse) {
+                    return (RedfishErrorResponse) entity;
+                } else {
+                    return () -> new RedfishErrorResponse.Error() {
+                        @Override
+                        public String getCode() {
+                            return null;
+                        }
+
+                        @Override
+                        public String getMessage() {
+                            return null;
+                        }
+                    };
+                }
+            }
+        };
     }
 }

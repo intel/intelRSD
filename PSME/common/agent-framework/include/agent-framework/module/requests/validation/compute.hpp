@@ -64,6 +64,15 @@ public:
      * */
     static void validate_set_network_device_function_attributes(
         const agent_framework::model::attribute::Attributes& attributes);
+
+
+    /*!
+     * @brief Validates SetComponentAttributes method for Trusted module resource.
+     * @param[in] attributes Attributes deserialized from JSON request.
+     * @throw Throws exception if any parameter is invalid.
+     * */
+    static void validate_set_trusted_module_attributes(
+        const agent_framework::model::attribute::Attributes& attributes);
 };
 }
 }

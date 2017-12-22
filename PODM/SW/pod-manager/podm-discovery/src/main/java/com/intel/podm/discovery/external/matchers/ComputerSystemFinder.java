@@ -20,10 +20,10 @@ import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.EthernetInterfaceDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
-import com.intel.podm.client.api.resources.redfish.EthernetInterfaceResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ResourceSupplier;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
+import com.intel.podm.client.resources.redfish.EthernetInterfaceResource;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.net.MacAddress;
 
@@ -72,7 +72,7 @@ public class ComputerSystemFinder {
 
     private EthernetInterface findEthernetInterface(MacAddress macAddress) {
         try {
-            return ethernetInterfaceDao.getEnabledAndHealthyEthernetInterfaceByMacAddress(macAddress);
+            return ethernetInterfaceDao.getEnabledEthernetInterfaceByMacAddress(macAddress);
         } catch (NonUniqueResultException e) {
             logger.w("Found more than one Ethernet Interface with MAC address '{}'", macAddress);
             return null;
@@ -86,7 +86,7 @@ public class ComputerSystemFinder {
             try {
                 EthernetInterfaceResource ethernetInterface = (EthernetInterfaceResource) supplier.get();
                 ethernetInterface.getMacAddress().ifAssigned(result::add);
-            } catch (ExternalServiceApiReaderException e) {
+            } catch (WebClientRequestException e) {
                 continue;
             }
         }
@@ -97,7 +97,7 @@ public class ComputerSystemFinder {
     private Iterable<ResourceSupplier> getEthernetInterfaces(ComputerSystemResource computerSystemResource) {
         try {
             return computerSystemResource.getEthernetInterfaces();
-        } catch (ExternalServiceApiReaderException e) {
+        } catch (WebClientRequestException e) {
             return emptyList();
         }
     }

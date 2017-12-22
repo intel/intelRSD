@@ -43,12 +43,12 @@ using std::vector;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
+using namespace agent::storage;
 using namespace agent::storage::hotswap_discovery;
-using namespace agent::storage::sysfs;
 using namespace agent::storage::event;
 
 
-bool HotswapManager::compare_disks(const SysfsAPI::HardDrive& hd_detected,
+bool HotswapManager::compare_disks(const HardDrive& hd_detected,
                                    const PhysicalDrive& phy_drive) {
     const auto& fru_info = phy_drive.get_fru_info();
     return ((hd_detected.get_serial_number() == fru_info.get_serial_number()) &&
@@ -57,7 +57,7 @@ bool HotswapManager::compare_disks(const SysfsAPI::HardDrive& hd_detected,
 }
 
 
-void HotswapManager::add_disk(const SysfsAPI::HardDrive& new_hdrive) {
+void HotswapManager::add_disk(const HardDrive& new_hdrive) {
     PhysicalDrive phy_drive{};
     /* fill physical drive parameters using sysfs drive info */
     phy_drive.set_device_path(new_hdrive.get_device_path());
@@ -80,7 +80,7 @@ void HotswapManager::add_disk(const SysfsAPI::HardDrive& new_hdrive) {
     const std::string phy_drive_persistent_uuid =
         StorageTreeStabilizer().stabilize_physical_drive(phy_drive.get_uuid());
     /* send event notification about adding new physical drive */
-    auto storage_uuid = get_manager<StorageServices>().get_keys().front();
+    auto storage_uuid = get_manager<StorageService>().get_keys().front();
     send_event(phy_drive_persistent_uuid, Component::PhysicalDrive,
                agent_framework::eventing::Notification::Add, storage_uuid);
     /* log about success adding */
@@ -92,7 +92,7 @@ void HotswapManager::add_disk(const SysfsAPI::HardDrive& new_hdrive) {
 
 
 void HotswapManager::remove_disk(const PhysicalDrive& phy_drive) {
-    auto storage_uuid = get_manager<StorageServices>().get_keys().front();
+    auto storage_uuid = get_manager<StorageService>().get_keys().front();
     /* send event notification about removing physical drive */
     send_event(phy_drive.get_uuid(), Component::PhysicalDrive,
                agent_framework::eventing::Notification::Remove, storage_uuid);
@@ -203,7 +203,7 @@ void HotswapManager::resolve_dependencies(const PhysicalDrive& phy_drive) {
     auto& module = CommonComponents().get_instance()->get_module_manager();
     for (const auto& manager_uuid : module.get_keys()) {
         for (const auto& storage_uuid :
-            get_manager<StorageServices>().get_keys(manager_uuid)) {
+            get_manager<StorageService>().get_keys(manager_uuid)) {
             if (check_physical_volumes_state(phy_drive, storage_uuid)) {
                 check_volume_groups_state(storage_uuid);
                 check_logical_volumes_state(storage_uuid);
@@ -215,9 +215,8 @@ void HotswapManager::resolve_dependencies(const PhysicalDrive& phy_drive) {
 
 void HotswapManager::hotswap_discover_hard_drives() {
     /* get list of hard drives on a system */
-    vector<SysfsAPI::HardDrive> hds_detected{};
-    SysfsAPI::get_instance()->get_hard_drives(hds_detected);
-    vector<SysfsAPI::HardDrive> hard_drives(hds_detected.begin(), hds_detected.end());
+    vector<HardDrive> hds_detected = SysfsAPI::get_instance()->get_hard_drives();
+    vector<HardDrive> hard_drives(hds_detected.begin(), hds_detected.end());
     auto phy_drive_uuids = get_manager<PhysicalDrive>().get_keys();
     auto phy_drive_end_it = phy_drive_uuids.end();
     auto hdrive_end_it = hard_drives.end();

@@ -21,21 +21,22 @@ import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.net.MacAddress;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static com.intel.podm.business.entities.redfish.EthernetSwitchPort.GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC;
+import static com.intel.podm.business.entities.redfish.EthernetSwitchPort.GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE;
+import static com.intel.podm.common.types.PortType.DOWNSTREAM;
 import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Dependent
-@Transactional(MANDATORY)
+@ApplicationScoped
 public class EthernetSwitchPortDao extends Dao<EthernetSwitchPort> {
+    @Transactional(MANDATORY)
     public EthernetSwitchPort getOrThrow(Id portId) {
         Optional<EthernetSwitchPort> expectedSwitchPort = tryFind(portId);
         if (!expectedSwitchPort.isPresent()) {
@@ -44,24 +45,26 @@ public class EthernetSwitchPortDao extends Dao<EthernetSwitchPort> {
         return expectedSwitchPort.get();
     }
 
+    @Transactional(MANDATORY)
     public EthernetSwitchPort getEnabledAndHealthyEthernetSwitchPortByNeighborMac(MacAddress neighborMac) throws NonUniqueResultException {
         if (neighborMac == null) {
             return null;
         }
 
-        TypedQuery<EthernetSwitchPort> query = entityManager.createNamedQuery(GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC, EthernetSwitchPort.class);
+        TypedQuery<EthernetSwitchPort> query = entityManager.createNamedQuery(GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE, EthernetSwitchPort.class);
+        query.setParameter("portType", DOWNSTREAM);
         query.setParameter("neighborMac", neighborMac);
 
         List<EthernetSwitchPort> ethernetSwitchPorts = query.getResultList().stream()
-                .filter(EthernetSwitchPort::isEnabledAndHealthy)
-                .collect(toList());
+            .filter(EthernetSwitchPort::isEnabledAndHealthy)
+            .collect(toList());
 
         try {
             return singleOrNull(ethernetSwitchPorts);
         } catch (IllegalStateException e) {
             throw new NonUniqueResultException(
-                    format("Couldn't find single, enabled and healthy Ethernet Switch Port with neighbor MAC Address: '%s'. Found %d Ethernet Switch Ports.",
-                            neighborMac, ethernetSwitchPorts.size()));
+                format("Couldn't find single, enabled and healthy Ethernet Switch Port with neighbor MAC Address: '%s' and PortType: %s."
+                    + " Found %d Ethernet Switch Ports.", neighborMac, DOWNSTREAM, ethernetSwitchPorts.size()));
         }
     }
 }

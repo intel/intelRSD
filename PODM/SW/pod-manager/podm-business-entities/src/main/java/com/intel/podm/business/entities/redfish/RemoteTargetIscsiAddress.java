@@ -18,13 +18,18 @@ package com.intel.podm.business.entities.redfish;
 
 import com.intel.podm.business.entities.EventOriginProvider;
 import com.intel.podm.business.entities.Eventable;
+import com.intel.podm.business.entities.converters.IdToLongConverter;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.embeddables.Chap;
+import com.intel.podm.common.types.Id;
+import org.hibernate.annotations.Generated;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -38,17 +43,23 @@ import java.util.Objects;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.FetchType.LAZY;
+import static org.hibernate.annotations.GenerationTime.INSERT;
 
 @javax.persistence.Entity
 @NamedQueries({
     @NamedQuery(name = RemoteTargetIscsiAddress.GET_REMOTE_TARGET_ISCSI_ADDRESSES_BY_TARGET_IQN,
         query = "SELECT iscsiAddress FROM RemoteTargetIscsiAddress iscsiAddress WHERE iscsiAddress.targetIqn = :targetIqn")
 })
-@Table(name = "remote_target_iscsi_address")
+@Table(name = "remote_target_iscsi_address", indexes = @Index(name = "idx_remote_target_iscsi_address_entity_id", columnList = "entity_id", unique = true))
 @Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class RemoteTargetIscsiAddress extends Entity {
     public static final String GET_REMOTE_TARGET_ISCSI_ADDRESSES_BY_TARGET_IQN = "GET_REMOTE_TARGET_ISCSI_ADDRESSES_BY_TARGET_IQN";
+
+    @Generated(INSERT)
+    @Convert(converter = IdToLongConverter.class)
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_NUMERIC_COLUMN_DEFINITION, insertable = false, nullable = false)
+    private Id entityId;
 
     @Column(name = "target_iqn")
     private String targetIqn;
@@ -71,6 +82,10 @@ public class RemoteTargetIscsiAddress extends Entity {
 
     @Embedded
     private Chap chap;
+
+    public Id getId() {
+        return entityId;
+    }
 
     public String getTargetIqn() {
         return targetIqn;

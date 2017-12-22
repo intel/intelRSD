@@ -13,26 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.intel.podm.common.types;
 
 /**
  * Types of storage's drive.
  */
-//TODO: add "weight" for allocation algorithm,
-// at the moment, the natural order is used (the order in which the values are declared)
 public enum MediaType implements EnumeratedType {
-    HDD("HDD"),
-    SSD("SSD");
+    HDD("HDD", 1),
+    SSD("SSD", 2);
 
     private final String value;
+    private final Integer priority;
 
-    MediaType(String value) {
+    MediaType(String value, Integer priority) {
         this.value = value;
+        this.priority = priority;
     }
 
     @Override
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public Integer getPriority() {
+        return priority;
     }
 
     @Override

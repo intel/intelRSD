@@ -31,9 +31,17 @@ namespace rest {
 namespace validators {
 namespace schema {
 
-/*! @brief  SystemSchema schema for validating PATCH system requests */
+/*! @brief Schema for validating PATCH requests on System resource. */
 class SystemPatchSchema {
     class BootSchema {
+    public:
+        static const jsonrpc::ProcedureValidator& get_procedure();
+    };
+    class OemSchema {
+        class RackScaleSchema {
+        public:
+            static const jsonrpc::ProcedureValidator& get_procedure();
+        };
     public:
         static const jsonrpc::ProcedureValidator& get_procedure();
     };

@@ -21,10 +21,11 @@
 #pragma once
 
 #include "psme/rest/model/handlers/id_policy_helpers.hpp"
-#include "psme/rest/model/handlers/database.hpp"
 #include "psme/rest/model/handlers/id_memoizer.hpp"
 #include "agent-framework/module/enum/common.hpp"
 #include "generic/assertions.hpp"
+
+#include "database/database.hpp"
 
 #include <memory>
 
@@ -113,7 +114,7 @@ private:
      *
      * Database static object will be constructed in IdPolicy constructor.
      */
-    static Database::SPtr database;
+    static database::Database::SPtr database;
 
     /*!
      * @brief static shared pointer that holds static IdMemoizer object
@@ -125,7 +126,7 @@ private:
 };
 
 template <agent_framework::model::enums::Component::Component_enum CT, NumberingZone NZ>
-Database::SPtr IdPolicy<CT, NZ>::database {};
+database::Database::SPtr IdPolicy<CT, NZ>::database {};
 
 template <agent_framework::model::enums::Component::Component_enum CT, NumberingZone NZ>
 IdMemoizer::SPtr IdPolicy<CT, NZ>::memoizer {};
@@ -136,7 +137,7 @@ constexpr agent_framework::model::enums::Component IdPolicy<CT, NZ>::component;
 template <agent_framework::model::enums::Component::Component_enum CT, NumberingZone NZ>
 IdPolicy<CT, NZ>::IdPolicy() {
     if (!database) {
-        database = Database::create(component.to_string());
+        database = database::Database::create(component.to_string());
     }
     if (!memoizer) {
         memoizer = IdMemoizer::create(component.to_string());
@@ -146,18 +147,18 @@ template <agent_framework::model::enums::Component::Component_enum CT, Numbering
 IdPolicy<CT, NZ>::~IdPolicy() { }
 
 template <agent_framework::model::enums::Component::Component_enum CT, NumberingZone NZ>
-IdValue::IdType IdPolicy<CT, NZ>::IdPolicy::get_id(const UuidType& uuid, const UuidType& parent_uuid) {
+database::IdValue::IdType IdPolicy<CT, NZ>::IdPolicy::get_id(const UuidType& uuid, const UuidType& parent_uuid) {
     const UuidType& parent = (NZ == NumberingZone::SHARED) ? "" : parent_uuid;
 
     /* parent might be empty, then 'last' name is assumed */
-    UuidKey last_key{ResourceLastKey::LAST, parent};
-    IdValue last_id{};
+    database::UuidKey last_key{database::ResourceLastKey::LAST, parent};
+    database::IdValue last_id{};
     /* if no last entry found.. 0 is assumed */
     database->get(last_key, last_id);
 
-    UuidKey entity_key(uuid, parent);
-    IdValue entity_id{};
-    IdValue::IdType id;
+    database::UuidKey entity_key(uuid, parent);
+    database::IdValue entity_id{};
+    database::IdValue::IdType id;
     auto next_free = last_id.get() + 1;
     if (database->get(entity_key, entity_id)) {
         id = entity_id.get();
@@ -201,7 +202,7 @@ IdValue::IdType IdPolicy<CT, NZ>::IdPolicy::get_id(const UuidType& uuid, const U
     /* store "new" last-assigned value to the database. If "last" is not valid,
      * make it valid. LastId must stay "forever"
      */
-    if ((last_id.get() < id) || (Database::EntityValidity::VALID != database->get_validity(last_key))) {
+    if ((last_id.get() < id) || (database::Database::EntityValidity::VALID != database->get_validity(last_key))) {
         last_id.set(id);
         database->put(last_key, last_id);
     }
@@ -218,8 +219,8 @@ template <agent_framework::model::enums::Component::Component_enum CT, Numbering
 void IdPolicy<CT, NZ>::purge(const UuidType& uuid, const UuidType& parent_uuid) {
     const UuidType& parent = (NZ == NumberingZone::SHARED) ? "" : parent_uuid;
 
-    UuidKey entity_key{uuid, parent};
-    IdValue entity_id{};
+    database::UuidKey entity_key{uuid, parent};
+    database::IdValue entity_id{};
     if (!database->get(entity_key, entity_id)) {
         assert(generic::FAIL("No entity stored in the database"));
         return;
@@ -242,7 +243,7 @@ void IdPolicy<CT, NZ>::purge(const UuidType& uuid, const UuidType& parent_uuid) 
 
 template <agent_framework::model::enums::Component::Component_enum CT, NumberingZone NZ>
 void IdPolicy<CT, NZ>::reset() {
-    UuidKey entity_key{};
+    database::UuidKey entity_key{};
     database->drop(entity_key);
     database->remove();
 
@@ -254,8 +255,8 @@ template <agent_framework::model::enums::Component::Component_enum CT, Numbering
 unsigned IdPolicy<CT, NZ>::invalidate_last(const UuidType& parent_uuid) {
     const UuidType& parent = (NZ == NumberingZone::SHARED) ? "" : parent_uuid;
 
-    Database::SPtr db{Database::create("*parent")};
-    ResourceLastKey key{parent};
+    database::Database::SPtr db{database::Database::create("*parent")};
+    database::ResourceLastKey key{parent};
     auto ret = db->cleanup(key);
     db->remove();
     return ret;

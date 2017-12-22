@@ -40,6 +40,8 @@ class NetworkInterfaceManager(Manager):
             network_interface = NetworkInterface()
 
             network_interface = cls.set_fields(network_interface, data_block, context=context)
+            if network_interface == None:
+               continue
             ret.append(network_interface)
         return ret
 

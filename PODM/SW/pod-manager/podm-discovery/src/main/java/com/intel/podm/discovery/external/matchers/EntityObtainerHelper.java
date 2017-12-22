@@ -18,14 +18,14 @@ package com.intel.podm.discovery.external.matchers;
 
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
 
 import java.util.Optional;
 
 public interface EntityObtainerHelper<T extends ExternalServiceResource> {
-    ComputerSystemResource findComputerSystemResourceFor(T resource) throws ExternalServiceApiReaderException;
+    ComputerSystemResource findComputerSystemResourceFor(T resource) throws WebClientRequestException;
     Optional<? extends Entity> findEntityFor(ComputerSystem computerSystem, T resource);
     Class<? extends Entity> getEntityClass();
     Class<T> getResourceClass();

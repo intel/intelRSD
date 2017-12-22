@@ -107,10 +107,47 @@ public:
     virtual void remove(const std::string& switch_uuid, const std::string& port_uuid) const;
 
     /*!
-     * @brief finds drive by its dsp port uuid
+     * @brief Finds drive by its dsp port uuid
      * @param[in] port_uuid Uuid of the dsp port
      * */
     virtual std::string get_drive_by_dsp_port(const std::string& port_uuid) const;
+
+    /*!
+     * @brief Locks all entities on the port so they will not be changed by GAMI commands
+     * @param[in] port_uuid Uuid of the dsp port
+     * */
+    virtual void lock_port(const std::string& port_uuid) const;
+
+    /*!
+     * @brief Unlocks all entities on the port
+     * @param[in] port_uuid Uuid of the dsp port
+     * */
+    virtual void unlock_port(const std::string& port_uuid) const;
+
+    using ZoneEndpointPair = std::tuple<std::string, std::string>;
+    using ZoneEndpointVector = std::vector<ZoneEndpointPair>;
+    /*!
+     * @brief Gets list of all bindings on the specified port
+     * @param port_uuid Uuid of the dsp port
+     * @return Vector of zone/endpoint uuids pairs
+     * */
+    virtual ZoneEndpointVector get_bindings_on_port(const std::string& port_uuid) const;
+
+    /*!
+     * @brief Gets list of all endpoints on the specified port
+     * @param port_uuid Uuid of the dsp port
+     * @return List of uuids of all endpoints on port
+     * */
+    virtual std::vector<std::string> get_enabled_endpoints_on_port(const std::string& port_uuid) const;
+
+    /*!
+     * @brief Attaches endpoint to the zone
+     * @param switch_uuid Uuid of the switch
+     * @param endpoint_uuid Uuid of the endpoint
+     * @param zone_uuid Uuid of the zone
+     */
+    virtual void attach_endpoint_to_zone(const std::string& switch_uuid, const std::string& endpoint_uuid,
+        const std::string& zone_uuid) const;
 
 private:
     discovery::DiscoveryManager m_dm;

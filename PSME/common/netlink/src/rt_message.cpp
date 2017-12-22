@@ -30,7 +30,7 @@ using std::string;
 using namespace netlink_base;
 
 RtMessage::RtMessage(const string& iface) :
-        m_ifname{iface}, NlMessage(NlMessage::Protocol::ROUTE) {
+        m_ifname{iface}, NlMessage(NlSocket::Protocol::ROUTE) {
     /* try to get ifindex of provided interface name */
     m_ifindex = if_nametoindex(get_ifname().c_str());
 }

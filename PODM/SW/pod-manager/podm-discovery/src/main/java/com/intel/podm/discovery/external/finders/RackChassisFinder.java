@@ -18,6 +18,7 @@ package com.intel.podm.discovery.external.finders;
 
 import com.intel.podm.business.entities.dao.ChassisDao;
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.common.synchronization.TaskCanceledException;
 import com.intel.podm.common.types.ChassisType;
 import com.intel.podm.common.types.Health;
 import com.intel.podm.common.types.State;
@@ -28,12 +29,12 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intel.podm.common.types.ChassisType.RACK;
 import static com.intel.podm.common.types.Id.id;
+import static com.intel.podm.common.utils.Contracts.checkArgument;
 import static com.intel.podm.common.utils.IterableHelper.single;
-import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Transactional(MANDATORY)
@@ -49,15 +50,12 @@ public class RackChassisFinder {
      */
     public Chassis findAnyOrCreate(String locationId) {
         return findByLocation(locationId).stream()
-                .findAny()
-                .orElseGet(() -> createRackChassis(locationId));
+            .findAny()
+            .orElseGet(() -> createRackChassis(locationId));
     }
 
     public List<Chassis> findByLocation(String locationId) {
-        return chassisDao.getAllByChassisType(RACK)
-                .stream()
-                .filter(chassis -> Objects.equals(chassis.getLocationId(), locationId))
-                .collect(toList());
+        return chassisDao.getChassis(RACK, locationId);
     }
 
     /**
@@ -65,6 +63,9 @@ public class RackChassisFinder {
      * for this rack to be properly attached to assets structure.
      */
     public Chassis createRackChassis(String locationId) {
+        checkArgument(!isNullOrEmpty(locationId),
+            () -> new TaskCanceledException("Chassis does not have required property : 'parentId'. Cannot create rack structure"));
+
         Chassis rackChassis = chassisDao.create();
         Chassis podChassis = single(chassisDao.getAllByChassisType(ChassisType.POD));
 

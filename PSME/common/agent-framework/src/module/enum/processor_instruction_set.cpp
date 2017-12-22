@@ -22,13 +22,14 @@
  * */
 
 #include "agent-framework/module/enum/processor_instruction_set.hpp"
+#include "agent-framework/exceptions/exception.hpp"
 #include <array>
 
 using namespace agent_framework::model::enums;
 
 namespace {
-    std::array<const char*, 3> names = {{
-        "x86-64", "x86", "UNKNOWN"}};
+    std::array<const char*, 8> names = {{
+        "x86-64", "x86", "IA-64", "ARM-A32", "ARM-A64", "MIPS32", "MIPS64", "OEM"}};
 }
 
 const char* ProcessorInstructionSet::to_string() const{
@@ -41,8 +42,8 @@ ProcessorInstructionSet ProcessorInstructionSet::from_string(const std::string& 
             return ProcessorInstructionSetEnum(static_cast<ProcessorInstructionSetEnum>(i));
         }
     }
-    return ProcessorInstructionSetEnum(2);
-}
+    THROW(agent_framework::exceptions::InvalidValue, "agent-framework",
+          std::string("ProcessorInstructionSet enum value not found: '") + name + "'.");}
 
 std::vector<std::string> ProcessorInstructionSet::get_values() {
     return std::vector<std::string>(names.cbegin(), names.cend());

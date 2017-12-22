@@ -18,7 +18,7 @@
 #include "agent-framework/exceptions/exception.hpp"
 #include "agent-framework/validators/checkers/jsonrpc_validity_checker.hpp"
 
-#include <cassert>
+#include "generic/assertions.hpp"
 
 
 
@@ -28,54 +28,54 @@ using namespace jsonrpc;
 JsonrpcValidityChecker::JsonrpcValidityChecker(jsontype_t _type) : type(_type) {}
 
 
-void JsonrpcValidityChecker::validate(const Json::Value& value) const {
+void JsonrpcValidityChecker::validate(const json::Json& value) const {
     ValidityChecker::validate(value);
 
     switch (type) {
         case jsontype_t::JSON_STRING:
-            if (!value.isString()) {
+            if (!value.is_string()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid string type.", value);
             }
             break;
         case jsontype_t::JSON_BOOLEAN:
-            if (!value.isBool()) {
+            if (!value.is_boolean()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid boolean type.", value);
             }
             break;
         case jsontype_t::JSON_INTEGER:
-            if (!value.isInt()) {
+            if (!value.is_number_integer()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid integer type.", value);
             }
             break;
         case jsontype_t::JSON_REAL:
-            if (!value.isDouble()) {
+            if (!value.is_number()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid real type.", value);
             }
             break;
         case jsontype_t::JSON_OBJECT:
-            if (!value.isObject()) {
+            if (!value.is_object()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid object type.", value);
             }
             break;
         case jsontype_t::JSON_ARRAY:
-            if (!value.isArray()) {
+            if (!value.is_array()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Property value is not valid array type.", value);
             }
             break;
         default:
-            assert(fail("Allowed JSON type"));
+            assert(generic::FAIL("Allowed JSON type"));
             THROW(ValidityChecker::ValidationException, "agent-framework",
                   agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                   "Property value is not allowed JSON type.", value);

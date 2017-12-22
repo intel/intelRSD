@@ -18,13 +18,12 @@ package com.intel.podm.mappers;
 
 import com.intel.podm.common.types.Ref;
 import org.modelmapper.Condition;
-import org.modelmapper.spi.PropertyInfo;
+import org.modelmapper.spi.MappingContext;
 
-import java.util.Arrays;
-import java.util.Objects;
+import java.lang.reflect.Field;
+import java.util.Collection;
 
 import static com.intel.podm.mappers.Converters.refConverter;
-import static org.apache.commons.lang.BooleanUtils.negate;
 
 public final class Conditions {
     private Conditions() {
@@ -36,7 +35,6 @@ public final class Conditions {
                 return true;
             }
 
-            // TODO: can we avoid this hack? it should probably be moved to mapper API
             if (context.getParent() != null) {
                 context.getParent().getTypeMap().setPropertyConverter(refConverter());
             }
@@ -45,14 +43,43 @@ public final class Conditions {
         };
     }
 
-    public static Condition<?, ?> ignoredPropertiesCondition(String... propertiesNames) {
-        return context -> negate(
-                context.getMapping().getDestinationProperties().stream()
-                .map(PropertyInfo::getName)
-                .filter(Objects::nonNull)
-                .filter(Arrays.asList(propertiesNames)::contains)
-                .findFirst()
-                .isPresent()
-        );
+    public static Condition<?, ?> aggregateCondition(boolean isSourceFavored, boolean useNullOverwrite) {
+        return context -> {
+            Object value = tryGetDestinationValue(context);
+            if (value == null || isAnEmptyCollection(value)) {
+                return true;
+            }
+
+            if (isSourceFavored) {
+                if (context.getSource() != null) {
+                    return true;
+                } else {
+                    return useNullOverwrite;
+                }
+            }
+            return false;
+        };
+    }
+
+    private static boolean isAnEmptyCollection(Object value) {
+        return value instanceof Collection<?> && ((Collection) value).isEmpty();
+    }
+
+    private static Object tryGetDestinationValue(MappingContext<Object, Object> context) {
+        try {
+            String fieldName = context.getMapping().getLastDestinationProperty().getName();
+            Field declaredField = context.getParent().getDestination().getClass().getDeclaredField(fieldName);
+            Object value;
+            if (!declaredField.isAccessible()) {
+                declaredField.setAccessible(true);
+                value = declaredField.get(context.getParent().getDestination());
+                declaredField.setAccessible(false);
+            } else {
+                value = declaredField.get(context.getParent().getDestination());
+            }
+            return value;
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return null;
+        }
     }
 }

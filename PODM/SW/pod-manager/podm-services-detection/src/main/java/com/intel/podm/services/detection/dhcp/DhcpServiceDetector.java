@@ -17,42 +17,25 @@
 package com.intel.podm.services.detection.dhcp;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.config.base.Config;
-import com.intel.podm.config.base.Holder;
-import com.intel.podm.config.base.dto.ServiceDetectionConfig;
 import com.intel.podm.config.base.dto.ServiceDetectionConfig.Protocols.Dhcp;
 import com.intel.podm.services.detection.dhcp.tasks.ProvideEndpointsScheduledTask;
 import com.intel.podm.services.detection.dhcp.tasks.RecheckFailedUrisScheduledTask;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.ejb.DependsOn;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.enterprise.concurrent.ManagedScheduledExecutorService;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.concurrent.RejectedExecutionException;
 
-import static com.intel.podm.common.types.discovery.DiscoveryProtocols.DHCP;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-@Startup
-@Singleton
-@DependsOn({"DiscoveryStartup"})
+@ApplicationScoped
 public class DhcpServiceDetector {
-
     @Resource
-    ManagedScheduledExecutorService managedExecutorService;
+    private ManagedScheduledExecutorService managedExecutorService;
 
     @Inject
     private Logger logger;
-
-    @Inject
-    @Config
-    private Holder<ServiceDetectionConfig> configuration;
-
-    @Inject
-    private ServiceChecker serviceChecker;
 
     @Inject
     private ProvideEndpointsScheduledTask provideEndpointsScheduledTask;
@@ -60,30 +43,17 @@ public class DhcpServiceDetector {
     @Inject
     private RecheckFailedUrisScheduledTask recheckFailedUrisScheduledTask;
 
-    @PostConstruct
-    private void init() {
-
-        if (!configuration.get().isProtocolEnabled(DHCP)) {
-            logger.t("DHCP protocol is disabled");
-            return;
-        }
-
+    public void init(Dhcp dhcp) {
         logger.i("Initializing DHCP based service detector...");
-
-        Dhcp dhcpConf = configuration.get().getProtocols().getDhcp();
-
         try {
-            managedExecutorService.scheduleWithFixedDelay(provideEndpointsScheduledTask,
-                    dhcpConf.getFilesCheckIntervalInSeconds(),
-                    dhcpConf.getFilesCheckIntervalInSeconds(), SECONDS);
+            long checkInterval = dhcp.getFilesCheckIntervalInSeconds();
+            managedExecutorService.scheduleWithFixedDelay(provideEndpointsScheduledTask, checkInterval, checkInterval, SECONDS);
 
-            managedExecutorService.scheduleWithFixedDelay(recheckFailedUrisScheduledTask,
-                    configuration.get().getFailedEndpointRecheckInterval(),
-                    configuration.get().getFailedEndpointRecheckInterval(), SECONDS);
+            long recheckInterval = dhcp.getFailedEndpointRecheckInterval();
+            managedExecutorService.scheduleWithFixedDelay(recheckFailedUrisScheduledTask, recheckInterval, recheckInterval, SECONDS);
         } catch (RejectedExecutionException e) {
             logger.e("Application failed to start properly. Service polling is disabled.", e);
             throw e;
         }
     }
-
 }

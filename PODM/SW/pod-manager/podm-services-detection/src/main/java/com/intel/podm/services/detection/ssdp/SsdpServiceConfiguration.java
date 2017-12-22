@@ -27,11 +27,12 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Specializes;
 import java.util.concurrent.ExecutorService;
 
+import static com.intel.podm.common.enterprise.utils.beans.JndiNames.SSDP_EXECUTOR;
+
 @Specializes
 @ApplicationScoped
 public class SsdpServiceConfiguration extends ManagedUpnpServiceConfiguration {
-
-    @Resource(lookup = "java:/SSDPExecutor")
+    @Resource(lookup = "java:/" + SSDP_EXECUTOR)
     private ManagedExecutorService executorService;
 
     @Override

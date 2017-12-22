@@ -27,14 +27,16 @@ using namespace psme::core::agent;
 using namespace psme::rest::error;
 using namespace agent_framework::exceptions;
 
-
-Json::Value RpcClient::CallMethod(const std::string& name, const Json::Value& parameter) {
+json::Json RpcClient::CallMethod(const std::string& name, const json::Json& parameter) {
     try {
-        return jsonrpc::Client::CallMethod(name, parameter);
+        m_invoker->prepare_method(name, parameter);
+        m_invoker->call(m_connector);
+        return m_invoker->get_result();
     }
-    catch (const jsonrpc::JsonRpcException& ex) {
-        const auto error_code = static_cast<ErrorCode>(ex.GetCode());
-        log_error(GET_LOGGER("rest"), "RPC client throws exception: " << ex.what());
+    catch (const json_rpc::JsonRpcException& ex) {
+        const auto error_code = static_cast<ErrorCode>(ex.get_code());
+        log_error(GET_LOGGER("rest"), "RPC connector threw exception: >>"
+            << ex.what() << "<< for method " << name << ".");
 
         // JSON RPC InvalidParameter exception is similar to InvalidField exception
         if (is_communication_error(error_code)) {
@@ -44,14 +46,14 @@ Json::Value RpcClient::CallMethod(const std::string& name, const Json::Value& pa
             auto error = ErrorFactory::create_internal_error("There were communication errors with underlying Agent.");
             throw ServerException(error);
         }
-        else if (jsonrpc::Errors::ERROR_CLIENT_CONNECTOR == ex.GetCode()) {
+        else if (json_rpc::common::ERROR_CLIENT_CONNECTOR == ex.get_code()) {
             // Rethrow this kind of exception to handle Agent disconnection.
             throw;
         }
         else {
             // Throw REST server exception from GAMI exception
             auto error = ErrorFactory::create_error_from_gami_exception(
-                GamiException{error_code, ex.GetMessage(), ex.GetData()});
+                GamiException{error_code, ex.get_message(), ex.get_data()});
             throw ServerException(error);
         }
     }
@@ -59,4 +61,3 @@ Json::Value RpcClient::CallMethod(const std::string& name, const Json::Value& pa
 
 
 RpcClient::~RpcClient() {}
-

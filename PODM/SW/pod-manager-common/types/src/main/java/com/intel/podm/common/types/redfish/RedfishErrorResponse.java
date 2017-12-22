@@ -26,13 +26,14 @@ public interface RedfishErrorResponse {
     interface Error {
         String getCode();
         String getMessage();
-        default List<? extends ExtendedInfo> getExtendedInfo() {
+        default List<ExtendedInfo> getExtendedInfo() {
             return emptyList();
         }
 
         interface ExtendedInfo {
             String getMessageId();
             String getMessage();
+            String getResolution();
         }
     }
 }

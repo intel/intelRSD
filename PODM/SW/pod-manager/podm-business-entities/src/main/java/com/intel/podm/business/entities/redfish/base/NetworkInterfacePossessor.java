@@ -16,7 +16,6 @@
 
 package com.intel.podm.business.entities.redfish.base;
 
-
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 
 import java.util.Set;

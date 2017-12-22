@@ -25,6 +25,7 @@
 #include "psme/core/agent/agent_manager.hpp"
 #include "psme/core/agent/json_agent.hpp"
 #include "logger/logger_factory.hpp"
+
 #include <algorithm>
 
 using namespace psme::core::agent;
@@ -73,4 +74,3 @@ AgentManager::AgentsList AgentManager::get_agents() {
     std::lock_guard<std::mutex> lock{m_mutex};
     return m_agents;
 }
-

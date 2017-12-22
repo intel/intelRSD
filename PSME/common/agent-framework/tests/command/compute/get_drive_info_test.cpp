@@ -78,8 +78,8 @@ TEST(GetDriveInfoTest, PositiveExecute) {
     MyGetDriveInfo command{"TestDriveId"};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::Drive::DRIVE] = "TestDriveId";
 
@@ -115,8 +115,8 @@ TEST(GetDriveInfoTest, NegativeModuleNotFound) {
     MyGetDriveInfo command{"TestDriveId"};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::Drive::DRIVE] = "OtherTestDriveId";
 

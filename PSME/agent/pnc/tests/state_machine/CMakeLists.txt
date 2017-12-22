@@ -33,8 +33,6 @@ target_link_libraries(${test_target}
     pnc_state_machine_objects_test
     agent-framework
     json-cxx
-    jsoncpp
-    jsonrpccpp-common
     ${LOGGER_LIBRARIES}
     ${UUID_LIBRARIES}
     ${SAFESTRING_LIBRARIES}

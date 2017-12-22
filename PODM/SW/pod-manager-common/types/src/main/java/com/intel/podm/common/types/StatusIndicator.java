@@ -16,7 +16,6 @@
 
 package com.intel.podm.common.types;
 
-
 public enum StatusIndicator implements EnumeratedType {
     OK("OK"),
     FAIL("Fail"),

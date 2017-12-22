@@ -16,26 +16,34 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.ServiceDto;
+import com.intel.podm.business.dto.StorageServiceDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.common.types.redfish.ResourceNames.LOGICAL_DRIVES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.PHYSICAL_DRIVES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.REMOTE_TARGETS_RESOURCE_NAME;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ServiceResource extends BaseResource {
     @Inject
-    private ReaderService<ServiceDto> readerService;
+    private ReaderService<StorageServiceDto> readerService;
 
     @Override
-    public ServiceDto get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        StorageServiceDto storageServiceDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, storageServiceDto);
     }
 
     @Path(REMOTE_TARGETS_RESOURCE_NAME)
@@ -51,5 +59,10 @@ public class ServiceResource extends BaseResource {
     @Path(PHYSICAL_DRIVES_RESOURCE_NAME)
     public PhysicalDrivesCollectionResource getPhysicalDrives() {
         return getResource(PhysicalDrivesCollectionResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

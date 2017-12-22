@@ -32,7 +32,7 @@ public:
 
     virtual ~AlwaysFailValidityChecker();
 
-    virtual void validate(const Json::Value&) const __attribute((noreturn));
+    virtual void validate(const json::Json&) const __attribute((noreturn));
 
 private:
     /*! @brief Reported fail message */

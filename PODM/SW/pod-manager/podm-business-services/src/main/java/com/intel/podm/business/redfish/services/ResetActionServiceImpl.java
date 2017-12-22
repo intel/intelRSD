@@ -16,17 +16,16 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.actions.ActionException;
-import com.intel.podm.actions.ResetActionInvoker;
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.EntityOperationException;
-import com.intel.podm.business.InvalidPayloadException;
+import com.intel.podm.business.RequestValidationException;
 import com.intel.podm.business.ResourceStateMismatchException;
+import com.intel.podm.business.Violations;
 import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.base.Resettable;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.actions.ResetActionInvoker;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ActionService;
 import com.intel.podm.business.services.redfish.requests.ResetRequest;
@@ -40,6 +39,8 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.business.Violations.ofValueNotAllowedViolation;
+import static com.intel.podm.business.Violations.createWithViolations;
 import static com.intel.podm.common.types.ComposedNodeState.ASSEMBLED;
 import static com.intel.podm.common.types.ComposedNodeState.FAILED;
 import static java.lang.String.format;
@@ -48,7 +49,7 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 @RequestScoped
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
-public class ResetActionServiceImpl implements ActionService<ResetRequest> {
+class ResetActionServiceImpl implements ActionService<ResetRequest> {
     @Inject
     private ResetActionInvoker invoker;
 
@@ -67,8 +68,15 @@ public class ResetActionServiceImpl implements ActionService<ResetRequest> {
         ResetType resetType = validateResetRequest(request);
 
         Entity entity = traverser.traverse(target);
-        Resettable resettableEntity = null;
+        final Resettable resettableEntity = getResettableEntity(entity);
+        validateResettableStatus(resettableEntity);
+        validateResetType(resettableEntity, resetType);
 
+        taskCoordinator.run(resettableEntity.getService().getUuid(), () -> invoker.reset(resettableEntity, resetType));
+    }
+
+    private Resettable getResettableEntity(Entity entity) throws BusinessApiException {
+        Resettable resettableEntity = null;
         if (entity instanceof Resettable) {
             resettableEntity = (Resettable) entity;
         } else if (entity instanceof ComposedNode) {
@@ -76,20 +84,18 @@ public class ResetActionServiceImpl implements ActionService<ResetRequest> {
             validateComposedNodeState(composedNode);
             resettableEntity = getComputerSystem(composedNode);
         }
-
-        if (resettableEntity != null) {
-            validateResettableStatus(resettableEntity);
-            validateResetType(resettableEntity, resetType);
-            performReset(resettableEntity, resetType);
-        } else {
+        if (resettableEntity == null) {
             throw new BusinessApiException("ResetAction not applicable to entity " + entity.getClass().getSimpleName());
         }
+        return resettableEntity;
     }
 
-    private ResetType validateResetRequest(ResetRequest request) throws InvalidPayloadException {
+    private ResetType validateResetRequest(ResetRequest request) throws RequestValidationException {
         ResetType resetType = request.getResetType();
         if (resetType == null) {
-            throw new InvalidPayloadException("Mandatory ResetType is missing.");
+            Violations violations = new Violations();
+            violations.addMissingPropertyViolation("ResetType");
+            throw new RequestValidationException(violations);
         }
         return resetType;
     }
@@ -108,25 +114,16 @@ public class ResetActionServiceImpl implements ActionService<ResetRequest> {
         }
     }
 
-    private void performReset(Resettable resettableEntity, ResetType resetType) throws BusinessApiException, TimeoutException {
-        try {
-            taskCoordinator.runThrowing(resettableEntity.getService().getUuid(), () -> invoker.reset(resettableEntity, resetType));
-        } catch (ActionException e) {
-            logger.d("Reset action failed: error: {}, details: {}", e.getErrorResponse(), e.getMessage());
-            throw new EntityOperationException("Reset action failed: " + e.getMessage(), e);
-        }
-    }
-
     private void validateResetType(Resettable resettable, ResetType resetType) throws BusinessApiException {
         List<ResetType> supportedResetTypes = resettable.getAllowableResetTypes();
 
         if (isEmpty(supportedResetTypes)) {
-            throw new InvalidPayloadException("Reset action not allowed on resource." + resettable.getSourceUri()
-                + ". There are no allowable reset types.");
+            String violation = format("Reset action not allowed on resource %s. There are no allowable reset types.", resettable.getSourceUri());
+            throw new RequestValidationException(createWithViolations(violation));
         }
 
         if (!supportedResetTypes.contains(resetType)) {
-            throw new InvalidPayloadException(format("Provided ResetType should be in allowable ResetType's %s", supportedResetTypes));
+            throw new RequestValidationException(ofValueNotAllowedViolation("ResetType", supportedResetTypes));
         }
     }
 

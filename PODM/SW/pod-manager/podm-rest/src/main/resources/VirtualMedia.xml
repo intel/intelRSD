@@ -5,7 +5,7 @@
     <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
 
   <edmx:DataServices>
@@ -13,8 +13,10 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="VirtualMedia">
 
       <EntityType Name="VirtualMedia" BaseType="Resource.v1_0_0.Resource" Abstract="true">
-        <Annotation Term="OData.Description" String="This resource allows monitoring and control of an instance of virtual media (e.g. a remote CD, DVD, or USB device) functionality provided by a Manager for a system or device."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a virtual media service for a Redfish implementation."/>
+        <Annotation Term="OData.Description"
+                    String="This resource allows monitoring and control of an instance of virtual media (e.g. a remote CD, DVD, or USB device) functionality provided by a Manager for a system or device."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent a virtual media service for a Redfish implementation."/>
       </EntityType>
 
     </Schema>
@@ -25,33 +27,39 @@
         <Property Name="ImageName" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The current image name"/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be the name of the image. "/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the name of the image. "/>
         </Property>
         <Property Name="Image" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="A URI providing the location of the selected image"/>
-          <Annotation Term="OData.LongDescription" String="The value of this string shall be an URI.  A null value indicated no image connection."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this string shall be an URI.  A null value indicated no image connection."/>
           <Annotation Term="OData.IsURL"/>
         </Property>
         <Property Name="MediaTypes" Type="Collection(VirtualMedia.v1_0_0.MediaType)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="This is the media types supported as virtual media."/>
-          <Annotation Term="OData.LongDescription" String="The values of this array shall be the supported media types for this connection."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The values of this array shall be the supported media types for this connection."/>
         </Property>
         <Property Name="ConnectedVia" Type="VirtualMedia.v1_0_0.ConnectedVia">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Current virtual media connection methods"/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall indicate the current connection method from a client to the virtual media represented by this resource.  A value of NotConnected shall indicate no connection is present.  A value of URI shall indicate that a remote connection via a URI reference type is being used. "/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall indicate the current connection method from a client to the virtual media represented by this resource.  A value of NotConnected shall indicate no connection is present.  A value of URI shall indicate that a remote connection via a URI reference type is being used. "/>
         </Property>
         <Property Name="Inserted" Type="Edm.Boolean">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Indicates if virtual media is inserted in the virtual device."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be used to indicate if media is present in the virtual media device.  This is usually only applicable to remoting of devices and not for image virtual media usage. "/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be used to indicate if media is present in the virtual media device.  This is usually only applicable to remoting of devices and not for image virtual media usage. "/>
         </Property>
         <Property Name="WriteProtected" Type="Edm.Boolean">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Indicates the media is write protected."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be used to indicate if the remote device media prevents writing to that media. "/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be used to indicate if the remote device media prevents writing to that media. "/>
         </Property>
       </EntityType>
 

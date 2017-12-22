@@ -42,8 +42,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "pcie_device", indexes = @Index(name = "idx_pcie_device_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class PcieDevice extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -76,12 +76,12 @@ public class PcieDevice extends DiscoverableEntity {
     @OneToMany(mappedBy = "pcieDevice", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<PcieDeviceFunction> pcieDeviceFunctions = new HashSet<>();
 
+    @ManyToMany(mappedBy = "pcieDevices", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Chassis> chassis = new HashSet<>();
+
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "computer_system_id")
     private ComputerSystem computerSystem;
-
-    @ManyToMany(mappedBy = "pcieDevices", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<Chassis> chassis = new HashSet<>();
 
     @Override
     public Id getId() {
@@ -224,7 +224,6 @@ public class PcieDevice extends DiscoverableEntity {
             }
         }
     }
-
 
     @Override
     public void preRemove() {

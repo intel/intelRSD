@@ -20,16 +20,21 @@
 
 #pragma once
 
+
+
 #include "agent-framework/validators/procedure_validator.hpp"
+
+
 
 namespace psme {
 namespace rest {
 namespace validators {
 namespace schema {
 
+/*! @brief Schema for validating POST requests on VLANs collection. */
 class VlanNetworkInterfaceCollectionPostSchema {
     class OemSchema {
-        class RackscaleSchema {
+        class RackScaleSchema {
         public:
             static const jsonrpc::ProcedureValidator& get_procedure();
         };

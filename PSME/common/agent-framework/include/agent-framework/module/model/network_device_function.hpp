@@ -50,19 +50,19 @@ public:
     /*!
      * @brief construct an object of class NetworkDeviceFunction from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed NetworkDeviceFunction object
      */
-    static NetworkDeviceFunction from_json(const Json::Value& json);
+    static NetworkDeviceFunction from_json(const json::Json& json);
 
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!

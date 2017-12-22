@@ -45,14 +45,15 @@ STATUS_SKIPPED="SKIPPED"
 NOT_FOUND="no"
 FOUND="yes"
 BUILD_ALL="all"
+CLEAN=false
 UNIT_TEST_PREFIX="unittest"
-TARGET_SUBDIRECTORIES=("agent" "agent-simulator" "agent-stubs" "application" "encrypter" "common")
+TARGET_SUBDIRECTORIES=("agent" "agent-simulator" "agent-stubs" "application" "encrypter" "common" "devtools")
 VERSION_REGEXP="^[0-9]+(\.[0-9]+){2,4}$"
 
 # POSSIBLE CONFIGURATIONS
 POSSIBLE_BUILD_TYPES=("debug" "release" "coverage" "asanitize" "tsanitize")
 POSSIBLE_COMPILERS=("gcc" "clang")
-POSSIBLE_ARCHITECTURES=("32" "64")
+POSSIBLE_ARCHITECTURES=("32" "64" "arm")
 POSSIBLE_BRANCHES=("man" "eng" "rel")
 
 # FIRST OPTION
@@ -129,7 +130,9 @@ function usage() {
     echo "      -x | --suffix : Adds a suffix to the build path. By default, path is as follows: BUILD_PATH=build.\${BUILD_TYPE}.\${COMPILER}.\${ARCHITECTURE}bit. The suffix is added at the end: \${BUILD_PATH}.\${SUFFIX}."
     echo "      -u | --unit-tests: Run unit tests associated with the given targets. Default: ${DEFAULT_UNIT_TESTS}."
     echo "      -v | --version: Set the build branch and version of the build. Possible build branches: [${POSSIBLE_BRANCHES[*]}]. The following version number is matched by regex to be v.v.v or v.v.v.v. Default: branch ${DEFAULT_BUILD_BRANCH}, no version."
-    echo "      -d | --download: download thirdparty files, ON-always, OFF-dont, download missin"
+    echo "      -d | --download: download thirdparty files, ON-always, OFF-never, otherwise download missing"
+    echo "      -D | --define [OPTION]: add a flag/option to pass to cmake. Options from \${OPTIONS} env variable are passed as well"
+    echo "      -C | --clean: rebuild from the scratch"
 }
 
 function set_default_values {
@@ -145,6 +148,11 @@ function set_default_values {
     UNIT_TESTS="$DEFAULT_UNIT_TESTS"
     BUILD_BRANCH="$DEFAULT_BUILD_BRANCH"
     THIRDPARTY=""
+    if [ -n "${OPTIONS:-}" ]; then
+        echo "Environment options passed to make: ${OPTIONS}"
+    else
+        OPTIONS=""
+    fi
 }
 
 function list_targets {
@@ -162,7 +170,6 @@ function list_targets {
 }
 
 function parse_input {
-    echo "Parsing arguments..."
     while [ $# -ge 1 ] ; do
         case "$1" in
             -A|--all)
@@ -237,6 +244,16 @@ function parse_input {
                 shift
                 THIRDPARTY="-DDOWNLOAD_THIRDPARTY=$1"
                 ;;
+            -C|--clean)
+                CLEAN=true
+                ;;
+            -D|--define) # -D option=value form
+                shift
+                OPTIONS="${OPTIONS} -D$1"
+                ;;
+            -D*) # -Doption=value form
+                OPTIONS="${OPTIONS} $1"
+                ;;
             *)
                 echo "Unknown parameter $1"
                 usage
@@ -245,6 +262,22 @@ function parse_input {
         esac
         shift
     done
+}
+
+function build_dir {
+    echo -n "build.${BUILD_TYPE}.${COMPILER}"
+    case ${ARCHITECTURE} in
+        32|64)
+            echo -n ".${ARCHITECTURE}bit"
+            ;;
+        *)
+            echo -n ".${ARCHITECTURE}"
+            ;;
+    esac
+    if [[ -n "${SUFFIX-}" ]] ; then
+        echo -n ".${SUFFIX}"
+    fi
+    echo ""
 }
 
 function prepare {
@@ -372,7 +405,9 @@ function prepare {
                 # Sanitize only for GCC
                 if [[ $BUILD_TYPE == "asanitize" && $COMPILER != "gcc" ]] ; then continue ; fi
                 if [[ $BUILD_TYPE == "tsanitize" && $COMPILER != "gcc" ]] ; then continue ; fi
-                RESULTS_CONFIGURATIONS+=("build.${BUILD_TYPE}.${COMPILER}.${ARCHITECTURE}bit")
+
+                BUILD_DIR="$(build_dir)"
+                RESULTS_CONFIGURATIONS+=("${BUILD_DIR}")
             done
         done
     done
@@ -447,12 +482,8 @@ function build {
     fi
 
     # Setup build directory
-    BUILD_DIR="${MAIN_BUILD_DIR}/build.${BUILD_TYPE}.${COMPILER}.${ARCHITECTURE}bit"
-
-    if [[ -n "${SUFFIX-}" ]] ; then
-        BUILD_DIR="${BUILD_DIR}.${SUFFIX}"
-    fi
-
+    BUILD_DIR="$(build_dir)"
+    ${CLEAN} && rm -Rf "$BUILD_DIR"
     if [ ! -d "$BUILD_DIR" ]; then
         mkdir "$BUILD_DIR"
     fi
@@ -461,18 +492,34 @@ function build {
 
     if [[ ! -f Makefile ]] ; then
         # Generate build directories if there is no Makefile
-        CMAKE_COMMAND="$CMAKE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=$BUILD_TYPE $THIRDPARTY"
+        CMAKE_COMMAND="$CMAKE -DCMAKE_BUILD_TYPE=$BUILD_TYPE"
 
-        if [[ $ARCHITECTURE == "64" ]] ; then
-            CMAKE_COMMAND="$CMAKE_COMMAND -DCMAKE_CXX_FLAGS=-m64 -DCMAKE_C_FLAGS=-m64"
-        fi
+        case "${ARCHITECTURE}" in
+            64)
+                CMAKE_COMMAND="$CMAKE_COMMAND -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_CXX_FLAGS=-m64 -DCMAKE_C_FLAGS=-m64"
+                ;;
+            32)
+                CMAKE_COMMAND="$CMAKE_COMMAND -DCMAKE_C_COMPILER=$CC \
+                -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_CXX_FLAGS=-m32 \
+                -DCMAKE_C_FLAGS=-m32 -DCMAKE_TARGET_ARCH=32"
+                ;;
+            arm)
+                # if BUILDROOT_DIR env variable is not set, get "newest" buildroot directory
+                if [ -z "${BUILDROOT_DIR+set}" ]; then
+                    export BUILDROOT_DIR="$(cd .. && ls -1d ../../../buildroot* 2>/dev/null | tail -1)"
+                fi
+                CMAKE_COMMAND="$CMAKE_COMMAND -DCMAKE_TOOLCHAIN_FILE=cmake/Platform/Linux-buildroot-arm.cmake"
+                ;;
+        esac
 
         if [[ $BUILD_BRANCH != "$DEFAULT_BUILD_BRANCH" ]] ; then
             CMAKE_COMMAND="$CMAKE_COMMAND -DBUILD_BRANCH=${BUILD_BRANCH^^} -DVER_STRING=$BUILD_VERSION"
         fi
 
-        CMAKE_COMMAND="$CMAKE_COMMAND .."
-
+        # OPTIONS are passed to compilation, so either setting environment
+        # variable or passing -D to script will work.
+        export OPTIONS
+        CMAKE_COMMAND="$CMAKE_COMMAND $THIRDPARTY .."
         # Run CMAKE
         if [[ $QUIET == 'yes' ]] ; then
             CMAKE_TIME=$({ time $CMAKE_COMMAND &> /dev/null ; } 2>&1)
@@ -545,7 +592,13 @@ function build {
     report "$STATUS_SUCCESS" "$CMAKE_TIME" "$STATUS_SUCCESS" "$MAKE_TIME" "$UNIT_TESTS_STATUS" "$STYLE_CHECK_STATUS"
 
     cd "$STARTING_DIR"
-    return 0
+
+    RET=0
+    if [[ $UNIT_TESTS_STATUS == "$STATUS_FAILURE" ]] ; then
+	RET=1
+    fi
+
+    return $RET
 }
 
 function build_all

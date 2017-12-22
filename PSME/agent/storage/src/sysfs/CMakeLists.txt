@@ -20,9 +20,5 @@ set(SOURCES
     sysfs_api.cpp
 )
 
-set_source_files_properties(
-    sysfs_api.cpp
-    # libsysfs contains old style casting.
-    COMPILE_FLAGS "-Wno-old-style-cast")
 
 add_library(sysfs-api-ref OBJECT ${SOURCES})

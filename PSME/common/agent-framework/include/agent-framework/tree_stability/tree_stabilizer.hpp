@@ -27,7 +27,8 @@
 #pragma once
 
 
-#include "key_generator.hpp"
+
+#include "key_value_missing_error.hpp"
 #include "agent-framework/module/managers/generic_manager.hpp"
 
 #include <string>
@@ -108,6 +109,16 @@ protected:
     void log_key_value_missing(const std::string& resource_name,
                                const std::string& temporary_uuid) const;
 
+
+    /*!
+     * Logs that persistent UUID cannot be generated together with an exception message.
+     *
+     * @param[in] resource_name Name of the resource
+     * @param[in] temporary_uuid Resource temporary UUID
+     * @param[in] e Exception thrown during key generation attempt
+     * */
+    void log_key_value_missing(const std::string& resource_name,
+                               const std::string& temporary_uuid, const std::exception& e) const;
 };
 
 }

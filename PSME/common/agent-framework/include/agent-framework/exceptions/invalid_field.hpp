@@ -45,7 +45,7 @@ public:
      * @param[in] field_value Value of field
      * @warning Do not include field name inside message! Use field argument instead.
      * */
-    explicit InvalidField(const std::string& msg, const std::string& field_name, const Json::Value& field_value);
+    explicit InvalidField(const std::string& msg, const std::string& field_name, const json::Json& field_value);
 
 
     InvalidField(const InvalidField&) = default;
@@ -77,7 +77,7 @@ public:
      * @param field_value Value of invalid field.
      * @return JSON object with invalid field
      * */
-    static Json::Value create_json_data_from_field(const std::string& field_name, const Json::Value& field_value);
+    static json::Json create_json_data_from_field(const std::string& field_name, const json::Json& field_value);
 
 
     /*!
@@ -86,7 +86,7 @@ public:
      * @param should_return_empty Should method return empty string or "not specified" text.
      * @return Field name as string or empty string if data does not contain field name.
      * */
-    static std::string get_field_name_from_json_data(const Json::Value& data, bool should_return_empty = true);
+    static std::string get_field_name_from_json_data(const json::Json& data, bool should_return_empty = true);
 
 
     /*!
@@ -95,7 +95,7 @@ public:
      * @param should_return_empty Should method return empty string or "not specified" text.
      * @return Field value as string representing JSON object.
      * */
-    static std::string get_field_value_from_json_data(const Json::Value& data, bool should_return_empty = true);
+    static std::string get_field_value_from_json_data(const json::Json& data, bool should_return_empty = true);
 
 
     /*!
@@ -103,7 +103,7 @@ public:
      * @param data Exception's JSON data.
      * @return Field value as JSON object.
      * */
-    static Json::Value get_field_value_as_json_from_json_data(const Json::Value& data);
+    static json::Json get_field_value_as_json_from_json_data(const json::Json& data);
 
 
 protected:
@@ -120,7 +120,7 @@ protected:
      * @param[in] msg error message
      * @param[in] data JSON object containing additional data
      * */
-    explicit InvalidField(const ErrorCode code, const std::string& msg, const Json::Value& data);
+    explicit InvalidField(const ErrorCode code, const std::string& msg, const json::Json& data);
 };
 
 } // namespace exceptions

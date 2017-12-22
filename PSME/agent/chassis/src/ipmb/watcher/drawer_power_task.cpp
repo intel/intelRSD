@@ -54,14 +54,14 @@ public:
      * Executes Drawer power processing
      * @param[in] manager_keys Baldes' manager key
      */
-    void execute(const std::vector<string>& manager_keys) {
+    void execute(const std::vector<std::string>& manager_keys) {
         fill_sled_power(manager_keys);
     }
 
 private:
     static constexpr const uint8_t SENSOR_HSC_INPUT_POWER = 0x29;
 
-    void fill_sled_power(const std::vector<string>& manager_keys);
+    void fill_sled_power(const std::vector<std::string>& manager_keys);
 
     uint16_t get_sled_power(ipmi::ManagementController& mc);
 
@@ -101,10 +101,6 @@ uint8_t ProcessDrawerPower::get_sled_power_sensor(ipmi::ManagementController& mc
     ipmi_request.set_sensor_number(SENSOR_HSC_INPUT_POWER);
     mc.send(ipmi_request, ipmi_response);
 
-    if (ipmi_response.get_completion_code() != ipmi::Response::COMPLETION_CODE_NORMAL) {
-        throw std::runtime_error("Bad completion code in Get Sensor Reading response");
-    }
-
     return ipmi_response.get_sensor_reading();
 }
 
@@ -118,14 +114,10 @@ uint16_t ProcessDrawerPower::get_sled_power_sensor_multiplier(ipmi::ManagementCo
     ipmi_request.set_reading_byte(reading_byte);
     mc.send(ipmi_request, ipmi_response);
 
-    if (ipmi_response.get_completion_code() != ipmi::Response::COMPLETION_CODE_NORMAL) {
-        throw std::runtime_error("Bad completion code in Get Sensor Reading Factors response");
-    }
-
     return ipmi_response.get_multiplier();
 }
 
-void ProcessDrawerPower::fill_sled_power(const std::vector<string>& manager_keys) {
+void ProcessDrawerPower::fill_sled_power(const std::vector<std::string>& manager_keys) {
     for (const auto& key: manager_keys) {
         auto manager = CommonComponents::get_instance()->
                 get_module_manager().get_entry(key);
@@ -151,10 +143,10 @@ void ProcessDrawerPower::fill_sled_power(const std::vector<string>& manager_keys
                 auto power_zone = ChassisComponents::get_instance()->
                         get_power_zone_manager().get_entry_reference(power_zone_keys.front());
 
-                power_zone->set_power_input(power);
+                power_zone->set_power_consumed_watts(power);
 
                 log_debug(LOGUSR, "ProcessDrawerPower for " << connection_data.get_ip_address() <<
-                                  ": "  << " sled_power: " << static_cast<uint32_t>(power_zone->get_power_input()));
+                                  ": "  << " sled_power: " << static_cast<uint32_t>(power));
             }
             catch (const std::runtime_error& e) {
                 log_error(LOGUSR, "Cannot execute IPMI command: " << e.what());

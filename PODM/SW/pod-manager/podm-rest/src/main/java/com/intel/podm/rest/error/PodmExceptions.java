@@ -16,104 +16,74 @@
 
 package com.intel.podm.rest.error;
 
+import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.Violations;
-import com.intel.podm.common.types.redfish.RedfishErrorResponse;
+import com.intel.podm.business.ViolationsDisclosingException;
+import com.intel.podm.common.logger.Logger;
+import com.intel.podm.common.logger.LoggerFactory;
 
 import javax.ws.rs.WebApplicationException;
 
-import static com.intel.podm.rest.error.ErrorResponseCreator.from;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.INVALID_HTTP_METHOD;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.INVALID_PAYLOAD;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.NOT_FOUND;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.RESOURCES_STATE_MISMATCH;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.SERVICE_UNAVAILABLE;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.UNKNOWN_EXCEPTION;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.UNSUPPORTED_CREATION_REQUEST;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.INVALID_HTTP_METHOD;
+import static com.intel.podm.rest.error.ErrorType.NOT_FOUND;
+import static com.intel.podm.rest.error.ErrorType.RESOURCES_STATE_MISMATCH;
+import static com.intel.podm.rest.error.ErrorType.UNKNOWN_EXCEPTION;
+import static com.intel.podm.rest.error.ErrorType.UNSUPPORTED_CREATION_REQUEST;
+import static java.util.Collections.singletonList;
 
 public final class PodmExceptions {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PodmExceptions.class);
+
     private PodmExceptions() {
     }
 
     public static WebApplicationException notFound() {
-        return from(NOT_FOUND).toWebApplicationException();
-    }
-
-    public static WebApplicationException serviceUnavailable() {
-        return from(SERVICE_UNAVAILABLE).toWebApplicationException();
+        return newErrorResponseBuilder(NOT_FOUND).toWebApplicationException();
     }
 
     public static WebApplicationException unsupportedCreationRequest(String detailedMessage) {
-        return from(UNSUPPORTED_CREATION_REQUEST)
-            .withDetails(detailedMessage)
+        return newErrorResponseBuilder(UNSUPPORTED_CREATION_REQUEST)
+            .withDetails(singletonList(detailedMessage))
             .toWebApplicationException();
     }
 
     public static WebApplicationException unsupportedCreationRequest(Violations violations) {
-        return from(UNSUPPORTED_CREATION_REQUEST)
-            .withDetails(violations.toStringArray())
+        return newErrorResponseBuilder(UNSUPPORTED_CREATION_REQUEST)
+            .withDetails(violations.asStringList())
             .toWebApplicationException();
     }
 
-    public static WebApplicationException resourcesStateMismatch(String message, String detailedMessage) {
-        return from(RESOURCES_STATE_MISMATCH)
-            .withMessage(message)
-            .withDetails(detailedMessage)
-            .toWebApplicationException();
-    }
-
-    public static WebApplicationException resourcesStateMismatch(String message, RedfishErrorResponse errorResponse) {
-        return from(RESOURCES_STATE_MISMATCH)
-            .withMessage(message)
-            .withErrorResponse(errorResponse)
-            .toWebApplicationException();
-    }
-
-    public static WebApplicationException resourcesStateMismatch(String message, Violations violations) {
-        return from(RESOURCES_STATE_MISMATCH)
-            .withMessage(message)
-            .withDetails(violations.toStringArray())
-            .toWebApplicationException();
-    }
-
-    public static WebApplicationException invalidPayload(String... detailedMessage) {
-        return from(INVALID_PAYLOAD)
-            .withDetails(detailedMessage)
-            .toWebApplicationException();
-    }
-
-    public static WebApplicationException invalidPayload(String message, Violations violations) {
-        ErrorResponseCreator responseCreator = from(INVALID_PAYLOAD);
-        if (message != null) {
-            responseCreator.withMessage(message);
+    public static WebApplicationException resourcesStateMismatch(String message, BusinessApiException e) {
+        ErrorResponseBuilder responseBuilder = newErrorResponseBuilder(RESOURCES_STATE_MISMATCH).withMessage(message);
+        Throwable cause = e.getCause();
+        if (cause instanceof ViolationsDisclosingException) {
+            ViolationsDisclosingException ex = (ViolationsDisclosingException) cause;
+            responseBuilder.withDetails(ex.getViolations().asStringList());
+        } else {
+            responseBuilder.withDetails(singletonList(e.getMessage()));
         }
-        if (violations != null) {
-            responseCreator.withDetails(violations.toStringArray());
+        return responseBuilder.toWebApplicationException();
+    }
+
+    public static WebApplicationException invalidHttpMethod(String detailedMessage) {
+        return invalidHttpMethod(detailedMessage, null);
+    }
+
+    public static WebApplicationException invalidHttpMethod(String detailedMessage, BusinessApiException exception) {
+        ErrorResponseBuilder responseBuilder = newErrorResponseBuilder(INVALID_HTTP_METHOD).withDetails(singletonList(detailedMessage));
+        if (exception instanceof ViolationsDisclosingException) {
+            ViolationsDisclosingException violationsDisclosingException = (ViolationsDisclosingException) exception;
+            responseBuilder.withDetails(violationsDisclosingException.getViolations().asStringList());
         }
-        return responseCreator.toWebApplicationException();
+        return responseBuilder.toWebApplicationException();
     }
 
-    public static WebApplicationException invalidPayload(String message, RedfishErrorResponse response) {
-        return from(INVALID_PAYLOAD)
-            .withDetails(message)
-            .withErrorResponse(response)
-            .toWebApplicationException();
-    }
-
-    public static WebApplicationException invalidHttpMethod(String... detailedMessage) {
-        return from(INVALID_HTTP_METHOD)
-            .withDetails(detailedMessage)
-            .toWebApplicationException();
-    }
-
-    public static WebApplicationException internalServerError(String message, String detailedMessage) {
-        return from(UNKNOWN_EXCEPTION)
-            .withMessage(message)
-            .withDetails(detailedMessage)
-            .toWebApplicationException();
+    public static WebApplicationException invalidHttpMethod() {
+        return newErrorResponseBuilder(INVALID_HTTP_METHOD).toWebApplicationException();
     }
 
     public static WebApplicationException internalServerError() {
-        return from(UNKNOWN_EXCEPTION)
-            .toWebApplicationException();
+        return newErrorResponseBuilder(UNKNOWN_EXCEPTION).toWebApplicationException();
     }
 }

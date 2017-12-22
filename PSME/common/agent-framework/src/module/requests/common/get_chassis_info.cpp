@@ -28,20 +28,20 @@
 
 #include "agent-framework/module/requests/common/get_chassis_info.hpp"
 #include "agent-framework/module/constants/chassis.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetChassisInfo::GetChassisInfo(const std::string& chassis): m_chassis{chassis} {}
 
-Json::Value GetChassisInfo::to_json() const {
-    Json::Value value;
+json::Json GetChassisInfo::to_json() const {
+    json::Json value;
     value[Chassis::CHASSIS] = m_chassis;
     return value;
 }
 
-GetChassisInfo GetChassisInfo::from_json(const Json::Value& json) {
+GetChassisInfo GetChassisInfo::from_json(const json::Json& json) {
     return GetChassisInfo{
-        json[Chassis::CHASSIS].asString()};
+        json[Chassis::CHASSIS].get<std::string>()};
 }

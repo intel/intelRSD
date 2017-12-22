@@ -1,6 +1,4 @@
 /*!
- * @section LICENSE
- *
  * @copyright
  * Copyright (c) 2016-2017 Intel Corporation
  *
@@ -18,9 +16,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
-*/
+ * */
 
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/pnc_components.hpp"
@@ -29,7 +25,7 @@
 #include "agent-framework/version.hpp"
 
 #include "agent-framework/eventing/events_queue.hpp"
-#include "agent-framework/command-ref/command_server.hpp"
+#include "agent-framework/command/command_server.hpp"
 
 #include "discovery/discovery_manager.hpp"
 #include "loader/pnc_loader.hpp"
@@ -39,7 +35,7 @@
 #include "default_configuration.hpp"
 #include "port_monitor_thread.hpp"
 
-#include <jsonrpccpp/server/connectors/httpserver.h>
+#include "json-rpc/connectors/http_server_connector.hpp"
 
 #include <csignal>
 
@@ -69,7 +65,7 @@ bool check_configuration(const json::Value& json);
  * @brief Generic Agent main method.
  * */
 int main(int argc, const char* argv[]) {
-    unsigned int server_port = DEFAULT_SERVER_PORT;
+    std::uint16_t server_port = DEFAULT_SERVER_PORT;
 
     /* Initialize configuration */
     log_info(GET_LOGGER("agent"),
@@ -98,11 +94,13 @@ int main(int argc, const char* argv[]) {
     log_info(GET_LOGGER("pnc-agent"), "Running PSME Pnc...");
 
     try {
-        server_port = configuration["server"]["port"].as_uint();
+        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
     } catch (const json::Value::Exception& e) {
         log_error(GET_LOGGER("pnc-agent"),
                 "Cannot read server port " << e.what());
     }
+
+    RegistrationData registration_data{configuration};
 
     EventDispatcher event_dispatcher;
     event_dispatcher.start();
@@ -111,10 +109,10 @@ int main(int argc, const char* argv[]) {
     DiscoveryManager dm = DiscoveryManager::create(tools);
     try {
         dm.discovery("");
+
         // stabilize switch ports -> needed for correct port state manager operation
-        for (const auto& elem : ::agent_framework::module::CommonComponents::get_instance()->
-                get_module_manager().get_keys()) {
-            ::agent::pnc::PncTreeStabilizer().stabilize(elem);
+        for (const auto& elem : agent_framework::module::get_manager<agent_framework::model::Manager>().get_keys()) {
+            agent::pnc::PncTreeStabilizer().stabilize(elem);
         }
     }
     catch (PncDiscoveryExceptionSwitchNotFound&) {
@@ -142,22 +140,30 @@ int main(int argc, const char* argv[]) {
     }
 
     /* Create command server */
-    jsonrpc::HttpServer http_server((int(server_port)));
-    agent_framework::command_ref::CommandServer server(http_server);
-    server.add(command_ref::Registry::get_instance()->get_commands());
-    server.start();
+    auto http_server_connector = new json_rpc::HttpServerConnector(server_port, registration_data.get_ipv4_address());
+    json_rpc::AbstractServerConnectorPtr http_server(http_server_connector);
+    agent_framework::command::CommandServer server(http_server);
+    server.add(command::Registry::get_instance()->get_commands());
+
+    bool server_started = server.start();
+    if (!server_started) {
+        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+            << server_port << " restricted to " << registration_data.get_ipv4_address()
+            << ". " << "Quitting now...");
+        event_dispatcher.stop();
+        return -3;
+    }
 
     /* all events up to this point were ignored */
-    AmcConnectionManager amc_connection(event_dispatcher);
+    AmcConnectionManager amc_connection(event_dispatcher, registration_data);
     amc_connection.start();
 
     /* Send add event */
-    for (const auto& elem : ::agent_framework::module::CommonComponents::get_instance()->
-            get_module_manager().get_keys()) {
-        const std::string module_persistent_uuid = ::agent::pnc::PncTreeStabilizer().stabilize(elem);
+    for (const auto& elem : agent_framework::module::get_manager<agent_framework::model::Manager>().get_keys()) {
+        const std::string module_persistent_uuid = agent::pnc::PncTreeStabilizer().stabilize(elem);
         tools.model_tool->send_event("", module_persistent_uuid,
-            ::agent_framework::model::enums::Component::Manager,
-            ::agent_framework::eventing::Notification::Add);
+            agent_framework::model::enums::Component::Manager,
+            agent_framework::eventing::Notification::Add);
     }
 
     /* Stop the program and wait for interrupt */

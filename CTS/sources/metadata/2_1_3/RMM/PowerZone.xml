@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="PhysicalContext.xml">
+    <edmx:Include Namespace="PhysicalContext.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Redundancy.xml">
+    <edmx:Include Namespace="Redundancy"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RackLocation.xml">
+    <edmx:Include Namespace="RackLocation"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="PowerZone.v1_0_0">
+
+      <EntityType Name="PowerZone" BaseType="Resource.v1_0_0.Resource">
+        <Annotation Term="Redfish.Deprecated" String="Entity type will be removed in the future and functionality will be provided in a different way"/>
+
+        <Property Name="Status" Type="Resource.Status"/>
+        <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
+        <Property Name="MaxPSUsSupported" Type="Edm.Int64"/>
+        <Property Name="Presence" Type="Edm.String"/>
+        <Property Name="NumberOfPSUsPresent" Type="Edm.Int64"/>
+        <Property Name="PowerConsumedWatts" Type="Edm.Decimal"/>
+        <Property Name="PowerOutputWatts" Type="Edm.Decimal"/>
+        <Property Name="PowerCapacityWatts" Type="Edm.Decimal"/>
+        <Property Name="PowerSupplies" Type="Collection(PowerZone.v1_0_0.PowerSupply)" Nullable="false"/>
+
+        <Property Name="Links" Type="PowerZone.v1_0_0.Links" Nullable="false"/>
+        <Property Name="Actions" Type="PowerZone.v1_0_0.Actions" Nullable="false"/>
+
+      </EntityType>
+
+      <ComplexType Name="PowerSupply">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Name" Type="Edm.String"/>
+        <Property Name="Status" Type="Resource.Status"/>
+        <Property Name="RackLocation" Type="RackLocation.RackLocation"/>
+        <Property Name="SerialNumber" Type="Edm.String"/>
+        <Property Name="Manufacturer" Type="Edm.String"/>
+        <Property Name="ModelNumber" Type="Edm.String"/>
+        <Property Name="PartNumber" Type="Edm.String"/>
+        <Property Name="FirmwareRevision" Type="Edm.String"/>
+        <Property Name="PowerCapacityWatts" Type="Edm.Decimal"/>
+        <Property Name="LastPowerOutputWatts" Type="Edm.Decimal"/>
+      </ComplexType>
+
+      <ComplexType Name="Links">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+      </ComplexType>
+
+      <ComplexType Name="Actions">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+      </ComplexType>
+
+    </Schema>
+
+
+</edmx:DataServices>
+</edmx:Edmx>
+

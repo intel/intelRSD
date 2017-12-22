@@ -18,25 +18,27 @@ package com.intel.podm.config.base;
 
 import com.intel.podm.config.base.dto.BaseConfig;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-@Dependent
+@ApplicationScoped
 public class ConfigHolderFactory {
     @Inject
     private ConfigProvider configProvider;
 
-    @Produces @Config(refreshable = true)
+    @Produces
+    @Config(refreshable = true)
     public <T extends BaseConfig> Holder<T> createDynamicHolder(InjectionPoint injectionPoint) {
         Class<T> configClass = getConfigClass(injectionPoint);
         return new DynamicHolder<>(configProvider, configClass);
     }
 
-    @Produces @Config(refreshable = false)
+    @Produces
+    @Config(refreshable = false)
     public <T extends BaseConfig> Holder<T> createStaticHolder(InjectionPoint injectionPoint) {
         Class<T> configClass = getConfigClass(injectionPoint);
         return new StaticHolder<>(configProvider.get(configClass));

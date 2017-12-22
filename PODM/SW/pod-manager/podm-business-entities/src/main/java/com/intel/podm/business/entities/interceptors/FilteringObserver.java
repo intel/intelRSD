@@ -19,27 +19,16 @@ package com.intel.podm.business.entities.interceptors;
 import com.intel.podm.business.entities.Diff;
 import com.intel.podm.business.entities.redfish.base.Entity;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-@Singleton
-@Startup
-@DependsOn("DatabaseSchemaUpdateFinalizer")
+@ApplicationScoped
 public class FilteringObserver implements EntityEventObserver {
-
     @Inject
     private CollectingObserver delegate;
 
     @Inject
     private EventSuppressions eventSuppressions;
-
-    @PostConstruct
-    public void init() {
-        StaticDelegateInterceptor.setObserver(this);
-    }
 
     @Override
     public void resourceAdded(Entity entity) {

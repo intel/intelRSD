@@ -17,12 +17,15 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.dto.redfish.ZoneDto;
+import com.intel.podm.business.dto.ZoneDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 import com.intel.podm.business.services.redfish.UpdateService;
 import com.intel.podm.common.types.redfish.RedfishZone;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 import com.intel.podm.redfish.json.templates.actions.ZonePartialRepresentation;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PATCH;
@@ -30,9 +33,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.ok;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ZoneResource extends BaseResource {
     @Inject
@@ -42,8 +47,10 @@ public class ZoneResource extends BaseResource {
     private UpdateService<RedfishZone> updateService;
 
     @Override
-    public ZoneDto get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        ZoneDto zoneDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, zoneDto);
     }
 
     @PATCH
@@ -51,5 +58,12 @@ public class ZoneResource extends BaseResource {
     public Response updateEndpointsCollection(ZonePartialRepresentation zoneResource) throws TimeoutException, BusinessApiException {
         updateService.perform(getCurrentContext(), zoneResource);
         return ok(get()).build();
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder()
+            .addPatchMethod()
+            .build();
     }
 }

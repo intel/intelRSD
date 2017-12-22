@@ -177,3 +177,89 @@ std::string PortStateWorker::get_drive_by_dsp_port(const std::string& port_uuid)
 
     return drives.front();
 }
+
+void PortStateWorker::lock_port(const std::string& port_uuid) const {
+
+    // change drive status
+    try {
+        auto drive_uuid = this->get_drive_by_dsp_port(port_uuid);
+        m_tools.model_tool->set_drive_is_being_discovered(drive_uuid, true);
+        m_tools.model_tool->set_drive_status(drive_uuid,
+                                             attribute::Status{enums::State::Starting, enums::Health::OK});
+        m_tools.model_tool->send_event(m_tools.model_tool->get_chassis_uuid(), drive_uuid,
+                enums::Component::Drive, Notification::Update);
+    }
+    catch (std::exception&) {
+        log_debug(GET_LOGGER("port-state-worker"), "\tCannot change drive status");
+    }
+
+    // change endpoints status
+    auto fabric_uuid = m_tools.model_tool->get_fabric_uuid();
+    std::vector<std::string> endpoint_uuids = get_m2m_manager<Endpoint, Port>().get_parents(port_uuid);
+    for (const auto& endpoint_uuid : endpoint_uuids) {
+        get_manager<Endpoint>().get_entry_reference(endpoint_uuid)->set_status(
+            attribute::Status{enums::State::Starting, enums::Health::OK}
+        );
+        m_tools.model_tool->send_event(fabric_uuid, endpoint_uuid, enums::Component::Endpoint, Notification::Update);
+    }
+}
+
+void PortStateWorker::unlock_port(const std::string& port_uuid) const {
+
+    // change endpoints status
+    try {
+        auto drive_uuid = this->get_drive_by_dsp_port(port_uuid);
+        m_tools.model_tool->set_drive_is_being_discovered(drive_uuid, false);
+    }
+    catch (std::exception&) {
+        log_debug(GET_LOGGER("port-state-worker"), "\tCannot change drive status");
+    }
+
+    // change endpoints status
+    auto fabric_uuid = m_tools.model_tool->get_fabric_uuid();
+    std::vector<std::string> endpoint_uuids = get_m2m_manager<Endpoint, Port>().get_parents(port_uuid);
+    for (const auto& endpoint_uuid : endpoint_uuids) {
+        get_manager<Endpoint>().get_entry_reference(endpoint_uuid)->set_status(
+            attribute::Status{enums::State::Enabled, enums::Health::OK}
+        );
+        m_tools.model_tool->send_event(fabric_uuid, endpoint_uuid, enums::Component::Endpoint, Notification::Update);
+    }
+}
+
+PortStateWorker::ZoneEndpointVector PortStateWorker::get_bindings_on_port(const std::string& port_uuid) const {
+    auto endpoints = get_enabled_endpoints_on_port(port_uuid);
+    ZoneEndpointVector bindings{};
+    for (const auto& endpoint_uuid : endpoints) {
+        auto zones = get_m2m_manager<Zone, Endpoint>().get_parents(endpoint_uuid);
+        std::sort(zones.begin(), zones.end());
+        auto last = std::unique(zones.begin(), zones.end());
+        zones.erase(last, zones.end());
+        for (const auto& zone_uuid : zones) {
+            bindings.emplace_back(std::make_tuple(zone_uuid, endpoint_uuid));
+        }
+    }
+    return bindings;
+}
+
+std::vector<std::string> PortStateWorker::get_enabled_endpoints_on_port(const std::string& port_uuid) const {
+    auto endpoints = get_m2m_manager<Endpoint, Port>().get_parents(port_uuid);
+    std::vector<std::string> result{};
+    for (const auto& endpoint_uuid : endpoints) {
+        auto endpoint = get_manager<Endpoint>().get_entry(endpoint_uuid);
+        if (endpoint.get_status().get_state() == enums::State::Enabled) {
+            result.push_back(endpoint_uuid);
+        }
+    }
+    return result;
+}
+
+void PortStateWorker::attach_endpoint_to_zone(const std::string& switch_uuid, const std::string& endpoint_uuid,
+        const std::string& zone_uuid) const {
+    log_debug(GET_LOGGER("port-state-worker"), "\tAction: binding endpoint: " << endpoint_uuid << " to the zone: "
+        << zone_uuid);
+    auto gas = get_gas(switch_uuid);
+    m_tools.gas_tool->bind_endpoint_to_zone(gas, zone_uuid, endpoint_uuid);
+    get_m2m_manager<Zone, Endpoint>().add_entry(zone_uuid, endpoint_uuid);
+    m_tools.model_tool->send_event(m_tools.model_tool->get_fabric_uuid(), zone_uuid,
+        enums::Component::Zone, Notification::Update);
+}

@@ -17,6 +17,8 @@
 package com.intel.podm.business.entities;
 
 public class NonUniqueResultException extends Exception {
+    private static final long serialVersionUID = 4134457217752449155L;
+
     public NonUniqueResultException(String message) {
         super(message);
     }

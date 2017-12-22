@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.toSet;
 @SuppressWarnings({"checkstyle:MethodLength"})
 final class EntityDetailsGatherer {
     private static final Set<EntityDetail> ENTITY_DETAILS = createEntityDetails(getAllEntities());
-    private static final Set<Object> EMBEDABBLES = createEmbeddables(getAllEmbeddables());
+    private static final Set<Object> EMBEDDABLES = createEmbeddables(getAllEmbeddables());
     private static final String ENTITIES_PACKAGE = "com.intel.podm.business.entities.*";
 
     private EntityDetailsGatherer() {
@@ -36,8 +36,8 @@ final class EntityDetailsGatherer {
         return ENTITY_DETAILS;
     }
 
-    static Set<Object> getEmbedabbles() {
-        return EMBEDABBLES;
+    static Set<Object> getEmbeddables() {
+        return EMBEDDABLES;
     }
 
     private static Set<EntityDetail> createEntityDetails(Set<Class<? extends Entity>> classes) {
@@ -46,7 +46,7 @@ final class EntityDetailsGatherer {
             .collect(toSet());
     }
 
-    private static Set<Object> createEmbeddables(Set<Class> classes) {
+    private static Set<Object> createEmbeddables(Set<Class<?>> classes) {
         return classes.stream()
             .map(EntityDetailsGatherer::instantiateEmbeddable)
             .collect(toSet());
@@ -56,7 +56,7 @@ final class EntityDetailsGatherer {
         return new EntityDetail(clazz);
     }
 
-    private static Object instantiateEmbeddable(Class clazz) {
+    private static Object instantiateEmbeddable(Class<?> clazz) {
         try {
             return clazz.newInstance();
         } catch (IllegalAccessException | InstantiationException e) {
@@ -71,7 +71,7 @@ final class EntityDetailsGatherer {
             .collect(toSet());
     }
 
-    private static Set<Class> getAllEmbeddables() {
+    private static Set<Class<?>> getAllEmbeddables() {
         return getAllClassesByPackageAndAnnotation(ENTITIES_PACKAGE, javax.persistence.Embeddable.class);
     }
 }

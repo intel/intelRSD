@@ -24,28 +24,30 @@ def check_addr(netdev):
 	return True
 
 def setup_network():
-	interfaces_all = os.listdir(INTERFACES_DIR)
-	interfaces_filtered = [item for item in interfaces_all if item != "lo" and item != "sit0"]
-	retries_left = RETRIES
-	while retries_left > 0:
-			retries_left -= 1
-			connected = False
-			for interface in interfaces_filtered:
-					with open(INTERFACES_DIR + interface + "/operstate") as f:
-							operstate = f.readline()
-					if operstate != OPERSTATE_UP:
-							subprocess.call( "ifconfig " + interface + " up", shell = True)
-					netdev = interface + "." + VLAN_ID
-					subprocess.call( "ip link add link " + interface + " name " + netdev + " type vlan id " + VLAN_ID , shell = True)
-					result = subprocess.call("dhcpcd " + netdev , shell = True)
-					if result == 0 and check_addr(netdev):
-							connected = True
-							break
-					subprocess.call( "ip link delete " + netdev , shell = True)
-			if connected:
-					ping_dhcp_srv(netdev)
-					start_agents(netdev)
-					break
+       interfaces_all = os.listdir(INTERFACES_DIR)
+       interfaces_filtered = [item for item in interfaces_all if item != "lo" and item != "sit0"]
+       retries_left = RETRIES
+       for interface in interfaces_filtered:
+                                   with open(INTERFACES_DIR + interface + "/operstate") as f:
+                                                 operstate = f.readline()
+                                   if operstate != OPERSTATE_UP:
+                                                 subprocess.call( "ifconfig " + interface + " up", shell = True)
+
+       while retries_left > 0:
+                     retries_left -= 1
+                     connected = False
+                     for interface in interfaces_filtered:
+                                   netdev = interface + "." + VLAN_ID
+                                   subprocess.call( "ip link add link " + interface + " name " + netdev + " type vlan id " + VLAN_ID , shell = True)
+                                   result = subprocess.call("dhcpcd " + netdev , shell = True)
+                                   if result == 0 and check_addr(netdev):
+                                                 connected = True
+                                                 break
+                                   subprocess.call( "ip link delete " + netdev , shell = True)
+                     if connected:
+                                   ping_dhcp_srv(netdev)
+                                   start_agents(netdev)
+                                   break
 
 def ping_dhcp_srv(netdev):
 	# Pinging DHCP Server to fill ARP table, otherwise DHCP RELEASE might not be send

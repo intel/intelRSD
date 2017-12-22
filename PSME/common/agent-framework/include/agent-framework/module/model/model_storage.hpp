@@ -25,8 +25,10 @@
 #pragma once
 #include "storage_controller.hpp"
 #include "manager.hpp"
-#include "storage_services.hpp"
+#include "storage_service.hpp"
 #include "physical_drive.hpp"
 #include "logical_drive.hpp"
 #include "iscsi_target.hpp"
 #include "task.hpp"
+#include "metric.hpp"
+#include "metric_definition.hpp"

@@ -24,10 +24,15 @@
  * */
 
 #pragma once
-#include <json/json.h>
+
+
+
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <vector>
 #include <string>
+
+
 
 namespace agent_framework {
 namespace generic {
@@ -45,57 +50,64 @@ constexpr std::uint16_t DEFAULT_COMMAND_SERVER_PORT = 7777;
 
 /*! Registration request data */
 class RegistrationRequest {
+public:
+    /*! Construct registration request object */
+    RegistrationRequest();
+
+
+    /*!
+     * @brief Capability attributes for agent
+     */
+    class Capability {
     public:
-        /*! Construct registration request object */
-        RegistrationRequest();
-
         /*!
-         * @brief Capability attributes for agent
-         */
-        class Capability {
-            public:
-                /*!
-                 * @brief Create Capability object
-                 *
-                 * @param name agent name e.g. "compute"
-                 */
-                explicit Capability(const std::string& name) :
-                m_name{name}  {}
-
-                /*!
-                 * @brief Gets agent capability name
-                 *
-                 * @return name
-                 */
-                const std::string& get_name() const {
-                    return m_name;
-                }
-
-
-            private:
-                std::string m_name{};
-        };
-        /*! Capabilities array */
-        using Capabilities = std::vector<Capability>;
-
-        /*!
-         * @brief Convert RegistrationRequest to JSON format
+         * @brief Create Capability object
          *
-         * @return JSON object
+         * @param name agent name e.g. "compute"
          */
-        Json::Value to_json();
+        explicit Capability(const std::string& name) : m_name{name} {}
+
+
+        /*!
+         * @brief Gets agent capability name
+         *
+         * @return name
+         */
+        const std::string& get_name() const {
+            return m_name;
+        }
+
+
+    private:
+        std::string m_name{};
+    };
+
+    /*! Capabilities array */
+    using Capabilities = std::vector<Capability>;
+
+
+    /*!
+     * @brief Convert RegistrationRequest to JSON format
+     *
+     * @return JSON object
+     */
+    json::Json to_json();
+
 
 private:
     /*!
     * @brief Load registration settings from configuration file
     */
     void load_configuration();
+
+
     /*!
      * @brief Return capabilities as JSON object
      *
      * @return JSON object
      */
-    Json::Value get_capabilities();
+    json::Json get_capabilities();
+
 
     std::string m_type{AGENT_TYPE};
     std::string m_version{AGENT_VERSION};
@@ -104,5 +116,6 @@ private:
     std::uint16_t m_port{DEFAULT_COMMAND_SERVER_PORT};
     Capabilities m_capabilities{};
 };
-}}
+}
+}
 

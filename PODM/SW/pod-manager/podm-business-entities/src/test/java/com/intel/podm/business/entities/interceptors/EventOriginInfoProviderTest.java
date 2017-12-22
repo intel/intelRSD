@@ -18,43 +18,42 @@ package com.intel.podm.business.entities.interceptors;
 
 import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.Fan;
 import com.intel.podm.business.entities.redfish.Power;
 import com.intel.podm.business.entities.redfish.PowerControl;
 import com.intel.podm.business.entities.redfish.PowerSupply;
 import com.intel.podm.business.entities.redfish.PowerVoltage;
-import com.intel.podm.business.entities.redfish.PowerZone;
-import com.intel.podm.business.entities.redfish.PowerZonePowerSupply;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
 import com.intel.podm.business.entities.redfish.Storage;
 import com.intel.podm.business.entities.redfish.StorageController;
-import com.intel.podm.business.entities.redfish.Temperature;
 import com.intel.podm.business.entities.redfish.Thermal;
 import com.intel.podm.business.entities.redfish.ThermalFan;
 import com.intel.podm.business.entities.redfish.ThermalTemperature;
-import com.intel.podm.business.entities.redfish.ThermalZone;
-import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.resolvers.ComputerSystemMultiSourceResolver;
+import com.intel.podm.business.entities.resolvers.MultiSourceEntityResolver;
+import com.intel.podm.business.entities.resolvers.MultiSourceEntityResolverProvider;
+import com.intel.podm.business.entities.resolvers.StorageMultiSourceResolver;
 import org.hamcrest.Matchers;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
 
+import static com.intel.podm.business.entities.BusinessEntitiesTestsHelper.createEntity;
 import static com.intel.podm.common.types.events.EventType.ALERT;
 import static com.intel.podm.common.types.events.EventType.RESOURCE_ADDED;
 import static com.intel.podm.common.types.events.EventType.RESOURCE_REMOVED;
 import static com.intel.podm.common.types.events.EventType.RESOURCE_UPDATED;
 import static com.intel.podm.common.types.events.EventType.STATUS_CHANGE;
-import static java.lang.System.currentTimeMillis;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"checkstyle:MethodName", "checkstyle:ClassFanOutComplexity", "checkstyle:ClassDataAbstractionCoupling", "checkstyle:MethodCount"})
 public class EventOriginInfoProviderTest {
-
-    private static final Random RANDOM = new Random(currentTimeMillis());
 
     private EventOriginInfoProvider configProvider;
 
@@ -62,7 +61,7 @@ public class EventOriginInfoProviderTest {
 
     @BeforeClass
     public void setUp() throws Exception {
-        this.configProvider = createEventOriginInfoProviderWithMockedData();
+        this.configProvider = createEventOriginInfoProviderWithMockedData(new ArrayList<>());
     }
 
     @Test
@@ -71,22 +70,6 @@ public class EventOriginInfoProviderTest {
         Power power = createEntity(Power.class);
         power.addPowerControl(powerControl);
         assertThat(configProvider.findEventOrigin(powerControl), Matchers.equalTo(power));
-    }
-
-    @Test
-    public void testFindEventSourceEntityForPowerZonePowerSupply_PowerZoneIsExpected() throws Exception {
-        PowerZonePowerSupply powerSupply = createEntity(PowerZonePowerSupply.class);
-        PowerZone powerZone = createEntity(PowerZone.class);
-        powerZone.addPowerSupply(powerSupply);
-        assertThat(configProvider.findEventOrigin(powerSupply), Matchers.equalTo(powerZone));
-    }
-
-    @Test
-    public void testFindEventSourceEntityForFan_ThermalZoneIsExpected() throws Exception {
-        Fan fan = createEntity(Fan.class);
-        ThermalZone thermalZone = createEntity(ThermalZone.class);
-        thermalZone.addFan(fan);
-        assertThat(configProvider.findEventOrigin(fan), Matchers.equalTo(thermalZone));
     }
 
     @Test
@@ -107,18 +90,10 @@ public class EventOriginInfoProviderTest {
 
     @Test
     public void testFindEventSourceEntityForStorageController_StorageIsExpected() throws Exception {
-        StorageController storageController = createEntity(StorageController.class);
+        StorageController powerController = createEntity(StorageController.class);
         Storage storage = createEntity(Storage.class);
-        storage.addStorageController(storageController);
-        assertThat(configProvider.findEventOrigin(storageController), Matchers.equalTo(storage));
-    }
-
-    @Test
-    public void testFindEventSourceEntityForTemperature_ThermalZoneIsExpected() throws Exception {
-        ThermalZone thermalZone = createEntity(ThermalZone.class);
-        Temperature temperature = createEntity(Temperature.class);
-        thermalZone.addTemperature(temperature);
-        assertThat(configProvider.findEventOrigin(temperature), Matchers.equalTo(thermalZone));
+        storage.addStorageController(powerController);
+        assertThat(configProvider.findEventOrigin(powerController), Matchers.equalTo(storage));
     }
 
     @Test
@@ -177,20 +152,63 @@ public class EventOriginInfoProviderTest {
     }
 
     @Test
+    public void whenFindConfiguredEventTypeForMultiSourceEntity_shouldReturnPrimaryEntity() throws Exception {
+        ComputerSystem primaryComputerSystem = createEntity(ComputerSystem.class);
+        ComputerSystem complementaryComputerSystem = createEntity(ComputerSystem.class);
+
+        ComputerSystemMultiSourceResolver multiSourceResolver = createComputerSystemMultiSourceResolverMock(primaryComputerSystem,
+            complementaryComputerSystem);
+        List<MultiSourceEntityResolver> multiSourceEntityResolvers = singletonList(multiSourceResolver);
+
+        EventOriginInfoProvider eventOriginInfoProvider = createEventOriginInfoProviderWithMockedData(multiSourceEntityResolvers);
+
+        assertThat(eventOriginInfoProvider.findEventOrigin(complementaryComputerSystem), equalTo(primaryComputerSystem));
+    }
+
+    @Test
+    public void whenFindConfiguredEventTypeForMultiSourceAndEmbeddedEntity_shouldReturnPrimaryEntity() throws Exception {
+        StorageController complementaryStorageController = createEntity(StorageController.class);
+        Storage complementaryStorage = createEntity(Storage.class);
+        complementaryStorage.addStorageController(complementaryStorageController);
+        Storage primaryStorage = createEntity(Storage.class);
+
+        StorageMultiSourceResolver multiSourceResolver = createStorageMultiSourceResolverMock(complementaryStorage, primaryStorage);
+        List<MultiSourceEntityResolver> multiSourceEntityResolvers = singletonList(multiSourceResolver);
+
+        EventOriginInfoProvider eventOriginInfoProvider = createEventOriginInfoProviderWithMockedData(multiSourceEntityResolvers);
+
+        assertThat(eventOriginInfoProvider.findEventOrigin(complementaryStorageController), equalTo(primaryStorage));
+
+    }
+
+    @Test
     public void whenFindConfiguredEventTypeForMultiSourceEntityWithNoResolver_shouldReturnTheSameEntity() throws Exception {
         ComputerSystem computerSystem = createEntity(ComputerSystem.class);
-        EventOriginInfoProvider eventOriginInfoProvider = createEventOriginInfoProviderWithMockedData();
+        EventOriginInfoProvider eventOriginInfoProvider = createEventOriginInfoProviderWithMockedData(new ArrayList<>());
 
         assertThat(eventOriginInfoProvider.findEventOrigin(computerSystem), equalTo(computerSystem));
     }
 
-    private static <A extends Entity> A createEntity(Class<A> aClass) throws IllegalAccessException, InstantiationException {
-        A instance = aClass.newInstance();
-        setInternalState(instance, "id", RANDOM.nextLong());
-        return instance;
+    private ComputerSystemMultiSourceResolver createComputerSystemMultiSourceResolverMock(ComputerSystem primaryComputerSystem,
+                                                                                          ComputerSystem complementaryComputerSystem) {
+        ComputerSystemMultiSourceResolver resolver = mock(ComputerSystemMultiSourceResolver.class);
+        when(resolver.apply(complementaryComputerSystem)).thenReturn(primaryComputerSystem);
+        when(resolver.getEntityClass()).thenReturn(ComputerSystem.class);
+
+        return resolver;
     }
 
-    private EventOriginInfoProvider createEventOriginInfoProviderWithMockedData() {
-        return new EventOriginInfoProvider();
+    private StorageMultiSourceResolver createStorageMultiSourceResolverMock(Storage complementaryStorage, Storage primaryStorage) {
+        StorageMultiSourceResolver resolver = mock(StorageMultiSourceResolver.class);
+        when(resolver.apply(complementaryStorage)).thenReturn(primaryStorage);
+        when(resolver.getEntityClass()).thenReturn(Storage.class);
+
+        return resolver;
+    }
+
+    private EventOriginInfoProvider createEventOriginInfoProviderWithMockedData(List<MultiSourceEntityResolver> multiSourceEntityResolvers) {
+        MultiSourceEntityResolverProvider multiSourceEntityResolverProvider = mock(MultiSourceEntityResolverProvider.class);
+        when(multiSourceEntityResolverProvider.getCachedMultiSourceEntityResolvers()).thenReturn(multiSourceEntityResolvers);
+        return new EventOriginInfoProvider(multiSourceEntityResolverProvider);
     }
 }

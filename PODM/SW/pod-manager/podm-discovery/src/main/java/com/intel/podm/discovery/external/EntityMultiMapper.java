@@ -16,13 +16,13 @@
 
 package com.intel.podm.discovery.external;
 
-import com.intel.podm.business.entities.dao.ExternalServiceDao;
-import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.dao.DiscoverableEntityDao;
+import com.intel.podm.business.entities.redfish.ExternalLinkDao;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
-import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.common.logger.Logger;
+import com.intel.podm.common.types.Id;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.DiscoveryConfig;
@@ -32,47 +32,47 @@ import com.intel.podm.mappers.MapperFinder;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.intel.podm.common.types.ServiceType.LUI;
 import static com.intel.podm.common.utils.Contracts.requires;
 import static java.util.Objects.nonNull;
+import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 @Dependent
-public class EntityMultiMapper {
+class EntityMultiMapper {
     @Inject
     private EntityObtainer entityObtainer;
 
     @Inject
-    private ExternalServiceDao externalServiceDao;
+    private ExternalLinkDao externalLinkDao;
 
     @Inject
-    private GenericDao genericDao;
+    private DiscoverableEntityDao discoverableEntityDao;
 
     @Inject
     private Logger logger;
 
-    @Inject @Config
+    @Inject
+    @Config
     private Holder<DiscoveryConfig> config;
 
     @Inject
     private MapperFinder mapperFinder;
 
-    public Map<ExternalServiceResource, Entity> map(Collection<ExternalServiceResource> resources, ExternalService externalService) {
+    public Map<ExternalServiceResource, DiscoverableEntity> map(Collection<ExternalServiceResource> resources, ExternalService externalService) {
         requires(nonNull(externalService), "externalService should not be null");
 
-        Map<ExternalServiceResource, Entity> result = new HashMap<>();
+        Map<ExternalServiceResource, DiscoverableEntity> result = new HashMap<>();
 
         for (ExternalServiceResource resource : resources) {
-            Entity entity = map(resource, externalService);
+            DiscoverableEntity entity = map(resource, externalService);
             result.put(resource, entity);
         }
         deleteStaleEntities(resources, externalService);
@@ -81,39 +81,35 @@ public class EntityMultiMapper {
     }
 
     private void deleteStaleEntities(Collection<ExternalServiceResource> resources, ExternalService externalService) {
-        Collection<URI> resourceUris = resources.stream().map(ExternalServiceResource::getUri).collect(toSet());
-
-        List<DiscoverableEntity> entitiesToBeRemoved = externalService.getAllOwnedEntities().stream()
-                .filter(discoverable -> discoverable.getSourceUri() != null)
-                .filter(discoverable -> !resourceUris.contains(discoverable.getSourceUri()))
-                .collect(toList());
-        genericDao.removeAndClear(entitiesToBeRemoved);
+        Collection<Id> resourceIds = resources.stream().map(r -> r.getGlobalId(externalService.getId(), r.getUri())).collect(toSet());
+        externalLinkDao.removeAll(externalService, el -> !resourceIds.contains(el.getDiscoverableEntity().getGlobalId()));
     }
 
-    private Entity map(ExternalServiceResource resource, ExternalService service) {
+    private DiscoverableEntity map(ExternalServiceResource resource, ExternalService service) {
         return mapperFinder.find(resource)
-                .flatMap(mapper -> mapWithMapper(resource, service, mapper))
-                .orElse(null);
+            .flatMap(mapper -> mapWithMapper(resource, service, mapper))
+            .orElse(null);
     }
 
-    private Optional<Entity> mapWithMapper(ExternalServiceResource resource, ExternalService service, Mapper mapper) {
+    private Optional<DiscoverableEntity> mapWithMapper(ExternalServiceResource resource, ExternalService service, Mapper mapper) {
         try {
             return matchResourceByServiceType(resource, service, mapper.getTargetClass())
-                    .map(entity -> {
-                        mapper.map(resource, entity);
-                        return entity;
-                    });
+                .map(entity -> {
+                    mapper.map(resource, entity);
+                    return entity;
+                });
         } catch (IllegalStateException e) {
             logger.e("Problem while matching resource: '{}'\n{}", resource.getUri(), e.getMessage());
-            return Optional.empty();
+            return empty();
         }
     }
 
-    private Optional<Entity> matchResourceByServiceType(ExternalServiceResource resource, ExternalService service, Class targetClass) {
+    private Optional<DiscoverableEntity> matchResourceByServiceType(ExternalServiceResource resource, ExternalService service, Class targetClass) {
+        Id entityId = resource.getGlobalId(service.getId(), resource.getUri());
         return ofNullable(
-            LUI.equals(service.getServiceType())
+            Objects.equals(LUI, service.getServiceType())
                 ? entityObtainer.obtain(service, resource)
-                : externalServiceDao.findOrCreateEntity(service, resource.getUri(), targetClass)
+                : discoverableEntityDao.findOrCreateEntity(service, entityId, resource.getUri(), targetClass)
         );
     }
 }

@@ -30,8 +30,8 @@ namespace utils {
 
 /* Template specializations to check if a json field is null */
 template<>
-bool JsonConverter<Json::Value>::is_null(const Json::Value& json) {
-    return (Json::ValueType::nullValue == json.type() ? true : false );
+bool JsonConverter<json::Json>::is_null(const json::Json& json) {
+    return (json.is_null() ? true : false );
 }
 
 template<>
@@ -39,53 +39,53 @@ bool JsonConverter<json::Value>::is_null(const json::Value& json) {
     return (json::Value::Type::NIL == json.get_type() ? true : false );
 }
 
-/* Template specialization for construction from Json::Value object */
+/* Template specialization for construction from json::Json object */
 template<>
 template<>
-OptionalField<double> JsonConverter<Json::Value>::from_json<double>(const Json::Value& json) {
-    return (is_null(json) ? OptionalField<double>() : OptionalField<double>(json.asDouble()) );
+OptionalField<double> JsonConverter<json::Json>::from_json<double>(const json::Json& json) {
+    return (is_null(json) ? OptionalField<double>() : OptionalField<double>(json.get<double>()) );
 }
 
 template<>
 template<>
-OptionalField<std::string> JsonConverter<Json::Value>::from_json<std::string>(const Json::Value& json) {
-    return (is_null(json) ? OptionalField<std::string>() : OptionalField<std::string>(json.asString()) );
+OptionalField<std::string> JsonConverter<json::Json>::from_json<std::string>(const json::Json& json) {
+    return (is_null(json) ? OptionalField<std::string>() : OptionalField<std::string>(json.get<std::string>()) );
 }
 
 template<>
 template<>
-OptionalField<int> JsonConverter<Json::Value>::from_json<int>(const Json::Value& json) {
-    return (is_null(json) ? OptionalField<int>() : OptionalField<int>(json.asInt()) );
+OptionalField<int> JsonConverter<json::Json>::from_json<int>(const json::Json& json) {
+    return (is_null(json) ? OptionalField<int>() : OptionalField<int>(json.get<int>()) );
 }
 
 template<>
 template<>
-OptionalField<unsigned int> JsonConverter<Json::Value>::from_json<unsigned int>(const Json::Value& json) {
-    return (is_null(json) ? OptionalField<unsigned int>() : OptionalField<unsigned int>(json.asUInt()) );
+OptionalField<unsigned int> JsonConverter<json::Json>::from_json<unsigned int>(const json::Json& json) {
+    return (is_null(json) ? OptionalField<unsigned int>() : OptionalField<unsigned int>(json.get<unsigned int>()) );
 }
 
 template<>
 template<>
-OptionalField<int64_t> JsonConverter<Json::Value>::from_json<int64_t>(const Json::Value& json) {
-    return (is_null(json) ? OptionalField<int64_t>() : OptionalField<int64_t>(json.asInt64()) );
+OptionalField<int64_t> JsonConverter<json::Json>::from_json<int64_t>(const json::Json& json) {
+    return (is_null(json) ? OptionalField<int64_t>() : OptionalField<int64_t>(json.get<std::int64_t>()) );
 }
 
 template<>
 template<>
-OptionalField<uint64_t> JsonConverter<Json::Value>::from_json<uint64_t>(const Json::Value& json) {
-    return (is_null(json) ? OptionalField<uint64_t>() : OptionalField<uint64_t>(json.asUInt64()) );
+OptionalField<uint64_t> JsonConverter<json::Json>::from_json<uint64_t>(const json::Json& json) {
+    return (is_null(json) ? OptionalField<uint64_t>() : OptionalField<uint64_t>(json.get<uint64_t>()) );
 }
 
 template<>
 template<>
-OptionalField<bool> JsonConverter<Json::Value>::from_json<bool>(const Json::Value& json) {
-    return (is_null(json) ? OptionalField<bool>() : OptionalField<bool>(json.asBool()) );
+OptionalField<bool> JsonConverter<json::Json>::from_json<bool>(const json::Json& json) {
+    return (is_null(json) ? OptionalField<bool>() : OptionalField<bool>(json.get<bool>()) );
 }
 
 template<>
 template<>
-OptionalField<const char*> JsonConverter<Json::Value>::from_json<const char*>(const Json::Value& json) {
-    return (is_null(json) ? OptionalField<const char*>() : OptionalField<const char*>(json.asCString()) );
+OptionalField<const char*> JsonConverter<json::Json>::from_json<const char*>(const json::Json& json) {
+    return (is_null(json) ? OptionalField<const char*>() : OptionalField<const char*>(json.get_ref<const std::string&>().c_str()));
 }
 
 /* Template specialization for construction from json::Value object */
@@ -127,13 +127,13 @@ OptionalField<std::string> JsonConverter<json::Value>::from_json<std::string>(co
 
 /* Template specializations to convert json to string */
 template<>
-std::string JsonConverter<Json::Value>::json_to_string(const Json::Value& json) {
-    return json.asString();
+std::string JsonConverter<json::Json>::json_to_string(const json::Json& json) {
+    return json;
 }
 
 template<>
 std::string JsonConverter<json::Value>::json_to_string(const json::Value& json) {
-    return json.as_string();
+    return static_cast<std::string>(json);
 }
 
 

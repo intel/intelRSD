@@ -16,12 +16,11 @@
 
 package com.intel.podm.redfish.json.templates.actions;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.common.types.events.EventType;
 import com.intel.podm.common.types.redfish.RedfishEventArray;
-import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -30,6 +29,7 @@ import java.util.Collections;
 
 import static java.util.Optional.ofNullable;
 
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class EventArrayJson implements RedfishEventArray {
     @JsonProperty("@odata.type")
     private String oDataType;

@@ -16,7 +16,9 @@
 
 package com.intel.podm.business.services.context;
 
+import com.intel.podm.business.services.redfish.odataid.ContextTypeToResourceNameMapper;
 import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.Pair;
 
 import java.net.URI;
 import java.util.ArrayDeque;
@@ -32,9 +34,8 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.reverse;
 import static com.intel.podm.business.services.context.Context.contextOf;
-import static com.intel.podm.business.services.context.UriToContextConverter.IdContextTypePair.toIdContextTypePair;
-import static com.intel.podm.business.services.context.UriToContextConverter.ParameterNameContextTypePair.toParameterNameContextTypePair;
 import static com.intel.podm.common.types.Id.id;
+import static com.intel.podm.common.types.Pair.pairOf;
 import static com.intel.podm.common.utils.Contracts.requires;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
@@ -56,7 +57,8 @@ public final class UriToContextConverter {
         CONTEXT_TYPE_TO_PATTERN = initializeContextTypeToPatternMap();
     }
 
-    private UriToContextConverter() { }
+    private UriToContextConverter() {
+    }
 
     public static Context getContextFromUri(URI uri) {
         return getContextFromUriWithPossibleParent(uri, null, ContextType.values());
@@ -115,7 +117,7 @@ public final class UriToContextConverter {
         // /redfish/v1/Chassis/(?<chassisId>[a-zA-Z_\-\+0-9]+)/Thermal#/Fans/(?<thermalFanId>[a-zA-Z_\-\+0-9]+)
 
         StringBuilder sb = new StringBuilder("/redfish/v1");
-        List<ParameterNameContextTypePair> parameterNameContextTypePairs = new ArrayList<>(path.size());
+        List<Pair<String, ContextType>> parameterNameContextTypePairs = new ArrayList<>(path.size());
         for (ContextType currentContextType : path) {
             String parameterName = getParameterName(currentContextType);
             String resourceName = CONTEXT_TYPE_TO_RESOURCE_NAME_MAPPER.get(currentContextType);
@@ -128,7 +130,7 @@ public final class UriToContextConverter {
             sb.append(resourceName)
                 .append(parameterName.length() == 0 ? parameterName : "/(?<" + parameterName + ">[a-zA-Z_\\-\\+0-9]+)");
 
-            parameterNameContextTypePairs.add(toParameterNameContextTypePair(parameterName, currentContextType));
+            parameterNameContextTypePairs.add(pairOf(parameterName, currentContextType));
         }
 
         return new UriPatternDetail(Pattern.compile(sb.toString()), parameterNameContextTypePairs);
@@ -150,8 +152,8 @@ public final class UriToContextConverter {
                 continue;
             }
 
-            Queue<IdContextTypePair> idContextTypePairs = uriPatternDetail.getParameterNameContextTypePairs().stream()
-                .map(pair -> getIdContextTypePair(pair, matcher))
+            Queue<Pair<Id, ContextType>> idContextTypePairs = uriPatternDetail.getParameterNameContextTypePairs().stream()
+                .map(parameterNameContextTypePair -> getIdContextTypePair(parameterNameContextTypePair, matcher))
                 .collect(toCollection(ArrayDeque::new));
 
             return createContextFromIdsAndContextTypes(idContextTypePairs);
@@ -160,21 +162,21 @@ public final class UriToContextConverter {
         return null;
     }
 
-    private static IdContextTypePair getIdContextTypePair(ParameterNameContextTypePair pair, Matcher matcher) {
-        ContextType contextType = pair.getContextType();
-        if (pair.getParameterName().length() == 0) {
-            return toIdContextTypePair(id(""), contextType);
+    private static Pair<Id, ContextType> getIdContextTypePair(Pair<String, ContextType> parameterNameContextTypePair, Matcher matcher) {
+        ContextType contextType = parameterNameContextTypePair.second();
+        if (parameterNameContextTypePair.first().length() == 0) {
+            return pairOf(id(""), contextType);
         }
-        return toIdContextTypePair(id(matcher.group(pair.getParameterName())), contextType);
+        return pairOf(id(matcher.group(parameterNameContextTypePair.first())), contextType);
     }
 
-    private static Context createContextFromIdsAndContextTypes(Queue<IdContextTypePair> pairs) {
-        IdContextTypePair firstPair = pairs.poll();
-        Context context = contextOf(firstPair.getId(), firstPair.getContextType());
+    private static Context createContextFromIdsAndContextTypes(Queue<Pair<Id, ContextType>> idContextTypePairs) {
+        Pair<Id, ContextType> firstIdContextTypePair = idContextTypePairs.poll();
+        Context context = contextOf(firstIdContextTypePair.first(), firstIdContextTypePair.second());
 
-        while (!pairs.isEmpty()) {
-            IdContextTypePair pair = pairs.poll();
-            context = context.child(pair.getId(), pair.getContextType());
+        while (!idContextTypePairs.isEmpty()) {
+            Pair<Id, ContextType> idContextTypePair = idContextTypePairs.poll();
+            context = context.child(idContextTypePair.first(), idContextTypePair.second());
         }
 
         return context;
@@ -182,9 +184,9 @@ public final class UriToContextConverter {
 
     static final class UriPatternDetail {
         private final Pattern pattern;
-        private final List<ParameterNameContextTypePair> parameterNameContextTypePairs = new ArrayList<>();
+        private final List<Pair<String, ContextType>> parameterNameContextTypePairs = new ArrayList<>();
 
-        UriPatternDetail(Pattern pattern, List<ParameterNameContextTypePair> parameterNameContextTypePairs) {
+        UriPatternDetail(Pattern pattern, List<Pair<String, ContextType>> parameterNameContextTypePairs) {
             this.pattern = pattern;
             this.parameterNameContextTypePairs.addAll(parameterNameContextTypePairs);
         }
@@ -193,7 +195,7 @@ public final class UriToContextConverter {
             return pattern;
         }
 
-        public List<ParameterNameContextTypePair> getParameterNameContextTypePairs() {
+        public List<Pair<String, ContextType>> getParameterNameContextTypePairs() {
             return parameterNameContextTypePairs;
         }
 
@@ -201,52 +203,8 @@ public final class UriToContextConverter {
             return possibleParent == null
                 ||
                 parameterNameContextTypePairs.stream()
-                    .map(ParameterNameContextTypePair::getContextType)
+                    .map(Pair::second)
                     .anyMatch(contextType -> contextType.equals(possibleParent));
-        }
-    }
-
-    static final class IdContextTypePair {
-        private Id id;
-        private ContextType contextType;
-
-        IdContextTypePair(Id id, ContextType contextType) {
-            this.id = id;
-            this.contextType = contextType;
-        }
-
-        static IdContextTypePair toIdContextTypePair(Id id, ContextType contextType) {
-            return new IdContextTypePair(id, contextType);
-        }
-
-        public Id getId() {
-            return id;
-        }
-
-        public ContextType getContextType() {
-            return contextType;
-        }
-    }
-
-    static final class ParameterNameContextTypePair {
-        private String parameterName;
-        private ContextType contextType;
-
-        ParameterNameContextTypePair(String parameterName, ContextType contextType) {
-            this.parameterName = parameterName;
-            this.contextType = contextType;
-        }
-
-        static ParameterNameContextTypePair toParameterNameContextTypePair(String parameterName, ContextType contextType) {
-            return new ParameterNameContextTypePair(parameterName, contextType);
-        }
-
-        public String getParameterName() {
-            return parameterName;
-        }
-
-        public ContextType getContextType() {
-            return contextType;
         }
     }
 }

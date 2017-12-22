@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/storage/delete_iscsi_target.hpp"
 #include "agent-framework/module/constants/storage.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -33,14 +33,14 @@ DeleteIscsiTarget::DeleteIscsiTarget(Oem oem):
     m_oem{oem} {}
 
 
-Json::Value DeleteIscsiTarget::to_json() const {
-    Json::Value value;
+json::Json DeleteIscsiTarget::to_json() const {
+    json::Json value;
     value[IscsiTarget::OEM] = m_oem.to_json();
     return value;
 }
 
 DeleteIscsiTarget DeleteIscsiTarget::from_json
-    (const Json::Value& json) {
+    (const json::Json& json) {
     return DeleteIscsiTarget{Oem::from_json(
         json[IscsiTarget::OEM])};
 }

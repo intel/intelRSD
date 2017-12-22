@@ -30,7 +30,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Systems/Members/__SYSTEM_ID__/NetworkInterfaces/Functions/Members/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#NetworkInterface.NetworkInterface";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#NetworkInterface.v1_0_0.NetworkInterface";
     r[Common::ID] = json::Value::Type::NIL;
@@ -52,15 +52,11 @@ endpoint::NetworkInterface::~NetworkInterface() {}
 
 void endpoint::NetworkInterface::get(const server::Request& req, server::Response& res) {
     auto json = make_prototype();
-    auto system_id = psme::rest::model::Find<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID])
-            .get_one()->get_id();
     auto device = psme::rest::model::Find<agent_framework::model::NetworkDevice>(req.params[PathParam::NETWORK_INTERFACE_ID])
         .via<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID])
         .get();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__SYSTEM_ID__"), std::to_string(system_id));
 
     endpoint::status_to_json(device,json);
     json[constants::Common::ID] = req.params[PathParam::NETWORK_INTERFACE_ID];

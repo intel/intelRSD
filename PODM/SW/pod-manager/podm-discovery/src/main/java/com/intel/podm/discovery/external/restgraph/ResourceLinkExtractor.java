@@ -16,11 +16,10 @@
 
 package com.intel.podm.discovery.external.restgraph;
 
-import com.intel.podm.client.api.ExternalServiceApiReaderConnectionException;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.reader.ResourceLinks;
-import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ResourceLinks;
+import com.intel.podm.client.reader.ResourceSupplier;
+import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.common.logger.Logger;
 
 import javax.enterprise.context.Dependent;
@@ -28,17 +27,18 @@ import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.intel.podm.client.WebClientExceptionUtils.isConnectionExceptionTheRootCause;
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
-
 
 @Dependent
 public class ResourceLinkExtractor {
     @Inject
     private Logger logger;
 
-    public Set<ResourceLink> extractFrom(ExternalServiceResource resource) throws ExternalServiceApiReaderConnectionException {
-        ResourceLinks links = (ResourceLinks) resource.getLinks();
+    public Set<ResourceLink> extractFrom(ExternalServiceResource resource) throws WebClientRequestException {
+        ResourceLinks links = resource.getLinks();
         if (links == null) {
             return emptySet();
         }
@@ -53,34 +53,34 @@ public class ResourceLinkExtractor {
         return result;
     }
 
-    private Set<ExternalServiceResource> getResources(ResourceLinks links, String name) throws ExternalServiceApiReaderConnectionException {
+    private Set<ExternalServiceResource> getResources(ResourceLinks links, String name) throws WebClientRequestException {
         Set<ExternalServiceResource> result = new HashSet<>();
 
         for (ResourceSupplier supplier : getSuppliers(links, name)) {
             try {
                 result.add(supplier.get());
-            } catch (ExternalServiceApiReaderException e) {
-                handleExternalServiceApiReaderException(e);
+            } catch (WebClientRequestException e) {
+                rethrowIfCausedByConnectionException(e);
             }
         }
 
         return result;
     }
 
-    private Iterable<ResourceSupplier> getSuppliers(ResourceLinks links, String name) throws ExternalServiceApiReaderConnectionException {
+    private Iterable<ResourceSupplier> getSuppliers(ResourceLinks links, String name) throws WebClientRequestException {
         try {
             return links.get(name);
-        } catch (ExternalServiceApiReaderException e) {
-            handleExternalServiceApiReaderException(e);
+        } catch (WebClientRequestException e) {
+            rethrowIfCausedByConnectionException(e);
             return emptyList();
         }
     }
 
-    //TODO: consider changing method name
-    private void handleExternalServiceApiReaderException(ExternalServiceApiReaderException e) throws ExternalServiceApiReaderConnectionException {
-        if (e instanceof ExternalServiceApiReaderConnectionException) {
-            throw (ExternalServiceApiReaderConnectionException) e;
+    private void rethrowIfCausedByConnectionException(WebClientRequestException e) throws WebClientRequestException {
+        if (isConnectionExceptionTheRootCause(e)) {
+            throw e;
         }
-        logger.e("Problem while reading: {}, error: {}", e.getResourceUri(), e.getErrorResponse(), e);
+
+        logger.e(format("Problem while reading: %s", e.getResourceUri()), e);
     }
 }

@@ -17,19 +17,16 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.NetworkDeviceFunctionDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.EthernetDto;
-import com.intel.podm.business.dto.redfish.IscsiBootDto;
-import com.intel.podm.business.dto.redfish.NetworkDeviceFunctionDto;
 import com.intel.podm.business.entities.redfish.NetworkDeviceFunction;
 import com.intel.podm.business.entities.redfish.NetworkInterface;
-import com.intel.podm.business.entities.redfish.embeddables.Ethernet;
-import com.intel.podm.business.entities.redfish.embeddables.IscsiBoot;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
@@ -37,80 +34,25 @@ import static com.intel.podm.business.dto.redfish.CollectionDto.Type.NETWORK_DEV
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+@RequestScoped
 public class NetworkDeviceFunctionServiceImpl implements ReaderService<NetworkDeviceFunctionDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private UnknownOemTranslator unknownOemTranslator;
+    private EntityToDtoMapper entityToDtoMapper;
 
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context context) throws ContextResolvingException {
         NetworkInterface networkInterface = (NetworkInterface) traverser.traverse(context);
         return new CollectionDto(NETWORK_DEVICE_FUNTIONS, getAsIdSet(networkInterface.getNetworkDeviceFunctions()));
     }
 
+    @Transactional(REQUIRED)
     @Override
     public NetworkDeviceFunctionDto getResource(Context context) throws ContextResolvingException {
         NetworkDeviceFunction networkDeviceFunction = (NetworkDeviceFunction) traverser.traverse(context);
-        return NetworkDeviceFunctionDto.newBuilder()
-            .id(networkDeviceFunction.getId().toString())
-            .name(networkDeviceFunction.getName())
-            .description(networkDeviceFunction.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(networkDeviceFunction.getService(), networkDeviceFunction.getUnknownOems()))
-            .status(networkDeviceFunction.getStatus())
-            .deviceEnabled(networkDeviceFunction.isDeviceEnabled())
-            .ethernet(buildEthernet(networkDeviceFunction.getEthernet()))
-            .iscsiBoot(buildIscsiBoot(networkDeviceFunction.getIscsiBoot()))
-            .build();
-    }
-
-    private EthernetDto buildEthernet(Ethernet ethernet) {
-        if (ethernet == null) {
-            return null;
-        }
-
-        return EthernetDto.newBuilder()
-            .macAddress(ethernet.getMacAddress())
-            .build();
-    }
-
-    @SuppressWarnings({"checkstyle:MethodLength"})
-    private IscsiBootDto buildIscsiBoot(IscsiBoot iscsiBoot) {
-        if (iscsiBoot == null) {
-            return null;
-        }
-
-        return IscsiBootDto.newBuilder()
-            .ipAddressType(iscsiBoot.getIpAddressType())
-            .initiatorIpAddress(iscsiBoot.getInitiatorIpAddress())
-            .initiatorName(iscsiBoot.getInitiatorName())
-            .initiatorDefaultGateway(iscsiBoot.getInitiatorDefaultGateway())
-            .initiatorNetmask(iscsiBoot.getInitiatorNetmask())
-            .targetInfoViaDhcp(iscsiBoot.getTargetInfoViaDhcp())
-            .primaryTargetName(iscsiBoot.getPrimaryTargetName())
-            .primaryTargetIpAddress(iscsiBoot.getPrimaryTargetIpAddress())
-            .primaryTargetTcpPort(iscsiBoot.getPrimaryTargetTcpPort())
-            .primaryLun(iscsiBoot.getPrimaryLun())
-            .primaryVlanEnable(iscsiBoot.getPrimaryVlanEnable())
-            .primaryVlanId(iscsiBoot.getPrimaryVlanId())
-            .primaryDns(iscsiBoot.getPrimaryDns())
-            .secondaryTargetName(iscsiBoot.getSecondaryTargetName())
-            .secondaryTargetIpAddress(iscsiBoot.getSecondaryTargetIpAddress())
-            .secondaryTargetTcpPort(iscsiBoot.getSecondaryTargetTcpPort())
-            .secondaryLun(iscsiBoot.getSecondaryLun())
-            .secondaryVlanEnable(iscsiBoot.getSecondaryVlanEnable())
-            .secondaryVlanId(iscsiBoot.getSecondaryVlanId())
-            .secondaryDns(iscsiBoot.getSecondaryDns())
-            .ipMaskDnsViaDhcp(iscsiBoot.getIpMaskDnsViaDhcp())
-            .routerAdvertisementEnabled(iscsiBoot.getRouterAdvertisementEnabled())
-            .authenticationMethod(iscsiBoot.getAuthenticationMethod())
-            .chapUsername(iscsiBoot.getChapUsername())
-            .chapSecret(iscsiBoot.getChapSecret())
-            .mutualChapUsername(iscsiBoot.getMutualChapUsername())
-            .mutualChapSecret(iscsiBoot.getMutualChapSecret())
-            .build();
+        return (NetworkDeviceFunctionDto) entityToDtoMapper.map(networkDeviceFunction);
     }
 }

@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Port;
-import com.intel.podm.client.api.resources.redfish.PortResource;
+import com.intel.podm.client.resources.redfish.PortResource;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.SimpleTypeMapper;
 

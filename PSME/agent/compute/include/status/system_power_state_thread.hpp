@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2017 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,63 +18,26 @@
  * limitations under the License.
  *
  *
- * @file system_power_state_thread.hpp
+ * @file system_power_state.hpp
  *
- * @brief Declaration of System power state thread class
+ * @brief Declaration of update_system_power_state function
  * */
 
 #pragma once
-#include "agent-framework/logger_ext.hpp"
-#include <thread>
-#include <memory>
 
 /*! Agent namespace */
 namespace agent {
 /*! Compute namespace */
 namespace compute {
+
+// forward declaration
+class Bmc;
+
 /*! Status namespace */
 namespace status {
 
-/*! @brief System Power State thread: thread reading systems' Power status
- *  In case of any change, this thread updates the model and generates events
- */
-class SystemPowerStateThread final {
-public:
-    using Seconds = std::chrono::seconds;
 
-    /*! Default power state update intarval */
-    static constexpr const Seconds DEFAULT_POWER_STATE_UPDATE_INTERVAL{10};
-    /*!
-     * @brief Constructor
-     * */
-    SystemPowerStateThread() = default;
-
-    /*!
-     * @brief Constructor
-     * @param[in] interval Interval between two consequtive power status reads
-     * */
-    SystemPowerStateThread(const Seconds interval):
-        m_interval(interval) {
-    }
-
-    /*! @brief Destructor */
-    ~SystemPowerStateThread();
-
-    /*! @brief Start thread */
-    void start();
-
-    /*! @brief Stop thread */
-    void stop();
-
-private:
-    Seconds m_interval{DEFAULT_POWER_STATE_UPDATE_INTERVAL};
-    std::thread m_thread{};
-    volatile bool m_running{false};
-    void m_task();
-};
-
-/*! State Machine Thread unique pointer */
-using SystemPowerStateThreadUniquePtr = std::unique_ptr<SystemPowerStateThread>;
+void update_system_power_state(agent::compute::Bmc&);
 
 }
 }

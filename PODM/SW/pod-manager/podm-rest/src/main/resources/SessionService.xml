@@ -10,7 +10,7 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="SessionCollection.xml">
     <edmx:Include Namespace="SessionCollection"/>
@@ -26,8 +26,10 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="SessionService">
 
       <EntityType Name="SessionService" BaseType="Resource.v1_0_0.Resource" Abstract="true">
-        <Annotation Term="OData.Description" String="This is the schema definition for the Session Service.  It represents the properties for the service itself and has links to the actual list of sessions."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent the Session Service Properties for a Redfish implementation."/>
+        <Annotation Term="OData.Description"
+                    String="This is the schema definition for the Session Service.  It represents the properties for the service itself and has links to the actual list of sessions."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent the Session Service Properties for a Redfish implementation."/>
       </EntityType>
 
     </Schema>
@@ -35,17 +37,22 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="SessionService.v1_0_0">
 
       <EntityType Name="SessionService" BaseType="SessionService.SessionService">
-        <Annotation Term="OData.Description" String="This is the schema definition for the Session Service.  It represents the properties for the service itself and has links to the actual list of sessions."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent the Session Service Properties for a Redfish implementation."/>
+        <Annotation Term="OData.Description"
+                    String="This is the schema definition for the Session Service.  It represents the properties for the service itself and has links to the actual list of sessions."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent the Session Service Properties for a Redfish implementation."/>
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
         <Property Name="ServiceEnabled" Type="Edm.Boolean">
           <Annotation Term="OData.Description" String="This indicates whether this service is enabled."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a boolean indicating whether this service is enabled."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a boolean indicating whether this service is enabled."/>
         </Property>
         <Property Name="SessionTimeout" Type="Edm.Int64" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
-          <Annotation Term="OData.Description" String="This is the number of seconds of inactivity that a session may have before the session service closes the session due to inactivity."/>
-          <Annotation Term="OData.LongDescription" String="This property shall reference the threshold of time in seconds between requests on a specific session at which point the session service shall close the session due to inactivity. The session service shall support any value between the Validation.Minimum and Validation.Maximum."/>
+          <Annotation Term="OData.Description"
+                      String="This is the number of seconds of inactivity that a session may have before the session service closes the session due to inactivity."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall reference the threshold of time in seconds between requests on a specific session at which point the session service shall close the session due to inactivity. The session service shall support any value between the Validation.Minimum and Validation.Maximum."/>
           <Annotation Term="Validation.Minimum" Int="30"/>
           <Annotation Term="Validation.Maximum" Int="86400"/>
           <Annotation Term="Measures.Unit" String="s"/>
@@ -53,7 +60,8 @@
         <NavigationProperty Name="Sessions" Type="SessionCollection.SessionCollection" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Link to a collection of Sessions"/>
-          <Annotation Term="OData.LongDescription" String="This property shall contain the link to a collection of Sessions."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain the link to a collection of Sessions."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </EntityType>
@@ -65,7 +73,8 @@
       <EntityType Name="SessionService" BaseType="SessionService.v1_0_2.SessionService">
         <Property Name="Actions" Type="SessionService.v1_1_0.Actions" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The Actions object contains the available custom actions on this resource."/>
+          <Annotation Term="OData.Description"
+                      String="The Actions object contains the available custom actions on this resource."/>
         </Property>
       </EntityType>
       <ComplexType Name="Actions">

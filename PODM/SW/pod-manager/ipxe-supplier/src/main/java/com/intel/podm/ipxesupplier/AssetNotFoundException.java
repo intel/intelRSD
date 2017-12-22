@@ -17,9 +17,7 @@
 package com.intel.podm.ipxesupplier;
 
 public class AssetNotFoundException extends Exception {
-    public AssetNotFoundException() {
-        super();
-    }
+    private static final long serialVersionUID = -4716360704230357853L;
 
     public AssetNotFoundException(String message) {
         super(message);

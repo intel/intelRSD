@@ -116,18 +116,17 @@ protected:
 
 
 /*!
- * @brief status_to_json get resource status (state and health)
- * and add it to GET reply json
+ * @brief Get resource status (state and health) and add it to GET reply JSON
  *
- * @param res a Resource
+ * @param resource a Resource
  * @param v the json value sent as a GET response
  */
 template <typename T>
-void status_to_json(const T& res, json::Value& v){
-    auto& status = res.get_status();
+void status_to_json(const T& resource, json::Value& v){
+    auto& status = resource.get_status();
     v[constants::Common::STATUS][constants::Common::STATE] = status.get_state().to_string();
     v[constants::Common::STATUS][constants::Common::HEALTH] = status.get_health();
-    v[constants::Common::STATUS][constants::Common::HEALTH_ROLLUP] = HealthRollup<T>().get(res.get_uuid());
+    v[constants::Common::STATUS][constants::Common::HEALTH_ROLLUP] = HealthRollup<T>().get(resource.get_uuid());
 }
 
 }

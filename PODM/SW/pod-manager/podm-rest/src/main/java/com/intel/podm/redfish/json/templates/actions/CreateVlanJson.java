@@ -19,15 +19,16 @@ package com.intel.podm.redfish.json.templates.actions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.redfish.RedfishVlanNetworkInterface;
 
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class CreateVlanJson implements RedfishVlanNetworkInterface {
     @JsonProperty("VLANId")
-    private Integer vlanId;
+    public Integer vlanId;
 
     @JsonProperty("VLANEnable")
-    private Boolean vlanEnable;
+    public Boolean vlanEnable;
 
     @JsonProperty("Oem")
-    private Oem oem;
+    public Oem oem;
 
     @Override
     public Integer getVlanId() {
@@ -54,11 +55,11 @@ public class CreateVlanJson implements RedfishVlanNetworkInterface {
 
     public static class Oem {
         @JsonProperty("Intel_RackScale")
-        private IntelRackScale intelRackScale;
+        public IntelRackScale intelRackScale;
 
-        private static class IntelRackScale {
+        public static class IntelRackScale {
             @JsonProperty("Tagged")
-            private Boolean tagged;
+            public Boolean tagged;
         }
     }
 }

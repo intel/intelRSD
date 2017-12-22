@@ -30,7 +30,7 @@ using namespace agent::pnc::discovery::builders;
 using namespace agent_framework::model;
 
 void SystemBuilder::build_default() {
-    attribute::Status status;
+    attribute::Status status{};
     status.set_health(enums::Health::OK);
     status.set_state(enums::State::Enabled);
     m_obj.set_status(std::move(status));

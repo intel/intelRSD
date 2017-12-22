@@ -47,14 +47,20 @@ public:
 
 
     /*!
-     * Stabilize a resource object.
+     * Generate the uuid that a resource object will have after stabilization.
      *
      * @return Resource persistent UUID.
      */
     template<class T, class ... Args>
-    const std::string stabilize(T& resource, const Args& ... args) const {
-        const std::string& resource_unique_key{PncKeyGenerator::generate_key(resource, args...)};
-        return generate_persistent_uuid(resource, resource_unique_key);
+    const std::string generate_persistent_uuid(T& resource, const Args& ... args) const {
+        const std::string temporary_uuid = resource.get_uuid();
+
+        // create persistent uuid, then restore temporary uuid
+        resource.set_unique_key(PncKeyGenerator::generate_key(resource, args...));
+        resource.make_persistent_uuid();
+        const std::string resource_persistent_uuid = resource.get_uuid();
+        resource.set_uuid(temporary_uuid);
+        return resource_persistent_uuid;
     }
 
 
@@ -66,20 +72,6 @@ public:
      * */
     virtual const std::string stabilize(const std::string& module_uuid) {
         return module_uuid;
-    }
-
-
-protected:
-    // @TODO: clean up this mess
-    const std::string generate_persistent_uuid(agent_framework::model::Resource& resource,
-                                               const std::string& unique_key) const {
-        const std::string resource_uuid = resource.get_uuid();
-        resource.set_unique_key(unique_key);
-        resource.make_persistent_uuid();
-        const std::string resource_persistent_uuid = resource.get_uuid();
-        resource.make_random_uuid();
-        resource.set_uuid(resource_uuid);
-        return resource_persistent_uuid;
     }
 
 };

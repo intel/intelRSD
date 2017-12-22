@@ -55,10 +55,11 @@ protected:
      * This override is necessary to properly clean the contents of
      * ZoneEndpointManager
      *
+     * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param[in] gami_id uuid of the agent whose data is to be removed.
      * */
-    void remove_agent_data(const std::string& gami_id) override {
-        ZoneHandlerBase::remove_agent_data(gami_id);
+    void remove_agent_data(Context& ctx, const std::string& gami_id) override {
+        ZoneHandlerBase::remove_agent_data(ctx, gami_id);
 
         agent_framework::module::PncComponents::get_instance()->
             get_zone_endpoint_manager().clean_resources_for_agent(gami_id);
@@ -67,13 +68,14 @@ protected:
     /*!
      * @brief removes a component and all its descendants from the model
      *
+     * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param uuid component's uuid
      * */
-    void remove(const std::string &uuid) override {
+    void do_remove(Context& ctx, const std::string &uuid) override {
         agent_framework::module::PncComponents::get_instance()->
             get_zone_endpoint_manager().remove_parent(uuid);
 
-        ZoneHandlerBase::remove(uuid);
+        ZoneHandlerBase::do_remove(ctx, uuid);
     }
 
     /*!

@@ -143,7 +143,7 @@ void TaskCreator::set_promised_response(PromisedResponseType promised_response) 
     std::string task_uuid = m_task_resource.get_uuid();
 
     auto response_result_callback = [promised_response, task_uuid]() {
-        Json::Value response = promised_response();
+        json::Json response = promised_response();
         TaskResultManager::get_instance()->set_result(task_uuid, response);
     };
 

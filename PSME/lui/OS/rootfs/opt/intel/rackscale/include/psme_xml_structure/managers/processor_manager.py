@@ -40,7 +40,7 @@ class ProcessorManager(Manager):
         data = cls.split_data(data)
         for data_block in data:
             processor = Processor()
-            processor.cpuid = cpu_id_manager.get_data(data_block, context=cls.my_context())
+            processor.cpuId = cpu_id_manager.get_data(data_block, context=cls.my_context())
 
             processor = cls.set_fields(processor, data_block, context=context)
 

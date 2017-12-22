@@ -45,9 +45,7 @@ public:
      * @brief Enum constructor
      * */
     enum ProcessorInstructionSetEnum : std::uint32_t {
-        x86_64,
-        x86,
-        UNKNOWN
+        x86_64, x86, IA_64, ARM_A32, ARM_A64, MIPS32, MIPS64, OEM
     };
 
     /*!

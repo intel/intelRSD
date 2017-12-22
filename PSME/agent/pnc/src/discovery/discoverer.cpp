@@ -53,7 +53,7 @@ Fabric Discoverer::discover_fabric(const std::string& manager_uuid) const {
 }
 
 System Discoverer::discover_system(const std::string& manager_uuid,
-        const std::string& chassis_uuid) const {
+                                   const std::string& chassis_uuid) const {
     return m_factory->init_builder(m_factory->get_system_builder(), manager_uuid)
         ->update_links(chassis_uuid).build();
 }
@@ -238,4 +238,22 @@ Drive Discoverer::discover_oob_drive(const std::string& chassis_uuid, const Tool
     }
 
     return builder->build();
+}
+
+Metric Discoverer::discover_port_health_metric(const agent_framework::model::Port& port, const Toolset& tools) const {
+    auto builder = m_factory->init_builder(m_factory->get_metric_builder(), "");
+    builder->update_resource(port).update_from_metric_definition(tools.model_tool->get_health_metric_definition())
+        .update_value(port.get_status().get_health());
+    return builder->build();
+}
+
+std::vector<MetricDefinition> Discoverer::discover_metric_definitions() const {
+    std::vector<MetricDefinition> pnc_metric_definitions;
+
+    auto builder = m_factory->init_builder(m_factory->get_metric_definition_builder(), "");
+
+    builder->prepare_port_health_definition();
+    pnc_metric_definitions.push_back(builder->build());
+
+    return pnc_metric_definitions;
 }

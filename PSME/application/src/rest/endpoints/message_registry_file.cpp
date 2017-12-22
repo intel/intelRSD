@@ -39,7 +39,7 @@ json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
     r[constants::Common::ODATA_CONTEXT] =
-        "/redfish/v1/$metadata#Registries/Members/$entity";
+        "/redfish/v1/$metadata#MessageRegistryFile.MessageRegistryFile";
     r[constants::Common::ODATA_ID] = json::Value::Type::NIL;
     r[constants::Common::ODATA_TYPE] = "#MessageRegistryFile.v1_0_0.MessageRegistryFile";
     r[constants::Common::ID] = json::Value::Type::NIL;

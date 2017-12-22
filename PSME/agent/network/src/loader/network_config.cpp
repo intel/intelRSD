@@ -74,11 +74,8 @@ void NetworkConfig::add_switch_mgmt_port(const string& switch_identifier,
 const string& NetworkConfig::get_switch_mgmt_port(
                             const string& switch_identifier) {
     lock_guard<mutex> lock{m_mutex};
-    auto it = find_if(m_switch_mgmt_map.cbegin(), m_switch_mgmt_map.cend(),
-                        [&switch_identifier](const pair<string, string>& p) {
-                            return switch_identifier == p.first;
-                        });
-    if (m_switch_mgmt_map.cend() != it) {
+    auto it = m_switch_mgmt_map.find(switch_identifier);
+    if (m_switch_mgmt_map.end() != it) {
         return it->second;
     }
     return DEFAULT_MGMT_PORT;

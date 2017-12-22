@@ -20,12 +20,12 @@ import com.intel.podm.common.types.ServiceType;
 
 import java.util.Optional;
 
+import static com.intel.podm.common.types.ServiceType.INBAND;
 import static com.intel.podm.common.types.ServiceType.LUI;
 import static com.intel.podm.common.types.ServiceType.PSME;
 import static com.intel.podm.common.types.ServiceType.RMM;
 import static com.intel.podm.common.types.ServiceType.RSS;
 import static java.util.Optional.ofNullable;
-
 
 public final class TypeIdServiceTypeDictionary {
 
@@ -35,13 +35,24 @@ public final class TypeIdServiceTypeDictionary {
     public static Optional<ServiceType> fromTypeId(String typeId) {
         ServiceType serviceType = null;
         switch (typeId) {
-            case "psme": serviceType = PSME; break;
-            case "storage": serviceType = RSS; break;
-            case "rmm": serviceType = RMM;  break;
-            case "lui": serviceType = LUI; break;
-            default: break;
+            case "psme":
+                serviceType = PSME;
+                break;
+            case "storage":
+                serviceType = RSS;
+                break;
+            case "rmm":
+                serviceType = RMM;
+                break;
+            case "lui":
+                serviceType = LUI;
+                break;
+            case "inband":
+                serviceType = INBAND;
+                break;
+            default:
+                break;
         }
         return ofNullable(serviceType);
     }
-
 }

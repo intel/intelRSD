@@ -28,7 +28,7 @@ OptionalValidityChecker::OptionalValidityChecker(ValidityChecker::Ptr& _checker)
 }
 
 
-void OptionalValidityChecker::validate(const Json::Value& value) const {
+void OptionalValidityChecker::validate(const json::Json& value) const {
     /* compare object directly! It is internal "marker" */
     if (&value == &(NON_EXISTING_VALUE)) {
         return;

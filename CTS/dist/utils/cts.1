@@ -1,0 +1,258 @@
+.\" @section LICENSE
+.\"
+.\" @copyright
+.\" Copyright (c) 2016 Intel Corporation
+.\"
+.\" @copyright
+.\" Licensed under the Apache License, Version 2.0 (the "License");
+.\" you may not use this file except in compliance with the License.
+.\" You may obtain a copy of the License at
+.\"
+.\" @copyright
+.\"    http://www.apache.org/licenses/LICENSE-2.0
+.\"
+.\" @copyright
+.\" Unless required by applicable law or agreed to in writing, software
+.\" distributed under the License is distributed on an "AS IS" BASIS,
+.\" WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+.\" See the License for the specific language governing permissions and
+.\" limitations under the License.
+.\"
+.\" @section DESCRIPTION
+.TH CTS 1
+
+
+.SH NAME
+cts - run Intel® Rack Scale Design conformance tests
+
+
+.SH SYNOPSIS
+Each action has a [\fB\-h\fR|\fB\--help\fR] flag that displays its synopsis.
+.br
+Available actions consist of: \fBtests list\fR, \fBtests show\fR, \fBtests generate_config\fR, \fBexecute run_list\fR, \fBexecute tests\fR, \fBstatus list\fR, \fBstatus show\fR, \fBstatus delete\fR, \fBstatus dump\fR, \fBreplay\fR, \fBversion\fR, \fBsos\fR
+.br
+
+.br
+\fBcts tests list\fR
+[\fB\-p\fR|\fB\--packages\fR \fIPACKAGES\fR... [\fB\-s\fR|\fB\--suites\fB \fISUITES\fR...]]
+.br
+\fBcts tests show\fR
+\fIPACKAGE\fR
+\fITEST_SCRIPT\fR
+.br
+cts tests generate_config
+\fIPACKAGE\fR
+\fITEST_SCRIPT\fR
+\fB\-o\fR|\fB\--output_file\fR \fIFILE\fR
+\."show|generate_config|dump\fR]
+.br
+\fBcts execute run_list\fR
+\fIFILE\fR
+[\fB\-x\fR|\fB\--return_tests_status_as_exit_code\fR]
+[\fB\-g\fR|\fB\--debug\fR]
+.br
+\fBcts execute tests\fR
+\fIPACKAGE\fR
+\fB\-c\fR|\fB\--config_files\fR \fIFILES\fR...
+[\fB\-s\fR|\fB\--test_suites\fR \fITEST_SUITES\fR...]
+[\fB\-t\fR|\fB\--test_scripts\fR \fITEST_SCRIPTS\fR...]
+[\fB\-T\fR|\fB\--timeout\fR \fITIMEOUT\fR]
+[\fB\-g\fR|\fB\--debug\fR]
+[\fB\-x\fR|\fB\--return_tests_status_as_exit_code\fR]
+.br
+\fBcts status list\fR
+.br
+\fBcts status delete\fR
+\fIEXECUTION_IDS\fR...
+.br
+\fBcts status show\fR
+[\fB\--turn_off_messages\fR]
+[\fB\-d\fR|\fB\--details\fR \fILOGGING_LEVEL\fR]
+\fIEXECUTION_IDS\fR...
+.br
+\fBcts status dump\fR
+\fB\-o\fR|\fB\--output_format\fR \fIOUTPUT_FORMAT\fR
+[\fB\-a\fR|\fB\--all\fR|\fIEXECUTION_IDS\fR...]
+.br
+\fBcts replay\fR
+\fIEXECUTION_ID\fR
+.br
+\fBcts version\fR
+.br
+\fBcts sos\fR
+
+
+.SH DESCRIPTION
+\fBCTS\fR stands for 'conformance test suite' and is a tool designed by Intel® to run tests on various Intel® Rack Scale Design, called further on \fBRSD\fR, components.
+.br
+\fBRSD\fR consists of the following components, called further on \fBlayers\fR:
+.br
+
+.br
+1   \fBPooled System Management Engine\fR, called further on \fBPSME\fR
+.br
+2   \fBStorage Services\fR, called further on \fBSS\fR
+.br
+3   \fBRemote Management Module\fR, called further on \fBRMM\fR
+.br
+4   \fBPod Manager\fR, called further on \fBPODM\fR
+
+Since \fBRSD\fR is an open source project, any of the mentioned \fBlayers\fR can be substituted or modificated by the user.
+The \fBlayers\fR are communicating with one another in a fashion described in each \fBlayer\fR's API.
+Moreover, the API is available for the user to take advantage of, meaning that one is able to use any subset of the \fBlayers\fR via their APIs.
+This creates a need for a tool that would validate if given \fBlayer\fR instance, with modifications or not, is compliant with its own API.
+\fBCTS\fR is the answer to this need.
+.br
+
+.br
+The test are divided into \fBpackages\fR, which are divided into \fBsuites\fR, which are divided into \fBscripts\fR.
+The \fBpackages\fR are defined for pairs defined as (\fBlayer\fR, \fBRSD version\fR).
+That means that each tests are defined individually not only for different \fBlayers\fR, but their different versions as well.
+See \fBEXAMPLES\fR and \fBFILES\fR sections for more information on that.
+
+
+.SH EXAMPLES
+\fBcts tests list\fR
+    Display all available tests.
+
+\fBcts tests list -p\fR \fIRack_Scale_2_1_Storage_Services\fR
+    Display all tests available in the \fIRack_Scale_2_1_Storage_Services\fR package.
+
+\fBcts tests list -p\fR \fIRack_Scale_2_2_RMM\fR\fB -s \fR\fIrequired\fR
+    Display all tests available in the \fIrequired\fR suite of the \fIRack_Scale_2_2_RMM\fR package.
+
+\fBcts tests generate_config\fR \fIRack_Scale_1_2_PSME\fR \fIcrud_operations\fR -o \fR\fIconfiguration.ini\fR
+    Generate default configuration file for \fIcrud_operations\fR script and save it as \fIconfiguration.ini\fR.
+
+\fBcts tests show\fR \fIRack_Scale_2_1_PSME\fR \fIvalidate_get_responses\fR
+    Display information about the \fIvalidate_get_responses\fR script (including the mandatory and non-mandatory configuration file options)
+
+\fBcts execute tests\fR \fIRack_Scale_2_2_POD_Manager\fR\fB -s\fR \fIrequired\fR\fB -t\fR \fIhardware_checklist\fR \fB\--config_files\fR \fIconfig_file.ini\fR
+    Run the \fIhardware_checklist\fR script from the \fIrequired\fR suite of the \fIRack_Scale_2_2_POD_Manager\fR package using \fIconfig_file.ini\fR as configuration file.
+
+\fBcts execute tests\fR \fIRack_Scale_2_2_PSME\fR\fB -c\fR \fIcfg.ini\fR\fB -x -g
+    Execute all tests found in the \fIRack_Scale_2_2_PSME\fR package in debug mode and make cts return an exit code depending on the overall tests execution status.
+
+\fBcts status list\fR
+    List all execution statuses.
+
+\fBcts status show\fR \fI77\fR \fI78\fR \fI79\fR \fI80\fR \fB\--details\fR \fI2\fR
+    Show information about executions with id \fI77\fR through \fI80\fR with a detail level equal to \fI2\fR.
+
+\fBcts status delete\fR \fI25\fR \fI24\fR
+    Delete the information about executions \fI25\fR and \fI24\fR from the database.
+
+\fBcts status dump -o\fR \fIcsv\fR \fI1\fR \fI1023\fR
+    Dump information about executions with id \fI1\fR and \fI1023\fR in a \fIcsv\fR format.
+
+\fBcts status dump -a --output_format\fR \fIhtml\fR
+    Dump information about all executions in a \fIhtml\fR format.
+
+\fBcts replay\fR \fIEXECUTION_ID\fR
+    Simulate the tests ran during \fIEXECUTION_ID\fR but use the responses from the database instead of the real responses
+    from the tests \fBlayer\fR. Used mostly for debugging purposes as it guarantees for the responses to stay identical
+    even while making changes to the cts itself.
+
+\fBcts sos\fR
+    Prepare a current cts state describing package for easier debugging.
+    The command collects information such as cts' logs, network configuration or pip dependencies, etc. and saves them as an sos-report-<date> folder and an sos-report-<date>.tar.gz archive
+    Use the output to report issues and send error feedback to the developers.
+
+\fBcts version\fR
+    Show cts version
+
+
+.SH OPTIONS
+\fBcts tests list\fR options
+    \fB\-p\fR \fIPACKAGES...\fR, \fB\--packages\fR \fIPACKAGES...\fR
+       Specify the \fIPACKAGES\fR to list.
+
+    \fB\-s\fR \fISUITES...\fR, \fB\--suites\fR \fISUITES...\fR
+       Specify the \fISUITES\fR to list.
+
+\fBcts tests generate_config\fR options
+    \fB\-o\fR \fIFILE\fR, \fB\--output_file\fR \fIFILE\fR
+        Specify the config output file.
+
+\fBcts execute\fR options
+    \fB\-x\fR, \fB\--return_tests_status_as_exit_code\fR
+        Make cts return an exit code depending on the overall tests execution status.
+        If tests finished successfully, the exit code is 0.
+        Otherwise, it is computed depending on the type of error that caused the tests to fail.
+
+    \fB\-g\fR, \fB\--debug\fR
+        Make cts stop after first failed test.
+
+    \fBcts execute run_list\fR options
+        The file defining the run list should be formatted accordingly with this example:
+            [PSME_2_2]
+            TEST_PACKAGE = Rack_Scale_2_2_PSME
+            TEST_SUITES = required, optional
+            TEST_CONFIGS = psme.ini, ./config/hardware_check_list.ini
+
+            [StorageServices_2_2]
+            TEST_PACKAGE = Rack_Scale_2_2_Storage_Services
+            TEST_SUITES = required
+            TEST_CONFIGS = ./config/storage.ini
+
+    \fBcts execute tests\fR options
+        \fB\-c\fR \fICONFIG_FILES\fR..., \fB\--config_files\fR \fICONFIG_FILES\fR...
+            Specify the config files to be used.
+            In order to learn how to format them, see the README file,
+            generate a sample file using \fBcts tests generate_config\fR command,
+            or look up the possible configuration parameters via the \fBcts tests show\fR command.
+
+        \fB\-s\fR \fITEST_SUITES...\fR, \fB\--test_suites\fR \fITEST_SUITES...\fR
+            Specify the \fITEST_SUITES\fR to execute.
+
+        \fB\-t\fR \fITEST_SCRIPTS...\fR, \fB\--test_scripts\fR \fITEST_SCRIPTS...\fR
+            Specify the \fITEST_SCRIPTS\fR to execute.
+
+        \fB\-T\fR \fITIMEOUT\fR, \fB\--timeout\fR \fITIMEOUT\fR
+            Specify the \fITIMEOUT\fR for the test execution. Once the time of execution surpasses the \fITIMEOUT\fR,
+            the tests are considered to have failed.
+
+\fBcts status show\fR options
+    \fB\--turn_off_messages\fR
+        Turn off showing messages.
+
+    \fB\-d\fR \fILOGGING_LEVEL\fR, \fB\--details\fR \fILOGGING_LEVEL\fR
+        Define the loggin level to be displayed, allowed values are:
+            \fILOGGING_LEVEL\fR = 0 -> WARNING
+            \fILOGGING_LEVEL\fR = 1 -> MESSAGE
+            \fILOGGING_LEVEL\fR = 2 -> DEBUG
+
+\fBcts status dump\fR options
+    \fB\-o\fR \fIOUTPUT_FORMAT\fR, \fB\--output_format\fR \fIOUTPUT_FORMAT\fR
+        Define the output format to dump, allowed values are: [\fBhtml\fR, \fBcsv\fR, \fBtext\fR].
+
+    \fB\-a\fR, \fB\--all\fR
+        Dump information about every execution present in the database.
+        If this option is not used, a list of \fIEXECUTION_IDS\fR is required instead.
+
+
+.SH FILES
+    \fI~/.cts/db/*\fR
+        Databases used by cts.
+
+    \fI~/.cts/configuration/*\fR
+        Configuration files used by cts.
+
+    \fI~/.cts/tests/*\fR
+        Cts internal tests.
+
+    \fI~/.cts/tests_data/*\fR
+        Tests data.
+
+    \fI~/.cts/metadata/*\fR
+        Metadata files define the golden way the \fBRSD\fR \fBlayers\fR should respond to our requests.
+        For example, say some changes were made to the \fBPSME\fR API, then there is no need to
+        upgrade the whole cts, one can just replace the metadata file[s] for the tests to work.
+
+    \fI/opt/cts/tests/*\fR
+        Test packages, suites and scripts structured in a directory tree.
+
+    \fI/var/log/cts/*\fR
+        Cts log files.
+
+

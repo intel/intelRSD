@@ -17,39 +17,37 @@
 package com.intel.podm.discovery.external.finalizers;
 
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.Lock;
-import javax.ejb.Singleton;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
-import static javax.ejb.LockType.READ;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Singleton
+@ApplicationScoped
 public class DiscoveryFinalizer {
     @Inject
     private Instance<ServiceTypeSpecializedDiscoveryFinalizer> discoveryFinalizers;
 
     private Collection<ServiceTypeSpecializedDiscoveryFinalizer> finalizers;
 
-    @Lock(READ)
-    public void finalizeDiscovery(Set<Entity> discoveredEntities, ExternalService service) {
+    @Transactional(MANDATORY)
+    public void finalizeDiscovery(Set<DiscoverableEntity> discoveredEntities, ExternalService service) {
         service.markAsReachable();
-
-        findFinalizer(service)
-            .ifPresent(f -> f.finalize(discoveredEntities, service));
+        tryFindFinalizer(service)
+            .ifPresent(finalizer -> finalizer.finalize(discoveredEntities, service));
     }
 
-    private Optional<ServiceTypeSpecializedDiscoveryFinalizer> findFinalizer(ExternalService service) {
-        return finalizers
-            .stream()
+    private Optional<ServiceTypeSpecializedDiscoveryFinalizer> tryFindFinalizer(ExternalService service) {
+        return finalizers.stream()
             .filter(discoveryFinalizer -> discoveryFinalizer.isAppropriateForServiceType(service.getServiceType()))
             .findAny();
     }

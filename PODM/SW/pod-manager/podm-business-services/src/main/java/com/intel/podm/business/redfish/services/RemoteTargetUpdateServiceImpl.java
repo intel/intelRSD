@@ -40,7 +40,6 @@ public class RemoteTargetUpdateServiceImpl implements UpdateService<RedfishRemot
 
     @Override
     public void perform(Context target, RedfishRemoteTarget representation) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(traverser.traverseServiceUuid(target),
-            () -> updateService.updateRemoteTarget(target, representation));
+        taskCoordinator.run(traverser.traverseServiceUuid(target), () -> updateService.updateRemoteTarget(target, representation));
     }
 }

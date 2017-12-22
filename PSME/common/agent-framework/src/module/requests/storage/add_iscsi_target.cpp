@@ -29,14 +29,14 @@
 #include "agent-framework/module/requests/storage/add_iscsi_target.hpp"
 #include "agent-framework/module/constants/storage.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::module::utils;
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
-Json::Value AddIscsiTarget::to_json() const {
-    Json::Value value;
+json::Json AddIscsiTarget::to_json() const {
+    json::Json value;
     value[IscsiTarget::INITIATOR_IQN] = m_initiator_iqn;
     value[IscsiTarget::TARGET_IQN] = m_target_iqn;
     value[IscsiTarget::TARGET_LUNS] = m_target_luns.to_json();
@@ -49,10 +49,12 @@ Json::Value AddIscsiTarget::to_json() const {
     return value;
 }
 
-AddIscsiTarget AddIscsiTarget::from_json(const Json::Value& json) {
+AddIscsiTarget AddIscsiTarget::from_json(const json::Json& json) {
     AddIscsiTarget request{};
-    request.set_initiator_iqn(json[IscsiTarget::INITIATOR_IQN]);
-    request.set_target_iqn(json[IscsiTarget::TARGET_IQN].asString());
+    if (json.count(IscsiTarget::INITIATOR_IQN) != 0) {
+        request.set_initiator_iqn(json[IscsiTarget::INITIATOR_IQN]);
+    }
+    request.set_target_iqn(json[IscsiTarget::TARGET_IQN]);
     request.set_target_luns(TargetLuns::from_json(json[IscsiTarget::TARGET_LUNS]));
     request.set_authentication_method(json[IscsiTarget::AUTHENTICATION_METHOD]);
     request.set_chap_username(json[IscsiTarget::CHAP_USERNAME]);

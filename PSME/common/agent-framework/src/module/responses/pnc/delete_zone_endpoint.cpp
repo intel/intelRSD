@@ -26,7 +26,7 @@
 #include "agent-framework/module/constants/pnc.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -39,8 +39,8 @@ DeleteZoneEndpoint::DeleteZoneEndpoint(const std::string& task, const attribute:
     m_oem{oem} {}
 
 
-Json::Value DeleteZoneEndpoint::to_json() const {
-    Json::Value value;
+json::Json DeleteZoneEndpoint::to_json() const {
+    json::Json value;
     value[Zone::OEM] = m_oem.to_json();
     if (!m_task.empty()) {
         value[TaskEntry::TASK] = m_task;
@@ -49,6 +49,6 @@ Json::Value DeleteZoneEndpoint::to_json() const {
 }
 
 
-DeleteZoneEndpoint DeleteZoneEndpoint::from_json(const Json::Value& json) {
-    return DeleteZoneEndpoint{json[TaskEntry::TASK].asString(), attribute::Oem::from_json(json[Zone::OEM])};
+DeleteZoneEndpoint DeleteZoneEndpoint::from_json(const json::Json& json) {
+    return DeleteZoneEndpoint{json[TaskEntry::TASK], attribute::Oem::from_json(json[Zone::OEM])};
 }

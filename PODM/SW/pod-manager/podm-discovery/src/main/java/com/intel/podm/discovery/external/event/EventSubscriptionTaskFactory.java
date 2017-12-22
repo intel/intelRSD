@@ -23,7 +23,7 @@ import javax.inject.Inject;
 import java.util.UUID;
 
 @Dependent
-public class EventSubscriptionTaskFactory {
+class EventSubscriptionTaskFactory {
     @Inject
     private BeanFactory beanFactory;
 

@@ -32,7 +32,8 @@ constexpr const char Chassis::CHASSIS[];
 constexpr const char Chassis::STATUS[];
 constexpr const char Chassis::LOCATION_OFFSET[];
 constexpr const char Chassis::PARENT_ID[];
-constexpr const char Chassis::SIZE[];
+constexpr const char Chassis::LOCATION_ID[];
+constexpr const char Chassis::IS_MANAGED[];
 constexpr const char Chassis::TYPE[];
 constexpr const char Chassis::POWER_ZONE[];
 constexpr const char Chassis::THERMAL_ZONE[];
@@ -41,7 +42,11 @@ constexpr const char Chassis::COLLECTIONS[];
 constexpr const char Chassis::SKU[];
 constexpr const char Chassis::ASSET_TAG[];
 constexpr const char Chassis::INDICATOR_LED[];
+constexpr const char Chassis::GEO_TAG[];
+constexpr const char Chassis::DISAGGREGATED_POWER_COOLING_SUPPORT[];
 constexpr const char Chassis::OEM[];
+constexpr const char Chassis::RESET[];
+constexpr const char Chassis::ALLOWED_ACTIONS[];
 
 constexpr const char AuthorizationCertificate::TYPE[];
 constexpr const char AuthorizationCertificate::CERTIFICATE[];
@@ -49,37 +54,6 @@ constexpr const char AuthorizationCertificate::ENCODING_METHOD[];
 constexpr const char AuthorizationCertificate::HASH[];
 constexpr const char AuthorizationCertificate::HASH_METHOD[];
 constexpr const char AuthorizationCertificate::OEM[];
-
-constexpr const char Fan::STATUS[];
-constexpr const char Fan::SLOT[];
-constexpr const char Fan::CURRENT_SPEED[];
-constexpr const char Fan::DESIRED_SPEED[];
-constexpr const char Fan::FRU_INFO[];
-constexpr const char Fan::OEM[];
-constexpr const char Fan::FAN[];
-
-constexpr const char ThermalZone::ZONE[];
-constexpr const char ThermalZone::STATUS[];
-constexpr const char ThermalZone::TEMPERATURE[];
-constexpr const char ThermalZone::COLLECTIONS[];
-constexpr const char ThermalZone::OEM[];
-
-constexpr const char Psu::PSU[];
-constexpr const char Psu::STATUS[];
-constexpr const char Psu::SLOT[];
-constexpr const char Psu::POWER_INPUT[];
-constexpr const char Psu::POWER_OUTPUT[];
-constexpr const char Psu::POWER_CAPACITY[];
-constexpr const char Psu::FRU_INFO[];
-constexpr const char Psu::OEM[];
-
-constexpr const char PowerZone::ZONE[];
-constexpr const char PowerZone::STATUS[];
-constexpr const char PowerZone::POWER_INPUT[];
-constexpr const char PowerZone::POWER_OUTPUT[];
-constexpr const char PowerZone::POWER_CAPACITY[];
-constexpr const char PowerZone::COLLECTIONS[];
-constexpr const char PowerZone::OEM[];
 
 }
 }

@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.embeddables.PciId;
-import com.intel.podm.client.api.resources.redfish.PciIdResource;
+import com.intel.podm.client.resources.redfish.PciIdResource;
 import com.intel.podm.mappers.subresources.SubresourceMapper;
 import com.intel.podm.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 

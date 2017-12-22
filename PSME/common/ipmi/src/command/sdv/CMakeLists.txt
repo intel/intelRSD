@@ -29,21 +29,67 @@ set(SOURCES
     get_cable_id.cpp
     get_mdr_data_region_status.cpp
     mdr_region_read.cpp
-    set_oob_boot_options.cpp
-    set_oob_reset_boot_options.cpp
-    set_oob_control_boot_options.cpp
-    set_oob_heap_boot_options.cpp
-    set_oob_initiator_boot_options.cpp
-    set_oob_nic_boot_options.cpp
-    set_oob_target_boot_options.cpp
-    get_oob_boot_options.cpp
-    get_oob_control_boot_options.cpp
-    get_oob_initiator_boot_options.cpp
-    get_oob_nic_boot_options.cpp
-    get_oob_target_boot_options.cpp
-    get_oob_heap_boot_options.cpp
+
+    iscsi_oob_boot/set_oob_boot_options.cpp
+    iscsi_oob_boot/set_oob_reset_boot_options.cpp
+    iscsi_oob_boot/set_oob_control_boot_options.cpp
+    iscsi_oob_boot/set_oob_heap_boot_options.cpp
+    iscsi_oob_boot/set_oob_initiator_boot_options.cpp
+    iscsi_oob_boot/set_oob_nic_boot_options.cpp
+    iscsi_oob_boot/set_oob_target_boot_options.cpp
+    iscsi_oob_boot/get_oob_boot_options.cpp
+    iscsi_oob_boot/get_oob_control_boot_options.cpp
+    iscsi_oob_boot/get_oob_initiator_boot_options.cpp
+    iscsi_oob_boot/get_oob_nic_boot_options.cpp
+    iscsi_oob_boot/get_oob_target_boot_options.cpp
+    iscsi_oob_boot/get_oob_heap_boot_options.cpp
+    iscsi_oob_boot/errors.cpp
+
+    rmm/get_presence.cpp
+    rmm/get_authorized_cert_hash.cpp
+    rmm/get_chassis_presence.cpp
+    rmm/get_fan_presence.cpp
+    rmm/get_psu_presence.cpp
+    rmm/get_pzone_presence.cpp
+    rmm/get_chassis_alert.cpp
+    rmm/get_pwm.cpp
+    rmm/get_fan_tachs.cpp
+    rmm/get_id_field.cpp
+    rmm/set_pwm.cpp
+    rmm/set_authorized_cert.cpp
+    rmm/get_aggregated_thermal_sensor.cpp
+    rmm/get_aggregated_health_sensor.cpp
+    rmm/get_drawer_power.cpp
+    rmm/get_psshelf_critical.cpp
+    rmm/send_psu_command.cpp
+    rmm/reset.cpp
+    rmm/set_id_field.cpp
+    rmm/get_ps_input_power.cpp
+    rmm/get_ps_dc_current.cpp
+
+    nm/errors.cpp
+    nm/update_reading_package.cpp
+    nm/query_reading_package.cpp
+    nm/get_telemetry_readings.cpp
+    nm/get_cpu_and_memory_temperature.cpp
+
+    rsd/get_cpu_peci_package_config_data.cpp
+    rsd/get_system_mode.cpp
+    rsd/get_tpm_configuration.cpp
+    rsd/read_pcie_cable_eeprom_data.cpp
+    rsd/set_system_mode.cpp
+    rsd/set_tpm_configuration.cpp
+    rsd/mdr_region_read.cpp
+    rsd/get_mdr_data_region_status.cpp
+    rsd/mdr_region_update_complete.cpp
+    rsd/mdr_region_lock.cpp
+    rsd/mdr_region_write.cpp
 )
 
+if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    set_source_files_properties(rmm/get_aggregated_thermal_sensor.cpp
+            PROPERTIES COMPILE_FLAGS "-Wno-unsafe-loop-optimizations"
+            )
+endif()
 
 add_library(ipmi-command-sdv OBJECT ${SOURCES})
-

@@ -1,0 +1,75 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2017 Intel Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet author="podm (generated)" id="1">
+        <addColumn tableName="discoverable_entity">
+            <column name="global_id" type="text"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="podm (generated)" id="2">
+        <addUniqueConstraint columnNames="global_id" constraintName="idx_discoverable_entity_global_id" tableName="discoverable_entity"/>
+    </changeSet>
+
+    <changeSet author="podm (generated)" id="3">
+        <sql>
+            UPDATE discoverable_entity de
+            SET global_id = ent.entity_id
+            FROM (
+                SELECT id, entity_id FROM processor UNION ALL
+                SELECT id, entity_id FROM storage UNION ALL
+                SELECT id, entity_id FROM ethernet_interface UNION ALL
+                SELECT id, entity_id FROM thermal_temperature UNION ALL
+                SELECT id, entity_id FROM fabric UNION ALL
+                SELECT id, entity_id FROM thermal_fan UNION ALL
+                SELECT id, entity_id FROM ethernet_switch UNION ALL
+                SELECT id, entity_id FROM switch UNION ALL
+                SELECT id, entity_id FROM endpoint UNION ALL
+                SELECT id, entity_id FROM zone UNION ALL
+                SELECT id, entity_id FROM ethernet_switch_port_vlan UNION ALL
+                SELECT id, entity_id FROM pcie_device UNION ALL
+                SELECT id, entity_id FROM power_supply UNION ALL
+                SELECT id, entity_id FROM computer_system UNION ALL
+                SELECT id, entity_id FROM manager UNION ALL
+                SELECT id, entity_id FROM port UNION ALL
+                SELECT id, entity_id FROM power_control UNION ALL
+                SELECT id, entity_id FROM redundancy UNION ALL
+                SELECT id, entity_id FROM remote_target UNION ALL
+                SELECT id, entity_id FROM connected_entity UNION ALL
+                SELECT id, entity_id FROM ethernet_switch_port UNION ALL
+                SELECT id, entity_id FROM network_protocol UNION ALL
+                SELECT id, entity_id FROM thermal UNION ALL
+                SELECT id, entity_id FROM memory UNION ALL
+                SELECT id, entity_id FROM storage_service UNION ALL
+                SELECT id, entity_id FROM physical_drive UNION ALL
+                SELECT id, entity_id FROM drive UNION ALL
+                SELECT id, entity_id FROM power_voltage UNION ALL
+                SELECT id, entity_id FROM logical_drive UNION ALL
+                SELECT id, entity_id FROM pcie_device_function UNION ALL
+                SELECT id, entity_id FROM power_zone UNION ALL
+                SELECT id, entity_id FROM simple_storage UNION ALL
+                SELECT id, entity_id FROM thermal_zone UNION ALL
+                SELECT id, entity_id FROM chassis UNION ALL
+                SELECT id, entity_id FROM power
+            ) AS ent
+            WHERE de.id = ent.id
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

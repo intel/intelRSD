@@ -30,6 +30,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -52,7 +53,7 @@ public class PhysicalDrive extends DiscoverableEntity {
     private StorageControllerInterface storageControllerInterface;
 
     @Column(name = "capacity_gib")
-    private Float capacityGib;
+    private BigDecimal capacityGib;
 
     @Column(name = "type")
     @Enumerated(STRING)
@@ -99,11 +100,11 @@ public class PhysicalDrive extends DiscoverableEntity {
         this.storageControllerInterface = storageControllerInterface;
     }
 
-    public Float getCapacityGib() {
+    public BigDecimal getCapacityGib() {
         return capacityGib;
     }
 
-    public void setCapacityGib(Float capacityGib) {
+    public void setCapacityGib(BigDecimal capacityGib) {
         this.capacityGib = capacityGib;
     }
 

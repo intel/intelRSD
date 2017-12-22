@@ -27,8 +27,6 @@
 
 
 #include "enum_builder.hpp"
-#include "processor_instruction_set.hpp"
-#include "memory_module_type.hpp"
 
 
 
@@ -68,31 +66,14 @@ ENUM(BootOverrideTarget, uint32_t, None, Pxe, Floppy, Cd, Usb, Hdd, BiosSetup,
 ENUM(PowerState, uint32_t, On, Off);
 
 /*!
- * @brief ENUM ProcessorType for Processor class member
- *
- */
-ENUM(ProcessorType, uint32_t, CPU, GPU, FPGA, DSP, Accelerator, OEM);
-
-/*!
- * @brief ENUM ProcessorModel for Processor class member
- *
- */
-ENUM(ProcessorModel, uint32_t, E3, E5, E7, X3, X5, X7, I3, I5, I7, Unknown);
-
-/*!
- * @brief ENUM ProcessorArchitecture for Processor class member
- */
-ENUM(ProcessorArchitecture, uint32_t, x86, ARM, MIPS);
-
-/*!
  * @brief ENUM MemoryClass for Memory class member
  */
-ENUM(MemoryClass, uint32_t, Volatile, Block, Persistent, Unknown);
+ENUM(MemoryClass, uint32_t, Volatile, Block, ByteAccessiblePersistent);
 
 /*!
  * @brief ENUM ErrorCorrection for Memory class member
  */
-ENUM(ErrorCorrection, uint32_t, NoECC, SingleBitECC, MultiBitECC, AddressParity, Unknown);
+ENUM(ErrorCorrection, uint32_t, NoECC, SingleBitECC, MultiBitECC, AddressParity);
 
 /*!
  * @brief ENUM MemoryType for Memory class member
@@ -101,8 +82,7 @@ ENUM(MemoryType, uint32_t,
      DRAM,
      NVDIMM_N,
      NVDIMM_F,
-     NVDIMM_P,
-     Unknown,
+     NVDIMM_P
 );
 
 /*!
@@ -126,9 +106,8 @@ ENUM(DeviceType, uint32_t,
      ROM,
      SDRAM,
      EDO,
-     Fast_Page_Mode,
-     PipelinedNibble,
-     Unknown
+     FastPageMode,
+     PipelinedNibble
 );
 
 /*!
@@ -137,8 +116,7 @@ ENUM(DeviceType, uint32_t,
 ENUM(Media, uint32_t,
      DRAM,
      NAND,
-     Proprietary,
-     Unknown
+     Proprietary
 );
 
 /*!
@@ -147,8 +125,7 @@ ENUM(Media, uint32_t,
 ENUM(MemoryMode, uint32_t,
      Volatile,
      PMEM,
-     Block,
-     Unknown
+     Block
 );
 
 /*!
@@ -161,6 +138,12 @@ ENUM(IPAddressType, uint32_t, IPv4, IPv6);
  * @brief ENUM FunctionAuthenticationMethod for NetworkDeviceFunction class member
  */
 ENUM(FunctionAuthenticationMethod, uint32_t, None, CHAP, MutualCHAP);
+
+/*!
+ * @brief ENUM MemoryModuleType for Memory class member
+ */
+ENUM(MemoryModuleType, uint32_t, RDIMM, UDIMM, SO_DIMM, LRDIMM, Mini_RDIMM, Mini_UDIMM, SO_RDIMM_72b, SO_UDIMM_72b,
+     SO_DIMM_16b, SO_DIMM_32b);
 
 }
 }

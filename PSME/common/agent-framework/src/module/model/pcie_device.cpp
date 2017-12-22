@@ -37,8 +37,8 @@ PcieDevice::PcieDevice(const std::string& parent_uuid, enums::Component parent_t
 
 PcieDevice::~PcieDevice() { }
 
-Json::Value PcieDevice::to_json() const {
-    Json::Value result{};
+json::Json PcieDevice::to_json() const {
+    json::Json result{};
     result[literals::PcieDevice::DEVICE_ID] = get_device_id();
     result[literals::PcieDevice::DEVICE_CLASS] = get_device_class();
     result[literals::PcieDevice::SPEED_GBPS] = get_speed_gbps();
@@ -56,7 +56,7 @@ Json::Value PcieDevice::to_json() const {
     return result;
 }
 
-PcieDevice PcieDevice::from_json(const Json::Value& json) {
+PcieDevice PcieDevice::from_json(const json::Json& json) {
     PcieDevice pcie_device{};
     pcie_device.set_device_id(json[literals::PcieDevice::DEVICE_ID]);
     pcie_device.set_device_class(json[literals::PcieDevice::DEVICE_CLASS]);
@@ -73,5 +73,7 @@ PcieDevice PcieDevice::from_json(const Json::Value& json) {
     pcie_device.set_collections(Collections::from_json(json[literals::PcieDevice::COLLECTIONS]));
     pcie_device.set_status(Status::from_json(json[literals::PcieDevice::STATUS]));
     pcie_device.set_oem(Oem::from_json(json[literals::PcieDevice::OEM]));
+
+    pcie_device.set_resource_hash(json);
     return pcie_device;
 }

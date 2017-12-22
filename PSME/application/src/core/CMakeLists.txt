@@ -17,5 +17,3 @@
 # </license_header>
 
 add_subdirectory(agent)
-# add_subdirectory(dto)
-# add_subdirectory(service)

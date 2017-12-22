@@ -21,7 +21,7 @@ import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.types.RedfishEvent;
 import com.intel.podm.common.logger.Logger;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import java.util.List;
@@ -30,9 +30,8 @@ import static com.intel.podm.common.types.events.EventType.RESOURCE_ADDED;
 import static com.intel.podm.common.types.events.EventType.RESOURCE_REMOVED;
 import static com.intel.podm.common.types.events.EventType.RESOURCE_UPDATED;
 
-@Dependent
+@ApplicationScoped
 public class CollectingObserver implements EntityEventObserver {
-
     @Inject
     private Logger logger;
 
@@ -63,7 +62,7 @@ public class CollectingObserver implements EntityEventObserver {
     public void resourceUpdated(Entity entity, Diff diff) {
         eventRedirections.redirectIfRequired(
             entity,
-            property -> diff.wasUpdatedFromOneValueToAnother(property),
+            diff::wasUpdatedFromOneValueToAnother,
             target -> entityEventCollector.add(target, RESOURCE_UPDATED)
         );
 

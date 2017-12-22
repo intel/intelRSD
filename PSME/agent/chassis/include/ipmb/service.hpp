@@ -76,8 +76,6 @@ private:
      * */
     void master_write(IpmiMessage& msg);
 
-    ::generic::WorkerThread m_worker{};
-
     /*! Socket connection to cyMUX */
     Responder m_mux{};
 

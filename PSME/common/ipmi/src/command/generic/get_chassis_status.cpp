@@ -35,8 +35,6 @@ using namespace ipmi::command::generic;
 request::GetChassisStatus::GetChassisStatus():
     Request(generic::NetFn::CHASSIS, generic::Cmd::GET_CHASSIS_STATUS) {}
 
-request::GetChassisStatus::~GetChassisStatus() {}
-
 void request::GetChassisStatus::pack(std::vector<std::uint8_t>& data) const {
     (void)data;
 }
@@ -44,28 +42,7 @@ void request::GetChassisStatus::pack(std::vector<std::uint8_t>& data) const {
 response::GetChassisStatus::GetChassisStatus():
     Response(generic::NetFn::CHASSIS, generic::Cmd::GET_CHASSIS_STATUS, RESPONSE_SIZE) {}
 
-response::GetChassisStatus::~GetChassisStatus() {}
-
-
-bool response::GetChassisStatus::is_response_correct(const std::vector<std::uint8_t>& data) {
-    bool retval = true;
-
-    if(ERROR_DATA_SIZE == data.size()) {
-        retval = false;
-    }
-    else if (data.size() < RESPONSE_SIZE) {
-        throw std::runtime_error(("Cannot unpack response. Data length too short."
-            " Expected: ") + std::to_string(RESPONSE_SIZE)
-                                 + " Received: " + std::to_string(data.size()));
-    }
-    m_completion_code = COMPLETION_CODE(data[OFFSET_COMPLETION_CODE]);
-    return retval;
-}
-
 void response::GetChassisStatus::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return; // Error response, do not unpack values.
-    }
     m_power_on = MASK_SYSTEM_POWER & data[OFFSET_POWER_STATUS];
 }
 

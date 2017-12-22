@@ -64,23 +64,23 @@ bool Connector::is_redirect_enabled() const {
 
 
 void Connector::handle(const Request& request, Response& response) noexcept {
-    log_debug(GET_LOGGER("rest"), "\nRequest: " <<
-                                  "\n\tURL: " << request.get_url() <<
-                                  "\n\tMSG: " << request.get_body());
+    log_debug("rest", "\nRequest: "
+        << "\n\tURL: " << request.get_url()
+        << "\n\tMSG: " << request.get_body());
 
     auto started_at = std::chrono::high_resolution_clock::now();
     try {
         try_handle(request, response);
     }
     catch (const core::agent::AgentUnreachable& ex) {
-        log_error(GET_LOGGER("rest"), "AgentUnreachable exception: " << ex.what());
+        log_error("rest", "AgentUnreachable exception: " << ex.what());
         auto message = "Could not connect to underlying agent.";
         ServerError error = ErrorFactory::create_agent_unreachable_error(message);
         response.set_status(error.get_http_status_code());
         response.set_body(error.as_string());
     }
     catch (const agent_framework::exceptions::NotFound& ex) {
-        log_error(GET_LOGGER("rest"), "Not found exception: " << ex.what());
+        log_error("rest", "Not found exception: " << ex.what());
         ServerError server_error = ErrorFactory::create_error_from_gami_exception(
             agent_framework::exceptions::NotFound(ex.get_message(), request.get_url())
         );
@@ -88,25 +88,31 @@ void Connector::handle(const Request& request, Response& response) noexcept {
         response.set_body(server_error.as_string());
     }
     catch (const agent_framework::exceptions::GamiException& ex) {
-        log_error(GET_LOGGER("rest"), "Agent framework exception: " << ex.what());
+        log_error("rest", "Agent framework exception: " << ex.what());
         ServerError server_error = ErrorFactory::create_error_from_gami_exception(ex);
         response.set_status(server_error.get_http_status_code());
         response.set_body(server_error.as_string());
     }
     catch (const ServerException& ex) {
-        log_error(GET_LOGGER("rest"), "ServerException: " << ex.what());
+        log_error("rest", "ServerException: " << ex.what());
         const auto& error = ex.get_error();
         response.set_status(error.get_http_status_code());
         response.set_body(error.as_string());
     }
+    catch (const json::Value::Exception& ex) {
+        log_error("rest", "JSON-cxx library exception: " << ex.what() << " on url " << request.get_url());
+        ServerError internal_server_error = ErrorFactory::create_internal_error();
+        response.set_status(internal_server_error.get_http_status_code());
+        response.set_body(internal_server_error.as_string());
+    }
     catch (const std::exception& ex) {
-        log_error(GET_LOGGER("rest"), "std::exception: " << ex.what());
+        log_error("rest", "std::exception: " << ex.what());
         ServerError internal_server_error = ErrorFactory::create_internal_error();
         response.set_status(internal_server_error.get_http_status_code());
         response.set_body(internal_server_error.as_string());
     }
     catch (...) {
-        log_error(GET_LOGGER("rest"), "Other exception.");
+        log_error("rest", "Other exception.");
         ServerError internal_server_error = ErrorFactory::create_internal_error();
         response.set_status(internal_server_error.get_http_status_code());
         response.set_body(internal_server_error.as_string());
@@ -114,11 +120,12 @@ void Connector::handle(const Request& request, Response& response) noexcept {
     auto finished_at = std::chrono::high_resolution_clock::now();
     auto duration = finished_at - started_at;
 
-    log_debug(GET_LOGGER("rest"), "\nResponse: " <<
-                                  "\n\tSTATUS: " << response.get_status() <<
-                                  "\n\tMSG: " << response.get_body() <<
-                                  "\n\tProcessing Time: " <<
-                                  std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << "ms");
+    log_debug("rest", "\nResponse: "
+        << "\n\tSTATUS: " << response.get_status()
+        << "\n\tMSG: " << response.get_body()
+        << "\n\tProcessing Time: "
+        << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()
+        << "ms");
 }
 
 

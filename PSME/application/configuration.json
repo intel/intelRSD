@@ -43,12 +43,13 @@
     "rest" : {
         "service-root-name" : "PSME Service Root"
     },
-    "retention-policy": {
-        "interval-sec": 600,
-        "outdated-sec": 2419200
+    "database": {
+        "location": "/var/opt/psme",
+        "retention-interval-sec": 600,
+        "retention-outdated-sec": 2419200
     },
     "service-uuid-file" : "/var/opt/psme/rest-server-service-uuid.json",
-    "subscription-config-file" : "/tmp/subscriptions",
+    "subscription-config-file" : "/var/opt/psme/subscriptions",
     "logger" : {
         "app" : {
             "level" : "INFO",

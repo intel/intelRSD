@@ -16,8 +16,6 @@
 
 package com.intel.podm.business.entities.dao;
 
-
-import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.types.Id;
 
@@ -27,11 +25,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-
-import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 
 @Dependent
 public class Dao<T extends Entity> {
@@ -45,7 +41,7 @@ public class Dao<T extends Entity> {
 
     @SuppressWarnings("unchecked")
     public Dao() {
-        if (getClass().equals(Dao.class)) {
+        if (Objects.equals(getClass(), Dao.class)) {
             entityClass = (Class<T>) Entity.class;
         } else {
             Type type = getClass().getGenericSuperclass();
@@ -80,23 +76,7 @@ public class Dao<T extends Entity> {
         repository.remove(entity);
     }
 
-
     public <X extends Entity> X create(Class<X> entityClass) {
         return repository.create(entityClass);
-    }
-
-    static <T> T singleEntityOrNull(Iterable<T> queryResult) throws NonUniqueResultException {
-        requiresNonNull(queryResult, "queryResult");
-        Iterator<T> iterator = queryResult.iterator();
-
-        if (!queryResult.iterator().hasNext()) {
-            return null;
-        } else {
-            T element = iterator.next();
-            if (iterator.hasNext()) {
-                throw new NonUniqueResultException("Couldn't find single result.!");
-            }
-            return element;
-        }
     }
 }

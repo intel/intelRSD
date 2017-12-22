@@ -26,7 +26,7 @@
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -36,16 +36,16 @@ DeleteAclRule::DeleteAclRule(const std::string& rule,
     m_rule(rule),
     m_oem{} {}
 
-Json::Value DeleteAclRule::to_json() const {
-    Json::Value value;
+json::Json DeleteAclRule::to_json() const {
+    json::Json value;
     value[AclRule::RULE] = m_rule;
     value[Oem::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteAclRule DeleteAclRule::from_json(const Json::Value& json) {
+DeleteAclRule DeleteAclRule::from_json(const json::Json& json) {
     return DeleteAclRule{
-        json[AclRule::RULE].asString(),
+        json[AclRule::RULE],
         agent_framework::model::attribute::Oem::from_json(json[Oem::OEM])
     };
 }

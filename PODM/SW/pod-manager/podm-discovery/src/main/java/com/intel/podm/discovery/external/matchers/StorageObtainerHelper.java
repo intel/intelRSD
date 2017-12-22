@@ -19,27 +19,29 @@ package com.intel.podm.discovery.external.matchers;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Storage;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
-import com.intel.podm.client.api.resources.redfish.ChassisResource;
-import com.intel.podm.client.api.resources.redfish.ComputerSystemResource;
-import com.intel.podm.client.api.resources.redfish.StorageResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ResourceSupplier;
+import com.intel.podm.client.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.redfish.ChassisResource;
+import com.intel.podm.client.resources.redfish.ComputerSystemResource;
+import com.intel.podm.client.resources.redfish.StorageResource;
 
 import javax.enterprise.context.Dependent;
 import java.util.Iterator;
 import java.util.Optional;
 
+import static java.lang.String.format;
+
 @Dependent
 public class StorageObtainerHelper implements EntityObtainerHelper<StorageResource> {
 
     @Override
-    public ComputerSystemResource findComputerSystemResourceFor(StorageResource luiStorageResource) throws ExternalServiceApiReaderException {
+    public ComputerSystemResource findComputerSystemResourceFor(StorageResource luiStorageResource) throws WebClientRequestException {
         ChassisResource chassisResource = (ChassisResource) luiStorageResource.getChassis().get();
         Iterator iterator = chassisResource.getComputerSystems().iterator();
 
         if (!iterator.hasNext()) {
-            throw new ExternalServiceApiReaderException("Computer system has not been found.", chassisResource.getUri());
+            throw new IllegalStateException(format("Parent ComputerSystem resource has not been found for '%s'", chassisResource.getUri()));
         }
 
         ExternalServiceResource externalServiceResource = ((ResourceSupplier) iterator.next()).get();

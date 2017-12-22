@@ -17,9 +17,9 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Chassis;
-import com.intel.podm.client.api.resources.redfish.ChassisResource;
-import com.intel.podm.client.api.resources.redfish.ChassisResource.RackScaleRackChassisOem;
-import com.intel.podm.client.api.resources.redfish.LocationObject;
+import com.intel.podm.client.resources.redfish.ChassisResource;
+import com.intel.podm.client.resources.redfish.LocationObject;
+import com.intel.podm.client.resources.redfish.RackScaleRackChassisOem;
 import com.intel.podm.common.types.Ref;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;

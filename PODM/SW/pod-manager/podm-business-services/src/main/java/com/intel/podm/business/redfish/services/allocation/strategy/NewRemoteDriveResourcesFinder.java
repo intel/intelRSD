@@ -1,0 +1,105 @@
+/*
+ * Copyright (c) 2015-2017 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.intel.podm.business.redfish.services.allocation.strategy;
+
+import com.intel.podm.business.Violations;
+import com.intel.podm.business.entities.EntityNotFoundException;
+import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.redfish.LogicalDrive;
+import com.intel.podm.business.services.redfish.requests.RequestedNode;
+
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
+import java.math.BigDecimal;
+
+import static com.intel.podm.common.utils.IterableHelper.single;
+
+@Dependent
+public class NewRemoteDriveResourcesFinder {
+    @Inject
+    private GenericDao genericDao;
+
+    public NewRemoteDriveAllocationResource find(RequestedNode.RemoteDrive remoteDrive) {
+        NewRemoteDriveAllocationResource resource = new NewRemoteDriveAllocationResource();
+        Violations violations = new Violations();
+        LogicalDrive masterDrive = getMasterDrive(remoteDrive.getMaster());
+
+        LogicalDrive logicalVolumeGroup = single(masterDrive.getLogicalVolumeGroups());
+        if (!logicalVolumeGroupHasRequiredSpace(logicalVolumeGroup, masterDrive)) {
+            violations.addViolation("LVG with sufficient space was not found.");
+        } else {
+            resource.setMaster(masterDrive);
+            resource.setLogicalVolumeGroup(logicalVolumeGroup);
+            resource.setCapacity(remoteDrive.getCapacityGib());
+        }
+
+        resource.setViolations(violations);
+
+        return resource;
+    }
+
+    private boolean logicalVolumeGroupHasRequiredSpace(LogicalDrive logicalVolumeGroup, LogicalDrive remoteDrive) {
+        return remoteDrive.getCapacityGib().compareTo(logicalVolumeGroup.getFreeSpaceGib()) <= 0;
+    }
+
+    private LogicalDrive getMasterDrive(RequestedNode.RemoteDrive.MasterDrive masterDrive) {
+        try {
+            return genericDao.find(LogicalDrive.class, masterDrive.getResourceContext().getId());
+        } catch (EntityNotFoundException e) {
+            throw new IllegalStateException("Provided master drive no longer exist.");
+        }
+    }
+
+    static class NewRemoteDriveAllocationResource {
+        LogicalDrive logicalVolumeGroup;
+        LogicalDrive master;
+        Violations violations;
+        BigDecimal capacity;
+
+        public LogicalDrive getLogicalVolumeGroup() {
+            return logicalVolumeGroup;
+        }
+
+        public void setLogicalVolumeGroup(LogicalDrive logicalVolumeGroup) {
+            this.logicalVolumeGroup = logicalVolumeGroup;
+        }
+
+        public LogicalDrive getMaster() {
+            return master;
+        }
+
+        public void setMaster(LogicalDrive master) {
+            this.master = master;
+        }
+
+        public Violations getViolations() {
+            return violations;
+        }
+
+        public void setViolations(Violations violations) {
+            this.violations = violations;
+        }
+
+        public BigDecimal getCapacity() {
+            return capacity;
+        }
+
+        public void setCapacity(BigDecimal capacity) {
+            this.capacity = capacity;
+        }
+    }
+}

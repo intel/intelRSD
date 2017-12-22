@@ -25,7 +25,7 @@
 #include "agent-framework/module/responses/pnc/add_zone_endpoint.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -38,8 +38,8 @@ AddZoneEndpoint::AddZoneEndpoint(const std::string& task, const attribute::Oem& 
     m_oem{oem} {}
 
 
-Json::Value AddZoneEndpoint::to_json() const {
-    Json::Value value;
+json::Json AddZoneEndpoint::to_json() const {
+    json::Json value;
     value[Zone::OEM] = m_oem.to_json();
     if (!m_task.empty()) {
         value[TaskEntry::TASK] = m_task;
@@ -48,6 +48,6 @@ Json::Value AddZoneEndpoint::to_json() const {
 }
 
 
-AddZoneEndpoint AddZoneEndpoint::from_json(const Json::Value& json) {
-    return AddZoneEndpoint{json[TaskEntry::TASK].asString(), attribute::Oem::from_json(json[Zone::OEM])};
+AddZoneEndpoint AddZoneEndpoint::from_json(const json::Json& json) {
+    return AddZoneEndpoint{json[TaskEntry::TASK], attribute::Oem::from_json(json[Zone::OEM])};
 }

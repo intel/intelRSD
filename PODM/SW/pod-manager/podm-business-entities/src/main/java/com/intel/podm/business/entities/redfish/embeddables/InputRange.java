@@ -16,7 +16,6 @@
 
 package com.intel.podm.business.entities.redfish.embeddables;
 
-
 import com.intel.podm.common.types.PowerInputType;
 
 import javax.persistence.Column;

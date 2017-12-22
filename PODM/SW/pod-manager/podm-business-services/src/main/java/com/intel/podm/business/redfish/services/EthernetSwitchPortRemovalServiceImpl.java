@@ -28,7 +28,7 @@ import javax.inject.Inject;
 import java.util.concurrent.TimeoutException;
 
 @RequestScoped
-public class EthernetSwitchPortRemovalServiceImpl implements RemovalService<RedfishEthernetSwitchPort> {
+class EthernetSwitchPortRemovalServiceImpl implements RemovalService<RedfishEthernetSwitchPort> {
     @Inject
     private ServiceTraverser traverser;
 
@@ -40,6 +40,6 @@ public class EthernetSwitchPortRemovalServiceImpl implements RemovalService<Redf
 
     @Override
     public void perform(Context target) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(traverser.traverseServiceUuid(target), () -> actionsService.deleteSwitchPort(target));
+        taskCoordinator.run(traverser.traverseServiceUuid(target), () -> actionsService.deleteSwitchPort(target));
     }
 }

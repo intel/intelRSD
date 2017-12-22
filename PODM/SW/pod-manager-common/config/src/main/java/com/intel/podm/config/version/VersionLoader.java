@@ -16,16 +16,17 @@
 
 package com.intel.podm.config.version;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.util.jar.Manifest;
 
 /**
  * Retrieves application version from 'Implementation-Version' attribute present in MANIFEST.MF.
- *
+ * <p>
  * Since there may be a number of MANIFEST.MF files present, the war MANIFEST.MF is identified
  * based on attribute 'Implementation-Title' equal to 'podm-rest'.
  */
+@ApplicationScoped
 public class VersionLoader {
-
     private static final String MANIFEST_TITLE_FIELD = "Implementation-Title";
     private static final String EXPECTED_MANIFEST_TITLE = "podm-rest";
     private static final String MANIFEST_VERSION_FIELD = "Implementation-Version";

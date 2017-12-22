@@ -34,7 +34,7 @@ namespace action {
 TaskResultManager::~TaskResultManager() { }
 
 
-const Json::Value TaskResultManager::get_result(const std::string& task_uuid) {
+const json::Json TaskResultManager::get_result(const std::string& task_uuid) {
     std::lock_guard<std::recursive_mutex> lock_guard{m_resource_mutex};
 
     // Verify that a given task exists and throw an exception if there is no such task
@@ -55,7 +55,7 @@ const Json::Value TaskResultManager::get_result(const std::string& task_uuid) {
 }
 
 
-void TaskResultManager::set_result(const std::string& task_uuid, Json::Value result) {
+void TaskResultManager::set_result(const std::string& task_uuid, json::Json result) {
     std::lock_guard<std::recursive_mutex> lock_guard{m_resource_mutex};
 
     // The corresponding exception object must be created, use a dummy one
@@ -68,7 +68,7 @@ void TaskResultManager::set_exception(const std::string& task_uuid,
                                       const agent_framework::exceptions::GamiException& exception) {
     std::lock_guard<std::recursive_mutex> lock_guard{m_resource_mutex};
 
-    m_results.insert({task_uuid, std::make_tuple(Json::Value{}, true, exception)});
+    m_results.insert({task_uuid, std::make_tuple(json::Json{}, true, exception)});
 }
 
 

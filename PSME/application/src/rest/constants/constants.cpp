@@ -38,8 +38,6 @@ const char BASE_URL[] = "/redfish/v1";
 const char METADATA_FILE[] = "metadataFile";
 const char SUBSCRIPTION_ID[] = "subscriptionId";
 const char CHASSIS_ID[] = "chassisId";
-const char THERMAL_ZONE_ID[] = "thermalZoneId";
-const char POWER_ZONE_ID[] = "powerZoneId";
 const char SYSTEM_ID[] = "systemId";
 const char ADAPTER_ID[] = "adapterId";
 const char DEVICE_ID[] = "deviceId";
@@ -72,6 +70,11 @@ const char STATIC_MAC_ID[] = "staticMacId";
 const char TASK_ID[] = "taskId";
 const char ODATA[] = "odata";
 const char MESSAGE_REGISTRY_FILE_ID[] = "messageRegistryFileId";
+const char PSU_ID[] = "psuId";
+const char METRIC_DEFINITION_ID[] = "metricDefinitionId";
+const char METRIC_REPORT_DEFINITION_ID[] = "metricReportDefinitionId";
+const char TRIGGER_ID[] = "triggerId";
+
 
 const char PATH_SEP = '/';
 const char VARIABLE_BEGIN = '{';
@@ -92,7 +95,7 @@ const char NAME[] = "Name";
 const char LINKS[] = "Links";
 const char MANUFACTURER[] = "Manufacturer";
 const char MODEL[] = "Model";
-const char SERIAL[] = "SerialNumber";
+const char SERIAL_NUMBER[] = "SerialNumber";
 const char PART_NUMBER[] = "PartNumber";
 const char ASSET_TAG[] = "AssetTag";
 const char STATUS[] = "Status";
@@ -115,7 +118,13 @@ const char ACTIONS[] = "Actions";
 const char HASH[] = "#";
 const char CHASSIS[] = "Chassis";
 const char RESET_TYPE[] = "ResetType";
+const char ALLOWABLE_RESET_TYPES[] = "ResetType@Redfish.AllowableValues";
+const char TARGET[] = "target";
+const char SKU[] = "SKU";
+const char RELATED_ITEM[] = "RelatedItem";
 const char MAC_ADDRESS[] = "MACAddress";
+const char METRICS[] = "Metrics";
+const char REDUNDANCY[] = "Redundancy";
 }
 
 namespace ErrorMessage {
@@ -149,7 +158,11 @@ const char SERVICES[] = "Services";
 const char MANAGERS[] = "Managers";
 const char ETHERNET_SWITCHES[] = "EthernetSwitches";
 const char REGISTRIES[] = "Registries";
+const char MESSAGE_REGISTRY[] = "MessageRegistry";
 const char FABRICS[] = "Fabrics";
+const char TELEMETRY_SERVICE[] = "TelemetryService";
+const char UPDATE_SERVICE[] = "UpdateService";
+const char SERVICE[] = "Service";
 }
 
 namespace Redfish {
@@ -164,7 +177,6 @@ const char URL[] = "url";
 }
 
 namespace Manager {
-const char TARGET[] = "target";
 const char MANAGER_TYPE[] = "ManagerType";
 const char POWER_STATE[] = "PowerState";
 const char DATE_TIME[] = "DateTime";
@@ -187,6 +199,10 @@ const char MANAGER_FOR_LOGICAL_DRIVES[] = "ManagerForLogicalDrives";
 const char MANAGER_FOR_PHYSICAL_DRIVES[] = "ManagerForPhysicalDrives";
 const char NETWORK_PROTOCOL[] = "NetworkProtocol";
 const char ETHERNET_INTERFACES[] = "EthernetInterfaces";
+const char HASH_MANAGER_RESET[] = "#Manager.Reset";
+const char MANAGER_RESET[] = "Manager.Reset";
+const char HASH_LOAD_FACTORY_DEFAULTS_ACTION[] = "#Intel_RackScale.LoadFactoryDefaults";
+const char LOAD_FACTORY_DEFAULTS_ACTION[] = "Intel_RackScale.LoadFactoryDefaults";
 }
 
 namespace NetworkProtocol {
@@ -225,7 +241,7 @@ const char ADDRESS_STATE[] = "AddressState";
 
 namespace NetworkInterface {
 const char PERMANENT_MAC_ADDRESS[] = "PermanentMACAddress";
-const char SPEED[] = "SpeedMbps";
+const char SPEED_MBPS[] = "SpeedMbps";
 const char AUTO_NEG[] = "AutoNeg";
 const char FULL_DUPLEX[] = "FullDuplex";
 const char MTU_SIZE[] = "MTUSize";
@@ -248,18 +264,48 @@ const char NEIGHBOR_PORT[] = "NeighborPort";
 const char LINK_STATUS[] = "LinkStatus";
 }
 
+namespace ActionInfo {
+const char REDFISH_ACTION_INFO[] = "@Redfish.ActionInfo";
+const char PARAMETERS[] = "Parameters";
+const char REQUIRED[] = "Required";
+const char DATA_TYPE[] = "DataType";
+const char ALLOWABLE_VALUES[] = "AllowableValues";
+}
+
+namespace UpdateService {
+const char SERVICE_ENABLED[] = "ServiceEnabled";
+const char HTTP_PUSH_URI[] = "HttpPushUri";
+const char HASH_UPDATE_SERVICE_SIMPLE_UPDATE[] = "#UpdateService.SimpleUpdate";
+const char SIMPLE_UPDATE[] = "SimpleUpdate";
+const char SIMPLE_UPDATE_ACTION_INFO[] = "SimpleUpdateActionInfo";
+const char IMAGE_URI[] = "ImageURI";
+const char TRANSFER_PROTOCOL[] = "TransferProtocol";
+const char TARGETS[] = "Targets";
+}
+
 namespace EventService {
 const char SERVICE_ENABLED[] = "ServiceEnabled";
 const char DELIVERY_RETRY_ATTEMPTS[] = "DeliveryRetryAttempts";
 const char DELIVERY_RETRY_INTERVAL_SECONDS[] = "DeliveryRetryIntervalSeconds";
 const char EVENT_TYPES_FOR_SUBSCRIPTION[] = "EventTypesForSubscription";
-const char STATUS_CHANGE[] = "StatusChange";
-const char RESOURCE_UPDATED[] = "ResourceUpdated";
-const char RESOURCE_ADDED[] = "ResourceAdded";
-const char RESOURCE_REMOVED[] = "ResourceRemoved";
-const char ALERT[] = "Alert";
 const char SUBSCRIPTIONS[] = "Subscriptions";
-const char ACTIONS[] = "Actions";
+}
+
+namespace EventArray {
+const char CONTEXT[] = "Context";
+const char EVENTS[] = "Events";
+}
+
+namespace Event {
+const char EVENT_TYPE[] = "EventType";
+const char EVENT_ID[] = "EventId";
+const char EVENT_TIMESTAMP[] = "EventTimestamp";
+const char SEVERITY[] = "Severity";
+const char MESSAGE[] = "Message";
+const char MESSAGE_ID[] = "MessageId";
+const char MESSAGE_ARGS[] = "MessageArgs";
+const char CONTEXT[] = "Context";
+const char ORIGIN_OF_CONDITION[] = "OriginOfCondition";
 }
 
 namespace EventSubscription {
@@ -267,13 +313,16 @@ const char DESTINATION[] = "Destination";
 const char CONTEXT[] = "Context";
 const char PROTOCOL[] = "Protocol";
 const char EVENT_TYPES[] = "EventTypes";
+const char ORIGIN_RESOURCES[] = "OriginResources";
 }
 
 namespace Capability {
-extern const char CHASSIS[] = "Chassis";
-extern const char COMPUTE[] = "Compute";
-extern const char NETWORK[] = "Network";
-extern const char STORAGE[] = "Storage";
+const char CHASSIS[] = "Chassis";
+const char COMPUTE[] = "Compute";
+const char NETWORK[] = "Network";
+const char STORAGE[] = "Storage";
+const char PNC[] = "Pnc";
+const char RMM[] = "Rmm";
 }
 
 namespace TaskService {
@@ -306,6 +355,14 @@ const char URI[] = "Uri";
 const char ARCHIVE_URI[] = "ArchiveUri";
 const char PUBLICATION_URI[] = "PublicationUri";
 const char ARCHIVE_FILE[] = "ArchiveFile";
+}
+
+namespace MessageRegistry {
+const char LANGUAGE[] = "Language";
+const char MESSAGES[] = "Messages";
+const char OWNING_ENTITY[] = "OwningEntity";
+const char REGISTRY_PREFIX[] = "RegistryPrefix";
+const char REGISTRY_VERSION[] = "RegistryVersion";
 }
 
 }

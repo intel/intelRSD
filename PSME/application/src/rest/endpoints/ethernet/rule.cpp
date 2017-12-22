@@ -25,7 +25,6 @@
 #include "psme/rest/model/handlers/handler_manager.hpp"
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
-#include "psme/core/agent/agent_manager.hpp"
 
 #include "agent-framework/module/requests/network.hpp"
 #include "agent-framework/module/responses/network.hpp"
@@ -42,14 +41,12 @@ using namespace psme::rest::model::handler;
 using namespace psme::core::agent;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
-using NetworkComponents = agent_framework::module::NetworkComponents;
 
 namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitches/"
-        "Members/__SWITCH_ID__/ACLs/Members/__ACL_ID__/Rules/Members/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchACLRule.EthernetSwitchACLRule";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#EthernetSwitchACLRule.v1_0_0.EthernetSwitchACLRule";
 
@@ -132,7 +129,7 @@ void set_condition(const AclRule& rule, json::Value& r) {
 void set_region(const AclRule& rule, json::Value& r) {
     const auto& ports = rule.get_mirrored_ports();
     for (const auto& port : ports) {
-        json::Value port_link;
+        json::Value port_link{};
         port_link[Common::ODATA_ID] = endpoint::utils::get_component_url(enums::Component::EthernetSwitchPort, port);
         r[Rule::MIRROR_PORT_REGION].push_back(std::move(port_link));
     }
@@ -293,16 +290,6 @@ endpoint::Rule::~Rule() {}
 
 void endpoint::Rule::get(const server::Request& req, server::Response& res) {
     auto r = ::make_prototype();
-
-    r[Common::ODATA_CONTEXT] = std::regex_replace(
-        r[Common::ODATA_CONTEXT].as_string(),
-        std::regex("__SWITCH_ID__"),
-        req.params[PathParam::ETHERNET_SWITCH_ID]);
-
-    r[Common::ODATA_CONTEXT] = std::regex_replace(
-        r[Common::ODATA_CONTEXT].as_string(),
-        std::regex("__ACL_ID__"),
-        req.params[PathParam::ACL_ID]);
 
     r[Common::ODATA_ID] = PathBuilder(req).build();
     r[Common::ID] = req.params[PathParam::RULE_ID];

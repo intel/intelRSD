@@ -17,11 +17,21 @@
 package com.intel.podm.common.types;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public abstract class Ref<T> {
     private Ref() {
+    }
+
+    public static <T> Ref<T> of(T value) {
+        return new Assigned<>(value);
+    }
+
+    public static <V> Ref<V> unassigned() {
+        return new Unassigned<>();
     }
 
     public abstract T get();
@@ -39,12 +49,12 @@ public abstract class Ref<T> {
     public void ifAssigned(Consumer<T> consumer) {
     }
 
-    public static <T> Ref<T> of(T value) {
-        return new Assigned<>(value);
-    }
-
-    public static <V> Ref<V> unassigned() {
-        return new Unassigned<>();
+    public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
+        if (isAssigned()) {
+            return get();
+        } else {
+            throw exceptionSupplier.get();
+        }
     }
 
     private static final class Unassigned<T> extends Ref<T> {
@@ -66,6 +76,16 @@ public abstract class Ref<T> {
         @Override
         public <U> Ref<U> flatMap(Function<T, Ref<U>> function) {
             return Ref.unassigned();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(isAssigned());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return this == o || o instanceof Unassigned;
         }
     }
 
@@ -104,6 +124,29 @@ public abstract class Ref<T> {
         @Override
         public <U> Ref<U> flatMap(Function<T, Ref<U>> function) {
             return function.apply(value);
+        }
+
+        @Override
+        public int hashCode() {
+            if (this.get() != null) {
+                return Objects.hash(isAssigned(), this.get());
+            }
+
+            return Objects.hash(isAssigned());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (!(o instanceof Assigned)) {
+                return false;
+            }
+            Ref that = (Ref) o;
+
+            return Objects.equals(this.get(), that.get());
         }
     }
 }

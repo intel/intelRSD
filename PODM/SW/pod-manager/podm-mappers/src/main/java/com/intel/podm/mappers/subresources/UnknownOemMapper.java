@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.subresources;
 
 import com.intel.podm.business.entities.redfish.embeddables.UnknownOem;
-import com.intel.podm.client.api.resources.redfish.UnknownOemObject;
+import com.intel.podm.client.resources.redfish.UnknownOemObject;
 import com.intel.podm.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 
 import java.util.Objects;

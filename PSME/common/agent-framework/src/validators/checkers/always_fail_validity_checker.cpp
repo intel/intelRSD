@@ -26,7 +26,7 @@ AlwaysFailValidityChecker::AlwaysFailValidityChecker(const std::string& _message
 
 AlwaysFailValidityChecker::~AlwaysFailValidityChecker() { }
 
-void AlwaysFailValidityChecker::validate(const Json::Value& value) const {
+void AlwaysFailValidityChecker::validate(const json::Json& value) const {
     THROW(ValidityChecker::ValidationException, "agent-framework",
           ErrorCode::INVALID_FIELD, message, value);
 }

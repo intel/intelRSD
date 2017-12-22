@@ -18,11 +18,11 @@
 
 function(install_safe_string)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(safestring 0.0.1 "https://github.com/01org/safestringlib/archive/master.zip" "45900cbf87c27d4e75bc50f192804df4")
+    assure_package(safestring 0.0.1 "https://github.com/01org/safestringlib/archive/master.zip" "baeab5d3aa86ff7aab555d6fcf6489e2")
 
     file(GLOB cfiles ${source_dir}/safeclib/*.c)
     execute_process(
-        COMMAND ${CMAKE_C_COMPILER} -fPIC -c -I ${source_dir}/include/ ${cfiles}
+        COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_FLAGS} -fPIC -c -I ${source_dir}/include/ ${cfiles}
         WORKING_DIRECTORY ${binary_dir}
         RESULT_VARIABLE result
     )

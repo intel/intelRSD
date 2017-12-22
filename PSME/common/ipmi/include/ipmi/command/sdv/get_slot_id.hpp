@@ -59,12 +59,17 @@ public:
         // GetSlotId without request parameters.
         (void)data;
     }
+
     /*!
      * @brief Default destructor
      */
     virtual ~GetSlotId();
 
+    virtual const char* get_command_name() const override {
+        return "GetSlotId";
+    }
 };
+
 }
 
 namespace response {
@@ -116,6 +121,10 @@ public:
      * @return Reserved Id
      */
     std::uint8_t get_reserved_id() const;
+
+    virtual const char* get_command_name() const override {
+        return "GetSlotId";
+    }
 
 private:
     std::uint8_t m_slot_id{};

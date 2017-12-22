@@ -29,7 +29,8 @@ import static com.intel.podm.common.types.State.ABSENT;
 import static com.intel.podm.common.types.State.DISABLED;
 import static com.intel.podm.common.types.State.ENABLED;
 import static com.intel.podm.common.types.State.UNAVAILABLE_OFFLINE;
-import static com.intel.podm.common.types.Status.fromString;
+import static com.intel.podm.common.types.Status.statusFromMap;
+import static com.intel.podm.common.types.Status.statusFromString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -39,27 +40,27 @@ public class StatusTest {
 
     @DataProvider(name = "statusStrings")
     private static Object[][] statusStrings() {
-        return new Object[][] {
-                {new Status(ENABLED, OK, OK), "State=Enabled,Health=OK,HealthRollup=OK" },
-                {new Status(DISABLED, null, CRITICAL), "State=Disabled,HealthRollup=CRITICAL"},
-                {new Status(ABSENT, WARNING, null), "State=Absent,Health=WARNING"},
-                {new Status(UNAVAILABLE_OFFLINE, null, null), "State=UnavailableOffline"},
-                {new Status(null, null, null), null},
-                {new Status(null, WARNING, OK), "Health=WARNING,HealthRollup=OK"}
+        return new Object[][]{
+            {new Status(ENABLED, OK, OK), "State=Enabled,Health=OK,HealthRollup=OK"},
+            {new Status(DISABLED, null, CRITICAL), "State=Disabled,HealthRollup=CRITICAL"},
+            {new Status(ABSENT, WARNING, null), "State=Absent,Health=WARNING"},
+            {new Status(UNAVAILABLE_OFFLINE, null, null), "State=UnavailableOffline"},
+            {new Status(null, null, null), null},
+            {new Status(null, WARNING, OK), "Health=WARNING,HealthRollup=OK"}
         };
     }
 
     @Test
     public void fromNullString_ShouldReturnNull() {
         Status expected = new Status(null, null, null);
-        Status status = fromString(null);
+        Status status = statusFromString(null);
         assertEquals(status, expected);
     }
 
     @Test
     public void fromEmptyString_ShouldThrow() {
         Status expected = new Status(null, null, null);
-        Status status = fromString("");
+        Status status = statusFromString("");
         assertEquals(status, expected);
     }
 
@@ -68,7 +69,7 @@ public class StatusTest {
         String statusString = "State=Enabled,Health=OK,HealthRollup=OK";
 
         Status expected = new Status(ENABLED, OK, OK);
-        Status status = fromString(statusString);
+        Status status = statusFromString(statusString);
 
         assertEquals(status, expected);
     }
@@ -79,7 +80,7 @@ public class StatusTest {
 
         Status expected = new Status(ENABLED, OK, null);
 
-        Status status = fromString(statusString);
+        Status status = statusFromString(statusString);
 
         assertEquals(status, expected);
     }
@@ -90,7 +91,7 @@ public class StatusTest {
 
         Status expected = new Status(ENABLED, null, OK);
 
-        Status status = fromString(statusString);
+        Status status = statusFromString(statusString);
 
         assertEquals(status, expected);
     }
@@ -99,7 +100,7 @@ public class StatusTest {
     public void fromStringWithoutState_ShouldReturnProperInstance() {
         String statusString = "Health=OK,HealthRollup=OK";
         Status expected = new Status(null, OK, OK);
-        Status status = fromString(statusString);
+        Status status = statusFromString(statusString);
 
         assertEquals(status, expected);
     }
@@ -108,7 +109,7 @@ public class StatusTest {
     public void fromStringWithWrongState_ShouldReturnNullState() {
         String statusString = "State=Online";
 
-        Status status = fromString(statusString);
+        Status status = statusFromString(statusString);
         assertNull(status.getState());
     }
 
@@ -116,7 +117,7 @@ public class StatusTest {
     public void fromStringWithWrongHealthValue_ShouldReturnHealthNull() {
         String statusString = "State=Enabled,Health=OKAY,HealthRollup=OK";
 
-        Status status = fromString(statusString);
+        Status status = statusFromString(statusString);
         assertNotNull(status.getState());
         assertNotNull(status.getHealthRollup());
         assertNull(status.getHealth());
@@ -126,7 +127,7 @@ public class StatusTest {
     public void fromStringWithWrongHealthRollupValue_ShouldReturnHealthRollupNull() {
         String statusString = "State=Enabled,Health=OK,HealthRollup=OKAY";
 
-        Status status = fromString(statusString);
+        Status status = statusFromString(statusString);
         assertNotNull(status.getState());
         assertNotNull(status.getHealth());
         assertNull(status.getHealthRollup());
@@ -140,17 +141,21 @@ public class StatusTest {
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = ".*Error while parsing.*")
     public void fromStringWithSyntaxError_ShouldThrowWithProperMessage() {
         String statusString = "State=Enabled,Health;OK,HealthRollup=OK";
-        fromString(statusString);
+        statusFromString(statusString);
     }
 
     @Test
     public void fromMapWithMissingState_ShouldReturnProperInstance() {
-        Map<String, String> map = new HashMap<String, String>() { {
-            put("Health", "OK");
-            put("HealthRollup", "OK");
-        } };
+        Map<String, String> map = new HashMap<String, String>() {
+            private static final long serialVersionUID = -2611007892635015315L;
+
+            {
+                put("Health", "OK");
+                put("HealthRollup", "OK");
+            }
+        };
         Status expected = new Status(null, OK, OK);
-        Status status = Status.fromMap(map);
+        Status status = statusFromMap(map);
         assertEquals(status, expected);
     }
 
@@ -158,7 +163,7 @@ public class StatusTest {
     public void fromEmptyMap_ShouldReturnNull() {
         Map<String, String> map = new HashMap<>();
         Status expected = new Status(null, null, null);
-        Status status = Status.fromMap(map);
+        Status status = statusFromMap(map);
         assertEquals(status, expected);
     }
 
@@ -167,7 +172,7 @@ public class StatusTest {
         String statusString = "State=Offline";
         Status expected = new Status(UNAVAILABLE_OFFLINE, null, null);
 
-        Status status = fromString(statusString);
+        Status status = statusFromString(statusString);
         assertEquals(status, expected);
     }
 }

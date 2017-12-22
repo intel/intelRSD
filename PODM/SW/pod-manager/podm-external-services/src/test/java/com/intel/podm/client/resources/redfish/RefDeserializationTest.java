@@ -21,10 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.intel.podm.client.SerializersProvider;
-
-import java.io.IOException;
-import java.util.List;
-
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.common.types.EnumeratedType;
 import com.intel.podm.common.types.Ref;
@@ -33,9 +29,11 @@ import com.intel.podm.common.types.deserialization.EnumeratedTypeDeserializer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.util.List;
+
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-
 import static com.google.common.collect.Lists.newArrayList;
 import static com.intel.podm.client.resources.redfish.RefDeserializationTest.TestEnum.FIRST;
 import static com.intel.podm.client.resources.redfish.RefDeserializationTest.TestEnum.SECOND;
@@ -44,30 +42,31 @@ import static com.intel.podm.client.typeidresolver.ResourceResolver.register;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_EMPTY_COLLECTION;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+import static java.lang.Integer.valueOf;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 @SuppressWarnings({"checkstyle:MethodName", "checkstyle:MagicNumber"})
 public class RefDeserializationTest {
 
-    private ObjectMapper mapper;
     private final String testResourceJson = "{"
-                                                + "\"@odata.type\": \"#TestResource.v1_0_0.TestResource\","
-                                                + "\"SimpleTypeCollection\": [1, 2, 4],"
-                                                + "\"EnumTypeCollection\": [\"FIRST\", \"SECOND\"],"
-                                                + "\"Integer\": 4,"
-                                                + "\"String\": \"someValue\","
-                                                + "\"EnumType\": \"FIRST\","
-                                                + "\"WillBeNull\": null,"
-                                                + "\"SomeEmptyCollection\": [],"
-                                                + "\"SomeNullCollection\": null,"
-                                                + "\"CustomObject\": {"
-                                                    + "\"EnumType\": \"SECOND\","
-                                                    + "\"AssignedToNull\": \"null\""
-                                                + "}"
-                                            + "}";
+        + "\"@odata.type\": \"#TestResource.v1_0_0.TestResource\","
+        + "\"SimpleTypeCollection\": [1, 2, 4],"
+        + "\"EnumTypeCollection\": [\"FIRST\", \"SECOND\"],"
+        + "\"Integer\": 4,"
+        + "\"String\": \"someValue\","
+        + "\"EnumType\": \"FIRST\","
+        + "\"WillBeNull\": null,"
+        + "\"SomeEmptyCollection\": [],"
+        + "\"SomeNullCollection\": null,"
+        + "\"CustomObject\": {"
+        + "\"EnumType\": \"SECOND\","
+        + "\"AssignedToNull\": \"null\""
+        + "}"
+        + "}";
+    private ObjectMapper mapper;
 
     @BeforeClass
     public void setUp() {
@@ -77,17 +76,18 @@ public class RefDeserializationTest {
         serializersModule.addDeserializer(TestEnum.class, new EnumeratedTypeDeserializer<>(TestEnum.class));
 
         mapper = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .registerModule(serializersModule)
-                .disable(FAIL_ON_UNKNOWN_PROPERTIES)
-                .enable(FAIL_ON_NULL_FOR_PRIMITIVES);
+            .registerModule(new JavaTimeModule())
+            .registerModule(serializersModule)
+            .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+            .enable(FAIL_ON_NULL_FOR_PRIMITIVES);
     }
+
     @Test
     public void whenTestResourceDeserialized_simpleTypesShouldBeAssigned() throws IOException {
         TestResource testResource = mapper.readValue(testResourceJson, TestResource.class);
 
         assertTrue(testResource.integer.isAssigned());
-        assertEquals(testResource.integer.get(), Integer.valueOf(4));
+        assertEquals(testResource.integer.get(), valueOf(4));
         assertTrue(testResource.string.isAssigned());
         assertEquals(testResource.string.get(), "someValue");
     }

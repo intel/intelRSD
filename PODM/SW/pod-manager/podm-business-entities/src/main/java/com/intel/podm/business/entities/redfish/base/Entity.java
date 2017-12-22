@@ -16,7 +16,6 @@
 
 package com.intel.podm.business.entities.redfish.base;
 
-
 import com.intel.podm.business.entities.listeners.EntityListenerImpl;
 
 import javax.persistence.Column;
@@ -54,7 +53,7 @@ public abstract class Entity {
     @Column(name = "event_source_context")
     private URI eventSourceContext;
 
-    public long getPrimaryKey() {
+    protected long getPrimaryKey() {
         return id;
     }
 
@@ -65,15 +64,6 @@ public abstract class Entity {
     @PreRemove
     public void unlinkRelations() {
         preRemove();
-    }
-
-
-    public URI getEventSourceContext() {
-        return eventSourceContext;
-    }
-
-    public void setEventSourceContext(URI eventSourceContext) {
-        this.eventSourceContext = eventSourceContext;
     }
 
     protected boolean isContainedBy(Entity possibleParent, Entity realParent) {
@@ -89,7 +79,7 @@ public abstract class Entity {
     }
 
     protected <T extends Entity> void unlinkCollection(Collection<T> entities, Consumer<T> unlinkConsumer, Predicate<T> predicate) {
-        //TODO: think how remove and clean relations in loop in more efficient way (this prevents from ConcurrentModificationException)
+        // Iterator prevents ConcurrentModification exception, update method carefully. Checked by unit test.
         Iterator<T> iterator = entities.iterator();
         while (iterator.hasNext()) {
             T entity = iterator.next();
@@ -124,5 +114,13 @@ public abstract class Entity {
     @Override
     public String toString() {
         return format("Entity {clazz=%s, primaryKey=%d}", getClass().getSimpleName(), getPrimaryKey());
+    }
+
+    public URI getEventSourceContext() {
+        return eventSourceContext;
+    }
+
+    public void setEventSourceContext(URI context) {
+        this.eventSourceContext = context;
     }
 }

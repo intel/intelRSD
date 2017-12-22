@@ -16,17 +16,16 @@
 #
 # </license_header>
 
+if (NOT EOSSDK_FOUND)
+    return()
+endif()
+
 cmake_minimum_required(VERSION 2.8)
 project("PSME Network" C CXX)
 
 if (CMAKE_CROSSCOMPILING)
   message(WARNING "Not supported for crosscompiling")
   return()
-endif()
-
-if (NOT FM10KD_FOUND)
-    message(WARNING "Network agent not compiled:: Fm10kd not found (should be Fedora Linux)")
-    return()
 endif()
 
 set(AGENT_NETWORK_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -38,6 +37,8 @@ configure_file (
 
 include_directories(
     ${LOGGER_INCLUDE_DIRS}
+    ${JSON_INCLUDE_DIRS}
+    ${JSON_RPC_INCLUDE_DIRS}
     ${JSONCXX_INCLUDE_DIRS}
     ${AGENT_FRAMEWORK_INCLUDE_DIRS}
     ${CONFIGURATION_INCLUDE_DIRS}
@@ -50,15 +51,10 @@ include_directories(
 include_directories(SYSTEM
     ${SAFESTRING_INCLUDE_DIRS}
     ${UUID_INCLUDE_DIRS}
-    ${JSONCPP_INCLUDE_DIRS}
-    ${JSONRPCCPP_INCLUDE_DIRS}
     ${NL3_INCLUDE_DIRS}
-    ${IES_INCLUDE_DIRS}
     ${CONFIGURATION_INCLUDE_DIRS}
     ${COMMON_INCLUDE_DIRS}
 )
-
-link_libraries(${UDEV_LIBRARIES})
 
 add_subdirectory(src)
 add_subdirectory(tests)

@@ -22,11 +22,12 @@
  *
  * @brief Declaration of EventingServer class
  * */
-#include "psme/command/command_json_server.hpp"
-#include "logger/logger_factory.hpp"
 
-#include <jsonrpccpp/server.h>
-#include <jsonrpccpp/server/connectors/httpserver.h>
+#pragma once
+
+#include "json-rpc/connectors/http_server_connector.hpp"
+#include "agent-framework/command/command_server.hpp"
+#include "agent-framework/command/registry.hpp"
 
 #include <memory>
 #include <string>
@@ -62,15 +63,9 @@ public:
     /*! @brief Stop server */
     void stop();
 
-    /*!
-     * @brief Add commands to server
-     * @param[in] command_map JSON command map with unique key string
-     * */
-    void add(const psme::command::CommandJson::Map::command_map_t& command_map);
-
 private:
-    jsonrpc::HttpServer m_http_server;
-    psme::command::CommandJsonServer  m_command_json_server;
+    std::shared_ptr<json_rpc::AbstractServerConnector> m_connector;
+    std::shared_ptr<agent_framework::command::CommandServer> m_server;
 };
 
 }

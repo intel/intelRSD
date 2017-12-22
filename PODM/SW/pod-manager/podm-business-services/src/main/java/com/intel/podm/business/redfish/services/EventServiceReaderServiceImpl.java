@@ -17,24 +17,27 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.EventServiceDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.EventServiceDto;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
-import com.intel.podm.common.types.Status;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.common.types.events.EventType;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.EventsConfig;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import java.net.URI;
 
 import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
 import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
-import static java.net.URI.create;
+import static com.intel.podm.common.types.Status.statusFromString;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
+@RequestScoped
 public class EventServiceReaderServiceImpl implements ReaderService<EventServiceDto> {
 
     private EventsConfig eventsConfig;
@@ -51,16 +54,21 @@ public class EventServiceReaderServiceImpl implements ReaderService<EventService
 
     @Override
     public EventServiceDto getResource(Context context) throws ContextResolvingException {
-        // TODO: hardcode - to be changed.
-        return EventServiceDto.newBuilder()
-            .id("EventService")
-            .name("EventService")
-            .description("EventService")
-            .serviceEnabled(true)
-            .deliveryRetryAttempts(eventsConfig.getNorthboundConfiguration().getDeliveryRetryAttempts())
-            .deliveryRetryIntervalSeconds(eventsConfig.getNorthboundConfiguration().getDeliveryRetryIntervalSeconds())
-            .eventTypesForSubscription(stream(EventType.values()).collect(toList()))
-            .status(Status.fromString("State=Enabled,Health=OK"))
-            .subscriptions(oDataIdFromUri(create(asOdataId(context) + "/Subscriptions"))).build();
+        ODataId oDataId = asOdataId(context);
+        EventServiceDto eventService = new EventServiceDto();
+        eventService.setId("EventService");
+        eventService.setName("EventService");
+        eventService.setDescription("EventService");
+        eventService.setServiceEnabled(true);
+        eventService.setDeliveryRetryAttempts(eventsConfig.getNorthboundConfiguration().getDeliveryRetryAttempts());
+        eventService.setDeliveryRetryIntervalSeconds(eventsConfig.getNorthboundConfiguration().getDeliveryRetryIntervalSeconds());
+        eventService.setEventTypesForSubscription(
+            stream(EventType.values())
+                .collect(toList())
+        );
+        eventService.setStatus(statusFromString("State=Enabled,Health=OK"));
+        eventService.setSubscriptions(oDataIdFromUri(URI.create(oDataId + "/Subscriptions")));
+
+        return eventService;
     }
 }

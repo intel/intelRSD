@@ -18,8 +18,8 @@ package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.embeddables.RackChassisAttributes;
-import com.intel.podm.client.api.resources.redfish.ChassisResource;
-import com.intel.podm.client.api.resources.redfish.ChassisResource.RackScaleRackChassisOem;
+import com.intel.podm.client.resources.redfish.ChassisResource;
+import com.intel.podm.client.resources.redfish.RackScaleRackChassisOem;
 import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.mappers.EntityMapper;
@@ -34,11 +34,15 @@ public class ChassisMapper extends EntityMapper<ChassisResource, Chassis> {
     public ChassisMapper() {
         super(ChassisResource.class, Chassis.class);
         registerProvider(RackChassisAttributes.class, target -> provideRackChassisAttributes());
+        ignoredProperties("name");
     }
 
     @Override
     protected void performNotAutomatedMapping(ChassisResource sourceChassis, Chassis targetChassis) {
         super.performNotAutomatedMapping(source, target);
+        if (sourceChassis.getName() != null) {
+            targetChassis.setName(sourceChassis.getName());
+        }
 
         mapRackChassis(sourceChassis, targetChassis);
     }

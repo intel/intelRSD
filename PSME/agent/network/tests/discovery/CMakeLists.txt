@@ -20,23 +20,22 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
-add_gtest(discovery_test psme-network-fm10000
-    mock_acl.cpp
-    mock_utils.cpp
-    mock_switch_info.cpp
-    mock_static_mac.cpp
-    mock_sysfs.cpp
-    discovery_manager_test.cpp
-    test_runner.cpp
-)
+if (BUILD_EOS_SDK)
+    add_gtest(discovery_test psme-network
+        mock_utils.cpp
+        mock_switch_info.cpp
+        discovery_manager_test.cpp
+        test_runner.cpp
+    )
 
-target_link_libraries(${test_target}
-    network-loader-fm10000
-    network-discovery-fm10000
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-)
+    target_link_libraries(${test_target}
+        eos
+        network-utils
+        ${AGENT_FRAMEWORK_LIBRARIES}
+        ${UUID_LIBRARIES}
+        ${LOGGER_LIBRARIES}
+        ${CONFIGURATION_LIBRARIES}
+        ${JSONCXX_LIBRARIES}
+        ${SAFESTRING_LIBRARIES}
+    )
+endif()

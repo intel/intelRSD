@@ -26,7 +26,10 @@ public enum ProcessorBrand implements EnumeratedType {
     X7("X7"),
     I3("I3"),
     I5("I5"),
-    I7("I7");
+    I7("I7"),
+    SILVER("Silver"),
+    GOLD("Gold"),
+    PLATINUM("Platinum");
 
     private final String value;
 

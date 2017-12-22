@@ -23,8 +23,13 @@
  * */
 
 #pragma once
-#include <json/json.h>
+
+
+
+#include "json-wrapper/json-wrapper.hpp"
 #include <string>
+
+
 
 namespace agent_framework {
 namespace model {
@@ -33,12 +38,11 @@ namespace attribute {
 /*! @brief Component attributes */
 class Attributes {
 private:
-    Json::Value m_value{};
+    json::Json m_value{};
 
 public:
-
     using Members = std::vector<std::string>;
-    using Size = Json::ArrayIndex;
+    using Size = unsigned long;
 
     explicit Attributes();
     virtual ~Attributes();
@@ -49,31 +53,39 @@ public:
     Attributes(Attributes&&) = default;
     Attributes& operator=(Attributes&&) = default;
 
+
     /*!
      * @brief Set attributes value
      * @param[in] name Attribute name
      * @param[in] value Attributes as JSON object
      * */
-    void set_value(const std::string& name, const Json::Value& value) {
+    void set_value(const std::string& name, const json::Json& value) {
         m_value[name] = value;
     }
+
 
     /*!
      * @brief Get attributes value
      * @param[in] name Attribute name
      * @return Attributes as JSON object
      * */
-    const Json::Value& get_value(const std::string& name) const {
+    const json::Json& get_value(const std::string& name) const {
         return m_value[name];
     }
+
 
     /*!
      * @brief Get names of attributes
      * @return Collection of names
      * */
     const Members get_names() const {
-        return m_value.getMemberNames();
+        std::vector<std::string> names{};
+        for (auto it = m_value.begin(); it != m_value.end(); ++it) {
+            names.push_back(it.key());
+        }
+        return names;
     }
+
 
     /*!
      * @brief Get attributes size
@@ -83,6 +95,7 @@ public:
         return m_value.size();
     }
 
+
     /*!
      * @brief Check if JSON object is empty
      * @return true if object has no fields, false otherwise
@@ -91,20 +104,29 @@ public:
         return m_value.empty();
     }
 
+
     /*!
      * @brief transform the object to JSon
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    const Json::Value& to_json() const {
+    const json::Json& to_json() const {
         return m_value;
     }
 
+
+    /*!
+     * @brief Check if attributes structure contains given attribute name
+     * @param name A name of JSON key to check.
+     * @return Returns true if attribute's name exists, false otherwise
+     */
+    bool contains(const std::string& name) const;
+
     /*!
      * @brief construct an object of class Attributes from JSON
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      * @return the newly constructed Attributes object
      */
-    static Attributes from_json(const Json::Value& json) {
+    static Attributes from_json(const json::Json& json) {
         Attributes attributes{};
         attributes.m_value = json;
         return attributes;
@@ -114,4 +136,3 @@ public:
 }
 }
 }
-

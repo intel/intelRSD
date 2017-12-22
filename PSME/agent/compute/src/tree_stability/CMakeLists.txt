@@ -20,6 +20,9 @@ set(SOURCES
     helpers/update_relations.cpp
 
     compute_tree_stabilizer.cpp
+
+    compute_key_generator.cpp
+    compute_dry_stabilizer.cpp
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)

@@ -22,7 +22,7 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import java.util.Objects;
 
-import static com.intel.podm.common.types.Status.fromString;
+import static com.intel.podm.common.types.Status.statusFromString;
 
 @Converter(autoApply = true)
 public class StatusConverter implements AttributeConverter<Status, String> {
@@ -33,7 +33,7 @@ public class StatusConverter implements AttributeConverter<Status, String> {
 
     @Override
     public Status convertToEntityAttribute(String databaseStatus) {
-        return fromString(databaseStatus);
+        return statusFromString(databaseStatus);
     }
 }
 

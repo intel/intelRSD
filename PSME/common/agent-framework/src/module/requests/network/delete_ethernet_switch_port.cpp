@@ -25,7 +25,7 @@
 #include "agent-framework/module/requests/network/delete_ethernet_switch_port.hpp"
 #include "agent-framework/module/constants/network.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -35,16 +35,16 @@ DeleteEthernetSwitchPort::DeleteEthernetSwitchPort(const std::string& port,
                 m_port(port),
                 m_oem{} {}
 
-Json::Value DeleteEthernetSwitchPort::to_json() const {
-    Json::Value value;
+json::Json DeleteEthernetSwitchPort::to_json() const {
+    json::Json value;
     value[EthernetSwitchPort::PORT] = m_port;
     value[EthernetSwitchPort::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteEthernetSwitchPort DeleteEthernetSwitchPort::from_json(const Json::Value& json) {
+DeleteEthernetSwitchPort DeleteEthernetSwitchPort::from_json(const json::Json& json) {
     return DeleteEthernetSwitchPort{
-        json[EthernetSwitchPort::PORT].asString(),
+        json[EthernetSwitchPort::PORT],
         agent_framework::model::attribute::Oem::from_json(
             json[EthernetSwitchPort::OEM])
     };

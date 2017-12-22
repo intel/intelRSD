@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.subresources;
 
 import com.intel.podm.business.entities.redfish.embeddables.RackLocation;
-import com.intel.podm.client.api.resources.redfish.RackLocationObject;
+import com.intel.podm.client.resources.redfish.RackLocationObject;
 import com.intel.podm.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 
 import javax.enterprise.context.Dependent;
@@ -33,7 +33,7 @@ public class RackLocationMapper extends SubresourceMapper<RackLocationObject, Ra
 
     @Override
     public void map(RackLocationObject sourceRackLocation, RackLocation targetRackLocation) {
-        targetRackLocation.setRackUnit(sourceRackLocation.getRackUnit());
+        targetRackLocation.setRackUnits(sourceRackLocation.getRackUnits());
         targetRackLocation.setUHeight(sourceRackLocation.getUHeight());
         targetRackLocation.setULocation(sourceRackLocation.getULocation());
         targetRackLocation.setXLocation(sourceRackLocation.getXLocation());
@@ -41,7 +41,7 @@ public class RackLocationMapper extends SubresourceMapper<RackLocationObject, Ra
 
     @Override
     public boolean equals(RackLocationObject sourceRackLocation, RackLocation targetRackLocation) {
-        return Objects.equals(sourceRackLocation.getRackUnit(), targetRackLocation.getRackUnit())
+        return Objects.equals(sourceRackLocation.getRackUnits(), targetRackLocation.getRackUnits())
                 && Objects.equals(sourceRackLocation.getUHeight(), targetRackLocation.getUHeight())
                 && Objects.equals(sourceRackLocation.getULocation(), targetRackLocation.getULocation())
                 && Objects.equals(sourceRackLocation.getXLocation(), targetRackLocation.getXLocation());

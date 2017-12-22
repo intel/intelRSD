@@ -66,6 +66,9 @@ static constexpr char DEFAULT_VALIDATOR_JSON[] = R"({
     "max": 65535,
     "min": 0
 },
+"telemetry": {
+    "defaultInterval": 30
+},
 "slot" : {
     "validator": true,
     "min": 0

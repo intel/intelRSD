@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.PowerSupply;
-import com.intel.podm.client.api.resources.redfish.PowerResource;
+import com.intel.podm.client.resources.redfish.PowerSupplyItem;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.InputRangeMapper;
 
@@ -25,16 +25,16 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 @Dependent
-public class PowerSupplyMapper extends EntityMapper<PowerResource.PowerSupply, PowerSupply> {
+public class PowerSupplyMapper extends EntityMapper<PowerSupplyItem, PowerSupply> {
     @Inject
     private InputRangeMapper inputRangeMapper;
 
     protected PowerSupplyMapper() {
-        super(PowerResource.PowerSupply.class, PowerSupply.class);
+        super(PowerSupplyItem.class, PowerSupply.class);
     }
 
     @Override
-    protected void performNotAutomatedMapping(PowerResource.PowerSupply sourcePowerSupply, PowerSupply targetPowerSupply) {
+    protected void performNotAutomatedMapping(PowerSupplyItem sourcePowerSupply, PowerSupply targetPowerSupply) {
         super.performNotAutomatedMapping(sourcePowerSupply, targetPowerSupply);
         inputRangeMapper.map(sourcePowerSupply.getInputRanges(), targetPowerSupply.getInputRanges(), targetPowerSupply::addInputRange);
     }

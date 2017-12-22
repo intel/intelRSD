@@ -18,9 +18,7 @@ package com.intel.podm.common.synchronization.monitoring;
 
 public interface MetricActivatorMBean {
 
-    String METRICS_DOMAIN = "podm-metrics";
+    void enable();
 
-    void enableMetricsForApplicationExecutors();
-
-    void disableMetricsForApplicationExecutors();
+    void disable();
 }

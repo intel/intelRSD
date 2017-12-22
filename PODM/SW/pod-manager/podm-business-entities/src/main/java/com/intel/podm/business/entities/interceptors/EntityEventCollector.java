@@ -18,24 +18,23 @@ package com.intel.podm.business.entities.interceptors;
 
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 import com.intel.podm.common.types.Pair;
 import com.intel.podm.common.types.events.EventType;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static com.intel.podm.common.logger.LoggerFactory.getLogger;
 import static com.intel.podm.common.types.Pair.pairOf;
 import static java.lang.ThreadLocal.withInitial;
 import static java.util.stream.Collectors.toList;
 
-@Dependent
+@ApplicationScoped
 public class EntityEventCollector {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(EntityEventCollector.class);
+    private static final Logger LOGGER = getLogger(EntityEventCollector.class);
 
     private final ThreadLocal<List<Pair<Entity, EventType>>> eventsContainer = withInitial(ArrayList::new);
 
@@ -46,7 +45,7 @@ public class EntityEventCollector {
 
     public void add(Entity eventableEntity, List<EventType> eventTypes) {
         LOGGER.t("Registering events {} for: {}", eventTypes, eventableEntity);
-        eventTypes.stream().forEach(eventType -> eventsContainer.get().add(pairOf(eventableEntity, eventType)));
+        eventTypes.forEach(eventType -> eventsContainer.get().add(pairOf(eventableEntity, eventType)));
     }
 
     public void convertEventTypes(BiFunction<Entity, EventType, EventType> converter) {

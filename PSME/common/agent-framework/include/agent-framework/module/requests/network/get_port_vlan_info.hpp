@@ -25,10 +25,6 @@
 
 #include <string>
 
-namespace Json {
-    class Value;
-}
-
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -55,7 +51,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create GetPortVlanInfo from Json
@@ -64,7 +60,7 @@ public:
      *
      * @return new GetPortVlanInfo
      */
-    static GetPortVlanInfo from_json(const Json::Value& json);
+    static GetPortVlanInfo from_json(const json::Json& json);
 
     /*!
      * @brief Return procedure schema
@@ -74,7 +70,7 @@ public:
     static const jsonrpc::ProcedureValidator& get_procedure() {
         static const jsonrpc::ProcedureValidator procedure{
                 get_command(), jsonrpc::PARAMS_BY_NAME, jsonrpc::JSON_OBJECT,
-                literals::EthernetSwitchPortVlan::PORT_VLAN, jsonrpc::JSON_STRING,
+                literals::EthernetSwitchPortVlan::PORT_VLAN, VALID_UUID,
                 nullptr
         };
         return procedure;
@@ -87,4 +83,3 @@ private:
 }
 }
 }
-

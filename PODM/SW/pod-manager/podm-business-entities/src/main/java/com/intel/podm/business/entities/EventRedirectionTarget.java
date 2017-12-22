@@ -16,7 +16,6 @@
 
 package com.intel.podm.business.entities;
 
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

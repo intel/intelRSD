@@ -17,6 +17,8 @@
 package com.intel.podm.business.entities.redfish;
 
 class EntityRelationshipException extends Exception {
+    private static final long serialVersionUID = -7018667482925006697L;
+
     EntityRelationshipException(String message) {
         super(message);
     }

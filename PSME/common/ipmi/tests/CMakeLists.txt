@@ -20,11 +20,15 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
+add_subdirectory(ipmi)
+add_subdirectory(command/generic)
+
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/command/sdv")
     add_subdirectory(command/sdv)
 endif()
 
-add_subdirectory(command/generic)
+add_subdirectory(telemetry)
+add_subdirectory(utils/sdv)
 
 add_custom_target(unittest_ipmi
                   make

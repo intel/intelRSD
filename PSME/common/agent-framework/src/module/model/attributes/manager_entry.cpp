@@ -26,7 +26,7 @@
 
 #include "agent-framework/module/model/attributes/manager_entry.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::model;
@@ -35,15 +35,14 @@ ManagerEntry::ManagerEntry() { }
 
 ManagerEntry::~ManagerEntry() { }
 
-Json::Value ManagerEntry::to_json() const {
-    Json::Value entry;
+json::Json ManagerEntry::to_json() const {
+    json::Json entry;
     entry[literals::ManagerEntry::MANAGER] = get_manager();
     return entry;
 }
 
-ManagerEntry ManagerEntry::from_json(const Json::Value& json)
-{
+ManagerEntry ManagerEntry::from_json(const json::Json& json) {
     ManagerEntry entry;
-    entry.set_manager(json[literals::ManagerEntry::MANAGER].asString());
+    entry.set_manager(json[literals::ManagerEntry::MANAGER]);
     return entry;
 }

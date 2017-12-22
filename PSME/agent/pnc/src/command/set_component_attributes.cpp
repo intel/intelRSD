@@ -23,8 +23,8 @@
 
 #include "agent-framework/module/pnc_components.hpp"
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/command-ref/pnc_commands.hpp"
-#include "agent-framework/command-ref/registry.hpp"
+#include "agent-framework/command/pnc_commands.hpp"
+#include "agent-framework/command/registry.hpp"
 #include "agent-framework/module/requests/validation/common.hpp"
 #include "agent-framework/module/requests/validation/pnc.hpp"
 #include "agent-framework/action/task_runner.hpp"
@@ -37,7 +37,7 @@
 
 
 using namespace agent_framework;
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent_framework::exceptions;
@@ -55,7 +55,7 @@ static constexpr uint32_t DRIVE_DETECTION_DELAY_SEC = 10;
 
 
 template <typename RESOURCE>
-void set_asset_tag(const std::string& uuid, const std::string& asset_tag) {
+void set_asset_tag(const std::string& uuid, const json::Json& asset_tag) {
     using RAW_TYPE = typename std::remove_reference<RESOURCE>::type;
     enums::Component component = RAW_TYPE::get_component();
 
@@ -63,12 +63,28 @@ void set_asset_tag(const std::string& uuid, const std::string& asset_tag) {
     auto reference = get_manager<RAW_TYPE>().get_entry_reference(uuid);
     RESOURCE& resource = reference.get_raw_ref();
 
-    log_info(GET_LOGGER("pnc-gami"), component.to_string() << "(" << uuid << "):: AssetTag = " << asset_tag);
-    resource.set_asset_tag(asset_tag);
+    log_info(GET_LOGGER("pnc-gami"), component.to_string() << "(" << uuid << "):: AssetTag = " << asset_tag.dump());
+    resource.set_asset_tag(agent_framework::module::utils::OptionalField<std::string>(asset_tag));
+}
+
+void throw_if_drive_not_ready_for_secure_erase(const std::string& uuid) {
+    auto drive = get_manager<Drive>().get_entry(uuid);
+
+    if (drive.get_is_in_critical_discovery_state()) {
+        THROW(exceptions::PncError, "pnc-gami", "Drive is in critical discovery state");
+    }
+    if (drive.get_is_being_discovered()) {
+        THROW(exceptions::PncError, "pnc-gami", "Drive is still being discovered");
+    }
+    if (drive.get_is_being_erased()) {
+        THROW(exceptions::PncError, "pnc-gami", "Drive is still being erased");
+    }
 }
 
 void securely_erase(const std::string& drive_uuid, SetComponentAttributes::Response& response) {
     log_info(GET_LOGGER("pnc-gami"), "Executing erase drive securely command.");
+
+    throw_if_drive_not_ready_for_secure_erase(drive_uuid);
 
     Toolset tools = Toolset::get();
     GlobalAddressSpaceRegisters gas{};
@@ -77,7 +93,7 @@ void securely_erase(const std::string& drive_uuid, SetComponentAttributes::Respo
         gas = GlobalAddressSpaceRegisters::get_default(sw.get_memory_path());
     }
     catch (const std::exception& e) {
-        throw exceptions::PncError(std::string{"Secure drive erase failed: "} + e.what());
+        THROW(exceptions::PncError, "pnc-gami", std::string("Secure drive erase failed: ") + e.what());
     }
 
     auto response_builder = []() {
@@ -159,7 +175,7 @@ void process_pcie_switch(const std::string& uuid, const attribute::Attributes& a
         const auto& value = attributes.get_value(name);
         try {
             if (literals::Switch::ASSET_TAG == name) {
-                set_asset_tag<Switch>(uuid, value.asString());
+                set_asset_tag<Switch>(uuid, value);
             }
             else if (literals::Switch::POWER_STATE == name) {
                 THROW(UnsupportedField, "pnc-gami", "Resetting a PCIeSwitch is not supported!", name, value);
@@ -189,7 +205,7 @@ void process_pcie_device(const std::string& uuid, const attribute::Attributes& a
 
         try {
             if (literals::PcieDevice::ASSET_TAG == name) {
-                set_asset_tag<PcieDevice>(uuid, value.asString());
+                set_asset_tag<PcieDevice>(uuid, value);
             }
             else {
                 // The response must have a message for every attribute that could not be set.
@@ -217,13 +233,13 @@ void process_drive(const std::string& uuid, const attribute::Attributes& attribu
 
         try {
             if (literals::Drive::ASSET_TAG == name) {
-                set_asset_tag<Drive>(uuid, value.asString());
+                set_asset_tag<Drive>(uuid, value);
             }
             else if (literals::Drive::ERASED == name) {
                 auto drive = CommonComponents::get_instance()->
                     get_drive_manager().get_entry_reference(uuid);
-                drive->set_erased(value.asBool());
-                log_debug(GET_LOGGER("pnc-gami"), "Set " + name + " attribute to " << std::boolalpha << value.asBool());
+                drive->set_erased(value.get<bool>());
+                log_debug(GET_LOGGER("pnc-gami"), "Set " + name + " attribute to " << std::boolalpha << value.get<bool>());
             }
             else if (literals::Drive::SECURELY_ERASE == name) {
                 securely_erase(uuid, response);
@@ -252,7 +268,7 @@ void process_chassis(const std::string& uuid, const attribute::Attributes& attri
         const auto& value = attributes.get_value(name);
         try {
             if (literals::Chassis::ASSET_TAG == name) {
-                set_asset_tag<Chassis>(uuid, value.asString());
+                set_asset_tag<Chassis>(uuid, value);
             }
             else {
                 // The response must have a message for every attribute that could not be set.
@@ -278,7 +294,7 @@ void process_system(const std::string& uuid, const attribute::Attributes& attrib
         const auto& value = attributes.get_value(name);
         try {
             if (literals::System::ASSET_TAG == name) {
-                set_asset_tag<System>(uuid, value.asString());
+                set_asset_tag<System>(uuid, value);
             }
             else if ((literals::System::BOOT_OVERRIDE == name) ||
                      (literals::System::BOOT_OVERRIDE_MODE == name) ||

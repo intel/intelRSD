@@ -18,15 +18,14 @@
  * limitations under the License.
  * */
 
-#include "agent-framework/eventing/events_queue.hpp"
+#include "agent-framework/eventing/utils.hpp"
 #include "agent-framework/logger_loader.hpp"
 #include "agent-framework/registration/amc_connection_manager.hpp"
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
-#include "agent-framework/state_machine/state_machine_thread.hpp"
 #include "agent-framework/action/task_runner.hpp"
 
-#include "agent-framework/command-ref/command_server.hpp"
+#include "agent-framework/command/command_server.hpp"
 
 #include "agent-framework/module/common_components.hpp"
 
@@ -35,20 +34,17 @@
 #include "configuration/configuration_validator.hpp"
 #include "default_configuration.hpp"
 
-#include "status/status_manager.hpp"
-#include "status/state_machine_action.hpp"
 #include "discovery/discovery_manager.hpp"
 #include "hotswap/hotswap_watcher.hpp"
 #include "ip/ip_watcher.hpp"
 
-#include <jsonrpccpp/server/connectors/httpserver.h>
+#include "json-rpc/connectors/http_server_connector.hpp"
+
 #include <csignal>
 
-using namespace std;
 using namespace logger_cpp;
 
 using namespace agent::storage;
-using namespace agent::storage::status;
 using namespace agent::storage::loader;
 using namespace agent::storage::discovery;
 
@@ -57,7 +53,6 @@ using namespace agent_framework::action;
 using namespace agent_framework::eventing;
 using namespace agent_framework::generic;
 using namespace agent_framework::module;
-using namespace agent_framework::state_machine;
 
 using configuration::Configuration;
 
@@ -72,7 +67,6 @@ static constexpr int AGENT_ERROR_VALIDATE_CONFIG = -1;
 static constexpr int AGENT_ERROR_MODEL_CONFIG = -2;
 static constexpr int AGENT_ERROR_AGENT_CONFIG = -10;
 
-void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action);
 const json::Value& init_configuration(int argc, const char** argv);
 bool check_configuration(const json::Value& json);
 
@@ -80,10 +74,8 @@ bool check_configuration(const json::Value& json);
  * @brief Generic Agent main method.
  * */
 int main(int argc, const char* argv[]) {
-    unsigned int server_port = DEFAULT_SERVER_PORT;
-    string agent_type{};
-
-    StateMachineThreadUniquePtr state_machine_thread_u_ptr = nullptr;
+    std::uint16_t server_port = DEFAULT_SERVER_PORT;
+    std::string agent_type{};
 
     /* Initialize configuration */
     const json::Value& configuration = ::init_configuration(argc, argv);
@@ -106,59 +98,56 @@ int main(int argc, const char* argv[]) {
 
     try {
         /* read server port */
-        server_port = configuration["server"]["port"].as_uint();
+        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
     } catch (const json::Value::Exception& e) {
         log_error(GET_LOGGER("agent"), "Cannot read server port " << e.what());
     }
 
     try {
         /* read the agent type */
-        agent_type = configuration["agent"]["capabilities"].
-            as_array().front().as_string();
+        agent_type = configuration["agent"]["capabilities"].as_array().front().as_string();
     } catch (const std::exception& e) {
-        log_error(GET_LOGGER("agent"),
-            "failed to get agent type: " << e.what());
+        log_error(GET_LOGGER("agent"), "failed to get agent type: " << e.what());
         return AGENT_ERROR_AGENT_CONFIG;
     }
 
-    /* Start discovery */
-    DiscoveryManager discovery_manager{};
-    StateMachineAction state_action{discovery_manager};
-
     try {
-        /* Start state machine */
-        state_machine_thread_u_ptr.reset(new StateMachineThread());
-        ::add_state_machine_entries(state_machine_thread_u_ptr.get(), state_action);
-        state_machine_thread_u_ptr->start();
-    } catch (const exception& e) {
+        DiscoveryManager discovery_manager{};
+        const auto manager_uuids = agent_framework::module::get_manager<agent_framework::model::Manager>().get_keys();
+        for (const auto& manager_uuid : manager_uuids) {
+            discovery_manager.discovery(manager_uuid);
+        }
+    } catch (const std::exception& e) {
         log_error(GET_LOGGER("agent"), e.what());
     }
 
-    /* Wait for discovery to complete */
-    discovery_manager.wait_for_complete();
-    log_debug(GET_LOGGER("agent"), "Done waiting for discovery complete");
+    RegistrationData registration_data{configuration};
 
     EventDispatcher event_dispatcher;
     event_dispatcher.start();
 
-    AmcConnectionManager amc_connection(event_dispatcher);
+    AmcConnectionManager amc_connection(event_dispatcher, registration_data);
     amc_connection.start();
 
+
     /* Initialize command server */
-    jsonrpc::HttpServer http_server((int(server_port)));
-    agent_framework::command_ref::CommandServer server(http_server);
-    server.add(command_ref::Registry::get_instance()->get_commands());
-    server.start();
+    auto http_server_connector = new json_rpc::HttpServerConnector(server_port, registration_data.get_ipv4_address());
+    json_rpc::AbstractServerConnectorPtr http_server(http_server_connector);
+    agent_framework::command::CommandServer server(http_server);
+    server.add(command::Registry::get_instance()->get_commands());
+
+    bool server_started = server.start();
+    if (!server_started) {
+        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+            << server_port << " restricted to " << registration_data.get_ipv4_address()
+            << ". " << "Quitting now...");
+        amc_connection.stop();
+        event_dispatcher.stop();
+        return -3;
+    }
 
     /* If manager has been found -> send event to REST server */
-    auto& module = CommonComponents::get_instance()->get_module_manager();
-    for (const auto& module_uuid : module.get_keys()) {
-        EventData edat{};
-        edat.set_component(module_uuid);
-        edat.set_type(agent_framework::model::enums::Component::Manager);
-        edat.set_notification(Notification::Add);
-        EventsQueue::get_instance()->push_back(edat);
-    }
+    agent_framework::eventing::send_add_notifications_for_each<agent_framework::model::Manager>();
 
     /* Start Hot-swap manager */
     HotswapWatcher hotswap_watcher{};
@@ -185,16 +174,6 @@ int main(int argc, const char* argv[]) {
     TaskRunner::cleanup();
 
     return 0;
-}
-
-void add_state_machine_entries(StateMachineThread* machine_thread, StateMachineThreadAction& action) {
-    auto& module = CommonComponents::get_instance()->get_module_manager();
-    for (const auto& module_uuid : module.get_keys()) {
-        auto status_manager = std::make_shared<agent::storage::status::StatusManager>();
-        auto state_thread_entry = std::make_shared<StateThreadEntry>(module_uuid, status_manager);
-        auto module_thread = std::make_shared<StateMachineModuleThread>(state_thread_entry, action);
-        machine_thread->add_module_thread(module_thread);
-    }
 }
 
 const json::Value& init_configuration(int argc, const char** argv) {

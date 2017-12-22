@@ -16,23 +16,26 @@
 
 package com.intel.podm.business.entities.dao;
 
-
 import com.intel.podm.business.entities.redfish.ComposedNode;
+import com.intel.podm.common.types.Id;
 
-import javax.enterprise.context.Dependent;
-import javax.persistence.TypedQuery;
+import javax.enterprise.context.ApplicationScoped;
 import javax.transaction.Transactional;
 import java.util.List;
 
+import static com.intel.podm.business.entities.redfish.ComposedNode.GET_ALL_NODES_IDS;
+import static com.intel.podm.business.entities.redfish.ComposedNode.GET_NODES_ELIGIBLE_FOR_RECOVERY;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Dependent
-@Transactional(MANDATORY)
+@ApplicationScoped
 public class ComposedNodeDao extends Dao<ComposedNode> {
+    @Transactional(MANDATORY)
     public List<ComposedNode> getComposedNodesEligibleForRecovery() {
-        TypedQuery<ComposedNode> query = entityManager.createNamedQuery(
-                ComposedNode.GET_NODES_ELIGIBLE_FOR_RECOVERY, ComposedNode.class
-        );
-        return query.getResultList();
+        return entityManager.createNamedQuery(GET_NODES_ELIGIBLE_FOR_RECOVERY, ComposedNode.class).getResultList();
+    }
+
+    @Transactional(MANDATORY)
+    public List<Id> getAllComposedNodeIds() {
+        return entityManager.createNamedQuery(GET_ALL_NODES_IDS, Id.class).getResultList();
     }
 }

@@ -44,7 +44,7 @@ public:
     /*!
      * @brief Default subscription file path
      */
-    static constexpr const char DEFAULT_SUBSCRIPTION_FILE_PATH[] = "/tmp/subscriptions";
+    static constexpr const char DEFAULT_SUBSCRIPTION_FILE_PATH[] = "/var/opt/psme/subscriptions";
 
     /*!
      * @brief Set subscription configuration file

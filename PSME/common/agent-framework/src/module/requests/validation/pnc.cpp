@@ -27,7 +27,6 @@
 
 
 using namespace agent_framework::exceptions;
-using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 
 namespace agent_framework {
@@ -39,7 +38,7 @@ void PncValidator::validate_set_pcie_switch_attributes(const Attributes& attribu
     for (const auto& name : attributes.get_names()) {
         const auto& value = attributes.get_value(name);
         if (literals::Switch::ASSET_TAG == name) {
-            check_string(value, name, "pnc-agent");
+            check_nullable_string(value, name, "pnc-agent");
         }
         else if (literals::Switch::POWER_STATE == name) {
             check_enum<enums::ResetType>(value, name, "pnc-agent");
@@ -78,7 +77,7 @@ void PncValidator::validate_set_pcie_device_attributes(const Attributes& attribu
         const auto& value = attributes.get_value(name);
 
         if (literals::PcieDevice::ASSET_TAG == name) {
-            check_string(value, name, "pnc-agent");
+            check_nullable_string(value, name, "pnc-agent");
         }
         else if (literals::PcieDevice::OEM == name) {
             Oem::from_json(value);

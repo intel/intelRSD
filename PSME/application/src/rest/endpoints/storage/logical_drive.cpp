@@ -20,6 +20,8 @@
 
 #include "psme/rest/utils/status_helpers.hpp"
 #include "psme/rest/endpoints/storage/logical_drive.hpp"
+#include "psme/rest/endpoints/task_service/monitor_content_builder.hpp"
+#include "psme/rest/endpoints/task_service/task_service_utils.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/logical_drive.hpp"
@@ -37,7 +39,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Services/1/LogicalDrives/Members/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#LogicalDrive.LogicalDrive";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#LogicalDrive.v1_0_0.LogicalDrive";
     r[Common::ID] = json::Value::Type::NIL;
@@ -286,11 +288,11 @@ void endpoint::LogicalDrive::get(const server::Request& req, server::Response& r
 
     auto drive =
         psme::rest::model::Find<agent_framework::model::LogicalDrive>(req.params[PathParam::LOGICAL_DRIVE_ID])
-            .via<agent_framework::model::StorageServices>(req.params[PathParam::SERVICE_ID]).get();
+            .via<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get();
 
     endpoint::status_to_json(drive, r);
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = endpoint::HealthRollup<agent_framework::model::LogicalDrive>().get(
-        drive.get_uuid());
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = endpoint::HealthRollup<agent_framework::model::LogicalDrive>()
+        .get(drive.get_uuid());
 
     r[Drive::TYPE] = drive.get_type();
     r[constants::LogicalDrive::MODE] = drive.get_mode();
@@ -315,7 +317,7 @@ void endpoint::LogicalDrive::get(const server::Request& req, server::Response& r
 
 void endpoint::LogicalDrive::patch(const server::Request& request, server::Response& response) {
     auto drive = model::Find<agent_framework::model::LogicalDrive>(request.params[PathParam::LOGICAL_DRIVE_ID])
-        .via<agent_framework::model::StorageServices>(request.params[PathParam::SERVICE_ID]).get();
+        .via<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID]).get();
 
     const auto json = JsonValidator::validate_request_body<schema::LogicalDrivePatchSchema>(request);
 
@@ -348,7 +350,7 @@ void endpoint::LogicalDrive::patch(const server::Request& request, server::Respo
                 agent_framework::model::enums::Component::LogicalDrive)->
                 load(gami_agent,
                      drive.get_parent_uuid(),
-                     agent_framework::model::enums::Component::StorageServices,
+                     agent_framework::model::enums::Component::StorageService,
                      drive.get_uuid(),
                      false);
         };
@@ -362,25 +364,80 @@ void endpoint::LogicalDrive::patch(const server::Request& request, server::Respo
 void endpoint::LogicalDrive::del(const server::Request& req, server::Response& res) {
     using HandlerManager = psme::rest::model::handler::HandlerManager;
 
+    auto storage_service_uuid = psme::rest::model::Find<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get_uuid();
+
     auto drive =
         psme::rest::model::Find<agent_framework::model::LogicalDrive>(req.params[PathParam::LOGICAL_DRIVE_ID])
-            .via<agent_framework::model::StorageServices>(req.params[PathParam::SERVICE_ID])
+            .via<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID])
             .get();
 
     auto gami_req = agent_framework::model::requests::DeleteLogicalDrive(drive.get_uuid());
 
     const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(drive.get_agent_id());
 
+    auto completion_notifier = [storage_service_uuid, gami_agent](const std::string task_uuid) {
+        auto task = agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(
+            task_uuid);
+        if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
+            agent_framework::model::attribute::Message message{
+                agent_framework::model::attribute::Message{"Base.1.0.0.Success", "Successfully Completed Request",
+                                                           agent_framework::model::enums::Health::OK,
+                                                           "None", agent_framework::model::attribute::Oem{},
+                                                           agent_framework::model::attribute::Message::RelatedProperties{},
+                                                           agent_framework::model::attribute::Message::MessageArgs{}}};
+            task->add_message(message);
+        }
+
+        // reload knowledge about current LogicalDrive
+        HandlerManager::get_instance()->
+            get_handler(agent_framework::model::enums::Component::StorageService)->
+            load_collection(gami_agent, storage_service_uuid, agent_framework::model::enums::Component::StorageService,
+                            agent_framework::model::enums::CollectionType::LogicalDrives, true);
+    };
+
     auto remove_drive = [&, gami_agent] {
         // try removing drive from agent's model
-        gami_agent->execute<agent_framework::model::responses::DeleteLogicalDrive>(gami_req);
+        auto delete_response = gami_agent->execute<agent_framework::model::responses::DeleteLogicalDrive>(gami_req);
 
-        // remove drive from REST model
-        HandlerManager::get_instance()->
-            get_handler(agent_framework::model::enums::Component::LogicalDrive)->
-            remove(drive.get_uuid());
+        if (!delete_response.get_task().has_value()) {
+            // No task -> just reload knowledge about current LogicalDrives
+            HandlerManager::get_instance()->
+                get_handler(agent_framework::model::enums::Component::StorageService)->
+                load_collection(gami_agent, storage_service_uuid, agent_framework::model::enums::Component::StorageService,
+                                agent_framework::model::enums::CollectionType::LogicalDrives, true);
+            res.set_status(server::status_2XX::NO_CONTENT);
+        }
+        else {
+            const auto task_uuid = delete_response.get_task();
 
-        res.set_status(server::status_2XX::NO_CONTENT);
+            auto task_handler = psme::rest::model::handler::HandlerManager::get_instance()->get_handler(
+                agent_framework::model::enums::Component::Task);
+            task_handler->load(gami_agent,
+                               "",
+                               agent_framework::model::enums::Component::Task,
+                               task_uuid,
+                               false);
+
+            MonitorContentBuilder::get_instance()->
+                add_builder(task_uuid, [](json::Json /* gami_response */) -> server::Response {
+                    server::Response response{};
+                    response.set_status(server::status_2XX::NO_CONTENT);
+
+                    return response;
+                });
+            agent_framework::module::get_manager<agent_framework::model::Task>()
+                .get_entry_reference(task_uuid)
+                ->add_completion_notifier(std::bind(completion_notifier, task_uuid));
+
+
+            std::string task_monitor_url = PathBuilder(
+                utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid)).append(
+                Monitor::MONITOR).build();
+            psme::rest::endpoint::utils::set_location_header(res, task_monitor_url);
+            res.set_body(psme::rest::endpoint::task_service_utils::call_task_get(task_uuid).get_body());
+            res.set_status(server::status_2XX::ACCEPTED);
+        }
+
     };
 
     gami_agent->execute_in_transaction(remove_drive);

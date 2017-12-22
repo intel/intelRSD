@@ -16,6 +16,7 @@
 
 package com.intel.podm.discovery.external;
 
+import com.intel.podm.business.entities.dao.ComputerSystemDao;
 import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.common.enterprise.utils.logger.ServiceLifecycle;
@@ -23,6 +24,7 @@ import com.intel.podm.common.logger.ServiceLifecycleLogger;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.ExternalServiceConfig;
+import com.intel.podm.discovery.ServiceExplorer;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -33,40 +35,71 @@ import java.util.List;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Dependent
+@SuppressWarnings("checkstyle:IllegalCatch")
 public class ServiceRemovalTask implements Runnable {
-    @Inject @ServiceLifecycle
+
+    @Inject
+    private Remover remover;
+
+    @Inject
+    @ServiceLifecycle
     private ServiceLifecycleLogger logger;
 
-    @Inject
-    private DiscoveryScheduler discoveryScheduler;
-
-    @Inject
-    private ExternalServiceDao services;
-
-    @Inject
-    @Config(refreshable = true)
-    private Holder<ExternalServiceConfig> config;
-
     @Override
-    @Transactional(REQUIRES_NEW)
+
     public void run() {
-        logger.t("checking whether unreachable services should be evicted");
-
-        Duration howLongCanBeRetained = config.get().getServiceRemovalDelay();
-
-        List<ExternalService> unreachableServices = services.getAllUnreachableLongerThan(howLongCanBeRetained);
-
-        for (ExternalService service : unreachableServices) {
-            logger.lifecycleInfo(
-                    "{} is unreachable longer than {} - will be evicted.", service, howLongCanBeRetained
-                );
-            discoveryScheduler.cancel(service.getUuid());
-            services.remove(service);
+        try {
+            remover.remove();
+        } catch (Exception e) {
+            logger.i("Exception({}) caught during performing ServiceRemovalTask: {}", e.getClass(), e.getMessage());
         }
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName();
+    }
+
+    @Dependent
+    static class Remover {
+
+        @Inject
+        @ServiceLifecycle
+        private ServiceLifecycleLogger logger;
+
+        @Inject
+        private ServiceExplorer serviceExplorer;
+
+        @Inject
+        private ExternalServiceDao externalServiceDao;
+
+        @Inject
+        @Config(refreshable = true)
+        private Holder<ExternalServiceConfig> config;
+
+        @Inject
+        private ComputerSystemDao computerSystemDao;
+
+
+        @Transactional(REQUIRES_NEW)
+        public void remove() {
+            logger.t("checking whether unreachable services should be evicted");
+
+            Duration howLongCanBeRetained = config.get().getServiceRemovalDelay();
+            List<ExternalService> unreachableServices = findUnreachableServices(howLongCanBeRetained);
+
+            unreachableServices.stream()
+                .peek(service -> logger.lifecycleInfo("{} is unreachable longer than {} - will be evicted.", service, howLongCanBeRetained))
+                .forEach(this::removeService);
+        }
+
+        private List<ExternalService> findUnreachableServices(Duration howLongCanBeRetained) {
+            return externalServiceDao.getAllUnreachableLongerThan(howLongCanBeRetained);
+        }
+
+        private void removeService(ExternalService service) {
+            serviceExplorer.forgetService(service.getUuid());
+            externalServiceDao.remove(service);
+        }
     }
 }

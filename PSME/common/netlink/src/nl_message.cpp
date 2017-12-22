@@ -26,7 +26,6 @@
 #include "netlink/nl_exception.hpp"
 #include "netlink/nl_exception_invalid_input.hpp"
 
-#include <netlink/socket.h>
 #include <netlink/msg.h>
 
 #include <memory>
@@ -42,24 +41,19 @@ namespace {
 
 using namespace netlink_base;
 
-NlMessage::NlMessage(NlMessage::Protocol proto) :
-        m_proto{int(proto)}, mp_sock{nl_socket_alloc()} {
-    /* connect to the socket */
-    if (0 != nl_connect(mp_sock, m_proto)) {
-        throw NlException("Failed to connect to the Netlink socket");
-    }
+NlMessage::NlMessage(NlSocket::Protocol proto) : m_socket{proto} {
     /* setup valid message callback */
-    if (0 != nl_socket_modify_cb(mp_sock, NL_CB_VALID, NL_CB_CUSTOM,
+    if (0 != nl_socket_modify_cb(m_socket.get_sock(), NL_CB_VALID, NL_CB_CUSTOM,
                         NlMessage::valid_message_handler, this)) {
         throw NlException("Failed to setup the valid message cb");
     }
     /* setup finish message callback */
-    if (0 != nl_socket_modify_cb(mp_sock, NL_CB_FINISH, NL_CB_CUSTOM,
+    if (0 != nl_socket_modify_cb(m_socket.get_sock(), NL_CB_FINISH, NL_CB_CUSTOM,
                         NlMessage::finish_message_handler, nullptr)) {
         throw NlException("Failed to setup the finish message cb");
     }
     /* setup error message callback */
-    if (0 != nl_socket_modify_err_cb(mp_sock, NL_CB_CUSTOM,
+    if (0 != nl_socket_modify_err_cb(m_socket.get_sock(), NL_CB_CUSTOM,
                         NlMessage::error_message_handler, this)) {
         throw NlException("Failed to setup the error message cb");
     }
@@ -101,10 +95,10 @@ void NlMessage::send() {
     }
     /* prepare and send the message */
     prepare_message(msg.get());
-    if (0 > (nl_error = nl_send_auto(mp_sock, (msg.get())))) {
+    if (0 > (nl_error = nl_send_auto(m_socket.get_sock(), (msg.get())))) {
         throw NlException(nl_geterror(nl_error));
     }
-    nl_error = nl_recvmsgs_default(mp_sock);
+    nl_error = nl_recvmsgs_default(m_socket.get_sock());
     if (NLE_MAX < abs(nl_error)) {
         /* throw process handler exception to caller */
         std::rethrow_exception(m_handler_exception);
@@ -122,4 +116,4 @@ void NlMessage::send() {
     }
 }
 
-NlMessage::~NlMessage() { nl_socket_free(mp_sock); }
+NlMessage::~NlMessage() { }

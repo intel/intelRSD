@@ -38,22 +38,14 @@ import java.util.List;
 import static javax.persistence.EnumType.STRING;
 import static org.hibernate.annotations.GenerationTime.INSERT;
 
-@Table(
-    name = "event_subscription",
-    indexes = @Index(name = "idx_event_subscription_entity_id",
-                     columnList = "entity_id",
-                     unique = true))
+@Table(name = "event_subscription", indexes = @Index(name = "idx_event_subscription_entity_id", columnList = "entity_id", unique = true))
 @javax.persistence.Entity
 @SuppressWarnings({"checkstyle:MethodCount"})
 @Eventable
 public class EventSubscription extends Entity {
-
     @Generated(INSERT)
     @Convert(converter = IdToLongConverter.class)
-    @Column(name = "entity_id",
-        columnDefinition = ENTITY_ID_NUMERIC_COLUMN_DEFINITION,
-        insertable = false,
-        nullable = false)
+    @Column(name = "entity_id", columnDefinition = ENTITY_ID_NUMERIC_COLUMN_DEFINITION, insertable = false, nullable = false)
     private Id entityId;
 
     @Column(name = "name")
@@ -73,17 +65,15 @@ public class EventSubscription extends Entity {
 
     @ElementCollection
     @Enumerated(STRING)
-    @CollectionTable(
-        name = "event_subscription_event_type",
-        joinColumns = @JoinColumn(name = "event_type_id"))
+    @CollectionTable(name = "event_subscription_event_type", joinColumns = @JoinColumn(name = "event_subscription_id"))
     @Column(name = "event_type")
     @OrderColumn(name = "event_type_order")
     private List<EventType> eventTypes = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "event_subscription_origin_resources", joinColumns = @JoinColumn(name = "event_type_id"))
-    @Column(name = "origin_resources")
-    @OrderColumn(name = "origin_resources_order")
+    @CollectionTable(name = "event_subscription_origin_resource", joinColumns = @JoinColumn(name = "event_subscription_id"))
+    @Column(name = "origin_resource")
+    @OrderColumn(name = "origin_resource_order")
     private List<String> originResources = new ArrayList<>();
 
     public Id getId() {
@@ -94,60 +84,60 @@ public class EventSubscription extends Entity {
         entityId = id;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-
-    public void addEventType(EventType eventTypes) {
-        this.eventTypes.add(eventTypes);
-    }
-
-    public void setSubscriptionContext(String context) {
-        this.subscriptionContext = context;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public void addOriginResource(String originResource) {
-        originResources.add(originResource);
-    }
-
-    public List<String> getOriginResources() {
-        return originResources;
-    }
-
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public String getDestination() {
         return destination;
     }
 
-    public List<EventType> getEventTypes() {
-        return eventTypes;
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 
     public String getSubscriptionContext() {
         return subscriptionContext;
     }
 
+    public void setSubscriptionContext(String context) {
+        this.subscriptionContext = context;
+    }
+
     public String getProtocol() {
         return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
+
+    public List<EventType> getEventTypes() {
+        return eventTypes;
+    }
+
+    public void addEventType(EventType eventType) {
+        eventTypes.add(eventType);
+    }
+
+    public List<String> getOriginResources() {
+        return originResources;
+    }
+
+    public void addOriginResource(String originResource) {
+        originResources.add(originResource);
     }
 
     @Override

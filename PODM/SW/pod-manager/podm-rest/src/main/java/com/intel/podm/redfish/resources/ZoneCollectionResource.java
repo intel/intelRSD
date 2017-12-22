@@ -16,17 +16,21 @@
 
 package com.intel.podm.redfish.resources;
 
+import com.intel.podm.business.dto.ZoneDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.ZoneDto;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.business.services.context.PathParamConstants.ZONE_ID;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ZoneCollectionResource extends BaseResource {
     @Inject
@@ -40,5 +44,10 @@ public class ZoneCollectionResource extends BaseResource {
     @Path(ZONE_ID)
     public ZoneResource getZone() {
         return getResource(ZoneResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

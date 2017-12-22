@@ -28,7 +28,6 @@ namespace constants {
  */
 namespace System {
 extern const char SYSTEM_TYPE[];
-extern const char SKU[];
 extern const char HOST_NAME[];
 extern const char INDICATOR_LED[];
 extern const char POWER_STATE[];
@@ -67,27 +66,41 @@ extern const char PROCESSORS[];
 extern const char SIMPLE_STORAGE[];
 extern const char MEMORY[];
 extern const char ENDPOINTS[];
-extern const char ACTIONS[];
+extern const char HASH_COMPUTER_SYSTEM_RESET[];
 extern const char COMPUTER_SYSTEM_RESET[];
-extern const char TARGET[];
-extern const char ALLOWABLE_RESET_TYPES[];
-extern const char COMPUTER_SYSTEM_START_DEEP_DISCOVERY[];
+extern const char HASH_INTEL_OEM_CHANGE_TPM_STATE[];
+extern const char INTEL_OEM_CHANGE_TPM_STATE[];
 extern const char DISCOVERY_STATE[];
 extern const char BASIC[];
 extern const char MEMORY_SOCKETS[];
 extern const char PCI_DEVICES[];
 extern const char PCIE_CONNECTION_ID[];
 extern const char PROCESSOR_SOCKETS[];
+extern const char TRUSTED_MODULES[];
+extern const char FIRMWARE_VERSION_2[];
+extern const char INTERFACE_TYPE_SELECTION[];
+extern const char OEM_METHOD[];
+extern const char USER_MODE_ENABLED[];
+extern const char TRUSTED_EXECUTION_TECHNOLOGY_ENABLED[];
 extern const char STORAGE_ADAPTERS[];
 extern const char STORAGE[];
-extern const char ON[];
-extern const char FORCE_OFF[];
-extern const char GRACEFUL_SHUTDOWN[];
-extern const char FORCE_RESTART[];
-extern const char NMI[];
-extern const char GRACEFUL_RESTART[];
-extern const char FORCE_ON[];
-extern const char PUSH_POWER_BUTTON[];
+extern const char INTERFACE_TYPE[];
+extern const char DEVICE_ENABLED[];
+extern const char CLEAR_OWNERSHIP[];
+extern const char ALLOWABLE_INTERFACE_TYPE[];
+}
+
+/*!
+ * @brief Constant literals for System Metrics endpoint.
+ */
+namespace SystemMetrics {
+extern const char PROCESSOR_BANDWIDTH_PERCENT[];
+extern const char IO_BANDWIDTH_GBPS[];
+extern const char MEMORY_BANDWIDTH_PERCENT[];
+extern const char MEMORY_THROTTLED_CYCLES_PERCENT[];
+extern const char MEMORY_POWER_WATT[];
+extern const char PROCESSOR_POWER_WATT[];
+extern const char HEALTH[];
 }
 
 /*!
@@ -129,16 +142,48 @@ extern const char DEVICE_ID[];
 }
 
 /*!
+ * @brief Constant literals for Memory Metrics endpoint.
+ */
+namespace MemoryMetrics {
+extern const char BLOCK_SIZE_BYTES[];
+extern const char CURRENT_PERIOD[];
+extern const char LIFE_TIME[];
+extern const char HEALTH_DATA[];
+extern const char BLOCKS_READ[];
+extern const char BLOCKS_WRITTEN[];
+extern const char REMAINING_SPARE_BLOCK_PERCENTAGE[];
+extern const char LAST_SHUTDOWN_SUCCESS[];
+extern const char DATA_LOSS_DETECTED[];
+extern const char PERFORMANCE_DEGRADED[];
+extern const char PREDICTED_MEDIA_LIFE_LEFT_PERCENT[];
+extern const char ALARM_TRIPS[];
+extern const char TEMPERATURE[];
+extern const char SPARE_BLOCK[];
+extern const char UNCORRECTABLE_ECC_ERROR[];
+extern const char CORRECTABLE_ECC_ERROR[];
+extern const char ADDRESS_PARITY_ERROR[];
+extern const char TEMPERATURE_CELSIUS[];
+extern const char BANDWIDTH_PERCENT[];
+extern const char THROTTLED_CYCLES_PERCENT[];
+extern const char CONSUMED_POWER_WATT[];
+extern const char THERMAL_MARGIN_CELSIUS[];
+extern const char ECC_ERRORS_COUNT[];
+extern const char HEALTH[];
+}
+
+/*!
  * @brief Constant literals for Processor endpoint.
  */
 namespace Processor {
 extern const char SOCKET[];
-extern const char PROC_TYPE[];
+extern const char PROCESSOR_TYPE[];
 extern const char BRAND[];
 extern const char CAPABILITIES[];
-extern const char PROC_ARCHITECTURE[];
+extern const char THERMAL_DESIGN_POWER_WATT[];
+extern const char FPGA[];
+extern const char PROCESSOR_ARCHITECTURE[];
 extern const char INSTRUCTION_SET[];
-extern const char PROC_ID[];
+extern const char PROCESSOR_ID[];
 extern const char IDENTIFICATION_REGISTERS[];
 extern const char EFFECTIVE_FAMILY[];
 extern const char EFFECTIVE_MODEL[];
@@ -147,6 +192,67 @@ extern const char MICROCODE_INFO[];
 extern const char MAX_SPEED[];
 extern const char TOTAL_CORES[];
 extern const char TOTAL_THREADS[];
+extern const char ENDPOINTS[];
+extern const char ON_PACKAGE_MEMORY[];
+extern const char MEMORY_TYPE[];
+extern const char MEMORY_CAPACITY_MB[];
+extern const char SPEED_MHZ[];
+extern const char THERMAL_DESIGN_POWER[];
+extern const char FPGA_TYPE[];
+extern const char BIT_STREAM_VERSION[];
+extern const char HSSI_CONFIGURATION[];
+extern const char HSSI_SIDEBAND[];
+extern const char RECONFIGURATION_SLOTS[];
+extern const char EXTENDED_IDENTIFICATION_REGISTERS[];
+
+}
+
+/*!
+ * @brief Constant literals for Processor Extended CPU ID property.
+ */
+namespace ExtendedCpuId {
+extern const char EAX_00H[];
+extern const char EAX_01H[];
+extern const char EAX_02H[];
+extern const char EAX_03H[];
+extern const char EAX_04H[];
+extern const char EAX_05H[];
+extern const char EAX_06H[];
+extern const char EAX_07H[];
+extern const char EAX_09H[];
+extern const char EAX_0AH[];
+extern const char EAX_0BH[];
+extern const char EAX_0DH[];
+extern const char EAX_0FH[];
+extern const char EAX_10H[];
+extern const char EAX_14H[];
+extern const char EAX_15H[];
+extern const char EAX_16H[];
+extern const char EAX_17H_ECX_00H[];
+extern const char EAX_17H_ECX_01H[];
+extern const char EAX_17H_ECX_02H[];
+extern const char EAX_17H_ECX_03H[];
+extern const char EAX_80000000H[];
+extern const char EAX_80000001H[];
+extern const char EAX_80000002H[];
+extern const char EAX_80000003H[];
+extern const char EAX_80000004H[];
+extern const char EAX_80000006H[];
+extern const char EAX_80000007H[];
+extern const char EAX_80000008H[];
+
+}
+
+/*!
+ * @brief Constant literals for Processor Metrics endpoint.
+ */
+namespace ProcessorMetrics {
+extern const char BANDWIDTH_PERCENT[];
+extern const char AVERAGE_FREQUENCY_MHZ[];
+extern const char THROTTLING_CELSIUS[];
+extern const char TEMPERATURE_CELSIUS[];
+extern const char CONSUMED_POWER_WATT[];
+extern const char HEALTH[];
 }
 
 /*!
@@ -163,8 +269,6 @@ extern const char DEVICES[];
  */
 namespace StorageSubsystem {
 extern const char STORAGE_CONTROLLERS[];
-extern const char STORAGE_CONTROLLERS_POINTER[];
-extern const char SKU[];
 extern const char SPEED_GBPS[];
 extern const char FIRMWARE_VERSION[];
 extern const char SUPPORTED_CONTROLLER_PROTOCOLS[];

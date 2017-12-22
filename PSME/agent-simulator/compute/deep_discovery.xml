@@ -219,14 +219,14 @@
                 <instructionSet>x86-64</instructionSet>
                 <processorArchitecture>x86</processorArchitecture>
                 <totalThreads>8</totalThreads>
-                <cpuid>
+                <cpuId>
                     <vendorId>GenuineIntel</vendorId>
                     <family>6</family>
                     <step>7</step>
                     <microcodeInfo>0x1b</microcodeInfo>
                     <model>42</model>
                     <numericId>0</numericId>
-                </cpuid>
+                </cpuId>
                 <model>I7</model>
                 <manufacturer>Intel Corp.</manufacturer>
                 <enabledCores>4</enabledCores>

@@ -18,8 +18,8 @@ package com.intel.podm.redfish.json.templates.actions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.business.services.redfish.requests.AttachEndpointRequest;
 import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.business.services.redfish.requests.AttachEndpointRequest;
 
 import java.math.BigDecimal;
 

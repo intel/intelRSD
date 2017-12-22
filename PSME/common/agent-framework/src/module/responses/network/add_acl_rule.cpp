@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/network/add_acl_rule.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -34,14 +34,14 @@ AddAclRule::AddAclRule(const std::string& rule, Oem oem):
     m_oem{oem} {}
 
 
-Json::Value AddAclRule::to_json() const {
-    Json::Value value;
+json::Json AddAclRule::to_json() const {
+    json::Json value;
     value[AclRule::RULE] = m_rule;
     value[AclRule::OEM] = m_oem.to_json();
     return value;
 }
 
-AddAclRule AddAclRule::from_json(const Json::Value& json) {
-    return AddAclRule{json[AclRule::RULE].asString(), Oem::from_json(
+AddAclRule AddAclRule::from_json(const json::Json& json) {
+    return AddAclRule{json[AclRule::RULE], Oem::from_json(
             json[AclRule::OEM])};
 }

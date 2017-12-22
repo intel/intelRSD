@@ -24,7 +24,7 @@
 
 #pragma once
 #include "agent-framework/module/loader/loader.hpp"
-#include "agent-framework/module/model/storage_services.hpp"
+#include "agent-framework/module/model/storage_service.hpp"
 #include "agent-framework/module/model/manager.hpp"
 #include <memory>
 #include <string>
@@ -66,12 +66,12 @@ public:
     agent_framework::model::Manager make_manager(const json::Value& json);
 
     /*!
-     * @brief Make StorageServices model
-     * @param[in] json StorageServices json configuration
+     * @brief Make storage service model
+     * @param[in] json Storage service json configuration
      * @param[in] uuid Manager UUID
      */
-    agent_framework::model::StorageServices
-    make_storage_services(const json::Value& json, const std::string& uuid);
+    agent_framework::model::StorageService
+    make_storage_service(const json::Value& json, const std::string& uuid);
 
 private:
     struct IfAddrsDeleter {

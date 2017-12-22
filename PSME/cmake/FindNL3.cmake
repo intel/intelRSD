@@ -16,4 +16,10 @@
 #
 # </license_header>
 
+if (CMAKE_CROSSCOMPILING)
+    message(WARNING "Not supported for crosscompiling.")
+    return()
+endif()
+
 find_package_local(NL3 libnl-genl-3.0)
+find_package_local(NL3 libnl-route-3.0)

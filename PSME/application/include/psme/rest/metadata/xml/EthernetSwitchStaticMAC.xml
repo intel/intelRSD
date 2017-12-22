@@ -6,22 +6,23 @@
   </edmx:Reference>
   <edmx:Reference Uri="RedfishExtensions.xml">
     <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
-    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation" />
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation"/>
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="EthernetInterface.xml">
     <edmx:Include Namespace="EthernetInterface.v1_0_0"/>
   </edmx:Reference>
 
   <edmx:DataServices>
-  <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitchStaticMAC">
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitchStaticMAC">
 
       <EntityType Name="EthernetSwitchStaticMAC" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="A Ethernet Switch ACL represents Access Control List for switch."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent resources that represent a ethernet switch ACL"/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent resources that represent a ethernet switch ACL"/>
       </EntityType>
     </Schema>
 

@@ -30,9 +30,9 @@
 #include <chrono>
 #include <memory>
 
-namespace jsonrpc {
-    class IClientConnector;
-    class Client;
+namespace json_rpc {
+    class HttpClientConnector;
+    class JsonRpcRequestInvoker;
 }
 
 namespace agent_framework {
@@ -41,7 +41,7 @@ namespace generic {
 /*!
  * @brief JSONRPC client for communication
  * with AMC (Asset Management Core) application.
- **/
+ * */
 class AmcClient {
 public:
     /*!
@@ -69,10 +69,9 @@ public:
 
 private:
     std::string m_url{};
-    std::shared_ptr<jsonrpc::IClientConnector> m_http_connector{};
-    std::shared_ptr<jsonrpc::Client> m_jsonrpc_client{};
+    std::shared_ptr<json_rpc::HttpClientConnector> m_connector{};
+    std::shared_ptr<json_rpc::JsonRpcRequestInvoker> m_invoker{};
 };
 
 }
 }
-

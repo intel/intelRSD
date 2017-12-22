@@ -31,6 +31,9 @@ public final class RequestedNodeJson implements RequestedNode {
     @JsonProperty
     private String description;
 
+    @JsonProperty("Security")
+    private RequestedSecurityImpl security;
+
     @JsonProperty("TotalSystemMemoryMiB")
     private Integer totalSystemMemoryMib;
 
@@ -98,6 +101,10 @@ public final class RequestedNodeJson implements RequestedNode {
     @Override
     public List<EthernetInterface> getEthernetInterfaces() {
         return ofNullable((List) ethernetInterfaces).orElse(emptyList());
+    }
+
+    public RequestedSecurityImpl getSecurity() {
+        return security;
     }
 
     @Override

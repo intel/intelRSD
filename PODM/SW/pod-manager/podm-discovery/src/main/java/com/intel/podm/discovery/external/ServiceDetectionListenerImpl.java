@@ -18,6 +18,7 @@ package com.intel.podm.discovery.external;
 
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.synchronization.TaskCoordinator;
+import com.intel.podm.discovery.ServiceExplorer;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -29,36 +30,26 @@ public class ServiceDetectionListenerImpl implements ServiceDetectionListener { 
     private Logger logger;
 
     @Inject
-    private DiscoveryScheduler discoveryScheduler;
+    private ServiceExplorer serviceExplorer;
 
     @Inject
     private ExternalServiceUpdater externalServiceUpdater;
 
     @Inject
-    private ExternalServiceAvailabilityChecker checker;
-
-    @Inject
-    private TaskCoordinator coordinator;
+    private TaskCoordinator taskCoordinator;
 
     @Override
     public void onServiceDetected(ServiceEndpoint serviceEndpoint) {
-        coordinator.registerAsync(serviceEndpoint.getServiceUuid(), () -> {
+        UUID serviceUuid = serviceEndpoint.getServiceUuid();
+        taskCoordinator.registerAsync(serviceUuid, () -> {
             logger.i("Service {} detected", serviceEndpoint);
             externalServiceUpdater.updateExternalService(serviceEndpoint);
-
-            switch (serviceEndpoint.getServiceType()) {
-                case LUI:
-                    discoveryScheduler.enqueueDiscovery(serviceEndpoint.getServiceUuid());
-                    break;
-                default:
-                    discoveryScheduler.scheduleServiceDiscoveryWithEventServiceSubscription(serviceEndpoint.getServiceUuid());
-                    break;
-            }
+            serviceExplorer.startMonitoringOfService(serviceUuid);
         });
     }
 
     @Override
     public void onServiceRemoved(UUID serviceUuid) {
-        checker.verifyServiceAvailabilityByUuid(serviceUuid);
+        serviceExplorer.enqueueVerification(serviceUuid);
     }
 }

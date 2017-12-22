@@ -51,8 +51,8 @@ TEST(DeleteLogicalDriveTest, PositiveExecute) {
     MyDeleteLogicalDrive command{"TestDrive"};
     DeleteLogicalDrive::Request request{""};
     DeleteLogicalDrive::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[DRIVE] = "TestDrive";
 
@@ -68,8 +68,8 @@ TEST(DeleteLogicalDriveTest, NegativeDriveNotFound) {
     MyDeleteLogicalDrive command{"TestDrive"};
     DeleteLogicalDrive::Request request{""};
     DeleteLogicalDrive::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[DRIVE] = "OtherTestDrive";
 

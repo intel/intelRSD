@@ -21,7 +21,7 @@
 #include "psme/rest/server/error/error_factory.hpp"
 #include "psme/rest/utils/lag_utils.hpp"
 #include "psme/rest/model/finder.hpp"
-#include "psme/rest/utils/mapper.hpp"
+#include "psme/rest/server/multiplexer.hpp"
 #include "psme/rest/endpoints/endpoints.hpp"
 
 using namespace psme::rest;
@@ -34,8 +34,8 @@ std::vector<std::string> LagUtils::get_port_members(const json::Value& json) {
     for (const auto& member : json[constants::Common::LINKS][constants::EthernetSwitchPort::PORT_MEMBERS].as_array()) {
         auto member_path = member[constants::Common::ODATA_ID].as_string();
         try {
-            auto params = psme::rest::model::Mapper::get_params(member_path,
-                                                                constants::Routes::ETHERNET_SWITCH_PORT_PATH);
+            auto params = server::Multiplexer::get_instance()->
+                get_params(member_path, constants::Routes::ETHERNET_SWITCH_PORT_PATH);
             auto port_uuid =
                 psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(params[constants::PathParam::SWITCH_PORT_ID])
                 .via<agent_framework::model::EthernetSwitch>(params[constants::PathParam::ETHERNET_SWITCH_ID])
@@ -45,7 +45,7 @@ std::vector<std::string> LagUtils::get_port_members(const json::Value& json) {
         }
         catch (const agent_framework::exceptions::NotFound&) {
             THROW(agent_framework::exceptions::InvalidValue, "rest",
-                "Could not find port member: " + member[constants::Common::ODATA_ID].as_string());
+                "Could not find port member: " + member_path);
         }
     }
     return port_members;

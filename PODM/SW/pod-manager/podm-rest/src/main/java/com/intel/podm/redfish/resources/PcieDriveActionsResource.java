@@ -20,6 +20,7 @@ import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.services.redfish.ActionService;
 import com.intel.podm.business.services.redfish.requests.SecureEraseRequest;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -27,10 +28,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceActionBuilder;
+import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class PcieDriveActionsResource extends BaseResource {
     @Inject
@@ -38,7 +41,7 @@ public class PcieDriveActionsResource extends BaseResource {
 
     @Override
     public Object get() {
-        return notFound();
+        return invalidHttpMethod();
     }
 
     @POST
@@ -46,5 +49,10 @@ public class PcieDriveActionsResource extends BaseResource {
     public Response secureErase() throws TimeoutException, BusinessApiException {
         secureEraseRequestActionService.perform(getCurrentContext(), null);
         return noContent().build();
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceActionBuilder().build();
     }
 }

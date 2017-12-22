@@ -29,7 +29,6 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& PcieDevicePatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "chassis_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::ASSET_TAG, VALID_OPTIONAL(VALID_JSON_STRING),
         nullptr

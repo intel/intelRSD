@@ -30,7 +30,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitches";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchCollection.EthernetSwitchCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] =
         "#EthernetSwitchCollection.EthernetSwitchCollection";

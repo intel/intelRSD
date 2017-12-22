@@ -30,10 +30,6 @@
 
 #include <string>
 
-namespace Json {
-    class Value;
-}
-
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -60,7 +56,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create GetIscsiTargetInfo form Json
@@ -69,7 +65,7 @@ public:
      *
      * @return new GetIscsiTargetInfo
      */
-    static GetIscsiTargetInfo from_json(const Json::Value& json);
+    static GetIscsiTargetInfo from_json(const json::Json& json);
 
     /*!
      * @brief Returns procedure scheme

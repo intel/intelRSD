@@ -39,6 +39,8 @@
 #include <ipmi/command/sdv/get_fan_pwm.hpp>
 #include <ipmi/manager/ipmitool/management_controller.hpp>
 
+
+
 using namespace std;
 using namespace agent_framework::model;
 using namespace agent_framework::module;
@@ -51,7 +53,9 @@ using namespace ipmi::command;
 using agent_framework::module::ChassisComponents;
 using agent_framework::module::CommonComponents;
 
+
 ThermalSensorTask::~ThermalSensorTask() {}
+
 
 /*! Drawer thermal sensor processing*/
 class ProcessThermalSensors {
@@ -64,6 +68,7 @@ public:
         fill_thermal_sensor_data(manager_keys);
     }
 
+
 private:
     static constexpr const uint8_t SLED_TYPE_HSW = 0x00;
     static constexpr const uint8_t SLED_TYPE_BDX_DE = 0x01;
@@ -72,16 +77,26 @@ private:
 
     ThermalSensorIpmbResponse m_response{};
 
+
     void fill_thermal_sensor_data(const std::vector<string>& manager_keys);
 
+
     uint8_t get_sled_type(ipmi::ManagementController& mc);
+
+
     uint8_t get_desired_pwm(ipmi::ManagementController& mc);
+
+
     uint8_t get_inlet_temp(ipmi::ManagementController& mc);
 
+
     uint8_t get_inlet_temp_sensor(ipmi::ManagementController& mc);
+
+
     uint16_t get_inlet_temp_sensor_multiplier(ipmi::ManagementController& mc,
                                               uint8_t reading_byte);
 };
+
 
 void ThermalSensorTask::execute() {
     try {
@@ -98,27 +113,27 @@ void ThermalSensorTask::execute() {
     }
 }
 
+
 uint8_t ProcessThermalSensors::get_sled_type(ipmi::ManagementController& mc) {
     ipmi::command::generic::request::GetDeviceId ipmi_request;
     ipmi::command::generic::response::GetDeviceId ipmi_response;
 
     mc.send(ipmi_request, ipmi_response);
 
-    if (ipmi_response.get_completion_code() != ipmi::Response::COMPLETION_CODE_NORMAL) {
-        throw std::runtime_error("Bad completion code in Get Device Id response");
-    }
-
     auto product_id = ipmi_response.get_product_id();
     log_debug(LOGUSR, "ProcessThermalSensors - GetDeviceId: product_id = " << static_cast<int>(product_id));
-    if (ipmi::command::generic::response::GetDeviceId::PRODUCT_ID_INTEL_XEON_BDC_R == product_id ||
-        ipmi::command::generic::response::GetDeviceId::PRODUCT_ID_INTEL_XEON_BDC_A == product_id) {
+    if (ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_BDC_R == product_id ||
+        ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_BDC_A == product_id) {
         return SLED_TYPE_HSW;
-    } else if (ipmi::command::generic::response::GetDeviceId::PRODUCT_ID_INTEL_BDX_DE_BDC_R == product_id) {
+    }
+    else if (ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_BDX_DE_BDC_R == product_id) {
         return SLED_TYPE_BDX_DE;
-    } else {
+    }
+    else {
         throw std::runtime_error("Unknown sled type");
     }
 }
+
 
 uint8_t ProcessThermalSensors::get_desired_pwm(ipmi::ManagementController& mc) {
 
@@ -127,18 +142,16 @@ uint8_t ProcessThermalSensors::get_desired_pwm(ipmi::ManagementController& mc) {
 
     mc.send(ipmi_request, ipmi_response);
 
-    if (ipmi_response.get_completion_code() != ipmi::Response::COMPLETION_CODE_NORMAL) {
-        throw std::runtime_error("Bad completion code in Get Fan PWM response");
-    }
-
     return ipmi_response.get_maximum_pwm();
 }
+
 
 uint8_t ProcessThermalSensors::get_inlet_temp(ipmi::ManagementController& mc) {
     uint8_t reading_byte = get_inlet_temp_sensor(mc);
     uint16_t multiplier = get_inlet_temp_sensor_multiplier(mc, reading_byte);
     return static_cast<uint8_t>(reading_byte * multiplier);
 }
+
 
 uint8_t ProcessThermalSensors::get_inlet_temp_sensor(ipmi::ManagementController& mc) {
 
@@ -149,15 +162,12 @@ uint8_t ProcessThermalSensors::get_inlet_temp_sensor(ipmi::ManagementController&
 
     mc.send(ipmi_request, ipmi_response);
 
-    if (ipmi_response.get_completion_code() != ipmi::Response::COMPLETION_CODE_NORMAL) {
-        throw std::runtime_error("Bad completion code in Get Sensor Reading response");
-    }
-
     return ipmi_response.get_sensor_reading();
 }
 
-uint16_t  ProcessThermalSensors::get_inlet_temp_sensor_multiplier(ipmi::ManagementController &mc,
-                                                                    uint8_t reading_byte) {
+
+uint16_t ProcessThermalSensors::get_inlet_temp_sensor_multiplier(ipmi::ManagementController& mc,
+                                                                 uint8_t reading_byte) {
     ipmi::command::generic::request::GetSensorReadingFactors ipmi_request;
     ipmi::command::generic::response::GetSensorReadingFactors ipmi_response;
 
@@ -166,19 +176,16 @@ uint16_t  ProcessThermalSensors::get_inlet_temp_sensor_multiplier(ipmi::Manageme
 
     mc.send(ipmi_request, ipmi_response);
 
-    if (ipmi_response.get_completion_code() != ipmi::Response::COMPLETION_CODE_NORMAL) {
-        throw std::runtime_error("Bad completion code in Get Sensor Reading Factor response");
-    }
-
     return ipmi_response.get_multiplier();
 }
+
 
 void ProcessThermalSensors::fill_thermal_sensor_data(const std::vector<string>& manager_keys) {
 
     for (const auto& key: manager_keys) {
 
         auto manager = CommonComponents::get_instance()->
-                get_module_manager().get_entry(key);
+            get_module_manager().get_entry(key);
 
         if (manager.get_presence()) {
             const auto& connection_data = manager.get_connection_data();
@@ -191,11 +198,13 @@ void ProcessThermalSensors::fill_thermal_sensor_data(const std::vector<string>& 
             mc.set_password(connection_data.get_password());
 
             auto chassis_keys = CommonComponents::get_instance()->
-                    get_chassis_manager().get_keys(manager.get_uuid());
-            auto fan_keys = ChassisComponents::get_instance()->
-                    get_fan_manager().get_keys(chassis_keys.front());
+                get_chassis_manager().get_keys(manager.get_uuid());
             auto thermal_zone_keys = ChassisComponents::get_instance()->
-                    get_thermal_zone_manager().get_keys(chassis_keys.front());
+                get_thermal_zone_manager().get_keys(chassis_keys.front());
+            auto temperature_sensor_keys = ChassisComponents::get_instance()->
+                get_chassis_sensor_manager().get_keys(chassis_keys.front(), [](const ChassisSensor& sensor) {
+                return sensor.get_reading_units() == enums::ReadingUnits::Celsius;
+            });
 
             try {
                 auto type = get_sled_type(mc);
@@ -203,20 +212,20 @@ void ProcessThermalSensors::fill_thermal_sensor_data(const std::vector<string>& 
                 auto tmp = get_inlet_temp(mc);
 
                 auto chassis = CommonComponents::get_instance()->
-                        get_chassis_manager().get_entry_reference(chassis_keys.front());
-                auto fan = ChassisComponents::get_instance()->
-                        get_fan_manager().get_entry_reference(fan_keys.front());
+                    get_chassis_manager().get_entry_reference(chassis_keys.front());
                 auto thermal_zone = ChassisComponents::get_instance()->
-                        get_thermal_zone_manager().get_entry_reference(thermal_zone_keys.front());
+                    get_thermal_zone_manager().get_entry_reference(thermal_zone_keys.front());
+                auto temperature_sensor = ChassisComponents::get_instance()->get_chassis_sensor_manager().get_entry_reference(
+                    temperature_sensor_keys.front());
 
                 chassis->set_ipmb_type(type);
-                fan->set_desired_speed(pwm);
-                thermal_zone->set_temperature(tmp);
+                thermal_zone->set_desired_speed_pwm(pwm);
+                temperature_sensor->set_reading(tmp);
 
                 log_debug(LOGUSR, "ProcessThermalSensors for " << connection_data.get_ip_address() << ": "
-                                  << " sled_type: " << static_cast<uint32_t>(chassis->get_ipmb_type())
-                                  << " desired_pwm: " << static_cast<uint32_t>(fan->get_desired_speed())
-                                  << " inlet_temp: " << static_cast<uint32_t>(thermal_zone->get_temperature()));
+                                                               << " sled_type: " << static_cast<uint32_t>(type)
+                                                               << " desired_pwm: " << static_cast<uint32_t>(pwm)
+                                                               << " inlet_temp: " << static_cast<uint32_t>(tmp));
             }
             catch (const std::runtime_error& e) {
                 log_error(LOGUSR, "Cannot execute IPMI command: " << e.what());

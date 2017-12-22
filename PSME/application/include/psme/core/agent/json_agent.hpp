@@ -28,7 +28,6 @@
 #include "rpc_client.hpp"
 #include "logger/logger_factory.hpp"
 
-#include <jsonrpccpp/client.h>
 #include <memory>
 #include <mutex>
 
@@ -48,6 +47,13 @@ public:
               const std::string& ipv4address,
               const int port);
 
+    JsonAgent(const std::string& gami_id,
+              const std::string& ipv4address,
+              const int port,
+              const std::string& version,
+              const std::string& vendor,
+              const Capabilities& caps);
+
     template <typename Response, typename Request>
     Response execute(const Request& req) {
         std::lock_guard<std::mutex> lock(m_single_request_mutex);
@@ -57,8 +63,8 @@ public:
 
             return Response::from_json(res);
         }
-        catch (const jsonrpc::JsonRpcException& e) {
-            if (jsonrpc::Errors::ERROR_CLIENT_CONNECTOR == e.GetCode()) {
+        catch (const json_rpc::JsonRpcException& e) {
+            if (json_rpc::common::ERROR_CLIENT_CONNECTOR == e.get_code()) {
                 auto now = std::chrono::high_resolution_clock::now();
                 if (m_connection_error_observed_at) {
                     auto broken_seconds = std::chrono::duration_cast<std::chrono::seconds>(
@@ -106,11 +112,6 @@ private:
     void clean_resource_for_agent();
 
     /*!
-     * @brief sends events to clients that managers from unresponsive agent ware removed
-     */
-    void notify_clients_about_removals();
-
-    /*!
      * @brief Create connection URL from IPv4 address and port
      *
      * @param ipv4address agent IPv4 address
@@ -121,7 +122,8 @@ private:
     std::string make_connection_url(const std::string& ipv4address, const int port) const;
 
     std::experimental::optional<std::chrono::time_point<std::chrono::system_clock>> m_connection_error_observed_at{};
-    std::unique_ptr<jsonrpc::IClientConnector> m_client_connector{};
+    json_rpc::AbstractClientConnectorPtr m_connector{};
+    json_rpc::JsonRpcRequestInvokerPtr m_invoker{};
     RpcClient m_client;
     std::mutex m_single_request_mutex{};
     std::mutex m_transaction_mutex{};

@@ -21,6 +21,7 @@ import org.slf4j.MarkerFactory;
 
 public class ServiceLifecycleLoggerImpl extends LoggerImpl implements ServiceLifecycleLogger {
     public static final Marker SERVICE_LIFECYCLE_MARKER = MarkerFactory.getMarker("[ServiceLifecycle]");
+
     public ServiceLifecycleLoggerImpl(org.slf4j.Logger log) {
         super(log);
     }

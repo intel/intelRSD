@@ -16,7 +16,6 @@
 
 package com.intel.podm.common.types.redfish;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static com.intel.podm.common.types.redfish.ResourceNames.CHASSIS_RESOURCE_NAME;
@@ -27,13 +26,15 @@ import static com.intel.podm.common.types.redfish.ResourceNames.EVENT_SERVICE_RE
 import static com.intel.podm.common.types.redfish.ResourceNames.FABRIC_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.MANAGERS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.STORAGE_SERVICES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.TELEMETRY_SERVICE_RESOURCE_NAME;
+import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 
 public final class ODataServices {
     public static final List<String> ODATA_ROOT_SERVICES;
 
     static {
-        ODATA_ROOT_SERVICES = unmodifiableList(Arrays.asList(
+        ODATA_ROOT_SERVICES = unmodifiableList(asList(
             COMPUTER_SYSTEM_RESOURCE_NAME,
             CHASSIS_RESOURCE_NAME,
             MANAGERS_RESOURCE_NAME,
@@ -41,7 +42,8 @@ public final class ODataServices {
             STORAGE_SERVICES_RESOURCE_NAME,
             ETHERNET_SWITCHES_RESOURCE_NAME,
             FABRIC_RESOURCE_NAME,
-            EVENT_SERVICE_RESOURCE_NAME
+            EVENT_SERVICE_RESOURCE_NAME,
+            TELEMETRY_SERVICE_RESOURCE_NAME
         ));
     }
 

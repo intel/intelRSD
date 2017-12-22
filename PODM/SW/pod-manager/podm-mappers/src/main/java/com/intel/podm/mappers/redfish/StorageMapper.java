@@ -17,30 +17,15 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.Storage;
-import com.intel.podm.client.api.resources.redfish.StorageResource;
+import com.intel.podm.client.resources.redfish.StorageResource;
 import com.intel.podm.mappers.EntityMapper;
-import com.intel.podm.mappers.subresources.StorageControllerMapper;
 
 import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-import java.util.Collection;
 
 @Dependent
 public class StorageMapper extends EntityMapper<StorageResource, Storage> {
-    @Inject
-    private StorageControllerMapper storageControllerMapper;
 
     protected StorageMapper() {
         super(StorageResource.class, Storage.class);
-    }
-
-    @Override
-    protected void performNotAutomatedMapping(StorageResource source, Storage target) {
-        super.performNotAutomatedMapping(source, target);
-        source.getStorageControllers().ifAssigned(storageControllers ->
-            storageControllerMapper.map(
-                (Collection) storageControllers, target.getStorageControllers(), target::addStorageController
-            )
-        );
     }
 }

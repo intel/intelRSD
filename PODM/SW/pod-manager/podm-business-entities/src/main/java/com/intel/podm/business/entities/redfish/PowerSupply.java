@@ -22,7 +22,6 @@ import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.embeddables.InputRange;
 import com.intel.podm.common.types.Id;
-import com.intel.podm.common.types.IndicatorLed;
 import com.intel.podm.common.types.LineInputVoltageType;
 import com.intel.podm.common.types.PowerSupplyType;
 
@@ -47,8 +46,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "power_supply", indexes = @Index(name = "idx_power_supply_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class PowerSupply extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -98,10 +97,6 @@ public class PowerSupply extends DiscoverableEntity {
     @CollectionTable(name = "power_supply_input_range", joinColumns = @JoinColumn(name = "power_supply_id"))
     @OrderColumn(name = "input_range_order")
     private List<InputRange> inputRanges = new ArrayList<>();
-
-    @Column(name = "indicator_led")
-    @Enumerated(STRING)
-    private IndicatorLed indicatorLed;
 
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "power_id")
@@ -227,14 +222,6 @@ public class PowerSupply extends DiscoverableEntity {
 
     public void addInputRange(InputRange inputRange) {
         this.inputRanges.add(inputRange);
-    }
-
-    public IndicatorLed getIndicatorLed() {
-        return indicatorLed;
-    }
-
-    public void setIndicatorLed(IndicatorLed indicatorLed) {
-        this.indicatorLed = indicatorLed;
     }
 
     @EventOriginProvider

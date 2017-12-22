@@ -26,7 +26,7 @@
 #include "agent-framework/module/constants/pnc.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -35,12 +35,12 @@ DeleteZone::DeleteZone(const attribute::Oem& oem):
     m_oem{oem} {}
 
 
-Json::Value DeleteZone::to_json() const {
-    Json::Value value;
+json::Json DeleteZone::to_json() const {
+    json::Json value;
     value[Zone::OEM] = m_oem.to_json();
     return value;
 }
 
-DeleteZone DeleteZone::from_json(const Json::Value& json) {
+DeleteZone DeleteZone::from_json(const json::Json& json) {
     return DeleteZone{attribute::Oem::from_json(json[Zone::OEM])};
 }

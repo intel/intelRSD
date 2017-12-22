@@ -69,16 +69,15 @@ public:
      * @param should_return_empty Should method return empty string or "not specified" text.
      * @return Field value as string or empty string if data does not contain field name.
      * */
-    static std::string get_uri_from_json_data(const Json::Value& data, bool should_return_empty = true);
+    static std::string get_uri_from_json_data(const json::Json& data, bool should_return_empty = true);
 
     /*!
      * @brief Creates JSON data object from invalid URI.
      * @param uri Requested invalid URI
      * @return JSON data object with URI
      */
-    Json::Value create_json_data_from_uri(const std::string& uri);
+    json::Json create_json_data_from_uri(const std::string& uri);
 };
 
 } // namespace exceptions
 } // namespace agent_framework
-

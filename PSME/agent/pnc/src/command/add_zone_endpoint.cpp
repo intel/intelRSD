@@ -22,8 +22,8 @@
  * */
 
 #include "agent-framework/module/pnc_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/pnc_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/pnc_commands.hpp"
 #include "agent-framework/action/task_runner.hpp"
 #include "agent-framework/action/task_creator.hpp"
 #include "gas/access_interface_factory.hpp"
@@ -33,7 +33,7 @@
 
 
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent::pnc::gas;
@@ -45,6 +45,11 @@ namespace {
 
 void validate_endpoints_are_unbound(const attribute::Array<std::string>& endpoint_uuids) {
     for (const auto& endpoint_uuid : endpoint_uuids) {
+        auto state = get_manager<Endpoint>().get_entry(endpoint_uuid).get_status().get_state();
+        if (state != enums::State::Enabled) {
+          THROW(agent_framework::exceptions::InvalidValue, "pnc-gami",
+                "Endpoint " + endpoint_uuid + " is in wrong state: " + state.to_string() + ".");
+        }
         if (get_m2m_manager<Zone, Endpoint>().child_exists(endpoint_uuid)) {
             THROW(agent_framework::exceptions::InvalidValue, "pnc-gami",
                   "Endpoint " + endpoint_uuid + " already assigned to a zone.");

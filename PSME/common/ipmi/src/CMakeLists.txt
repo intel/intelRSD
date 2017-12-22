@@ -20,15 +20,46 @@ add_subdirectory(command)
 add_subdirectory(manager)
 
 set(SOURCES
-    # Interface
+    connection_data.cpp
+    bridge_info.cpp
+    management_controller.cpp
+    ipmi_controller.cpp
+    ipmi_interface.cpp
+    ipmi_interface_factory.cpp
     management_controller.cpp
     message.cpp
     request.cpp
     response.cpp
+    response_error.cpp
+    sel_record.cpp
+    sel.cpp
+    utils/byte_buffer.cpp
+
+    telemetry/telemetry_hub.cpp
 )
 
+# Clang does not understand that attribute [[noreturn]] on throw_error_on_completion_code
+# is not inherited in child class implementations
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    set_source_files_properties(
+            response.cpp
+            PROPERTIES COMPILE_FLAGS "-Wno-unreachable-code"
+    )
+endif()
 
-add_library(ipmi-base OBJECT ${SOURCES})
+set(UTILS_SDV_SOURCES
+    utils/sdv/mdr_region_accessor.cpp
+    utils/sdv/purley_mdr_region_accesor.cpp
+    utils/sdv/grantley_mdr_region_accessor.cpp
+    utils/sdv/linear_to_double.cpp
+)
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/utils/sdv")
+    add_library(ipmi-base OBJECT ${SOURCES} ${UTILS_SDV_SOURCES})
+else()
+    add_library(ipmi-base OBJECT ${SOURCES})
+endif()
+
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/command/sdv")
     add_library(ipmi STATIC
         $<TARGET_OBJECTS:ipmi-base>
@@ -44,10 +75,9 @@ else()
     )
 endif()
 
-
-
 target_link_libraries(ipmi
     ${IPMITOOL_LIBRARIES}
+    ${LOGGER_LIBRARIES}
     pthread
 )
 

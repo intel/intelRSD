@@ -60,6 +60,16 @@ void update_pcie_endpoint_in_relations(const std::string& pcie_endpoint_temporar
                                                                             pcie_endpoint_persistent_uuid);
     PncComponents::get_instance()->get_endpoint_port_manager().update_parent(pcie_endpoint_temporary_uuid,
                                                                              pcie_endpoint_persistent_uuid);
+
+    auto& endpoint_manager = PncComponents::get_instance()->get_endpoint_manager();
+    auto endpoint = endpoint_manager.get_entry(pcie_endpoint_persistent_uuid);
+    auto identifiers = endpoint.get_identifiers();
+    for (auto& identifier : identifiers) {
+        if (pcie_endpoint_temporary_uuid == identifier.get_durable_name()) {
+            identifier.set_durable_name(pcie_endpoint_persistent_uuid);
+        }
+    }
+    endpoint_manager.get_entry_reference(pcie_endpoint_persistent_uuid)->set_identifiers(std::move(identifiers));
 }
 
 

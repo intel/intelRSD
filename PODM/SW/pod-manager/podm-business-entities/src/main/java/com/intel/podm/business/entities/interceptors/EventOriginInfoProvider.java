@@ -18,25 +18,26 @@ package com.intel.podm.business.entities.interceptors;
 
 import com.google.common.cache.LoadingCache;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.resolvers.MultiSourceEntityResolverProvider;
 
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import java.util.function.Function;
 
 import static com.google.common.cache.CacheBuilder.newBuilder;
 
 @Dependent
 public class EventOriginInfoProvider {
-
     private static final int CACHE_SIZE = 1000;
 
-    private LoadingCache<Class, Function<Entity, Entity>> cache;
+    private LoadingCache<Class<?>, Function<Entity, Entity>> cache;
 
-    public EventOriginInfoProvider() {
+    @Inject
+    public EventOriginInfoProvider(MultiSourceEntityResolverProvider multiSourceEntityResolverProvider) {
         this.cache = newBuilder()
             .maximumSize(CACHE_SIZE)
-            .build(new EventOriginInfoProviderCacheLoader());
+            .build(new EventOriginInfoProviderCacheLoader(multiSourceEntityResolverProvider.getCachedMultiSourceEntityResolvers()));
     }
-
 
     public Entity findEventOrigin(Entity sourceEntity) {
         return cache.getUnchecked(sourceEntity.getClass()).apply(sourceEntity);

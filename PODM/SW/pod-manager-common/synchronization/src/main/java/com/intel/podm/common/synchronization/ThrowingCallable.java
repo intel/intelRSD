@@ -16,11 +16,14 @@
 
 package com.intel.podm.common.synchronization;
 
-public interface ThrowingCallable<R, E extends Exception> extends Executable {
+import java.util.concurrent.TimeoutException;
+
+public interface ThrowingCallable<R, E extends Exception> extends Executable<E, R> {
     R run() throws E;
 
     @Override
-    default R execute() throws E {
+    default R execute() throws E, TimeoutException {
         return run();
     }
+
 }

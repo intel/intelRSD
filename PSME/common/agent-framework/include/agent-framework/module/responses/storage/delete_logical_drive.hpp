@@ -24,14 +24,14 @@
 
 #pragma once
 
+
+
+#include "agent-framework/module/utils/optional_field.hpp"
 #include "agent-framework/module/model/attributes/oem.hpp"
 #include "agent-framework/module/constants/command.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
-
-namespace Json {
-    class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -45,18 +45,39 @@ public:
     /*!
      * @brief explicit DeleteLogicalDrive response constructor
      */
-    explicit DeleteLogicalDrive(Oem oem = Oem{});
+    DeleteLogicalDrive(Oem oem = Oem{});
+
 
     static std::string get_command() {
         return literals::Command::DELETE_LOGICAL_DRIVE;
     }
+
+
+    /*!
+     * @brief Get task UUID
+     * @return task UUID
+     * */
+    const OptionalField<std::string>& get_task() const {
+        return m_task;
+    }
+
+
+    /*!
+     * @brief Set task UUID
+     * @param[in] task the task UUID
+     * */
+    void set_task(const OptionalField<std::string>& task) {
+        m_task = task;
+    }
+
 
     /*!
      * @brief Transform request to Json
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
+
 
     /*!
      * @brief create DeleteLogicalDrive from Json
@@ -65,9 +86,10 @@ public:
      *
      * @return new DeleteLogicalDrive
      */
-    static DeleteLogicalDrive from_json(const Json::Value& json);
+    static DeleteLogicalDrive from_json(const json::Json& json);
 
 private:
+    OptionalField<std::string> m_task{};
     Oem m_oem{};
 };
 

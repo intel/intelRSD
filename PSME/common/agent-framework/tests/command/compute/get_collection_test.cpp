@@ -65,8 +65,8 @@ TEST(GetCollectionTest, PositiveExecute) {
     MyGetCollection command{"TestModuleId", "TestName"};
     GetCollection::Request request{"", ""};
     GetCollection::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params["component"] = "TestModuleId";
     params["name"] = "TestName";
@@ -86,8 +86,8 @@ TEST(GetCollectionTest, NegativeModuleNotFound) {
     MyGetCollection command{"TestModuleId", "TestName"};
     GetCollection::Request request{"", ""};
     GetCollection::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params["component"] = "OtherTestModuleId";
     params["name"] = "TestName";
@@ -100,8 +100,8 @@ TEST(GetCollectionTest, NegativeNameNotFound) {
     MyGetCollection command{"TestModuleId", "TestName"};
     GetCollection::Request request{"", ""};
     GetCollection::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params["component"] = "TestModuleId";
     params["name"] = "OtherTestName";

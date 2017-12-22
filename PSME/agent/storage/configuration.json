@@ -14,7 +14,7 @@
     "managers" : [
         {
             "serialConsoleEnabled": true,
-            "StorageServices" : [
+            "storageServices" : [
                 {
                     "iscsi" : {
                         "config-path" : "/etc/tgt/conf.d",

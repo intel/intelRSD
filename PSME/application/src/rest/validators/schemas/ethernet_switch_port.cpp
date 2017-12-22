@@ -30,7 +30,6 @@ using namespace agent_framework::model;
 
 const jsonrpc::ProcedureValidator& EthernetSwitchPortPatchSchema::LinksSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "ethernet_switch_port_links_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::EthernetSwitchPort::PORT_MEMBERS, VALID_OPTIONAL(VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema))),
         constants::EthernetSwitchPort::PRIMARY_VLAN, VALID_OPTIONAL(VALID_ATTRIBUTE(SimpleObjectSchema)),
@@ -41,7 +40,6 @@ const jsonrpc::ProcedureValidator& EthernetSwitchPortPatchSchema::LinksSchema::g
 
 const jsonrpc::ProcedureValidator& EthernetSwitchPortPatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "ethernet_switch_port_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::EthernetSwitchPort::ADMINISTRATIVE_STATE, VALID_OPTIONAL(VALID_ENUM(enums::AdministrativeState)),
         // per Metadata, these values have signed int64 type, so this is the type that PATCH command has to accept

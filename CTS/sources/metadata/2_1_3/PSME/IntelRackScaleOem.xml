@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="StorageService.xml">
+    <edmx:Include Namespace="StorageService.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="ComputerSystem.xml">
+    <edmx:Include Namespace="ComputerSystem" />
+    <edmx:Include Namespace="ComputerSystem.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitchPort.xml">
+    <edmx:Include Namespace="EthernetSwitchPort" />
+    <edmx:Include Namespace="EthernetSwitchPort.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetInterface.xml">
+    <edmx:Include Namespace="EthernetInterface" />
+    <edmx:Include Namespace="EthernetInterface.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitch.xml">
+      <edmx:Include Namespace="EthernetSwitch.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Switch.xml">
+      <edmx:Include Namespace="Switch"/>
+  </edmx:Reference>
+   <edmx:Reference Uri="PCIeDevice.xml">
+      <edmx:Include Namespace="PCIeDevice"/>
+  </edmx:Reference>
+   <edmx:Reference Uri="PCIeFunction.xml">
+      <edmx:Include Namespace="PCIeFunction"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Zone.xml">
+      <edmx:Include Namespace="Zone"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Port.xml">
+      <edmx:Include Namespace="Port"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Storage.xml">
+      <edmx:Include Namespace="Storage"/>
+  </edmx:Reference>
+
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Intel.Oem">
+
+     <ComplexType Name="Chassis" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Location" Type="Intel.Oem.Location" />
+     </ComplexType>
+
+     <ComplexType Name="RackChassis" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Location" Type="Intel.Oem.Location">
+            <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+        </Property>
+        <Property Name="RMMPresent" Type="Edm.Boolean"/>
+        <Property Name="RackSupportsDisaggregatedPowerCooling" Type="Edm.Boolean"/>
+        <Property Name="UUID" Type="Resource.UUID"/>
+        <Property Name="GeoTag" Type="Edm.String"/>
+     </ComplexType>
+
+    <ComplexType Name="Location">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Id" Type="Edm.String">
+            <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+            <Annotation Term="OData.Description" String="String containing physical location ID of this chassis"/>
+            <Annotation Term="OData.LongDescription" String="String containing physical location ID of this chassis" />
+        </Property>
+        <Property Name="ParentId" Type="Edm.String">
+            <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+            <Annotation Term="OData.Description" String="String containing  physical location ID of parent chassis"/>
+            <Annotation Term="OData.LongDescription" String="String containing  physical location ID of parent chassis" />
+        </Property>
+    </ComplexType>
+
+    <ComplexType Name="ManagerLinks" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <NavigationProperty Name="ManagerForServices" Type="Collection(StorageService.v1_0_0.StorageService)">
+            <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="ManagerForSwitches" Type="Collection(EthernetSwitch.v1_0_0.EthernetSwitch)">
+            <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+    </ComplexType>
+
+    <ComplexType Name="ComputerSystem" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="PCIeConnectionId" Type="Collection(Edm.String)">
+            <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+            <Annotation Term="OData.Description" String="This property is an array of IDs of cable or cables connected to this port."/>
+            <Annotation Term="OData.LongDescription" String="This property shall contain an array of string identifying cable(s) connected to this port. This is crucial for topology discovery."/>
+        </Property>
+        <Property Name="PciDevices" Type="Collection(Intel.Oem.PciDevice)" Nullable="false">
+            <Annotation Term="OData.Description" String="This indicates array of PCI devices present in computer system"/>
+            <Annotation Term="OData.LongDescription" String="This indicates array of PCI devices present in computer system" />
+        </Property>
+        <Property Name="DiscoveryState" Type="Intel.Oem.DiscoveryState" >
+            <Annotation Term="OData.Description" String="This indicates computer system discovery state"/>
+            <Annotation Term="OData.LongDescription" String="This property shall represent discovery state of this interface" />
+        </Property>
+        <Property Name="ProcessorSockets" Type="Edm.Int64">
+            <Annotation Term="OData.Description" String="This indicates number of processor sockets available in system"/>
+            <Annotation Term="OData.LongDescription" String="This indicates number of memory sockets available in system" />
+        </Property>
+        <Property Name="MemorySockets" Type="Edm.Int64">
+            <Annotation Term="OData.Description" String="This indicates number of memory sockets available in system"/>
+            <Annotation Term="OData.LongDescription" String="This indicates number of memory sockets available in system" />
+        </Property>
+     </ComplexType>
+
+    <ComplexType Name="Memory" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="VoltageVolt" Type="Edm.Decimal" >
+            <Annotation Term="OData.Description" String="This indicates current voltage of memory module"/>
+            <Annotation Term="OData.LongDescription" String="This property shall represent current voltage of memory module" />
+        </Property>
+     </ComplexType>
+
+     <ComplexType Name="PciDevice">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="VendorId" Type="Edm.String"/>
+        <Property Name="DeviceId" Type="Edm.String"/>
+     </ComplexType>
+
+     <EnumType Name="DiscoveryState">
+        <Member Name="None"/>
+        <Member Name="Basic"/>
+        <Member Name="DeepInProgress"/>
+        <Member Name="Deep"/>
+        <Member Name="DeepFailed"/>
+     </EnumType>
+
+     <Action Name="StartDeepDiscovery" IsBound="true">
+        <Parameter Name="ComputerSystem" Type="ComputerSystem.v1_0_0.OemActions"/>
+     </Action>
+
+    <ComplexType Name="EthernetInterface" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <NavigationProperty Name="NeighborPort" Type="EthernetSwitchPort.EthernetSwitchPort"/>
+        <Annotation Term="OData.Description" String="This indicates ethernet port which is connected to this interface"/>
+        <Annotation Term="OData.LongDescription" String="This property shall represent the URI of ethernet port connected to this interface" />
+     </ComplexType>
+
+    <ComplexType Name="EthernetSwitchPort" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="OData.Description" String="This indicates ethernet interface which is connected to this port"/>
+        <Annotation Term="OData.LongDescription" String="This property shall represent the URI of ethernet interface connected to this port" />
+        <NavigationProperty Name="NeighborInterface" Type="EthernetInterface.EthernetInterface"/>
+     </ComplexType>
+
+     <ComplexType Name="Processor" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Brand" Type="Intel.Oem.ProcessorBrand">
+             <Annotation Term="OData.Description" String="This indicates processor brand"/>
+             <Annotation Term="OData.LongDescription" String="This property shall represent the brand of processor" />
+         </Property>
+        <Property Name="Capabilities" Type="Collection(Edm.String)" >
+            <Annotation Term="OData.Description" String="This indicates array of processor capabilities"/>
+            <Annotation Term="OData.LongDescription" String="This property shall represent array of processor capabilities (like reported in /proc/cpuinfo flags)" />
+        </Property>
+     </ComplexType>
+
+     <EnumType Name="ProcessorBrand">
+        <Member Name="Unknown"/>
+        <Member Name="E3"/>
+        <Member Name="E5"/>
+        <Member Name="E7"/>
+        <Member Name="X3"/>
+        <Member Name="X5"/>
+        <Member Name="X7"/>
+        <Member Name="I3"/>
+        <Member Name="I5"/>
+        <Member Name="I7"/>
+     </EnumType>
+
+        <ComplexType Name="ServiceRoot" BaseType="Resource.OemObject">
+            <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+            <Property Name="ApiVersion" Type="Edm.String" Nullable="false"/>
+        </ComplexType>
+        <ComplexType Name="VLanNetworkInterface" BaseType="Resource.OemObject">
+            <Property Name="Status" Type="Resource.Status"/>
+            <Property Name="Tagged" Type="Edm.Boolean">
+                <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+                <Annotation Term="OData.Description" String="This indicates if VLAN is tagged (as defined in IEEE 802.1Q)."/>
+                <Annotation Term="OData.LongDescription" String="This indicates if VLAN is tagged (as defined in IEEE 802.1Q)." />
+            </Property>
+        </ComplexType>
+
+     <ComplexType Name="PortLinks" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="CableId" Type="Collection(Edm.String)"/>
+        <NavigationProperty Name="NeighborPort" Type="Collection(Port.Port)">
+            <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+            <Annotation Term="OData.Description" String="This indicates neighbor port which is connected to this port"/>
+            <Annotation Term="OData.LongDescription" String="This property shall represent the URI of port connected to this port" />
+        </NavigationProperty>
+     </ComplexType>
+
+     <ComplexType Name="Drive" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="EraseOnDetach" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="This indicates if drive should be erased when detached from PCI switch."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent the state of policy for protecting data stored on drive connected to PCI switch. If set to null it is interpreted as it would be set to true." />
+        </Property>
+         <Property Name="DriveErased" Type="Edm.Boolean">
+             <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" Qualifier="PODM"/>
+             <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" Qualifier="PSME"/>
+             <Annotation Term="OData.Description" String="This indicates whether drive was cleared after assignment to composed node."/>
+             <Annotation Term="OData.LongDescription" String="This property shall represent the erase state of drive. If is set to null, drive is treated as it would be erased" />
+         </Property>
+         <Property Name="FirmwareVersion" Type="Edm.String">
+             <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+             <Annotation Term="OData.Description" String="This indicates drive firmware version."/>
+             <Annotation Term="OData.LongDescription" String="This indicates drive firmware version." />
+         </Property>
+         <NavigationProperty Name="Storage" Type="Storage.Storage">
+             <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+             <Annotation Term="OData.Description" String="A reference to the storage controller where this drive is connected."/>
+             <Annotation Term="OData.LongDescription" String="A reference to the storage controller where this drive is connected."/>
+         </NavigationProperty>
+         <NavigationProperty Name="PCIeFunction" Type="PCIeFunction.PCIeFunction">
+             <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+             <Annotation Term="OData.Description" String="A reference to the PCIe function that provides this drive functionality."/>
+             <Annotation Term="OData.LongDescription" String="A reference to the PCIe function that provides this drive functionality."/>
+         </NavigationProperty>
+         </ComplexType>
+
+        <ComplexType Name="ChassisLinks" BaseType="Resource.OemObject">
+            <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+            <NavigationProperty Name="Switches" Type="Collection(EthernetSwitch.v1_0_0.EthernetSwitch)">
+                <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                <Annotation Term="OData.Description" String="An array of references to the ethernet switches located in this Chassis."/>
+                <Annotation Term="OData.LongDescription" String="The value of this property shall reference one or more resources of type EthernetSwitch that are in this Chassis."/>
+                <Annotation Term="OData.AutoExpandReferences"/>
+            </NavigationProperty>
+        </ComplexType>
+
+        <ComplexType Name="Port" BaseType="Resource.OemObject">
+            <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+            <Property Name="PCIeConnectionId" Type="Collection(Edm.String)">
+                <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                <Annotation Term="OData.Description" String="An array of references to the PCIe connection identifiers (e.g. cable ID)."/>
+                <Annotation Term="OData.LongDescription" String="An array of references to the PCIe connection identifiers (e.g. cable ID)."/>
+            </Property>
+        </ComplexType>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

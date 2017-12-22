@@ -35,3 +35,7 @@ endif()
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/pnc)
     add_subdirectory(pnc)
 endif()
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/rmm)
+    add_subdirectory(rmm)
+endif()

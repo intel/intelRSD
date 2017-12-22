@@ -184,7 +184,7 @@ public:
      *
      * @return Json array containing all error messages.
      * */
-    Json::Value get_extended_messages() const;
+    json::Value get_extended_messages() const;
 
 
     /*!

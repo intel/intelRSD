@@ -23,30 +23,51 @@
  * */
 
 #include "tree_stability/helpers/update_relations.hpp"
-
 #include "agent-framework/module/common_components.hpp"
 
+using namespace agent_framework::module;
 
+namespace {
 
-using agent_framework::module::CommonComponents;
+void update_managers(const std::string& temporary_uuid, const std::string& persistent_uuid) {
+    // Chassis UUID is held by a manager
+    auto& module_manager = get_manager<agent_framework::model::Manager>();
+    const auto& managers_keys = module_manager.get_keys(
+        [&temporary_uuid](const agent_framework::model::Manager& manager) {
+            return manager.get_location() == temporary_uuid;
+        });
+
+    if (managers_keys.empty()) {
+        throw std::runtime_error("No managers located in chassis: " + temporary_uuid);
+    }
+
+    module_manager.get_entry_reference(managers_keys.front())->set_location(persistent_uuid);
+}
+
+void update_systems(const std::string& temporary_uuid, const std::string& persistent_uuid) {
+    // Chassis UUID is held by a system
+    auto& system_manager = get_manager<agent_framework::model::System>();
+    const auto& system_keys = system_manager.get_keys(
+        [&temporary_uuid](const agent_framework::model::System& system) {
+            return system.get_chassis() == temporary_uuid;
+        });
+
+    if (system_keys.empty()) {
+        throw std::runtime_error("No system found for chassis: " + temporary_uuid);
+    }
+
+    system_manager.get_entry_reference(system_keys.front())->set_chassis(persistent_uuid);
+}
+
+}
 
 namespace agent {
 namespace compute {
 namespace helpers {
 
 void update_chassis_in_relations(const std::string& chassis_temporary_uuid, const std::string chassis_persistent_uuid) {
-    // Chassis UUID is held by a system
-    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
-
-    const auto& system_keys = system_manager.get_keys(
-        [&chassis_temporary_uuid](const agent_framework::model::System& system) {
-            return system.get_chassis() == chassis_temporary_uuid;
-        });
-    if (system_keys.empty()) {
-        throw std::runtime_error("No system found for chassis " + chassis_temporary_uuid);
-    }
-
-    system_manager.get_entry_reference(system_keys.front())->set_chassis(chassis_persistent_uuid);
+    update_managers(chassis_temporary_uuid, chassis_persistent_uuid);
+    update_systems(chassis_temporary_uuid, chassis_persistent_uuid);
 }
 
 }

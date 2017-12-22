@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/network/add_port_vlan.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -34,14 +34,14 @@ AddPortVlan::AddPortVlan(const std::string& port_vlan, Oem oem):
     m_oem{oem} {}
 
 
-Json::Value AddPortVlan::to_json() const {
-    Json::Value value;
+json::Json AddPortVlan::to_json() const {
+    json::Json value;
     value[EthernetSwitchPortVlan::PORT_VLAN] = m_port_vlan;
     value[EthernetSwitchPortVlan::OEM] = m_oem.to_json();
     return value;
 }
 
-AddPortVlan AddPortVlan::from_json(const Json::Value& json) {
-    return AddPortVlan{json[EthernetSwitchPortVlan::PORT_VLAN].asString(), Oem::from_json(
+AddPortVlan AddPortVlan::from_json(const json::Json& json) {
+    return AddPortVlan{json[EthernetSwitchPortVlan::PORT_VLAN], Oem::from_json(
             json[EthernetSwitchPortVlan::OEM])};
 }

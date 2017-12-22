@@ -24,9 +24,9 @@
 #pragma once
 #include "agent-framework/module/utils/utils.hpp"
 #include "agent-framework/module/enum/compute.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
-#include <json/json.h>
 
 namespace agent_framework {
 namespace model {
@@ -124,14 +124,14 @@ public:
      * @brief Converts this to json representation.
      * @return json representation of this class.
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief construct an object of class Region from JSON
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      * @return the newly constructed Region object
      */
-    static Region from_json(const Json::Value& json);
+    static Region from_json(const json::Json& json);
 
 private:
     OptionalField<std::string> m_region_id{};
@@ -143,4 +143,3 @@ private:
 }
 }
 }
-

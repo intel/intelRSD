@@ -175,12 +175,15 @@ const std::string NetworkTreeStabilizer::stabilize_port_vlan(const std::string& 
     auto port_vlan = port_vlan_manager.get_entry(port_vlan_uuid);
     auto parent_port = port_manager.get_entry(port_vlan.get_parent_uuid());
 
-    if (parent_port.has_persistent_uuid() && port_vlan.get_vlan_id().has_value()) {
+    if (parent_port.has_persistent_uuid() &&
+        port_vlan.get_vlan_id().has_value() && port_vlan.get_tagged().has_value()) {
         auto port_vlan_id = std::to_string(port_vlan.get_vlan_id().value());
+        auto port_tagged = std::to_string(port_vlan.get_tagged());
         const auto port_vlan_persistent_uuid = stabilize_single_resource(port_vlan_uuid,
                                                                          port_vlan_manager,
                                                                          literals::PORT_VLAN_KEY_BASE +
-                                                                         parent_port.get_uuid() + port_vlan_id);
+                                                                         parent_port.get_uuid() +
+                                                                         port_vlan_id + port_tagged);
         return port_vlan_persistent_uuid;
     }
     else {
@@ -197,8 +200,8 @@ const std::string NetworkTreeStabilizer::stabilize_static_mac(const std::string&
     auto static_mac = static_mac_manager.get_entry(static_mac_uuid);
     auto parent_port = port_manager.get_entry(static_mac.get_parent_uuid());
 
-    if (parent_port.has_persistent_uuid() && static_mac.get_address().has_value() &&
-        static_mac.get_vlan_id().has_value()) {
+    if (parent_port.has_persistent_uuid() &&
+        static_mac.get_address().has_value() && static_mac.get_vlan_id().has_value()) {
         auto mac_address = static_mac.get_address().value();
         auto vlan_id = std::to_string(static_mac.get_vlan_id().value());
 

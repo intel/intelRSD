@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation" />
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="Manager.xml">
+    <edmx:Include Namespace="Manager.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="PhysicalDrive.xml">
+    <edmx:Include Namespace="PhysicalDrive.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RemoteTarget.xml">
+    <edmx:Include Namespace="RemoteTarget.v1_0_0"/>
+  </edmx:Reference>
+
+
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="LogicalDrive.v1_0_0">
+
+      <EntityType Name="LogicalDrive" BaseType="Resource.v1_0_0.Resource">
+        <Property Name="Type" Type="LogicalDrive.v1_0_0.Type">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Type of volume"/>
+          <Annotation Term="OData.LongDescription" String="Type of volume" />
+        </Property>
+        <Property Name="Mode" Type="LogicalDrive.v1_0_0.Mode">
+        <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+        <Annotation Term="OData.Description" String="Mode defines how the logical drive is built on top of underlying physical/logical drives. The value shall correspond to the logical drive type."/>
+        <Annotation Term="OData.LongDescription" String="Mode defines how the logical drive is built on top of underlying physical/logical drives. The value shall correspond to the logical drive type." />
+      </Property>
+        <Property Name="Protected" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Write (modify) protection state."/>
+          <Annotation Term="OData.LongDescription" String="Write (modify) protection state." />
+        </Property>
+        <Property Name="CapacityGiB" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Drive capacity in GibiBytes."/>
+          <Annotation Term="OData.LongDescription" String="Drive capacity in GibiBytes." />
+          <Annotation Term="Validation.Minimum" Int="0"/>
+        </Property>
+        <Property Name="Image" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Image name."/>
+          <Annotation Term="OData.LongDescription" String="Image name." />
+        </Property>
+        <Property Name="Bootable" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Specify if target is bootable."/>
+          <Annotation Term="OData.LongDescription" String="Specify if target is bootable." />
+        </Property>
+        <Property Name="Snapshot" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Indicates if the logical drive should be created as a snapshot of the source master drive, or should be created as a full copy of an image from the source master drive."/>
+          <Annotation Term="OData.LongDescription" String="Indicates if the logical drive should be created as a snapshot of the source master drive, or should be created as a full copy of an image from the source master drive." />
+        </Property>
+
+        <Property Name="Status" Type="Resource.Status"/>
+
+        <Property Name="Links" Type="LogicalDrive.v1_0_0.Links" Nullable="false"/>
+      </EntityType>
+
+      <EnumType Name="Mode">
+        <Member Name="PV"/>
+        <Member Name="LV"/>
+        <Member Name="LVG"/>
+        <Member Name="OSD"/>
+        <Member Name="Pool"/>
+        <Member Name="RAID0"/>
+        <Member Name="RAID1"/>
+        <Member Name="RAID10"/>
+        <Member Name="RAID5"/>
+        <Member Name="RAID6"/>
+        <Member Name="RAID50"/>
+        <Member Name="RAID60"/>
+        <Member Name="JBOD"/>
+        <Member Name="BlockDevice"/>
+        <Member Name="LogicalDrive"/>
+        <Member Name="RBD"/>
+      </EnumType>
+
+      <EnumType Name="Type">
+        <Member Name="Generic"/>
+        <Member Name="LVM"/>
+        <Member Name="CEPH"/>
+        <Member Name="RSTe"/>
+        <Member Name="MDRAID"/>
+      </EnumType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+        <NavigationProperty Name="LogicalDrives" Type="Collection(LogicalDrive.v1_0_0.LogicalDrive)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="PhysicalDrives" Type="Collection(PhysicalDrive.v1_0_0.PhysicalDrive)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="MasterDrive" Type="LogicalDrive.v1_0_0.LogicalDrive">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="UsedBy" Type="Collection(LogicalDrive.v1_0_0.LogicalDrive)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Targets" Type="Collection(RemoteTarget.v1_0_0.RemoteTarget)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

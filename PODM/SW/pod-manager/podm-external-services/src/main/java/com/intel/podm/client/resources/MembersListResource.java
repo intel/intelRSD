@@ -21,44 +21,32 @@ import com.intel.podm.client.OdataTypes;
 
 import java.util.List;
 
+import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
+
 @OdataTypes({
     "#ProcessorCollection\\.ProcessorCollection",
     "#EthernetInterfaceCollection\\.EthernetInterfaceCollection",
-    // TODO: to be removed - only for RMM integration
-    "#EthernetInterfaceCollection" + OdataTypes.VERSION_PATTERN + "EthernetInterfaceCollection",
     "#ManagerCollection\\.ManagerCollection",
     "#ChassisCollection\\.ChassisCollection",
-    // TODO: to be removed - only for RMM integration
-    "#ChassisCollection" + OdataTypes.VERSION_PATTERN + "ChassisCollection",
     "#ComputerSystemCollection\\.ComputerSystemCollection",
     "#MemoryCollection\\.MemoryCollection",
     "#EthernetSwitchCollection\\.EthernetSwitchCollection",
     "#VLanNetworkInterfaceCollection\\.VLanNetworkInterfaceCollection",
-    // TODO: to be removed - only for RMM integration
-    "#VLanNetworkInterfaceCollection" + OdataTypes.VERSION_PATTERN + "VLanNetworkInterfaceCollection",
     "#EthernetSwitchPortCollection\\.EthernetSwitchPortCollection",
     "#EventDestinationCollection\\.EventDestinationCollection",
     "#StorageServiceCollection\\.StorageServiceCollection",
     "#LogicalDriveCollection\\.LogicalDriveCollection",
     "#PhysicalDriveCollection\\.PhysicalDriveCollection",
-    "#PowerZoneCollection" + OdataTypes.VERSION_PATTERN + "PowerZoneCollection",
-    "#PSUCollection" + OdataTypes.VERSION_PATTERN + "PSUCollection",
-    "#ThermalZoneCollection" + OdataTypes.VERSION_PATTERN + "ThermalZoneCollection",
-    "#DrawerCollection" + OdataTypes.VERSION_PATTERN + "DrawerCollection",
-    "#MBPCollection" + OdataTypes.VERSION_PATTERN + "MBPCollection",
-    "#FanCollection" + OdataTypes.VERSION_PATTERN + "FanCollection",
+    "#PSUCollection" + VERSION_PATTERN + "PSUCollection",
+    "#DrawerCollection" + VERSION_PATTERN + "DrawerCollection",
+    "#MBPCollection" + VERSION_PATTERN + "MBPCollection",
+    "#FanCollection" + VERSION_PATTERN + "FanCollection",
     "#RemoteTargetCollection\\.RemoteTargetCollection",
     "#SimpleStorageCollection\\.SimpleStorageCollection",
     "#StorageCollection\\.StorageCollection",
-    "#ThermalZoneCollection\\.ThermalZoneCollection",
-    "#PowerZoneCollection\\.PowerZoneCollection",
-    "#ManagerCollection" + OdataTypes.VERSION_PATTERN + "ManagerCollection",
+    "#ManagerCollection" + VERSION_PATTERN + "ManagerCollection",
     "#Intel\\.Oem\\.RmmPowerZoneCollection",
     "#Intel\\.Oem\\.RmmThermalZoneCollection",
-    // TODO: to be removed - only for RMM integration
-    "http://rackscale\\.intel\\.com/schema#Intel\\.Oem\\.PowerZoneCollection",
-    // TODO: to be removed - only for RMM integration
-    "http://rackscale\\.intel\\.com/schema#Intel\\.Oem\\.ThermalZoneCollection",
     "#StorageDriveCollection\\.StorageDriveCollection",
     "#PCIeDeviceCollection\\.PCIeDeviceCollection",
     "#PCIeFunctionCollection\\.PCIeFunctionCollection",
@@ -69,10 +57,22 @@ import java.util.List;
     "#EndpointCollection\\.EndpointCollection",
     "#NetworkInterfaceCollection\\.NetworkInterfaceCollection",
     "#NetworkDeviceFunctionCollection\\.NetworkDeviceFunctionCollection",
+    "#EthernetSwitchACLCollection\\.EthernetSwitchACLCollection",
+    "#EthernetSwitchACLRuleCollection\\.EthernetSwitchACLRuleCollection",
+    "#MetricDefinitionCollection\\.MetricDefinitionCollection",
+    "#MetricReportDefinitionCollection\\.MetricReportDefinitionCollection",
+    "#EthernetSwitchStaticMACCollection\\.EthernetSwitchStaticMACCollection",
 
-    //legacy collections
+    // legacy collections
     "#AdapterCollection\\.AdapterCollection",
-    "#DeviceCollection\\.DeviceCollection"
+    "#DeviceCollection\\.DeviceCollection",
+
+    // for RMM, should stay for backward compatibility
+    "#EthernetInterfaceCollection" + VERSION_PATTERN + "EthernetInterfaceCollection",
+    "#ChassisCollection" + VERSION_PATTERN + "ChassisCollection",
+    "#VLanNetworkInterfaceCollection" + VERSION_PATTERN + "VLanNetworkInterfaceCollection",
+    "http://rackscale\\.intel\\.com/schema#Intel\\.Oem\\.PowerZoneCollection",
+    "http://rackscale\\.intel\\.com/schema#Intel\\.Oem\\.ThermalZoneCollection",
 })
 public class MembersListResource extends ExternalServiceResourceImpl {
     @JsonProperty("Members")

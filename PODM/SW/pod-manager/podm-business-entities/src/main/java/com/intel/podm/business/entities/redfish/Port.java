@@ -21,7 +21,7 @@ import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.base.Resettable;
 import com.intel.podm.common.types.Id;
-import com.intel.podm.common.types.PortType;
+import com.intel.podm.common.types.PciePortType;
 import com.intel.podm.common.types.Protocol;
 import com.intel.podm.common.types.actions.ResetType;
 
@@ -36,6 +36,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import java.util.ArrayList;
@@ -57,8 +58,8 @@ import static javax.persistence.FetchType.LAZY;
     @NamedQuery(name = GET_PORTS_BY_PCIE_CONNECTION_ID,
         query = "SELECT port FROM Port port WHERE :pcieConnectionId MEMBER OF port.pcieConnectionIds")
 })
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class Port extends DiscoverableEntity implements Resettable {
     public static final String GET_PORTS_BY_PCIE_CONNECTION_ID = "GET_PORTS_BY_PCIE_CONNECTION_ID";
     private static final String ENTITY_NAME = "Port";
@@ -71,7 +72,7 @@ public class Port extends DiscoverableEntity implements Resettable {
 
     @Column(name = "port_type")
     @Enumerated(STRING)
-    private PortType portType;
+    private PciePortType portType;
 
     @Column(name = "port_protocol")
     @Enumerated(STRING)
@@ -99,22 +100,43 @@ public class Port extends DiscoverableEntity implements Resettable {
     @OrderColumn(name = "allowable_reset_type_order")
     private List<ResetType> allowableResetTypes = new ArrayList<>();
 
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "port_endpoint",
+        joinColumns = {@JoinColumn(name = "port_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "endpoint_id", referencedColumnName = "id")})
+    private Set<Endpoint> endpoints = new HashSet<>();
+
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "fabric_switch_id")
     private Switch fabricSwitch;
 
-    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
-    @JoinTable(
-        name = "port_endpoints",
-        joinColumns = {@JoinColumn(name = "endpoint_id", referencedColumnName = "id")},
-        inverseJoinColumns = {@JoinColumn(name = "port_id", referencedColumnName = "id")})
-    private Set<Endpoint> endpoints = new HashSet<>();
+    @OneToOne(mappedBy = "port", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private PortMetrics portMetrics;
 
-    public PortType getPortType() {
+    @Override
+    public Id getId() {
+        return entityId;
+    }
+
+    @Override
+    public void setId(Id id) {
+        entityId = id;
+    }
+
+    public String getPortId() {
+        return portId;
+    }
+
+    public void setPortId(String portId) {
+        this.portId = portId;
+    }
+
+    public PciePortType getPortType() {
         return portType;
     }
 
-    public void setPortType(PortType portType) {
+    public void setPortType(PciePortType portType) {
         this.portType = portType;
     }
 
@@ -126,28 +148,12 @@ public class Port extends DiscoverableEntity implements Resettable {
         this.portProtocol = portProtocol;
     }
 
-    public String getPortId() {
-        return portId;
-    }
-
-    public void setPortId(String portId) {
-        this.portId = portId;
-    }
-
     public Long getCurrentSpeedGbps() {
         return currentSpeedGbps;
     }
 
     public void setCurrentSpeedGbps(Long speedGbps) {
         this.currentSpeedGbps = speedGbps;
-    }
-
-    public Long getWidth() {
-        return width;
-    }
-
-    public void setWidth(Long width) {
-        this.width = width;
     }
 
     public Long getMaxSpeedGbps() {
@@ -158,12 +164,12 @@ public class Port extends DiscoverableEntity implements Resettable {
         this.maxSpeedGbps = maxSpeedGbps;
     }
 
-    public List<ResetType> getAllowableResetTypes() {
-        return allowableResetTypes;
+    public Long getWidth() {
+        return width;
     }
 
-    public void addAllowableResetType(ResetType allowableResetType) {
-        allowableResetTypes.add(allowableResetType);
+    public void setWidth(Long width) {
+        this.width = width;
     }
 
     public List<String> getPcieConnectionIds() {
@@ -172,6 +178,37 @@ public class Port extends DiscoverableEntity implements Resettable {
 
     public void addPcieConnectionId(String pcieConnectionId) {
         this.pcieConnectionIds.add(pcieConnectionId);
+    }
+
+    @Override
+    public List<ResetType> getAllowableResetTypes() {
+        return allowableResetTypes;
+    }
+
+    public void addAllowableResetType(ResetType allowableResetType) {
+        allowableResetTypes.add(allowableResetType);
+    }
+
+    public Set<Endpoint> getEndpoints() {
+        return endpoints;
+    }
+
+    public void addEndpoint(Endpoint endpoint) {
+        requiresNonNull(endpoint, "endpoint");
+
+        endpoints.add(endpoint);
+        if (!endpoint.getPorts().contains(this)) {
+            endpoint.addPort(this);
+        }
+    }
+
+    public void unlinkEndpoint(Endpoint endpoint) {
+        if (endpoints.contains(endpoint)) {
+            endpoints.remove(endpoint);
+            if (endpoint != null) {
+                endpoint.unlinkPort(this);
+            }
+        }
     }
 
     public Switch getSwitch() {
@@ -198,42 +235,34 @@ public class Port extends DiscoverableEntity implements Resettable {
         }
     }
 
-    public Set<Endpoint> getEndpoints() {
-        return endpoints;
+    public PortMetrics getPortMetrics() {
+        return portMetrics;
     }
 
-    public void addEndpoint(Endpoint endpoint) {
-        requiresNonNull(endpoint, "endpoint");
-
-        endpoints.add(endpoint);
-        if (!endpoint.getPorts().contains(this)) {
-            endpoint.addPort(this);
+    public void setPortMetrics(PortMetrics portMetrics) {
+        if (!Objects.equals(this.portMetrics, portMetrics)) {
+            unlinkMetrics(this.portMetrics);
+            this.portMetrics = portMetrics;
+            if (portMetrics != null && !this.equals(portMetrics.getPort())) {
+                portMetrics.setPort(this);
+            }
         }
     }
 
-    public void unlinkEndpoint(Endpoint endpoint) {
-        if (endpoints.contains(endpoint)) {
-            endpoints.remove(endpoint);
-            if (endpoint != null) {
-                endpoint.unlinkPort(this);
+    public void unlinkMetrics(PortMetrics portMetrics) {
+        if (Objects.equals(this.portMetrics, portMetrics)) {
+            this.portMetrics = null;
+            if (portMetrics != null) {
+                portMetrics.unlinkPort(this);
             }
         }
     }
 
     @Override
-    public Id getId() {
-        return entityId;
-    }
-
-    @Override
-    public void setId(Id id) {
-        entityId = id;
-    }
-
-    @Override
     public void preRemove() {
-        unlinkSwitch(fabricSwitch);
         unlinkCollection(endpoints, this::unlinkEndpoint);
+        unlinkSwitch(fabricSwitch);
+        unlinkMetrics(portMetrics);
     }
 
     @Override
@@ -245,5 +274,4 @@ public class Port extends DiscoverableEntity implements Resettable {
     public String getResetName() {
         return ENTITY_NAME;
     }
-
 }

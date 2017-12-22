@@ -28,7 +28,6 @@
 
 
 using namespace agent_framework::exceptions;
-using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 
 namespace agent_framework {
@@ -40,7 +39,7 @@ void CommonValidator::validate_set_drive_attributes(const Attributes& attributes
     for (const auto& name : attributes.get_names()) {
         const auto& value = attributes.get_value(name);
         if (literals::Drive::ASSET_TAG == name) {
-            check_string(value, name, "agent-framework");
+            check_nullable_string(value, name, "agent-framework");
         }
         else if (literals::Drive::ERASED == name) {
             check_boolean(value, name, "agent-framework");
@@ -52,10 +51,10 @@ void CommonValidator::validate_set_drive_attributes(const Attributes& attributes
             Oem::from_json(value);
         }
         else {
-            THROW(InvalidField, "agent-framework", "Unrecognized attribute.", name, value) ;
+            THROW(InvalidField, "agent-framework", "Unrecognized attribute.", name, value);
         }
     }
-    log_debug(GET_LOGGER("agent-framework"), "Request validation passed.");
+    log_debug("agent-framework", "Request validation passed.");
 }
 
 
@@ -63,6 +62,15 @@ void CommonValidator::validate_set_chassis_attributes(const Attributes& attribut
     for (const auto& name : attributes.get_names()) {
         const auto& value = attributes.get_value(name);
         if (literals::Chassis::ASSET_TAG == name) {
+            check_nullable_string(value, name, "agent-framework");
+        }
+        else if (literals::Chassis::RESET == name) {
+            check_enum<enums::ResetType>(value, name, "agent-framework");
+        }
+        else if (literals::Chassis::GEO_TAG == name) {
+            check_nullable_string(value, name, "agent-framework");
+        }
+        else if (literals::Chassis::LOCATION_ID == name) {
             check_string(value, name, "agent-framework");
         }
         else if (literals::Chassis::OEM == name) {
@@ -72,7 +80,7 @@ void CommonValidator::validate_set_chassis_attributes(const Attributes& attribut
             THROW(InvalidField, "agent-framework", "Unrecognized attribute.", name, value);
         }
     }
-    log_debug(GET_LOGGER("agent-framework"), "Request validation passed.");
+    log_debug("agent-framework", "Request validation passed.");
 }
 
 
@@ -83,18 +91,19 @@ void CommonValidator::validate_set_system_attributes(const Attributes& attribute
             check_enum<enums::BootOverride>(value, name, "agent-framework");
         }
         else if (literals::System::BOOT_OVERRIDE_MODE == name) {
-            check_enum<enums::BootOverrideMode>(
-                value, name, "agent-framework");
+            check_enum<enums::BootOverrideMode>(value, name, "agent-framework");
         }
         else if (literals::System::BOOT_OVERRIDE_TARGET == name) {
-            check_enum<enums::BootOverrideTarget>(
-                value, name, "agent-framework");
+            check_enum<enums::BootOverrideTarget>(value, name, "agent-framework");
         }
         else if (literals::System::POWER_STATE == name) {
             check_enum<enums::ResetType>(value, name, "agent-framework");
         }
         else if (literals::System::ASSET_TAG == name) {
-            check_string(value, name, "agent-framework");
+            check_nullable_string(value, name, "agent-framework");
+        }
+        else if (literals::System::USER_MODE_ENABLED == name) {
+            check_boolean(value, name, "agent-framework");
         }
         else if (literals::System::OEM == name) {
             Oem::from_json(value);
@@ -103,7 +112,31 @@ void CommonValidator::validate_set_system_attributes(const Attributes& attribute
             THROW(InvalidField, "agent-framework", "Unrecognized attribute.", name, value);
         }
     }
-    log_debug(GET_LOGGER("agent-framework"), "Request validation passed.");
+    log_debug("agent-framework", "Request validation passed.");
+}
+
+
+void CommonValidator::validate_set_manager_attributes(const Attributes& attributes) {
+    for (const auto& name : attributes.get_names()) {
+        const auto& value = attributes.get_value(name);
+
+        if (literals::Manager::RESET == name) {
+            check_enum<enums::ResetType>(value, name, "agent-framework");
+        }
+        else if (literals::Manager::FACTORY_DEFAULTS == name) {
+            check_boolean(value, name, "agent-framework");
+        }
+        else if (literals::Manager::PACKAGE_URL == name) {
+            check_string(value, name, "agent-framework");
+        }
+        else if (literals::Manager::OEM == name) {
+            Oem::from_json(value);
+        }
+        else {
+            THROW(InvalidField, "agent-framework", "Unrecognized attribute.", name, value);
+        }
+    }
+    log_debug("agent-framework", "Request validation passed.");
 }
 
 }

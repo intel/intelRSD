@@ -35,3 +35,5 @@
 #include "acl_rule.hpp"
 #include "static_mac.hpp"
 #include "task.hpp"
+#include "metric.hpp"
+#include "metric_definition.hpp"

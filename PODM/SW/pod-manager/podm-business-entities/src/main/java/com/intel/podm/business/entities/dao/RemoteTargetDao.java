@@ -16,23 +16,22 @@
 
 package com.intel.podm.business.entities.dao;
 
-
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.net.URI;
 import java.util.List;
 
+import static com.intel.podm.business.entities.redfish.RemoteTarget.GET_REMOTE_TARGET_BY_SOURCE_URI;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Dependent
-@Transactional(MANDATORY)
+@ApplicationScoped
 public class RemoteTargetDao extends Dao<RemoteTarget> {
+    @Transactional(MANDATORY)
     public List<RemoteTarget> getAllBySourceUri(URI sourceUri) {
-        TypedQuery<RemoteTarget> query =
-                entityManager.createNamedQuery(RemoteTarget.GET_REMOTE_TARGET_BY_SOURCE_URI, RemoteTarget.class);
+        TypedQuery<RemoteTarget> query = entityManager.createNamedQuery(GET_REMOTE_TARGET_BY_SOURCE_URI, RemoteTarget.class);
         query.setParameter("sourceUri", sourceUri);
         return query.getResultList();
     }

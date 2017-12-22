@@ -20,9 +20,9 @@
 
 #pragma once
 
-
-
-#include <jsonrpccpp/client.h>
+#include "json-rpc/connectors/abstract_client_connector.hpp"
+#include "json-rpc/handlers/json_rpc_request_invoker.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -31,12 +31,13 @@ namespace core {
 namespace agent {
 
 /*! Implementation of JSON RPC Client which can handle framework exceptions. */
-class RpcClient : jsonrpc::Client {
+class RpcClient {
 public:
-    RpcClient(jsonrpc::IClientConnector& conn) : jsonrpc::Client(conn) {}
+    RpcClient(json_rpc::AbstractClientConnectorPtr conn, json_rpc::JsonRpcRequestInvokerPtr inv):
+        m_connector(conn), m_invoker(inv) {}
 
 
-    Json::Value CallMethod(const std::string& name, const Json::Value& parameter);
+    json::Json CallMethod(const std::string& name, const json::Json& parameter);
 
 
     virtual ~RpcClient();
@@ -44,9 +45,11 @@ public:
 
 private:
 
+    json_rpc::AbstractClientConnectorPtr m_connector;
+    json_rpc::JsonRpcRequestInvokerPtr m_invoker;
+
 };
 
 }
 }
 }
-

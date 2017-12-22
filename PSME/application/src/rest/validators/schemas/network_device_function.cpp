@@ -32,7 +32,6 @@ using namespace agent_framework::model;
 
 const jsonrpc::ProcedureValidator& NetworkDeviceFunctionPatchSchema::EthernetObjectSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "ethernet_object",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::MAC_ADDRESS, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
         nullptr
@@ -43,7 +42,6 @@ const jsonrpc::ProcedureValidator& NetworkDeviceFunctionPatchSchema::EthernetObj
 
 const jsonrpc::ProcedureValidator& NetworkDeviceFunctionPatchSchema::IscsiBootObjectSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "iscsi_boot_object",
         jsonrpc::PARAMS_BY_NAME,
         constants::NetworkDeviceFunction::IP_ADDRESS_TYPE, VALID_OPTIONAL(VALID_NULLABLE(VALID_ENUM(enums::IPAddressType))),
         constants::NetworkDeviceFunction::INITIATOR_IP_ADDRESS, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
@@ -80,7 +78,6 @@ const jsonrpc::ProcedureValidator& NetworkDeviceFunctionPatchSchema::IscsiBootOb
 
 const jsonrpc::ProcedureValidator& NetworkDeviceFunctionPatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "network_device_function_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::NetworkDeviceFunction::ETHERNET, VALID_OPTIONAL(VALID_ATTRIBUTE(EthernetObjectSchema)),
         constants::NetworkDeviceFunction::ISCSI_BOOT, VALID_OPTIONAL(VALID_ATTRIBUTE(IscsiBootObjectSchema)),

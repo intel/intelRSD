@@ -16,16 +16,20 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.StorageDto;
+import com.intel.podm.business.dto.StorageDto;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.business.services.context.PathParamConstants.STORAGE_ID;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class StorageCollectionResource extends BaseResource {
     @Inject
@@ -41,4 +45,8 @@ public class StorageCollectionResource extends BaseResource {
         return getResource(StorageResource.class);
     }
 
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
+    }
 }

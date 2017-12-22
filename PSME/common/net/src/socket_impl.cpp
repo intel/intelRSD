@@ -1,3 +1,17 @@
+//
+// SocketImpl.cpp
+//
+// $Id: //poco/1.4/Net/src/SocketImpl.cpp#6 $
+//
+// Library: Net
+// Package: Sockets
+// Module:  SocketImpl
+//
+// Copyright (c) 2005-2006, Applied Informatics Software Engineering GmbH.
+// and Contributors.
+//
+// SPDX-License-Identifier:	BSL-1.0
+//
 /*!
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation
@@ -521,8 +535,8 @@ bool SocketImpl::get_reuse_address() {
     return value != 0;
 }
 
-void SocketImpl::set_reuse_port(bool flag) {
 #ifdef SO_REUSEPORT
+void SocketImpl::set_reuse_port(bool flag) {
     try {
         int value = flag ? 1 : 0;
         set_option(SOL_SOCKET, SO_REUSEPORT, value);
@@ -532,6 +546,8 @@ void SocketImpl::set_reuse_port(bool flag) {
         // support SO_REUSEPORT, even if the macro
         // is defined.
     }
+#else
+void SocketImpl::set_reuse_port(bool) {
 #endif
 }
 

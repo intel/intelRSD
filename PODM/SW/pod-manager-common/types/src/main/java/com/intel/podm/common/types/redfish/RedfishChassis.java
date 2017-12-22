@@ -23,4 +23,7 @@ public interface RedfishChassis extends RedfishResource {
     default String getLocationId() {
         return null;
     }
+    default String getGeoTag() {
+        return null;
+    }
 }

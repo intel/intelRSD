@@ -35,8 +35,8 @@ AuthorizationCertificate::AuthorizationCertificate(
 
 AuthorizationCertificate::~AuthorizationCertificate() {}
 
-Json::Value AuthorizationCertificate::to_json() const {
-    Json::Value result;
+json::Json AuthorizationCertificate::to_json() const {
+    json::Json result;
     result[literals::AuthorizationCertificate::CERTIFICATE] = get_certificate();
     result[literals::AuthorizationCertificate::ENCODING_METHOD] =
         get_encoding_method().to_string();
@@ -47,17 +47,12 @@ Json::Value AuthorizationCertificate::to_json() const {
 }
 
 AuthorizationCertificate AuthorizationCertificate::from_json(
-    const Json::Value& json) {
+    const json::Json& json) {
     AuthorizationCertificate certificate{};
     certificate.set_certificate(
-        json[literals::AuthorizationCertificate::CERTIFICATE].asString());
+        json[literals::AuthorizationCertificate::CERTIFICATE]);
     certificate.set_encoding_method(enums::EncodingMethod::from_string(
-        json[literals::AuthorizationCertificate::ENCODING_METHOD].asString()));
-//    certificate.set_certificate_hash(
-//        json[literals::AuthorizationCertificate::HASH].asString());
-//  certificate.set_hash_method(enums::HashMethod::from_string(
-//        json[literals::AuthorizationCertificate::HASH_METHOD].asString()));
-//    certificate.set_oem(Oem::from_json(json[literals::Certificate::OEM]));
+        json[literals::AuthorizationCertificate::ENCODING_METHOD]));
     certificate.set_resource_hash(json);
 
     return certificate;

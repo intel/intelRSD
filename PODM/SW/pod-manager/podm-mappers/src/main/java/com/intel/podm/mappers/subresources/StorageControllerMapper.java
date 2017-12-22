@@ -17,53 +17,45 @@
 package com.intel.podm.mappers.subresources;
 
 import com.intel.podm.business.entities.redfish.StorageController;
-import com.intel.podm.client.api.resources.redfish.StorageResource.StorageControllerResource;
-import com.intel.podm.mappers.subresources.strategies.EntityCleanAndCreateStrategy;
+import com.intel.podm.client.resources.redfish.StorageControllerResource;
+import com.intel.podm.mappers.EntityMapper;
+import com.intel.podm.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.util.Objects;
 
 @Dependent
-public class StorageControllerMapper extends SubresourceMapper<StorageControllerResource, StorageController> {
+public class StorageControllerMapper extends EntityMapper<StorageControllerResource, StorageController> {
     @Inject
     private IdentifierMapper identifierMapper;
 
     @Inject
     private SimpleTypeMapper simpleTypeMapper;
 
+    private UnknownOemMapper unknownOemMapper = new UnknownOemMapper(new EmbeddableCleanAndCreateStrategy<>());
+
     @Inject
-    public StorageControllerMapper(EntityCleanAndCreateStrategy<StorageController> entityCleanAndCreateStrategy) {
-        super(StorageController.class, entityCleanAndCreateStrategy);
+    public StorageControllerMapper() {
+        super(StorageControllerResource.class, StorageController.class);
     }
 
     @Override
     public void map(StorageControllerResource source, StorageController target) {
-        target.setSku(source.getSku());
-        target.setModel(source.getModel());
-        target.setStatus(source.getStatus());
-        target.setAssetTag(source.getAssetTag());
+        target.setName(source.getName());
+        target.setDescription(source.getDescription());
         target.setMemberId(source.getMemberId());
-        target.setSpeedGbps(source.getSpeedGbps());
-        target.setPartNumber(source.getPartNumber());
+        target.setStatus(source.getStatus());
         target.setManufacturer(source.getManufacturer());
+        target.setModel(source.getModel());
+        target.setSku(source.getSku());
         target.setSerialNumber(source.getSerialNumber());
+        target.setPartNumber(source.getPartNumber());
+        target.setAssetTag(source.getAssetTag());
+        target.setSpeedGbps(source.getSpeedGbps());
         target.setFirmwareVersion(source.getFirmwareVersion());
         simpleTypeMapper.map(source.getSupportedDeviceProtocols(), target.getSupportedDeviceProtocols(), target::addSupportedDeviceProtocol);
         simpleTypeMapper.map(source.getSupportedControllerProtocols(), target.getSupportedControllerProtocols(), target::addSupportedControllerProtocol);
         identifierMapper.map(source.getIdentifiers(), target.getIdentifiers(), target::addIdentifier);
-    }
-
-    @Override
-    protected boolean equals(StorageControllerResource source, StorageController target) {
-        return Objects.equals(target.getManufacturer(), source.getManufacturer())
-            && Objects.equals(target.getModel(), source.getModel())
-            && Objects.equals(target.getSku(), source.getSku())
-            && checkSerialAndPartNumber(source, target);
-    }
-
-    private boolean checkSerialAndPartNumber(StorageControllerResource source, StorageController target) {
-        return Objects.equals(target.getSerialNumber(), source.getSerialNumber())
-            && Objects.equals(target.getPartNumber(), source.getPartNumber());
+        unknownOemMapper.map(source.getUnknownOems(), target.getUnknownOems(), target::addUnknownOem);
     }
 }

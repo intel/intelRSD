@@ -32,7 +32,6 @@
 #include <curl/curl.h>
 #include <cstring>
 #include <string>
-#include <iostream>
 #include <map>
 #include <memory>
 

@@ -21,8 +21,6 @@
 
 
 #pragma once
-#include "agent-framework/command/command.hpp"
-
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
 
@@ -38,38 +36,49 @@ namespace model {
 class FakeRoot : public Resource {
 public:
     FakeRoot() : Resource("fakeuuid") {}
+
+
     FakeRoot(const FakeRoot&) = default;
+
+
     FakeRoot& operator=(const FakeRoot&) = default;
+
+
     virtual ~FakeRoot();
-    static enums::Component get_component()  {
+
+
+    static enums::Component get_component() {
         return enums::Component::Root;
     }
-    static FakeRoot from_json(const Json::Value&) {
+
+
+    static FakeRoot from_json(const json::Json&) {
         assert(false);
         return FakeRoot();
     }
+
+
     static enums::CollectionName get_collection_name() {
         return enums::CollectionName::None;
     }
 };
-}
 
-namespace command {
+namespace requests {
 
 /*!
  * @brief Stub required to instantiate RootHandler
  */
-class FakeRootInfo : public agent_framework::command::Command {
+class FakeRootInfo {
 public:
     FakeRootInfo(const FakeRootInfo&) : m_uuid{} {}
+
+
     virtual ~FakeRootInfo();
-    explicit FakeRootInfo(const std::string& uuid) : m_uuid(uuid)  {}
-    /*!
-     * @brief Execute command with input/output arguments
-     * */
-    virtual void execute(const Argument&, Argument&) override {
-        assert(false);
-    }
+
+
+    explicit FakeRootInfo(const std::string& uuid) : m_uuid(uuid) {}
+
+
     /*!
      * @brief returns command
      */
@@ -77,20 +86,26 @@ public:
         assert(false);
         return "Unexpected method called";
     }
+
+
     /*!
      * @brief conversion to json
      */
-    Json::Value to_json() const {
+    json::Json to_json() const {
         assert(false);
-        return Json::Value{};
+        return json::Json{};
     }
+
+
     /*!
      * @brief conversion from  son
      */
-    static FakeRootInfo from_json(const Json::Value&) {
+    static FakeRootInfo from_json(const json::Json&) {
         assert(false);
         return FakeRootInfo("none");
     }
+
+
     /*!
      * @brief returns component uuid
      */
@@ -98,11 +113,12 @@ public:
         assert(false);
         return m_uuid;
     }
+
+
     std::string m_uuid;
 };
-
 }
-
+}
 }
 
 namespace psme {
@@ -113,7 +129,7 @@ namespace handler {
 /*!
  * @brief Handler for artificial ROOT component introduced to simplify generic code
  */
-class RootHandler : public GenericHandler<agent_framework::command::FakeRootInfo,
+class RootHandler : public GenericHandler<agent_framework::model::requests::FakeRootInfo,
     agent_framework::model::FakeRoot,
     IdPolicy<agent_framework::model::enums::Component::Root, NumberingZone::SHARED>> {
 public:
@@ -126,7 +142,7 @@ protected:
      * @param uuid UUID of the node to reload
      * @param recursively Do you want to retrieve descendants as well?
      */
-    std::uint64_t add(Context& ctx, const std::string &parent, const std::string &uuid, bool recursively) override {
+    std::uint64_t add(Context& ctx, const std::string& parent, const std::string& uuid, bool recursively) override {
         (void) parent;
         (void) recursively;
         using Collection = agent_framework::model::attribute::Collection;
@@ -138,6 +154,12 @@ protected:
         collections.add_entry({ Collection(
                 agent_framework::model::enums::CollectionName::Tasks,
                 agent_framework::model::enums::CollectionType::Tasks, "")});
+        collections.add_entry({ Collection(
+            agent_framework::model::enums::CollectionName::MetricDefinitions,
+            agent_framework::model::enums::CollectionType::MetricDefinitions, "")});
+        collections.add_entry({ Collection(
+            agent_framework::model::enums::CollectionName::Metrics,
+            agent_framework::model::enums::CollectionType::Metrics, "")});
         auto indent = ctx.indent;
         ctx.indent += "    ";
         fetch_subcomponents(ctx, uuid, collections);
@@ -162,7 +184,7 @@ protected:
      * Because single handler represents one type of resource, handlers will call another
      * handlers to build the whole tree of components
      * */
-    bool handle(JsonAgentSPtr, const EventData&) override {
+    bool handle(JsonAgentSPtr, const EventData&, EventVec&) override {
         throw std::runtime_error("Logic error - should not be executed");
     }
 
@@ -192,7 +214,7 @@ protected:
     /*!
      * @brief removes all childrens of given parent (including descendants)
      */
-    void remove_all(const std::string&) override  {
+    void remove_all(Context&, const std::string&) override  {
         throw std::runtime_error("Logic error - should not be executed");
     }
 };

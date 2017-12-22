@@ -16,73 +16,42 @@
 
 package com.intel.podm.business.entities.dao;
 
-
-import com.intel.podm.business.entities.IdFromUriGenerator;
-import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.common.types.ServiceType;
 
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
-import java.net.URI;
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.intel.podm.business.entities.redfish.ExternalService.GET_EXTERNAL_SERVICES_BY_SERVICES_TYPES;
 import static com.intel.podm.business.entities.redfish.ExternalService.GET_EXTERNAL_SERVICE_BY_UUID;
-import static java.util.Arrays.asList;
+import static com.intel.podm.common.utils.IterableHelper.getUniqueValueFromSingletonListOrNull;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Dependent
+@ApplicationScoped
 public class ExternalServiceDao extends Dao<ExternalService> {
 
-    @Inject
-    IdFromUriGenerator idFromUriGenerator;
-
     @Transactional(MANDATORY)
-    public <T extends DiscoverableEntity> T findOrCreateEntity(ExternalService externalService, URI uri, Class<T> clazz) {
-        for (DiscoverableEntity entity : externalService.getOwned(DiscoverableEntity.class)) {
-            URI sourceUri = entity.getSourceUri();
-
-            if (Objects.equals(uri, sourceUri)) {
-                return (T) entity;
-            }
-        }
-
-        return createEntity(externalService, uri, clazz);
-    }
-
-    @Transactional(MANDATORY)
-    public <T extends DiscoverableEntity> T createEntity(ExternalService externalService, URI uri, Class<T> clazz) {
-        T entity = create(clazz);
-        entity.setSourceUri(uri);
-        externalService.addOwned(entity);
-        entity.setId(idFromUriGenerator.getIdFromUri(uri, externalService.getId().getValue()));
-        return entity;
-    }
-
-    @Transactional(MANDATORY)
-    public ExternalService getExternalServiceByUuid(UUID uuid) throws NonUniqueResultException {
+    public ExternalService tryGetUniqueExternalServiceByUuid(UUID uuid) {
         TypedQuery<ExternalService> query = entityManager.createNamedQuery(GET_EXTERNAL_SERVICE_BY_UUID, ExternalService.class);
         query.setParameter("uuid", uuid);
-        return singleEntityOrNull(query.getResultList());
+        return getUniqueValueFromSingletonListOrNull(query.getResultList());
     }
 
     @Transactional(MANDATORY)
-    public List<ExternalService> getExternalServicesByServicesTypes(ServiceType... serviceTypes) {
-        if (serviceTypes == null || serviceTypes.length == 0) {
+    public List<ExternalService> getExternalServicesByServicesTypes(Set<ServiceType> serviceTypes) {
+        if (serviceTypes == null || serviceTypes.isEmpty()) {
             return emptyList();
         }
 
         TypedQuery<ExternalService> query = entityManager.createNamedQuery(GET_EXTERNAL_SERVICES_BY_SERVICES_TYPES, ExternalService.class);
-        query.setParameter("serviceTypes", asList(serviceTypes));
+        query.setParameter("serviceTypes", serviceTypes);
         return query.getResultList();
     }
 

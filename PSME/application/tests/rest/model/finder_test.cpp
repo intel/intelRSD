@@ -23,12 +23,12 @@
 
 
 #include "psme/rest/model/finder.hpp"
-#include "psme/rest/model/handlers/database.hpp"
 #include "agent-framework/module/managers/generic_manager.hpp"
 #include "agent-framework/module/model/manager.hpp"
 #include "agent-framework/module/model/memory.hpp"
 #include "agent-framework/module/model/system.hpp"
 
+#include "database/database.hpp"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -44,8 +44,8 @@ namespace handler {
 class DatabaseTester {
 public:
     static void drop_all() {
-        Database::SPtr db = Database::create("*drop_all");
-        AlwaysMatchKey key{};
+        database::Database::SPtr db = database::Database::create("*drop_all");
+        database::AlwaysMatchKey key{};
         db->drop(key);
         db->remove();
     }

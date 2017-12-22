@@ -28,12 +28,6 @@
 
 #include "agent-framework/module/utils/utils.hpp"
 
-
-
-namespace Json {
-class Value;
-}
-
 namespace psme {
 namespace rest {
 namespace registries {
@@ -125,13 +119,13 @@ public:
 
 
     /*!
-     * Create a location object from a Json::Value object.
+     * Create a location object from a json::Json object.
      *
-     * @param[in] json Json::Value object to convert to Location object.
+     * @param[in] json json::Json object to convert to Location object.
      *
      * @return Constructed Location object.
      * */
-    static Location from_json(const Json::Value& json);
+    static Location from_json(const json::Json& json);
 
 
 private:

@@ -5,10 +5,11 @@
     <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="EventDestination.xml">
     <edmx:Include Namespace="EventDestination"/>
+    <edmx:Include Namespace="EventDestination.v1_0_0"/>
   </edmx:Reference>
 
   <edmx:DataServices>
@@ -16,7 +17,7 @@
 
       <EntityType Name="EventDestinationCollection" BaseType="Resource.v1_0_0.ResourceCollection">
         <Annotation Term="OData.Description" String="A Collection of EventDestination resource instances."/>
-        <NavigationProperty Name="Members" Type="Collection(EventDestination.EventDestination)" Nullable="false">
+        <NavigationProperty Name="Members" Type="Collection(EventDestination.v1_0_0.EventDestination)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Contains the members of this collection."/>
           <Annotation Term="OData.AutoExpandReferences"/>

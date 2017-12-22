@@ -16,33 +16,78 @@
 
 package com.intel.podm.discovery.external.event;
 
+import com.intel.podm.client.WebClient;
+import com.intel.podm.client.WebClientBuilder;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.events.EventServiceDefinition;
+import com.intel.podm.client.events.EventSubscriptionManager;
+import com.intel.podm.client.resources.EventSubscriptionResource;
 import com.intel.podm.common.enterprise.utils.tasks.DefaultManagedTask;
-import com.intel.podm.discovery.external.DiscoveryScheduler;
+import com.intel.podm.common.logger.Logger;
+import com.intel.podm.discovery.ServiceExplorer;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import java.net.URI;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
+import static com.intel.podm.client.WebClientExceptionUtils.isConnectionExceptionTheRootCause;
+
 @RequestScoped
-public class EventSubscriptionTask extends DefaultManagedTask implements Runnable {
+class EventSubscriptionTask extends DefaultManagedTask implements Runnable {
+    @Inject
+    private Logger logger;
 
     @Inject
-    private EventSubscribeRunner eventSubscribeRunner;
+    private ServiceExplorer serviceExplorer;
 
     @Inject
-    private DiscoveryScheduler discoveryScheduler;
+    private EventServiceDefinitionFactory eventServiceDefinitionFactory;
+
+    @Inject
+    private WebClientBuilder webClientBuilder;
 
     private UUID serviceUuid;
 
-    public void setServiceUuid(UUID serviceUuid) {
+    void setServiceUuid(UUID serviceUuid) {
         this.serviceUuid = serviceUuid;
     }
 
     @Override
     public void run() {
-        boolean subscribed = eventSubscribeRunner.subscribeIfNotAlreadySubscribed(serviceUuid);
-        if (subscribed) {
-            discoveryScheduler.enqueueDiscovery(serviceUuid);
+        EventServiceDefinition eventServiceDefinition = eventServiceDefinitionFactory.create(serviceUuid);
+        try (WebClient webClient = webClientBuilder.newInstance(eventServiceDefinition.getServiceBaseUri()).retryable().build()) {
+            EventSubscriptionManager eventSubscriptionManager = new EventSubscriptionManager(webClient, eventServiceDefinition);
+            Optional<EventSubscriptionResource> eventSubscription = eventSubscriptionManager.fetchPodmSubscription();
+
+            if (eventSubscription.isPresent()) {
+                EventSubscriptionResource subscription = eventSubscription.get();
+                if (!subscriptionHaveSameDestinationAsThisPodm(subscription.getDestination(), eventServiceDefinition.getPodmEventServiceDestinationUri())) {
+                    eventSubscriptionManager.deleteSubscription(subscription);
+                    subscribe(eventSubscriptionManager);
+                } else {
+                    logger.t("Subscription is already present for '" + serviceUuid + "'");
+                }
+            } else {
+                subscribe(eventSubscriptionManager);
+            }
+        } catch (WebClientRequestException e) {
+            if (isConnectionExceptionTheRootCause(e)) {
+                logger.w("Connection error while checking subscriptions for service with UUID: " + serviceUuid + ", " + e.getMessage());
+                serviceExplorer.enqueueVerification(serviceUuid);
+            }
+            logger.e("Error while subscribing to event service for '" + serviceUuid, e);
         }
+    }
+
+    private boolean subscriptionHaveSameDestinationAsThisPodm(URI destination, URI podmEventServiceDestinationUri) {
+        return Objects.equals(destination, podmEventServiceDestinationUri);
+    }
+
+    private void subscribe(EventSubscriptionManager eventSubscriptionManager) throws WebClientRequestException {
+        eventSubscriptionManager.subscribeToAllKnownEvents();
+        logger.t("Successfully subscribed to event service for '" + serviceUuid + "'");
     }
 }

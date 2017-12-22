@@ -16,8 +16,10 @@
 
 package com.intel.podm.discovery.external.finalizers;
 
+import com.google.common.collect.Lists;
 import com.intel.podm.business.entities.dao.ChassisDao;
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.common.logger.Logger;
 import org.testng.annotations.Test;
 
 import java.util.Set;
@@ -41,13 +43,14 @@ public class DrawerLocationGuardTest {
         TopLevelChassisLocationGuard drawerLocationGuard = new TopLevelChassisLocationGuard();
 
         drawerLocationGuard.chassisDao = mock(ChassisDao.class);
+        drawerLocationGuard.logger = mock(Logger.class);
         Chassis drawer = createDrawerMock("1", "1");
         Chassis first = createRackChassisMock(singleton(drawer), "1");
         Chassis second = createRackChassisMock(singleton(drawer), "2");
         Chassis third = createRackChassisMock(singleton(drawer), "3");
         when(drawerLocationGuard.chassisDao.getAllByChassisType(RACK)).thenReturn(asList(first, second, third));
 
-        drawerLocationGuard.assureSingleRackParent(drawer);
+        drawerLocationGuard.assureSingleRackParent(asList(drawer));
 
         verify(first, never()).unlinkContainedChassis(drawer);
         verify(second, times(1)).unlinkContainedChassis(drawer);
@@ -59,13 +62,14 @@ public class DrawerLocationGuardTest {
         TopLevelChassisLocationGuard drawerLocationGuard = new TopLevelChassisLocationGuard();
 
         drawerLocationGuard.chassisDao = mock(ChassisDao.class);
+        drawerLocationGuard.logger = mock(Logger.class);
         Chassis drawer = createDrawerMock("1", "1");
         Chassis first = createRackChassisMock(singleton(drawer), "1");
         Chassis second = createRackChassisMock(emptySet(), "2");
         Chassis third = createRackChassisMock(emptySet(), "3");
-        when(drawerLocationGuard.chassisDao.getAllByChassisType(RACK)).thenReturn(asList(first, second, third));
+        when(drawerLocationGuard.chassisDao.getAllByChassisType(RACK)).thenReturn(Lists.newArrayList(first, second, third));
 
-        drawerLocationGuard.assureSingleRackParent(drawer);
+        drawerLocationGuard.assureSingleRackParent(asList(drawer));
 
         verify(drawerLocationGuard.chassisDao, never()).remove(first);
         verify(drawerLocationGuard.chassisDao, times(1)).remove(second);

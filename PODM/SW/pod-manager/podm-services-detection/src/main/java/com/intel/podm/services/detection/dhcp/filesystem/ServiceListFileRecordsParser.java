@@ -25,7 +25,7 @@ import java.util.List;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.StringUtils.split;
+import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.validator.routines.UrlValidator.ALLOW_LOCAL_URLS;
 
 @Dependent

@@ -21,7 +21,7 @@
 
 #include "agent-framework/module/model/port.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
@@ -35,8 +35,8 @@ Port::Port(const std::string& parent_uuid, enums::Component parent_type) :
 
 Port::~Port() {}
 
-Json::Value Port::to_json() const {
-    Json::Value result;
+json::Json Port::to_json() const {
+    json::Json result;
     result[literals::Port::PORT_ID] = get_port_id();
     result[literals::Port::PORT_TYPE] = get_port_type();
     result[literals::Port::OPERATIONAL_STATE] = get_operational_state();
@@ -53,7 +53,7 @@ Json::Value Port::to_json() const {
     return result;
 }
 
-Port Port::from_json(const Json::Value& json) {
+Port Port::from_json(const json::Json& json) {
     Port fabric_port;
     fabric_port.set_port_id(json[literals::Port::PORT_ID]);
     fabric_port.set_port_type(json[literals::Port::PORT_TYPE]);
@@ -68,5 +68,7 @@ Port Port::from_json(const Json::Value& json) {
     fabric_port.set_oem(Oem::from_json(json[literals::Port::OEM]));
     fabric_port.set_allowed_actions(AllowedActions::from_json(json[literals::Port::ALLOWED_ACTIONS]));
     fabric_port.set_protocol(json[literals::Port::PROTOCOL]);
+
+    fabric_port.set_resource_hash(json);
     return fabric_port;
 }

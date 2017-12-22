@@ -17,17 +17,19 @@
 package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.redfish.json.templates.CollectionJson;
 import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.redfish.json.templates.CollectionJson;
 import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
 
-import java.util.stream.Collectors;
+import javax.enterprise.context.Dependent;
 
-import static com.intel.podm.redfish.serializers.CollectionTypeToCollectionODataMapping.getOdataForCollectionType;
-import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromId;
+import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromODataType;
 import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.appendOdataId;
 import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
+import static com.intel.podm.redfish.serializers.CollectionTypeToCollectionODataMapping.getOdataForCollectionType;
+import static java.util.stream.Collectors.toList;
 
+@Dependent
 public class CollectionDtoJsonSerializer extends DtoJsonSerializer<CollectionDto> {
     public CollectionDtoJsonSerializer() {
         super(CollectionDto.class);
@@ -42,11 +44,11 @@ public class CollectionDtoJsonSerializer extends DtoJsonSerializer<CollectionDto
         result.description = oData.getName();
         ODataId oDataId = oDataIdFromUri(context.getRequestPath());
         result.oDataId = oDataId;
-        result.oDataContext = getContextFromId(oDataId);
+        result.oDataContext = getContextFromODataType(oData.getODataType());
 
         result.members.addAll(dto.getMembers().stream()
             .map(id -> appendOdataId(result.oDataId, id))
-            .collect(Collectors.toList()));
+            .collect(toList()));
 
         return result;
     }

@@ -17,18 +17,20 @@
 package com.intel.podm.ipxesupplier;
 
 import com.intel.podm.business.entities.NonUniqueResultException;
+import com.intel.podm.business.entities.dao.ComputerSystemDao;
 import com.intel.podm.business.entities.dao.EthernetInterfaceDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.common.types.net.MacAddress;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.UUID;
 
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
-@Dependent
+@ApplicationScoped
 public class IpxeDirectory {
     @Inject
     private EthernetInterfaceDao ethernetInterfaceDao;
@@ -36,23 +38,34 @@ public class IpxeDirectory {
     @Inject
     private IpxeScriptFactory ipxeScriptFactory;
 
-    @Transactional(REQUIRES_NEW)
-    public IpxeScript getIpxeScript(MacAddress macAddress) throws AssetNotFoundException {
-        EthernetInterface ethernetInterface = findEthernetInterface(macAddress);
-        ComputerSystem computerSystem = ethernetInterface.getComputerSystem();
+    @Inject
+    private ComputerSystemDao computerSystemDao;
 
-        if (computerSystem == null) {
-            throw new AssetNotFoundException("Ethernet Interfaces with specified MAC Address does not belong to computer system.");
+    @Transactional(REQUIRES_NEW)
+    public IpxeScript getIpxeScript(MacAddress macAddress, UUID uuid) throws AssetNotFoundException {
+        ComputerSystem computerSystem = tryFindComputerSystemByUuid(uuid);
+
+        if (computerSystem == null) { //fallback to MAC
+            EthernetInterface ethernetInterface = findEthernetInterface(macAddress);
+            computerSystem = ethernetInterface.getComputerSystem();
+
+            if (computerSystem == null) {
+                throw new AssetNotFoundException("Ethernet Interfaces with specified MAC Address does not belong to computer system.");
+            }
         }
 
         return ipxeScriptFactory.create(computerSystem);
+    }
+
+    private ComputerSystem tryFindComputerSystemByUuid(UUID uuid) {
+        return computerSystemDao.findPrimarySystem(uuid).orElse(null);
     }
 
     private EthernetInterface findEthernetInterface(MacAddress macAddress) throws AssetNotFoundException {
         EthernetInterface ethernetInterface;
 
         try {
-            ethernetInterface = ethernetInterfaceDao.getEnabledAndHealthyEthernetInterfaceByMacAddress(macAddress);
+            ethernetInterface = ethernetInterfaceDao.getEnabledEthernetInterfaceByMacAddress(macAddress);
         } catch (NonUniqueResultException e) {
             throw new AssetNotFoundException("Error appeared while finding Ethernet Interfaces for MAC Address: " + macAddress, e);
         }

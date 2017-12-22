@@ -23,22 +23,17 @@
 using namespace jsonrpc;
 
 
-bool jsonrpc::fail(const char*) {
-    return false;
-}
-
-
 ValidityChecker::~ValidityChecker() {}
 
 
-void ValidityChecker::validate(const Json::Value& value) const {
+void ValidityChecker::validate(const json::Json& value) const {
     /* Optional and null values are not allowed by default */
     if (&value == &(NON_EXISTING_VALUE)) {
         THROW(ValidityChecker::ValidationException, "agent-framework",
               agent_framework::exceptions::ErrorCode::MISSING_FIELD,
               "Mandatory field is not present.", value);
     }
-    if (value.isNull()) {
+    if (value.is_null()) {
         THROW(ValidityChecker::ValidationException, "agent-framework",
               agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
               "Value null is not allowed.", value);
@@ -46,12 +41,12 @@ void ValidityChecker::validate(const Json::Value& value) const {
 }
 
 
-const Json::Value ValidityChecker::NON_EXISTING_VALUE;
+const json::Json ValidityChecker::NON_EXISTING_VALUE;
 
 
 ValidityChecker::ValidationException::ValidationException(agent_framework::exceptions::ErrorCode code,
                                                           const std::string& message,
-                                                          const Json::Value& field_value,
+                                                          const json::Json& field_value,
                                                           const std::string& field) :
     m_code(code), m_message(message), m_field(field), m_field_value(field_value) {}
 

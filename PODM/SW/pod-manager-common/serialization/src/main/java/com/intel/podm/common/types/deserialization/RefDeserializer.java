@@ -27,9 +27,9 @@ import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 public class RefDeserializer extends JsonDeserializer<Ref<?>> implements ContextualDeserializer {
@@ -52,10 +52,10 @@ public class RefDeserializer extends JsonDeserializer<Ref<?>> implements Context
         Object containedObject = contextualValueDeserializer.deserialize(p, ctxt);
 
         return unassignedStrategies.stream().anyMatch(s -> s.isUnassigned(containedObject))
-                ?
-                Ref.unassigned()
-                :
-                Ref.of(containedObject);
+            ?
+            Ref.unassigned()
+            :
+            Ref.of(containedObject);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class RefDeserializer extends JsonDeserializer<Ref<?>> implements Context
             return emptyList();
         }
 
-        return Arrays.asList(annotation.value());
+        return asList(annotation.value());
     }
 
     @Override

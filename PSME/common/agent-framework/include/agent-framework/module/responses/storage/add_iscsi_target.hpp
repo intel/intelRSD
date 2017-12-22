@@ -26,12 +26,9 @@
 
 #include "agent-framework/module/model/attributes/oem.hpp"
 #include "agent-framework/module/constants/command.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
-
-namespace Json {
-    class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -73,7 +70,7 @@ public:
      *
      * @return created JSON value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create AddIscsiTarget from JSON
@@ -82,7 +79,7 @@ public:
      *
      * @return new AddIscsiTarget
      */
-    static AddIscsiTarget from_json(const Json::Value& json);
+    static AddIscsiTarget from_json(const json::Json& json);
 
 private:
     Oem m_oem{};

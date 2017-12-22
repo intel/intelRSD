@@ -16,60 +16,21 @@
 
 package com.intel.podm.common.synchronization.monitoring;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
-import java.lang.management.ManagementFactory;
-
-@Singleton
-@Startup
 public class MetricActivator implements MetricActivatorMBean {
 
-    @Inject
-    @Named("application-executors-jms-reporter")
-    private MetricReporter applicationExecutorsReporter;
+    private MetricReporter metricReporter;
 
-    private MBeanServer platformMBeanServer;
-
-    private ObjectName metricsActivatorObjectName;
-
-    @PostConstruct
-    private void registerMBeans() {
-        try {
-            metricsActivatorObjectName = new ObjectName(METRICS_DOMAIN, "Configuration", "Activator");
-            platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
-            platformMBeanServer.registerMBean(this, metricsActivatorObjectName);
-        } catch (MalformedObjectNameException | NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e) {
-            throw new IllegalStateException("Cannot register mbeans defined by metric activator", e);
-        }
-    }
-
-    @PreDestroy
-    private void unregisterMBeans() {
-        try {
-            platformMBeanServer.unregisterMBean(this.metricsActivatorObjectName);
-        } catch (MBeanRegistrationException | InstanceNotFoundException e) {
-            throw new IllegalStateException("Cannot unregister registered metric activator mbeans", e);
-        }
+    public MetricActivator(MetricReporter metricReporter) {
+        this.metricReporter = metricReporter;
     }
 
     @Override
-    public void enableMetricsForApplicationExecutors() {
-        applicationExecutorsReporter.start();
+    public void enable() {
+        metricReporter.start();
     }
 
     @Override
-    public void disableMetricsForApplicationExecutors() {
-        applicationExecutorsReporter.stop();
+    public void disable() {
+        metricReporter.stop();
     }
 }

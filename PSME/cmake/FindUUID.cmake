@@ -16,7 +16,7 @@
 #
 # </license_header>
 
-if (CMAKE_CROSSCOMPILING)
+if (BUILD_UUID)
     find_package_local(UUID uuid uuid++)
 else()
     # code depends on uuid-c++-devel.. but dependency is not included in .pc file

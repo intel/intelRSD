@@ -28,9 +28,8 @@ using namespace agent_framework::model;
 
 const jsonrpc::ProcedureValidator& ResetPostSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "reset_post",
         jsonrpc::PARAMS_BY_NAME,
-        constants::Common::RESET_TYPE, VALID_OPTIONAL(VALID_ENUM(enums::ResetType)),
+        constants::Common::RESET_TYPE, VALID_ENUM(enums::ResetType),
         nullptr
     };
     return procedure;

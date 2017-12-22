@@ -16,7 +16,6 @@
 
 package com.intel.podm.services.detection.ssdp.protocol;
 
-
 import com.intel.podm.discovery.external.ServiceDescriptor;
 import com.intel.podm.discovery.external.ServiceEndpoint;
 import com.intel.podm.discovery.external.UnrecognizedServiceTypeException;

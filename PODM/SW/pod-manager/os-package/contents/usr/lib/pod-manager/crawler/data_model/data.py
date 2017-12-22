@@ -17,6 +17,12 @@ class Data:
     def __init__(self):
         self._services = []
 
+    def __str__(self):
+        string_representation = ''
+        for service in self._services:
+            string_representation += '{service}\n'.format(service=service)
+        return string_representation
+
     def add_service(self, service):
         self._services.append(service)
 

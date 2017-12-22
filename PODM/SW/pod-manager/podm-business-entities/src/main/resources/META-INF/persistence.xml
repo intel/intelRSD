@@ -33,9 +33,9 @@
 
             <!-- HIBERNATE SETTINGS -->
             <property name="hibernate.hbm2ddl.import_files_sql_extractor" value="org.hibernate.tool.hbm2ddl.MultipleLinesSqlCommandExtractor"/>
-            <property name="hibernate.ejb.naming_strategy" value="org.hibernate.cfg.DefaultComponentSafeNamingStrategy"/>
+            <property name="hibernate.implicit_naming_strategy" value="com.intel.podm.business.entities.configuration.CustomImplicitNamingStrategyJpaCompliantImpl"/>
             <property name="hibernate.enable_lazy_load_no_trans" value="true"/>
-            <property name="hibernate.dialect" value="com.intel.podm.business.entities.dialect.CustomPostgreSql9Dialect"/>
+            <property name="hibernate.dialect" value="com.intel.podm.business.entities.configuration.CustomPostgreSql9Dialect"/>
             <property name="hibernate.jdbc.batch_size" value="100" />
             <property name="hibernate.jdbc.order_updates" value="true" />
             <property name="hibernate.session_factory.interceptor" value="com.intel.podm.business.entities.interceptors.StaticDelegateInterceptor" />

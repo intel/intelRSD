@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
 import static com.intel.podm.common.logger.LoggerFactory.getLogger;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static java.util.regex.Pattern.compile;
 
 public abstract class OdataTypeMatcher {
     private static final Logger LOGGER = getLogger(OdataTypeMatcher.class);
@@ -36,8 +35,8 @@ public abstract class OdataTypeMatcher {
             @Override
             public Optional<Class> match(String odataType) {
                 return Objects.equals(expectedOdataType, odataType)
-                        ? of(clazz)
-                        : empty();
+                    ? of(clazz)
+                    : empty();
             }
         };
     }
@@ -45,13 +44,13 @@ public abstract class OdataTypeMatcher {
     public static OdataTypeMatcher odataTypePatternMatcher(String pattern, Class clazz) {
         LOGGER.d("registering {} with pattern: '{}'", clazz, pattern);
         return new OdataTypeMatcher() {
-            final Pattern regex = compile(pattern);
+            final Pattern regex = Pattern.compile(pattern);
 
             @Override
             public Optional<Class> match(String odataType) {
                 return regex.matcher(odataType).matches()
-                        ? of(clazz)
-                        : empty();
+                    ? of(clazz)
+                    : empty();
             }
         };
     }

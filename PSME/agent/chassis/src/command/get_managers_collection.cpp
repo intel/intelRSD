@@ -22,21 +22,31 @@
  * */
 
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/chassis_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/chassis_commands.hpp"
 
-using namespace agent_framework::command_ref;
+
+
+using namespace agent_framework::command;
 using namespace agent_framework::module;
+using namespace agent_framework::model;
 
-REGISTER_COMMAND(GetManagersCollection,
-                 [](const GetManagersCollection::Request&, GetManagersCollection::Response& rsp) {
-                     log_debug(GET_LOGGER("rpc"), "GetManagersCollection");
-        // Return only top level manager
-        auto keys = CommonComponents::get_instance()->
-            get_module_manager().get_keys("");
+namespace {
 
-        for (const auto& key : keys) {
-            rsp.add_entry(agent_framework::model::attribute::ManagerEntry(key));
+void get_manager_collection(const GetManagersCollection::Request&, GetManagersCollection::Response& response) {
+    log_debug(GET_LOGGER("chassis-agent"), "GetManagersCollection");
+    // Return only top level manager
+    auto keys = CommonComponents::get_instance()->get_module_manager().get_keys("");
+
+    for (const auto& key : keys) {
+        const auto& manager = CommonComponents::get_instance()->get_module_manager().get_entry(key);
+        // Chassis agent should only expose drawer manager.
+        if (manager.has_persistent_uuid() && manager.get_manager_type() == enums::ManagerInfoType::EnclosureManager) {
+            response.add_entry(agent_framework::model::attribute::ManagerEntry(key));
         }
     }
-);
+}
+
+}
+
+REGISTER_COMMAND(GetManagersCollection, ::get_manager_collection);

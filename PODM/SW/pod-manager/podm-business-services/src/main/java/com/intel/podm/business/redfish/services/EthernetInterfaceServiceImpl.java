@@ -17,122 +17,80 @@
 package com.intel.podm.business.redfish.services;
 
 import com.intel.podm.business.ContextResolvingException;
+import com.intel.podm.business.dto.EthernetInterfaceDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.EthernetInterfaceDto;
-import com.intel.podm.business.dto.redfish.EthernetInterfaceDto.Builder;
-import com.intel.podm.business.dto.redfish.attributes.ExtendedInfoDto;
-import com.intel.podm.business.entities.NonUniqueResultException;
-import com.intel.podm.business.entities.dao.EthernetInterfaceDao;
-import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
+import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
-import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
-import com.intel.podm.business.entities.redfish.base.NetworkInterfacePossessor;
+import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.helpers.IpAddressDtoTranslateHelper;
-import com.intel.podm.business.redfish.services.helpers.UnknownOemTranslator;
+import com.intel.podm.business.redfish.services.aggregation.ComputerSystemSubResourcesFinder;
+import com.intel.podm.business.redfish.services.aggregation.EthernetInterfaceMerger;
+import com.intel.podm.business.redfish.services.aggregation.MultiSourceEntityTreeTraverser;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
-import com.intel.podm.common.logger.Logger;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.EnumSet;
+import java.util.Objects;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_INTERFACES;
 import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
-import static com.intel.podm.business.redfish.Contexts.toContext;
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM;
 import static com.intel.podm.business.services.context.ContextType.MANAGER;
-import static com.intel.podm.common.utils.StringRepresentation.fromIterable;
-import static java.util.EnumSet.of;
-import static java.util.stream.Collectors.toList;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@Transactional(REQUIRED)
-@SuppressWarnings({"checkstyle:MethodLength", "checkstyle:ClassFanOutComplexity"})
-public class EthernetInterfaceServiceImpl implements ReaderService<EthernetInterfaceDto> {
+@RequestScoped
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+class EthernetInterfaceServiceImpl implements ReaderService<EthernetInterfaceDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
     @Inject
-    private EthernetInterfaceDao ethernetInterfaceDao;
+    private MultiSourceEntityTreeTraverser multiTraverser;
 
     @Inject
-    private EthernetSwitchPortDao ethernetSwitchPortDao;
+    private ComputerSystemSubResourcesFinder computerSystemSubResourcesFinder;
 
     @Inject
-    private IpAddressDtoTranslateHelper dtoHelper;
+    private EthernetInterfaceMerger ethernetInterfaceMerger;
 
-    @Inject
-    private Logger logger;
-
-    @Inject
-    private UnknownOemTranslator unknownOemTranslator;
-
+    @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context context) throws ContextResolvingException {
-        if (!of(MANAGER, COMPUTER_SYSTEM).contains(context.getType())) {
-            throw new ContextResolvingException(context);
+        if (Objects.equals(MANAGER, context.getType())) {
+            Manager manager = (Manager) traverser.traverse(context);
+            return new CollectionDto(ETHERNET_INTERFACES, getAsIdSet(manager.getEthernetInterfaces()));
         }
 
-        NetworkInterfacePossessor nicPossessor = (NetworkInterfacePossessor) traverser.traverse(context);
-        return new CollectionDto(ETHERNET_INTERFACES, getAsIdSet(nicPossessor.getEthernetInterfaces()));
+        if (Objects.equals(COMPUTER_SYSTEM, context.getType())) {
+            ComputerSystem system = (ComputerSystem) traverser.traverse(context);
+
+            // Multi-source resources sanity check
+            if (system.isComplementary()) {
+                throw new ContextResolvingException("Specified resource is not a primary resource representation!", context, null);
+            }
+
+            return new CollectionDto(ETHERNET_INTERFACES, getAsIdSet(
+                computerSystemSubResourcesFinder.getUniqueSubResourcesOfClass(system, EthernetInterface.class))
+            );
+        }
+
+        throw new ContextResolvingException(context);
     }
 
+    @Transactional(REQUIRED)
     @Override
-    public EthernetInterfaceDto getResource(Context ethernetInterfaceContext) throws ContextResolvingException {
-        EthernetInterface ethernetInterface = (EthernetInterface) traverser.traverse(ethernetInterfaceContext);
-
-        Builder ethernetInterfaceBuilder = EthernetInterfaceDto.newBuilder()
-            .id(ethernetInterface.getId().toString())
-            .name(ethernetInterface.getName())
-            .description(ethernetInterface.getDescription())
-            .unknownOems(unknownOemTranslator.translateUnknownOemToDtos(ethernetInterface.getService(), ethernetInterface.getUnknownOems()))
-            .interfaceEnabled(ethernetInterface.getInterfaceEnabled())
-            .speedMbps(ethernetInterface.getSpeedMbps()).mtuSize(ethernetInterface.getMtuSize())
-            .ipv6DefaultGateway(ethernetInterface.getIpV6DefaultGateway())
-            .status(ethernetInterface.getStatus())
-            .autoNeg(ethernetInterface.getAutoNeg()).fullDuplex(ethernetInterface.isFullDuplex())
-            .vlanEnable(ethernetInterface.getVlanEnable()).vlanId(ethernetInterface.getVlanId())
-            .hostname(ethernetInterface.getHostName()).fqdn(ethernetInterface.getFqdn())
-            .macAddress(ethernetInterface.getMacAddress()).permanentMacAddress(ethernetInterface.getPermanentMacAddress())
-            .nameServers(ethernetInterface.getNameServers())
-            .ipv4Addresses(dtoHelper.translateIpV4AddressesToDto(ethernetInterface.getService(), ethernetInterface.getIpV4Addresses()))
-            .ipv6Addresses(dtoHelper.translateIpV6AddressesToDto(ethernetInterface.getService(), ethernetInterface.getIpV6Addresses()))
-            .ipv6StaticAddresses(dtoHelper.translateIpV6AddressesToDto(ethernetInterface.getService(), ethernetInterface.getIpV6StaticAddresses()))
-            .ipV6AddressesPolicyTable(dtoHelper.translateIpV6Policies(ethernetInterface.getIpV6AddressesPolicyTable()))
-            .maxIPv6StaticAddresses(ethernetInterface.getMaxIPv6StaticAddresses());
-
-        return fillNeighborSwitchPortPart(ethernetInterfaceBuilder, ethernetInterface).build();
-    }
-
-    private Builder fillNeighborSwitchPortPart(Builder ethernetInterfaceBuilder, EthernetInterface ethernetInterface) {
-        EthernetSwitchPort neighborPort = null;
-        List<String> errors = new ArrayList<>();
-
-        try {
-            neighborPort = ethernetSwitchPortDao.getEnabledAndHealthyEthernetSwitchPortByNeighborMac(ethernetInterface.getMacAddress());
-        } catch (NonUniqueResultException e) {
-            errors.add("Couldn't match neighbor Ethernet Switch Port. " + e.getMessage());
+    public EthernetInterfaceDto getResource(Context context) throws ContextResolvingException {
+        EthernetInterface ethernetInterface = (EthernetInterface) multiTraverser.traverse(context);
+        if (EnumSet.of(MANAGER, COMPUTER_SYSTEM).contains(context.getParent().getType())) {
+            EthernetInterfaceDto dto = ethernetInterfaceMerger.toDto(ethernetInterface);
+            dto.setVlans(singletonContextOf(context, ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME));
+            return dto;
         }
-        try {
-            ethernetInterfaceDao.getEnabledAndHealthyEthernetInterfaceByMacAddress(ethernetInterface.getMacAddress());
-        } catch (NonUniqueResultException e) {
-            errors.add("There are different Ethernet Interfaces with the same MAC Address. " + e.getMessage());
-        }
-
-        if (errors.isEmpty()) {
-            ethernetInterfaceBuilder.neighborPort(toContext(neighborPort));
-        } else {
-            List<ExtendedInfoDto> extendedInfoList = errors.stream()
-                .map(error -> ExtendedInfoDto.newExtendedInfoDto().message(error).build())
-                .collect(toList());
-
-            ethernetInterfaceBuilder.neighborPortExtendedInfo(extendedInfoList);
-            logger.e(fromIterable(errors, "\n"));
-        }
-
-        return ethernetInterfaceBuilder;
+        throw new ContextResolvingException(context);
     }
 }

@@ -19,11 +19,12 @@ package com.intel.podm.redfish.json.templates.assembly;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.types.InstructionSet;
 import com.intel.podm.common.types.ProcessorBrand;
+import com.intel.podm.common.types.ProcessorType;
 import com.intel.podm.common.types.deserialization.PositiveIntegerDeserializer;
-import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import java.util.List;
 
@@ -48,6 +49,9 @@ public final class RequestedProcessorImpl implements RequestedNode.Processor {
 
     @JsonProperty
     private ProcessorOem oem = new ProcessorOem();
+
+    @JsonProperty
+    private ProcessorType processorType;
 
     private Context resourceContext;
 
@@ -76,6 +80,11 @@ public final class RequestedProcessorImpl implements RequestedNode.Processor {
     @Override
     public InstructionSet getInstructionSet() {
         return instructionSet;
+    }
+
+    @Override
+    public ProcessorType getProcessorType() {
+        return processorType;
     }
 
     @JsonProperty("Resource")

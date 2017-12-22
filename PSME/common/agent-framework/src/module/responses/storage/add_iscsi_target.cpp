@@ -25,7 +25,7 @@
 #include "agent-framework/module/responses/storage/add_iscsi_target.hpp"
 #include "agent-framework/module/constants/storage.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -34,16 +34,16 @@ AddIscsiTarget::AddIscsiTarget(const std::string& target,
                                Oem oem) :
     m_oem(oem), m_target(target) {}
 
-Json::Value AddIscsiTarget::to_json() const {
-    Json::Value value;
+json::Json AddIscsiTarget::to_json() const {
+    json::Json value;
     value[IscsiTarget::TARGET] = m_target;
     value[literals::Oem::OEM] = m_oem.to_json();
     return value;
 }
 
-AddIscsiTarget AddIscsiTarget::from_json(const Json::Value& json) {
+AddIscsiTarget AddIscsiTarget::from_json(const json::Json& json) {
     AddIscsiTarget request{
-        json[IscsiTarget::TARGET].asString(),
+        json[IscsiTarget::TARGET],
         agent_framework::model::attribute::Oem{}
     };
 

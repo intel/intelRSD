@@ -18,22 +18,31 @@ package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
 
+import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceActionBuilder;
+import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class SwitchActionResource extends BaseResource {
     @Override
     public Object get() {
-        return notFound();
+        return invalidHttpMethod();
     }
 
     @Path("Switch.Reset")
     public ResetActionResource reset() throws TimeoutException, BusinessApiException {
         return getResource(ResetActionResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceActionBuilder().build();
     }
 }

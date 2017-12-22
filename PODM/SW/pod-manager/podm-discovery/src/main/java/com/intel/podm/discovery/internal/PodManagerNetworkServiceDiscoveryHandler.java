@@ -28,8 +28,7 @@ import javax.inject.Inject;
 import static com.intel.podm.common.types.Id.id;
 
 @Dependent
-public class PodManagerNetworkServiceDiscoveryHandler {
-    private static final String DEFAULT_NAME = "Pod Manager Network Service";
+class PodManagerNetworkServiceDiscoveryHandler {
 
     @Inject
     private NetworkConfigurationReader networkConfigurationReader;
@@ -38,7 +37,7 @@ public class PodManagerNetworkServiceDiscoveryHandler {
     private GenericDao genericDao;
 
     public void addNetworkService(Manager manager) {
-        NetworkServiceDto networkServiceDto = networkConfigurationReader.readConfigurationOrComputeDefault(
+        NetworkServiceDto networkServiceDto = networkConfigurationReader.readConfigurationOrDefault(
             "network-service", NetworkServiceDto.class, NetworkServiceDto::new
         );
 

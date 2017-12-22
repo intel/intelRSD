@@ -17,41 +17,65 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.EntityOperationException;
+import com.intel.podm.business.dto.VlanNetworkInterfaceDto;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 import com.intel.podm.business.services.redfish.RemovalService;
-import com.intel.podm.common.types.redfish.RedfishErrorResponseCarryingException;
+import com.intel.podm.business.services.redfish.UpdateService;
 import com.intel.podm.common.types.redfish.RedfishVlanNetworkInterface;
 import com.intel.podm.redfish.OptionsResponseBuilder;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
+import com.intel.podm.redfish.json.templates.actions.UpdateVlanJson;
+import com.intel.podm.redfish.json.templates.actions.constraints.VlanConstraint;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT;
-import static com.intel.podm.redfish.OptionsResponseBuilder.newDefaultOptionsResponseBuilder;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
-import static com.intel.podm.rest.error.PodmExceptions.invalidPayload;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.ok;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class VlanNetworkInterfaceResource extends BaseResource {
-
     @Inject
-    private ReaderService<RedfishVlanNetworkInterface> readerService;
+    private ReaderService<VlanNetworkInterfaceDto> readerService;
 
     @Inject
     private RemovalService<RedfishVlanNetworkInterface> removalService;
 
+    @Inject
+    private UpdateService<RedfishVlanNetworkInterface> vlanUpdateService;
+
     @GET
     @Override
-    public RedfishVlanNetworkInterface get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        VlanNetworkInterfaceDto interfaceDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, interfaceDto);
+    }
+
+    @PATCH
+    @Produces(APPLICATION_JSON)
+    public Response patchVlan(@VlanConstraint UpdateVlanJson updateVlanJson) throws BusinessApiException, TimeoutException {
+        Context currentContext = getCurrentContext();
+
+        if (!isPatchEnabled(currentContext)) {
+            throw invalidHttpMethod("The specified vlan cannot be updated");
+        }
+
+        vlanUpdateService.perform(getCurrentContext(), updateVlanJson);
+        return ok(get()).build();
     }
 
     @DELETE
@@ -62,18 +86,12 @@ public class VlanNetworkInterfaceResource extends BaseResource {
             throw invalidHttpMethod("The specified vlan cannot be deleted");
         }
 
-        try {
-            removalService.perform(currentContext);
-            return noContent().build();
-        } catch (EntityOperationException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof RedfishErrorResponseCarryingException) {
-                RedfishErrorResponseCarryingException ex = (RedfishErrorResponseCarryingException) cause;
-                throw invalidPayload("The specified switch port vlan could not be deleted!", ex.getErrorResponse());
-            } else {
-                throw invalidPayload("The specified switch port vlan could not be deleted!");
-            }
-        }
+        removalService.perform(currentContext);
+        return noContent().build();
+    }
+
+    private boolean isPatchEnabled(Context currentContext) {
+        return ETHERNET_SWITCH_PORT.equals(currentContext.getParent().getType());
     }
 
     private boolean isDeleteEnabled(Context currentContext) {
@@ -82,13 +100,17 @@ public class VlanNetworkInterfaceResource extends BaseResource {
 
     @Override
     protected Response createOptionsResponse() {
-        OptionsResponseBuilder optionsResponseBuilder = newDefaultOptionsResponseBuilder();
+        OptionsResponseBuilder optionsResponseBuilder = newOptionsForResourceBuilder();
+
+        if (isPatchEnabled(getCurrentContext())) {
+            optionsResponseBuilder.addPatchMethod();
+        }
 
         if (isDeleteEnabled(getCurrentContext())) {
             optionsResponseBuilder.addDeleteMethod();
         }
 
         return optionsResponseBuilder
-                .buildResponse();
+            .build();
     }
 }

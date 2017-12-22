@@ -28,7 +28,7 @@
 
 namespace agent_framework {
 namespace eventing {
-    class EventData;
+    class ComponentNotification;
 }
 }
 
@@ -89,12 +89,10 @@ private:
     std::thread m_thread{};
     volatile bool m_running{false};
 
-    using EventData = agent_framework::eventing::EventData;
-
     /*!
-     * @brief handle event from agent
+     * @brief handle notification from agent
      */
-    void process_event(const EventData* const event);
+    void process_notification(const agent_framework::eventing::ComponentNotification& notification);
 };
 
 /*!

@@ -40,6 +40,7 @@
  * */
 
 #pragma once
+#include "agent-framework/generic/singleton.hpp"
 #include "psme/rest/server/methods.hpp"
 #include "psme/rest/server/request.hpp"
 #include "psme/rest/server/response.hpp"
@@ -65,7 +66,7 @@ namespace server {
  * The multiplexer must not be modified after running the HTTP server,
  * as its internal components will be accessible to all HTTP threads.
  * */
-class Multiplexer {
+class Multiplexer : public agent_framework::generic::Singleton<Multiplexer>  {
 
     using PathHandlerCandidate = std::tuple<mux::SegmentsVec,
                                             MethodsHandler::UPtr,
@@ -76,6 +77,8 @@ class Multiplexer {
     using PluginHandler = std::vector<RequestHandler>;
 
 public:
+    virtual ~Multiplexer();
+
     /*!
      * @brief Register a plugin that should be called before each request.
      *
@@ -127,6 +130,23 @@ public:
      * @return a list of all endpoints registered
      */
     EndpointList get_endpoint_list();
+
+    /*!
+     * @brief Check whether a given string is a correct endpoint URL from this REST API
+     *
+     * @param url the string to be checked
+     */
+    bool is_correct_endpoint_url(const std::string& url) const;
+
+    /*!
+     * @brief Verify resource path according to endpoint path template and return the path ids
+     * in the form of Parameters - a map of pairs <id name, id as string>
+     *
+     * @param path the URL to be parsed
+     * @param path_template the template to match, must be one of our endpoint Route constants
+     * @return the map containing URL ids
+     */
+    Parameters get_params(const std::string& path, const std::string& path_template) const;
 
 private:
     const PathHandlerCandidate& select_handler(const std::vector<std::string>& segments, const std::string& uri) const;

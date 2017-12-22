@@ -20,26 +20,21 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
-add_gtest(tree_stability psme-network-fm10000
-    network_tree_stabilizer_test.cpp
-    test_runner.cpp
-)
+if (BUILD_EOS_SDK)
+    add_gtest(tree_stability psme-network
+        network_tree_stabilizer_test.cpp
+        test_runner.cpp
+    )
 
-target_link_libraries(${test_target}
-    network-utils
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${PCA95XX_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-#    pthread
-    jsonrpccpp-server
-    jsonrpccpp-common
-    jsonrpccpp-client
-    jsoncpp
-    ${MICROHTTPD_LIBRARIES}
-    ${CURL_LIBRARIES}
-    dl
-)
+    target_link_libraries(${test_target}
+        network-utils
+        ${AGENT_FRAMEWORK_LIBRARIES}
+        ${UUID_LIBRARIES}
+        ${LOGGER_LIBRARIES}
+        ${CONFIGURATION_LIBRARIES}
+        ${JSONCXX_LIBRARIES}
+        ${PCA95XX_LIBRARIES}
+        ${SAFESTRING_LIBRARIES}
+        dl
+    )
+endif()

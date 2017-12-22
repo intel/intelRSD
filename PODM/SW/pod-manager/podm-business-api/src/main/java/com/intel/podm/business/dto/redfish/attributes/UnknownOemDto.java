@@ -19,61 +19,34 @@ package com.intel.podm.business.dto.redfish.attributes;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.intel.podm.business.services.context.Context;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public final class UnknownOemDto {
-    private final String oemPath;
-    private final ObjectNode oemValue;
-    private final Map<String, Context> foundContexts;
-
-    private UnknownOemDto(Builder builder) {
-        this.oemPath = builder.oemPath;
-        this.oemValue = builder.oemValue;
-        this.foundContexts = builder.foundContexts;
-    }
+    private String oemPath;
+    private ObjectNode oemValue;
+    private Map<String, Context> foundContexts;
 
     public String getOemPath() {
         return oemPath;
+    }
+
+    public void setOemPath(String oemPath) {
+        this.oemPath = oemPath;
     }
 
     public ObjectNode getOemValue() {
         return oemValue;
     }
 
+    public void setOemValue(ObjectNode oemValue) {
+        this.oemValue = oemValue;
+    }
+
     public Map<String, Context> getFoundContexts() {
         return foundContexts;
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
-    public static final class Builder {
-        private String oemPath;
-        private ObjectNode oemValue;
-        private Map<String, Context> foundContexts = new HashMap<>();
-
-        private Builder() {
-        }
-
-        public UnknownOemDto build() {
-            return new UnknownOemDto(this);
-        }
-
-        public Builder oemPath(String oemPath) {
-            this.oemPath = oemPath;
-            return this;
-        }
-
-        public Builder oemValue(ObjectNode oemValue) {
-            this.oemValue = oemValue;
-            return this;
-        }
-
-        public Builder foundContexts(Map<String, Context> contexts) {
-            this.foundContexts.putAll(contexts);
-            return this;
-        }
+    public void setFoundContexts(Map<String, Context> foundContexts) {
+        this.foundContexts = foundContexts;
     }
 }

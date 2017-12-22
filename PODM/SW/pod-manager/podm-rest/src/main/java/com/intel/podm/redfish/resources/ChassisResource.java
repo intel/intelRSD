@@ -17,13 +17,16 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.dto.redfish.ChassisDto;
+import com.intel.podm.business.dto.ChassisDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 import com.intel.podm.business.services.redfish.UpdateService;
 import com.intel.podm.common.types.redfish.RedfishChassis;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 import com.intel.podm.redfish.json.templates.actions.ChassisPartialRepresentation;
 import com.intel.podm.redfish.json.templates.actions.constraints.ChassisConstraint;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PATCH;
@@ -37,12 +40,12 @@ import static com.intel.podm.business.services.context.PathParamConstants.PCIE_D
 import static com.intel.podm.common.types.redfish.ResourceNames.PCIE_DEVICES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.PCIE_DRIVES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.POWER_RESOURCE_NAME;
-import static com.intel.podm.common.types.redfish.ResourceNames.POWER_ZONES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.THERMAL_RESOURCE_NAME;
-import static com.intel.podm.common.types.redfish.ResourceNames.THERMAL_ZONES_RESOURCE_NAME;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.ok;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class ChassisResource extends BaseResource {
@@ -53,18 +56,10 @@ public class ChassisResource extends BaseResource {
     private UpdateService<RedfishChassis> updateService;
 
     @Override
-    public ChassisDto get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
-    }
-
-    @Path(THERMAL_ZONES_RESOURCE_NAME)
-    public ThermalZonesCollectionResource getThermalZones() {
-        return getResource(ThermalZonesCollectionResource.class);
-    }
-
-    @Path(POWER_ZONES_RESOURCE_NAME)
-    public PowerZonesCollectionResource getPowerZones() {
-        return getResource(PowerZonesCollectionResource.class);
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        ChassisDto chassisDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, chassisDto);
     }
 
     @Path(PCIE_DRIVES_RESOURCE_NAME + "/" + PCIE_DRIVE_ID)
@@ -93,5 +88,12 @@ public class ChassisResource extends BaseResource {
     @Path(POWER_RESOURCE_NAME)
     public PowerResource getPower() {
         return getResource(PowerResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder()
+            .addPatchMethod()
+            .build();
     }
 }

@@ -19,6 +19,7 @@ package com.intel.podm.config.base;
 final class ConfigPaths {
     public static final String WRITABLE_CONFIG_DIR = "/var/lib/pod-manager/";
     public static final String READONLY_CONFIG_DIR = "/etc/pod-manager/";
+
     private ConfigPaths() {
     }
 }

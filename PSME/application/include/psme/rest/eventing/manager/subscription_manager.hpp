@@ -37,7 +37,7 @@ namespace manager{
 using namespace psme::rest::eventing;
 using namespace psme::rest::eventing::model;
 
-using SubscriptionMap = std::map<std::string, Subscription>;
+using SubscriptionMap = std::map<std::uint64_t, Subscription>;
 /*!
  * SubscriptionManager implementation
  */
@@ -51,20 +51,19 @@ public:
     uint64_t add(Subscription subscription);
 
     /*!
+    * @brief Set subscriptions
+    *
+    * @param subscriptions SubscriptionMap
+    */
+    void set_subscriptions(const SubscriptionMap& subscriptions);
+
+    /*!
      * @brief Get subscription by subscription id
      *
      * @param subscription_id Subscription id
      * @return Subscription
      */
     Subscription get(uint64_t subscription_id);
-
-    /*!
-     * @brief Returns subscription by subscription name
-     *
-     * @param subscription_name Subscription name
-     * @return Subscription
-     */
-    Subscription get(const std::string& subscription_name);
 
     /*!
      * @brief Get all subscriptions
@@ -79,13 +78,6 @@ public:
      * @param subscription_id Subscription id
      */
     void del(uint64_t subscription_id);
-
-    /*!
-     * @brief Removes subscription by subscription name
-     *
-     * @param subscription_name Subscription name
-     */
-    void del(const std::string& subscription_name);
 
     /*!
      * @brief Get number of subscriptions
@@ -113,15 +105,6 @@ public:
     virtual ~SubscriptionManager();
 
 private:
-    /*!
-     * @brief Notifies subscribers according to event collection
-     * @param event Event collection
-     */
-    void do_notify(const Event& event);
-
-    Subscription get_by_name(const std::string& subscription_name);
-
-    void del_by_name(const std::string& subscription_name);
 
     SubscriptionMap m_subscriptions{};
     std::mutex m_mutex{};

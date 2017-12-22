@@ -26,6 +26,7 @@
 #include "psme/rest/eventing/event_service.hpp"
 #include "psme/rest/http/http_defs.hpp"
 #include "psme/rest/eventing/rest_client.hpp"
+#include "psme/rest/eventing/model/subscription.hpp"
 #include "psme/rest/eventing/config/subscription_config.hpp"
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "configuration/configuration.hpp"
@@ -73,103 +74,105 @@ EventService::~EventService() {
     stop();
 }
 
-void EventService::post_event(EventUPtr event, const steady_clock::duration& delay) {
-    log_debug(GET_LOGGER("rest"), "Post event :" << event->to_json());
-    return EventService::get_event_queue().push_back(std::move(event), delay);
+void EventService::post_events_array(EventArrayUPtr event_array, const steady_clock::duration& delay) {
+    log_debug(GET_LOGGER("rest"), "Post events :" << event_array->to_json());
+    return EventService::get_event_array_queue().push_back(std::move(event_array), delay);
 }
 
-EventQueue& EventService::get_event_queue() {
-    static EventQueue g_event_queue;
+EventArrayQueue& EventService::get_event_array_queue() {
+    static EventArrayQueue g_event_queue;
     return g_event_queue;
 }
 
-namespace {
-    json::Value create_notification(json::Value event_as_json) {
-        json::Value notification;
-        notification["@odata.context"] = "/rest/v1/$metadata#EventService/Members/Events/1";
-        notification["@odata.id"] = "/rest/v1/EventService/Events/1";
-        notification["@odata.type"] = "#EventService.1.0.0.Event";
-        notification["Id"] = "1";
-        notification["Name"] = "Event Array";
-        notification["Description"] = "Events";
-        notification["Events"].push_back(std::move(event_as_json));
-        return notification;
+void EventService::send_event_array(const EventArray& event_array) {
+    Subscription subscription;
+    try {
+        subscription =  SubscriptionManager::get_instance()->get(event_array.get_subscriber_id());
+    }
+    catch (const agent_framework::exceptions::NotFound&) {
+        // The subscriber has been deleted while the EventArray waited in the queue for processing. Do nothing.
+        return;
     }
 
-    void send_event(const EventService& event_service,
-                    Event event,
-                    const Subscription& subscription) {
-        const auto& destination = subscription.get_destination();
-        const auto& context = subscription.get_context();
-        event.set_subscriber_id(std::to_string(subscription.get_id()));
-        event.set_context(context);
-        try {
-            std::string notification =
-                    json::Serializer(create_notification(event.to_json()));
-            psme::rest::eventing::RestClient rest_client("");
-            rest_client.set_default_content_type(psme::rest::http::MimeType::JSON);
-            rest_client.post(destination, notification);
-            log_debug(GET_LOGGER("rest"), " Subscriber: " << destination
-                                        << " notified with: " << notification);
-        } catch (std::runtime_error&) {
-            EventUPtr retry_event(new Event(event));
-            auto retry_attempts = retry_event->increment_retry_attempts();
-            if (retry_attempts < event_service.get_delivery_retry_attempts()) {
-                log_warning(GET_LOGGER("rest"), "Failed to send event with EventId: "
-                    << retry_event->get_event_id() << " to: " << destination
-                    << " retry attempt no: " << retry_attempts);
-                EventService::post_event(std::move(retry_event),
-                                    event_service.get_delivery_retry_interval());
-            }
-            else {
-                log_warning(GET_LOGGER("rest"), "EventId: " << event.get_event_id()
-                        << " could not be delivered: "
-                        << destination << " is unreachable");
-                SubscriptionManager::get_instance()->del(subscription.get_name());
-                SubscriptionConfig::get_instance()->save();
-            }
+    const auto& destination = subscription.get_destination();
+    try {
+        std::string notification = json::Serializer(event_array.to_json());
+        psme::rest::eventing::RestClient rest_client("");
+        rest_client.set_default_content_type(psme::rest::http::MimeType::JSON);
+        rest_client.post(destination, notification);
+        log_debug(GET_LOGGER("rest"), " Subscriber: " << destination
+                                    << " notified with: " << notification);
+    } catch (std::runtime_error&) {
+        EventArrayUPtr retry_event_array(new EventArray(event_array));
+        auto retry_attempts = retry_event_array->increment_retry_attempts();
+        if (retry_attempts < this->m_delivery_retry_attempts) {
+            log_warning(GET_LOGGER("rest"), "Failed to send event array with Id: "
+                << retry_event_array->get_id() << " to: " << destination
+                << " retry attempt no: " << retry_attempts);
+            EventService::post_events_array(std::move(retry_event_array), this->m_delivery_retry_interval);
+        }
+        else {
+            log_warning(GET_LOGGER("rest"), "Event array with Id: " << event_array.get_id()
+                    << " could not be delivered: "
+                    << destination << " is unreachable");
+            SubscriptionManager::get_instance()->del(subscription.get_id());
+            SubscriptionConfig::get_instance()->save();
         }
     }
 }
 
-SubscriptionVec EventService::select_subscribers(const Event& event) {
-    SubscriptionVec subscribers{};
+std::vector<EventArray> EventService::select_events_for_subscribers(const EventArray& event_array) {
+    std::vector<EventArray> selections{};
     for (const auto& item : SubscriptionManager::get_instance()->get()) {
         const auto& subscription = item.second;
-        for (const auto& event_type: subscription.get_event_types().get()) {
-            if (event_type == event.get_type()) {
-                subscribers.emplace_back(subscription);
-            }
+        EventArray selection = event_array;
+
+        EventVec& events = selection.events();
+        events.erase(std::remove_if(events.begin(), events.end(), [&subscription] (const Event& event)
+                                    {return !subscription.is_subscribed_for(event);}),
+                     events.end());
+
+        if (!events.empty()) {
+            selection.set_context(subscription.get_context());
+            selection.set_subscriber_id(item.first);
+            // EventArray is ready for POSTing - assign it a Redfish Id.
+            selection.assign_new_id();
+            selections.emplace_back(std::move(selection));
         }
     }
-    return subscribers;
+    return selections;
 }
 
 void EventService::m_handle_events() {
     while (m_running) {
-        if (const auto event =
-                get_event_queue().wait_for_and_pop(std::chrono::seconds(1))) {
+        if (const auto event_array = get_event_array_queue().wait_for_and_pop(std::chrono::seconds(1))) {
 
-            log_debug(GET_LOGGER("rest"), " Popped EVENT: "
-                        << json::Serializer(event->to_json()));
+            log_debug(GET_LOGGER("rest"), " Popped Event Array: "
+                        << json::Serializer(event_array->to_json()));
 
             try {
-                auto subscribers = select_subscribers(*event);
+                if (! event_array->get_subscriber_id().has_value()) {
+                    // event array is processed for the first time. For each subscriber,
+                    // create an EventArray containing only the events that match the subscription
+                    auto filtered_event_arrays = select_events_for_subscribers(*event_array);
 
-                for (const auto& subscriber: subscribers) {
-                    // @TODO send_event as tasks processed by threadpool
-                    send_event(*this, *event, subscriber);
+                    for (auto& events_for_subscriber: filtered_event_arrays) {
+                        // @TODO parallelize sending event array by using tasks processed by a threadpool
+                        send_event_array(events_for_subscriber);
+                    }
+                } else {
+                    send_event_array(*event_array);
                 }
             }
             catch (const std::runtime_error& e) {
                 log_error(GET_LOGGER("rest"),
-                    " Exception occured when processing event: "
-                        << event->to_json() << " : " << e.what());
+                    " Exception occurred when processing event array: "
+                        << event_array->to_json() << " : " << e.what());
             }
             catch (...) {
                 log_error(GET_LOGGER("rest"),
-                    " Exception occured when processing event: "
-                        << event->to_json());
+                    " Exception occurred when processing event array: "
+                        << event_array->to_json());
             }
         }
     }

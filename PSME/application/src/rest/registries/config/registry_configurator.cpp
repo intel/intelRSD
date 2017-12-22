@@ -35,18 +35,18 @@ namespace registries {
 
 namespace {
 
-MessageRegistryFile::Languages get_languages(const Json::Value& message_registries) {
+MessageRegistryFile::Languages get_languages(const json::Json& message_registries) {
     MessageRegistryFile::Languages languages{};
 
     for (const auto& registry : message_registries) {
-        languages.push_back(registry["Language"].asString());
+        languages.push_back(registry["Language"]);
     }
 
     return languages;
 }
 
 
-MessageRegistryFile::Locations get_external_locations(const Json::Value& message_registries) {
+MessageRegistryFile::Locations get_external_locations(const json::Json& message_registries) {
     MessageRegistryFile::Locations external_locations{};
 
     for (const auto& registry : message_registries) {
@@ -66,10 +66,7 @@ RegistryConfigurator::~RegistryConfigurator() { }
 void RegistryConfigurator::load(const std::string& configuration) {
     std::lock_guard<std::mutex> lock{m_mutex};
 
-    Json::Reader reader{};
-    Json::Value json{};
-
-    reader.parse(configuration, json);
+    json::Json json = json::Json::parse(configuration);
 
     for (const auto& message_registry_json : json["MessageRegistryFiles"]) {
         MessageRegistryFile message_registry_file{};

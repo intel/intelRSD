@@ -20,5 +20,6 @@ public enum ServiceType {
     PSME,
     RSS,
     LUI,
-    RMM
+    RMM,
+    INBAND
 }

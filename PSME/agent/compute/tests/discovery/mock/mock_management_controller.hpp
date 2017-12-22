@@ -53,7 +53,12 @@ public:
     /*! Default destructor */
     virtual ~MockManagementController();
 
-    virtual void send(const ipmi::Request& request, ipmi::Response& response) {
+    void send(const Request&, const BridgeInfo&, Response&) override {
+        /* not to be called, send(req, resp) is only allowed */
+        throw std::exception();
+    }
+
+    virtual void send(const ipmi::Request& request, ipmi::Response& response) override {
 
         try_send<ipmi::command::generic::request::GetDeviceId,
                 ipmi::command::generic::response::GetDeviceId>(request, response);
@@ -194,9 +199,9 @@ public:
                         mock::CC_OK,
                         mock::MDR_VERSION,
                         ipmi::command::sdv::DataRegionId::SMBIOS_TABLE,
-                        ipmi::command::sdv::response::GetMdrDataRegionStatus::DataValidation::INVALID,
+                        ipmi::command::sdv::DataValidation::INVALID,
                         mock::MDR_DATA_UPDATE_COUNT,
-                        ipmi::command::sdv::response::GetMdrDataRegionStatus::LockStatus::UNLOCKED,
+                        ipmi::command::sdv::LockStatus::UNLOCKED,
                         std::uint8_t(mock::MDR_REGION_SIZE & 0xff),
                         std::uint8_t((mock::MDR_REGION_SIZE >> 8) & 0xff),
                         std::uint8_t(mock::MDR_REGION_SIZE_USED & 0x00ff),
@@ -209,9 +214,9 @@ public:
                         mock::CC_OK,
                         mock::MDR_VERSION,
                         ipmi::command::sdv::DataRegionId::SMBIOS_TABLE,
-                        ipmi::command::sdv::response::GetMdrDataRegionStatus::DataValidation::VALID,
+                        ipmi::command::sdv::DataValidation::VALID,
                         mock::MDR_DATA_UPDATE_COUNT,
-                        ipmi::command::sdv::response::GetMdrDataRegionStatus::LockStatus::UNLOCKED,
+                        ipmi::command::sdv::LockStatus::UNLOCKED,
                         std::uint8_t(mock::MDR_REGION_SIZE & 0xff),
                         std::uint8_t((mock::MDR_REGION_SIZE >> 8) & 0xff),
                         0,
@@ -224,9 +229,9 @@ public:
                         mock::CC_OK,
                         mock::MDR_VERSION,
                         ipmi::command::sdv::DataRegionId::SMBIOS_TABLE,
-                        ipmi::command::sdv::response::GetMdrDataRegionStatus::DataValidation::VALID,
+                        ipmi::command::sdv::DataValidation::VALID,
                         mock::MDR_DATA_UPDATE_COUNT,
-                        ipmi::command::sdv::response::GetMdrDataRegionStatus::LockStatus::STRICT_LOCK,
+                        ipmi::command::sdv::LockStatus::STRICT_LOCK,
                         std::uint8_t(mock::MDR_REGION_SIZE & 0xff),
                         std::uint8_t((mock::MDR_REGION_SIZE >> 8) & 0xff),
                         std::uint8_t(mock::MDR_REGION_SIZE_USED & 0x00ff),
@@ -242,7 +247,7 @@ public:
                 mdr_region_data = {mock::CC_TIMEOUT};
                 break;
         }
-        response.unpack(mdr_region_data);
+        response.do_unpack(mdr_region_data);
     }
 
     bool is_connected() const {

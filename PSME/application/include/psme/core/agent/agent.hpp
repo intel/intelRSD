@@ -24,31 +24,41 @@
  * */
 
 #pragma once
+
+
+
 #include "capabilities.hpp"
 #include <memory>
 #include <vector>
 #include <algorithm>
+
+
 
 namespace psme {
 namespace core {
 /*! Register Agent */
 namespace agent {
 
-// #<{(|! Forward declaration |)}>#
-// class Invoker;
-
 /*! Base Agent class */
 class Agent {
 public:
     /*! Agent constructor */
-    Agent() { }
+    Agent() {}
+
 
     /*! Agent constructor */
     Agent(const std::string& gami_id, const std::string& ipv4address, const int port)
-     : m_gami_id(gami_id), m_ipv4address(ipv4address), m_port(port) { }
+        : m_gami_id(gami_id), m_ipv4address(ipv4address), m_port(port) {}
+
+    Agent(const std::string& gami_id, const std::string& ipv4address, const int port,
+            const std::string& version, const std::string& vendor, const Capabilities& caps):
+        m_gami_id(gami_id), m_ipv4address(ipv4address), m_port(port), m_version(version),
+        m_vendor(vendor), m_capabilities(caps) {}
+
 
     /*! Agent destructor */
     virtual ~Agent();
+
 
     /*!
      * @brief Get agent gami id from request
@@ -58,6 +68,7 @@ public:
         return m_gami_id;
     }
 
+
     /*!
     * @brief Get agent version from request
     * @return agent version
@@ -65,6 +76,7 @@ public:
     const std::string& get_version() const {
         return m_version;
     }
+
 
     /*!
     * @brief Get agent`s RPC Server IPv4 address from request
@@ -74,6 +86,7 @@ public:
         return m_ipv4address;
     }
 
+
     /*!
     * @brief Get agent`s RPC Server TCP port from request
     * @return access port
@@ -81,6 +94,7 @@ public:
     const int& get_port() const {
         return m_port;
     }
+
 
     /*!
     * @brief Get agent vendor from request
@@ -90,35 +104,31 @@ public:
         return m_vendor;
     }
 
+
     /*!
-     * @brief Get agent capabilites from request
-     *
-     * @return agent capabilities
+     * @brief Get agent capabilities from request
+     * @return Agent capabilities
      */
     const Capabilities& get_capabilities() const {
         return m_capabilities;
     }
+
 
     /*!
      * @brief Check if agent has specified capability
      *
      * @param name capability name
      *
-     * @return On successed true, otherwise false
+     * @return On success true, otherwise false
      */
     bool has_capability(const std::string& name) {
-        return std::any_of( m_capabilities.cbegin(),
-                            m_capabilities.cend(),
-                            [&name](const Capability& capability) {
-                                return capability.get_name() == name;
-                            });
+        return std::any_of(m_capabilities.cbegin(),
+                           m_capabilities.cend(),
+                           [&name](const Capability& capability) {
+                               return capability.get_name() == name;
+                           });
     }
 
-    // #<{(|!
-    //  * @brief Get agent invoker object
-    //  * @return Invoker object
-    //  |)}>#
-    // virtual Invoker& get_invoker() = 0;
 
 protected:
     /*! agent id */
@@ -127,13 +137,12 @@ protected:
     std::string m_ipv4address{};
     /*! agent port */
     int m_port{};
-
     /*! agent API version */
     std::string m_version{};
     /*! agent vendor name */
     std::string m_vendor{};
 
-    /*! agent capabilites */
+    /*! agent capabilities */
     Capabilities m_capabilities{};
 };
 

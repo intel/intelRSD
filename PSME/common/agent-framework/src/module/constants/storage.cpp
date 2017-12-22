@@ -68,10 +68,10 @@ constexpr const char IscsiTarget::OEM[];
 constexpr const char TargetLun::LUN[];
 constexpr const char TargetLun::LOGICAL_DRIVE[];
 
-constexpr const char StorageServices::SERVICES[];
-constexpr const char StorageServices::STATUS[];
-constexpr const char StorageServices::COLLECTIONS[];
-constexpr const char StorageServices::OEM[];
+constexpr const char StorageService::SERVICE[];
+constexpr const char StorageService::STATUS[];
+constexpr const char StorageService::COLLECTIONS[];
+constexpr const char StorageService::OEM[];
 
 }
 }

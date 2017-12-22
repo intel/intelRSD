@@ -28,19 +28,19 @@
 
 #include "agent-framework/module/requests/pnc/get_pcie_device_info.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetPcieDeviceInfo::GetPcieDeviceInfo(const std::string& device): m_device{device} {}
 
-Json::Value GetPcieDeviceInfo::to_json() const {
-    Json::Value value;
+json::Json GetPcieDeviceInfo::to_json() const {
+    json::Json value;
     value[PcieDevice::DEVICE] = m_device;
     return value;
 }
 
-GetPcieDeviceInfo GetPcieDeviceInfo::from_json(const Json::Value& json) {
-    return GetPcieDeviceInfo{json[PcieDevice::DEVICE].asString()};
+GetPcieDeviceInfo GetPcieDeviceInfo::from_json(const json::Json& json) {
+    return GetPcieDeviceInfo{json[PcieDevice::DEVICE].get<std::string>()};
 }

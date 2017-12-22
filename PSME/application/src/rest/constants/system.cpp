@@ -28,7 +28,6 @@ namespace constants {
 
 namespace System {
 const char SYSTEM_TYPE[] = "SystemType";
-const char SKU[] = "SKU";
 const char HOST_NAME[] = "HostName";
 const char INDICATOR_LED[] = "IndicatorLED";
 const char POWER_STATE[] = "PowerState";
@@ -67,27 +66,39 @@ const char PROCESSORS[] = "Processors";
 const char SIMPLE_STORAGE[] = "SimpleStorage";
 const char MEMORY[] = "Memory";
 const char ENDPOINTS[] = "Endpoints";
+const char HASH_COMPUTER_SYSTEM_RESET[] = "#ComputerSystem.Reset";
 const char COMPUTER_SYSTEM_RESET[] = "ComputerSystem.Reset";
-const char TARGET[] = "target";
-const char ALLOWABLE_RESET_TYPES[] = "ResetType@Redfish.AllowableValues";
-const char COMPUTER_SYSTEM_START_DEEP_DISCOVERY[] = "#ComputerSystem.StartDeepDiscovery";
+const char HASH_INTEL_OEM_CHANGE_TPM_STATE[] = "#Intel.Oem.ChangeTPMState";
+const char INTEL_OEM_CHANGE_TPM_STATE[] = "Intel.Oem.ChangeTPMState";
 const char DISCOVERY_STATE[] = "DiscoveryState";
 const char BASIC[] = "Basic";
 const char MEMORY_SOCKETS[] = "MemorySockets";
 const char PCI_DEVICES[] = "PciDevices";
 const char PCIE_CONNECTION_ID[] = "PCIeConnectionId";
 const char PROCESSOR_SOCKETS[] = "ProcessorSockets";
+const char TRUSTED_MODULES[] = "TrustedModules";
+const char INTERFACE_TYPE_SELECTION[] = "InterfaceTypeSelection";
+const char FIRMWARE_VERSION_2[] = "FirmwareVersion2";
+const char OEM_METHOD[] = "OemMethod";
+const char USER_MODE_ENABLED[] = "UserModeEnabled";
+const char TRUSTED_EXECUTION_TECHNOLOGY_ENABLED[] = "TrustedExecutionTechnologyEnabled";
 const char STORAGE_ADAPTERS[] = "Adapters";
 const char STORAGE[] = "Storage";
-const char ON[] = "On";
-const char FORCE_OFF[] = "ForceOff";
-const char GRACEFUL_SHUTDOWN[] = "GracefulShutdown";
-const char FORCE_RESTART[] = "ForceRestart";
-const char NMI[] = "Nmi";
-const char GRACEFUL_RESTART[] = "GracefulRestart";
-const char FORCE_ON[] = "ForceOn";
-const char PUSH_POWER_BUTTON[] = "PushPowerButton";
+const char INTERFACE_TYPE[] = "InterfaceType";
+const char DEVICE_ENABLED[] = "DeviceEnabled";
+const char CLEAR_OWNERSHIP[] = "ClearOwnership";
+const char ALLOWABLE_INTERFACE_TYPE[] = "InterfaceType@Redfish.AllowableValues";
 
+}
+
+namespace SystemMetrics {
+const char PROCESSOR_BANDWIDTH_PERCENT[] = "ProcessorBandwidthPercent";
+const char IO_BANDWIDTH_GBPS[] = "IOBandwidthGBps";
+const char MEMORY_BANDWIDTH_PERCENT[] = "MemoryBandwidthPercent";
+const char MEMORY_THROTTLED_CYCLES_PERCENT[] = "MemoryThrottledCyclesPercent";
+const char MEMORY_POWER_WATT[] = "MemoryPowerWatt";
+const char PROCESSOR_POWER_WATT[] = "ProcessorPowerWatt";
+const char HEALTH[] = "Health";
 }
 
 namespace Memory {
@@ -125,14 +136,44 @@ const char VENDOR_ID[] = "VendorID";
 const char DEVICE_ID[] = "DeviceID";
 }
 
+namespace MemoryMetrics {
+const char BLOCK_SIZE_BYTES[] = "BlockSizeBytes";
+const char CURRENT_PERIOD[] = "CurrentPeriod";
+const char LIFE_TIME[] = "LifeTime";
+const char HEALTH_DATA[] = "HealthData";
+const char BLOCKS_READ[] = "BlocksRead";
+const char BLOCKS_WRITTEN[] = "BlocksWritten";
+const char REMAINING_SPARE_BLOCK_PERCENTAGE[] = "RemainingSpareBlockPercentage";
+const char LAST_SHUTDOWN_SUCCESS[] = "LastShutdownSuccess";
+const char DATA_LOSS_DETECTED[] = "DataLossDetected";
+const char PERFORMANCE_DEGRADED[] = "PerformanceDegraded";
+const char PREDICTED_MEDIA_LIFE_LEFT_PERCENT[] = "PredictedMediaLifeLeftPercent";
+const char ALARM_TRIPS[] = "AlarmTrips";
+const char TEMPERATURE[] = "Temperature";
+const char SPARE_BLOCK[] = "SpareBlock";
+const char UNCORRECTABLE_ECC_ERROR[] = "UncorrectableECCError";
+const char CORRECTABLE_ECC_ERROR[] = "CorrectableECCError";
+const char ADDRESS_PARITY_ERROR[] = "AddressParityError";
+const char TEMPERATURE_CELSIUS[] = "TemperatureCelsius";
+const char BANDWIDTH_PERCENT[] = "BandwidthPercent";
+const char THROTTLED_CYCLES_PERCENT[] = "ThrottledCyclesPercent";
+const char CONSUMED_POWER_WATT[] = "ConsumedPowerWatt";
+const char THERMAL_MARGIN_CELSIUS[] = "ThermalMarginCelsius";
+const char ECC_ERRORS_COUNT[] = "ECCErrorsCount";
+const char HEALTH[] = "Health";
+}
+
 namespace Processor {
 const char SOCKET[] = "Socket";
-const char PROC_TYPE[] = "ProcessorType";
+const char PROCESSOR_TYPE[] = "ProcessorType";
 const char BRAND[] = "Brand";
 const char CAPABILITIES[] = "Capabilities";
-const char PROC_ARCHITECTURE[] = "ProcessorArchitecture";
+const char ON_PACKAGE_MEMORY[] = "OnPackageMemory";
+const char THERMAL_DESIGN_POWER_WATT[] = "ThermalDesignPowerWatt";
+const char FPGA[] = "FPGA";
+const char PROCESSOR_ARCHITECTURE[] = "ProcessorArchitecture";
 const char INSTRUCTION_SET[] = "InstructionSet";
-const char PROC_ID[] = "ProcessorId";
+const char PROCESSOR_ID[] = "ProcessorId";
 const char IDENTIFICATION_REGISTERS[] = "IdentificationRegisters";
 const char EFFECTIVE_FAMILY[] = "EffectiveFamily";
 const char EFFECTIVE_MODEL[] = "EffectiveModel";
@@ -141,6 +182,58 @@ const char MICROCODE_INFO[] = "MicrocodeInfo";
 const char MAX_SPEED[] = "MaxSpeedMHz";
 const char TOTAL_CORES[] = "TotalCores";
 const char TOTAL_THREADS[] = "TotalThreads";
+const char ENDPOINTS[] = "Endpoints";
+const char MEMORY_TYPE[] = "Type";
+const char MEMORY_CAPACITY_MB[] = "CapacityMB";
+const char SPEED_MHZ[] = "SpeedMHz";
+const char FPGA_TYPE[] = "Type";
+const char BIT_STREAM_VERSION[] = "BitStreamVersion";
+const char HSSI_CONFIGURATION[] = "HSSIConfiguration";
+const char HSSI_SIDEBAND[] = "HSSISideband";
+const char RECONFIGURATION_SLOTS[] = "ReconfigurationSlots";
+const char EXTENDED_IDENTIFICATION_REGISTERS[] = "ExtendedIdentificationRegisters";
+
+}
+
+namespace ExtendedCpuId {
+const char EAX_00H[] = "EAX_00h";
+const char EAX_01H[] = "EAX_01h";
+const char EAX_02H[] = "EAX_02h";
+const char EAX_03H[] = "EAX_03h";
+const char EAX_04H[] = "EAX_04h";
+const char EAX_05H[] = "EAX_05h";
+const char EAX_06H[] = "EAX_06h";
+const char EAX_07H[] = "EAX_07h";
+const char EAX_09H[] = "EAX_09h";
+const char EAX_0AH[] = "EAX_0ah";
+const char EAX_0BH[] = "EAX_0bh";
+const char EAX_0DH[] = "EAX_0dh";
+const char EAX_0FH[] = "EAX_0fh";
+const char EAX_10H[] = "EAX_10h";
+const char EAX_14H[] = "EAX_14h";
+const char EAX_15H[] = "EAX_15h";
+const char EAX_16H[] = "EAX_16h";
+const char EAX_17H_ECX_00H[] = "EAX_17h_00h";
+const char EAX_17H_ECX_01H[] = "EAX_17h_01h";
+const char EAX_17H_ECX_02H[] = "EAX_17h_02h";
+const char EAX_17H_ECX_03H[] = "EAX_17h_03h";
+const char EAX_80000000H[] = "EAX_80000000h";
+const char EAX_80000001H[] = "EAX_80000001h";
+const char EAX_80000002H[] = "EAX_80000002h";
+const char EAX_80000003H[] = "EAX_80000003h";
+const char EAX_80000004H[] = "EAX_80000004h";
+const char EAX_80000006H[] = "EAX_80000006h";
+const char EAX_80000007H[] = "EAX_80000007h";
+const char EAX_80000008H[] = "EAX_80000008h";
+}
+
+namespace ProcessorMetrics {
+const char BANDWIDTH_PERCENT[] = "BandwidthPercent";
+const char AVERAGE_FREQUENCY_MHZ[] = "AverageFrequencyMHz";
+const char THROTTLING_CELSIUS[] = "ThrottlingCelsius";
+const char TEMPERATURE_CELSIUS[] = "TemperatureCelsius";
+const char CONSUMED_POWER_WATT[] = "ConsumedPowerWatt";
+const char HEALTH[] = "Health";
 }
 
 namespace StorageAdapter {
@@ -151,8 +244,6 @@ const char DEVICES[] = "Devices";
 
 namespace StorageSubsystem {
 const char STORAGE_CONTROLLERS[] = "StorageControllers";
-const char STORAGE_CONTROLLERS_POINTER[] = "#/StorageControllers";
-const char SKU[] = "SKU";
 const char SPEED_GBPS[] = "Speed";
 const char FIRMWARE_VERSION[] = "FirmwareVersion";
 const char SUPPORTED_CONTROLLER_PROTOCOLS[] = "SupportedControllerProtocols";

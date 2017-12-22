@@ -30,6 +30,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.Objects;
 
 import static javax.persistence.CascadeType.MERGE;
@@ -38,8 +39,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "power_control", indexes = @Index(name = "idx_power_control_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class PowerControl extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -48,19 +49,19 @@ public class PowerControl extends DiscoverableEntity {
     private String memberId;
 
     @Column(name = "power_consumed_watts")
-    private Integer powerConsumedWatts;
+    private BigDecimal powerConsumedWatts;
 
     @Column(name = "power_requested_watts")
-    private Integer powerRequestedWatts;
+    private BigDecimal powerRequestedWatts;
 
     @Column(name = "power_available_watts")
-    private Integer powerAvailableWatts;
+    private BigDecimal powerAvailableWatts;
 
     @Column(name = "power_capacity_watts")
-    private Integer powerCapacityWatts;
+    private BigDecimal powerCapacityWatts;
 
     @Column(name = "power_allocated_watts")
-    private Integer powerAllocatedWatts;
+    private BigDecimal powerAllocatedWatts;
 
     @Column(name = "oem")
     private String oem;
@@ -93,43 +94,43 @@ public class PowerControl extends DiscoverableEntity {
         this.memberId = memberId;
     }
 
-    public Integer getPowerConsumedWatts() {
+    public BigDecimal getPowerConsumedWatts() {
         return powerConsumedWatts;
     }
 
-    public void setPowerConsumedWatts(Integer powerConsumedWatts) {
+    public void setPowerConsumedWatts(BigDecimal powerConsumedWatts) {
         this.powerConsumedWatts = powerConsumedWatts;
     }
 
-    public Integer getPowerRequestedWatts() {
+    public BigDecimal getPowerRequestedWatts() {
         return powerRequestedWatts;
     }
 
-    public void setPowerRequestedWatts(Integer powerRequestedWatts) {
+    public void setPowerRequestedWatts(BigDecimal powerRequestedWatts) {
         this.powerRequestedWatts = powerRequestedWatts;
     }
 
-    public Integer getPowerAvailableWatts() {
+    public BigDecimal getPowerAvailableWatts() {
         return powerAvailableWatts;
     }
 
-    public void setPowerAvailableWatts(Integer powerAvailableWatts) {
+    public void setPowerAvailableWatts(BigDecimal powerAvailableWatts) {
         this.powerAvailableWatts = powerAvailableWatts;
     }
 
-    public Integer getPowerCapacityWatts() {
+    public BigDecimal getPowerCapacityWatts() {
         return powerCapacityWatts;
     }
 
-    public void setPowerCapacityWatts(Integer powerCapacityWatts) {
+    public void setPowerCapacityWatts(BigDecimal powerCapacityWatts) {
         this.powerCapacityWatts = powerCapacityWatts;
     }
 
-    public Integer getPowerAllocatedWatts() {
+    public BigDecimal getPowerAllocatedWatts() {
         return powerAllocatedWatts;
     }
 
-    public void setPowerAllocatedWatts(Integer powerAllocatedWatts) {
+    public void setPowerAllocatedWatts(BigDecimal powerAllocatedWatts) {
         this.powerAllocatedWatts = powerAllocatedWatts;
     }
 

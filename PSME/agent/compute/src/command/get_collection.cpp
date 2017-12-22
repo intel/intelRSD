@@ -23,12 +23,12 @@
  * */
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/compute_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/compute_commands.hpp"
 
 
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
@@ -69,10 +69,9 @@ const Collection find_collection(const Collections& collections,
 void process_system(const Collection& collection, const std::string& uuid,
                     GetCollection::Response& response, const std::string& name) {
 
-    // Six possible collection types of a system
+    // Seven possible collection types of a system
     if (enums::CollectionType::Processors == collection.get_type()) {
-        response_add_subcomponents(ComputeComponents::get_instance()->
-            get_processor_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<agent_framework::model::Processor>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::Memory == collection.get_type()) {
         response_add_subcomponents(ComputeComponents::get_instance()->
@@ -83,12 +82,14 @@ void process_system(const Collection& collection, const std::string& uuid,
             get_storage_subsystem_manager().get_keys(uuid), response);
     }
     else if (enums::CollectionType::NetworkInterfaces == collection.get_type()) {
-        response_add_subcomponents(ComputeComponents::get_instance()->
-            get_network_interface_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<NetworkInterface>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::NetworkDevices == collection.get_type()) {
         response_add_subcomponents(ComputeComponents::get_instance()->
             get_network_device_manager().get_keys(uuid), response);
+    }
+    else if (enums::CollectionType::TrustedModules == collection.get_type()) {
+        response_add_subcomponents(get_manager<TrustedModule>().get_keys(uuid), response);
     }
     else {
         THROW(agent_framework::exceptions::InvalidCollection,
@@ -99,12 +100,6 @@ void process_system(const Collection& collection, const std::string& uuid,
 
 void process_manager(const Collection& collection, const std::string& uuid,
                      GetCollection::Response& response, const std::string& name) {
-
-    // Add anything only if manager is present
-    if (!CommonComponents::get_instance()->
-        get_module_manager().get_entry_reference(uuid)->get_presence()) {
-        return;
-    }
 
     // Two possible collection types of a manager
     if (enums::CollectionType::Chassis == collection.get_type()) {
@@ -125,10 +120,16 @@ void process_manager(const Collection& collection, const std::string& uuid,
 void process_chassis(const Collection& collection, const std::string& uuid,
                      GetCollection::Response& response, const std::string& name) {
 
-    // One possible collection type for a chassis
+    // Three possible collection type for a chassis
     if (enums::CollectionType::Drives == collection.get_type()) {
         response_add_subcomponents(CommonComponents::get_instance()->
             get_drive_manager().get_keys(uuid), response);
+    }
+    else if (enums::CollectionType::PowerZones == collection.get_type()) {
+        response_add_subcomponents(get_manager<PowerZone>().get_keys(uuid), response);
+    }
+    else if (enums::CollectionType::ThermalZones == collection.get_type()) {
+        response_add_subcomponents(get_manager<ThermalZone>().get_keys(uuid), response);
     }
     else {
         THROW(agent_framework::exceptions::InvalidCollection,
@@ -197,6 +198,19 @@ void process_network_device(const Collection& collection, const std::string& uui
 }
 
 
+void process_thermal_zone(const Collection& collection, const std::string& uuid,
+                          GetCollection::Response& response, const std::string& name) {
+    // Only one possible collection
+    if (enums::CollectionType::Fans == collection.get_type()) {
+        response_add_subcomponents(get_manager<Fan>().get_keys(uuid), response);
+    }
+    else {
+        THROW(::agent_framework::exceptions::InvalidCollection,
+              "compute-agent", "Collection not found: \'" + name + "\'.");
+    }
+}
+
+
 void do_get_collection(const GetCollection::Request& request, GetCollection::Response& response) {
 
     auto uuid = request.get_uuid();
@@ -234,12 +248,10 @@ void do_get_collection(const GetCollection::Request& request, GetCollection::Res
 
         process_storage_subsystem(collection, uuid, response, name);
     }
-    else if (ComputeComponents::get_instance()->
-        get_network_interface_manager().entry_exists(uuid)) {
+    else if (get_manager<NetworkInterface>().entry_exists(uuid)) {
 
         const NetworkInterface& interface =
-            ComputeComponents::get_instance()->
-                get_network_interface_manager().get_entry(uuid);
+            get_manager<NetworkInterface>().get_entry(uuid);
         const Collection& collection =
             find_collection(interface.get_collections(), name);
 
@@ -267,10 +279,19 @@ void do_get_collection(const GetCollection::Request& request, GetCollection::Res
 
         process_network_device(collection, uuid, response, name);
     }
+    else if (get_manager<ThermalZone>().entry_exists(uuid)) {
+
+        const ThermalZone zone = get_manager<ThermalZone>().get_entry(uuid);
+        const Collection& collection = find_collection(zone.get_collections(), name);
+
+        process_thermal_zone(collection, uuid, response, name);
+    }
     else if (ComputeComponents::get_instance()->get_memory_manager().entry_exists(uuid)
-             || ComputeComponents::get_instance()->get_processor_manager().entry_exists(uuid)
+             || get_manager<Processor>().entry_exists(uuid)
              || ComputeComponents::get_instance()->get_network_device_function_manager().entry_exists(uuid)
-             || CommonComponents::get_instance()->get_drive_manager().entry_exists(uuid)) {
+             || CommonComponents::get_instance()->get_drive_manager().entry_exists(uuid)
+             || get_manager<PowerZone>().entry_exists(uuid)
+             || get_manager<Fan>().entry_exists(uuid)) {
 
         THROW(agent_framework::exceptions::InvalidUuid, "compute-agent",
               "This component type has no collections.");

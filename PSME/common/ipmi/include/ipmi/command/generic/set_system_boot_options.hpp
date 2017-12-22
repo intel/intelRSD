@@ -98,8 +98,11 @@ public:
     virtual ~SetSystemBootOptions();
 
 
-    void pack(std::vector<std::uint8_t>& data) const;
+    void pack(std::vector<std::uint8_t>& data) const override;
 
+    virtual const char* get_command_name() const override {
+        return "SetSystemBootOptions";
+    }
 
 private:
     BootOverride m_boot_override{BootOverride::Disabled};
@@ -137,8 +140,11 @@ public:
     virtual ~SetSystemBootOptions();
 
 
-    void unpack(const std::vector<std::uint8_t>& data);
+    void unpack(const std::vector<std::uint8_t>& data) override;
 
+    virtual const char* get_command_name() const override {
+        return "SetSystemBootOptions";
+    }
 
 private:
     static constexpr std::size_t RESPONSE_SIZE = 1;

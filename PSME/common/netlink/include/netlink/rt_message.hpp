@@ -24,14 +24,11 @@
 
 #pragma once
 
-#include "agent-framework/module/enum/enum_builder.hpp"
 #include "netlink/nl_message.hpp"
 
 #include <string>
 
 namespace netlink_base {
-
-ENUM(State, uint32_t, Up, Down, Unknown);
 
 /*!
  * @brief Route Netlink Message

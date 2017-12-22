@@ -24,9 +24,11 @@ import com.intel.podm.common.types.Id;
 import javax.persistence.Column;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -36,14 +38,16 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.FetchType.LAZY;
 
-
 @javax.persistence.Entity
 @Table(name = "power", indexes = @Index(name = "idx_power_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class Power extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
+
+    @Column(name = "input_ac_power_watts")
+    private BigDecimal inputAcPowerWatts;
 
     @OneToMany(mappedBy = "power", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<PowerControl> powerControls = new HashSet<>();
@@ -54,7 +58,10 @@ public class Power extends DiscoverableEntity {
     @OneToMany(mappedBy = "power", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<PowerSupply> powerSupplies = new HashSet<>();
 
-    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @ManyToMany(mappedBy = "poweredBy", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Chassis> poweredChassis = new HashSet<>();
+
+    @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "chassis_id")
     private Chassis chassis;
 
@@ -66,6 +73,14 @@ public class Power extends DiscoverableEntity {
     @Override
     public void setId(Id id) {
         this.entityId = id;
+    }
+
+    public BigDecimal getInputAcPowerWatts() {
+        return inputAcPowerWatts;
+    }
+
+    public void setInputAcPowerWatts(BigDecimal inputAcPowerWatts) {
+        this.inputAcPowerWatts = inputAcPowerWatts;
     }
 
     public Set<PowerControl> getPowerControls() {
@@ -134,6 +149,28 @@ public class Power extends DiscoverableEntity {
         }
     }
 
+    public Set<Chassis> getPoweredChassis() {
+        return poweredChassis;
+    }
+
+    public void addPoweredChassis(Chassis chassis) {
+        requiresNonNull(chassis, "chassis");
+
+        poweredChassis.add(chassis);
+        if (!chassis.getPoweredBy().contains(this)) {
+            chassis.addPoweredBy(this);
+        }
+    }
+
+    public void unlinkPoweredChassis(Chassis chassis) {
+        if (poweredChassis.contains(chassis)) {
+            poweredChassis.remove(chassis);
+            if (chassis != null) {
+                chassis.unlinkPoweredBy(this);
+            }
+        }
+    }
+
     public Chassis getChassis() {
         return chassis;
     }
@@ -162,6 +199,7 @@ public class Power extends DiscoverableEntity {
         unlinkCollection(powerControls, this::unlinkPowerControl);
         unlinkCollection(voltages, this::unlinkVoltage);
         unlinkCollection(powerSupplies, this::unlinkPowerSupply);
+        unlinkCollection(poweredChassis, this::unlinkPoweredChassis);
         unlinkChassis(chassis);
     }
 

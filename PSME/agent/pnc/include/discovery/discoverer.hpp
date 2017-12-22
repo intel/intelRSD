@@ -208,6 +208,21 @@ public:
     virtual agent_framework::model::Chassis discover_chassis(
             const tools::Toolset& t, const agent_framework::model::Chassis& chassis) const;
 
+    /*!
+     * Implementation of port health Metric discovery
+     * @param port Port instance for which the metric is created
+     * @return Discovered entity
+     */
+    virtual agent_framework::model::Metric discover_port_health_metric(
+        const agent_framework::model::Port& port, const tools::Toolset& t) const;
+
+    /*!
+     * Implementation of discovery of all Metric Definitions
+     * @return Discovered entities
+     */
+    virtual std::vector<agent_framework::model::MetricDefinition> discover_metric_definitions() const;
+
+
 protected:
     builders::BuilderFactoryPtr m_factory{};
     agent_framework::model::enums::PlatformType  m_platform;

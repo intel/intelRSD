@@ -25,14 +25,23 @@
 
 #pragma once
 
+
+
 #include "smbios_header.hpp"
 #include "bios.hpp"
 #include "memory.hpp"
 #include "module.hpp"
 #include "chassis.hpp"
 #include "processor.hpp"
+#include "cpuid.hpp"
 #include "system.hpp"
+#include "fpga.hpp"
+#include "storage_device.hpp"
+#include "tpm.hpp"
+#include "pcie_port.hpp"
 #include <cstdint>
+
+
 
 #pragma pack(push, 1)
 
@@ -58,10 +67,29 @@ struct NIC_INFO_DATA {
     NIC_PORT_INFO_DATA PortData;
 };
 
+struct NIC_INFO_DATA_V2 {
+    uint8_t PciClassCode;
+    uint16_t SlotNo;
+    uint16_t VendorID;
+    uint16_t DeviceID;
+    uint16_t SubVendorID;
+    uint16_t SubDeviceID;
+    uint32_t LinkSpeed;
+    uint32_t LinkWidth;
+    NIC_PORT_INFO_DATA PortData;
+    uint8_t FirmwareVersion;
+};
+
 struct SMBIOS_NIC_INFO_DATA {
     static constexpr uint8_t ID = 190;
     SMBIOS_OOB_HEADER header;
     NIC_INFO_DATA data;
+};
+
+struct SMBIOS_NIC_INFO_DATA_V2 {
+    static constexpr uint8_t ID = 190;
+    SMBIOS_OOB_HEADER header;
+    NIC_INFO_DATA_V2 data;
 };
 
 struct HDD_INFO_DATA {
@@ -128,6 +156,21 @@ struct SMBIOS_PCIE_INFO_DATA {
     static constexpr uint8_t ID = 192;
     SMBIOS_OOB_HEADER header;
     PCIE_INFO_DATA data;
+};
+
+enum class TxtStatus : uint8_t {
+    DISABLED = 0x00,
+    ENABLED = 0x01
+};
+
+struct TXT_INFO_DATA {
+    TxtStatus status;
+};
+
+struct SMBIOS_TXT_INFO_DATA {
+    static constexpr uint8_t ID = 196;
+    SMBIOS_OOB_HEADER header;
+    TXT_INFO_DATA data;
 };
 
 #pragma pack(pop)

@@ -16,6 +16,7 @@
 
 package com.intel.podm.redfish;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
@@ -25,6 +26,7 @@ import java.io.IOException;
 
 import static com.intel.podm.redfish.RedfishResponseHeadersProvider.getRedfishResponseHeaders;
 
+@ApplicationScoped
 @Provider
 public class RedfishResponseHeadersFilter implements ContainerResponseFilter {
     @Override

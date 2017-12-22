@@ -29,8 +29,8 @@
 #include "psme/rest/model/handlers/handler_manager.hpp"
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
-#include "psme/rest/endpoints/monitor_content_builder.hpp"
-#include "psme/rest/endpoints/task_service_utils.hpp"
+#include "psme/rest/endpoints/task_service/monitor_content_builder.hpp"
+#include "psme/rest/endpoints/task_service/task_service_utils.hpp"
 
 
 
@@ -84,7 +84,7 @@ void endpoint::DriveSecureErase::post(const server::Request& request, server::Re
         set_component_attributes{drive.get_uuid(), attributes};
 
     // prepare response which will be presented on task completion
-    auto response_renderer = [](Json::Value) -> server::Response {
+    auto response_renderer = [](json::Json) -> server::Response {
         server::Response res;
         res.set_status(server::status_2XX::NO_CONTENT);
         return res;

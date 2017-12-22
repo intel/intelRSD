@@ -20,23 +20,27 @@ import com.intel.podm.business.dto.redfish.ODataServiceDocumentDto;
 import com.intel.podm.business.dto.redfish.attributes.ODataServiceDto;
 import com.intel.podm.common.types.ServiceKind;
 
+import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
-
+import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.intel.podm.common.types.ServiceKind.SINGLETON;
 import static com.intel.podm.common.types.redfish.ODataServices.ODATA_ROOT_SERVICES;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ODataServiceDocumentResource extends BaseResource {
     private static final String SERVICE_ROOT = "/redfish/v1/";
     private static final String SERVICE = "Service";
 
     @GET
+    @Override
     public ODataServiceDocumentDto get() {
         return ODataServiceDocumentDto.newBuilder()
             .values(getODataRootServices())
@@ -57,5 +61,10 @@ public class ODataServiceDocumentResource extends BaseResource {
             .kind(serviceKind)
             .url(url)
             .build();
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

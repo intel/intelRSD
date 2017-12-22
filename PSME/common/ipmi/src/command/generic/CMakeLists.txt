@@ -27,6 +27,19 @@ set(SOURCES
     get_system_guid.cpp
     get_device_guid.cpp
     master_write_read.cpp
+    get_lan_config_params.cpp
+    get_fru_inventory_area_info.cpp
+    read_fru_data.cpp
+    get_sdr_repository_info.cpp
+    reserve_sdr_repository.cpp
+    get_sdr.cpp
+    warm_reset.cpp
+    raw_request.cpp
+    sel/get_sel_info.cpp
+    sel/get_sel_entry.cpp
+    sel/reserve_sel.cpp
+    sel/delete_sel_entry.cpp
+    sel/get_sel_time.cpp
 )
 
 set_source_files_properties(

@@ -37,9 +37,6 @@ add_gtest(storage_command agent-framework
 target_link_libraries(${test_target}
     ${AGENT_COMMANDS_LIB}
     ${AGENT_FRAMEWORK_LIB}
-    jsoncpp
-    jsonrpccpp-server
-    jsonrpccpp-common
     ${UUID_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}

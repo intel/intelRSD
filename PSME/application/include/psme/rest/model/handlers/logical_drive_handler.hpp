@@ -55,11 +55,11 @@ protected:
      * @param[in] parent_component Component of parent node
      */
     bool is_strong_collection(const Component parent_component) {
-        return (Component::StorageServices == parent_component);
+        return (Component::StorageService == parent_component);
     }
 
     /*!
-     * brief Specialization of fetch siblings
+     * @brief Specialization of fetch siblings
      * @param ctx - keeps data that is required during processing and need to be passed down to sub-handlers
      * @param parent_uuid - uuid of parent for components we want to retrieve
      * @param collection_name name of the collection
@@ -68,8 +68,7 @@ protected:
      */
     void fetch_siblings(Context& ctx, const std::string &parent_uuid, const std::string &collection_name) override {
         if (is_strong_collection(ctx.get_parent_component())) {
-            return LogicalDriveHandlerBase::fetch_siblings(ctx, parent_uuid,
-                collection_name);
+            return LogicalDriveHandlerBase::fetch_siblings(ctx, parent_uuid, collection_name);
         }
         else if (Component::LogicalDrive == ctx.get_parent_component()) {
             fetch_parent_children(ctx, parent_uuid, collection_name,
@@ -80,11 +79,12 @@ protected:
     /*!
      * @brief Overrides remove_agent_data() from GenericManager
      *
+     * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * This override is necessary to properly clean the contents of
      * LogicalDrivesMembersManager
      * */
-    void remove_agent_data(const std::string& gami_id) override {
-        LogicalDriveHandlerBase::remove_agent_data(gami_id);
+    void remove_agent_data(Context& ctx, const std::string& gami_id) override {
+        LogicalDriveHandlerBase::remove_agent_data(ctx, gami_id);
 
         StorageComponents::get_instance()->
             get_logical_drive_members_manager().clean_resources_for_agent(gami_id);
@@ -96,9 +96,10 @@ protected:
     /*!
      * @brief removes a component and all its descendants from the model
      *
+     * @param ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param uuid component's uuid
      * */
-    void remove(const std::string &uuid) override {
+    void do_remove(Context& ctx, const std::string &uuid) override {
         // remove links where logical to remove is either parent or child of other logical
         auto& logical_drive_members_manager = agent_framework::module::StorageComponents::get_instance()->get_logical_drive_members_manager();
         logical_drive_members_manager.remove_if([&uuid](const std::string& parent, const std::string& child, const std::string&) {
@@ -108,7 +109,7 @@ protected:
         // remove links where logical to remove is parent of physical
         StorageComponents::get_instance()->get_physical_drive_members_manager().remove_parent(uuid);
 
-        LogicalDriveHandlerBase::remove(uuid);
+        LogicalDriveHandlerBase::do_remove(ctx, uuid);
     }
 
     bool do_accept_recursively(ResourceVisitor& visitor,

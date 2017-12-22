@@ -22,17 +22,26 @@
  * */
 
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/chassis_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/chassis_commands.hpp"
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::module;
+using namespace agent_framework::model;
 
 REGISTER_COMMAND(GetManagerInfo,
     [] (const GetManagerInfo::Request& req, GetManagerInfo::Response& rsp) {
         log_debug(GET_LOGGER("rpc"), "GetManagerInfo with parameters: manager "
             << req.get_uuid());
-        rsp = CommonComponents::get_instance()->
-            get_module_manager().get_entry(req.get_uuid());
+        const auto& manager = CommonComponents::get_instance()->get_module_manager().get_entry(req.get_uuid());
+        if (manager.get_manager_type() == enums::ManagerInfoType::EnclosureManager && manager.has_persistent_uuid()) {
+            rsp = manager;
+        }
+        else {
+            // Chassis agent should only be able to expose data about drawer manager. This hack is here
+            // to ensure that "virtual" sled managers cannot be discovered via chassis agent.
+            THROW(::agent_framework::exceptions::InvalidUuid, "model",
+                  "Entry not found in the manager for UUID = " + manager.get_uuid() + ".");
+        }
     }
 );

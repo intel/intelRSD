@@ -19,10 +19,13 @@
  *
  *
  * @file sysfs_api.hpp
- * @brief C++ wrapper for libsysfs
+ * @brief Wrapper for sysfsref library and ioctl calls for reading block device attributes
  * */
 
 #pragma once
+
+#include "sysfs/abstract_sysfs_interface.hpp"
+
 #include <vector>
 #include <string>
 #include <memory>
@@ -31,7 +34,6 @@ struct sysfs_device;
 
 namespace agent {
 namespace storage {
-namespace sysfs {
 
 static constexpr uint32_t SSD_RPM_VALUE = 1;
 
@@ -40,7 +42,7 @@ using std::string;
 using std::uint32_t;
 
 /*!
- * @brief C++ wrapper for libsysfs
+ * @brief C++ wrapper for sysfs operations
  */
 class SysfsAPI {
 public:
@@ -62,7 +64,7 @@ public:
         /*! Default constructor */
         HardDrive() {}
 
-        bool operator==(const agent::storage::sysfs::SysfsAPI::HardDrive& a) {
+        bool operator==(const agent::storage::SysfsAPI::HardDrive& a) {
             return ((a.get_serial_number() == get_serial_number()) &&
                         (a.get_model() == get_model()) &&
                         (a.get_device_path() == get_device_path()));
@@ -88,22 +90,6 @@ public:
          * */
         void set_name(const string& name) {
             m_name = name;
-        }
-
-        /*!
-         * @brief Get hard drive SysFS path
-         * @return Hard drive SysFS path
-         * */
-        const string& get_sysfs_path() const {
-            return m_sysfs_path;
-        }
-
-        /*!
-         * @brief Set hard drive SysFS path
-         * @param[in] sysfs_path Hard drive SysFS path
-         * */
-        void set_sysfs_path(const string& sysfs_path) {
-            m_sysfs_path = sysfs_path;
         }
 
         /*!
@@ -238,64 +224,6 @@ public:
         static constexpr const char TYPE_HDD[] = "HDD";
     };
 
-    class Partition {
-        std::string m_name{};
-        std::string m_path{};
-        double m_capacity_gb{};
-    public:
-        Partition(){}
-
-        /*!
-         * @brief Get partition name
-         * @return partition name
-         * */
-        const string& get_name() const {
-            return m_name;
-        }
-
-        /*!
-         * @brief Set partition name
-         * @param[in] name Partition name
-         * */
-        void set_name(const string& name) {
-            m_name = name;
-        }
-
-        /*!
-         * @brief Get partition path
-         * @return Hard partition path
-         * */
-        const string& get_path() const {
-            return m_path;
-        }
-
-        /*!
-         * @brief Set partition path
-         * @param[in] path Partition path
-         * */
-        void set_path(const string& path) {
-            m_path = path;
-        }
-
-        /*!
-         * @brief Get Partition capacity in GB
-         * @return Partition capacity in GB
-         * */
-        double get_capacity_gb() const {
-            return m_capacity_gb;
-        }
-
-        /*!
-         * @brief Set partition capacity in GB
-         * @param[in] capacity_gb Partition capacity in GB
-         * */
-        void set_capacity_gb(const double capacity_gb) {
-            m_capacity_gb = capacity_gb;
-        }
-
-
-    };
-
     /*!
      * @brief Singleton pattern. Get SysfsAPI instance
      *
@@ -306,16 +234,9 @@ public:
 
     /*!
      * @brief Get hard drives
-     * @param[in] drives Vector of hard drives to be filled.
+     * @return drives Vector of discovered hard drives.
      * */
-    void get_hard_drives(vector<HardDrive>& drives);
-
-    /*!
-     * @brief Gets list of partitions for given hard drive.
-     * @param[in] drive Hard Drive.
-     * @param[out] partitions List of partitions.
-     * */
-    void get_partitions(const HardDrive& drive, vector<Partition>& partitions);
+    vector<HardDrive> get_hard_drives();
 
     /*!
      * @brief Default destructor.
@@ -323,51 +244,49 @@ public:
     virtual ~SysfsAPI();
 
 private:
-    SysfsAPI() {}
+    SysfsAPI(std::shared_ptr<sysfs::AbstractSysfsInterface> sysfs_interface);
 
-    string m_boot_device{};
+    bool m_is_virtual_device(const sysfs::SysfsDir& device);
 
-    bool m_is_virtual_device(const struct sysfs_device* device);
-    bool m_is_boot_device(const struct sysfs_device* device);
+    bool m_is_direct_access_device(const sysfs::SysfsDir& device);
 
-    void m_detect_boot_device();
+    bool m_is_boot_device(const sysfs::SysfsDir& device);
 
-    void m_read_block_device_attributes(struct sysfs_device* device,
-                                        HardDrive& hard_drive);
+    void m_read_block_device_attributes(const sysfs::SysfsDir& device, HardDrive& hard_drive);
 
-    void m_read_attribute(unsigned long long& value,
-                          struct sysfs_device* device,
-                          const string& attribute_name);
+    void m_read_ata_attributes(const sysfs::SysfsDir& device, HardDrive& hard_drive);
 
-    void m_read_attribute(string& value,
-                          struct sysfs_device* device,
-                          const string& attribute_name);
+    void m_perform_sg_io(const sysfs::SysfsDir& device, std::unique_ptr<uint16_t[]>& p_hdio_data);
 
-    void m_read_attribute(int& value,
-                          struct sysfs_device* device,
-                          const string& attribute_name);
+    void m_perform_hdio_drive_cmd(const sysfs::SysfsDir& device, std::unique_ptr<uint16_t[]>& p_hdio_data);
 
-    void m_read_ata_attributes(const struct sysfs_device* device,
-                               HardDrive& hard_drive);
-    void m_perform_sg_io(const struct sysfs_device* device, std::unique_ptr<uint16_t[]>& p_hdio_data);
-    void m_perform_hdio_drive_cmd(const struct sysfs_device* device, std::unique_ptr<uint16_t[]>& p_hdio_data);
     void m_read_ata_string(string& value, size_t offset, size_t length, std::unique_ptr<uint16_t[]>& p_hdio_data);
+
     void m_read_rpm(uint32_t& rpm, std::unique_ptr<uint16_t[]>& p_hdio_data);
+
     void m_read_serial_number(string& serial_number, std::unique_ptr<uint16_t[]>& p_hdio_data);
+
     void m_read_manufacturer(string& manufacturer, std::unique_ptr<uint16_t[]>& p_hdio_data);
 
-    string m_get_device_path(const struct sysfs_device* device);
+    sysfs::Path m_get_devfs_path(const sysfs::SysfsDir& device);
 
     void m_trim(string& input_string);
 
+    std::vector<sysfs::SysfsMount> m_mount_points{};
+    std::shared_ptr<sysfs::AbstractSysfsInterface> m_sysfs{};
+
     static constexpr double SECTORS_TO_GB = 512.0 / (1000.0 * 1000.0 * 1000.0) ; // a sector has 512 B
-    static constexpr const char ROOT_FS[] = "/";
-    static constexpr const char BOOT_FS[] = "/boot";
+    static constexpr unsigned long long DIRECT_ACCESS_TYPE = 0;
+    static constexpr const char DEV_FS[] = "/dev";
+    static constexpr const char MTAB_FILE[] = "/etc/mtab";
+    static constexpr const char VIRTUAL[] = "/virtual/";
+    static constexpr const char SIZE[] = "size";
+    static constexpr const char DEVICE_MODEL[] = "device/model";
+    static constexpr const char DEVICE_TYPE[] = "device/type";
+    static constexpr const char SYSFS_BLOCK_CLASS[] = "/sys/class/block";
 
     static constexpr uint32_t ATA_DATA_SIZE = 512+4;
 };
 
 }
 }
-}
-

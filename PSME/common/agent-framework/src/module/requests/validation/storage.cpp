@@ -19,15 +19,15 @@
  * */
 
 #include "agent-framework/module/constants/storage.hpp"
+#include "agent-framework/module/constants/regular_expressions.hpp"
 #include "agent-framework/module/model/attributes/attributes.hpp"
-#include "agent-framework/module/model/attributes/oem.hpp"
+#include "agent-framework/module/enum/storage.hpp"
 #include "agent-framework/module/requests/validation/storage.hpp"
-#include "agent-framework/module/requests/validation/json_check_type.hpp"
-#include "agent-framework/module/storage_components.hpp"
+#include "agent-framework/validators/procedure_validator.hpp"
 
 using namespace agent_framework::exceptions;
-using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
+using namespace agent_framework::model;
 
 namespace agent_framework {
 namespace model {
@@ -36,53 +36,38 @@ namespace validation {
 
 
 void StorageValidator::validate_set_iscsi_target_attributes(const Attributes& attributes) {
-    for(const auto& name : attributes.get_names()) {
-        const auto& value = attributes.get_value(name);
-
-        if (literals::IscsiTarget::INITIATOR_IQN == name) {
-            check_string_no_whitespace(value, name, "storage-agent");
-        }
-        else if (literals::IscsiTarget::AUTHENTICATION_METHOD == name) {
-            check_nullable_enum<enums::TargetAuthenticationMethod>(value, name, "storage-agent");
-        }
-        else if (literals::IscsiTarget::CHAP_USERNAME == name) {
-            check_nullable_string_no_whitespace(value, name, "storage-agent");
-        }
-        else if (literals::IscsiTarget::CHAP_SECRET == name) {
-            check_nullable_string_no_whitespace(value, name, "storage-agent");
-        }
-        else if (literals::IscsiTarget::MUTUAL_CHAP_USERNAME == name) {
-            check_nullable_string_no_whitespace(value, name, "storage-agent");
-        }
-        else if (literals::IscsiTarget::MUTUAL_CHAP_SECRET == name) {
-            check_nullable_string_no_whitespace(value, name, "storage-agent");
-        }
-        else if (literals::IscsiTarget::OEM == name) {
-            Oem::from_json(value);
-        }
-        else {
-            THROW(InvalidField, "storage-agent", "Unrecognized attribute.", name, value);
-        }
-    }
+    jsonrpc::ProcedureValidator validator(
+        jsonrpc::PARAMS_BY_NAME,
+        literals::IscsiTarget::INITIATOR_IQN,
+            VALID_OPTIONAL(VALID_NULLABLE(VALID_REGEX(literals::regex::RemoteTarget::INITIATOR_IQN))),
+        literals::IscsiTarget::AUTHENTICATION_METHOD,
+            VALID_OPTIONAL(VALID_NULLABLE(VALID_ENUM(enums::TargetAuthenticationMethod))),
+        literals::IscsiTarget::CHAP_USERNAME,
+            VALID_OPTIONAL(VALID_NULLABLE(VALID_REGEX(literals::regex::Common::NO_WHITESPACE_STRING))),
+        literals::IscsiTarget::CHAP_SECRET,
+            VALID_OPTIONAL(VALID_NULLABLE(VALID_REGEX(literals::regex::Common::NO_WHITESPACE_STRING))),
+        literals::IscsiTarget::MUTUAL_CHAP_USERNAME,
+            VALID_OPTIONAL(VALID_NULLABLE(VALID_REGEX(literals::regex::Common::NO_WHITESPACE_STRING))),
+        literals::IscsiTarget::MUTUAL_CHAP_SECRET,
+            VALID_OPTIONAL(VALID_NULLABLE(VALID_REGEX(literals::regex::Common::NO_WHITESPACE_STRING))),
+        literals::IscsiTarget::OEM, VALID_OPTIONAL(VALID_JSON_OBJECT),
+        nullptr
+    );
+    validator.validate(attributes.to_json());
 
     log_debug(GET_LOGGER("storage-agent"), "Request validation passed.");
 }
 
 
 void StorageValidator::validate_set_logical_drive_attributes(const Attributes& attributes) {
-    for(const auto& name : attributes.get_names()) {
-        const auto& value = attributes.get_value(name);
+    jsonrpc::ProcedureValidator validator(
+        jsonrpc::PARAMS_BY_NAME,
+        literals::LogicalDrive::BOOTABLE, VALID_JSON_BOOLEAN,
+        literals::IscsiTarget::OEM, VALID_OPTIONAL(VALID_JSON_OBJECT),
+        nullptr
+    );
+    validator.validate(attributes.to_json());
 
-        if(literals::LogicalDrive::BOOTABLE == name) {
-            check_boolean(value, name, "storage-agent");
-        }
-        else if (literals::LogicalDrive::OEM == name) {
-            Oem::from_json(value);
-        }
-        else {
-            THROW(InvalidField, "storage-agent", "Unrecognized attribute.", name, value);
-        }
-    }
     log_debug(GET_LOGGER("storage-agent"), "Request validation passed.");
 }
 

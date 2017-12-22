@@ -21,14 +21,9 @@ import com.intel.podm.common.types.MemoryDeviceType;
 
 public interface MemoryModule {
     Id getId();
-
     MemoryDeviceType getMemoryDeviceType();
-
     Integer getCapacityMib();
-
     Integer getDataWidthBits();
-
     String getManufacturer();
-
     Integer getOperatingSpeedMhz();
 }

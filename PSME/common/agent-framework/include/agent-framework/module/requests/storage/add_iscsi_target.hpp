@@ -30,16 +30,12 @@
 #include "agent-framework/module/enum/storage.hpp"
 #include "agent-framework/module/constants/command.hpp"
 #include "agent-framework/module/constants/storage.hpp"
+#include "agent-framework/module/constants/regular_expressions.hpp"
 #include "agent-framework/validators/procedure_validator.hpp"
 #include "agent-framework/module/utils/optional_field.hpp"
 
-
 #include <vector>
 #include <string>
-
-namespace Json {
-    class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -211,7 +207,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create AddIscsiTarget form Json
@@ -220,7 +216,7 @@ public:
      *
      * @return new AddIscsiTarget
      */
-    static AddIscsiTarget from_json(const Json::Value& json);
+    static AddIscsiTarget from_json(const json::Json& json);
 
     /*!
      * @brief Returns procedure scheme
@@ -231,8 +227,10 @@ public:
                 get_command(),
                 jsonrpc::PARAMS_BY_NAME,
                 jsonrpc::JSON_STRING,
-                literals::IscsiTarget::TARGET_IQN, VALID_JSON_STRING,
-                literals::IscsiTarget::INITIATOR_IQN, VALID_OPTIONAL(VALID_JSON_STRING),
+                literals::IscsiTarget::TARGET_IQN,
+                    VALID_REGEX(agent_framework::model::literals::regex::RemoteTarget::TARGET_IQN),
+                literals::IscsiTarget::INITIATOR_IQN,
+                    VALID_OPTIONAL(VALID_NULLABLE(VALID_REGEX(agent_framework::model::literals::regex::RemoteTarget::INITIATOR_IQN))),
                 literals::IscsiTarget::TARGET_LUNS, VALID_ARRAY_OF(VALID_ATTRIBUTE(TargetLunSchema)),
                 literals::IscsiTarget::AUTHENTICATION_METHOD, VALID_NULLABLE(VALID_ENUM(agent_framework::model::enums::TargetAuthenticationMethod)),
                 literals::IscsiTarget::CHAP_USERNAME, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),

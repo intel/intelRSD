@@ -29,16 +29,22 @@ namespace rest {
 namespace eventing {
 namespace model {
 
+
 /*!
- * @brief EventTypeVec EventType Vector type
+ * @brief SubscriptionProtocol allowable Protocols describing form of events sent to subscriber.
  */
-using EventTypeVec = std::vector<EventType>;
+ENUM(SubscriptionProtocol, uint32_t, Redfish);
+
 
 /*!
  * @brief EventTypes class
  */
 class EventTypes {
 public:
+    /*!
+     * @brief EventTypeVec EventType Vector type
+     */
+    using EventTypeVec = std::vector<EventType>;
     /*!
      * @brief Add event type
      *
@@ -155,7 +161,7 @@ public:
      *
      * @param protocol Subscription protocol
      */
-    void set_protocol(const std::string& protocol) {
+    void set_protocol(const SubscriptionProtocol protocol) {
         m_protocol = protocol;
     }
 
@@ -164,9 +170,44 @@ public:
      *
      * @return Subscription protocol
      */
-    const std::string& get_protocol() const {
+    const SubscriptionProtocol get_protocol() const {
         return m_protocol;
     }
+
+    /*!
+     * @brief Get list of specified Event origin resources
+     * @return list of specified Event origin resources
+     * */
+    const std::vector<std::string>& get_origin_resources() const {
+        return m_origin_resources;
+    }
+
+
+    /*!
+     * @brief Set list of specified Event origin resources
+     * @param[in] origin_resources the list of specified Event origin resources
+     * */
+    void set_origin_resources(const std::vector<std::string>& origin_resources) {
+        m_origin_resources = origin_resources;
+    }
+
+
+    /*!
+     * @brief Add member to list of specified Event origin resources
+     * @param[in] origin_resource the member to add to list of specified Event origin resources
+     * */
+    void add_origin_resource(const std::string& origin_resource) {
+        m_origin_resources.push_back(origin_resource);
+    }
+
+
+    /*!
+     * @brief Checks it event is requested by subscription
+     *
+     * @param event Checked event
+     * @return True it event should be sent to subscription
+     */
+    bool is_subscribed_for(const Event& event) const;
 
     /*!
      * @brief Creates json representation of subscription
@@ -176,12 +217,22 @@ public:
     json::Value to_json() const;
 
     /*!
+     * @brief Fills json with representation of subscription
+     *
+     * @param json JSON to be filled with representation of subscription
+     */
+    void fill_json(json::Value& json) const;
+
+    /*!
      * @brief Creates model representation from subscription JSON
      *
      * @param json JSON representation of subscription
+     * @param validate_origin_resources flag determining if URL's of origin resources should be verified.
+     * It should be false when subscriptions are read from file at start-up,
+     * because in the start-up sequence endpoints are registered in the Multiplexer AFTER the event service starts.
      * @return Model representation of subscription
      */
-    static Subscription from_json(const json::Value& json);
+    static Subscription from_json(const json::Value& json, bool validate_origin_resources = true);
 
 private:
     uint64_t m_id{};
@@ -189,11 +240,16 @@ private:
     std::string m_destination{};
     EventTypes m_event_types{};
     std::string m_context{};
-    std::string m_protocol{};
+    SubscriptionProtocol m_protocol{SubscriptionProtocol::Redfish};
+    std::vector<std::string> m_origin_resources{};
 };
 
-/*! Subscription vector type */
-using SubscriptionVec = std::vector<Subscription>;
+/*!
+ * @return true if Subscriptions are equal (except id field)
+ * @param s1 First Subscription
+ * @param s2 Second Subscription
+ */
+bool equal_subscriptions(const Subscription& s1, const Subscription& s2);
 
 }
 }

@@ -57,10 +57,6 @@ target_link_libraries(psme-chassis
     ${BASE64_LIBRARIES}
     ${IPMITOOL_LIBRARIES}
     pthread
-    jsonrpccpp-server
-    jsonrpccpp-client
-    jsonrpccpp-common
-    jsoncpp
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
     ${CY_USB_SERIAL_LIBRARIES}

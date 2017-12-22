@@ -40,10 +40,6 @@ response::GetBiosVersion::GetBiosVersion() :
 response::GetBiosVersion::~GetBiosVersion() {}
 
 void response::GetBiosVersion::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
-
     m_full_version = extract_bios_version(data);
 }
 

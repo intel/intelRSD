@@ -26,7 +26,7 @@ class OptionalValidityChecker final : public ValidityChecker {
 public:
     OptionalValidityChecker(ValidityChecker::Ptr& _checker);
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
     ValidityChecker::Ptr checker{};

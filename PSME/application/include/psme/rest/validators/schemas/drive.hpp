@@ -31,7 +31,7 @@ namespace rest {
 namespace validators {
 namespace schema {
 
-/*! @brief  DrivePatchSchema schema for validating PATCH drive requests */
+/*! @brief Schema for validating PATCH drive requests. */
 class DrivePatchSchema {
     class OemSchema {
         class RackScaleSchema {

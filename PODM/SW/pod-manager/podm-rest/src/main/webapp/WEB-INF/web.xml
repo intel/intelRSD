@@ -39,6 +39,7 @@
             <url-pattern>/redfish/v1/PCIeSwitches/*</url-pattern>
             <url-pattern>/redfish/v1/Devices/*</url-pattern>
             <url-pattern>/redfish/v1/Fabrics/*</url-pattern>
+            <url-pattern>/redfish/v1/TelemetryService/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>admin</role-name>

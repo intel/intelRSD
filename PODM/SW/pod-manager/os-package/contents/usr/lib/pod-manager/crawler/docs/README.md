@@ -9,32 +9,32 @@ script utility to explore resources, save its state and present in isolation.
 
 **description:** Traverses graph of resources and saves it in file.
 
-**usage:** `python3 crawler.py crawl <uri> <output-file-name>`
+**usage:** `./crawler.py crawl <uri> <output-file-name>`
 
 ### crawl - examples
 
 * Crawl services in local machine and save them in given file.
 
 ```
-python3 crawler.py crawl resources.json
+./crawler.py crawl resources.json
 ```
 
 * Crawl resources served by remote machine and save them in given file.
 
 ```
-python3 crawler.py crawl --remote=podm@10.91.48.200 resources.json
+./crawler.py crawl --remote=podm@10.91.48.200 resources.json
 ```
 
 ## *mock*
 
 **description:** Runs a mock server at given port and present data retrieved by 'crawl' command
 
-**usage:** `python3 crawler.py mock <resources-file-name> <starting-port>`
+**usage:** `./crawler.py mock <resources-file-name> <starting-port>`
 
 ### mock - examples
 
 * Present services stored in resources.json
 
 ```
-python3 crawler.py mock resources.json 8000
+./crawler.py mock resources.json 8000
 ```

@@ -35,7 +35,6 @@
 #include <cstring>
 #include <string>
 #include <memory>
-#include <regex>
 
 namespace psme {
 namespace rest {

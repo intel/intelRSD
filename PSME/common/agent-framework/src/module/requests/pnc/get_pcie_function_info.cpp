@@ -28,19 +28,19 @@
 
 #include "agent-framework/module/requests/pnc/get_pcie_function_info.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetPcieFunctionInfo::GetPcieFunctionInfo(const std::string& function): m_function{function} {}
 
-Json::Value GetPcieFunctionInfo::to_json() const {
-    Json::Value value;
+json::Json GetPcieFunctionInfo::to_json() const {
+    json::Json value;
     value[PcieFunction::FUNCTION] = m_function;
     return value;
 }
 
-GetPcieFunctionInfo GetPcieFunctionInfo::from_json(const Json::Value& json) {
-    return GetPcieFunctionInfo{json[PcieFunction::FUNCTION].asString()};
+GetPcieFunctionInfo GetPcieFunctionInfo::from_json(const json::Json& json) {
+    return GetPcieFunctionInfo{json[PcieFunction::FUNCTION].get<std::string>()};
 }

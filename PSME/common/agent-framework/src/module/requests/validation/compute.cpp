@@ -29,7 +29,6 @@
 
 
 using namespace agent_framework::exceptions;
-using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 namespace regex = agent_framework::model::literals::regex;
 
@@ -78,11 +77,11 @@ void ComputeValidator::validate_set_storage_subsystem_attributes(const Attribute
 }
 
 namespace {
+
 class EthernetSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure() {
         static jsonrpc::ProcedureValidator procedure{
-            "address",
             jsonrpc::PARAMS_BY_NAME,
             literals::NetworkDeviceFunction::MAC_ADDRESS, VALID_OPTIONAL(VALID_NULLABLE(VALID_REGEX(regex::EthernetInterface::MAC_ADDRESS))),
             nullptr
@@ -90,6 +89,7 @@ public:
         return procedure;
     }
 };
+
 class IscsiBootSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure() {
@@ -97,8 +97,8 @@ public:
         static constexpr const uint32_t MAX_VLAN_ID{4094};
         static constexpr const uint32_t MAX_TCP_PORT{65535};
         static constexpr const uint32_t MAX_LUN{255};
+
         static jsonrpc::ProcedureValidator procedure{
-            "iscsi_boot",
             jsonrpc::PARAMS_BY_NAME,
             literals::IscsiBoot::IP_ADDRESS_TYPE, VALID_OPTIONAL(VALID_ENUM(enums::IPAddressType)),
             literals::IscsiBoot::INITIATOR_IP_ADDRESS, VALID_OPTIONAL(VALID_REGEX(regex::IPAddresses::ADDRESS)),
@@ -136,7 +136,6 @@ public:
 
 void ComputeValidator::validate_set_network_device_function_attributes(const Attributes& attributes) {
     static jsonrpc::ProcedureValidator validator(
-        "set_network_device_function_attributes",
         jsonrpc::PARAMS_BY_NAME,
         literals::NetworkDeviceFunction::ETHERNET, VALID_OPTIONAL(VALID_ATTRIBUTE(EthernetSchema)),
         literals::NetworkDeviceFunction::ISCSI_BOOT, VALID_OPTIONAL(VALID_ATTRIBUTE(IscsiBootSchema)),
@@ -146,12 +145,12 @@ void ComputeValidator::validate_set_network_device_function_attributes(const Att
     const auto& json = attributes.to_json();
     validator.validate(json);
 
-    if (json.isMember(literals::NetworkDeviceFunction::ISCSI_BOOT)) {
+    if (json.count(literals::NetworkDeviceFunction::ISCSI_BOOT)) {
         const auto& boot = json[literals::NetworkDeviceFunction::ISCSI_BOOT];
 
         auto check_length = [&] (const char* attribute, size_t min, size_t max) {
-            if (boot.isMember(attribute) && !boot[attribute].isNull()) {
-                size_t length = boot[attribute].asString().size();
+            if (boot.count(attribute) && !boot[attribute].is_null()) {
+                size_t length = boot[attribute].get<std::string>().size();
                 if (length < min || length > max) {
                     std::string error_message = std::string{"String must be between "} + std::to_string(min)
                                                 + " and " + std::to_string(max) + " characters long.";
@@ -170,8 +169,20 @@ void ComputeValidator::validate_set_network_device_function_attributes(const Att
         check_length(literals::IscsiBoot::MUTUAL_CHAP_SECRET, 12, 16);
     }
 
-
     log_debug(GET_LOGGER("compute-agent"), "Request validation passed.");
+}
+
+
+void ComputeValidator::validate_set_trusted_module_attributes(const Attributes& attributes) {
+    static jsonrpc::ProcedureValidator validator(
+        jsonrpc::PARAMS_BY_NAME,
+        literals::TrustedModule::CLEAR_OWNERSHIP, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        literals::TrustedModule::DEVICE_ENABLED, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_BOOLEAN)),
+        literals::TrustedModule::OEM, VALID_OPTIONAL(VALID_JSON_OBJECT),
+        nullptr);
+    validator.validate(attributes.to_json());
+
+    log_debug("agent-framework", "Request validation passed.");
 }
 
 }

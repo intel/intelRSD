@@ -46,8 +46,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitches/"
-            "Members/__SWITCH_ID__/Ports/Members/__PORT_ID__/StaticMACs/Members/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchStaticMAC.EthernetSwitchStaticMAC";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#EthernetSwitchStaticMAC.v1_0_0.EthernetSwitchStaticMAC";
     r[Common::ID] = json::Value::Type::NIL;
@@ -75,16 +74,6 @@ endpoint::StaticMac::~StaticMac() {}
 
 void endpoint::StaticMac::get(const server::Request& req, server::Response& res) {
     auto json = ::make_prototype();
-
-    json[Common::ODATA_CONTEXT] = std::regex_replace(
-            json[Common::ODATA_CONTEXT].as_string(),
-            std::regex("__SWITCH_ID__"),
-            req.params[PathParam::ETHERNET_SWITCH_ID]);
-
-    json[Common::ODATA_CONTEXT] = std::regex_replace(
-            json[Common::ODATA_CONTEXT].as_string(),
-            std::regex("__PORT_ID__"),
-            req.params[PathParam::SWITCH_PORT_ID]);
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
     json[Common::ID] = req.params[PathParam::STATIC_MAC_ID];
@@ -138,7 +127,7 @@ void endpoint::StaticMac::patch(const server::Request& request, server::Response
 
     if (json.is_member(constants::StaticMac::VLAN_ID)) {
         if(json[constants::StaticMac::VLAN_ID].is_null()) {
-            attributes.set_value(literals::StaticMac::VLAN_ID, Json::Value::null);
+            attributes.set_value(literals::StaticMac::VLAN_ID, json::Json{});
         }
         else {
             attributes.set_value(literals::StaticMac::VLAN_ID, json[constants::StaticMac::VLAN_ID].as_uint());

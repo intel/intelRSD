@@ -1,3 +1,19 @@
+//
+// ServerSocket.h
+//
+// $Id: //poco/1.4/Net/include/Poco/Net/ServerSocket.h#2 $
+//
+// Library: Net
+// Package: Sockets
+// Module:  ServerSocket
+//
+// Definition of the ServerSocket class.
+//
+// Copyright (c) 2005-2006, Applied Informatics Software Engineering GmbH.
+// and Contributors.
+//
+// SPDX-License-Identifier:	BSL-1.0
+//
 /*!
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation

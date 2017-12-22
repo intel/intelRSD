@@ -28,20 +28,20 @@
 
 #include "agent-framework/module/requests/storage/get_physical_drive_info.hpp"
 #include "agent-framework/module/constants/storage.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetPhysicalDriveInfo::GetPhysicalDriveInfo(const std::string& drive): m_drive{drive} {}
 
-Json::Value GetPhysicalDriveInfo::to_json() const {
-    Json::Value value;
+json::Json GetPhysicalDriveInfo::to_json() const {
+    json::Json value;
     value[PhysicalDrive::DRIVE] = m_drive;
     return value;
 }
 
-GetPhysicalDriveInfo GetPhysicalDriveInfo::from_json(const Json::Value& json) {
+GetPhysicalDriveInfo GetPhysicalDriveInfo::from_json(const json::Json& json) {
     return GetPhysicalDriveInfo{
-        json[PhysicalDrive::DRIVE].asString()};
+        json[PhysicalDrive::DRIVE].get<std::string>()};
 }

@@ -28,6 +28,7 @@
 #include "psme/rest/constants/system.hpp"
 #include "psme/rest/constants/fabric.hpp"
 #include "psme/rest/constants/routes.hpp"
+#include "psme/rest/constants/telemetry.hpp"
 
 
 
@@ -53,8 +54,6 @@ extern const char BASE_URL[];
 extern const char METADATA_FILE[];
 extern const char SUBSCRIPTION_ID[];
 extern const char CHASSIS_ID[];
-extern const char THERMAL_ZONE_ID[];
-extern const char POWER_ZONE_ID[];
 extern const char SYSTEM_ID[];
 extern const char ADAPTER_ID[];
 extern const char DEVICE_ID[];
@@ -87,6 +86,10 @@ extern const char STATIC_MAC_ID[];
 extern const char TASK_ID[];
 extern const char ODATA[];
 extern const char MESSAGE_REGISTRY_FILE_ID[];
+extern const char PSU_ID[];
+extern const char METRIC_DEFINITION_ID[];
+extern const char METRIC_REPORT_DEFINITION_ID[];
+extern const char TRIGGER_ID[];
 
 extern const char PATH_SEP;
 extern const char VARIABLE_BEGIN;
@@ -110,7 +113,7 @@ extern const char NAME[];
 extern const char LINKS[];
 extern const char MANUFACTURER[];
 extern const char MODEL[];
-extern const char SERIAL[];
+extern const char SERIAL_NUMBER[];
 extern const char PART_NUMBER[];
 extern const char ASSET_TAG[];
 extern const char STATUS[];
@@ -133,7 +136,13 @@ extern const char ACTIONS[];
 extern const char HASH[];
 extern const char CHASSIS[];
 extern const char RESET_TYPE[];
+extern const char ALLOWABLE_RESET_TYPES[];
+extern const char TARGET[];
+extern const char SKU[];
+extern const char RELATED_ITEM[];
 extern const char MAC_ADDRESS[];
+extern const char METRICS[];
+extern const char REDUNDANCY[];
 }
 
 namespace ErrorMessage {
@@ -176,7 +185,11 @@ extern const char SERVICES[];
 extern const char MANAGERS[];
 extern const char ETHERNET_SWITCHES[];
 extern const char REGISTRIES[];
+extern const char MESSAGE_REGISTRY[];
 extern const char FABRICS[];
+extern const char TELEMETRY_SERVICE[];
+extern const char UPDATE_SERVICE[];
+extern const char SERVICE[];
 }
 
 /*!
@@ -200,7 +213,6 @@ extern const char URL[];
  * @brief Constant literals for Manager endpoint.
  */
 namespace Manager {
-extern const char TARGET[];
 extern const char MANAGER_TYPE[];
 extern const char POWER_STATE[];
 extern const char DATE_TIME[];
@@ -223,6 +235,10 @@ extern const char MANAGER_FOR_LOGICAL_DRIVES[];
 extern const char MANAGER_FOR_PHYSICAL_DRIVES[];
 extern const char NETWORK_PROTOCOL[];
 extern const char ETHERNET_INTERFACES[];
+extern const char HASH_MANAGER_RESET[];
+extern const char MANAGER_RESET[];
+extern const char HASH_LOAD_FACTORY_DEFAULTS_ACTION[];
+extern const char LOAD_FACTORY_DEFAULTS_ACTION[];
 }
 
 /*!
@@ -267,7 +283,7 @@ extern const char ADDRESS_STATE[];
  */
 namespace NetworkInterface {
 extern const char PERMANENT_MAC_ADDRESS[];
-extern const char SPEED[];
+extern const char SPEED_MBPS[];
 extern const char AUTO_NEG[];
 extern const char FULL_DUPLEX[];
 extern const char MTU_SIZE[];
@@ -291,6 +307,31 @@ extern const char LINK_STATUS[];
 }
 
 /*!
+ * @brief Constant literals for ActionInfo endpoint.
+ */
+namespace ActionInfo {
+extern const char REDFISH_ACTION_INFO[];
+extern const char PARAMETERS[];
+extern const char REQUIRED[];
+extern const char DATA_TYPE[];
+extern const char ALLOWABLE_VALUES[];
+}
+
+/*!
+ * @brief Constant literals for UpdateService endpoint.
+ */
+namespace UpdateService {
+extern const char SERVICE_ENABLED[];
+extern const char HTTP_PUSH_URI[];
+extern const char HASH_UPDATE_SERVICE_SIMPLE_UPDATE[];
+extern const char SIMPLE_UPDATE[];
+extern const char SIMPLE_UPDATE_ACTION_INFO[];
+extern const char IMAGE_URI[];
+extern const char TRANSFER_PROTOCOL[];
+extern const char TARGETS[];
+}
+
+/*!
  * @brief Constant literals for EventService endpoint.
  */
 namespace EventService {
@@ -298,13 +339,7 @@ extern const char SERVICE_ENABLED[];
 extern const char DELIVERY_RETRY_ATTEMPTS[];
 extern const char DELIVERY_RETRY_INTERVAL_SECONDS[];
 extern const char EVENT_TYPES_FOR_SUBSCRIPTION[];
-extern const char STATUS_CHANGE[];
-extern const char RESOURCE_UPDATED[];
-extern const char RESOURCE_ADDED[];
-extern const char RESOURCE_REMOVED[];
-extern const char ALERT[];
 extern const char SUBSCRIPTIONS[];
-extern const char ACTIONS[];
 }
 
 /*!
@@ -315,6 +350,30 @@ extern const char DESTINATION[];
 extern const char CONTEXT[];
 extern const char PROTOCOL[];
 extern const char EVENT_TYPES[];
+extern const char ORIGIN_RESOURCES[];
+}
+
+/*!
+ * @brief Constant literals for EventArray class representing Redfish Event.
+ */
+namespace EventArray {
+extern const char CONTEXT[];
+extern const char EVENTS[];
+}
+
+/*!
+ * @brief Constant literals for Event class representing Redfish EventRecord.
+ */
+namespace Event {
+extern const char EVENT_TYPE[];
+extern const char EVENT_ID[];
+extern const char EVENT_TIMESTAMP[];
+extern const char SEVERITY[];
+extern const char MESSAGE[];
+extern const char MESSAGE_ID[];
+extern const char MESSAGE_ARGS[];
+extern const char CONTEXT[];
+extern const char ORIGIN_OF_CONDITION[];
 }
 
 /*!
@@ -325,6 +384,8 @@ extern const char CHASSIS[];
 extern const char COMPUTE[];
 extern const char NETWORK[];
 extern const char STORAGE[];
+extern const char PNC[];
+extern const char RMM[];
 }
 
 /*!
@@ -368,7 +429,17 @@ extern const char PUBLICATION_URI[];
 extern const char ARCHIVE_FILE[];
 }
 
-}
-}
+/*!
+ * @brief Constant literals for MessageRegistry endpoint
+ * */
+namespace MessageRegistry {
+extern const char LANGUAGE[];
+extern const char MESSAGES[];
+extern const char OWNING_ENTITY[];
+extern const char REGISTRY_PREFIX[];
+extern const char REGISTRY_VERSION[];
 }
 
+}
+}
+}

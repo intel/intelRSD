@@ -67,9 +67,6 @@ response::MasterWriteRead::MasterWriteRead(uint8_t data_size) :
 response::MasterWriteRead::~MasterWriteRead() {}
 
 void response::MasterWriteRead::unpack(const std::vector<std::uint8_t>& data) {
-    if (!is_response_correct(data)) {
-        return;
-    }
     for (unsigned i = 1; i < data.size(); ++i) {
         m_response.push_back(data[i]);
     }

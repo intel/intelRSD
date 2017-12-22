@@ -69,8 +69,8 @@ TEST(GetEthernetSwitchInfoTest, PositiveExecute) {
     MyGetEthernetSwitchInfo command{"8d2c1ac0-2f82-11e5-8333-0002a5d5c51b"};
     GetEthernetSwitchInfo::Request request{""};
     GetEthernetSwitchInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51b";
 
@@ -102,8 +102,8 @@ TEST(GetEthernetSwitchInfoTest, NegativeComponentNotFound) {
     MyGetEthernetSwitchInfo command{"8d2c1ac0-2f82-11e5-8333-0002a5d5c51b"};
     GetEthernetSwitchInfo::Request request{""};
     GetEthernetSwitchInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::EthernetSwitch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
 

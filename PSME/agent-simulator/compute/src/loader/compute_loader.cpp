@@ -77,7 +77,6 @@ public:
             }
             log_debug(GET_LOGGER("discovery"), "Creating chassis.");
             chassis.set_status(make_status(element));
-            chassis.set_size(agent::AssetConfiguration::read_int(element, literals::Chassis::SIZE));
             chassis.set_location_offset(agent::AssetConfiguration::read_int(element, literals::Chassis::LOCATION_OFFSET));
             chassis.set_parent_id(agent::AssetConfiguration::read_string(element, literals::Chassis::PARENT_ID));
             chassis.add_collection(attribute::Collection(
@@ -258,8 +257,7 @@ public:
                 for (const auto& element : parent->get_children("networkInterface")) {
                     log_debug(GET_LOGGER("discovery"), "Reading network interface.");
                      auto interface = make_network_interface(system, element);
-                         ComputeComponents::get_instance()->
-                         get_network_interface_manager().add_entry(interface);
+                         get_manager<NetworkInterface>().add_entry(interface);
                 }
             }
             else {
@@ -461,19 +459,16 @@ public:
         return fru_info;
     }
 
-    void read_hard_drives(const Chassis& chassis,
-                                               const xmlpp::Node* element) {
+    void read_hard_drives(const Chassis& chassis, const xmlpp::Node* element) {
         if (element) {
             for (const auto& elem : element->get_children(literals::Drive::DRIVE)) {
                 CommonComponents::get_instance()->
-                     get_drive_manager().add_entry(
-                                make_hard_drive(chassis, elem));
+                     get_drive_manager().add_entry(make_hard_drive(chassis, elem));
             }
         }
     }
 
-    Drive make_hard_drive(const Chassis& chassis,
-                                               const xmlpp::Node* element) {
+    Drive make_hard_drive(const Chassis& chassis, const xmlpp::Node* element) {
         Drive hard_drive{chassis.get_uuid()};
         if (element) {
             log_debug(GET_LOGGER("discovery"), "Creating hard drive.");
@@ -492,8 +487,6 @@ public:
                     read_opt_double(element, literals::Drive::CAPACITY));
             hard_drive.set_rpm(AssetConfiguration::
                     read_opt_int(element, literals::Drive::RPM));
-            hard_drive.set_physical_id(AssetConfiguration::
-                    read_opt_string(element, literals::Drive::PHYSICAL_ID));
             hard_drive.set_firmware_version(AssetConfiguration::
                     read_opt_string(element, literals::Drive::FIRMWARE_VERSION));
             hard_drive.set_fru_info(make_fru_info(element));
@@ -555,10 +548,7 @@ public:
     void read_processors(const System& system, const xmlpp::Node* element) {
         if (element) {
             for (const auto& elem : element->get_children(literals::Processor::PROCESSOR)) {
-                 ComputeComponents::get_instance()->
-                     get_processor_manager().add_entry(
-                                make_processor(system, elem));
-            }
+                 get_manager<Processor>().add_entry(make_processor(system, elem)); }
         }
     }
 

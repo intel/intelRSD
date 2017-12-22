@@ -17,20 +17,27 @@
 # </license_header>
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_subdirectory(api)
 add_subdirectory(utils)
 add_subdirectory(command)
 add_subdirectory(loader)
-add_subdirectory(status)
 add_subdirectory(discovery)
 add_subdirectory(tree_stability)
+add_subdirectory(hal)
 
-add_library(network-utils
-    $<TARGET_OBJECTS:network-loaders>
-    $<TARGET_OBJECTS:network-utils-fm10000>
-    $<TARGET_OBJECTS:network-tree-stability>
-    $<TARGET_OBJECTS:network-discovery-impl>
-)
+if (BUILD_EOS_SDK)
+    add_library(network-utils
+        $<TARGET_OBJECTS:network-loaders>
+        $<TARGET_OBJECTS:network-utils-impl>
+        $<TARGET_OBJECTS:network-tree-stability>
+        $<TARGET_OBJECTS:network-discovery-impl>
+        $<TARGET_OBJECTS:eos-sdk-hal-impl>
+        $<TARGET_OBJECTS:hal>
+    )
+else()
+    add_library(network-utils
+        $<TARGET_OBJECTS:hal>
+    )
+endif()
 
 set(NETWORK_COMMON_LIBRARIES
     network-utils
@@ -43,61 +50,33 @@ set(NETWORK_COMMON_LIBRARIES
     ${PCA95XX_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     pthread
-    jsonrpccpp-server
-    jsonrpccpp-common
-    jsonrpccpp-client
-    jsoncpp
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
     dl
 )
 
-if (NL3_FOUND)
-    set(network_commands_targets_fm10000
-        $<TARGET_OBJECTS:network-command-fm10000>
+if (BUILD_EOS_SDK)
+    set(network_commands_targets
+        $<TARGET_OBJECTS:network-command>
     )
 
-    if (network_commands_targets_fm10000)
-        add_library(network-commands-fm10000 STATIC ${network_commands_targets_fm10000})
+    if (network_commands_targets)
+        add_library(network-commands STATIC ${network_commands_targets})
 
-        set(AGENT_NETWORK_FM10000_LIBRARIES
-            -Wl,--whole-archive network-commands-fm10000 -Wl,--no-whole-archive
+        set(AGENT_NETWORK_COMMANDS
+            -Wl,--whole-archive network-commands -Wl,--no-whole-archive
         )
     endif()
 
-    add_library(network-hw-api-fm10000
-        $<TARGET_OBJECTS:api-fm10000>
-        $<TARGET_OBJECTS:api-fm10000-netlink>
-        $<TARGET_OBJECTS:api-fm10000-dcrp>
-        $<TARGET_OBJECTS:api-fm10000-lldp>
-     )
-
-    add_library(network-discovery-fm10000
-        $<TARGET_OBJECTS:network-discovery-impl>
-    )
-
-    add_library(network-status-fm10000
-        $<TARGET_OBJECTS:network-status-impl>
-    )
-
-    add_library(network-loader-fm10000
-        $<TARGET_OBJECTS:network-loaders>
-    )
-
-    add_executable(psme-network-fm10000
+    add_executable(psme-network
         main.cpp
     )
 
-    target_link_libraries(psme-network-fm10000
-        ${AGENT_NETWORK_FM10000_LIBRARIES}
-        network-hw-api-fm10000
-        network-status-fm10000
-        network-discovery-fm10000
-        ${NL3_LIBRARIES}
-        ${NL3_GENL_LIBRARIES}
+    target_link_libraries(psme-network
+        eos
+        ${AGENT_NETWORK_COMMANDS}
+        network-utils
         ${NETWORK_COMMON_LIBRARIES}
-        ${NETLINK_LIBRARIES}
         md5
     )
-
 endif()

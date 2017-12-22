@@ -23,8 +23,8 @@
  * */
 
 #include "agent-framework/module/storage_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/storage_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/storage_commands.hpp"
 
 #include "iscsi/manager.hpp"
 #include "iscsi/response.hpp"
@@ -35,7 +35,7 @@
 
 
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
 using namespace agent_framework::model::attribute;

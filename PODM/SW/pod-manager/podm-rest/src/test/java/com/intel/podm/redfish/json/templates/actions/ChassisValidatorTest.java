@@ -27,38 +27,68 @@ import static org.testng.Assert.assertTrue;
 
 @SuppressWarnings({"checkstyle:MethodName"})
 public class ChassisValidatorTest {
+    private static final String DUMMY_DATA = "DUMMY_DATA";
+
     @Test
-    public void whenEmptyJsonProvided_shouldReturnFalse() throws Exception {
+    public void whenEmptyJsonProvided_shouldReturnFalse() {
         ChassisConstraintValidator chassisConstraintValidator = new ChassisConstraintValidator();
-
         RedfishChassis json = mock(RedfishChassis.class);
-
         assertFalse(chassisConstraintValidator.isValid(json, null));
     }
 
     @Test
-    public void whenJsonWithAssetTagProvided_shouldReturnTrue() throws Exception {
+    public void whenJsonWithAssetTagProvided_shouldReturnTrue() {
         ChassisConstraintValidator chassisConstraintValidator = new ChassisConstraintValidator();
-
-        RedfishChassis json = prepareRedfishChassisWithAssetTag("DUMMY_DATA");
-
+        RedfishChassis json = mock(RedfishChassis.class);
+        when(json.getAssetTag()).thenReturn(DUMMY_DATA);
         assertTrue(chassisConstraintValidator.isValid(json, null));
     }
 
     @Test
-    public void whenJsonWithEmptyAssetTag_shouldReturnFalse() throws Exception {
-        ChassisConstraintValidator computerSystemConstraintValidator = new ChassisConstraintValidator();
-
-        RedfishChassis json = prepareRedfishChassisWithAssetTag(null);
-
-        assertFalse(computerSystemConstraintValidator.isValid(json, null));
+    public void whenJsonWithNullAssetTag_shouldReturnFalse() {
+        ChassisConstraintValidator chassisConstraintValidator = new ChassisConstraintValidator();
+        RedfishChassis json = mock(RedfishChassis.class);
+        when(json.getAssetTag()).thenReturn(null);
+        assertFalse(chassisConstraintValidator.isValid(json, null));
     }
 
-    private RedfishChassis prepareRedfishChassisWithAssetTag(String assetTag) {
+    @Test
+    public void whenJsonWithGeoTagProvided_shouldReturnTrue() {
+        ChassisConstraintValidator chassisConstraintValidator = new ChassisConstraintValidator();
         RedfishChassis json = mock(RedfishChassis.class);
+        when(json.getGeoTag()).thenReturn(DUMMY_DATA);
+        assertTrue(chassisConstraintValidator.isValid(json, null));
+    }
 
-        when(json.getAssetTag()).thenReturn(assetTag);
+    @Test
+    public void whenJsonWithNullGeoTag_shouldReturnFalse() {
+        ChassisConstraintValidator chassisConstraintValidator = new ChassisConstraintValidator();
+        RedfishChassis json = mock(RedfishChassis.class);
+        when(json.getGeoTag()).thenReturn(null);
+        assertFalse(chassisConstraintValidator.isValid(json, null));
+    }
 
-        return json;
+    @Test
+    public void whenJsonWithLocationIdProvided_shouldReturnTrue() {
+        ChassisConstraintValidator chassisConstraintValidator = new ChassisConstraintValidator();
+        RedfishChassis json = mock(RedfishChassis.class);
+        when(json.getLocationId()).thenReturn(DUMMY_DATA);
+        assertTrue(chassisConstraintValidator.isValid(json, null));
+    }
+
+    @Test
+    public void whenJsonWithNullLocationId_shouldReturnFalse() {
+        ChassisConstraintValidator chassisConstraintValidator = new ChassisConstraintValidator();
+        RedfishChassis json = mock(RedfishChassis.class);
+        when(json.getLocationId()).thenReturn(null);
+        assertFalse(chassisConstraintValidator.isValid(json, null));
+    }
+
+    @Test
+    public void whenJsonWithEmptyLocationId_shouldReturnFalse() {
+        ChassisConstraintValidator chassisConstraintValidator = new ChassisConstraintValidator();
+        RedfishChassis json = mock(RedfishChassis.class);
+        when(json.getLocationId()).thenReturn("");
+        assertFalse(chassisConstraintValidator.isValid(json, null));
     }
 }

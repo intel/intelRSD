@@ -23,12 +23,12 @@
 
 #pragma once
 #include "is_framework_enum.hpp"
-#include "json/json.hpp"
 #include "optional/optional-lib/optional.hpp"
 #include "optional/extensions.hpp"
 #include "json_converter.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
-#include <json/json.h>
+#include "json/json.hpp"
 
 #include <cstdint>
 #include <string>
@@ -75,10 +75,10 @@ public:
     OptionalField(const V& in_value) : optional<T>(T(in_value)) {}
 
     /*!
-     * @brief Json::Value to OptionalField conversion constructor
+     * @brief json::Json to OptionalField conversion constructor
      * */
-    OptionalField(const Json::Value& json) {
-        *this = JsonConverter<Json::Value>::from_json<T>(json);
+    OptionalField(const json::Json& json) {
+        *this = JsonConverter<json::Json>::from_json<T>(json);
     }
 
     /*!
@@ -105,9 +105,9 @@ public:
     }
 
     /*!
-     * @brief ObjectField to Json::Value conversion operator
+     * @brief ObjectField to json::Json conversion operator
      * */
-    operator Json::Value() const;
+    operator json::Json() const;
 
     /*!
      * @brief ObjectField to json::Value conversion operator
@@ -468,11 +468,11 @@ bool operator!=(const typename T::underlying_type& lhs, const OptionalField<T>& 
 }
 
 template<typename T>
-OptionalField<T>::operator Json::Value() const {
+OptionalField<T>::operator json::Json() const {
     if(this->has_value()) {
-        return JsonConverter<Json::Value>::to_json(this->value());
+        return JsonConverter<json::Json>::to_json(this->value());
     } else {
-        return JsonConverter<Json::Value>::to_json(Json::ValueType::nullValue);
+        return JsonConverter<json::Json>::to_json(json::Json{});
     }
 }
 
@@ -485,6 +485,20 @@ OptionalField<T>::operator json::Value() const {
     }
 }
 
+template<typename T, typename std::enable_if<!model::utils::is_framework_enum<T>::value>::type* = nullptr>
+void to_json(json::Json& j, const OptionalField<T>& of) {
+    if (of.has_value()) {
+        j = of.value();
+    }
+}
+
+template<typename T, typename std::enable_if<model::utils::is_framework_enum<T>::value>::type* = nullptr>
+void to_json(json::Json& j, const OptionalField<T>& of) {
+    if (of.has_value()) {
+        j = of.value().to_string();
+    }
+}
+
 }
 }
 }
@@ -492,4 +506,3 @@ OptionalField<T>::operator json::Value() const {
 /* Alias set for easy usage of OptionalField class outside the namespace */
 template <typename T>
 using OptionalField = agent_framework::module::utils::OptionalField<T>;
-

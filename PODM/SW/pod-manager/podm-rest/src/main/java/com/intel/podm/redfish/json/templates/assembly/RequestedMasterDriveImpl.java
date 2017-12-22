@@ -18,9 +18,9 @@ package com.intel.podm.redfish.json.templates.assembly;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.types.ReplicationMethod;
-import com.intel.podm.business.services.redfish.odataid.ODataId;
 
 import static com.intel.podm.business.services.context.ContextType.LOGICAL_DRIVE;
 import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUri;

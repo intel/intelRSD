@@ -28,7 +28,7 @@
 
 #include "agent-framework/module/requests/chassis/get_authorization_certificate.hpp"
 #include "agent-framework/module/constants/chassis.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -36,14 +36,14 @@ using namespace agent_framework::model::literals;
 GetAuthorizationCertificate::GetAuthorizationCertificate(
     const std::string& certificate): m_certificate {certificate} {}
 
-Json::Value GetAuthorizationCertificate::to_json() const {
-    Json::Value value;
+json::Json GetAuthorizationCertificate::to_json() const {
+    json::Json value;
     value[AuthorizationCertificate::TYPE] = m_certificate;
     return value;
 }
 
 GetAuthorizationCertificate GetAuthorizationCertificate::from_json(
-    const Json::Value& json) {
+    const json::Json& json) {
     return GetAuthorizationCertificate{
-        json[AuthorizationCertificate::TYPE].asString()};
+        json[AuthorizationCertificate::TYPE].get<std::string>()};
 }

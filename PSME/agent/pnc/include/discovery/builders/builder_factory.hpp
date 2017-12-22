@@ -36,6 +36,8 @@
 #include "discovery/builders/system_builder.hpp"
 #include "discovery/builders/zone_builder.hpp"
 #include "discovery/builders/chassis_builder.hpp"
+#include "discovery/builders/metric_builder.hpp"
+#include "discovery/builders/metric_definition_builder.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/pnc_components.hpp"
 
@@ -140,7 +142,21 @@ public:
     }
 
     /*!
-     * @brief Helper template method that preinitializes builder with given paremeters. Used for inline builder
+     * @brief Returns metric builder object
+     * */
+    virtual std::shared_ptr<MetricBuilder> get_metric_builder() {
+        return std::shared_ptr<MetricBuilder>(new MetricBuilder());
+    }
+
+    /*!
+     * @brief Returns metric definition builder object
+     * */
+    virtual std::shared_ptr<MetricDefinitionBuilder> get_metric_definition_builder() {
+        return std::shared_ptr<MetricDefinitionBuilder>(new MetricDefinitionBuilder());
+    }
+
+    /*!
+     * @brief Helper template method that preinitializes builder with given parameters. Used for inline builder
      *        initialization.
      * @param[in] builder Builder to be initialized
      * @param[in] params Builder initalization params

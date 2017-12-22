@@ -16,20 +16,24 @@
 
 package com.intel.podm.redfish.resources;
 
+import com.intel.podm.business.dto.ComposedNodeDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.ComposedNodeDto;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.business.services.context.PathParamConstants.COMPOSED_NODE_ID;
 import static com.intel.podm.business.services.redfish.ReaderService.SERVICE_ROOT_CONTEXT;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ComposedNodeCollectionResource extends BaseResource {
     @Inject
@@ -49,5 +53,10 @@ public class ComposedNodeCollectionResource extends BaseResource {
     @Path("Actions")
     public ComposedNodeCollectionActionsResource getComposedNodeCollectionActionsResource() {
         return getResource(ComposedNodeCollectionActionsResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

@@ -21,7 +21,7 @@
 
 #include "agent-framework/module/model/zone.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
@@ -35,18 +35,20 @@ Zone::Zone(const std::string& parent_uuid, enums::Component parent_type) :
 
 Zone::~Zone() {}
 
-Json::Value Zone::to_json() const {
-    Json::Value result{};
+json::Json Zone::to_json() const {
+    json::Json result{};
     result[literals::Zone::COLLECTIONS] = get_collections().to_json();
     result[literals::Zone::STATUS] = get_status().to_json();
     result[literals::Zone::OEM] = get_oem().to_json();
     return result;
 }
 
-Zone Zone::from_json(const Json::Value& json) {
+Zone Zone::from_json(const json::Json& json) {
     Zone fabric_zone{};
     fabric_zone.set_collections(Collections::from_json(json[literals::Zone::COLLECTIONS]));
     fabric_zone.set_status(Status::from_json(json[literals::Zone::STATUS]));
     fabric_zone.set_oem(Oem::from_json(json[literals::Zone::OEM]));
+
+    fabric_zone.set_resource_hash(json);
     return fabric_zone;
 }

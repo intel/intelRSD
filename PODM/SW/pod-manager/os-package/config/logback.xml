@@ -29,6 +29,7 @@
         </triggeringPolicy>
 
         <encoder>
+            <charset>UTF-8</charset>
             <pattern>%d{"yyyy-MM-dd HH:mm:ss,SSS"} [%thread] %-5level %logger{36}%marker - %msg%n</pattern>
         </encoder>
     </appender>
@@ -53,18 +54,18 @@
 
     <!-- to see raw http requests data handled by Resteasy client - set logger level to DEBUG -->
     <logger name="org.apache.http.wire" level="INFO" additivity="false">
-        <appender-ref ref="pod-manager" />
+        <appender-ref ref="pod-manager"/>
     </logger>
 
     <logger name="com.intel" level="DEBUG" additivity="false">
-	    <appender-ref ref="pod-manager" />
+        <appender-ref ref="pod-manager"/>
     </logger>
 
     <logger name="com.intel.podm.discovery.external.ServiceDetectionListenerImpl" level="INFO" additivity="true">
-        <appender-ref ref="pod-manager-services-detection" />
+        <appender-ref ref="pod-manager-services-detection"/>
     </logger>
 
-    <root level="INFO" >
-        <appender-ref ref="pod-manager" />
+    <root level="INFO">
+        <appender-ref ref="pod-manager"/>
     </root>
 </configuration>

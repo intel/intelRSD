@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
+import json
+
 from data_model.data import Data
 from data_model.resource import Resource
 from data_model.service import Service
@@ -22,7 +25,12 @@ from data_model.service_parameters import ServiceParameters
 
 class JsonToDataConverter:
     @staticmethod
-    def convert(json_data_representation):
+    def load(file_name):
+        with open(file_name) as input_file:
+            content = input_file.read()
+
+        json_data_representation = json.loads(content, object_pairs_hook=collections.OrderedDict)
+
         data = Data()
 
         for json_service_representation in json_data_representation:

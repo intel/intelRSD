@@ -28,12 +28,14 @@
 #include "agent-framework/logger_ext.hpp"
 #include "agent-framework/module/managers/generic_manager.hpp"
 #include "agent-framework/module/common_components.hpp"
+#include "agent-framework/eventing/events_queue.hpp"
 
 #include <string>
 #include <iostream>
 
 
 
+using namespace agent_framework::eventing;
 using namespace agent::chassis;
 using namespace agent_framework::module;
 
@@ -58,10 +60,8 @@ std::mutex manager_mutex{};
  * @return True if it has already been stabilized, false otherwise
  * */
 bool is_drawer_manager_stabilized() {
-    const auto drawer_manager_uuid = CommonComponents::get_instance()->
-        get_module_manager().get_keys("").front();
-    const auto drawer_manager = CommonComponents::get_instance()->
-        get_module_manager().get_entry(drawer_manager_uuid);
+    const auto drawer_manager_uuid = get_manager<agent_framework::model::Manager>().get_keys("").front();
+    const auto drawer_manager = get_manager<agent_framework::model::Manager>().get_entry(drawer_manager_uuid);
 
     return drawer_manager.get_unique_key().has_value();
 }
@@ -83,49 +83,57 @@ void stabilize_drawer_and_manager() {
 
     std::string module_persistent_uuid{};
     std::string drawer_persistent_uuid{};
-    const auto module_uuid = CommonComponents::get_instance()->
-        get_module_manager().get_keys("").front();
-    const auto sled_modules_uuids = CommonComponents::get_instance()->
-        get_module_manager().get_keys(module_uuid);
-    const auto chassis_uuid = CommonComponents::get_instance()->
-        get_chassis_manager().get_keys(module_uuid).front();
+    const auto module_uuid = get_manager<agent_framework::model::Manager>().get_keys("").front();
+    const auto sled_modules_uuids = get_manager<agent_framework::model::Manager>().get_keys(module_uuid);
+    const auto chassis_uuid = get_manager<agent_framework::model::Chassis>().get_keys(module_uuid).front();
 
     log_info(LOGUSR, "Generating persistent UUID for resources for Manager " << module_uuid);
 
     /*! Make persistent UUID for drawer manager */
     {
-        auto module = CommonComponents::get_instance()->get_module_manager().get_entry_reference(module_uuid);
+        auto module = get_manager<agent_framework::model::Manager>().get_entry_reference(module_uuid);
         module->set_unique_key(literals::MODULE_KEY_BASE);
         module->make_persistent_uuid();
         module_persistent_uuid = module->get_uuid();
+
+        /*! Update chassis and generate persistent UUID */
+        {
+            auto drawer = get_manager<agent_framework::model::Chassis>().get_entry_reference(chassis_uuid);
+            drawer->set_parent_uuid(module_persistent_uuid);
+            drawer->set_unique_key(literals::DRAWER_KEY_BASE);
+            drawer->make_persistent_uuid();
+            drawer_persistent_uuid = drawer->get_uuid();
+        }
+
+        module->set_location(drawer_persistent_uuid);
     }
 
     /*! Update underlying sled managers */
     for (const auto& sled_module_uuid : sled_modules_uuids) {
-        CommonComponents::get_instance()->
-            get_module_manager().get_entry_reference(sled_module_uuid)->set_parent_uuid(module_persistent_uuid);
+        get_manager<agent_framework::model::Manager>().get_entry_reference(sled_module_uuid)->
+            set_parent_uuid(module_persistent_uuid);
     }
 
-    /*! Update chassis and generate persistent UUID */
-    {
-        auto drawer = CommonComponents::get_instance()->
-            get_chassis_manager().get_entry_reference(chassis_uuid);
-        drawer->set_parent_uuid(module_persistent_uuid);
-        drawer->set_unique_key(literals::DRAWER_KEY_BASE);
-        drawer->make_persistent_uuid();
-        drawer_persistent_uuid = drawer->get_uuid();
-    }
+    // This event needs to be sent here for a moment to ensure that no false events are
+    // passed to the REST server.
+    EventData edat{};
+    edat.set_parent("");
+    edat.set_component(module_persistent_uuid);
+    edat.set_type(agent_framework::model::enums::Component::Manager);
+    edat.set_notification(Notification::Add);
+    EventsQueue::get_instance()->push_back(edat);
 
-    log_debug(LOGUSR,
+    log_debug("tree-stability",
               "Persistent UUID for Module " << module_uuid << " generated: " << module_persistent_uuid);
-    log_debug(LOGUSR,
+    log_debug("tree-stability",
               "Persistent UUID for Drawer " << chassis_uuid << " generated: " << drawer_persistent_uuid);
 }
 
 }
 
 
-ChassisTreeStabilizer::~ChassisTreeStabilizer() { }
+ChassisTreeStabilizer::~ChassisTreeStabilizer() {}
+
 
 const std::string ChassisTreeStabilizer::stabilize(const std::string& module_uuid) {
     // must be in synchronized block, is called from multiple threads at once!
@@ -133,10 +141,10 @@ const std::string ChassisTreeStabilizer::stabilize(const std::string& module_uui
 
     std::string module_persistent_uuid{};
     std::string module_unique_key{literals::SLED_MANAGER_KEY_BASE};
-    const std::string& module_ip = CommonComponents::get_instance()->
-        get_module_manager().get_entry(module_uuid).get_connection_data().get_ip_address();
+    const std::string& module_ip = get_manager<agent_framework::model::Manager>()
+        .get_entry(module_uuid).get_connection_data().get_ip_address();
 
-    const auto keys = CommonComponents::get_instance()->get_chassis_manager().get_keys(module_uuid);
+    const auto keys = get_manager<agent_framework::model::Chassis>().get_keys(module_uuid);
     // it is just a sanity check.. with synchronization it never executes!
     if (keys.empty()) {
         log_error(LOGUSR, "Blade " << module_ip << "/" << module_uuid << " not in the chassis_manager!");
@@ -148,15 +156,14 @@ const std::string ChassisTreeStabilizer::stabilize(const std::string& module_uui
     module_unique_key.append(module_ip);
 
     {
-        auto sled_module = CommonComponents::get_instance()->
-            get_module_manager().get_entry_reference(module_uuid);
+        auto sled_module = get_manager<agent_framework::model::Manager>().get_entry_reference(module_uuid);
         sled_module->set_unique_key(module_unique_key);
         sled_module->make_persistent_uuid();
         module_persistent_uuid = sled_module->get_uuid();
     }
 
-    CommonComponents::get_instance()->
-        get_chassis_manager().get_entry_reference(blade_chassis_uuid)->set_parent_uuid(module_persistent_uuid);
+    get_manager<agent_framework::model::Chassis>()
+        .get_entry_reference(blade_chassis_uuid)->set_parent_uuid(module_persistent_uuid);
 
     log_debug(LOGUSR,
               "Persistent UUID for Blade " << module_ip << "/" << module_uuid << " generated: " << module_persistent_uuid);

@@ -16,17 +16,20 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.assembly.NodeDisassembler;
-import com.intel.podm.assembly.tasks.NodeAssemblyTask;
-import com.intel.podm.assembly.tasks.NodeTasksCoordinator;
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.dto.redfish.ComposedNodeDto;
+import com.intel.podm.business.dto.ComposedNodeDto;
 import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.assembly.NodeDisassembler;
+import com.intel.podm.business.redfish.services.assembly.tasks.NodeRemovalTask;
+import com.intel.podm.business.redfish.services.assembly.tasks.NodeTask;
+import com.intel.podm.business.redfish.services.assembly.tasks.NodeTasksCoordinator;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.RemovalService;
+import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.synchronization.TaskCoordinator;
 import com.intel.podm.common.synchronization.ThrowingRunnable;
+import com.intel.podm.common.types.ComposedNodeState;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -34,10 +37,13 @@ import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.common.types.ComposedNodeState.FAILED;
+import static java.lang.String.format;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @RequestScoped
-public class ComposedNodeRemovalServiceImpl implements RemovalService<ComposedNodeDto> {
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+class ComposedNodeRemovalServiceImpl implements RemovalService<ComposedNodeDto> {
     @Inject
     private EntityTreeTraverser traverser;
 
@@ -50,17 +56,38 @@ public class ComposedNodeRemovalServiceImpl implements RemovalService<ComposedNo
     @Inject
     private NodeTasksCoordinator nodeTasksCoordinator;
 
+    @Inject
+    private Logger logger;
+
     @Override
     @Transactional(REQUIRES_NEW)
+    @SuppressWarnings({"unchecked"})
     public void perform(Context target) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(target, (ThrowingRunnable) () -> {
+        taskCoordinator.run(target, (ThrowingRunnable) () -> {
             ComposedNode composedNode = (ComposedNode) traverser.traverse(target);
-            Collection<NodeAssemblyTask> tasks = nodeDisassembler.getDisassemblyTasks(composedNode.getId());
-
-            for (NodeAssemblyTask task : tasks) {
-                taskCoordinator.run(task.getServiceUuid(), task);
+            ComposedNodeState composedNodeState = composedNode.getComposedNodeState();
+            Collection<NodeTask> tasks = nodeDisassembler.getDisassemblyTasks(composedNode.getId());
+            for (NodeTask task : tasks) {
+                taskRunnerWrapper(task, composedNodeState);
             }
             nodeTasksCoordinator.removeAllTasks(target.getId());
         });
+    }
+
+    @SuppressWarnings({"checkstyle:IllegalCatch"})
+    private void taskRunnerWrapper(NodeTask task, ComposedNodeState composedNodeState) throws TimeoutException {
+        try {
+            taskCoordinator.run(task.getServiceUuid(), task);
+        } catch (RuntimeException e) {
+            if (FAILED.equals(composedNodeState)) {
+                logger.e(format("Error while running task %s", task), e);
+                if (task instanceof NodeRemovalTask) {
+                    logger.i(format("Invoking forced deallocate for task %s.", task));
+                    ((NodeRemovalTask) task).deallocate();
+                }
+            } else {
+                throw e;
+            }
+        }
     }
 }

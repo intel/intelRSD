@@ -25,7 +25,7 @@
  * */
 
 #pragma once
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 namespace agent_framework {
 namespace model {
@@ -47,7 +47,7 @@ private:
 
     template <typename P, typename V = T>
     static constexpr auto check(P*)
-            -> decltype(V::from_json(Json::Value{}), true) {
+            -> decltype(V::from_json(json::Json{}), true) {
         return true;
     }
 
@@ -66,4 +66,3 @@ public:
 }
 }
 }
-

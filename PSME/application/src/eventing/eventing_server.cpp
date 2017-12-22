@@ -22,28 +22,29 @@
 
 #include "psme/eventing/eventing_server.hpp"
 #include "json/json.hpp"
-#include "agent-framework/command/command_json_server.hpp"
 
-using namespace psme::command;
 using namespace psme::app::eventing;
+using namespace json_rpc;
+using namespace agent_framework::command;
 
 EventingServer::EventingServer(const json::Value& config) :
-    m_http_server{config["eventing"]["port"].as_int(), "", "", 1},
-    m_command_json_server{m_http_server}
-{}
+        m_connector(
+            new HttpServerConnector(
+                static_cast<unsigned short>(config["eventing"]["port"].as_uint())
+            )
+        ),
+        m_server(new CommandServer(m_connector)) {
+    // this registers commands from the registry in the 'local' translation unit
+    m_server->add(agent_framework::command::Registry::get_instance()->get_commands());
+}
 
 EventingServer::~EventingServer() {
     stop();
 }
 void EventingServer::start() {
-    m_command_json_server.start();
+    m_server->start();
 }
 
 void EventingServer::stop() {
-    m_command_json_server.stop();
-}
-
-void EventingServer::add(const psme::command::CommandJson::Map::command_map_t&
-                                                                command_map) {
-    m_command_json_server.add(command_map);
+    m_server->stop();
 }

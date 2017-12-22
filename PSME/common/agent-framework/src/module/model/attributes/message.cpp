@@ -28,11 +28,11 @@ Message::Message() { }
 
 Message::~Message() { }
 
-Json::Value Message::to_json() const {
-    Json::Value json;
+json::Json Message::to_json() const {
+    json::Json json;
 
     json[literals::Message::MESSAGE_ID] = m_message_id;
-    json[literals::Message::MESSAGE] = m_message_content;
+    json[literals::Message::MESSAGE_CONTENT] = m_message_content;
     json[literals::Message::RELATED_PROPERTIES] = m_related_properties.to_json();
     json[literals::Message::MESSAGE_ARGS] = m_message_args.to_json();
     json[literals::Message::SEVERITY] = m_severity;
@@ -43,14 +43,14 @@ Json::Value Message::to_json() const {
 }
 
 
-Message Message::from_json(const Json::Value& json) {
+Message Message::from_json(const json::Json& json) {
     Message message{};
 
     message.set_message_id(json[literals::Message::MESSAGE_ID]);
-    message.set_content(json[literals::Message::MESSAGE]);
+    message.set_content(json[literals::Message::MESSAGE_CONTENT]);
     message.set_severity(json[literals::Message::SEVERITY]);
     message.set_resolution(json[literals::Message::RESOLUTION]);
-    message.set_oem(Oem::from_json(json[literals::Message::OEM]));
+    message.set_oem(Oem::from_json(json.value(literals::Message::OEM, json::Json())));
     message.set_related_properties(RelatedProperties::from_json(json[literals::Message::RELATED_PROPERTIES]));
     message.set_message_args(MessageArgs::from_json(json[literals::Message::MESSAGE_ARGS]));
 

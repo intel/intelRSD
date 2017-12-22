@@ -33,8 +33,8 @@ StaticMac::StaticMac(const std::string& parent_uuid, enums::Component parent_typ
 
 StaticMac::~StaticMac() {}
 
-Json::Value StaticMac::to_json() const {
-    Json::Value result;
+json::Json StaticMac::to_json() const {
+    json::Json result;
     result[literals::StaticMac::STATUS] = get_status().to_json();
     result[literals::StaticMac::ADDRESS] = get_address();
     result[literals::StaticMac::VLAN_ID] = get_vlan_id();
@@ -42,7 +42,7 @@ Json::Value StaticMac::to_json() const {
     return result;
 }
 
-StaticMac StaticMac::from_json(const Json::Value& json) {
+StaticMac StaticMac::from_json(const json::Json& json) {
     StaticMac static_mac;
     static_mac.set_status(attribute::Status::from_json(json[literals::StaticMac::STATUS]));
     static_mac.set_address(json[literals::StaticMac::ADDRESS]);

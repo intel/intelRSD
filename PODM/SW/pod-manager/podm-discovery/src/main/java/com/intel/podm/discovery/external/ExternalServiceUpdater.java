@@ -19,17 +19,23 @@ package com.intel.podm.discovery.external;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.common.enterprise.utils.logger.ServiceLifecycle;
 import com.intel.podm.common.logger.ServiceLifecycleLogger;
+import com.intel.podm.common.types.ServiceType;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.EnumSet;
 import java.util.Objects;
-import java.util.UUID;
 
+import static com.intel.podm.common.types.ServiceType.INBAND;
+import static com.intel.podm.common.types.ServiceType.LUI;
+import static java.util.EnumSet.of;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Dependent
 public class ExternalServiceUpdater {
+    private static final EnumSet<ServiceType> INBAND_TYPES = of(INBAND, LUI);
+
     @Inject
     @ServiceLifecycle
     private ServiceLifecycleLogger logger;
@@ -52,12 +58,12 @@ public class ExternalServiceUpdater {
             );
         }
 
+        service.setEventingAvailable(isEventingAvailableForServiceType(serviceEndpoint.getServiceType()));
+        service.setComplementaryDataSource(INBAND_TYPES.contains(serviceEndpoint.getServiceType()));
         service.setBaseUri(serviceEndpoint.getEndpointUri());
     }
 
-    @Transactional(REQUIRES_NEW)
-    void updateExternalServiceUuid(UUID oldUuid, UUID newUuid) {
-        ExternalService service = repository.find(oldUuid);
-        service.setUuid(newUuid);
+    private boolean isEventingAvailableForServiceType(ServiceType serviceType) {
+        return !LUI.equals(serviceType);
     }
 }

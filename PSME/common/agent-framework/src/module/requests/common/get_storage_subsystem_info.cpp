@@ -28,7 +28,7 @@
 
 #include "agent-framework/module/requests/common/get_storage_subsystem_info.hpp"
 #include "agent-framework/module/constants/compute.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -39,14 +39,14 @@ using namespace agent_framework::model::literals;
 GetStorageSubsystemInfo::GetStorageSubsystemInfo(const std::string& storage) : m_storage{storage} { }
 
 
-Json::Value GetStorageSubsystemInfo::to_json() const {
-    Json::Value value;
+json::Json GetStorageSubsystemInfo::to_json() const {
+    json::Json value;
     value[StorageSubsystem::STORAGE] = m_storage;
     return value;
 }
 
 
-GetStorageSubsystemInfo GetStorageSubsystemInfo::from_json(const Json::Value& json) {
+GetStorageSubsystemInfo GetStorageSubsystemInfo::from_json(const json::Json& json) {
     return GetStorageSubsystemInfo{
-        json[StorageSubsystem::STORAGE].asString()};
+        json[StorageSubsystem::STORAGE].get<std::string>()};
 }

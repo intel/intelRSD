@@ -40,10 +40,13 @@ static std::condition_variable* gp_cond_variable = nullptr;
 static std::mutex g_mutex {};
 static volatile size_t waiters = 0;
 
-static void m_interrupt_handler(int signal) {
-    (void)signal;
+static void m_ignore(int signal) {
+    log_info(LOGUSR, "Signal ignored: " << unsigned(signal));
+}
 
-    log_debug(LOGUSR, "User interrupt signal occurred");
+static void m_interrupt_handler(int signal) {
+
+    log_info(LOGUSR, "Signal received: " << unsigned(signal));
 
     std::unique_lock<std::mutex> lk(g_mutex);
 
@@ -61,6 +64,7 @@ void agent_framework::generic::wait_for_interrupt() {
     if ((nullptr == gp_cond_variable) && (0 == waiters)) {
         gp_cond_variable = new std::condition_variable;
         signal(SIGINT, m_interrupt_handler);
+        signal(SIGHUP, m_ignore);
     }
 
     ++waiters;

@@ -47,6 +47,7 @@ import static java.lang.String.format;
 import static java.time.Duration.between;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.EnumType.STRING;
@@ -60,7 +61,10 @@ import static org.hibernate.annotations.GenerationTime.INSERT;
     @NamedQuery(name = ExternalService.GET_EXTERNAL_SERVICES_BY_SERVICES_TYPES,
         query = "SELECT es FROM ExternalService es WHERE es.serviceType IN (:serviceTypes)")
 })
-@Table(name = "external_service", indexes = @Index(name = "idx_external_service_entity_id", columnList = "entity_id", unique = true))
+@Table(name = "external_service", indexes = {
+    @Index(name = "idx_external_service_entity_id", columnList = "entity_id", unique = true),
+    @Index(name = "idx_external_service_uuid", columnList = "uuid", unique = true)
+})
 @EntityListeners(ExternalServiceListener.class)
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class ExternalService extends Entity {
@@ -72,7 +76,7 @@ public class ExternalService extends Entity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_NUMERIC_COLUMN_DEFINITION, insertable = false, nullable = false)
     private Id entityId;
 
-    @Column(name = "uuid", unique = true)
+    @Column(name = "uuid")
     private UUID uuid;
 
     @Column(name = "uri")
@@ -88,9 +92,15 @@ public class ExternalService extends Entity {
     @Column(name = "unreachable_since")
     private LocalDateTime unreachableSince;
 
+    @Column(name = "is_complementary_data_source")
+    private boolean isComplementaryDataSource;
+
+    @Column(name = "is_eventing_available")
+    private boolean eventingAvailable = true;
+
     @IgnoreUnlinkingRelationship
     @OneToMany(mappedBy = "externalService", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<DiscoverableEntity> owned = new HashSet<>();
+    private Set<ExternalLink> ownedLinks = new HashSet<>();
 
     public Id getId() {
         return entityId;
@@ -130,7 +140,11 @@ public class ExternalService extends Entity {
     }
 
     public void markAsNotReachable() {
-        getAllOwnedEntities().forEach(DiscoverableEntity::putToAbsentState);
+        //todo order of following two calls should be reverted(unfortunatelly it does't work now). Find a root cause of this behaviour.
+        getOwnedLinks().stream()
+            .map(ExternalLink::getDiscoverableEntity)
+            .filter(this::allOtherRelatedServices)
+            .forEach(DiscoverableEntity::putToAbsentState);
 
         if (!isReachable()) {
             return;
@@ -138,6 +152,13 @@ public class ExternalService extends Entity {
 
         unreachableSince = now();
         isReachable = false;
+    }
+
+    private boolean allOtherRelatedServices(DiscoverableEntity entity) {
+        return entity.getExternalLinks().stream()
+            .filter(externalLink -> externalLink.getExternalService() != this)
+            .map(ExternalLink::getExternalService)
+            .noneMatch(ExternalService::isReachable);
     }
 
     public void markAsReachable() {
@@ -149,31 +170,48 @@ public class ExternalService extends Entity {
         return between(unreachableSince, now());
     }
 
+    public boolean isComplementaryDataSource() {
+        return isComplementaryDataSource;
+    }
+
+    public void setComplementaryDataSource(boolean complementaryDataSource) {
+        isComplementaryDataSource = complementaryDataSource;
+    }
+
+    public boolean isEventingAvailable() {
+        return eventingAvailable;
+    }
+
+    public void setEventingAvailable(boolean eventingAvailable) {
+        this.eventingAvailable = eventingAvailable;
+    }
+
     public <T extends DiscoverableEntity> List<T> getOwned(Class<T> clazz) {
-        return owned.stream()
+        return ownedLinks.stream()
+            .map(ExternalLink::getDiscoverableEntity)
             .filter(clazz::isInstance)
             .map(entity -> (T) entity)
             .collect(toList());
     }
 
-    public Set<DiscoverableEntity> getAllOwnedEntities() {
-        return owned;
+    public Set<ExternalLink> getOwnedLinks() {
+        return ownedLinks;
     }
 
-    public void addOwned(DiscoverableEntity entity) {
-        requiresNonNull(entity, "entity");
+    public void addOwnedLink(ExternalLink externalLink) {
+        requiresNonNull(externalLink, "entity");
 
-        owned.add(entity);
-        if (!this.equals(entity.getService())) {
-            entity.setExternalService(this);
+        ownedLinks.add(externalLink);
+        if (!this.equals(externalLink.getExternalService())) {
+            externalLink.setExternalService(this);
         }
     }
 
-    public void unlinkOwned(DiscoverableEntity entity) {
-        if (owned.contains(entity)) {
-            owned.remove(entity);
-            if (entity != null) {
-                entity.unlinkExternalService(this);
+    public void unlinkOwnedLink(ExternalLink externalLink) {
+        if (ownedLinks.contains(externalLink)) {
+            ownedLinks.remove(externalLink);
+            if (externalLink != null) {
+                externalLink.unlinkExternalService(this);
             }
         }
     }
@@ -201,5 +239,9 @@ public class ExternalService extends Entity {
                 getServiceType(),
                 unreachableSince);
         }
+    }
+
+    public Set<DiscoverableEntity> getOwnedEntities() {
+        return getOwnedLinks().stream().map(link -> link.getDiscoverableEntity()).collect(toSet());
     }
 }

@@ -45,18 +45,18 @@ public:
     /*!
      * @brief construct an object of class NetworkInterface from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed NetworkInterface object
      */
-    static NetworkInterface from_json(const Json::Value& json);
+    static NetworkInterface from_json(const json::Json& json);
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief Get collection name
@@ -290,6 +290,23 @@ public:
         m_max_ipv6_static_addresses = max_ipv6_static_addresses;
     }
 
+    /*!
+     * @brief Get interface name
+     * @return interface name
+     * */
+    const std::string& get_name() const {
+        return m_name;
+    }
+
+
+    /*!
+     * @brief Set interface name
+     * @param[in] name the interface name
+     * */
+    void set_name(const std::string& name) {
+        m_name = name;
+    }
+
 private:
 
     OptionalField<std::uint32_t> m_frame_size{};
@@ -304,6 +321,9 @@ private:
     OptionalField<std::uint32_t> m_max_ipv6_static_addresses{};
     OptionalField<bool> m_vlan_enable{};
     OptionalField<std::uint32_t> m_default_vlan{};
+
+    /* agent-specific data used in psme-rmm */
+    std::string m_name{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

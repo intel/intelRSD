@@ -24,7 +24,7 @@ import javax.inject.Inject;
 import java.util.UUID;
 
 @ApplicationScoped
-public class ExternalServiceAvailabilityChecker {
+class ExternalServiceAvailabilityChecker {
     @Inject
     private BeanFactory beanFactory;
 
@@ -34,7 +34,6 @@ public class ExternalServiceAvailabilityChecker {
     public void verifyServiceAvailabilityByUuid(UUID serviceUuid) {
         ExternalServiceAvailabilityCheckerTask task = beanFactory.create(ExternalServiceAvailabilityCheckerTask.class);
         task.setServiceUuid(serviceUuid);
-
         taskCoordinator.registerAsync(serviceUuid, task);
     }
 }

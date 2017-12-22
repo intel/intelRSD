@@ -36,12 +36,14 @@
   </edmx:Reference>
 
   <edmx:DataServices>
-  
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Fabric">
 
       <EntityType Name="Fabric" BaseType="Resource.v1_0_0.Resource" Abstract="true">
-        <Annotation Term="OData.Description" String="Fabric contains properties describing a simple fabric consisting of one or more switches, zero or more endpoints, and zero or more zones."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a simple switchable fabric for a Redfish implementation."/>
+        <Annotation Term="OData.Description"
+                    String="Fabric contains properties describing a simple fabric consisting of one or more switches, zero or more endpoints, and zero or more zones."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent a simple switchable fabric for a Redfish implementation."/>
       </EntityType>
 
     </Schema>
@@ -51,40 +53,52 @@
       <EntityType Name="Fabric" BaseType="Fabric.Fabric">
         <Property Name="FabricType" Type="Storage.v1_0_0.Protocol">
           <Annotation Term="OData.Description" String="The protocol being sent over this fabric."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall contain the type of fabric being represented by this simple fabric."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall contain the type of fabric being represented by this simple fabric."/>
         </Property>
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
-          <Property Name="MaxZones" Type="Edm.Int64">
-          <Annotation Term="OData.Description" String="The value of this property shall contain the maximum number of zones the switch can currently configure."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall contain the maximum number of zones the switch can currently configure. This value can change based on changes in the logical or physical configuration of the system."/>
+        <Property Name="MaxZones" Type="Edm.Int64">
+          <Annotation Term="OData.Description"
+                      String="The value of this property shall contain the maximum number of zones the switch can currently configure."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall contain the maximum number of zones the switch can currently configure. This value can change based on changes in the logical or physical configuration of the system."/>
         </Property>
         <NavigationProperty Name="Zones" Type="ZoneCollection.ZoneCollection" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="A collection of references to the zones contained in this fabric."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this fabric uses and shall reference a resource of type Zone."/>
+          <Annotation Term="OData.Description"
+                      String="A collection of references to the zones contained in this fabric."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this fabric uses and shall reference a resource of type Zone."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="Endpoints" Type="EndpointCollection.EndpointCollection" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="A collection of references to the endpoints contained in this fabric."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this fabric uses and shall reference a resource of type Endpoint."/>
+          <Annotation Term="OData.Description"
+                      String="A collection of references to the endpoints contained in this fabric."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this fabric uses and shall reference a resource of type Endpoint."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="Switches" Type="SwitchCollection.SwitchCollection" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="A collection of references to the switches contained in this fabric."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this fabric uses and shall reference a resource of type Switch."/>
+          <Annotation Term="OData.Description"
+                      String="A collection of references to the switches contained in this fabric."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this fabric uses and shall reference a resource of type Switch."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <Property Name="Links" Type="Fabric.v1_0_0.Links" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Contains references to other resources that are related to this resource."/>
-          <Annotation Term="OData.LongDescription" String="The Links property, as described by the Redfish Specification, shall contain references to resources that are related to, but not contained by (subordinate to), this resource."/>
+          <Annotation Term="OData.Description"
+                      String="Contains references to other resources that are related to this resource."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The Links property, as described by the Redfish Specification, shall contain references to resources that are related to, but not contained by (subordinate to), this resource."/>
         </Property>
         <Property Name="Actions" Type="Fabric.v1_0_0.Actions" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The available actions for this resource."/>
-          <Annotation Term="OData.LongDescription" String="The Actions property shall contain the available actions for this resource."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The Actions property shall contain the available actions for this resource."/>
         </Property>
       </EntityType>
 

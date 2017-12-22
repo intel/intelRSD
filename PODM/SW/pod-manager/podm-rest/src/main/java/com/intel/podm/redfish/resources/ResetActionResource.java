@@ -21,6 +21,7 @@ import com.intel.podm.business.services.redfish.ActionService;
 import com.intel.podm.business.services.redfish.requests.ResetRequest;
 import com.intel.podm.redfish.json.templates.actions.ResetActionJson;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -28,10 +29,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceActionBuilder;
+import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ResetActionResource extends BaseResource {
     @Inject
@@ -46,6 +49,13 @@ public class ResetActionResource extends BaseResource {
 
     @Override
     public Object get() {
-        return notFound();
+        return invalidHttpMethod();
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceActionBuilder()
+            .addPostMethod()
+            .build();
     }
 }

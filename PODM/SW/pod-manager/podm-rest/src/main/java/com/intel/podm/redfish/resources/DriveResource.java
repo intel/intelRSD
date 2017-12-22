@@ -17,13 +17,16 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.dto.redfish.DriveDto;
+import com.intel.podm.business.dto.DriveDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 import com.intel.podm.business.services.redfish.UpdateService;
 import com.intel.podm.common.types.redfish.RedfishDrive;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 import com.intel.podm.redfish.json.templates.actions.DrivePartialRepresentation;
 import com.intel.podm.redfish.json.templates.actions.constraints.DriveConstraint;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PATCH;
@@ -32,10 +35,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.ok;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class DriveResource extends BaseResource {
     @Inject
     private ReaderService<DriveDto> readerService;
@@ -44,8 +50,10 @@ public class DriveResource extends BaseResource {
     private UpdateService<RedfishDrive> updateService;
 
     @Override
-    public DriveDto get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        DriveDto driveDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, driveDto);
     }
 
     @PATCH
@@ -59,5 +67,12 @@ public class DriveResource extends BaseResource {
     @Path("Actions")
     public PcieDriveActionsResource getPcieDriveActionsResource() {
         return getResource(PcieDriveActionsResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder()
+            .addPatchMethod()
+            .build();
     }
 }

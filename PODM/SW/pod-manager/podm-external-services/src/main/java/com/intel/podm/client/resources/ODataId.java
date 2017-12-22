@@ -17,12 +17,11 @@
 package com.intel.podm.client.resources;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.intel.podm.common.types.redfish.OdataIdProvider;
 
 import java.net.URI;
 
-import static java.net.URI.create;
-
-public final class ODataId {
+public final class ODataId implements OdataIdProvider.ODataId {
     @JsonProperty("@odata.id")
     private URI oDataId;
 
@@ -34,7 +33,7 @@ public final class ODataId {
     }
 
     public ODataId(String oDataId) {
-        this.oDataId = create(oDataId);
+        this.oDataId = URI.create(oDataId);
     }
 
     public URI toUri() {

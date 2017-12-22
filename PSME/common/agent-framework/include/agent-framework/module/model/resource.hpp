@@ -45,8 +45,7 @@ public:
     using Reference = agent_framework::generic::ObjReference<Resource, std::recursive_mutex>;
 
 
-    explicit Resource(const std::string& parent_uuid, enums::Component
-    parent_type = enums::Component::None);
+    explicit Resource(const std::string& parent_uuid, enums::Component parent_type = enums::Component::None);
 
 
     virtual ~Resource();
@@ -90,8 +89,6 @@ public:
     const std::string& get_persistent_uuid() const {
         return m_persistent_uuid;
     }
-
-
 
 
     /*!
@@ -242,15 +239,6 @@ public:
 
 
     /*!
-     * @brief Tells the caller if the Model represents Chassis object
-     * @return Information if Model represents chassis
-     * */
-    static bool is_chassis() {
-        return false;
-    }
-
-
-    /*!
      * @brief Get id
      *
      * @return resource's REST id
@@ -345,11 +333,11 @@ protected:
      * @brief Set resource hash
      * @param[in] json to be used to compute hash
      * */
-    void set_resource_hash(const Json::Value& json) {
-        if (json.isMember(STATUS_KEY)) {
-            Json::Value status = json[STATUS_KEY];
-            Json::Value all_but_status = json;
-            all_but_status.removeMember(STATUS_KEY);
+    void set_resource_hash(const json::Json& json) {
+        if (json.count(STATUS_KEY)) {
+            json::Json status = json[STATUS_KEY];
+            json::Json all_but_status = json;
+            all_but_status.erase(STATUS_KEY);
 
             m_hash.status = utils::compute_hash(status);
             m_hash.resource_without_status = utils::compute_hash(all_but_status);

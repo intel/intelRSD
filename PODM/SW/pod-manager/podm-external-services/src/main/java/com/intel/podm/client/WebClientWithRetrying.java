@@ -16,10 +16,7 @@
 
 package com.intel.podm.client;
 
-import com.intel.podm.client.api.ExternalServiceApiActionException;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.WebClient;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.ExternalServiceResource;
 
 import java.net.URI;
 import java.util.Optional;
@@ -45,22 +42,27 @@ class WebClientWithRetrying implements WebClient {
     }
 
     @Override
-    public ExternalServiceResource get(URI uri) throws ExternalServiceApiReaderException {
-        return RetryInvoker.retry(() -> innerClient.get(uri));
+    public ExternalServiceResource get(URI requestUri) throws WebClientRequestException {
+        return RetryInvoker.retry(() -> innerClient.get(requestUri));
     }
 
     @Override
-    public <T> URI post(URI requestUri, T obj) throws ExternalServiceApiActionException {
+    public <T> URI post(URI requestUri, T obj) throws WebClientRequestException {
         return RetryInvoker.retry(() -> innerClient.post(requestUri, obj));
     }
 
     @Override
-    public <T> Optional<ExternalServiceResource> patch(URI requestUri, T obj) throws ExternalServiceApiActionException {
+    public <T> void postNotMonitored(String requestUri, T obj) throws WebClientRequestException {
+        RetryInvoker.retry(() -> innerClient.postNotMonitored(requestUri, obj));
+    }
+
+    @Override
+    public <T> Optional<ExternalServiceResource> patch(URI requestUri, T obj) throws WebClientRequestException {
         return RetryInvoker.retry(() -> innerClient.patch(requestUri, obj));
     }
 
     @Override
-    public void delete(URI requestUri) throws ExternalServiceApiActionException {
+    public void delete(URI requestUri) throws WebClientRequestException {
         RetryInvoker.retry(() -> innerClient.delete(requestUri));
     }
 }

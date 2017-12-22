@@ -28,7 +28,8 @@ from include.common.exit_codes import EXIT_CODE_SUCCESS
 from include.common.globals import *
 
 STORAGE_SAS = "Serial Attached SCSI"
-STORAGE_INTERFACES = ["PCIe", STORAGE_SAS, "SATA", "Unknown"]
+STORAGE_NVM = "Non-Volatile memory controller"
+STORAGE_INTERFACES = ["PCIe", STORAGE_SAS, "SATA", STORAGE_NVM, "Unknown"]
 
 class StorageControllerManager(StorageControllerManager_abstract):
     @classmethod
@@ -40,6 +41,8 @@ class StorageControllerManager(StorageControllerManager_abstract):
             else:
                 if interface == STORAGE_SAS:
                     interface = "SAS"
+                elif interface == STORAGE_NVM:
+                    interface = "NVMe"
                 break
         storage_controller.interface = interface
         storage_controller.busInfo = data[LSHW_STORAGE][LSHW_BUSINFO]
@@ -57,6 +60,8 @@ class StorageControllerManager(StorageControllerManager_abstract):
             try:
                 if node[XML_AT_ID].startswith(LSHW_PCI):
                     node = node[XML_NODE]
+                    if not isinstance(node, list):
+                        node = [node]
                     for pci_dev in node:
                         try:
                             if pci_dev[XML_AT_ID].startswith(LSHW_STORAGE):
@@ -70,7 +75,7 @@ class StorageControllerManager(StorageControllerManager_abstract):
                                     for dev in pci_node:
                                         if dev[XML_AT_ID] == LSHW_STORAGE:
                                             ret.append({LSHW_STORAGE: dev, LSHW_DRIVES: drives})
-                        except KeyError:
+                        except (KeyError, TypeError):
                             # node is not containing information in proper format ->
                             # there are no information about network interfaces
                             pass
@@ -118,17 +123,12 @@ class StorageControllerManager(StorageControllerManager_abstract):
                                         if disk[XML_AT_ID].startswith(LSHW_DISK):
                                             disk[LSHW_PCI_STORAGE_CNTRL] = pci[XML_NODE][LSHW_BUSINFO]
                                             drives.append(disk)
-                            elif isinstance(pci[XML_NODE], dict):
-                                for dev in pci[XML_NODE]:
-                                    if isinstance(dev[XML_NODE], dict):
-                                        if dev[XML_NODE][XML_AT_ID] == LSHW_STORAGE:
-                                            resources = dev[XML_NODE][XML_NODE]
-                                            if not isinstance(resources , list):
-                                                resources = [resources]
-                                            for disk in resources:
-                                                if disk[XML_AT_ID].startswith(LSHW_DISK):
-                                                    disk[LSHW_PCI_STORAGE_CNTRL] = dev[XML_NODE][LSHW_BUSINFO]
-                                                    drives.append(disk)
-            except KeyError:
+                        elif pci[XML_AT_ID] == LSHW_STORAGE:
+                            resources = pci[XML_NODE]
+                            for disk in resources:
+                                if disk[XML_AT_ID].startswith(LSHW_DISK):
+                                    disk[LSHW_PCI_STORAGE_CNTRL] = pci[LSHW_BUSINFO]
+                                    drives.append(disk)
+            except (KeyError, TypeError):
                     pass
         return drives

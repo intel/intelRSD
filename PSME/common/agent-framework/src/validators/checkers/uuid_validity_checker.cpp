@@ -26,21 +26,23 @@ using namespace jsonrpc;
 UuidValidityChecker::UuidValidityChecker() {}
 
 
-void UuidValidityChecker::validate(const Json::Value& value) const {
+void UuidValidityChecker::validate(const json::Json& value) const {
     ValidityChecker::validate(value);
-    if (!value.isString()) {
+
+    if (!value.is_string()) {
         THROW(ValidityChecker::ValidationException, "agent-framework",
               agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
               "Property value is not valid string type.", value);
     }
 
-    std::string sval = value.asString();
+    std::string sval = value;
     static const std::string uuid_pattern{"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"};
     if (sval.length() != uuid_pattern.length()) {
         THROW(ValidityChecker::ValidationException, "agent-framework",
               agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
               "Incorrect UUID length.", value);
     }
+
     for (unsigned i = 0; i < uuid_pattern.length(); i++) {
         if (uuid_pattern.at(i) == 'x') {
             if (!is_hex(sval.at(i))) {
@@ -59,7 +61,7 @@ void UuidValidityChecker::validate(const Json::Value& value) const {
 
 
 constexpr bool UuidValidityChecker::is_hex(char c) {
-    return (('0' <= c) && (c <= '9')) ||
-           (('a' <= c) && (c <= 'f')) ||
-           (('A' <= c) && (c <= 'F'));
+    return ((c >= '0') && (c <= '9')) ||
+           ((c >= 'a') && (c <= 'f')) ||
+           ((c >= 'A') && (c <= 'F'));
 }

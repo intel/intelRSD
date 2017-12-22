@@ -27,7 +27,7 @@
 
 #include "psme/rest/registries/model/attributes/location.hpp"
 
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -84,7 +84,7 @@ const OptionalField<std::string>& Location::get_archive_file() const {
 }
 
 
-Location Location::from_json(const Json::Value& json) {
+Location Location::from_json(const json::Json& json) {
     Location location{};
 
     location.set_language(json["Language"]);

@@ -17,14 +17,16 @@
 package com.intel.podm.common.types;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 import org.atteo.classindex.IndexSubclasses;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+import static com.intel.podm.common.logger.LoggerFactory.getLogger;
 import static com.intel.podm.common.utils.Contracts.requires;
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 import static org.atteo.classindex.ClassIndex.getSubclasses;
@@ -34,12 +36,12 @@ import static org.atteo.classindex.ClassIndex.getSubclasses;
  */
 @IndexSubclasses
 public interface EnumeratedType {
-    Logger LOGGER = LoggerFactory.getLogger(EnumeratedType.class);
+    Logger LOGGER = getLogger(EnumeratedType.class);
+    // Priority defines order of enums. Default value is 1 - this is the highest priority enum can have.
+    // Priority is mainly used in allocation algorithms to specify default selection of resources.
+    Integer DEFAULT_PRIORITY = 1;
 
     Set<Class<? extends EnumeratedType>> SUB_TYPES = stream(getSubclasses(EnumeratedType.class).spliterator(), false).collect(toSet());
-
-    String getValue();
-
     static <T extends EnumeratedType> T stringToEnum(Class<T> enumType, String text) {
         T foundEnumeration = findEnum(enumType, text);
         if (foundEnumeration == null) {
@@ -53,7 +55,7 @@ public interface EnumeratedType {
         T foundEnumeration = findEnum(enumType, text);
         if (foundEnumeration == null) {
             throw new IllegalArgumentException("No constant with text [" + text + "] found for enum ["
-                    + enumType.getSimpleName() + "]");
+                + enumType.getSimpleName() + "]");
         }
 
         return foundEnumeration;
@@ -71,7 +73,15 @@ public interface EnumeratedType {
         return null;
     }
 
+    static <T extends EnumeratedType> Comparator<T> byPriority() {
+        return comparing(T::getPriority);
+    }
+
+    String getValue();
     default List<String> getAliases() {
         return emptyList();
+    }
+    default Integer getPriority() {
+        return DEFAULT_PRIORITY;
     }
 }

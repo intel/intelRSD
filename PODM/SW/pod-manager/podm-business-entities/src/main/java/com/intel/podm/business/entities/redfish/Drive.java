@@ -21,6 +21,7 @@ import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
 import com.intel.podm.business.entities.listeners.DriveListener;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
 import com.intel.podm.business.entities.redfish.embeddables.Identifier;
 import com.intel.podm.business.entities.redfish.embeddables.RedfishLocation;
 import com.intel.podm.common.types.EncryptionAbility;
@@ -40,6 +41,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
@@ -62,9 +65,19 @@ import static javax.persistence.FetchType.LAZY;
 @javax.persistence.Entity
 @Table(name = "drive", indexes = @Index(name = "idx_drive_entity_id", columnList = "entity_id", unique = true))
 @EntityListeners(DriveListener.class)
+@NamedQueries({
+    @NamedQuery(name = Drive.GET_PRIMARY_DRIVE,
+        query = "SELECT drive "
+            + "FROM Drive drive "
+            + "WHERE drive.multiSourceDiscriminator = :multiSourceDiscriminator "
+            + "AND drive.isComplementary = false"
+    )
+})
 @Eventable
 @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
-public class Drive extends DiscoverableEntity {
+public class Drive extends DiscoverableEntity implements MultiSourceResource {
+    public static final String GET_PRIMARY_DRIVE = "GET_PRIMARY_DRIVE";
+
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
 
@@ -147,14 +160,17 @@ public class Drive extends DiscoverableEntity {
     @Column(name = "drive_erased")
     private Boolean driveErased;
 
+    @Column(name = "multi_source_discriminator")
+    private String multiSourceDiscriminator;
+
     @ElementCollection
     @CollectionTable(name = "drive_location", joinColumns = @JoinColumn(name = "drive_id"))
-    @OrderColumn(name = "drive_location_order")
+    @OrderColumn(name = "location_order")
     private List<RedfishLocation> locations = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "drive_identifiers", joinColumns = @JoinColumn(name = "identifiers_id"))
-    @OrderColumn(name = "drive_identifiers_order")
+    @CollectionTable(name = "drive_identifier", joinColumns = @JoinColumn(name = "drive_id"))
+    @OrderColumn(name = "identifier_order")
     private List<Identifier> identifiers = new ArrayList<>();
 
     @IgnoreUnlinkingRelationship
@@ -380,7 +396,17 @@ public class Drive extends DiscoverableEntity {
         this.driveErased = driveErased;
     }
 
-    public List<RedfishLocation> getLocations() {
+    @Override
+    public String getMultiSourceDiscriminator() {
+        return multiSourceDiscriminator;
+    }
+
+    @Override
+    public void setMultiSourceDiscriminator(String multiSourceDiscriminator) {
+        this.multiSourceDiscriminator = multiSourceDiscriminator;
+    }
+
+    public List<RedfishLocation> getLocation() {
         return locations;
     }
 
@@ -398,29 +424,6 @@ public class Drive extends DiscoverableEntity {
 
     public DriveMetadata getMetadata() {
         return metadata;
-    }
-
-    public PcieDeviceFunction getPcieDeviceFunction() {
-        return pcieDeviceFunction;
-    }
-
-    public void setPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
-        if (!Objects.equals(this.pcieDeviceFunction, pcieDeviceFunction)) {
-            unlinkPcieDeviceFunction(this.pcieDeviceFunction);
-            this.pcieDeviceFunction = pcieDeviceFunction;
-            if (pcieDeviceFunction != null && !pcieDeviceFunction.getDrives().contains(this)) {
-                pcieDeviceFunction.addDrive(this);
-            }
-        }
-    }
-
-    public void unlinkPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
-        if (Objects.equals(this.pcieDeviceFunction, pcieDeviceFunction)) {
-            this.pcieDeviceFunction = null;
-            if (pcieDeviceFunction != null) {
-                pcieDeviceFunction.unlinkDrive(this);
-            }
-        }
     }
 
     public Chassis getChassis() {
@@ -492,13 +495,36 @@ public class Drive extends DiscoverableEntity {
         }
     }
 
+    public PcieDeviceFunction getPcieDeviceFunction() {
+        return pcieDeviceFunction;
+    }
+
+    public void setPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        if (!Objects.equals(this.pcieDeviceFunction, pcieDeviceFunction)) {
+            unlinkPcieDeviceFunction(this.pcieDeviceFunction);
+            this.pcieDeviceFunction = pcieDeviceFunction;
+            if (pcieDeviceFunction != null && !pcieDeviceFunction.getDrives().contains(this)) {
+                pcieDeviceFunction.addDrive(this);
+            }
+        }
+    }
+
+    public void unlinkPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
+        if (Objects.equals(this.pcieDeviceFunction, pcieDeviceFunction)) {
+            this.pcieDeviceFunction = null;
+            if (pcieDeviceFunction != null) {
+                pcieDeviceFunction.unlinkDrive(this);
+            }
+        }
+    }
+
     @Override
     public boolean canBeAllocated() {
         if (getProtocol() == NVME) {
             return !getMetadata().isAllocated()
-                    && getStatus() != null
-                    && Objects.equals(getStatus().getHealth(), OK)
-                    && of(ENABLED, STANDBY_OFFLINE).anyMatch(state -> state == getStatus().getState());
+                && getStatus() != null
+                && Objects.equals(getStatus().getHealth(), OK)
+                && of(ENABLED, STANDBY_OFFLINE).anyMatch(state -> state == getStatus().getState());
         }
         return super.canBeAllocated();
     }

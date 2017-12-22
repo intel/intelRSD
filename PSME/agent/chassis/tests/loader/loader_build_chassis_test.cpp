@@ -180,9 +180,8 @@ TEST_F(ChassisLoaderBuildChassisTest, LoadFullConfiguration_BladeManagersFieldsV
 
 TEST_F(ChassisLoaderBuildChassisTest, LoadFullConfiguration_ChassisFieldsValuesAreCorrect) {
     ASSERT_STREQ("Drawer", drawer_chassis.get_type().to_string());
-    ASSERT_EQ(4, drawer_chassis.get_size());
+    ASSERT_STREQ("BDCR", drawer_chassis.get_platform().to_string());
     ASSERT_EQ(1, drawer_chassis.get_location_offset());
 
-    ASSERT_STREQ("BDCR", blade_chassis.get_platform().to_string());
     ASSERT_STREQ("Module", blade_chassis.get_type().to_string());
 }

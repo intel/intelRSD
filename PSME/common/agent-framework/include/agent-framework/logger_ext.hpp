@@ -26,10 +26,3 @@
 #include "logger/logger_factory.hpp"
 #include "logger_loader.hpp"
 
-/*! Psme namespace */
-namespace agent_framework {
-/*! Generic namespace */
-namespace generic {
-
-}
-}

@@ -63,10 +63,10 @@ using MemoryHandler = model::handler::GenericHandler
 class RollupTest : public ::testing::Test {
 public:
     RollupTest() :
-            systems(agent_framework::module::CommonComponents::get_instance()->get_system_manager()),
+            systems(get_manager<System>()),
             // yeah, I know this is not correct english
-            memories(agent_framework::module::ComputeComponents::get_instance()->get_memory_manager()),
-            processors(agent_framework::module::ComputeComponents::get_instance()->get_processor_manager()) { }
+            memories(get_manager<Memory>()),
+            processors(get_manager<Processor>()) { }
 
     ~RollupTest();
 

@@ -105,25 +105,27 @@ protected:
      * This override is necessary to properly clean the StorageSubsystem <-> Drive and Drive <-> PCIeFunction
      * bindings for all the Drives.
      *
+     * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param[in] gami_id uuid of the agent whose data is to be removed.
      * */
-    void remove_agent_data(const std::string& gami_id) override {
+    void remove_agent_data(Context& ctx, const std::string& gami_id) override {
         CommonComponents::get_instance()->
             get_storage_subsystem_drives_manager().clean_resources_for_agent(gami_id);
         PncComponents::get_instance()->
             get_drive_function_manager().clean_resources_for_agent(gami_id);
-        DriveHandlerBase::remove_agent_data(gami_id);
+        DriveHandlerBase::remove_agent_data(ctx, gami_id);
     }
 
 
     /*!
-     * @brief  Specialization of remove() from GenericManager.
+     * @brief  Specialization of do_remove() from GenericManager.
      *
      * This override is necessary for clearing the StorageSubsystem <-> Drive and Drive <-> PCIeFunction bindings.
      *
+     * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param[in] uuid uuid of the drive to be removed.
      * */
-    void remove(const std::string& uuid) override {
+    void do_remove(Context& ctx, const std::string& uuid) override {
         // drive is the child in StorageSubsystem <-> Drive relation
         CommonComponents::get_instance()->
             get_storage_subsystem_drives_manager().remove_child(uuid);
@@ -131,7 +133,7 @@ protected:
         // drive is the parent in Drive <-> PCIeFunction relation
         PncComponents::get_instance()->
             get_drive_function_manager().remove_parent(uuid);
-        DriveHandlerBase::remove(uuid);
+        DriveHandlerBase::do_remove(ctx, uuid);
     }
 
 

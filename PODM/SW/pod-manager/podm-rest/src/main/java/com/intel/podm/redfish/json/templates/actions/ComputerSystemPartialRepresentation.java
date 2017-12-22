@@ -22,12 +22,23 @@ import com.intel.podm.common.types.BootSourceState;
 import com.intel.podm.common.types.BootSourceType;
 import com.intel.podm.common.types.redfish.RedfishComputerSystem;
 
-public final class ComputerSystemPartialRepresentation implements RedfishComputerSystem {
+import java.util.HashSet;
+import java.util.Set;
+
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
+public class ComputerSystemPartialRepresentation implements RedfishComputerSystem {
+
     @JsonProperty("AssetTag")
-    private String assetTag;
+    public String assetTag;
 
     @JsonProperty("Boot")
-    private Boot boot;
+    public Boot boot;
+
+    @JsonProperty("Oem")
+    public Oem oem = new Oem();
+
+    @JsonProperty("TrustedModules")
+    public Set<TrustedModule> trustedModules = new HashSet<>();
 
     @Override
     public String getAssetTag() {
@@ -35,19 +46,24 @@ public final class ComputerSystemPartialRepresentation implements RedfishCompute
     }
 
     @Override
-    public Boot getBoot() {
+    public Boolean getUserModeEnabled() {
+        return oem.rackScaleOem.userModeEnabled;
+    }
+
+    @Override
+    public RedfishComputerSystem.Boot getBoot() {
         return boot;
     }
 
     public static class Boot implements RedfishComputerSystem.Boot {
         @JsonProperty("BootSourceOverrideTarget")
-        private BootSourceType bootSourceOverrideTarget;
+        public BootSourceType bootSourceOverrideTarget;
 
         @JsonProperty("BootSourceOverrideEnabled")
-        private BootSourceState bootSourceOverrideEnabled;
+        public BootSourceState bootSourceOverrideEnabled;
 
         @JsonProperty("BootSourceOverrideMode")
-        private BootSourceMode bootSourceOverrideMode;
+        public BootSourceMode bootSourceOverrideMode;
 
         @Override
         public BootSourceType getBootSourceOverrideTarget() {
@@ -63,5 +79,18 @@ public final class ComputerSystemPartialRepresentation implements RedfishCompute
         public BootSourceMode getBootSourceOverrideMode() {
             return bootSourceOverrideMode;
         }
+
+    }
+
+    public static class Oem {
+
+        @JsonProperty("Intel_RackScale")
+        public ComputerSystemPartialRepresentation.Oem.RackScaleOem rackScaleOem = new ComputerSystemPartialRepresentation.Oem.RackScaleOem();
+
+        public static class RackScaleOem {
+            @JsonProperty("UserModeEnabled")
+            public Boolean userModeEnabled;
+        }
+
     }
 }

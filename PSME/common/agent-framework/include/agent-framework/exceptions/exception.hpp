@@ -33,6 +33,7 @@
 #include "agent-framework/exceptions/invalid_uuid.hpp"
 #include "agent-framework/exceptions/not_found.hpp"
 #include "agent-framework/exceptions/not_implemented.hpp"
+#include "agent-framework/exceptions/method_not_allowed.hpp"
 #include "agent-framework/exceptions/lvm_error.hpp"
 #include "agent-framework/exceptions/iscsi_error.hpp"
 #include "agent-framework/exceptions/fm10000_error.hpp"
@@ -41,12 +42,13 @@
 #include "agent-framework/exceptions/unsupported_field.hpp"
 #include "agent-framework/exceptions/certificate_error.hpp"
 #include "agent-framework/exceptions/pcie_fabric_error.hpp"
+#include "agent-framework/exceptions/network_error.hpp"
 
 /*! @brief Logs and throws exception */
 #define THROW(clazz, logger, ...) \
     do { \
         clazz ex{__VA_ARGS__}; \
-        log_error(GET_LOGGER((logger)), #clazz ": " << ex.get_message()); \
+        log_error((logger), #clazz ": " << ex.get_message()); \
         throw ex; \
     } \
     while (0)

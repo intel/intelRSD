@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Paths.get;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
 
 @Dependent
@@ -42,19 +43,19 @@ public class CandidatesProvider {
     private static final String SERVICES_LIST_LOCATION = "/tmp/services.list";
 
     @Inject
-    UrlProvider urlProvider;
+    private UrlProvider urlProvider;
 
     @Inject
-    TmpLeasesFileRecordsParser tmpLeasesFileRecordsParser;
+    private TmpLeasesFileRecordsParser tmpLeasesFileRecordsParser;
 
     @Inject
-    ServiceListFileRecordsParser serviceListFileRecordsParser;
+    private ServiceListFileRecordsParser serviceListFileRecordsParser;
 
-    public Set<DhcpServiceCandidate> getEndpointCandidates() {
-        return Stream.concat(getTmpLeasesCandidates(), getServicesListCandidates()).collect(toSet());
+    Set<DhcpServiceCandidate> getEndpointCandidates() {
+        return concat(getTmpLeasesCandidates(), getServicesListCandidates()).collect(toSet());
     }
 
-    public Stream<DhcpServiceCandidate> getTmpLeasesCandidates() {
+    private Stream<DhcpServiceCandidate> getTmpLeasesCandidates() {
         Path tmpLeasesPath = get(TMP_LEASES_LOCATION);
         if (!exists(tmpLeasesPath)) {
             return empty();
@@ -62,12 +63,13 @@ public class CandidatesProvider {
 
         List<String> fileRecords = new ServicesFileReader(tmpLeasesPath).readServicesFile();
         Collection<TmpLeasesRecord> records = tmpLeasesFileRecordsParser.toTmpLeasesRecordCollection(fileRecords);
-        return records.stream().map(record ->
-                new DhcpServiceCandidate(record.getServiceType(),
-                        urlProvider.getEndpointUri(record), record.getDate()));
+        return records.stream().flatMap(record ->
+            urlProvider.getEndpointUris(record).stream().map(uri ->
+                new DhcpServiceCandidate(record.getServiceType(), uri, record.getDate()))
+        );
     }
 
-    public Stream<DhcpServiceCandidate> getServicesListCandidates() {
+    private Stream<DhcpServiceCandidate> getServicesListCandidates() {
         Path servicesListPath = get(SERVICES_LIST_LOCATION);
         if (!exists(servicesListPath)) {
             return empty();
@@ -76,7 +78,7 @@ public class CandidatesProvider {
         List<String> fileRecords = new ServicesFileReader(servicesListPath).readServicesFile();
         Collection<ServiceListRecord> records = serviceListFileRecordsParser.toServiceListRecords(fileRecords);
         return records.stream().map(record ->
-                new DhcpServiceCandidate(record.getServiceType(),
-                        urlProvider.getEndpointUri(record.getUrl()), null));
+            new DhcpServiceCandidate(record.getServiceType(),
+                urlProvider.getEndpointUri(record.getUrl()), null));
     }
 }

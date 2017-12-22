@@ -314,7 +314,6 @@ static void logger_stream_write_message(struct logger_stream *inst,
     logger_assert(NULL != inst);
     logger_assert(NULL != msg);
 
-    int err;
     struct tm *timeval;
     const char *color;
     time_t time_seconds;
@@ -329,15 +328,10 @@ static void logger_stream_write_message(struct logger_stream *inst,
     char buffer[LOGGER_BUFFER_SIZE];
     char *buffer_ptr = buffer;
 
-    err = logger_time_get(&msg->log_time, &time_seconds, &time_nanoseconds);
-    if (LOGGER_SUCCESS != err) {
-        time_seconds = 0;
-        time_nanoseconds = 0;
-    }
-
     /* Set color for time stamp */
     buffer_color(buffer_ptr, options, COLOR_GREEN_NORMAL);
 
+    logger_time_get(&msg->log_time, &time_seconds, &time_nanoseconds);
     timeval = localtime(&time_seconds);
     if (NULL == timeval) return;
 

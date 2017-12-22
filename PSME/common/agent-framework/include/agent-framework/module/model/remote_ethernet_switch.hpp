@@ -46,15 +46,15 @@ public:
      *
      * @return the newly constructed RemoteEthernetSwitch object
      */
-    static RemoteEthernetSwitch from_json(const Json::Value&);
+    static RemoteEthernetSwitch from_json(const json::Json&);
 
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief Get collection name
@@ -108,7 +108,7 @@ public:
      * @brief Set next hop
      * @param[in] next_hop Array of next hop objects
      * */
-    void set_next_hop(const types::Array<attribute::NextHop>& next_hop) {
+    void set_next_hop(const attribute::Array<attribute::NextHop>& next_hop) {
         m_next_hop = next_hop;
     }
 
@@ -116,7 +116,7 @@ public:
      * @brief Get next hop
      * @return Array of next hop objects
      * */
-    const types::Array<attribute::NextHop>& get_next_hop() const {
+    const attribute::Array<attribute::NextHop>& get_next_hop() const {
         return m_next_hop;
     }
 
@@ -125,13 +125,13 @@ public:
      * @param[in] next_hop Next hop object
      */
     void add_next_hop(const attribute::NextHop& next_hop) {
-        m_next_hop.push_back(next_hop);
+        m_next_hop.add_entry(next_hop);
     }
 
 private:
     OptionalField<std::string> m_switch_identifier{};
     OptionalField<std::string> m_mac_address{};
-    types::Array<attribute::NextHop> m_next_hop{};
+    attribute::Array<attribute::NextHop> m_next_hop{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

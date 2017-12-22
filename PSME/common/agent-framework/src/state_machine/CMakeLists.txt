@@ -17,24 +17,11 @@
 # </license_header>
 
 set(SOURCES
-    module_state.cpp
-    module_state_offline.cpp
-    module_state_absent.cpp
-    module_state_unknown.cpp
-    module_state_enabled.cpp
-    module_state_starting.cpp
-    state_machine.cpp
-    state_machine_exception.cpp
-    state_machine_module_thread.cpp
-    state_machine_thread.cpp
-    state_machine_thread_action.cpp
-    state_thread_entry.cpp
-    state_machine_transition.cpp
+    bmc.cpp
+    bmc_state_machine.cpp
 )
 
 include_directories(
-    ${AGENT_FRAMEWORK_DIR}/src/status
-    ${AGENT_FRAMEWORK_DIR}/src/eventing
     ${AGENT_FRAMEWORK_DIR}/src/state_machine
 )
 

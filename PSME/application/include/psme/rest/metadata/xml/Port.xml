@@ -36,12 +36,13 @@
   </edmx:Reference>
 
   <edmx:DataServices>
-  
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Port">
 
       <EntityType Name="Port" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="Port contains properties describing a port of a switch."/>
-        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a simple switch port for a Redfish implementation."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent a simple switch port for a Redfish implementation."/>
       </EntityType>
 
       <Action Name="Reset" IsBound="true">
@@ -51,75 +52,92 @@
           <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
         </Parameter>
         <Annotation Term="OData.Description" String="This action is used to reset this switch."/>
-        <Annotation Term="OData.LongDescription" String="This defines the name of the custom action supported on this resource."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This defines the name of the custom action supported on this resource."/>
       </Action>
 
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Port.v1_0_0">
 
-      <EntityType Name="Port" BaseType="Port.Port"> 
+      <EntityType Name="Port" BaseType="Port.Port">
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
         <Property Name="PortId" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="This is the label of this port on the physical switch package."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be the name of the switch port as indicated on the outside of the switch."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the name of the switch port as indicated on the outside of the switch."/>
         </Property>
         <Property Name="PortProtocol" Type="Storage.v1_0_0.Protocol">
           <Annotation Term="OData.Description" String="The protocol being sent over this port."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall contain the protocol being sent over this port."/>
-        </Property> 
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall contain the protocol being sent over this port."/>
+        </Property>
         <Property Name="PortType" Type="Port.v1_0_0.PortType">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="This is the type of this port."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be the port type for this port."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the port type for this port."/>
         </Property>
         <Property Name="CurrentSpeedGbps" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The current speed of this port."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be the speed of this port currently negotiated and running."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the speed of this port currently negotiated and running."/>
           <Annotation Term="Measures.Unit" String="Gbit/s"/>
         </Property>
         <Property Name="MaxSpeedGbps" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The maximum speed of this port as currently configured."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be the maximum speed of which this port is capable of being configured.  If capable of auto-negotiation, the system shall attempt to negotiate at the maximum speed set."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the maximum speed of which this port is capable of being configured.  If capable of auto-negotiation, the system shall attempt to negotiate at the maximum speed set."/>
           <Annotation Term="Measures.Unit" String="Gbit/s"/>
         </Property>
         <Property Name="Width" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The number of lanes, phys, or other physical transport links that this port contains."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be the number of physical transport links that this port contains."/>
+          <Annotation Term="OData.Description"
+                      String="The number of lanes, phys, or other physical transport links that this port contains."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the number of physical transport links that this port contains."/>
         </Property>
         <Property Name="Links" Type="Port.v1_0_0.Links" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Contains references to other resources that are related to this resource."/>
-          <Annotation Term="OData.LongDescription" String="The Links property, as described by the Redfish Specification, shall contain references to resources that are related to, but not contained by (subordinate to), this resource."/>
+          <Annotation Term="OData.Description"
+                      String="Contains references to other resources that are related to this resource."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The Links property, as described by the Redfish Specification, shall contain references to resources that are related to, but not contained by (subordinate to), this resource."/>
         </Property>
         <Property Name="Actions" Type="Port.v1_0_0.Actions" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The available actions for this resource."/>
-          <Annotation Term="OData.LongDescription" String="The Actions property shall contain the available actions for this resource."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The Actions property shall contain the available actions for this resource."/>
         </Property>
       </EntityType>
 
       <ComplexType Name="Links" BaseType="Resource.Links">
         <NavigationProperty Name="AssociatedEndpoints" Type="Collection(Endpoint.Endpoint)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="An array of references to the endpoints that connect to the switch through this port."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this port is associated with and shall reference a resource of type Endpoint."/>
+          <Annotation Term="OData.Description"
+                      String="An array of references to the endpoints that connect to the switch through this port."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this port is associated with and shall reference a resource of type Endpoint."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="ConnectedSwitches" Type="Collection(Switch.Switch)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="An array of references to the switches that connect to the switch through this port."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this port is associated with and shall reference a resource of type Switch."/>
+          <Annotation Term="OData.Description"
+                      String="An array of references to the switches that connect to the switch through this port."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this port is associated with and shall reference a resource of type Switch."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="ConnectedSwitchPorts" Type="Collection(Port.Port)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="An array of references to the ports that connect to the switch through this port."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this port is associated with and shall reference a resource of type Port."/>
+          <Annotation Term="OData.Description"
+                      String="An array of references to the ports that connect to the switch through this port."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this port is associated with and shall reference a resource of type Port."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </ComplexType>
@@ -154,6 +172,5 @@
         </Member>
       </EnumType>
     </Schema>
-
   </edmx:DataServices>
 </edmx:Edmx>

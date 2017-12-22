@@ -67,7 +67,7 @@ TEST_F(NetworkConfigTest, AutoNegDefaultTest) {
     ASSERT_EQ(config.get_port_autoneg("xyz"), AutoNeg::Default);
 }
 
-TEST_F(NetworkConfigTest, MgmtPortTest) {
+TEST_F(NetworkConfigTest, SwitchConfigTest) {
     config.add_switch_mgmt_port(SWITCH_IDENTIFIER, "p1p1");
 
     ASSERT_EQ(config.get_switch_mgmt_port(SWITCH_IDENTIFIER), "p1p1");

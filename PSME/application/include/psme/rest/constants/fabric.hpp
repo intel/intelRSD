@@ -28,20 +28,6 @@ namespace rest {
 namespace constants {
 
 /*!
- * @brief common constant literals for Fabric endpoints.
- */
-namespace FabricCommon {
-extern const char FIRMWARE_VERSION[];
-extern const char ACTIONS[];
-extern const char ALLOWABLE_RESET_TYPES[];
-extern const char FORCE_OFF[];
-extern const char FORCE_RESTART[];
-extern const char FORCE_ON[];
-extern const char SKU[];
-extern const char TARGET[];
-}
-
-/*!
  * @brief Constant literals for Fabric endpoint.
  */
 namespace Fabric {
@@ -59,7 +45,6 @@ namespace Switch {
 extern const char DOMAIN_ID[];
 extern const char TOTAL_SWITCH_WIDTH[];
 extern const char IS_MANAGED[];
-extern const char REDUNDANCY[];
 extern const char SWITCH_RESET[];
 extern const char SWITCH_RESET_ENDPOINT[];
 extern const char GRACEFUL_RESTART[];
@@ -111,7 +96,6 @@ extern const char PCI_FUNCTION_NUMBER[];
 extern const char PCI_CLASS_CODE[];
 extern const char ENTITY_PCI_ID[];
 extern const char ENTITY_LINK[];
-extern const char REDUNDANCY[];
 extern const char HOST_RESERVATION_MEMORY_BYTES[];
 }
 

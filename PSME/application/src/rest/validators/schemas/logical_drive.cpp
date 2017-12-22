@@ -33,7 +33,6 @@ using namespace agent_framework::model;
 
 const jsonrpc::ProcedureValidator& LogicalDrivePostSchema::LinksSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "logical_drive_links_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::LogicalDrive::LOGICAL_DRIVES, VALID_ARRAY_SIZE_OF(VALID_ATTRIBUTE(SimpleObjectSchema), 1, 1),
         constants::LogicalDrive::MASTER_DRIVE, VALID_ATTRIBUTE(SimpleObjectSchema),
@@ -45,7 +44,6 @@ const jsonrpc::ProcedureValidator& LogicalDrivePostSchema::LinksSchema::get_proc
 
 const jsonrpc::ProcedureValidator& LogicalDrivePostSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "logical_drive_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::NAME, VALID_JSON_STRING,
         constants::LogicalDrive::TYPE, VALID_ENUM(enums::LogicalDriveType),
@@ -64,7 +62,6 @@ const jsonrpc::ProcedureValidator& LogicalDrivePostSchema::get_procedure() {
 
 const jsonrpc::ProcedureValidator& LogicalDrivePatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "logical_drive_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::LogicalDrive::BOOTABLE, VALID_JSON_BOOLEAN,
         nullptr

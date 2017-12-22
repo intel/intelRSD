@@ -1,0 +1,15 @@
+lxml==3.8.0
+bs4==0.0.1
+beautifulsoup4==4.4.0
+configparser==3.5.0
+requests==2.9.1
+tabulate==0.7.5
+sqlalchemy==1.1.11
+simplejson==3.8.1
+rstr==2.2.6
+colorama==0.3.7
+jsonpointer==1.9
+pyopenssl==17.0.0
+ndg-httpsclient==0.4.0
+pyasn1==0.1.9
+pandas==0.19.2

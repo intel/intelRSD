@@ -16,7 +16,6 @@
 
 package com.intel.podm.redfish;
 
-
 import com.google.common.base.Joiner;
 
 import javax.ws.rs.DELETE;
@@ -29,11 +28,11 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Collections.sort;
 import static javax.ws.rs.core.HttpHeaders.ALLOW;
 
 public final class OptionsResponseBuilder {
@@ -44,12 +43,14 @@ public final class OptionsResponseBuilder {
         }
     };
 
-    private OptionsResponseBuilder() { }
+    private OptionsResponseBuilder() {
+    }
 
     /**
      * Builder for creating default OPTIONS response with default OPTIONS method allowed in ALLOW header.
-     *
+     * <p>
      * Response for OPTIONS shall be 200 OK (according to RFC2616 document)
+     *
      * @see <a href="https://www.ietf.org/rfc/rfc2616.txt">RFC2616 Documentation</a>
      */
     public static OptionsResponseBuilder newOptionsResponseBuilder() {
@@ -58,16 +59,28 @@ public final class OptionsResponseBuilder {
 
     /**
      * Builder for creating default OPTIONS response with default OPTIONS, GET, HEAD methods allowed in ALLOW header.
-     *
+     * <p>
      * Response for OPTIONS shall be 200 OK (according to RFC2616 document)
+     *
      * @see <a href="https://www.ietf.org/rfc/rfc2616.txt">RFC2616 Documentation</a>
      */
-    public static OptionsResponseBuilder newDefaultOptionsResponseBuilder() {
+    public static OptionsResponseBuilder newOptionsForResourceBuilder() {
         return new OptionsResponseBuilder().addGetMethod().addHeadMethod();
     }
 
     /**
-     * Adds DELETE method do ALLOW header
+     * Builder for creating default OPTIONS response with default OPTIONS, HEAD methods allowed in ALLOW header.
+     * <p>
+     * Response for OPTIONS shall be 200 OK (according to RFC2616 document)
+     *
+     * @see <a href="https://www.ietf.org/rfc/rfc2616.txt">RFC2616 Documentation</a>
+     */
+    public static OptionsResponseBuilder newOptionsForResourceActionBuilder() {
+        return new OptionsResponseBuilder().addHeadMethod();
+    }
+
+    /**
+     * Adds DELETE method to ALLOW header
      */
     public OptionsResponseBuilder addDeleteMethod() {
         this.supportedHttpMethods.add(DELETE.class);
@@ -75,7 +88,7 @@ public final class OptionsResponseBuilder {
     }
 
     /**
-     * Adds GET method do ALLOW header
+     * Adds GET method to ALLOW header
      */
     public OptionsResponseBuilder addGetMethod() {
         this.supportedHttpMethods.add(GET.class);
@@ -83,7 +96,7 @@ public final class OptionsResponseBuilder {
     }
 
     /**
-     * Adds HEAD method do ALLOW header
+     * Adds HEAD method to ALLOW header
      */
     public OptionsResponseBuilder addHeadMethod() {
         this.supportedHttpMethods.add(HEAD.class);
@@ -91,7 +104,7 @@ public final class OptionsResponseBuilder {
     }
 
     /**
-     * Adds PATCH method do ALLOW header
+     * Adds PATCH method to ALLOW header
      */
     public OptionsResponseBuilder addPatchMethod() {
         this.supportedHttpMethods.add(PATCH.class);
@@ -99,7 +112,7 @@ public final class OptionsResponseBuilder {
     }
 
     /**
-     * Adds POST method do ALLOW header
+     * Adds POST method to ALLOW header
      */
     public OptionsResponseBuilder addPostMethod() {
         this.supportedHttpMethods.add(POST.class);
@@ -107,7 +120,7 @@ public final class OptionsResponseBuilder {
     }
 
     /**
-     * Adds PUT method do ALLOW header
+     * Adds PUT method to ALLOW header
      */
     public OptionsResponseBuilder addPutMethod() {
         this.supportedHttpMethods.add(PUT.class);
@@ -115,14 +128,15 @@ public final class OptionsResponseBuilder {
     }
 
     /**
-     * Create proper OPTIONS responsel
+     * Create proper OPTIONS response
+     *
      * @return response with fulfilled Allow header
      */
-    public Response buildResponse() {
+    public Response build() {
         return Response
-                .ok()
-                .header(ALLOW, stringifyAllowedMethods())
-                .build();
+            .ok()
+            .header(ALLOW, stringifyAllowedMethods())
+            .build();
     }
 
     private String stringifyAllowedMethods() {
@@ -133,7 +147,7 @@ public final class OptionsResponseBuilder {
             allowedMethods.add(httpMethodAnnotation.value());
         }
 
-        Collections.sort(allowedMethods);
+        sort(allowedMethods);
 
         return Joiner.on(", ").join(allowedMethods);
     }

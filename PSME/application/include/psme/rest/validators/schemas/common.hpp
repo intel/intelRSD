@@ -31,11 +31,13 @@ namespace rest {
 namespace validators {
 namespace schema {
 
+/*! @brief Schema for validating simple redfish object with odata.id property. */
 class SimpleObjectSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure();
 };
 
+/*! @brief Schema for validating empty JSON object. */
 class EmptyObjectSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure();

@@ -16,13 +16,10 @@
 
 package com.intel.podm.client;
 
-import com.intel.podm.client.api.RedfishApiException;
-
-import java.net.ConnectException;
 import java.util.Objects;
 
+import static com.intel.podm.client.WebClientExceptionUtils.isConnectionExceptionTheRootCause;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
-import static org.apache.commons.lang.exception.ExceptionUtils.getRootCause;
 
 @SuppressWarnings({"checkstyle:IllegalCatch"})
 final class RetryInvoker {
@@ -32,14 +29,14 @@ final class RetryInvoker {
     protected RetryInvoker() {
     }
 
-    public static <T extends RedfishApiException> void retry(RunnableWithRedfishException<T> runnable) throws T {
+    static <T extends WebClientRequestException> void retry(RunnableWithRedfishException<T> runnable) throws T {
         retry(() -> {
             runnable.run();
             return null;
         });
     }
 
-    public static <T, U extends RedfishApiException> T retry(SupplierWithRedfishException<T, U> supplier) throws U {
+    static <T, U extends WebClientRequestException> T retry(SupplierWithRedfishException<T, U> supplier) throws U {
         Exception lastException;
         int currentAttempt = 1;
 
@@ -47,7 +44,7 @@ final class RetryInvoker {
             try {
                 return supplier.get();
             } catch (Exception e) {
-                if (isNotConnectionException(e) || maximumAttemptsReached(currentAttempt)) {
+                if (!isConnectionExceptionTheRootCause(e) || maximumAttemptsReached(currentAttempt)) {
                     throw e;
                 }
 
@@ -60,10 +57,6 @@ final class RetryInvoker {
         throw new IllegalStateException(lastException);
     }
 
-    private static boolean isNotConnectionException(Throwable e) {
-        return !(getRootCause(e) instanceof ConnectException);
-    }
-
     private static boolean maximumAttemptsReached(Integer currentAttemptNumber) {
         requiresNonNull(currentAttemptNumber, "currentAttemptNumber");
         return Objects.equals(MAX_RETRY_ATTEMPTS, currentAttemptNumber);
@@ -73,16 +66,17 @@ final class RetryInvoker {
         try {
             Thread.sleep(currentAttempt * DEFAULT_INTERVAL_MS);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
     @FunctionalInterface
-    interface RunnableWithRedfishException<T extends RedfishApiException> {
+    interface RunnableWithRedfishException<T extends WebClientRequestException> {
         void run() throws T;
     }
 
     @FunctionalInterface
-    interface SupplierWithRedfishException<T, U extends RedfishApiException> {
+    interface SupplierWithRedfishException<T, U extends WebClientRequestException> {
         T get() throws U;
     }
 }

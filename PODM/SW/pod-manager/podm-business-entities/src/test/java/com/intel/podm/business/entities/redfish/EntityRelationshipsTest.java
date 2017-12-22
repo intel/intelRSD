@@ -22,6 +22,7 @@ import com.intel.podm.business.entities.redfish.base.Entity;
 import org.mockito.invocation.InvocationOnMock;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,26 +30,32 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.intel.podm.business.entities.redfish.EntityDetailsGatherer.getEmbedabbles;
+import static com.intel.podm.business.entities.redfish.EntityDetailsGatherer.getEmbeddables;
 import static com.intel.podm.business.entities.redfish.EntityDetailsGatherer.getEntityDetails;
 import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.SETTER_PREFIX;
 import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.getEntityDetailByEntityType;
+import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.getEnumTypeFromEnumFieldOrCollectionOfEnumsField;
 import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.invokeGetMethodAndReturnEntityContained;
+import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.isEnumeratedAnnotationWithStringValuePresent;
 import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.unproxy;
 import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.validateIfGetMethodReturnsNullOrEmptyCollection;
+import static com.intel.podm.common.utils.FailManager.failWithMessageIfAnyError;
 import static java.util.Arrays.stream;
-import static java.util.Collections.sort;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.exception.ExceptionUtils.getStackTrace;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 import static org.mockito.Mockito.mockingDetails;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
+@SuppressWarnings({"checkstyle:MethodCount"})
 public class EntityRelationshipsTest {
-    private static final Set<String> ENTITIES_PACKAGES = new HashSet<String>() {{
-        add("com.intel.podm.business.entities.redfish");
-        add("com.intel.podm.business.entities.redfish.base");
-    }};
+    private static final Set<String> ENTITIES_PACKAGES = new HashSet<String>() {
+        private static final long serialVersionUID = -7771584079645233761L;
+
+        {
+            add("com.intel.podm.business.entities.redfish");
+            add("com.intel.podm.business.entities.redfish.base");
+        }
+    };
     private static final String EMBEDDABLES_PACKAGE = "com.intel.podm.business.entities.redfish.embeddables";
 
     @Test
@@ -58,116 +65,97 @@ public class EntityRelationshipsTest {
         Set<EntityDetail> entityDetails = getEntityDetails();
         assertTrue(entityDetails.size() > 0, "No entities were found in current classpath");
 
-        for (EntityDetail entityDetail : entityDetails) {
-            errors.addAll(entityDetail.validate());
-        }
+        entityDetails.stream()
+            .map(EntityDetail::validate)
+            .forEach(errors::addAll);
 
-        if (!errors.isEmpty()) {
-            sort(errors);
-            String error = "\n" + errors.size() + " problem(s) found in Entity relationships:\n" + String.join("\n", errors);
-            fail(error);
-        }
+        failWithMessageIfAnyError(errors, "Entity relationships");
     }
 
     @Test
     public void allEmbeddablesShouldHaveEqualsAndHashCodeImplemented() {
         List<String> errors = new ArrayList<>();
 
-        Set<Object> embeddables = getEmbedabbles();
+        Set<Object> embeddables = getEmbeddables();
         assertTrue(embeddables.size() > 0, "No embeddables were found in current classpath");
 
-        for (Object embeddable : embeddables) {
-            errors.addAll(checkIfEqualsAndHashCodeAreDeclared(embeddable));
-        }
+        embeddables.stream()
+            .map(this::checkIfEqualsAndHashCodeAreDeclared)
+            .forEach(errors::addAll);
 
-        if (!errors.isEmpty()) {
-            sort(errors);
-            String error = "\n" + errors.size() + " problem(s) found in Embeddables:\n" + String.join("\n", errors);
-            fail(error);
-        }
+        failWithMessageIfAnyError(errors, "Embeddables");
     }
 
     @Test
     public void allEntitiesShouldBeInProperPackage() {
-        List<String> errors = new ArrayList<>();
+        List<String> errors = getEntityDetails().stream()
+            .filter(entityDetail -> !ENTITIES_PACKAGES.contains(entityDetail.getEntityClass().getPackage().getName()))
+            .map(entityDetail -> entityDetail.getEntityClass().getName() + ": Class must be located directly in one of the following packages: "
+                + ENTITIES_PACKAGES + ".").collect(toList());
 
-        for (EntityDetail entityDetail : getEntityDetails()) {
-            if (!ENTITIES_PACKAGES.contains(entityDetail.getEntityClass().getPackage().getName())) {
-                errors.add(entityDetail.getEntityClass().getName() + ": Class must be located directly in one of the following packages: "
-                    + ENTITIES_PACKAGES + ".");
-            }
-        }
-
-        if (!errors.isEmpty()) {
-            sort(errors);
-            String error = "\n" + errors.size() + " problem(s) found in Entity package location:\n" + String.join("\n", errors);
-            fail(error);
-        }
+        failWithMessageIfAnyError(errors, "Entity package location");
     }
 
     @Test
     public void allEmbeddablesShouldBeInProperPackage() {
-        List<String> errors = new ArrayList<>();
+        List<String> errors = getEmbeddables().stream()
+            .filter(embeddable -> !EMBEDDABLES_PACKAGE.equals(embeddable.getClass().getPackage().getName()))
+            .map(embeddable -> embeddable.getClass().getName() + ": Class must be located directly in following package: " + EMBEDDABLES_PACKAGE + ".")
+            .collect(toList());
 
-        for (Object embeddable : getEmbedabbles()) {
-            if (!EMBEDDABLES_PACKAGE.equals(embeddable.getClass().getPackage().getName())) {
-                errors.add(embeddable.getClass().getName() + ": Class must be located directly in following package: " + EMBEDDABLES_PACKAGE + ".");
-            }
-        }
-
-        if (!errors.isEmpty()) {
-            sort(errors);
-            String error = "\n" + errors.size() + " problem(s) found in Entity package location:\n" + String.join("\n", errors);
-            fail(error);
-        }
+        failWithMessageIfAnyError(errors, "Embeddable package location");
     }
 
     @Test(dependsOnMethods = {"allEntityRelationshipsShouldHaveProperMethods"})
     public void allUnlinkersShouldBeCalledInPreRemoveMethod() {
         List<String> errors = new ArrayList<>();
 
-        for (EntityDetail entityDetail : getEntityDetails()) {
-            errors.addAll(checkIfAllUnlinkersWereCalled(entityDetail));
-        }
+        getEntityDetails().stream()
+            .map(this::checkIfAllUnlinkersWereCalled)
+            .forEach(errors::addAll);
 
-        if (!errors.isEmpty()) {
-            sort(errors);
-            String error = "\n" + errors.size() + " problem(s) found in Entity relationships:\n" + String.join("\n", errors);
-            fail(error);
-        }
+        failWithMessageIfAnyError(errors, "Entity relationships");
     }
 
     @Test(dependsOnMethods = {"allEntityRelationshipsShouldHaveProperMethods"})
     public void allEntityRelationshipsShouldHaveMethodsInProperOrder() {
         List<String> errors = new ArrayList<>();
 
-        for (EntityDetail entityDetail : getEntityDetails()) {
-            errors.addAll(checkIfAllRelationshipsHaveMethodsInProperOrder(entityDetail));
-        }
+        getEntityDetails().stream()
+            .map(this::checkIfAllRelationshipsHaveMethodsInProperOrder)
+            .forEach(errors::addAll);
 
-        if (!errors.isEmpty()) {
-            sort(errors);
-            String error = "\n" + errors.size() + " problem(s) found with methods order:\n" + String.join("\n", errors);
-            fail(error);
-        }
+        failWithMessageIfAnyError(errors, "Entity methods order");
     }
 
     @Test
     public void collectionsMustNotBeenPassedToSetters() {
         List<String> errors = new ArrayList<>();
 
-        for (EntityDetail entityDetail : getEntityDetails()) {
-            errors.addAll(checkIfAllMethodsFromGivenClassDoNotHaveCollectionsPassedToSetters(entityDetail.getEntityClass()));
-        }
-        for (Object embeddable : getEmbedabbles()) {
-            errors.addAll(checkIfAllMethodsFromGivenClassDoNotHaveCollectionsPassedToSetters(embeddable.getClass()));
-        }
+        getEntityDetails().stream()
+            .map(entityDetail -> checkIfAllMethodsFromGivenClassDoNotHaveCollectionsPassedToSetters(entityDetail.getEntityClass()))
+            .forEach(errors::addAll);
 
-        if (!errors.isEmpty()) {
-            sort(errors);
-            String error = "\n" + errors.size() + " problem(s) found with collections passed to setters:\n" + String.join("\n", errors);
-            fail(error);
-        }
+        getEmbeddables().stream()
+            .map(embeddable -> checkIfAllMethodsFromGivenClassDoNotHaveCollectionsPassedToSetters(embeddable.getClass()))
+            .forEach(errors::addAll);
+
+        failWithMessageIfAnyError(errors, "Collections passed to setters");
+    }
+
+    @Test
+    public void enumsMustBePersistedAsStrings() {
+        List<String> errors = new ArrayList<>();
+
+        getEntityDetails().stream()
+            .map(entityDetail -> checkIfAllEnumsFromGivenClassArePersistedAsStrings(entityDetail.getEntityClass()))
+            .forEach(errors::addAll);
+
+        getEmbeddables().stream()
+            .map(embeddable -> checkIfAllEnumsFromGivenClassArePersistedAsStrings(embeddable.getClass()))
+            .forEach(errors::addAll);
+
+        failWithMessageIfAnyError(errors, "Persisted enums");
     }
 
     private List<String> checkIfEqualsAndHashCodeAreDeclared(Object embeddable) {
@@ -258,13 +246,10 @@ public class EntityRelationshipsTest {
     }
 
     private List<String> gatherErrorsForNotCalledUnlinkers(Set<Entity> spiedRelatedEntities, Class<? extends Entity> typeOfSpiedEntity) {
-        List<String> errors = new ArrayList<>();
-        for (Entity spiedRelatedEntity : spiedRelatedEntities) {
-            errors.add(typeOfSpiedEntity.getName() + ": Mandatory proper unlinking with "
-                + unproxy(spiedRelatedEntity.getClass()).getSimpleName() + " was not done in @PreRemove method(s).");
-        }
-
-        return errors;
+        return spiedRelatedEntities.stream()
+            .map(spiedRelatedEntity -> typeOfSpiedEntity.getName() + ": Mandatory proper unlinking with "
+                + unproxy(spiedRelatedEntity.getClass()).getSimpleName() + " was not done in @PreRemove method(s).")
+            .collect(toList());
     }
 
     private List<String> checkIfAllRelationshipsHaveMethodsInProperOrder(EntityDetail entityDetail) {
@@ -290,7 +275,7 @@ public class EntityRelationshipsTest {
         return errors;
     }
 
-    private List<String> checkIfAllMethodsFromGivenClassDoNotHaveCollectionsPassedToSetters(Class clazz) {
+    private List<String> checkIfAllMethodsFromGivenClassDoNotHaveCollectionsPassedToSetters(Class<?> clazz) {
         List<String> errors = new ArrayList<>();
 
         stream(clazz.getDeclaredMethods())
@@ -299,6 +284,19 @@ public class EntityRelationshipsTest {
                 .filter(Collection.class::isAssignableFrom)
                 .forEach(parameterType ->
                     errors.add(clazz.getName() + ": Do not pass collection to setter method: " + method.getName() + ", use adder instead.")));
+
+        return errors;
+    }
+
+    private List<String> checkIfAllEnumsFromGivenClassArePersistedAsStrings(Class<?> clazz) {
+        List<String> errors = new ArrayList<>();
+
+        for (Field field : clazz.getDeclaredFields()) {
+            Class<? extends Enum<?>> enumFieldType = getEnumTypeFromEnumFieldOrCollectionOfEnumsField(field);
+            if (enumFieldType != null && !isEnumeratedAnnotationWithStringValuePresent(field)) {
+                errors.add(clazz.getName() + ": Field: " + field.getName() + " must have @Enumerated(STRING) annotation.");
+            }
+        }
 
         return errors;
     }

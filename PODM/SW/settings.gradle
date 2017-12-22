@@ -26,6 +26,9 @@ rootProject.children.find { it.name == 'pod-manager-common/config' }.name = 'con
 include 'pod-manager-common/enterprise-utils'
 rootProject.children.find { it.name == 'pod-manager-common/enterprise-utils' }.name = 'enterprise-utils'
 
+include 'pod-manager-common/classindex'
+rootProject.children.find { it.name == 'pod-manager-common/classindex' }.name = 'classindex'
+
 include 'pod-manager-common/logger'
 rootProject.children.find { it.name == 'pod-manager-common/logger' }.name = 'logger'
 
@@ -47,15 +50,6 @@ rootProject.children.find { it.name == 'pod-manager-common/utils' }.name = 'util
 include 'pod-manager-common/vault-decrypter'
 rootProject.children.find { it.name == 'pod-manager-common/vault-decrypter' }.name = 'vault-decrypter'
 
-include 'pod-manager-common/stress-tester'
-rootProject.children.find { it.name == 'pod-manager-common/stress-tester' }.name = 'stress-tester'
-
-include 'pod-manager/podm-actions'
-rootProject.children.find { it.name == 'pod-manager/podm-actions' }.name = 'podm-actions'
-
-include 'pod-manager/podm-assembly'
-rootProject.children.find { it.name == 'pod-manager/podm-assembly' }.name = 'podm-assembly'
-
 include 'pod-manager/podm-business-api'
 rootProject.children.find { it.name == 'pod-manager/podm-business-api' }.name = 'podm-business-api'
 
@@ -74,9 +68,6 @@ rootProject.children.find { it.name == 'pod-manager/podm-mappers' }.name = 'podm
 include 'pod-manager/podm-rest'
 rootProject.children.find { it.name == 'pod-manager/podm-rest' }.name = 'podm-rest'
 
-include 'pod-manager/podm-external-services-api'
-rootProject.children.find { it.name == 'pod-manager/podm-external-services-api' }.name = 'podm-external-services-api'
-
 include 'pod-manager/podm-external-services'
 rootProject.children.find { it.name == 'pod-manager/podm-external-services' }.name = 'podm-external-services'
 
@@ -88,4 +79,3 @@ rootProject.children.find { it.name == 'pod-manager/podm-services-detection' }.n
 
 include 'pod-manager/ipxe-supplier'
 rootProject.children.find { it.name == 'pod-manager/ipxe-supplier' }.name = 'ipxe-supplier'
-

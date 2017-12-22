@@ -38,16 +38,14 @@ response::GetDimmInfo::GetDimmInfo(): Response(sdv::NetFn::QUANTA, sdv::Cmd::GET
 response::GetDimmInfo::~GetDimmInfo() { }
 
 void response::GetDimmInfo::unpack(const std::vector<std::uint8_t>& data) {
-    m_completion_code = COMPLETION_CODE(data[OFFSET_COMPLETION_CODE]);
     if (is_xeon(data)) {
         xeon_unpack(data);
     }
     else if (is_atom(data)) {
         atom_unpack(data);
     }
-    else if (!is_error(data)) {
-        // unexpected case - throw an error
-        throw std::runtime_error(("Cannot unpack response. Data length too short."
+    else {
+        throw std::runtime_error(("Cannot unpack response. Data length is wrong."
                              " Expected: ") + std::to_string(XEON_RESPONSE_SIZE)
                            + " or " + std::to_string(ATOM_RESPONSE_SIZE)
                            + " Received: " + std::to_string(data.size()));
@@ -63,13 +61,6 @@ bool response::GetDimmInfo::is_xeon(const std::vector<std::uint8_t>& data) const
 
 bool response::GetDimmInfo::is_atom(const std::vector<std::uint8_t>& data) const {
     if (ATOM_RESPONSE_SIZE == data.size()) {
-        return true;
-    }
-    return false;
-}
-
-bool response::GetDimmInfo::is_error(const std::vector<std::uint8_t>& data) const {
-    if (ERROR_DATA_SIZE == data.size()) {
         return true;
     }
     return false;

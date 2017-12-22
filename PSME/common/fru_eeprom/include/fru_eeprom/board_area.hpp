@@ -34,16 +34,16 @@ namespace fru_eeprom {
 namespace parser {
 
 struct BoardArea {
-    uint8_t format;
-    uint8_t length;
-    uint8_t code;
-    uint8_t data_time[3];
-    Field manufacturer;
-    Field product_name;
-    Field serial_number;
-    Field part_number;
-    Field fru_file_id;
-    uint8_t crc;
+    uint8_t format{};
+    uint8_t length{};
+    uint8_t code{};
+    uint8_t data_time[3]{};
+    Field manufacturer{};
+    Field product_name{};
+    Field serial_number{};
+    Field part_number{};
+    Field fru_file_id{};
+    uint8_t crc{};
 };
 
 }

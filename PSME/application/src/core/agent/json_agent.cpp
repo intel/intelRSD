@@ -24,8 +24,7 @@
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/endpoints/utils.hpp"
 #include "psme/rest/model/handlers/handler_manager.hpp"
-
-#include <jsonrpccpp/client/connectors/httpclient.h>
+#include "json-rpc/connectors/http_client_connector.hpp"
 
 using namespace agent_framework;
 using namespace psme::core::agent;
@@ -34,8 +33,20 @@ JsonAgent::JsonAgent(const std::string& gami_id,
                      const std::string& ipv4address,
                      const int port) :
     Agent{gami_id, ipv4address, port},
-    m_client_connector{new jsonrpc::HttpClient(make_connection_url(ipv4address, port))},
-    m_client{*m_client_connector} {}
+    m_connector{new json_rpc::HttpClientConnector(make_connection_url(ipv4address, port))},
+    m_invoker{new json_rpc::JsonRpcRequestInvoker()},
+    m_client{m_connector, m_invoker} {}
+
+JsonAgent::JsonAgent(const std::string& gami_id,
+                     const std::string& ipv4address,
+                     const int port,
+                     const std::string& version,
+                     const std::string& vendor,
+                     const Capabilities& caps) :
+    Agent{gami_id, ipv4address, port, version, vendor, caps},
+    m_connector{new json_rpc::HttpClientConnector(make_connection_url(ipv4address, port))},
+    m_invoker{new json_rpc::JsonRpcRequestInvoker()},
+    m_client{m_connector, m_invoker} {}
 
 JsonAgent::~JsonAgent() {}
 
@@ -43,31 +54,7 @@ std::string JsonAgent::make_connection_url(const std::string& ipv4address, const
     return "http://" + ipv4address + ":" + std::to_string(port);
 }
 
-void JsonAgent::notify_clients_about_removals() {
-    using SubscriptionManager = psme::rest::eventing::manager::SubscriptionManager;
-    using Event = psme::rest::eventing::Event;
-    using EventVec = psme::rest::eventing::EventVec;
-    using EventType = psme::rest::eventing::EventType;
-    EventVec events{};
-
-    auto managers = module::get_manager<model::Manager>().get_keys(
-        [this] (const model::Manager& manager) {
-            return manager.get_agent_id() == m_gami_id;
-        });
-
-    for (const auto& manager_uuid : managers) {
-        events.emplace_back(Event(EventType::ResourceRemoved,
-            psme::rest::endpoint::utils::get_component_url(
-                agent_framework::model::enums::Component::Manager,
-                    manager_uuid)));
-
-    }
-    SubscriptionManager::get_instance()->notify(events);
-}
-
 void JsonAgent::clean_resource_for_agent() {
-    notify_clients_about_removals();
-
     psme::rest::model::handler::HandlerManager::get_instance()->remove_agent_data(get_gami_id());
     log_info(GET_LOGGER("rest"), "Agent's data has been cleared [gami_id: " << m_gami_id << " ]");
 }
@@ -87,4 +74,3 @@ void JsonAgent::execute_in_transaction(const FunctionType& function){
 
     function();
 }
-

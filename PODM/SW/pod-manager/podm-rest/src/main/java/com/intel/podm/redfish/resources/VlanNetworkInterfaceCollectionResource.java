@@ -17,6 +17,7 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
+import com.intel.podm.business.dto.VlanNetworkInterfaceDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.CreationService;
@@ -25,6 +26,7 @@ import com.intel.podm.common.types.redfish.RedfishVlanNetworkInterface;
 import com.intel.podm.redfish.OptionsResponseBuilder;
 import com.intel.podm.redfish.json.templates.actions.CreateVlanJson;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -36,17 +38,15 @@ import java.util.concurrent.TimeoutException;
 
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT;
 import static com.intel.podm.business.services.context.PathParamConstants.ETHERNET_SWITCH_PORT_VLAN_ID;
-import static com.intel.podm.redfish.OptionsResponseBuilder.newDefaultOptionsResponseBuilder;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
-import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
-import static java.net.URI.create;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.created;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class VlanNetworkInterfaceCollectionResource extends BaseResource {
     @Inject
-    private ReaderService<RedfishVlanNetworkInterface> readerService;
+    private ReaderService<VlanNetworkInterfaceDto> readerService;
 
     @Inject
     private CreationService<RedfishVlanNetworkInterface> creationService;
@@ -72,7 +72,7 @@ public class VlanNetworkInterfaceCollectionResource extends BaseResource {
         }
 
         Context createdContext = creationService.create(currentContext, representation);
-        return created(create(asOdataId(createdContext).toString())).build();
+        return Response.created(createdContext.asOdataId().toUri()).build();
     }
 
     private boolean isPostEnabled(Context currentContext) {
@@ -81,13 +81,13 @@ public class VlanNetworkInterfaceCollectionResource extends BaseResource {
 
     @Override
     protected Response createOptionsResponse() {
-        OptionsResponseBuilder optionsResponseBuilder = newDefaultOptionsResponseBuilder();
+        OptionsResponseBuilder optionsResponseBuilder = newOptionsForResourceBuilder();
 
         if (isPostEnabled(getCurrentContext())) {
             optionsResponseBuilder.addPostMethod();
         }
 
         return optionsResponseBuilder
-            .buildResponse();
+            .build();
     }
 }

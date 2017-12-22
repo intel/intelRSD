@@ -66,19 +66,19 @@ public:
     /*!
      * @brief construct an object of class System from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed System object
      */
-    static System from_json(const Json::Value& json);
+    static System from_json(const json::Json& json);
 
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
@@ -211,7 +211,7 @@ public:
      * @brief Set power state from request
      * @param power_state blade power state
      * */
-    void set_power_state(const enums::PowerState& power_state) {
+    void set_power_state(const OptionalField<enums::PowerState>& power_state) {
         m_power_state = power_state;
     }
 
@@ -220,7 +220,7 @@ public:
      * @brief Get power state
      * @return power state
      * */
-    const enums::PowerState& get_power_state() const {
+    const OptionalField<enums::PowerState>& get_power_state() const {
         return m_power_state;
     }
 
@@ -440,6 +440,7 @@ public:
         return m_cable_ids;
     }
 
+
     /*!
      * @brief Set Cable IDs
      * @param[in] cable_ids Cable IDs
@@ -448,6 +449,7 @@ public:
         m_cable_ids = cable_ids;
     }
 
+
     /*!
      * @brief Add Cable Id
      * @param[in] cable_id Cable ID
@@ -455,6 +457,7 @@ public:
     void add_cable_id(const std::string& cable_id) {
         m_cable_ids.add_entry(cable_id);
     }
+
 
     /*!
      * @brief Get System GUID
@@ -474,6 +477,60 @@ public:
     }
 
 
+    /*!
+     * @brief Informs whether Trusted Execution Technology is Enabled or not
+     * @return true if txt is enabled, false otherwise
+     * */
+    const OptionalField<bool>& is_txt_enabled() const {
+        return m_txt_enabled;
+    }
+
+
+    /*!
+     * @brief Set txt enabled
+     * @param[in] value value that informs whether txt is enabled ot not
+     * */
+    void set_txt_enabled(const OptionalField<bool>& value) {
+        m_txt_enabled = value;
+    }
+
+
+    /*!
+     * @brief Check if user mode is enabled.
+     * @return True if is enabled, false if not, empty OptionalField if not set.
+     */
+    const OptionalField<bool>& is_user_mode_enabled() const {
+        return m_user_mode_enabled;
+    }
+
+
+    /*!
+     * @brief Set user mode enabled flag.
+     * @param[in] user_mode_enabled User mode enabled flag.
+     */
+    void set_user_mode_enabled(const OptionalField<bool>& user_mode_enabled) {
+        m_user_mode_enabled = user_mode_enabled;
+    }
+
+    /*!
+     * @brief Check if Rackscale mode is enabled.
+     * @return True if is enabled, false if not.
+     */
+    bool is_rackscale_mode_enabled() const {
+        return m_rackscale_mode_enabled;
+    }
+
+
+    /*!
+     * @brief Set rackscale mode enabled flag.
+     * @param[in] rackscale_mode_enabled Rackscale mode enabled flag.
+     */
+    void set_rackscale_mode_enabled(bool rackscale_mode_enabled) {
+        m_rackscale_mode_enabled = rackscale_mode_enabled;
+    }
+
+
+
 private:
     OptionalField<enums::SystemType> m_system_type{enums::SystemType::Physical};
     OptionalField<std::string> m_bios_version{};
@@ -482,7 +539,7 @@ private:
     enums::BootOverrideTarget m_boot_override_target{enums::BootOverrideTarget::None};
     BootOverrideSupported m_boot_override_supported{};
     OptionalField<std::string> m_uefi_target{};
-    enums::PowerState m_power_state{enums::PowerState::Off};
+    OptionalField<enums::PowerState> m_power_state{};
     PciDevices m_pci_devices{};
     UsbDevices m_usb_devices{};
     attribute::FruInfo m_fru_info{};
@@ -493,6 +550,12 @@ private:
     attribute::ConnectionData m_connection_data{};
     OptionalField<std::string> m_guid{};
     CableIds m_cable_ids{};
+    OptionalField<bool> m_txt_enabled{};
+    OptionalField<bool> m_user_mode_enabled{};
+    // internal flag only, this values is not exposed on REST API,
+    // but is necessary in terms of communication with BMC;
+    // will be set to true after first "set system mode" command
+    bool m_rackscale_mode_enabled{false};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

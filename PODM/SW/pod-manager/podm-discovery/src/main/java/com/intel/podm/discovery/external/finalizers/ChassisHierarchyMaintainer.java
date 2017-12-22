@@ -17,11 +17,12 @@
 package com.intel.podm.discovery.external.finalizers;
 
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.business.entities.redfish.ExternalService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.Collection;
-import java.util.Objects;
+import java.util.List;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toSet;
@@ -30,25 +31,26 @@ import static java.util.stream.Collectors.toSet;
 public class ChassisHierarchyMaintainer {
     private static final Predicate<Chassis> PARENT_DOES_NOT_EXIST = chassis -> chassis.getContainedByChassis() == null;
 
-    private static final Predicate<Chassis> PARENT_POINTS_TO_DIFFERENT_SERVICE =
-        chassis -> !Objects.equals(chassis.getContainedByChassis().getService(), chassis.getService());
+    private static final Predicate<Chassis> PARENT_POINTS_TO_DIFFERENT_SERVICE = chassis -> {
+        Chassis parentChassis = chassis.getContainedByChassis();
+        List<ExternalService> parentChassisOrigin = parentChassis.getExternalServices();
+        List<ExternalService> chassisOrigin = chassis.getExternalServices();
+        return chassisOrigin.stream().noneMatch(co -> parentChassisOrigin.contains(co));
+    };
 
     @Inject
-    private ChassisLinker chassisLinker;
+    private DrawerChassisLinker chassisLinker;
 
     @Inject
     private TopLevelChassisLocationGuard topLevelChassisLocationGuard;
 
     public void maintain(Collection<Chassis> discoveredChassis) {
-        getTopLevelChassis(discoveredChassis).forEach(chassisLinker::linkToModel);
-        assureSingularParentForTopLevelChassis(getTopLevelChassis(discoveredChassis));
+        Collection<Chassis> topLevelChassis = getTopLevelChassis(discoveredChassis);
+        chassisLinker.linkToModel(topLevelChassis);
+        topLevelChassisLocationGuard.assureSingleRackParent(topLevelChassis);
     }
 
     Collection<Chassis> getTopLevelChassis(Collection<Chassis> discoveredChassis) {
         return discoveredChassis.stream().filter(PARENT_DOES_NOT_EXIST.or(PARENT_POINTS_TO_DIFFERENT_SERVICE)).collect(toSet());
-    }
-
-    private void assureSingularParentForTopLevelChassis(Collection<Chassis> discoveredChassis) {
-        discoveredChassis.forEach(topLevelChassisLocationGuard::assureSingleRackParent);
     }
 }

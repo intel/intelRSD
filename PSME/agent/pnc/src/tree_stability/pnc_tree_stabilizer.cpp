@@ -40,10 +40,10 @@ using namespace agent_framework::module;
 using namespace agent_framework;
 using namespace agent::pnc;
 
+using agent_framework::KeyValueMissingError;
+
 // Maintainers beware: due to hardware limitations this code is quirky and need significant
 // amount of work to work on other machines.
-
-// TODO: printing error messages!!!
 
 PncTreeStabilizer::~PncTreeStabilizer() {}
 
@@ -62,7 +62,7 @@ const std::string PncTreeStabilizer::stabilize_storage_subsystem(const std::stri
 
         helpers::update_storage_subsystem_in_relations(in_subsystem_uuid, subsystem_uuid);
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(agent_framework::model::StorageSubsystem::get_component().to_string(), in_subsystem_uuid);
     }
 
@@ -86,7 +86,7 @@ const std::string PncTreeStabilizer::stabilize_system(const std::string& in_syst
         storage_subsystem_manager.get_entry_reference(storage_subsystem_uuid)->set_parent_uuid(system_uuid);
         stabilize_storage_subsystem(storage_subsystem_uuid);
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(agent_framework::model::System::get_component().to_string(), in_system_uuid);
     }
 
@@ -108,7 +108,7 @@ const std::string PncTreeStabilizer::stabilize_pcie_function(const std::string& 
 
         helpers::update_pcie_function_in_relations(in_function_uuid, function_uuid);
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(agent_framework::model::PcieFunction::get_component().to_string(), in_function_uuid);
     }
 
@@ -134,7 +134,7 @@ const std::string PncTreeStabilizer::stabilize_pcie_device(const std::string& in
         }
 
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(agent_framework::model::PcieDevice::get_component().to_string(), in_device_uuid);
     }
 
@@ -155,7 +155,7 @@ const std::string PncTreeStabilizer::stabilize_drive(const std::string& in_drive
 
         helpers::update_pcie_drive_in_relations(in_drive_uuid, drive_uuid);
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(drive.get_component().to_string(), in_drive_uuid);
     }
 
@@ -193,7 +193,7 @@ const std::string PncTreeStabilizer::stabilize_chassis(const std::string& in_cha
             stabilize_drive(drive_uuid);
         }
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(chassis.get_component().to_string(), chassis_uuid);
     }
 
@@ -231,7 +231,7 @@ const std::string PncTreeStabilizer::stabilize_fabric(const std::string& in_fabr
         }
 
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(fabric.get_component().to_string(), in_fabric_uuid);
     }
 
@@ -258,7 +258,7 @@ const std::string PncTreeStabilizer::stabilize_pcie_switch(const std::string& in
             stabilize_port(port_uuid);
         }
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(pcie_switch.get_component().to_string(), in_switch_uuid);
     }
 
@@ -279,13 +279,33 @@ const std::string PncTreeStabilizer::stabilize_port(const std::string& in_port_u
                                               port_unique_key);
 
         helpers::update_pcie_port_in_relations(in_port_uuid, port_uuid);
+        stabilize_port_metric(in_port_uuid, port_uuid);
 
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(port.get_component().to_string(), in_port_uuid);
     }
 
     return port_uuid;
+}
+
+
+void PncTreeStabilizer::stabilize_port_metric(const std::string& in_port_uuid, const std::string& port_uuid) const {
+    auto& metrics_manager = get_manager<model::Metric>();
+
+    const auto keys = metrics_manager.get_keys([&in_port_uuid](const model::Metric& metric) {
+        return metric.get_component_uuid() == in_port_uuid;
+    });
+    if (keys.size() != 1) {
+        log_error("pnc-agent", "Invalid number of metrics (" << keys.size() << ") found for port " << port_uuid << ".");
+        return;
+    }
+
+    auto metric = metrics_manager.get_entry_reference(keys.front());
+    metric->set_component_uuid(port_uuid);
+    metric->set_unique_key(port_uuid);
+    metric->make_persistent_uuid();
+    log_persistent_uuid_generated(model::Metric::get_component().to_string(), keys.front(), metric->get_uuid());
 }
 
 
@@ -302,7 +322,7 @@ const std::string PncTreeStabilizer::stabilize_pcie_zone(const std::string& in_z
 
         helpers::update_pcie_zone_in_relations(in_zone_uuid, zone_uuid);
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(zone.get_component().to_string(), in_zone_uuid);
     }
 
@@ -329,7 +349,7 @@ const std::string PncTreeStabilizer::stabilize_pcie_endpoint(const std::string& 
 
         helpers::update_pcie_endpoint_in_relations(in_endpoint_uuid, endpoint_uuid);
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(endpoint.get_component().to_string(), in_endpoint_uuid);
     }
 
@@ -338,7 +358,7 @@ const std::string PncTreeStabilizer::stabilize_pcie_endpoint(const std::string& 
 
 
 const std::string PncTreeStabilizer::stabilize(const std::string& in_module_uuid) {
-    log_info(LOGUSR, "Generating persistent UUID for resources for Manager " << in_module_uuid);
+    log_info("pnc-agent", "Generating persistent UUID for resources for Manager " << in_module_uuid);
 
     auto& module_manager = get_manager<model::Manager>();
     const auto& manager = module_manager.get_entry(in_module_uuid);
@@ -382,9 +402,25 @@ const std::string PncTreeStabilizer::stabilize(const std::string& in_module_uuid
         }
 
     }
-    catch (const PncKeyGenerator::KeyValueMissingError&) {
+    catch (const KeyValueMissingError&) {
         log_key_value_missing(agent_framework::model::Manager::get_component().to_string(), in_module_uuid);
     }
 
     return module_uuid;
+}
+
+const std::string PncTreeStabilizer::stabilize_metric_definition(const std::string& in_definition_uuid) const {
+    auto& definition_manager = get_manager<model::MetricDefinition>();
+    const auto& definition = definition_manager.get_entry(in_definition_uuid);
+    std::string definition_uuid{in_definition_uuid};
+
+    try {
+        const auto& key = PncKeyGenerator::generate_key(definition);
+        definition_uuid = stabilize_single_resource(in_definition_uuid, definition_manager, key);
+    }
+    catch (const KeyValueMissingError&) {
+        log_key_value_missing(definition.get_component().to_string(), in_definition_uuid);
+    }
+
+    return definition_uuid;
 }

@@ -23,6 +23,8 @@ set(SOURCES
     constants/storage.cpp
     constants/chassis.cpp
     constants/pnc.cpp
+    constants/rmm.cpp
+    constants/psme.cpp
     constants/command.cpp
     constants/regular_expressions.cpp
 
@@ -31,6 +33,7 @@ set(SOURCES
     model/attributes/result_status.cpp
     model/attributes/collection.cpp
     model/attributes/cpu_id.cpp
+    model/attributes/extended_cpu_id.cpp
     model/attributes/fru_info.cpp
     model/attributes/identifier.cpp
     model/attributes/ipv4_address.cpp
@@ -61,12 +64,18 @@ set(SOURCES
     model/attributes/acl_port.cpp
     model/attributes/task_entry.cpp
     model/attributes/connected_entity.cpp
+    model/attributes/wildcard.cpp
+    model/attributes/calculation_parameters.cpp
+    model/attributes/metric_definition_entry.cpp
+    model/attributes/on_package_memory.cpp
+    model/attributes/fpga.cpp
 
     model/acl.cpp
     model/acl_rule.cpp
     model/authorization_certificate.cpp
     model/block_device.cpp
     model/chassis.cpp
+    model/chassis_sensor.cpp
     model/drive.cpp
     model/endpoint.cpp
     model/ethernet_switch_port.cpp
@@ -79,6 +88,8 @@ set(SOURCES
     model/logical_drive.cpp
     model/manager.cpp
     model/memory.cpp
+    model/metric.cpp
+    model/metric_definition.cpp
     model/network_interface.cpp
     model/network_device_function.cpp
     model/network_device.cpp
@@ -93,11 +104,12 @@ set(SOURCES
     model/static_mac.cpp
     model/storage_controller.cpp
     model/storage_subsystem.cpp
-    model/storage_services.cpp
+    model/storage_service.cpp
     model/switch.cpp
     model/system.cpp
     model/task.cpp
     model/thermal_zone.cpp
+    model/trusted_module.cpp
     model/vlan.cpp
     model/zone.cpp
 
@@ -105,7 +117,9 @@ set(SOURCES
     loader/loader.cpp
 
     enum/processor_instruction_set.cpp
-    enum/memory_module_type.cpp
+    enum/sensor_type.cpp
+    enum/hssi_configuration.cpp
+    enum/hssi_sideband.cpp
 
     managers/iscsi_target_manager.cpp
 
@@ -122,12 +136,13 @@ set(SOURCES
     common_components.cpp
 
     utils/compute_hash.cpp
-    utils/string_vector_to_json.cpp
-    utils/json_to_string_vector.cpp
     utils/json_converter.cpp
+    utils/json_transformations.cpp
     utils/optional/extensions.cpp
     utils/optional/optional-lib/optional.cpp
     utils/time.cpp
+    utils/is_requested_metric.cpp
+    utils/is_ascii_string.cpp
 
     requests/validation/json_check_type.cpp
     requests/validation/network.cpp
@@ -135,6 +150,7 @@ set(SOURCES
     requests/validation/storage.cpp
     requests/validation/common.cpp
     requests/validation/pnc.cpp
+    requests/validation/rmm.cpp
 
     requests/common/get_managers_collection.cpp
     requests/common/get_manager_info.cpp
@@ -148,19 +164,24 @@ set(SOURCES
     requests/common/get_task_result_info.cpp
     requests/common/get_system_info.cpp
     requests/common/get_storage_subsystem_info.cpp
+    requests/common/get_metrics.cpp
+    requests/common/get_metric_definitions_collection.cpp
+    requests/common/get_metric_definition_info.cpp
+    requests/common/get_processor_info.cpp
 
-    requests/compute/get_processor_info.cpp
     requests/compute/get_memory_info.cpp
     requests/compute/get_storage_controller_info.cpp
     requests/compute/get_network_interface_info.cpp
     requests/compute/get_network_device_info.cpp
     requests/compute/get_network_device_function_info.cpp
+    requests/compute/get_trusted_module_info.cpp
 
-    requests/chassis/get_power_zone_info.cpp
-    requests/chassis/get_psu_info.cpp
-    requests/chassis/get_thermal_zone_info.cpp
-    requests/chassis/get_fan_info.cpp
     requests/chassis/get_authorization_certificate.cpp
+
+    requests/rmm/get_power_zone_info.cpp
+    requests/rmm/get_psu_info.cpp
+    requests/rmm/get_thermal_zone_info.cpp
+    requests/rmm/get_fan_info.cpp
 
     requests/network/add_port_vlan.cpp
     requests/network/get_port_vlan_info.cpp
@@ -193,7 +214,7 @@ set(SOURCES
     requests/storage/delete_logical_drive.cpp
     requests/storage/get_logical_drive_info.cpp
     requests/storage/get_physical_drive_info.cpp
-    requests/storage/get_storage_services_info.cpp
+    requests/storage/get_storage_service_info.cpp
     requests/storage/get_iscsi_target_info.cpp
 
     requests/pnc/get_switch_info.cpp
@@ -207,6 +228,10 @@ set(SOURCES
     requests/pnc/delete_zone.cpp
     requests/pnc/add_zone_endpoint.cpp
     requests/pnc/delete_zone_endpoint.cpp
+
+    requests/psme/attach.cpp
+    requests/psme/component_notification.cpp
+    requests/psme/heart_beat.cpp
 
     responses/common/set_component_attributes.cpp
     responses/common/delete_task.cpp
@@ -238,6 +263,9 @@ set(SOURCES
     responses/pnc/delete_zone.cpp
     responses/pnc/add_zone_endpoint.cpp
     responses/pnc/delete_zone_endpoint.cpp
+
+    responses/psme/attach.cpp
+    responses/psme/heart_beat.cpp
 )
 
 set_source_files_properties(

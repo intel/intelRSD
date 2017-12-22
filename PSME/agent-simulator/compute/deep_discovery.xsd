@@ -112,7 +112,7 @@
 <xs:element name="processor">
     <xs:complexType>
         <xs:choice maxOccurs="unbounded">
-            <xs:element ref="cpuid" minOccurs="0"/>
+            <xs:element ref="cpuId" minOccurs="0"/>
             <xs:element type="xs:string" name="socket" minOccurs="0" maxOccurs="1"/>
             <xs:element type="xs:string" name="processorType" maxOccurs="1"/>
             <xs:element type="xs:unsignedInt" name="totalThreads" minOccurs="0" maxOccurs="1"/>
@@ -130,7 +130,7 @@
     </xs:complexType>
 </xs:element>
 
-<xs:element name="cpuid">
+<xs:element name="cpuId">
     <xs:complexType>
         <xs:all>
             <xs:element type="xs:string" name="vendorId" minOccurs="0"/>
@@ -175,6 +175,9 @@
             <xs:enumeration value="I3"/>
             <xs:enumeration value="I5"/>
             <xs:enumeration value="I7"/>
+            <xs:enumeration value="Silver"/>
+            <xs:enumeration value="Gold"/>
+            <xs:enumeration value="Platinum"/>
             <xs:enumeration value="Unknown"/>
         </xs:restriction>
     </xs:simpleType>
@@ -333,6 +336,7 @@
             <xs:enumeration value="PCIe"/>
             <xs:enumeration value="SAS"/>
             <xs:enumeration value="SATA"/>
+            <xs:enumeration value="NVMe"/>
         </xs:restriction>
     </xs:simpleType>
 </xs:element>

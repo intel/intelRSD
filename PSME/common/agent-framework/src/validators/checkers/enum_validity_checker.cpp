@@ -38,7 +38,7 @@ static const constexpr char EMPTY_VALUE[] = "<empty>";
 }
 
 
-EnumValidityChecker::EnumValidityChecker(va_list args) {
+EnumValidityChecker::EnumValidityChecker(va_list& args) {
     is_allowable_value = va_arg(args, is_allowable_value_t);
     get_values = va_arg(args, get_values_t);
 }
@@ -47,16 +47,16 @@ EnumValidityChecker::EnumValidityChecker(va_list args) {
 EnumValidityChecker::~EnumValidityChecker() {}
 
 
-void EnumValidityChecker::validate(const Json::Value& value) const {
+void EnumValidityChecker::validate(const json::Json& value) const {
     ValidityChecker::validate(value);
-    if (!value.isString()) {
+    if (!value.is_string()) {
         THROW(ValidityChecker::ValidationException, "agent-framework",
               agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
               "Property value is not valid string type.",
               value);
     }
-    if (!is_allowable_value(value.asString())) {
-        if (value.asString().empty()) {
+    if (!is_allowable_value(value)) {
+        if (value.empty()) {
             THROW(ValidityChecker::ValidationException, "agent-framework",
                   agent_framework::exceptions::ErrorCode::INVALID_ENUM,
                   "Empty value is not in constraint values: [ " + join(get_values()) + "]",
@@ -66,7 +66,7 @@ void EnumValidityChecker::validate(const Json::Value& value) const {
         else {
             THROW(ValidityChecker::ValidationException, "agent-framework",
                   agent_framework::exceptions::ErrorCode::INVALID_ENUM,
-                  "Value '" + value.asString() + "' is not in constraint values: [ " + join(get_values()) + "]",
+                  "Value '" + value.get<std::string>() + "' is not in constraint values: [ " + join(get_values()) + "]",
                   value
             );
         }

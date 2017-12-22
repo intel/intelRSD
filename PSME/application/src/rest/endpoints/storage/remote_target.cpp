@@ -43,7 +43,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Services/1/RemoteTargets/Links/Members/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#RemoteTarget.RemoteTarget";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#RemoteTarget.v1_1_0.RemoteTarget";
     r[Common::ID] = json::Value::Type::NIL;
@@ -111,7 +111,7 @@ void endpoint::RemoteTarget::get(const server::Request& req, server::Response& r
 
     auto rt =
         psme::rest::model::Find<agent_framework::model::IscsiTarget>(req.params[PathParam::REMOTE_TARGET_ID])
-            .via<agent_framework::model::StorageServices>(req.params[PathParam::SERVICE_ID]).get();
+            .via<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get();
 
     endpoint::status_to_json(rt, r);
     r[Common::STATUS][Common::HEALTH_ROLLUP] = endpoint::HealthRollup<agent_framework::model::IscsiTarget>().get(
@@ -139,7 +139,7 @@ void endpoint::RemoteTarget::get(const server::Request& req, server::Response& r
                 endpoint::PathBuilder(PathParam::BASE_URL)
                     .append(Root::SERVICES)
                     .append(req.params[PathParam::SERVICE_ID])
-                    .append(StorageService::LOGICAL_DRIVES)
+                    .append(constants::StorageService::LOGICAL_DRIVES)
                     .append(drive_id)
                     .build();
 
@@ -181,15 +181,15 @@ void endpoint::RemoteTarget::get(const server::Request& req, server::Response& r
 void endpoint::RemoteTarget::patch(const server::Request& request, server::Response& response) {
     auto remote_target =
         psme::rest::model::Find<agent_framework::model::IscsiTarget>(request.params[PathParam::REMOTE_TARGET_ID])
-            .via<agent_framework::model::StorageServices>(request.params[PathParam::SERVICE_ID]).get();
+            .via<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID]).get();
 
     std::string agent_id{remote_target.get_agent_id()};
     std::string target_uuid{remote_target.get_uuid()};
-    std::string initiator_iqn{};
 
     auto json = JsonValidator::validate_request_body<schema::RemoteTargetPatchSchema>(request);
     agent_framework::model::attribute::Attributes attributes{};
 
+    OptionalField<std::string> initiator_iqn{};
     if (json.is_member(constants::RemoteTarget::INITIATOR)) {
         const auto& initiators = json[constants::RemoteTarget::INITIATOR].as_array();
         for (const auto& initiator : initiators) {
@@ -210,23 +210,23 @@ void endpoint::RemoteTarget::patch(const server::Request& request, server::Respo
                 const auto& iscsi = address[constants::RemoteTarget::ISCSI];
                 if (iscsi.is_member(constants::RemoteTarget::CHAP)) {
                     if (iscsi[constants::RemoteTarget::CHAP].is_null()) {
-                        attributes.set_value(literals::IscsiTarget::AUTHENTICATION_METHOD, Json::Value::null);
-                        attributes.set_value(literals::IscsiTarget::CHAP_USERNAME, Json::Value::null);
-                        attributes.set_value(literals::IscsiTarget::CHAP_SECRET, Json::Value::null);
-                        attributes.set_value(literals::IscsiTarget::MUTUAL_CHAP_USERNAME, Json::Value::null);
-                        attributes.set_value(literals::IscsiTarget::MUTUAL_CHAP_SECRET, Json::Value::null);
+                        attributes.set_value(literals::IscsiTarget::AUTHENTICATION_METHOD, json::Json{});
+                        attributes.set_value(literals::IscsiTarget::CHAP_USERNAME, json::Json{});
+                        attributes.set_value(literals::IscsiTarget::CHAP_SECRET, json::Json{});
+                        attributes.set_value(literals::IscsiTarget::MUTUAL_CHAP_USERNAME, json::Json{});
+                        attributes.set_value(literals::IscsiTarget::MUTUAL_CHAP_SECRET, json::Json{});
                     }
                     else {
                         const auto& chap = iscsi[constants::RemoteTarget::CHAP];
 
                         attributes.set_value(literals::IscsiTarget::AUTHENTICATION_METHOD,
-                                             chap[constants::RemoteTarget::TYPE].is_null() ? Json::Value::null :
-                                             chap[constants::RemoteTarget::TYPE].as_string());
+                                             chap[constants::RemoteTarget::TYPE].is_null() ? json::Json{} :
+                                             json::Json(chap[constants::RemoteTarget::TYPE].as_string()));
 
                         auto set_attribute = [&](const char* gami_literal, const char* rest_literal) {
                             if (chap.is_member(rest_literal)) {
                                 attributes.set_value(gami_literal,
-                                    chap[rest_literal].is_null() ? Json::Value::null : chap[rest_literal].as_string());
+                                    chap[rest_literal].is_null() ? json::Json{} : json::Json(chap[rest_literal].as_string()));
                             }
                         };
                         set_attribute(literals::IscsiTarget::CHAP_USERNAME, constants::RemoteTarget::USERNAME);
@@ -262,7 +262,7 @@ void endpoint::RemoteTarget::patch(const server::Request& request, server::Respo
             psme::rest::model::handler::HandlerManager::get_instance()->get_handler(
                 agent_framework::model::enums::Component::IscsiTarget)->
                 load(gami_agent, parent_uuid,
-                     agent_framework::model::enums::Component::StorageServices, remote_target.get_uuid(), false);
+                     agent_framework::model::enums::Component::StorageService, remote_target.get_uuid(), false);
         };
 
         gami_agent->execute_in_transaction(set_target_attributes);
@@ -278,7 +278,7 @@ void endpoint::RemoteTarget::del(const server::Request& req, server::Response& r
     using HandlerManager = psme::rest::model::handler::HandlerManager;
 
     auto target = psme::rest::model::Find<agent_framework::model::IscsiTarget>(req.params[PathParam::REMOTE_TARGET_ID])
-        .via<agent_framework::model::StorageServices>(req.params[PathParam::SERVICE_ID])
+        .via<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID])
         .get();
 
     auto gami_req = agent_framework::model::requests::DeleteIscsiTarget(

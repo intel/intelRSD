@@ -5,7 +5,8 @@
   </edmx:Reference>
 
   <edmx:Reference Uri="ServiceRoot.xml">
-    <edmx:Include Namespace="ServiceRoot.v1_0_0"/>
+    <edmx:Include Namespace="ServiceRoot.v1_1_1"/>
+    <edmx:Include Namespace="ServiceRoot"/>
   </edmx:Reference>
   <edmx:Reference Uri="IntelRackScaleOem.xml">
     <edmx:Include Namespace="Intel.Oem"/>
@@ -14,7 +15,7 @@
 
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Service">
-      <EntityContainer Name="Service" Extends="ServiceRoot.v1_0_0.ServiceContainer">
+      <EntityContainer Name="Service" Extends="ServiceRoot.v1_1_1.ServiceContainer">
         <Annotation Term="OData.Description" String="Default Entity Container"/>
       </EntityContainer>
     </Schema>

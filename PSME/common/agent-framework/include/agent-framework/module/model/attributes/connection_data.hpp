@@ -23,6 +23,7 @@
  * */
 
 #pragma once
+
 #include <string>
 
 namespace agent_framework {
@@ -132,4 +133,3 @@ private:
 }
 }
 }
-

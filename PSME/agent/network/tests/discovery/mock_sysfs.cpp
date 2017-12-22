@@ -19,25 +19,18 @@
  *
  * */
 
-#include "api/netlink/sysfs.hpp"
+#include "sysfs/sysfs.hpp"
 
 #include <vector>
 #include <string>
 
-using namespace agent::network::api::netlink;
+using namespace sysfs;
 using namespace std;
 
-SysFs::~SysFs() {}
-
-const vector<string> SysFs::get_port_list() const {
+const vector<string> SysFs::get_interface_list(const string&,
+                                               const string&) const {
     vector<string> v;
-    v.push_back("sw0p1");
-    v.push_back("sw0p12");
-    return v;
-}
-
-const vector<string> SysFs::get_team_list() const {
-    vector<string> v;
-    v.push_back("team1");
+    v.push_back("swp1");
+    v.push_back("swp2");
     return v;
 }

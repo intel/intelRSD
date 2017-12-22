@@ -16,12 +16,10 @@
 
 package com.intel.podm.business.redfish.services;
 
-import com.intel.podm.actions.ActionException;
-import com.intel.podm.actions.RemoteTargetUpdateInvoker;
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.EntityOperationException;
 import com.intel.podm.business.entities.redfish.RemoteTarget;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.actions.RemoteTargetUpdateInvoker;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.actions.RemoteTargetUpdateDefinition;
 import com.intel.podm.common.types.redfish.RedfishRemoteTarget;
@@ -43,13 +41,7 @@ public class RemoteTargetUpdateService {
 
     @Transactional(REQUIRES_NEW)
     public void updateRemoteTarget(Context context, RedfishRemoteTarget representation) throws BusinessApiException {
-        RemoteTargetUpdateDefinition definition = new RemoteTargetUpdateDefinition(representation);
-
         RemoteTarget remoteTarget = (RemoteTarget) traverser.traverse(context);
-        try {
-            invoker.updateRemoteTarget(remoteTarget, definition);
-        } catch (ActionException e) {
-            throw new EntityOperationException(e.getMessage(), e);
-        }
+        invoker.updateRemoteTarget(remoteTarget, new RemoteTargetUpdateDefinition(representation));
     }
 }

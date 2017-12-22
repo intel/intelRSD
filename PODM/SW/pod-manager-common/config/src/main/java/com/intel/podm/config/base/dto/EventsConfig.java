@@ -17,26 +17,39 @@
 package com.intel.podm.config.base.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.ServiceType;
 import com.intel.podm.config.base.ConfigFile;
 
 import javax.ws.rs.core.UriBuilderException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.intel.podm.common.types.ServiceType.INBAND;
+import static com.intel.podm.common.types.ServiceType.PSME;
+import static com.intel.podm.common.types.ServiceType.RMM;
+import static com.intel.podm.common.types.ServiceType.RSS;
 import static com.intel.podm.common.utils.Networking.getIpAddressesForNetworkInterface;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static javax.ws.rs.core.UriBuilder.fromUri;
 
 @ConfigFile(filename = "events.json")
+@JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class EventsConfig extends BaseConfig {
     @JsonIgnore
     public static final String EVENT_RECEIVING_ENDPOINT = "/rest/EventListener";
+
+    @JsonIgnore
+    private static final Map<ServiceType, String> SERVICE_TYPE_NAMES = new HashMap<>();
 
     @JsonIgnore
     private static final Map<ServiceType, EventConfiguration> EVENT_CONFIGURATION_CACHE = new ConcurrentHashMap<>();
@@ -53,60 +66,29 @@ public class EventsConfig extends BaseConfig {
     @JsonIgnore
     private static final Integer HTTPS_POD_MANAGER_PORT = 8443;
 
-    @JsonProperty("EventSubscriptionIntervalSeconds")
-    private long eventSubscriptionIntervalSeconds = 90;
-
-    @JsonProperty("PodManagerIpAddressForEventsFromPsme")
-    private String podManagerIpAddressForEventsFromPsme;
-
-    @JsonProperty("NetworkInterfaceNameForEventsFromPsme")
-    private String networkInterfaceNameForEventsFromPsme;
-
-    @JsonProperty("PodManagerIpAddressForEventsFromRss")
-    private String podManagerIpAddressForEventsFromRss;
-
-    @JsonProperty("NetworkInterfaceNameForEventsFromRss")
-    private String networkInterfaceNameForEventsFromRss;
-
-    @JsonProperty("PodManagerIpAddressForEventsFromRmm")
-    private String podManagerIpAddressForEventsFromRmm;
-
-    @JsonProperty("NetworkInterfaceNameForEventsFromRmm")
-    private String networkInterfaceNameForEventsFromRmm;
+    static {
+        SERVICE_TYPE_NAMES.put(PSME, "psme");
+        SERVICE_TYPE_NAMES.put(RMM, "rmm");
+        SERVICE_TYPE_NAMES.put(RSS, "rss");
+        SERVICE_TYPE_NAMES.put(INBAND, "inband");
+    }
 
     @JsonProperty("Northbound")
     private NorthboundConfiguration northboundConfiguration = new NorthboundConfiguration();
 
-    public long getEventSubscriptionIntervalSeconds() {
-        return eventSubscriptionIntervalSeconds;
-    }
-
-    public String getPodManagerIpAddressForEventsFromPsme() {
-        return podManagerIpAddressForEventsFromPsme;
-    }
-
-    public String getNetworkInterfaceNameForEventsFromPsme() {
-        return networkInterfaceNameForEventsFromPsme;
-    }
-
-    public String getPodManagerIpAddressForEventsFromRss() {
-        return podManagerIpAddressForEventsFromRss;
-    }
-
-    public String getNetworkInterfaceNameForEventsFromRss() {
-        return networkInterfaceNameForEventsFromRss;
-    }
-
-    public String getPodManagerIpAddressForEventsFromRmm() {
-        return podManagerIpAddressForEventsFromRmm;
-    }
-
-    public String getNetworkInterfaceNameForEventsFromRmm() {
-        return networkInterfaceNameForEventsFromRmm;
-    }
+    @JsonProperty("Southbound")
+    private SouthboundConfiguration southboundConfiguration = new SouthboundConfiguration();
 
     public NorthboundConfiguration getNorthboundConfiguration() {
         return northboundConfiguration;
+    }
+
+    public long getEventSubscriptionIntervalSeconds() {
+        return southboundConfiguration.eventSubscriptionIntervalSeconds;
+    }
+
+    public SouthboundConfiguration getSouthboundConfiguration() {
+        return southboundConfiguration;
     }
 
     public EventConfiguration getEventConfigForServiceType(ServiceType serviceType) {
@@ -136,24 +118,31 @@ public class EventsConfig extends BaseConfig {
     }
 
     private String getPodManagerIpForReceivingEventsFromServiceOfType(ServiceType serviceType) {
-        switch (serviceType) {
-            case PSME:
-                return ofNullable(getPodManagerIpAddressForEventsFromPsme())
-                    .orElseGet(() -> getIpAddressByNetworkInterface(getNetworkInterfaceNameForEventsFromPsme()));
-            case RSS:
-                return ofNullable(getPodManagerIpAddressForEventsFromRss())
-                    .orElseGet(() -> getIpAddressByNetworkInterface(getNetworkInterfaceNameForEventsFromRss()));
-            case RMM:
-                return ofNullable(getPodManagerIpAddressForEventsFromRmm())
-                    .orElseGet(() -> getIpAddressByNetworkInterface(getNetworkInterfaceNameForEventsFromRmm()));
-            default:
-                throw new IllegalArgumentException(format("Couldn't get PodM IP address for service type '%s'", serviceType));
-        }
+        String ipAddressForEvents = getPodManagerIpAddressForEventsFrom(serviceType);
+        String interfaceNameForEvents = getPodManagerInterfaceNameForEventsFrom(serviceType);
+
+        return ofNullable(ipAddressForEvents).orElseGet(() -> getIpAddressByNetworkInterface(interfaceNameForEvents));
+    }
+
+    private String getPodManagerIpAddressForEventsFrom(ServiceType serviceType) {
+        return getServiceConfiguration(serviceType).podManagerIpAddress;
+    }
+
+    private String getPodManagerInterfaceNameForEventsFrom(ServiceType serviceType) {
+        return getServiceConfiguration(serviceType).networkInterfaceName;
+    }
+
+    private ServiceConfiguration getServiceConfiguration(ServiceType serviceType) {
+        String serviceTypeName = SERVICE_TYPE_NAMES.get(serviceType);
+
+        return southboundConfiguration.serviceConfigurations.stream()
+            .filter(serviceConfiguration -> Objects.equals(serviceConfiguration.serviceType, serviceTypeName))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(format("Couldn't get Service Configuration for service type '%s'", serviceType)));
     }
 
     private String getIpAddressByNetworkInterface(String ifaceName) {
-        return getIpAddressesForNetworkInterface(ifaceName)
-            .stream()
+        return getIpAddressesForNetworkInterface(ifaceName).stream()
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException(format("Couldn't get PodM IP address for network interface type '%s'", ifaceName)));
     }
@@ -165,47 +154,15 @@ public class EventsConfig extends BaseConfig {
         }
 
         EventsConfig newConfig = (EventsConfig) updatedConfig;
-        return samePsmeConfig(newConfig) && sameRssConfig(newConfig) && sameRmmConfig(newConfig);
+
+        return isSameConfigForServiceType(newConfig, PSME)
+            && isSameConfigForServiceType(newConfig, RSS)
+            && isSameConfigForServiceType(newConfig, RMM)
+            && isSameConfigForServiceType(newConfig, INBAND);
     }
 
-    private boolean samePsmeConfig(EventsConfig newConfig) {
-        return Objects.equals(newConfig.getPodManagerIpAddressForEventsFromPsme(), getPodManagerIpAddressForEventsFromPsme())
-            && Objects.equals(newConfig.getNetworkInterfaceNameForEventsFromPsme(), getNetworkInterfaceNameForEventsFromPsme());
-    }
-
-    private boolean sameRssConfig(EventsConfig newConfig) {
-        return Objects.equals(newConfig.getPodManagerIpAddressForEventsFromRss(), getPodManagerIpAddressForEventsFromRss())
-            && Objects.equals(newConfig.getNetworkInterfaceNameForEventsFromRss(), getNetworkInterfaceNameForEventsFromRss());
-    }
-
-    private boolean sameRmmConfig(EventsConfig newConfig) {
-        return Objects.equals(newConfig.getPodManagerIpAddressForEventsFromRmm(), getPodManagerIpAddressForEventsFromRmm())
-            && Objects.equals(newConfig.getNetworkInterfaceNameForEventsFromRmm(), getNetworkInterfaceNameForEventsFromRmm());
-    }
-
-    public static final class EventConfiguration {
-        private final ServiceType serviceType;
-        private final URI defaultPodManagerEventReceivingEndpoint;
-        private final URI securePodManagerEventReceivingEndpoint;
-
-        public EventConfiguration(ServiceType serviceType, URI defaultPodManagerEventReceivingEndpoint,
-                                  URI securePodManagerEventReceivingEndpoint) {
-            this.serviceType = serviceType;
-            this.defaultPodManagerEventReceivingEndpoint = defaultPodManagerEventReceivingEndpoint;
-            this.securePodManagerEventReceivingEndpoint = securePodManagerEventReceivingEndpoint;
-        }
-
-        public ServiceType getServiceType() {
-            return serviceType;
-        }
-
-        public URI getDefaultPodManagerEventReceivingEndpoint() {
-            return defaultPodManagerEventReceivingEndpoint;
-        }
-
-        public URI getSecurePodManagerEventReceivingEndpoint() {
-            return securePodManagerEventReceivingEndpoint;
-        }
+    private boolean isSameConfigForServiceType(EventsConfig newConfig, ServiceType serviceType) {
+        return Objects.equals(newConfig.getServiceConfiguration(serviceType), getServiceConfiguration(serviceType));
     }
 
     public static class NorthboundConfiguration {
@@ -221,6 +178,106 @@ public class EventsConfig extends BaseConfig {
 
         public long getDeliveryRetryIntervalSeconds() {
             return deliveryRetryIntervalSeconds;
+        }
+    }
+
+    public static class SouthboundConfiguration {
+        @JsonProperty("EventSubscriptionIntervalSeconds")
+        long eventSubscriptionIntervalSeconds = 90;
+
+        @JsonProperty("ServicesConfiguration")
+        List<ServiceConfiguration> serviceConfigurations = new ArrayList<>();
+
+        @JsonProperty("BufferedEventProcessing")
+        private BufferedEventProcessing bufferedEventProcessing;
+
+        public boolean isBufferedEventProcessingEnabled() {
+            return bufferedEventProcessing != null;
+        }
+
+        public BufferedEventProcessing getBufferedEventProcessing() {
+            return bufferedEventProcessing;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(this)
+                .add("eventSubscriptionIntervalSeconds", eventSubscriptionIntervalSeconds)
+                .add("serviceConfigurations", serviceConfigurations)
+                .toString();
+        }
+    }
+
+    public static class BufferedEventProcessing {
+        @JsonProperty("ProcessingWindowSizeInSeconds")
+        long processingWindowSizeInSeconds = 5;
+
+        public long getProcessingWindowSizeInSeconds() {
+            return processingWindowSizeInSeconds;
+        }
+    }
+
+    private static class ServiceConfiguration {
+        @JsonProperty("ServiceType")
+        String serviceType;
+
+        @JsonProperty("NetworkInterfaceName")
+        String networkInterfaceName;
+
+        @JsonProperty("PodManagerIpAddress")
+        String podManagerIpAddress;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ServiceConfiguration that = (ServiceConfiguration) o;
+            return Objects.equals(serviceType, that.serviceType)
+                && Objects.equals(networkInterfaceName, that.networkInterfaceName)
+                && Objects.equals(podManagerIpAddress, that.podManagerIpAddress);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(serviceType, networkInterfaceName, podManagerIpAddress);
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(this)
+                .add("serviceType", serviceType)
+                .add("networkInterfaceName", networkInterfaceName)
+                .add("podManagerIpAddress", podManagerIpAddress)
+                .toString();
+        }
+    }
+
+    public static final class EventConfiguration {
+        private final ServiceType serviceType;
+        private final URI defaultPodManagerEventReceivingEndpoint;
+        private final URI securePodManagerEventReceivingEndpoint;
+
+        EventConfiguration(ServiceType serviceType, URI defaultPodManagerEventReceivingEndpoint,
+                           URI securePodManagerEventReceivingEndpoint) {
+            this.serviceType = serviceType;
+            this.defaultPodManagerEventReceivingEndpoint = defaultPodManagerEventReceivingEndpoint;
+            this.securePodManagerEventReceivingEndpoint = securePodManagerEventReceivingEndpoint;
+        }
+
+        public ServiceType getServiceType() {
+            return serviceType;
+        }
+
+        public URI getDefaultPodManagerEventReceivingEndpoint() {
+            return defaultPodManagerEventReceivingEndpoint;
+        }
+
+        public URI getSecurePodManagerEventReceivingEndpoint() {
+            return securePodManagerEventReceivingEndpoint;
         }
     }
 }

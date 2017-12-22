@@ -16,9 +16,6 @@
 
 package com.intel.podm.rest.resources;
 
-import com.intel.podm.rest.error.ErrorResponseCreator;
-import com.intel.podm.rest.representation.json.errors.ErrorType;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -29,6 +26,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.UNAUTHORIZED;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Produces(APPLICATION_JSON)
@@ -70,7 +69,7 @@ public class UnauthorizedErrorResource {
     }
 
     private Response getUnauthorizedResponse() {
-        return ErrorResponseCreator.from(ErrorType.UNAUTHORIZED).create();
+        return newErrorResponseBuilder(UNAUTHORIZED).build();
     }
 
 }

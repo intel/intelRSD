@@ -21,8 +21,8 @@ import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.SecurityConfig;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -30,9 +30,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-@Singleton
+@ApplicationScoped
 class KeyStoreProvider {
-
     @Inject
     private Logger logger;
 

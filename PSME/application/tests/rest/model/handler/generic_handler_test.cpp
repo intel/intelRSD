@@ -47,13 +47,17 @@ using SubscriptionManager = psme::rest::eventing::manager::SubscriptionManager;
 using namespace psme::rest::eventing;
 using namespace agent_framework::model;
 using namespace agent_framework::module;
+using namespace testing;
 using agent_framework::eventing::Notification;
+using ExpectedEventRecord = std::pair<EventType, std::string>; // event type and resource URL
+using ExpectedEventArray = std::vector<ExpectedEventRecord>;
+using ExpectedEvents = std::vector<ExpectedEventArray>;
 
 class DatabaseTester {
 public:
     static void drop_all() {
-        Database::SPtr db = Database::create("*drop_all");
-        AlwaysMatchKey key{};
+        database::Database::SPtr db = database::Database::create("*drop_all");
+        database::AlwaysMatchKey key{};
         db->drop(key);
         db->remove();
     }
@@ -61,7 +65,7 @@ public:
 
 
 // Required by gtest scheme for fixture tests
-class HandlerTest : public ::testing::Test {
+class HandlerTest : public Test {
 public:
     HandlerTest() { }
 
@@ -78,22 +82,33 @@ public:
                 enums::Component::System))->m_id_policy.reset();
         static_cast<handler::ProcessorHandler *>(handler::HandlerManager::get_instance()->get_handler(
                 enums::Component::Processor))->m_id_policy.reset();
+        static_cast<handler::TaskHandler *>(handler::HandlerManager::get_instance()->get_handler(
+            enums::Component::Task))->m_id_policy.reset();
     }
 
     void TearDown() {
-        auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+        auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
         agent->clear();
         agent_framework::module::get_manager<agent_framework::model::Manager>().clear_entries();
         agent_framework::module::get_manager<agent_framework::model::System>().clear_entries();
         agent_framework::module::get_manager<agent_framework::model::Processor>().clear_entries();
+        agent_framework::module::get_manager<agent_framework::model::Task>().clear_entries();
 
         reset_id_policy();
 
         SubscriptionManager::get_instance()->clear();
     }
 
+    void ProcessNotification(const EventData& event) {
+        auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
+        auto handler = handler::HandlerManager::get_instance()->get_handler(event.get_type());
+        psme::rest::eventing::EventVec northbound_events;
+        handler->handle(agent, event, northbound_events);
+        SubscriptionManager::get_instance()->notify(northbound_events);
+    }
+
     void BuildTreeWithAddEvent(bool full = true) {
-        auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+        auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
 
         if (full) {
             agent->m_responses = {
@@ -149,24 +164,21 @@ public:
         }
 
         EventData event;
-
         event.set_type("Manager");
         event.set_notification(Notification::Add);
         event.set_parent("");
         event.set_component("manager_1_uuid");
-        auto handler = handler::HandlerManager::get_instance()->get_handler(event.get_type());
-        handler->handle(agent, event);
+        ProcessNotification(event);
 
         event.set_type("Manager");
         event.set_notification(Notification::Add);
         event.set_parent("");
         event.set_component("manager_2_uuid");
-        handler->handle(agent, event);
+        ProcessNotification(event);
     }
 
     void BuildTreeWithDifferentCollectionNames() {
-        auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-
+        auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
         agent->m_responses = {
                 Manager3,
                 // FastSystem collection
@@ -198,20 +210,16 @@ public:
         };
 
         EventData event;
-
         event.set_type("Manager");
         event.set_notification(Notification::Add);
         event.set_parent("");
         event.set_component("manager_3_uuid");
-        auto handler = handler::HandlerManager::get_instance()->get_handler(event.get_type());
-        handler->handle(agent, event);
+        ProcessNotification(event);
     }
 };
 
 HandlerTest::~HandlerTest() { }
 
-using namespace testing;
-using namespace psme::rest::eventing;
 
 #define CHECK_REQUESTS \
     for (size_t i = 0; i < std::min(expectedReq.size(), agent->m_requests.size()); i++) { \
@@ -221,12 +229,18 @@ using namespace psme::rest::eventing;
 
 #define CHECK_EVENTS \
     {\
-        auto _events = SubscriptionManager::get_instance()->m_events; \
-        for (size_t i = 0; i < std::min(expectedEvents.size(), _events.size()); i++) { \
-            ASSERT_EQ(expectedEvents[i].first, _events[i].get_type()) << "Event[" << i << "] type is incorrect"; \
-            ASSERT_EQ(expectedEvents[i].second, _events[i].get_origin_of_condition()) << "Event[" << i << "] 'origin of condition' is incorrect"; \
-        } \
+        auto _events = SubscriptionManager::get_instance()->m_event_arrays; \
         ASSERT_EQ(expectedEvents.size(), _events.size()) << "Invalid number of events"; \
+        for (size_t i = 0; i < _events.size(); ++i) { \
+            const auto& events_vec = _events[i].get_events(); \
+            ASSERT_EQ(expectedEvents[i].size(), events_vec.size()); \
+            for (size_t j = 0; j < events_vec.size(); ++j) { \
+                ASSERT_EQ(expectedEvents[i][j].first, events_vec[j].get_type()) \
+                    << "Event[" << i << "][" << j << "] type is incorrect"; \
+                ASSERT_EQ(expectedEvents[i][j].second, events_vec[j].get_origin_of_condition()) \
+                    << "Event[" << i << "][" << j <<"] 'origin of condition' is incorrect"; \
+            } \
+        } \
     }
 
 #define CHECK_COLLECTIONS \
@@ -240,7 +254,7 @@ using namespace psme::rest::eventing;
 TEST_F(HandlerTest, AddEverything) {
     BuildTreeWithAddEvent();
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto expectedReq = std::vector<std::string> {"manager_1_uuid",
                                               "manager_1_uuid",
                                               "system_1_uuid",
@@ -255,7 +269,20 @@ TEST_F(HandlerTest, AddEverything) {
 
     CHECK_REQUESTS;
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceAdded, "/redfish/v1/Managers/1"}, {EventType::ResourceAdded, "/redfish/v1/Managers/2"}};
+    ExpectedEvents expectedEvents {
+        {
+            {EventType::ResourceAdded, "/redfish/v1/Managers/1"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/1"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/2"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/2/Processors/1"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/2/Processors/2"}
+        },
+        {
+            {EventType::ResourceAdded, "/redfish/v1/Managers/2"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/3"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/3/Processors/1"}
+        }
+    };
     CHECK_EVENTS;
 
 
@@ -286,46 +313,44 @@ TEST_F(HandlerTest, AddAssetInTheMiddleOfTreeWhenParentIsKnown) {
     SubscriptionManager::get_instance()->clear();
 
     // now add again
-    SubscriptionManager::get_instance()->clear();
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
+    agent->clear();
+    agent->m_responses = {
+        Processor2
+    };
+
     EventData event;
     event.set_type("Processor");
     event.set_notification(Notification::Add);
     event.set_parent("system_2_uuid");
     event.set_component("processor_2_uuid");
+    ProcessNotification(event);
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-    agent->clear();
-    agent->m_responses = {
-        Processor2
-    };
-    handler->handle(agent, event);
-
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceAdded, "/redfish/v1/Systems/2/Processors/2"}};
+    ExpectedEvents expectedEvents {{{EventType::ResourceAdded, "/redfish/v1/Systems/2/Processors/2"}}};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, RemoveLeaf) {
     BuildTreeWithAddEvent();
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
 
     ASSERT_EQ("processor_1_uuid", Find<agent_framework::model::Processor>("1").via<agent_framework::model::System>("2").get_uuid());
     ASSERT_EQ("processor_2_uuid", Find<agent_framework::model::Processor>("2").via<agent_framework::model::System>("2").get_uuid());
 
     SubscriptionManager::get_instance()->clear();
+
     EventData event;
     event.set_type("Processor");
     event.set_notification(Notification::Remove);
     event.set_parent("system_2_uuid");
     event.set_component("processor_1_uuid");
-
-    auto handler = handler::HandlerManager::get_instance()->get_handler(event.get_type());
-    handler->handle(agent, event);
+    ProcessNotification(event);
 
     ASSERT_THROW(Find<agent_framework::model::Processor>("1").via<agent_framework::model::System>("2").get_uuid(), agent_framework::exceptions::NotFound);
     ASSERT_EQ("processor_2_uuid", Find<agent_framework::model::Processor>("2").via<agent_framework::model::System>("2").get_uuid());
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/1"}};
+    ExpectedEvents expectedEvents {{{EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/1"}}};
     CHECK_EVENTS;
 }
 
@@ -346,10 +371,7 @@ TEST_F(HandlerTest, RemoveInnerNode) {
     event.set_notification(Notification::Remove);
     event.set_parent("manager_1_uuid");
     event.set_component("system_2_uuid");
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-    auto handler = handler::HandlerManager::get_instance()->get_handler(event.get_type());
-    handler->handle(agent, event);
-
+    ProcessNotification(event);
 
     ASSERT_EQ("system_1_uuid", Find<agent_framework::model::System>("1").get_uuid());
     ASSERT_THROW(Find<agent_framework::model::System>("2").get_uuid(), agent_framework::exceptions::NotFound);
@@ -360,14 +382,20 @@ TEST_F(HandlerTest, RemoveInnerNode) {
     ASSERT_EQ(3-1, get_manager<System>().get_entry_count());
     ASSERT_EQ(3-2, get_manager<Processor>().get_entry_count());
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceRemoved, "/redfish/v1/Systems/2"}};
+    ExpectedEvents expectedEvents {
+        {
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/1"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/2"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2"}
+        }
+    };
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, TestProperIdsAfterAgentReconnection) {
     BuildTreeWithAddEvent();
 
-    const auto agent_gami_id = psme::core::agent::AgentManager::get_instance().get_agent("anything")->get_gami_id();
+    const auto agent_gami_id = psme::core::agent::AgentManager::get_instance()->get_agent("anything")->get_gami_id();
 
     // check if all resources have been added to the model
     ASSERT_EQ(2, get_manager<Manager>().get_entry_count());
@@ -382,7 +410,7 @@ TEST_F(HandlerTest, TestProperIdsAfterAgentReconnection) {
 
     // remove agent to simulate connection error
     handler::HandlerManager::get_instance()->remove_agent_data(agent_gami_id);
-    psme::core::agent::AgentManager::get_instance().remove_agent(agent_gami_id);
+    psme::core::agent::AgentManager::get_instance()->remove_agent(agent_gami_id);
 
     // check if all resources have been removed from the model
     ASSERT_EQ(0, get_manager<Manager>().get_entry_count());
@@ -410,10 +438,10 @@ TEST_F(HandlerTest, TestProperIdsAfterAgentReconnection) {
 
 TEST_F(HandlerTest, LoadLeaf) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()->get_handler(agent_framework::model::enums::Component::Processor);
     agent-> m_responses = {
         Processor1OnSystem3Modified
@@ -429,20 +457,21 @@ TEST_F(HandlerTest, LoadLeaf) {
     EXPECT_EQ("processor_1_system_3_uuid", proc->get_uuid());
     EXPECT_EQ(enums::State::Enabled, proc->get_status().get_state());
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {
-        {EventType::StatusChange, "/redfish/v1/Systems/3/Processors/1"},
-        {EventType::ResourceUpdated, "/redfish/v1/Systems/3/Processors/1"}
+    ExpectedEvents expectedEvents {
+        {
+            {EventType::StatusChange, "/redfish/v1/Systems/3/Processors/1"},
+            {EventType::ResourceUpdated, "/redfish/v1/Systems/3/Processors/1"}
+        }
     };
-
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, LoadInternalNonRecursively) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()
             ->get_handler(agent_framework::model::enums::Component::System);
     agent-> m_responses = {
@@ -459,17 +488,16 @@ TEST_F(HandlerTest, LoadInternalNonRecursively) {
     EXPECT_EQ("system_2_uuid", system->get_uuid());
     EXPECT_EQ("B20F21_A0" /* new value from updated system */, system->get_bios_version());
 
-    // no event expected after load
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceUpdated, "/redfish/v1/Systems/2"}};
+    ExpectedEvents expectedEvents {{{EventType::ResourceUpdated, "/redfish/v1/Systems/2"}}};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, LoadInternalRecursively) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()
             ->get_handler(agent_framework::model::enums::Component::System);
     agent-> m_responses = {
@@ -497,89 +525,79 @@ TEST_F(HandlerTest, LoadInternalRecursively) {
     EXPECT_EQ("processor_2_uuid", processor2->get_uuid());
     EXPECT_EQ("666" /* new value from updated processor */, processor2->get_socket());
 
-    // no event expected after load
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {
+    ExpectedEvents expectedEvents {
+        {
             {EventType::ResourceUpdated, "/redfish/v1/Systems/2"},
-            {EventType::ResourceUpdated, "/redfish/v1/Systems/2/Processors/2"}};
+            {EventType::ResourceUpdated, "/redfish/v1/Systems/2/Processors/2"}
+        }
+    };
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, TestUpdateEventIgnoredForUnknownResource) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-    auto handler = handler::HandlerManager::get_instance()
-            ->get_handler(agent_framework::model::enums::Component::System);
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
+    agent-> m_responses = {
+    };
 
     EventData event;
-
     event.set_type("System");
     event.set_notification(Notification::Update);
     event.set_parent("manager_1_uuid");
     event.set_component("unknown_system_uuid");
+    ProcessNotification(event);
 
-    agent-> m_responses = {
-    };
-
-    handler->handle(agent, event);
     auto expectedReq = std::vector<std::string> {};
     CHECK_REQUESTS;
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {};
+    ExpectedEvents expectedEvents {};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, TestUpdateEventNotForwardedWhenNoChange) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-    auto handler = handler::HandlerManager::get_instance()
-        ->get_handler(agent_framework::model::enums::Component::System);
-
-    EventData event;
-
-    event.set_type("System");
-    event.set_notification(Notification::Update);
-    event.set_parent("manager_1_uuid");
-    event.set_component("system_2_uuid");
-
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent-> m_responses = {
         System2 // identical to original one
     };
 
-    handler->handle(agent, event);
+    EventData event;
+    event.set_type("System");
+    event.set_notification(Notification::Update);
+    event.set_parent("manager_1_uuid");
+    event.set_component("system_2_uuid");
+    ProcessNotification(event);
+
     auto expectedReq = std::vector<std::string> {"system_2_uuid"};
     CHECK_REQUESTS;
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {};
+    ExpectedEvents expectedEvents {};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, TestSystemRefreshedAfterUpdateEvent) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-    auto handler = handler::HandlerManager::get_instance()
-            ->get_handler(agent_framework::model::enums::Component::System);
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
+    agent-> m_responses = {
+        System2Modified
+    };
 
     EventData event;
-
     event.set_type("System");
     event.set_notification(Notification::Update);
     event.set_parent("manager_1_uuid");
     event.set_component("system_2_uuid");
+    ProcessNotification(event);
 
-    agent-> m_responses = {
-            System2Modified
-    };
-
-    handler->handle(agent, event);
     auto expectedReq = std::vector<std::string> {"system_2_uuid"};
     CHECK_REQUESTS;
 
@@ -588,29 +606,27 @@ TEST_F(HandlerTest, TestSystemRefreshedAfterUpdateEvent) {
     EXPECT_EQ("system_2_uuid", system->get_uuid());
     EXPECT_EQ("B20F21_A0" /* new value from updated system */, system->get_bios_version());
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceUpdated, "/redfish/v1/Systems/2"}};
+    ExpectedEvents expectedEvents {{{EventType::ResourceUpdated, "/redfish/v1/Systems/2"}}};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, TestProcessorRefreshedAfterUpdateEvent) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    auto agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-    auto handler = handler::HandlerManager::get_instance()->get_handler(agent_framework::model::enums::Component::Processor);
+    auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent-> m_responses = {
         Processor1OnSystem3Modified
     };
 
     EventData event;
-
     event.set_type("Processor");
     event.set_notification(Notification::Update);
     event.set_parent("system_3_uuid");
     event.set_component("processor_1_system_3_uuid");
+    ProcessNotification(event);
 
-    handler->handle(agent, event);
     auto expectedReq = std::vector<std::string> {"processor_1_system_3_uuid"};
     CHECK_REQUESTS;
 
@@ -619,22 +635,21 @@ TEST_F(HandlerTest, TestProcessorRefreshedAfterUpdateEvent) {
     EXPECT_EQ("processor_1_system_3_uuid", proc->get_uuid());
     EXPECT_EQ(enums::State::Enabled, proc->get_status().get_state());
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {
-        {EventType::StatusChange, "/redfish/v1/Systems/3/Processors/1"},
-        {EventType::ResourceUpdated, "/redfish/v1/Systems/3/Processors/1"}
+    ExpectedEvents expectedEvents {
+        {
+            {EventType::StatusChange, "/redfish/v1/Systems/3/Processors/1"},
+            {EventType::ResourceUpdated, "/redfish/v1/Systems/3/Processors/1"}
+        }
     };
-
     CHECK_EVENTS;
 }
 
-
-
 TEST_F(HandlerTest, PollingNoUpdate) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()->get_handler(
         agent_framework::model::enums::Component::System);
     agent-> m_responses = {
@@ -650,16 +665,16 @@ TEST_F(HandlerTest, PollingNoUpdate) {
     };
     handler->poll(agent, "manager_1_uuid", agent_framework::model::enums::Component::Manager, "system_2_uuid");
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {};
+    ExpectedEvents expectedEvents {};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, PollingDetectsLeafRemoved) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()->get_handler(
             agent_framework::model::enums::Component::System);
     agent-> m_responses = {
@@ -667,24 +682,23 @@ TEST_F(HandlerTest, PollingDetectsLeafRemoved) {
         // Processor collection
         R"([
                 {"subcomponent": "processor_1_uuid"}
-                //processor 2 removed
-
           ])",
+        //processor 2 removed (also from collection)
         Processor1
     };
     handler->poll(agent, "manager_1_uuid", agent_framework::model::enums::Component::Manager, "system_2_uuid");
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/2"}};
+    ExpectedEvents expectedEvents {{{EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/2"}}};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, PollingDetectsInnerNodeRemoved) {
     BuildTreeWithAddEvent();
 
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")-> clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")-> clear();
     SubscriptionManager::get_instance()->clear();
 
-    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()->get_handler(
             agent_framework::model::enums::Component::Manager);
     agent-> m_responses = {
@@ -699,17 +713,23 @@ TEST_F(HandlerTest, PollingDetectsInnerNodeRemoved) {
 
     handler->poll(agent, "", agent_framework::model::enums::Component::None, "manager_1_uuid");
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceRemoved, "/redfish/v1/Systems/2"}};
+    ExpectedEvents expectedEvents {
+        {
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/1"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/2"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2"}
+        }
+    };
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, PollingDetectsInnerAndLeafNodesRemoved) {
     BuildTreeWithAddEvent();
 
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")-> clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")-> clear();
     SubscriptionManager::get_instance()->clear();
 
-    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()->get_handler(
             agent_framework::model::enums::Component::Manager);
     agent-> m_responses = {
@@ -723,16 +743,23 @@ TEST_F(HandlerTest, PollingDetectsInnerAndLeafNodesRemoved) {
 
     handler->poll(agent, "", agent_framework::model::enums::Component::None, "manager_1_uuid");
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceRemoved, "/redfish/v1/Systems/1"}, {EventType::ResourceRemoved, "/redfish/v1/Systems/2"}};
+    ExpectedEvents expectedEvents {
+        {
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/1"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/1"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/2"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2"}
+        }
+    };
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, PollingDetectsUpdate) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()->get_handler(
             agent_framework::model::enums::Component::System);
     agent-> m_responses = {
@@ -748,27 +775,24 @@ TEST_F(HandlerTest, PollingDetectsUpdate) {
     };
     handler->poll(agent, "manager_1_uuid", agent_framework::model::enums::Component::Manager, "system_2_uuid");
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceUpdated, "/redfish/v1/Systems/2"}};
+    ExpectedEvents expectedEvents {{{EventType::ResourceUpdated, "/redfish/v1/Systems/2"}}};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, PollingDetectsSubtreeAdded) {
     BuildTreeWithAddEvent(false /*only first manager*/);
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()->get_handler(
         agent_framework::model::enums::Component::Manager);
     agent->m_responses = {
         Manager2,
         // Systems collection
-        R"([{
-                                    "subcomponent": "system_3_uuid"
-                                },
-            {
-                                    "subcomponent": "system_4_uuid"
-                                }
+        R"([
+                {"subcomponent": "system_3_uuid"},
+                {"subcomponent": "system_4_uuid"}
         ])",
         System3,
         // Processor collection
@@ -782,21 +806,23 @@ TEST_F(HandlerTest, PollingDetectsSubtreeAdded) {
 
     handler->poll(agent, "", agent_framework::model::enums::Component::None, "manager_2_uuid");
 
-    // events about added cpus should not be sent
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {
+    ExpectedEvents expectedEvents {
+        {
             {EventType::ResourceAdded, "/redfish/v1/Systems/3"},
-            {EventType::ResourceAdded, "/redfish/v1/Systems/4"}
+            {EventType::ResourceAdded, "/redfish/v1/Systems/3/Processors/1"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/4"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/4/Processors/1"}
+        }
     };
     CHECK_EVENTS;
 }
 
-
 TEST_F(HandlerTest, PollingQuitsAfterRpcException) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()->get_handler(
         agent_framework::model::enums::Component::Manager);
     agent-> m_responses = {
@@ -819,16 +845,16 @@ TEST_F(HandlerTest, PollingQuitsAfterRpcException) {
 
     CHECK_REQUESTS;
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {};
+    ExpectedEvents expectedEvents {};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, PollingKeepsStableIds) {
     BuildTreeWithAddEvent();
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
+    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     auto handler = handler::HandlerManager::get_instance()->get_handler(
             agent_framework::model::enums::Component::System);
 
@@ -847,19 +873,16 @@ TEST_F(HandlerTest, PollingKeepsStableIds) {
     handler->poll(agent, "manager_1_uuid", agent_framework::model::enums::Component::Manager, "system_2_uuid");
     ASSERT_EQ(2, get_manager<Processor>().get_entry("processor_2_uuid").get_id());
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {{EventType::ResourceRemoved,
-                                                                                  "/redfish/v1/Systems/2/Processors/1"}};
+    ExpectedEvents expectedEvents {{{EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/1"}}};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, NothingAddedIfJsonRpcExeptionDuringAddEventHandling) {
     BuildTreeWithAddEvent(false /*only first manager*/);
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
-    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance().get_agent("anything");
-    auto handler = handler::HandlerManager::get_instance()->get_handler(
-            agent_framework::model::enums::Component::System);
+    psme::core::agent::JsonAgentSPtr agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent->m_responses = {
             System3,
             // Processor collection
@@ -872,7 +895,7 @@ TEST_F(HandlerTest, NothingAddedIfJsonRpcExeptionDuringAddEventHandling) {
     event.set_notification(Notification::Add);
     event.set_parent("manager_2_uuid");
     event.set_component("system_3_uuid");
-    handler->handle(agent, event);
+    ProcessNotification(event);
 
 
     auto expectedReq = std::vector<std::string> {"system_3_uuid",
@@ -881,8 +904,9 @@ TEST_F(HandlerTest, NothingAddedIfJsonRpcExeptionDuringAddEventHandling) {
     };
 
     CHECK_REQUESTS;
+
     // events about added cpus should not be sent
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> { };
+    ExpectedEvents expectedEvents {};
     CHECK_EVENTS;
 
     ASSERT_EQ(2, get_manager<Manager>().get_entry_count());
@@ -893,7 +917,7 @@ TEST_F(HandlerTest, NothingAddedIfJsonRpcExeptionDuringAddEventHandling) {
 
 TEST_F(HandlerTest, DifferentCollectionNamesForSameResourceType) {
     psme::core::agent::JsonAgentSPtr agent =
-                    psme::core::agent::AgentManager::get_instance().get_agent("anything");
+                    psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent->clear();
     SubscriptionManager::get_instance()->clear();
     BuildTreeWithDifferentCollectionNames();
@@ -926,7 +950,7 @@ TEST_F(HandlerTest, DifferentCollectionNamesForSameResourceType) {
 
     CHECK_COLLECTIONS;
 
-    psme::core::agent::AgentManager::get_instance().get_agent("anything")->clear();
+    psme::core::agent::AgentManager::get_instance()->get_agent("anything")->clear();
     SubscriptionManager::get_instance()->clear();
 
 
@@ -950,15 +974,14 @@ TEST_F(HandlerTest, DifferentCollectionNamesForSameResourceType) {
         <agent_framework::model::Processor>("2").via
         <agent_framework::model::System>("2").get_uuid());
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> { };
-
+    ExpectedEvents expectedEvents {};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, LoadCollectionNonRecursive) {
     BuildTreeWithDifferentCollectionNames();
     psme::core::agent::JsonAgentSPtr agent =
-            psme::core::agent::AgentManager::get_instance().get_agent("anything");
+            psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent->clear();
     SubscriptionManager::get_instance()->clear();
 
@@ -988,14 +1011,14 @@ TEST_F(HandlerTest, LoadCollectionNonRecursive) {
 
     CHECK_REQUESTS;
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>>{};
+    ExpectedEvents expectedEvents {};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, LoadCollectionRecursive) {
     BuildTreeWithDifferentCollectionNames();
     psme::core::agent::JsonAgentSPtr agent =
-            psme::core::agent::AgentManager::get_instance().get_agent("anything");
+            psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent->clear();
     SubscriptionManager::get_instance()->clear();
     agent->m_responses = {
@@ -1050,14 +1073,14 @@ TEST_F(HandlerTest, LoadCollectionRecursive) {
 
     CHECK_REQUESTS;
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>>{};
+    ExpectedEvents expectedEvents {};
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, LoadCollectionNonRecursiveAddDelete) {
     BuildTreeWithDifferentCollectionNames();
     psme::core::agent::JsonAgentSPtr agent =
-            psme::core::agent::AgentManager::get_instance().get_agent("anything");
+            psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent->clear();
     SubscriptionManager::get_instance()->clear();
 
@@ -1088,18 +1111,21 @@ TEST_F(HandlerTest, LoadCollectionNonRecursiveAddDelete) {
 
     CHECK_REQUESTS;
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {
-        {EventType::ResourceRemoved, "/redfish/v1/Systems/2"},
-        {EventType::ResourceAdded, "/redfish/v1/Systems/3"}
+    ExpectedEvents expectedEvents {
+        {
+            {EventType::ResourceAdded, "/redfish/v1/Systems/3"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/1"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/2"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2"}
+        }
     };
-
     CHECK_EVENTS;
 }
 
 TEST_F(HandlerTest, LoadCollectionRecursiveAddDelete) {
     BuildTreeWithDifferentCollectionNames();
     psme::core::agent::JsonAgentSPtr agent =
-            psme::core::agent::AgentManager::get_instance().get_agent("anything");
+            psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent->clear();
     SubscriptionManager::get_instance()->clear();
 
@@ -1123,11 +1149,11 @@ TEST_F(HandlerTest, LoadCollectionRecursiveAddDelete) {
         Processor2,
         System6,
         R"([
-            {"subcomponent": "processor_3_uuid"}
+            {"subcomponent": "processor_5_uuid"}
         ])",
         Processor2,
         R"([
-            {"subcomponent": "processor_4_uuid"}
+            {"subcomponent": "processor_6_uuid"}
         ])",
         Processor1,
         // SlowSystems collection
@@ -1148,22 +1174,64 @@ TEST_F(HandlerTest, LoadCollectionRecursiveAddDelete) {
         "processor_NEW_uuid",
         "system_NEW_uuid",
         "system_NEW_uuid",
-        "processor_3_uuid",
+        "processor_5_uuid",
         "system_NEW_uuid",
-        "processor_4_uuid",
+        "processor_6_uuid",
         "manager_3_uuid"
     };
 
     CHECK_REQUESTS;
 
-    auto expectedEvents = std::vector<std::pair<EventType, std::string>> {
-        {EventType::ResourceRemoved, "/redfish/v1/Systems/1/Processors/2"},
-        {EventType::ResourceRemoved, "/redfish/v1/Systems/2"},
-        {EventType::ResourceAdded, "/redfish/v1/Systems/1/Processors/3"},
-        {EventType::ResourceAdded, "/redfish/v1/Systems/3"}
+    ExpectedEvents expectedEvents {
+        {
+            {EventType::ResourceAdded, "/redfish/v1/Systems/1/Processors/3"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/1/Processors/2"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/3"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/3/Processors/1"},
+            {EventType::ResourceAdded, "/redfish/v1/Systems/3/Processors/2"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/1"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2/Processors/2"},
+            {EventType::ResourceRemoved, "/redfish/v1/Systems/2"}
+        }
+    };
+    CHECK_EVENTS;
+}
+
+TEST_F(HandlerTest, LoadTaskWithServerException) {
+
+    psme::core::agent::JsonAgentSPtr agent =
+        psme::core::agent::AgentManager::get_instance()->get_agent("anything");
+
+    agent->m_responses = {
+        // response to GetTaskInfo
+        Task1,
+        // Exception on GetTaskResult
+        "[ServerException]"
     };
 
+    auto handler = handler::HandlerManager::get_instance()
+        ->get_handler(agent_framework::model::enums::Component::Task);
+    auto rest_id = handler->load(agent, "", agent_framework::model::enums::Component::None, "task_1_uuid");
+
+    // task got id=1
+    EXPECT_EQ(1, rest_id);
+
+    auto expectedReq = std::vector<std::string> {
+        "task_1_uuid",
+        // if the task is in state Exception, GetTaskResult is called
+        "task_1_uuid"
+    };
+
+    CHECK_REQUESTS;
+
+    ExpectedEvents expectedEvents {{{EventType::ResourceAdded, "/redfish/v1/TaskService/Tasks/1"}}};
     CHECK_EVENTS;
+
+    Task task = Find<agent_framework::model::Task>("1").get();
+    ASSERT_EQ("task_1_uuid", task.get_uuid());
+
+    // Mock Task1 in resources.hpp had no messages. Now the task has one, with the unpacked exception from GetTaskResult
+    ASSERT_EQ(task.get_messages().size(), 1);
 }
 
 }

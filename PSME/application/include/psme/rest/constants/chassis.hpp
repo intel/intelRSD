@@ -29,7 +29,6 @@ namespace constants {
  */
 namespace Chassis {
 extern const char CHASSIS_TYPE[];
-extern const char SKU[];
 extern const char INDICATOR_LED[];
 extern const char LOCATION[];
 extern const char PARENT_ID[];
@@ -37,37 +36,54 @@ extern const char CONTAINS[];
 extern const char COMPUTER_SYSTEMS[];
 extern const char SWITCHES[];
 extern const char MANAGERS_IN_CHASSIS[];
-extern const char THERMAL_ZONES[];
-extern const char POWER_ZONES[];
+extern const char POWERED_BY[];
+extern const char COOLED_BY[];
+extern const char THERMAL[];
+extern const char POWER[];
 extern const char DRIVES[];
 extern const char STORAGE[];
 extern const char PCIE_DEVICES[];
-}
-
-/*!
- * @brief Common constant literals for PowerZone and ThermalZone endpoints.
- */
-namespace Zone {
-extern const char RACK_LOCATION[];
-extern const char UHEIGHT[];
-extern const char ULOCATION[];
-extern const char UNIT[];
-extern const char XLOCATION[];
-extern const char MEMBER_ID[];
-extern const char RELATED_ITEM[];
+extern const char GEO_TAG[];
+extern const char RACK_SUPPORTS_DISAGGREGATED_POWER_COOLING[];
+extern const char HASH_CHASSIS_RESET[];
+extern const char CHASSIS_RESET[];
+extern const char POWER_STATE[];
 }
 
 /*!
  * @brief Constant literals for PowerZone endpoint.
  */
 namespace PowerZone {
+extern const char VOLTAGES[];
 extern const char POWER_CONTROL[];
-extern const char MAX_PSUS_SUPPORTED[];
-extern const char POWER_AVAILABLE[];
-extern const char POWER_CAPACITY[];
-extern const char POWER_CONSUMED[];
+extern const char POWER_AVAILABLE_WATTS[];
+extern const char POWER_CAPACITY_WATTS[];
+extern const char POWER_CONSUMED_WATTS[];
+extern const char POWER_CONSUMED_WATTS_PATH[];
+extern const char POWER_REQUESTED_WATTS[];
+extern const char POWER_ALLOCATED_WATTS[];
 extern const char POWER_SUPPLIES[];
-extern const char LAST_POWER_OUTPUT[];
+extern const char POWER_METRICS[];
+extern const char POWER_LIMIT[];
+extern const char INTERVAL_IN_MIN[];
+extern const char MIN_CONSUMED_WATTS[];
+extern const char MAX_CONSUMED_WATTS[];
+extern const char AVERAGE_CONSUMED_WATTS[];
+extern const char LIMIT_IN_WATTS[];
+extern const char LIMIT_EXCEPTION[];
+extern const char CORRECTION_IN_MS[];
+extern const char POWER_SUPPLY_TYPE[];
+extern const char LINE_INPUT_VOLTAGE_TYPE[];
+extern const char LINE_INPUT_VOLTAGE[];
+extern const char LAST_POWER_OUTPUT_WATTS[];
+extern const char SPARE_PART_NUMBER[];
+extern const char INPUT_RANGES[];
+extern const char INTEL_OEM_REQUEST_POWER_SUPPLY_STATE_CHANGE[];
+extern const char HASH_INTEL_OEM_REQUEST_POWER_SUPPLY_STATE_CHANGE[];
+extern const char STATE_ALLOWABLE_VALUES[];
+extern const char MEMBER_ID_ALLOWABLE_VALUES[];
+extern const char INPUT_AC_POWER_WATTS[];
+extern const char INPUT_AC_POWER_WATTS_PATH[];
 }
 
 /*!
@@ -75,17 +91,35 @@ extern const char LAST_POWER_OUTPUT[];
  */
 namespace ThermalZone {
 extern const char FANS[];
-extern const char FAN_NAME[];
-extern const char PHYSICAL_CONTEXT[];
 extern const char READING[];
+extern const char READING_PATH[];
 extern const char READING_UNITS[];
-extern const char DESIRED_SPEED_RPM[];
-extern const char MAX_FANS_SUPPORTED[];
-extern const char PWM[];
-extern const char POLICY[];
 extern const char TEMPERATURES[];
-extern const char READING_CELCIUS[];
+extern const char DESIRED_SPEED_PWM[];
+extern const char VOLUMETRIC_AIRFLOW_CFM[];
+extern const char VOLUMETRIC_AIRFLOW_CFM_PATH[];
+}
+
+/*!
+ * @brief Common constant literals for ChassisSensor.
+ */
+namespace ChassisSensor {
 extern const char SENSOR_NUMBER[];
+extern const char UPPER_THRESHOLD_NON_CRITICAL[];
+extern const char UPPER_THRESHOLD_CRITICAL[];
+extern const char UPPER_THRESHOLD_FATAL[];
+extern const char LOWER_THRESHOLD_NON_CRITICAL[];
+extern const char LOWER_THRESHOLD_CRITICAL[];
+extern const char LOWER_THRESHOLD_FATAL[];
+extern const char MIN_READING_RANGE[];
+extern const char MAX_READING_RANGE[];
+extern const char MIN_READING_RANGE_TEMP[];
+extern const char MAX_READING_RANGE_TEMP[];
+extern const char PHYSICAL_CONTEXT[];
+extern const char READING_CELSIUS[];
+extern const char READING_CELSIUS_PATH[];
+extern const char READING_VOLTS[];
+extern const char READING_VOLTS_PATH[];
 }
 
 /*!
@@ -94,7 +128,6 @@ extern const char SENSOR_NUMBER[];
 namespace PncDrive {
 extern const char SECURE_ERASE[];
 extern const char SECURE_ERASE_ENDPOINT[];
-extern const char TARGET[];
 extern const char CAPABLE_SPEED[];
 extern const char INDICATOR_LED[];
 extern const char ENDPOINTS[];
@@ -111,7 +144,6 @@ extern const char FIRMWARE_VERSION[];
 extern const char IDENTIFIERS[];
 extern const char DURABLE_NAME[];
 extern const char DURABLE_NAME_FORMAT[];
-extern const char SKU[];
 extern const char STATUS_INDICATOR[];
 extern const char REVISION[];
 extern const char FAILURE_PREDICTED[];

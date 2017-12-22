@@ -23,6 +23,7 @@
  * */
 
 #pragma once
+
 namespace agent_framework {
 namespace model {
 namespace literals {
@@ -52,15 +53,6 @@ public:
     static constexpr const char MANUFACTURER[] = "manufacturer";
     static constexpr const char MODEL[] = "modelNumber";
     static constexpr const char PART[] = "partNumber";
-};
-
-/*!
- * @brief Class consisting of literals for HeartBeat
- */
-class HeartBeat {
-public:
-    static constexpr const char TIME_STAMP[] = "timeStamp";
-    static constexpr const char MIN_DELAY[] = "minDelay";
 };
 
 /*!
@@ -161,6 +153,16 @@ public:
 };
 
 /*!
+ * @brief Class consisting of literals for processor memory model objects
+ */
+class ProcessorMemory {
+public:
+    static constexpr char TYPE[] = "type";
+    static constexpr char CAPACITY_MB[] = "capacityMB";
+    static constexpr char SPEED_MHZ[] = "speedMhz";
+};
+
+/*!
  * @brief Class consisting of literals for command shell model objects
  */
 class CommandShell {
@@ -203,6 +205,10 @@ public:
     static constexpr const char GUID[] = "guid";
     static constexpr const char DATE_TIME[] = "dateTime";
     static constexpr const char DATE_TIME_LOCAL_OFFSET[] = "dateTimeLocalOffset";
+    static constexpr const char RESET[] = "reset";
+    static constexpr const char FACTORY_DEFAULTS[] = "factoryDefaults";
+    static constexpr const char PACKAGE_URL[] = "packageUrl";
+    static constexpr const char ALLOWED_ACTIONS[] = "allowedActions";
 };
 
 /*! @brief Class consisting of literals for Ipv4Address model objects */
@@ -225,7 +231,7 @@ public:
     static constexpr const char ADDRESS_STATE[] = "addressState";
 };
 
-/* @brief Intel literal */
+/*! @brief Intel literal */
 class Intel {
 public:
     static constexpr const char INTEL_CORP[] = "Intel Corporation";
@@ -242,7 +248,6 @@ public:
     static constexpr const char FIRMWARE_VERSION[] = "firmwareVersion";
     static constexpr const char CAPACITY[] = "capacityGB";
     static constexpr const char FRU_INFO[] = "fruInfo";
-    static constexpr const char PHYSICAL_ID[] = "physicalId";
     static constexpr const char INDICATOR_LED[] = "indicatorLED";
     static constexpr const char ASSET_TAG[] = "assetTag";
     static constexpr const char CAPABLE_SPEED_GBS[] = "capableSpeedGbs";
@@ -278,13 +283,13 @@ public:
 
 class Message {
 public:
-    static constexpr const char MESSAGE_ID[] = "MessageId";
-    static constexpr const char MESSAGE[] = "Message";
-    static constexpr const char RELATED_PROPERTIES[] = "RelatedProperties";
-    static constexpr const char MESSAGE_ARGS[] = "MessageArgs";
-    static constexpr const char SEVERITY[] = "Severity";
-    static constexpr const char RESOLUTION[] = "Resolution";
-    static constexpr const char OEM[] = "Oem";
+    static constexpr const char MESSAGE_ID[] = "messageId";
+    static constexpr const char MESSAGE_CONTENT[] = "messageContent";
+    static constexpr const char RELATED_PROPERTIES[] = "relatedProperties";
+    static constexpr const char MESSAGE_ARGS[] = "messageArgs";
+    static constexpr const char SEVERITY[] = "severity";
+    static constexpr const char RESOLUTION[] = "resolution";
+    static constexpr const char OEM[] = "oem";
 };
 
 class Task {
@@ -304,6 +309,67 @@ public:
     static constexpr const char ENTITY_TYPE[] = "entityType";
     static constexpr const char ENTITY_ROLE[] = "entityRole";
     static constexpr const char ENTITY[] = "entity";
+};
+
+class Metric {
+public:
+    static constexpr const char METRIC[] = "metric";
+    static constexpr const char UUID[] = "uuid";
+    static constexpr const char NAME[] = "name";
+    static constexpr const char TIMESTAMP[] = "timestamp";
+    static constexpr const char VALUE[] = "value";
+    static constexpr const char COMPONENT[] = "component";
+    static constexpr const char COMPONENT_TYPE[] = "componentType";
+    static constexpr const char METRIC_DEFINITION[] = "metricDefinition";
+    static constexpr const char STATUS[] = "status";
+};
+
+class MetricDefinition {
+public:
+    static constexpr const char METRIC_DEFINITION[] = "metricDefinition";
+    static constexpr const char NAME[] = "name";
+    static constexpr const char DESCRIPTION[] = "description";
+    static constexpr const char IMPLEMENTATION[] = "implementation";
+    static constexpr const char CALCULABLE[] = "calculable";
+    static constexpr const char UNITS[] = "units";
+    static constexpr const char DATA_TYPE[] = "dataType";
+    static constexpr const char IS_LINEAR[] = "isLinear";
+    static constexpr const char METRIC_TYPE[] = "metricType";
+    static constexpr const char WILDCARDS[] = "wildcards";
+    static constexpr const char CALCULATION_PARAMETERS[] = "calculationParameters";
+    static constexpr const char PHYSICAL_CONTEXT[] = "physicalContext";
+    static constexpr const char SENSOR_TYPE[] = "sensorType";
+    static constexpr const char SENSING_INTERVAL[] = "sensingInterval";
+    static constexpr const char DISCRETE_VALUES[] = "discreteValues";
+    static constexpr const char PRECISION[] = "precision";
+    static constexpr const char ACCURACY[] = "accuracy";
+    static constexpr const char CALIBRATION[] = "calibration";
+    static constexpr const char TIME_STAMP_ACCURACY[] = "timeStampAccuracy";
+    static constexpr const char MIN_READING_RANGE[] = "minReadingRange";
+    static constexpr const char MAX_READING_RANGE[] = "maxReadingRange";
+    static constexpr const char CALCULATION_ALGORITHM[] = "calculationAlgorithm";
+    static constexpr const char CALCULATION_TIME_INTERVAL[] = "calculationTimeInterval";
+    static constexpr const char CALCULATION_PRECISION[] = "calculationPrecision";
+    static constexpr const char DISCRETE_METRIC_TYPE[] = "discreteMetricType";
+    static constexpr const char SHOREUP_PERIOD[] = "shoreupPeriod";
+};
+
+/*!
+ * @brief Class consisting of literals for Wildcards in MetricDefinition model objects
+ */
+class Wildcard {
+public:
+    static constexpr const char NAME[] = "name";
+    static constexpr const char VALUES[] = "values";
+};
+
+/*!
+ * @brief Class consisting of literals for CalculationParameters in MetricDefinition model objects
+ */
+class CalculationParameters {
+public:
+    static constexpr const char SOURCE_METRIC[] = "sourceMetric";
+    static constexpr const char RESULT_METRIC[] = "resultMetric";
 };
 
 }

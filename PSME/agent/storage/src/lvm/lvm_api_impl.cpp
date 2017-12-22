@@ -28,6 +28,8 @@
 #include "lvm/lvm_discovery.hpp"
 #include "lvm/lvm_create_data.hpp"
 
+
+
 extern "C" {
 #include <lvm2app.h>
 }
@@ -44,6 +46,12 @@ public:
     void create_clone(const LvmCreateData&);
     void remove_logical_volume(const std::string& vg_name,
                                const std::string& lv_name);
+    void add_lv_tag(const std::string& vg_name,
+                    const std::string& lv_name, const std::string& tag);
+    void remove_lv_tag(const std::string& vg_name,
+                       const std::string& lv_name, const std::string& tag);
+
+
 private:
     LvmPtr m_lvm;
 
@@ -51,27 +59,30 @@ private:
     VolumeGroupPtr open_volume_group(lvm_t lvm_handle, const std::string& name);
     lv_t open_logical_volume(vg_t vg_handle, const std::string& name);
     lv_t create_snapshot(lv_t lv_handle, const std::string& name,
-                                         const std::uint64_t size,
-                                         const bool bootable);
+                         const std::uint64_t size,
+                         const bool bootable);
     lv_t create_clone(vg_t vg_handle, const std::string& name,
-                                      const std::uint64_t size,
-                                      const bool bootable);
+                      const std::uint64_t size,
+                      const bool bootable);
     std::uint64_t get_lv_size(const lv_t lv_handle) const;
     void remove_lvm(lv_t lvm);
     void save_lvm_changes(vg_t vg_handle);
 };
 
+
 LvmAPI::LvmImpl::LvmImpl() : m_lvm{lvm_init(nullptr), lvm_quit} {
     if (!m_lvm) {
         THROW(agent_framework::exceptions::LvmError, "lvm",
-          "Could not create lvm handle!");
+              "Could not create lvm handle!");
     }
 }
+
 
 LvmAPI::VolumeGroupVec LvmAPI::LvmImpl::discover_volume_groups() {
     LvmDiscovery ld{m_lvm.get()};
     return ld.discovery();
 }
+
 
 void LvmAPI::LvmImpl::create_snapshot(const LvmCreateData& data) {
     auto vg_handle = open_volume_group(m_lvm.get(), data.get_volume_group());
@@ -83,17 +94,19 @@ void LvmAPI::LvmImpl::create_snapshot(const LvmCreateData& data) {
     lvm_vg_write(vg_handle.get());
 }
 
+
 void LvmAPI::LvmImpl::create_clone(const LvmCreateData& data) {
     auto vg_handle = open_volume_group(m_lvm.get(), data.get_volume_group());
     if (data.get_size() <
-                    lvm_lv_get_size(open_logical_volume(vg_handle.get(),
-                                          data.get_logical_volume()))) {
+        lvm_lv_get_size(open_logical_volume(vg_handle.get(),
+                                            data.get_logical_volume()))) {
     }
     create_clone(vg_handle.get(), data.get_create_name(), data.get_size(),
-                data.get_bootable());
+                 data.get_bootable());
     //writing changes to VG just in case we set the bootable flag
     lvm_vg_write(vg_handle.get());
 }
+
 
 void LvmAPI::LvmImpl::remove_logical_volume(const std::string& vg_name,
                                             const std::string& lv_name) {
@@ -101,6 +114,7 @@ void LvmAPI::LvmImpl::remove_logical_volume(const std::string& vg_name,
     remove_lvm(open_logical_volume(vg_handle.get(), lv_name));
     save_lvm_changes(vg_handle.get());
 }
+
 
 /* Private functions */
 VolumeGroupPtr
@@ -111,10 +125,11 @@ LvmAPI::LvmImpl::open_volume_group(lvm_t lvm_handle, const std::string& name) {
                                  agent::storage::lvm::attribute::FLAGS);
     if (!vg_handle) {
         THROW(agent_framework::exceptions::LvmError, "lvm",
-          "Could not open volume group!");
+              "Could not open volume group!");
     }
     return VolumeGroupPtr{vg_handle, lvm_vg_close};
 }
+
 
 lv_t LvmAPI::LvmImpl::open_logical_volume(vg_t vg_handle, const std::string& name) {
     auto lv_handle = lvm_lv_from_name(vg_handle, name.c_str());
@@ -126,6 +141,7 @@ lv_t LvmAPI::LvmImpl::open_logical_volume(vg_t vg_handle, const std::string& nam
     return lv_handle;
 }
 
+
 lv_t LvmAPI::LvmImpl::create_snapshot(lv_t lv_handle, const std::string& name,
                                       const std::uint64_t size, const bool bootable) {
     auto snapshot_handle = lvm_lv_snapshot(lv_handle, name.c_str(), size);
@@ -134,16 +150,17 @@ lv_t LvmAPI::LvmImpl::create_snapshot(lv_t lv_handle, const std::string& name,
               "Could not create snapshot!");
     }
 
-    if(bootable) {
+    if (bootable) {
         lvm_lv_add_tag(snapshot_handle, attribute::LV_BOOTABLE_ATTR);
     }
 
     return snapshot_handle;
 }
 
+
 lv_t LvmAPI::LvmImpl::create_clone(vg_t vg_handle, const std::string& name,
-                                                   const std::uint64_t size,
-                                                   const bool bootable) {
+                                   const std::uint64_t size,
+                                   const bool bootable) {
     auto clone_handle = lvm_vg_create_lv_linear(vg_handle, name.c_str(), size);
     if (!clone_handle) {
         THROW(agent_framework::exceptions::LvmError, "lvm",
@@ -156,6 +173,7 @@ lv_t LvmAPI::LvmImpl::create_clone(vg_t vg_handle, const std::string& name,
     return clone_handle;
 }
 
+
 void LvmAPI::LvmImpl::remove_lvm(lv_t lvm) {
     auto ret = lvm_vg_remove_lv(lvm);
     if (ret) {
@@ -163,6 +181,7 @@ void LvmAPI::LvmImpl::remove_lvm(lv_t lvm) {
               "Could not remove lvm!");
     }
 }
+
 
 void LvmAPI::LvmImpl::save_lvm_changes(vg_t vg_handle) {
     auto ret = lvm_vg_write(vg_handle);
@@ -172,3 +191,28 @@ void LvmAPI::LvmImpl::save_lvm_changes(vg_t vg_handle) {
     }
 }
 
+
+void LvmAPI::LvmImpl::add_lv_tag(const std::string& vg_name,
+                                 const std::string& lv_name, const std::string& tag) {
+    auto vg_handle = open_volume_group(m_lvm.get(), vg_name);
+    auto lv_handle = open_logical_volume(vg_handle.get(), lv_name);
+    auto ret = lvm_lv_add_tag(lv_handle, tag.c_str());
+    if (ret) {
+        THROW(agent_framework::exceptions::LvmError, "lvm",
+              "Could not add tag!");
+    }
+    lvm_vg_write(vg_handle.get());
+}
+
+
+void LvmAPI::LvmImpl::remove_lv_tag(const std::string& vg_name,
+                                    const std::string& lv_name, const std::string& tag) {
+    auto vg_handle = open_volume_group(m_lvm.get(), vg_name);
+    auto lv_handle = open_logical_volume(vg_handle.get(), lv_name);
+    auto ret = lvm_lv_remove_tag(lv_handle, tag.c_str());
+    if (ret) {
+        THROW(agent_framework::exceptions::LvmError, "lvm",
+              "Could not remove tag!");
+    }
+    lvm_vg_write(vg_handle.get());
+}

@@ -21,8 +21,6 @@ import javax.persistence.Converter;
 import java.net.URI;
 import java.util.Objects;
 
-import static java.net.URI.create;
-
 @Converter(autoApply = true)
 public class UriConverter implements AttributeConverter<URI, String> {
     @Override
@@ -34,6 +32,6 @@ public class UriConverter implements AttributeConverter<URI, String> {
     public URI convertToEntityAttribute(String databaseUri) {
         return databaseUri == null
                 ? null
-                : create(databaseUri);
+                : URI.create(databaseUri);
     }
 }

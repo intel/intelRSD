@@ -28,7 +28,7 @@ public:
         ValidityChecker::Ptr& _checker1,
         ValidityChecker::Ptr& _checker2);
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
     ValidityChecker::Ptr checker1{};

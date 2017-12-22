@@ -16,28 +16,38 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.MemoryDto;
+import com.intel.podm.business.dto.MemoryDto;
+import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.business.services.context.PathParamConstants.MEMORY_ID;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class MemoryCollectionResource extends BaseResource {
     @Inject
     private ReaderService<MemoryDto> readerService;
 
     @Override
-    public Object get() {
+    public CollectionDto get() {
         return getOrThrow(() -> readerService.getCollection(getCurrentContext()));
     }
 
     @Path(MEMORY_ID)
     public MemoryResource getMemoryModules() {
         return getResource(MemoryResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

@@ -40,7 +40,8 @@ void NeighMessage::prepare_neigh_message(struct nl_msg*) { }
 void NeighMessage::process_neigh_message(struct nl_msg*, const struct ndmsg*) { }
 
 void NeighMessage::prepare_message(struct nl_msg* msg) {
-    struct ndmsg ndm{};
+    struct ndmsg ndm;
+    std::memset(&ndm, 0, sizeof(ndm));
 
     /* setup neighbor info */
     ndm.ndm_state = m_state;

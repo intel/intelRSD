@@ -28,14 +28,14 @@ import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.ServiceConfig;
 
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.UUID;
 
-import static javax.transaction.Transactional.TxType.MANDATORY;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
-@Transactional(MANDATORY)
+@Dependent
 public class ServiceTraverser {
     @Inject
     private EntityTreeTraverser traverser;
@@ -49,7 +49,6 @@ public class ServiceTraverser {
         Entity entity = traverser.traverse(context);
 
         if (DiscoverableEntity.class.isAssignableFrom(entity.getClass())) {
-            //FIXME: establish whether the object was created with PodM
             if (((DiscoverableEntity) entity).getService() != null) {
                 return ((DiscoverableEntity) entity).getService().getUuid();
             }

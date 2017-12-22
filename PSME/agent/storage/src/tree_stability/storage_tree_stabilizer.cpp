@@ -105,7 +105,7 @@ const std::string StorageTreeStabilizer::stabilize_physical_drive(const std::str
 
 
 const std::string StorageTreeStabilizer::stabilize_storage_service(const std::string& service_uuid) {
-    auto& service_manager = StorageComponents::get_instance()->get_storage_services_manager();
+    auto& service_manager = StorageComponents::get_instance()->get_storage_service_manager();
     auto& physical_drive_manager = StorageComponents::get_instance()->get_physical_drive_manager();
     auto& logical_drive_manager = StorageComponents::get_instance()->get_logical_drive_manager();
     auto& target_manager = StorageComponents::get_instance()->get_iscsi_target_manager();
@@ -137,7 +137,7 @@ const std::string StorageTreeStabilizer::stabilize_storage_service(const std::st
 
 const std::string StorageTreeStabilizer::stabilize(const std::string& module_uuid) {
     auto& module_manager = CommonComponents::get_instance()->get_module_manager();
-    auto& service_manager = StorageComponents::get_instance()->get_storage_services_manager();
+    auto& service_manager = StorageComponents::get_instance()->get_storage_service_manager();
     const auto& services_keys = service_manager.get_keys(module_uuid);
 
     if (services_keys.empty()) {

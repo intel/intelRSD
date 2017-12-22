@@ -30,8 +30,6 @@ import static java.time.Duration.ofSeconds;
 
 @ConfigFile(filename = "task-synchronization.json")
 public class TaskCoordinatorConfig extends BaseConfig {
-
-
     @JsonDeserialize(using = DurationDeserializer.class)
     @JsonProperty("MaxTimeToWaitForAsyncTaskSeconds")
     private Duration maxTimeToWaitForAsyncTaskSeconds = ofSeconds(60);

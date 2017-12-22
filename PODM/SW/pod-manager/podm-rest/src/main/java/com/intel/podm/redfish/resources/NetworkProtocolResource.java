@@ -16,28 +16,36 @@
 
 package com.intel.podm.redfish.resources;
 
-import com.intel.podm.business.dto.redfish.ManagerDto;
-import com.intel.podm.business.dto.redfish.NetworkProtocolDto;
+import com.intel.podm.business.dto.NetworkProtocolDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.redfish.ResourceNames.NETWORK_PROTOCOL_RESOURCE_NAME;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class NetworkProtocolResource extends BaseResource {
-
     @Inject
-    private ReaderService<ManagerDto> readerService;
+    private ReaderService<NetworkProtocolDto> readerService;
 
     @Override
-    public NetworkProtocolDto get() {
-        ManagerDto managerDto = getOrThrow(() -> readerService.getResource(getCurrentContext()));
-        if (managerDto.getNetworkProtocol() == null) {
-            throw notFound();
-        }
-        return managerDto.getNetworkProtocol();
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        NetworkProtocolDto networkProtocolDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(singletonContextOf(context, NETWORK_PROTOCOL_RESOURCE_NAME), networkProtocolDto);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

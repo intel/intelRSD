@@ -67,6 +67,20 @@ const char NEIGHBOR_INTERFACE[] = "NeighborInterface";
 const char STATIC_MACS[] = "StaticMACs";
 }
 
+
+namespace EthernetSwitchPortMetrics {
+const char RECEIVED[] = "Received";
+const char TRANSMITTED[] = "Transmitted";
+const char COLLISIONS[] = "Collisions";
+const char PACKETS[] = "Packets";
+const char DROPPED_PACKETS[] = "DroppedPackets";
+const char ERROR_PACKETS[] = "ErrorPackets";
+const char BROADCAST_PACKETS[] = "BroadcastPackets";
+const char MULTICAST_PACKETS[] = "MulticastPackets";
+const char BYTES[] = "Bytes";
+const char ERRORS[] = "Errors";
+}
+
 namespace Vlan {
 const char VLAN[] = "VLAN";
 const char VLAN_ENABLE[] = "VLANEnable";
@@ -78,11 +92,10 @@ namespace Acl {
 const char ACL[] = "ACL";
 const char BOUND_PORTS[] = "BoundPorts";
 const char RULES[] = "Rules";
-const char TARGET[] = "target";
 const char PORT_ALLOWABLE_VALUES[] = "Port@Redfish.AllowableValues";
 const char BIND_ACL[] = "EthernetSwitchACL.Bind";
 const char UNBIND_ACL[] = "EthernetSwitchACL.Unbind";
-const char BIND_PORT[] = "Port";
+const char PORT[] = "Port";
 }
 
 namespace Rule {

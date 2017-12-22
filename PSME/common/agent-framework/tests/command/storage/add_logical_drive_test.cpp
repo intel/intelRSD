@@ -35,6 +35,7 @@ private:
     enums::LogicalDriveMode m_mode{ enums::LogicalDriveMode::JBOD };
     std::string m_master{};
     bool m_snapshot{};
+    bool m_bootable{};
     bool m_protected{};
     std::vector<std::string> m_drives{};
 public:
@@ -43,11 +44,13 @@ public:
         agent_framework::model::enums::LogicalDriveMode mode,
         std::string master,
         bool snapshot,
+        bool bootable,
         bool prot) {
         m_type = type;
         m_mode = mode;
         m_master = master;
         m_snapshot = snapshot;
+        m_bootable = bootable;
         m_protected = prot;
         }
 
@@ -57,12 +60,14 @@ public:
         auto mode = request.get_mode();
         auto master = request.get_master();
         auto snapshot = request.is_snapshot();
+        auto bootable = request.is_bootable();
         auto prot = request.is_protected();
 
         if (type != m_type.to_string()
             || mode != m_mode.to_string()
             || master != m_master
             || snapshot != m_snapshot
+            || bootable != m_bootable
             || prot != m_protected) {
             throw std::runtime_error("Not found");
         }
@@ -72,15 +77,16 @@ public:
 
 TEST(AddLogicalDriveTest, PositiveExecute) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "JBOD";
     params[literals::LogicalDrive::MASTER] = "TestMaster";
     params[literals::LogicalDrive::SNAPSHOT] = true;
+    params[literals::LogicalDrive::BOOTABLE] = true;
     params[literals::LogicalDrive::PROTECTED] = true;
 
     auto request = AddLogicalDrive::Request::from_json(params);
@@ -95,15 +101,16 @@ TEST(AddLogicalDriveTest, PositiveExecute) {
 
 TEST(AddLogicalDriveTest, NegativeTypeNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::LogicalDrive::TYPE] = "CEPH";
     params[literals::LogicalDrive::MODE] = "JBOD";
     params[literals::LogicalDrive::MASTER] = "TestMaster";
     params[literals::LogicalDrive::SNAPSHOT] = true;
+    params[literals::LogicalDrive::BOOTABLE] = true;
     params[literals::LogicalDrive::PROTECTED] = true;
 
     auto request = AddLogicalDrive::Request::from_json(params);
@@ -112,15 +119,16 @@ TEST(AddLogicalDriveTest, NegativeTypeNotFound) {
 
 TEST(AddLogicalDriveTest, NegativeModeNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "LV";
     params[literals::LogicalDrive::MASTER] = "TestMaster";
     params[literals::LogicalDrive::SNAPSHOT] = true;
+    params[literals::LogicalDrive::BOOTABLE] = true;
     params[literals::LogicalDrive::PROTECTED] = true;
 
     auto request = AddLogicalDrive::Request::from_json(params);
@@ -129,15 +137,16 @@ TEST(AddLogicalDriveTest, NegativeModeNotFound) {
 
 TEST(AddLogicalDriveTest, NegativeMasterNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "JBOD";
     params[literals::LogicalDrive::MASTER] = "OtherTestMaster";
     params[literals::LogicalDrive::SNAPSHOT] = true;
+    params[literals::LogicalDrive::BOOTABLE] = true;
     params[literals::LogicalDrive::PROTECTED] = true;
 
     auto request = AddLogicalDrive::Request::from_json(params);
@@ -146,15 +155,16 @@ TEST(AddLogicalDriveTest, NegativeMasterNotFound) {
 
 TEST(AddLogicalDriveTest, NegativeSnapshotNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "JBOD";
     params[literals::LogicalDrive::MASTER] = "TestMaster";
     params[literals::LogicalDrive::SNAPSHOT] = false;
+    params[literals::LogicalDrive::BOOTABLE] = true;
     params[literals::LogicalDrive::PROTECTED] = true;
 
     auto request = AddLogicalDrive::Request::from_json(params);
@@ -163,15 +173,16 @@ TEST(AddLogicalDriveTest, NegativeSnapshotNotFound) {
 
 TEST(AddLogicalDriveTest, NegativeProtectedNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
-                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true};
+                    enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "JBOD";
     params[literals::LogicalDrive::MASTER] = "TestMaster";
     params[literals::LogicalDrive::SNAPSHOT] = true;
+    params[literals::LogicalDrive::BOOTABLE] = true;
     params[literals::LogicalDrive::PROTECTED] = false;
 
     auto request = AddLogicalDrive::Request::from_json(params);

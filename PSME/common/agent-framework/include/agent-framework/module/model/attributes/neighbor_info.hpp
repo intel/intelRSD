@@ -23,7 +23,8 @@
  * */
 #pragma once
 #include "agent-framework/module/utils/utils.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
+
 #include <string>
 
 namespace agent_framework {
@@ -101,16 +102,16 @@ public:
      * @brief Convert NeighborInfo to JSON object
      * @return JSON representation of NeighborInfo object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief construct an object of class NeighborInfo from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed NeighborInfo object
      */
-    static NeighborInfo from_json(const Json::Value& json);
+    static NeighborInfo from_json(const json::Json& json);
 
 private:
 
@@ -123,4 +124,3 @@ private:
 }
 }
 }
-

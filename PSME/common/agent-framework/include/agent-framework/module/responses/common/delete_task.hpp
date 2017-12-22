@@ -27,14 +27,9 @@
 
 
 #include "agent-framework/module/constants/command.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
-
-
-
-namespace Json {
-class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -47,10 +42,10 @@ public:
     }
 
 
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
-    static DeleteTask from_json(const Json::Value& json);
+    static DeleteTask from_json(const json::Json& json);
 };
 
 }

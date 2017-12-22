@@ -19,16 +19,20 @@ package com.intel.podm.rest.representation.json.exceptionmappers;
 import com.intel.podm.business.EventDispatchingException;
 import com.intel.podm.common.logger.Logger;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import static com.intel.podm.rest.error.ErrorResponseCreator.from;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.NOT_FOUND;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.NOT_FOUND;
+import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@ApplicationScoped
 @Provider
 @Produces(APPLICATION_JSON)
 public class EventDispatchingExceptionMapper implements ExceptionMapper<EventDispatchingException> {
@@ -37,12 +41,10 @@ public class EventDispatchingExceptionMapper implements ExceptionMapper<EventDis
 
     @Override
     public Response toResponse(EventDispatchingException exception) {
-        String message = "Event Dispatching exception encountered";
-
-        logger.e(message, exception);
-        return from(NOT_FOUND)
-            .withMessage(message)
-            .withDetails(exception.getMessage())
-            .create();
+        logger.e(exception.getMessage(), exception);
+        return newErrorResponseBuilder(NOT_FOUND)
+            .withMessage(format("%s exception encountered.", EventDispatchingException.class.getSimpleName()))
+            .withDetails(singletonList(exception.getMessage()))
+            .build();
     }
 }

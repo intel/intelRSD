@@ -25,14 +25,9 @@
 #pragma once
 
 
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
-
-
-
-namespace Json {
-class Value;
-}
 
 namespace agent_framework {
 namespace model {
@@ -80,19 +75,19 @@ public:
 
 
     /*!
-     * Converts TaskEntry class instance to Json::Value object
+     * Converts TaskEntry class instance to json::Json object
      *
      * @return Json object constructed from TaskEntry object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
-     * Converts Json::Value object to TaskEntry object
+     * Converts json::Json object to TaskEntry object
      *
-     * @param[in] json Json::Value object to be converted
+     * @param[in] json json::Json object to be converted
      * */
-    static TaskEntry from_json(const Json::Value& json);
+    static TaskEntry from_json(const json::Json& json);
 
 
 private:

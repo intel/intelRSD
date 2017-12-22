@@ -15,10 +15,10 @@
  */
 
 dependencies {
-    compile project(":types")
-    compile project(":podm-external-services-api")
-    compile project(":security")
     compile project(":serialization")
+    compile project(":security")
+    compile project(":types")
+    compile project(":utils")
     compile project(":config")
     compile "$RESTEASY_CLIENT_DEPENDENCY"
     compile "$RESTEASY_JACKSON2_PROVIDER"

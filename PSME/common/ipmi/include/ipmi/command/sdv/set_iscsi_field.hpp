@@ -102,7 +102,7 @@ public:
 
     // TODO: Added specialized methods to set specific kind of fields.
 
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
 
 private:
     FieldInstance m_field_instance_type{FieldInstance::UNKNOWN};
@@ -146,7 +146,7 @@ public:
         return m_field_max_byte_no;
     }
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
 
 private:
     std::uint8_t m_field_max_byte_no{0};

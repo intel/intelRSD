@@ -23,6 +23,7 @@
                    http://www.liquibase.org/xml/ns/dbchangelog
                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
+    <property context="production and schema-generator"/>
     <include relativeToChangelogFile="true" file="base.xml"/>
     <include relativeToChangelogFile="true" file="updatedb.xml"/>
 </databaseChangeLog>

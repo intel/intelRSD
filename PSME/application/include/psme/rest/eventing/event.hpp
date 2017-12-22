@@ -19,7 +19,8 @@
  *
  *
  * @file event.hpp
- * @brief Declaration of Event class for PSME eventing
+ * @brief Declaration of Event class for PSME eventing.
+ * This class represents Event.EventRecord metadata EntityType
  * */
 
 #pragma once
@@ -40,33 +41,20 @@ namespace eventing {
 /*!
  * @brief EventType Type of event
  */
-ENUM(EventType, uint32_t, StatusChange, ResourceUpdated, ResourceAdded,
-        ResourceRemoved, Alert);
+ENUM(EventType, uint32_t,
+     StatusChange,
+     ResourceUpdated,
+     ResourceAdded,
+     ResourceRemoved,
+     Alert,
+     MetricReport
+);
 
 /*!
  * @brief Event class
  * */
 class Event {
 public:
-    /*! @brief Event type */
-    static constexpr const char EVENT_TYPE[] = "EventType";
-    /*! @brief Event id */
-    static constexpr const char EVENT_ID[] = "EventId";
-    /*! @brief Event timestamp */
-    static constexpr const char EVENT_TIMESTAMP[] = "EventTimestamp";
-    /*! @brief Severity */
-    static constexpr const char SEVERITY[] = "Severity";
-    /*! @brief Message */
-    static constexpr const char MESSAGE[] = "Message";
-    /*! @brief Message id */
-    static constexpr const char MESSAGE_ID[] = "MessageId";
-    /*! @brief Message args */
-    static constexpr const char MESSAGE_ARGS[] = "MessageArgs";
-    /*! @brief Context */
-    static constexpr const char CONTEXT[] = "Context";
-    /*! @brief Origin of condition */
-    static constexpr const char ORIGIN_OF_CONDITION[] = "OriginOfCondition";
-
     /*!
      * Constructor
      *
@@ -175,24 +163,6 @@ public:
     }
 
     /*!
-     * @brief Get context
-     *
-     * @return Context
-     */
-    const std::string& get_context() const {
-        return m_context;
-    }
-
-    /*!
-     * @brief Set context
-     *
-     * @param context Context
-     */
-    void set_context(const std::string& context) {
-        m_context = context;
-    }
-
-    /*!
      * @brief Get origin of condition
      *
      * @return Origin of condition
@@ -229,42 +199,6 @@ public:
     }
 
     /*!
-     * @brief Set subscriber id
-     *
-     * @param id Subscriber id
-     */
-    void set_subscriber_id(const std::string& id) {
-        m_subscriber_id = id;
-    }
-
-    /*!
-     * @brief Get subscriber id
-     *
-     * @return Subscriber id
-     */
-    const std::string& get_subscriber_id() const {
-        return m_subscriber_id;
-    }
-
-    /*!
-     * @brief Increment retry attempt
-     *
-     * @return Number of retry attempts after increment
-     */
-    unsigned int increment_retry_attempts() {
-        return ++m_retry_attempts;
-    }
-
-    /*!
-     * @brief Get retry attempt count
-     *
-     * @return Retry attempt count
-     */
-    unsigned int get_retry_attempts() const {
-        return m_retry_attempts;
-    }
-
-    /*!
      * @brief Convert Event to JSON representation
      *
      * @return JSON representation
@@ -281,16 +215,11 @@ private:
     std::string m_message{"Successfully Completed Request"};
     std::string m_message_id{"Base.1.0.0.Success"};
     std::vector<std::string> m_message_args{};
-    std::string m_context{};
     std::string m_origin_of_condition;
-    std::string m_subscriber_id{};
-    unsigned int m_retry_attempts{0};
 };
 
 /*! Event Vector type */
 using EventVec = std::vector<Event>;
-/*! Event Unique Pointer type */
-using EventUPtr = std::unique_ptr<Event>;
 
 }
 }

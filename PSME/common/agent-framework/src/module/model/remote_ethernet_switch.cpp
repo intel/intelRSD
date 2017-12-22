@@ -39,30 +39,25 @@ RemoteEthernetSwitch::RemoteEthernetSwitch(const std::string& parent_uuid, enums
 
 RemoteEthernetSwitch::~RemoteEthernetSwitch() {}
 
-Json::Value RemoteEthernetSwitch::to_json() const {
-    Json::Value result;
+json::Json RemoteEthernetSwitch::to_json() const {
+    json::Json result;
     result[literals::RemoteEthernetSwitch::STATUS] = get_status().to_json();
     result[literals::RemoteEthernetSwitch::SWITCH_IDENTIFIER] =
         get_switch_identifier();
     result[literals::RemoteEthernetSwitch::MAC_ADDRESS] = get_mac_address();
-    result[literals::RemoteEthernetSwitch::NEXT_HOP] =
-        Json::Value(Json::ValueType::arrayValue);
-    for(const auto& hop : get_next_hop()){
-        result[literals::RemoteEthernetSwitch::NEXT_HOP].append(hop.to_json());
-    }
+    result[literals::RemoteEthernetSwitch::NEXT_HOP] = get_next_hop().to_json();
     result[literals::RemoteEthernetSwitch::OEM] = get_oem().to_json();
     return result;
 }
 
-RemoteEthernetSwitch RemoteEthernetSwitch::from_json(const Json::Value& json)
+RemoteEthernetSwitch RemoteEthernetSwitch::from_json(const json::Json& json)
 {
     RemoteEthernetSwitch rs;
 
     rs.set_status(attribute::Status::from_json(json[literals::RemoteEthernetSwitch::STATUS]));
     rs.set_switch_identifier(json[literals::RemoteEthernetSwitch::SWITCH_IDENTIFIER]);
     rs.set_mac_address(json[literals::RemoteEthernetSwitch::MAC_ADDRESS]);
-    for(const auto& hop : json[literals::RemoteEthernetSwitch::NEXT_HOP])
-        rs.add_next_hop(attribute::NextHop::from_json(hop));
+    rs.set_next_hop(attribute::Array<attribute::NextHop>::from_json(json[literals::RemoteEthernetSwitch::NEXT_HOP]));
     rs.set_oem(attribute::Oem::from_json(json[literals::RemoteEthernetSwitch::OEM]));
     rs.set_resource_hash(json);
 

@@ -38,8 +38,8 @@ Vlan::Vlan(const std::string& parent_uuid, enums::Component parent_type) :
 
 Vlan::~Vlan() {}
 
-Json::Value Vlan::to_json() const {
-    Json::Value result;
+json::Json Vlan::to_json() const {
+    json::Json result;
     result[literals::Vlan::STATUS] = get_status().to_json();
     result[literals::Vlan::VLAN_ID] = get_vlan_id();
     result[literals::Vlan::VLAN_NAME] = get_vlan_name();
@@ -48,7 +48,7 @@ Json::Value Vlan::to_json() const {
     return result;
 }
 
-Vlan Vlan::from_json(const Json::Value& json) {
+Vlan Vlan::from_json(const json::Json& json) {
     Vlan vlan;
 
     vlan.set_status(attribute::Status::from_json(json[literals::Vlan::STATUS]));

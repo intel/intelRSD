@@ -23,9 +23,8 @@ add_executable(gas-example main.cpp)
 
 target_link_libraries(gas-example
     ${LOGGER_LIBRARIES}
-    ${IPMI_INCLUDE_DIRS}
-    ${SAFESTRING_LIBRARIES}
     pnc-libs
     ipmi
     ${IPMITOOL_LIBRARIES}
+    ${SAFESTRING_LIBRARIES}
 )

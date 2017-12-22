@@ -23,6 +23,5 @@ import java.util.UUID;
  */
 public interface ServiceDetectionListener {
     void onServiceDetected(ServiceEndpoint serviceEndpoint);
-
     void onServiceRemoved(UUID serviceUuid);
 }

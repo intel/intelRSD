@@ -83,8 +83,8 @@ TEST(GetNetworkInterfaceInfoTest, PositiveExecute) {
     MyGetNetworkInterfaceInfo command{"TestInterfaceId"};
     GetNetworkInterfaceInfo::Request request{""};
     GetNetworkInterfaceInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::NetworkInterface::INTERFACE] = "TestInterfaceId";
 
@@ -119,8 +119,8 @@ TEST(GetNetworkInterfaceInfoTest, NegativeInterfaceNotFound) {
     MyGetNetworkInterfaceInfo command{"TestInterfaceId"};
     GetNetworkInterfaceInfo::Request request{""};
     GetNetworkInterfaceInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::NetworkInterface::INTERFACE] = "OtherInterfaceId";
 

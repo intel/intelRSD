@@ -39,8 +39,8 @@ private:
 
     class TestOEMData : public OEMData {
     public:
-        Json::Value to_json() const {
-            Json::Value json_oem;
+        json::Json to_json() const {
+            json::Json json_oem;
             json_oem["testOEM"] = "TestOEMSpecificData";
             return json_oem;
         }
@@ -94,8 +94,8 @@ TEST(GetDriveInfoTest, PositiveExecute) {
         7200};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params["component"] = "TestComponentId";
     params["drive"] = 1;
@@ -141,8 +141,8 @@ TEST(GetDriveInfoTest, NegativeComponentNotFound) {
         7200};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params["component"] = "OtherTestComponentId";
     params["drive"] = 1;
@@ -161,8 +161,8 @@ TEST_F(GetDriveInfoTest, NegativeSlotNotFound) {
         7200};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params["component"] = "TestComponentId";
     params["drive"] = 2;

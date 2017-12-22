@@ -30,19 +30,19 @@ NetworkService::NetworkService() { }
 
 NetworkService::~NetworkService() { }
 
-Json::Value NetworkService::to_json() const {
-    Json::Value result;
+json::Json NetworkService::to_json() const {
+    json::Json result;
     result[literals::NetworkService::NAME] = get_name().to_string();
     result[literals::NetworkService::ENABLED] = get_enabled();
     result[literals::NetworkService::PORT] = get_port();
     return result;
 }
 
-NetworkService NetworkService::from_json(const Json::Value& response) {
+NetworkService NetworkService::from_json(const json::Json& response) {
     attribute::NetworkService service;
     service.set_name(enums::NetworkServiceName::from_string(
-                response[literals::NetworkService::NAME].asString()));
-    service.set_port(response[literals::NetworkService::PORT].asUInt());
-    service.set_enabled(response[literals::NetworkService::ENABLED].asBool());
+                response[literals::NetworkService::NAME]));
+    service.set_port(response[literals::NetworkService::PORT]);
+    service.set_enabled(response[literals::NetworkService::ENABLED]);
     return service;
 }

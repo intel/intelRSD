@@ -11,20 +11,20 @@
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="RackLocation">
-        <ComplexType Name="RackLocation">
-            <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-            <Property Name="RackUnits" Type="RackLocation.RackLocationUnit"/>
-            <Property Name="XLocation" Type="Edm.Int64"/>
-            <Property Name="ULocation" Type="Edm.Int64"/>
-            <Property Name="UHeight" Type="Edm.Int64"/>
-        </ComplexType>
+      <ComplexType Name="RackLocation">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="RackUnits" Type="RackLocation.RackLocationUnit"/>
+        <Property Name="XLocation" Type="Edm.Int64"/>
+        <Property Name="ULocation" Type="Edm.Int64"/>
+        <Property Name="UHeight" Type="Edm.Int64"/>
+      </ComplexType>
 
-        <EnumType Name="RackLocationUnit">
-            <Member Name="OU"/>
-            <Member Name="AU"/>
-        </EnumType>
+      <EnumType Name="RackLocationUnit">
+        <Member Name="OU"/>
+        <Member Name="AU"/>
+      </EnumType>
     </Schema>
 
-</edmx:DataServices>
+  </edmx:DataServices>
 </edmx:Edmx>
 

@@ -16,17 +16,20 @@
 
 package com.intel.podm.common.enterprise.utils.logger;
 
-import com.intel.podm.common.logger.LoggerFactory;
 import com.intel.podm.common.logger.ServiceLifecycleLogger;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
 
-public class ServiceLifecycleLoggerProducer {
+import static com.intel.podm.common.logger.LoggerFactory.getServiceLifecycleLogger;
 
-    @Produces @ServiceLifecycle
-    ServiceLifecycleLogger getServiceLifecycleLogger(InjectionPoint injectionPoint) {
-        Class loggedClass = injectionPoint.getMember().getDeclaringClass();
-        return LoggerFactory.getServiceLifecycleLogger(loggedClass);
+@ApplicationScoped
+public class ServiceLifecycleLoggerProducer {
+    @Produces
+    @ServiceLifecycle
+    ServiceLifecycleLogger createServiceLifecycleLogger(InjectionPoint injectionPoint) {
+        Class<?> loggedClass = injectionPoint.getMember().getDeclaringClass();
+        return getServiceLifecycleLogger(loggedClass);
     }
 }

@@ -27,7 +27,6 @@ using namespace psme::rest::validators::schema;
 
 const jsonrpc::ProcedureValidator& ZonesCollectionPostSchema::LinksSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "endpoints_collection_links_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::Fabric::ENDPOINTS, VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema)),
         constants::Zone::INVOLVED_SWITCHES, VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema)),
@@ -38,7 +37,6 @@ const jsonrpc::ProcedureValidator& ZonesCollectionPostSchema::LinksSchema::get_p
 
 const jsonrpc::ProcedureValidator& ZonesCollectionPostSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "endpoints_collection_post",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::NAME, VALID_JSON_STRING,
         constants::Common::DESCRIPTION, VALID_JSON_STRING,

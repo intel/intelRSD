@@ -1,6 +1,4 @@
 /*!
- * @section LICENSE
- *
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation
  *
@@ -19,8 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
  * @file command.cpp
  *
  * @brief Command implementation
@@ -28,36 +24,6 @@
 
 #include "agent-framework/command/command.hpp"
 
-#include <utility>
-
 using namespace agent_framework::command;
 
-static Command::Map::CommandMap* g_command_map = nullptr;
-
-Command::Map::CommandMap& Command::Map::get_instance() {
-    if (nullptr == g_command_map) {
-        g_command_map = new CommandMap{};
-    }
-    return *g_command_map;
-}
-
-void Command::Map::cleanup() {
-    delete g_command_map;
-    g_command_map = nullptr;
-}
-
-void Command::Map::add(
-        const std::string& agent_type,
-        const std::string& command_implementation,
-        const std::string& command_name,
-        CommandCreate command_create) {
-
-    CommandMap& command_map = get_instance();
-
-    command_map[agent_type][command_implementation][command_name] =
-        command_create;
-}
-
-Command::~Command() { }
-
-Command::Argument::~Argument() { }
+CommandBase::~CommandBase() {}

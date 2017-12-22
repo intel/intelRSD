@@ -19,9 +19,9 @@
  *
  * */
 
-#include "api/static_mac.hpp"
+#include "hal/static_mac.hpp"
 
-using namespace agent::network::api;
+using namespace agent::network::hal;
 
 void StaticMac::get_macs (const std::string&, StaticMac::Table& macs) {
     macs.insert(std::make_pair("A1:12:23:34:45:45", 4000));

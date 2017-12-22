@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id "nebula.os-package" version "2.2.6"
+    id "nebula.ospackage" version "4.4.0"
 }
 
 configurations {
@@ -138,13 +138,17 @@ buildDeb.dependsOn extractDependencies
 buildDeb.dependsOn ":vault-decrypter:jar"
 
 buildDeb {
-    user = 'podm'
+    user = 'root'
+    permissionGroup = 'root'
+
     packageName = 'pod-manager'
     release = '1'
     os = LINUX
 
     requires 'openjdk-8-jre-headless'
     requires('postgresql-9.5', '9.5.2', GREATER | EQUAL)
+
+    provides packageName
 
     breaks 'pod-manager-webapp'
     breaks 'pod-manager-servers'
@@ -174,17 +178,26 @@ buildDeb {
     }
 
     from('os-package/contents') {
-        user = 'root'
         into '/'
     }
 
     configurationFile = "/etc/pod-manager/events.json\n" +
                         "/etc/pod-manager/discovery.json\n" +
                         "/etc/pod-manager/allocation.json\n" +
-                        "/etc/pod-manager/service-connection.json\n"
+                        "/etc/pod-manager/service-connection.json\n" +
+                        "/etc/pod-manager/inband-service-config.json\n" +
+                        "/etc/pod-manager/security.json\n" +
+                        "/etc/pod-manager/external-services.json\n" +
+                        "/etc/pod-manager/task-synchronization.json\n" +
+                        "/etc/pod-manager/service-detection.json\n"
 
     preInstall file('os-package/scripts/deb/preinst.sh')
-    postInstall file('os-package/scripts/deb/postinst.sh')
+    postInstallFile file('os-package/scripts/deb/postinst.sh')
     preUninstall file('os-package/scripts/deb/prerm.sh')
     postUninstall file('os-package/scripts/deb/postrm.sh')
+}
+
+task cleanDatabaseImmidiately(type: Exec) {
+    executable 'gksudo'
+    args 'pod-manager-clean-database-immediately'
 }

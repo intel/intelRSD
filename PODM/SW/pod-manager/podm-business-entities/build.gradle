@@ -34,7 +34,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'io.github.divinespear:jpa-schema-gradle-plugin:0.1.12-1'
+        classpath 'io.github.divinespear:jpa-schema-gradle-plugin:0.2.1-1'
         classpath "org.postgresql:postgresql:$postgresqlJdbcVer"
         classpath "$LIQUIBASE_CORE"
     }
@@ -67,11 +67,14 @@ generateSchema {
     outputDirectory = new File(projectDir.absolutePath + '/src/main/resources/META-INF', 'sql')
     createOutputFileName = "create.sql"
     createSourceMode = "metadata"
+    dropSourceMode = "metadata"
     databaseProductName = "PostgreSQL"
     databaseMajorVersion = 9
     databaseMinorVersion = 5
-    namingStrategy = "org.hibernate.cfg.ImprovedNamingStrategy"
-    dialect = "com.intel.podm.business.entities.dialect.CustomPostgreSql9Dialect"
+    properties = [
+            'hibernate.implicit_naming_strategy': 'com.intel.podm.business.entities.configuration.CustomImplicitNamingStrategyJpaCompliantImpl',
+            'hibernate.dialect'                 : 'com.intel.podm.business.entities.configuration.CustomPostgreSql9Dialect'
+    ]
 }
 
 
@@ -126,11 +129,11 @@ def loadCurrentSchema() {
     )
 }
 
-def runLiquibase(...commandArgs) {
+def runLiquibase(... commandArgs) {
     def db_password;
     new ByteArrayOutputStream().withStream { os ->
         exec {
-            commandLine 'java', '-jar', '/usr/lib/pod-manager/vault-decrypter.jar', '--password-type','database'
+            commandLine 'java', '-jar', '/usr/lib/pod-manager/vault-decrypter.jar', '--password-type', 'database'
             standardOutput = os
         }
         db_password = os.toString().trim()
@@ -143,7 +146,8 @@ def runLiquibase(...commandArgs) {
             '--referenceUrl=jdbc:postgresql://localhost:5432/podm_expected',
             "--referencePassword=${db_password}",
             '--referenceUsername=podm',
-            "--classpath=${buildscript.configurations.classpath.asPath}"
+            '--contexts=schema-generator',
+            "--classpath=${sourceSets.main.runtimeClasspath.collect { it.absolutePath }.join(':')}"
     ]
 
     javaexec {

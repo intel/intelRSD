@@ -24,7 +24,6 @@ extern "C" {
 #include <md5/md5.h>
 }
 
-#include <json/json.h>
 
 namespace agent_framework {
 namespace model {
@@ -43,8 +42,8 @@ std::string compute_hash(const std::string& input) {
 
 }
 
-std::string compute_hash(const Json::Value& json) {
-    return compute_hash(json.toStyledString());
+std::string compute_hash(const json::Json& json) {
+    return compute_hash(json.dump());
 }
 
 }

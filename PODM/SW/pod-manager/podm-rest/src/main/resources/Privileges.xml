@@ -28,16 +28,20 @@
       </EnumType>
 
       <Term Name="OemGetPrivileges" Type="Collection(Edm.String)" Nullable="false">
-        <Annotation Term="OData.Description" String="OEM Get operations privileges may be defined on a Link element to provide read privileges for the referenced resources, or on individual elements to override the privileges for that element"/>
+        <Annotation Term="OData.Description"
+                    String="OEM Get operations privileges may be defined on a Link element to provide read privileges for the referenced resources, or on individual elements to override the privileges for that element"/>
       </Term>
       <Term Name="OemPostPrivileges" Type="Collection(Edm.String)" Nullable="false">
-        <Annotation Term="OData.Description" String="OEM Post privileges may be defined on a Link element to provide create privileges for the referenced resources, or on individual elements to override the privileges for that element"/>
+        <Annotation Term="OData.Description"
+                    String="OEM Post privileges may be defined on a Link element to provide create privileges for the referenced resources, or on individual elements to override the privileges for that element"/>
       </Term>
       <Term Name="OemPatchPutPrivileges" Type="Collection(Edm.String)" Nullable="false">
-        <Annotation Term="OData.Description" String="OEM PatchPut privileges may be defined on a Link element to provide update privileges for the referenced resources, or on individual elements to override the privileges for that element"/>
+        <Annotation Term="OData.Description"
+                    String="OEM PatchPut privileges may be defined on a Link element to provide update privileges for the referenced resources, or on individual elements to override the privileges for that element"/>
       </Term>
       <Term Name="OemDeletePrivileges" Type="Collection(Edm.String)" Nullable="false">
-        <Annotation Term="OData.Description" String="OEM Delete privileges may be defined on a Link element to provide update privileges for the referenced resources, or on individual elements to override the privileges for that element"/>
+        <Annotation Term="OData.Description"
+                    String="OEM Delete privileges may be defined on a Link element to provide update privileges for the referenced resources, or on individual elements to override the privileges for that element"/>
       </Term>
 
     </Schema>

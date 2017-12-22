@@ -30,6 +30,7 @@
 #include "psme/rest/model/handlers/handler_manager.hpp"
 #include "psme/rest/model/handlers/id_policy.hpp"
 #include "psme/rest/eventing/event.hpp"
+#include "psme/rest/server/error/server_exception.hpp"
 #include "psme/core/agent/agent_unreachable.hpp"
 
 
@@ -84,10 +85,10 @@ public:
     virtual void remove(const std::string& uuid) override;
 
 
-    virtual void remove_agent_data(const std::string& gami_id) override;
+    virtual void remove_agent_data(Context& ctx, const std::string& gami_id) override;
 
 
-    virtual bool handle(JsonAgentSPtr agent, const EventData& event) override;
+    virtual bool handle(JsonAgentSPtr agent, const EventData& event, EventVec& northbound_events) override;
 
 
     virtual void poll(JsonAgentSPtr agent,
@@ -135,7 +136,7 @@ protected:
     virtual std::uint64_t update(Context& ctx, const std::string& parent, const std::string& uuid) override;
 
 
-    virtual void remove_all(const std::string& parent) override;
+    virtual void remove_all(Context& ctx, const std::string& parent) override;
 
     /* other methods: */
 
@@ -163,17 +164,19 @@ protected:
     /*!
      * @brief removes entity with given uuid
      *
+     * @param[in] ctx State of the handler passed down when handling request
      * @param[in] uuid uuid of entity to remove
      */
-    void remove_single(const std::string uuid);
+    void remove_single(Context& ctx, const std::string& uuid);
 
 
     /*!
      * @brief removes given uuid and all its descendants
      *
-     * @param[in] uuid uuid of resource to remove
+     * @param[in] ctx State of the handler passed down when handling request
+     * @param[in] uuid uuid of entity to remove
      */
-    void do_remove(const std::string& uuid);
+    virtual void do_remove(Context& ctx, const std::string& uuid);
 
 
     /*!
@@ -193,7 +196,7 @@ protected:
      *
      * @return component as text
      */
-    const string component_s() const {
+    const std::string component_s() const {
         return Model::get_component().to_string();
     }
 
@@ -290,12 +293,14 @@ private:
     virtual Model fetch_entry(Context& ctx, const std::string& parent, const std::string& uuid);
 
 
-    UpdateStatus add_to_model(Context& ctx, Model& entry, const std::string& uuid);
+    UpdateStatus add_to_model(Context& ctx, Model& entry);
 };
 
 
 template<typename Request, typename Model, typename IdPolicy>
-bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const EventData& event) {
+bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const EventData& event,
+    EventVec& northbound_events) {
+
     assert(is_event_for_me(event));
 
     Context ctx;
@@ -321,43 +326,44 @@ bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const
                     }
                     // add may throw
                     add(ctx, event.get_parent(), event.get_component(), true);
-                    SubscriptionManager::get_instance()->notify(ctx.events);
+                    northbound_events = ctx.events;
                     return true;
                 }
                 catch (const psme::core::agent::AgentUnreachable&) {
                     // in case of connection error, added element plus all his descendants will be removed from
-                    // local "database"
-                    do_remove(event.get_component());
+                    // local "database". Events collected in Context will not be returned in northbound_events
                     log_error(GET_LOGGER("rest"),
                               ctx.indent << "Exception while handling Agent Event. Removing non-complete data.");
+                    do_remove(ctx, event.get_component());
                     return false;
                 }
             }
             case Notification::Remove: {
                 try {
                     auto uuid_to_remove = event.get_component();
-                    remove(uuid_to_remove);
-                    SubscriptionManager::get_instance()->notify(ctx.events);
+                    do_remove(ctx, uuid_to_remove);
+                    northbound_events = ctx.events;
                 }
                 catch (const agent_framework::exceptions::InvalidValue&) {
-                    log_info(GET_LOGGER("rest"), "Got notification about removal" <<
-                                                                                  "of a component, but component is not present in the model.");
+                    log_info(GET_LOGGER("rest"), "Got notification about removal"
+                        << "of a component, but component is not present in the model.");
                 }
                 catch (const agent_framework::exceptions::NotFound&) {
-                    log_info(GET_LOGGER("rest"), "Got notification about removal" <<
-                                                                                  "of a component, but component is not present in the model.");
+                    log_info(GET_LOGGER("rest"), "Got notification about removal"
+                        << "of a component, but component is not present in the model.");
                 }
                 return true;
             }
             case Notification::Update: {
                 // update may throw
                 if (!agent_framework::module::get_manager<Model>().entry_exists(event.get_component())) {
-                    log_error(GET_LOGGER("rest"), "Update event for unknown entry. Ignoring.");
+                    log_error("rest", "Update event for unknown entry "
+                        << event.get_component() << " of type "
+                        << event.get_type().to_string() << ". Ignoring.");
                     return true;
                 }
                 update(ctx, event.get_parent(), event.get_component());
-                SubscriptionManager::get_instance()->notify(ctx.events);
-
+                northbound_events = ctx.events;
                 return true;
             }
             default:
@@ -370,7 +376,7 @@ bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const
                                                  << "AgentEvent Handling failed due to agent connection error: "
                                                  << e.what());
     }
-    catch (const jsonrpc::JsonRpcException& e) {
+    catch (const json_rpc::JsonRpcException& e) {
         log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
                                                  << "AgentEvent Handling failed due to JsonRpcException: "
                                                  << e.what());
@@ -407,7 +413,7 @@ void GenericHandler<Request, Model, IdPolicy>
         try {
             add(ctx, parent_uuid, uuid, true /*recursively*/); // add may throw
         }
-        catch (const jsonrpc::JsonRpcException&) {}
+        catch (const json_rpc::JsonRpcException&) {}
 
         SubscriptionManager::get_instance()->notify(ctx.events);
     }
@@ -417,20 +423,24 @@ void GenericHandler<Request, Model, IdPolicy>
     }
 
     if (ctx.num_removed > 0) {
-        log_info(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                 << "#removed : " << ctx.num_removed);
     }
     if (ctx.num_added > 0) {
-        log_info(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                 << "#added : " << ctx.num_added);
     }
     if (ctx.num_updated > 0) {
-        log_info(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                 << "#udpated: " << ctx.num_updated);
     }
     if (ctx.num_status_changed > 0) {
-        log_info(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                 << "#status changed: " << ctx.num_status_changed);
+    }
+    if (ctx.num_alerts > 0) {
+        log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] "
+                                                << "#alerts: " << ctx.num_alerts);
     }
 }
 
@@ -539,17 +549,9 @@ std::uint64_t GenericHandler<Request, Model, IdPolicy>
     if (recursively) {
         auto indent = ctx.indent;
         ctx.indent += "    ";
-        bool my_skip = false;
-        if (UpdateStatus::Added == update_status && !ctx.do_not_emit_from_descendants) {
-            ctx.do_not_emit_from_descendants = true;
-            my_skip = true;
-        }
 
         fetch_subcomponents(ctx, uuid, entry.get_collections());
 
-        if (my_skip) {
-            ctx.do_not_emit_from_descendants = false;
-        }
         ctx.indent = indent;
     }
     return entry.get_id();
@@ -565,34 +567,37 @@ std::uint64_t GenericHandler<Request, Model, IdPolicy>
 
 template<typename Request, typename Model, typename IdPolicy>
 typename GenericHandler<Request, Model, IdPolicy>::UpdateStatus GenericHandler<Request, Model, IdPolicy>
-::add_to_model(Context& ctx, Model& entry, const std::string& uuid) {
+::add_to_model(Context& ctx, Model& entry) {
 
     auto status = agent_framework::module::get_manager<Model>().add_or_update_entry(entry);
+
+    auto log_event = [this, &entry, &ctx] (const std::string& what_happened) {
+        log_debug("rest", ctx.indent << "[" << char(ctx.mode) << "] "
+                                     << what_happened << " [" << this->component_s() << " " << entry.get_uuid()
+                                     << ", parent_uuid: " << entry.get_parent_uuid()
+                                     << ", id: " << entry.get_id() << "]");
+    };
+
     if (UpdateStatus::StatusChanged == status) {
-        ctx.add_event(get_component(), eventing::EventType::StatusChange, uuid);
+        ctx.add_event(get_component(), eventing::EventType::StatusChange, entry.get_uuid());
         ctx.num_status_changed++;
-        log_debug(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
-                                                 << "Status changed [" << component_s() << " " << uuid
-                                                 << ", parent_uuid: " << entry.get_parent_uuid()
-                                                 << ", id: " << entry.get_id() << "]");
+        log_event("Status changed");
+    }
+    if (UpdateStatus::StatusChanged == status
+            && entry.get_status().get_health() == agent_framework::model::enums::Health::Critical) {
+        ctx.add_event(get_component(), eventing::EventType::Alert, entry.get_uuid());
+        ctx.num_alerts++;
+        log_event("Critical health alert");
     }
     if (UpdateStatus::StatusChanged == status || UpdateStatus::Updated == status) {
-        ctx.add_event(get_component(), eventing::EventType::ResourceUpdated, uuid);
+        ctx.add_event(get_component(), eventing::EventType::ResourceUpdated, entry.get_uuid());
         ctx.num_updated++;
-        log_debug(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
-                                                 << "Updated [" << component_s() << " " << uuid
-                                                 << ", parent_uuid: " << entry.get_parent_uuid()
-                                                 << ", id: " << entry.get_id() << "]");
+        log_event("Updated");
     }
     if (UpdateStatus::Added == status) {
-        if (!ctx.do_not_emit_from_descendants) {
-            ctx.add_event(get_component(), eventing::EventType::ResourceAdded, uuid);
-        }
+        ctx.add_event(get_component(), eventing::EventType::ResourceAdded, entry.get_uuid());
         ctx.num_added++;
-        log_info(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
-                                                << "Added [" << component_s() << " " << uuid
-                                                << ", parent_uuid: " << entry.get_parent_uuid()
-                                                << ", id: " << entry.get_id() << "]");
+        log_event("Added");
     }
 
     return status;
@@ -608,7 +613,7 @@ Model GenericHandler<Request, Model, IdPolicy>
     entry.set_agent_id(ctx.agent->get_gami_id());
     assert(!entry.get_agent_id().empty());
 
-    update_status = add_to_model(ctx, entry, uuid);
+    update_status = add_to_model(ctx, entry);
 
     return entry;
 }
@@ -674,7 +679,7 @@ void GenericHandler<Request, Model, IdPolicy>
             log_debug(GET_LOGGER("rest"), "[" << char(ctx.mode) << "] [" << component_s()
                                               << " = " << to_remove_uuid << "] not found by " << updated_by
                                               << ". Removing.");
-            remove(to_remove_uuid);
+            do_remove(ctx, to_remove_uuid);
             ctx.num_removed++;
         }
     }
@@ -689,13 +694,13 @@ Model GenericHandler<Request, Model, IdPolicy>
     log_debug(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
                                              << "Fetching [" << component_s() << " " << uuid << "]");
     try {
-        auto elem = ctx.agent->execute<Model>(request);
-        elem.set_parent_uuid(parent);
-        elem.set_uuid(uuid);
-        elem.set_parent_type(ctx.get_parent_component());
-        return elem;
+        auto element = ctx.agent->execute<Model>(request);
+        element.set_parent_uuid(parent);
+        element.set_uuid(uuid);
+        element.set_parent_type(ctx.get_parent_component());
+        return element;
     }
-    catch (const jsonrpc::JsonRpcException& e) {
+    catch (const json_rpc::JsonRpcException& e) {
         log_error(GET_LOGGER("rest"),
                   ctx.indent << "[" << char(ctx.mode) << "] "
                              << "RPC Error while fetching [" << component_s() << " - "
@@ -708,9 +713,19 @@ Model GenericHandler<Request, Model, IdPolicy>
                                                  << component_s() << " " << uuid << "] " << e.what());
         throw;
     }
+    catch (const psme::rest::error::ServerException& e) {
+        log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+                                                 << "Server Error while fetching ["
+                                                 << component_s() << " " << uuid << "] "
+                                                 << e.get_error().as_string());
+        throw;
+    }
+    catch (const std::exception& e) {
+        log_error(GET_LOGGER("rest"), "Exception while fetching a " << component_s() << ": " << e.what());
+        throw;
+    }
     catch (...) {
-        log_error(GET_LOGGER("rest"), "Other exception while fetching a "
-            << component_s());
+        log_error(GET_LOGGER("rest"), "Other exception while fetching a " << component_s());
         throw;
     }
 }
@@ -765,7 +780,7 @@ GenericHandler<Request, Model, IdPolicy>
             << " : " << e.what());
         throw; // connection error - stop transaction
     }
-    catch (const jsonrpc::JsonRpcException& e) {
+    catch (const json_rpc::JsonRpcException& e) {
         log_error(GET_LOGGER("rest"), ctx.indent
             << "[" << char(ctx.mode) << "] "
             << "Agent exception while fetching list of"
@@ -783,44 +798,45 @@ GenericHandler<Request, Model, IdPolicy>
 
 template<typename Request, typename Model, typename IdPolicy>
 void GenericHandler<Request, Model, IdPolicy>::remove(const std::string& uuid) {
-    auto url = psme::rest::endpoint::utils::get_component_url(get_component(), uuid);
-    do_remove(uuid);
-    auto upstream_event = Event(eventing::EventType::ResourceRemoved, url);
-    SubscriptionManager::get_instance()->notify(upstream_event);
+    Context ctx;
+    ctx.mode = Context::Mode::USER_ACTION;
+    do_remove(ctx, uuid);
+    SubscriptionManager::get_instance()->notify(ctx.events);
 }
 
 
 template<typename Request, typename Model, typename IdPolicy>
-void GenericHandler<Request, Model, IdPolicy>::do_remove(const std::string& uuid) {
-
+void GenericHandler<Request, Model, IdPolicy>::do_remove(Context& ctx, const std::string& uuid) {
     for (auto component = m_sub_components.begin(); component != m_sub_components.end(); ++component) {
         auto handler = ::psme::rest::model::handler::HandlerManager::get_instance()->get_handler(*component);
-        handler->remove_all(uuid);
+        handler->remove_all(ctx, uuid);
     }
-    remove_single(uuid);
+    remove_single(ctx, uuid);
 }
 
 
 template<typename Request, typename Model, typename IdPolicy>
-void GenericHandler<Request, Model, IdPolicy>::remove_all(const std::string& parent) {
+void GenericHandler<Request, Model, IdPolicy>::remove_all(Context& ctx, const std::string& parent) {
 
     auto siblings = agent_framework::module::get_manager<Model>().get_keys(parent);
     for (const auto& uuid : siblings) {
-        do_remove(uuid);
+        do_remove(ctx, uuid);
     }
 }
 
 
 template<typename Request, typename Model, typename IdPolicy>
-void GenericHandler<Request, Model, IdPolicy>::remove_single(const std::string uuid) {
+void GenericHandler<Request, Model, IdPolicy>::remove_single(Context& ctx, const std::string& uuid) {
+    ctx.add_event(get_component(), eventing::EventType::ResourceRemoved, uuid);
 
     auto parent_uuid = agent_framework::module::get_manager<Model>().get_entry_reference(uuid)->get_parent_uuid();
+    log_info(GET_LOGGER("rest"), ctx.indent << "[" << static_cast<char>(ctx.mode) << "] "
+                                            << "Removing [" << component_s() << " " << uuid
+                                            << ", parent_uuid: " << parent_uuid
+                                            << ", id: "
+                                            << agent_framework::module::get_manager<Model>().uuid_to_rest_id(uuid)
+                                            << "] from the model");
 
-    log_info(GET_LOGGER("rest"), "Removing [" << component_s() << " " << uuid
-                                              << ", parent_uuid: " << parent_uuid
-                                              << ", id: "
-                                              << agent_framework::module::get_manager<Model>().uuid_to_rest_id(uuid)
-                                              << "] from the model");
     agent_framework::module::get_manager<Model>().remove_entry(uuid);
 
     log_debug(GET_LOGGER("db"), "remove single " << parent_uuid << "." << uuid);
@@ -829,13 +845,13 @@ void GenericHandler<Request, Model, IdPolicy>::remove_single(const std::string u
 
 
 template<typename Request, typename Model, typename IdPolicy>
-void GenericHandler<Request, Model, IdPolicy>::remove_agent_data(const std::string& gami_id) {
+void GenericHandler<Request, Model, IdPolicy>::remove_agent_data(Context& ctx, const std::string& gami_id) {
     auto agent_predicate = [&gami_id](const Model& entry) { return entry.get_agent_id() == gami_id; };
     const auto uuids_to_remove = agent_framework::module::get_manager<Model>().get_keys(agent_predicate);
 
     for (const auto& uuid : uuids_to_remove) {
         log_debug(GET_LOGGER("db"), "remove agent data " << uuid);
-        remove_single(uuid);
+        do_remove(ctx, uuid);
     }
 }
 
@@ -975,4 +991,3 @@ void GenericHandler<Request, Model, IdPolicy>::fetch_parent_children(
 }
 }
 }
-

@@ -16,13 +16,14 @@
 
 package com.intel.podm.discovery.external;
 
+import com.intel.podm.business.entities.dao.ChassisDao;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.business.entities.redfish.embeddables.RackChassisAttributes;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.reader.ExternalServiceReader;
-import com.intel.podm.client.api.reader.ExternalServiceReaderFactory;
-import com.intel.podm.client.api.resources.redfish.RackscaleServiceRootResource;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ExternalServiceReader;
+import com.intel.podm.client.reader.ExternalServiceReaderFactory;
+import com.intel.podm.client.resources.redfish.ServiceRootResource;
 import com.intel.podm.common.enterprise.utils.logger.ServiceLifecycle;
 import com.intel.podm.common.enterprise.utils.tasks.DefaultManagedTask;
 import com.intel.podm.common.logger.ServiceLifecycleLogger;
@@ -37,9 +38,9 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
+import static com.intel.podm.common.types.ChassisType.RACK;
 import static com.intel.podm.common.types.ServiceType.LUI;
 import static com.intel.podm.common.types.ServiceType.RMM;
 import static com.intel.podm.common.types.State.ABSENT;
@@ -48,7 +49,7 @@ import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Dependent
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
-public class ExternalServiceAvailabilityCheckerTask extends DefaultManagedTask implements Runnable {
+class ExternalServiceAvailabilityCheckerTask extends DefaultManagedTask implements Runnable {
     @Inject
     @ServiceLifecycle
     private ServiceLifecycleLogger logger;
@@ -66,6 +67,9 @@ public class ExternalServiceAvailabilityCheckerTask extends DefaultManagedTask i
     @Inject
     private ComposedNodeUpdater composedNodeUpdater;
 
+    @Inject
+    private ChassisDao chassisDao;
+
     private UUID serviceUuid;
 
     @Override
@@ -75,8 +79,8 @@ public class ExternalServiceAvailabilityCheckerTask extends DefaultManagedTask i
         logger.d("Verifying service with UUID {}", serviceUuid);
         ExternalService service = externalServiceRepository.find(serviceUuid);
 
-        try (ExternalServiceReader reader = readerFactory.createExternalServiceReaderWithCacheAndRetries(service.getBaseUri())) {
-            RackscaleServiceRootResource serviceRoot = reader.getServiceRoot();
+        try (ExternalServiceReader reader = readerFactory.createExternalServiceReaderWithRetries(service.getBaseUri())) {
+            ServiceRootResource serviceRoot = reader.getServiceRoot();
             if (!Objects.equals(serviceRoot.getUuid(), serviceUuid)) {
                 logger.w("Service Root with UUID {} is no longer available at URI {}, UUID found at this URI: {}",
                     serviceUuid, serviceRoot.getUri(), serviceRoot.getUuid());
@@ -86,27 +90,24 @@ public class ExternalServiceAvailabilityCheckerTask extends DefaultManagedTask i
             }
         } catch (IllegalStateException e) {
             logger.t("Requested service({}) is already removed", serviceUuid);
-        } catch (ExternalServiceApiReaderException e) {
+        } catch (WebClientRequestException e) {
             markAsUnreachable(service);
         }
     }
 
-    public void setServiceUuid(UUID serviceUuid) {
-        this.serviceUuid = serviceUuid;
-    }
-
     private void markAsUnreachable(ExternalService service) {
-        if (service.getServiceType() != LUI) {
+        if (!Objects.equals(service.getServiceType(), LUI)) {
             logger.lifecycleInfo(
                 "Service {} has been set to ABSENT state. Scheduling removal of service after {}",
                 service,
                 configHolder.get().getServiceRemovalDelay()
             );
             service.markAsNotReachable();
-            composedNodeUpdater.updateRelatedComposedNodes((Set) service.getAllOwnedEntities());
+            composedNodeUpdater.updateRelatedComposedNodes(service.getOwnedEntities());
         }
+
         if (Objects.equals(service.getServiceType(), RMM)) {
-            List<Chassis> rmmChassis = service.getOwned(Chassis.class);
+            List<Chassis> rmmChassis = chassisDao.getChassis(RACK, service);
             requiresNonNull(rmmChassis, "chassis list");
             checkState(rmmChassis.isEmpty(), "There is no chassis under RMM service.");
             if (rmmChassis.size() == 1) {
@@ -137,6 +138,10 @@ public class ExternalServiceAvailabilityCheckerTask extends DefaultManagedTask i
         attributes.setGeoTag(null);
         attributes.setRackSupportsDisaggregatedPowerCooling(null);
         chassis.setRackChassisAttributes(attributes);
+    }
+
+    public void setServiceUuid(UUID serviceUuid) {
+        this.serviceUuid = serviceUuid;
     }
 
     @Override

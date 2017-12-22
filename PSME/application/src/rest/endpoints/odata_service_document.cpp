@@ -29,26 +29,28 @@ using namespace psme::rest::constants;
 
 
 namespace {
-static json::Value make_prototype() {
-    json::Value r;
 
+static std::vector<std::pair<std::string, std::string>> RESOURCES{
+    {Root::SERVICE, Routes::ROOT_PATH},
+    {Root::SYSTEMS, Routes::SYSTEMS_COLLECTION_PATH},
+    {Common::CHASSIS, Routes::CHASSIS_COLLECTION_PATH},
+    {Root::MANAGERS, Routes::MANAGER_COLLECTION_PATH},
+    {Root::SERVICES, Routes::STORAGE_SERVICE_COLLECTION_PATH},
+    {Root::ETHERNET_SWITCHES, Routes::ETHERNET_SWITCHES_COLLECTION_PATH},
+    {Root::FABRICS, Routes::FABRICS_COLLECTION_PATH},
+    {Root::EVENT_SERVICE, Routes::EVENT_SERVICE_PATH},
+    {Root::TASKS, Routes::TASK_SERVICE_PATH},
+    {Root::REGISTRIES, Routes::MESSAGE_REGISTRY_FILE_COLLECTION_PATH},
+    {Root::UPDATE_SERVICE, Routes::UPDATE_SERVICE_PATH}
+};
+
+
+json::Value make_prototype() {
+    json::Value r{};
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata";
 
-    std::vector<std::pair<std::string, std::string>> resources {
-        {"Service", Routes::ROOT_PATH},
-        {Root::SYSTEMS, Routes::SYSTEMS_COLLECTION_PATH},
-        {Common::CHASSIS, Routes::CHASSIS_COLLECTION_PATH},
-        {Root::MANAGERS, Routes::MANAGER_COLLECTION_PATH},
-        {Root::SERVICES, Routes::STORAGE_SERVICE_COLLECTION_PATH},
-        {Root::ETHERNET_SWITCHES, Routes::ETHERNET_SWITCHES_COLLECTION_PATH},
-        {Root::FABRICS, Routes::FABRICS_COLLECTION_PATH},
-        {Root::EVENT_SERVICE, Routes::EVENT_SERVICE_PATH},
-        {Root::TASKS, Routes::TASK_COLLECTION_PATH},
-        {Root::REGISTRIES, Routes::MESSAGE_REGISTRY_FILE_COLLECTION_PATH}
-    };
-
-    json::Value values{json::Value::Type::ARRAY};
-    for (auto resource : resources) {
+    json::Value values = json::Value::Type::ARRAY;
+    for (auto resource : ::RESOURCES) {
         json::Value value;
         value[OdataServiceDocument::NAME] = resource.first;
         value[OdataServiceDocument::KIND] = "Singleton";

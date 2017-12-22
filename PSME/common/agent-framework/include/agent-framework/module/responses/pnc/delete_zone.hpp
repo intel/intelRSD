@@ -23,12 +23,11 @@
  * */
 
 #pragma once
-#include "agent-framework/module/model/attributes/oem.hpp"
-#include <string>
 
-namespace Json {
-    class Value;
-}
+#include "agent-framework/module/model/attributes/oem.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -46,14 +45,14 @@ public:
      * @brief Transform request to Json
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create DeleteZone from Json
      * @param[in] json the input argument
      * @return new DeleteZone
      */
-    static DeleteZone from_json(const Json::Value& json);
+    static DeleteZone from_json(const json::Json& json);
 
 private:
     attribute::Oem m_oem{};

@@ -19,16 +19,20 @@ package com.intel.podm.rest.representation.json.exceptionmappers;
 import com.intel.podm.business.ResourceStateMismatchException;
 import com.intel.podm.common.logger.Logger;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import static com.intel.podm.rest.error.ErrorResponseCreator.from;
-import static com.intel.podm.rest.representation.json.errors.ErrorType.RESOURCES_STATE_MISMATCH;
+import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
+import static com.intel.podm.rest.error.ErrorType.RESOURCES_STATE_MISMATCH;
+import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@ApplicationScoped
 @Provider
 @Produces(APPLICATION_JSON)
 public class ResourceStateMismatchExceptionMapper implements ExceptionMapper<ResourceStateMismatchException> {
@@ -37,12 +41,10 @@ public class ResourceStateMismatchExceptionMapper implements ExceptionMapper<Res
 
     @Override
     public Response toResponse(ResourceStateMismatchException exception) {
-        String message = "ResourceStateMismatch exception.";
-        logger.e(message, exception.getMessage(), exception);
-
-        return from(RESOURCES_STATE_MISMATCH)
-            .withMessage(message)
-            .withDetails(exception.getMessage())
-            .create();
+        logger.e(exception.getMessage(), exception);
+        return newErrorResponseBuilder(RESOURCES_STATE_MISMATCH)
+            .withMessage(format("%s exception encountered.", ResourceStateMismatchException.class.getSimpleName()))
+            .withDetails(singletonList(exception.getMessage()))
+            .build();
     }
 }

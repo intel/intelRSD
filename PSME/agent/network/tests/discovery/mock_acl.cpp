@@ -19,9 +19,9 @@
  *
  * */
 
-#include "api/acl.hpp"
+#include "hal/acl.hpp"
 
-using namespace agent::network::api;
+using namespace agent::network::hal;
 using namespace std;
 
 static const string ACL_NAME = "Acl1";

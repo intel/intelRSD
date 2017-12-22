@@ -31,7 +31,7 @@ namespace rest {
 namespace validators {
 namespace schema {
 
-/*! @brief  Reset action schema for validating POST requests */
+/*! @brief Schema for validating POST requests on reset action. */
 class ResetPostSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure();

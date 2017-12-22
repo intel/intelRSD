@@ -27,7 +27,7 @@
 
 #include "agent-framework/module/requests/common/get_managers_collection.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 
@@ -35,12 +35,12 @@ using namespace agent_framework::model::requests;
 GetManagersCollection::GetManagersCollection() {}
 
 
-Json::Value GetManagersCollection::to_json() const {
-    Json::Value value;
+json::Json GetManagersCollection::to_json() const {
+    json::Json value;
     return value;
 }
 
 
-GetManagersCollection GetManagersCollection::from_json(const Json::Value&) {
+GetManagersCollection GetManagersCollection::from_json(const json::Json&) {
     return GetManagersCollection{};
 }

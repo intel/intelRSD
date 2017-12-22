@@ -17,14 +17,8 @@
 # </license_header>
 
 set(SOURCES
-    status_manager.cpp
-    module_hardware_status.cpp
-    module_software_status.cpp
-    state_machine_action.cpp
+    bmc.cpp
+    sensors_reader.cpp
 )
 
-set_source_files_properties(module_software_status.cpp PROPERTIES COMPILE_FLAGS
-    "-Wno-old-style-cast")
-
 add_library(chassis-status-impl OBJECT ${SOURCES})
-

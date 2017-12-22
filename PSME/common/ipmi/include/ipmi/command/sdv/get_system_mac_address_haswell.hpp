@@ -64,7 +64,7 @@ public:
      * @brief Packs data from object to output vector
      * @param[out] data vector where data will be packed.
      */
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
 
     /*!
      * @brief Sets ethernet interface index.
@@ -72,6 +72,10 @@ public:
      */
     void set_interface_id(std::uint16_t index) {
         m_interface_id = index;
+    }
+
+    virtual const char* get_command_name() const override {
+        return "GetSystemMacAddressHaswell";
     }
 
 private:
@@ -107,7 +111,7 @@ public:
      * @brief Gets system mac address.
      * @return m_system_mac_address
      */
-    std::string get_system_mac_address() {
+    std::string get_system_mac_address() const {
         return m_system_mac_address;
     }
 
@@ -115,7 +119,11 @@ public:
      * @brief Unpacks data from vector to object.
      * @param data bytes to be copied to object,
      */
-    void unpack(const std::vector<std::uint8_t>& data);
+    void unpack(const std::vector<std::uint8_t>& data) override;
+
+    virtual const char* get_command_name() const override {
+        return "GetSystemMacAddressHaswell";
+    }
 
 private:
     std::string m_system_mac_address{};
@@ -130,4 +138,3 @@ private:
 }
 }
 }
-

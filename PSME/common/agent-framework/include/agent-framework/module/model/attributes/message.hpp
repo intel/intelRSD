@@ -28,6 +28,7 @@
 #include "agent-framework/module/enum/common.hpp"
 #include "array.hpp"
 #include "oem.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -64,9 +65,9 @@ public:
     Message& operator=(const Message&) = default;
     Message& operator=(Message&&) = default;
 
-    static Message from_json(const Json::Value& json);
+    static Message from_json(const json::Json& json);
 
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     const OptionalField<std::string>& get_message_id() const {
         return m_message_id;

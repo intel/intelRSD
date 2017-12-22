@@ -33,14 +33,14 @@ namespace parser {
 #pragma pack(push, 1)
 
 struct CommonHeaderArea {
-    uint8_t format;
-    uint8_t internal_use_area_offset;
-    uint8_t chassis_info_area_offset;
-    uint8_t board_area_offset;
-    uint8_t product_info_area_offset;
-    uint8_t multirecord_area_offset;
-    uint8_t pad;
-    uint8_t crc;
+    uint8_t format{};
+    uint8_t internal_use_area_offset{};
+    uint8_t chassis_info_area_offset{};
+    uint8_t board_area_offset{};
+    uint8_t product_info_area_offset{};
+    uint8_t multirecord_area_offset{};
+    uint8_t pad{};
+    uint8_t crc{};
 };
 
 #pragma pack(pop)

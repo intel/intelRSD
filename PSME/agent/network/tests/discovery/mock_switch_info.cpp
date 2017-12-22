@@ -19,9 +19,9 @@
  *
  * */
 
-#include "api/switch_info.hpp"
+#include "hal/switch_info.hpp"
 
-using namespace agent::network::api;
+using namespace agent::network::hal;
 
 SwitchInfo::~SwitchInfo() {}
 std::string SwitchInfo::format_mac_address(const uint8_t*) {

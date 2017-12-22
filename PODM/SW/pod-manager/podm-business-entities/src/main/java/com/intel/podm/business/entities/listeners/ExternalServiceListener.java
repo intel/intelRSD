@@ -19,12 +19,12 @@ package com.intel.podm.business.entities.listeners;
 import com.intel.podm.business.entities.handlers.OnDeleteExternalServiceHandler;
 import com.intel.podm.business.entities.redfish.ExternalService;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.PreRemove;
 
 import static com.intel.podm.business.entities.events.ExternalServiceDeletionEvent.externalServiceRemoved;
 
-@Dependent
+@ApplicationScoped
 public class ExternalServiceListener extends EntityListener {
     @PreRemove
     public void preRemove(ExternalService externalService) {

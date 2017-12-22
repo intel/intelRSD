@@ -26,6 +26,7 @@
 #include "psme/rest/server/parameters.hpp"
 #include "psme/rest/server/request.hpp"
 #include "psme/rest/server/response.hpp"
+#include "psme/core/agent/agent_manager.hpp"
 
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/model/resource.hpp"
@@ -62,18 +63,6 @@ std::string get_port_uuid_from_url(const std::string& port_url);
 
 
 /*!
- * @brief make_endpoint_context
- *
- * @param[in] params request params
- * @param[in] link url
- *
- * @return context string
- */
-std::string make_endpoint_context(const psme::rest::server::Parameters& params,
-                                  std::string link);
-
-
-/*!
  * @brief a method converting a string to uint64_t specialized for REST ids: if
  * the string is incorrect, the method throws an InvalidParameters exception
  *
@@ -89,7 +78,7 @@ std::uint64_t id_to_uint64(const std::string& id_as_string);
  *
  * @param manager_uuid the manager uuid
  *
- * @return is the manager a drawer or enclosue manager
+ * @return is the manager a drawer or enclosure manager
  */
 bool is_manager_for_drawer_or_enclosure(const std::string& manager_uuid);
 
@@ -98,14 +87,15 @@ bool is_manager_for_drawer_or_enclosure(const std::string& manager_uuid);
  * @brief finds the part of the URL after "/redfish/v1" using
  * recursion
  *
- * @param path the pathbuilder that carries the url under construction
+ * @param path_builder The PathBuilder that carries the url under construction
  *
  * @param type component's type
  *
  * @param uuid component's uuid
  */
-void get_component_url_recursive(psme::rest::endpoint::PathBuilder& path, agent_framework::model::enums::Component type,
-    const std::string& uuid);
+void get_component_url_recursive(psme::rest::endpoint::PathBuilder& path_builder,
+                                 agent_framework::model::enums::Component type,
+                                 const std::string& uuid);
 
 
 /*!
@@ -145,8 +135,7 @@ template<typename Resource, typename QueryResult>
 std::vector<QueryResult> query_entries(const std::string& parent_uuid,
                                        std::function<QueryResult(const Resource&)> query) {
     std::vector<QueryResult> results{};
-    for (const auto& resource_uuid : agent_framework::module::get_manager<Resource>().get_keys(parent_uuid)) {
-        auto resource = agent_framework::module::get_manager<Resource>().get_entry(resource_uuid);
+    for (const auto& resource : agent_framework::module::get_manager<Resource>().get_entries(parent_uuid)) {
         results.emplace_back(query(resource));
     }
     return results;
@@ -155,7 +144,7 @@ std::vector<QueryResult> query_entries(const std::string& parent_uuid,
 
 /*!
  * @brief Round double-precision number to 2-digits precision
- * @param number Value to round precesion
+ * @param number Value to round precision
  * @param digits Number of digits
  * @return Rounded value
  */
@@ -244,6 +233,62 @@ void children_to_add_to_remove(agent_framework::module::managers::ManyToManyMana
                                const std::vector<std::string>& requested_children,
                                std::vector<std::string>& children_to_add,
                                std::vector<std::string>& children_to_remove);
+
+
+/*!
+ * @brief Checks whether agent related to resource has capability.
+ *
+ * @tparam T Type of model.
+ * @param resource Instance of resource from model.
+ * @param capability String containing requested capability.
+ *
+ * @return True if agent has requested capability, false otherwise.
+ */
+template<typename T>
+bool has_resource_capability(const T& resource, const std::string& capability) {
+    return psme::core::agent::AgentManager::get_instance()->
+        get_agent(resource.get_agent_id())->has_capability(capability);
+}
+
+void string_array_to_json(json::Value& json, const agent_framework::model::attribute::Array<std::string>& array);
+
+/*!
+ * @brief Populates metric values for given component.
+ * @param[in,out] component_json JSON representation of component.
+ * @param component_uuid Component uuid.
+ */
+void populate_metrics(json::Value& component_json, const std::string& component_uuid);
+
+
+/*!
+ * @brief Populates metric values for given component.
+ * @param[in,out] component_json JSON representation of component.
+ * @param metrics selected metrics for populating endpoints
+ */
+void populate_metrics(json::Value& component_json, const std::vector<agent_framework::model::Metric>& metrics);
+
+
+/*!
+ * @brief Returns metric resources with particular name, and assigned to a requested resource
+ *
+ * @tparam T Type of model class.
+ * @param resource Instance of resource from model.
+ * @param metric_name String containing metric name
+ *
+ * @return collection of metrics fulfilling the requirements.
+ */
+template<typename T>
+std::vector<agent_framework::model::Metric> get_metrics(const T& resource,
+                                                        const std::string& metric_name) {
+    return agent_framework::module::get_manager<agent_framework::model::Metric>().get_entries(
+        [&] (const agent_framework::model::Metric& metric) -> bool {
+            return metric.get_component_type() == resource.get_component()
+                   && metric.get_component_uuid() == resource.get_uuid()
+                   && metric.get_name() == metric_name;
+        }
+    );
+}
+
 }
 }
 }

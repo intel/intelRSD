@@ -35,7 +35,7 @@ namespace endpoint {
  */
 class System : public EndpointBase {
 public:
-
+    using AllowableResetTypes = std::vector<agent_framework::model::enums::ResetType>;
 
     /*!
      * @brief The constructor for System class
@@ -47,9 +47,17 @@ public:
      */
     virtual ~System();
 
+
     void get(const server::Request& request, server::Response& response) override;
 
+
     void patch(const server::Request& request, server::Response& response) override;
+
+    /*!
+     * @brief Get allowed reset types for Computer System reset action.
+     * @return Vector of ResetType enum values.
+     * */
+    static const AllowableResetTypes& get_allowed_reset_types();
 };
 
 }

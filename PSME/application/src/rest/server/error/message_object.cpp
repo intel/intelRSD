@@ -28,7 +28,7 @@
 using namespace psme::rest::error;
 
 namespace {
-static const constexpr char TYPE[] = "/redfish/v1/$metadata#Message.v1_0_0.Message";
+static const constexpr char TYPE[] = "#Message.v1_0_0.Message";
 }
 
 
@@ -51,21 +51,21 @@ MessageObject::operator json::Value() const {
     message_object[constants::Common::ODATA_TYPE] = ::TYPE;
     message_object[constants::MessageObject::MESSAGE_ID] = get_message_id();
     message_object[constants::MessageObject::MESSAGE] = get_message();
+    message_object[constants::MessageObject::RELATED_PROPERTIES] = json::Value::Type::ARRAY;
+    message_object[constants::MessageObject::MESSAGE_ARGS] = json::Value::Type::ARRAY;
+    message_object[constants::MessageObject::RESOLUTION] = json::Value::Type::NIL;
+
 
     if (!get_related_properties().empty()) {
-        json::Value related_properties{};
         for (const auto& property : get_related_properties()) {
-            related_properties.push_back(property);
+            message_object[constants::MessageObject::RELATED_PROPERTIES].push_back(property);
         }
-        message_object[constants::MessageObject::RELATED_PROPERTIES] = std::move(related_properties);
     }
 
     if (!get_message_arguments().empty()) {
-        json::Value message_args{};
         for (const auto& argument : get_message_arguments()) {
-            message_args.push_back(argument);
+            message_object[constants::MessageObject::MESSAGE_ARGS].push_back(argument);
         }
-        message_object[constants::MessageObject::MESSAGE_ARGS] = std::move(message_args);
     }
 
     if (!get_resolution().empty()) {

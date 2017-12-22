@@ -29,7 +29,6 @@ target_link_libraries(
     ${test_target}
     logger
     ${SAFESTRING_LIBRARIES}
-    jsonrpccpp-common
 )
 
 add_custom_target(unittest_logger

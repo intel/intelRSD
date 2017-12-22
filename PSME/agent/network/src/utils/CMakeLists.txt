@@ -21,4 +21,4 @@ set(SOURCES
     port.cpp
 )
 
-add_library(network-utils-fm10000 OBJECT ${SOURCES})
+add_library(network-utils-impl OBJECT ${SOURCES})

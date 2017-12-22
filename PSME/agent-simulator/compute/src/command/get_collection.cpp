@@ -24,11 +24,11 @@
 
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/command-ref/registry.hpp"
-#include "agent-framework/command-ref/compute_commands.hpp"
+#include "agent-framework/command/registry.hpp"
+#include "agent-framework/command/compute_commands.hpp"
 #include "agent-framework/logger_ext.hpp"
 
-using namespace agent_framework::command_ref;
+using namespace agent_framework::command;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
@@ -127,8 +127,7 @@ namespace {
     }
 
     void process_processor(const std::string& uuid, GetCollection::Response& response) {
-        response_add_submodules(ComputeComponents::get_instance()->
-                            get_processor_manager().get_keys(uuid), response);
+        response_add_submodules(get_manager<Processor>().get_keys(uuid), response);
     }
 
     void process_memories(const std::string& uuid, GetCollection::Response& response) {
@@ -143,8 +142,7 @@ namespace {
     }
 
     void process_network(const std::string& uuid, GetCollection::Response& response) {
-        response_add_submodules(ComputeComponents::get_instance()->
-                                get_network_interface_manager().
+        response_add_submodules(get_manager<NetworkInterface>().
                                 get_keys(uuid), response);
     }
 

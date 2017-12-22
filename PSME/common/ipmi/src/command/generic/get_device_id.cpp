@@ -54,10 +54,6 @@ static inline unsigned firmware_revision_to_bcd(T data) {
 }
 
 void response::GetDeviceId::unpack(const std::vector<std::uint8_t>& data) {
-    if(!is_response_correct(data)) {
-        return; // received only completion code, do not unpack.
-    }
-
     std::stringstream stream;
     unsigned major = (MASK_MAJOR_VERSION_NUMBER &
                       data[OFFSET_FIRMWARE_MAJOR_VERSION]);
@@ -85,17 +81,17 @@ void response::GetDeviceId::unpack(const std::vector<std::uint8_t>& data) {
     m_manufacturer_id = extract_manufacturer_id(data);
 }
 
-response::GetDeviceId::PRODUCT_ID response::GetDeviceId::extract_product_id(const std::vector<std::uint8_t>& data) const {
+ProductId response::GetDeviceId::extract_product_id(const std::vector<std::uint8_t>& data) const {
     auto id = std::uint16_t((data[OFFSET_PRODUCT_ID + 1] << 8)
                      | (data[OFFSET_PRODUCT_ID + 0] << 0));
 
     if (id >= PRODUCT_ID_INTEL_LAST) {
         return PRODUCT_ID_INTEL_UNKNOWN;
     }
-    return PRODUCT_ID(id);
+    return ProductId(id);
 }
 
-response::GetDeviceId::MANUFACTURER_ID response::GetDeviceId::extract_manufacturer_id(const std::vector<std::uint8_t>& data)
+ManufacturerId response::GetDeviceId::extract_manufacturer_id(const std::vector<std::uint8_t>& data)
 const {
     auto id = std::uint32_t((data[OFFSET_MANUFACTURER_ID + 2] << 16) |
                             (data[OFFSET_MANUFACTURER_ID + 1] << 8) |
@@ -104,5 +100,5 @@ const {
     if (id >= MANUFACTURER_ID_LAST) {
         return MANUFACTURER_ID_UNKNOWN;
     }
-    return MANUFACTURER_ID(id);
+    return ManufacturerId(id);
 }

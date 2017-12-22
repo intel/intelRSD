@@ -9,7 +9,7 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="Manager.xml">
     <edmx:Include Namespace="Manager.v1_0_0"/>
@@ -31,10 +31,12 @@
       <EntityType Name="StorageService" BaseType="Resource.v1_0_0.Resource">
         <Property Name="Status" Type="Resource.Status"/>
 
-        <NavigationProperty Name="RemoteTargets" Type="RemoteTargetCollection.RemoteTargetCollection" ContainsTarget="true">
+        <NavigationProperty Name="RemoteTargets" Type="RemoteTargetCollection.RemoteTargetCollection"
+                            ContainsTarget="true">
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
-        <NavigationProperty Name="LogicalDrives" Type="LogicalDriveCollection.LogicalDriveCollection" ContainsTarget="true">
+        <NavigationProperty Name="LogicalDrives" Type="LogicalDriveCollection.LogicalDriveCollection"
+                            ContainsTarget="true">
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="Drives" Type="PhysicalDriveCollection.PhysicalDriveCollection" ContainsTarget="true">

@@ -16,6 +16,8 @@
 
 package com.intel.podm.common.synchronization;
 
-public interface Executable {
-    <E extends Exception, R> R execute() throws E;
+import java.util.concurrent.TimeoutException;
+
+public interface Executable<E extends Exception, R> {
+    R execute() throws E, TimeoutException;
 }

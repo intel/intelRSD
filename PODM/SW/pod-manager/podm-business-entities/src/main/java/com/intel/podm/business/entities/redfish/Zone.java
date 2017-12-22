@@ -20,7 +20,6 @@ import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.types.Id;
-import org.hibernate.annotations.Generated;
 
 import javax.persistence.Column;
 import javax.persistence.Index;
@@ -37,20 +36,14 @@ import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.FetchType.LAZY;
-import static org.hibernate.annotations.GenerationTime.INSERT;
 
 @javax.persistence.Entity
 @Table(name = "zone", indexes = @Index(name = "idx_zone_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class Zone extends DiscoverableEntity {
-    @Generated(INSERT)
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
-
-    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
-    @JoinColumn(name = "fabric_id")
-    private Fabric fabric;
 
     @OneToMany(mappedBy = "zone", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Endpoint> endpoints = new HashSet<>();
@@ -58,9 +51,9 @@ public class Zone extends DiscoverableEntity {
     @ManyToMany(mappedBy = "zones", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Switch> switches = new HashSet<>();
 
-    public void setEntityId(Id entityId) {
-        this.entityId = entityId;
-    }
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "fabric_id")
+    private Fabric fabric;
 
     @Override
     public Id getId() {
@@ -149,9 +142,9 @@ public class Zone extends DiscoverableEntity {
 
     @Override
     public void preRemove() {
-        unlinkFabric(fabric);
-        unlinkCollection(switches, this::unlinkSwitch);
         unlinkCollection(endpoints, this::unlinkEndpoint);
+        unlinkCollection(switches, this::unlinkSwitch);
+        unlinkFabric(fabric);
     }
 
     @Override

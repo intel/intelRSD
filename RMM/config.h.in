@@ -1,7 +1,0 @@
-#cmakedefine BUILD_AUTOTEST
-#cmakedefine DEBUG_MODE
-#cmakedefine REST_HTTPS
-#cmakedefine ENCRYPT_USERNAME_PASSWD
-#cmakedefine RMM_WATCHDOG
-#cmakedefine RACK_PTAS
-#cmakedefine IPMI20_SUPPORT

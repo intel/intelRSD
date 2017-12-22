@@ -27,6 +27,7 @@
 
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/utils/utils.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
 
@@ -107,17 +108,17 @@ public:
      * @brief Convert AclAddress to JSON object
      * @return JSON representation of AclAddress object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
      * @brief construct an object of class AclAddress from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed Ipv object
      */
-    static AclAddress from_json(const Json::Value& json);
+    static AclAddress from_json(const json::Json& json);
 
 
 private:
@@ -128,4 +129,3 @@ private:
 }
 }
 }
-

@@ -355,7 +355,6 @@
                 </process-id>
             </core-environment>
             <recovery-environment socket-binding="txn-recovery-environment" status-socket-binding="txn-status-manager"/>
-            <!-- todo remove this if everything works correcly with default timeout (300s) -->
             <coordinator-environment default-timeout="900" />
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:undertow:2.0">

@@ -59,7 +59,7 @@ public:
 private:
     void discovery_physical_drives(const std::string& uuid) const;
     void discovery_logical_drives(const std::string& uuid) const;
-    void discovery_iscsi_targets(const string& uuid) const;
+    void discovery_iscsi_targets(const std::string& uuid) const;
 
     void init_logical_volume(LogicalDrive& logical_volume) const;
     std::string get_logical_drive_uuid(const std::string& device_path) const;

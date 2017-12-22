@@ -5,7 +5,7 @@
     <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="VLanNetworkInterface.xml">
     <edmx:Include Namespace="VLanNetworkInterface"/>
@@ -16,7 +16,8 @@
 
       <EntityType Name="VLanNetworkInterfaceCollection" BaseType="Resource.v1_0_0.ResourceCollection">
         <Annotation Term="OData.Description" String="A Collection of VLanNetworkInterface resource instances."/>
-        <NavigationProperty Name="Members" Type="Collection(VLanNetworkInterface.VLanNetworkInterface)" Nullable="false">
+        <NavigationProperty Name="Members" Type="Collection(VLanNetworkInterface.VLanNetworkInterface)"
+                            Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Contains the members of this collection."/>
           <Annotation Term="OData.AutoExpandReferences"/>

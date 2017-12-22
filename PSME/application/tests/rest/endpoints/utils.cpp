@@ -18,7 +18,10 @@
  * limitations under the License.
  * */
 
+
+#include "agent-framework/module/managers/utils/manager_utils.hpp"
 #include "utils.hpp"
+
 
 
 
@@ -28,14 +31,14 @@ using namespace agent_framework::model::enums;
 
 
 void clean_model_data() {
-    CommonComponents::get_instance()->get_system_manager().clear_entries();
-    ComputeComponents::get_instance()->get_processor_manager().clear_entries();
-    CommonComponents::get_instance()->get_module_manager().clear_entries();
-    CommonComponents::get_instance()->get_chassis_manager().clear_entries();
-    CommonComponents::get_instance()->get_drive_manager().clear_entries();
-    ComputeComponents::get_instance()->get_memory_manager().clear_entries();
-    ComputeComponents::get_instance()->get_network_interface_manager().clear_entries();
-    ComputeComponents::get_instance()->get_storage_controller_manager().clear_entries();
+    get_manager<System>().clear_entries();
+    get_manager<Processor>().clear_entries();
+    get_manager<Manager>().clear_entries();
+    get_manager<Chassis>().clear_entries();
+    get_manager<Drive>().clear_entries();
+    get_manager<Memory>().clear_entries();
+    get_manager<NetworkInterface>().clear_entries();
+    get_manager<StorageController>().clear_entries();
 }
 
 
@@ -138,16 +141,17 @@ Processor make_processor(const std::string& parent, const std::string& uuid) {
 
 
 void generate_model_data() {
-    CommonComponents::get_instance()->get_module_manager().add_entry(make_manager("", "1111"));
-    CommonComponents::get_instance()->get_module_manager().add_entry(make_manager("", "1222"));
-    CommonComponents::get_instance()->get_module_manager().add_entry(make_manager("", "1333"));
 
-    CommonComponents::get_instance()->get_system_manager().add_entry(make_system("1111", "2111"));
-    CommonComponents::get_instance()->get_system_manager().add_entry(make_system("1111", "2222"));
-    CommonComponents::get_instance()->get_system_manager().add_entry(make_system("1222", "2333"));
+    get_manager<Manager>().add_entry(make_manager("", "1111"));
+    get_manager<Manager>().add_entry(make_manager("", "1222"));
+    get_manager<Manager>().add_entry(make_manager("", "1333"));
 
-    ComputeComponents::get_instance()->get_processor_manager().add_entry(::make_processor("2111", "3111"));
-    ComputeComponents::get_instance()->get_processor_manager().add_entry(::make_processor("2111", "3222"));
-    ComputeComponents::get_instance()->get_processor_manager().add_entry(::make_processor("2111", "3333"));
+    get_manager<System>().add_entry(make_system("1111", "2111"));
+    get_manager<System>().add_entry(make_system("1111", "2222"));
+    get_manager<System>().add_entry(make_system("1222", "2333"));
+
+    get_manager<Processor>().add_entry(::make_processor("2111", "3111"));
+    get_manager<Processor>().add_entry(::make_processor("2111", "3222"));
+    get_manager<Processor>().add_entry(::make_processor("2111", "3333"));
 }
 

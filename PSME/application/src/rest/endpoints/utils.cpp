@@ -21,7 +21,7 @@
 #include "psme/rest/server/parameters.hpp"
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/endpoints/utils.hpp"
-#include "psme/rest/utils/mapper.hpp"
+#include "psme/rest/server/multiplexer.hpp"
 #include "psme/rest/model/finder.hpp"
 
 #include "agent-framework/module/model/model_chassis.hpp"
@@ -30,8 +30,13 @@
 #include "agent-framework/module/model/model_storage.hpp"
 #include "agent-framework/module/model/model_pnc.hpp"
 
+#include "agent-framework/module/utils/json_transformations.hpp"
+
+#include "jsonptr/jsonptr.hpp"
+
 #include <regex>
 #include <cmath>
+#include <iterator>
 
 
 
@@ -41,12 +46,6 @@ using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
 
 namespace {
-
-std::regex make_regex(const std::string& str) {
-    return std::regex("\\{" + str + "\\}");
-}
-
-
 bool exists_drawer_or_enclosure_with_parent(GenericManager<agent_framework::model::Chassis>& container,
                                             const std::string& manager_uuid) {
     // lambda used for filtering chassis entries in container
@@ -67,23 +66,16 @@ namespace utils {
 
 std::string get_port_uuid_from_url(const std::string& port_url) {
     try {
-        auto params = psme::rest::model::Mapper::get_params(port_url, constants::Routes::ETHERNET_SWITCH_PORT_PATH);
+        auto params = psme::rest::server::Multiplexer::get_instance()->
+            get_params(port_url, constants::Routes::ETHERNET_SWITCH_PORT_PATH);
         return psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(
             params[constants::PathParam::SWITCH_PORT_ID])
             .via<agent_framework::model::EthernetSwitch>(params[constants::PathParam::ETHERNET_SWITCH_ID])
             .get_uuid();
     }
     catch (agent_framework::exceptions::NotFound&) {
-        THROW(agent_framework::exceptions::InvalidValue, "rest", "Could not find port with URI: " + port_url);
+        THROW(agent_framework::exceptions::InvalidValue, "rest", "Could not find port with URI: '" + port_url + "'.");
     }
-}
-
-
-std::string make_endpoint_context(const psme::rest::server::Parameters& params, std::string link) {
-    for (const auto& param : params) {
-        link = std::regex_replace(link, ::make_regex(param.first), param.second);
-    }
-    return link;
 }
 
 
@@ -124,19 +116,100 @@ bool is_manager_for_drawer_or_enclosure(const std::string& manager_uuid) {
 namespace {
 template<typename M>
 void build_parent_path(endpoint::PathBuilder& path, const std::string& uuid, const std::string& collection_literal) {
-    path.append(collection_literal).append(agent_framework::module::get_manager<M>().
-        uuid_to_rest_id(uuid));
+    path.append(collection_literal).append(agent_framework::module::get_manager<M>().uuid_to_rest_id(uuid));
 }
 
 template<typename M>
 void build_child_path(endpoint::PathBuilder& path, const std::string& uuid, const std::string& collection_literal) {
     const auto& resource = agent_framework::module::get_manager<M>().get_entry(uuid);
-    get_component_url_recursive(path, resource.get_parent_type(),
-                                resource.get_parent_uuid());
+    get_component_url_recursive(path, resource.get_parent_type(), resource.get_parent_uuid());
     path.append(collection_literal).append(resource.get_id());
 }
+
+template<typename M>
+void build_array_member_path(endpoint::PathBuilder& path, const std::string& uuid, const std::string& array_name) {
+    const auto& resource = agent_framework::module::get_manager<M>().get_entry(uuid);
+    get_component_url_recursive(path, resource.get_parent_type(), resource.get_parent_uuid());
+
+    // find member's index in children array
+    const auto array_members = agent_framework::module::get_manager<M>().get_keys(resource.get_parent_uuid());
+    size_t index = std::distance(
+        array_members.begin(),
+        std::find(array_members.begin(), array_members.end(), uuid)
+    );
+    if (index >= array_members.size()) {
+        log_error(GET_LOGGER("rest"), "Could not build url for resource " + uuid + ".");
+        THROW(agent_framework::exceptions::NotFound, "rest",
+              std::string("Component of type ") + M::get_component().to_string() + " was removed before it's URL could be created.");
+    }
+    path.append_jsonptr(constants::PathParam::PATH_SEP + array_name).append(index);
 }
 
+size_t find_metric_index(const agent_framework::model::Metric& metric) {
+    // find metric's index among other metrics for the same component and with the same name
+    const auto array_members = agent_framework::module::get_manager<agent_framework::model::Metric>().get_keys(
+        [&] (const agent_framework::model::Metric& m) -> bool {
+            return m.get_component_type() == metric.get_component_type()
+                   && m.get_component_uuid() == metric.get_component_uuid()
+                   && m.get_name() == metric.get_name();
+        }
+    );
+    size_t index = std::distance(
+        array_members.begin(),
+        std::find(array_members.begin(), array_members.end(), metric.get_uuid())
+    );
+    if (index >= array_members.size()) {
+        log_error(GET_LOGGER("rest"), "Could not build url for resource " + metric.get_uuid() + ".");
+        THROW(agent_framework::exceptions::NotFound, "rest",
+              "Component of type Metric was removed before it's URL could be created.");
+    }
+    return index;
+}
+
+void build_metric_path(endpoint::PathBuilder& path, const std::string& uuid) {
+    using namespace psme::rest;
+    const auto metric = agent_framework::module::get_manager<agent_framework::model::Metric>().get_entry(uuid);
+    try {
+        get_component_url_recursive(path, metric.get_component_type(), metric.get_component_uuid());
+    }
+    catch (agent_framework::exceptions::InvalidUuid& e) {
+        THROW(agent_framework::exceptions::NotFound, "rest", std::string("Failed to build metric path: ") + e.what());
+    }
+
+    // handle exceptions in URL building for Power and Thermal metrics
+    if (metric.get_name() == constants::PowerZone::POWER_CONSUMED_WATTS_PATH) {
+        path.append_jsonptr(std::string{constants::PathParam::PATH_SEP} + constants::PowerZone::POWER_CONTROL)
+            .append(0) // if this metric exists, it's PowerZone is the only member in PowerControl array
+            .append(constants::PowerZone::POWER_CONSUMED_WATTS);
+    }
+    else if (metric.get_name() == constants::PowerZone::INPUT_AC_POWER_WATTS_PATH) {
+        path.append_jsonptr(constants::PowerZone::INPUT_AC_POWER_WATTS_PATH);
+    }
+    else if (metric.get_name() == constants::ChassisSensor::READING_VOLTS_PATH) {
+        // find metrics's index in Voltages array
+        auto index = find_metric_index(metric);
+        path.append_jsonptr(std::string{constants::PathParam::PATH_SEP} + constants::PowerZone::VOLTAGES)
+            .append(index)
+            .append(constants::ChassisSensor::READING_VOLTS);
+    }
+    else if (metric.get_name() == constants::ThermalZone::VOLUMETRIC_AIRFLOW_CFM_PATH) {
+        path.append_jsonptr(constants::ThermalZone::VOLUMETRIC_AIRFLOW_CFM_PATH);
+    }
+    else if (metric.get_name() == constants::ThermalZone::READING_PATH) {
+        path.append(constants::ThermalZone::READING);
+    }
+    else if (metric.get_name() == constants::ChassisSensor::READING_CELSIUS_PATH) {
+        // find metrics's index in Temperatures array
+        auto index = find_metric_index(metric);
+        path.append_jsonptr(std::string{constants::PathParam::PATH_SEP} + constants::ThermalZone::TEMPERATURES)
+            .append(index)
+            .append(constants::ChassisSensor::READING_CELSIUS);
+    }
+    else {
+        path.append(constants::Common::METRICS).append_jsonptr(metric.get_name());
+    }
+}
+}
 
 void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component type, const std::string& uuid) {
     using Component = enums::Component;
@@ -151,9 +224,8 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
             build_parent_path<agent_framework::model::Manager>(path, uuid, constants::Root::MANAGERS);
             break;
         case Component::Task:
-            path.append(constants::TaskService::TASK_SERVICE).append(constants::TaskService::TASKS).append(
-                module::get_manager<agent_framework::model::Task>().
-                    uuid_to_rest_id(uuid));
+            path.append(constants::TaskService::TASK_SERVICE).append(constants::TaskService::TASKS)
+                .append(module::get_manager<agent_framework::model::Task>().uuid_to_rest_id(uuid));
             break;
         case Component::System:
             build_parent_path<agent_framework::model::System>(path, uuid, constants::Root::SYSTEMS);
@@ -161,8 +233,8 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
         case Component::StorageSubsystem:
             build_child_path<agent_framework::model::StorageSubsystem>(path, uuid, constants::System::STORAGE);
             break;
-        case Component::StorageServices:
-            build_parent_path<agent_framework::model::StorageServices>(path, uuid, constants::Root::SERVICES);
+        case Component::StorageService:
+            build_parent_path<agent_framework::model::StorageService>(path, uuid, constants::Root::SERVICES);
             break;
         case Component::EthernetSwitch:
             build_parent_path<agent_framework::model::EthernetSwitch>(path, uuid, constants::Root::ETHERNET_SWITCHES);
@@ -185,13 +257,21 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
         case Component::Processor:
             build_child_path<agent_framework::model::Processor>(path, uuid, constants::System::PROCESSORS);
             break;
-        case Component::NetworkInterface:
-            // Warning: the following assumes that no agent has EthernetInterfaces under Managers.
-            // It's compliant for our implementation, but not in all cases allowed by GAMI.
-            build_child_path<agent_framework::model::NetworkInterface>(path, uuid, constants::System::ETHERNET_INTERFACES);
+        case Component::NetworkInterface: {
+            const auto& nic = module::get_manager<agent_framework::model::NetworkInterface>().get_entry(uuid);
+            if (nic.get_parent_type() == Component::Manager) {
+                build_child_path<agent_framework::model::NetworkInterface>(path, uuid, constants::Manager::ETHERNET_INTERFACES);
+            }
+            else if (nic.get_parent_type() == Component::System) {
+                build_child_path<agent_framework::model::NetworkInterface>(path, uuid, constants::System::ETHERNET_INTERFACES);
+            }
+            else {
+                THROW(agent_framework::exceptions::NotFound, "rest", "Could not get URL for Network Interface!");
+            }
             break;
+        }
         case Component::StorageController:
-            build_child_path<agent_framework::model::StorageController>(path, uuid, constants::StorageSubsystem::STORAGE_CONTROLLERS);
+            build_array_member_path<agent_framework::model::StorageController>(path, uuid, constants::StorageSubsystem::STORAGE_CONTROLLERS);
             break;
         case Component::EthernetSwitchPort:
             build_child_path<agent_framework::model::EthernetSwitchPort>(path, uuid, constants::EthernetSwitch::PORTS);
@@ -244,21 +324,51 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
         case Component::Endpoint:
             build_child_path<agent_framework::model::Endpoint>(path, uuid, constants::Fabric::ENDPOINTS);
             break;
+        case Component::PowerZone: {
+            const auto& power_zone = module::get_manager<agent_framework::model::PowerZone>().get_entry(uuid);
+            get_component_url_recursive(path, Component::Chassis, power_zone.get_parent_uuid());
+            path.append(constants::Chassis::POWER);
+            break;
+        }
+        case Component::ThermalZone: {
+            const auto& thermal_zone = module::get_manager<agent_framework::model::ThermalZone>().get_entry(uuid);
+            get_component_url_recursive(path, Component::Chassis, thermal_zone.get_parent_uuid());
+            path.append(constants::Chassis::THERMAL);
+            break;
+        }
         case Component::NetworkDevice:
             build_child_path<agent_framework::model::NetworkDevice>(path, uuid, constants::System::NETWORK_INTERFACES);
             break;
         case Component::NetworkDeviceFunction:
             build_child_path<agent_framework::model::NetworkDeviceFunction>(path, uuid, constants::NetworkInterface::NETWORK_DEVICE_FUNCTIONS);
             break;
+        case Component::PSU: {
+            /* PSU is an array item in Power property */
+            build_array_member_path<agent_framework::model::Psu>(path, uuid, constants::PowerZone::POWER_SUPPLIES);
+            break;
+        }
+        case Component::Fan: {
+            /* Fan is an array item in Thermal property */
+            build_array_member_path<agent_framework::model::Fan>(path, uuid, constants::ThermalZone::FANS);
+            break;
+        }
+        case Component::MetricDefinition:
+            path.append(constants::Root::TELEMETRY_SERVICE).append(constants::TelemetryService::METRIC_DEFINITIONS)
+                .append(module::get_manager<agent_framework::model::MetricDefinition>().uuid_to_rest_id(uuid));
+            break;
+        case Component::Metric: {
+            build_metric_path(path, uuid);
+            break;
+        }
+        case Component::TrustedModule:
+            build_array_member_path<agent_framework::model::TrustedModule>(path, uuid, constants::System::TRUSTED_MODULES);
+            break;
         case Component::AuthorizationCertificate:
         case Component::Vlan:
-        case Component::PSU:
-        case Component::Fan:
         case Component::NeighborSwitch:
         case Component::PortMember:
         case Component::RemoteEthernetSwitch:
-        case Component::PowerZone:
-        case Component::ThermalZone:
+        case Component::ChassisSensor:
         case Component::None:
         case Component::Root:
         default:
@@ -270,14 +380,14 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
 
 
 std::string get_component_url(enums::Component type, const std::string& uuid) {
-    endpoint::PathBuilder pb(constants::Routes::ROOT_PATH);
-    get_component_url_recursive(pb, type, uuid);
-    return pb.build();
+    endpoint::PathBuilder path_builder(constants::Routes::ROOT_PATH);
+    get_component_url_recursive(path_builder, type, uuid);
+    return path_builder.build();
 }
 
 
-void set_location_header(server::Response& res, const std::string& path) {
-    res.set_header(LOCATION, path);
+void set_location_header(server::Response& response, const std::string& path) {
+    response.set_header(LOCATION, path);
 }
 
 
@@ -344,6 +454,45 @@ void children_to_add_to_remove(agent_framework::module::managers::ManyToManyMana
         }
     }
 }
+
+void string_array_to_json(json::Value& json, const agent_framework::model::attribute::Array<std::string>& array) {
+    if (!json.is_array()) {
+        json = json::Value::Type::ARRAY;
+    }
+    for(const auto& str : array) {
+        json.push_back(str);
+    }
+}
+
+void populate_metrics(json::Value& component_json, const std::string& component_uuid) {
+    auto metrics = agent_framework::module::get_manager<Metric>().get_entries(
+        [&component_uuid](const Metric& m) {
+            return m.get_component_uuid() == component_uuid;
+    });
+
+    for (const auto& metric: metrics) {
+        try {
+            jsonptr::set_at(component_json, metric.get_name(),
+                            agent_framework::model::utils::to_json_cxx(metric.get_value()));
+        }
+        catch(const std::exception& e) {
+            log_error(GET_LOGGER("rest"), "populate metric " << metric.get_name() << " failed: " << e.what());
+        }
+    }
+}
+
+void populate_metrics(json::Value& component_json, const std::vector<agent_framework::model::Metric>& metrics) {
+    for (const auto& metric: metrics) {
+        try {
+            jsonptr::set_at(component_json, metric.get_name(),
+                            agent_framework::model::utils::to_json_cxx(metric.get_value()));
+        }
+        catch(const std::exception& e) {
+            log_error(GET_LOGGER("rest"), "populate metric " << metric.get_name() << " failed: " << e.what());
+        }
+    }
+}
+
 
 }
 }

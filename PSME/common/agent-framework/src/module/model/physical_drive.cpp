@@ -38,8 +38,8 @@ PhysicalDrive::PhysicalDrive(const std::string& parent_uuid, enums::Component pa
 
 PhysicalDrive::~PhysicalDrive() {}
 
-Json::Value PhysicalDrive::to_json() const {
-    Json::Value result;
+json::Json PhysicalDrive::to_json() const {
+    json::Json result;
     result[literals::PhysicalDrive::STATUS] = get_status().to_json();
     result[literals::PhysicalDrive::INTERFACE] = get_interface();
     result[literals::PhysicalDrive::TYPE] = get_type();
@@ -50,7 +50,7 @@ Json::Value PhysicalDrive::to_json() const {
     return result;
 }
 
-PhysicalDrive PhysicalDrive::from_json(const Json::Value& json) {
+PhysicalDrive PhysicalDrive::from_json(const json::Json& json) {
     PhysicalDrive drive;
 
     drive.set_status(attribute::Status::from_json(

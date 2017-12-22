@@ -30,6 +30,7 @@ function(ipmitool_install)
     # Compiles files.
     execute_process(
         COMMAND ${CMAKE_C_COMPILER} -fPIC -std=gnu99 ${target}
+            ${source_dir}/src/plugins/ipmi_externs.c
             ${source_dir}/src/plugins/ipmi_intf.c
             ${source_dir}/lib/log.c
             ${source_dir}/lib/ipmi_sdr.c
@@ -41,12 +42,13 @@ function(ipmitool_install)
             ${source_dir}/src/plugins/lan/auth.c
             ${source_dir}/src/plugins/lan/lan.c
             ${source_dir}/src/plugins/lan/md5.c
+            ${source_dir}/src/plugins/serial/serial_oem.c
             ${source_dir}/lib/ipmi_sel.c
             ${source_dir}/lib/ipmi_oem.c
             ${source_dir}/lib/hpm2.c
             ${source_dir}/lib/ipmi_fru.c
             ${source_dir}/lib/dimm_spd.c
-            -DHAVE_PATHS_H -DIPMI_INTF_LAN
+            -DHAVE_PATHS_H -DIPMI_INTF_LAN -DIPMI_INTF_SERIAL_OEM
             -I ${source_dir}/include/
         WORKING_DIRECTORY ${binary_dir}
         RESULT_VARIABLE result

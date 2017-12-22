@@ -23,6 +23,7 @@
  * */
 
 #pragma once
+
 namespace agent_framework {
 namespace model {
 namespace literals {
@@ -36,7 +37,8 @@ public:
     static constexpr const char STATUS[] = "status";
     static constexpr const char LOCATION_OFFSET[] = "locationOffset";
     static constexpr const char PARENT_ID[] = "parentId";
-    static constexpr const char SIZE[] = "size";
+    static constexpr const char LOCATION_ID[] = "locationId";
+    static constexpr const char IS_MANAGED[] = "isManaged";
     static constexpr const char TYPE[] = "type";
     static constexpr const char POWER_ZONE[] = "powerZone";
     static constexpr const char THERMAL_ZONE[] = "thermalZone";
@@ -45,7 +47,11 @@ public:
     static constexpr const char SKU[] = "sku";
     static constexpr const char ASSET_TAG[] = "assetTag";
     static constexpr const char INDICATOR_LED[] = "indicatorLED";
+    static constexpr const char GEO_TAG[] = "geoTag";
+    static constexpr const char DISAGGREGATED_POWER_COOLING_SUPPORT[] = "disaggregatedPowerCoolingSupport";
     static constexpr const char OEM[] = "oem";
+    static constexpr const char RESET[] = "reset";
+    static constexpr const char ALLOWED_ACTIONS[] = "allowedActions";
 };
 
 /*!
@@ -61,63 +67,6 @@ public:
     static constexpr const char OEM[] = "oem";
 };
 
-/*!
- * @brief Class consisting of literals for Fan model objects
- */
-class Fan {
-public:
-    static constexpr const char FAN[] = "fan";
-    static constexpr const char STATUS[] = "status";
-    static constexpr const char SLOT[] = "slot";
-    static constexpr const char CURRENT_SPEED[] = "currentSpeed";
-    static constexpr const char DESIRED_SPEED[] = "desiredSpeed";
-    static constexpr const char FRU_INFO[] = "fruInfo";
-    static constexpr const char OEM[] = "oem";
-};
-
-/*!
- * @brief Class consisting of literals for ThermalZone model objects
- */
-class ThermalZone {
-public:
-    static constexpr const char ZONE[] = "zone";
-    static constexpr const char STATUS[] = "status";
-    static constexpr const char TEMPERATURE[] = "temperature";
-    static constexpr const char COLLECTIONS[] = "collections";
-    static constexpr const char OEM[] = "oem";
-};
-
-/*!
- * @brief Class consisting of literals for Psu model objects
- */
-class Psu {
-public:
-    static constexpr const char PSU[] = "psu";
-    static constexpr const char STATUS[] = "status";
-    static constexpr const char SLOT[] = "slot";
-    static constexpr const char POWER_INPUT[] = "powerInput";
-    static constexpr const char POWER_OUTPUT[] = "powerOutput";
-    static constexpr const char POWER_CAPACITY[] = "powerCapacity";
-    static constexpr const char FRU_INFO[] = "fruInfo";
-    static constexpr const char OEM[] = "oem";
-};
-
-/*!
- * @brief Class consisting of literals for PowerZone model objects
- */
-class PowerZone {
-public:
-    static constexpr const char ZONE[] = "zone";
-    static constexpr const char STATUS[] = "status";
-    static constexpr const char POWER_INPUT[] = "powerInput";
-    static constexpr const char POWER_OUTPUT[] = "powerOutput";
-    static constexpr const char POWER_CAPACITY[] = "powerCapacity";
-    static constexpr const char COLLECTIONS[] = "collections";
-    static constexpr const char OEM[] = "oem";
-};
-
 }
 }
 }
-
-

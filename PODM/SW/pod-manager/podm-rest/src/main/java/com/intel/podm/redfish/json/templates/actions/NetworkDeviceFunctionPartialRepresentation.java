@@ -21,8 +21,8 @@ import com.intel.podm.common.types.AuthenticationMethod;
 import com.intel.podm.common.types.IpAddressType;
 import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.redfish.RedfishNetworkDeviceFunction;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import static com.intel.podm.common.types.Ref.unassigned;
 
@@ -87,7 +87,7 @@ public final class NetworkDeviceFunctionPartialRepresentation implements Redfish
         }
     }
 
-    @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:MethodLength"})
+    @SuppressWarnings({"checkstyle:MethodCount"})
     public static class IscsiBoot implements RedfishNetworkDeviceFunction.IscsiBoot {
         @JsonProperty("IPAddressType")
         private Ref<IpAddressType> ipAddressType = unassigned();
@@ -306,6 +306,7 @@ public final class NetworkDeviceFunctionPartialRepresentation implements Redfish
         }
 
         @Override
+        @SuppressWarnings({"checkstyle:MethodLength"})
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -346,6 +347,7 @@ public final class NetworkDeviceFunctionPartialRepresentation implements Redfish
         }
 
         @Override
+        @SuppressWarnings({"checkstyle:MethodLength"})
         public int hashCode() {
             return new HashCodeBuilder()
                 .append(ipAddressType)

@@ -31,7 +31,6 @@ using namespace agent_framework::command_ref;
 using namespace agent_framework::model::literals;
 using namespace agent_framework::model;
 
-static constexpr int TEST_SIZE = 2048;
 static constexpr int TEST_OFFSET = 1;
 static constexpr char TEST_SERIAL[] = "TestSerialNumber";
 static constexpr char TEST_MANUFACTURER[] = "TestManufacturer";
@@ -55,10 +54,14 @@ public:
         agent_framework::model::Chassis chassis{};
         chassis.set_status(attribute::Status(enums::State::InTest, enums::Health::Warning));
         chassis.set_type(enums::ChassisType::Rack);
-        chassis.set_size(TEST_SIZE);
         chassis.set_location_offset(TEST_OFFSET);
-        chassis.set_fru_info(agent_framework::model::attribute::FruInfo(
-          TEST_SERIAL, TEST_MANUFACTURER, TEST_MODEL, TEST_PART));
+        chassis.set_fru_info(
+            agent_framework::model::attribute::FruInfo(
+                TEST_SERIAL,
+                TEST_MANUFACTURER,
+                TEST_MODEL,
+                TEST_PART)
+        );
         chassis.set_oem(attribute::Oem());
         response = chassis;
     }
@@ -72,8 +75,8 @@ TEST(GetChassisInfoTest, PositiveExecute) {
     MyGetChassisInfo command{"TestChassis"};
     GetChassisInfo::Request request{""};
     GetChassisInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params["chassis"] = "TestChassis";
 
@@ -83,7 +86,6 @@ TEST(GetChassisInfoTest, PositiveExecute) {
 
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result["type"].isString());
-    ASSERT_TRUE(result["size"].isUInt());
     ASSERT_TRUE(result["locationOffset"].isUInt());
     ASSERT_TRUE(result["status"].isObject());
     ASSERT_TRUE(result["status"]["state"].isString());
@@ -95,7 +97,6 @@ TEST(GetChassisInfoTest, PositiveExecute) {
     ASSERT_TRUE(result["fruInfo"]["modelNumber"].isString());
     ASSERT_TRUE(result["fruInfo"]["partNumber"].isString());
     ASSERT_EQ(result["type"].asString(), "Rack");
-    ASSERT_EQ(result["size"].asUInt(), TEST_SIZE);
     ASSERT_EQ(result["locationOffset"].asUInt(), TEST_OFFSET);
     ASSERT_EQ(result["status"]["state"], "InTest");
     ASSERT_EQ(result["status"]["health"], "Warning");
@@ -109,8 +110,8 @@ TEST(GetChassisInfoTest, NegativeModuleNotFound) {
     MyGetChassisInfo command{"TestChassis"};
     GetChassisInfo::Request request{""};
     GetChassisInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params["chassis"] = "OtherTestChassis";
 

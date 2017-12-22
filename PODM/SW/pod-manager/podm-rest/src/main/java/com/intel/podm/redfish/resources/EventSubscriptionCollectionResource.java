@@ -17,15 +17,17 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
+import com.intel.podm.business.dto.EventSubscriptionDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.EventSubscriptionDto;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.CreationService;
 import com.intel.podm.business.services.redfish.ReaderService;
 import com.intel.podm.business.services.redfish.RemovalService;
 import com.intel.podm.business.services.redfish.requests.EventSubscriptionRequest;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 import com.intel.podm.redfish.json.templates.actions.EventSubscriptionRequestJson;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -41,13 +43,14 @@ import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SUBSCRIPTION;
 import static com.intel.podm.business.services.redfish.ReaderService.SERVICE_ROOT_CONTEXT;
-import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
 import static com.intel.podm.common.types.Id.id;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class EventSubscriptionCollectionResource extends BaseResource {
     @Inject
     private ReaderService<EventSubscriptionDto> readerService;
@@ -66,15 +69,17 @@ public class EventSubscriptionCollectionResource extends BaseResource {
     @Consumes(APPLICATION_JSON)
     public Response createSubscription(EventSubscriptionRequestJson payload) throws BusinessApiException, TimeoutException {
         Context context = creationService.create(null, payload);
-
-        return Response.created(asOdataId(context).toUri()).build();
+        return Response.created(context.asOdataId().toUri()).build();
     }
 
     @GET
     @Path("{id}")
-    public EventSubscriptionDto getSubscription(@PathParam("id") Long id) {
+    public RedfishResourceAmazingWrapper getSubscription(@PathParam("id") Long id) {
         Context context = contextFromSubscriptionId(id);
-        return getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(
+            context,
+            getOrThrow(() -> readerService.getResource(context))
+        );
     }
 
     @DELETE
@@ -85,7 +90,14 @@ public class EventSubscriptionCollectionResource extends BaseResource {
     }
 
     private Context contextFromSubscriptionId(Long id) {
-        // TODO: this is a hack!
+        // TODO: RSASW-8103
         return contextOf(id(""), EVENT_SERVICE).child(id(id), EVENT_SUBSCRIPTION);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder()
+            .addPostMethod()
+            .build();
     }
 }

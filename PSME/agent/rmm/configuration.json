@@ -1,0 +1,47 @@
+{
+    "agent": {
+        "vendor" : "Intel Corporation",
+        "capabilities" : [ "Rmm" ]
+    },
+    "server": {
+        "port": 7791
+    },
+    "registration": {
+        "ipv4": "localhost",
+        "port": 8383,
+        "interval": 3
+    },
+    "certificate-files": {
+        "podm" : "/etc/psme/certs/podm.cert",
+        "rmm" : "/etc/psme/certs/rmm.cert"
+    },
+    "managers": [
+        {
+            "locationOffset": 0,
+            "device": "/dev/ttyCm1IPMI"
+        },
+        {
+            "locationOffset": 4,
+            "device": "/dev/ttyCm2IPMI"
+        }
+    ],
+    "database": {
+        "location": "/var/opt/psme/rmm"
+    },
+    "service-uuid-file" : "/var/opt/psme/rmm-service-uuid.json",
+    "logger" : {
+        "agent" : {
+            "level" : "DEBUG",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type" : "STDOUT"
+                }
+            ]
+        }
+    }
+}

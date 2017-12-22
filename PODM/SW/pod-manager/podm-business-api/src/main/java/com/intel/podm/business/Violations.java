@@ -16,16 +16,18 @@
 
 package com.intel.podm.business;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
 import static java.lang.String.format;
+import static java.util.Collections.unmodifiableList;
 
 public final class Violations implements Iterable<String> {
-    private Set<String> violations = new LinkedHashSet<>();
+    private List<String> violations = new ArrayList<>();
 
     public static Violations createWithViolations(String... violations) {
         Violations combinedViolations = new Violations();
@@ -44,6 +46,16 @@ public final class Violations implements Iterable<String> {
 
     public void addMissingPropertyViolation(String propertyName) {
         violations.add(format("Mandatory property %s is missing", propertyName));
+    }
+
+    public void addValueNotAllowedViolation(String propertyName, Collection<?> allowedValues) {
+        violations.add(format("Value of %s property is not allowed. Allowed values are: %s", propertyName, allowedValues));
+    }
+
+    public static Violations ofValueNotAllowedViolation(String propertyName, Collection<?> allowedValues) {
+        Violations violation = new Violations();
+        violation.addValueNotAllowedViolation(propertyName, allowedValues);
+        return violation;
     }
 
     @Override
@@ -65,13 +77,13 @@ public final class Violations implements Iterable<String> {
         return !violations.isEmpty();
     }
 
-    public String[] toStringArray() {
-        return violations.toArray(new String[violations.size()]);
+    public List<String> asStringList() {
+        return unmodifiableList(this.violations);
     }
 
     public Violations addAll(Violations violations) {
         if (violations != null) {
-            violations.forEach(this.violations::add);
+            this.violations.addAll(violations.asStringList());
         }
         return this;
     }

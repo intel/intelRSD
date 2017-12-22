@@ -66,21 +66,21 @@ public:
 
 
     /*!
-     * Construct a Task object from Json::Value
+     * Construct a Task object from json::Json
      *
      * @param[in] json Json object representing a task
      *
      * @return Task object
      * */
-    static Task from_json(const Json::Value& json);
+    static Task from_json(const json::Json& json);
 
 
     /*!
-     * Convert a Task object to Json::Value
+     * Convert a Task object to json::Json
      *
-     * @return Json::Value object representing a task
+     * @return json::Json object representing a task
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
     /*!
@@ -160,26 +160,6 @@ public:
      * */
     void set_name(const OptionalField<std::string>& name) {
         m_name = name;
-    }
-
-
-    /*!
-     * Get task status
-     *
-     * @return Health enum representing task state
-     * */
-    const OptionalField<enums::Health>& get_status() const {
-        return m_status;
-    }
-
-
-    /*!
-     * Set task status
-     *
-     * @param[in] status Health enum representing task status
-     * */
-    void set_status(const OptionalField<enums::Health>& status) {
-        m_status = status;
     }
 
 
@@ -286,7 +266,6 @@ private:
     OptionalField<std::string> m_start_time{};
     OptionalField<std::string> m_end_time{};
     OptionalField<std::string> m_name{};
-    OptionalField<enums::Health> m_status{enums::Health::OK};
     OptionalField<enums::TaskState> m_state{enums::TaskState::New};
     Messages m_messages{};
 

@@ -16,7 +16,7 @@
 
 package com.intel.podm.business.entities.listeners;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.spi.Bean;
@@ -27,7 +27,7 @@ import java.util.Set;
 
 import static com.intel.podm.common.utils.IterableHelper.single;
 
-@Dependent
+@ApplicationScoped
 public class EntityListener {
     @Inject
     protected BeanManager beanManager;
@@ -37,7 +37,9 @@ public class EntityListener {
      */
     //Workaround for WFLY-2387
     protected <T> T create(Class<T> beanClass) {
-        Set<Bean<?>> beans = beanManager.getBeans(beanClass, new AnnotationLiteral<Any>() { });
+        Set<Bean<?>> beans = beanManager.getBeans(beanClass, new AnnotationLiteral<Any>() {
+            private static final long serialVersionUID = 6274001017933547151L;
+        });
 
         if (beans.size() == 0) {
             throw new IllegalArgumentException(beanClass + " is not a managed bean");

@@ -1,0 +1,52 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2017 Intel Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet author="podm (generated)" id="1">
+        <modifyDataType columnName="physical_context" newDataType="text" tableName="thermal_fan"/>
+    </changeSet>
+
+    <changeSet author="podm (generated)" id="2">
+        <sql>
+            UPDATE thermal_fan
+            SET physical_context = CASE
+                WHEN physical_context = '0' THEN 'ROOM'
+                WHEN physical_context = '1' THEN 'INTAKE'
+                WHEN physical_context = '2' THEN 'EXHAUST'
+                WHEN physical_context = '3' THEN 'FRONT'
+                WHEN physical_context = '4' THEN 'UPPER'
+                WHEN physical_context = '5' THEN 'LOWER'
+                WHEN physical_context = '6' THEN 'CPU'
+                WHEN physical_context = '7' THEN 'GPU'
+                WHEN physical_context = '8' THEN 'BACKPLANE'
+                WHEN physical_context = '9' THEN 'SYSTEM_BOARD'
+                WHEN physical_context = '10' THEN 'POWER_SUPPLY'
+                WHEN physical_context = '11' THEN 'VOLTAGE_REGULATOR'
+                WHEN physical_context = '12' THEN 'STORAGE_DEVICE'
+                WHEN physical_context = '13' THEN 'NETWORKING_DEVICE'
+                WHEN physical_context = '14' THEN 'COMPUTE_BAY'
+                WHEN physical_context = '15' THEN 'STORAGE_BAY'
+                WHEN physical_context = '16' THEN 'NETWORK_BAY'
+                WHEN physical_context = '17' THEN 'EXPANSION_BAY'
+                WHEN physical_context = '18' THEN 'POWER_SUPPLY_BAY'
+                ELSE physical_context
+            END
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

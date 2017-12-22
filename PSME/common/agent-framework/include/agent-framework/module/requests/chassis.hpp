@@ -25,8 +25,4 @@
 #pragma once
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/requests/chassis/get_authorization_certificate.hpp"
-#include "agent-framework/module/requests/chassis/get_fan_info.hpp"
-#include "agent-framework/module/requests/chassis/get_power_zone_info.hpp"
-#include "agent-framework/module/requests/chassis/get_psu_info.hpp"
-#include "agent-framework/module/requests/chassis/get_thermal_zone_info.hpp"
 

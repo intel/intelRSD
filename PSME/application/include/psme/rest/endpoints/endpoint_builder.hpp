@@ -20,19 +20,18 @@
  * */
 
 #pragma once
+
 namespace psme {
 namespace rest {
-namespace server {
-    class Multiplexer;
-}
-
 namespace endpoint {
 
 class EndpointBuilder {
 public:
+
     ~EndpointBuilder();
 
-    void build_endpoints(server::Multiplexer& mp);
+
+    void build_endpoints();
 };
 
 }

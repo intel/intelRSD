@@ -18,14 +18,15 @@
  * limitations under the License.
  *
  *
- * @brief System model interface
+ * @brief JSON converter
  * */
 
 #pragma once
+
 #include "is_framework_enum.hpp"
 
+#include "json-wrapper/json-wrapper.hpp"
 #include "json/json.hpp"
-#include <json/json.h>
 
 namespace agent_framework {
 namespace module {
@@ -44,6 +45,7 @@ template<typename JsonType>
 class JsonConverter {
     template<typename U>
     using is_framework_enum = model::utils::is_framework_enum<U>;
+
 public:
     /*!
      * @brief Convert an ordinary object to JSON of type JsonType.
@@ -119,4 +121,3 @@ protected:
 }
 }
 }
-

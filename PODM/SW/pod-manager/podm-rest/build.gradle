@@ -14,46 +14,43 @@
  * limitations under the License.
  */
 
-apply plugin:'war'
+apply plugin: 'war'
 
 dependencies {
-    runtime (project(':podm-actions')) { transitive = false }
-    runtime (project(':podm-assembly')) { transitive = false }
-    runtime (project(':podm-business-services')) { transitive = false }
-    runtime (project(':podm-business-entities')) { transitive = false }
-    compile (project(':podm-eventing')) { transitive = false }
-    runtime (project(':podm-mappers')) { transitive = false }
-    compile (project(':logger')) { transitive = false }
-    compile (project(':utils')) { transitive = false }
-    runtime (project(':synchronization')) { transitive = false }
-    compile (project(':types')) { transitive = false }
-    runtime (project(':enterprise-utils')) { transitive = false }
-    compile (project(':config')) { transitive = false }
-    runtime (project(':podm-external-services-api')) { transitive = false }
-    runtime (project(':podm-external-services')) { transitive = false }
-    compile (project(':podm-business-api')) { transitive = false }
-    runtime (project(':podm-services-detection')) { transitive = false }
-    runtime (project(':security')) { transitive = false }
-    compile (project(':serialization')) { transitive = false }
-    runtime (project(':podm-discovery')) { transitive = false }
-    compile (project(':ipxe-supplier')) { transitive = false }
+    runtime(project(':podm-business-services')) { transitive = false }
+    runtime(project(':podm-business-entities')) { transitive = false }
+    compile(project(':podm-eventing')) { transitive = false }
+    runtime(project(':podm-mappers')) { transitive = false }
+    compile(project(':logger')) { transitive = false }
+    compile(project(':utils')) { transitive = false }
+    runtime(project(':synchronization')) { transitive = false }
+    compile(project(':types')) { transitive = false }
+    compile(project(':enterprise-utils')) { transitive = false }
+    compile(project(':config')) { transitive = false }
+    runtime(project(':podm-external-services')) { transitive = false }
+    compile(project(':podm-business-api')) { transitive = false }
+    runtime(project(':podm-services-detection')) { transitive = false }
+    runtime(project(':security')) { transitive = false }
+    compile(project(':serialization')) { transitive = false }
+    runtime(project(':podm-discovery')) { transitive = false }
+    compile(project(':ipxe-supplier')) { transitive = false }
 
-    runtime ("$MODEL_MAPPER_DEPENDENCY") { transitive = false }
+    runtime("$MODEL_MAPPER_DEPENDENCY") { transitive = false }
     compile "$GUAVA_DEPENDENCY"
-    compile ("$JACKSON_JSR310_DEPENDENCY") { transitive = true }
-    compile ("$JACKSON_PROVIDER_DEPENDENCY") { transitive = true }
+    compile("$JACKSON_JSR310_DEPENDENCY") { transitive = true }
+    compile("$JACKSON_PROVIDER_DEPENDENCY") { transitive = true }
     compile "$APACHE_COMMONS_VALIDATOR"
     compile "$APACHE_COMMONS_LANG"
     compile "$APACHE_COMMONS_IO"
     runtime "$APACHE_COMMONS_NET"
     runtime "$METRICS_CDI"
-    compile "$CLASS_INDEX"
+    compile (project(':classindex'))
     runtime "$CLING_CORE"
     compile "$LIQUIBASE_CORE"
     compile "$LIQUIBASE_CDI"
 
     providedCompile "$JAVA_EE_API_DEPENDENCY"
-    providedCompile ("$RESTEASY_JAXRS_DEPENDENCY") { transitive = false }
+    providedCompile("$RESTEASY_JAXRS_DEPENDENCY") { transitive = false }
     providedCompile "$HIBERNATE_JPA"
     providedCompile "$HIBERNATE_CORE"
     providedCompile "$HIBERNATE_EM"

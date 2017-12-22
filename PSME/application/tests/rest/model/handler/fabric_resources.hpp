@@ -38,6 +38,7 @@ static std::string FabricManager1 =
             "maxSessions": null,
             "typesSupported": []
         },
+        "allowedActions": [],
         "dateTime": null,
         "dateTimeLocalOffset": null,
         "firmwareVersion": "2.58",
@@ -85,7 +86,8 @@ static std::string FabricManager1 =
             "health": "OK",
             "state": "Enabled"
         },
-        "type": "ManagementController"
+        "type": "ManagementController",
+        "parentId": "parent"
     })";
 
 static std::string Fabric1 =

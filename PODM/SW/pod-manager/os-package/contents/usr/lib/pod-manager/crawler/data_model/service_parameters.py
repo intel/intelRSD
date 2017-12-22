@@ -19,6 +19,9 @@ class ServiceParameters:
         self._root_path = root_path
         self._protocol = protocol
 
+    def __str__(self):
+        return '{service_type} {protocol}'.format(service_type=self._service_type, protocol=self._protocol)
+
     def get_service_type(self):
         return self._service_type
 

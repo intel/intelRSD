@@ -1,0 +1,47 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2017 Intel Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="podm (generated)" id="1501850605675-1">
+        <createTable tableName="ethernet_switch_static_mac">
+            <column name="entity_id" type="TEXT"/>
+            <column name="mac_address" type="TEXT"/>
+            <column name="vlan_id" type="INT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ethernet_switch_port_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1501850605675-2">
+        <addPrimaryKey columnNames="id" constraintName="ethernet_switch_static_mac_pkey" tableName="ethernet_switch_static_mac"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1501850605675-3">
+        <addUniqueConstraint columnNames="entity_id" constraintName="idx_ethernet_switch_static_mac_entity_id" tableName="ethernet_switch_static_mac"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1501850605675-4">
+        <addForeignKeyConstraint baseColumnNames="ethernet_switch_port_id" baseTableName="ethernet_switch_static_mac"
+                                 constraintName="fk_1dhlbfa4tkh97wc92ourpt5g4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_switch_port"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1501850605675-5">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="ethernet_switch_static_mac" constraintName="fk_24dbvbd17vyepinnap8xfy90"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="discoverable_entity"/>
+    </changeSet>
+</databaseChangeLog>

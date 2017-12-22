@@ -24,11 +24,11 @@
 
 #include "utils/lag.hpp"
 
-#include "api/netlink/switch_port_info.hpp"
+#include "hal/switch_port_info_impl.hpp"
 
 #include "agent-framework/module/network_components.hpp"
 
-using namespace agent::network::api::netlink;
+using namespace agent::network::hal;
 
 using namespace agent_framework::module;
 using namespace agent_framework::model;
@@ -63,23 +63,23 @@ string agent::network::utils::add_logical_port(const string& lag_identifier,
 }
 
 bool agent::network::utils::is_member_port(const string& port_identifier) {
-    SwitchPortInfo port_info{port_identifier};
+    SwitchPortInfoImpl port_info{port_identifier};
     return port_info.is_member();
 }
 
 bool agent::network::utils::is_logical_port_empty(const string& lag_identifier) {
-    SwitchPortInfo port_info{lag_identifier};
+    SwitchPortInfoImpl port_info{lag_identifier};
     return port_info.get_port_members().size() == 0;
 }
 
 vector<string> agent::network::utils::get_logical_port_members(
         const string& lag_identifier) {
-    SwitchPortInfo port_info{lag_identifier};
+    SwitchPortInfoImpl port_info{lag_identifier};
     return port_info.get_port_members();
 }
 
 string agent::network::utils::get_lag_identifier(const string& port_identifier) {
-    SwitchPortInfo port_info{port_identifier};
+    SwitchPortInfoImpl port_info{port_identifier};
     return port_info.get_master_port();
 }
 
@@ -121,7 +121,7 @@ void agent::network::utils::validate_port_members(
 
         /* check speed for all ports to be the same */
         SwitchPortInfo::PortAttributeValue value{};
-        SwitchPortInfo switch_port_info(port.get_port_identifier());
+        SwitchPortInfoImpl switch_port_info(port.get_port_identifier());
         switch_port_info.get_switch_port_attribute(SwitchPortInfo::LINKSPEEDMBPS, value);
         if (INVALID_PORT_SPEED == speed) {
             speed = int(value);

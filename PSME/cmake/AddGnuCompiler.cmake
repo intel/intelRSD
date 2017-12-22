@@ -137,11 +137,19 @@ function (gnu_compiler_processing)
         -D_FORTIFY_SOURCE=2
     )
 
-    set(LINKER_DEFENSES
-        -pie
-        -z noexecstack
-        -z relro -z now
-    )
+    if (BUILD_EOS_SDK)
+        # do NOT set -pie for EOS SDK
+        set(LINKER_DEFENSES
+            -z noexecstack
+            -z relro -z now
+        )
+    else()
+        set(LINKER_DEFENSES
+            -pie
+            -z noexecstack
+            -z relro -z now
+        )
+    endif()
 
     string(REGEX REPLACE ";" " " COMPILER_DEFENSES "${COMPILER_DEFENSES}")
     string(REGEX REPLACE ";" " " LINKER_DEFENSES   "${LINKER_DEFENSES}")

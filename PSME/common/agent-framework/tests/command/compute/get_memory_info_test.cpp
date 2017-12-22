@@ -87,8 +87,8 @@ TEST(GetMemoryInfoTest, PositiveExecute) {
     MyGetMemoryInfo command{"TestMemoryId"};
     GetMemoryInfo::Request request{""};
     GetMemoryInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::Memory::MEMORY] = "TestMemoryId";
 
@@ -121,8 +121,8 @@ TEST(GetMemoryInfoTest, NegativeModuleNotFound) {
     MyGetMemoryInfo command{"TestMemoryId"};
     GetMemoryInfo::Request request{""};
     GetMemoryInfo::Response response{};
-    Json::Value params;
-    Json::Value result;
+    json::Json params;
+    json::Json result;
 
     params[literals::Memory::MEMORY] = "OtherTestMemoryId";
 

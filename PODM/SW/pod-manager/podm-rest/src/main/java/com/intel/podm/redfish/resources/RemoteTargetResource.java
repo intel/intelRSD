@@ -17,27 +17,30 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
-import com.intel.podm.business.dto.redfish.RemoteTargetDto;
+import com.intel.podm.business.dto.RemoteTargetDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
 import com.intel.podm.business.services.redfish.UpdateService;
 import com.intel.podm.common.types.redfish.RedfishRemoteTarget;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
 import com.intel.podm.redfish.json.templates.actions.RemoteTargetPartialRepresentation;
 import com.intel.podm.redfish.json.templates.actions.constraints.RemoteTargetConstraint;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-
 import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.ok;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class RemoteTargetResource extends BaseResource {
-
     @Inject
     private ReaderService<RemoteTargetDto> readerService;
 
@@ -45,15 +48,24 @@ public class RemoteTargetResource extends BaseResource {
     private UpdateService<RedfishRemoteTarget> updateService;
 
     @Override
-    public RemoteTargetDto get() {
-        return getOrThrow(() -> readerService.getResource(getCurrentContext()));
+    public RedfishResourceAmazingWrapper get() {
+        Context context = getCurrentContext();
+        RemoteTargetDto remoteTargetDto = getOrThrow(() -> readerService.getResource(context));
+        return new RedfishResourceAmazingWrapper(context, remoteTargetDto);
     }
 
     @PATCH
     @Consumes(APPLICATION_JSON)
     public Response updateRemoteTarget(@RemoteTargetConstraint RemoteTargetPartialRepresentation partialRepresentation)
-            throws TimeoutException, BusinessApiException {
+        throws TimeoutException, BusinessApiException {
         updateService.perform(getCurrentContext(), partialRepresentation);
         return ok(get()).build();
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder()
+            .addPatchMethod()
+            .build();
     }
 }

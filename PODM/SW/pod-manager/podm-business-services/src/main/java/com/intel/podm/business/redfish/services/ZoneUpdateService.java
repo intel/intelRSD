@@ -31,7 +31,7 @@ import java.util.concurrent.TimeoutException;
 import static javax.transaction.Transactional.TxType.NEVER;
 
 @RequestScoped
-public class ZoneUpdateService implements UpdateService<RedfishZone> {
+class ZoneUpdateService implements UpdateService<RedfishZone> {
     @Inject
     private ZoneActionService updateService;
 
@@ -44,6 +44,6 @@ public class ZoneUpdateService implements UpdateService<RedfishZone> {
     @Override
     @Transactional(NEVER)
     public void perform(Context target, RedfishZone representation) throws BusinessApiException, TimeoutException {
-        taskCoordinator.runThrowing(traverser.traverseServiceUuid(target), () -> updateService.updateZoneEndpointsCollection(target, representation));
+        taskCoordinator.run(traverser.traverseServiceUuid(target), () -> updateService.updateZoneEndpointsCollection(target, representation));
     }
 }

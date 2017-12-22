@@ -21,7 +21,7 @@
 
 #include "agent-framework/module/model/fabric.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
@@ -35,8 +35,8 @@ Fabric::Fabric(const std::string& parent_uuid, enums::Component parent_type) :
 
 Fabric::~Fabric() {}
 
-Json::Value Fabric::to_json() const {
-    Json::Value result{};
+json::Json Fabric::to_json() const {
+    json::Json result{};
     result[literals::Switch::COLLECTIONS] = get_collections().to_json();
     result[literals::Switch::STATUS] = get_status().to_json();
     result[literals::Switch::OEM] = get_oem().to_json();
@@ -44,11 +44,13 @@ Json::Value Fabric::to_json() const {
     return result;
 }
 
-Fabric Fabric::from_json(const Json::Value& json) {
+Fabric Fabric::from_json(const json::Json& json) {
     Fabric pcie_fabric{};
     pcie_fabric.set_collections(Collections::from_json(json[literals::Switch::COLLECTIONS]));
     pcie_fabric.set_status(Status::from_json(json[literals::Switch::STATUS]));
     pcie_fabric.set_oem(Oem::from_json(json[literals::Switch::OEM]));
+
     pcie_fabric.set_protocol(json[literals::Switch::PROTOCOL]);
+    pcie_fabric.set_resource_hash(json);
     return pcie_fabric;
 }

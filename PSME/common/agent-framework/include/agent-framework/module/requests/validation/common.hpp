@@ -18,15 +18,20 @@
  * limitations under the License.
  *
  * @file validation/common.hpp
- * @brief Methods to validate JSON requests
+ * @brief Methods to validate JSON requests for resources.
+ * Validator checks for correct field names and JSON types.
+ *
  * */
 
 #pragma once
+
 namespace agent_framework {
 namespace model {
 namespace attribute {
+
 /* Forward declaration */
 class Attributes;
+
 }
 }
 }
@@ -56,6 +61,7 @@ public:
     static void validate_set_chassis_attributes(
         const agent_framework::model::attribute::Attributes& attributes);
 
+
     /*!
      * @brief Validates SetComponentAttributes method for System resource.
      * @param[in] attributes Attributes deserialized from JSON request.
@@ -63,9 +69,20 @@ public:
      * */
     static void validate_set_system_attributes(
         const agent_framework::model::attribute::Attributes& attributes);
+
+
+    /*!
+     * @brief Validates SetComponentAttributes method for Manager resource.
+     * @param[in] attributes Attributes deserialized from JSON request.
+     * @throw Throws exception if any parameter is invalid.
+     * */
+    static void validate_set_manager_attributes(
+        const agent_framework::model::attribute::Attributes& attributes);
 };
+
+}
 
 }
 }
 }
-}
+

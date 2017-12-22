@@ -17,6 +17,7 @@
 # </license_header>
 
 set(SOURCES
+    nl_socket.cpp
     nl_message.cpp
     nl_exception.cpp
     nl_exception_invalid_input.cpp

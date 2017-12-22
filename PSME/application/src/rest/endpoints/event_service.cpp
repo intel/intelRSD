@@ -18,12 +18,13 @@
  * limitations under the License.
  * */
 
+#include "psme/rest/eventing/event.hpp"
 #include "psme/rest/endpoints/event_service.hpp"
 #include "psme/rest/constants/constants.hpp"
-#include "json/json.hpp"
 
 using namespace psme::rest;
 using namespace psme::rest::constants;
+using namespace psme::rest::eventing;
 
 
 
@@ -31,29 +32,30 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EventService";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EventService.EventService";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#EventService.v1_0_0.EventService";
+    r[Common::ODATA_TYPE] = "#EventService.v1_0_2.EventService";
+
     r[Common::ID] = "EventService";
     r[Common::NAME] = "Event Service";
     r[Common::DESCRIPTION] = "Event Service description";
+
     r[Common::STATUS][Common::STATE] = "Enabled";
     r[Common::STATUS][Common::HEALTH] = "OK";
     r[Common::STATUS][Common::HEALTH_ROLLUP] = "OK";
     r[Common::OEM] = json::Value::Type::OBJECT;
+
     r[EventService::SERVICE_ENABLED] = true;
     r[EventService::DELIVERY_RETRY_ATTEMPTS] = 3;
     r[EventService::DELIVERY_RETRY_INTERVAL_SECONDS] = 60;
-    r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION] = json::Value::Type::ARRAY;
-    r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION].push_back(EventService::STATUS_CHANGE);
-    r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION].push_back(EventService::RESOURCE_UPDATED);
-    r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION].push_back(EventService::RESOURCE_ADDED);
-    r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION].push_back(EventService::RESOURCE_REMOVED);
-    r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION].push_back(EventService::ALERT);
-    r[EventService::SUBSCRIPTIONS][Common::ODATA_ID] = "/redfish/v1/EventService/Subscriptions";
 
-    json::Value test;
-    r[EventService::ACTIONS][Common::OEM] = json::Value::Type::OBJECT;
+    r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION] = json::Value::Type::ARRAY;
+    for(const auto& event_type : EventType::get_values()) {
+        r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION].push_back(event_type);
+    }
+
+    r[EventService::SUBSCRIPTIONS][Common::ODATA_ID] = "/redfish/v1/EventService/Subscriptions";
+    r[Common::ACTIONS][Common::OEM] = json::Value::Type::OBJECT;
 
     return r;
 }
@@ -63,9 +65,10 @@ endpoint::EventService::EventService(const std::string& path) : EndpointBase(pat
 
 endpoint::EventService::~EventService() {}
 
-void endpoint::EventService::get(const server::Request& req, server::Response& res) {
+void endpoint::EventService::get(const server::Request& request, server::Response& response) {
     auto r = make_prototype();
-    r[Common::ODATA_ID] = PathBuilder(req).build();
 
-    set_response(res, r);
+    r[Common::ODATA_ID] = PathBuilder(request).build();
+
+    set_response(response, r);
 }

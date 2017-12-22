@@ -31,7 +31,6 @@ set(SOURCES
     server/request.cpp
     server/parameters.cpp
     server/multiplexer.cpp
-    server/server.cpp
     server/methods_handler.cpp
     server/content_types.cpp
     server/utils.cpp
@@ -55,6 +54,7 @@ set(SOURCES
     constants/system.cpp
     constants/fabric.cpp
     constants/routes.cpp
+    constants/telemetry.cpp
 
     endpoints/endpoint_base.cpp
     endpoints/redfish.cpp
@@ -63,36 +63,47 @@ set(SOURCES
     endpoints/metadata_root.cpp
     endpoints/metadata.cpp
     endpoints/utils.cpp
-    endpoints/task_service_utils.cpp
+    endpoints/task_service/task_service_utils.cpp
     endpoints/path_builder.cpp
-    endpoints/manager_collection.cpp
-    endpoints/manager.cpp
-    endpoints/network_protocol.cpp
-    endpoints/manager_network_interface_collection.cpp
-    endpoints/manager_network_interface.cpp
-    endpoints/test_event_subscription.cpp
+    endpoints/manager/manager_collection.cpp
+    endpoints/manager/manager.cpp
+    endpoints/manager/manager_reset.cpp
+    endpoints/manager/manager_load_factory_defaults.cpp
+    endpoints/manager/network_protocol.cpp
+    endpoints/manager/manager_network_interface_collection.cpp
+    endpoints/manager/manager_network_interface.cpp
+    endpoints/manager/manager_vlan_network_interface_collection.cpp
+    endpoints/manager/manager_vlan_network_interface.cpp
+    endpoints/update_service.cpp
+    endpoints/simple_update.cpp
+    endpoints/simple_update_action_info.cpp
     endpoints/event_service.cpp
     endpoints/event_subscriptions_collection.cpp
     endpoints/event_subscription.cpp
-    endpoints/task_service.cpp
-    endpoints/task_collection.cpp
-    endpoints/task.cpp
+    endpoints/task_service/task_service.cpp
+    endpoints/task_service/task_collection.cpp
+    endpoints/task_service/task.cpp
     endpoints/message_registry_file_collection.cpp
     endpoints/message_registry_file.cpp
-    endpoints/monitor.cpp
-    endpoints/monitor_content_builder.cpp
+    endpoints/message_registry.cpp
+    endpoints/task_service/monitor.cpp
+    endpoints/task_service/monitor_content_builder.cpp
 
     endpoints/system/systems_collection.cpp
     endpoints/system/system.cpp
     endpoints/system/system_reset.cpp
+    endpoints/system/system_change_tpm_state.cpp
     endpoints/system/processors_collection.cpp
     endpoints/system/processor.cpp
+    endpoints/system/processor_metrics.cpp
     endpoints/system/storage_subsystems_collection.cpp
     endpoints/system/storage_subsystem.cpp
     endpoints/system/memory_collection.cpp
     endpoints/system/memory.cpp
+    endpoints/system/memory_metrics.cpp
     endpoints/system/system_network_interface_collection.cpp
     endpoints/system/system_network_interface.cpp
+    endpoints/system/system_metrics.cpp
     endpoints/system/volumes_collection.cpp
     endpoints/system/network_interface.cpp
     endpoints/system/network_interfaces_collection.cpp
@@ -103,8 +114,8 @@ set(SOURCES
     endpoints/storage/physical_drive.cpp
     endpoints/storage/logical_drive_collection.cpp
     endpoints/storage/logical_drive.cpp
-    endpoints/storage/storage_services.cpp
-    endpoints/storage/storage_services_collection.cpp
+    endpoints/storage/storage_service.cpp
+    endpoints/storage/storage_service_collection.cpp
     endpoints/storage/remote_target.cpp
     endpoints/storage/remote_target_collection.cpp
 
@@ -112,8 +123,10 @@ set(SOURCES
     endpoints/ethernet/vlan_network_interface.cpp
     endpoints/ethernet/ethernet_switch_collection.cpp
     endpoints/ethernet/ethernet_switch.cpp
+    endpoints/ethernet/ethernet_switch_metrics.cpp
     endpoints/ethernet/ethernet_switch_port_collection.cpp
     endpoints/ethernet/ethernet_switch_port.cpp
+    endpoints/ethernet/ethernet_switch_port_metrics.cpp
     endpoints/ethernet/acl.cpp
     endpoints/ethernet/acl_bind.cpp
     endpoints/ethernet/acl_collection.cpp
@@ -124,10 +137,10 @@ set(SOURCES
 
     endpoints/chassis/chassis_collection.cpp
     endpoints/chassis/chassis.cpp
-    endpoints/chassis/thermal_zone.cpp
-    endpoints/chassis/thermal_zones_collection.cpp
-    endpoints/chassis/power_zone.cpp
-    endpoints/chassis/power_zones_collection.cpp
+    endpoints/chassis/chassis_reset.cpp
+    endpoints/chassis/thermal.cpp
+    endpoints/chassis/power.cpp
+    endpoints/chassis/power_supply_request_state_change.cpp
     endpoints/chassis/drives_collection.cpp
     endpoints/chassis/drive.cpp
     endpoints/chassis/drive_secure_erase.cpp
@@ -144,16 +157,28 @@ set(SOURCES
     endpoints/fabric/switches_collection.cpp
     endpoints/fabric/switch_reset.cpp
     endpoints/fabric/port.cpp
+    endpoints/fabric/port_metrics.cpp
     endpoints/fabric/port_reset.cpp
     endpoints/fabric/ports_collection.cpp
     endpoints/fabric/zone.cpp
     endpoints/fabric/zones_collection.cpp
 
+    endpoints/telemetry/telemetry_service.cpp
+    endpoints/telemetry/metric_definition.cpp
+    endpoints/telemetry/metric_definitions_collection.cpp
+    endpoints/telemetry/metric_report_definition.cpp
+    endpoints/telemetry/metric_report_definitions_collection.cpp
+    endpoints/telemetry/trigger.cpp
+    endpoints/telemetry/triggers_collection.cpp
+
+
+
     endpoints/endpoint_builder.cpp
 
     eventing/event.cpp
+    eventing/event_array.cpp
     eventing/event_service.cpp
-    eventing/event_queue.cpp
+    eventing/event_array_queue.cpp
     eventing/rest_client.cpp
     eventing/config/subscription_config.cpp
     eventing/model/subscription.cpp
@@ -167,8 +192,6 @@ set(SOURCES
     model/handlers/handler_manager.cpp
     model/handlers/root_handler.cpp
     model/handlers/id_memoizer.cpp
-    model/handlers/database.cpp
-    model/handlers/file_database.cpp
 
     registries/config/registry_configurator.cpp
     registries/managers/message_registry_file_manager.cpp
@@ -181,17 +204,19 @@ set(SOURCES
     utils/time_utils.cpp
     utils/lag_utils.cpp
     utils/zone_utils.cpp
-    utils/mapper.cpp
 
     validators/json_validator.cpp
     validators/schemas/common.cpp
+    validators/schemas/acl.cpp
     validators/schemas/subscription_collection.cpp
     validators/schemas/endpoints_collection.cpp
     validators/schemas/ethernet_switch_port.cpp
     validators/schemas/ethernet_switch_port_collection.cpp
     validators/schemas/rule.cpp
+    validators/schemas/rule_collection.cpp
     validators/schemas/static_mac.cpp
     validators/schemas/vlan_network_interface_collection.cpp
+    validators/schemas/vlan_network_interface.cpp
     validators/schemas/remote_target.cpp
     validators/schemas/remote_targets_collection.cpp
     validators/schemas/zone.cpp
@@ -199,12 +224,17 @@ set(SOURCES
     validators/schemas/drive.cpp
     validators/schemas/switch.cpp
     validators/schemas/storage_subsystem.cpp
+    validators/schemas/thermal.cpp
     validators/schemas/chassis.cpp
+    validators/schemas/request_state_change.cpp
     validators/schemas/pcie_device.cpp
     validators/schemas/system.cpp
     validators/schemas/reset.cpp
+    validators/schemas/change_tpm_state.cpp
+    validators/schemas/simple_update.cpp
     validators/schemas/logical_drive.cpp
     validators/schemas/network_device_function.cpp
+    validators/schemas/static_mac_collection.cpp
     )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
@@ -212,7 +242,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
         rest_server.cpp
         PROPERTIES COMPILE_FLAGS "-Wno-unsafe-loop-optimizations"
     )
-
     set_source_files_properties(
         server/error/error_factory.cpp
         PROPERTIES COMPILE_FLAGS "-Wno-suggest-attribute=format"
@@ -220,6 +249,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    set_source_files_properties(
+        endpoints/simple_update.cpp
+        COMPILE_FLAGS "-Wno-disabled-macro-expansion"
+    )
     set_source_files_properties(
         server/error/error_factory.cpp
         PROPERTIES COMPILE_FLAGS "-Wno-format-nonliteral"
@@ -250,7 +283,7 @@ if(ENABLE_HTTPS)
         server/certs/rmm_cert_loader.cpp
         server/certs/cert_manager.cpp
         server/connector/microhttpd/mhd_ssl_connector.cpp
-    )
+        )
 
     add_definitions(-DENABLE_HTTPS)
 

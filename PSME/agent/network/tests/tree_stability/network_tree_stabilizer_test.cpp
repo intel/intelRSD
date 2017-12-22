@@ -200,34 +200,34 @@ void NetworkTreeStabilizerTest::SetUp() {
     rule_2_acl_2.set_rule_id(constants::RULE_2_ACL_2_ID);
 
     // Add resources to the model
-    CommonComponents::get_instance()->get_module_manager().add_entry(manager);
+    get_manager<Manager>().add_entry(manager);
 
-    CommonComponents::get_instance()->get_chassis_manager().add_entry(chassis);
+    get_manager<Chassis>().add_entry(chassis);
 
-    NetworkComponents::get_instance()->get_switch_manager().add_entry(eth_switch);
+    get_manager<EthernetSwitch>().add_entry(eth_switch);
 
-    NetworkComponents::get_instance()->get_port_manager().add_entry(port_1);
-    NetworkComponents::get_instance()->get_port_manager().add_entry(port_2);
-    NetworkComponents::get_instance()->get_port_manager().add_entry(port_3);
+    get_manager<EthernetSwitchPort>().add_entry(port_1);
+    get_manager<EthernetSwitchPort>().add_entry(port_2);
+    get_manager<EthernetSwitchPort>().add_entry(port_3);
 
-    NetworkComponents::get_instance()->get_static_mac_manager().add_entry(static_mac_1_port_1);
-    NetworkComponents::get_instance()->get_static_mac_manager().add_entry(static_mac_2_port_1);
-    NetworkComponents::get_instance()->get_static_mac_manager().add_entry(static_mac_1_port_2);
-    NetworkComponents::get_instance()->get_static_mac_manager().add_entry(static_mac_2_port_2);
-    NetworkComponents::get_instance()->get_static_mac_manager().add_entry(static_mac_1_port_3);
-    NetworkComponents::get_instance()->get_static_mac_manager().add_entry(static_mac_2_port_3);
+    get_manager<StaticMac>().add_entry(static_mac_1_port_1);
+    get_manager<StaticMac>().add_entry(static_mac_2_port_1);
+    get_manager<StaticMac>().add_entry(static_mac_1_port_2);
+    get_manager<StaticMac>().add_entry(static_mac_2_port_2);
+    get_manager<StaticMac>().add_entry(static_mac_1_port_3);
+    get_manager<StaticMac>().add_entry(static_mac_2_port_3);
 
-    NetworkComponents::get_instance()->get_port_vlan_manager().add_entry(vlan_on_port_1);
-    NetworkComponents::get_instance()->get_port_vlan_manager().add_entry(vlan_on_port_2);
-    NetworkComponents::get_instance()->get_port_vlan_manager().add_entry(vlan_on_port_3);
+    get_manager<EthernetSwitchPortVlan>().add_entry(vlan_on_port_1);
+    get_manager<EthernetSwitchPortVlan>().add_entry(vlan_on_port_2);
+    get_manager<EthernetSwitchPortVlan>().add_entry(vlan_on_port_3);
 
-    NetworkComponents::get_instance()->get_acl_manager().add_entry(acl_1);
-    NetworkComponents::get_instance()->get_acl_manager().add_entry(acl_2);
+    get_manager<Acl>().add_entry(acl_1);
+    get_manager<Acl>().add_entry(acl_2);
 
-    NetworkComponents::get_instance()->get_acl_rule_manager().add_entry(rule_1_acl_1);
-    NetworkComponents::get_instance()->get_acl_rule_manager().add_entry(rule_2_acl_1);
-    NetworkComponents::get_instance()->get_acl_rule_manager().add_entry(rule_1_acl_2);
-    NetworkComponents::get_instance()->get_acl_rule_manager().add_entry(rule_2_acl_2);
+    get_manager<AclRule>().add_entry(rule_1_acl_1);
+    get_manager<AclRule>().add_entry(rule_2_acl_1);
+    get_manager<AclRule>().add_entry(rule_1_acl_2);
+    get_manager<AclRule>().add_entry(rule_2_acl_2);
 
     // Stabilize mock resource tree
     NetworkTreeStabilizer().stabilize(manager.get_uuid());
@@ -235,114 +235,101 @@ void NetworkTreeStabilizerTest::SetUp() {
 
 
 void NetworkTreeStabilizerTest::TearDown() {
-    CommonComponents::get_instance()->get_module_manager().clear_entries();
-    NetworkComponents::get_instance()->get_port_vlan_manager().clear_entries();
+    get_manager<Manager>().clear_entries();
+    get_manager<EthernetSwitchPortVlan>().clear_entries();
     NetworkComponents::get_instance()->get_vlan_manager().clear_entries();
-    NetworkComponents::get_instance()->get_switch_manager().clear_entries();
-    NetworkComponents::get_instance()->get_port_manager().clear_entries();
+    get_manager<EthernetSwitch>().clear_entries();
+    get_manager<EthernetSwitchPort>().clear_entries();
     NetworkComponents::get_instance()->get_remote_switch_manager().clear_entries();
-    CommonComponents::get_instance()->get_chassis_manager().clear_entries();
+    get_manager<Chassis>().clear_entries();
     NetworkComponents::get_instance()->get_port_members_manager().clear_entries();
-    NetworkComponents::get_instance()->get_acl_manager().clear_entries();
-    NetworkComponents::get_instance()->get_acl_rule_manager().clear_entries();
+    get_manager<Acl>().clear_entries();
+    get_manager<AclRule>().clear_entries();
     NetworkComponents::get_instance()->get_acl_port_manager().clear_entries();
-    NetworkComponents::get_instance()->get_static_mac_manager().clear_entries();
+    get_manager<StaticMac>().clear_entries();
 }
 
 
 TEST_F(NetworkTreeStabilizerTest, NoNewOrDeletedResourcesTest) {
     // Assert that all resources are still present in the resource tree
-    ASSERT_EQ(1, CommonComponents::get_instance()->get_module_manager().get_keys().size());
-    ASSERT_EQ(1, CommonComponents::get_instance()->get_chassis_manager().get_keys().size());
-    ASSERT_EQ(1, NetworkComponents::get_instance()->get_switch_manager().get_keys().size());
-    ASSERT_EQ(3, NetworkComponents::get_instance()->get_port_manager().get_keys().size());
-    ASSERT_EQ(3, NetworkComponents::get_instance()->get_port_vlan_manager().get_keys().size());
-    ASSERT_EQ(6, NetworkComponents::get_instance()->get_static_mac_manager().get_keys().size());
-    ASSERT_EQ(2, NetworkComponents::get_instance()->get_acl_manager().get_keys().size());
-    ASSERT_EQ(4, NetworkComponents::get_instance()->get_acl_rule_manager().get_keys().size());
+    ASSERT_EQ(1, get_manager<Manager>().get_keys().size());
+    ASSERT_EQ(1, get_manager<Chassis>().get_keys().size());
+    ASSERT_EQ(1, get_manager<EthernetSwitch>().get_keys().size());
+    ASSERT_EQ(3, get_manager<EthernetSwitchPort>().get_keys().size());
+    ASSERT_EQ(3, get_manager<EthernetSwitchPortVlan>().get_keys().size());
+    ASSERT_EQ(6, get_manager<StaticMac>().get_keys().size());
+    ASSERT_EQ(2, get_manager<Acl>().get_keys().size());
+    ASSERT_EQ(4, get_manager<AclRule>().get_keys().size());
 }
 
 
 TEST_F(NetworkTreeStabilizerTest, PersistentUUIDsGeneratedTest) {
     // Assert that all resources now have persistent UUIDs
-    ASSERT_TRUE(CommonComponents::get_instance()->
-        get_module_manager().entry_exists(constants::MANAGER_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<Manager>().entry_exists(constants::MANAGER_PERSISTENT_UUID));
 
-    ASSERT_TRUE(CommonComponents::get_instance()->
-        get_chassis_manager().entry_exists(constants::CHASSIS_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<Chassis>().entry_exists(constants::CHASSIS_PERSISTENT_UUID));
 
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_switch_manager().entry_exists(constants::SWITCH_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<EthernetSwitch>().entry_exists(constants::SWITCH_PERSISTENT_UUID));
 
-    ASSERT_TRUE(NetworkComponents::get_instance()->get_port_manager().entry_exists(constants::PORT_1_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->get_port_manager().entry_exists(constants::PORT_2_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->get_port_manager().entry_exists(constants::PORT_3_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<EthernetSwitchPort>().entry_exists(constants::PORT_1_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<EthernetSwitchPort>().entry_exists(constants::PORT_2_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<EthernetSwitchPort>().entry_exists(constants::PORT_3_PERSISTENT_UUID));
 
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_static_mac_manager().entry_exists(constants::STATIC_MAC_1_PORT_1_MAC_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_static_mac_manager().entry_exists(constants::STATIC_MAC_2_PORT_1_MAC_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_static_mac_manager().entry_exists(constants::STATIC_MAC_1_PORT_2_MAC_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_static_mac_manager().entry_exists(constants::STATIC_MAC_2_PORT_2_MAC_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_static_mac_manager().entry_exists(constants::STATIC_MAC_1_PORT_3_MAC_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_static_mac_manager().entry_exists(constants::STATIC_MAC_2_PORT_3_MAC_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<StaticMac>().entry_exists(constants::STATIC_MAC_1_PORT_1_MAC_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<StaticMac>().entry_exists(constants::STATIC_MAC_2_PORT_1_MAC_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<StaticMac>().entry_exists(constants::STATIC_MAC_1_PORT_2_MAC_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<StaticMac>().entry_exists(constants::STATIC_MAC_2_PORT_2_MAC_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<StaticMac>().entry_exists(constants::STATIC_MAC_1_PORT_3_MAC_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<StaticMac>().entry_exists(constants::STATIC_MAC_2_PORT_3_MAC_PERSISTENT_UUID));
 
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_port_vlan_manager().entry_exists(constants::VLAN_ON_PORT_1_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_port_vlan_manager().entry_exists(constants::VLAN_ON_PORT_2_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_port_vlan_manager().entry_exists(constants::VLAN_ON_PORT_3_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<EthernetSwitchPortVlan>().entry_exists(constants::VLAN_ON_PORT_1_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<EthernetSwitchPortVlan>().entry_exists(constants::VLAN_ON_PORT_2_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<EthernetSwitchPortVlan>().entry_exists(constants::VLAN_ON_PORT_3_PERSISTENT_UUID));
 
-    ASSERT_TRUE(NetworkComponents::get_instance()->get_acl_manager().entry_exists(constants::ACL_1_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->get_acl_manager().entry_exists(constants::ACL_2_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<Acl>().entry_exists(constants::ACL_1_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<Acl>().entry_exists(constants::ACL_2_PERSISTENT_UUID));
 
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_acl_rule_manager().entry_exists(constants::RULE_1_ACL_1_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_acl_rule_manager().entry_exists(constants::RULE_2_ACL_1_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_acl_rule_manager().entry_exists(constants::RULE_1_ACL_2_PERSISTENT_UUID));
-    ASSERT_TRUE(NetworkComponents::get_instance()->
-        get_acl_rule_manager().entry_exists(constants::RULE_2_ACL_2_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<AclRule>().entry_exists(constants::RULE_1_ACL_1_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<AclRule>().entry_exists(constants::RULE_2_ACL_1_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<AclRule>().entry_exists(constants::RULE_1_ACL_2_PERSISTENT_UUID));
+    ASSERT_TRUE(get_manager<AclRule>().entry_exists(constants::RULE_2_ACL_2_PERSISTENT_UUID));
 }
 
 
 TEST_F(NetworkTreeStabilizerTest, ParentUUIDChangedTest) {
     // Assert that the switch parent is correct
-    ASSERT_EQ(1, NetworkComponents::get_instance()->
-        get_switch_manager().get_keys(constants::MANAGER_PERSISTENT_UUID).size());
+    ASSERT_EQ(1, get_manager<EthernetSwitch>().get_keys(constants::MANAGER_PERSISTENT_UUID).size());
 
     // Assert that the chassis parent is correct
-    ASSERT_EQ(1, CommonComponents::get_instance()->
-        get_chassis_manager().get_keys(constants::MANAGER_PERSISTENT_UUID).size());
+    ASSERT_EQ(1, get_manager<Chassis>().get_keys(constants::MANAGER_PERSISTENT_UUID).size());
 
     // Assert that ports parent is correct
-    ASSERT_EQ(3, NetworkComponents::get_instance()->
-        get_port_manager().get_keys(constants::SWITCH_PERSISTENT_UUID).size());
+    ASSERT_EQ(3, get_manager<EthernetSwitchPort>().get_keys(constants::SWITCH_PERSISTENT_UUID).size());
 
     // Assert that static macs and VLANs parent is correct
-    auto ports_uuids = NetworkComponents::get_instance()->
-        get_port_manager().get_keys(constants::SWITCH_PERSISTENT_UUID);
+    auto ports_uuids = get_manager<EthernetSwitchPort>().get_keys(constants::SWITCH_PERSISTENT_UUID);
 
     for (const auto& port_uuid : ports_uuids) {
-        ASSERT_EQ(2, NetworkComponents::get_instance()->
-            get_static_mac_manager().get_keys(port_uuid).size());
-        ASSERT_EQ(1, NetworkComponents::get_instance()->
-            get_port_vlan_manager().get_keys(port_uuid).size());
+        ASSERT_EQ(2, get_manager<StaticMac>().get_keys(port_uuid).size());
+        ASSERT_EQ(1, get_manager<EthernetSwitchPortVlan>().get_keys(port_uuid).size());
     }
 
     // Assert that ACLs parent is correct
-    ASSERT_EQ(2, NetworkComponents::get_instance()->
-        get_acl_manager().get_keys(constants::SWITCH_PERSISTENT_UUID).size());
+    ASSERT_EQ(2, get_manager<Acl>().get_keys(constants::SWITCH_PERSISTENT_UUID).size());
 
     // Assert that ACL rules parent is correct
-    auto acls_uuids = NetworkComponents::get_instance()->get_acl_manager().get_keys();
+    auto acls_uuids = get_manager<Acl>().get_keys();
     for (const auto& acl_uuid : acls_uuids) {
-        ASSERT_EQ(2, NetworkComponents::get_instance()->get_acl_rule_manager().get_keys(acl_uuid).size());
+        ASSERT_EQ(2, get_manager<AclRule>().get_keys(acl_uuid).size());
     }
+}
+
+TEST_F(NetworkTreeStabilizerTest, RelationsUpdatedTest) {
+    // Assert that manager location points to chassis
+    ASSERT_EQ(get_manager<Manager>().get_entry(constants::MANAGER_PERSISTENT_UUID).get_location(),
+              constants::CHASSIS_PERSISTENT_UUID);
+
+    // Assert that ethernet switch points to chassis
+    ASSERT_EQ(get_manager<EthernetSwitch>().get_entry(constants::SWITCH_PERSISTENT_UUID).get_chassis(),
+              constants::CHASSIS_PERSISTENT_UUID);
 }

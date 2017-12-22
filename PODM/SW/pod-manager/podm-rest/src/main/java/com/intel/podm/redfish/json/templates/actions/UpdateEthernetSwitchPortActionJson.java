@@ -16,27 +16,26 @@
 
 package com.intel.podm.redfish.json.templates.actions;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.AdministrativeState;
 import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
 
-@JsonIgnoreProperties(ignoreUnknown = false)
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class UpdateEthernetSwitchPortActionJson implements RedfishEthernetSwitchPort {
     @JsonProperty("AdministrativeState")
-    private AdministrativeState administrativeState;
+    public AdministrativeState administrativeState;
 
     @JsonProperty("LinkSpeedMbps")
-    private Integer linkSpeedMbps;
+    public Integer linkSpeedMbps;
 
     @JsonProperty("FrameSize")
-    private Integer frameSize;
+    public Integer frameSize;
 
     @JsonProperty("Autosense")
-    private Boolean autosense;
+    public Boolean autosense;
 
     @JsonProperty("Links")
-    private EthernetSwitchPortLinksJson links = new EthernetSwitchPortLinksJson();
+    public EthernetSwitchPortLinksJson links = new EthernetSwitchPortLinksJson();
 
     @Override
     public AdministrativeState getAdministrativeState() {

@@ -19,21 +19,21 @@
 
 #include "agent-framework/module/requests/network/get_port_static_mac_info.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetPortStaticMacInfo::GetPortStaticMacInfo(const std::string& static_mac): m_static_mac(static_mac){}
 
-Json::Value GetPortStaticMacInfo::to_json() const {
-    Json::Value value;
+json::Json GetPortStaticMacInfo::to_json() const {
+    json::Json value;
     value[StaticMac::STATIC_MAC] = m_static_mac;
     return value;
 }
 
-GetPortStaticMacInfo GetPortStaticMacInfo::from_json(const Json::Value& json) {
+GetPortStaticMacInfo GetPortStaticMacInfo::from_json(const json::Json& json) {
     return GetPortStaticMacInfo{
-        json[StaticMac::STATIC_MAC].asString()
+        json[StaticMac::STATIC_MAC].get<std::string>()
     };
 }

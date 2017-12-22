@@ -25,66 +25,23 @@
 
 #pragma once
 
-
-
-#include <thread>
-#include <memory>
-
 /*! Agent namespace */
 namespace agent {
 /*! Compute namespace */
 namespace compute {
+
+// forward declaration
+class Bmc;
+
 /*! Status namespace */
 namespace status {
 
-/*! @brief System Boot Options thread: thread reading systems' BootOptions
+/*!
+ * @brief Reads systems' BootOptions
  *  i.e. active boot overrides using the IPMI getSystemBootOptions command.
- *  In case of any change, this thread updates the model of the agent.
+ *  In case of any change, this function updates the model of the agent.
  */
-class SystemBootOptionsThread final {
-public:
-    using Seconds = std::chrono::seconds;
-
-    /*! Default power state update interval */
-    static constexpr const Seconds DEFAULT_BOOT_OPTIONS_UPDATE_INTERVAL{10};
-
-
-    /*! Default constructor. */
-    SystemBootOptionsThread() = default;
-
-
-    /*!
-     * Constructs object with passed time interval in seconds.
-     * @param[in] interval Interval between two consecutive boot options reads
-     * */
-    SystemBootOptionsThread(const Seconds interval) :
-        m_interval(interval) {
-    }
-
-
-    /*! Destructor */
-    ~SystemBootOptionsThread();
-
-
-    /*! Start thread */
-    void start();
-
-
-    /*! Stop thread */
-    void stop();
-
-
-private:
-    Seconds m_interval{DEFAULT_BOOT_OPTIONS_UPDATE_INTERVAL};
-    std::thread m_thread{};
-    volatile bool m_running{false};
-
-
-    void m_task();
-};
-
-/*! State Machine Thread unique pointer */
-using SystemBootOptionsThreadUniquePtr = std::unique_ptr<SystemBootOptionsThread>;
+void update_system_boot_options(agent::compute::Bmc&);
 
 }
 }

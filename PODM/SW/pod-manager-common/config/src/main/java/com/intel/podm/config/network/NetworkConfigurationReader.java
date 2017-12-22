@@ -36,8 +36,8 @@ import static com.intel.podm.common.types.EnumeratedType.SUB_TYPES;
 /**
  * Reads preconfigured content for the given type from config json file
  */
-@Dependent
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+@Dependent
 public class NetworkConfigurationReader {
 
     public static final String DEFAULT_PATH_TO_CONFIGURATION_FILES = "/tmp/pod-manager/config";
@@ -57,7 +57,7 @@ public class NetworkConfigurationReader {
         }
     }
 
-    public <T> T readConfigurationOrComputeDefault(String configurationName, Class<T> type, Supplier<T> defaultConfigSupplier) {
+    public <T> T readConfigurationOrDefault(String configurationName, Class<T> type, Supplier<T> defaultConfigSupplier) {
         try {
             return readConfiguration(configurationName, type);
         } catch (NetworkConfigurationIOException e) {

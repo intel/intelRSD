@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="Manager.xml">
+    <edmx:Include Namespace="Manager.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RemoteTargetCollection.xml">
+    <edmx:Include Namespace="RemoteTargetCollection"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="LogicalDriveCollection.xml">
+    <edmx:Include Namespace="LogicalDriveCollection"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="PhysicalDriveCollection.xml">
+    <edmx:Include Namespace="PhysicalDriveCollection"/>
+  </edmx:Reference>
+
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageService.v1_0_0">
+
+      <EntityType Name="StorageService" BaseType="Resource.v1_0_0.Resource">
+        <Property Name="Status" Type="Resource.Status"/>
+
+        <NavigationProperty Name="RemoteTargets" Type="RemoteTargetCollection.RemoteTargetCollection" ContainsTarget="true">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="LogicalDrives" Type="LogicalDriveCollection.LogicalDriveCollection" ContainsTarget="true">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Drives" Type="PhysicalDriveCollection.PhysicalDriveCollection" ContainsTarget="true">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+
+        <Property Name="Links" Type="StorageService.v1_0_0.Links" Nullable="false"/>
+      </EntityType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+        <NavigationProperty Name="ManagedBy" Type="Collection(Manager.v1_0_0.Manager)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

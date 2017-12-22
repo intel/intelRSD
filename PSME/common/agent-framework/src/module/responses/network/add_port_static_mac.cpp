@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/responses/network/add_port_static_mac.hpp"
 #include "agent-framework/module/constants/network.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
@@ -34,14 +34,14 @@ AddPortStaticMac::AddPortStaticMac(const std::string& static_mac, Oem oem):
     m_oem{oem} {}
 
 
-Json::Value AddPortStaticMac::to_json() const {
-    Json::Value value;
+json::Json AddPortStaticMac::to_json() const {
+    json::Json value;
     value[StaticMac::STATIC_MAC] = m_static_mac;
     value[StaticMac::OEM] = m_oem.to_json();
     return value;
 }
 
-AddPortStaticMac AddPortStaticMac::from_json(const Json::Value& json) {
-    return AddPortStaticMac{json[StaticMac::STATIC_MAC].asString(), Oem::from_json(
+AddPortStaticMac AddPortStaticMac::from_json(const json::Json& json) {
+    return AddPortStaticMac{json[StaticMac::STATIC_MAC], Oem::from_json(
             json[StaticMac::OEM])};
 }

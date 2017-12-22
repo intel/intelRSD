@@ -26,7 +26,7 @@ class UuidValidityChecker final : public ValidityChecker {
 public:
     UuidValidityChecker();
 
-    virtual void validate(const Json::Value& value) const;
+    virtual void validate(const json::Json& value) const;
 
 private:
     constexpr static bool is_hex(char c);

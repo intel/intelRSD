@@ -37,8 +37,8 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @Table(name = "network_protocol", indexes = @Index(name = "idx_network_protocol_entity_id", columnList = "entity_id", unique = true))
-@Eventable
 @SuppressWarnings({"checkstyle:MethodCount"})
+@Eventable
 public class NetworkProtocol extends DiscoverableEntity {
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -61,7 +61,7 @@ public class NetworkProtocol extends DiscoverableEntity {
     @Column(name = "ssdp_notify_multicast_interval_seconds")
     private Integer ssdpNotifyMulticastIntervalSeconds;
 
-    @Column(name = "notify_ip_v6_scope")
+    @Column(name = "ssdp_notify_ipv6_scope")
     @Enumerated(STRING)
     private NotifyIpV6Scope ssdpNotifyIpV6Scope;
 

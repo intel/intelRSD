@@ -16,21 +16,25 @@
 
 package com.intel.podm.discovery.external.restgraph;
 
-import com.intel.podm.client.api.resources.ExternalServiceResource;
-import com.intel.podm.client.api.resources.redfish.RackscaleServiceRootResource;
+import com.intel.podm.client.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.redfish.ServiceRootResource;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.UUID;
 
 import static java.util.Collections.unmodifiableCollection;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 public final class RestGraph {
     private final HashSet<ExternalServiceResource> resources = new HashSet<>();
     private final HashSet<ResourceLink> links = new HashSet<>();
+    private final ServiceRootResource serviceRootResource;
 
-    public RestGraph(RackscaleServiceRootResource serviceRoot) {
-        resources.add(serviceRoot);
+    public RestGraph(ServiceRootResource serviceRoot) {
+        this.serviceRootResource = serviceRoot;
     }
 
     public Collection<ResourceLink> getLinks() {
@@ -38,7 +42,7 @@ public final class RestGraph {
     }
 
     public Collection<ExternalServiceResource> getResources() {
-        return unmodifiableCollection(resources);
+        return resources.stream().filter(r -> !r.equals(serviceRootResource)).collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
     public void add(ResourceLink link) {
@@ -58,12 +62,6 @@ public final class RestGraph {
     }
 
     public UUID findServiceUuid() {
-        for (ExternalServiceResource resource : getResources()) {
-            if (resource instanceof RackscaleServiceRootResource) {
-                return ((RackscaleServiceRootResource) resource).getUuid();
-            }
-        }
-
-        throw new IllegalStateException("uuid was not found");
+        return serviceRootResource.getUuid();
     }
 }

@@ -39,8 +39,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitches/"
-        "Members/__SWITCH_ID__/ACLs/Members/$entity";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchACL.EthernetSwitchACL";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#EthernetSwitchACL.v1_0_0.EthernetSwitchACL";
     r[Common::ID] = json::Value::Type::NIL;
@@ -55,11 +54,11 @@ json::Value make_prototype() {
 
     json::Value actions;
     std::string hash_bind_acl = constants::Common::HASH + std::string(constants::Acl::BIND_ACL);
-    actions[hash_bind_acl][constants::Acl::TARGET] = json::Value::Type::NIL;
+    actions[hash_bind_acl][constants::Common::TARGET] = json::Value::Type::NIL;
     actions[hash_bind_acl][constants::Acl::PORT_ALLOWABLE_VALUES] = json::Value::Type::ARRAY;
 
     std::string hash_unbind_acl = constants::Common::HASH + std::string(constants::Acl::UNBIND_ACL);
-    actions[hash_unbind_acl][constants::Acl::TARGET] = json::Value::Type::NIL;
+    actions[hash_unbind_acl][constants::Common::TARGET] = json::Value::Type::NIL;
     actions[hash_unbind_acl][constants::Acl::PORT_ALLOWABLE_VALUES] = json::Value::Type::ARRAY;
     r[Common::ACTIONS] = std::move(actions);
 
@@ -94,11 +93,6 @@ endpoint::Acl::~Acl() {}
 void endpoint::Acl::get(const server::Request& req, server::Response& res) {
     auto r = ::make_prototype();
 
-    r[Common::ODATA_CONTEXT] = std::regex_replace(
-        r[Common::ODATA_CONTEXT].as_string(),
-        std::regex("__SWITCH_ID__"),
-        req.params[PathParam::ETHERNET_SWITCH_ID]);
-
     r[Common::ODATA_ID] = PathBuilder(req).build();
     r[Common::ID] = req.params[PathParam::ACL_ID];
     r[Common::NAME] = constants::Acl::ACL + req.params[PathParam::ACL_ID];
@@ -114,7 +108,7 @@ void endpoint::Acl::get(const server::Request& req, server::Response& res) {
 
     // acl bind action
     std::string hash_bind_acl = constants::Common::HASH + std::string(constants::Acl::BIND_ACL);
-    r[constants::Common::ACTIONS][hash_bind_acl][constants::Acl::TARGET] =
+    r[constants::Common::ACTIONS][hash_bind_acl][constants::Common::TARGET] =
         PathBuilder(req)
             .append(constants::Common::ACTIONS)
             .append(constants::Acl::BIND_ACL).build();
@@ -123,26 +117,21 @@ void endpoint::Acl::get(const server::Request& req, server::Response& res) {
     auto is_not_bound_predicate =
         [&acl] (const agent_framework::model::EthernetSwitchPort& port) {
             return false == NetworkComponents::get_instance()->
-                get_acl_port_manager().entry_exists(acl.get_uuid(),
-                port.get_uuid());
+                get_acl_port_manager().entry_exists(acl.get_uuid(), port.get_uuid());
         };
 
-    const auto unbound_ports = NetworkComponents::get_instance()->
-        get_port_manager().get_keys(acl.get_parent_uuid(),
-        is_not_bound_predicate);
+    const auto unbound_ports = NetworkComponents::get_instance()->get_port_manager()
+        .get_keys(acl.get_parent_uuid(), is_not_bound_predicate);
 
     for (const auto& unbound_port : unbound_ports) {
-        json::Value link;
-        link[Common::ODATA_ID] = endpoint::utils::get_component_url(
-            enums::Component::EthernetSwitchPort, unbound_port);
-        r[constants::Common::ACTIONS][hash_bind_acl]
-         [constants::Acl::PORT_ALLOWABLE_VALUES].
-            push_back(std::move(link));
+        json::Value link{};
+        link[Common::ODATA_ID] = endpoint::utils::get_component_url(enums::Component::EthernetSwitchPort, unbound_port);
+        r[constants::Common::ACTIONS][hash_bind_acl][constants::Acl::PORT_ALLOWABLE_VALUES].push_back(std::move(link));
     }
 
     // acl unbind action
     std::string hash_unbind_acl = constants::Common::HASH + std::string(constants::Acl::UNBIND_ACL);
-    r[constants::Common::ACTIONS][hash_unbind_acl][constants::Acl::TARGET] =
+    r[constants::Common::ACTIONS][hash_unbind_acl][constants::Common::TARGET] =
         PathBuilder(req)
             .append(constants::Common::ACTIONS)
             .append(constants::Acl::UNBIND_ACL)

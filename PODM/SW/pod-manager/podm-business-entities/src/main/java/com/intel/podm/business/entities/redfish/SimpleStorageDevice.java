@@ -174,13 +174,13 @@ public class SimpleStorageDevice extends Entity implements LocalStorage {
     }
 
     @Override
-    public Boolean fromFabricSwitch() {
-        return FALSE;
+    public String getSerialNumber() {
+        return null;
     }
 
     @Override
-    public String getSerialNumber() {
-        return null;
+    public Boolean fromFabricSwitch() {
+        return FALSE;
     }
 
     @Override

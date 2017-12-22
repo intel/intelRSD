@@ -20,7 +20,7 @@
 
 #include "psme/rest/endpoints/event_subscription.hpp"
 #include "psme/rest/endpoints/utils.hpp"
-#include "psme/rest/eventing/manager/subscription_manager.hpp"
+#include "psme/rest/eventing/config/subscription_config.hpp"
 #include "psme/rest/constants/constants.hpp"
 #include "json/json.hpp"
 
@@ -30,6 +30,7 @@
 using namespace psme::rest;
 using namespace psme::rest::constants;
 using namespace psme::rest::server;
+using namespace psme::rest::eventing::config;
 using namespace psme::rest::eventing::manager;
 using namespace psme::rest::endpoint::utils;
 
@@ -41,7 +42,7 @@ json::Value make_prototype() {
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EventDestination.EventDestination";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#EventDestination.v1_0_0.EventDestination";
+    r[Common::ODATA_TYPE] = "#EventDestination.v1_1_1.EventDestination";
     r[Common::ID] = json::Value::Type::NIL;
     r[Common::NAME] = json::Value::Type::NIL;
     r[Common::DESCRIPTION] = json::Value::Type::NIL;
@@ -49,19 +50,9 @@ json::Value make_prototype() {
     r[EventSubscription::CONTEXT] = json::Value::Type::NIL;
     r[EventSubscription::PROTOCOL] = json::Value::Type::NIL;
     r[EventSubscription::EVENT_TYPES] = json::Value::Type::ARRAY;
-    return r;
-}
+    r[EventSubscription::ORIGIN_RESOURCES] = json::Value::Type::ARRAY;
 
-void to_json(const Subscription& subscription, json::Value& json) {
-    json[Common::NAME] = subscription.get_name();
-    json[EventSubscription::DESTINATION] = subscription.get_destination();
-    json[EventSubscription::CONTEXT] = subscription.get_context();
-    json[EventSubscription::PROTOCOL] = subscription.get_protocol();
-    json::Value event_types_json(json::Value::Type::ARRAY);
-    for (const auto& event_type : subscription.get_event_types().get()){
-        event_types_json.push_back(event_type.to_string());
-    }
-    json[EventSubscription::EVENT_TYPES] = event_types_json;
+    return r;
 }
 }
 
@@ -71,16 +62,20 @@ endpoint::Subscription::~Subscription() {}
 
 void endpoint::Subscription::get(const server::Request& request, server::Response& response) {
     auto r = make_prototype();
+
     r[Common::ODATA_ID] = request.get_url();
     r[Common::ID] = request.params[PathParam::SUBSCRIPTION_ID];
+
     const auto& id = id_to_uint64(request.params[PathParam::SUBSCRIPTION_ID]);
     const auto& subscription = SubscriptionManager::get_instance()->get(id);
-    to_json(subscription, r);
+
+    subscription.fill_json(r);
     set_response(response, r);
 }
 
 void endpoint::Subscription::del(const server::Request& request, server::Response& response) {
     const auto& id = id_to_uint64(request.params[PathParam::SUBSCRIPTION_ID]);
     SubscriptionManager::get_instance()->del(id);
+    SubscriptionConfig::get_instance()->save();
     response.set_status(server::status_2XX::NO_CONTENT);
 }

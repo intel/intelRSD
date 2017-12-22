@@ -25,10 +25,10 @@
 #include "agent-framework/module/model/task.hpp"
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/enum/common.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include "gtest/gtest.h"
 
-#include <json/value.h>
 
 
 
@@ -45,7 +45,7 @@ public:
     virtual void TearDown();
 
 
-    Json::Value task_json{};
+    json::Json task_json{};
 };
 
 
@@ -57,26 +57,27 @@ void TaskTest::SetUp() {
     task_json[literals::Task::STATE] = enums::TaskState(enums::TaskState::New).to_string();
     task_json[literals::Task::START_TIME] = "2016-07-15T07:01+01:00";
     task_json[literals::Task::END_TIME] = "2016-07-07T14:45+02:00";
-    task_json[literals::Task::STATUS] = enums::Health(enums::Health::OK).to_string();
-    task_json[literals::Task::MESSAGES] = Json::ValueType::arrayValue;
+    attribute::Status status{};
+    status.set_health(enums::Health::OK);
+    task_json[literals::Task::STATUS] = status.to_json();
+    task_json[literals::Task::MESSAGES] = json::Json::array();
 
-    Json::Value message{};
+    json::Json message{};
     message[literals::Message::MESSAGE_ID] = "Base.1.0.BadColor";
-    message[literals::Message::MESSAGE] = "Cannot repaint the submarine";
-    message[literals::Message::RELATED_PROPERTIES] = Json::ValueType::arrayValue;
-    message[literals::Message::RELATED_PROPERTIES].append("Color");
-    message[literals::Message::MESSAGE_ARGS] = Json::ValueType::arrayValue;
-    message[literals::Message::MESSAGE_ARGS].append("ColorValue");
+    message[literals::Message::MESSAGE_CONTENT] = "Cannot repaint the submarine";
+    message[literals::Message::RELATED_PROPERTIES] = json::Json::array();
+    message[literals::Message::RELATED_PROPERTIES].emplace_back("Color");
+    message[literals::Message::MESSAGE_ARGS] = json::Json::array();
+    message[literals::Message::MESSAGE_ARGS].emplace_back("ColorValue");
     message[literals::Message::SEVERITY] = enums::Health(enums::Health::Critical).to_string();
     message[literals::Message::RESOLUTION] = "The submarine must be yellow!";
-    message[literals::Message::OEM] = Json::ValueType::nullValue;
+    message[literals::Message::OEM] = json::Json{};
 
-    task_json[literals::Task::MESSAGES].append(message);
+    task_json[literals::Task::MESSAGES].emplace_back(message);
 }
 
 
 void TaskTest::TearDown() { }
-
 
 TEST_F(TaskTest, ConversionFromJsonValuesExist) {
     Task task = Task::from_json(task_json);
@@ -84,7 +85,7 @@ TEST_F(TaskTest, ConversionFromJsonValuesExist) {
     ASSERT_TRUE(task.get_start_time().has_value());
     ASSERT_TRUE(task.get_end_time().has_value());
     ASSERT_TRUE(task.get_name().has_value());
-    ASSERT_TRUE(task.get_status().has_value());
+    ASSERT_TRUE(task.get_status().get_health().has_value());
     ASSERT_TRUE(task.get_state().has_value());
     ASSERT_FALSE(task.get_messages().empty());
 
@@ -103,8 +104,10 @@ TEST_F(TaskTest, ConversionFromJsonValuesCorrect) {
     ASSERT_EQ(task.get_start_time(), "2016-07-15T07:01+01:00");
     ASSERT_EQ(task.get_end_time(), "2016-07-07T14:45+02:00");
     ASSERT_EQ(task.get_name(), "repaint the submarine");
-    ASSERT_EQ(task.get_status(), enums::Health::OK);
-    ASSERT_EQ(task.get_state(),enums::TaskState::New);
+    attribute::Status expected_status{};
+    expected_status.set_health(enums::Health::OK);
+    ASSERT_EQ(task.get_status().get_health(), expected_status.get_health());
+    ASSERT_EQ(task.get_state(), enums::TaskState::New);
 
     const attribute::Message message = task.get_messages()[0];
     ASSERT_EQ(message.get_message_id(), "Base.1.0.BadColor");
@@ -142,6 +145,3 @@ TEST_F(TaskTest, StopSetsStopTime) {
     ASSERT_TRUE(task.get_end_time().has_value());
     ASSERT_THROW(task.stop(), std::logic_error);
 }
-
-
-

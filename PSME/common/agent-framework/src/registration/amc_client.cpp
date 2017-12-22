@@ -24,50 +24,48 @@
 #include "agent-framework/registration/registration_request.hpp"
 #include "agent-framework/service_uuid.hpp"
 
-#include <jsonrpccpp/client/connectors/httpclient.h>
-#include <jsonrpccpp/client.h>
+#include "json-rpc/connectors/http_client_connector.hpp"
+#include "json-rpc/handlers/json_rpc_request_invoker.hpp"
 
 using namespace agent_framework::generic;
 
 AmcClient::AmcClient(const std::string& url)
     : m_url{url},
-      m_http_connector{new jsonrpc::HttpClient{m_url}},
-      m_jsonrpc_client{new jsonrpc::Client{*m_http_connector}} {}
+      m_connector{new json_rpc::HttpClientConnector(url)},
+      m_invoker{new json_rpc::JsonRpcRequestInvoker()} {}
 
 RegistrationResponse AmcClient::attach() const {
     RegistrationRequest request;
 
-    Json::Value result = m_jsonrpc_client->CallMethod("attach", request.to_json());
-    if (result.isObject()) {
-        log_debug(GET_LOGGER("registration"),
-                  "Registration response: " << result);
-        RegistrationResponse response(result["ipv4address"].asString(),
-                                  result["port"].asInt());
+    m_invoker->prepare_method("attach", request.to_json());
+    m_invoker->call(m_connector);
+    json::Json result = m_invoker->get_result();
+
+    if (result.is_object()) {
+        log_debug("registration", "Registration response: " << result);
+        RegistrationResponse response(result["ipv4address"], result["port"]);
         return response;
     }
     else {
-        throw jsonrpc::JsonRpcException(
-                jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-                result.toStyledString());
+        throw json_rpc::JsonRpcException(json_rpc::common::ERROR_CLIENT_INVALID_RESPONSE, result.dump());
     }
 }
 
 HeartBeatResponse AmcClient::heart_beat() const {
-    Json::Value request;
+    json::Json request;
     request["gamiId"] = ServiceUuid::get_instance()->get_service_uuid();
 
-    Json::Value result = m_jsonrpc_client->CallMethod("heartBeat", request);
-    if (result.isObject() && result.isMember("timestamp")
-            && result.isMember("minDelay")) {
-        HeartBeatResponse response(
-                std::chrono::seconds(result["minDelay"].asUInt()),
-                std::chrono::seconds(result["timestamp"].asUInt()));
-        return response;
+    m_invoker->prepare_method("heartBeat", request);
+    m_invoker->call(m_connector);
+    json::Json result = m_invoker->get_result();
+
+    if (result.is_object() && result.count("timeStamp") && result.count("minDelay")) {
+        std::chrono::seconds delay(result["minDelay"]);
+        std::chrono::seconds timestamp(result["timeStamp"]);
+        return HeartBeatResponse(delay, timestamp);
     }
     else {
-        throw jsonrpc::JsonRpcException(
-                jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE,
-                result.toStyledString());
+        throw json_rpc::JsonRpcException(json_rpc::common::ERROR_CLIENT_INVALID_RESPONSE, result.dump());
     }
 }
 

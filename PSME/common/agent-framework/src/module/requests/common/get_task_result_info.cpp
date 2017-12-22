@@ -24,7 +24,7 @@
 
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/requests/common/get_task_result_info.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -35,13 +35,13 @@ using namespace agent_framework::model::literals;
 GetTaskResultInfo::GetTaskResultInfo(const std::string& task) : m_task{task} { }
 
 
-Json::Value GetTaskResultInfo::to_json() const {
-    Json::Value value;
+json::Json GetTaskResultInfo::to_json() const {
+    json::Json value;
     value[Task::TASK] = m_task;
     return value;
 }
 
 
-GetTaskResultInfo GetTaskResultInfo::from_json(const Json::Value& json) {
-    return GetTaskResultInfo{json[Task::TASK].asString()};
+GetTaskResultInfo GetTaskResultInfo::from_json(const json::Json& json) {
+    return GetTaskResultInfo{json[Task::TASK].get<std::string>()};
 }

@@ -16,18 +16,22 @@
 
 package com.intel.podm.redfish.resources;
 
+import com.intel.podm.business.dto.FabricDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.dto.redfish.FabricDto;
 import com.intel.podm.business.services.redfish.ReaderService;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import static com.intel.podm.business.services.context.PathParamConstants.FABRIC_ID;
 import static com.intel.podm.business.services.redfish.ReaderService.SERVICE_ROOT_CONTEXT;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class FabricCollectionResource extends BaseResource {
     @Inject
@@ -41,5 +45,10 @@ public class FabricCollectionResource extends BaseResource {
     @Path(FABRIC_ID)
     public FabricResource getFabric() {
         return getResource(FabricResource.class);
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceBuilder().build();
     }
 }

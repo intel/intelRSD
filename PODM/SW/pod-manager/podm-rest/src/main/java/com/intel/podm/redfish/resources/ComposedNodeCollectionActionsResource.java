@@ -18,11 +18,11 @@ package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.EntityOperationException;
 import com.intel.podm.business.RequestValidationException;
-import com.intel.podm.business.ViolationsDisclosingException;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.AllocationService;
 import com.intel.podm.redfish.json.templates.assembly.RequestedNodeJson;
-import com.intel.podm.business.services.redfish.odataid.ODataId;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -30,24 +30,21 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import static com.intel.podm.rest.error.PodmExceptions.notFound;
+import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceActionBuilder;
+import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
 import static com.intel.podm.rest.error.PodmExceptions.resourcesStateMismatch;
 import static com.intel.podm.rest.error.PodmExceptions.unsupportedCreationRequest;
-import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
-import static java.net.URI.create;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.created;
 
+@RequestScoped
 @Produces(APPLICATION_JSON)
 public class ComposedNodeCollectionActionsResource extends BaseResource {
-    private static final String CONFLICT_DURING_ALLOCATION_ERROR_MSG = "Conflict during allocation";
-
     @Inject
     private AllocationService service;
 
     @Override
     public Object get() {
-        throw notFound();
+        throw invalidHttpMethod();
     }
 
     @POST
@@ -55,18 +52,17 @@ public class ComposedNodeCollectionActionsResource extends BaseResource {
     @Path("Allocate")
     public Response allocate(RequestedNodeJson requestedNode) {
         try {
-            ODataId oDataId = asOdataId(service.allocate(requestedNode));
-            return created(create(oDataId.toString())).build();
+            Context context = service.allocate(requestedNode);
+            return Response.created(context.asOdataId().toUri()).build();
         } catch (RequestValidationException e) {
             throw unsupportedCreationRequest(e.getViolations());
         } catch (EntityOperationException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof ViolationsDisclosingException) {
-                ViolationsDisclosingException ex = (ViolationsDisclosingException) cause;
-                throw resourcesStateMismatch(CONFLICT_DURING_ALLOCATION_ERROR_MSG, ex.getViolations());
-            } else {
-                throw resourcesStateMismatch(CONFLICT_DURING_ALLOCATION_ERROR_MSG, e.getMessage());
-            }
+            throw resourcesStateMismatch("Conflict during allocation", e);
         }
+    }
+
+    @Override
+    protected Response createOptionsResponse() {
+        return newOptionsForResourceActionBuilder().build();
     }
 }

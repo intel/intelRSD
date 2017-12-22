@@ -78,7 +78,11 @@ public:
         return m_cpu_id;
     }
 
-    virtual void pack(std::vector<std::uint8_t>& data) const;
+    virtual void pack(std::vector<std::uint8_t>& data) const override;
+
+    virtual const char* get_command_name() const override {
+        return "GetProcessorInfo";
+    }
 
 private:
     std::uint8_t m_cpu_id{};
@@ -143,11 +147,15 @@ public:
      * @brief Checks if CPU slot is occupied.
      * @return true if CPU is available, otherwise false.
      */
-    bool is_present() {
+    bool is_present() const {
         return m_presence;
     }
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
+
+    virtual const char* get_command_name() const override {
+        return "GetProcessorInfo";
+    }
 
 private:
     CPU_TYPE m_cpu_type{};

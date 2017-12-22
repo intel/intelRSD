@@ -20,12 +20,12 @@ import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.ResourceStateMismatchException;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
+import com.intel.podm.business.redfish.services.bootcontrol.DeepDiscovery;
+import com.intel.podm.business.redfish.services.bootcontrol.DeepDiscoveryException;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ActionService;
 import com.intel.podm.business.services.redfish.requests.StartDeepDiscoveryRequest;
 import com.intel.podm.common.synchronization.TaskCoordinator;
-import com.intel.podm.discovery.external.deep.DeepDiscoveryException;
-import com.intel.podm.discovery.external.deep.DeepDiscoveryHelper;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -35,9 +35,9 @@ import java.util.concurrent.TimeoutException;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @RequestScoped
-public class StartDeepDiscoveryActionServiceImpl implements ActionService<StartDeepDiscoveryRequest> {
+class StartDeepDiscoveryActionServiceImpl implements ActionService<StartDeepDiscoveryRequest> {
     @Inject
-    private DeepDiscoveryHelper deepDiscoveryHelper;
+    private DeepDiscovery deepDiscovery;
 
     @Inject
     private EntityTreeTraverser traverser;
@@ -50,7 +50,7 @@ public class StartDeepDiscoveryActionServiceImpl implements ActionService<StartD
     public void perform(Context target, StartDeepDiscoveryRequest request) throws BusinessApiException, TimeoutException {
         ComputerSystem computerSystem = (ComputerSystem) traverser.traverse(target);
         try {
-            taskCoordinator.runThrowing(computerSystem.getService().getUuid(), () -> deepDiscoveryHelper.triggerDeepDiscovery(computerSystem.getId()));
+            taskCoordinator.run(computerSystem.getService().getUuid(), () -> deepDiscovery.triggerForComputerSystem(computerSystem.getId()));
         } catch (DeepDiscoveryException e) {
             throw new ResourceStateMismatchException(e.getMessage(), e);
         }

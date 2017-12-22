@@ -16,62 +16,53 @@
 
 package com.intel.podm.client.typeidresolver;
 
-import com.intel.podm.client.api.resources.ExternalServiceResource;
+import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.client.resources.MembersListResource;
-import com.intel.podm.client.resources.redfish.ManagerResourceImpl;
-import com.intel.podm.client.resources.redfish.ProcessorResourceImpl;
-import com.intel.podm.client.resources.redfish.properties.OemVendorImpl;
+import com.intel.podm.client.resources.redfish.ManagerResource;
+import com.intel.podm.client.resources.redfish.OemVendor;
+import com.intel.podm.client.resources.redfish.ProcessorResource;
 import com.intel.podm.common.logger.Logger;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import java.util.function.Predicate;
 
 import static com.intel.podm.client.typeidresolver.OdataTypeMatcher.odataTypePatternMatcher;
 import static com.intel.podm.client.typeidresolver.OdataTypeMatcher.simpleOdataTypeMatcher;
 import static com.intel.podm.client.typeidresolver.ResourceResolver.register;
-import static com.intel.podm.client.typeidresolver.ResourceResolver.registerResource;
+import static java.lang.reflect.Modifier.isAbstract;
+import static java.util.stream.StreamSupport.stream;
+import static org.atteo.classindex.ClassIndex.getSubclasses;
 
 @Singleton
 @Startup
-@DependsOn("DatabaseSchemaUpdateFinalizer")
 public class ResourceProvider {
-
     @Inject
     private Logger logger;
 
-    @Inject
-    private Instance<ExternalServiceResource> externalServiceResources;
-
-    @Inject
-    private Instance<OemVendorImpl> oemResources;
-
     @PostConstruct
-    public void resourceProvider() {
+    private void resourceProvider() {
         logger.d("Registering supported OData types...");
-        registerRedfishResourceOdataTypes();
-        registerOemOdataTypes();
+        registerKnownOdataTypes(ExternalServiceResource.class);
+        registerKnownOdataTypes(OemVendor.class);
         registerKnownIncorrectOdataTypes();
     }
 
-    private void registerRedfishResourceOdataTypes() {
-        for (ExternalServiceResource resource : externalServiceResources) {
-            registerResource(resource.getClass());
-        }
+    private void registerKnownOdataTypes(Class<?> clazz) {
+        stream(getSubclasses(clazz).spliterator(), false)
+            .filter(byConcreteClass())
+            .forEach(ResourceResolver::registerResource);
     }
 
-    private void registerOemOdataTypes() {
-        for (OemVendorImpl resource : oemResources) {
-            registerResource(resource.getClass());
-        }
+    private Predicate<Class<?>> byConcreteClass() {
+        return clazz -> !isAbstract(clazz.getModifiers());
     }
 
     private void registerKnownIncorrectOdataTypes() {
-        register(odataTypePatternMatcher(".*Processor.+Processor", ProcessorResourceImpl.class));
-        register(simpleOdataTypeMatcher("#Managers.1.0.0.Manager", ManagerResourceImpl.class));
+        register(odataTypePatternMatcher(".*Processor.+Processor", ProcessorResource.class));
+        register(simpleOdataTypeMatcher("#Managers.1.0.0.Manager", ManagerResource.class));
         register(simpleOdataTypeMatcher("#Processors.1.0.0.ProcessorsCollection", MembersListResource.class));
     }
 }

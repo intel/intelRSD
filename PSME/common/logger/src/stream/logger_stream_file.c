@@ -105,18 +105,14 @@ int logger_stream_file_create(struct logger_stream *inst) {
     size_t buffer_size;
     struct stat file_stat;
 
-    err = access(file->file_name, F_OK);
-    if (err) {
-        int fd = open(file->file_name, LOGGER_FILE_MODE, LOGGER_FILE_PRIV);
-        close(fd);
-
-        err = access(file->file_name, F_OK);
-        if (err) {
-            return err;
-        }
+    int fd = open(file->file_name, LOGGER_FILE_MODE, LOGGER_FILE_PRIV);
+    if (fd < 0) {
+        return fd;
     }
+    err = fstat(fd, &file_stat);
+    close(fd);
 
-    err = stat(file->file_name, &file_stat);
+    /* fstat failed */
     if (err) {
         return err;
     }

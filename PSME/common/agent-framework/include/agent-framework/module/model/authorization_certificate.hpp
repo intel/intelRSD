@@ -47,13 +47,13 @@ public:
      * @param json Json object
      * @return Authorization Certificate object
      */
-    static AuthorizationCertificate from_json(const Json::Value& json);
+    static AuthorizationCertificate from_json(const json::Json& json);
 
     /*!
      * @brief Convert an object to json
      * @return Json object
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief Get collection name

@@ -34,20 +34,27 @@
 
 #include <bitset>
 
+
+
 using namespace agent::chassis::ipmb;
 using namespace agent::chassis::ipmb::command;
+using namespace agent_framework::model;
+using namespace agent_framework::module;
 
 using agent_framework::module::ChassisComponents;
 using agent_framework::module::CommonComponents;
 
+
 GetAggregatedThermalSensor::~GetAggregatedThermalSensor() {}
 
-void GetAggregatedThermalSensor::unpack(IpmiMessage& msg){
+
+void GetAggregatedThermalSensor::unpack(IpmiMessage& msg) {
     log_debug(LOGUSR, "Unpacking Get Aggregated Thermal Sensor message.");
     msg.set_to_request();
 }
 
-void GetAggregatedThermalSensor::pack(IpmiMessage& msg){
+
+void GetAggregatedThermalSensor::pack(IpmiMessage& msg) {
 
     log_debug(LOGUSR, "Packing Get Aggregated Thermal Sensor message.");
 
@@ -72,40 +79,49 @@ void GetAggregatedThermalSensor::pack(IpmiMessage& msg){
 
 }
 
+
 void GetAggregatedThermalSensor::make_response(ThermalSensorIpmbResponse& response) {
     uint8_t sled_presence_bit_map = 0;
     uint8_t sled_presence_mask = 1;
 
     auto drawer_manager_keys = CommonComponents::get_instance()->
-            get_module_manager().get_keys("");
+        get_module_manager().get_keys("");
     auto blade_manager_keys = CommonComponents::get_instance()->
-            get_module_manager().get_keys(drawer_manager_keys.front());
+        get_module_manager().get_keys(drawer_manager_keys.front());
 
     for (const auto& key: blade_manager_keys) {
         auto manager = CommonComponents::get_instance()->
-                get_module_manager().get_entry(key);
+            get_module_manager().get_entry(key);
 
         if (manager.get_presence()) {
             sled_presence_bit_map = uint8_t(sled_presence_bit_map | sled_presence_mask << (manager.get_slot() - 1));
             log_debug(LOGUSR, "Sled presence mask: " << std::to_string(static_cast<uint>(sled_presence_mask))
-                      << " Sled presence bit map: " << std::to_string(static_cast<uint>(sled_presence_bit_map)));
+                                                     << " Sled presence bit map: "
+                                                     << std::to_string(static_cast<uint>(sled_presence_bit_map)));
             auto chassis_keys = CommonComponents::get_instance()->
-                    get_chassis_manager().get_keys(manager.get_uuid());
-            auto fan_keys = ChassisComponents::get_instance()->
-                    get_fan_manager().get_keys(chassis_keys.front());
+                get_chassis_manager().get_keys(manager.get_uuid());
             auto thermal_zone_keys = ChassisComponents::get_instance()->
-                    get_thermal_zone_manager().get_keys(chassis_keys.front());
+                get_thermal_zone_manager().get_keys(chassis_keys.front());
+            auto temperature_sensor_keys = ChassisComponents::get_instance()->
+                get_chassis_sensor_manager().get_keys(chassis_keys.front(), [](const ChassisSensor& sensor) {
+                return sensor.get_reading_units() == enums::ReadingUnits::Celsius;
+            });
 
             auto chassis = CommonComponents::get_instance()->
-                    get_chassis_manager().get_entry_reference(chassis_keys.front());
-            auto fan = ChassisComponents::get_instance()->
-                    get_fan_manager().get_entry_reference(fan_keys.front());
+                get_chassis_manager().get_entry_reference(chassis_keys.front());
             auto thermal_zone = ChassisComponents::get_instance()->
-                    get_thermal_zone_manager().get_entry_reference(thermal_zone_keys.front());
+                get_thermal_zone_manager().get_entry_reference(thermal_zone_keys.front());
+            auto temperature_sensor = ChassisComponents::get_instance()->get_chassis_sensor_manager().get_entry_reference(
+                temperature_sensor_keys.front());
+
+            auto desired_speed_pwm = thermal_zone->get_desired_speed_pwm();
+            auto temperature = temperature_sensor->get_reading();
 
             response.thermal_data[response.sled_count].sled_type = uint8_t(chassis->get_ipmb_type());
-            response.thermal_data[response.sled_count].desired_pwm = uint8_t(fan->get_desired_speed());
-            response.thermal_data[response.sled_count].inlet_temp = uint8_t(thermal_zone->get_temperature());
+            response.thermal_data[response.sled_count].desired_pwm = uint8_t(
+                desired_speed_pwm.has_value() ? desired_speed_pwm.value() : 0xff);
+            response.thermal_data[response.sled_count].inlet_temp = uint8_t(
+                temperature.has_value() ? temperature.value() : 0xff);
 
             response.sled_count++;
             sled_presence_mask = 1;

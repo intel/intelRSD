@@ -46,8 +46,14 @@ void init_switch_vlan_port(const std::string& port_identifier);
  * @return true if port exists otherwise false
  */
 bool get_port_uuid_by_identifier(const std::string& port_identifier,
-                                            std::string& port_uuid);
+                                 std::string& port_uuid);
 
+
+void send_update_event(const std::string& parent_uuid,
+                       const std::string& uuid);
+
+void set_port_neighbor_mac(const std::string& port_name,
+                           const std::string& neighbor_mac);
 }
 }
 }

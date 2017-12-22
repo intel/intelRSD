@@ -17,7 +17,7 @@
 package com.intel.podm.mappers.redfish;
 
 import com.intel.podm.business.entities.redfish.EthernetInterface;
-import com.intel.podm.client.api.resources.redfish.EthernetInterfaceResource;
+import com.intel.podm.client.resources.redfish.EthernetInterfaceResource;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.IpV4AddressMapper;
 import com.intel.podm.mappers.subresources.IpV6AddressMapper;
@@ -58,7 +58,7 @@ public class EthernetInterfaceMapper extends EntityMapper<EthernetInterfaceResou
             ipV6AddressMapper.map(ipV6Addresses, target.getIpV6StaticAddresses(), target::addIpV6StaticAddress)
         );
         source.getIpV6AddressesPolicyTable().ifAssigned(ipV6AddressesPolicyTable ->
-            ipV6AddressPolicyTableMapper.map(ipV6AddressesPolicyTable, target.getIpV6AddressesPolicyTable(), target::addIpV6Policy)
+            ipV6AddressPolicyTableMapper.map(ipV6AddressesPolicyTable, target.getIpV6AddressPolicyTable(), target::addIpV6Policy)
         );
         source.getNameServers().ifAssigned(nameServers ->
             simpleTypeMapper.map(nameServers, target.getNameServers(), target::addNameServer)

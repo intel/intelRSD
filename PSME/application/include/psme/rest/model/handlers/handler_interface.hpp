@@ -29,6 +29,8 @@
 #include "agent-framework/eventing/event_data.hpp"
 #include "agent-framework/module/model/resource.hpp"
 
+#include <stack>
+
 namespace psme {
 namespace rest {
 namespace model {
@@ -65,7 +67,7 @@ public:
      * */
     struct Context {
         enum class Mode : char {
-            EVENT = 'E', POLLING = 'P', LOADING = 'L'
+            EVENT = 'E', POLLING = 'P', LOADING = 'L', USER_ACTION = 'U', AGENT_DISAPPEARED = 'A'
         };
 
         Mode mode{};
@@ -80,37 +82,44 @@ public:
         /*!
          * @brief json agent to talk to
          * */
-        JsonAgent *agent{nullptr};
+        JsonAgent* agent{nullptr};
 
         EventVec events{};
-
-        /*!
-         * @brief This flag is used to limit number of emitted events.
-         *
-         * Only event that comes from top-level added/removed resource should be reported.
-         * */
-        bool do_not_emit_from_descendants{false};
 
         u_int32_t num_added{0};
         u_int32_t num_removed{0};
         u_int32_t num_updated{0};
         u_int32_t num_status_changed{0};
+        u_int32_t num_alerts{0};
 
-        void add_event(Component component, EventType event_type, const std::string &uuid) {
-            std::string url {};
+        void add_event(Component component, EventType event_type, const std::string& uuid) {
+            std::string url{};
             try {
                 url = psme::rest::endpoint::utils::get_component_url(component, uuid);
             }
-            catch(const agent_framework::exceptions::NotFound&) {}
+            catch(const agent_framework::exceptions::NotFound& ex) {
+                log_debug("rest", indent << "Exception while building event origin URL " << ex.what());
+                return;
+            }
 
-            events.emplace_back(Event(event_type, url));
+            // URL with JSON pointer means a property, not a resource.
+            // But events are for resources, so we transform the event to an update of the resource.
+            // So for example a ResourceAdded with URL /redfish/v1/Chassis/1/Thermal#/Fans/0
+            // will be sent as ResourceUpdated event for /redfish/v1/Chassis/1/Thermal.
+            size_t position = url.find_first_of('#');
+            if (position != std::string::npos) {
+                events.emplace_back(Event(EventType::ResourceUpdated, url.substr(0, position)));
+            }
+            else {
+                events.emplace_back(Event(event_type, url));
+            }
         }
     };
 
     /*!
      * @brief Constructor
      */
-    HandlerInterface() { }
+    HandlerInterface() = default;
 
     virtual ~HandlerInterface();
 
@@ -119,14 +128,15 @@ public:
      *
      * @param[in] uuid component's uuid
      * */
-    virtual void remove(const std::string &uuid) = 0;
+    virtual void remove(const std::string& uuid) = 0;
 
     /*!
      * @brief Remove from model all data pertaining to a given agent
      *
+     * @param[in] ctx State of the handler passed down when handling request
      * @param[in] gami_id GAMI ID of agent which data should be removed
      * */
-    virtual void remove_agent_data(const std::string &gami_id) = 0;
+    virtual void remove_agent_data(Context& ctx, const std::string& gami_id) = 0;
 
     /*!
      * @brief dispatches request to the right method: add(), remove() or update()
@@ -142,11 +152,12 @@ public:
      * 3. If update():
      * - fetches out resource form agent and updates local model
      *
-     * @param[in] agent JSON agent that is originator of the event
+     * @param[in] agent JSON agent that is the originator of the event
      * @param[in] event Event data (tells us WHAT and WHY)
+     * @param[in,out] northbound_events Redfish EventRecords collected while handling the event
      * @return Status of handle - true if success
      * */
-    virtual bool handle(JsonAgentSPtr agent, const EventData &event) = 0;
+    virtual bool handle(JsonAgentSPtr agent, const EventData& event, EventVec& northbound_events) = 0;
 
     /*!
      * @brief Similar to handle(...) but used to poll data asynchronously.
@@ -157,8 +168,8 @@ public:
      * @param[in] uuid Start polling from this node
      * */
     virtual void poll(JsonAgentSPtr agent,
-                      const std::string &parent_uuid, const Component parent_component,
-                      const std::string &uuid) = 0;
+                      const std::string& parent_uuid, const Component parent_component,
+                      const std::string& uuid) = 0;
 
     /*!
      * @brief can be used by client to load resource on-demand.
@@ -169,11 +180,11 @@ public:
      * @param[in] uuid UUID of the node to reload
      * @param[in] recursively Do you want to retrieve descendants as well?
      *
-     * Will be used by post,put,patch endpoints to reload data from agent
+     * Will be used by POST, PUT, PATCH endpoints to reload data from agent
      */
     virtual std::uint64_t load(JsonAgentSPtr agent,
-                               const std::string &parent, const Component parent_component,
-                               const std::string &uuid, bool recursively = false) = 0;
+                               const std::string& parent, const Component parent_component,
+                               const std::string& uuid, bool recursively = false) = 0;
 
     /*!
      * @brief gets the current epoch from manager bound to this handler
@@ -245,8 +256,8 @@ protected:
      * @param[in] parent_uuid uuid of parent component
      * @param[in] collection_name name of the collection to be fetched
      */
-    virtual void fetch_siblings(Context &ctx, const std::string &parent_uuid,
-                                const std::string &collection_name) = 0;
+    virtual void fetch_siblings(Context& ctx, const std::string& parent_uuid,
+                                const std::string& collection_name) = 0;
 
     /*!
      * @brief fetches list of all sibling UUIDs for given parent in collection with
@@ -259,8 +270,8 @@ protected:
      * @return list of UUIDs being siblings of parent in specific collection
      */
     virtual agent_framework::model::attribute::Array<agent_framework::model::attribute::SubcomponentEntry>
-            fetch_sibling_uuid_list(Context &ctx, const std::string &parent_uuid,
-                                    const std::string &collection_name) = 0;
+            fetch_sibling_uuid_list(Context& ctx, const std::string& parent_uuid,
+                                    const std::string& collection_name) = 0;
 
     /*!
      * @brief removes all components that have not been touched after given epoch
@@ -269,7 +280,7 @@ protected:
      * @param[in] parent_uuid uuid of parent component
      * @param[in] epoch epoch to remove before
      */
-    virtual void remove_untouched(Context &ctx, const std::string &parent_uuid, std::uint64_t epoch) = 0;
+    virtual void remove_untouched(Context& ctx, const std::string& parent_uuid, std::uint64_t epoch) = 0;
 
     /*!
      * @brief updates a single component
@@ -280,14 +291,15 @@ protected:
      *
      * @return component's REST id
      */
-    virtual std::uint64_t update(Context &ctx, const std::string &parent, const std::string &uuid) = 0;
+    virtual std::uint64_t update(Context& ctx, const std::string& parent, const std::string& uuid) = 0;
 
     /*!
      * @brief removes all children of given parent (including descendants)
      *
+     * @param[in] ctx State of the handler passed down when handling request
      * @param[in] parent uuid of parent whose children should be removed
      */
-    virtual void remove_all(const std::string &parent) = 0;
+    virtual void remove_all(Context& ctx, const std::string& parent) = 0;
 
     /*!
      * @brief Visitor pattern implemented to make possible to visit the node and its descendants

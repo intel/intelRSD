@@ -60,7 +60,11 @@ public:
      */
     virtual ~GetNodeInfo();
 
-    virtual void pack(std::vector<std::uint8_t>& data) const {
+    const char* get_command_name() const override {
+        return "GetNodeInfo";
+    }
+
+    virtual void pack(std::vector<std::uint8_t>& data) const override {
         // GetNodeInfo without request parameters.
         (void)data;
     }
@@ -94,7 +98,11 @@ public:
      */
     virtual ~GetNodeInfo();
 
-    virtual void unpack(const std::vector<std::uint8_t>& data);
+    const char* get_command_name() const override {
+        return "GetNodeInfo";
+    }
+
+    virtual void unpack(const std::vector<std::uint8_t>& data) override;
 
     /*!
      * @brief Checks if node is present (slot is occupied).
@@ -125,5 +133,3 @@ private:
 }
 }
 }
-
-

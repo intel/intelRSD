@@ -20,22 +20,29 @@
  * @brief Implementation of SetComponentAttributes command
  * */
 
-#include "agent-framework/command-ref/compute_commands.hpp"
-#include "agent-framework/command-ref/registry.hpp"
+#include "agent-framework/command/compute_commands.hpp"
+#include "agent-framework/command/registry.hpp"
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/requests/validation/compute.hpp"
 #include "agent-framework/module/requests/validation/common.hpp"
+#include "agent-framework/action/task_runner.hpp"
+#include "agent-framework/action/task.hpp"
+#include "agent-framework/action/task_creator.hpp"
 
 #include "ipmi/manager/ipmitool/management_controller.hpp"
 #include "ipmi/command/generic/chassis_control_command.hpp"
 #include "ipmi/command/generic/set_system_boot_options.hpp"
+#include "ipmi/command/sdv/rsd/constants.hpp"
+#include "ipmi/command/sdv/rsd/set_system_mode.hpp"
+#include "ipmi/command/sdv/rsd/set_tpm_configuration.hpp"
+#include "ipmi/command/sdv/rsd/get_tpm_configuration.hpp"
 
 #include "command/set_network_device_function_attributes.hpp"
 
 
-
-using namespace agent_framework::command_ref;
+using namespace agent_framework;
+using namespace agent_framework::command;
 using namespace agent_framework::exceptions;
 using namespace agent_framework::model;
 using namespace agent_framework::model::requests::validation;
@@ -56,7 +63,14 @@ struct ConfigurableSystemAttributes {
     OptionalField<enums::BootOverrideMode> BootMode{};
     OptionalField<enums::ResetType> PowerState{};
     OptionalField<std::string> AssetTag{};
+    OptionalField<bool> UserModeEnabled{};
     OptionalField<attribute::Oem> Oem{};
+};
+
+struct ConfigurableTpmAttributes {
+    ipmi::command::sdv::TpmCommandStatus command_status{};
+    std::uint8_t version_selection{};
+    ipmi::command::sdv::ClearTpmAction clear_tpm{};
 };
 
 
@@ -83,8 +97,8 @@ BootOverrideTarget convert_boot_override_target_to_ipmi_enum(enums::BootOverride
 }
 
 
-BootOverride convert_boot_override_to_ipmi_enum(enums::BootOverride _override) {
-    switch (_override) {
+BootOverride convert_boot_override_to_ipmi_enum(enums::BootOverride boot_override) {
+    switch (boot_override) {
         case enums::BootOverride::Once:
             return BootOverride::Once;
         case enums::BootOverride::Continuous:
@@ -106,20 +120,64 @@ BootMode convert_boot_mode_to_ipmi_enum(enums::BootOverrideMode mode) {
     }
 }
 
+ipmi::command::sdv::ClearTpmAction get_clear_tpm(bool value) {
+    if (value == true) {
+        return ipmi::command::sdv::ClearTpmAction::CLEAR_USER_TPM_OWNERSHIP;
+    }
+    return ipmi::command::sdv::ClearTpmAction::PRESERVE_USER_TPM_OWNERSHIP;
+}
+
+/*
+ * PSME REST server sends GAMI request using TPM's UUID and boolean value determining whether this specific TPM
+ * is supposed to be enabled or disabled. However, BMC identifies the TPM using its unique configuration index,
+ * which is 1-based value for each TPM. If the TPM is supposed to be disabled, the device index should be set to 0.
+ * If the TPM is supposed to be enabled, the device index should be set to its configuration index. If requested
+ * TPM state is null (no change), the configuration index is set to actual TPM state.
+ * */
+std::uint8_t get_version_selection(const TrustedModule& tpm, const json::Json& value) {
+    if (value.is_null()) {
+        if (tpm.get_status().get_state() == enums::State::Enabled) {
+            return tpm.get_configuration_index();
+        }
+        return ipmi::command::sdv::constants::DISABLE_TPM;
+    }
+    else if (value.get<bool>() == true) {
+        return tpm.get_configuration_index();
+    }
+    return ipmi::command::sdv::constants::DISABLE_TPM;
+}
+
 
 void send_set_boot_options(ManagementController& mc, ConfigurableSystemAttributes& attributes_to_configure) {
     request::SetSystemBootOptions request{convert_boot_override_to_ipmi_enum(attributes_to_configure.BootOverride),
                                           convert_boot_mode_to_ipmi_enum(attributes_to_configure.BootMode),
                                           convert_boot_override_target_to_ipmi_enum(
                                               attributes_to_configure.BootOverrideTarget)};
-    response::SetSystemBootOptions response{};
-
-    mc.send(request, response);
-
-    if (response.get_completion_code()) {
+    try {
+        response::SetSystemBootOptions response{};
+        mc.send(request, response);
+    }
+    catch (ipmi::ResponseError& error) {
         THROW(IpmiError, "compute-agent",
-              "Error Sending Set Boot Options CC: " +
-              std::to_string(unsigned(response.get_completion_code())));
+              "Error Sending Set Boot Options: " + std::string(error.what())
+              + " CC: " + std::to_string(unsigned(error.get_completion_code())));
+    }
+}
+
+
+void send_tpm_configuration(ManagementController& mc, ConfigurableTpmAttributes& attributes) {
+    ipmi::command::sdv::rsd::request::SetTpmConfiguration request{};
+    request.set_clear_tpm_action(attributes.clear_tpm);
+    request.set_tpm_version_selection(attributes.version_selection);
+    request.set_tpm_command_status(ipmi::command::sdv::TpmCommandStatus::COMMAND_VALID);
+    try {
+        ipmi::command::sdv::rsd::response::SetTpmConfiguration response{};
+        mc.send(request, response);
+    }
+    catch (ipmi::ResponseError& error) {
+        THROW(IpmiError, "compute-agent",
+              "Error Sending Set TPM configuration: " + std::string(error.what())
+              + " CC: " + std::to_string(unsigned(error.get_completion_code())));
     }
 }
 
@@ -130,11 +188,13 @@ void send_chassis_control_command(PowerState power_state, const std::string& act
 
     request.set_power_state(power_state);
 
-    mc.send(request, response);
-
-    if (response.get_completion_code()) {
-        THROW(IpmiError, "compute-agent", "Error Sending " + action + " CC: " +
-                                          std::to_string(unsigned(response.get_completion_code())));
+    try {
+        mc.send(request, response);
+    }
+    catch (ipmi::ResponseError& error) {
+        THROW(IpmiError, "compute-agent",
+              "Error Sending " + action + ": " + std::string(error.what())
+              + " CC: " + std::to_string(unsigned(error.get_completion_code())));
     }
 }
 
@@ -150,19 +210,19 @@ std::function<void(ManagementController& mc)> send_reset =
     std::bind(send_chassis_control_command, PowerState::HARD_RESET, "Reset", std::placeholders::_1);
 
 
-System get_system(const string& system_uuid) {
+System get_system(const std::string& system_uuid) {
     auto& sm = CommonComponents::get_instance()->get_system_manager();
     return sm.get_entry(system_uuid);
 }
 
 
-System::Reference get_system_reference(const string& system_uuid) {
+System::Reference get_system_reference(const std::string& system_uuid) {
     auto& sm = CommonComponents::get_instance()->get_system_manager();
     return sm.get_entry_reference(system_uuid);
 }
 
 
-Manager find_parent_manager(const string& system_uuid) {
+Manager find_parent_manager(const std::string& system_uuid) {
     auto system = get_system(system_uuid);
 
     auto& mm = CommonComponents::get_instance()->get_module_manager();
@@ -179,7 +239,7 @@ Manager find_parent_manager(const string& system_uuid) {
 }
 
 
-void set_connection_data(ManagementController& mc, const string& system_uuid) {
+void set_connection_data(ManagementController& mc, const std::string& system_uuid) {
     auto manager = find_parent_manager(system_uuid);
     auto connection_data = manager.get_connection_data();
 
@@ -189,7 +249,7 @@ void set_connection_data(ManagementController& mc, const string& system_uuid) {
     mc.set_password(connection_data.get_password());
 }
 
-void set_boot_options(const string& system_uuid, ConfigurableSystemAttributes& attributes_to_configure) {
+void set_boot_options(const std::string& system_uuid, ConfigurableSystemAttributes& attributes_to_configure) {
     const auto system = get_system(system_uuid);
     // Fill boot options missing from setComponentAttributes
     // with current values for the system.
@@ -215,7 +275,8 @@ void set_boot_options(const string& system_uuid, ConfigurableSystemAttributes& a
     send_set_boot_options(mc, attributes_to_configure);
     if (attributes_to_configure.BootOverrideTarget == enums::BootOverrideTarget::RemoteDrive) {
         agent::compute::set_iscsi_oob_parameters(system, mc);
-    } else {
+    }
+    else {
         agent::compute::clear_iscsi_oob_parameters(system, mc);
     }
 
@@ -226,8 +287,7 @@ void set_boot_options(const string& system_uuid, ConfigurableSystemAttributes& a
 }
 
 
-void set_power_state(const string& system_uuid,
-                     enums::ResetType power_state) {
+void set_power_state(const std::string& system_uuid, enums::ResetType power_state) {
     log_info(GET_LOGGER("compute-agent"), "Set Power State Options for System: " << system_uuid);
     log_info(GET_LOGGER("compute-agent"), "ResetType: " << power_state);
 
@@ -274,6 +334,32 @@ void set_power_state(const string& system_uuid,
     }
 }
 
+void set_system_mode(const std::string& system_uuid,
+                     const ConfigurableSystemAttributes& attributes) {
+    log_info(GET_LOGGER("compute-agent"), "Setting System Mode for System: " << system_uuid);
+
+    auto system = get_system(system_uuid);
+
+    ManagementController mc{};
+    set_connection_data(mc, system_uuid);
+
+    ipmi::command::sdv::rsd::request::SetSystemMode request{};
+    ipmi::command::sdv::rsd::response::SetSystemMode response{};
+
+    request.set_system_mode(attributes.UserModeEnabled.has_value() && true == attributes.UserModeEnabled.value() ?
+                            ipmi::command::sdv::SystemMode::USER_MODE : ipmi::command::sdv::SystemMode::ADMIN_MODE);
+
+    try {
+        mc.send(request, response);
+    }
+    catch (const ipmi::ResponseError& error) {
+        THROW(IpmiError, "compute-agent",
+              "Error sending " + std::string(request.get_command_name()) + ": " + std::string(error.what())
+              + " CC: " + std::to_string(unsigned(error.get_completion_code())));
+    }
+
+    get_system_reference(system_uuid)->set_user_mode_enabled(attributes.UserModeEnabled);
+}
 
 void process_system(const std::string& system_uuid,
                     const attribute::Attributes& attributes,
@@ -291,7 +377,7 @@ void process_system(const std::string& system_uuid,
         const auto& value = attributes.get_value(attribute_name);
 
         log_debug(GET_LOGGER("compute-agent"), "Attribute name: " << attribute_name);
-        log_debug(GET_LOGGER("compute-agent"), "Attribute value: " << value.asString());
+        log_debug(GET_LOGGER("compute-agent"), "Attribute value: " << value.dump());
 
         if (literals::System::BOOT_OVERRIDE == attribute_name) {
             attributes_to_configure.BootOverride = OptionalField<enums::BootOverride>(value);
@@ -306,7 +392,10 @@ void process_system(const std::string& system_uuid,
             attributes_to_configure.PowerState = OptionalField<enums::ResetType>(value);
         }
         else if (literals::System::ASSET_TAG == attribute_name) {
-            attributes_to_configure.AssetTag = value.asString();
+            attributes_to_configure.AssetTag = OptionalField<std::string>(value);
+        }
+        else if (literals::System::USER_MODE_ENABLED == attribute_name) {
+            attributes_to_configure.UserModeEnabled = OptionalField<bool>(value);
         }
         else if (literals::System::OEM == attribute_name) {
             attributes_to_configure.Oem = OptionalField<attribute::Oem>(attribute::Oem::from_json(value));
@@ -352,6 +441,15 @@ void process_system(const std::string& system_uuid,
             response.add_status({literals::System::BOOT_OVERRIDE, ex.get_error_code(), ex.get_message()});
             response.add_status({literals::System::BOOT_OVERRIDE_MODE, ex.get_error_code(), ex.get_message()});
             response.add_status({literals::System::BOOT_OVERRIDE_TARGET, ex.get_error_code(), ex.get_message()});
+        }
+    }
+
+    if (attributes_to_configure.UserModeEnabled.has_value()) {
+        try {
+            set_system_mode(system_uuid, attributes_to_configure);
+        }
+        catch (const GamiException& ex) {
+            response.add_status({literals::System::USER_MODE_ENABLED, ex.get_error_code(), ex.get_message()});
         }
     }
 
@@ -408,8 +506,7 @@ void process_drive(const std::string& uuid, const attribute::Attributes& attribu
                       "Setting field is not supported in local storage drives!", name, value);
             }
             else if (literals::Drive::ASSET_TAG == name) {
-                CommonComponents::get_instance()->get_drive_manager().get_entry_reference(uuid)
-                    ->set_asset_tag(value.asString());
+                CommonComponents::get_instance()->get_drive_manager().get_entry_reference(uuid)->set_asset_tag(value);
             }
             else if (literals::Drive::OEM == name) {
                 THROW(UnsupportedField, "compute-agent", "Setting attribute is not supported.", name, value);
@@ -435,8 +532,7 @@ void process_chassis(const std::string& uuid, const attribute::Attributes& attri
         const auto& value = attributes.get_value(name);
         try {
             if (literals::Drive::ASSET_TAG == name) {
-                CommonComponents::get_instance()->get_chassis_manager().get_entry_reference(uuid)
-                    ->set_asset_tag(value.asString());
+                CommonComponents::get_instance()->get_chassis_manager().get_entry_reference(uuid)->set_asset_tag(value);
             }
             else {
                 // The response must have a message for every attribute that could not be set.
@@ -449,13 +545,96 @@ void process_chassis(const std::string& uuid, const attribute::Attributes& attri
     }
 }
 
+void process_trusted_module(const std::string& uuid, const attribute::Attributes& attributes,
+                     SetComponentAttributes::Response& response) {
+
+    ComputeValidator::validate_set_trusted_module_attributes(attributes);
+    const auto attribute_names = attributes.get_names();
+    if (attribute_names.empty()) {
+        log_debug(GET_LOGGER("compute-agent"), "setComponentAttributes: nothing has been changed (empty request).");
+        return;
+    }
+    auto tpm = agent_framework::module::get_manager<TrustedModule>().get_entry(uuid);
+    ConfigurableTpmAttributes attributes_to_set{};
+
+    ManagementController mc{};
+    set_connection_data(mc, tpm.get_parent_uuid());
+
+    // We know that setting anything on a TPM requires creating a task
+    action::TaskCreator task_creator;
+    task_creator.prepare_task();
+
+    auto promised_response_builder = []() {
+        return json::Json{};
+    };
+
+    auto task_completion_monitor = [] (ManagementController controller) {
+        ipmi::command::sdv::rsd::request::GetTpmConfiguration get_tpm_status_request{};
+        ipmi::command::sdv::rsd::response::GetTpmConfiguration get_tpm_status_response{};
+
+        do {
+            log_info(GET_LOGGER("compute-agent"), "Checking if TPM settings have changed.");
+
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            controller.send(get_tpm_status_request, get_tpm_status_response);
+
+            if (get_tpm_status_response.get_tpm_command_status() == ipmi::command::sdv::TpmCommandStatus::COMMAND_INVALID) {
+                log_info(GET_LOGGER("compute-agent"), "TPM settings applied.");
+                break;
+            }
+            else {
+                log_info(GET_LOGGER("compute-agent"), "TPM setting not applied yet. Waiting.");
+            }
+        } while (true);
+    };
+
+    for (const auto& name : attribute_names) {
+        const auto& value = attributes.get_value(name);
+        try {
+            if (literals::TrustedModule::DEVICE_ENABLED == name) {
+                attributes_to_set.version_selection = get_version_selection(tpm, value);
+            }
+            else if (literals::TrustedModule::CLEAR_OWNERSHIP == name) {
+                attributes_to_set.clear_tpm = get_clear_tpm(value.get<bool>());
+            }
+            else {
+                // The response must have a message for every attribute that could not be set.
+                THROW(UnsupportedField, "compute-agent", "Setting attribute is not supported.", name, value);
+            }
+
+            task_creator.set_promised_error_thrower([] () {
+                return exceptions::GamiException(exceptions::ErrorCode::COMPUTE, "Failed to apply changes to TPM.");
+            });
+        }
+        catch (const GamiException& ex) {
+            response.add_status({name, ex.get_error_code(), ex.get_message()});
+        }
+    }
+
+    if (!response.get_statuses().empty()) {
+        return;
+    }
+
+    task_creator.add_subtask(std::bind(send_tpm_configuration, mc, attributes_to_set));
+    task_creator.add_subtask(std::bind(task_completion_monitor, mc));
+    task_creator.set_promised_response(promised_response_builder);
+
+    task_creator.register_task();
+    auto set_tpm_configuration_task = task_creator.get_task();
+    action::TaskRunner::get_instance().run(set_tpm_configuration_task);
+
+    log_info(GET_LOGGER("compute-agent"), "Setting TPM configuration will be finished after sled reboot.");
+
+    response.set_task(task_creator.get_task_resource().get_uuid());
+}
+
 
 bool exists_in_compute(const std::string& uuid) {
     const auto& compute_components = ComputeComponents::get_instance();
     const auto& common_components = CommonComponents::get_instance();
 
     return common_components->get_module_manager().entry_exists(uuid) ||
-           compute_components->get_processor_manager().entry_exists(uuid) ||
+           agent_framework::module::get_manager<Processor>().entry_exists(uuid) ||
            compute_components->get_memory_manager().entry_exists(uuid) ||
            compute_components->get_network_device_manager().entry_exists(uuid) ||
            compute_components->get_storage_controller_manager().entry_exists(uuid);
@@ -472,20 +651,26 @@ void set_component_attributes(const SetComponentAttributes::Request& request,
     if (CommonComponents::get_instance()->get_system_manager().entry_exists(uuid)) {
         process_system(uuid, attributes, response);
     }
-    else if (CommonComponents::get_instance()->get_storage_subsystem_manager().entry_exists(uuid)) {
+    else if (agent_framework::module::get_manager<StorageSubsystem>().entry_exists(uuid)) {
         process_subsystem(uuid, attributes, response);
     }
-    else if (CommonComponents::get_instance()->get_drive_manager().entry_exists(uuid)) {
+    else if (agent_framework::module::get_manager<Drive>().entry_exists(uuid)) {
         process_drive(uuid, attributes, response);
     }
-    else if (CommonComponents::get_instance()->get_chassis_manager().entry_exists(uuid)) {
+    else if (agent_framework::module::get_manager<Chassis>().entry_exists(uuid)) {
         process_chassis(uuid, attributes, response);
     }
-    else if (ComputeComponents::get_instance()->get_network_device_function_manager().entry_exists(uuid)) {
+    else if (agent_framework::module::get_manager<NetworkDeviceFunction>().entry_exists(uuid)) {
         agent::compute::process_network_device_function(uuid, attributes, response);
     }
-    else if (ComputeComponents::get_instance()->get_network_interface_manager().entry_exists(uuid)) {
+    else if (agent_framework::module::get_manager<TrustedModule>().entry_exists(uuid)) {
+        process_trusted_module(uuid, attributes, response);
+    }
+    else if (agent_framework::module::get_manager<NetworkInterface>().entry_exists(uuid)) {
         THROW(UnsupportedValue, "compute-agent", "Operation for Network Interface is not supported!");
+    }
+    else if (agent_framework::module::get_manager<ThermalZone>().entry_exists(uuid)) {
+        THROW(UnsupportedValue, "compute-agent", "Operation for Thermal Zone is not supported!");
     }
     else if (exists_in_compute(uuid)) {
         THROW(InvalidValue, "compute-agent", "Operation not available for this component.");

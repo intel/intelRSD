@@ -135,28 +135,30 @@ protected:
      * This override is necessary to properly clean the ACL <-> port
      * bindings for all the ports
      *
+     * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param[in] gami_id uuid of the agent whose data is to be removed
      * */
-    void remove_agent_data(const std::string& gami_id) override {
-        AclHandlerBase::remove_agent_data(gami_id);
+    void remove_agent_data(Context& ctx, const std::string& gami_id) override {
+        AclHandlerBase::remove_agent_data(ctx, gami_id);
         NetworkComponents::get_instance()->
             get_acl_port_manager().clean_resources_for_agent(gami_id);
     }
 
 
     /*!
-     * @brief Specialization of remove()
+     * @brief Specialization of do_remove()
      *
      * This override is necessary for clearing the ACL <-> port bindings
      * for given ACL
      *
+     * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param[in] uuid uuid of the ACL to be removed
      * */
-    void remove(const std::string& uuid) override {
+    void do_remove(Context& ctx, const std::string& uuid) override {
         // ACL is the parent in ACL <-> port relation
         NetworkComponents::get_instance()->get_acl_port_manager().
             remove_parent(uuid);
-        AclHandlerBase::remove(uuid);
+        AclHandlerBase::do_remove(ctx, uuid);
     }
 };
 

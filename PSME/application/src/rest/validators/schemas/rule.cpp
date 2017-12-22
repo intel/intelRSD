@@ -30,7 +30,6 @@ using namespace agent_framework::model;
 
 const jsonrpc::ProcedureValidator& RulePatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "rule_patch",
         jsonrpc::PARAMS_BY_NAME,
         constants::Rule::RULE_ID, VALID_OPTIONAL(VALID_NUMERIC_TYPED(UINT32)),
         constants::Rule::ACTION, VALID_OPTIONAL(VALID_ENUM(enums::AclAction)),
@@ -45,7 +44,6 @@ const jsonrpc::ProcedureValidator& RulePatchSchema::get_procedure() {
 
 const jsonrpc::ProcedureValidator& RulePatchSchema::ConditionSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "condition",
         jsonrpc::PARAMS_BY_NAME,
         constants::Rule::IP_SOURCE, VALID_OPTIONAL(VALID_NULLABLE(VALID_ATTRIBUTE(IpSchema))),
         constants::Rule::IP_DESTINATION, VALID_OPTIONAL(VALID_NULLABLE(VALID_ATTRIBUTE(IpSchema))),
@@ -62,7 +60,6 @@ const jsonrpc::ProcedureValidator& RulePatchSchema::ConditionSchema::get_procedu
 
 const jsonrpc::ProcedureValidator& RulePatchSchema::ConditionSchema::IpSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "condition_ip",
         jsonrpc::PARAMS_BY_NAME,
         constants::Rule::IP_ADDRESS, VALID_JSON_STRING,
         constants::Rule::MASK, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
@@ -73,7 +70,6 @@ const jsonrpc::ProcedureValidator& RulePatchSchema::ConditionSchema::IpSchema::g
 
 const jsonrpc::ProcedureValidator& RulePatchSchema::ConditionSchema::MacSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "condition_mac",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::MAC_ADDRESS, VALID_JSON_STRING,
         constants::Rule::MASK, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
@@ -84,7 +80,6 @@ const jsonrpc::ProcedureValidator& RulePatchSchema::ConditionSchema::MacSchema::
 
 const jsonrpc::ProcedureValidator& RulePatchSchema::ConditionSchema::VlanIdSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "vlan_id",
         jsonrpc::PARAMS_BY_NAME,
         constants::Common::ID, VALID_NUMERIC_TYPED(UINT32),
         constants::Rule::MASK, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_TYPED(UINT32))),
@@ -95,7 +90,6 @@ const jsonrpc::ProcedureValidator& RulePatchSchema::ConditionSchema::VlanIdSchem
 
 const jsonrpc::ProcedureValidator& RulePatchSchema::ConditionSchema::PortSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
-        "l4_port",
         jsonrpc::PARAMS_BY_NAME,
         constants::Rule::PORT, VALID_NUMERIC_TYPED(UINT32),
         constants::Rule::MASK, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_TYPED(UINT32))),

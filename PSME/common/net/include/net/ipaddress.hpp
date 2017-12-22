@@ -1,3 +1,19 @@
+//
+// IPAddress.h
+//
+// $Id: //poco/1.4/Net/include/Poco/Net/IPAddress.h#2 $
+//
+// Library: Net
+// Package: NetCore
+// Module:  IPAddress
+//
+// Definition of the IPAddress class.
+//
+// Copyright (c) 2005-2011, Applied Informatics Software Engineering GmbH.
+// and Contributors.
+//
+// SPDX-License-Identifier:	BSL-1.0
+//
 /*!
  * @copyright
  * Copyright (c) 2015-2017 Intel Corporation

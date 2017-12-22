@@ -23,7 +23,7 @@
 
 #include "agent-framework/module/model/attributes/location.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -36,17 +36,17 @@ Location::Location() { }
 Location::~Location() { }
 
 
-Json::Value Location::to_json() const {
-    Json::Value json;
+json::Json Location::to_json() const {
+    json::Json json;
     json[literals::Location::INFO] = get_info();
     json[literals::Location::INFO_FORMAT] = get_info_format();
     return json;
 }
 
 
-Location Location::from_json(const Json::Value& json) {
+Location Location::from_json(const json::Json& json) {
     attribute::Location location;
-    location.set_info(json[literals::Location::INFO].asString());
-    location.set_info_format(json[literals::Location::INFO_FORMAT].asString());
+    location.set_info(json[literals::Location::INFO]);
+    location.set_info_format(json[literals::Location::INFO_FORMAT]);
     return location;
 }

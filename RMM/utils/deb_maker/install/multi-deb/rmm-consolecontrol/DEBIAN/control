@@ -1,8 +1,0 @@
-Package: rmm-consolecontrol
-Version: 
-Section: utils
-Priority: optional
-Architecture: amd64
-Depends: rmm-api
-Maintainer: guanglin.shen <guanglingx.shen@intel.com>
-Description: console and control software (SOL, rebooting, etc)

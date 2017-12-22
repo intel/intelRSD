@@ -33,8 +33,8 @@ Ipv4Address::Ipv4Address() { }
 
 Ipv4Address::~Ipv4Address() { }
 
-Json::Value Ipv4Address::to_json() const {
-    Json::Value result{};
+json::Json Ipv4Address::to_json() const {
+    json::Json result{};
     if (get_address()) {
         result[literals::Ipv4Address::ADDRESS] = get_address();
         result[literals::Ipv4Address::SUBNET_MASK] = get_subnet_mask();
@@ -44,15 +44,14 @@ Json::Value Ipv4Address::to_json() const {
     return result;
 }
 
-Ipv4Address Ipv4Address::from_json(const Json::Value& json) {
+Ipv4Address Ipv4Address::from_json(const json::Json& json) {
     Ipv4Address ipv4_address{};
-    if (!json) {
-        return ipv4_address;
+    if (!json.is_null()) {
+        ipv4_address.set_address(json[literals::Ipv4Address::ADDRESS]);
+        ipv4_address.set_subnet_mask(json[literals::Ipv4Address::SUBNET_MASK]);
+        ipv4_address.set_address_origin(OptionalField<enums::Ipv4AddressOrigin>(
+            json[literals::Ipv4Address::ADDRESS_ORIGIN]));
+        ipv4_address.set_gateway(json[literals::Ipv4Address::GATEWAY]);
     }
-    ipv4_address.set_address(json[literals::Ipv4Address::ADDRESS]);
-    ipv4_address.set_subnet_mask(json[literals::Ipv4Address::SUBNET_MASK]);
-    ipv4_address.set_address_origin(OptionalField<enums::Ipv4AddressOrigin>(
-        json[literals::Ipv4Address::ADDRESS_ORIGIN]));
-    ipv4_address.set_gateway(json[literals::Ipv4Address::GATEWAY]);
     return ipv4_address;
 }

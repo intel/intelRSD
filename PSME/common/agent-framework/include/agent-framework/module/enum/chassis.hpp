@@ -48,7 +48,7 @@ ENUM(EncodingMethod, uint32_t, BASE64, UNKNOWN);
 /*!
  * @brief ENUM Platform type for Chassis class
  */
-ENUM(PlatformType, uint32_t, BDCR, EDK, MF3, UNKNOWN);
+ENUM(PlatformType, uint32_t, BDCR, EDK, MF3, GRANTLEY, PURLEY, UNKNOWN);
 
 /*!
  * @brief ENUM SerialConsoleSignalType for Manager class Serial Console subclass member
@@ -70,7 +70,34 @@ ENUM(SerialConsoleFlowControl, uint32_t, None, Software, Hardware);
  */
 ENUM(SerialConsolePinOut, uint32_t, Cisco, Cyclades, Digi);
 
-}
-}
-}
+/*!
+ * @brief ENUM PowerSupplyType for Psu subclass member
+ */
+ENUM(PowerSupplyType, uint32_t, AC, DC, ACorDC);
 
+/*!
+ * @brief ENUM LineInputVoltageType for Psu subclass member
+ */
+ENUM(LineInputVoltageType, uint32_t, Unknown, ACLowLine, ACMidLine, ACHighLine, DCNeg48V, DC380V, AC120V, AC240V,
+     AC277V, ACandDCWideRange, ACWideRange, DC240V);
+
+/*!
+ * @brief ENUM SpeedUnits for Fan subclass member
+ */
+ENUM(SpeedUnits, uint32_t, Percent, RPM);
+
+/*!
+ * @brief ENUM PhysicalContext for Fan subclass member
+ */
+ENUM(PhysicalContext, uint32_t, Room, Intake, Exhaust, Front, Back, Upper, Lower, CPU, GPU, Backplane, SystemBoard,
+     PowerSupply, VoltageRegulator, StorageDevice, NetworkingDevice, ComputeBay, StorageBay, NetworkBay, ExpansionBay,
+     PowerSupplyBay);
+
+/*!
+ * @brief ENUM ReadingUnits for ChassisSensor subclass member
+ */
+ENUM(ReadingUnits, uint32_t, Volt, Celsius);
+
+}
+}
+}

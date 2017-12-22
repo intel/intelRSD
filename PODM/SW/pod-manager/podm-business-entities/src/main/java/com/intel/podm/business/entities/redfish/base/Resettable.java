@@ -25,14 +25,9 @@ import java.util.List;
 
 public interface Resettable {
     List<ResetType> getAllowableResetTypes();
-
     String getResetName();
-
     ExternalService getService();
-
     URI getSourceUri();
-
     Id getId();
-
     boolean isPresent();
 }

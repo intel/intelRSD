@@ -18,9 +18,9 @@ package com.intel.podm.mappers.subresources;
 
 import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
 import com.intel.podm.business.entities.redfish.embeddables.Chap;
-import com.intel.podm.client.api.resources.redfish.ChapObject;
-import com.intel.podm.client.api.resources.redfish.IscsiAddressObject;
-import com.intel.podm.client.api.resources.redfish.TargetLunObject;
+import com.intel.podm.client.resources.redfish.ChapObject;
+import com.intel.podm.client.resources.redfish.IscsiAddressObject;
+import com.intel.podm.client.resources.redfish.TargetLunObject;
 import com.intel.podm.mappers.subresources.strategies.EntityCleanAndCreateStrategy;
 
 import javax.enterprise.context.Dependent;
@@ -28,6 +28,7 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 @Dependent
@@ -63,7 +64,7 @@ public class RemoteTargetIscsiAddressMapper extends SubresourceMapper<IscsiAddre
     @Override
     public boolean equals(IscsiAddressObject sourceIscsiAddress, RemoteTargetIscsiAddress targetIscsiAddress) {
         return areTargetsEqual(sourceIscsiAddress, targetIscsiAddress)
-            && Objects.equals(sourceIscsiAddress.getChap(), targetIscsiAddress.getChap());
+            && chapMapper.equalAndDontContainNulls(singletonList(sourceIscsiAddress.getChap()), singletonList(targetIscsiAddress.getChap()));
     }
 
     private boolean areTargetsEqual(IscsiAddressObject sourceIscsiAddress, RemoteTargetIscsiAddress targetIscsiAddress) {

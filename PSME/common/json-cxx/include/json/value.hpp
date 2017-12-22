@@ -620,7 +620,7 @@ public:
      * will be converted to JSON object with one JSON member that contains
      * given key and value as JSON null. When operator[] cannot find member
      * with given key, create new JSON member at the end with given key and
-     * value as JSON null. For other JSON types return myself
+     * value as JSON null. For other JSON types throw an exception
      *
      * @param[in]   key     JSON key member that identify JSON value in object
      * @return      JSON value from JSON object
@@ -630,9 +630,9 @@ public:
     /*!
      * @brief Array access to JSON value in JSON object
      *
-     * Only valid for JSON object. When operator[] cannot find member
+     * Only valid for JSON object or null type. When operator[] cannot find member
      * with given key, it returns global const JSON null. For other JSON types
-     * return myself
+     * throw an exception
      *
      * @param[in]   key     JSON key member that identify JSON value in object
      * @return      JSON value from JSON object
@@ -646,7 +646,7 @@ public:
      * will be converted to JSON object with one JSON member that contains
      * given key and value as JSON null. When operator[] cannot find member
      * with given key, create new JSON member at the end with given key and
-     * value as JSON null. For other JSON types return myself
+     * value as JSON null. For other JSON types throw an exception
      *
      * @param[in]   key     JSON key member that identify JSON value in object
      * @return      JSON value from JSON object
@@ -656,9 +656,9 @@ public:
     /*!
      * @brief Array access to JSON value in JSON object
      *
-     * Only valid for JSON object. When operator[] cannot find member
+     * Only valid for JSON object or null type. When operator[] cannot find member
      * with given key, it returns global const JSON null. For other JSON types
-     * return myself
+     * throw an exception
      *
      * @param[in]   key     JSON key member that identify JSON value in object
      * @return      JSON value from JSON object

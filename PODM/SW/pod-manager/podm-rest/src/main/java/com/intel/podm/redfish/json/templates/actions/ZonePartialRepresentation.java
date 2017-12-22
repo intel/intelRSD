@@ -18,8 +18,8 @@ package com.intel.podm.redfish.json.templates.actions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.redfish.RedfishZone;
 import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.common.types.redfish.RedfishZone;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -27,8 +27,9 @@ import java.util.Set;
 import static com.intel.podm.business.services.context.ContextType.ENDPOINT;
 import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUri;
 
+@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class ZonePartialRepresentation implements RedfishZone {
-    private Set<Context> endpoints = new HashSet<>();
+    public Set<Context> endpoints = new HashSet<>();
 
     @JsonProperty("Endpoints")
     public void setEndpoints(Set<ODataId> oDataIds) {

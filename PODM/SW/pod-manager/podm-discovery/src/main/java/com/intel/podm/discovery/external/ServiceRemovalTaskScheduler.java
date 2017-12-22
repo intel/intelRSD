@@ -28,9 +28,9 @@ import java.time.Duration;
 
 import static java.time.Duration.ZERO;
 
+@Startup
 @Singleton
 @DependsOn({"DiscoveryStartup"})
-@Startup
 public class ServiceRemovalTaskScheduler {
     public static final Duration TASK_DELAY = Duration.ofSeconds(10);
     @Inject
@@ -43,7 +43,7 @@ public class ServiceRemovalTaskScheduler {
     private TaskCoordinator taskCoordinator;
 
     @PostConstruct
-    public void schedule() {
+    private void schedule() {
         logger.d("Scheduling Service Removal Task...");
         taskCoordinator.scheduleWithFixedDelay("Service Removal Task", task, ZERO, TASK_DELAY);
     }

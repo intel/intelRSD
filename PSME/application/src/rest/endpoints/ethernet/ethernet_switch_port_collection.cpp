@@ -20,7 +20,6 @@
 
 #include "psme/rest/endpoints/ethernet/ethernet_switch_port_collection.hpp"
 #include "psme/rest/constants/constants.hpp"
-#include "psme/rest/utils/mapper.hpp"
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/ethernet_switch_port_collection.hpp"
 #include "psme/rest/utils/lag_utils.hpp"
@@ -50,7 +49,7 @@ namespace {
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitches/Members/__SWITCH_ID__/Ports";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchPortCollection.EthernetSwitchPortCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#EthernetSwitchPortCollection.EthernetSwitchPortCollection";
     r[Common::NAME] = "Ethernet Switch Port Collection";
@@ -75,12 +74,9 @@ void EthernetSwitchPortCollection::get(const server::Request& req, server::Respo
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    json[Common::ODATA_CONTEXT] = std::regex_replace(json[Common::ODATA_CONTEXT].as_string(),
-                                                     std::regex("__SWITCH_ID__"),
-                                                     req.params[PathParam::ETHERNET_SWITCH_ID]);
-
-    const auto& switch_uuid = agent_framework::module::NetworkComponents::get_instance()->
-        get_switch_manager().rest_id_to_uuid(endpoint::utils::id_to_uint64(req.params[PathParam::ETHERNET_SWITCH_ID]));
+    const auto switch_uuid =
+        psme::rest::model::Find<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
+        .get_uuid();
 
     auto keys = agent_framework::module::NetworkComponents::get_instance()->
         get_port_manager().get_ids(switch_uuid);

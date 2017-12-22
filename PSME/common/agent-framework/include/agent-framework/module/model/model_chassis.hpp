@@ -19,16 +19,20 @@
  *
  *
  * @file model_chassis.hpp
- * @brief Model classes for compute agents
+ * @brief Model classes for chassis and RMM agents
  * */
 
 #pragma once
 #include "manager.hpp"
 #include "chassis.hpp"
+#include "authorization_certificate.hpp"
+#include "task.hpp"
 #include "psu.hpp"
 #include "fan.hpp"
 #include "thermal_zone.hpp"
 #include "power_zone.hpp"
-#include "authorization_certificate.hpp"
-#include "task.hpp"
-
+#include "chassis_sensor.hpp"
+#include "network_interface.hpp"
+#include "ethernet_switch_port_vlan.hpp"
+#include "metric.hpp"
+#include "metric_definition.hpp"

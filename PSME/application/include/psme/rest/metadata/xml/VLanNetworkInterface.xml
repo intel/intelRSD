@@ -9,7 +9,10 @@
     <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation"/>
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
-    <edmx:Include Namespace="Resource.v1_0_0" />
+    <edmx:Include Namespace="Resource.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="IntelRackScaleExtensions.xml">
+    <edmx:Include Namespace="IntelRackScale.Extensions" Alias="IntelRackScale"/>
   </edmx:Reference>
 
   <edmx:DataServices>
@@ -17,7 +20,8 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="VLanNetworkInterface">
 
       <EntityType Name="VLanNetworkInterface" BaseType="Resource.v1_0_0.Resource" Abstract="true">
-        <Annotation Term="OData.Description" String="This resource contains information for a Virtual LAN (VLAN) network instance available on a manager, system or other device."/>
+        <Annotation Term="OData.Description"
+                    String="This resource contains information for a Virtual LAN (VLAN) network instance available on a manager, system or other device."/>
       </EntityType>
 
     </Schema>
@@ -28,26 +32,33 @@
         <Property Name="VLANEnable" Type="Edm.Boolean">
           <Annotation Term="Redfish.RequiredOnCreate"/>
           <Annotation Term="OData.Description" String="This indicates if this VLAN is enabled."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be used to indicate if this VLAN is enabled for this interface."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be used to indicate if this VLAN is enabled for this interface."/>
         </Property>
         <Property Name="VLANId" Type="VLanNetworkInterface.v1_0_0.VLANId">
           <Annotation Term="Redfish.RequiredOnCreate"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="IntelRackScale.Nontrivial"
+                      String="Ability to write this property value is implementation specific."/>
           <Annotation Term="OData.Description" String="This indicates the VLAN identifier for this VLAN."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be used to indicate the VLAN identifier for this VLAN."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be used to indicate the VLAN identifier for this VLAN."/>
         </Property>
-        </EntityType>
+      </EntityType>
 
       <ComplexType Name="VLAN">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="VLANEnable" Type="Edm.Boolean">
           <Annotation Term="Redfish.RequiredOnCreate"/>
           <Annotation Term="OData.Description" String="This indicates if this VLAN is enabled."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be used to indicate if this VLAN is enabled for this interface."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be used to indicate if this VLAN is enabled for this interface."/>
         </Property>
         <Property Name="VLANId" Type="VLanNetworkInterface.v1_0_0.VLANId">
           <Annotation Term="Redfish.RequiredOnCreate"/>
           <Annotation Term="OData.Description" String="This indicates the VLAN identifier for this VLAN."/>
-          <Annotation Term="OData.LongDescription" String="The value of this property shall be used to indicate the VLAN identifier for this VLAN."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be used to indicate the VLAN identifier for this VLAN."/>
         </Property>
       </ComplexType>
 

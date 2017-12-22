@@ -31,8 +31,8 @@ import java.util.Set;
 import static com.intel.podm.common.utils.ClassGatherer.getAllClassesByPackageAndSuperTypeWithTheirInnerClasses;
 import static com.intel.podm.common.utils.ClassGatherer.getAllClassesBySuperType;
 import static com.intel.podm.common.utils.ClassGatherer.getAllFieldsTypesDeeplyFromClassesDeclaredInPackage;
-import static java.util.Collections.sort;
-import static org.testng.Assert.fail;
+import static com.intel.podm.common.utils.FailManager.failWithMessageIfAnyError;
+import static java.util.Arrays.stream;
 
 public class OemInResourcesTest {
     private static final String PODM_CLIENT_PACKAGE = "com.intel.podm.client.*";
@@ -41,49 +41,38 @@ public class OemInResourcesTest {
     public void allOemFieldsMustHaveProperSuperClass() {
         List<String> errors = new ArrayList<>();
 
-        Set<Class> classes = getAllClassesByPackageAndSuperTypeWithTheirInnerClasses(PODM_CLIENT_PACKAGE, ExternalServiceResourceImpl.class);
+        Set<Class<?>> classes = getAllClassesByPackageAndSuperTypeWithTheirInnerClasses(PODM_CLIENT_PACKAGE, ExternalServiceResourceImpl.class);
         classes.addAll(getAllFieldsTypesDeeplyFromClassesDeclaredInPackage(classes, PODM_CLIENT_PACKAGE));
 
-        for (Class clazz : classes) {
-            errors.addAll(checkIfAllOemFieldsHaveProperSuperClass(clazz));
-        }
+        classes.stream()
+            .map(this::checkIfAllOemFieldsHaveProperSuperClass)
+            .forEach(errors::addAll);
 
-        if (!errors.isEmpty()) {
-            sort(errors);
-            String error = "\n" + errors.size() + " problem(s) found in ExternalResources:\n" + String.join("\n", errors);
-            fail(error);
-        }
+        failWithMessageIfAnyError(errors, "ExternalResources");
     }
 
     @Test
     public void allRedfishOemSubclassesMustHaveOemTypeAnnotation() {
         List<String> errors = new ArrayList<>();
 
-        Set<Class> classes = getAllClassesBySuperType(ExternalServiceResourceImpl.RedfishOem.class);
-        for (Class clazz : classes) {
-            errors.addAll(checkIfRedfishOemSubclassHasOemTypeAnnotation(clazz));
-        }
+        Set<Class<?>> classes = getAllClassesBySuperType(ExternalServiceResourceImpl.RedfishOem.class);
+        classes.stream()
+            .map(this::checkIfRedfishOemSubclassHasOemTypeAnnotation)
+            .forEach(errors::addAll);
 
-        if (!errors.isEmpty()) {
-            sort(errors);
-            String error = "\n" + errors.size() + " problem(s) found in ExternalResources:\n" + String.join("\n", errors);
-            fail(error);
-        }
+        failWithMessageIfAnyError(errors, "ExternalResources");
     }
 
-    private List<String> checkIfAllOemFieldsHaveProperSuperClass(Class clazz) {
+    private List<String> checkIfAllOemFieldsHaveProperSuperClass(Class<?> clazz) {
         List<String> errors = new ArrayList<>();
 
         for (Field field : clazz.getDeclaredFields()) {
             JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
-            for (OemInResourceFieldDetail oemInResourceFieldDetail : OemInResourceFieldDetail.values()) {
-                if (isFieldToCheck(field, jsonProperty, oemInResourceFieldDetail)) {
-                    if (!oemInResourceFieldDetail.getSuperClass().isAssignableFrom(field.getType())) {
-                        errors.add(clazz.getName() + ": " + field.getName() + " field must extend "
-                            + oemInResourceFieldDetail.getSuperClass().getName() + " class.");
-                    }
-                }
-            }
+            stream(OemInResourceFieldDetail.values())
+                .filter(oemInResourceFieldDetail -> isFieldToCheck(field, jsonProperty, oemInResourceFieldDetail))
+                .filter(oemInResourceFieldDetail -> !oemInResourceFieldDetail.getSuperClass().isAssignableFrom(field.getType()))
+                .map(oemInResourceFieldDetail -> clazz.getName() + ": " + field.getName() + " field must extend "
+                    + oemInResourceFieldDetail.getSuperClass().getName() + " class.").forEach(errors::add);
         }
 
         return errors;
@@ -95,7 +84,7 @@ public class OemInResourcesTest {
             || (jsonProperty != null && Objects.equal(oemInResourceFieldDetail.getJsonPropertyValue(), jsonProperty.value())));
     }
 
-    private List<String> checkIfRedfishOemSubclassHasOemTypeAnnotation(Class clazz) {
+    private List<String> checkIfRedfishOemSubclassHasOemTypeAnnotation(Class<?> clazz) {
         List<String> errors = new ArrayList<>();
 
         if (!clazz.isAnnotationPresent(OemType.class)) {

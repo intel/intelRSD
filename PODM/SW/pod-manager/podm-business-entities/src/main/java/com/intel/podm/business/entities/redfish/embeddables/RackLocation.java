@@ -38,7 +38,7 @@ public class RackLocation {
 
     @Column(name = "rack_unit")
     @Enumerated(STRING)
-    private RackUnitType rackUnit;
+    private RackUnitType rackUnits;
 
     public Integer getXLocation() {
         return xLocation;
@@ -64,12 +64,12 @@ public class RackLocation {
         this.uHeight = uHeight;
     }
 
-    public RackUnitType getRackUnit() {
-        return rackUnit;
+    public RackUnitType getRackUnits() {
+        return rackUnits;
     }
 
-    public void setRackUnit(RackUnitType rackUnit) {
-        this.rackUnit = rackUnit;
+    public void setRackUnits(RackUnitType rackUnit) {
+        this.rackUnits = rackUnit;
     }
 
     @Override
@@ -83,13 +83,13 @@ public class RackLocation {
         }
         RackLocation that = (RackLocation) o;
         return Objects.equals(xLocation, that.xLocation)
-                && Objects.equals(uLocation, that.uLocation)
-                && Objects.equals(uHeight, that.uHeight)
-                && rackUnit == that.rackUnit;
+            && Objects.equals(uLocation, that.uLocation)
+            && Objects.equals(uHeight, that.uHeight)
+            && rackUnits == that.rackUnits;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(xLocation, uLocation, uHeight, rackUnit);
+        return Objects.hash(xLocation, uLocation, uHeight, rackUnits);
     }
 }

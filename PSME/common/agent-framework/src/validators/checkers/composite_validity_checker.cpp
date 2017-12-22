@@ -30,7 +30,7 @@ CompositeValidityChecker::CompositeValidityChecker(ValidityChecker::Ptr& _checke
 }
 
 
-void CompositeValidityChecker::validate(const Json::Value& value) const {
+void CompositeValidityChecker::validate(const json::Json& value) const {
     if (checker1) {
         checker1->validate(value);
     }

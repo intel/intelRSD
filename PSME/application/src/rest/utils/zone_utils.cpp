@@ -20,7 +20,7 @@
 
 #include "psme/rest/model/finder.hpp"
 #include "psme/rest/utils/zone_utils.hpp"
-#include "psme/rest/utils/mapper.hpp"
+#include "psme/rest/server/multiplexer.hpp"
 #include "psme/rest/endpoints/endpoints.hpp"
 
 
@@ -37,7 +37,7 @@ std::vector<std::string> ZoneUtils::validate_patch_links_and_get_endpoint_uuids(
     for (const auto& endpoint_link : json[constants::Fabric::ENDPOINTS].as_array()) {
         auto endpoint_path = endpoint_link[constants::Common::ODATA_ID].as_string();
         try {
-            auto params = psme::rest::model::Mapper::get_params(endpoint_path, constants::Routes::ENDPOINT_PATH);
+            auto params = server::Multiplexer::get_instance()->get_params(endpoint_path, Routes::ENDPOINT_PATH);
             auto endpoint_uuid =
                 psme::rest::model::Find<agent_framework::model::Endpoint>(params[PathParam::ENDPOINT_ID])
                     .via<agent_framework::model::Fabric>(params[PathParam::FABRIC_ID])
@@ -47,7 +47,7 @@ std::vector<std::string> ZoneUtils::validate_patch_links_and_get_endpoint_uuids(
         }
         catch (const agent_framework::exceptions::NotFound&) {
             THROW(agent_framework::exceptions::InvalidValue, "rest",
-                  "Could not find endpoint: " + endpoint_link[constants::Common::ODATA_ID].as_string());
+                  "Could not find endpoint: " + endpoint_path);
         }
     }
     return endpoints;
@@ -58,14 +58,14 @@ std::vector<std::string> ZoneUtils::validate_post_links_and_get_endpoint_uuids(c
     for (const auto& switch_link : json[constants::Zone::INVOLVED_SWITCHES].as_array()) {
         auto switch_path = switch_link[constants::Common::ODATA_ID].as_string();
         try {
-            auto params = psme::rest::model::Mapper::get_params(switch_path, constants::Routes::SWITCH_PATH);
+            auto params = server::Multiplexer::get_instance()->get_params(switch_path, Routes::SWITCH_PATH);
             // verify Switch's existence
             psme::rest::model::Find<agent_framework::model::Switch>(params[PathParam::SWITCH_ID])
                 .via<agent_framework::model::Fabric>(params[PathParam::FABRIC_ID]).get_uuid();
         }
         catch (const agent_framework::exceptions::NotFound&) {
             THROW(agent_framework::exceptions::InvalidValue, "rest",
-                  "Could not find Fabric Switch: " + switch_link[constants::Common::ODATA_ID].as_string());
+                  "Could not find Fabric Switch: " + switch_path);
         }
     }
 
@@ -73,7 +73,7 @@ std::vector<std::string> ZoneUtils::validate_post_links_and_get_endpoint_uuids(c
     for (const auto& endpoint_link : json[constants::Fabric::ENDPOINTS].as_array()) {
         auto endpoint_path = endpoint_link[constants::Common::ODATA_ID].as_string();
         try {
-            auto params = psme::rest::model::Mapper::get_params(endpoint_path, constants::Routes::ENDPOINT_PATH);
+            auto params = server::Multiplexer::get_instance()->get_params(endpoint_path, Routes::ENDPOINT_PATH);
             auto endpoint_uuid =
                 psme::rest::model::Find<agent_framework::model::Endpoint>(params[PathParam::ENDPOINT_ID])
                     .via<agent_framework::model::Fabric>(params[PathParam::FABRIC_ID])
@@ -83,7 +83,7 @@ std::vector<std::string> ZoneUtils::validate_post_links_and_get_endpoint_uuids(c
         }
         catch (const agent_framework::exceptions::NotFound&) {
             THROW(agent_framework::exceptions::InvalidValue, "rest",
-                  "Could not find endpoint: " + endpoint_link[constants::Common::ODATA_ID].as_string());
+                  "Could not find endpoint: " + endpoint_path);
         }
     }
     return endpoints;

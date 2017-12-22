@@ -30,9 +30,9 @@
 
 using namespace agent::pnc::state_machine;
 
-enum class TestState : uint8_t { Initial, State1, GT0, LT0 };
+enum class TestState : uint8_t { Initial, State1, State2, GT0, LT0 };
 enum class TestEvent : uint8_t {
-    InitFailedTransition, InitFailedGuard, InitOk, NotUsed, Check0};
+    InitFailedTransition, InitFailedGuard, InitOk, NotUsed, Check0, ToState2};
 
 class TestStateMachine : public EnumStateMachine<TestState, TestEvent> {
 public:
@@ -42,9 +42,9 @@ public:
 
     virtual ~TestStateMachine();
 
-    virtual bool check_guards(const Transition& transition) {
+    virtual bool do_guard_check(const Transition& transition) {
         ++m_cg;
-        return EnumStateMachine<TestState, TestEvent>::check_guards(transition);
+        return EnumStateMachine<TestState, TestEvent>::do_guard_check(transition);
     }
 
     virtual bool do_transition(const Transition& transition) {
@@ -52,9 +52,9 @@ public:
         return EnumStateMachine<TestState, TestEvent>::do_transition(transition);
     }
 
-    virtual void pre_event_check(const TestEvent& ev) {
+    virtual void do_on_event_action(const TestEvent& ev) {
         ++m_pec;
-        EnumStateMachine<TestState, TestEvent>::pre_event_check(ev);
+        EnumStateMachine<TestState, TestEvent>::do_on_event_action(ev);
     }
 
     int m_cg{0};
@@ -122,6 +122,15 @@ EnumStateMachineTest::~EnumStateMachineTest() {}
 
 TEST_F(EnumStateMachineTest, SimpleGuardsAndTransitionsAreWorking) {
     EXPECT_EQ(sm->get_current_state(), TS::Initial);
+    EXPECT_EQ(true, sm->send_event(TE::ToState2));
+    EXPECT_EQ(sm->get_current_state(), TS::Initial);
+    sm->add_transition(TS::Initial, TE::ToState2, TS::State2);
+    EXPECT_EQ(true, sm->send_event(TE::ToState2));
+    EXPECT_EQ(sm->get_current_state(), TS::State2);
+}
+
+TEST_F(EnumStateMachineTest, AddTransitionCommandIsWorking) {
+    EXPECT_EQ(sm->get_current_state(), TS::Initial);
     EXPECT_EQ(true, sm->send_event(TE::NotUsed));
     EXPECT_EQ(sm->get_current_state(), TS::Initial);
     EXPECT_EQ(false, sm->send_event(TE::InitFailedTransition));
@@ -132,7 +141,7 @@ TEST_F(EnumStateMachineTest, SimpleGuardsAndTransitionsAreWorking) {
     EXPECT_EQ(sm->get_current_state(), TS::State1);
 }
 
-TEST_F(EnumStateMachineTest, PreEventCheckTemplateMethodIsCalled) {
+TEST_F(EnumStateMachineTest, DoOnEventActionTemplateMethodIsCalled) {
     EXPECT_EQ(sm->m_pec, 0);
     EXPECT_EQ(true, sm->send_event(TE::NotUsed));
     EXPECT_EQ(sm->m_pec, 1);
@@ -144,7 +153,7 @@ TEST_F(EnumStateMachineTest, PreEventCheckTemplateMethodIsCalled) {
     EXPECT_EQ(sm->m_pec, 4);
 }
 
-TEST_F(EnumStateMachineTest, CheckGuardsTemplateMethodIsCalled) {
+TEST_F(EnumStateMachineTest, DoGuardCheckTemplateMethodIsCalled) {
     EXPECT_EQ(sm->m_cg, 0);
     EXPECT_EQ(true, sm->send_event(TE::NotUsed));
     EXPECT_EQ(sm->m_cg, 0);

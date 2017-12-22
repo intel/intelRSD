@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+
+  <edmx:Reference Uri="ServiceRoot.xml">
+    <edmx:Include Namespace="ServiceRoot.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="IntelRackScaleOem.xml">
+    <edmx:Include Namespace="Intel.Oem"/>
+  </edmx:Reference>
+
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Service">
+      <EntityContainer Name="Service" Extends="ServiceRoot.v1_0_0.ServiceContainer">
+        <Annotation Term="OData.Description" String="Default Entity Container"/>
+      </EntityContainer>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
+

@@ -22,9 +22,13 @@
  * @brief FRU info
  * */
 #pragma once
+
+
+
 #include "agent-framework/module/utils/utils.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 #include <string>
-#include <json/json.h>
 
 namespace agent_framework {
 namespace model {
@@ -34,25 +38,32 @@ namespace attribute {
 class FruInfo {
 public:
 
-
     explicit FruInfo();
+
 
     FruInfo(const std::string& serial_number,
             const std::string& manufacturer,
             const std::string& model_number,
-            const std::string& part_number):
-            m_serial_number{serial_number},
-            m_manufacturer{manufacturer},
-            m_model_number{model_number},
-            m_part_number{part_number}
-            {}
+            const std::string& part_number) :
+        m_serial_number{serial_number},
+        m_manufacturer{manufacturer},
+        m_model_number{model_number},
+        m_part_number{part_number} {}
+
 
     ~FruInfo();
 
+
     /*! Enable copy */
     FruInfo(const FruInfo&) = default;
+
+
     FruInfo& operator=(const FruInfo&) = default;
+
+
     FruInfo(FruInfo&&) = default;
+
+
     FruInfo& operator=(FruInfo&&) = default;
 
 
@@ -65,12 +76,14 @@ public:
         m_serial_number = serial_number;
     }
 
+
     /*!
      * Gets serial number.
      * */
     const OptionalField<std::string>& get_serial_number() const {
         return m_serial_number;
     }
+
 
     /*!
      * Sets manufacturer name
@@ -81,12 +94,14 @@ public:
         m_manufacturer = manufacturer;
     }
 
+
     /*!
-     * Sets manufacturer name
+     * Gets manufacturer name
      * */
     const OptionalField<std::string>& get_manufacturer() const {
         return m_manufacturer;
     }
+
 
     /*!
      * Sets model number
@@ -97,12 +112,14 @@ public:
         m_model_number = model_number;
     }
 
+
     /*!
      * Gets model number
      * */
     const OptionalField<std::string>& get_model_number() const {
         return m_model_number;
     }
+
 
     /*!
      * Sets part number
@@ -113,6 +130,7 @@ public:
         m_part_number = part_number;
     }
 
+
     /*!
      * Gets part number
      * */
@@ -120,21 +138,24 @@ public:
         return m_part_number;
     }
 
+
     /*!
      * Converts this to json representation.
      *
-     * //return json representation of this class.
+     * @return json representation of this class.
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
+
 
     /*!
      * @brief construct an object of class FruInfo from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed FruInfo object
      */
-    static FruInfo from_json(const Json::Value& json);
+    static FruInfo from_json(const json::Json& json);
+
 
 private:
     OptionalField<std::string> m_serial_number{};
@@ -146,4 +167,3 @@ private:
 }
 }
 }
-

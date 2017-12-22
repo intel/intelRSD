@@ -24,15 +24,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.intel.podm.client.api.ExternalServiceApiReaderException;
-import com.intel.podm.client.api.WebClient;
-import com.intel.podm.client.api.reader.ResourceLinks;
-import com.intel.podm.client.api.reader.ResourceSupplier;
-import com.intel.podm.client.api.resources.ExternalServiceResource;
-import com.intel.podm.client.api.resources.redfish.UnknownOemObject;
-import com.intel.podm.client.reader.ResourceLinksImpl;
-import com.intel.podm.client.reader.ResourceSupplierImpl;
+import com.intel.podm.client.WebClient;
+import com.intel.podm.client.WebClientRequestException;
+import com.intel.podm.client.reader.ResourceLinks;
+import com.intel.podm.client.reader.ResourceSupplier;
 import com.intel.podm.client.redfish.response.RedfishEntityResponseBodyImpl;
+import com.intel.podm.client.resources.redfish.UnknownOemObject;
 import com.intel.podm.client.typeidresolver.ResourceResolver;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.redfish.OemType;
@@ -44,7 +41,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
@@ -59,10 +55,9 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
-import static java.util.regex.Pattern.compile;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-
+import static java.util.stream.Collectors.toSet;
 
 @JsonTypeInfo(
     use = NAME,
@@ -81,10 +76,6 @@ public abstract class ExternalServiceResourceImpl extends RedfishEntityResponseB
     private String name;
     @JsonProperty("Description")
     private String description;
-
-    //FIXME: delete when links to Computer system are available in child resources
-    @JsonProperty("@odata.id")
-    private String oDataId;
 
     @JsonIgnore
     private WebClient webClient;
@@ -105,17 +96,14 @@ public abstract class ExternalServiceResourceImpl extends RedfishEntityResponseB
         this.uri = uri;
     }
 
-    @Override
     public String getId() {
         return id;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public String getDescription() {
         return description;
     }
@@ -127,7 +115,7 @@ public abstract class ExternalServiceResourceImpl extends RedfishEntityResponseB
 
     @Override
     public ResourceLinks getLinks() {
-        return new ResourceLinksImpl(this);
+        return new ResourceLinks(this);
     }
 
     public void addUnknownOem(UnknownOemObject unknownOemObject) {
@@ -139,7 +127,7 @@ public abstract class ExternalServiceResourceImpl extends RedfishEntityResponseB
         return unknownOems;
     }
 
-    protected Iterable<ResourceSupplier> processMembersListResource(ODataId membersListResource) throws ExternalServiceApiReaderException {
+    protected Iterable<ResourceSupplier> processMembersListResource(ODataId membersListResource) throws WebClientRequestException {
         if (membersListResource == null || membersListResource.toUri() == null) {
             return emptyList();
         }
@@ -149,7 +137,7 @@ public abstract class ExternalServiceResourceImpl extends RedfishEntityResponseB
         return toSuppliers(members);
     }
 
-    protected Iterable<ResourceSupplier> toSuppliers(Iterable<ODataId> collection) throws ExternalServiceApiReaderException {
+    protected Iterable<ResourceSupplier> toSuppliers(Iterable<ODataId> collection) throws WebClientRequestException {
         if (collection == null) {
             return emptyList();
         }
@@ -160,28 +148,14 @@ public abstract class ExternalServiceResourceImpl extends RedfishEntityResponseB
     }
 
     protected ResourceSupplier toSupplier(ODataId oDataId) {
-        if (oDataId == null || oDataId.toUri() == null) {
-            return new ResourceSupplier() {
-                @Override
-                public ExternalServiceResource get() throws ExternalServiceApiReaderException {
-                    throw new ExternalServiceApiReaderException("null ODataId", ExternalServiceResourceImpl.this.getUri());
-                }
-
-                @Override
-                public URI getUri() {
-                    throw new IllegalStateException("URI not available");
-                }
-            };
-        }
-
-        return new ResourceSupplierImpl(webClient, oDataId.toUri());
+        return toSupplier(webClient, oDataId);
     }
 
     protected <T extends ExternalServiceResource> Iterable<ResourceSupplier> toSuppliersFromResources(Iterable<T> resourcesCollection) {
         return StreamSupport.stream(requiresNonNull(resourcesCollection, "resourcesCollection").spliterator(), false)
             .map(item -> new ResourceSupplier() {
                 @Override
-                public ExternalServiceResource get() throws ExternalServiceApiReaderException {
+                public ExternalServiceResource get() throws WebClientRequestException {
                     item.setWebClient(webClient);
                     return item;
                 }
@@ -193,19 +167,19 @@ public abstract class ExternalServiceResourceImpl extends RedfishEntityResponseB
             }).collect(toList());
     }
 
-    protected <T extends ExternalServiceResource> Iterable<ResourceSupplier> toSuppliersFromEmbedabbleResourceElement(
-        List<T> resourcesCollection, String embedabbleUriSegmentName) {
+    protected <T extends ExternalServiceResource> Iterable<ResourceSupplier> toSuppliersFromEmbeddableResourceElement(
+        List<T> resourcesCollection, String embeddableUriSegmentName) {
         return resourcesCollection.stream()
-            .map(resource -> createResourceSupplier(resource, resourcesCollection.indexOf(resource), embedabbleUriSegmentName))
-            .collect(Collectors.toSet());
+            .map(resource -> createResourceSupplier(resource, resourcesCollection.indexOf(resource), embeddableUriSegmentName))
+            .collect(toSet());
     }
 
-    private <T extends ExternalServiceResource> ResourceSupplier createResourceSupplier(T item, int resourceId, String embedabbleUriSegmentName) {
+    private <T extends ExternalServiceResource> ResourceSupplier createResourceSupplier(T item, int resourceId, String embeddableUriSegmentName) {
         return new ResourceSupplier() {
-            String uriString = uri.getPath() + "#/" + embedabbleUriSegmentName + "/" + resourceId;
+            String uriString = uri.getPath() + "#/" + embeddableUriSegmentName + "/" + resourceId;
 
             @Override
-            public ExternalServiceResource get() throws ExternalServiceApiReaderException {
+            public ExternalServiceResource get() throws WebClientRequestException {
                 item.setWebClient(webClient);
                 item.setUri(URI.create(uriString));
                 return item;
@@ -234,7 +208,7 @@ public abstract class ExternalServiceResourceImpl extends RedfishEntityResponseB
     }
 
     protected Matcher createMatcher(String uriFragement, String... uriFragmentGroups) {
-        Pattern pattern = compile(
+        Pattern pattern = Pattern.compile(
             stream(uriFragmentGroups)
                 .map(groupName -> format("(?<%s>\\w+)", groupName))
                 .collect(joining("/", "/?", ""))
@@ -249,15 +223,18 @@ public abstract class ExternalServiceResourceImpl extends RedfishEntityResponseB
             return;
         }
 
-        if (oemName.equals("Oem")) {
-            extractUnknownOemsFromOemObject(oemName, oemValue)
-                .forEach(ExternalServiceResourceImpl.this::addUnknownOem);
-        } else if (oemName.equals("Links")) {
-            extractUnknownOemsFromLinksOemObject("Oem", oemValue.findValue("Oem"))
-                .forEach(ExternalServiceResourceImpl.this::addUnknownOem);
-        } else if (oemName.equals("Actions")) {
-            extractUnknownOemsFromActionsOemObject("Oem", oemValue.findValue("Oem"))
-                .forEach(ExternalServiceResourceImpl.this::addUnknownOem);
+        switch (oemName) {
+            case "Oem":
+                extractUnknownOemsFromOemObject(oemName, oemValue).forEach(ExternalServiceResourceImpl.this::addUnknownOem);
+                break;
+            case "Links":
+                extractUnknownOemsFromLinksOemObject("Oem", oemValue.findValue("Oem")).forEach(ExternalServiceResourceImpl.this::addUnknownOem);
+                break;
+            case "Actions":
+                extractUnknownOemsFromActionsOemObject("Oem", oemValue.findValue("Oem")).forEach(ExternalServiceResourceImpl.this::addUnknownOem);
+                break;
+            default:
+                break;
         }
     }
 

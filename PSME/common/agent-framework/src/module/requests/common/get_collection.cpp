@@ -25,7 +25,7 @@
 
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/requests/common/get_collection.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
@@ -33,16 +33,16 @@ using namespace agent_framework::model::literals;
 GetCollection::GetCollection(const std::string& component,
         const std::string& name): m_component{component}, m_name{name} {}
 
-Json::Value GetCollection::to_json() const {
-    Json::Value value;
+json::Json GetCollection::to_json() const {
+    json::Json value;
     value[Collection::COMPONENT] = m_component;
     value[Collection::NAME] = m_name;
     return value;
 }
 
-GetCollection GetCollection::from_json(const Json::Value& json) {
+GetCollection GetCollection::from_json(const json::Json& json) {
     return GetCollection(
-        json[Collection::COMPONENT].asString(),
-        json[Collection::NAME].asString()
+        json[Collection::COMPONENT].get<std::string>(),
+        json[Collection::NAME].get<std::string>()
     );
 }

@@ -16,17 +16,24 @@
 
 package com.intel.podm.business.services.context;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM_METRICS;
+import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_METRICS;
+import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT_METRICS;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
+import static com.intel.podm.business.services.context.ContextType.MEMORY_METRICS;
 import static com.intel.podm.business.services.context.ContextType.NETWORK_PROTOCOL;
+import static com.intel.podm.business.services.context.ContextType.PORT_METRICS;
 import static com.intel.podm.business.services.context.ContextType.POWER;
+import static com.intel.podm.business.services.context.ContextType.PROCESSOR_METRICS;
+import static com.intel.podm.business.services.context.ContextType.TELEMETRY_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.THERMAL;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static java.util.Collections.unmodifiableSet;
 
-public class ContextTypeToSingletonResourceMapper {
+class ContextTypeToSingletonResourceMapper {
     private static final Set<ContextType> MAPPING;
 
     static {
@@ -35,11 +42,18 @@ public class ContextTypeToSingletonResourceMapper {
         set.add(POWER);
         set.add(THERMAL);
         set.add(EVENT_SERVICE);
+        set.add(TELEMETRY_SERVICE);
+        set.add(COMPUTER_SYSTEM_METRICS);
+        set.add(PROCESSOR_METRICS);
+        set.add(MEMORY_METRICS);
+        set.add(PORT_METRICS);
+        set.add(ETHERNET_SWITCH_METRICS);
+        set.add(ETHERNET_SWITCH_PORT_METRICS);
 
-        MAPPING = Collections.unmodifiableSet(set);
+        MAPPING = unmodifiableSet(set);
     }
 
-    public boolean isSingletonResource(ContextType contextType) {
+    boolean isSingletonResource(ContextType contextType) {
         requiresNonNull(contextType, "contextType");
         return MAPPING.contains(contextType);
     }

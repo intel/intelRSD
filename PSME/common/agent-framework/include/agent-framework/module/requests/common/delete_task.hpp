@@ -32,12 +32,6 @@
 
 #include <string>
 
-
-
-namespace Json {
-class Value;
-}
-
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -62,10 +56,10 @@ public:
     }
 
 
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
 
-    static DeleteTask from_json(const Json::Value& json);
+    static DeleteTask from_json(const json::Json& json);
 
 
     static const jsonrpc::ProcedureValidator& get_procedure() {

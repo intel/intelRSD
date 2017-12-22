@@ -17,8 +17,8 @@
 package com.intel.podm.mappers.legacy;
 
 import com.intel.podm.business.entities.redfish.Drive;
-import com.intel.podm.client.api.resources.legacy.DeviceResource;
-import com.intel.podm.client.api.resources.redfish.RedfishLocationObject;
+import com.intel.podm.client.resources.legacy.DeviceResource;
+import com.intel.podm.client.resources.redfish.RedfishLocationObject;
 import com.intel.podm.mappers.EntityMapper;
 import com.intel.podm.mappers.subresources.RedfishLocationMapper;
 
@@ -49,17 +49,15 @@ public class DeviceMapper extends EntityMapper<DeviceResource, Drive> {
         target.setMediaType(source.getType());
         target.setRotationSpeedRpm(new BigDecimal(source.getRpm()));
 
-        redfishLocationMapper.map(createRedfishLocationObjectList(source), target.getLocations(), target::addLocation);
+        redfishLocationMapper.map(createRedfishLocationObjectList(source), target.getLocation(), target::addLocation);
     }
 
     private List<RedfishLocationObject> createRedfishLocationObjectList(DeviceResource source) {
         return singletonList(new RedfishLocationObject() {
-            @Override
             public String getInfo() {
                 return source.getBusInfo();
             }
 
-            @Override
             public String getInfoFormat() {
                 return INFO_FORMAT;
             }

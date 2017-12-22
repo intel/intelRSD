@@ -25,20 +25,20 @@
 
 #include "agent-framework/module/model/attributes/command_shell.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 
-Json::Value CommandShell::to_json() const {
-    Json::Value json;
+json::Json CommandShell::to_json() const {
+    json::Json json;
     json[literals::CommandShell::ENABLED] = get_enabled();
     json[literals::CommandShell::MAX_SESSIONS] = get_max_sessions();
     json[literals::CommandShell::TYPES_SUPPORTED] = get_types_supported().to_json();
     return json;
 }
 
-CommandShell CommandShell::from_json(const Json::Value& json) {
+CommandShell CommandShell::from_json(const json::Json& json) {
     CommandShell shell;
     shell.set_enabled(json[literals::CommandShell::ENABLED]);
     shell.set_max_sessions(json[literals::CommandShell::MAX_SESSIONS]);

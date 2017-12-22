@@ -28,20 +28,19 @@
 
 #include "agent-framework/module/requests/compute/get_memory_info.hpp"
 #include "agent-framework/module/constants/compute.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
 GetMemoryInfo::GetMemoryInfo(const std::string& memory): m_memory{memory} {}
 
-Json::Value GetMemoryInfo::to_json() const {
-    Json::Value value;
+json::Json GetMemoryInfo::to_json() const {
+    json::Json value;
     value[Memory::MEMORY] = m_memory;
     return value;
 }
 
-GetMemoryInfo GetMemoryInfo::from_json(const Json::Value& json) {
-    return GetMemoryInfo{json[Memory::MEMORY].asString()};
+GetMemoryInfo GetMemoryInfo::from_json(const json::Json& json) {
+    return GetMemoryInfo{json[Memory::MEMORY].get<std::string>()};
 }
-

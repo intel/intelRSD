@@ -19,31 +19,32 @@ package com.intel.podm.business.entities.interceptors;
 import com.intel.podm.business.entities.Diff;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.logger.LoggerFactory;
 import org.hibernate.CallbackException;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.Transaction;
 import org.hibernate.collection.spi.PersistentCollection;
-import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.type.Type;
 
 import java.io.Serializable;
 
+import static com.intel.podm.common.logger.LoggerFactory.getLogger;
+import static org.hibernate.resource.transaction.spi.TransactionStatus.COMMITTED;
+
 public class StaticDelegateInterceptor extends EmptyInterceptor {
-
     private static final boolean ENTITY_HAS_NOT_BEEN_CHANGED_BY_THIS_METHOD = false;
+    private static final Logger LOGGER = getLogger(StaticDelegateInterceptor.class);
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StaticDelegateInterceptor.class);
+    private static final long serialVersionUID = 8871422760076723622L;
 
-    private static EntityEventObserver observer = new EntityEventObserver() { };
+    private static EntityEventObserver observer;
 
-    static void setObserver(EntityEventObserver observer) {
+    public static void setStaticDelegateInterceptorObserver(EntityEventObserver observer) {
         StaticDelegateInterceptor.observer = observer;
     }
 
     @Override
     public void afterTransactionCompletion(Transaction tx) {
-        if (tx.getStatus() == TransactionStatus.COMMITTED) {
+        if (tx.getStatus() == COMMITTED) {
             StaticDelegateInterceptor.observer.onTransactionCompletion();
         } else {
             StaticDelegateInterceptor.observer.onTransactionFailed();

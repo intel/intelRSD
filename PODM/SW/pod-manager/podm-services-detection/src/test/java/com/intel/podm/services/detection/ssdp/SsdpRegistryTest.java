@@ -38,7 +38,6 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-
 public class SsdpRegistryTest {
 
     public static final int CACHE_CONTROL = 1000;

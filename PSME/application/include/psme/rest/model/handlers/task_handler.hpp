@@ -29,6 +29,7 @@
 #include "agent-framework/module/responses/common/get_task_result_info.hpp"
 #include "agent-framework/module/requests/common/get_tasks_collection.hpp"
 #include "psme/rest/server/error/error_factory.hpp"
+#include "psme/rest/constants/constants.hpp"
 
 
 
@@ -66,32 +67,35 @@ protected:
                                                      const std::string& parent_uuid,
                                                      const std::string& collection_name) override {
 
-        try {
-            if (Component::None == ctx.get_parent_component()) {
+        using CollectionName = agent_framework::model::enums::CollectionName;
+        CollectionName tasks = CollectionName::Tasks;
 
-                log_debug(GET_LOGGER("rest"), ctx.indent
-                    << "[" << static_cast<char>(ctx.mode) << "] "
-                    << "Fetching list of all managers from agent "
-                    << ctx.agent->get_gami_id());
-
-                agent_framework::model::requests::GetTasksCollection
-                    collection{};
-                auto manager_entries = ctx.agent->execute<Tasks>(
-                    collection);
-
-                // Convert array of TaskEntry to Array of SubcomponentEntry
-                Array<SubcomponentEntry> res;
-                for (const auto& entry : manager_entries) {
-                    res.add_entry(entry.get_task());
-                }
-                return res;
-            }
-            else {
-                return TaskHandlerBase::fetch_sibling_uuid_list(ctx,
-                                                                parent_uuid, collection_name);
-            }
+        if (ctx.get_parent_component() != Component::None || !parent_uuid.empty()  ||
+            collection_name != tasks.to_string()) {
+            log_error("rest", std::string("Logic error. Tried to poll list of ") + collection_name + " under parent " +
+                              + ctx.get_parent_component().to_string() + " with uuid " + parent_uuid + ".");
+            return Array<SubcomponentEntry>();
         }
-        catch (const jsonrpc::JsonRpcException& e) {
+
+        try {
+            log_debug(GET_LOGGER("rest"), ctx.indent
+                << "[" << static_cast<char>(ctx.mode) << "] "
+                << "Fetching list of all tasks from agent "
+                << ctx.agent->get_gami_id());
+
+            agent_framework::model::requests::GetTasksCollection
+                collection{};
+            auto task_entries = ctx.agent->execute<Tasks>(
+                collection);
+
+            // Convert array of TaskEntry to Array of SubcomponentEntry
+            Array<SubcomponentEntry> res;
+            for (const auto& entry : task_entries) {
+                res.add_entry(entry.get_task());
+            }
+            return res;
+        }
+        catch (const json_rpc::JsonRpcException& e) {
             log_error(GET_LOGGER("rest"), ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Agent exception while fetching list of all components of "
@@ -125,7 +129,7 @@ private:
                     elem.clear_messages();
                     for (const auto& message_json : e.get_error().get_extended_messages()) {
                         agent_framework::model::attribute::Message message =
-                            agent_framework::model::attribute::Message::from_json(message_json);
+                            task_message_from_redfish_message(message_json);
                         // hardcoded for now; to be fixed
                         message.set_related_properties({{"#/Id"}});
                         elem.add_message(message);
@@ -137,7 +141,7 @@ private:
             elem.set_parent_type(ctx.get_parent_component());
             return elem;
         }
-        catch (const jsonrpc::JsonRpcException& e) {
+        catch (const json_rpc::JsonRpcException& e) {
             log_error(GET_LOGGER("rest"),
                       ctx.indent << "[" << char(ctx.mode) << "] "
                                  << "RPC Error while fetching [" << component_s() << " - "
@@ -155,6 +159,36 @@ private:
                 << component_s());
             throw;
         }
+    }
+
+    /*!
+     * @brief construct task Message from a json::Value carrying a Redfish message object
+     * @param json the message object
+     * @returns the constructed task Message attribute
+     */
+    agent_framework::model::attribute::Message task_message_from_redfish_message(const json::Value& json) {
+        using namespace psme::rest::constants;
+        using StringArray = agent_framework::model::attribute::Array<std::string>;
+
+        agent_framework::model::attribute::Message message{};
+        message.set_message_id(json[MessageObject::MESSAGE_ID]);
+        message.set_content(json[MessageObject::MESSAGE]);
+        message.set_severity(json[MessageObject::SEVERITY]);
+        message.set_resolution(json[MessageObject::RESOLUTION]);
+
+        StringArray related_properties{};
+        for (const auto& property : json[MessageObject::RELATED_PROPERTIES].as_array()) {
+            related_properties.add_entry(property.as_string());
+        }
+        message.set_related_properties(related_properties);
+
+        StringArray arguments{};
+        for (const auto& argument : json[MessageObject::MESSAGE_ARGS].as_array()) {
+            arguments.add_entry(argument.as_string());
+        }
+        message.set_message_args(arguments);
+
+        return message;
     }
 };
 

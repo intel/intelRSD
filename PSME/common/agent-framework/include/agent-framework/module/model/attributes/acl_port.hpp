@@ -22,8 +22,12 @@
  * @brief Port with a mask for ACL rules.
  * */
 #pragma once
+
+
+
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/utils/utils.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <cstdint>
 
@@ -92,16 +96,16 @@ public:
      *
      * @return JSON representation of AclPort object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief construct an object of class AclPort from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed Ipv object
      */
-    static AclPort from_json(const Json::Value& json);
+    static AclPort from_json(const json::Json& json);
 
 private:
     OptionalField<uint32_t> m_port{};
@@ -111,4 +115,3 @@ private:
 }
 }
 }
-

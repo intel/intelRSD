@@ -26,10 +26,6 @@
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/enum/pnc.hpp"
 
-namespace Json {
-    class Value;
-}
-
 namespace agent_framework {
 namespace model {
 
@@ -69,14 +65,14 @@ public:
      * @brief Returns JSON representation of the object.
      * @return Json representation.
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief Constructs object from JSON
-     * @param[in] json the Json::Value deserialized to object
+     * @param[in] json the json::Json deserialized to object
      * @return the newly constructed object
      */
-    static Switch from_json(const Json::Value& json);
+    static Switch from_json(const json::Json& json);
 
     /*!
      * @brief Set FruInfo structure

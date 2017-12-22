@@ -18,7 +18,6 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(command)
-add_subdirectory(status)
 add_subdirectory(gas)
 add_subdirectory(sysfs)
 add_subdirectory(discovery)
@@ -47,7 +46,6 @@ add_library(pnc-libs
     $<TARGET_OBJECTS:pnc-gas>
     $<TARGET_OBJECTS:pnc-discovery>
     $<TARGET_OBJECTS:pnc-tree-stability>
-    $<TARGET_OBJECTS:pnc-status-impl>
     $<TARGET_OBJECTS:pnc-sysfs>
     $<TARGET_OBJECTS:pnc-loader>
     $<TARGET_OBJECTS:pnc-nvme>
@@ -66,17 +64,13 @@ target_link_libraries(psme-pnc
     fru_eeprom
     ${IPMITOOL_LIBRARIES}
     ${AGENT_FRAMEWORK_LIBRARIES}
-    ${SYSFS_LIBRARIES}
+    ${SYSFSREF_LIBRARIES}
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     ${CONFIGURATION_LIBRARIES}
     ${JSONCXX_LIBRARIES}
     pthread
-    jsonrpccpp-server
-    jsonrpccpp-common
-    jsonrpccpp-client
-    jsoncpp
     ${CURL_LIBRARIES}
     ${MICROHTTPD_LIBRARIES}
     md5

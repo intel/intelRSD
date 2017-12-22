@@ -22,22 +22,22 @@
 using namespace jsonrpc;
 using namespace agent_framework::model::literals;
 
-RegexValidityChecker::RegexValidityChecker(va_list args)
+RegexValidityChecker::RegexValidityChecker(va_list& args)
     : matching_regex(va_arg(args, const char*)) {}
 
 RegexValidityChecker::~RegexValidityChecker() {}
 
-void RegexValidityChecker::validate(const Json::Value &value) const {
+void RegexValidityChecker::validate(const json::Json &value) const {
     ValidityChecker::validate(value);
 
-    if (!value.isString()) {
+    if (!value.is_string()) {
         THROW(ValidityChecker::ValidationException, "agent-framework",
             agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
             "Property value is not valid string type.",
             value);
     }
 
-    if (!regex_match(value.asString(), matching_regex)) {
+    if (!regex_match(value.get<std::string>(), matching_regex)) {
         THROW(ValidityChecker::ValidationException, "agent-framework",
               agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
               "Value is malformed or does not match its expected form.",

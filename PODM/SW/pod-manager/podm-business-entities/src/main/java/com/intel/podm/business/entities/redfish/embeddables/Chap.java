@@ -17,7 +17,7 @@
 package com.intel.podm.business.entities.redfish.embeddables;
 
 import com.intel.podm.common.types.ChapType;
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;

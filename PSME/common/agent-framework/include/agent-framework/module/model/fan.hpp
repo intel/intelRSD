@@ -44,18 +44,18 @@ public:
     /*!
      * @brief construct an object of class Fan from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed Fan object
      */
-    static Fan from_json(const Json::Value& json);
+    static Fan from_json(const json::Json& json);
 
     /*!
      * @brief transform the object to JSon
      *
-     * @return the object serialized to Json::Value
+     * @return the object serialized to json::Json
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief Get collection name
@@ -74,21 +74,19 @@ public:
     }
 
     /*!
-     * @brief return slot of type std::uint32_t
-     *
-     * @return the slot value
+     * @brief Returns physical_context
+     * @return Current value
      */
-    OptionalField<std::uint32_t> get_slot() const {
-        return m_slot;
+    const OptionalField<enums::PhysicalContext>& get_physical_context() const {
+        return m_physical_context;
     }
 
     /*!
-     * @brief setter for slot attribute
-     *
-     * @param slot of type uint32_t
+     * @brief Sets physical_context
+     * @param[in] physical_context New value
      */
-    void set_slot(const OptionalField<uint32_t> slot) {
-        m_slot = slot;
+    void set_physical_context(const OptionalField<enums::PhysicalContext>& physical_context) {
+        m_physical_context = physical_context;
     }
 
     /*!
@@ -110,21 +108,19 @@ public:
     }
 
     /*!
-     * @brief return desired_speed of type std::uint32_t
-     *
-     * @return the desired_speed value
+     * @brief Returns current_speed_units
+     * @return Current value
      */
-    OptionalField<std::uint32_t> get_desired_speed() const {
-        return m_desired_speed;
+    const OptionalField<enums::SpeedUnits>& get_current_speed_units() const {
+        return m_current_speed_units;
     }
 
     /*!
-     * @brief setter for desired_speed attribute
-     *
-     * @param desired_speed of type uint32_t
+     * @brief Sets current_speed_units
+     * @param[in] current_speed_units New value
      */
-    void set_desired_speed(const OptionalField<uint32_t> desired_speed) {
-        m_desired_speed = desired_speed;
+    void set_current_speed_units(const OptionalField<enums::SpeedUnits>& current_speed_units) {
+        m_current_speed_units = current_speed_units;
     }
 
     /*!
@@ -145,12 +141,33 @@ public:
         m_fru_info = fru_info;
     }
 
+    /*!
+     * @brief Gets slot id value
+     * @return Slot id value
+     */
+    uint8_t get_slot_id() const {
+        return m_slot_id;
+    }
+
+    /*!
+     * @brief Sets slot id value
+     * @param slot_id new slot id value
+     */
+    void set_slot_id(const uint8_t slot_id) {
+        m_slot_id = slot_id;
+    }
+
 private:
 
-    OptionalField<std::uint32_t> m_slot{0u};
-    OptionalField<std::uint32_t> m_current_speed{0u};
-    OptionalField<std::uint32_t> m_desired_speed{0u};
+    // Telemetry: The following 3 fields are to be removed
+    OptionalField<std::uint32_t> m_current_speed{};
+    OptionalField<enums::SpeedUnits> m_current_speed_units{};
+    OptionalField<enums::PhysicalContext> m_physical_context{};
+
     attribute::FruInfo m_fru_info{};
+
+    // agent only data
+    uint8_t m_slot_id{};    // physical slot id
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;
@@ -159,4 +176,3 @@ private:
 
 }
 }
-

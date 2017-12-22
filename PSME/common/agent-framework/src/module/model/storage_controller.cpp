@@ -39,8 +39,8 @@ StorageController::StorageController(const std::string& parent_uuid, enums::Comp
 
 StorageController::~StorageController() {}
 
-Json::Value StorageController::to_json() const {
-    Json::Value result;
+json::Json StorageController::to_json() const {
+    json::Json result;
     result[literals::StorageController::STATUS] = get_status().to_json();
     result[literals::StorageController::FRU_INFO] = get_fru_info().to_json();
     result[literals::StorageController::PHYSICAL_ID] = get_physical_id();
@@ -57,7 +57,7 @@ Json::Value StorageController::to_json() const {
     return result;
 }
 
-StorageController StorageController::from_json(const Json::Value& json) {
+StorageController StorageController::from_json(const json::Json& json) {
     StorageController controller;
 
     controller.set_status(attribute::Status::from_json(

@@ -45,7 +45,7 @@ public:
      * @param[in] field_value Value of field
      * @warning Do not include field name inside message! Use field argument instead.
      * */
-    explicit UnsupportedField(const std::string& msg, const std::string& field_name, const Json::Value& field_value);
+    explicit UnsupportedField(const std::string& msg, const std::string& field_name, const json::Json& field_value);
 
 
     UnsupportedField(const UnsupportedField&) = default;

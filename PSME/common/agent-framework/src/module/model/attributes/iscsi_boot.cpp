@@ -20,7 +20,7 @@
 
 #include "agent-framework/module/model/attributes/iscsi_boot.hpp"
 #include "agent-framework/module/constants/compute.hpp"
-#include <json/json.h>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -33,8 +33,8 @@ IscsiBoot::IscsiBoot() { }
 IscsiBoot::~IscsiBoot() { }
 
 
-Json::Value IscsiBoot::to_json() const {
-    Json::Value json;
+json::Json IscsiBoot::to_json() const {
+    json::Json json;
     json[literals::IscsiBoot::IP_ADDRESS_TYPE] = m_ip_address_type.to_string();
     json[literals::IscsiBoot::INITIATOR_IP_ADDRESS] = m_initiator_address;
     json[literals::IscsiBoot::INITIATOR_NAME] = m_initiator_name;
@@ -59,29 +59,29 @@ Json::Value IscsiBoot::to_json() const {
     json[literals::IscsiBoot::SECONDARY_DNS] = m_secondary_dns;
     json[literals::IscsiBoot::AUTHENTICATION_METHOD] = m_authentication_method.to_string();
     json[literals::IscsiBoot::CHAP_USERNAME] = m_chap_username;
-    json[literals::IscsiBoot::CHAP_SECRET] = Json::Value::null;
+    json[literals::IscsiBoot::CHAP_SECRET] = json::Json{};
     json[literals::IscsiBoot::MUTUAL_CHAP_USERNAME] = m_mutual_chap_username;
-    json[literals::IscsiBoot::MUTUAL_CHAP_SECRET] = Json::Value::null;
+    json[literals::IscsiBoot::MUTUAL_CHAP_SECRET] = json::Json{};
     return json;
 }
 
 
-IscsiBoot IscsiBoot::from_json(const Json::Value& json) {
+IscsiBoot IscsiBoot::from_json(const json::Json& json) {
     attribute::IscsiBoot boot;
-    boot.set_ip_address_type(enums::IPAddressType::from_string(json[literals::IscsiBoot::IP_ADDRESS_TYPE].asString()));
-    boot.set_initiator_address(json[literals::IscsiBoot::INITIATOR_IP_ADDRESS].asString());
-    boot.set_initiator_name(json[literals::IscsiBoot::INITIATOR_NAME].asString());
+    boot.set_ip_address_type(enums::IPAddressType::from_string(json[literals::IscsiBoot::IP_ADDRESS_TYPE]));
+    boot.set_initiator_address(json[literals::IscsiBoot::INITIATOR_IP_ADDRESS]);
+    boot.set_initiator_name(json[literals::IscsiBoot::INITIATOR_NAME]);
     boot.set_initiator_default_gateway(json[literals::IscsiBoot::INITIATOR_DEFAULT_GATEWAY]);
-    boot.set_initiator_netmask(json[literals::IscsiBoot::INITIATOR_NETMASK].asString());
-    boot.set_target_info_via_dhcp(json[literals::IscsiBoot::TARGET_INFO_VIA_DHCP].asBool());
-    boot.set_ip_mask_dns_via_dhcp(json[literals::IscsiBoot::IP_MASK_DNS_VIA_DHCP].asBool());
-    boot.set_router_advertisement_enabled(json[literals::IscsiBoot::ROUTER_ADVERTISEMENT_ENABLED].asBool());
+    boot.set_initiator_netmask(json[literals::IscsiBoot::INITIATOR_NETMASK]);
+    boot.set_target_info_via_dhcp(json[literals::IscsiBoot::TARGET_INFO_VIA_DHCP]);
+    boot.set_ip_mask_dns_via_dhcp(json[literals::IscsiBoot::IP_MASK_DNS_VIA_DHCP]);
+    boot.set_router_advertisement_enabled(json[literals::IscsiBoot::ROUTER_ADVERTISEMENT_ENABLED]);
 
     boot.set_primary_target_address(json[literals::IscsiBoot::PRIMARY_TARGET_IP_ADDRESS]);
     boot.set_primary_target_name(json[literals::IscsiBoot::PRIMARY_TARGET_NAME]);
     boot.set_primary_target_port(json[literals::IscsiBoot::PRIMARY_TARGET_TCP_PORT]);
     boot.set_primary_lun(json[literals::IscsiBoot::PRIMARY_LUN]);
-    boot.set_primary_vlan_enable(json[literals::IscsiBoot::PRIMARY_VLAN_ENABLE].asBool());
+    boot.set_primary_vlan_enable(json[literals::IscsiBoot::PRIMARY_VLAN_ENABLE]);
     boot.set_primary_vlan_id(json[literals::IscsiBoot::PRIMARY_VLAN_ID]);
     boot.set_primary_dns(json[literals::IscsiBoot::PRIMARY_DNS]);
 
@@ -94,7 +94,7 @@ IscsiBoot IscsiBoot::from_json(const Json::Value& json) {
     boot.set_secondary_dns(json[literals::IscsiBoot::SECONDARY_DNS]);
 
     boot.set_authentication_method(
-        enums::FunctionAuthenticationMethod::from_string(json[literals::IscsiBoot::AUTHENTICATION_METHOD].asString()));
+        enums::FunctionAuthenticationMethod::from_string(json[literals::IscsiBoot::AUTHENTICATION_METHOD]));
     boot.set_chap_username(json[literals::IscsiBoot::CHAP_USERNAME]);
     boot.set_chap_secret(json[literals::IscsiBoot::CHAP_SECRET]);
     boot.set_mutual_chap_username(json[literals::IscsiBoot::MUTUAL_CHAP_USERNAME]);

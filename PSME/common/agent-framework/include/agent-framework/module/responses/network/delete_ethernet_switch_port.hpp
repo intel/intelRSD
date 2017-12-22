@@ -24,11 +24,9 @@
 
 #pragma once
 #include "agent-framework/module/model/attributes/oem.hpp"
-#include <string>
+#include "json-wrapper/json-wrapper.hpp"
 
-namespace Json {
-    class Value;
-}
+#include <string>
 
 namespace agent_framework {
 namespace model {
@@ -49,7 +47,7 @@ public:
      *
      * @return created Json value
      */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief create DeleteEthernetSwitchPort from Json
@@ -58,7 +56,7 @@ public:
      *
      * @return new DeleteEthernetSwitchPort
      */
-    static DeleteEthernetSwitchPort from_json(const Json::Value& json);
+    static DeleteEthernetSwitchPort from_json(const json::Json& json);
 
     /*!
      * @brief Set oem object

@@ -19,10 +19,10 @@ package com.intel.podm.business.entities.listeners;
 import com.intel.podm.business.entities.handlers.OnDeleteDriveHandler;
 import com.intel.podm.business.entities.redfish.Drive;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.PreRemove;
 
-@Dependent
+@ApplicationScoped
 public class DriveListener extends EntityListener {
     @PreRemove
     public void preRemove(Drive drive) {

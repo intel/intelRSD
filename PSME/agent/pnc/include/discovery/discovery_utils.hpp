@@ -58,13 +58,15 @@ static constexpr uint8_t UNBIND_BIND_PORT_DISCOVERY_DELAY_MSEC = 100;
  * */
 template <int BYTES_TO_SHOW, bool SHOW_BASE = true, typename T>
 std::string to_hex_string(T value) {
+    static_assert(std::is_unsigned<T>::value, "Expected unsigned integral type");
+    static_assert(BYTES_TO_SHOW > 0 && BYTES_TO_SHOW <= sizeof(T), "BYTES_TO_SHOW exceeds type size");
+    constexpr auto size_in_chars = 2 * BYTES_TO_SHOW;
+    constexpr T mask = std::numeric_limits<T>::max() >> ((sizeof(T) - BYTES_TO_SHOW) * 8);
     std::stringstream str{};
-    unsigned size = 2 * BYTES_TO_SHOW + (SHOW_BASE ? 2 : 0);
-    str << std::hex << std::setfill('0') << std::setw(size);
     if (SHOW_BASE) {
-        str  << std::internal << std::showbase;
+        str << "0x";
     }
-    str << static_cast<unsigned long>(value);
+    str << std::hex << std::setfill('0') << std::setw(size_in_chars) << (value & mask);
     return str.str();
 }
 

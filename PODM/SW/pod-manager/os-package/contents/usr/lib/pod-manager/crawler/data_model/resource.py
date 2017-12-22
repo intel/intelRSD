@@ -19,6 +19,7 @@ class Resource:
         self._status_code = status_code
         self._headers = headers
         self._body = body
+        self._retrieval_duration = None
 
     def get_path(self):
         return self._path
@@ -31,3 +32,9 @@ class Resource:
 
     def get_body(self):
         return self._body
+
+    def get_retrieval_duration(self):
+        return self._retrieval_duration
+
+    def set_retrieval_duration(self, retrieval_duration):
+        self._retrieval_duration = retrieval_duration

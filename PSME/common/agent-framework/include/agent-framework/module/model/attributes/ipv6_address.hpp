@@ -22,8 +22,10 @@
  * @brief IPv6 address
  * */
 #pragma once
+
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/utils/utils.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
 
@@ -123,16 +125,16 @@ public:
      * @brief Convert Ipv6Address to JSON object
      * @return JSON representation of Ipv6Address object
      * */
-    Json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief construct an object of class Ipv from JSON
      *
-     * @param json the Json::Value deserialized to object
+     * @param json the json::Json deserialized to object
      *
      * @return the newly constructed Ipv object
      */
-    static Ipv6Address from_json(const Json::Value& json);
+    static Ipv6Address from_json(const json::Json& json);
 
 private:
 
@@ -146,4 +148,3 @@ private:
 }
 }
 }
-
