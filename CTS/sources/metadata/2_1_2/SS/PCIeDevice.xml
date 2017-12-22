@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+    <edmx:Reference Uri="Org.OData.Core.V1.xml">
+        <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+    </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+        <edmx:Include Namespace="Resource.v1_0_0"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="Chassis.xml">
+        <edmx:Include Namespace="Chassis"/>
+    </edmx:Reference>
+  <edmx:Reference Uri="PCIeFunction.xml">
+    <edmx:Include Namespace="PCIeFunction"/>
+    </edmx:Reference>
+
+    <edmx:DataServices>
+
+        <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="PCIeDevice">
+
+            <EntityType Name="PCIeDevice" BaseType="Resource.v1_0_0.Resource">
+                <Annotation Term="OData.Description" String="This is the schema definition for the PCIeDevice resource.  It represents the properties of a PCIeDevice attached to a System."/>
+                <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+            </EntityType>
+
+        </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="PCIeDevice.v1_0_0">
+
+            <EntityType Name="PCIeDevice" BaseType="PCIeDevice.PCIeDevice">
+                <Annotation Term="OData.Description" String="This is the schema definition for the PCIeDevice resource.  It represents the properties of a PCIeDevice attached to a System."/>
+                <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+
+                <Property Name="Manufacturer" Type="Edm.String">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                    <Annotation Term="OData.Description" String="This is the manufacturer of this PCIe device."/>
+                    <Annotation Term="OData.LongDescription" String="The value of this property shall be the name of the organization responsible for producing the PCIe device. This organization might be the entity from whom the PCIe device is purchased, but this is not necessarily true."/>
+                </Property>
+                <Property Name="Model" Type="Edm.String">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                    <Annotation Term="OData.Description" String="This is the model number for the PCIe device."/>
+                    <Annotation Term="OData.LongDescription" String="The value of this property shall be the name by which the manufacturer generally refers to the PCIe device."/>
+                </Property>
+                <Property Name="SKU" Type="Edm.String">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                    <Annotation Term="OData.Description" String="This is the SKU for this PCIe device."/>
+                    <Annotation Term="OData.LongDescription" String="The value of this property shall be the stock-keeping unit number for this PCIe device."/>
+                </Property>
+                <Property Name="SerialNumber" Type="Edm.String">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                    <Annotation Term="OData.Description" String="The serial number for this PCIe device."/>
+                    <Annotation Term="OData.LongDescription" String="The value of this property shall be a manufacturer-allocated number used to identify the PCIe device."/>
+                </Property>
+                <Property Name="PartNumber" Type="Edm.String">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                    <Annotation Term="OData.Description" String="The part number for this PCIe device."/>
+                    <Annotation Term="OData.LongDescription" String="The value of this property shall be a part number assigned by the organization that is responsible for producing or manufacturing the PCIe device."/>
+                </Property>
+                <Property Name="AssetTag" Type="Edm.String">
+                    <Annotation Term="OData.Description" String="The user assigned asset tag for this PCIe device."/>
+                    <Annotation Term="OData.LongDescription" String="The value of this property shall be an identifying string used to track the PCIe device for inventory purposes."/>
+                </Property>
+
+        <Property Name="DeviceType" Type="PCIeDevice.v1_0_0.DeviceType" Nullable="false">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                    <Annotation Term="OData.Description" String="The device type for this PCIe device."/>
+                    <Annotation Term="OData.LongDescription" String="The value of this property shall be the device type of the PCIe device such as SingleFunction or MultiFunction."/>
+                </Property>
+        <Property Name="FirmwareVersion" Type="Edm.String">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The version of firmware for this PCIe device."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the firmware version of the PCIe device."/>
+                </Property>
+
+                <Property Name="Status" Type="Resource.Status" />
+        <Property Name="Links" Type="PCIeDevice.v1_0_0.Links" Nullable="false">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                    <Annotation Term="OData.Description" String="The links object contains the links to other resources that are related to this resource."/>
+                </Property>
+
+            </EntityType>
+
+            <ComplexType Name="Links" BaseType="Resource.Links">
+                <NavigationProperty Name="Chassis" Type="Collection(Chassis.Chassis)">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+                    <Annotation Term="OData.Description" String="An array of references to the chassis in which the PCIe device is contained"/>
+                    <Annotation Term="OData.LongDescription" String="The value of this property shall reference a resource of type Chassis that represents the physical container associated with this resource."/>
+                    <Annotation Term="OData.AutoExpandReferences"/>
+                </NavigationProperty>
+        <NavigationProperty Name="PCIeFunctions" Type="Collection(PCIeFunction.PCIeFunction)">
+                    <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="An array of references to PCIeFunctions exposed by this device."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this device exposes and shall reference a resource of type PCIeFunction."/>
+                    <Annotation Term="OData.AutoExpandReferences"/>
+                </NavigationProperty>
+            </ComplexType>
+            <EnumType Name="DeviceType">
+                <Member Name="SingleFunction">
+                    <Annotation Term="OData.Description" String="A single-function PCIe device"/>
+                </Member>
+                <Member Name="MultiFunction">
+                    <Annotation Term="OData.Description" String="A multi-function PCIe device"/>
+                </Member>
+        <Member Name="Simulated">
+          <Annotation Term="OData.Description" String="A PCIe device which is not currently physically present, but is being simulated by the PCIe infrastructure"/>
+        </Member>
+            </EnumType>
+
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

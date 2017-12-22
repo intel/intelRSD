@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="Manager.xml">
+    <edmx:Include Namespace="Manager.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="LogicalDrive.xml">
+    <edmx:Include Namespace="LogicalDrive.v1_0_0"/>
+  </edmx:Reference>
+
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="PhysicalDrive.v1_0_0">
+
+      <EntityType Name="PhysicalDrive" BaseType="Resource.v1_0_0.Resource">
+        <Property Name="Interface" Type="PhysicalDrive.v1_0_0.Interface">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Controller interface"/>
+          <Annotation Term="OData.LongDescription" String="Controller interface" />
+        </Property>
+        <Property Name="CapacityGiB" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Drive capacity in GibiBytes."/>
+          <Annotation Term="OData.LongDescription" String="Drive capacity in GibiBytes." />
+        </Property>
+        <Property Name="Type" Type="PhysicalDrive.v1_0_0.Type">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Type of drive"/>
+          <Annotation Term="OData.LongDescription" String="Type of drive" />
+        </Property>
+        <Property Name="RPM" Type="Edm.Int32">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="For traditional drive, rotation per minute."/>
+          <Annotation Term="OData.LongDescription" String="For traditional drive, rotation per minute." />
+        </Property>
+        <Property Name="Manufacturer" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Drive manufacturer name."/>
+          <Annotation Term="OData.LongDescription" String="Drive manufacturer name." />
+        </Property>
+        <Property Name="Model" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Drive model"/>
+          <Annotation Term="OData.LongDescription" String="Drive model" />
+        </Property>
+        <Property Name="SerialNumber" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Drive serial number"/>
+          <Annotation Term="OData.LongDescription" String="Drive serial number" />
+        </Property>
+
+        <Property Name="Status" Type="Resource.Status"/>
+
+        <Property Name="Links" Type="PhysicalDrive.v1_0_0.Links" Nullable="false"/>
+      </EntityType>
+
+      <EnumType Name="Type">
+        <Member Name="HDD"/>
+        <Member Name="SSD"/>
+      </EnumType>
+
+      <EnumType Name="Interface">
+        <Member Name="PCIe"/>
+        <Member Name="SAS"/>
+        <Member Name="SATA"/>
+      </EnumType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+        <NavigationProperty Name="UsedBy" Type="Collection(LogicalDrive.v1_0_0.LogicalDrive)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

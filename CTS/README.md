@@ -1,19 +1,18 @@
-# Conformance Test Suite (CTS_2.1.3.32.0)
+# Conformance Test Suite
 
 ## Installation
 
 ### Install prerequisites
 
  * Please uninstall VTS before proceeding with the CTS installation.
-
     `sudo pip uninstall Vts`
 
- * On Ubuntu systems:
+ * On recommended Ubuntu 16.04 system:
 
     `sudo apt-get -y update`
 
     `sudo apt-get -y install python-pip python-setuptools git python-lxml python-dev python-pysqlite2
-    build-essential libssl-dev libffi-dev`
+    build-essential libssl-dev libffi-dev libxslt-dev libxml2-dev`
 
  * On RedHat based systems:
 
@@ -23,72 +22,79 @@
 
  * Python dependencies:
 
-    `sudo pip install "lxml>=3.5.0" "bs4>=0.0.1" "configparser>=3.5.0" "requests>=2.9.1" "tabulate>=0.7.5" "sqlalchemy" "simplejson>=3.8.1" "rstr>=2.2.4" "colorama>=0.3.7" "jsonpointer>=1.9" "pyopenssl" "ndg-httpsclient>=0.4.0" "pyasn1>=0.1.9" "backports.functools_lru_cache>=1.3" "pandas>=0.19.2"`
+    `sudo pip install "lxml==3.8.0" "bs4==0.0.1" "beautifulsoup4==4.4.0" "configparser==3.5.0" "requests==2.9.1"
+    "tabulate==0.7.5" "sqlalchemy==1.1.11" "simplejson==3.8.1" "rstr==2.2.6" "colorama==0.3.7" "jsonpointer==1.9" "pyopenssl==17.0.0" "ndg-httpsclient==0.4.0" "pyasn1==0.1.9" "pandas==0.19.2"`
 
     `sudo pip install "Flask-Bootstrap==3.3.7.1" --no-dependencies`
 
+* PIP requirements
 
-### Installation from pre-built .tar.gz archive
-1. Remove old /opt/cts data
+    Check version of PIP:
 
-	`
-	[sudo] rm -rf /opt/cts
-	`
+    `pip --version`
 
-2. Download tar.gz package with CTS
+    Minimum requirements for PIP is version 8.0.0. If you have older version, please update to latest one:
 
-3. Extract tar.gz package:
+    `pip install -U pip`
+
+
+### Installation from pre-built .tar.gz archive.
+To install CTS, please you to use installation script `INSTALL.sh`.
+
+1. Download tar.gz package with CTS
+
+2. Extract tar.gz package:
 
     `
     tar -zxvf CTS_PACKAGE.tar.gz
     `
 
-4. Enter extracted directory:
+3. Enter extracted directory:
 
     `
     cd CTS_PACKAGE
     `
 
-5. Install cts wheel package (pip requires correctly configured connection to public repositories: proxy, routes, etc)
+4. Please, type command and follow the on-screen instructions:
 
     `
-    [sudo] pip install CTS*.whl
+    sudo bash INSTALL.sh
     `
 
-6. Copy the configuration.ini file to location /etc/cts/configuration.ini:
-
-	`[sudo] mkdir -p /etc/cts/`
-
-	`[sudo] cp configuration.ini /etc/cts/`
-
-7. Copy test scripts to /opt/cts/tests:
-
-    `[sudo] mkdir -p /opt/cts/tests/`
-
-    `[sudo] cp -r tests_packages/* /opt/cts/tests/`
-
-8. Create directory for logs:
+5. (ADVANCED MODE) If you want to enable advanced mode, use:
 
     `
-    [sudo] mkdir -p /var/log/cts
+    sudo bash INSTALL.sh --interactive
     `
 
-9. If CTS files have been created using a root account, their ownership has to be changed to the user that will be executing CTS:
+### Installation script (INSTALL.sh)
+Program accepts these parameters:
 
-    `[sudo] chown -R USER_NAME /opt/cts/`
+| Arguments | Description |
+|--------------|--------------------|
+| `1 -f --full-install` | Install CTS & Tests (warning! this deletes all old files!)|
+| `2 -p --pip-install` | Install all PIP's dependencies |
+| `3 -a --autocompletion` | Install autocompletion for bash (works only with Ubuntu)|
+| `6 -u --upgrade` | Upgrade CTS|
+| `8 -r --repair` | Repair ownership|
+| `U -U --Uninstall` | Uninstall CTS|
+| `W -W --WipeAllData` | WIPE ALL DATA and uninstall CTS |
+| `-i --interactive` | Show advanced mode |
+| `--FactoryInstall` | WIPE ALL DATA and perform a CTS reinstallation |
+| `--FactoryUninstall` | WIPE ALL DATA and uninstall CTS (WARNING! this option has no confirmation) |
 
-    `[sudo] chown -R USER_NAME /var/log/cts`
 
+### Data structure of CTS
 
-## Configuration
-* CTS framework configuration
-    *  Open file /etc/cts/configuration.ini
-    * Following flags can be edited:
-        * __SQL_CONNECTION_STRING__ - defines database to be used by cts
+| Description | Path |
+|--|--|
+|CTS database|`HOME_FOLDER/.cts/db/`|
+|CTS general configuration|`HOME_DIR/.cts/configuration/`|
+|CTS internal tests|`HOME_FOLDER/.cts/tests/`|
+|Tests data|`HOME_FOLDER/.cts/tests_data/`
+|User tests|`/opt/cts/tests/`|
+|CTS log| `/var/log/cts/`|
 
-            set flag following instructions
-            http://docs.sqlalchemy.org/en/latest/core/engines.html
-            (can require installing additional packages)
 * Test configuration:
 
     CTS requires that test configuration is part of every `cts execute` command.
@@ -98,7 +104,7 @@
 
         *  __ApiEndpoint__ - endpoint to API in format ip:port
         *  __UseSSL__ - defines if CTS shall use http or https protocol to connect to api (Yes/No)
-        *  __CertificateCertFile__ and __CertificateKeyFile__ - paths to client side pem certificate and key files (if API requires client certificate authorization)
+        *  __CertificateCertFile__ and __CertificateKeyFile__ - absolute paths to client side pem certificate and key files (if API requires client certificate authorization)
         *  __User__ and __Password__ - User and Password used by CTS to authorize (if API requires basic authorization)
 
         The above set of keys is mandatory for all tests and tells the CTS how to connect to API endpoint.
@@ -112,9 +118,13 @@
         `
         MapTypes=ComputerSystem.v2_0_0:ComputerSystem.v1_0_0
         `
+        *  __EventListenerAddr__ - This flag is only used for CRUD Events tests. It should represent the IP and optionally a port on the device with CTS running, so that it's reachable from the tested device.
+        `
+        EventListenerAddr=10.0.1.2:8888
+        `
         CTS will use ComputerSystem.v1_0_0 schema do validate ComputerSystem.v2_0_0 entities
         *  __ServiceTypeOverride__ - If your service implements more than one service type (e.g. combined PSME and RMM), you have to inform CTS that entities form both services may exist together on the REST. This will prevent CTS from raising errors about unknown RMM types when PSME test package is executed.
-        Possible values are: PODM_2_1, PSME_2_1, RMM_2_1, SS_2_1
+        Possible values are: PODM_2_1_2, PSME_2_1_2, RMM_2_1_2, SS_2_1_2, PODM_2_1, PSME_2_1_3, RMM_2_1_3, SS_2_1_3, PODM_2_1_4, PSME_2_1_4, RMM_2_1_4, SS_2_1_4, PODM_2_2, PSME_2_2, RMM_2_2, SS_2_2
         Example:
         `
         ServiceTypeOverride=PSME_2_1,RMM_2_1
@@ -141,13 +151,13 @@
 * To filter by package name:
 
     `
-    cts tests list -p Rack_Scale_2_1_POD_Manager
+    cts tests list -p Rack_Scale_2_2_POD_Manager
     `
 
 * To filter by package and test suite names:
 
     `
-    cts tests list -p Rack_Scale_2_1_POD_Manager -s required
+    cts tests list -p Rack_Scale_2_2_POD_Manager -s required
     `
 
 * To generate a sample configuration file for test case:
@@ -162,28 +172,28 @@
 
 ### Execution
 
-* To simply execute all tests for Rack_Scale_2_1_POD_Manager validation:
+* To simply execute all tests for Rack_Scale_2_2_POD_Manager validation:
 
-    `cts execute tests Rack_Scale_2_1_POD_Manager \ `
+    `cts execute tests Rack_Scale_2_2_POD_Manager \ `
 
     `--config_files config_file.ini`
 
 * To execute only tests for metadata compliance:
 
-    `cts execute tests Rack_Scale_2_1_POD_Manager --test_suites required \ `
+    `cts execute tests Rack_Scale_2_2_POD_Manager --test_suites required \ `
 
     `--config_files config_file.ini`
 
 * To execute only a test validating get responses' compliance with provided metadata:
 
     `
-    cts execute tests Rack_Scale_2_1_POD_Manager --test_scripts validate_get_responses \ `
+    cts execute tests Rack_Scale_2_2_POD_Manager --test_scripts validate_get_responses \ `
 
     `--config_files config_file.ini`
 
 * To set timeout for each script executed, add flag -T --timeout"
 
-    `cts execute tests Rack_Scale_2_1_POD_Manager --config_files config_file.ini \ `
+    `cts execute tests Rack_Scale_2_2_POD_Manager --config_files config_file.ini \ `
 
     `-T timeout_in_seconds`
 
@@ -206,7 +216,7 @@
     cts status delete RUN_ID
     `
 
-* To save results to a file (when you choose *html* option, in your work-directory will be created a new folder *cts-reports* which will include *html* files):
+* To save results to a file (when you choose *html* option, a new folder called *cts_report* containing *html* files will be created in your working directory):
 
     `
     cts status dump RUN_ID --output_format [html/csv/text]
@@ -219,6 +229,13 @@
     cts version
     `
 
+* CTS SOS prepare package for easier debugging. Use this command when you suspect CTS crash and want to report issue related with CTS itself. This command collects information such as CTS' logs, network configuration or pip dependencies, etc. After running this command your working directory should contain an `sos-report-<date>` folder and an `sos-report-<date>.tar.gz` archive.
+
+    `
+    cts sos
+    `
+
+
 ## Advanced Usage
 
 ### Using run list to execute multiple tests with a single command
@@ -227,29 +244,34 @@ Run list is a mechanism that enables multi-step execution and makes it possible 
 Execution of a run list is very similar to executing a test script.
 
 
-    cts execute run_list run_list_2_1
+    cts execute run_list run_list_2_2
 
 
 `run_list_2_1` is a test specification prepared by the user. It defines scope of tests to be executed as well as configuration that should be used to run tests.
-Below is an example of a run list that can be used to execute all 2.1 tests:
+Below is an example of a run list that can be used to execute all 2.2 tests:
 
 
-    $ cat run_list_2_1
+    $ cat run_list_2_2
 
-    [PSME_2_1]
-    TEST_PACKAGE = Rack_Scale_2_1_PSME
+    [PSME_2_2]
+    TEST_PACKAGE = Rack_Scale_2_2_PSME
     TEST_SUITES = required
     TEST_CONFIGS = ./config/psme.ini, ./config/hardware_check_list.ini
 
-    [StorageServices_2_1]
-    TEST_PACKAGE = Rack_Scale_2_1_Storage_Services
+    [StorageServices_2_2]
+    TEST_PACKAGE = Rack_Scale_2_2_Storage_Services
     TEST_SUITES = required
     TEST_CONFIGS = ./config/storage.ini
 
-    [PODM_2_1]
-    TEST_PACKAGE = Rack_Scale_2_1_POD_Manager
+    [PODM_2_2]
+    TEST_PACKAGE = Rack_Scale_2_2_POD_Manager
     TEST_SUITES = required
     TEST_CONFIGS = ./config/podm.ini, ./config/hardware_check_list.ini
+
+    [RMM_2_2]
+    TEST_PACKAGE = Rack_Scale_2_2_RMM
+    TEST_SUITES = required
+    TEST_CONFIGS = ./config/rmm.ini, ./config/hardware_check_list.ini
 
 The run list definition refers to additional configuration files:
 
@@ -274,6 +296,13 @@ The run list definition refers to additional configuration files:
     User = admin
     Password = admin
 
+    $ cat config/rmm.ini
+    [RMM]
+    ApiEndpoint = <IP:PORT>
+    UseSSL = Yes
+    User = admin
+    Password = admin
+
     $ cat config/hardware_check_list.ini
     [HardwareCheckList]
     PowerEfficiency = 90
@@ -284,7 +313,7 @@ The run list definition refers to additional configuration files:
 
 ## Test Description
 
-###API Get Validation
+### API Get Validation
 
 You can run the API Get Validation tests by passing a flag:
 
@@ -304,7 +333,7 @@ The test is read-only checking that resources exposed on the REST  service are c
 
 API Get Validation is the most basic test that is available in CTS and as such should be executed as the first test since API correctness is a prerequisite for the rest of the tests.
 
-###API Patch Validation
+### API Patch Validation
 
 You can run the API Patch Validation tests by passing a flag:
 
@@ -316,7 +345,7 @@ The test iterates through all resources discovered on REST API in search of patc
 
 We usually advise running this test in the next order after the API Get Validation.
 
-###Hardware Checklist Validation
+### Hardware Checklist Validation
 
 You can run the Hardware Checklist Validation tests by passing a flag:
 
@@ -350,18 +379,45 @@ You can run CRUD (Create Read Update Delete) tests by passing a flag:
 
 The test tries to create an instance of a resource, then checks if it was created correctly. After that, it attempts to
 patch the resource, checks the correctness again and finally deletes it. The test is supposed to clean up the changes it
-made no matter when it comes to a stop (e.g. if it created resources incorrectly, we skip the patch but still try to delete
+made no matter when it comes to a stop (e.g. if the service created resources incorrectly, we skip the patch but still try to delete
 it). The following resources are tested:
 
 * PSME: VLAN network interface (without patching - not supported by the REST API)
-* Storage Services: Logical Drive, Remote Target
+* Storage Services: Logical Drive, Remote Target (for either LVM or CEPH storage)
+
+
+## Additional functionality
+
+### Metadata diff
+
+CTS can be used not only for testing API compliance, but also for comparing metadata.
+The comparison report is saved in a text file.
+
+    $ cts metadata diff --help
+    usage: cts diff [-h] [-q [QUALIFIERS [QUALIFIERS ...]]] METADATA METADATA
+
+    positional arguments:
+      METADATA              can be any of:
+                            - configuration file with remote endpoint definition
+                            - RSD release
+                              Possible values are:
+                              PODM_2_1, PSME_2_1, RMM_2_1, SS_2_1,
+                              PODM_2_1_2, PSME_2_1_2, RMM_2_1_2, SS_2_1_2, PODM_2_1_3, PSME_2_1_3, RMM_2_1_3,
+                              SS_2_1_3, PODM_2_1_4, PSME_2_1_4, RMM_2_1_4, SS_2_1_4, PODM_2_2, PSME_2_2,
+                              RMM_2_2, SS_2_2
+                            - path to directory that holds metadata xml files
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -q [QUALIFIERS [QUALIFIERS ...]], --qualifiers [QUALIFIERS [QUALIFIERS ...]]
+
 
 
 ## Troubleshooting
 * I ran a test (with the specified *--test_scripts*), but nothing happened.
 
       `
-      $ cts execute tests Rack_Scale_2_1_POD_Manager --test_scripts validate_patch_responses -c config_files.ini
+      $ cts execute tests Rack_Scale_2_2_POD_Manager --test_scripts validate_patch_responses -c config_files.ini
 
       Using CTS in version 2.2.14.0
       No scripts where selected to execution
@@ -371,6 +427,8 @@ it). The following resources are tested:
 
       `[sudo] chown -R USER_NAME /opt/cts/`
 
+      `[sudo] chmod a+x -R ~/.cts/tests/`
+
 * I got an error `IOError`, when I ran a test.
 
   Probably, CTS directory `/var/logs/cts/` has been created using a root account and its ownership has to be changed:
@@ -379,33 +437,3 @@ it). The following resources are tested:
 
 
 ## Known issues
-
-```
-    HSD111437   : CTS (PSME): PATCHing null on DriveErased returns Bad request
-    Problem     : CTS patch test is based on metadata, which specifies NULL as 
-                  one of permitted values. 
-                  Metadata does not contain information that a null value 
-                  for this property is possible only as a temporary
-                  (when correct value is undetermined) value. PSME returns error
-                  because it cannot accept null as a new value. 
-                  To fix it, CTS test needs to be redesigned and rewritten. 
-                  Quick fix is not possible here and the change is planned
-                  in the future.
-    Implication : CTS log contains false positive WARNING after if tries to
-                  patch DriveErased with Null value.
-    Note        : CTS
-    Workaround  : No workaround
-    Exposure    : Medium
-```
-    --------------------------------------------------------------------------------------
-```
-    HSD116710   : CTS does not detect that EventService on PSME 
-                  is not metadata-compliant                  
-    Problem     : CTS does not detect illegal properties whose names start 
-                  with a # (hash) sign.
-    Implication : CTS may not report an error when an illegal property 
-                  starts with a #.
-    Note        : CTS
-    Workaround  : No workaround
-    Exposure    : Low
-```

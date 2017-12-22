@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation" />
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="LogicalDrive.xml">
+    <edmx:Include Namespace="LogicalDrive.v1_0_0"/>
+  </edmx:Reference>
+
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="RemoteTarget.v1_0_0">
+
+      <EntityType Name="RemoteTarget" BaseType="Resource.v1_0_0.Resource">
+        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+        <Property Name="Type" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Type of target"/>
+          <Annotation Term="OData.LongDescription" String="Type of target" />
+        </Property>
+        <Property Name="Addresses" Type="Collection(RemoteTarget.v1_0_0.Address)" Nullable="false"/>
+        <Property Name="Initiator" Type="Collection(RemoteTarget.v1_0_0.Initiator)" Nullable="false"/>
+
+        <Property Name="Links" Type="RemoteTarget.v1_0_0.Links" Nullable="false"/>
+      </EntityType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+      </ComplexType>
+
+      <ComplexType Name="Address">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="iSCSI" Type="RemoteTarget.v1_0_0.ISCSIAddress"/>
+      </ComplexType>
+
+      <ComplexType Name="ISCSIAddress">
+        <Annotation Term="OData.AdditionalProperties" Bool="true"/>
+        <Property Name="TargetLUN" Type="Collection(RemoteTarget.v1_0_0.TargetLUN)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Target Logical Unit"/>
+          <Annotation Term="OData.LongDescription" String="Target Logical Unit" />
+        </Property>
+        <Property Name="TargetIQN" Type="Edm.String" Nullable="false">
+          <Annotation Term="Validation.Pattern" String="^[\S]+$"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Target IQN"/>
+          <Annotation Term="OData.LongDescription" String="Target IQN" />
+        </Property>
+        <Property Name="TargetPortalIP" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Description" String="iSCSI target portal IP address"/>
+          <Annotation Term="OData.LongDescription" String="iSCSI target portal IP address" />
+        </Property>
+        <Property Name="TargetPortalPort" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="OData.Description" String="iSCSI target port"/>
+          <Annotation Term="OData.LongDescription" String="iSCSI target port" />
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="TargetLUN">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="LUN" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="OData.Description" String="Logical unit number"/>
+          <Annotation Term="OData.LongDescription" String="Logical unit number" />
+          <Annotation Term="Validation.Minimum" Int="0"/>
+        </Property>
+        <NavigationProperty Name="LogicalDrive" Type="LogicalDrive.v1_0_0.LogicalDrive">
+          <Annotation Term="OData.AutoExpandReferences"/>
+          <Annotation Term="OData.Description" String="Logical drive URI"/>
+          <Annotation Term="OData.LongDescription" String="Logical drive URI" />
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="Initiator">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="iSCSI" Type="RemoteTarget.v1_0_0.iSCSIInitiator"/>
+      </ComplexType>
+
+      <ComplexType Name="iSCSIInitiator">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="InitiatorIQN" Type="Edm.String">
+          <Annotation Term="Validation.Pattern" String="^[\S]+$"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="IQN of iSCSI target initiator"/>
+          <Annotation Term="OData.LongDescription" String="IQN of iSCSI target initiator" />
+        </Property>
+      </ComplexType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="RemoteTarget.v1_1_0">
+      <EntityType Name="RemoteTarget" BaseType="RemoteTarget.v1_0_0.RemoteTarget"/>
+
+      <ComplexType Name="ISCSIAddress" BaseType="RemoteTarget.v1_0_0.ISCSIAddress">
+        <Property Name="CHAP" Type="RemoteTarget.v1_1_0.Chap">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="CHAP parameters of iSCSI target."/>
+          <Annotation Term="OData.LongDescription" String="Challenge Handshake Authentication Protocol (CHAP) authentication parameters of iSCSI target." />
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="Chap">
+        <Property Name="Type" Type="RemoteTarget.v1_1_0.ChapType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="CHAP parameters of iSCSI target."/>
+          <Annotation Term="OData.LongDescription" String="Challenge Handshake Authentication Protocol (CHAP) authentication parameters of iSCSI target." />
+        </Property>
+        <Property Name="Username" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="CHAP one way user name."/>
+          <Annotation Term="OData.LongDescription" String="CHAP one way user name." />
+        </Property>
+        <Property Name="Secret" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="CHAP one way secret."/>
+          <Annotation Term="OData.LongDescription" String="CHAP one way secret." />
+        </Property>
+        <Property Name="MutualUsername" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="CHAP mutual user name."/>
+          <Annotation Term="OData.LongDescription" String="CHAP mutual user name." />
+        </Property>
+        <Property Name="MutualSecret" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="CHAP mutual secret."/>
+          <Annotation Term="OData.LongDescription" String="CHAP mutual secret." />
+        </Property>
+      </ComplexType>
+
+      <EnumType Name="ChapType">
+        <Member Name="OneWay">
+          <Annotation Term="OData.Description" String="One-way CHAP authentication. The target authenticates the initiator, but the initiator does not authenticate the target."/>
+        </Member>
+        <Member Name="Mutual">
+          <Annotation Term="OData.Description" String="Mutual CHAP authentication. The target authenticates the initiator and the initiator authenticate the target."/>
+        </Member>
+      </EnumType>
+
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

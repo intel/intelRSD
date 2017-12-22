@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation" />
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0" />
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitchPort.xml">
+    <edmx:Include Namespace="EthernetSwitchPort"/>
+  </edmx:Reference>
+
+
+  <edmx:DataServices>
+     <!-- This schema defines a switch ACL and its respective properties.-->
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitchACLRule">
+
+      <EntityType Name="EthernetSwitchACLRule" BaseType="Resource.v1_0_0.Resource" Abstract="true">
+        <Annotation Term="OData.Description" String="A Ethernet Switch ACL Rule represents Access Control List rule for switch."/>
+        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent resources that represent a ethernet switch ACL rule"/>
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitchACLRule.v1_0_0">
+
+      <EntityType Name="EthernetSwitchACLRule" BaseType="EthernetSwitchACLRule.EthernetSwitchACLRule">
+
+      <Property Name="RuleId" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="This is ACL rule ID which determine rule priority."/>
+          <Annotation Term="OData.LongDescription" String="This is ACL rule ID which determine rule priority. If not provided during creation, service will assign default next free Id"/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+      </Property>
+      <Property Name="Action" Type="EthernetSwitchACLRule.v1_0_0.ActionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Action that will be executed when rule condition will be met.s"/>
+      </Property>
+
+        <NavigationProperty Name="ForwardMirrorInterface" Type="EthernetSwitchPort.EthernetSwitchPort" ContainsTarget="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+          <Annotation Term="OData.Description" String="Reference to interface (port) to which traffic should be mirrored/forwarded."/>
+        </NavigationProperty>
+
+        <NavigationProperty Name="MirrorPortRegion" Type="Collection(EthernetSwitchPort.EthernetSwitchPort)" ContainsTarget="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+          <Annotation Term="OData.Description" String="Group of interfaces (ports)  which should be mirrored."/>
+        </NavigationProperty>
+
+      <Property Name="MirrorType" Type="EthernetSwitchACLRule.v1_0_0.MirrorType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Type of mirroring that should be use for Mirror action."/>
+      </Property>
+
+      <Property Name="Condition" Type="EthernetSwitchACLRule.v1_0_0.ConditionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Property contain set of conditions that should be met to trigger Rule action."/>
+      </Property>
+      <Property Name="Links" Type="EthernetSwitchACLRule.v1_0_0.Links" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Contains links to other resources that are related to this resource."/>
+      </Property>
+      </EntityType>
+
+      <EnumType Name="ActionType">
+        <Member Name="Permit">
+          <Annotation Term="OData.Description" String="Permit traffic meeting condition."/>
+        </Member>
+        <Member Name="Deny">
+          <Annotation Term="OData.Description" String="Deny traffic meeting condition."/>
+        </Member>
+        <Member Name="Forward">
+          <Annotation Term="OData.Description" String="Forward traffic to specified interface."/>
+        </Member>
+        <Member Name="Mirror">
+          <Annotation Term="OData.Description" String="Mirror traffic on the mirrored port to the mirror destination port"/>
+        </Member>
+      </EnumType>
+
+      <EnumType Name="MirrorType">
+        <Member Name="Egress">
+          <Annotation Term="OData.Description" String="Mirror egressing traffic on the mirrored port to the mirror destination port."/>
+        </Member>
+        <Member Name="Ingress">
+          <Annotation Term="OData.Description" String="Mirror ingressing traffic on the mirrored port to the mirror destination port."/>
+        </Member>
+        <Member Name="Bidirectional">
+          <Annotation Term="OData.Description" String="Mirror ingressing and egressing traffic on the mirrored port to the mirror destination port."/>
+        </Member>
+        <Member Name="Redirect">
+          <Annotation Term="OData.Description" String="Mirror ingress traffic to the mirror destination port and drop the traffic ingressing the mirror ports."/>
+        </Member>
+      </EnumType>
+
+      <ComplexType Name="ConditionType">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="IPSource" Type="EthernetSwitchACLRule.v1_0_0.IPConditionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
+        </Property>
+        <Property Name="IPDestination" Type="EthernetSwitchACLRule.v1_0_0.IPConditionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
+        </Property>
+        <Property Name="MACSource" Type="EthernetSwitchACLRule.v1_0_0.MACConditionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
+        </Property>
+        <Property Name="MACDestination" Type="EthernetSwitchACLRule.v1_0_0.MACConditionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
+        </Property>
+        <Property Name="VLANId" Type="EthernetSwitchACLRule.v1_0_0.VlanIdConditionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
+        </Property>
+        <Property Name="L4SourcePort" Type="EthernetSwitchACLRule.v1_0_0.PortConditionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
+        </Property>
+        <Property Name="L4DestinationPort" Type="EthernetSwitchACLRule.v1_0_0.PortConditionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
+        </Property>
+        <Property Name="L4Protocol" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
+          <Annotation Term="OData.Description" String="IP layer 4 protocol number" />
+          <Annotation Term="OData.LongDescription" String="IP layer 4 protocol number as defined here: http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml" />
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="IPConditionType">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="IPv4Address" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" />
+        </Property>
+        <Property Name="Mask" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" />
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="MACConditionType">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="MACAddress" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" />
+        </Property>
+        <Property Name="Mask" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" />
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="VlanIdConditionType">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Id" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" />
+          <Annotation Term="Validation.Minimum" Int="0"/>
+        </Property>
+        <Property Name="Mask" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" />
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="PortConditionType">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Port" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" />
+          <Annotation Term="Validation.Minimum" Int="0"/>
+        </Property>
+        <Property Name="Mask" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" />
+        </Property>
+       </ComplexType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+      </ComplexType>
+      </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
