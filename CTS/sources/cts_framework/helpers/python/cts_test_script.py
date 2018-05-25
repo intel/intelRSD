@@ -159,8 +159,8 @@ class CtsTestScript(TestScript):
             self._map_types = dict()
 
     def _parse_ignore_types(self):
-        self._ignore_types = set([type.strip() for type in self.configuration.IgnoreTypes.split(",")])
-        if len(self._ignore_types) > 0:
+        if len(self.configuration.IgnoreTypes):
+            self._ignore_types = set([type.strip() for type in self.configuration.IgnoreTypes.split(",")])
             print "WARNING::CTS is configured to skip properties and entities of the following " \
                   "types:"
             for ignore_type in self._ignore_types:

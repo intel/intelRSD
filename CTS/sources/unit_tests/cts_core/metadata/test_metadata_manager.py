@@ -67,28 +67,30 @@ METADATA_ROOT = """
 """
 
 METADATA = """
-<Schema Namespace="{BASE_NAMESPACE_NAME}">
-    <EntityType Name="{BASE_ENTITY_NAME}">
-        <Property Name="{PROPERTY_NAME}" Type="{BASE_COMPLEX_TYPE_NAME}">
-    </EntityType>
+<Schemas>
+  <Schema Namespace="{BASE_NAMESPACE_NAME}">
+      <EntityType Name="{BASE_ENTITY_NAME}">
+          <Property Name="{PROPERTY_NAME}" Type="{BASE_COMPLEX_TYPE_NAME}"/>
+      </EntityType>
 
-    <ComplexType Name="{BASE_COMPLEX_TYPE_NAME}">
-        <Property Name="{PROPERTY_NAME}" Type="{BASE_COMPLEX_TYPE_NAME}" />
-    </ComplexType>
-</Schema>
+      <ComplexType Name="{BASE_COMPLEX_TYPE_NAME}">
+          <Property Name="{PROPERTY_NAME}" Type="{BASE_COMPLEX_TYPE_NAME}" />
+      </ComplexType>
+  </Schema>
 
-<Schema Namespace="{DERIVED_NAMESPACE_NAME}">
-    <EntityType Name="{DERIVED_ENTITY_NAME}" BaseType="{BASE_NAMESPACE_NAME}.{BASE_ENTITY_NAME}">
-        <Property Name="{PROPERTY_NAME}" Type="{DERIVED_COMPLEX_TYPE_NAME}" />
-        <Property Name="{STRING_PROPERTY}" Type="Edm.String" />
-        <Property Name="{INT16_PROPERTY}" Type="Edm.Int16" />
-        <Property Name="{BOOLEAN_PROPERTY}" Type="Edm.Boolean" />
-    </EntityType>
+  <Schema Namespace="{DERIVED_NAMESPACE_NAME}">
+      <EntityType Name="{DERIVED_ENTITY_NAME}" BaseType="{BASE_NAMESPACE_NAME}.{BASE_ENTITY_NAME}">
+          <Property Name="{PROPERTY_NAME}" Type="{DERIVED_COMPLEX_TYPE_NAME}" />
+          <Property Name="{STRING_PROPERTY}" Type="Edm.String" />
+          <Property Name="{INT16_PROPERTY}" Type="Edm.Int16" />
+          <Property Name="{BOOLEAN_PROPERTY}" Type="Edm.Boolean" />
+      </EntityType>
 
-    <ComplexType Name="{DERIVED_COMPLEX_TYPE_NAME}" BaseType="{BASE_NAMESPACE_NAME}.{BASE_ENTITY_NAME}">
-        <Property Name="{PROPERTY_NAME}" Type="{DERIVED_COMPLEX_TYPE_NAME}" />
-    </ComplexType>
-</Schema>
+      <ComplexType Name="{DERIVED_COMPLEX_TYPE_NAME}" BaseType="{BASE_NAMESPACE_NAME}.{BASE_ENTITY_NAME}">
+          <Property Name="{PROPERTY_NAME}" Type="{DERIVED_COMPLEX_TYPE_NAME}" />
+      </ComplexType>
+  </Schema>
+</Schemas>
 """.format(BASE_NAMESPACE_NAME=BASE_NAMESPACE_NAME, BASE_ENTITY_NAME=BASE_ENTITY_NAME, PROPERTY_NAME=PROPERTY_NAME,
            BASE_COMPLEX_TYPE_NAME=BASE_COMPLEX_TYPE_NAME, DERIVED_NAMESPACE_NAME=DERIVED_NAMESPACE_NAME,
            DERIVED_ENTITY_NAME=DERIVED_ENTITY_NAME, DERIVED_COMPLEX_TYPE_NAME=DERIVED_COMPLEX_TYPE_NAME,
@@ -101,12 +103,12 @@ class MetadataManagerUnitTest(unittest.TestCase):
         self.metadata_manager = MetadataManager(["qualifier"])
 
     def test_entities_read(self):
-        metadata_container = self.metadata_manager.read_metadata_from_strings(METADATA)
+        metadata_container = self.metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.assertIn(".".join([BASE_NAMESPACE_NAME, BASE_ENTITY_NAME]), metadata_container.entities)
         self.assertIn(".".join([DERIVED_NAMESPACE_NAME, DERIVED_ENTITY_NAME]), metadata_container.entities)
 
     def test_complex_type_read(self):
-        metadata_container = self.metadata_manager.read_metadata_from_strings(METADATA)
+        metadata_container = self.metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.assertIn(".".join([BASE_NAMESPACE_NAME, BASE_COMPLEX_TYPE_NAME]), metadata_container.types)
         self.assertIn(".".join([DERIVED_NAMESPACE_NAME, DERIVED_COMPLEX_TYPE_NAME]), metadata_container.types)
         self.assertIn(PROPERTY_NAME,
@@ -123,7 +125,7 @@ class MetadataManagerUnitTest(unittest.TestCase):
                                                                  DERIVED_COMPLEX_TYPE_NAME])].properties[PROPERTY_NAME].type)
 
     def test_base_types(self):
-        metadata_container = self.metadata_manager.read_metadata_from_strings(METADATA)
+        metadata_container = self.metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.assertEqual(metadata_container.entities[".".join([BASE_NAMESPACE_NAME, BASE_ENTITY_NAME])].validate({
             "@odata.type": ".".join([DERIVED_NAMESPACE_NAME, DERIVED_ENTITY_NAME]),
             STRING_PROPERTY: "text",
@@ -140,13 +142,13 @@ class MetadataManagerUnitTest(unittest.TestCase):
 
         manager = MetadataManager([])
         with StdoutCapture() as output:
-            with patch("__builtin__.open", mock_open(read_data=METADATA_ROOT)) as mock_file:
-                with patch("cts_framework.commons.digest.DirDigest.__init__") as init:
-                    init.return_value = None
-                    with patch("cts_framework.commons.digest.DirDigest.is_valid") as is_valid:
-                        is_valid.return_value = True
+          with patch("__builtin__.open", mock_open(read_data=METADATA_ROOT)) as mock_file:
+              with patch("cts_framework.commons.digest.DirDigest.__init__") as init:
+                  init.return_value = None
+                  with patch("cts_framework.commons.digest.DirDigest.is_valid") as is_valid:
+                      is_valid.return_value = True
 
-                        manager.read_metadata_for_services("SERVICE_A")
+                      manager.read_metadata_for_services("SERVICE_A")
 
         arguments = [arg[0][0] for arg in mock_file.call_args_list]
         self.assertGreater(len([a for a in arguments if "Org.OData.Core.V1.xml" in a]), 0)

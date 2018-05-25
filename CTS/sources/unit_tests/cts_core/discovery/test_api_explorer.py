@@ -104,7 +104,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
             }
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(metadata)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", metadata)
         discovery_container = DiscoveryContainer()
         configuration = Configuration(
             **dict(UseSSL='True', ApiEndpoint=API_ENDPOINT))
@@ -146,7 +146,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
             }
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(metadata)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", metadata)
         discovery_container = DiscoveryContainer()
         configuration = Configuration(
             **dict(UseSSL='True', ApiEndpoint=API_ENDPOINT))
@@ -205,7 +205,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
             }
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(metadata)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", metadata)
         discovery_container = DiscoveryContainer()
         configuration = Configuration(
             **dict(UseSSL='True', ApiEndpoint=API_ENDPOINT))
@@ -244,7 +244,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
             }
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(metadata)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", metadata)
         discovery_container = DiscoveryContainer()
         configuration = Configuration(
             **dict(UseSSL='True', ApiEndpoint=API_ENDPOINT))
@@ -302,7 +302,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
             }
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(metadata)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", metadata)
         discovery_container = DiscoveryContainer()
         configuration = Configuration(
             **dict(UseSSL='True', ApiEndpoint=API_ENDPOINT))
@@ -372,7 +372,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
             }
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(metadata)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", metadata)
         discovery_container = DiscoveryContainer()
         configuration = Configuration(
             **dict(UseSSL='True', ApiEndpoint=API_ENDPOINT))
@@ -425,7 +425,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
             }
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(metadata)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", metadata)
         discovery_container = DiscoveryContainer()
         configuration = Configuration(
             **dict(UseSSL='True', ApiEndpoint=API_ENDPOINT))

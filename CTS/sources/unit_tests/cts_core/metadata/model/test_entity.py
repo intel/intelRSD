@@ -45,6 +45,7 @@ class EntityReadUnitTest(unittest.TestCase):
 
     def test_entity_sees_inherited_properties(self):
         metadata = """
+                <Schemas>
                    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="A">
                        <EntityType Name="Resource" Abstract="false">
                            <Property Name="GrandpaProperty" Type="Resource.Description">
@@ -68,10 +69,11 @@ class EntityReadUnitTest(unittest.TestCase):
                         </Property>
                      </EntityType>
                    </Schema>
+                </Schemas>
                     """
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(metadata)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", metadata)
 
         resource_definition = metadata_container.entities['C.Resource']
         properties = resource_definition.properties

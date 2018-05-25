@@ -10,6 +10,7 @@ from cts_core.validation.patch.metadata_patch_validator import MetadataPatchVali
 
 
 METADATA = """
+   <Schemas>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource">
         <EntityType Name="Resource" Abstract="true"/>
 
@@ -462,8 +463,7 @@ METADATA = """
         </ComplexType>
 
     </Schema>
-
-
+  </Schemas>
        """
 
 RESOURCE = \
@@ -524,7 +524,7 @@ RESOURCE = \
 class PatchRmmManagerTest(unittest.TestCase):
     def setUp(self):
         metadata_manager = MetadataManager(["qualifier"], )
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
         self.discovery_container.add_resource(ApiResource("/redfish/v1/Managers/RMC",
                                                           'netloc', RESOURCE,

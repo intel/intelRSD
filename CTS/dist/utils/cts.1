@@ -115,23 +115,23 @@ See \fBEXAMPLES\fR and \fBFILES\fR sections for more information on that.
 \fBcts tests list\fR
     Display all available tests.
 
-\fBcts tests list -p\fR \fIRack_Scale_2_1_Storage_Services\fR
-    Display all tests available in the \fIRack_Scale_2_1_Storage_Services\fR package.
+\fBcts tests list -p\fR \fIRack_Scale_2_3_Storage_Services\fR
+    Display all tests available in the \fIRack_Scale_2_3_Storage_Services\fR package.
 
-\fBcts tests list -p\fR \fIRack_Scale_2_2_RMM\fR\fB -s \fR\fIrequired\fR
-    Display all tests available in the \fIrequired\fR suite of the \fIRack_Scale_2_2_RMM\fR package.
+\fBcts tests list -p\fR \fIRack_Scale_2_3_RMM\fR\fB -s \fR\fIrequired\fR
+    Display all tests available in the \fIrequired\fR suite of the \fIRack_Scale_2_3_RMM\fR package.
 
-\fBcts tests generate_config\fR \fIRack_Scale_1_2_PSME\fR \fIcrud_operations\fR -o \fR\fIconfiguration.ini\fR
+\fBcts tests generate_config\fR \fIRack_Scale_2_3_PSME\fR \fIcrud_operations\fR -o \fR\fIconfiguration.ini\fR
     Generate default configuration file for \fIcrud_operations\fR script and save it as \fIconfiguration.ini\fR.
 
-\fBcts tests show\fR \fIRack_Scale_2_1_PSME\fR \fIvalidate_get_responses\fR
+\fBcts tests show\fR \fIRack_Scale_2_3_PSME\fR \fIvalidate_get_responses\fR
     Display information about the \fIvalidate_get_responses\fR script (including the mandatory and non-mandatory configuration file options)
 
-\fBcts execute tests\fR \fIRack_Scale_2_2_POD_Manager\fR\fB -s\fR \fIrequired\fR\fB -t\fR \fIhardware_checklist\fR \fB\--config_files\fR \fIconfig_file.ini\fR
-    Run the \fIhardware_checklist\fR script from the \fIrequired\fR suite of the \fIRack_Scale_2_2_POD_Manager\fR package using \fIconfig_file.ini\fR as configuration file.
+\fBcts execute tests\fR \fIRack_Scale_2_3_POD_Manager\fR\fB -s\fR \fIrequired\fR\fB -t\fR \fIhardware_checklist\fR \fB\--config_files\fR \fIconfig_file.ini\fR
+    Run the \fIhardware_checklist\fR script from the \fIrequired\fR suite of the \fIRack_Scale_2_3_POD_Manager\fR package using \fIconfig_file.ini\fR as configuration file.
 
-\fBcts execute tests\fR \fIRack_Scale_2_2_PSME\fR\fB -c\fR \fIcfg.ini\fR\fB -x -g
-    Execute all tests found in the \fIRack_Scale_2_2_PSME\fR package in debug mode and make cts return an exit code depending on the overall tests execution status.
+\fBcts execute tests\fR \fIRack_Scale_2_3_PSME\fR\fB -c\fR \fIcfg.ini\fR\fB -x -g
+    Execute all tests found in the \fIRack_Scale_2_3_PSME\fR package in debug mode and make cts return an exit code depending on the overall tests execution status.
 
 \fBcts status list\fR
     List all execution statuses.
@@ -185,13 +185,13 @@ See \fBEXAMPLES\fR and \fBFILES\fR sections for more information on that.
 
     \fBcts execute run_list\fR options
         The file defining the run list should be formatted accordingly with this example:
-            [PSME_2_2]
-            TEST_PACKAGE = Rack_Scale_2_2_PSME
+            [PSME_2_3]
+            TEST_PACKAGE = Rack_Scale_2_3_PSME
             TEST_SUITES = required, optional
             TEST_CONFIGS = psme.ini, ./config/hardware_check_list.ini
 
-            [StorageServices_2_2]
-            TEST_PACKAGE = Rack_Scale_2_2_Storage_Services
+            [StorageServices_2_3]
+            TEST_PACKAGE = Rack_Scale_2_3_Storage_Services
             TEST_SUITES = required
             TEST_CONFIGS = ./config/storage.ini
 

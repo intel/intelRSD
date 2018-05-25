@@ -42,6 +42,12 @@ def split_at_column(text, column):
     return res
 
 
+def get_parent_odata_id(odata_id):
+    if odata_id.endswith("/"):
+        odata_id = odata_id[:-1]
+    return odata_id.rsplit("/", 1)[0]
+
+
 def to_multiline(text, column, join_string):
     return join_string.join(split_at_column(text, column))
 

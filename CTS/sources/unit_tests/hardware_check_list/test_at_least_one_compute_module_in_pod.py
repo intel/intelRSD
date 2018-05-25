@@ -23,9 +23,9 @@ def test_script_init_monkey_patch(self, configuration):
 CtsTestScript.__init__ = test_script_init_monkey_patch
 
 METADATA = """
+<Schemas>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource">
         <EntityType Name="Resource" Abstract="true"/>
-        </EntityType>
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource.v1_0_0">
@@ -46,14 +46,12 @@ METADATA = """
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis">
-      <EntityType Name="Chassis" BaseType="Resource.v1_0_0.Resource" Abstract="true">
-      </EntityType>
+      <EntityType Name="Chassis" BaseType="Resource.v1_0_0.Resource" Abstract="true"/>
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_0_0">
       <EntityType Name="Chassis" BaseType="Chassis.Chassis">
-        <Property Name="ChassisType" Nullable="false" Type="Chassis.v1_0_0.ChassisType">
-        </Property>
+        <Property Name="ChassisType" Nullable="false" Type="Chassis.v1_0_0.ChassisType"/>
       </EntityType>
 
       <EnumType Name="ChassisType">
@@ -67,8 +65,7 @@ METADATA = """
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_2_0">
-      <EntityType Name="Chassis" BaseType="Chassis.v1_0_0.Chassis">
-      </EntityType>
+      <EntityType Name="Chassis" BaseType="Chassis.v1_0_0.Chassis"/>
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ComputerSystem">
@@ -97,16 +94,15 @@ METADATA = """
       </EntityType>
 
       <ComplexType Name="ProcessorSummary">
-        <Property Name="Count" Type="Edm.Int64">
-        </Property>
+        <Property Name="Count" Type="Edm.Int64"/>
       </ComplexType>
 
       <ComplexType Name="MemorySummary">
-        <Property Name="TotalSystemMemoryGiB" Type="Edm.Int64">
-        </Property>
+        <Property Name="TotalSystemMemoryGiB" Type="Edm.Int64"/>
       </ComplexType>
 
     </Schema>
+</Schemas>
 """
 
 class AtLeastOneComputeModuleInPodUnitTest(unittest.TestCase):
@@ -114,7 +110,7 @@ class AtLeastOneComputeModuleInPodUnitTest(unittest.TestCase):
         self.discovery_container = DiscoveryContainer()
 
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
 
         HardwareCheckList.MetadataConstants = MetadataConstants2_1
         self.checklist = HardwareCheckList(dict())

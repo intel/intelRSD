@@ -38,7 +38,8 @@ class PatchingStrategy2_1(PatchingStrategy):
                 ReturnCodes.CONFLICT,              #409
                 ReturnCodes.UNPROCESSABLE_ENTITY,  #422
                 ReturnCodes.INTERNAL_SERVER_ERROR, #500
-                ReturnCodes.NOT_IMPLEMENTED        #501
+                ReturnCodes.NOT_IMPLEMENTED,       #501
+                ReturnCodes.SERVICE_UNAVAILABLE    #503
                 ]
 
     def was_patch_applied(self, return_code):

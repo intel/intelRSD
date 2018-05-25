@@ -4,8 +4,7 @@ from cts_core.validation.patch.nontrivial_property.patch_nontrivial_property_cha
 from cts_core.validation.validation_status import ValidationStatus
 from patch_nontrivial_property_base import ApplicabilityTestResult
 
-NONTRIVIAL_PATCH_IMPLEMENTATIONS = [PatchNontrivialPropertyBoot,
-                                    PatchNontrivialPropertyChap]
+NONTRIVIAL_PATCH_IMPLEMENTATIONS = [PatchNontrivialPropertyBoot]
 
 
 class PatchNontrivialPropertyMixin:

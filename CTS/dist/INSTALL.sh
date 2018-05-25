@@ -164,18 +164,18 @@ function install_pip_dependencies {
 function install_autocompletion_for_bash {
     linux_dist="$(lsb_release -i -s)"
     if [ $linux_dist == "Ubuntu" ] ; then
-        cp -rf utils/bash_autocompletion.sh /etc/bash_completion.d/cts
+        /bin/cp -ruf utils/bash_autocompletion.sh /etc/bash_completion.d/cts
         echo "complete -F _cts cts" >> $HOME_DIR/.bashrc
         source /etc/profile
         source $HOME_DIR/.bashrc
-        echo "Done"
+        echo -ne "Done\r"
     else
         echo "  !! Module wasn't installed, works only with Ubuntu OS"
     fi
 }
 
 function install_manpage {
-    cp $MAN_SOURCE_FILE $MAN_TARGET_FILE
+    /bin/cp -ruf $MAN_SOURCE_FILE $MAN_TARGET_FILE
     gzip -f $MAN_TARGET_FILE
     # echo -e "\nUpdating man-db..."
     mandb > /dev/null 2> /dev/null
@@ -373,14 +373,17 @@ function clean_cts_install {
         STATUS=1
     fi
 
+    echo -ne "Working: ########## (100%)\r"
     install_manpage
+    install_autocompletion_for_bash
+
     # repair ownership for folders
     change_ownership_for_sudo_user
-    echo -ne "Working: ########## (100%)\r"
     if [ $? != 0 ] ; then
         STATUS=1
     fi
 
+    echo -ne "                               \r"
     # cts version
     cts_test_run
 

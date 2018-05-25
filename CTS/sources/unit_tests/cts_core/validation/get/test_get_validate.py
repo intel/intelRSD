@@ -18,6 +18,7 @@ from unit_tests.helpers.stdout_capture import StdoutCapture
 API_ENDPOINT = "1.2.3.4:567"
 
 METADATA = """
+  <Schemas>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="N">
         <ComplexType Name="ObjectWithNumericProperty">
             <Annotation Term="OData.AdditionalProperties" Bool="true"/>
@@ -64,6 +65,7 @@ METADATA = """
             <Property Name="OptionalProperty3" Type="Edm.Int64"/>
         </EntityType>
     </Schema>
+  </Schemas>
        """
 
 RESOURCE_CORRECT = \
@@ -162,7 +164,7 @@ RESOURCE_WITH_INCOMPLETE_DYNAMIC_PROPERTY_AT_COMPLEX_TYPE_LEVEL = \
 class GetValidateTest(unittest.TestCase):
     def test_should_pass_with_correct_resource(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -179,7 +181,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_fail_bacause_of_unknown_entity_type(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -197,7 +199,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_pass_when_unknown_entity_type_mapped_to_known_one(self):
         metadata_manager = MetadataManager(["qualifier"], map_types={"A" : "B", "unknown.entity.type" : "N.R"})
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -212,7 +214,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_fail_bacause_of_unknown_complex_type(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -230,7 +232,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_pass_when_unknown_complex_type_mapped_on_known_type(self):
         metadata_manager = MetadataManager(["qualifier"], map_types={"A" : "B", "unknown.complex.type" : "N.ObjectWithNumericProperty"})
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -246,7 +248,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_fail_if_property_of_incorrect_type(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -264,7 +266,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_pass_if_property_of_incorrect_type_declared_on_ignore_list(self):
         metadata_manager = MetadataManager(["qualifier"], ignore_types=["N.ObjectWithNumericProperty"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -280,7 +282,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_pass_if_entity_type_declared_on_ignore_list(self):
         metadata_manager = MetadataManager(["qualifier"], ignore_types=["N.R"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -296,7 +298,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_fail_if_non_nullable_property_is_null(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -315,7 +317,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_suggest_other_names_for_additionals(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -336,7 +338,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_validate_dynamic_properties_at_entity_level(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(ApiResource("/redfish/resource1",
@@ -355,7 +357,7 @@ class GetValidateTest(unittest.TestCase):
 
     def test_should_validate_dynamic_properties_at_complex_type_level(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
 
         self.discovery_container.add_resource(
@@ -405,7 +407,7 @@ class GetValidateTest(unittest.TestCase):
             }
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(metadata)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", metadata)
         discovery_container = DiscoveryContainer()
         configuration = Configuration(**dict(UseSSL='True', ApiEndpoint=API_ENDPOINT))
         api_explorer = ApiExplorer(metadata_container, configuration)

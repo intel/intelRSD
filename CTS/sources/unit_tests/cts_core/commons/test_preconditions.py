@@ -8,9 +8,9 @@ from cts_core.commons.preconditions import Preconditions, Requirement
 from cts_core.discovery.discovery_container import DiscoveryContainer
 
 METADATA = """
+          <Schemas>
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource">
                <EntityType Name="Resource" Abstract="true"/>
-               </EntityType>
            </Schema>
 
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource.v1_0_0">
@@ -31,14 +31,12 @@ METADATA = """
            </Schema>
 
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis">
-             <EntityType Name="Chassis" BaseType="Resource.v1_0_0.Resource" Abstract="true">
-             </EntityType>
+             <EntityType Name="Chassis" BaseType="Resource.v1_0_0.Resource" Abstract="true"/>
            </Schema>
 
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_0_0">
              <EntityType Name="Chassis" BaseType="Chassis.Chassis">
-               <Property Name="ChassisType" Nullable="false" Type="Chassis.v1_0_0.ChassisType">
-               </Property>
+               <Property Name="ChassisType" Nullable="false" Type="Chassis.v1_0_0.ChassisType"/>
              </EntityType>
 
              <EnumType Name="ChassisType">
@@ -52,16 +50,16 @@ METADATA = """
            </Schema>
 
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_2_0">
-             <EntityType Name="Chassis" BaseType="Chassis.v1_0_0.Chassis">
-             </EntityType>
+             <EntityType Name="Chassis" BaseType="Chassis.v1_0_0.Chassis"/>
            </Schema>
+          </Schemas>
        """
 
 class PreconditionsUnitTest(unittest.TestCase):
 
     def setUp(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
 
     def test_not_found_in_empty_discovery_container(self):
         discovery_container = DiscoveryContainer(metadata_container=self.metadata_container)

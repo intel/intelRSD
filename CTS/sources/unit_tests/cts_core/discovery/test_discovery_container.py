@@ -35,9 +35,9 @@ from unit_tests.helpers.stdout_capture import StdoutCapture
 
 class DiscoveryContainerTest(unittest.TestCase):
     TEST_METADATA = """
+      <Schemas>
         <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource">
             <EntityType Name="Resource" Abstract="true"/>
-            </EntityType>
         </Schema>
 
         <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource.v1_0_0">
@@ -100,6 +100,7 @@ class DiscoveryContainerTest(unittest.TestCase):
               <Annotation Term="OData.LongDescription" String="Collection of switch ports"/>
               <Annotation Term="OData.AutoExpandReferences"/>
             </NavigationProperty>
+          </EntityType>
         </Schema>
 
         <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitchPortCollection">
@@ -152,7 +153,7 @@ class DiscoveryContainerTest(unittest.TestCase):
                       String="The value of this property shall be a link to a resource of type TaskCollection."/>
         <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
-
+      </EntityType>
     </Schema>
     
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="TaskCollection">
@@ -183,7 +184,7 @@ class DiscoveryContainerTest(unittest.TestCase):
         </Property>
       </EntityType>
     </Schema>
-
+  </Schemas>
     """
 
     def test_empty_root_resources_when_location_not_specified(self):
@@ -262,7 +263,7 @@ class DiscoveryContainerTest(unittest.TestCase):
     def test_iter_all(self):
         metadata_manager = MetadataManager(["qualifier"])
         discovery_container = DiscoveryContainer(
-            metadata_container=metadata_manager.read_metadata_from_strings(self.TEST_METADATA))
+            metadata_container=metadata_manager.read_metadata_from_strings("Unknown", self.TEST_METADATA))
 
         chassis1_2 = {
               "@odata.context": "/redfish/v1/$metadata#Chassis/Members/$entity",
@@ -477,7 +478,7 @@ class DiscoveryContainerTest(unittest.TestCase):
 
     def test_dataframes(self):
         metadata_container = MetadataManager(["qualifier"]).\
-            read_metadata_from_strings(self.TEST_METADATA)
+            read_metadata_from_strings("Unknown", self.TEST_METADATA)
         dc = DiscoveryContainer(service_root="/redfish/v1", metadata_container=metadata_container)
         chassis1_2_1 = {
               "@odata.context": "/redfish/v1/$metadata#Chassis/Members/$entity",

@@ -10,6 +10,7 @@ from cts_core.validation.patch.metadata_patch_validator import MetadataPatchVali
 
 
 METADATA = """
+  <Schemas>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource">
         <EntityType Name="Resource" Abstract="true"/>
 
@@ -257,6 +258,7 @@ METADATA = """
       </ComplexType>
 
     </Schema>
+  </Schemas>
     """
 
 RESOURCE = \
@@ -294,11 +296,11 @@ RESOURCE = \
 class PatchEndpointTest(unittest.TestCase):
     def setUp(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer()
         self.discovery_container.add_resource(ApiResource("/redfish/v1/Fabrics/1/Endpoints/8",
-														  'netloc', RESOURCE,
-														  "#Endpoint.v1_0_0.Endpoint"))
+                                                          'netloc', RESOURCE,
+                                                          "#Endpoint.v1_0_0.Endpoint"))
 
     def test_patch(self):
         with mock.patch('cts_core.commons.api_caller.ApiCaller.__init__') as api_caller_init_mock:
