@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,11 +46,17 @@ using GetMetricDefinitionsCollection = Command<model::requests::GetMetricDefinit
 using GetMetrics = Command<model::requests::GetMetrics, model::attribute::Array<model::Metric>>;
 
 // declarations of all get info methods
-using GetIscsiTargetInfo = Command<model::requests::GetIscsiTargetInfo, model::IscsiTarget>;
-using GetLogicalDriveInfo = Command<model::requests::GetLogicalDriveInfo, model::LogicalDrive>;
 using GetManagerInfo = Command<model::requests::GetManagerInfo, model::Manager>;
-using GetPhysicalDriveInfo = Command<model::requests::GetPhysicalDriveInfo, model::PhysicalDrive>;
+using GetChassisInfo = Command<model::requests::GetChassisInfo, model::Chassis>;
+using GetSystemInfo = Command<model::requests::GetSystemInfo, model::System>;
+using GetNetworkInterfaceInfo = Command<model::requests::GetNetworkInterfaceInfo, model::NetworkInterface>;
+using GetDriveInfo = Command<model::requests::GetDriveInfo, model::Drive>;
+using GetFabricInfo = Command<model::requests::GetFabricInfo, model::Fabric>;
+using GetZoneInfo = Command<model::requests::GetZoneInfo, model::Zone>;
+using GetEndpointInfo = Command<model::requests::GetEndpointInfo, model::Endpoint>;
 using GetStorageServiceInfo = Command<model::requests::GetStorageServiceInfo, model::StorageService>;
+using GetStoragePoolInfo = Command<model::requests::GetStoragePoolInfo, model::StoragePool>;
+using GetVolumeInfo = Command<model::requests::GetVolumeInfo, model::Volume>;
 using GetTaskInfo = Command<model::requests::GetTaskInfo, model::Task>;
 using GetTaskResultInfo = Command<model::requests::GetTaskResultInfo, model::responses::GetTaskResultInfo>;
 using GetMetricDefinitionInfo = Command<model::requests::GetMetricDefinitionInfo, model::MetricDefinition>;
@@ -59,13 +65,17 @@ using GetMetricDefinitionInfo = Command<model::requests::GetMetricDefinitionInfo
 using SetComponentAttributes = Command<model::requests::SetComponentAttributes, model::responses::SetComponentAttributes>;
 
 // declarations of all add methods
-using AddIscsiTarget = Command<model::requests::AddIscsiTarget, model::responses::AddIscsiTarget>;
-using AddLogicalDrive = Command<model::requests::AddLogicalDrive, model::responses::AddLogicalDrive>;
+using AddEndpoint = Command<model::requests::AddEndpoint, model::responses::AddEndpoint>;
+using AddVolume = Command<model::requests::AddVolume, model::responses::AddVolume>;
+using AddZone = Command<model::requests::AddZone, model::responses::AddZone>;
+using AddZoneEndpoints = Command<model::requests::AddZoneEndpoints, model::responses::AddZoneEndpoints>;
 
 // declarations of all delete methods
-using DeleteIscsiTarget = Command<model::requests::DeleteIscsiTarget, model::responses::DeleteIscsiTarget>;
-using DeleteLogicalDrive = Command<model::requests::DeleteLogicalDrive, model::responses::DeleteLogicalDrive>;
+using DeleteVolume = Command<model::requests::DeleteVolume, model::responses::DeleteVolume>;
 using DeleteTask = Command<model::requests::DeleteTask, model::responses::DeleteTask>;
+using DeleteEndpoint = Command<model::requests::DeleteEndpoint, model::responses::DeleteEndpoint>;
+using DeleteZone = Command<model::requests::DeleteZone, model::responses::DeleteZone>;
+using DeleteZoneEndpoints = Command<model::requests::DeleteZoneEndpoints, model::responses::DeleteZoneEndpoints>;
 
 }
 }

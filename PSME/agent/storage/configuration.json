@@ -1,10 +1,11 @@
 {
+    "service" : "storage",
     "agent" : {
         "vendor" : "Intel Corporation",
         "capabilities" : [ "Storage" ]
     },
     "server" : {
-        "port" : 7777
+        "port" : 7778
     },
     "registration" : {
         "ipv4" : "localhost",
@@ -13,7 +14,6 @@
     },
     "managers" : [
         {
-            "serialConsoleEnabled": true,
             "storageServices" : [
                 {
                     "iscsi" : {
@@ -28,10 +28,13 @@
             ]
         }
     ],
-    "service-uuid-file" : "/var/opt/psme/storage-service-uuid.json",
     "tgt-socket": "/var/run/tgtd/socket.0",
-    "logger" : {
-        "agent" : {
+    "database": {
+        "location": "/var/opt/psme/storage"
+    },
+    "loggers" : [
+        {
+            "name" : "storage-agent",
             "level" : "WARNING",
             "timeformat" : "DATE_NS",
             "color" : true,
@@ -44,5 +47,5 @@
                 }
             ]
         }
-    }
+    ]
 }

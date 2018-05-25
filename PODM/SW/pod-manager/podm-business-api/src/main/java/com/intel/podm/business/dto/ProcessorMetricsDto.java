@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,25 +22,17 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.math.BigDecimal;
 import java.util.List;
 
-@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "bandwidthPercent", "averageFrequencyMhz",
-    "throttlingCelsius", "temperatureCelsius", "consumedPowerWatt", "healthList", "oem"})
+@JsonPropertyOrder({
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "bandwidthPercent", "averageFrequencyMhz", "throttlingCelsius",
+    "temperatureCelsius", "consumedPowerWatt", "healthList", "oem"
+})
 public final class ProcessorMetricsDto extends RedfishDto {
-
-    @JsonProperty("BandwidthPercent")
     private BigDecimal bandwidthPercent;
-
     @JsonProperty("AverageFrequencyMHz")
     private Integer averageFrequencyMhz;
-
-    @JsonProperty("ThrottlingCelsius")
     private Integer throttlingCelsius;
-
-    @JsonProperty("TemperatureCelsius")
     private Integer temperatureCelsius;
-
-    @JsonProperty("ConsumedPowerWatt")
     private Integer consumedPowerWatt;
-
     @JsonProperty("Health")
     private List<String> healthList;
 

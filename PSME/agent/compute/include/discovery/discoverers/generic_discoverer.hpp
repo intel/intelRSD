@@ -2,7 +2,7 @@
  * @brief Compute agent generic discoverer interface.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,27 @@ public:
      */
     virtual bool discover_system(agent_framework::model::System& system);
 
+
+    /*!
+     * @brief Perform discovery of PcieDevice objects.
+     * @param devices Empty vector of PcieDevice objects, filled by the method with discovered data.
+     * @param parent_uuid Parent UUID.
+     * @param chassis_uuid sled chassis UUID.
+     * @return True if discovery was successful, false otherwise.
+     */
+    virtual bool
+    discover_pcie_devices(std::vector<agent_framework::model::PcieDevice>& devices,
+                          const std::string& parent_uuid, const std::string& chassis_uuid);
+
+    /*!
+     * @brief Perform discovery of PcieFunction objects.
+     * @param functions Empty vector of PcieDevice objects, filled by the method with discovered data.
+     * @param devices vector of PcieDevice objects, which are the parents for the functions
+     * @return True if discovery was successful, false otherwise.
+     */
+    virtual bool
+    discover_pcie_functions(std::vector<agent_framework::model::PcieFunction>& functions,
+                           const std::vector<agent_framework::model::PcieDevice>& devices);
 
     /*!
      * @brief Perform discovery of processors objects.
@@ -254,7 +275,7 @@ protected:
 
 
     void log_ipmi_error(const ipmi::ResponseError& error) {
-        log_error(GET_LOGGER("legacy-discovery"),
+        log_error("legacy-discovery",
                   "An error occurred during execution of command 0x" << std::hex << static_cast<unsigned>(error.get_command()) << ", netfn 0x"
                                                                      << std::hex << static_cast<unsigned>(error.get_network_function())
                                                                      << ". Completion code: 0x"
@@ -265,7 +286,7 @@ protected:
 
 
     void log_discovery_error(const std::exception& e, const std::string& resource_name) {
-        log_error(GET_LOGGER("legacy-discovery"),
+        log_error("legacy-discovery",
                   "An error occurred during discovery of " << resource_name << ": " << e.what() << ".");
     }
 

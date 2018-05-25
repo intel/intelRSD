@@ -2,7 +2,7 @@
  * @brief Unit tests for generation of UUIDv5
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,25 +66,38 @@ public:
 };
 
 
-
 PersistentUuidGenerationTest::~PersistentUuidGenerationTest() {}
 
 
+class TestResource : public Resource {
+public:
+    TestResource(const Uuid& parent) : Resource(parent) { }
+
+    virtual ~TestResource();
+
+    json::Json to_json() const {
+        return json::Json{};
+    }
+};
+
+
+TestResource::~TestResource() {}
+
 
 /*!
- * Test unique key accessor functions. This thest verifies that
+ * Test unique key accessor functions. This test verifies that
  * the unique key is empty on resource object creation and that
  * accessor functions are working properly.
  * */
 TEST_F(PersistentUuidGenerationTest, UniqueKeyOperations) {
-    Resource resource{PARENT_UUID};
+    TestResource resource{PARENT_UUID};
 
-    /*! Verify that the unique key is empty by default */
+    /* Verify that the unique key is empty by default */
     ASSERT_FALSE(resource.get_unique_key().has_value());
 
-    /*! Assign unique key value to the resource */
+    /* Assign unique key value to the resource */
     resource.set_unique_key(DUMMY_KEY);
-    /*! Assert that the uniwue key was set */
+    /* Assert that the uniwue key was set */
     ASSERT_TRUE(resource.get_unique_key().has_value());
     ASSERT_EQ(resource.get_unique_key().value(), DUMMY_KEY);
 }
@@ -96,20 +109,20 @@ TEST_F(PersistentUuidGenerationTest, UniqueKeyOperations) {
  * the unique key for resource.
  * */
 TEST_F(PersistentUuidGenerationTest, UuidGenerationWithoutUniqueKey) {
-    Resource resource{PARENT_UUID};
-    Resource clone_resource(PARENT_UUID);
+    TestResource resource{PARENT_UUID};
+    TestResource clone_resource(PARENT_UUID);
 
-    /*! Verify that resources have different temporary UUIDs */
+    /* Verify that resources have different temporary UUIDs */
     ASSERT_TRUE(resource.get_uuid() != clone_resource.get_uuid());
 
     std::string temporary_resource_uuid = resource.get_uuid();
     std::string temporary_clone_resource_uuid = clone_resource.get_uuid();
 
-    /*! Attempt to generate persistent UUIDs */
+    /* Attempt to generate persistent UUIDs */
     resource.make_persistent_uuid();
     clone_resource.make_persistent_uuid();
 
-    /*! Verify that resources UUIDs did not change */
+    /* Verify that resources UUIDs did not change */
     ASSERT_TRUE(resource.get_uuid() != clone_resource.get_uuid());
     ASSERT_TRUE(temporary_resource_uuid == resource.get_uuid());
 
@@ -124,21 +137,21 @@ TEST_F(PersistentUuidGenerationTest, UuidGenerationWithoutUniqueKey) {
  * same persistent UUID if their unique keys are the same.
  * */
 TEST_F(PersistentUuidGenerationTest, UuidWithUniqueKey) {
-    Resource resource{PARENT_UUID};
-    Resource clone_resource(PARENT_UUID);
+    TestResource resource{PARENT_UUID};
+    TestResource clone_resource(PARENT_UUID);
 
-    /*! Set unique keys for both resources to the same value */
+    /* Set unique keys for both resources to the same value */
     resource.set_unique_key(DUMMY_KEY);
     clone_resource.set_unique_key(DUMMY_KEY);
 
-    /*! Verify that the resources UUIDs are still different */
+    /* Verify that the resources UUIDs are still different */
     ASSERT_TRUE(resource.get_uuid() != clone_resource.get_uuid());
 
-    /*! Attempt to create persistent UUIDs for both resources */
+    /* Attempt to create persistent UUIDs for both resources */
     resource.make_persistent_uuid();
     clone_resource.make_persistent_uuid();
 
-    /*! Verify that resources UUIDs are now equal */
+    /* Verify that resources UUIDs are now equal */
     ASSERT_TRUE(resource.get_uuid() == clone_resource.get_uuid());
 
     /* Verify that the persistent UUID flag is set */

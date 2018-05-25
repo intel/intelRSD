@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,24 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.common.types.ProcessorMemoryType;
 import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
 public class ProcessorMemoryObject {
-    @JsonProperty("Type")
+    @JsonSetter(value = "Type", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<ProcessorMemoryType> type;
-    @JsonProperty("CapacityMB")
+
+    @JsonSetter(value = "CapacityMB", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> capacityMb;
-    @JsonProperty("SpeedMHz")
+
+    @JsonSetter(value = "SpeedMHz", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> speedMhz;
 

@@ -2,7 +2,7 @@
  * @brief Processor for all metrics
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public:
      * @brief Get first reader time to be executed
      * @return closest time when readers should be executed
      */
-    std::chrono::time_point<std::chrono::steady_clock> get_earliest_update_time() const;
+    TelemetryReader::TimePoint get_earliest_update_time() const;
 
 private:
     ipmi::IpmiController& ctrl;
@@ -72,8 +72,13 @@ private:
     using ReadersReadyMap = std::map<TelemetryReader::ReaderId, ReaderReady>;
     ReadersReadyMap ready_readers{};
 
-    static bool is_time_passed(const TelemetryReader& reader, TelemetryReader::SampleTime now);
+    static bool is_time_passed(const TelemetryReader& reader, TelemetryReader::TimePoint now);
     static bool has_proper_period(const TelemetryReader& reader);
+
+    std::set<TelemetryReader::Ptr> remove_not_valid_readers(TelemetryReader::PtrVector& readers,
+                                                             const TelemetryReader::Context::Ptr& context);
+
+    void update_reader_timestamp(TelemetryReader& reader, TelemetryReader::TimePoint now);
 };
 
 }

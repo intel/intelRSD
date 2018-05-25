@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@
 #include "agent-framework/module/requests/network.hpp"
 #include "agent-framework/module/responses/network.hpp"
 #include "agent-framework/module/responses/common.hpp"
+#include "agent-framework/module/utils/json_transformations.hpp"
 
 
 
@@ -95,6 +96,13 @@ json::Value make_prototype() {
 
     r[Common::LINKS] = std::move(links);
 
+    r[constants::EthernetSwitchPort::LLDP_ENABLED] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::DCBX_STATE] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL][constants::EthernetSwitchPort::ENABLED] =
+        json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL][constants::EthernetSwitchPort::ENABLED_PRIORITIES] =
+        json::Value::Type::ARRAY;
+
     return r;
 }
 
@@ -110,12 +118,10 @@ std::string get_switch(const server::Request& req) {
 void add_member_of_port_link(json::Value& json, const std::string& port,
                              const std::string& switchID) {
 
-    json[Common::LINKS][constants::EthernetSwitchPort::MEMBER_OF_PORT] =
-        json::Value::Type::NIL;
+    json[Common::LINKS][constants::EthernetSwitchPort::MEMBER_OF_PORT] = json::Value::Type::NIL;
 
     // return if the port is not a member
-    const auto& port_members_manager =
-        NetworkComponents::get_instance()->get_port_members_manager();
+    const auto& port_members_manager = NetworkComponents::get_instance()->get_port_members_manager();
     if (!port_members_manager.child_exists(port)) {
         return;
     }
@@ -126,9 +132,8 @@ void add_member_of_port_link(json::Value& json, const std::string& port,
 
     // safety check, if there is a parent, there should be only one
     if (1 != parents.size()) {
-        log_error(GET_LOGGER("rest"), "Model Port/MemberOfPort link error");
-        log_error(GET_LOGGER("rest"), "Port " << port <<
-                                              " is used by more than one ports!");
+        log_error("rest", "Model Port/MemberOfPort link error");
+        log_error("rest", "Port " << port << " is used by more than one ports!");
         return;
     }
 
@@ -136,16 +141,15 @@ void add_member_of_port_link(json::Value& json, const std::string& port,
     try {
         // convert UUID into ID and fill the link
         const auto& parent_port_id = port_manager.get_entry(parent).get_id();
-        json[Common::LINKS]
-        [constants::EthernetSwitchPort::MEMBER_OF_PORT]
-        [Common::ODATA_ID] = endpoint::PathBuilder(switchID)
-            .append(constants::EthernetSwitch::PORTS)
-            .append(parent_port_id).build();
+        json[Common::LINKS][constants::EthernetSwitchPort::MEMBER_OF_PORT][Common::ODATA_ID] =
+            endpoint::PathBuilder(switchID)
+                .append(constants::EthernetSwitch::PORTS)
+                .append(parent_port_id).build();
     }
     catch (const agent_framework::exceptions::InvalidUuid&) {
-        log_error(GET_LOGGER("rest"), "Model Port/MemberOfPort link error");
-        log_error(GET_LOGGER("rest"), "Port " << parent <<
-                                              " is present in the PortMembers table but it does not exist as a resource");
+        log_error("rest", "Model Port/MemberOfPort link error");
+        log_error("rest", "Port "
+            << parent << " is present in the PortMembers table but it does not exist as a resource");
     }
 }
 
@@ -153,8 +157,7 @@ void add_member_of_port_link(json::Value& json, const std::string& port,
 void add_port_members_links(json::Value& json, const std::string& port,
                             const std::string& switchID) {
 
-    json[Common::LINKS][constants::EthernetSwitchPort::PORT_MEMBERS] =
-        json::Value::Type::ARRAY;
+    json[Common::LINKS][constants::EthernetSwitchPort::PORT_MEMBERS] = json::Value::Type::ARRAY;
 
     // return if the port is not a LAG
     const auto& port_members_manager =
@@ -179,10 +182,9 @@ void add_port_members_links(json::Value& json, const std::string& port,
                 .push_back(link);
         }
         catch (const agent_framework::exceptions::InvalidUuid&) {
-            log_error(GET_LOGGER("rest"), "Model Port/PortMembers link error");
-            log_error(GET_LOGGER("rest"), "Port " << child <<
-                                                  " is present in the PortMembers table but it does not exist"
-                                                      " as a resource");
+            log_error("rest", "Model Port/PortMembers link error");
+            log_error("rest", "Port "
+                << child << " is present in the PortMembers table but it does not exist as a resource");
         }
     }
 }
@@ -201,10 +203,9 @@ void add_active_acls_links(json::Value& json, const std::string& port) {
                 push_back(std::move(link));
         }
         catch (const agent_framework::exceptions::InvalidUuid&) {
-            log_error(GET_LOGGER("rest"), "Model Port/ActiveACLs link error");
-            log_error(GET_LOGGER("rest"), "ACL " << acl <<
-                                                 " is present in the ActiveACLs table but it does not exist"
-                                                     " as a resource");
+            log_error("rest", "Model Port/ActiveACLs link error");
+            log_error("rest", "ACL "
+                << acl << " is present in the ActiveACLs table but it does not exist as a resource");
         }
     }
 }
@@ -218,16 +219,15 @@ void add_primary_vlan_link(json::Value& json, const OptionalField<std::string>& 
         return;
     }
 
-    const auto& vlan_manager =
-        NetworkComponents::get_instance()->get_port_vlan_manager();
+    const auto& vlan_manager = NetworkComponents::get_instance()->get_port_vlan_manager();
     try {
         auto vlan_id = vlan_manager.get_entry(vlan).get_id();
         json[Common::LINKS][constants::EthernetSwitchPort::PRIMARY_VLAN][Common::ODATA_ID] =
             endpoint::PathBuilder(url).append(constants::EthernetSwitchPort::VLANS).append(vlan_id).build();
     }
     catch (agent_framework::exceptions::InvalidUuid&) {
-        log_error(GET_LOGGER("rest"), "Model Port/PrimaryVLAN link error.");
-        log_error(GET_LOGGER("rest"), "Primary VLAN " << vlan << " does not exist but is used by a port.");
+        log_error("rest", "Model Port/PrimaryVLAN link error.");
+        log_error("rest", "Primary VLAN " << vlan << " does not exist but is used by a port.");
     }
 }
 
@@ -257,7 +257,7 @@ void execute_patch_members(const agent_framework::model::EthernetSwitchPort& por
     const auto& add_request = std::get<0>(patch_members_requests);
     const auto& remove_request = std::get<1>(patch_members_requests);
 
-    if (add_request.get_members().size() > 0) {
+    if (!add_request.get_members().empty()) {
         gami_agent->execute<responses::AddEthernetSwitchPortMembers>(add_request);
 
         // Update info about the added member ports
@@ -271,7 +271,7 @@ void execute_patch_members(const agent_framework::model::EthernetSwitchPort& por
         }
     }
 
-    if (remove_request.get_members().size() > 0) {
+    if (!remove_request.get_members().empty()) {
         gami_agent->execute<responses::DeleteEthernetSwitchPortMembers>(remove_request);
 
         // Update info about the deleted member ports
@@ -293,11 +293,26 @@ void execute_patch_members(const agent_framework::model::EthernetSwitchPort& por
 
 
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
-    {agent_framework::model::literals::EthernetSwitchPort::LINK_SPEED_MBPS,      constants::EthernetSwitchPort::LINK_SPEED},
-    {agent_framework::model::literals::EthernetSwitchPort::ADMINISTRATIVE_STATE, constants::EthernetSwitchPort::ADMINISTRATIVE_STATE},
-    {agent_framework::model::literals::EthernetSwitchPort::FRAME_SIZE,           constants::EthernetSwitchPort::FRAME_SIZE},
-    {agent_framework::model::literals::EthernetSwitchPort::AUTO_SENSE,           constants::EthernetSwitchPort::AUTOSENSE},
-    {agent_framework::model::literals::EthernetSwitchPort::DEFAULT_VLAN,         constants::EthernetSwitchPort::PRIMARY_VLAN}
+    {agent_framework::model::literals::EthernetSwitchPort::LINK_SPEED_MBPS,
+        constants::EthernetSwitchPort::LINK_SPEED},
+    {agent_framework::model::literals::EthernetSwitchPort::ADMINISTRATIVE_STATE,
+        constants::EthernetSwitchPort::ADMINISTRATIVE_STATE},
+    {agent_framework::model::literals::EthernetSwitchPort::FRAME_SIZE,
+        constants::EthernetSwitchPort::FRAME_SIZE},
+    {agent_framework::model::literals::EthernetSwitchPort::AUTO_SENSE,
+        constants::EthernetSwitchPort::AUTOSENSE},
+    {agent_framework::model::literals::EthernetSwitchPort::DEFAULT_VLAN,
+        constants::EthernetSwitchPort::PRIMARY_VLAN},
+    {agent_framework::model::literals::EthernetSwitchPort::LLDP_ENABLED,
+        constants::EthernetSwitchPort::LLDP_ENABLED},
+    {agent_framework::model::literals::EthernetSwitchPort::DCBX_STATE,
+        constants::EthernetSwitchPort::DCBX_STATE},
+    {agent_framework::model::literals::EthernetSwitchPort::PFC_ENABLED,
+        endpoint::PathBuilder(constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL)
+            .append(constants::EthernetSwitchPort::ENABLED).build()},
+    {agent_framework::model::literals::EthernetSwitchPort::PFC_ENABLED_PRIORITIES,
+        endpoint::PathBuilder(constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL)
+            .append(constants::EthernetSwitchPort::ENABLED_PRIORITIES).build()}
 };
 
 
@@ -331,12 +346,39 @@ attribute::Attributes fill_attributes(json::Value& json) {
                 psme::rest::model::Find<agent_framework::model::EthernetSwitchPortVlan>(params[PathParam::VLAN_ID])
                     .via<agent_framework::model::EthernetSwitch>(params[PathParam::ETHERNET_SWITCH_ID])
                     .via<agent_framework::model::EthernetSwitchPort>(params[PathParam::SWITCH_PORT_ID])
-                    .get_one();
+                    .get();
 
-            attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::DEFAULT_VLAN, pvid->get_uuid());
+            attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::DEFAULT_VLAN, pvid.get_uuid());
         }
         catch (const agent_framework::exceptions::NotFound& ex) {
             throw agent_framework::exceptions::InvalidValue("Cannot patch default VLAN: " + ex.get_message());
+        }
+    }
+
+    if (json.is_member(constants::EthernetSwitchPort::LLDP_ENABLED)) {
+        attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::LLDP_ENABLED,
+                             json[constants::EthernetSwitchPort::LLDP_ENABLED].as_bool());
+    }
+    if (json.is_member(constants::EthernetSwitchPort::DCBX_STATE)) {
+        attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::DCBX_STATE,
+                             json[constants::EthernetSwitchPort::DCBX_STATE].as_string());
+    }
+    if (json.is_member(constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL)) {
+        const auto& pfc_property = json[constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL];
+
+        if (pfc_property.is_member(constants::EthernetSwitchPort::ENABLED)) {
+            attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::PFC_ENABLED,
+                                 pfc_property[constants::EthernetSwitchPort::ENABLED].as_bool());
+        }
+
+        if (pfc_property.is_member(constants::EthernetSwitchPort::ENABLED_PRIORITIES)) {
+            json::Json pfc_priorities = json::Json::array();
+            if (!pfc_property[constants::EthernetSwitchPort::ENABLED_PRIORITIES].is_null()) {
+                pfc_priorities = agent_framework::model::utils::to_json_rpc(
+                    pfc_property[constants::EthernetSwitchPort::ENABLED_PRIORITIES]);
+            }
+            attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::PFC_ENABLED_PRIORITIES,
+                                 pfc_priorities);
         }
     }
 
@@ -365,8 +407,6 @@ void endpoint::EthernetSwitchPort::get(const server::Request& req, server::Respo
 
     r[constants::EthernetSwitchPort::PORT_ID] = port.get_port_identifier();
     endpoint::status_to_json(port, r);
-    r[Common::STATUS][Common::HEALTH_ROLLUP] =
-        endpoint::HealthRollup<agent_framework::model::EthernetSwitchPort>().get(port.get_uuid());
 
     r[constants::EthernetSwitchPort::LINK_TYPE] = port.get_link_technology();
     r[constants::EthernetSwitchPort::OPERATIONAL_STATE] = port.get_operational_state();
@@ -389,30 +429,28 @@ void endpoint::EthernetSwitchPort::get(const server::Request& req, server::Respo
     r[constants::EthernetSwitchPort::PORT_MODE] = port.get_port_mode();
     r[constants::EthernetSwitchPort::PORT_TYPE] = port.get_port_type();
 
-    const auto ipv4_addr = port.get_ipv4_address();
-    if (static_cast<bool>(ipv4_addr.get_address())) {
-        json::Value ipv4_address;
-        ipv4_address[IpAddress::ADDRESS] = ipv4_addr.get_address();
-        ipv4_address[IpAddress::SUBNET_MASK] = ipv4_addr.get_subnet_mask();
-        ipv4_address[IpAddress::ADDRESS_ORIGIN] = ipv4_addr.get_address_origin();
-        ipv4_address[IpAddress::GATEWAY] = ipv4_addr.get_gateway();
+    const auto& ipv4 = port.get_ipv4_address();
+    if (ipv4.get_address().has_value()) {
+        json::Value ipv4_address{};
+        ipv4_address[IpAddress::ADDRESS] = ipv4.get_address();
+        ipv4_address[IpAddress::SUBNET_MASK] = ipv4.get_subnet_mask();
+        ipv4_address[IpAddress::ADDRESS_ORIGIN] = ipv4.get_address_origin();
+        ipv4_address[IpAddress::GATEWAY] = ipv4.get_gateway();
         r[constants::EthernetSwitchPort::IPv4_ADDRESSES].push_back(std::move(ipv4_address));
     }
 
-    const auto ipv6_addr = port.get_ipv6_address();
-    if (static_cast<bool>(ipv6_addr.get_address())) {
-        json::Value ipv6_address;
-        ipv6_address[IpAddress::ADDRESS] = ipv6_addr.get_address();
+    const auto& ipv6 = port.get_ipv6_address();
+    if (ipv6.get_address().has_value()) {
+        json::Value ipv6_address{};
+        ipv6_address[IpAddress::ADDRESS] = ipv6.get_address();
         // in GAMI there is DHCP option which has to be shown as DHCPv6
-        auto addr_origin = ipv6_addr.get_address_origin();
+        auto address_origin = ipv6.get_address_origin();
         ipv6_address[IpAddress::ADDRESS_ORIGIN] =
-            addr_origin == enums::Ipv6AddressOrigin::DHCP ?
-            json::Value("DHCPv6") : json::Value(addr_origin);
-        ipv6_address[IpAddress::ADDRESS_STATE] =
-            ipv6_addr.get_address_state();
-        ipv6_address[IpAddress::PREFIX_LENGTH] = ipv6_addr.get_prefix_length();
-        r[constants::EthernetSwitchPort::IPv6_ADDRESSES].push_back(
-            std::move(ipv6_address));
+            address_origin == enums::Ipv6AddressOrigin::DHCP ?
+            json::Value("DHCPv6") : json::Value(address_origin);
+        ipv6_address[IpAddress::ADDRESS_STATE] = ipv6.get_address_state();
+        ipv6_address[IpAddress::PREFIX_LENGTH] = ipv6.get_prefix_length();
+        r[constants::EthernetSwitchPort::IPv6_ADDRESSES].push_back(std::move(ipv6_address));
     }
 
     r[constants::EthernetSwitchPort::VLANS][Common::ODATA_ID] =
@@ -426,6 +464,18 @@ void endpoint::EthernetSwitchPort::get(const server::Request& req, server::Respo
     add_member_of_port_link(r, port.get_uuid(), get_switch(req));
     add_port_members_links(r, port.get_uuid(), get_switch(req));
     add_active_acls_links(r, port.get_uuid());
+
+    r[constants::EthernetSwitchPort::LLDP_ENABLED] = port.get_lldp_enabled();
+    r[constants::EthernetSwitchPort::DCBX_STATE] = port.get_dcbx_state();
+    r[constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL][constants::EthernetSwitchPort::ENABLED] =
+        port.get_pfc_enabled();
+
+    for (const auto& pfc_enabled_priority : port.get_pfc_enabled_priorities()) {
+        json::Value array_elem(json::Value::Type::NUMBER);
+        array_elem = pfc_enabled_priority;
+        r[constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL][constants::EthernetSwitchPort::ENABLED_PRIORITIES]
+            .push_back(std::move(array_elem));
+    }
 
     set_response(res, r);
 }
@@ -446,7 +496,7 @@ void endpoint::EthernetSwitchPort::patch(const server::Request& request, server:
         .get();
 
     auto gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(port.get_agent_id());
-    std::vector<std::string> port_members{};
+    std::vector<Uuid> port_members{};
 
     if (json[Common::LINKS].is_member(constants::EthernetSwitchPort::PORT_MEMBERS)) {
         LagUtils::validate_is_logical(port.get_port_class().value());
@@ -464,8 +514,8 @@ void endpoint::EthernetSwitchPort::patch(const server::Request& request, server:
         }
 
         if (!attributes.empty()) {
-            const auto& set_component_attributes_request = requests::SetComponentAttributes{port.get_uuid(),
-                                                                                            attributes};
+            const auto& set_component_attributes_request =
+                requests::SetComponentAttributes{port.get_uuid(), attributes};
             const auto& set_component_attributes_response =
                 gami_agent->execute<responses::SetComponentAttributes>(set_component_attributes_request);
 
@@ -496,14 +546,15 @@ void endpoint::EthernetSwitchPort::patch(const server::Request& request, server:
 void endpoint::EthernetSwitchPort::del(const server::Request& req, server::Response& res) {
     using HandlerManager = psme::rest::model::handler::HandlerManager;
 
-    auto port = psme::rest::model::Find
-        <agent_framework::model::EthernetSwitchPort>(req.params[PathParam::SWITCH_PORT_ID]).via
-        <agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID]).get();
+    auto port =
+        psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(req.params[PathParam::SWITCH_PORT_ID])
+            .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
+            .get();
 
     auto gami_req = requests::DeleteEthernetSwitchPort(port.get_uuid());
 
-    const auto port_members = NetworkComponents::get_instance()->get_port_members_manager().get_children(
-        port.get_uuid());
+    const auto port_members = NetworkComponents::get_instance()->get_port_members_manager()
+        .get_children(port.get_uuid());
     const auto switch_uuid = port.get_parent_uuid();
 
     const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(port.get_agent_id());

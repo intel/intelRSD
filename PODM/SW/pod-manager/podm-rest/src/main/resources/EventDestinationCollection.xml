@@ -19,7 +19,8 @@
         <Annotation Term="OData.Description" String="A Collection of EventDestination resource instances."/>
         <NavigationProperty Name="Members" Type="Collection(EventDestination.v1_0_0.EventDestination)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Contains the members of this collection."/>
+          <Annotation Term="OData.Description" String="Collection of EventDestinations."/>
+          <Annotation Term="OData.LongDescription" String="Collection of EventDestinations."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </EntityType>

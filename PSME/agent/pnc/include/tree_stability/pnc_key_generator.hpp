@@ -2,7 +2,7 @@
  * @brief Provides class for generating keys for pnc agent resources
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,6 @@
 
 
 #include "agent-framework/tree_stability/key_value_missing_error.hpp"
-#include "agent-framework/module/model/model_pnc.hpp"
 
 #include <map>
 #include <string>
@@ -43,7 +42,7 @@ namespace pnc {
  * This class is responsible for generating unique keys for all resources in PNC agent,
  * regardless of the stabilization type (e.g. dry running or 'real' tree stabilization).
  * If it happens that the key generation method needs to be changed, this is the only
- * placeto do so.
+ * place to do so.
  * */
 class PncKeyGenerator {
 public:
@@ -52,7 +51,7 @@ public:
      *
      * This method accepts a particular resource and generates the
      * unique key basing on this resource and data already present
-     * in the model. However, it is also posible to provide additional
+     * in the model. However, it is also possible to provide additional
      * data via variable arguments list. WARNING: if information
      * necessary for key generation is not present, this method throws
      * an exception of type KeyValueMissingError.
@@ -77,7 +76,7 @@ protected:
     /*!
      * @brief Generate unique key base.
      *
-     * The purspose of this method is to generate a consistent
+     * The purpose of this method is to generate a consistent
      * key base upon which the rest of the key is generated.
      *
      * @param resource Resource for which the key base should be generated.

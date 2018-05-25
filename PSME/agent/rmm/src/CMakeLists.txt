@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,6 +44,13 @@ add_library(rmm-libs STATIC
 add_executable(psme-rmm
     main.cpp
     discovery_thread.cpp
+)
+
+generate_default_config_file(
+    main.cpp
+    agent
+    generic
+    "AGENT_RMM_CONFIGURATION_FILE"
 )
 
 target_link_libraries(psme-rmm

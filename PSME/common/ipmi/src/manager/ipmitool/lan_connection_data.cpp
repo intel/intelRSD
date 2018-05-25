@@ -4,7 +4,7 @@
  * No default values are available, everything must be passed via ManagementController.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,3 +32,8 @@ LanConnectionData::LanConnectionData(const std::string& ip, std::uint32_t port,
     m_ip(ip), m_port(port), m_username(username), m_password(password) { }
 
 LanConnectionData::~LanConnectionData() { }
+
+
+std::string LanConnectionData::get_info() const {
+    return m_ip + ":" + std::to_string(m_port);
+}

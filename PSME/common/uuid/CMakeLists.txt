@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,6 +50,39 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     )
     set_source_files_properties(uuid-1.6.2/uuid_mac.c
         PROPERTIES COMPILE_FLAGS "-Wno-strict-aliasing"
+    )
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    set_source_files_properties(uuid-1.6.2/uuid++.cc
+        PROPERTIES COMPILE_FLAGS "-Wno-reserved-id-macro -Wno-extra-semi -Wno-deprecated -Wno-old-style-cast"
+    )
+    set_source_files_properties(uuid-1.6.2/uuid_mac.c
+        PROPERTIES COMPILE_FLAGS "-Wno-reserved-id-macro -Wno-disabled-macro-expansion"
+    )
+    set_source_files_properties(uuid-1.6.2/uuid_md5.c
+        PROPERTIES COMPILE_FLAGS "-Wno-reserved-id-macro -Wno-disabled-macro-expansion"
+    )
+    set_source_files_properties(uuid-1.6.2/uuid_str.c
+        PROPERTIES COMPILE_FLAGS "-Wno-reserved-id-macro -Wno-disabled-macro-expansion -Wno-double-promotion"
+    )
+    set_source_files_properties(uuid-1.6.2/uuid_time.c
+        PROPERTIES COMPILE_FLAGS "-Wno-disabled-macro-expansion -Wno-reserved-id-macro -Wno-implicit-function-declaration"
+    )
+    set_source_files_properties(uuid-1.6.2/uuid.c
+        PROPERTIES COMPILE_FLAGS "-Wno-reserved-id-macro -Wno-disabled-macro-expansion"
+    )
+    set_source_files_properties(uuid-1.6.2/uuid_prng.c
+        PROPERTIES COMPILE_FLAGS "-Wno-reserved-id-macro -Wno-disabled-macro-expansion"
+    )
+    set_source_files_properties(uuid-1.6.2/uuid_sha1.c
+        PROPERTIES COMPILE_FLAGS "-Wno-reserved-id-macro -Wno-disabled-macro-expansion"
+    )
+    set_source_files_properties(uuid-1.6.2/uuid_ui128.c
+        PROPERTIES COMPILE_FLAGS "-Wno-reserved-id-macro -Wno-disabled-macro-expansion -Wno-conditional-uninitialized -Wno-conversion"
+    )
+    set_source_files_properties(uuid-1.6.2/uuid_ui64.c
+        PROPERTIES COMPILE_FLAGS "-Wno-reserved-id-macro -Wno-disabled-macro-expansion -Wno-conditional-uninitialized -Wno-conversion"
     )
 endif()
 

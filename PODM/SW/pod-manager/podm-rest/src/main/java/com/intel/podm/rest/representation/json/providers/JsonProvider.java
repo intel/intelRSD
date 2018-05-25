@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import static com.fasterxml.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY;
-import static com.fasterxml.jackson.databind.PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.UPPER_CAMEL_CASE;
 import static com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
@@ -61,7 +61,7 @@ public class JsonProvider extends JacksonJsonProvider {
         SerializerContext context = new SerializerContext(this);
 
         ObjectMapper mapper = new ObjectMapper()
-            .setPropertyNamingStrategy(PASCAL_CASE_TO_CAMEL_CASE)
+            .setPropertyNamingStrategy(UPPER_CAMEL_CASE)
             .registerModule(mapperModuleProvider.getSerializerModule(context, serializers))
             .registerModule(mapperModuleProvider.getDeserializerModule())
             .disable(WRITE_DATES_AS_TIMESTAMPS)

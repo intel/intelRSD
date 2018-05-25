@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@
 # Script to prepare certificate and corresponding keystore
 #############################################################
 
-ALIAS="PodManagerClient"
 TMP_DIRECTORY="/tmp"
 CONFIGURATION_DIRECTORY="/var/lib/pod-manager"
 # place where client.jks file will be created, working directory
 WORK_LOCATION=${TMP_DIRECTORY}"/keystore"
-# common name that will be used during certificate generation process
-COMMON_NAME_CLIENT_FILES="client"
+BASE_CERTIFICATE_FILE_NAME=
+SERVER_CERT="server"
+CLIENT_CERT="client"
+CERTIFICATE_TYPE=
 
 function print_error() {
   echo "error: $@" 1>&2
@@ -39,7 +40,14 @@ function variable_is_set() {
   [[ ! -z ${variable} ]]
 }
 
-function are_equal() {
+function are_strings_equal() {
+  local first=$1
+  local second=$2
+
+  [[ "${first}" = "${second}" ]]
+}
+
+function are_numbers_equal() {
   local first=$1
   local second=$2
 
@@ -50,6 +58,27 @@ function is_valid_file() {
   local var=$1
   [[ -f ${var} ]]
 }
+
+function is_client_type() {
+  local var=$1
+  are_strings_equal ${var} ${CLIENT_CERT}
+}
+
+function is_server_type() {
+  local var=$1
+  are_strings_equal ${var} ${SERVER_CERT}
+}
+
+function server_keystore_exists() {
+  [[ -f "${CONFIGURATION_DIRECTORY}/${SERVER_CERT}.jks" ]]
+}
+
+function is_alias_in_use() {
+  local var=$1
+  result=$(keytool -list -keypass ${JKS_PASSWORD} -storepass ${JKS_PASSWORD} -keystore ${CONFIGURATION_DIRECTORY}/${SERVER_CERT}.jks -alias ${var})
+  [[ ${result} == ${var}* ]]
+}
+
 function evaluate_command() {
   local command="$1"
   local description="$2"
@@ -100,13 +129,13 @@ function retrieve_vault_password() {
 function remove_from_keystore() {
   local entry_to_delete=$1
 
-  if [ -f ${WORK_LOCATION}/${COMMON_NAME_CLIENT_FILES}.jks ]; then
-    local result=$(keytool -keystore ${COMMON_NAME_CLIENT_FILES}.jks -list -alias ${entry_to_delete} -keypass ${JKS_PASSWORD} -storepass ${JKS_PASSWORD})
+  if [ -f ${WORK_LOCATION}/${BASE_CERTIFICATE_FILE_NAME}.jks ]; then
+    local result=$(keytool -keystore ${BASE_CERTIFICATE_FILE_NAME}.jks -list -alias ${entry_to_delete} -keypass ${JKS_PASSWORD} -storepass ${JKS_PASSWORD})
     if [[ "$result" =~ "Alias <${entry_to_delete}> does not exist" ]]; then
       return
     fi
 
-    keytool -delete -alias ${entry_to_delete} -keypass ${JKS_PASSWORD} -storepass ${JKS_PASSWORD} -keystore ${COMMON_NAME_CLIENT_FILES}.jks -keyalg ec -sigalg SHA256withECDSA -validity 365
+    keytool -delete -alias ${entry_to_delete} -keypass ${JKS_PASSWORD} -storepass ${JKS_PASSWORD} -keystore ${BASE_CERTIFICATE_FILE_NAME}.jks
   fi
 }
 
@@ -122,4 +151,13 @@ function create_work_directories() {
     "mkdir -p ${CONFIGURATION_DIRECTORY}/ca" \
     "Creating ${CONFIGURATION_DIRECTORY}/ca directory" \
     ${verbosity}
+}
+
+function set_base_certificate_file_name() {
+    BASE_CERTIFICATE_FILE_NAME=$1;
+}
+
+function list_certificates() {
+    command="keytool -list -keypass ${JKS_PASSWORD} -storepass ${JKS_PASSWORD} -keystore ${CONFIGURATION_DIRECTORY}/${SERVER_CERT}.jks"
+    eval ${command}
 }

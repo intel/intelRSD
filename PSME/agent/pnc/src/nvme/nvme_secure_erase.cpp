@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,7 +68,7 @@ void agent::pnc::nvme::secure_erase(const std::string& device_path) {
     //  03:00 | LBA Format
     //
     // Protection information settings are currently not supported and thus not set
-    cmd.cdw10 = static_cast<uint32_t>(SecureEraseSettings::USER_DATA_ERASE);
+    cmd.cdw10 = static_cast<uint32_t>(SecureEraseSettings::NO_SECURE_ERASE);
 
     /* Ioctl call */
     int format_error = ioctl(device_file, NVME_IOCTL_ADMIN_CMD, &cmd);

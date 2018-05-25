@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,11 +33,43 @@ namespace schema {
 
 /*! @brief Schema for validating POST requests on endpoint collection. */
 class EndpointsCollectionPostSchema {
-    class IdentifierSchema {
+    class EntitySchema {
     public:
         static const jsonrpc::ProcedureValidator& get_procedure();
     };
-    class EntitySchema {
+    class IpTransportDetailSchema {
+        class IPv4Schema {
+        public:
+            static const jsonrpc::ProcedureValidator& get_procedure();
+        };
+        class IPv6Schema {
+        public:
+            static const jsonrpc::ProcedureValidator& get_procedure();
+        };
+    public:
+        static const jsonrpc::ProcedureValidator& get_procedure();
+    };
+    class OemSchema {
+        class RackScaleSchema {
+            class AuthSchema {
+            public:
+                static const jsonrpc::ProcedureValidator& get_procedure();
+            };
+        public:
+            static const jsonrpc::ProcedureValidator& get_procedure();
+        };
+    public:
+        static const jsonrpc::ProcedureValidator& get_procedure();
+    };
+    class LinksSchema {
+        class OemSchema {
+            class RackScaleSchema {
+            public:
+                static const jsonrpc::ProcedureValidator& get_procedure();
+            };
+        public:
+            static const jsonrpc::ProcedureValidator& get_procedure();
+        };
     public:
         static const jsonrpc::ProcedureValidator& get_procedure();
     };

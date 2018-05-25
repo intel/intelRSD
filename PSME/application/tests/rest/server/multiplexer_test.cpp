@@ -2,7 +2,7 @@
  * @brief Path multiplexer tests
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,10 +51,10 @@ public:
     MultiplexerTest() {
         m_multiplexer.register_handler(TestEndpoint::UPtr(new TestEndpoint(Routes::REDFISH_PATH)));
         m_multiplexer.register_handler(TestEndpoint::UPtr(new TestEndpoint(Routes::ROOT_PATH)));
-        m_multiplexer.register_handler(TestEndpoint::UPtr(new TestEndpoint(Routes::STORAGE_SERVICE_COLLECTION_PATH)));
+        m_multiplexer.register_handler(TestEndpoint::UPtr(new TestEndpoint(Routes::STORAGE_SERVICES_COLLECTION_PATH)));
         m_multiplexer.register_handler(TestEndpoint::UPtr(new TestEndpoint(Routes::STORAGE_SERVICE_PATH)));
-        m_multiplexer.register_handler(TestEndpoint::UPtr(new TestEndpoint(Routes::LOGICAL_DRIVE_COLLECTION_PATH)));
-        m_multiplexer.register_handler(TestEndpoint::UPtr(new TestEndpoint(Routes::LOGICAL_DRIVE_PATH)));
+        m_multiplexer.register_handler(TestEndpoint::UPtr(new TestEndpoint(Routes::VOLUME_COLLECTION_PATH)));
+        m_multiplexer.register_handler(TestEndpoint::UPtr(new TestEndpoint(Routes::VOLUME_PATH)));
     }
     ~MultiplexerTest();
 
@@ -65,17 +65,17 @@ public:
 MultiplexerTest::~MultiplexerTest() {}
 
 
-TEST_F(MultiplexerTest, allowableURL) {
+TEST_F(MultiplexerTest, AllowableURL) {
     ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish"));
     ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish/v1"));
-    ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Services"));
-    ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Services/100"));
-    ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Services/100/LogicalDrives"));
-    ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Services/100/LogicalDrives/500"));
+    ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/StorageServices"));
+    ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/StorageServices/100"));
+    ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/StorageServices/100/Volumes"));
+    ASSERT_TRUE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/StorageServices/100/Volumes/500"));
 }
 
 
-TEST_F(MultiplexerTest, notAllowableURL) {
+TEST_F(MultiplexerTest, NotAllowableURL) {
     ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/deadfish/v1"));
     ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v2"));
     ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Service"));
@@ -86,27 +86,27 @@ TEST_F(MultiplexerTest, notAllowableURL) {
     ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/......"));
     ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/żółć"));
     ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Services/1/2"));
-    ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Services/LogicalDrives/100"));
-    ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/LogicalDrives/500/Services/100"));
-    ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Services/100/LogicalDrives/500/LogicalDrives/500"));
+    ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Services/Volumes/100"));
+    ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Volumes/500/Services/100"));
+    ASSERT_FALSE(m_multiplexer.is_correct_endpoint_url("/redfish/v1/Services/100/Volumes/500/Volumes/500"));
 }
 
 TEST_F(MultiplexerTest, TestGetParams) {
-    const auto path1 = "/redfish/v1/Services/3";
+    const auto path1 = "/redfish/v1/StorageServices/3";
     const auto output1 = m_multiplexer.get_params(path1, constants::Routes::STORAGE_SERVICE_PATH);
 
     ASSERT_EQ(output1[PathParam::SERVICE_ID], "3");
 
-    const auto path2 = "/redfish/v1/Services/2/LogicalDrives/4";
-    const auto output2 = m_multiplexer.get_params(path2, constants::Routes::LOGICAL_DRIVE_PATH);
+    const auto path2 = "/redfish/v1/StorageServices/2/Volumes/4";
+    const auto output2 = m_multiplexer.get_params(path2, constants::Routes::VOLUME_PATH);
 
-    ASSERT_EQ(output2[PathParam::LOGICAL_DRIVE_ID], "4");
+    ASSERT_EQ(output2[PathParam::VOLUME_ID], "4");
     ASSERT_EQ(output2[PathParam::SERVICE_ID], "2");
 
     std::vector<std::pair<std::string, std::string>> wrong_path_cases = {
-        std::make_pair("/redfish/v1/LogicalDrives/4/Services/2", constants::Routes::LOGICAL_DRIVE_PATH),
-        std::make_pair("/redfish/v1/Services/2/LogicalDrives/4", constants::Routes::STORAGE_SERVICE_PATH),
-        std::make_pair("/redfish/v1/Services/2", constants::Routes::LOGICAL_DRIVE_PATH),
+        std::make_pair("/redfish/v1/Volumes/4/Services/2", constants::Routes::VOLUME_PATH),
+        std::make_pair("/redfish/v1/Services/2/Volumes/4", constants::Routes::STORAGE_SERVICE_PATH),
+        std::make_pair("/redfish/v1/Services/2", constants::Routes::VOLUME_PATH),
         std::make_pair("/redfish/v1/Services/abc", constants::Routes::STORAGE_SERVICE_PATH),
         std::make_pair("/redfish/v1/Servicess/2", constants::Routes::STORAGE_SERVICE_PATH),
     };

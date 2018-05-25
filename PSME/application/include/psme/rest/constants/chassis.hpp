@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -141,9 +141,6 @@ extern const char INFO_FORMAT[];
 extern const char ERASE_ON_DETACH[];
 extern const char DRIVE_ERASED[];
 extern const char FIRMWARE_VERSION[];
-extern const char IDENTIFIERS[];
-extern const char DURABLE_NAME[];
-extern const char DURABLE_NAME_FORMAT[];
 extern const char STATUS_INDICATOR[];
 extern const char REVISION[];
 extern const char FAILURE_PREDICTED[];
@@ -154,6 +151,7 @@ extern const char ROTATION_SPEED_RPM[];
 extern const char BLOCK_SIZE_BYTES[];
 extern const char PREDICTED_MEDIA_LIFE_LEFT[];
 extern const char PCIE_FUNCTION[];
+extern const char USED_BY[];
 }
 
 /*!
@@ -178,6 +176,24 @@ extern const char REVISION_ID[];
 extern const char SUBSYSTEM_ID[];
 extern const char SUBSYSTEM_VENDOR_ID[];
 extern const char PCIE_DEVICE[];
+}
+
+namespace DriveMetrics {
+extern const char TEMPERATURE_KELVIN[];
+extern const char LIFETIME[];
+extern const char HEALTH_DATA[];
+extern const char UNIT_SIZE_BYTES[];
+extern const char UNITS_READ[];
+extern const char UNITS_WRITTEN[];
+extern const char HOST_READ_COMMANDS[];
+extern const char HOST_WRITE_COMMANDS[];
+extern const char POWER_CYCLES[];
+extern const char POWER_ON_HOURS[];
+extern const char CONTROLLER_BUSY_TIME_MINUTES[];
+extern const char AVAILABLE_SPARE_PERCENTAGE[];
+extern const char PREDICTED_MEDIA_LIFE_USED_PERCENT[];
+extern const char UNSAFE_SHUTDOWNS[];
+extern const char MEDIA_ERRORS[];
 }
 
 }

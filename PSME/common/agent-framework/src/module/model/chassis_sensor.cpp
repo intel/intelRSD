@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +52,6 @@ ChassisSensor ChassisSensor::from_json(const json::Json& json) {
     chassis_sensor.set_physical_context(json[literals::ChassisSensor::PHYSICAL_CONTEXT]);
     chassis_sensor.set_sensor_number(json[literals::ChassisSensor::SENSOR_NUMBER]);
     chassis_sensor.set_oem(attribute::Oem::from_json(json[literals::ChassisSensor::OEM]));
-    chassis_sensor.set_resource_hash(json);
 
     return chassis_sensor;
 }

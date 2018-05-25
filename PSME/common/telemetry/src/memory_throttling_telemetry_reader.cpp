@@ -2,7 +2,7 @@
  * @brief Implementation of Memory Throttling Telemetry reader
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,7 @@ TelemetryReader::ReaderId MemoryThrottlingTelemetryReader::assigned_reader_id() 
 
 MemoryThrottlingTelemetryReader::MemoryThrottlingTelemetryReader(ResourceInstance _resource_key,
                                                                  MetricDefinition& _metric_definition)
-    : TelemetryReader(_resource_key, _metric_definition, MemoryThrottlingTelemetryReader::assigned_reader_id()),
-      memory_throttling_percent() {}
+    : TelemetryReader(_resource_key, _metric_definition, MemoryThrottlingTelemetryReader::assigned_reader_id()) {}
 
 
 bool MemoryThrottlingTelemetryReader::read(TelemetryReader::Context::Ptr, ipmi::IpmiController& ctrl) {
@@ -71,14 +70,14 @@ bool MemoryThrottlingTelemetryReader::read(TelemetryReader::Context::Ptr, ipmi::
             accumulated += response.get_sensor_reading();
         }
         else {
-            return clear_value();
+            return update_value(nullptr);
         }
     }
 
     // each reading is in range <0;200>, value 1 means 0.5%
     accumulated /= (memory_throttling_sensor_numbers.size() * 2.0);
 
-    return set_value(memory_throttling_percent, accumulated);
+    return update_value(accumulated);
 }
 
 } // telemetry

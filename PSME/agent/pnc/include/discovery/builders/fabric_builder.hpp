@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@
 #pragma once
 
 #include "discovery/builders/abstract_builder.hpp"
-#include "agent-framework/module/pnc_components.hpp"
+#include "agent-framework/module/common_components.hpp"
 
 namespace agent {
 namespace pnc {

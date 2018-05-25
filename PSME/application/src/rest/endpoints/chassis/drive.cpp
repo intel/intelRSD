@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,9 @@
 #include "psme/rest/validators/schemas/drive.hpp"
 #include "psme/rest/utils/status_helpers.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
+#include "psme/rest/server/error/error_factory.hpp"
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/responses/common.hpp"
-#include "agent-framework/module/constants/pnc.hpp"
-#include "psme/rest/server/error/error_factory.hpp"
 
 
 
@@ -36,26 +35,33 @@ using namespace psme::rest::endpoint::utils;
 using namespace psme::rest::validators;
 
 namespace {
+
 json::Value make_prototype() {
     json::Value r(json::Value::Type::OBJECT);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Drive.Drive";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#Drive.v1_1_1.Drive";
+    r[Common::ODATA_TYPE] = "#Drive.v1_2_0.Drive";
     r[Common::ID] = json::Value::Type::NIL;
     r[Common::NAME] = "Drive";
     r[Common::DESCRIPTION] = "Drive description";
 
-    r[Common::ACTIONS][PncDrive::SECURE_ERASE][Common::TARGET] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+
+    r[Common::ACTIONS] = json::Value::Type::OBJECT;
     r[Common::ASSET_TAG] = json::Value::Type::NIL;
     r[PncDrive::INDICATOR_LED] = json::Value::Type::NIL;
 
-    r[Common::LINKS][Common::ODATA_TYPE] = "#Drive.v1_1_0.Links";
+    r[Common::LINKS][Common::ODATA_TYPE] = "#Drive.v1_2_0.Links";
     r[Common::LINKS][PncDrive::ENDPOINTS] = json::Value::Type::ARRAY;
     r[Common::LINKS][PncDrive::VOLUMES] = json::Value::Type::ARRAY;
+    r[Common::LINKS][Common::CHASSIS] = json::Value::Type::OBJECT;
+    r[Common::LINKS][Common::OEM] = json::Value::Type::OBJECT;
 
     r[Common::LOCATION] = json::Value::Type::ARRAY;
-    r[PncDrive::IDENTIFIERS] = json::Value::Type::ARRAY;
+    r[Common::IDENTIFIERS] = json::Value::Type::ARRAY;
 
     r[Common::MANUFACTURER] = json::Value::Type::NIL;
     r[PncDrive::MEDIA_TYPE] = json::Value::Type::NIL;
@@ -67,7 +73,9 @@ json::Value make_prototype() {
     r[Common::OEM][Common::RACKSCALE][PncDrive::DRIVE_ERASED] = json::Value::Type::NIL;
     r[Common::OEM][Common::RACKSCALE][PncDrive::FIRMWARE_VERSION] = json::Value::Type::NIL;
     r[Common::OEM][Common::RACKSCALE][System::STORAGE] = json::Value::Type::NIL;
+    r[Common::OEM][Common::RACKSCALE][PncDrive::USED_BY] = json::Value::Type::ARRAY;
     r[Common::OEM][Common::RACKSCALE][PncDrive::PCIE_FUNCTION] = json::Value::Type::NIL;
+    r[Common::OEM][Common::RACKSCALE][Common::METRICS] = json::Value::Type::NIL;
     r[Common::PART_NUMBER] = json::Value::Type::NIL;
     r[PncDrive::PROTOCOL] = json::Value::Type::NIL;
     r[Common::SERIAL_NUMBER] = json::Value::Type::NIL;
@@ -85,47 +93,48 @@ json::Value make_prototype() {
     r[PncDrive::BLOCK_SIZE_BYTES] = json::Value::Type::NIL;
     r[PncDrive::PREDICTED_MEDIA_LIFE_LEFT] = json::Value::Type::NIL;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
-
     return r;
 }
 
 
 void add_links(const agent_framework::model::Drive& drive, json::Value& json) {
-    // fill Storage link
-    const auto storage_uuids = agent_framework::module::CommonComponents::get_instance()->get_storage_subsystem_drives_manager().get_parents(
-        drive.get_uuid());
-    if (storage_uuids.size() > 1) {
-        log_error(GET_LOGGER("rest"), "Drive " + drive.get_uuid() + " is assigned to more than one storage subsystem!");
-    }
-    else if (storage_uuids.size() == 0) {
-        log_error(GET_LOGGER("rest"), "Drive " + drive.get_uuid() + " is not assigned to any storage subsystems!");
-    }
-    else {
-        const auto storage_uuid = storage_uuids.front();
-        try {
-            json[Common::OEM][Common::RACKSCALE][System::STORAGE][Common::ODATA_ID] = psme::rest::endpoint::utils::get_component_url(
-                agent_framework::model::enums::Component::StorageSubsystem, storage_uuid);
 
-        }
-        catch (agent_framework::exceptions::InvalidUuid&) {
-            log_error(GET_LOGGER("rest"),
-                      "Drive " + drive.get_uuid() + " is assigned to a non existent storage subsystem!");
-        }
-    }
+    // Relevant only for PNC Agent
+    if (has_resource_capability(drive, Capability::PNC) &&
+        drive.get_interface() == agent_framework::model::enums::StorageProtocol::NVMe) {
 
-    // fill PCIeFunction link
-    for (const auto& function_uuid : agent_framework::module::PncComponents::get_instance()->get_drive_function_manager().get_children(
-        drive.get_uuid())) {
-        try {
-            json[Common::OEM][Common::RACKSCALE][PncDrive::PCIE_FUNCTION][Common::ODATA_ID] = psme::rest::endpoint::utils::get_component_url(
-                agent_framework::model::enums::Component::PcieFunction, function_uuid);
+        // fill Storage link
+        const auto storage_uuids = agent_framework::module::get_m2m_manager<agent_framework::model::StorageSubsystem,
+            agent_framework::model::Drive>().get_parents(drive.get_uuid());
+        if (storage_uuids.size() > 1) {
+            log_warning("rest", "Drive " + drive.get_uuid() + " is assigned to more than one storage subsystem!");
         }
-        catch (agent_framework::exceptions::InvalidUuid&) {
-            log_error(GET_LOGGER("rest"),
-                      "Drive " + drive.get_uuid() + " has non-existing PCIeFunctions!");
+        else if (storage_uuids.size() == 0) {
+            log_warning("rest", "Drive " + drive.get_uuid() + " is not assigned to any storage subsystems!");
+        }
+        else {
+            const auto storage_uuid = storage_uuids.front();
+            try {
+                json[Common::OEM][Common::RACKSCALE][System::STORAGE][Common::ODATA_ID] = psme::rest::endpoint::utils::get_component_url(
+                    agent_framework::model::enums::Component::StorageSubsystem, storage_uuid);
+            }
+            catch (agent_framework::exceptions::InvalidUuid&) {
+                log_error("rest", "Drive " + drive.get_uuid() + " is assigned to a non existent storage subsystem!");
+            }
+        }
+
+        // fill PCIeFunction link
+        for (const auto& function_uuid : agent_framework::module::get_m2m_manager<agent_framework::model::Drive,
+            agent_framework::model::PcieFunction>().get_children(
+            drive.get_uuid())) {
+            try {
+                json[Common::OEM][Common::RACKSCALE][PncDrive::PCIE_FUNCTION][Common::ODATA_ID] =
+                    psme::rest::endpoint::utils::get_component_url(
+                        agent_framework::model::enums::Component::PcieFunction, function_uuid);
+            }
+            catch (agent_framework::exceptions::InvalidUuid&) {
+                log_error("rest", "Drive " + drive.get_uuid() + " has non-existing PCIeFunctions!");
+            }
         }
     }
 
@@ -140,16 +149,34 @@ void add_links(const agent_framework::model::Drive& drive, json::Value& json) {
             json[Common::LINKS][PncDrive::ENDPOINTS].push_back(std::move(endpoint_link));
         }
     }
+
+    // fill UsedBy links
+    for (const auto& pool : agent_framework::module::get_manager<agent_framework::model::StoragePool>().get_entries()) {
+        for (const auto& source : pool.get_capacity_sources()) {
+            for (const auto& drive_uuid : source.get_providing_drives()) {
+                if (drive.get_uuid() == drive_uuid) {
+                    json::Value used_link{};
+                    try {
+                        used_link[Common::ODATA_ID] = psme::rest::endpoint::utils::get_component_url(
+                            agent_framework::model::enums::Component::StoragePool, pool.get_uuid());
+                        json[Common::OEM][Common::RACKSCALE][PncDrive::USED_BY].push_back(std::move(used_link));
+                    }
+                    catch (agent_framework::exceptions::InvalidUuid&) {
+                        log_error("rest", "Drive " + drive.get_uuid() + " is used by a non existent storage pool!");
+                    }
+                }
+            }
+        }
+    }
 }
 
 
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
     {agent_framework::model::literals::Drive::ASSET_TAG, constants::Common::ASSET_TAG},
-    {agent_framework::model::literals::Drive::ERASED,
-     endpoint::PathBuilder(Common::OEM)
-         .append(Common::RACKSCALE)
-         .append(constants::PncDrive::DRIVE_ERASED)
-         .build()
+    {agent_framework::model::literals::Drive::ERASED, endpoint::PathBuilder(Common::OEM)
+                                                             .append(Common::RACKSCALE)
+                                                             .append(constants::PncDrive::DRIVE_ERASED)
+                                                             .build()
     }
 };
 
@@ -172,10 +199,11 @@ void endpoint::Drive::get(const server::Request& req, server::Response& res) {
 
     r[Common::ID] = req.params[PathParam::DRIVE_ID];
 
-    r[Common::ACTIONS][PncDrive::SECURE_ERASE][Common::TARGET] = endpoint::PathBuilder(req)
-        .append(Common::ACTIONS)
-        .append(PncDrive::SECURE_ERASE_ENDPOINT).build();
-
+    if (drive.get_interface() == agent_framework::model::enums::StorageProtocol::NVMe) {
+        r[Common::ACTIONS][PncDrive::SECURE_ERASE][Common::TARGET] = endpoint::PathBuilder(req)
+            .append(Common::ACTIONS)
+            .append(PncDrive::SECURE_ERASE_ENDPOINT).build();
+    }
     add_links(drive, r);
 
     const auto& fru = drive.get_fru_info();
@@ -213,9 +241,9 @@ void endpoint::Drive::get(const server::Request& req, server::Response& res) {
 
     for (const auto& identifier : drive.get_identifiers()) {
         json::Value id{};
-        id[PncDrive::DURABLE_NAME] = identifier.get_durable_name();
-        id[PncDrive::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format().to_string();
-        r[PncDrive::IDENTIFIERS].push_back(std::move(id));
+        id[Common::DURABLE_NAME] = identifier.get_durable_name();
+        id[Common::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format();
+        r[Common::IDENTIFIERS].push_back(std::move(id));
     }
 
     if (drive.get_capacity_gb().has_value()) {
@@ -223,8 +251,15 @@ void endpoint::Drive::get(const server::Request& req, server::Response& res) {
             double(endpoint::utils::gb_to_b(drive.get_capacity_gb().value()));
     }
 
+    r[Common::LINKS][Common::CHASSIS][Common::ODATA_ID] = endpoint::PathBuilder(PathParam::BASE_URL)
+        .append(constants::Common::CHASSIS)
+        .append(req.params[PathParam::CHASSIS_ID])
+        .build();
+
     endpoint::status_to_json(drive, r);
     r[Common::STATUS][Common::HEALTH_ROLLUP] = drive.get_status().get_health();
+    r[Common::OEM][Common::RACKSCALE][Common::METRICS][Common::ODATA_ID] = PathBuilder(req).append(
+        constants::Common::METRICS).build();
 
     set_response(res, r);
 }

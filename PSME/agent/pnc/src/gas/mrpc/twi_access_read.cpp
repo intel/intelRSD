@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +56,7 @@ void TwiAccessRead::write_input() {
     data[OFFSET_READ_OFFSET_SIZE] = std::uint8_t(input.fields.offset_size);
     data[OFFSET_READ_DATA] = 0;
 
-    log_debug(GET_LOGGER("pnc-twi"), "TwiAccessRead command input data:"
+    log_debug("pnc-twi", "TwiAccessRead command input data:"
                                    << " SlaveAddress=0x" << std::hex << std::uint32_t(input.fields.slave_addr)
                                    << " TwiPort=0x" << std::hex << std::uint32_t(input.fields.twi_port)
                                    << " Offset=0x" << std::hex << std::uint32_t(input.fields.offset));
@@ -87,7 +87,7 @@ void TwiAccessRead::read_output() {
         }
     }
 
-    log_debug(GET_LOGGER("pnc-twi"), "TwiAccessRead command output data:"
+    log_debug("pnc-twi", "TwiAccessRead command output data:"
                                     << " ReturnValue=" << std::hex << uint32_t(output.fields.ret_value)
                                     << " Data=" << data_str.str());
 }

@@ -16,7 +16,7 @@
                     String="The term specifies that a property is required by Intel Rack Scale to be supported by services. Properties not annotated as required are optional."/>
       </Term>
 
-      <Term Name="Nontrivial" Type="Edm.String" AppliesTo="Property NavigationProperty">
+      <Term Name="Nontrivial" Type="Edm.String" AppliesTo="Property">
         <Annotation Term="OData.Description"
                     String="The term shall be applied to a property in order to specify nontrivial preconditions, postconditions, side-effects or invariants that need to be satisfied."/>
       </Term>

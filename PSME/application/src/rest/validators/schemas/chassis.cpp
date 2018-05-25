@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,11 +20,12 @@
 
 #include "psme/rest/validators/schemas/chassis.hpp"
 #include "psme/rest/constants/constants.hpp"
-
+#include "agent-framework/module/constants/regular_expressions.hpp"
 
 
 using namespace psme::rest;
 using namespace psme::rest::validators::schema;
+using namespace agent_framework::model;
 
 
 const jsonrpc::ProcedureValidator& ChassisPatchSchema::get_procedure() {
@@ -59,7 +60,7 @@ const jsonrpc::ProcedureValidator& ChassisPatchSchema::OemSchema::RackScaleSchem
 const jsonrpc::ProcedureValidator& ChassisPatchSchema::OemSchema::RackScaleSchema::LocationSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
         jsonrpc::PARAMS_BY_NAME,
-        constants::Common::ID, VALID_OPTIONAL(VALID_JSON_STRING),
+        constants::Common::ID, VALID_OPTIONAL(VALID_REGEX(literals::regex::Chassis::LOCATION_ID)),
         nullptr
     };
     return procedure;

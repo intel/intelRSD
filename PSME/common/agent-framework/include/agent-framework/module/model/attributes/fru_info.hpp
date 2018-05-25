@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,10 +41,10 @@ public:
     explicit FruInfo();
 
 
-    FruInfo(const std::string& serial_number,
-            const std::string& manufacturer,
-            const std::string& model_number,
-            const std::string& part_number) :
+    FruInfo(const OptionalField<std::string>& serial_number,
+            const OptionalField<std::string>& manufacturer = {},
+            const OptionalField<std::string>& model_number = {},
+            const OptionalField<std::string>& part_number = {}) :
         m_serial_number{serial_number},
         m_manufacturer{manufacturer},
         m_model_number{model_number},
@@ -140,7 +140,7 @@ public:
 
 
     /*!
-     * Converts this to json representation.
+     * @brief Converts this to json representation.
      *
      * @return json representation of this class.
      * */

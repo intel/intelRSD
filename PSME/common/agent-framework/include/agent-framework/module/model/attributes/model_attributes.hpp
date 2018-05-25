@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,3 +65,10 @@
 #include "metric_definition_entry.hpp"
 #include "on_package_memory.hpp"
 #include "fpga.hpp"
+#include "ip_transport_detail.hpp"
+#include "capacity.hpp"
+#include "capacity_source.hpp"
+#include "replica_info.hpp"
+#include "qos_application_protocol.hpp"
+#include "qos_priority_group_mapping.hpp"
+#include "qos_bandwidth_allocation.hpp"

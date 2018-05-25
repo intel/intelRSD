@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,8 +29,9 @@
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/utils/utils.hpp"
-#include "agent-framework/module/utils/compute_hash.hpp"
+#include "agent-framework/module/utils/hash.hpp"
 #include "agent-framework/generic/obj_reference.hpp"
+
 #include <chrono>
 #include <mutex>
 
@@ -43,9 +44,11 @@ namespace model {
 class Resource {
 public:
     using Reference = agent_framework::generic::ObjReference<Resource, std::recursive_mutex>;
+    using Collections = attribute::Array<attribute::Collection>;
+    using RestId = std::uint64_t;
 
 
-    explicit Resource(const std::string& parent_uuid, enums::Component parent_type = enums::Component::None);
+    explicit Resource(const Uuid& parent_uuid, enums::Component parent_type = enums::Component::None);
 
 
     virtual ~Resource();
@@ -64,29 +67,28 @@ public:
     Resource& operator=(Resource&&) = default;
 
 
-    using Collections = attribute::Array<attribute::Collection>;
-
-
     /*!
      * @brief Get uuid
      *
      * @return Component uuid
      * */
-    const std::string& get_uuid() const {
-        return ( m_is_uuid_persistent ? m_persistent_uuid : m_temporary_uuid);
+    const Uuid& get_uuid() const {
+        return (m_is_uuid_persistent ? m_persistent_uuid : m_temporary_uuid);
     }
 
 
-    void set_uuid(const std::string& uuid) {
+    void set_uuid(const Uuid& uuid) {
         m_is_uuid_persistent = false;
         m_temporary_uuid = uuid;
     }
 
-    const std::string& get_temporary_uuid() const {
+
+    const Uuid& get_temporary_uuid() const {
         return m_temporary_uuid;
     }
 
-    const std::string& get_persistent_uuid() const {
+
+    const Uuid& get_persistent_uuid() const {
         return m_persistent_uuid;
     }
 
@@ -99,13 +101,13 @@ public:
      * calling make_persistent_uuid(), UUIDv1 is generated and no there is no
      * guarantee that upon service restart the resource will get the same UUID.
      * */
-    const std::string make_persistent_uuid();
+    const Uuid& make_persistent_uuid();
 
 
     /*!
      * @brief Create random resource UUID
      * */
-    const std::string make_random_uuid();
+    const Uuid& make_random_uuid();
 
 
     /*!
@@ -130,20 +132,18 @@ public:
 
     /*!
      * @brief Get parent's uuid
-     *
      * @return parent's uuid
      * */
-    const std::string& get_parent_uuid() const {
+    const Uuid& get_parent_uuid() const {
         return m_parent_uuid;
     }
 
 
     /*!
      * @brief Set parent UUID
-     *
      * @param[in] parent Parent UUID
      * */
-    void set_parent_uuid(const std::string& parent) {
+    void set_parent_uuid(const Uuid& parent) {
         m_parent_uuid = parent;
     }
 
@@ -169,7 +169,7 @@ public:
 
 
     /*!
-     * Gets status
+     * @brief Gets status
      *
      * @return Status reference
      * */
@@ -243,7 +243,7 @@ public:
      *
      * @return resource's REST id
      */
-    std::uint64_t get_id() const {
+    RestId get_id() const {
         return m_id;
     }
 
@@ -253,7 +253,7 @@ public:
      *
      * @param id the REST id to set for resource
      */
-    void set_id(const std::uint64_t id) {
+    void set_id(const RestId& id) {
         m_id = id;
     }
 
@@ -275,22 +275,6 @@ public:
      */
     void set_agent_id(const std::string& agent_id) {
         m_agent_id = agent_id;
-    }
-
-
-    struct Hash {
-        std::string status{};
-        std::string resource_without_status{};
-    };
-
-
-    /*!
-     * @brief Get resource hash value
-     *
-     * @return Resource hash
-     * */
-    const Hash& get_resource_hash() const {
-        return m_hash;
     }
 
 
@@ -325,37 +309,23 @@ public:
         return m_is_uuid_persistent;
     }
 
-protected:
-    static const char STATUS_KEY[];
-
 
     /*!
-     * @brief Set resource hash
-     * @param[in] json to be used to compute hash
+     * @brief Generates random UUID
+     *
+     * @return Random UUID
      * */
-    void set_resource_hash(const json::Json& json) {
-        if (json.count(STATUS_KEY)) {
-            json::Json status = json[STATUS_KEY];
-            json::Json all_but_status = json;
-            all_but_status.erase(STATUS_KEY);
-
-            m_hash.status = utils::compute_hash(status);
-            m_hash.resource_without_status = utils::compute_hash(all_but_status);
-        }
-        else {
-            m_hash.status = "";
-            m_hash.resource_without_status = utils::compute_hash(json);
-        }
-    }
+    static Uuid make_uuid();
 
 
 private:
     attribute::Status m_status{};
-    std::string m_temporary_uuid{};
-    std::string m_persistent_uuid{};
-    std::string m_parent_uuid{};
+    Uuid m_temporary_uuid{};
+    Uuid m_persistent_uuid{};
+    Uuid m_parent_uuid{};
     OptionalField<std::string> m_unique_key{};
     bool m_is_uuid_persistent{false};
+    attribute::Oem m_oem{};
 
     /*
      * According to the GAMI specification not all model objects should provide
@@ -368,13 +338,10 @@ private:
     Collections m_collections{};
     enums::Component m_parent_type{enums::Component::None};
 
-    attribute::Oem m_oem{};
-
-    // These members are being used by REST application
-    std::uint64_t m_id{0};
+    /* These members are being used by REST application */
+    RestId m_id{0};
     std::string m_agent_id{};
     std::uint64_t m_touched_at{0};
-    Hash m_hash{};
 };
 
 }

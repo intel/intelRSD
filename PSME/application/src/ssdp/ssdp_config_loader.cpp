@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,25 +20,16 @@
  * */
 
 #include "psme/ssdp/ssdp_config_loader.hpp"
-#include "psme/rest/server/connector/connector_options.hpp"
+#include "psme/rest/server/connector/connector_options_loader.hpp"
 #include "psme/rest/constants/constants.hpp"
 #include "agent-framework/service_uuid.hpp"
 #include "json/value.hpp"
 
 namespace {
 
-psme::rest::server::ConnectorOptionsVec load_connectors_options(const json::Value& config) {
-    const auto& connectors_config = config["server"]["connectors"];
-    psme::rest::server::ConnectorOptionsVec options{};
-    for (const auto& connector_config : connectors_config) {
-        options.emplace_back(psme::rest::server::ConnectorOptions{connector_config});
-    }
-    return options;
-}
-
 std::string get_service_url(const json::Value& config) {
     std::string service_url{};
-    for (const auto& conn_options: load_connectors_options(config)) {
+    for (const auto& conn_options: psme::rest::server::load_connectors_options(config)) {
         if (conn_options.use_ssl()) {
             service_url += "https://localhost:"
                     + std::to_string(int(conn_options.get_port()))
@@ -64,8 +55,9 @@ SsdpServiceConfig load_ssdp_config(const json::Value& config, const std::string&
     }
     auto announce_interval = seconds(ssdp_config["announce-interval-seconds"].as_uint());
     ssdp_service_config.set_announce_interval(announce_interval);
-    const auto& nic_name = config["server"]["network-interface-name"].as_string();
-    ssdp_service_config.add_nic_name(nic_name);
+    for (const auto& nic_name: config["server"]["network-interface-name"].as_array()) {
+        ssdp_service_config.add_nic_name(nic_name.as_string());
+    }
     ssdp_service_config.set_socket_ttl(static_cast<unsigned char>(ssdp_config["ttl"].as_uint()));
     ssdp_service_config.set_service_uuid(uuid);
     ssdp_service_config.set_service_urn("urn:dmtf-org:service:redfish-rest:1");

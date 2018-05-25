@@ -34,7 +34,7 @@
         <Parameter Name="Port" Type="Collection(EthernetSwitchPort.EthernetSwitchPort)">
           <Annotation Term="OData.Description" String="This is array of ports that this ACL should be binded."/>
         </Parameter>
-        <Annotation Term="OData.Description" String="The bind action bind current ACL to given list of ethernet ports"/>
+        <Annotation Term="OData.Description" String="The bind action bind current ACL to given list of ethernet ports."/>
       </Action>
 
       <Action Name="Unbind" IsBound="true">

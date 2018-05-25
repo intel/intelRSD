@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,11 +75,6 @@ class PowerDtoMapper extends DtoMapper<Power, PowerDto> {
         mapOem(source, target);
     }
 
-    private void mapOem(Power source, PowerDto target) {
-        PowerDto.Oem.RackScaleOem rackScaleOem = target.getOem().getRackScaleOem();
-        rackScaleOem.setInputAcPowerWatts(source.getInputAcPowerWatts());
-    }
-
     private void mapRedundancies(Power source, PowerDto target) {
         Set<RedundancyDto> redundancies = target.getRedundancies() != null ? target.getRedundancies() : new TreeSet<>();
 
@@ -127,6 +122,11 @@ class PowerDtoMapper extends DtoMapper<Power, PowerDto> {
         target.setPowerControls(powerControls);
     }
 
+    private void mapOem(Power source, PowerDto target) {
+        PowerDto.Oem.RackScaleOem rackScaleOem = target.getOem().getRackScaleOem();
+        rackScaleOem.setInputAcPowerWatts(source.getInputAcPowerWatts());
+    }
+
     @Dependent
     private static class PowerControlMapper extends BrilliantMapper<PowerControl, PowerControlDto> {
         @Inject
@@ -139,7 +139,7 @@ class PowerDtoMapper extends DtoMapper<Power, PowerDto> {
         @Override
         protected void performNotAutomatedMapping(PowerControl source, PowerControlDto target) {
             super.performNotAutomatedMapping(source, target);
-            target.setOdataId(asOdataId(toContext(source)));
+            target.setoDataId(asOdataId(toContext(source)));
             target.setRelatedItems(source.getRelatedItems().stream()
                 .map(Contexts::toContext).collect(toList()));
             target.setOem(oemDtoToJsonNode(unknownOemTranslator.translateStringOemToDto(source.getService(), source.getOem())));
@@ -155,7 +155,7 @@ class PowerDtoMapper extends DtoMapper<Power, PowerDto> {
         @Override
         protected void performNotAutomatedMapping(PowerVoltage source, PowerVoltageDto target) {
             super.performNotAutomatedMapping(source, target);
-            target.setOdataId(asOdataId(toContext(source)));
+            target.setoDataId(asOdataId(toContext(source)));
             target.setRelatedItem(source.getRelatedItems().stream()
                 .map(Contexts::toContext)
                 .collect(toList()));
@@ -175,7 +175,7 @@ class PowerDtoMapper extends DtoMapper<Power, PowerDto> {
         protected void performNotAutomatedMapping(PowerSupply source, PowerSupplyDto target) {
             super.performNotAutomatedMapping(source, target);
             target.setOem(oemDtoToJsonNode(unknownOemTranslator.translateStringOemToDto(source.getService(), source.getOem())));
-            target.setOdataId(asOdataId(toContext(source)));
+            target.setoDataId(asOdataId(toContext(source)));
             target.setRedundancy(source.getRedundancies().stream()
                 .map(Contexts::toContext)
                 .collect(toList()));

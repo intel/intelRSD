@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.common.types.redfish.ResourceNames.DRIVE_METRICS_RESOURCE_NAME;
 import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.ok;
@@ -74,5 +75,10 @@ public class DriveResource extends BaseResource {
         return newOptionsForResourceBuilder()
             .addPatchMethod()
             .build();
+    }
+
+    @Path(DRIVE_METRICS_RESOURCE_NAME)
+    public DriveMetricsResource getDriveMetrics() {
+        return getResource(DriveMetricsResource.class);
     }
 }

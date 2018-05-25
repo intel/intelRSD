@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,9 @@ public final class ResourceNames {
     public static final String PROCESSORS_RESOURCE_NAME = "Processors";
     public static final String ETHERNET_INTERFACES_RESOURCE_NAME = "EthernetInterfaces";
     public static final String MANAGERS_RESOURCE_NAME = "Managers";
-    public static final String STORAGE_SERVICES_RESOURCE_NAME = "Services";
-    public static final String LOGICAL_DRIVES_RESOURCE_NAME = "LogicalDrives";
-    public static final String PHYSICAL_DRIVES_RESOURCE_NAME = "Drives";
-    public static final String REMOTE_TARGETS_RESOURCE_NAME = "Targets";
+    public static final String STORAGE_SERVICES_RESOURCE_NAME = "StorageServices";
+    public static final String VOLUMES_RESOURCE_NAME = "Volumes";
+    public static final String VOLUME_METRICS_RESOURCE_NAME = "Metrics";
     public static final String CHASSIS_RESOURCE_NAME = "Chassis";
     public static final String COMPUTER_SYSTEM_RESOURCE_NAME = "Systems";
     public static final String MEMORY_RESOURCE_NAME = "Memory";
@@ -56,7 +55,8 @@ public final class ResourceNames {
     public static final String ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME = "VLANs";
     public static final String ETHERNET_SWITCH_STATIC_MACS_RESOURCE_NAME = "StaticMACs";
     public static final String ETHERNET_SWITCH_PORT_METRICS_RESOURCE_NAME = "Metrics";
-    public static final String PCIE_DRIVES_RESOURCE_NAME = "Drives";
+    public static final String DRIVES_RESOURCE_NAME = "Drives";
+    public static final String DRIVE_METRICS_RESOURCE_NAME = "Metrics";
     public static final String PCIE_DEVICES_RESOURCE_NAME = "PCIeDevices";
     public static final String PCIE_DEVICE_FUNCTIONS_RESOURCE_NAME = "Functions";
     public static final String FABRIC_RESOURCE_NAME = "Fabrics";
@@ -73,6 +73,7 @@ public final class ResourceNames {
     public static final String MEMORY_METRICS_RESOURCE_NAME = "Metrics";
     public static final String NETWORK_INTERFACES_RESOURCE_NAME = "NetworkInterfaces";
     public static final String NETWORK_DEVICE_FUNCTIONS_RESOURCE_NAME = "NetworkDeviceFunctions";
+    public static final String STORAGE_POOL_RESOURCE_NAME = "StoragePools";
 
     /**
      * It fills ALL_RESOURCE_NAMES collection with all static String field values

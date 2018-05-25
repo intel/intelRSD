@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package com.intel.podm.business.entities.redfish.embeddables;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import java.util.Objects;
 
 @Embeddable
 public class PciId {
@@ -67,23 +69,32 @@ public class PciId {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PciId that = (PciId) o;
-        return Objects.equals(vendorId, that.vendorId)
-                && Objects.equals(deviceId, that.deviceId)
-                && Objects.equals(subsystemId, that.subsystemId)
-                && Objects.equals(subsystemVendorId, that.subsystemVendorId);
+
+        PciId pciId = (PciId) o;
+
+        return new EqualsBuilder()
+            .append(vendorId, pciId.vendorId)
+            .append(deviceId, pciId.deviceId)
+            .append(subsystemId, pciId.subsystemId)
+            .append(subsystemVendorId, pciId.subsystemVendorId)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(vendorId, deviceId, subsystemId, subsystemVendorId);
+        return new HashCodeBuilder()
+            .append(vendorId)
+            .append(deviceId)
+            .append(subsystemId)
+            .append(subsystemVendorId)
+            .toHashCode();
     }
 }

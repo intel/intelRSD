@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.intel.podm.business.redfish.services.assembly.tasks.ComputerSystemCon
 import com.intel.podm.business.redfish.services.assembly.tasks.NodeTask;
 import com.intel.podm.business.services.redfish.requests.RequestedNode.Security;
 import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
+import com.intel.podm.common.types.actions.ChangeTpmStatusUpdateDefinition;
 import com.intel.podm.common.types.actions.ComputerSystemUpdateDefinition;
 
 import javax.enterprise.context.Dependent;
@@ -40,20 +41,27 @@ public class ComputerSystemConfigurationTaskFactory {
     @Inject
     private ChangeTpmStateTaskFactory changeTpmStateTaskFactory;
 
-    private List<NodeTask> nodeAssemblyTasks = new ArrayList<>();
+    @Inject
+    private TrustedModuleOverseer trustedModuleOverseer;
+
+    private List<NodeTask> nodeTasks = new ArrayList<>();
 
     @Transactional(REQUIRED)
     public List<NodeTask> createComputerSystemConfigurationTask(Security security, ComputerSystem computerSystem) {
-        ComputerSystemUpdateDefinition computerSystemUpdateDefinition = new ComputerSystemUpdateDefinition();
+        nodeTasks.add(createComputerSystemConfigurationTask(computerSystem, getComputerSystemUpdateDefinition(computerSystem)));
+        if (checkSecurityPropertiesAreSpecified(security)) {
+            nodeTasks.add(changeTpmStateTaskFactory.createChangeTpmStateTask(computerSystem, getChangeTpmStatusUpdateDefinition(security, computerSystem)));
+        }
+        return nodeTasks;
+    }
 
+    private ComputerSystemUpdateDefinition getComputerSystemUpdateDefinition(ComputerSystem computerSystem) {
+        ComputerSystemUpdateDefinition computerSystemUpdateDefinition = new ComputerSystemUpdateDefinition();
+        // TODO consult with architects logic of setting computerSystemUpdateDefinition
         if (computerSystem.getUserModeEnabled() != null) {
             computerSystemUpdateDefinition.setUserModeEnabled(TRUE);
         }
-
-        nodeAssemblyTasks.add(createComputerSystemConfigurationTask(computerSystem, computerSystemUpdateDefinition));
-        ifNecessaryAddPreparedChangeTpmStateTask(security, computerSystem);
-
-        return nodeAssemblyTasks;
+        return computerSystemUpdateDefinition;
     }
 
     private ComputerSystemConfigurationTask createComputerSystemConfigurationTask(ComputerSystem computerSystem,
@@ -64,15 +72,11 @@ public class ComputerSystemConfigurationTaskFactory {
         return computerSystemConfigurationTask;
     }
 
-    private void ifNecessaryAddPreparedChangeTpmStateTask(Security security, ComputerSystem computerSystem) {
-        if (security != null && tpmSecurityPropertiesAreSpecified(security)) {
-            nodeAssemblyTasks.add(changeTpmStateTaskFactory.createChangeTpmStateTask(security, computerSystem));
-        }
+    private ChangeTpmStatusUpdateDefinition getChangeTpmStatusUpdateDefinition(Security security, ComputerSystem computerSystem) {
+        return trustedModuleOverseer.prepareChangeTpmStateUpdateDefinition(security, computerSystem.getTrustedModules());
     }
 
-    private boolean tpmSecurityPropertiesAreSpecified(Security security) {
-        Boolean tpmPresent = security.getTpmPresent();
-
-        return (tpmPresent != null && tpmPresent) || security.getTpmInterfaceType() != null;
+    private boolean checkSecurityPropertiesAreSpecified(Security security) {
+        return security != null && (TRUE.equals(security.getTpmPresent()) || security.getTpmInterfaceType() != null);
     }
 }

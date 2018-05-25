@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,8 @@ json::Value make_prototype() {
     r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EthernetInterface";
+    r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS] = json::Value::Type::ARRAY;
     r[constants::NetworkInterface::PERMANENT_MAC_ADDRESS] = json::Value::Type::NIL;
     r[constants::Common::MAC_ADDRESS] = json::Value::Type::NIL;
     r[constants::NetworkInterface::SPEED_MBPS] = json::Value::Type::NIL;
@@ -67,9 +68,9 @@ json::Value make_prototype() {
     r[constants::NetworkInterface::VLANS] = json::Value::Type::NIL;
     r[constants::NetworkInterface::INTERFACE_ENABLED] = json::Value::Type::NIL;
 
-    json::Value links;
+    json::Value links{};
     links[Fabric::ENDPOINTS] = json::Value::Type::ARRAY;
-    links[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EthernetInterface";
+    links[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EthernetInterfaceLinks";
     links[Common::OEM][Common::RACKSCALE][NetworkInterface::NEIGHBOR_PORT] = json::Value::Type::NIL;
     r[Common::LINKS] = std::move(links);
     return r;
@@ -95,12 +96,13 @@ void endpoint::SystemNetworkInterface::get(const server::Request& req, server::R
     r[constants::NetworkInterface::SPEED_MBPS] = ni.get_speed_mbps();
     r[constants::NetworkInterface::AUTO_NEG] = ni.get_autosense();
     r[constants::NetworkInterface::FULL_DUPLEX] = ni.get_full_duplex();
+    r[constants::NetworkInterface::MTU_SIZE] = ni.get_frame_size();
     r[constants::NetworkInterface::MAX_IPv6_STATIC_ADDRESSES] = ni.get_max_ipv6_static_addresses();
 
     const auto& ipv4_addresses = ni.get_ipv4_addresses();
     for(const auto& ipv4_addr : ipv4_addresses) {
         if (ipv4_addr.get_address().has_value()) {
-            json::Value ipv4_address;
+            json::Value ipv4_address{};
             ipv4_address[IpAddress::ADDRESS] = ipv4_addr.get_address();
             ipv4_address[IpAddress::SUBNET_MASK] = ipv4_addr.get_subnet_mask();
             ipv4_address[IpAddress::ADDRESS_ORIGIN] = ipv4_addr.get_address_origin();
@@ -112,14 +114,14 @@ void endpoint::SystemNetworkInterface::get(const server::Request& req, server::R
     const auto& ipv6_addresses = ni.get_ipv6_addresses();
     for(const auto& ipv6_addr : ipv6_addresses) {
         if (ipv6_addr.get_address().has_value()) {
-            json::Value ipv6_address;
+            json::Value ipv6_address{};
             ipv6_address[IpAddress::ADDRESS] = ipv6_addr.get_address();
             ipv6_address[IpAddress::PREFIX_LENGTH] = ipv6_addr.get_prefix_length();
             // in GAMI there is DHCP option which has to be shown as DHCPv6
-            auto addr_origin = ipv6_addr.get_address_origin();
+            auto address_origin = ipv6_addr.get_address_origin();
             ipv6_address[IpAddress::ADDRESS_ORIGIN] =
-                addr_origin == agent_framework::model::enums::Ipv6AddressOrigin::DHCP ?
-                                   json::Value("DHCPv6") : json::Value(addr_origin);
+                address_origin == agent_framework::model::enums::Ipv6AddressOrigin::DHCP ?
+                    json::Value("DHCPv6") : json::Value(address_origin);
             ipv6_address[IpAddress::ADDRESS_STATE] = ipv6_addr.get_address_state();
             r[constants::NetworkInterface::IPv6_ADDRESSES].push_back(std::move(ipv6_address));
         }
@@ -131,6 +133,11 @@ void endpoint::SystemNetworkInterface::get(const server::Request& req, server::R
     }
     else {
         r[constants::NetworkInterface::INTERFACE_ENABLED] = false;
+    }
+
+    const auto& supported_protocols = ni.get_supported_transport_protocols();
+    for (const auto& supported_protocol : supported_protocols) {
+        r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS].push_back(supported_protocol.to_string());
     }
 
     set_response(res, r);

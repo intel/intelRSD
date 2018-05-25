@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.common.enterprise.utils.logger.TimeMeasured;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
+import com.intel.podm.common.enterprise.utils.retry.RetryOnRollback;
 import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
 import com.intel.podm.discovery.external.finalizers.DiscoveryFinalizer;
 import com.intel.podm.discovery.external.linker.EntityLink;
@@ -68,7 +68,7 @@ public class EntityGraphMapper {
     @Lock(WRITE)
     @Transactional(REQUIRES_NEW)
     @AccessTimeout(value = 10, unit = MINUTES)
-    @NumberOfRetriesOnRollback(3)
+    @RetryOnRollback(3)
     @TimeMeasured(tag = "[Discovery]")
     public void map(RestGraph graph) {
         requiresNonNull(graph, "graph");
@@ -99,7 +99,7 @@ public class EntityGraphMapper {
     }
 
     private EntityLink toEntityLink(ResourceLink link, Map<ExternalServiceResource, DiscoverableEntity> map) {
-        String linkName = link.getName();
+        String linkName = link.getLinkName();
         Entity source = map.get(link.getSource());
         Entity target = map.get(link.getTarget());
 

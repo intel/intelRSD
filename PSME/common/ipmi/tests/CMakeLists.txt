@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/command/sdv")
     add_subdirectory(command/sdv)
 endif()
 
-add_subdirectory(telemetry)
 add_subdirectory(utils/sdv)
 
 add_custom_target(unittest_ipmi

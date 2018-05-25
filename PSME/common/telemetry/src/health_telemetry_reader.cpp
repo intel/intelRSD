@@ -2,7 +2,7 @@
  * @brief Implementation of health state of the resource
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,9 +57,9 @@ public:
      */
     class FoundRecord final {
     public:
-        FoundRecord(ipmi::SelRecordGeneric* _record, const char* _descr) : record(_record), descr(_descr) { }
+        FoundRecord(const ipmi::SelRecordGeneric* _record, const char* _descr) : record(_record), descr(_descr) { }
 
-        ipmi::SelRecordGeneric* record;
+        const ipmi::SelRecordGeneric* record;
         const char* descr;
     };
     using FoundRecords = std::vector<FoundRecord>;
@@ -97,7 +97,7 @@ SelContext::FoundRecords SelContext::asserting_events(const HealthTelemetryReade
 
     for (auto event_def : list) {
         ipmi::Sel::RecordVect records = m_sel.get_records([event_def](ipmi::SelRecord::Ptr record) -> bool {
-            ipmi::SelRecordGeneric* event = dynamic_cast<ipmi::SelRecordGeneric*>(record.get());
+            const ipmi::SelRecordGeneric* event = dynamic_cast<const ipmi::SelRecordGeneric*>(record.get());
             if ((event != nullptr) && event->is_of_type(event_def.first)) {
                 return true;
             }
@@ -107,30 +107,31 @@ SelContext::FoundRecords SelContext::asserting_events(const HealthTelemetryReade
          * is the most important. First found asserted record breaks the loop.
          */
         if (!records.empty()) {
-            ipmi::Sel::RecordVect::const_reverse_iterator it = records.crbegin();
-            do {
-                /* last event, if asserted, causes alert unconditionally */
-                if (static_cast<ipmi::SelRecordGeneric*>(it->get())->is_asserted()) {
-                    break;
-                }
+            const ipmi::SelRecordGeneric* event = static_cast<const ipmi::SelRecordGeneric*>(records.crbegin()->get());
+
+            /* look for events to be shored up, only if the last one is deassertion */
+            if (!event->is_asserted()) {
+                event = nullptr;
 
                 /* previous event causes alert if there is assertion within the shore up period */
-                for (; it != records.crend(); it++) {
-                    ipmi::SelRecordGeneric* event = static_cast<ipmi::SelRecordGeneric*>(it->get());
+                ipmi::Sel::RecordVect::const_reverse_iterator it;
+                for (it = records.crbegin() + 1; it != records.crend(); it++) {
+                    event = static_cast<const ipmi::SelRecordGeneric*>(it->get());
                     if (event->get_timestamp() + shoreup_period < m_sel.get_sel_time()) {
-                        /* older events are not checked. */
-                        it = records.crend();
+                        /* Event was reported, not necessary to shore it up anymore. */
+                        event = nullptr;
                         break;
                     }
-                    if (!event->is_asserted()) {
+                    if (event->is_asserted()) {
                         shored_up = true;
                         break;
                     }
+                    event = nullptr;
                 }
-            } while (false);
+            }
 
-            if (it != records.crend()) {
-                ret.push_back({static_cast<ipmi::SelRecordGeneric*>(it->get()), event_def.second});
+            if (event != nullptr) {
+                ret.push_back({event, event_def.second});
                 if (only_first) {
                     return ret;
                 }
@@ -192,7 +193,7 @@ void HealthTelemetryReader::fill_discreete_values() {
     discreete_values.insert(agent_framework::model::enums::Health(
         agent_framework::model::enums::Health::OK).to_string());
 
-    metric_definition.set_discrete_values(std::vector<std::string>{discreete_values.begin(), discreete_values.end()});
+    m_metric_definition.set_discrete_values(std::vector<std::string>{discreete_values.begin(), discreete_values.end()});
 }
 
 
@@ -235,7 +236,7 @@ bool HealthTelemetryReader::read(TelemetryReader::Context::Ptr context, ipmi::Ip
         SelContext::FoundRecords critical = ctx->asserting_events(get_critical_events(),
             shoreup_period, shored_up, only_first);
         if (!critical.empty()) {
-            log_error(GET_LOGGER("telemetry"), get_resource_key() << " event " << critical.front().record->to_string()
+            log_error("telemetry", get_resource_key() << " event " << critical.front().record->to_string()
                                             << " => critical");
             health = agent_framework::model::enums::Health::Critical;
             if (!only_first) {
@@ -251,7 +252,7 @@ bool HealthTelemetryReader::read(TelemetryReader::Context::Ptr context, ipmi::Ip
         SelContext::FoundRecords warnings = ctx->asserting_events(get_warning_events(),
             shoreup_period, shored_up, only_first);
         if (!warnings.empty()) {
-            log_warning(GET_LOGGER("telemetry"), get_resource_key() << " event " << warnings.front().record->to_string()
+            log_warning("telemetry", get_resource_key() << " event " << warnings.front().record->to_string()
                                               << " => warning");
             health = agent_framework::model::enums::Health::Warning;
             if (!only_first) {
@@ -287,12 +288,11 @@ bool HealthTelemetryReader::read(TelemetryReader::Context::Ptr context, ipmi::Ip
     }
 
     bool changed = false;
-    if ((get_reader_state() != State::VALUE_READ) || (get_health() != health) || (get_value() != value)) {
+    if ((get_health() != health) || (get_value() != value)) {
         set_value(value);
         changed = true;
     }
     if (changed) {
-        set_reader_state(State::VALUE_READ);
         set_health(health);
     }
     return changed;

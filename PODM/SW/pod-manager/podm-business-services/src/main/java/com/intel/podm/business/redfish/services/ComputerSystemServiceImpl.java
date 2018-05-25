@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,11 @@ import com.intel.podm.business.services.redfish.ReaderService;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SYSTEMS;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SYSTEM;
+import static com.intel.podm.business.services.context.Context.contextOf;
+import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM;
 import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
 import static com.intel.podm.common.types.redfish.ResourceNames.COMPUTER_SYSTEM_METRICS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_INTERFACES_RESOURCE_NAME;
@@ -39,6 +42,7 @@ import static com.intel.podm.common.types.redfish.ResourceNames.NETWORK_INTERFAC
 import static com.intel.podm.common.types.redfish.ResourceNames.PROCESSORS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.SIMPLE_STORAGE_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.STORAGE_RESOURCE_NAME;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @RequestScoped
@@ -55,7 +59,9 @@ class ComputerSystemServiceImpl implements ReaderService<ComputerSystemDto> {
     @Override
     @Transactional(REQUIRES_NEW)
     public CollectionDto getCollection(Context serviceRootContext) throws ContextResolvingException {
-        return new CollectionDto(SYSTEMS, computerSystemDao.findAllComputerSystemsFromPrimaryDataSource());
+        List<Context> contexts = computerSystemDao.findAllComputerSystemsFromPrimaryDataSource().stream()
+            .map(id -> contextOf(id, COMPUTER_SYSTEM)).sorted().collect(toList());
+        return new CollectionDto(SYSTEM, contexts);
     }
 
     @Override
@@ -70,10 +76,7 @@ class ComputerSystemServiceImpl implements ReaderService<ComputerSystemDto> {
 
         ComputerSystemDto dto = computerSystemMerger.toDto(system);
         setSingletonContexts(context, dto);
-
-        if (system.getComputerSystemMetrics() != null) {
-            dto.getOem().getRackScaleOem().setComputerSystemMetrics(singletonContextOf(context, COMPUTER_SYSTEM_METRICS_RESOURCE_NAME));
-        }
+        setComputerSystemMetrics(context, system, dto);
 
         ComputerSystemDto.Actions actions = dto.getActions();
         actions.getReset().setTarget(singletonContextOf(context, "Actions/ComputerSystem.Reset"));
@@ -90,5 +93,11 @@ class ComputerSystemServiceImpl implements ReaderService<ComputerSystemDto> {
         dto.setStorage(singletonContextOf(context, STORAGE_RESOURCE_NAME));
         dto.setEthernetInterfaces(singletonContextOf(context, ETHERNET_INTERFACES_RESOURCE_NAME));
         dto.setNetworkInterfaces(singletonContextOf(context, NETWORK_INTERFACES_RESOURCE_NAME));
+    }
+
+    private void setComputerSystemMetrics(Context context, ComputerSystem system, ComputerSystemDto dto) {
+        if (system.getComputerSystemMetrics() != null) {
+            dto.getOem().getRackScaleOem().setComputerSystemMetrics(singletonContextOf(context, COMPUTER_SYSTEM_METRICS_RESOURCE_NAME));
+        }
     }
 }

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ set(SOURCES
     server/connector/connector.cpp
     server/connector/connector_factory.cpp
     server/connector/connector_options.cpp
+    server/connector/connector_options_loader.cpp
     server/connector/microhttpd/mhd_connector_options.cpp
     server/connector/microhttpd/mhd_connector.cpp
     rest_server.cpp
@@ -110,14 +111,17 @@ set(SOURCES
     endpoints/system/network_device_functions_collection.cpp
     endpoints/system/network_device_function.cpp
 
-    endpoints/storage/physical_drives_collection.cpp
-    endpoints/storage/physical_drive.cpp
-    endpoints/storage/logical_drive_collection.cpp
-    endpoints/storage/logical_drive.cpp
+    endpoints/storage/drive_collection.cpp
     endpoints/storage/storage_service.cpp
-    endpoints/storage/storage_service_collection.cpp
-    endpoints/storage/remote_target.cpp
-    endpoints/storage/remote_target_collection.cpp
+    endpoints/storage/storage_services_collection.cpp
+    endpoints/storage/storage_pool.cpp
+    endpoints/storage/storage_pool_collection.cpp
+    endpoints/storage/volume.cpp
+    endpoints/storage/volume_metrics.cpp
+    endpoints/storage/volume_collection.cpp
+    endpoints/storage/volume_initialize.cpp
+    endpoints/storage/allocated_volumes_collection.cpp
+    endpoints/storage/allocated_pools_collection.cpp
 
     endpoints/ethernet/vlan_network_interface_collection.cpp
     endpoints/ethernet/vlan_network_interface.cpp
@@ -143,6 +147,7 @@ set(SOURCES
     endpoints/chassis/power_supply_request_state_change.cpp
     endpoints/chassis/drives_collection.cpp
     endpoints/chassis/drive.cpp
+    endpoints/chassis/drive_metrics.cpp
     endpoints/chassis/drive_secure_erase.cpp
     endpoints/chassis/pcie_device.cpp
     endpoints/chassis/pcie_devices_collection.cpp
@@ -180,12 +185,8 @@ set(SOURCES
     eventing/event_service.cpp
     eventing/event_array_queue.cpp
     eventing/rest_client.cpp
-    eventing/config/subscription_config.cpp
     eventing/model/subscription.cpp
     eventing/manager/subscription_manager.cpp
-    http/http_defs.cpp
-
-    cache/cache.cpp
 
     model/watcher.cpp
     model/handlers/generic_handler.cpp
@@ -200,7 +201,6 @@ set(SOURCES
     registries/model/message_registry_file.cpp
     registries/model/message_registry.cpp
 
-    utils/network_interface_info.cpp
     utils/time_utils.cpp
     utils/lag_utils.cpp
     utils/zone_utils.cpp
@@ -209,7 +209,9 @@ set(SOURCES
     validators/schemas/common.cpp
     validators/schemas/acl.cpp
     validators/schemas/subscription_collection.cpp
+    validators/schemas/endpoint.cpp
     validators/schemas/endpoints_collection.cpp
+    validators/schemas/ethernet_switch.cpp
     validators/schemas/ethernet_switch_port.cpp
     validators/schemas/ethernet_switch_port_collection.cpp
     validators/schemas/rule.cpp
@@ -217,8 +219,6 @@ set(SOURCES
     validators/schemas/static_mac.cpp
     validators/schemas/vlan_network_interface_collection.cpp
     validators/schemas/vlan_network_interface.cpp
-    validators/schemas/remote_target.cpp
-    validators/schemas/remote_targets_collection.cpp
     validators/schemas/zone.cpp
     validators/schemas/zones_collection.cpp
     validators/schemas/drive.cpp
@@ -232,10 +232,10 @@ set(SOURCES
     validators/schemas/reset.cpp
     validators/schemas/change_tpm_state.cpp
     validators/schemas/simple_update.cpp
-    validators/schemas/logical_drive.cpp
     validators/schemas/network_device_function.cpp
     validators/schemas/static_mac_collection.cpp
-    )
+    validators/schemas/volume.cpp
+)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     set_source_files_properties(
@@ -245,6 +245,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     set_source_files_properties(
         server/error/error_factory.cpp
         PROPERTIES COMPILE_FLAGS "-Wno-suggest-attribute=format"
+    )
+    set_source_files_properties(
+        utils/time_utils.cpp
+        PROPERTIES COMPILE_FLAGS "-Wno-format-nonliteral"
     )
 endif()
 
@@ -283,7 +287,7 @@ if(ENABLE_HTTPS)
         server/certs/rmm_cert_loader.cpp
         server/certs/cert_manager.cpp
         server/connector/microhttpd/mhd_ssl_connector.cpp
-        )
+    )
 
     add_definitions(-DENABLE_HTTPS)
 

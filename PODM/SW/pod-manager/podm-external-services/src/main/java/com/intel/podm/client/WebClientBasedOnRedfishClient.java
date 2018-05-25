@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import static com.intel.podm.common.concurrent.Tasks.newCurrentThreadTaskScheduler;
 import static com.intel.podm.common.utils.Casts.tryCast;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static java.lang.String.format;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 
@@ -64,7 +65,7 @@ public final class WebClientBasedOnRedfishClient implements WebClient {
             resource.setUri(URI.create(uri.getPath()));
             return resource;
         } catch (RedfishClientException e) {
-            throw new WebClientRequestException("Error while getting resource from the external service", uri, e);
+            throw new WebClientRequestException(format("Error while getting resource %s from the external service", uri), uri, e);
         }
     }
 

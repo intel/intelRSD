@@ -2,7 +2,7 @@
  * @brief DelayQueue implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@
 
 #pragma once
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
-#include <queue>
 #include <mutex>
+#include <vector>
 
 namespace generic {
 
@@ -45,13 +46,15 @@ public:
     void push(const E& e) {
         std::lock_guard<std::mutex> lk(m_mutex);
         if (m_data.empty()) {
-            m_data.push(e);
+            m_data.push_back(e);
+            std::push_heap(std::begin(m_data), std::end(m_data), m_compare);
             m_available.notify_all();
         }
         else {
-            const auto& first = m_data.top();
-            m_data.push(e);
-            if (m_compare(e, first)) {
+            m_data.push_back(e);
+            const auto notify = m_compare(m_data.front(), m_data.back());
+            std::push_heap(std::begin(m_data), std::end(m_data), m_compare);
+            if (notify) {
                 m_available.notify_all();
             }
         }
@@ -65,13 +68,15 @@ public:
     void push(E&& e) {
         std::lock_guard<std::mutex> lk(m_mutex);
         if (m_data.empty()) {
-            m_data.push(std::move(e));
+            m_data.push_back(std::move(e));
+            std::push_heap(std::begin(m_data), std::end(m_data), m_compare);
             m_available.notify_all();
         }
         else {
-            const auto& first = m_data.top();
-            m_data.push(std::move(e));
-            if (m_compare(m_data.top(), first)) {
+            m_data.push_back(std::move(e));
+            const auto notify = m_compare(m_data.front(), m_data.back());
+            std::push_heap(std::begin(m_data), std::end(m_data), m_compare);
+            if (notify) {
                 m_available.notify_all();
             }
         }
@@ -88,13 +93,15 @@ public:
     void emplace(Args&&... args) {
         std::lock_guard<std::mutex> lk(m_mutex);
         if (m_data.empty()) {
-            m_data.emplace(std::forward<Args>(args)...);
+            m_data.emplace_back(std::forward<Args>(args)...);
+            std::push_heap(std::begin(m_data), std::end(m_data), m_compare);
             m_available.notify_all();
         }
         else {
-            const auto& first = m_data.top();
-            m_data.emplace(std::forward<Args>(args)...);
-            if (m_compare(m_data.top(), first)) {
+            m_data.emplace_back(std::forward<Args>(args)...);
+            const auto notify = m_compare(m_data.front(), m_data.back());
+            std::push_heap(std::begin(m_data), std::end(m_data), m_compare);
+            if (notify) {
                 m_available.notify_all();
             }
         }
@@ -113,18 +120,14 @@ public:
                 m_available.wait(lk);
             }
             else {
-                auto& first = m_data.top();
-                const auto delay = first.get_delay();
+                const auto delay = m_data.front().get_delay();
                 if (delay > Duration::zero()) {
                     m_available.wait_for(lk, delay);
                 }
                 else {
-                    // remove const to allow move
-                    E ret = std::move(const_cast<E&>(first));
-                    m_data.pop();
-                    if (!m_data.empty()) {
-                        m_available.notify_all();
-                    }
+                    std::pop_heap(m_data.begin(), m_data.end(), m_compare);
+                    E ret = std::move(m_data.back());
+                    m_data.pop_back();
                     return std::move(ret);
                 }
             }
@@ -134,8 +137,8 @@ public:
     /*!
      * @return Number of elements in the queue.
      */
-    size_t size() {
-        std::unique_lock<std::mutex> lk(m_mutex);
+    size_t size() const {
+        std::lock_guard<std::mutex> lk(m_mutex);
         return m_data.size();
     }
 
@@ -143,16 +146,14 @@ public:
      * @brief Erases all the elements from the queue.
      */
     void clear() {
-        std::unique_lock<std::mutex> lk(m_mutex);
-        while(!m_data.empty()) {
-            m_data.pop();
-        };
+        std::lock_guard<std::mutex> lk(m_mutex);
+        m_data.clear();
     }
 
 private:
 
     std::greater<E> m_compare{};
-    std::priority_queue<E, std::vector<E>, std::greater<E>> m_data{};
+    std::vector<E> m_data{};
     mutable std::mutex m_mutex{};
     std::condition_variable m_available{};
 };

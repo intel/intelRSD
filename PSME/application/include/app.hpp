@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,7 +92,6 @@ private:
     void init_registration_server();
     void init_eventing_server();
     void init_rest_event_service();
-    void init_subscription_config();
     void init_rest_server();
     void init_registries();
     void cleanup();

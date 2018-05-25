@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,7 +163,7 @@ bool file_exists(const string& path) {
 }
 
 void save_key(const string& path, const char* key) {
-    int fd = ::open(path.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    int fd = ::open(path.c_str(), O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR);
     if (fd < 0) {
         throw runtime_error("Error with opening keyfile for write.");
     }

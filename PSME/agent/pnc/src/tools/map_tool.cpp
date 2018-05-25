@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,22 +85,28 @@ attribute::Status MapTool::get_status_from_smart(const Smart& smart) const {
     // set status
     if (!smart.is_reset_required()) {
         if (!smart.is_drive_ready()) {
+            // reset is not required and drive is not ready = starting
             status.set_state(enums::State::Starting);
         }
         else if (smart.is_drive_functional()) {
+            // reset is not required and drive is functional = enabled
             status.set_state(enums::State::Enabled);
         }
     }
+    // reset is required = StandbyOffline, but with anomalous health
 
     // set health
     if (smart.is_reset_required()) {
+        // reset is required = Critical
         status.set_health(enums::Health::Critical);
     }
     else {
         if (smart.is_space_or_temperature_warning_flag_set()) {
+            // reset is not required but known error flags are set = Warning
             status.set_health(enums::Health::Warning);
         }
-        if (smart.is_any_other_warning_flag_set()) {
+        if (smart.is_any_other_warning_flag_set() || !smart.is_drive_functional()) {
+            // reset is not required but other error flags are set OR drive is not functional = Critical
             status.set_health(enums::Health::Critical);
         }
     }

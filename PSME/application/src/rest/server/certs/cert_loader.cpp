@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ std::string psme::rest::server::read_file(const std::string& filename) {
         std::string content{};
         content.assign(std::istreambuf_iterator<char>(file),
                        std::istreambuf_iterator<char>());
-        log_info(GET_LOGGER("rest"), "Loaded : " << filename);
+        log_info("rest", "Loaded : " << filename);
         return content;
     }
 

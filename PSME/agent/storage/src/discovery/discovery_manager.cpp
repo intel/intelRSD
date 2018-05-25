@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,24 +21,27 @@
  * */
 
 #include "agent-framework/module/storage_components.hpp"
-#include "agent-framework/logger_ext.hpp"
 
 #include "discovery/discovery_manager.hpp"
-#include "tree_stability/storage_tree_stabilizer.hpp"
-#include "sysfs/sysfs_api.hpp"
+#include "discovery/builders/manager_builder.hpp"
+#include "discovery/builders/chassis_builder.hpp"
+#include "discovery/builders/system_builder.hpp"
+#include "discovery/builders/fabric_builder.hpp"
+#include "discovery/builders/volume_builder.hpp"
+#include "discovery/builders/drive_builder.hpp"
+#include "discovery/builders/storage_service_builder.hpp"
+#include "discovery/builders/storage_pool_builder.hpp"
+
 #include "lvm/lvm_api.hpp"
 #include "iscsi/manager.hpp"
 #include "iscsi/response.hpp"
 #include "iscsi/target_parser.hpp"
+#include "iscsi/utils.hpp"
+
+#include "database/persistent_attributes.hpp"
+#include "database/aggregate.hpp"
 
 
-
-using std::map;
-using std::string;
-using std::vector;
-using std::runtime_error;
-using std::to_string;
-using std::unique_lock;
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
@@ -46,56 +49,259 @@ using namespace agent_framework::model::attribute;
 using namespace agent_framework::module;
 using namespace agent_framework::module::managers;
 
-using namespace agent::storage;
 using namespace agent::storage::discovery;
 using namespace agent::storage::lvm;
 using namespace agent::storage::iscsi;
 
+using namespace database;
 
-void DiscoveryManager::wait_for_complete() {
-    unique_lock<std::mutex> lock{m_mutex};
-    m_cv.wait(lock);
+namespace {
+
+bool starts_with(const std::string& source, const std::string& target) {
+    return source.substr(0, target.length()) == target;
+}
+
+}
+
+namespace {
+
+bool match_target_iqn(const IscsiTarget& iscsi_target, const Endpoint& endpoint) {
+    for (const auto& identifier : endpoint.get_identifiers()) {
+        if (identifier.get_durable_name_format() == enums::IdentifierType::iQN) {
+            if (identifier.get_durable_name() == iscsi_target.get_target_iqn()) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 
-string DiscoveryManager::get_logical_drive_uuid(const string& device_path) const {
-    auto uuids = get_manager<LogicalDrive>().get_keys();
-    for (const auto& uuid : uuids) {
-        auto logical_drive = get_manager<LogicalDrive>().get_entry(uuid);
-        if (device_path == logical_drive.get_device_path()) {
-            return logical_drive.get_uuid();
+bool match_target_volumes(const IscsiTarget::TargetLuns& luns, const Endpoint::ConnectedEntities& entities) {
+    if (luns.get_array().size() != entities.get_array().size()) {
+        log_debug("storage-discovery", "The number of LUNs and Connected Entities differ");
+        return false;
+    }
+    uint32_t entities_matched = 0;
+    for (const auto& entity : entities.get_array()) {
+        for (const auto& lun : luns.get_array()) {
+            std::string entity_lun{};
+            try {
+                entity_lun = attribute::Identifier::get_lun(entity);
+            }
+            catch (const std::logic_error&) {
+                continue;
+            }
+            if (std::to_string(lun.get_lun()) == entity_lun) {
+                if (lun.get_logical_drive() == entity.get_entity()) {
+                    entities_matched++;
+                }
+                else {
+                    log_debug("storage-discovery",
+                              "Could not match Endpoint's Entity: '" << entity.get_entity()
+                                                                     << "', with iSCSI Target backing store for LUN: "
+                                                                     << lun.get_lun());
+                    return false;
+                }
+            }
+        }
+    }
+
+    if (entities_matched != entities.get_array().size()) {
+        log_debug("storage-discovery", "Could not match all LUNs to Endpoint's Entities");
+        return false;
+    }
+    return true;
+}
+
+
+bool match_target_credentials(const IscsiTarget& iscsi_target, const Endpoint& target_endpoint) {
+    bool check_oneway = false;
+    bool check_mutual = false;
+    bool oneway_match = false;
+    bool mutual_match = false;
+    if (iscsi_target.get_chap_username().has_value()) {
+        check_oneway = true;
+    }
+    if (iscsi_target.get_mutual_chap_username().has_value()) {
+        check_mutual = true;
+    }
+
+    auto& zone_endpoint_manager = agent_framework::module::get_m2m_manager<Zone, Endpoint>();
+    auto& endpoint_manager = get_manager<Endpoint>();
+
+    if (zone_endpoint_manager.get_parents(target_endpoint.get_uuid()).empty()) {
+        log_debug("storage-discovery", "Endpoint does not belong to any Zone: " << target_endpoint.get_uuid());
+        return false;
+    }
+
+    if (check_mutual) {
+        if (iscsi_target.get_mutual_chap_username() == target_endpoint.get_username()) {
+            mutual_match = true;
+        }
+        else {
+            log_debug("storage-discovery", "Could not match Mutual CHAP username");
+            return false;
+        }
+    }
+    else {
+        if (target_endpoint.get_username().has_value()) {
+            log_debug("storage-discovery", "Mutual CHAP credentials missing in iSCSI Target from Endpoint: "
+                << target_endpoint.get_uuid());
+            return false;
+        }
+    }
+
+    const auto zone_uuid = zone_endpoint_manager.get_parents(target_endpoint.get_uuid()).front();
+    for (const auto& child_endpoint_uuid : zone_endpoint_manager.get_children(zone_uuid)) {
+        const auto& child_endpoint = endpoint_manager.get_entry(child_endpoint_uuid);
+        for (const auto& entity : child_endpoint.get_connected_entities().get_array()) {
+            if (entity.get_entity_role() == enums::EntityRole::Initiator) {
+                if (check_oneway) {
+                    if (iscsi_target.get_chap_username() == child_endpoint.get_username()) {
+                        oneway_match = true;
+                    }
+                    else {
+                        log_debug("storage-discovery", "Could not match One-way CHAP username");
+                        return false;
+                    }
+                }
+                else {
+                    if (child_endpoint.get_username().has_value()) {
+                        log_debug("storage-discovery",
+                                  "One-way CHAP credentials missing in iSCSI Target from Endpoint: "
+                                      << target_endpoint.get_uuid());
+                        return false;
+                    }
+                }
+                break; // In Zone can only be one initiator
+            }
+        }
+    }
+
+    if (check_oneway != oneway_match) {
+        log_debug("storage-discovery", "Could not match One-way CHAP username");
+        return false;
+    }
+    if (check_mutual != mutual_match) {
+        log_debug("storage-discovery", "Could not match Mutual CHAP username");
+        return false;
+    }
+
+    return true;
+}
+
+
+bool match_target_initiator(const IscsiTarget& iscsi_target, const Endpoint& endpoint) {
+
+    bool initiator_found = false; // Zone must have one Initiator Endpoint to match iSCSI Target
+
+    auto& zone_endpoint_manager = agent_framework::module::get_m2m_manager<Zone, Endpoint>();
+    auto& endpoint_manager = get_manager<Endpoint>();
+
+    if (zone_endpoint_manager.get_parents(endpoint.get_uuid()).empty()) {
+        log_debug("storage-discovery", "Endpoint does not belong to any Zone: " << endpoint.get_uuid());
+        return false;
+    }
+    // Endpoint can be only in one Zone
+    const auto zone_uuid = zone_endpoint_manager.get_parents(endpoint.get_uuid()).front();
+    for (const auto& child_endpoint_uuid : zone_endpoint_manager.get_children(zone_uuid)) {
+        const auto& child_endpoint = endpoint_manager.get_entry(child_endpoint_uuid);
+        for (const auto& entity : child_endpoint.get_connected_entities().get_array()) {
+            if (entity.get_entity_role() == enums::EntityRole::Initiator) {
+                initiator_found = true;
+                for (const auto& identifier : child_endpoint.get_identifiers()) {
+                    if (identifier.get_durable_name_format() == enums::IdentifierType::iQN) {
+                        std::string initiator_iqn{};
+                        // Empty string for Initiator IQN is a valid value
+                        if (iscsi_target.get_initiator_iqn().has_value()) {
+                            initiator_iqn = iscsi_target.get_initiator_iqn();
+                        }
+                        // Limited to one initiator IQN per Initiator Endpoint - if IQN exists it must match
+                        if (identifier.get_durable_name() != initiator_iqn) {
+                            log_debug("storage-discovery", "Endpoint IQN: '" << identifier.get_durable_name()
+                                                                             << "' and iSCSI Target initiator: '"
+                                                                             << initiator_iqn
+                                                                             << "' do not match");
+                            return false;
+                        }
+                    }
+                }
+            }
+            break; // Zone can only have one Initiator Endpoint, so when it is found the loop can be broken
+        }
+    }
+
+    if (!initiator_found) {
+        log_debug("storage-discovery", "Could not find Initiator Endpoint in the Zone");
+        return false;
+    }
+    return true;
+}
+
+
+Uuid get_volume_by_device_path(const Uuid& device_path) {
+    for (const auto& volume : get_manager<Volume>().get_entries()) {
+        if (device_path == Identifier::get_system_path(volume)) {
+            return volume.get_uuid();
         }
     }
     return {};
 }
 
 
-string DiscoveryManager::get_physical_drive_uuid(const string& device_path) const {
-    auto uuids = get_manager<PhysicalDrive>().get_keys();
-    for (const auto& uuid : uuids) {
-        auto phy_drive = get_manager<PhysicalDrive>().get_entry(uuid);
-        if (device_path == phy_drive.get_device_path()) {
-            return phy_drive.get_uuid();
-        }
-    }
-    return {};
+void remove_duplicates(std::vector<std::string>& to_have_matching_values_removed, std::vector<std::string>& values) {
+    to_have_matching_values_removed.erase(
+        remove_if(begin(to_have_matching_values_removed), end(to_have_matching_values_removed),
+                  [&](std::string x) {
+                      return find(begin(values), end(values), x) !=
+                             end(values);
+                  }), end(to_have_matching_values_removed));
 }
 
 
-void DiscoveryManager::discovery_iscsi_targets(const string& uuid) const {
+void clean_chap_from_connected_endpoints(const Uuid& endpoint_uuid) {
+    auto& endpoint_manager = get_manager<Endpoint>();
+    auto endpoint = endpoint_manager.get_entry_reference(endpoint_uuid);
+    auto& zone_endpoint_manager = agent_framework::module::get_m2m_manager<Zone, Endpoint>();
+    endpoint->clean_username();
+    agent::storage::iscsi::tgt::clean_chap_from_database(endpoint_uuid);
+
+    const auto zone_uuid = zone_endpoint_manager.get_parents(endpoint_uuid).front();
+    for (const auto& child_endpoint_uuid : zone_endpoint_manager.get_children(zone_uuid)) {
+        auto child_endpoint = endpoint_manager.get_entry_reference(child_endpoint_uuid);
+        for (const auto& entity : child_endpoint->get_connected_entities().get_array()) {
+            if (entity.get_entity_role() == enums::EntityRole::Initiator) {
+                child_endpoint->clean_username();
+                agent::storage::iscsi::tgt::clean_chap_from_database(child_endpoint_uuid);
+            }
+        }
+    }
+}
+
+}
+
+
+DiscoveryManager::~DiscoveryManager() {}
+
+
+void DiscoveryManager::discovery_iscsi_targets(const Uuid& uuid) const {
     tgt::Manager manager{};
     auto response = manager.show_targets();
     if (!response.is_valid()) {
-        throw runtime_error("Invalid ISCSI show target response: " +
-                            tgt::Errors::get_error_message(response.get_error()));
+        throw std::runtime_error("Invalid iSCSI show target response: " +
+                                 tgt::Errors::get_error_message(response.get_error()));
     }
     tgt::TargetParser parser{};
+    if (!response.get_extra_data().size()) {
+        log_info("storage-discovery", "No iSCSI Targets returned from tgt daemon");
+        return;
+    }
     std::string iscsi_text(response.get_extra_data().data());
-    if (response.get_extra_data().size()
-        && (iscsi_text.size() + 1) < response.get_extra_data().size()) {
-        log_warning(GET_LOGGER("agent"),
-                "show targets response size: " << response.get_extra_data().size()
-                << " truncated to: " << (iscsi_text.size() + 1));
+    if (response.get_extra_data().size() && (iscsi_text.size() + 1) < response.get_extra_data().size()) {
+        log_warning("storage-discovery",
+                    "show targets response size: " << response.get_extra_data().size()
+                                                   << " truncated to: " << (iscsi_text.size() + 1));
     }
     const auto targets = parser.parse(iscsi_text);
     auto& target_manager = get_manager<IscsiTarget, IscsiTargetManager>();
@@ -109,25 +315,25 @@ void DiscoveryManager::discovery_iscsi_targets(const string& uuid) const {
             OptionalField<std::string>(target->get_target_initiator())
         );
         iscsi_target.set_target_address(iscsi_data.get_portal_ip());
-        iscsi_target.set_target_port(to_string(iscsi_data.get_portal_port()));
+        iscsi_target.set_target_port(std::to_string(iscsi_data.get_portal_port()));
         iscsi_target.set_target_iqn(target->get_target_iqn());
         iscsi_target.set_target_id(target->get_target_id());
         if (target->get_authentication_method().has_value()) {
             iscsi_target.set_authentication_method(target->get_authentication_method().value().to_string());
         }
         iscsi_target.set_chap_username(
-                target->get_chap_username().empty() ?
-                OptionalField<std::string>() :
-                OptionalField<std::string>(target->get_chap_username())
+            target->get_chap_username().empty() ?
+            OptionalField<std::string>() :
+            OptionalField<std::string>(target->get_chap_username())
         );
         iscsi_target.set_mutual_chap_username(
-                target->get_mutual_chap_username().empty() ?
-                OptionalField<std::string>() :
-                OptionalField<std::string>(target->get_mutual_chap_username())
+            target->get_mutual_chap_username().empty() ?
+            OptionalField<std::string>() :
+            OptionalField<std::string>(target->get_mutual_chap_username())
         );
         /* add target LUNs */
         for (const auto& lun : target->get_luns()) {
-            auto drive_uuid = get_logical_drive_uuid(lun->get_device_path());
+            auto drive_uuid = get_volume_by_device_path(lun->get_device_path());
             TargetLun target_lun{uint32_t(lun->get_lun()), drive_uuid};
             iscsi_target.add_target_lun(target_lun);
         }
@@ -140,137 +346,371 @@ void DiscoveryManager::discovery_iscsi_targets(const string& uuid) const {
 }
 
 
-void DiscoveryManager::discovery_logical_drives(const string& uuid) const {
-    LvmAPI lvm_api{};
-    vector<VolumeGroup> volume_groups{lvm_api.discovery_volume_groups()};
-    for (const auto& volume_group : volume_groups) {
-        map<string, string> name_to_uuid_map{};
-        map<string, string> uuid_to_master_map{};
-        /* create logical volume group */
-        LogicalDrive logical_vg{uuid};
-        init_logical_volume(logical_vg);
-        logical_vg.set_mode(LogicalDriveMode::LVG);
-        logical_vg.set_status({State::from_string(volume_group.get_status()),
-                               Health::from_string(volume_group.get_health())});
-        logical_vg.set_capacity_gb(volume_group.get_capacity_gb());
-        logical_vg.set_device_path("/dev/" + volume_group.get_name());
-        logical_vg.set_protected(volume_group.get_protection_status());
-        logical_vg.add_collection({
-                                      CollectionName::LogicalDrives, CollectionType::LogicalDrives, ""});
-        for (const auto& physical_volume : volume_group.get_physical_volumes()) {
-            /* create physical volume */
-            LogicalDrive logical_pv{logical_vg.get_uuid()};
-            init_logical_volume(logical_pv);
-            logical_pv.set_status({State::from_string(physical_volume.get_status()),
-                                   Health::from_string(physical_volume.get_health())});
-            logical_pv.set_mode(LogicalDriveMode::PV);
-            logical_pv.set_capacity_gb(physical_volume.get_capacity_gb());
-            logical_pv.set_device_path(physical_volume.get_name());
-            logical_pv.set_protected(physical_volume.get_protection_status());
-            /* set physical drive parent UUID same as physical volume UUID */
-            try {
-                auto phy_drive = get_manager<PhysicalDrive>().get_entry_reference(
-                    get_physical_drive_uuid(logical_pv.get_device_path()));
-                phy_drive->set_parent_uuid(logical_pv.get_uuid());
-            }
-            catch (const agent_framework::exceptions::InvalidUuid&) {
-                log_warning(GET_LOGGER("storage-agent"),
-                            "No physical drive found for logical volume " << logical_pv.get_uuid());
-            }
+void DiscoveryManager::restore_iscsi_targets(const Uuid& uuid) const {
+    // Storage Agent deletes from tgt iSCSI Targets which do not match any existing Zone/Endpoint,
+    // and adds to tgt iSCSI Targets based on existing Zones/Endpoints.
+    discovery_iscsi_targets(uuid);
+    auto& target_manager = get_manager<IscsiTarget, IscsiTargetManager>();
+    auto& endpoint_manager = get_manager<Endpoint>();
+    std::vector<std::string> iscsi_targets_for_removal{};
+    std::vector<std::string> endpoints_matched{};
 
-            /* add physical volume */
-            get_manager<LogicalDrive>().add_entry(std::move(logical_pv));
-        }
-        for (const auto& logical_volume : volume_group.get_logical_volumes()) {
-            /* create logical volume */
-            LogicalDrive logical_lv{logical_vg.get_uuid()};
-            logical_lv.set_status({State::from_string(logical_volume.get_status()),
-                                   Health::from_string(logical_volume.get_health())});
-            logical_lv.set_type(LogicalDriveType::LVM);
-            logical_lv.set_mode(LogicalDriveMode::LV);
-            logical_lv.set_bootable(logical_volume.is_bootable());
-            logical_lv.set_is_snapshot(logical_volume.is_snapshot());
-            logical_lv.set_capacity_gb(logical_volume.get_capacity_gb());
-            logical_lv.set_device_path("/dev/" + volume_group.get_name()
-                                       + "/" + logical_volume.get_name());
-            logical_lv.set_protected(logical_volume.get_protection_status());
-            /* add entry to the map [ LV name <> LV UUID] */
-            name_to_uuid_map[logical_volume.get_name()] = logical_lv.get_uuid();
-            /* if LV is snapshot, store the master [LV UUID <> LV master] */
-            if (logical_volume.is_snapshot()) {
-                uuid_to_master_map[logical_lv.get_uuid()] =
-                    logical_volume.get_master_name();
+    for (const auto& iscsi_target : target_manager.get_entries()) {
+        bool iscsi_target_remove = true;
+        for (const auto& endpoint : endpoint_manager.get_entries()) {
+            if (match_target_iqn(iscsi_target, endpoint)) {
+                log_debug("storage-discovery",
+                          "iSCSI Target name matched with Endpoint IQN: " << iscsi_target.get_target_iqn());
+                if (match_target_volumes(iscsi_target.get_target_lun(), endpoint.get_connected_entities())) {
+                    if (match_target_initiator(iscsi_target, endpoint)) {
+                        if (match_target_credentials(iscsi_target, endpoint)) {
+                            log_debug("storage-discovery",
+                                      "Succesfully matched existing iSCSI Target: '" << iscsi_target.get_target_iqn()
+                                                                                     << "' and Target Endpoint: "
+                                                                                     << endpoint.get_uuid());
+                            iscsi_target_remove = false;
+                            endpoints_matched.emplace_back(endpoint.get_uuid());
+                        }
+                        else {
+                            log_debug("storage-discovery",
+                                      "Partially matched existing iSCSI Target: '" << iscsi_target.get_target_iqn()
+                                                                                   << "' and Target Endpoint: "
+                                                                                   << endpoint.get_uuid());
+                        }
+                    }
+                    else {
+                        log_debug("storage-discovery",
+                                  "Could not match iSCSI Target initiator IQN with Endpoint: "
+                                      << iscsi_target.get_target_iqn());
+                    }
+                }
+                else {
+                    log_debug("storage-discovery",
+                              "Could not match iSCSI Target LUNs with any Endpoint's Entities: "
+                                  << iscsi_target.get_target_iqn());
+                }
+                break;
             }
-            /* add logical volume */
-            get_manager<LogicalDrive>().add_entry(std::move(logical_lv));
         }
-        /* resolve LV master UUID for each snapshot logical volume */
-        for (const auto& element : uuid_to_master_map) {
-            const auto& lv_uuid = element.first;
-            const auto& lv_master_name = element.second;
-            auto lv = get_manager<LogicalDrive>().get_entry_reference(lv_uuid);
-            lv->set_master(name_to_uuid_map[lv_master_name]);
+        if (iscsi_target_remove) {
+            iscsi_targets_for_removal.emplace_back(iscsi_target.get_uuid());
         }
-        /* add volume group */
-        get_manager<LogicalDrive>().add_entry(std::move(logical_vg));
+    }
+
+    for (const auto& iscsi_target_uuid : iscsi_targets_for_removal) {
+        log_debug("storage-discovery", "iSCSI Target which will be removed from tgt: " << iscsi_target_uuid);
+        try {
+            agent::storage::iscsi::tgt::remove_iscsi_target(iscsi_target_uuid);
+        }
+        catch (const agent_framework::exceptions::IscsiError& e) {
+            log_debug("storage-discovery", "Error while removing iSCSI Target: " << e.get_message());
+        }
+    }
+
+    std::vector<std::string> unmatched_endpoints = endpoint_manager.get_keys();
+    // Removes Endpoints matched with existing iSCSI Targets from the list of all Endpoints from the database
+    remove_duplicates(unmatched_endpoints, endpoints_matched);
+
+    for (const auto& endpoint_uuid : unmatched_endpoints) {
+        if (agent::storage::iscsi::tgt::is_endpoint_valid_for_iscsi(endpoint_uuid)) {
+            if (agent::storage::iscsi::tgt::is_endpoint_valid_for_chap(endpoint_uuid)) {
+                log_debug("storage-discovery", "iSCSI Target which will be added to tgt: " << endpoint_uuid);
+                agent::storage::iscsi::tgt::add_iscsi_target(endpoint_uuid, true);
+            }
+            else {
+                log_debug("storage-discovery",
+                          "iSCSI Target which will be added to tgt without CHAP: " << endpoint_uuid);
+                clean_chap_from_connected_endpoints(endpoint_uuid);
+                agent::storage::iscsi::tgt::add_iscsi_target(endpoint_uuid, true);
+            }
+        }
+        else {
+            log_debug("storage-discovery",
+                      "Endpoint is not valid to create an iSCSI Target: " << endpoint_uuid);
+            // If Endpoint's username is not in use in TGT, then credentials cannot be restored
+            if (!agent::storage::iscsi::tgt::endpoint_represents_iscsi_target(endpoint_uuid)) {
+                agent::storage::iscsi::tgt::clean_chap_from_endpoint(endpoint_uuid);
+            }
+        }
     }
 }
 
 
-void DiscoveryManager::init_logical_volume(LogicalDrive& logical_volume) const {
-    logical_volume.add_collection({
-                                      CollectionName::PhysicalDrives, CollectionType::PhysicalDrives, ""});
-    logical_volume.set_type(LogicalDriveType::LVM);
-    logical_volume.set_bootable(false);
-}
+void DiscoveryManager::update_volume_relations(std::vector<Volume>& volumes_to_update,
+                                               Volume& volume_to_update,
+                                               const Uuid& old_volume_uuid) {
 
+    VolumeBuilder::update_identifier_with_uuid(volume_to_update);
 
-void DiscoveryManager::discovery_physical_drives(const string& uuid) const {
-    /* get hard drive list */
-    vector<SysfsAPI::HardDrive> bd_drives = SysfsAPI::get_instance()->get_hard_drives();
-    for (auto& bd_drive : bd_drives) {
-        /* create physical drive model */
-        PhysicalDrive physical_drive{uuid};
-        physical_drive.set_status({State::Enabled, Health::OK});
-        physical_drive.set_device_path(bd_drive.get_device_path());
-        physical_drive.set_capacity_gb(bd_drive.get_capacity_gb());
-        auto drive_type = PhysicalDriveType::from_string(bd_drive.get_type());
-        physical_drive.set_type(drive_type);
-        PhysicalDriveInterface interface{PhysicalDriveInterface::SATA};
-        if (!bd_drive.get_interface().empty()) {
-            interface = PhysicalDriveInterface::
-            from_string(bd_drive.get_interface());
-        }
-        physical_drive.set_interface(interface);
-
-        if (PhysicalDriveType::HDD == drive_type) {
-            physical_drive.set_rpm(bd_drive.get_rpm());
-        }
-        physical_drive.set_fru_info({bd_drive.get_serial_number(),
-                                     bd_drive.get_manufacturer(),
-                                     bd_drive.get_model(), ""});
-        /* add new physical drive */
-        get_manager<PhysicalDrive>().add_entry(std::move(physical_drive));
+    // Update all volumes with new UUID of currently processing volume
+    for (auto& volume : volumes_to_update) {
+        VolumeBuilder::update_replica_info(volume, old_volume_uuid, volume_to_update.get_uuid());
     }
 }
 
 
-void DiscoveryManager::discovery(const string& uuid) {
-    /* get storage services UUID */
-    auto storage_uuids = get_manager<StorageService>().get_keys(uuid);
-    if (storage_uuids.empty()) {
-        throw runtime_error("Storage service not found");
-    }
-    /* discovery devices using first storage service UUID */
-    discovery_physical_drives(storage_uuids.front());
-    discovery_logical_drives(storage_uuids.front());
-    discovery_iscsi_targets(storage_uuids.front());
-
-    StorageTreeStabilizer().stabilize(uuid);
-
-    /* notify discovery done */
-    m_cv.notify_all();
+void DiscoveryManager::update_drive_relations(Drive& drive_to_update) {
+    DriveBuilder::update_identifier_with_uuid(drive_to_update);
 }
 
 
-DiscoveryManager::~DiscoveryManager() { }
+void DiscoveryManager::add_weak_pool_volume_collection() {
+    get_m2m_manager<StoragePool, Volume>().clear_entries();
+    for (const auto& pool : get_manager<StoragePool>().get_entries()) {
+        for (const auto& volume : get_manager<Volume>().get_entries()) {
+            auto volume_device_path = Identifier::get_system_path(volume);
+            auto pool_device_path = Identifier::get_system_path(pool);
+            if (::starts_with(volume_device_path, pool_device_path)) {
+                log_info("storage-discovery",
+                         "Pool " << pool_device_path << " is parent for Volume " << volume_device_path);
+
+                get_m2m_manager<StoragePool, Volume>().add_entry(pool.get_uuid(), volume.get_uuid());
+            }
+        }
+    }
+}
+
+
+void DiscoveryManager::update_volume_capacity_sources() {
+    for (const auto& volume_uuid : get_manager<Volume>().get_keys()) {
+        Uuid providing_pool{};
+        auto volume = get_manager<Volume>().get_entry_reference(volume_uuid);
+
+        // TODO: move it to discoverer
+        const auto& parent_pools = get_m2m_manager<StoragePool, Volume>().get_parents(volume->get_uuid());
+        if (parent_pools.size() == 1) {
+            providing_pool = parent_pools.front();
+        }
+        else {
+            log_error("storage-discovery", "Volume " << volume->get_uuid() << " has more than 1 parent pool!");
+        }
+
+        VolumeBuilder::add_capacity_source(volume.get_raw_ref(), providing_pool);
+    }
+}
+
+
+Uuid DiscoveryManager::discover() {
+    log_info("storage-discovery", "Starting discovery...");
+
+    auto manager = discover_manager();
+    m_stabilizer.stabilize(manager);
+
+    auto chassis = discover_chassis(manager.get_uuid());
+    m_stabilizer.stabilize(chassis, manager);
+
+    auto storage_service = discover_storage_service(manager.get_uuid());
+    m_stabilizer.stabilize(storage_service, manager);
+
+    auto system = discover_system(manager.get_uuid(), chassis.get_uuid());
+    m_stabilizer.stabilize(system, manager);
+
+    try {
+        auto interfaces = discover_ethernet_interfaces(system.get_uuid());
+        for (auto& interface : interfaces) {
+            m_stabilizer.stabilize(interface, system);
+            get_manager<NetworkInterface>().add_or_update_entry(interface);
+        }
+    } catch (const agent_framework::exceptions::GamiException& ex) {
+        log_error("storage-discovery", ex.get_message());
+    }
+
+    try {
+        auto drives = discover_drives(chassis.get_uuid());
+        for (auto& drive : drives) {
+            m_stabilizer.stabilize(drive);
+            update_drive_relations(drive);
+            get_manager<Drive>().add_or_update_entry(drive);
+            get_m2m_manager<StorageService, Drive>().add_entry(storage_service.get_uuid(), drive.get_uuid());
+        }
+    } catch (const agent_framework::exceptions::GamiException& ex) {
+        log_error("storage-discovery", ex.get_message());
+    }
+
+    try {
+        auto volumes = discover_volumes(storage_service.get_uuid());
+        for (auto& volume : volumes) {
+            Uuid old_uuid = volume.get_uuid();
+            m_stabilizer.stabilize(volume);
+            update_volume_relations(volumes, volume, old_uuid);
+        }
+
+        // Add all volumes after full discovery
+        for (const auto& volume : volumes) {
+            get_manager<Volume>().add_or_update_entry(volume);
+        }
+    } catch (const agent_framework::exceptions::GamiException& ex) {
+        log_error("storage-discovery", ex.get_message());
+    }
+
+    try {
+        auto storage_pools = discover_storage_pools(storage_service.get_uuid());
+        for (auto& pool : storage_pools) {
+            m_discoverer->discover_capacity_sources(pool);
+            m_stabilizer.stabilize(pool);
+            StoragePoolBuilder::update_identifier_with_uuid(pool);
+
+            get_manager<StoragePool>().add_or_update_entry(pool);
+        }
+    } catch (const agent_framework::exceptions::GamiException& ex) {
+        log_error("storage-discovery", ex.get_message());
+    }
+
+    // After discovery of Volumes, Storage Pools and Drives update its relations
+    add_weak_pool_volume_collection();
+    update_volume_capacity_sources();
+
+    auto fabric = discover_fabric(manager.get_uuid());
+    m_stabilizer.stabilize(fabric, manager);
+    get_manager<Fabric>().add_or_update_entry(fabric);
+
+    try {
+        // It is important to do Endpoints discovery before Zones.
+        auto endpoints = discover_endpoints(fabric.get_uuid());
+        for (auto& endpoint : endpoints) {
+            // Endpoints are stored in database so stabilization is not needed.
+            get_manager<Endpoint>().add_or_update_entry(endpoint);
+        }
+
+        auto zones = discover_zones(fabric.get_uuid());
+        for (auto& zone : zones) {
+            // Zones are stored in database so stabilization is not needed.
+            get_manager<Zone>().add_or_update_entry(zone);
+        }
+
+        restore_iscsi_targets(manager.get_uuid());
+    } catch (const agent_framework::exceptions::GamiException& ex) {
+        log_error("storage-discovery", ex.get_message());
+    }
+
+    get_m2m_manager<System, StorageService>().add_entry(system.get_uuid(), storage_service.get_uuid());
+    get_manager<StorageService>().add_or_update_entry(storage_service);
+    get_manager<System>().add_or_update_entry(system);
+    get_manager<Chassis>().add_or_update_entry(chassis);
+    get_manager<Manager>().add_or_update_entry(manager);
+
+    log_info("storage-discovery", "Discovery for Storage Agent finished.");
+    return manager.get_uuid();
+}
+
+
+Manager DiscoveryManager::discover_manager() {
+    auto manager = ManagerBuilder::build_default();
+    log_debug("storage-discovery", "Starting discovery of a manager.");
+
+    m_discoverer->discover_manager(manager);
+
+    log_debug("storage-discovery", "Finished discovery of a manager.");
+    return manager;
+}
+
+
+StorageService DiscoveryManager::discover_storage_service(const Uuid& parent_uuid) {
+    auto storage_service = StorageServiceBuilder::build_default(parent_uuid);
+    log_debug("storage-discovery", "Starting discovery of a storage service.");
+
+    m_discoverer->discover_storage_service(storage_service);
+
+    log_debug("storage-discovery", "Finished discovery of a storage service.");
+    return storage_service;
+}
+
+System DiscoveryManager::discover_system(const Uuid& parent_uuid, const Uuid& chassis_uuid) {
+    auto system = SystemBuilder::build_default(parent_uuid, chassis_uuid);
+
+    log_debug("storage-discovery", "Starting discovery of a system.");
+
+    m_discoverer->discover_system(system);
+
+    log_debug("storage-discovery", "Finished discovery of a system.");
+    return system;
+}
+
+std::vector<NetworkInterface> DiscoveryManager::discover_ethernet_interfaces(const Uuid& parent_uuid) {
+    std::vector<NetworkInterface> interfaces{};
+    log_debug("storage-discovery", "Starting discovery of interfaces.");
+
+    m_discoverer->discover_ethernet_interfaces(interfaces, parent_uuid);
+
+    log_debug("storage-discovery", "Finished discovery of interfaces.");
+    return interfaces;
+}
+
+std::vector<StoragePool> DiscoveryManager::discover_storage_pools(const Uuid& parent_uuid) {
+    std::vector<StoragePool> pools{};
+    log_debug("storage-discovery", "Starting discovery of storage pools.");
+
+    m_discoverer->discover_storage_pools(pools, parent_uuid);
+
+    log_debug("storage-discovery", "Finished discovery of storage pools.");
+    return pools;
+}
+
+
+std::vector<Volume> DiscoveryManager::discover_volumes(const Uuid& parent_uuid) {
+    std::vector<Volume> volumes{};
+    log_debug("storage-discovery", "Starting discovery of volumes.");
+
+    m_discoverer->discover_volumes(volumes, parent_uuid);
+
+    log_debug("storage-discovery", "Finished discovery of volumes.");
+    return volumes;
+}
+
+
+Chassis DiscoveryManager::discover_chassis(const Uuid& parent_uuid) {
+    auto chassis = ChassisBuilder::build_default(parent_uuid);
+    log_debug("storage-discovery", "Starting discovery of a chassis.");
+
+    m_discoverer->discover_chassis(chassis);
+
+    log_debug("storage-discovery", "Finished discovery of a chassis.");
+    return chassis;
+}
+
+
+std::vector<Drive> DiscoveryManager::discover_drives(const Uuid& parent_uuid) {
+    std::vector<Drive> drives{};
+    log_debug("storage-discovery", "Starting discovery of drives.");
+
+    m_discoverer->discover_drives(drives, parent_uuid);
+
+    log_debug("storage-discovery", "Finished discovery of drives.");
+    return drives;
+}
+
+
+Fabric DiscoveryManager::discover_fabric(const Uuid& parent_uuid) {
+    auto fabric = FabricBuilder::build_default(parent_uuid);
+    log_debug("storage-discovery", "Starting discovery of a fabric.");
+
+    m_discoverer->discover_fabric(fabric);
+
+    log_debug("storage-discovery", "Finished discovery of a fabric.");
+
+    return fabric;
+}
+
+
+std::vector<Zone> DiscoveryManager::discover_zones(const Uuid& parent_uuid) {
+    std::vector<Zone> zones{};
+    log_debug("storage-discovery", "Starting discovery of zones.");
+
+    m_discoverer->discover_zones(zones, parent_uuid);
+
+    log_debug("storage-discovery", "Finished discovery of zones.");
+
+    return zones;
+}
+
+
+std::vector<Endpoint> DiscoveryManager::discover_endpoints(const Uuid& parent_uuid) {
+    std::vector<Endpoint> endpoints{};
+    log_debug("storage-discovery", "Starting discovery of endpoints.");
+
+    m_discoverer->discover_endpoints(endpoints, parent_uuid);
+
+    log_debug("storage-discovery", "Finished discovery of endpoints.");
+
+    return endpoints;
+}

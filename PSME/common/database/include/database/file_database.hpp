@@ -5,7 +5,7 @@
  * from the key, value is stored in the content.
  *
  * @header{License}
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "database/database.hpp"
 
 namespace database {
@@ -35,7 +37,13 @@ class FileDatabase : public Database {
     friend class DatabaseTester;
 
 public:
-    FileDatabase(const std::string& name, const std::string& location);
+    /*!
+     * @brief Create "plain file" database
+     * @param name Name of the database
+     * @param with_policy if retention policy attributes should be set for all files
+     * @param location directory where to create all database files
+     */
+    FileDatabase(const std::string& name, bool with_policy, const std::string& location);
 
     virtual ~FileDatabase();
 
@@ -58,6 +66,11 @@ private:
     FileDatabase& operator=(const FileDatabase&) = delete;
     FileDatabase(const FileDatabase&) = delete;
     FileDatabase() = delete;
+
+    /*!
+     * @brief Database entries handled by retention policy
+     */
+    bool m_with_policy{};
 
     /*! Mutex to disallow iterating from multiple threads. */
     static std::recursive_mutex mutex;
@@ -123,9 +136,10 @@ private:
      *
      * @param file_name Full name of the file where data is to be stored.
      * @param data data to be stored in the file.
+     * @param with_policy if "policy" attributes are to be set
      * @return true if file saved without any issue
      */
-    static bool save_file(const std::string& file_name, const std::string& data);
+    static bool save_file(const std::string& file_name, const std::string& data, bool with_policy);
 
     /*!
      * @brief Remove file from directory
@@ -135,15 +149,18 @@ private:
     static bool remove_file(const std::string& file_name);
 
     /*!
-     * @brief Check if file is not outdated
+     * @brief Check file state ("validity")
      *
-     * Only last status change is checked. File mustn't have sticky bit set.
+     * Several states of the file are checked: attributes (to see if file is "valid" and is to be handled
+     * by "retention policy" databases) and last file modification time (to see if "invalid" file was not
+     * updated for specified interval).
      *
      * @param file_name Full name of the file to be checked
      * @param interval when file stands outdated
+     * @param with_policy if "policy" attributes are to be checked
      * @return state of the file
      */
-    static EntityValidity file_validity(const std::string& file_name, std::chrono::seconds interval);
+    static EntityValidity file_validity(const std::string& file_name, std::chrono::seconds interval, bool with_policy);
 
     /*!
      * @brief Mark file as invalid

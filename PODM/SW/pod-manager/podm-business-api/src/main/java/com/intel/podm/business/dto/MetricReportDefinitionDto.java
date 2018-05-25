@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.business.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.MetricReportActionType;
@@ -31,9 +30,12 @@ import java.util.HashSet;
 
 @JsonPropertyOrder({
     "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "metricReportType", "metricReportDestination", "metricReportActions",
-    "pollingIntervalMilliSeconds", "reportIntervalMilliSeconds", "transmitFormat", "actions", "links"})
+    "pollingIntervalMilliSeconds", "reportIntervalMilliSeconds", "transmitFormat", "links", "actions", "oem"
+})
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class MetricReportDefinitionDto extends RedfishDto {
+    private final Actions actions = new Actions();
+    private final Links links = new Links();
     private Status status;
     private MetricReportType metricReportType;
     private String metricReportDestination;
@@ -41,8 +43,6 @@ public final class MetricReportDefinitionDto extends RedfishDto {
     private BigDecimal pollingIntervalMilliSeconds;
     private BigDecimal reportIntervalMilliSeconds;
     private TransmitFormat transmitFormat;
-    private Actions actions = new Actions();
-    private Links links = new Links();
 
     public MetricReportDefinitionDto() {
         super("#MetricReportDefinition.v1_0_0.MetricReportDefinition");
@@ -108,41 +108,13 @@ public final class MetricReportDefinitionDto extends RedfishDto {
         return actions;
     }
 
-    public void setActions(Actions actions) {
-        this.actions = actions;
-    }
-
     public Links getLinks() {
         return links;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
-    }
-
-    @JsonPropertyOrder({"Oem"})
-    public class Actions extends RedfishActionsDto {
-    }
-
-    @JsonPropertyOrder({"metrics", "oem"})
-    public final class Links extends RedfishLinksDto {
-        @JsonProperty("Metrics")
-        private Collection<MetricItemDto> metrics = new HashSet<>();
-
-        public Collection<MetricItemDto> getMetrics() {
-            return metrics;
-        }
-
-        public void setMetrics(Collection<MetricItemDto> metrics) {
-            this.metrics = metrics;
-        }
-    }
-
     @JsonPropertyOrder({"metricValue", "metricDefinition"})
     public static final class MetricItemDto {
-        @JsonProperty("MetricValue")
         private String metricValue;
-        @JsonProperty("MetricDefinition")
         private Context metricDefinition;
 
         public String getMetricValue() {
@@ -159,6 +131,22 @@ public final class MetricReportDefinitionDto extends RedfishDto {
 
         public void setMetricDefinition(Context metricDefinition) {
             this.metricDefinition = metricDefinition;
+        }
+    }
+
+    public class Actions extends RedfishActionsDto {
+    }
+
+    @JsonPropertyOrder({"metrics", "oem"})
+    public final class Links extends RedfishLinksDto {
+        private Collection<MetricItemDto> metrics = new HashSet<>();
+
+        public Collection<MetricItemDto> getMetrics() {
+            return metrics;
+        }
+
+        public void setMetrics(Collection<MetricItemDto> metrics) {
+            this.metrics = metrics;
         }
     }
 }

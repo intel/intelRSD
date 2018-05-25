@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class EthernetSwitchAclObtainer {
     public EthernetSwitchAcl discoverAcl(ExternalService service, URI aclUri) throws WebClientRequestException {
         try (WebClient webClient = webClientBuilder.newInstance(service.getBaseUri()).retryable().build()) {
             EthernetSwitchAclResource aclResource = (EthernetSwitchAclResource) webClient.get(aclUri);
-            EthernetSwitchAcl acl = readEthernetSwitchAcl(service, aclUri, aclResource);
+            EthernetSwitchAcl acl = readEthernetSwitchAcl(service, aclResource);
 
             updateBindActionAllowableValues(aclResource, acl);
             updateBoundPorts(aclResource, acl);
@@ -64,9 +64,9 @@ public class EthernetSwitchAclObtainer {
         }
     }
 
-    private EthernetSwitchAcl readEthernetSwitchAcl(ExternalService service, URI aclUri, EthernetSwitchAclResource aclResource) {
-        Id entityId = aclResource.getGlobalId(service.getId(), aclUri);
-        EthernetSwitchAcl acl = discoverableEntityDao.findOrCreateEntity(service, entityId, aclUri, EthernetSwitchAcl.class);
+    private EthernetSwitchAcl readEthernetSwitchAcl(ExternalService service, EthernetSwitchAclResource aclResource) {
+        Id entityId = aclResource.getGlobalId(service.getId());
+        EthernetSwitchAcl acl = discoverableEntityDao.findOrCreateEntity(service, entityId, aclResource.getUri(), EthernetSwitchAcl.class);
         aclMapper.map(aclResource, acl);
         return acl;
     }

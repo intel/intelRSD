@@ -5,7 +5,7 @@
  * session if kept by "other" side.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,36 @@ protected:
         ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterface::Cmd command, ipmi::IpmiInterface::Lun lun,
         const ipmi::BridgeInfo& bridge,
         const ipmi::IpmiInterface::ByteBuffer& request, ipmi::IpmiInterface::ByteBuffer& response) override;
+
+    /*!
+    * @brief Sends request and wait for response
+    *
+    * Connection is active when object exist. Sending a message means just passing
+    * all information from the request to the channel. This send is not multithread
+    * safe, it has to be encapsulated with a pair of lock/unlock commands. The use
+    * of RAII is highly encouraged. Useful for sending bundled IPMI commands.
+    *
+    * @param netfn network function
+    * @param command command
+    * @param lun logical unit number
+    * @param bridge bridging information
+    * @param request bytes to be sent
+    * @param[out] response received bytes
+    */
+   void send_unlocked(
+       NetFn netfn, Cmd command, Lun lun,
+       const BridgeInfo& bridge,
+       const ByteBuffer& request, ByteBuffer& response) override;
+
+   /*!
+    * @brief Locks the IPMI interface instance.
+    */
+   void lock() override;
+
+   /*!
+    * @brief Unlocks the IPMI interface instance.
+    */
+   void unlock() override;
 
     /*!
      * @brief Check if IPMI interface matches current connection data

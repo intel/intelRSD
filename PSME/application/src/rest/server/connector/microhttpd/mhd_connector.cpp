@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +58,7 @@ int send_response(MHD_Connection* con, /*const*/ Response& res) {
         return MHD_queue_response(con, res.get_status(), r.get());
     }
 
-    log_error(GET_LOGGER("rest"), "Cannot create response\n");
+    log_error("rest", "Cannot create response\n");
     return MHD_NO;
 }
 
@@ -84,7 +84,7 @@ int access_handler_callback(void* cls, struct MHD_Connection *connection,
     const char* url, const char* method, const char* version,
     const char* upload_data, size_t* upload_data_size, void** con_cls) {
 
-    log_debug(GET_LOGGER("rest"), "HTTP Method " << method);
+    log_debug("rest", "HTTP Method " << method);
 
     auto* connector = static_cast<MHDConnector*>(cls);
 
@@ -155,7 +155,7 @@ void MHDConnector::start() {
             throw std::runtime_error(str.str());
         }
 
-        log_info(GET_LOGGER("rest"),
+        log_info("rest",
                 "HTTP" << (get_options().use_ssl() ? "S" : "")
                 << " connector started on port: " << port);
     }
@@ -164,7 +164,7 @@ void MHDConnector::start() {
 void MHDConnector::stop() {
     if (m_daemon) {
         m_daemon.reset();
-        log_info(GET_LOGGER("rest"), "HTTP"  << (get_options().use_ssl() ? "S" : "")
+        log_info("rest", "HTTP"  << (get_options().use_ssl() ? "S" : "")
                 << " connector on port: " << get_options().get_port() << " stopped\n");
     }
 }

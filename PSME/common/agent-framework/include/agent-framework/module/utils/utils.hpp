@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,9 @@
 
 #pragma once
 
-#include "compute_hash.hpp"
+#include "hash.hpp"
 #include "optional_field.hpp"
 #include "json_converter.hpp"
 #include "time.hpp"
+#include "uuid.hpp"
+#include "iso8601_time_interval.hpp"

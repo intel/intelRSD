@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,18 +32,14 @@ import java.util.TreeSet;
 
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
-@JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name",
-    "description", "temperatures", "fans", "redundancy"
-})
-@SuppressWarnings({"checkstyle:MethodCount"})
+@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "temperatures", "fans", "redundancies", "oem"})
 public final class ThermalDto extends RedfishDto {
     private Status status;
+    private final Oem oem = new Oem();
     private Set<ThermalTemperatureDto> temperatures = new TreeSet<>();
     private Set<ThermalFanDto> fans = new TreeSet<>();
     @JsonProperty("Redundancy")
     private Set<RedundancyDto> redundancies = new TreeSet<>();
-    private Oem oem = new Oem();
 
     public ThermalDto() {
         super("#Thermal.v1_1_0.Thermal");
@@ -59,10 +55,6 @@ public final class ThermalDto extends RedfishDto {
 
     public Oem getOem() {
         return oem;
-    }
-
-    public void setOem(Oem oem) {
-        this.oem = oem;
     }
 
     public Set<ThermalTemperatureDto> getTemperatures() {
@@ -90,12 +82,14 @@ public final class ThermalDto extends RedfishDto {
     }
 
     @JsonPropertyOrder({
-        "@odata.id", "memberId", "name", "sensorNumber", "status",
-        "readingCelsius", "upperThresholdNonCritical", "upperThresholdCritical", "upperThresholdFatal",
-        "lowerThresholdNonCritical", "lowerThresholdCritical", "lowerThresholdFatal", "minReadingRangeTemp",
-        "maxReadingRangeTemp", "physicalContext", "relatedItem"
+        "@odata.id", "memberId", "name", "sensorNumber", "status", "readingCelsius", "upperThresholdNonCritical", "upperThresholdCritical",
+        "upperThresholdFatal", "lowerThresholdNonCritical", "lowerThresholdCritical", "lowerThresholdFatal", "minReadingRangeTemp", "maxReadingRangeTemp",
+        "physicalContext", "relatedItem"
     })
+    @SuppressWarnings({"checkstyle:MethodCount"})
     public static final class ThermalTemperatureDto implements Comparable<ThermalTemperatureDto> {
+        @JsonUnwrapped
+        @JsonProperty("@odata.id")
         private ODataId oDataId;
         private String memberId;
         private String name;
@@ -110,17 +104,14 @@ public final class ThermalDto extends RedfishDto {
         private BigDecimal lowerThresholdFatal;
         private BigDecimal minReadingRangeTemp;
         private BigDecimal maxReadingRangeTemp;
-        @JsonUnwrapped
         private PhysicalContext physicalContext;
         private Set<Context> relatedItem = new HashSet<>();
 
-        @JsonProperty("@odata.id")
-        @JsonUnwrapped
-        public ODataId getOdataId() {
+        public ODataId getoDataId() {
             return oDataId;
         }
 
-        public void setOdataId(ODataId oDataId) {
+        public void setoDataId(ODataId oDataId) {
             this.oDataId = oDataId;
         }
 
@@ -251,18 +242,19 @@ public final class ThermalDto extends RedfishDto {
     }
 
     @JsonPropertyOrder({
-        "@odata.id", "@odata.type", "memberId", "name", "physicalContext", "status", "reading", "readingUnits",
-        "upperThresholdNonCritical", "upperThresholdCritical", "upperThresholdFatal", "lowerThresholdNonCritical",
-        "lowerThresholdCritical", "lowerThresholdFatal", "minReadingRangeTemp", "maxReadingRangeTemp", "redundancy",
-        "relatedItem"
+        "@odata.id", "@odata.type", "memberId", "name", "physicalContext", "status", "reading", "readingUnits", "upperThresholdNonCritical",
+        "upperThresholdCritical", "upperThresholdFatal", "lowerThresholdNonCritical", "lowerThresholdCritical", "lowerThresholdFatal", "minReadingRange",
+        "maxReadingRange", "redundancy", "relatedItem"
     })
+    @SuppressWarnings({"checkstyle:MethodCount"})
     public static final class ThermalFanDto implements Comparable<ThermalFanDto> {
-        private ODataId oDataId;
         @JsonProperty("@odata.type")
         private final String oDataType = "#Thermal.v1_1_0.Fan";
+        @JsonUnwrapped
+        @JsonProperty("@odata.id")
+        private ODataId oDataId;
         private String memberId;
         private String name;
-        @JsonUnwrapped
         private PhysicalContext physicalContext;
         private Status status;
         private Integer reading;
@@ -278,13 +270,11 @@ public final class ThermalDto extends RedfishDto {
         private Set<Context> redundancy;
         private Set<Context> relatedItem;
 
-        @JsonProperty("@odata.id")
-        @JsonUnwrapped
-        public ODataId getOdataId() {
+        public ODataId getoDataId() {
             return oDataId;
         }
 
-        public void setOdataId(ODataId oDataId) {
+        public void setoDataId(ODataId oDataId) {
             this.oDataId = oDataId;
         }
 
@@ -435,13 +425,11 @@ public final class ThermalDto extends RedfishDto {
             return rackScaleOem;
         }
 
-        @JsonPropertyOrder({"oDataType", "desiredSpeedPwm", "volumetricAirflowCfm"})
+        @JsonPropertyOrder({"@odata.type", "desiredSpeedPwm", "volumetricAirflowCfm"})
         public class RackScaleOem {
             @JsonProperty("@odata.type")
             private final String oDataType = "#Intel.Oem.Thermal";
-            @JsonProperty("DesiredSpeedPwm")
             private Integer desiredSpeedPwm;
-            @JsonProperty("VolumetricAirflowCfm")
             private Integer volumetricAirflowCfm;
 
             public String getoDataType() {
@@ -451,6 +439,7 @@ public final class ThermalDto extends RedfishDto {
             public void setDesiredSpeedPwm(Integer desiredSpeedPwm) {
                 this.desiredSpeedPwm = desiredSpeedPwm;
             }
+
             public void setVolumetricAirflowCfm(Integer volumetricAirflowCfm) {
                 this.volumetricAirflowCfm = volumetricAirflowCfm;
             }

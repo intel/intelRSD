@@ -51,7 +51,7 @@
         <Annotation Term="OData.Description" String="The interval until the next event."/>
         <Annotation Term="OData.LongDescription"
                     String="The value shall indicate the applicability of the metric value for performing calculations."/>
-        <Member Name="NonCalculatable">
+        <Member Name="NonCalculable">
           <Annotation Term="OData.Description" String="Arithmetic on corresponding metric values makes no sense."/>
         </Member>
         <Member Name="Summable">

@@ -26,13 +26,13 @@
       <EntityType Name="VirtualMedia" BaseType="VirtualMedia.VirtualMedia">
         <Property Name="ImageName" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The current image name"/>
+          <Annotation Term="OData.Description" String="The current image name."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be the name of the image. "/>
         </Property>
         <Property Name="Image" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="A URI providing the location of the selected image"/>
+          <Annotation Term="OData.Description" String="A URI providing the location of the selected image."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this string shall be an URI.  A null value indicated no image connection."/>
           <Annotation Term="OData.IsURL"/>
@@ -45,7 +45,7 @@
         </Property>
         <Property Name="ConnectedVia" Type="VirtualMedia.v1_0_0.ConnectedVia">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Current virtual media connection methods"/>
+          <Annotation Term="OData.Description" String="Current virtual media connection methods."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall indicate the current connection method from a client to the virtual media represented by this resource.  A value of NotConnected shall indicate no connection is present.  A value of URI shall indicate that a remote connection via a URI reference type is being used. "/>
         </Property>
@@ -66,32 +66,32 @@
       <!-- These are all supported media types. -->
       <EnumType Name="MediaType">
         <Member Name="CD">
-          <Annotation Term="OData.Description" String="A CD-ROM format (ISO) image"/>
+          <Annotation Term="OData.Description" String="A CD-ROM format (ISO) image."/>
         </Member>
         <Member Name="Floppy">
-          <Annotation Term="OData.Description" String="A floppy disk image"/>
+          <Annotation Term="OData.Description" String="A floppy disk image."/>
         </Member>
         <Member Name="USBStick">
-          <Annotation Term="OData.Description" String="An emulation of a USB storage device"/>
+          <Annotation Term="OData.Description" String="An emulation of a USB storage device."/>
         </Member>
         <Member Name="DVD">
-          <Annotation Term="OData.Description" String="A DVD-ROM format image"/>
+          <Annotation Term="OData.Description" String="A DVD-ROM format image."/>
         </Member>
       </EnumType>
 
       <!-- These are all supported types of connection for virtual media. -->
       <EnumType Name="ConnectedVia">
         <Member Name="NotConnected">
-          <Annotation Term="OData.Description" String="No current connection"/>
+          <Annotation Term="OData.Description" String="No current connection."/>
         </Member>
         <Member Name="URI">
-          <Annotation Term="OData.Description" String="Connected to a URI location"/>
+          <Annotation Term="OData.Description" String="Connected to a URI location."/>
         </Member>
         <Member Name="Applet">
-          <Annotation Term="OData.Description" String="Connected to a client application"/>
+          <Annotation Term="OData.Description" String="Connected to a client application."/>
         </Member>
         <Member Name="Oem">
-          <Annotation Term="OData.Description" String="Connected via an OEM-defined method"/>
+          <Annotation Term="OData.Description" String="Connected via an OEM-defined method."/>
         </Member>
       </EnumType>
 

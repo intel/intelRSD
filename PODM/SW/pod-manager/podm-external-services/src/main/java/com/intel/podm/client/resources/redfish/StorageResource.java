@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.WebClientRequestException;
@@ -31,24 +32,30 @@ import com.intel.podm.common.types.annotations.AsUnassigned;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
+import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_EMPTY_COLLECTION;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
 
 @OdataTypes({
     "#Storage" + VERSION_PATTERN + "Storage"
 })
 public class StorageResource extends ExternalServiceResourceImpl implements ExternalServiceResource {
-    @JsonProperty("Status")
+    @JsonSetter(value = "Status", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Status> status;
-    @JsonProperty("StorageControllers")
+
+    @JsonSetter(value = "StorageControllers", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
-    private Ref<List<StorageControllerResource>> storageControllers = Ref.unassigned();
+    private Ref<List<StorageControllerResource>> storageControllers = unassigned();
+
     @JsonProperty("Drives")
     private List<ODataId> drives;
+
     @JsonProperty("Volumes")
     private Object volumes;
+
     @JsonProperty("Links")
     private Links links;
 

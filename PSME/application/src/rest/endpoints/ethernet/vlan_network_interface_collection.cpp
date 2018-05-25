@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -128,7 +128,7 @@ void VlanNetworkInterfaceCollection::post(const server::Request& request, server
             get_port_vlan_manager().get_entry(add_response.get_port_vlan());
 
         psme::rest::endpoint::utils::set_location_header(
-            response, PathBuilder(request).append(created_vlan.get_id()).build());
+            request, response, PathBuilder(request).append(created_vlan.get_id()).build());
 
         response.set_status(server::status_2XX::CREATED);
     };

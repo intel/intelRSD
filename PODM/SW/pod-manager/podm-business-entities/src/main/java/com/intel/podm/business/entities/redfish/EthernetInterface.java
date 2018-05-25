@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.intel.podm.business.entities.redfish.embeddables.IpV6Address;
 import com.intel.podm.business.entities.redfish.embeddables.IpV6AddressPolicy;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.LinkStatus;
+import com.intel.podm.common.types.Protocol;
 import com.intel.podm.common.types.net.MacAddress;
 
 import javax.persistence.CollectionTable;
@@ -168,9 +169,23 @@ public class EthernetInterface extends DiscoverableEntity implements VlanPossess
         inverseJoinColumns = {@JoinColumn(name = "pcie_function_id", referencedColumnName = "id")})
     private Set<PcieDeviceFunction> pcieDeviceFunctions = new HashSet<>();
 
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "ethernet_interface_endpoint",
+        joinColumns = {@JoinColumn(name = "ethernet_interface_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "endpoint_id", referencedColumnName = "id")})
+    private Set<Endpoint> endpoints = new HashSet<>();
+
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "computer_system_id")
     private ComputerSystem computerSystem;
+
+    @ElementCollection
+    @Enumerated(STRING)
+    @CollectionTable(name = "ethernet_interface_supported_protocol", joinColumns = @JoinColumn(name = "ethernet_interface_id"))
+    @Column(name = "supported_protocol")
+    @OrderColumn(name = "supported_protocol_order")
+    private List<Protocol> supportedProtocols = new ArrayList<>();
 
     @Override
     public Id getId() {
@@ -336,13 +351,19 @@ public class EthernetInterface extends DiscoverableEntity implements VlanPossess
         ipV6StaticAddresses.add(ipV6Address);
     }
 
-
     public List<IpV6AddressPolicy> getIpV6AddressPolicyTable() {
         return ipV6AddressPolicyTable;
     }
 
     public void addIpV6Policy(IpV6AddressPolicy ipV6AddressPolicy) {
         ipV6AddressPolicyTable.add(ipV6AddressPolicy);
+    }
+
+    public List<Protocol> getSupportedProtocols() {
+        return supportedProtocols;
+    }
+    public void addSupportedProtocol(Protocol supportedProtocol) {
+        supportedProtocols.add(supportedProtocol);
     }
 
     @Override
@@ -412,6 +433,28 @@ public class EthernetInterface extends DiscoverableEntity implements VlanPossess
         }
     }
 
+    public Set<Endpoint> getEndpoints() {
+        return endpoints;
+    }
+
+    public void addEndpoint(Endpoint endpoint) {
+        requiresNonNull(endpoint, "endpoint");
+
+        endpoints.add(endpoint);
+        if (!endpoint.getEthernetInterfaces().contains(this)) {
+            endpoint.addEthernetInterface(this);
+        }
+    }
+
+    public void unlinkEndpoint(Endpoint endpoint) {
+        if (endpoints.contains(endpoint)) {
+            endpoints.remove(endpoint);
+            if (endpoint != null) {
+                endpoint.unlinkEthernetInterface(this);
+            }
+        }
+    }
+
     public ComputerSystem getComputerSystem() {
         return computerSystem;
     }
@@ -440,6 +483,7 @@ public class EthernetInterface extends DiscoverableEntity implements VlanPossess
         unlinkCollection(ethernetSwitchPortVlans, this::unlinkEthernetSwitchPortVlan);
         unlinkCollection(managers, this::unlinkManager);
         unlinkCollection(pcieDeviceFunctions, this::unlinkPcieDeviceFunction);
+        unlinkCollection(endpoints, this::unlinkEndpoint);
         unlinkComputerSystem(computerSystem);
     }
 

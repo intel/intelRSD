@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,49 +24,44 @@
  * */
 
 #include "psme/rest/eventing/event_service.hpp"
-#include "psme/rest/http/http_defs.hpp"
 #include "psme/rest/eventing/rest_client.hpp"
 #include "psme/rest/eventing/model/subscription.hpp"
-#include "psme/rest/eventing/config/subscription_config.hpp"
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
+#include "psme/rest/server/content_types.hpp"
 #include "configuration/configuration.hpp"
 #include "agent-framework/logger_ext.hpp"
 
 using namespace psme::rest::eventing;
-using namespace psme::rest::eventing::config;
 using namespace psme::rest::eventing::manager;
+using namespace psme::rest::eventing::model;
 
 constexpr char EventService::DELIVERY_RETRY_ATTEMPTS_PROP[];
 constexpr char EventService::DELIVERY_RETRY_INTERVAL_PROP[];
 
 EventService::EventService() {
-    const json::Value& config =
-            configuration::Configuration::get_instance().to_json();
+    const json::Value& config = configuration::Configuration::get_instance().to_json();
     const auto& event_service_config = config["event-service"];
-    m_delivery_retry_attempts =
-            event_service_config[DELIVERY_RETRY_ATTEMPTS_PROP].as_uint();
-    m_delivery_retry_interval =
-            std::chrono::seconds(
-                event_service_config[DELIVERY_RETRY_INTERVAL_PROP].as_uint());
+    m_delivery_retry_attempts = event_service_config[DELIVERY_RETRY_ATTEMPTS_PROP].as_uint();
+    m_delivery_retry_interval = std::chrono::seconds(event_service_config[DELIVERY_RETRY_INTERVAL_PROP].as_uint());
 }
 
 void EventService::start() {
-    log_info(GET_LOGGER("rest"), "Starting REST event service ...");
+    log_info("rest", "Starting REST event service ...");
     if (!m_running) {
         m_running = true;
         m_thread = std::thread(&EventService::m_handle_events, this);
-        log_info(GET_LOGGER("rest"), "REST event service started.");
+        log_info("rest", "REST event service started.");
     }
 }
 
 void EventService::stop() {
-    log_info(GET_LOGGER("rest"), "Stopping REST event service ...");
+    log_info("rest", "Stopping REST event service ...");
     if (m_running) {
         m_running = false;
         if (m_thread.joinable()) {
             m_thread.join();
         }
-        log_info(GET_LOGGER("rest"), "REST event service stopped.");
+        log_info("rest", "REST event service stopped.");
     }
 }
 
@@ -75,7 +70,7 @@ EventService::~EventService() {
 }
 
 void EventService::post_events_array(EventArrayUPtr event_array, const steady_clock::duration& delay) {
-    log_debug(GET_LOGGER("rest"), "Post events :" << event_array->to_json());
+    log_debug("rest", "Post events :" << event_array->to_json());
     return EventService::get_event_array_queue().push_back(std::move(event_array), delay);
 }
 
@@ -98,48 +93,44 @@ void EventService::send_event_array(const EventArray& event_array) {
     try {
         std::string notification = json::Serializer(event_array.to_json());
         psme::rest::eventing::RestClient rest_client("");
-        rest_client.set_default_content_type(psme::rest::http::MimeType::JSON);
+        rest_client.set_default_content_type(psme::rest::server::ContentType::JSON);
         rest_client.post(destination, notification);
-        log_debug(GET_LOGGER("rest"), " Subscriber: " << destination
+        log_debug("rest", " Subscriber: " << destination
                                     << " notified with: " << notification);
     } catch (std::runtime_error&) {
         EventArrayUPtr retry_event_array(new EventArray(event_array));
         auto retry_attempts = retry_event_array->increment_retry_attempts();
         if (retry_attempts < this->m_delivery_retry_attempts) {
-            log_warning(GET_LOGGER("rest"), "Failed to send event array with Id: "
+            log_warning("rest", "Failed to send event array with Id: "
                 << retry_event_array->get_id() << " to: " << destination
                 << " retry attempt no: " << retry_attempts);
             EventService::post_events_array(std::move(retry_event_array), this->m_delivery_retry_interval);
         }
         else {
-            log_warning(GET_LOGGER("rest"), "Event array with Id: " << event_array.get_id()
+            log_warning("rest", "Event array with Id: " << event_array.get_id()
                     << " could not be delivered: "
                     << destination << " is unreachable");
             SubscriptionManager::get_instance()->del(subscription.get_id());
-            SubscriptionConfig::get_instance()->save();
         }
     }
 }
 
 std::vector<EventArray> EventService::select_events_for_subscribers(const EventArray& event_array) {
     std::vector<EventArray> selections{};
-    for (const auto& item : SubscriptionManager::get_instance()->get()) {
-        const auto& subscription = item.second;
-        EventArray selection = event_array;
-
-        EventVec& events = selection.events();
-        events.erase(std::remove_if(events.begin(), events.end(), [&subscription] (const Event& event)
-                                    {return !subscription.is_subscribed_for(event);}),
-                     events.end());
+    SubscriptionManager::get_instance()->for_each([&selections, &event_array](const Subscription& subscription) {
+        EventVec events{};
+        std::copy_if(event_array.get_events().cbegin(), event_array.get_events().cend(), std::back_inserter(events),
+            [&subscription] (const Event& event) -> bool { return subscription.is_subscribed_for(event); });
 
         if (!events.empty()) {
+            EventArray selection{std::move(events)};
             selection.set_context(subscription.get_context());
-            selection.set_subscriber_id(item.first);
+            selection.set_subscriber_id(subscription.get_id());
             // EventArray is ready for POSTing - assign it a Redfish Id.
             selection.assign_new_id();
             selections.emplace_back(std::move(selection));
         }
-    }
+    });
     return selections;
 }
 
@@ -147,16 +138,16 @@ void EventService::m_handle_events() {
     while (m_running) {
         if (const auto event_array = get_event_array_queue().wait_for_and_pop(std::chrono::seconds(1))) {
 
-            log_debug(GET_LOGGER("rest"), " Popped Event Array: "
+            log_debug("rest", " Popped Event Array: "
                         << json::Serializer(event_array->to_json()));
 
             try {
-                if (! event_array->get_subscriber_id().has_value()) {
+                if (!event_array->get_subscriber_id().has_value()) {
                     // event array is processed for the first time. For each subscriber,
                     // create an EventArray containing only the events that match the subscription
                     auto filtered_event_arrays = select_events_for_subscribers(*event_array);
 
-                    for (auto& events_for_subscriber: filtered_event_arrays) {
+                    for (auto& events_for_subscriber : filtered_event_arrays) {
                         // @TODO parallelize sending event array by using tasks processed by a threadpool
                         send_event_array(events_for_subscriber);
                     }
@@ -165,12 +156,12 @@ void EventService::m_handle_events() {
                 }
             }
             catch (const std::runtime_error& e) {
-                log_error(GET_LOGGER("rest"),
+                log_error("rest",
                     " Exception occurred when processing event array: "
                         << event_array->to_json() << " : " << e.what());
             }
             catch (...) {
-                log_error(GET_LOGGER("rest"),
+                log_error("rest",
                     " Exception occurred when processing event array: "
                         << event_array->to_json());
             }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@
 #include "configuration/configuration_validator.hpp"
 #include "default_configuration.hpp"
 #include "port_monitor_thread.hpp"
+#include "database/database.hpp"
 
 #include "json-rpc/connectors/http_server_connector.hpp"
 
@@ -68,8 +69,7 @@ int main(int argc, const char* argv[]) {
     std::uint16_t server_port = DEFAULT_SERVER_PORT;
 
     /* Initialize configuration */
-    log_info(GET_LOGGER("agent"),
-        agent_framework::generic::Version::build_info());
+    log_info("pnc-agent", agent_framework::generic::Version::build_info());
 
     /* Initialize configuration */
     const json::Value& configuration = ::init_configuration(argc, argv);
@@ -81,7 +81,7 @@ int main(int argc, const char* argv[]) {
 
     ::agent::pnc::loader::PncLoader module_loader{};
     if (!module_loader.load(configuration)) {
-        log_error(GET_LOGGER("pnc-agent"), "Invalid modules configuration");
+        log_error("pnc-agent", "Invalid modules configuration");
         Configuration::cleanup();
         LoggerFactory::cleanup();
         return 6;
@@ -89,15 +89,18 @@ int main(int argc, const char* argv[]) {
 
     /* Initialize logger */
     LoggerLoader loader(configuration);
-    LoggerFactory::instance().set_loggers(loader.load());
-    LoggerFactory::set_main_logger_name("pnc-agent");
-    log_info(GET_LOGGER("pnc-agent"), "Running PSME Pnc...");
+    loader.load(LoggerFactory::instance());
+    log_info("pnc-agent", "Running PSME Pnc...");
 
     try {
         server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
-    } catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("pnc-agent"),
-                "Cannot read server port " << e.what());
+    }
+    catch (const json::Value::Exception& e) {
+        log_error("pnc-agent", "Cannot read server port " << e.what());
+    }
+
+    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
+        database::Database::set_default_location(configuration["database"]["location"].as_string());
     }
 
     RegistrationData registration_data{configuration};
@@ -108,7 +111,7 @@ int main(int argc, const char* argv[]) {
     auto tools = Toolset::get();
     DiscoveryManager dm = DiscoveryManager::create(tools);
     try {
-        dm.discovery("");
+        dm.discovery();
 
         // stabilize switch ports -> needed for correct port state manager operation
         for (const auto& elem : agent_framework::module::get_manager<agent_framework::model::Manager>().get_keys()) {
@@ -116,14 +119,14 @@ int main(int argc, const char* argv[]) {
         }
     }
     catch (PncDiscoveryExceptionSwitchNotFound&) {
-        log_error(GET_LOGGER("pnc-agent"), "No PCIe switches found, exiting.");
+        log_error("pnc-agent", "No PCIe switches found, exiting...");
         event_dispatcher.stop();
         Configuration::cleanup();
         LoggerFactory::cleanup();
         return 1;
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("pnc-discovery"), "Discovery FAILED: " << e.what());
+        log_error("pnc-discovery", "Discovery FAILED: " << e.what());
     }
 
     /* Start Port Monitor Thread */
@@ -147,7 +150,7 @@ int main(int argc, const char* argv[]) {
 
     bool server_started = server.start();
     if (!server_started) {
-        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+        log_error("pnc-agent", "Could not start JSON-RPC command server on port "
             << server_port << " restricted to " << registration_data.get_ipv4_address()
             << ". " << "Quitting now...");
         event_dispatcher.stop();
@@ -169,7 +172,7 @@ int main(int argc, const char* argv[]) {
     /* Stop the program and wait for interrupt */
     wait_for_interrupt();
 
-    log_info(GET_LOGGER("pnc-agent"), "Stopping PSME Pnc Agent...\n");
+    log_info("pnc-agent", "Stopping PSME Pnc Agent...");
 
     /* Cleanup */
     server.stop();
@@ -182,7 +185,7 @@ int main(int argc, const char* argv[]) {
 }
 
 const json::Value& init_configuration(int argc, const char** argv) {
-    log_info(GET_LOGGER("pnc-agent"),
+    log_info("pnc-agent",
              agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
@@ -200,7 +203,7 @@ const json::Value& init_configuration(int argc, const char** argv) {
 bool check_configuration(const json::Value& json) {
     json::Value json_schema;
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
-        log_info(GET_LOGGER("pnc-agent"), "JSON Schema load!");
+        log_info("pnc-agent", "JSON Schema load!");
 
         configuration::SchemaErrors errors;
         configuration::SchemaValidator validator;
@@ -209,7 +212,7 @@ bool check_configuration(const json::Value& json) {
 
         validator.validate(json, errors);
         if (!errors.is_valid()) {
-            log_error(GET_LOGGER("pnc-agent"), "Configuration invalid: " << errors.to_string());
+            log_error("pnc-agent", "Configuration invalid: " << errors.to_string());
             return false;
         }
     }

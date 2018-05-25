@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.intel.podm.services.detection.ssdp.protocol;
 
 import com.intel.podm.discovery.external.ServiceDescriptor;
-import com.intel.podm.discovery.external.ServiceEndpoint;
+import com.intel.podm.common.types.discovery.ServiceEndpoint;
 import com.intel.podm.discovery.external.UnrecognizedServiceTypeException;
 import org.fourthline.cling.UpnpService;
 import org.fourthline.cling.model.ValidationException;

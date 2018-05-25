@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.redfish.services.allocation.ComposedNodeStateChanger;
 import com.intel.podm.common.enterprise.utils.logger.TimeMeasured;
-import com.intel.podm.common.logger.Logger;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -32,10 +31,6 @@ import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Dependent
 public class SetComposedNodeStateToAssembledTask extends NodeTask {
-
-    @Inject
-    private Logger logger;
-
     @Inject
     private GenericDao genericDao;
 
@@ -45,13 +40,8 @@ public class SetComposedNodeStateToAssembledTask extends NodeTask {
 
     @Override
     @TimeMeasured(tag = "[AssemblyTask]")
-    @SuppressWarnings({"checkstyle:IllegalCatch"})
     public void run() {
-        try {
-            composedNodeStateChanger.change(nodeId, ASSEMBLED);
-        } catch (RuntimeException e) {
-            logger.e("Error while changing node state", e);
-        }
+        composedNodeStateChanger.change(nodeId, ASSEMBLED);
     }
 
     @Override

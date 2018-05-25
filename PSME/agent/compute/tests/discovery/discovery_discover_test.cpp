@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,9 +61,8 @@ private:
         deserializer >> config;
         bool is_loaded = loader.load(config);
 
-        logger_cpp::LoggerLoader logger_loader(config);
-        logger_cpp::LoggerFactory::instance().set_loggers(logger_loader.load());
-        logger_cpp::LoggerFactory::set_main_logger_name("agent");
+        LoggerLoader loader(configuration);
+        loader.load(LoggerFactory::instance());
 
         if (!is_loaded) {
             throw std::runtime_error("Load must be successful before test DOA!");

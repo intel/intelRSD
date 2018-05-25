@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ const jsonrpc::ProcedureValidator& ZonesCollectionPostSchema::LinksSchema::get_p
     static jsonrpc::ProcedureValidator procedure{
         jsonrpc::PARAMS_BY_NAME,
         constants::Fabric::ENDPOINTS, VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema)),
-        constants::Zone::INVOLVED_SWITCHES, VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema)),
+        constants::Zone::INVOLVED_SWITCHES, VALID_OPTIONAL(VALID_NULLABLE(VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema)))),
         nullptr
     };
     return procedure;
@@ -38,9 +38,7 @@ const jsonrpc::ProcedureValidator& ZonesCollectionPostSchema::LinksSchema::get_p
 const jsonrpc::ProcedureValidator& ZonesCollectionPostSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
         jsonrpc::PARAMS_BY_NAME,
-        constants::Common::NAME, VALID_JSON_STRING,
-        constants::Common::DESCRIPTION, VALID_JSON_STRING,
-        constants::Common::LINKS, VALID_ATTRIBUTE(LinksSchema),
+        constants::Common::LINKS, VALID_OPTIONAL(VALID_ATTRIBUTE(LinksSchema)),
         nullptr
     };
     return procedure;

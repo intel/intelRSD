@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,6 +88,10 @@ extern const char INTERFACE_TYPE[];
 extern const char DEVICE_ENABLED[];
 extern const char CLEAR_OWNERSHIP[];
 extern const char ALLOWABLE_INTERFACE_TYPE[];
+extern const char HOSTED_SERVICES[];
+extern const char STORAGE_SERVICES[];
+extern const char HOSTING_ROLES[];
+
 }
 
 /*!
@@ -283,7 +287,7 @@ extern const char ASSET_TAG[];
 }
 
 /*!
- * @brief Constant literals for Device, LogicalDrive and PhysicalDrive endpoints.
+ * @brief Constant literals for Device and Drive endpoints.
  */
 namespace Drive {
 extern const char INTERFACE[];

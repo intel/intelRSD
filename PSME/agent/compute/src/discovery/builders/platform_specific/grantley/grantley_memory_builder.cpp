@@ -2,7 +2,7 @@
  * @brief Grantley memory builder class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,12 +42,12 @@ void GrantleyMemoryBuilder::update_memory_index(agent_framework::model::Memory& 
 
     if (dimm_index < MEMORY_BANK_SIZE) {
         socket_name = "A" + std::to_string(unsigned(dimm_index));
-        log_debug(GET_LOGGER("agent"), "Dimm index: " << unsigned(dimm_index - 1)
+        log_debug("agent", "Dimm index: " << unsigned(dimm_index - 1)
                                                       << " is translated to: " << socket_name);
     }
     else {
         socket_name = "B" + std::to_string(dimm_index % MEMORY_BANK_SIZE);
-        log_debug(GET_LOGGER("agent"), "Dimm index: " << unsigned(dimm_index - 1)
+        log_debug("agent", "Dimm index: " << unsigned(dimm_index - 1)
                                                       << " is translated to: " << socket_name);
     }
 
@@ -71,7 +71,7 @@ void GrantleyMemoryBuilder::update_dimm_info(agent_framework::model::Memory& mem
             memory.set_device_type(enums::DeviceType::from_string(dimm_type));
         }
         catch (const agent_framework::exceptions::InvalidValue&) {
-            log_warning(GET_LOGGER("legacy-discovery"), "Unknown DIMM type value received: " << dimm_type);
+            log_warning("legacy-discovery", "Unknown DIMM type value received: " << dimm_type);
         }
 
         attribute::Region region{};

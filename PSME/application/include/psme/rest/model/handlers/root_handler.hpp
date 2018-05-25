@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,6 +60,10 @@ public:
 
     static enums::CollectionName get_collection_name() {
         return enums::CollectionName::None;
+    }
+
+    json::Json to_json() const {
+        return json::Json{};
     }
 };
 

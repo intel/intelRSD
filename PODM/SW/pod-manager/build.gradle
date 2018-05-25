@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,6 @@ dependencies {
     runtime POSTGRESQL_JDBC
 }
 
-
 task extractDependencies << {
     copy {
         from {
@@ -89,13 +88,9 @@ task extractDependencies << {
         into buildDirStr + "/wildfly-$wildflyVer" + "/bin/"
     }
 
-
     def modulesDir = buildDirStr + "/wildfly-$wildflyVer/modules/system/layers/base"
     def destinationDir = new File(modulesDir + "/ch/qos/logback/main/")
     destinationDir.mkdirs()
-
-    def psmeUpdateDir = new File(buildDirStr + "/wildfly-$wildflyVer/psme-update")
-    psmeUpdateDir.mkdir()
 
     def discoveryDir = new File(buildDirStr + "/wildfly-$wildflyVer/discovery")
     discoveryDir.mkdir()
@@ -167,7 +162,7 @@ buildDeb {
         into '/usr/share/doc/pod-manager/third-party-licences'
     }
 
-    from project(":vault-decrypter").jar.outputs.files.getFiles().each{ file ->
+    from project(":vault-decrypter").jar.outputs.files.getFiles().each { file ->
         into '/usr/lib/pod-manager/'
         rename("vault-(.*).jar", "vault-decrypter.jar")
     }
@@ -181,15 +176,16 @@ buildDeb {
         into '/'
     }
 
-    configurationFile = "/etc/pod-manager/events.json\n" +
-                        "/etc/pod-manager/discovery.json\n" +
-                        "/etc/pod-manager/allocation.json\n" +
-                        "/etc/pod-manager/service-connection.json\n" +
-                        "/etc/pod-manager/inband-service-config.json\n" +
-                        "/etc/pod-manager/security.json\n" +
-                        "/etc/pod-manager/external-services.json\n" +
-                        "/etc/pod-manager/task-synchronization.json\n" +
-                        "/etc/pod-manager/service-detection.json\n"
+    configurationFile = "/etc/pod-manager/iscsi-chap.json\n" +
+            "/etc/pod-manager/events.json\n" +
+            "/etc/pod-manager/discovery.json\n" +
+            "/etc/pod-manager/allocation.json\n" +
+            "/etc/pod-manager/service-connection.json\n" +
+            "/etc/pod-manager/inband-service-config.json\n" +
+            "/etc/pod-manager/security.json\n" +
+            "/etc/pod-manager/external-services.json\n" +
+            "/etc/pod-manager/task-synchronization.json\n" +
+            "/etc/pod-manager/service-detection.json\n"
 
     preInstall file('os-package/scripts/deb/preinst.sh')
     postInstallFile file('os-package/scripts/deb/postinst.sh')
@@ -197,7 +193,11 @@ buildDeb {
     postUninstall file('os-package/scripts/deb/postrm.sh')
 }
 
-task cleanDatabaseImmidiately(type: Exec) {
+task cleanDatabaseImmediately(type: Exec) {
     executable 'gksudo'
     args 'pod-manager-clean-database-immediately'
+}
+
+task cleanServiceList(type: Exec) {
+    commandLine "rm", "-f", "/tmp/services.list"
 }

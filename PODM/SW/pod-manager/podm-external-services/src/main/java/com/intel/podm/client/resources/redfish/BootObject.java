@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.common.types.BootSourceMode;
 import com.intel.podm.common.types.BootSourceState;
 import com.intel.podm.common.types.BootSourceType;
@@ -25,22 +26,23 @@ import com.intel.podm.common.types.annotations.AsUnassigned;
 
 import java.util.LinkedHashSet;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
 public class BootObject {
-    @JsonProperty("BootSourceOverrideEnabled")
+    @JsonSetter(value = "BootSourceOverrideEnabled", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<BootSourceState> bootSourceOverrideEnabled = unassigned();
 
-    @JsonProperty("BootSourceOverrideTarget")
+    @JsonSetter(value = "BootSourceOverrideTarget", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<BootSourceType> bootSourceOverrideTarget = unassigned();
 
     @JsonProperty("BootSourceOverrideTarget@Redfish.AllowableValues")
     private LinkedHashSet<BootSourceType> bootSourceOverrideTargetAllowableValues;
 
-    @JsonProperty("BootSourceOverrideMode")
+    @JsonSetter(value = "BootSourceOverrideMode", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<BootSourceMode> bootSourceOverrideMode = unassigned();
 

@@ -4,7 +4,7 @@
  * It uses simple "IPMI" interface (which implements test message mock).
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <atomic>
 #include "test_connection_data.hpp"
 #include "test_message.hpp"
 
@@ -87,10 +88,35 @@ public:
         return true;
     }
 
+    virtual void send_unlocked(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterface::Cmd command, ipmi::IpmiInterface::Lun lun,
+        const ipmi::BridgeInfo& bridge,
+        const ipmi::IpmiInterface::ByteBuffer& request, ipmi::IpmiInterface::ByteBuffer& response) override {
+        if (locked) {
+            send(netfn, command, lun, bridge, request, response);
+        } else {
+            response.push_back(ipmi::CommandNotSupportedInPresentStateError::ERROR_CODE);
+        }
+    }
+
+    /*!
+     * @brief Locks the IPMI interface instance.
+     */
+    virtual void lock() override {
+        locked = true;
+    }
+
+    /*!
+     * @brief Unlocks the IPMI interface instance.
+     */
+    virtual void unlock() override {
+        locked = false;
+    }
+
 
 private:
     const TestConnectionData data;
     std::uint8_t serial{0};
+    std::atomic<bool> locked;
 
     void process_test_request(const ipmi::IpmiInterface::ByteBuffer&, ipmi::IpmiInterface::ByteBuffer& response, bool fail) {
         serial++;

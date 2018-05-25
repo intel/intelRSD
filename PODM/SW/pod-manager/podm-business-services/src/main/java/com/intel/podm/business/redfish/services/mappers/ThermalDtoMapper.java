@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ class ThermalDtoMapper extends DtoMapper<Thermal, ThermalDto> {
         @Override
         protected void performNotAutomatedMapping(ThermalFan source, ThermalFanDto target) {
             super.performNotAutomatedMapping(source, target);
-            target.setOdataId(asOdataId(toContext(source)));
+            target.setoDataId(asOdataId(toContext(source)));
             target.setRedundancy(source.getRedundancies().stream()
                 .map(Contexts::toContext)
                 .collect(toSet()));
@@ -135,7 +135,7 @@ class ThermalDtoMapper extends DtoMapper<Thermal, ThermalDto> {
         @Override
         protected void performNotAutomatedMapping(ThermalTemperature source, ThermalDto.ThermalTemperatureDto target) {
             super.performNotAutomatedMapping(source, target);
-            target.setOdataId(asOdataId(toContext(source)));
+            target.setoDataId(asOdataId(toContext(source)));
             target.setRelatedItem(source.getRelatedItems().stream()
                 .map(Contexts::toContext)
                 .collect(toSet()));

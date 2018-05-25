@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ std::string log_notify_and_add(const ModelType<TYPE>& resource, event_collector:
                                bool stabilize_notify_flag = true) {
     auto component = get_model_component<TYPE>();
     std::string uuid = resource.get_uuid();
-    log_info(GET_LOGGER("rmm-discovery"), component.to_string() << " found");
-    log_debug(GET_LOGGER("rmm-discovery"), component.to_string() << " uuid: " << uuid);
+    log_info("rmm-discovery", component.to_string() << " found");
+    log_debug("rmm-discovery", component.to_string() << " uuid: " << uuid);
     module::get_manager<ModelType<TYPE>>().add_entry(resource);
     if (stabilize_notify_flag) {
         uuid = stabilize<TYPE>(uuid);
@@ -52,8 +52,8 @@ std::string log_notify_and_add(const ModelType<TYPE>& resource, event_collector:
 template <RmmType TYPE>
 void log_notify_and_remove(const std::string& uuid, event_collector::EventCollectorInterfacePtr ec) {
     auto component = get_model_component<TYPE>();
-    log_info(GET_LOGGER("rmm-discovery"), component.to_string() << " removed");
-    log_debug(GET_LOGGER("rmm-discovery"), "Removed " << component.to_string() << " uuid: " << uuid);
+    log_info("rmm-discovery", component.to_string() << " removed");
+    log_debug("rmm-discovery", "Removed " << component.to_string() << " uuid: " << uuid);
     std::string parent_uuid = module::get_manager<ModelType<TYPE>>().get_entry(uuid).get_parent_uuid();
     module::get_manager<ModelType<TYPE>>().remove_entry(uuid);
     ec->poll_remove_event(component, uuid, parent_uuid);
@@ -73,8 +73,8 @@ void log_notify_and_update(const ModelType<TYPE>& resource, event_collector::Eve
     std::string uuid = resource.get_uuid();
     std::string parent_uuid = resource.get_parent_uuid();
     auto component = get_model_component<TYPE>();
-    log_info(GET_LOGGER("rmm-discovery"), component.to_string() << " updated");
-    log_debug(GET_LOGGER("rmm-discovery"), component.to_string() << " with uuid: " + uuid << " has been updated");
+    log_info("rmm-discovery", component.to_string() << " updated");
+    log_debug("rmm-discovery", component.to_string() << " with uuid: " + uuid << " has been updated");
     module::get_manager<ModelType<TYPE>>().get_entry_reference(resource.get_uuid()).get_raw_ref() = resource;
     ec->poll_update_event(component, uuid, parent_uuid);
 }

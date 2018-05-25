@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,8 @@ Drive::~Drive() {}
 
 
 json::Json Drive::to_json() const {
-    json::Json result;
+    json::Json result{};
+
     result[literals::Drive::STATUS] = get_status().to_json();
     result[literals::Drive::INTERFACE] = get_interface();
     result[literals::Drive::TYPE] = get_type();
@@ -64,12 +65,13 @@ json::Json Drive::to_json() const {
     result[literals::Drive::ERASED] = get_erased();
     result[literals::Drive::COLLECTIONS] = get_collections().to_json();
     result[literals::Drive::OEM] = get_oem().to_json();
+
     return result;
 }
 
 
 Drive Drive::from_json(const json::Json& json) {
-    Drive drive;
+    Drive drive{};
 
     drive.set_status(attribute::Status::from_json(json[literals::Drive::STATUS]));
     drive.set_interface(json[literals::Drive::INTERFACE]);
@@ -96,7 +98,6 @@ Drive Drive::from_json(const json::Json& json) {
     drive.set_erased(json[literals::Drive::ERASED]);
     drive.set_collections(Collections::from_json(json[literals::Drive::COLLECTIONS]));
     drive.set_oem(attribute::Oem::from_json(json[literals::Drive::OEM]));
-    drive.set_resource_hash(json);
 
     return drive;
 }

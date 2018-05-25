@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 function(install_safe_string)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(safestring 0.0.1 "https://github.com/01org/safestringlib/archive/master.zip" "baeab5d3aa86ff7aab555d6fcf6489e2")
+    assure_package(safestring 1.0.0 "https://github.com/intel/safestringlib/archive/v1.0.0.zip" "c1bf61a0787053093a792029acb794fa")
 
     file(GLOB cfiles ${source_dir}/safeclib/*.c)
     execute_process(
@@ -42,7 +42,6 @@ function(install_safe_string)
         ${CMAKE_BINARY_DIR}/lib/libsafe-string.a
         COPYONLY
     )
-
 
     file(GLOB hfiles ${source_dir}/include/*.h ${source_dir}/include/*.hpp)
     file(INSTALL

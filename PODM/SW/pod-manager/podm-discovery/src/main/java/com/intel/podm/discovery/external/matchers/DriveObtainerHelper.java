@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,17 +53,18 @@ public class DriveObtainerHelper implements EntityObtainerHelper<DriveResource> 
     @Override
     public Optional<? extends Entity> findEntityFor(ComputerSystem computerSystem, DriveResource resource) {
         return computerSystem.getStorages().stream()
-                .findFirst()
-                .flatMap(toDriveMatchingCriteria(resource));
+            .findFirst()
+            .flatMap(toDriveMatchingCriteria(resource));
     }
 
     private Function<Storage, Optional<Drive>> toDriveMatchingCriteria(DriveResource resource) {
         return storage -> storage.getDrives().stream()
-                .filter(bySerialNumber(resource))
-                .findFirst();
+            .filter(bySerialNumber(resource))
+            .findFirst();
     }
 
     private Predicate<? super Drive> bySerialNumber(DriveResource resource) {
+
         return drive -> {
             String serialNumberFromDrive = drive.getSerialNumber();
             String serialNumberFromResource = resource.getSerialNumber().orElse(null);
@@ -71,7 +72,6 @@ public class DriveObtainerHelper implements EntityObtainerHelper<DriveResource> 
             if (isNull(serialNumberFromDrive) && isNull(serialNumberFromResource)) {
                 return false;
             }
-
             return Objects.equals(serialNumberFromDrive, serialNumberFromResource);
         };
     }

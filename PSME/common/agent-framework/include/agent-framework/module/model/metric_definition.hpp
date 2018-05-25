@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ public:
     using CalculationParametersArray = attribute::Array<attribute::CalculationParameters>;
     using DiscreteValues = attribute::Array<std::string>;
 
-    using Seconds = std::chrono::duration<double, std::ratio<1>>;
 
 
     explicit MetricDefinition(const std::string& parent_uuid = {},
@@ -312,16 +311,10 @@ public:
      * @return metric sensing interval as seconds
      * @warning it is set properly only if sensing_interval is set.
      */
-    Seconds get_sensing_period() const {
-        return Seconds(m_sensing_period);
+    const agent_framework::utils::Iso8601TimeInterval& get_sensing_period() const {
+        return m_sensing_period;
     }
 
-    /*!
-     * @brief Set sensing period for the metric
-     * @param interval to be set
-     * @warning The value overrides sensing interval.
-     */
-    void set_sensing_period(Seconds interval);
 
     /*!
      * @brief Get array of possible values of discrete metric
@@ -495,8 +488,8 @@ public:
      * @return metric calculation time as seconds
      * @warning it is set properly only if calculation_time_interval is set.
      */
-    Seconds get_calculation_period() const {
-        return Seconds(m_calculation_period);
+    const agent_framework::utils::Iso8601TimeInterval& get_calculation_period() const {
+        return m_calculation_period;
     }
 
 
@@ -510,7 +503,7 @@ public:
 
     /*!
      * @brief Set event shore up period
-     * @param shoreup_period shore up period
+     * @param period shore up period
      */
     void set_shoreup_period(double period);
 
@@ -637,16 +630,10 @@ private:
 
     // not serializable
     std::string m_metric_jsonptr{};
-    double m_calculation_period{0.0};
-    double m_sensing_period{10.0};
+    agent_framework::utils::Iso8601TimeInterval m_calculation_period{};
+    agent_framework::utils::Iso8601TimeInterval m_sensing_period{std::chrono::seconds(10)};
     double m_shoreup_period{10.0};
 
-    /*!
-     * @brief Parse ISO 8601 string to get period
-     * @param period string to be parsed
-     * @return value representing seconds
-     */
-    static double parse_period(const std::string& period);
 
     static const enums::Component component;
     static const enums::CollectionName collection_name;

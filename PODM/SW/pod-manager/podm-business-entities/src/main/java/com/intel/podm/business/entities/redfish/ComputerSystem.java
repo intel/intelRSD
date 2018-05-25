@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
 import com.intel.podm.business.entities.SuppressEvents;
 import com.intel.podm.business.entities.listeners.ComputerSystemListener;
+import com.intel.podm.business.entities.redfish.base.ComposableAsset;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.base.MemoryModule;
@@ -34,6 +35,7 @@ import com.intel.podm.business.entities.redfish.embeddables.MemorySummary;
 import com.intel.podm.business.entities.redfish.embeddables.ProcessorSummary;
 import com.intel.podm.business.entities.redfish.embeddables.TrustedModule;
 import com.intel.podm.common.types.DiscoveryState;
+import com.intel.podm.common.types.HostingRole;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.IndicatorLed;
 import com.intel.podm.common.types.InterfaceType;
@@ -60,6 +62,7 @@ import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -69,6 +72,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.intel.podm.common.types.ChassisType.DRAWER;
+import static com.intel.podm.common.utils.Collector.toSingle;
+import static com.intel.podm.common.utils.Collector.toSingleOrNull;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
@@ -85,17 +90,19 @@ import static javax.persistence.FetchType.LAZY;
     @NamedQuery(name = ComputerSystem.GET_PRIMARY_COMPUTER_SYSTEM, query = ComputerSystemQueries.GET_PRIMARY_COMPUTER_SYSTEM),
     @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEM_MULTI_SOURCE, query = ComputerSystemQueries.GET_COMPUTER_SYSTEM_MULTI_SOURCE),
     @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE, query = ComputerSystemQueries.GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE),
-    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID, query = ComputerSystemQueries.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID)
+    @NamedQuery(name = ComputerSystem.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID, query = ComputerSystemQueries.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID),
+    @NamedQuery(name = ComputerSystem.GET_PHYSICAL_COMPUTER_SYSTEM_BY_UUID, query = ComputerSystemQueries.GET_PHYSICAL_COMPUTER_SYSTEM_BY_UUID)
 })
 @EntityListeners(ComputerSystemListener.class)
 @Eventable
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
-public class ComputerSystem extends DiscoverableEntity implements NetworkInterfacePossessor, MultiSourceResource, Resettable {
+public class ComputerSystem extends DiscoverableEntity implements NetworkInterfacePossessor, MultiSourceResource, Resettable, ComposableAsset {
     public static final String GET_COMPUTER_SYSTEM_IDS_FROM_PRIMARY_DATA_SOURCE = "GET_COMPUTER_SYSTEM_IDS_FROM_PRIMARY_DATA_SOURCE";
     public static final String GET_PRIMARY_COMPUTER_SYSTEM = "GET_PRIMARY_COMPUTER_SYSTEM";
     public static final String GET_COMPUTER_SYSTEM_MULTI_SOURCE = "GET_COMPUTER_SYSTEM_MULTI_SOURCE";
     public static final String GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE = "GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE";
     public static final String GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID = "GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID";
+    public static final String GET_PHYSICAL_COMPUTER_SYSTEM_BY_UUID = "GET_PHYSICAL_COMPUTER_SYSTEM_BY_UUID";
     private static final String ENTITY_NAME = "ComputerSystem";
 
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
@@ -176,6 +183,13 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     @ElementCollection
     @Enumerated(STRING)
+    @CollectionTable(name = "computer_system_hosting_role", joinColumns = @JoinColumn(name = "computer_system_id"))
+    @Column(name = "hosting_role")
+    @OrderColumn(name = "hosting_role_order")
+    private List<HostingRole> hostingRoles = new ArrayList<>();
+
+    @ElementCollection
+    @Enumerated(STRING)
     @CollectionTable(name = "computer_system_allowable_reset_type", joinColumns = @JoinColumn(name = "computer_system_id"))
     @Column(name = "allowable_reset_type")
     @OrderColumn(name = "allowable_reset_type_order")
@@ -213,6 +227,10 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
     @SuppressEvents
     @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Storage> storages = new HashSet<>();
+
+    @SuppressEvents
+    @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<StorageService> storageServices = new HashSet<>();
 
     @SuppressEvents
     @OneToMany(mappedBy = "computerSystem", fetch = LAZY, cascade = {MERGE, PERSIST})
@@ -454,12 +472,20 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         return allowableResetTypes;
     }
 
+    public List<HostingRole> getHostingRoles() {
+        return hostingRoles;
+    }
+
     public List<InterfaceType> getAllowableInterfaceTypes() {
         return allowableInterfaceTypes;
     }
 
     public void addAllowableResetType(ResetType allowableResetType) {
         allowableResetTypes.add(allowableResetType);
+    }
+
+    public void addHostingRole(HostingRole hostingRole) {
+        hostingRoles.add(hostingRole);
     }
 
     public void addAllowableInterfaceType(InterfaceType interfaceType) {
@@ -488,7 +514,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addMemoryModule(Memory memoryModule) {
         requiresNonNull(memoryModule, "memoryModule");
-
         memoryModules.add(memoryModule);
         if (!this.equals(memoryModule.getComputerSystem())) {
             memoryModule.setComputerSystem(this);
@@ -510,7 +535,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addProcessor(Processor processor) {
         requiresNonNull(processor, "processor");
-
         processors.add(processor);
         if (!this.equals(processor.getComputerSystem())) {
             processor.setComputerSystem(this);
@@ -532,7 +556,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addSimpleStorage(SimpleStorage simpleStorage) {
         requiresNonNull(simpleStorage, "simpleStorage");
-
         simpleStorages.add(simpleStorage);
         if (!this.equals(simpleStorage.getComputerSystem())) {
             simpleStorage.setComputerSystem(this);
@@ -554,7 +577,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addStorage(Storage storage) {
         requiresNonNull(storage, "storage");
-
         storages.add(storage);
         if (!this.equals(storage.getComputerSystem())) {
             storage.setComputerSystem(this);
@@ -576,6 +598,27 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         }
     }
 
+    public Set<StorageService> getStorageServices() {
+        return storageServices;
+    }
+
+    public void addStorageService(StorageService storageService) {
+        requiresNonNull(storageService, "storageService");
+        storageServices.add(storageService);
+        if (!this.equals(storageService.getComputerSystem())) {
+            storageService.setComputerSystem(this);
+        }
+    }
+
+    public void unlinkStorageService(StorageService storageService) {
+        if (storageServices.contains(storageService)) {
+            storageServices.remove(storageService);
+            if (storageService != null) {
+                storageService.unlinkComputerSystem(this);
+            }
+        }
+    }
+
     @Override
     public Set<EthernetInterface> getEthernetInterfaces() {
         return ethernetInterfaces;
@@ -583,7 +626,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addEthernetInterface(EthernetInterface ethernetInterface) {
         requiresNonNull(ethernetInterface, "ethernetInterface");
-
         ethernetInterfaces.add(ethernetInterface);
         if (!this.equals(ethernetInterface.getComputerSystem())) {
             ethernetInterface.setComputerSystem(this);
@@ -605,7 +647,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addEndpoint(Endpoint endpoint) {
         requiresNonNull(endpoint, "endpoint");
-
         endpoints.add(endpoint);
         if (!this.equals(endpoint.getComputerSystem())) {
             endpoint.setComputerSystem(this);
@@ -627,7 +668,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addPcieDevice(PcieDevice pcieDevice) {
         requiresNonNull(pcieDevice, "pcieDevice");
-
         pcieDevices.add(pcieDevice);
         if (!this.equals(pcieDevice.getComputerSystem())) {
             pcieDevice.setComputerSystem(this);
@@ -649,7 +689,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addPcieDeviceFunction(PcieDeviceFunction pcieDeviceFunction) {
         requiresNonNull(pcieDeviceFunction, "pcieDeviceFunction");
-
         pcieDeviceFunctions.add(pcieDeviceFunction);
         if (!this.equals(pcieDeviceFunction.getComputerSystem())) {
             pcieDeviceFunction.setComputerSystem(this);
@@ -671,7 +710,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addNetworkInterface(NetworkInterface networkInterface) {
         requiresNonNull(networkInterface, "networkInterface");
-
         networkInterfaces.add(networkInterface);
         if (!this.equals(networkInterface.getComputerSystem())) {
             networkInterface.setComputerSystem(this);
@@ -693,7 +731,6 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addManager(Manager manager) {
         requiresNonNull(manager, "manager");
-
         managers.add(manager);
         if (!manager.getComputerSystems().contains(this)) {
             manager.addComputerSystem(this);
@@ -715,12 +752,10 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
 
     public void addChassis(Chassis newChassis) {
         requiresNonNull(newChassis, "newChassis");
-
         chassis.add(newChassis);
         if (!newChassis.getComputerSystems().contains(this)) {
             newChassis.addComputerSystem(this);
         }
-
         linkToStorages(newChassis);
     }
 
@@ -792,14 +827,22 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
     public Optional<Chassis> getDrawerChassis() {
         Set<Chassis> chassisList = getChassis();
         Set<Chassis> allChassisSet = new HashSet<>(chassisList);
+        chassisList.stream().map(Chassis::getAllOnTopOfChassis).forEach(allChassisSet::addAll);
+        return allChassisSet.stream().filter(chassis -> DRAWER.equals(chassis.getChassisType())).findFirst();
+    }
 
-        chassisList.stream()
-            .map(Chassis::getAllOnTopOfChassis)
-            .forEach(allChassisSet::addAll);
+    public NetworkDeviceFunction getNetworkDeviceFunctionOrNull() {
+        return networkInterfaces.stream()
+            .map(NetworkInterface::getNetworkDeviceFunctions)
+            .flatMap(Collection::stream)
+            .collect(toSingleOrNull());
+    }
 
-        return allChassisSet.stream()
-            .filter(chassis -> DRAWER.equals(chassis.getChassisType()))
-            .findFirst();
+    public NetworkDeviceFunction getNetworkDeviceFunction() {
+        return networkInterfaces.stream()
+            .map(NetworkInterface::getNetworkDeviceFunctions)
+            .flatMap(Collection::stream)
+            .collect(toSingle());
     }
 
     @Override
@@ -808,6 +851,7 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         unlinkCollection(processors, this::unlinkProcessor);
         unlinkCollection(simpleStorages, this::unlinkSimpleStorage);
         unlinkCollection(storages, this::unlinkStorage);
+        unlinkCollection(storageServices, this::unlinkStorageService);
         unlinkCollection(ethernetInterfaces, this::unlinkEthernetInterface);
         unlinkCollection(endpoints, this::unlinkEndpoint);
         unlinkCollection(pcieDevices, this::unlinkPcieDevice);
@@ -834,6 +878,13 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
         return ENTITY_NAME;
     }
 
+    @Override
+    public void putToAbsentState() {
+        processorSummary.setStatus(ABSENT);
+        memorySummary.setStatus(ABSENT);
+        super.putToAbsentState();
+    }
+
     private void linkToStorages(Chassis newChassis) {
         getStorages().forEach(storage -> storage.setChassis(newChassis));
         getStorages().forEach(storage -> storage.getDrives().forEach(drive -> drive.setChassis(newChassis)));
@@ -851,5 +902,9 @@ public class ComputerSystem extends DiscoverableEntity implements NetworkInterfa
             storage.setChassis(chassis);
             storage.getDrives().forEach(drive -> drive.setChassis(chassis));
         }
+    }
+
+    public boolean hasNetworkInterfaceWithNetworkDeviceFunction() {
+        return getNetworkInterfaces().stream().map(NetworkInterface::getNetworkDeviceFunctions).flatMap(Collection::stream).count() != 0;
     }
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -600,6 +600,24 @@ public:
 
 
     /*!
+     * @brief Sets last smart health
+     * @param smart_health New value of the smart health
+     * */
+    void set_last_smart_health(enums::Health smart_health) {
+        m_last_smart_health = smart_health;
+    }
+
+
+    /*!
+     * @brief Gets last smart health
+     * @return Last smart health
+     * */
+    enums::Health get_last_smart_health() const {
+        return m_last_smart_health;
+    }
+
+
+    /*!
      * @brief Get dsp port uuids
      * @return Dsp port uuids
      */
@@ -628,11 +646,10 @@ public:
 
 private:
 
-    OptionalField<enums::StorageProtocol> m_interface{enums::StorageProtocol::SATA};
-    OptionalField<enums::DriveType> m_type{enums::DriveType::SSD};
+    OptionalField<enums::StorageProtocol> m_interface{};
+    OptionalField<enums::DriveType> m_type{};
     OptionalField<double> m_capacity_gb{};
     attribute::FruInfo m_fru_info{};
-    OptionalField<std::string> m_physical_id{};
     OptionalField<std::string> m_firmware_version{};
     OptionalField<std::uint32_t> m_rpm{};
     OptionalField<enums::IndicatorLed> m_indicator_led{};
@@ -664,6 +681,9 @@ private:
     bool m_is_being_discovered{false};
     // required to locate drive's port on a pnc agent in case of the oob discovery, may be more than one
     std::vector<std::string> m_dsp_port_uuids{};
+    // stores health previously read from smart
+    enums::Health m_last_smart_health{enums::Health::OK};
+
 
 };
 

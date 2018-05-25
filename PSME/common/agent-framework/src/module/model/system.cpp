@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,9 +47,9 @@ json::Json System::to_json() const {
     result[literals::System::STATUS] = get_status().to_json();
     result[literals::System::TYPE] = get_system_type();
     result[literals::System::BIOS_VERSION] = get_bios_version();
-    result[literals::System::BOOT_OVERRIDE] = get_boot_override().to_string();
-    result[literals::System::BOOT_OVERRIDE_MODE] = get_boot_override_mode().to_string();
-    result[literals::System::BOOT_OVERRIDE_TARGET] = get_boot_override_target().to_string();
+    result[literals::System::BOOT_OVERRIDE] = get_boot_override();
+    result[literals::System::BOOT_OVERRIDE_MODE] = get_boot_override_mode();
+    result[literals::System::BOOT_OVERRIDE_TARGET] = get_boot_override_target();
     result[literals::System::BOOT_OVERRIDE_SUPPORTED] = get_boot_override_supported().to_json();
     result[literals::System::UEFI_TARGET] = get_uefi_target();
     result[literals::System::POWER_STATE] = get_power_state();
@@ -76,11 +76,9 @@ System System::from_json(const json::Json& json) {
     sys.set_status(attribute::Status::from_json(json[literals::System::STATUS]));
     sys.set_system_type(json[literals::System::TYPE]);
     sys.set_bios_version(json[literals::System::BIOS_VERSION]);
-    sys.set_boot_override(enums::BootOverride::from_string(json[literals::System::BOOT_OVERRIDE]));
-    sys.set_boot_override_mode(
-        enums::BootOverrideMode::from_string(json[literals::System::BOOT_OVERRIDE_MODE]));
-    sys.set_boot_override_target(
-        enums::BootOverrideTarget::from_string(json[literals::System::BOOT_OVERRIDE_TARGET]));
+    sys.set_boot_override(json[literals::System::BOOT_OVERRIDE]);
+    sys.set_boot_override_mode(json[literals::System::BOOT_OVERRIDE_MODE]);
+    sys.set_boot_override_target(json[literals::System::BOOT_OVERRIDE_TARGET]);
     sys.set_boot_override_supported(BootOverrideSupported::from_json(json[literals::System::BOOT_OVERRIDE_SUPPORTED]));
     sys.set_uefi_target(json[literals::System::UEFI_TARGET]);
     sys.set_power_state(json[literals::System::POWER_STATE]);
@@ -93,7 +91,6 @@ System System::from_json(const json::Json& json) {
     sys.set_collections(Collections::from_json(json[literals::System::COLLECTIONS]));
     sys.set_chassis(json[literals::System::CHASSIS]);
     sys.set_oem(attribute::Oem::from_json(json[literals::System::OEM]));
-    sys.set_resource_hash(json);
     sys.set_guid(json[literals::System::GUID]);
     sys.set_cable_ids(CableIds::from_json(json[literals::System::CABLE_IDS]));
     sys.set_txt_enabled(json[literals::System::TXT_ENABLED]);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.services.context.Context;
@@ -25,13 +26,15 @@ import com.intel.podm.common.types.Status;
 import java.util.Collection;
 import java.util.HashSet;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description",
-    "assetTag", "manufacturer", "model", "sku", "serialNumber", "partNumber",
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "assetTag", "manufacturer", "model", "sku", "serialNumber", "partNumber",
     "deviceType", "firmwareVersion", "status", "links", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class PcieDeviceDto extends RedfishDto {
+    private final Links links = new Links();
     private String assetTag;
     private String manufacturer;
     private String model;
@@ -39,10 +42,10 @@ public final class PcieDeviceDto extends RedfishDto {
     private String sku;
     private String serialNumber;
     private String partNumber;
+    @JsonInclude(NON_NULL)
     private DeviceType deviceType;
     private String firmwareVersion;
     private Status status;
-    private Links links = new Links();
 
     public PcieDeviceDto() {
         super("#PCIeDevice.v1_0_0.PCIeDevice");
@@ -124,15 +127,9 @@ public final class PcieDeviceDto extends RedfishDto {
         return links;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
-    }
-
     @JsonPropertyOrder({"chassis", "pcieFunctions", "oem"})
     public class Links extends RedfishLinksDto {
-        @JsonProperty("Chassis")
         private final Collection<Context> chassis = new HashSet<>();
-
         @JsonProperty("PCIeFunctions")
         private final Collection<Context> pcieFunctions = new HashSet<>();
 

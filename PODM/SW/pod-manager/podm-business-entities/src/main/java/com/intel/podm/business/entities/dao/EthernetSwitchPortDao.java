@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,8 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static com.intel.podm.business.entities.redfish.EthernetSwitchPort.GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE;
-import static com.intel.podm.common.types.PortType.DOWNSTREAM;
-import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
+import static com.intel.podm.business.entities.redfish.EthernetSwitchPort.GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC;
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
@@ -51,20 +50,20 @@ public class EthernetSwitchPortDao extends Dao<EthernetSwitchPort> {
             return null;
         }
 
-        TypedQuery<EthernetSwitchPort> query = entityManager.createNamedQuery(GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE, EthernetSwitchPort.class);
-        query.setParameter("portType", DOWNSTREAM);
+        TypedQuery<EthernetSwitchPort> query = entityManager.createNamedQuery(GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC, EthernetSwitchPort.class);
         query.setParameter("neighborMac", neighborMac);
 
-        List<EthernetSwitchPort> ethernetSwitchPorts = query.getResultList().stream()
-            .filter(EthernetSwitchPort::isEnabledAndHealthy)
+        List<EthernetSwitchPort> foundPorts = query.getResultList().stream()
+            .filter(port -> statusOf(port).isEnabled().isHealthy().verify())
             .collect(toList());
 
-        try {
-            return singleOrNull(ethernetSwitchPorts);
-        } catch (IllegalStateException e) {
+        int foundPortsSize = foundPorts.size();
+        if (foundPortsSize > 1) {
             throw new NonUniqueResultException(
-                format("Couldn't find single, enabled and healthy Ethernet Switch Port with neighbor MAC Address: '%s' and PortType: %s."
-                    + " Found %d Ethernet Switch Ports.", neighborMac, DOWNSTREAM, ethernetSwitchPorts.size()));
+                format("Couldn't find single, enabled and healthy Ethernet Switch Port with neighbor MAC Address: '%s'. Found %d Ethernet Switch Ports.",
+                    neighborMac, foundPortsSize));
         }
+
+        return !foundPorts.isEmpty() ? foundPorts.get(0) : null;
     }
 }

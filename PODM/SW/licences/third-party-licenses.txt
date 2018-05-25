@@ -29,7 +29,7 @@ SECTION 1: COMPONENTS UNDER *** Apache License 2.0 ***
    >>> Guava: Google Core Libraries For Java -> 18
    >>> Jackson Datatype: JSR310 -> 2.6.3
    >>> Jackson JAXRS JSON -> 2.6.3
-   >>> Commons Lang3 -> 3.6
+   >>> Commons Lang -> 2.6
    >>> Apache Commons IO -> 2.4
    >>> Jackson Databind -> 2.6.3
    >>> Jackson Annotations -> 2.6.3

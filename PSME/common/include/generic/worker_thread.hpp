@@ -2,7 +2,7 @@
  * @brief WorkerThread.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 
 #include "logger/logger_factory.hpp"
 #include "delay_queue.hpp"
+#include "schedule_policy.hpp"
 #include <atomic>
 #include <functional>
 #include <thread>
@@ -47,7 +48,7 @@ public:
 
     class StopProcessing final : public std::runtime_error {
     public:
-        StopProcessing() : std::runtime_error("WorkerThread::stopped") {}
+        StopProcessing() : std::runtime_error("Task::stopped") {}
     };
 
 #ifdef __clang__
@@ -60,7 +61,8 @@ public:
      */
     WorkerThread(const std::string& name = "worker") : m_name(name), m_worker {
         [this] {
-            while (!m_stop) {
+            log_info("worker", m_name << " started.");
+            while (!m_stop.load(std::memory_order_acquire)) {
                 auto task = m_tasks.wait_and_pop();
                 try {
                     Duration duration = task();
@@ -70,9 +72,10 @@ public:
                     }
                 }
                 catch (const StopProcessing&) {
-                    log_info(GET_LOGGER("worker"), task.get_name() << " requests to stop");
+                    log_info("worker", task.get_name() << " requests to stop");
                 }
             }
+            log_info("worker", m_name << " finished.");
         }
     } {}
 
@@ -80,23 +83,48 @@ public:
      * @brief Destructor
      */
     ~WorkerThread() {
-        /* stop processing tasks */
-        m_stop = true;
-        /* If no task is currently running, the queue must be woken up by high priority task.
-         * If currently running task causes worker destruction, worker might join immediatelly
-         * (and "destructor" task is ignored then)
-         */
-        high_priority_task("destructor", [this] { m_stop = true; });
-        if (m_worker.joinable()) {
-            m_worker.join();
+        try {
+            stop();
         }
+        catch (...) { /* ignore */ }
+    }
+
+    /*!
+     * @brief Stops worker thread.
+     *
+     * Any not processed tasks are discarded.
+     * If called from task running on worker thread throws StopProcessing.
+     */
+    void stop() {
+        if (std::this_thread::get_id() == m_worker.get_id()) {
+            throw StopProcessing();
+        }
+        bool expected{false};
+        if (m_stop.compare_exchange_strong(expected, true)) {
+            log_debug("worker", m_name << " stopping.");
+            /* If no task is currently running, the queue must be woken up. */
+            high_priority_task("stop", [] () noexcept {});
+            if (m_worker.joinable()) {
+                m_worker.join();
+            }
+        }
+    }
+
+    /*!
+     * @brief Checks if worker thread is running
+     * @return true if worker thread is running, false otherwise
+     */
+    bool is_running() const {
+        return !m_stop;
     }
 
     /*!
      * @brief Removes pending tasks from the queue
      */
     void remove_tasks() {
-        m_tasks.clear();
+        if (is_running()) {
+            m_tasks.clear();
+        }
     }
 
     /*!
@@ -106,7 +134,7 @@ public:
      */
     template<class T, class... Args>
     void operator()(T&& task, Args&&... args) const {
-        high_priority_task("", std::forward<T&&>(task), std::forward<Args&&>(args)...);
+        operator()(Duration::zero(), std::forward<T&&>(task), std::forward<Args&&>(args)...);
     }
 
     /*!
@@ -121,7 +149,10 @@ public:
     }
 
     /*!
-     * @brief Add periodic task.
+     * @brief Add fixed delay periodic task.
+     *
+     * Worker will execute the task with a fixed period between the end of the last invocation and the start of the next.
+     *
      * @param name task name
      * @param initial_delay Initial delay of first execution of task
      * @param period Interval between task executions (counted from end time of previous task execution)
@@ -129,30 +160,28 @@ public:
      * @param args Task arguments
      */
     template <class T, class... Args>
-    void periodic_task(const std::string& name, Duration initial_delay, Duration period,
+    void fixed_delay_task(const std::string& name, Duration initial_delay, Duration period,
                        T&& task, Args&&... args) const {
-        std::function<decltype(task(std::forward<Args>(args)...))()> f = std::bind(std::forward<T>(task), std::forward<Args>(args)...);
-        const auto task_name = create_task_name(name);
-        log_debug(GET_LOGGER("worker"), "Schedule periodic task " << task_name
-                << " delay: " << initial_delay.count()
-                << " period: " << period.count());
+        periodic_task<FixedDelaySchedulePolicy<Clock>>(name, initial_delay, period,
+                std::forward<T&&>(task), std::forward<Args&&>(args)...);
+    }
 
-        /* add task called periodically */
-        m_tasks.emplace(task_name, [task_name, f, period] {
-                try {
-                    f();
-                }
-                catch (const StopProcessing&) {
-                    throw;
-                }
-                catch (const std::exception& e) {
-                    log_warning(GET_LOGGER("worker"), task_name << " raised exception: " << e.what());
-                }
-                catch (...) {
-                    log_warning(GET_LOGGER("worker"), task_name << " raised unknown exception");
-                }
-                return period;
-            }, initial_delay);
+    /*!
+     * @brief Add fixed rate periodic task.
+     *
+     * Worker will execute the task with a fixed period between invocations.
+     *
+     * @param name task name
+     * @param initial_delay Initial delay of first execution of task
+     * @param period Interval between task executions (counted from start time of previous task execution)
+     * @param task Function to be executed
+     * @param args Task arguments
+     */
+    template <class T, class... Args>
+    void fixed_rate_task(const std::string& name, Duration initial_delay, Duration period,
+                       T&& task, Args&&... args) const {
+        periodic_task<FixedRateSchedulePolicy<Clock>>(name, initial_delay, period,
+                std::forward<T&&>(task), std::forward<Args&&>(args)...);
     }
 
     /*!
@@ -167,7 +196,7 @@ public:
                              T&& task, Args&&... args) const {
         std::function<decltype(task(std::forward<Args>(args)...))()> f = std::bind(std::forward<T>(task), std::forward<Args>(args)...);
         const auto task_name = create_task_name(name);
-        log_debug(GET_LOGGER("worker"), "Schedule self sheduling task " << task_name << " delay: " << initial_delay.count());
+        log_debug("worker", "Schedule self sheduling task " << task_name << " delay: " << initial_delay.count());
 
         /* add task called on task own sheduling basis */
         m_tasks.emplace(task_name, [task_name, f] {
@@ -178,13 +207,13 @@ public:
                 throw;
             }
             catch (const std::exception& e) {
-                log_warning(GET_LOGGER("worker"), task_name << " raised exception: " << e.what());
+                log_warning("worker", task_name << " raised exception: " << e.what());
             }
             catch (...) {
-                log_warning(GET_LOGGER("worker"), task_name << " raised unknown exception");
+                log_warning("worker", task_name << " raised unknown exception");
             }
             return Duration::zero();
-        }, initial_delay);
+        }, initial_delay, FixedDelaySchedulePolicy<Clock>::next_timepoint);
     }
 
     /*!
@@ -197,7 +226,7 @@ public:
     void high_priority_task(const std::string& name, T task, Args... args) const {
         std::function <decltype(task(args...))()> f = std::bind(task, args...);
         const auto task_name = create_task_name(name);
-        log_debug(GET_LOGGER("worker"), "Scheduled high priority task " << task_name);
+        log_debug("worker", "Scheduled high priority task " << task_name);
 
         /* add single run task */
         m_tasks.emplace(task_name, [task_name, f] {
@@ -227,7 +256,7 @@ public:
     void single_run_task(const std::string& name, Duration initial_delay, T task, Args... args) const {
         std::function <decltype(task(args...))()> f = std::bind(task, args...);
         const auto task_name = create_task_name(name);
-        log_debug(GET_LOGGER("worker"), "Scheduled single run task " << task_name);
+        log_debug("worker", "Scheduled single run task " << task_name);
 
         /* add single run task */
         m_tasks.emplace(task_name, [task_name, f] {
@@ -246,19 +275,58 @@ public:
 
 
 private:
+
+    template <class SchedulePolicy, class T, class... Args>
+    void periodic_task(const std::string& name, Duration initial_delay, Duration period,
+                       T&& task, Args&&... args) const {
+        std::function<decltype(task(std::forward<Args>(args)...))()> f =
+                            std::bind(std::forward<T>(task), std::forward<Args>(args)...);
+        const auto task_name = create_task_name(name);
+        log_debug("worker", "Schedule periodic task " << task_name
+                << " delay: " << initial_delay.count()
+                << " period: " << period.count()
+                << " policy: " << static_cast<int>(SchedulePolicy::get_schedule_policy_type()));
+
+        /* add task called periodically */
+        m_tasks.emplace(task_name, [task_name, f, period] {
+                try {
+                    f();
+                }
+                catch (const StopProcessing&) {
+                    throw;
+                }
+                catch (const std::exception& e) {
+                    log_warning("worker", task_name << " raised exception: " << e.what());
+                }
+                catch (...) {
+                    log_warning("worker", task_name << " raised unknown exception");
+                }
+                return period;
+            }, initial_delay, SchedulePolicy::next_timepoint);
+    }
+
     std::string create_task_name(const std::string& name = "") const {
         return name + ":" + m_name + ":" + std::to_string(m_counter++);
     }
 
     class Task final {
     public:
-        using Fun = std::function<Duration()>;
+        using ExecuteFn = std::function<Duration()>;
+        using CalculateTimepointFn = std::function<Timepoint(Duration, Timepoint)>;
 
-        Task(const std::string& name, Fun&& t, Duration delay = Duration::zero())
-            : m_name{name}, m_f{std::forward<Fun>(t)}, m_timepoint{Clock::now() + delay}, m_periodic{true} {}
+        Task(const std::string& name, ExecuteFn&& t, Duration delay, CalculateTimepointFn policy)
+            : m_name{name},
+              m_execute{std::forward<ExecuteFn>(t)},
+              m_timepoint{Clock::now() + delay},
+              m_periodic{true},
+              m_calculate_timepoint{policy} {}
 
-        Task(const std::string& name, Fun&& t, Timepoint timepoint)
-            : m_name{name}, m_f{std::forward<Fun>(t)}, m_timepoint{timepoint}, m_periodic{false} {}
+        Task(const std::string& name, ExecuteFn&& t, Timepoint timepoint)
+            : m_name{name},
+              m_execute{std::forward<ExecuteFn>(t)},
+              m_timepoint{timepoint},
+              m_periodic{false},
+              m_calculate_timepoint{FixedDelaySchedulePolicy<Clock>::next_timepoint} {}
 
         Task(Task&&) = default;
         Task& operator=(Task&&) = default;
@@ -274,19 +342,11 @@ private:
         }
 
         Duration operator()() const {
-            return m_f();
+            return m_execute();
         }
 
         void set_delay(Duration delay) {
-            if (delay > Duration::zero()) {
-                /* keep task running in a synchronic way */
-                while (m_timepoint < Clock::now()) {
-                    m_timepoint += delay;
-                }
-            } else {
-                /* keep task running in a non-synchronic way, but execute all next "past" tasks */
-                m_timepoint = Clock::now() + std::chrono::milliseconds(1);
-            }
+            m_timepoint = m_calculate_timepoint(delay, m_timepoint);
         }
 
         Duration get_delay() const {
@@ -302,17 +362,18 @@ private:
 
     private:
         std::string m_name;
-        Fun m_f;
+        ExecuteFn m_execute;
         Timepoint m_timepoint;
         bool m_periodic;
+        CalculateTimepointFn m_calculate_timepoint;
     };
 
     std::string m_name{};
     using Queue = DelayQueue<Task>;
     mutable Queue m_tasks{};
-    std::thread m_worker;
-    bool m_stop{false};
+    std::atomic<bool> m_stop{false};
     mutable std::atomic<unsigned long> m_counter{};
+    std::thread m_worker;
 };
 
 }

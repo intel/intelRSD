@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -202,7 +202,7 @@ void SsdpServiceImpl::process_ssdp_m_search(const SsdpPacket& packet,
         m_queue.send_or_enqueue(msg, delay + Ms(DELAY_INCREMENT));
     }
     else {
-        log_debug(GET_LOGGER("ssdp"),
+        log_debug("ssdp",
                 "ignoring SSDP " << packet.get_type().to_string() << " packet.");
     }
 }
@@ -213,7 +213,7 @@ void SsdpServiceImpl::send_alive() {
         return;
     }
 
-    log_debug(GET_LOGGER("ssdp"), "sending ssdp notifies");
+    log_debug("ssdp", "sending ssdp notifies");
 
     auto ssdp_alive_packet = m_ssdp_packet_factory.create_ssdp_packet(
                                                      SsdpPacket::Type::NOTIFY);
@@ -235,7 +235,7 @@ void SsdpServiceImpl::send_byebye() {
         return;
     }
 
-    log_info(GET_LOGGER("ssdp"), "sending ssdp byebye");
+    log_info("ssdp", "sending ssdp byebye");
 
     try {
         auto bye_payload = std::make_shared<const std::string>(m_ssdp_packet_factory.create_ssdp_packet(
@@ -255,11 +255,11 @@ void SsdpServiceImpl::send_byebye() {
         }
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("ssdp"), "Failed to send byebye: " << e.what()
+        log_error("ssdp", "Failed to send byebye: " << e.what()
                 << "\n" << get_debug_network_status_info());
     }
     catch (...) {
-        log_error(GET_LOGGER("ssdp"), "Failed to send byebye.\n"
+        log_error("ssdp", "Failed to send byebye.\n"
                 << get_debug_network_status_info());
     }
 }
@@ -269,23 +269,23 @@ void SsdpServiceImpl::process_ssdp_request() {
         SocketAddress sender;
         auto packet = receive_packet(sender);
 
-        log_debug(GET_LOGGER("ssdp"), "from:" << sender << " packet:\n"
+        log_debug("ssdp", "from:" << sender << " packet:\n"
                 << packet.to_string());
 
         auto lan_address = find_lan_of_peer(sender.get_host());
         if (lan_address.is_any_address()) {
-            log_debug(GET_LOGGER("ssdp"),
+            log_debug("ssdp",
                             "ignoring packet on non SSDP enabled interface.");
             return;
         }
 
         if (!validate_ssdp_packet(packet)) {
-            log_debug(GET_LOGGER("ssdp"), "ignoring invalid SSDP packet.");
+            log_debug("ssdp", "ignoring invalid SSDP packet.");
             return;
         }
 
         if (!packet.is_search_request()) {
-            log_debug(GET_LOGGER("ssdp"),
+            log_debug("ssdp",
                 "ignoring SSDP " << packet.get_type().to_string() << " packet.");
             return;
         }
@@ -293,10 +293,10 @@ void SsdpServiceImpl::process_ssdp_request() {
         process_ssdp_m_search(packet, sender, lan_address);
     }
     catch (std::exception e) {
-        log_error(GET_LOGGER("ssdp"), e.what());
+        log_error("ssdp", e.what());
     }
     catch (...) {
-        log_error(GET_LOGGER("ssdp"), "Unknown exception :(");
+        log_error("ssdp", "Unknown exception :(");
     }
 }
 
@@ -325,24 +325,24 @@ void SsdpServiceImpl::init() {
                     link_insert_or_update(m_network_interfaces.end(), iface);
                 }
                 catch (const std::exception& e) {
-                    log_error(GET_LOGGER("ssdp"), "SSDP configuration on network interface "
+                    log_error("ssdp", "SSDP configuration on network interface "
                             << iface.get_name() << " failed: " << e.what());
                 }
             }
         }
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("ssdp"), "SSDP network configuration error: " << e.what());
+        log_error("ssdp", "SSDP network configuration error: " << e.what());
     }
 
-    log_info(GET_LOGGER("ssdp"), get_debug_network_status_info());
+    log_info("ssdp", get_debug_network_status_info());
 
     std::srand(uint(std::time(0)));
 }
 
 void SsdpServiceImpl::start() {
     if (!m_config->is_ssdp_service_enabled()) {
-        log_info(GET_LOGGER("ssdp"), "SSDP service is disabled.");
+        log_info("ssdp", "SSDP service is disabled.");
         return;
     }
 
@@ -382,7 +382,7 @@ void SsdpServiceImpl::link_remove(NetworkInterfaceMap::iterator it) {
         NetworkInterface empty;
         link_update(it, empty);
         m_network_interfaces.erase(it);
-        log_info(GET_LOGGER("ssdp"), get_debug_network_status_info());
+        log_info("ssdp", get_debug_network_status_info());
     }
 }
 
@@ -392,7 +392,7 @@ void SsdpServiceImpl::link_insert_or_update(NetworkInterfaceMap::iterator it,
         it = m_network_interfaces.emplace(updated_iface.get_index(), NetworkInterface{}).first;
     }
     link_update(it, updated_iface);
-    log_info(GET_LOGGER("ssdp"), get_debug_network_status_info());
+    log_info("ssdp", get_debug_network_status_info());
 }
 
 void SsdpServiceImpl::on_network_change(unsigned iface_index,
@@ -431,7 +431,7 @@ void SsdpServiceImpl::process_notification() {
     auto n = m_notification_pipe.second.receive_bytes(bytes.data(), bytes.size());
 
     if(bytes.empty()) {
-        log_error(GET_LOGGER("ssdp"), "Received empty notification");
+        log_error("ssdp", "Received empty notification");
         return;
     }
 
@@ -444,7 +444,7 @@ void SsdpServiceImpl::process_notification() {
         on_network_change(bytes, n);
         break;
     default:
-        log_error(GET_LOGGER("ssdp"), "Received unknown notification type:"
+        log_error("ssdp", "Received unknown notification type:"
                 << static_cast<int>(notification_type));
         break;
     }
@@ -468,10 +468,10 @@ void SsdpServiceImpl::execute() {
 
     try {
         init();
-        log_info(GET_LOGGER("ssdp"), "SSDP service started.");
+        log_info("ssdp", "SSDP service started.");
     }
     catch (...) {
-        log_error(GET_LOGGER("ssdp"), "Failed to initialize SSDP service.");
+        log_error("ssdp", "Failed to initialize SSDP service.");
         return;
     }
 
@@ -518,17 +518,17 @@ void SsdpServiceImpl::execute() {
             m_queue.send_ready_messages(writable);
         }
         catch (const std::exception& e) {
-            log_error(GET_LOGGER("ssdp"), "Exception: " << e.what()
+            log_error("ssdp", "Exception: " << e.what()
                     << "\n" << get_debug_network_status_info());
         }
         catch (...) {
-            log_error(GET_LOGGER("ssdp"), "Unknown exception :("
+            log_error("ssdp", "Unknown exception :("
                     << "\n" << get_debug_network_status_info());
         }
     }
 
     send_byebye();
-    log_info(GET_LOGGER("ssdp"), "SSDP service stopped.");
+    log_info("ssdp", "SSDP service stopped.");
 }
 
 std::string SsdpServiceImpl::get_debug_network_status_info() const {

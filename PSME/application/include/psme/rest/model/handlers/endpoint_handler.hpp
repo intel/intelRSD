@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,8 @@
 
 
 
-#include "agent-framework/module/requests/pnc/get_endpoint_info.hpp"
-#include "agent-framework/module/pnc_components.hpp"
+#include "agent-framework/module/requests/common/get_endpoint_info.hpp"
+#include "agent-framework/module/common_components.hpp"
 
 
 
@@ -57,6 +57,7 @@ public:
 
 protected:
     using PncComponents = agent_framework::module::PncComponents;
+    using CommonComponents = agent_framework::module::CommonComponents;
 
     /*!
      * @brief collection might be strong or weak
@@ -87,10 +88,10 @@ protected:
         }
         else if (Component::Zone == ctx.get_parent_component()) {
             fetch_parent_children(ctx, parent_uuid, collection_name,
-                                  PncComponents::get_instance()->get_zone_endpoint_manager());
+                                  CommonComponents::get_instance()->get_zone_endpoint_manager());
         }
         else {
-            log_debug(GET_LOGGER("rest"), ctx.indent
+            log_debug("rest", ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Found a Drive under an unexpected parent " << parent_uuid);
         }
@@ -109,7 +110,7 @@ protected:
     void remove_agent_data(Context& ctx, const std::string& gami_id) override {
         PncComponents::get_instance()->
             get_endpoint_port_manager().clean_resources_for_agent(gami_id);
-        PncComponents::get_instance()->
+        CommonComponents::get_instance()->
             get_zone_endpoint_manager().clean_resources_for_agent(gami_id);
         EndpointHandlerBase::remove_agent_data(ctx, gami_id);
     }
@@ -129,7 +130,7 @@ protected:
             get_endpoint_port_manager().remove_parent(uuid);
 
         // endpoint is the child in Zone <-> Endpoint relation
-        PncComponents::get_instance()->
+        CommonComponents::get_instance()->
             get_zone_endpoint_manager().remove_child(uuid);
         EndpointHandlerBase::do_remove(ctx, uuid);
     }
@@ -142,7 +143,7 @@ protected:
             return EndpointHandlerBase::do_accept_recursively(visitor, parent_uuid, parent_component);
         }
         else {
-            auto& manager = PncComponents::get_instance()->get_zone_endpoint_manager();
+            auto& manager = CommonComponents::get_instance()->get_zone_endpoint_manager();
             auto children = manager.get_children(parent_uuid);
             for (const std::string& child_uuid : children) {
                 if (!do_accept(visitor, child_uuid)) {

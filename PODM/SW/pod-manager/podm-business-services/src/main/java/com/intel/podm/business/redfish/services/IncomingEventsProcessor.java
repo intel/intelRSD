@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 
 import static com.intel.podm.common.types.ChassisType.DRAWER;
 import static com.intel.podm.common.types.ChassisType.RACK;
+import static com.intel.podm.common.types.events.EventType.RESOURCE_REMOVED;
 import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
@@ -61,7 +62,7 @@ public class IncomingEventsProcessor {
         }
         switch (service.getServiceType()) {
             case RMM:
-                rmmEventHandler.handle(service);
+                rmmEventHandler.handle(service, events);
                 break;
             default:
                 defaultEventHandler.handle(service);
@@ -79,12 +80,14 @@ public class IncomingEventsProcessor {
         private ServiceExplorer serviceExplorer;
 
         @Transactional(MANDATORY)
-        public void handle(ExternalService rmmService) {
-            findRack(rmmService)
-                .map(this::findAffectedDrawers)
-                .map(this::findExternalServices)
-                .map(serviceIsNot(rmmService))
-                .ifPresent(enqueueVerification());
+        public void handle(ExternalService rmmService, RedfishEventArray events) {
+            if (events.getEvents().stream().anyMatch(event -> RESOURCE_REMOVED.equals(event.getEventType()))) {
+                findRack(rmmService)
+                    .map(this::findAffectedDrawers)
+                    .map(this::findExternalServices)
+                    .map(serviceIsNot(rmmService))
+                    .ifPresent(enqueueVerification());
+            }
 
             defaultEventHandler.handle(rmmService);
         }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,26 +163,6 @@ constexpr const char Memory::ERROR_CORRECTION[];
 constexpr const char Memory::REGIONS[];
 constexpr const char Memory::OPERATING_MODES[];
 constexpr const char Memory::OEM[];
-
-constexpr const char NetworkInterface::INTERFACE[];
-constexpr const char NetworkInterface::STATUS[];
-constexpr const char NetworkInterface::FRAME_SIZE[];
-constexpr const char NetworkInterface::SPEED[];
-constexpr const char NetworkInterface::AUTO_SENSE[];
-constexpr const char NetworkInterface::MAC_ADDRESS[];
-constexpr const char NetworkInterface::VLAN_ENABLE[];
-constexpr const char NetworkInterface::VLAN_COUNT[];
-constexpr const char NetworkInterface::FULL_DUPLEX[];
-constexpr const char NetworkInterface::IPv4_ADDRESS[];
-constexpr const char NetworkInterface::IPv6_ADDRESS[];
-constexpr const char NetworkInterface::IPv4_ADDRESSES[];
-constexpr const char NetworkInterface::IPv6_ADDRESSES[];
-constexpr const char NetworkInterface::IPv6_DEFAULT_GATEWAY[];
-constexpr const char NetworkInterface::MAX_IPv6_STATIC_ADDRESSES[];
-constexpr const char NetworkInterface::DEFAULT_VLAN[];
-constexpr const char NetworkInterface::FACTORY_MAC_ADDRESS[];
-constexpr const char NetworkInterface::COLLECTIONS[];
-constexpr const char NetworkInterface::OEM[];
 
 constexpr const char NetworkDevice::DEVICE[];
 constexpr const char NetworkDevice::STATUS[];

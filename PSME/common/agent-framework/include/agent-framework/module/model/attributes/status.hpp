@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,8 +77,8 @@ public:
         m_health = health;
     }
 
-    /*
-     * Converts this object to json representation
+    /*!
+     * @brief Converts this object to json representation
      * @return Json representation of this object
      * */
     json::Json to_json() const;

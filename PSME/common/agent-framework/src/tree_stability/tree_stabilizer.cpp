@@ -2,7 +2,7 @@
  * @brief Implements non-abstract methods of TreeStabilizer class
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,38 +26,9 @@
 
 #include "agent-framework/tree_stability/tree_stabilizer.hpp"
 
-#include "agent-framework/logger_ext.hpp"
-
 
 
 using namespace agent_framework;
 
 
 TreeStabilizer::~TreeStabilizer() {}
-
-
-void TreeStabilizer::log_persistent_uuid_generated(const std::string& resource_name,
-                                                   const std::string& temporary_uuid,
-                                                   const std::string persistent_uuid) const {
-    log_debug(LOGUSR,
-              "Persistent UUID " << persistent_uuid << " generated for " << resource_name << " " << temporary_uuid);
-}
-
-
-void TreeStabilizer::log_key_value_missing(const std::string& resource_name,
-                                           const std::string& temporary_uuid) const {
-    log_error(LOGUSR,
-              "Persistent UUID for " << resource_name << " with temporary UUID " << temporary_uuid <<
-                                     " could not be generated");
-}
-
-
-void TreeStabilizer::log_key_value_missing(const std::string& resource_name,
-                                           const std::string& temporary_uuid, const std::exception& e) const {
-    log_error(LOGUSR,
-              "Persistent UUID for " << resource_name << " with temporary UUID " << temporary_uuid <<
-                                     " could not be generated");
-    log_debug(LOGUSR,
-              "Persistent UUID for " << resource_name << " with temporary UUID " << temporary_uuid <<
-                                     " could not be generated: " << e.what());
-}

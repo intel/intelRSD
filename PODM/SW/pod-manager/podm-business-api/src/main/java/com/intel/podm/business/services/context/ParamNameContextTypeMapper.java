@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static com.intel.podm.business.services.context.ContextType.COMPOSED_NODE
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM;
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM_METRICS;
 import static com.intel.podm.business.services.context.ContextType.DRIVE;
+import static com.intel.podm.business.services.context.ContextType.DRIVE_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ENDPOINT;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_INTERFACE;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH;
@@ -38,7 +39,6 @@ import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWIT
 import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SUBSCRIPTION;
 import static com.intel.podm.business.services.context.ContextType.FABRIC;
-import static com.intel.podm.business.services.context.ContextType.LOGICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.MANAGER;
 import static com.intel.podm.business.services.context.ContextType.MEMORY;
 import static com.intel.podm.business.services.context.ContextType.MEMORY_METRICS;
@@ -49,7 +49,6 @@ import static com.intel.podm.business.services.context.ContextType.NETWORK_INTER
 import static com.intel.podm.business.services.context.ContextType.NETWORK_PROTOCOL;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE_FUNCTION;
-import static com.intel.podm.business.services.context.ContextType.PHYSICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.PORT;
 import static com.intel.podm.business.services.context.ContextType.PORT_METRICS;
 import static com.intel.podm.business.services.context.ContextType.POWER;
@@ -59,20 +58,23 @@ import static com.intel.podm.business.services.context.ContextType.POWER_VOLTAGE
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR;
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR_METRICS;
 import static com.intel.podm.business.services.context.ContextType.REDUNDANCY;
-import static com.intel.podm.business.services.context.ContextType.REMOTE_TARGET;
 import static com.intel.podm.business.services.context.ContextType.SIMPLE_STORAGE;
 import static com.intel.podm.business.services.context.ContextType.STORAGE;
+import static com.intel.podm.business.services.context.ContextType.STORAGE_POOL;
 import static com.intel.podm.business.services.context.ContextType.STORAGE_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.SWITCH;
 import static com.intel.podm.business.services.context.ContextType.TELEMETRY_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.THERMAL;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_FAN;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_TEMPERATURE;
+import static com.intel.podm.business.services.context.ContextType.VOLUME;
+import static com.intel.podm.business.services.context.ContextType.VOLUME_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ZONE;
 import static com.intel.podm.business.services.context.PathParamConstants.CHASSIS_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.COMPOSED_NODE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.COMPUTER_SYSTEM_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.COMPUTER_SYSTEM_METRICS_ID;
+import static com.intel.podm.business.services.context.PathParamConstants.DRIVE_METRICS_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.ENDPOINT_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.ETHERNET_INTERFACE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.ETHERNET_SWITCH_ACL_ID;
@@ -86,7 +88,6 @@ import static com.intel.podm.business.services.context.PathParamConstants.ETHERN
 import static com.intel.podm.business.services.context.PathParamConstants.EVENT_SERVICE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.EVENT_SUBSCRIPTION_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.FABRIC_ID;
-import static com.intel.podm.business.services.context.PathParamConstants.LOGICAL_DRIVE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.MANAGER_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.MEMORY_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.MEMORY_METRICS_ID;
@@ -98,7 +99,6 @@ import static com.intel.podm.business.services.context.PathParamConstants.NETWOR
 import static com.intel.podm.business.services.context.PathParamConstants.PCIE_DEVICE_FUNCTION_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.PCIE_DEVICE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.PCIE_DRIVE_ID;
-import static com.intel.podm.business.services.context.PathParamConstants.PHYSICAL_DRIVE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.PORT_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.PORT_METRICS_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.POWER_CONTROL_ID;
@@ -108,15 +108,17 @@ import static com.intel.podm.business.services.context.PathParamConstants.POWER_
 import static com.intel.podm.business.services.context.PathParamConstants.PROCESSOR_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.PROCESSOR_METRICS_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.REDUNDANCY_ID;
-import static com.intel.podm.business.services.context.PathParamConstants.REMOTE_TARGET_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.SIMPLE_STORAGE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.STORAGE_ID;
+import static com.intel.podm.business.services.context.PathParamConstants.STORAGE_POOL_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.STORAGE_SERVICE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.SWITCH_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.TELEMETRY_SERVICE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.THERMAL_FAN_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.THERMAL_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.THERMAL_TEMPERATURE_ID;
+import static com.intel.podm.business.services.context.PathParamConstants.VOLUME_ID;
+import static com.intel.podm.business.services.context.PathParamConstants.VOLUME_METRICS_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.ZONE_ID;
 import static java.lang.String.format;
 
@@ -131,12 +133,11 @@ public final class ParamNameContextTypeMapper {
         map.put(MANAGER_ID, MANAGER);
         map.put(STORAGE_SERVICE_ID, STORAGE_SERVICE);
         map.put(STORAGE_ID, STORAGE);
-        map.put(PHYSICAL_DRIVE_ID, PHYSICAL_DRIVE);
-        map.put(LOGICAL_DRIVE_ID, LOGICAL_DRIVE);
-        map.put(REMOTE_TARGET_ID, REMOTE_TARGET);
+        map.put(STORAGE_POOL_ID, STORAGE_POOL);
         map.put(CHASSIS_ID, CHASSIS);
         map.put(COMPUTER_SYSTEM_ID, COMPUTER_SYSTEM);
         map.put(MEMORY_ID, MEMORY);
+        map.put(VOLUME_ID, VOLUME);
         map.put(ETHERNET_SWITCH_ID, ETHERNET_SWITCH);
         map.put(ETHERNET_SWITCH_ACL_ID, ETHERNET_SWITCH_ACL);
         map.put(ETHERNET_SWITCH_ACL_RULE_ID, ETHERNET_SWITCH_ACL_RULE);
@@ -175,6 +176,8 @@ public final class ParamNameContextTypeMapper {
         map.put(PORT_METRICS_ID, PORT_METRICS);
         map.put(ETHERNET_SWITCH_METRICS_ID, ETHERNET_SWITCH_METRICS);
         map.put(ETHERNET_SWITCH_PORT_METRICS_ID, ETHERNET_SWITCH_PORT_METRICS);
+        map.put(DRIVE_METRICS_ID, DRIVE_METRICS);
+        map.put(VOLUME_METRICS_ID, VOLUME_METRICS);
 
         MAPPING = unmodifiableBiMap(map);
     }

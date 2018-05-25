@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,12 +24,13 @@
 
 #pragma once
 
+#include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/enum/pnc.hpp"
 #include "agent-framework/module/utils/utils.hpp"
 #include "json-wrapper/json-wrapper.hpp"
 
-#include <string>
+
 
 namespace agent_framework {
 namespace model {
@@ -39,6 +40,7 @@ namespace attribute {
 /*! Connected Entity class */
 class ConnectedEntity {
 public:
+    using Identifiers = attribute::Array<attribute::Identifier>;
 
     /*! Default constructor */
     explicit ConnectedEntity(){}
@@ -48,22 +50,6 @@ public:
     ConnectedEntity& operator=(const ConnectedEntity&) = default;
 
     ~ConnectedEntity();
-
-    /*!
-     * @brief Gets entity type
-     * @return Entity type
-     * */
-    const OptionalField<enums::EntityType>& get_entity_type() const {
-        return m_entity_type;
-    }
-
-    /*!
-     * @brief Sets entity type
-     * @param[in] entity_type Entity Type
-     * */
-    void set_entity_type(const OptionalField<enums::EntityType>& entity_type) {
-        m_entity_type = entity_type;
-    }
 
     /*!
      * @brief Gets entity role
@@ -97,8 +83,33 @@ public:
         m_entity = entity;
     }
 
-    /*
-     * Converts this object to json representation
+    /*!
+     * @brief Get connected entity identifiers
+     * @return array with connected entity identifiers
+     */
+    const Identifiers& get_identifiers() const {
+        return m_identifiers;
+    }
+
+
+    /*!
+     * @brief Set connected entity identifiers
+     * @param[in] identifiers array with connected entity identifiers
+     */
+    void set_identifiers(const Identifiers& identifiers) {
+        m_identifiers = identifiers;
+    }
+
+    /*!
+     * @brief Add connected entity identifier
+     * @param[in] identifier supported type of identifier
+     */
+    void add_identifier(const attribute::Identifier& identifier) {
+        m_identifiers.add_entry(identifier);
+    }
+
+    /*!
+     * @brief Converts this object to json representation
      * @return Json representation of this object
      * */
     json::Json to_json() const;
@@ -111,9 +122,9 @@ public:
     static ConnectedEntity from_json(const json::Json& json);
 
 private:
-    OptionalField<enums::EntityType> m_entity_type{};
     OptionalField<enums::EntityRole> m_entity_role{};
     OptionalField<std::string> m_entity{};
+    Identifiers m_identifiers{};
 };
 
 }

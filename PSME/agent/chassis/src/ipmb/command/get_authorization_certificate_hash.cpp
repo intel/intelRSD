@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,13 +52,13 @@ void GetAuthorizationCertificateHash::unpack(IpmiMessage& msg){
 
     if (CMD_REQUEST_DATA_LENGTH >
             (msg.get_len() - IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN)) {
-        log_error(GET_LOGGER("ipmb"), "Invalid request length.");
+        log_error("ipmb", "Invalid request length.");
         m_response.set_cc(CompletionCode::CC_REQ_DATA_LENGTH_INVALID);
         return;
     }
     if (CMD_REQUEST_DATA_LENGTH <
             (msg.get_len() - IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN)) {
-        log_error(GET_LOGGER("ipmb"), "Request is too long: " <<
+        log_error("ipmb", "Request is too long: " <<
                         unsigned(msg.get_len()));
         m_response.set_cc(CompletionCode::CC_REQ_DATA_FIELD_LENGTH_EXC);
         return;

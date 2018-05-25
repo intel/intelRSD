@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,14 +24,14 @@
 
 #pragma once
 
-#include "agent-framework/discovery/discovery.hpp"
+#include <string>
 
 namespace agent {
 namespace network {
 namespace discovery {
 
 /*! @brief Implementation of initial discovery. */
-class DiscoveryManager final : public agent_framework::discovery::Discovery {
+class DiscoveryManager final {
 public:
 
     /*! @brief Default constructor. */
@@ -46,14 +46,16 @@ public:
     /*! @brief Default destructor. */
     virtual ~DiscoveryManager();
 
-    virtual void discovery(const std::string& uuid) override;
+    virtual void discovery(const std::string& uuid);
 
     /*!
      * @brief Get switch port prefix name
      *
      * @return Port prefix.
      * */
-    static const std::string get_port_prefix() { return std::string("swp"); }
+    static const std::string get_port_prefix() {
+        return std::string("swp");
+    }
 };
 
 }

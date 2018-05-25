@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ static std::vector<std::pair<std::string, std::string>> RESOURCES{
     {Root::SYSTEMS, Routes::SYSTEMS_COLLECTION_PATH},
     {Common::CHASSIS, Routes::CHASSIS_COLLECTION_PATH},
     {Root::MANAGERS, Routes::MANAGER_COLLECTION_PATH},
-    {Root::SERVICES, Routes::STORAGE_SERVICE_COLLECTION_PATH},
+    {Root::STORAGE_SERVICES, Routes::STORAGE_SERVICES_COLLECTION_PATH},
     {Root::ETHERNET_SWITCHES, Routes::ETHERNET_SWITCHES_COLLECTION_PATH},
     {Root::FABRICS, Routes::FABRICS_COLLECTION_PATH},
     {Root::EVENT_SERVICE, Routes::EVENT_SERVICE_PATH},

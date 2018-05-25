@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 package com.intel.podm.security.providers;
 
 import com.intel.podm.common.logger.Logger;
+import com.intel.podm.config.base.Config;
+import com.intel.podm.config.base.Holder;
+import com.intel.podm.config.base.dto.SecurityConfig;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -39,6 +42,10 @@ public class SslContextProvider {
     @Inject
     private SslConnectionManagersProvider keyManagersProvider;
 
+    @Inject
+    @Config
+    private Holder<SecurityConfig> configHolder;
+
     private SSLContext context;
 
     public SSLContext getContext() {
@@ -50,7 +57,8 @@ public class SslContextProvider {
         try {
             if (context == null) {
                 KeyManager[] keyManagers = keyManagersProvider.getKeyManagersArray();
-                TrustManager[] trustManagers = keyManagersProvider.getTrustManagersWhichTrustAllIssuers();
+                TrustManager[] trustManagers = configHolder.get().isServerCertificateVerificationEnabled()
+                    ? keyManagersProvider.getTrustManagersArray() : keyManagersProvider.getTrustManagersWhichTrustAllIssuers();
                 context = getInstance(PROTOCOL);
                 context.init(keyManagers, trustManagers, null);
             }

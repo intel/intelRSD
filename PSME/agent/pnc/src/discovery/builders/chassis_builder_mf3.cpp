@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ ChassisBuilderMf3::ReturnType ChassisBuilderMf3::update_fru(const FruEeprom& fru
 
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("pnc-discovery"), "FRU EEPROM parsing error: " << e.what());
+        log_error("pnc-discovery", "FRU EEPROM parsing error: " << e.what());
     }
 
     return *this;

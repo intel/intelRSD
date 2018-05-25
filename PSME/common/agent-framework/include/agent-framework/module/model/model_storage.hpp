@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,17 +18,27 @@
  * limitations under the License.
  *
  *
- * @file model_compute.hpp
+ * @file model_storage.hpp
  * @brief Model classes for storage agents
  * */
 
 #pragma once
+
 #include "storage_controller.hpp"
 #include "manager.hpp"
+#include "chassis.hpp"
+#include "system.hpp"
+#include "network_interface.hpp"
+#include "fabric.hpp"
+#include "zone.hpp"
+#include "endpoint.hpp"
 #include "storage_service.hpp"
-#include "physical_drive.hpp"
-#include "logical_drive.hpp"
-#include "iscsi_target.hpp"
+#include "storage_pool.hpp"
+#include "drive.hpp"
+#include "volume.hpp"
 #include "task.hpp"
 #include "metric.hpp"
 #include "metric_definition.hpp"
+
+// @TODO: deprecated model only for tgt iSCSI Targets management (to remove)
+#include "iscsi_target.hpp"

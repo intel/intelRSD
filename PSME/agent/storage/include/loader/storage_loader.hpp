@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,9 @@
  * */
 
 #pragma once
+
 #include "agent-framework/module/loader/loader.hpp"
-#include "agent-framework/module/model/storage_service.hpp"
-#include "agent-framework/module/model/manager.hpp"
+
 #include <memory>
 #include <string>
 
@@ -48,32 +48,32 @@ public:
 
     /*!
      * @brief Load configuration
-     * @param[in] json Json configuration file
+     * @param[in] json JSON configuration file
      * @return true if success otherwise false
      */
     bool load(const json::Value& json) override;
 
+private:
+
     /*!
      * @brief Read storage configuration file
-     * @param[in] json Json configuration file
-     */
-    void read_managers(const json::Value& json);
+     * @param[in] json JSON configuration file
+     * */
+    void read_configuration(const json::Value& json);
 
     /*!
-     * @brief Make manager model
-     * @param[in] json Manager json configuration
-     */
-    agent_framework::model::Manager make_manager(const json::Value& json);
+     * @brief Read information about managers from configuration file
+     * @param[in] json_manager JSON manager object from configuration file
+     * */
+    void read_manager_configuration(const json::Value& json_manager);
 
     /*!
-     * @brief Make storage service model
-     * @param[in] json Storage service json configuration
-     * @param[in] uuid Manager UUID
-     */
-    agent_framework::model::StorageService
-    make_storage_service(const json::Value& json, const std::string& uuid);
+     * @brief Read information about storage services from configuration file
+     * @param[in] json_storage_service JSON storage service object from configuration file
+     * */
+    void read_storage_service_configuration(const json::Value& json_storage_service);
 
-private:
+
     struct IfAddrsDeleter {
         void operator()(struct ifaddrs *) const;
     };

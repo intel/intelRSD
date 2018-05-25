@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public final class RedfishResponseFactory {
             throw new RedfishClientException(new UnexpectedRedirectionException(httpRequest.getRequestUri(), httpResponse.getLocation().orElse(null)));
         }
 
-        throw new NotImplementedException(format("HTTP Status Code %s is not supported!", httpResponse.getStatusCode()));
+        throw new NotImplementedException("Status code is not supported: " + httpResponse.getStatusCode());
     }
 
     @SuppressWarnings({"checkstyle:MethodLength", "checkstyle:AnonInnerLength"})

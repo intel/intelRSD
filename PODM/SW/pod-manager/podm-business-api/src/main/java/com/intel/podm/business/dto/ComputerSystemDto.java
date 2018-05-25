@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import com.intel.podm.common.types.BootSourceMode;
 import com.intel.podm.common.types.BootSourceState;
 import com.intel.podm.common.types.BootSourceType;
 import com.intel.podm.common.types.DiscoveryState;
+import com.intel.podm.common.types.HostingRole;
 import com.intel.podm.common.types.IndicatorLed;
 import com.intel.podm.common.types.InterfaceType;
 import com.intel.podm.common.types.InterfaceTypeSelection;
@@ -47,17 +48,19 @@ import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_ACTIONS;
-import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "systemType", "assetTag", "manufacturer", "model",
-    "sku", "serialNumber", "partNumber", "uuid", "hostName", "status", "indicatorLed", "powerState", "boot", "biosVersion",
-    "processorSummary", "memorySummary", "processors", "ethernetInterfaces", "simpleStorage", "storage", "memory",
-    "pcieDevices", "pcieDeviceFunctions", "networkInterfaces", "links", "trustedModules", "actions", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "systemType", "assetTag", "manufacturer", "model", "sku", "serialNumber",
+    "partNumber", "uuid", "hostName", "status", "indicatorLed", "powerState", "boot", "biosVersion", "processorSummary", "memorySummary", "processors",
+    "ethernetInterfaces", "simpleStorage", "storage", "memory", "pcieDevices", "pcieDeviceFunctions", "networkInterfaces", "trustedModules", "hostingRoles",
+    "hostedServices", "links", "actions", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
 public final class ComputerSystemDto extends RedfishDto {
+    private final Links links = new Links();
+    private final Actions actions = new Actions();
+    private final Oem oem = new Oem();
     private SystemType systemType;
     private String assetTag;
     private String manufacturer;
@@ -88,9 +91,8 @@ public final class ComputerSystemDto extends RedfishDto {
     private Set<Context> pcieDeviceFunctions = new HashSet<>();
     private SingletonContext networkInterfaces;
     private List<TrustedModuleDto> trustedModules = new ArrayList<>();
-    private Links links = new Links();
-    private Actions actions = new Actions();
-    private Oem oem = new Oem();
+    private List<HostingRole> hostingRoles = new ArrayList<>();
+    private HostedServices hostedServices = new HostedServices();
 
     public ComputerSystemDto() {
         super("#ComputerSystem.v1_3_0.ComputerSystem");
@@ -296,35 +298,37 @@ public final class ComputerSystemDto extends RedfishDto {
         this.trustedModules = trustedModules;
     }
 
-    public Links getLinks() {
-        return links;
+    public List<HostingRole> getHostingRoles() {
+        return hostingRoles;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
+    public void setHostingRoles(List<HostingRole> hostingRoles) {
+        this.hostingRoles = hostingRoles;
+    }
+
+    public Links getLinks() {
+        return links;
     }
 
     public Actions getActions() {
         return actions;
     }
 
-    public void setActions(Actions actions) {
-        this.actions = actions;
-    }
-
     public Oem getOem() {
         return oem;
     }
 
-    public void setOem(Oem oem) {
-        this.oem = oem;
+    public HostedServices getHostedServices() {
+        return hostedServices;
+    }
+
+    public void setHostedServices(HostedServices hostedServices) {
+        this.hostedServices = hostedServices;
     }
 
     @JsonPropertyOrder({"totalSystemMemoryGiB", "status"})
     public static final class MemorySummaryDto {
-        @JsonProperty("TotalSystemMemoryGiB")
         private BigDecimal totalSystemMemoryGiB;
-        @JsonProperty("Status")
         private Status status;
 
         public BigDecimal getTotalSystemMemoryGiB() {
@@ -376,9 +380,8 @@ public final class ComputerSystemDto extends RedfishDto {
     }
 
     @JsonPropertyOrder({
-        "@odata.type", "bootSourceOverrideEnabled",
-        "bootSourceOverrideTarget", "bootSourceOverrideTargetAllowableValues",
-        "bootSourceOverrideMode", "bootSourceOverrideModeAllowableValues"
+        "@odata.type", "bootSourceOverrideEnabled", "bootSourceOverrideTarget", "bootSourceOverrideTargetAllowableValues", "bootSourceOverrideMode",
+        "bootSourceOverrideModeAllowableValues"
     })
     public static final class BootDto {
         @JsonProperty("@odata.type")
@@ -506,9 +509,7 @@ public final class ComputerSystemDto extends RedfishDto {
 
     @JsonPropertyOrder({"vendorId", "deviceId"})
     public static final class OemDeviceDto {
-        @JsonProperty("VendorId")
         private String vendorId;
-        @JsonProperty("DeviceId")
         private String deviceId;
 
         public String getVendorId() {
@@ -535,7 +536,6 @@ public final class ComputerSystemDto extends RedfishDto {
         private Set<Context> chassis = new HashSet<>();
         private Set<Context> managedBy = new HashSet<>();
         private Set<Context> endpoints = new HashSet<>();
-        private Oem oem = new Oem();
 
         public String getoDataType() {
             return oDataType;
@@ -564,17 +564,17 @@ public final class ComputerSystemDto extends RedfishDto {
         public void setEndpoints(Set<Context> endpoints) {
             this.endpoints = endpoints;
         }
+    }
 
-        public Oem getOem() {
-            return oem;
+    public class HostedServices {
+        private Set<Context> storageServices = new HashSet<>();
+
+        public Set<Context> getStorageServices() {
+            return storageServices;
         }
 
-        public void setOem(Oem oem) {
-            this.oem = oem;
-        }
-
-        @OemType(OEM_IN_LINKS)
-        public class Oem extends RedfishOemDto {
+        public void setStorageServices(Set<Context> storageService) {
+            this.storageServices = storageService;
         }
     }
 
@@ -582,8 +582,7 @@ public final class ComputerSystemDto extends RedfishDto {
     public class Actions extends RedfishActionsDto {
         @JsonProperty("#ComputerSystem.Reset")
         private final ResetActionDto reset = new ResetActionDto();
-        @JsonProperty("Oem")
-        private Oem oem = new Oem();
+        private final Oem oem = new Oem();
 
         public ResetActionDto getReset() {
             return reset;
@@ -594,6 +593,7 @@ public final class ComputerSystemDto extends RedfishDto {
         }
 
         @OemType(OEM_IN_ACTIONS)
+        @JsonPropertyOrder({"startDeepDiscovery", "changeTpmState"})
         public class Oem extends RedfishOemDto {
             @JsonProperty("#Intel.Oem.StartDeepDiscovery")
             private final ActionDto startDeepDiscovery = new ActionDto();
@@ -621,8 +621,8 @@ public final class ComputerSystemDto extends RedfishDto {
         }
 
         @JsonPropertyOrder({
-            "odataType", "pciDevices", "pcieConnectionId", "discoveryState", "processorSockets", "memorySockets",
-            "pcieConnectionId", "userModeEnabled", "trustedExecutionTechnologyEnabled", "computerSystemMetrics"
+            "@odata.type", "pciDevices", "pcieConnectionId", "discoveryState", "processorSockets", "memorySockets", "pcieConnectionId", "userModeEnabled",
+            "trustedExecutionTechnologyEnabled", "computerSystemMetrics"
         })
         public class RackScaleOem {
             @JsonProperty("@odata.type")

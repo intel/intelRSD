@@ -2,7 +2,7 @@
  * @brief Telemetry reader for metrics from telemetry hub
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,6 @@ protected:
 
 private:
     const std::uint32_t reading_index;
-    json::Json reading;
 };
 
 
@@ -92,14 +91,15 @@ public:
 
 protected:
 
+    Context::Ptr create_context(ipmi::IpmiController& ctrl, PtrVector& readers) override;
+
     bool is_valid(Context::Ptr context) const override;
 
     bool read(Context::Ptr context, ipmi::IpmiController& ctrl) override;
 
 private:
-    std::vector<TelemetryHubTelemetryReader> m_readers{};
+    std::vector<std::unique_ptr<TelemetryHubTelemetryReader>> m_readers{};
     MetricsToAggregate::Operation m_operation;
-    json::Json reading;
 };
 
 

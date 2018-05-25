@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,13 +79,11 @@ Memory Memory::from_json(const json::Json& json) {
     memory.set_fru_info(FruInfo::from_json(json[literals::Memory::FRU_INFO]));
     memory.set_firmware_revision(json[literals::Memory::FIRMWARE_REVISION]);
     memory.set_firmware_api_version(json[literals::Memory::FIRMWARE_API_VERSION]);
-    memory.set_memory_classes(
-        attribute::Array<enums::MemoryClass>::from_json(json[literals::Memory::MEMORY_CLASSES]));
+    memory.set_memory_classes(attribute::Array<enums::MemoryClass>::from_json(json[literals::Memory::MEMORY_CLASSES]));
     memory.set_vendor_id(json[literals::Memory::VENDOR_ID]);
     memory.set_device_id(json[literals::Memory::DEVICE_ID]);
     memory.set_operating_speed_mhz(json[literals::Memory::OPERATING_SPEED_MHZ]);
-    memory.set_allowed_speeds_mhz(
-        attribute::Array<std::uint32_t>::from_json(json[literals::Memory::ALLOWED_SPEEDS_MHZ]));
+    memory.set_allowed_speeds_mhz(attribute::Array<std::uint32_t>::from_json(json[literals::Memory::ALLOWED_SPEEDS_MHZ]));
     memory.set_voltage_volt(json[literals::Memory::VOLTAGE]);
     memory.set_min_voltage_volt(json[literals::Memory::MIN_VOLTAGE]);
     memory.set_max_voltage_volt(json[literals::Memory::MAX_VOLTAGE]);
@@ -95,7 +93,5 @@ Memory Memory::from_json(const json::Json& json) {
     memory.set_error_correction(json[literals::Memory::ERROR_CORRECTION]);
     memory.set_regions(attribute::Array<attribute::Region>::from_json(json[literals::Memory::REGIONS]));
     memory.set_oem(Oem::from_json(json[literals::Memory::OEM]));
-
-    memory.set_resource_hash(json);
     return memory;
 }

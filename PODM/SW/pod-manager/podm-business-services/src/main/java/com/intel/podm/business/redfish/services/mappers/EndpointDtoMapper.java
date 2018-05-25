@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 package com.intel.podm.business.redfish.services.mappers;
 
 import com.intel.podm.business.dto.EndpointDto;
+import com.intel.podm.business.dto.EndpointDto.IpTransportDetailsDto;
 import com.intel.podm.business.dto.RedundancyDto;
 import com.intel.podm.business.entities.dao.ComputerSystemDao;
 import com.intel.podm.business.entities.redfish.Endpoint;
+import com.intel.podm.business.entities.redfish.IpTransportDetails;
 import com.intel.podm.business.entities.redfish.Port;
 import com.intel.podm.business.entities.redfish.Redundancy;
 import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
@@ -33,10 +35,14 @@ import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Objects;
 
+import static com.intel.podm.business.redfish.ContextCollections.asEthernetInterfaceContexts;
 import static com.intel.podm.business.redfish.ContextCollections.asPortContexts;
+import static com.intel.podm.business.redfish.ContextCollections.asZoneContexts;
 import static com.intel.podm.business.redfish.Contexts.toContext;
+import static java.util.Collections.singleton;
 
 @Dependent
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 class EndpointDtoMapper extends DtoMapper<Endpoint, EndpointDto> {
     @Inject
     private ConnectedEntityDtoMapper connectedEntityDtoMapper;
@@ -45,11 +51,14 @@ class EndpointDtoMapper extends DtoMapper<Endpoint, EndpointDto> {
     private RedundancyDtoMapper redundancyDtoMapper;
 
     @Inject
+    private IpTransportDetailsDtoMapper transportDtoMapper;
+
+    @Inject
     private ComputerSystemDao computerSystemDao;
 
     EndpointDtoMapper() {
         super(Endpoint.class, EndpointDto.class);
-        this.ignoredProperties("redundancies", "connectedEntities", "actions", "links", "oem");
+        this.ignoredProperties("redundancies", "transports", "connectedEntities", "actions", "links", "oem");
     }
 
     @Override
@@ -58,7 +67,12 @@ class EndpointDtoMapper extends DtoMapper<Endpoint, EndpointDto> {
 
         mapConnectedEntities(source, target);
         mapRedundancies(source, target);
+        mapTransports(source, target);
+        mapAuthentication(source, target);
         target.getLinks().getPorts().addAll(asPortContexts(source.getPorts()));
+        EndpointDto.Links.Oem.RackScaleOem rackScaleOem = target.getLinks().getOem().getRackScaleOem();
+        rackScaleOem.setZones(asZoneContexts(singleton(source.getZone())));
+        rackScaleOem.getInterfaces().addAll(asEthernetInterfaceContexts(source.getEthernetInterfaces()));
     }
 
     private void mapConnectedEntities(Endpoint source, EndpointDto target) {
@@ -101,6 +115,21 @@ class EndpointDtoMapper extends DtoMapper<Endpoint, EndpointDto> {
             RedundancyDto dto = new RedundancyDto();
             redundancyDtoMapper.map(redundancy, dto);
             target.getRedundancies().add(dto);
+        }
+    }
+
+    private void mapTransports(Endpoint source, EndpointDto target) {
+        for (IpTransportDetails transport : source.getIpTransportsDetails()) {
+            IpTransportDetailsDto dto = new IpTransportDetailsDto();
+            transportDtoMapper.map(transport, dto);
+            target.getIpTransportDetails().add(dto);
+        }
+    }
+
+    private void mapAuthentication(Endpoint source, EndpointDto target) {
+        if (source.getAuthentication() != null) {
+            target.getOem().getRackScaleOem().getAuthentication().setUsername(source.getAuthentication().getUsername());
+            target.getOem().getRackScaleOem().getAuthentication().setPassword(source.getAuthentication().getPassword());
         }
     }
 

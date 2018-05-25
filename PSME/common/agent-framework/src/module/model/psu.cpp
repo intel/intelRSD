@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +66,6 @@ Psu Psu::from_json(const json::Json& json) {
     psu.set_last_power_output_watts(json[literals::Psu::LAST_POWER_OUTPUT_WATTS]);
     psu.set_indicator_led(json[literals::Psu::INDICATOR_LED]);
     psu.set_oem(attribute::Oem::from_json(json[literals::Psu::OEM]));
-    psu.set_resource_hash(json);
 
     return psu;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static com.intel.podm.business.redfish.services.ComputerSystemUpdater.validateBootSupport;
+import static java.util.Optional.ofNullable;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @RequestScoped
@@ -45,13 +47,19 @@ public class ComposedNodeUpdater {
 
     @Transactional(REQUIRES_NEW)
     public void updateComposedNode(Context context, RedfishComputerSystem representation) throws BusinessApiException {
-        ComputerSystem computerSystem = ((ComposedNode) traverser.traverse(context)).getComputerSystem();
+        ComposedNode node = (ComposedNode) traverser.traverse(context);
+        ComputerSystem computerSystem = node.getComputerSystem();
         validate(computerSystem);
 
-        ComputerSystemUpdateDefinition updateDefinition = createComputerSystemUpdateDefinition(representation);
-        validateBootSupportForComposedNode(updateDefinition.getBootSourceType(), computerSystem);
+        Boolean clearTpmOnDelete = representation.getClearTpmOnDelete();
+        ofNullable(clearTpmOnDelete).ifPresent(node::setClearTpmOnDelete);
 
-        computerSystemUpdateInvoker.updateComputerSystem(computerSystem, updateDefinition);
+        if (representation.getBoot() != null) {
+            ComputerSystemUpdateDefinition updateDefinition = createComputerSystemUpdateDefinition(representation);
+            validateBootSupportForComposedNode(updateDefinition.getBootSourceType(), computerSystem);
+
+            computerSystemUpdateInvoker.updateComputerSystem(computerSystem, updateDefinition);
+        }
     }
 
     private ComputerSystemUpdateDefinition createComputerSystemUpdateDefinition(RedfishComputerSystem representation) {
@@ -68,7 +76,7 @@ public class ComposedNodeUpdater {
     }
 
     private void validate(ComputerSystem computerSystem) throws ResourceStateMismatchException {
-        if (!computerSystem.isEnabledAndHealthy()) {
+        if (!statusOf(computerSystem).isEnabled().isHealthy().verify()) {
             throw new ResourceStateMismatchException("Computer System should be enabled and healthy in order to invoke actions on it.");
         }
     }

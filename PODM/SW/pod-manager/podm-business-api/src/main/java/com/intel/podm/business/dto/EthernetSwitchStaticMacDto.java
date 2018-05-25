@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package com.intel.podm.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "macAddress", "vlanId", "oem"})
+@JsonIgnoreProperties({"Oem"})
 public final class EthernetSwitchStaticMacDto extends RedfishDto {
     @JsonProperty("MACAddress")
     private String macAddress;

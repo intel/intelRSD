@@ -2,7 +2,7 @@
  * @brief
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,12 +43,14 @@ class Task {
 public:
     using CallbackFunctionType = std::function<void(void)>;
     using ExceptionHandlerFunctionType = std::function<void(const agent_framework::exceptions::GamiException&)>;
+    using ExceptionCallbackFunctionType = std::function<void(const agent_framework::exceptions::GamiException&)>;
     using PrerunActionType = std::function<void(void)>;
     using PostrunActionType = std::function<void(void)>;
     using SubtaskType = std::function<void(void)>;
 
     using Callbacks = std::vector<CallbackFunctionType>;
-    using ExceptionHandlers = std::vector<ExceptionHandlerFunctionType>;
+    using ExceptionHandlers = std::vector<ExceptionCallbackFunctionType>;
+    using ExceptionCallbacks = std::vector<ExceptionCallbackFunctionType>;
     using PrerunActions = std::vector<PrerunActionType>;
     using PostrunActions = std::vector<PostrunActionType>;
     using Subtasks = std::vector<SubtaskType>;
@@ -127,14 +129,23 @@ public:
 
 
     /*!
-     * Register callback for the task
+     * Add completion callback.
      *
-     * @param[in] callback_type Type of callback
-     * @param[in] callback Callable callback object
+     * @param[in] callback Completion callback to be added.
      *
      * @return *this
      * */
-    Task& add_callback(CallbackType callback_type, const CallbackFunctionType& callback);
+    Task& add_completion_callback(const CallbackFunctionType& callback);
+
+
+    /*!
+     * Add exception callback.
+     *
+     * @param[in] callback Exception callback to be added.
+     *
+     * @return *this
+     * */
+    Task& add_exception_callback(const ExceptionCallbackFunctionType& callback);
 
 
     /*!
@@ -145,7 +156,7 @@ public:
      *
      * @return *this
      * */
-    Task& add_exception_handler(const ExceptionHandlerFunctionType& exception_handler);
+    Task& add_exception_handler(const ExceptionCallbackFunctionType& exception_handler);
 
 
     /*!
@@ -264,30 +275,13 @@ protected:
     /*!
      * Run all exception callbacks.
      * */
-    void run_exception_callbacks();
+    void run_exception_callbacks(const agent_framework::exceptions::GamiException& e);
 
 
+    /*!
+     * Run all exception callbacks.
+     * */
     void run_exception_handlers(const agent_framework::exceptions::GamiException& e);
-
-
-    /*!
-     * Add completion callback.
-     *
-     * @param[in] callback Completion callback to be added.
-     *
-     * @return *this
-     * */
-    Task& add_completion_callback(const CallbackFunctionType& callback);
-
-
-    /*!
-     * Add excepiton callback.
-     *
-     * @param[in] callback Exception callback to be added.
-     *
-     * @return *this
-     * */
-    Task& add_exception_callback(const CallbackFunctionType& callback);
 
 
     /*!
@@ -335,7 +329,7 @@ protected:
 private:
     Subtasks m_subtasks{};
     Callbacks m_completion_callbacks{};
-    Callbacks m_exception_callbacks{};
+    ExceptionCallbacks m_exception_callbacks{};
     ExceptionHandlers m_exception_handlers{};
     PrerunActions m_prerun_actions{};
     PostrunActions m_postrun_actions{};

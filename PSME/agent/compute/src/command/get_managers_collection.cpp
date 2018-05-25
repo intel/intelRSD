@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetManagersCollection, [](const GetManagersCollection::Request&,
                                            GetManagersCollection::Response& rsp) {
-    log_debug(GET_LOGGER("rpc"), "Getting collection of managers.");
+    log_debug("rpc", "Getting collection of managers.");
     auto keys = CommonComponents::get_instance()->get_module_manager().get_keys();
     for (auto key : keys) {
         rsp.add_entry(agent_framework::model::attribute::ManagerEntry{key});

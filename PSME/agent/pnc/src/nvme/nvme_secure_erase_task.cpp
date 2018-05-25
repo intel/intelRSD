@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +82,7 @@ NvmeSecureEraseTask::NvmeSecureEraseTask(const std::string& drive_uuid) :
 
 
 void NvmeSecureEraseTask::operator()() {
-    log_info(GET_LOGGER("agent"), "Erasing drive securely started.");
+    log_info("agent", "Erasing drive securely started.");
 
     Toolset tools = Toolset::get();
 
@@ -93,19 +93,19 @@ void NvmeSecureEraseTask::operator()() {
     if (devices.size() > 0) {
         std::string device_path = devices.front();
         device_path = std::string("/dev/" + device_path);
-        log_debug("pnc-agent", "Drive to be erased: " + device_path);
+        log_debug("agent", "Drive to be erased: " + device_path);
         try {
             secure_erase(device_path);
             set_drive_erased(m_drive_uuid);
             tools.gas_tool->unbind_drive_from_mgmt_partition(tools.model_tool, gas, m_drive_uuid);
         }
         catch (const std::runtime_error& e) {
-            log_error("pnc-agent", "An error occured while erasing drive '" << device_path << "': " << e.what());
+            log_error("agent", "An error occured while erasing drive: " << e.what());
             // throw task exception, drive status will by updated by the callback
             THROW(agent_framework::exceptions::PncError, "agent", "Secure erase drive failed");
         }
         tools.model_tool->set_drive_is_being_erased(m_drive_uuid, false);
-        log_info(GET_LOGGER("agent"), "Erasing drive securely finished.");
+        log_info("agent", "Erasing drive securely finished.");
     }
     else {
         tools.model_tool->set_drive_status(m_drive_uuid,

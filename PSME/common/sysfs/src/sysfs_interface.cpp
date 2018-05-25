@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,6 +129,10 @@ void SysfsInterface::del_link(const Path& path) const {
 
 SysfsFile SysfsInterface::get_file(const Path& path) const {
 
+    // this is required as open will not fail on directories
+    if (!file_exists(path)) {
+        throw std::runtime_error(std::string{"Provided path does not point to a file "} + path.to_string());
+    }
     int fd = open(path.to_string().c_str(), O_RDONLY);
     if (fd < 0) {
         throw std::runtime_error(std::string{"Unable to open file "} + path.to_string()

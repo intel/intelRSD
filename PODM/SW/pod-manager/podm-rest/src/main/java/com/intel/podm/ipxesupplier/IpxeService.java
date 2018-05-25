@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.intel.podm.ipxesupplier;
 
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.net.MacAddress;
-import org.apache.commons.lang3.ObjectUtils;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -28,6 +27,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import java.text.MessageFormat;
+import java.util.Objects;
 import java.util.UUID;
 
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
@@ -69,9 +69,9 @@ public class IpxeService {
     private String getHostDetailsString(String macAddressString, String uuid, String ip) {
         return MessageFormat.format(
             "(from MAC: [{0}], UUID: [{1}], IP: [{2}])",
-            ObjectUtils.toString(macAddressString),
-            ObjectUtils.toString(uuid),
-            ObjectUtils.toString(ip)
+            Objects.toString(macAddressString, ""),
+            Objects.toString(uuid, ""),
+            Objects.toString(ip, "")
         );
     }
 }

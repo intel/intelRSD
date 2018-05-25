@@ -2,7 +2,7 @@
  * @brief Definition of EventArray class carrying events for a subscriber
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,38 +20,39 @@
 
 #include "psme/rest/eventing/event_array.hpp"
 #include "psme/rest/constants/constants.hpp"
-#include "json/json.hpp"
 
 #include <algorithm>
+#include <map>
 
-using psme::rest::eventing::EventArray;
-using namespace psme::rest;
+
+
+using namespace psme::rest::eventing;
 
 uint64_t EventArray::EVENT_ARRAY_ID = 1;
 
 void EventArray::assign_new_id() {
     m_id = EVENT_ARRAY_ID++;
     if (EVENT_ARRAY_ID == 0) {
-        log_warning(GET_LOGGER("rest"), "Counter of Event array Ids has overflown!");
+        log_warning("rest", "Counter of Event array Ids has overflown!");
     }
 }
 
 void EventArray::remove_duplicates() {
-    using Type = eventing::EventType::base_enum;
-
-    std::map<std::string, Type> present_events{};
+    std::map<std::string, std::vector<EventType>> present_events{};
     auto it = std::remove_if(m_events.begin(), m_events.end(), [&present_events] (const Event& event) {
         if (present_events.count(event.get_origin_of_condition()) == 0) {
-            present_events.emplace(event.get_origin_of_condition(), event.get_type());
+            present_events.emplace(event.get_origin_of_condition(), std::vector<EventType>{event.get_type()});
             return false;
         }
         else {
-            if (present_events[event.get_origin_of_condition()] != event.get_type()) {
-                log_warning("rest", "Conflicting events for " + event.get_origin_of_condition() + " : "
-                                    + eventing::EventType(present_events[event.get_origin_of_condition()]).to_string()
-                                    + " and " + event.get_type().to_string());
+            auto types = present_events[event.get_origin_of_condition()];
+            if (std::find(types.begin(), types.end(), event.get_type()) == types.end()) {
+                types.push_back(event.get_type());
+                present_events[event.get_origin_of_condition()] = types;
+                return false;
             }
-            // remove event with duplicate URL
+
+            // Remove event with duplicate URL and type
             return true;
         }
     });
@@ -60,8 +61,8 @@ void EventArray::remove_duplicates() {
 
 json::Value EventArray::to_json() const {
     json::Value json(json::Value::Type::OBJECT);
-    json[constants::Common::ODATA_CONTEXT] = "/rest/v1/$metadata#Event.Event";
-    json[constants::Common::ODATA_ID] = "/rest/v1/EventService/Events/" + std::to_string(m_id);
+    json[constants::Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Event.Event";
+    json[constants::Common::ODATA_ID] = "/redfish/v1/EventService/Events/" + std::to_string(m_id);
     json[constants::Common::ODATA_TYPE] = "#Event.v1_2_0.Event";
     json[constants::Common::ID] = std::to_string(m_id);
     json[constants::Common::NAME] = "Event Array";

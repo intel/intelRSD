@@ -1,28 +1,54 @@
 {
+    "service" : "rest-server",
     "server": {
-        "url": "http://localhost:8888",
-        "network-interface-name" : "enp0s20f0.4094"
+        "network-interface-name" : ["enp0s20f0.4094"],
+        "connectors" : [
+            {
+                "use-ssl" : true,
+                "certs-directory" : "/etc/psme/certs",
+                "port": 8443,
+                "thread-mode" : "select",
+                "client-cert-required" : true
+            },
+            {
+                "use-ssl" : false,
+                "port": 8888,
+                "redirect-port" : 8443,
+                "thread-mode" : "select",
+                "thread-pool-size" : 1
+            }
+        ]
     },
+    "event-service" : {
+        "delivery-retry-attempts" : 3,
+        "delivery-retry-interval-seconds" : 60
+    },
+    "ssdp-service" : {
+        "enabled" : true,
+        "announce-interval-seconds" : 0,
+        "ttl" : 2
+    },
+    "rmm-present" : true,
     "registration": {
         "port": 8383,
         "minDelay": 3
     },
-    "commands": {
-        "generic": "Registration"
-    },
     "eventing" : {
-        "enabled" : false,
         "address": "localhost",
         "port" : 5567,
         "poll-interval-sec" : 20
     },
-    "rest-server" : {
-        "storage-service-mode" : false
+    "rest" : {
+        "service-root-name" : "PSME Service Root"
     },
-    "service-uuid-file" : "/etc/psme/service_uuid.json",
-    "subscription-config-file" : "/tmp/subscriptions",
-    "logger" : {
-        "app" : {
+    "database": {
+        "location": "/var/opt/psme",
+        "retention-interval-sec": 600,
+        "retention-outdated-sec": 2419200
+    },
+    "loggers" : [
+        {
+            "name" : "app",
             "level" : "INFO",
             "timeformat" : "DATE_NS",
             "color" : true,
@@ -35,5 +61,5 @@
                  }
             ]
         }
-    }
+    ]
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ Acl::Acl(const std::string& parent_uuid, enums::Component parent_type) :
 Acl::~Acl() {}
 
 json::Json Acl::to_json() const {
-    json::Json result;
+    json::Json result{};
     result[literals::Acl::STATUS] = get_status().to_json();
     result[literals::Acl::COLLECTIONS] = get_collections().to_json();
     result[literals::Acl::OEM] = get_oem().to_json();
@@ -42,11 +42,9 @@ json::Json Acl::to_json() const {
 }
 
 Acl Acl::from_json(const json::Json& json) {
-    Acl acl;
+    Acl acl{};
     acl.set_status(attribute::Status::from_json(json[literals::Acl::STATUS]));
-    acl.set_collections(Collections::from_json(
-        json[literals::Acl::COLLECTIONS]));
+    acl.set_collections(Collections::from_json(json[literals::Acl::COLLECTIONS]));
     acl.set_oem(attribute::Oem::from_json(json[literals::Acl::OEM]));
-    acl.set_resource_hash(json);
     return acl;
 }

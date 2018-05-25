@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,29 +18,13 @@ package com.intel.podm.business.redfish.services.allocation.strategy;
 
 import com.intel.podm.business.Violations;
 import com.intel.podm.business.entities.redfish.ComposedNode;
-import com.intel.podm.business.entities.redfish.NetworkInterface;
 import com.intel.podm.business.redfish.services.assembly.tasks.NodeTask;
 
 import java.util.List;
-import java.util.Set;
-
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 public interface RemoteDriveAllocationStrategy {
     Violations validate();
     Violations findResources();
     void allocate(ComposedNode composedNode);
     List<NodeTask> getTasks();
-
-    default boolean networkDeviceFunctionPatchCanBePerformed(ComposedNode composedNode) {
-        Set<NetworkInterface> networkInterfaces = composedNode.getComputerSystem().getNetworkInterfaces();
-        return isNotEmpty(networkInterfaces)
-            && allNetworkInterfacesContainsNetworkDeviceFunction(networkInterfaces);
-    }
-
-    default boolean allNetworkInterfacesContainsNetworkDeviceFunction(Set<NetworkInterface> networkInterfaces) {
-        return networkInterfaces.stream()
-            .noneMatch(networkInterface -> isEmpty(networkInterface.getNetworkDeviceFunctions()));
-    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import com.intel.podm.common.types.ConnectionParameters;
 import com.intel.podm.common.types.ServiceType;
 import com.intel.podm.config.base.ConfigFile;
 
-import java.util.Arrays;
-import java.util.Collections;
+import static java.util.Collections.singletonList;
+
 import java.util.List;
 
 import static java.lang.String.format;
@@ -59,23 +59,32 @@ public class ServiceConnectionConfig extends BaseConfig {
         @JsonProperty("ServiceSocketTimeoutInSeconds")
         private long serviceSocketTimeout = 2;
 
+        @JsonProperty("ConnectionPoolSize")
+        private int connectionPoolSize = 200;
+
+        @JsonProperty("MaxPooledPerRoute")
+        private int maxPooledPerRoute = 20;
+
         public ConnectionParameters getConnectionParameters() {
             return new ConnectionParameters(
                 serviceConnectionTimeout,
-                serviceSocketTimeout
+                serviceSocketTimeout,
+                connectionPoolSize,
+                maxPooledPerRoute
             );
         }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ConnectionSecurity {
-        private static final List<Integer> SSL_PORTS_FOR_SERVICE = Collections.singletonList(8443);
-        private static final List<Integer> DEFAULT_PORTS_FOR_SERVICE = Collections.singletonList(8888);
-        private static final List<Integer> SSL_PORTS_FOR_PSME = Arrays.asList(8443, 50000);
-        private static final List<Integer> DEFAULT_PORTS_FOR_PSME = Arrays.asList(8888, 50000);
-        private static final List<Integer> SSL_PORTS_FOR_RMM = Arrays.asList(8443, 8091);
-        private static final List<Integer> DEFAULT_PORTS_FOR_RMM = Arrays.asList(8888, 8090);
-        private static final List<Integer> SSL_PORTS_FOR_INBAND = Collections.singletonList(8448);
+        private static final List<Integer> SSL_PORTS_FOR_SERVICE = singletonList(8443);
+        private static final List<Integer> HTTP_PORTS_FOR_SERVICE = singletonList(8888);
+        private static final List<Integer> SSL_PORTS_FOR_PSME = singletonList(8443);
+        private static final List<Integer> HTTP_PORTS_FOR_PSME = singletonList(8888);
+        private static final List<Integer> SSL_PORTS_FOR_RMM = singletonList(8443);
+        private static final List<Integer> HTTP_PORTS_FOR_RMM = singletonList(8888);
+        private static final List<Integer> SSL_PORTS_FOR_INBAND = singletonList(8448);
+        private static final List<Integer> SSL_PORTS_FOR_DISCOVERY_SERVICE = singletonList(8444);
 
         @JsonProperty("SslEnabledForRmm")
         private boolean sslEnabledForRmm = true;
@@ -83,39 +92,43 @@ public class ServiceConnectionConfig extends BaseConfig {
         @JsonProperty("SslPortsForRmm")
         private List<Integer> sslPortsForRmm = SSL_PORTS_FOR_RMM;
 
-        @JsonProperty("DefaultPortForRmm")
-        private List<Integer> defaultPortsForRmm = DEFAULT_PORTS_FOR_RMM;
+        @JsonProperty("HttpPortsForRmm")
+        private List<Integer> httpPortsForRmm = HTTP_PORTS_FOR_RMM;
 
         @JsonProperty("SslEnabledForPsme")
         private boolean sslEnabledForPsme = true;
 
-        @JsonProperty("SslPortForPsme")
+        @JsonProperty("SslPortsForPsme")
         private List<Integer> sslPortsForPsme = SSL_PORTS_FOR_PSME;
 
-        @JsonProperty("DefaultPortForPsme")
-        private List<Integer> defaultPortsForPsme = DEFAULT_PORTS_FOR_PSME;
+        @JsonProperty("HttpPortsForPsme")
+        private List<Integer> httpPortsForPsme = HTTP_PORTS_FOR_PSME;
 
         @JsonProperty("SslEnabledForRss")
         private boolean sslEnabledForRss = true;
 
-        @JsonProperty("SslPortForRss")
+        @JsonProperty("SslPortsForRss")
         private List<Integer> sslPortsForRss = SSL_PORTS_FOR_SERVICE;
 
-        @JsonProperty("DefaultPortForRss")
-        private List<Integer> defaultPortsForRss = DEFAULT_PORTS_FOR_SERVICE;
+        @JsonProperty("HttpPortsForRss")
+        private List<Integer> httpPortsForRss = HTTP_PORTS_FOR_SERVICE;
 
         @JsonProperty("SslEnabledForLui")
         private boolean sslEnabledForLui = true;
 
-        @JsonProperty("SslPortForLui")
+        @JsonProperty("SslPortsForLui")
         private List<Integer> sslPortsForLui = SSL_PORTS_FOR_SERVICE;
 
-        @JsonProperty("DefaultPortForLui")
-        private List<Integer> defaultPortsForLui = DEFAULT_PORTS_FOR_SERVICE;
+        @JsonProperty("HttpPortsForLui")
+        private List<Integer> httpPortsForLui = HTTP_PORTS_FOR_SERVICE;
 
-        @JsonProperty("SslPortForInBand")
+        @JsonProperty("SslPortsForInBand")
         private List<Integer> sslPortsForInBand = SSL_PORTS_FOR_INBAND;
 
+        @JsonProperty("SslPortsForDiscoveryService")
+        private List<Integer> sslPortsForDiscoveryService = SSL_PORTS_FOR_DISCOVERY_SERVICE;
+
+        @SuppressWarnings({"checkstyle:CyclomaticComplexity"})
         public boolean isSslEnabledForServicesOfType(ServiceType type) {
             boolean isEnabled;
             switch (type) {
@@ -132,6 +145,7 @@ public class ServiceConnectionConfig extends BaseConfig {
                     isEnabled = sslEnabledForLui;
                     break;
                 case INBAND:
+                case DISCOVERY_SERVICE:
                     return true;
                 default:
                     throw new UnsupportedOperationException(format("Connection configuration for service %s is not supported", type));
@@ -142,18 +156,19 @@ public class ServiceConnectionConfig extends BaseConfig {
         public List<Integer> getDefaultPortsForServicesOfType(ServiceType type) {
             switch (type) {
                 case RMM:
-                    return defaultPortsForRmm;
+                    return httpPortsForRmm;
                 case PSME:
-                    return defaultPortsForPsme;
+                    return httpPortsForPsme;
                 case RSS:
-                    return defaultPortsForRss;
+                    return httpPortsForRss;
                 case LUI:
-                    return defaultPortsForLui;
+                    return httpPortsForLui;
                 default:
                     throw new UnsupportedOperationException(format("Connection configuration for service %s is not supported", type));
             }
         }
 
+        @SuppressWarnings({"checkstyle:CyclomaticComplexity", "checkstyle:MethodLength"})
         public List<Integer> getSslPortsForServicesOfType(ServiceType type) {
             List<Integer> sslPort;
             switch (type) {
@@ -171,6 +186,9 @@ public class ServiceConnectionConfig extends BaseConfig {
                     break;
                 case INBAND:
                     sslPort = sslPortsForInBand;
+                    break;
+                case DISCOVERY_SERVICE:
+                    sslPort = sslPortsForDiscoveryService;
                     break;
                 default:
                     throw new UnsupportedOperationException(format("Connection configuration for service %s is not supported", type));

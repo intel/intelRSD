@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,7 @@ import com.intel.podm.common.types.redfish.IgnoreAutomaticOem;
 
 import java.math.BigDecimal;
 
-@JsonPropertyOrder({
-    "inputType", "minimumVoltage", "maximumVoltage", "minimumFrequencyHz",
-    "maximumFrequencyHz", "outputWattage", "oem"
-})
+@JsonPropertyOrder({"inputType", "minimumVoltage", "maximumVoltage", "minimumFrequencyHz", "maximumFrequencyHz", "outputWattage", "oem"})
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class InputRangeDto {
     private PowerInputType inputType;

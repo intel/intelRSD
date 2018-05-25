@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 cmake_minimum_required(VERSION 2.8)
 project(IscsiMdr CXX)
+
 
 set(ISCSI_MDR_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include

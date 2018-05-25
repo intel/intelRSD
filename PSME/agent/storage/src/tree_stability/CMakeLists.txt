@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,15 +17,7 @@
 # </license_header>
 
 set(SOURCES
-    helpers/update_relations.cpp
-
-    storage_tree_stabilizer.cpp
+    storage_key_generator.cpp
 )
-
-if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-    # GCC bug. In C++11 initializtion with {} is correct
-    set_source_files_properties(strorage_tree_stabilizer.cpp PROPERTIES
-            COMPILE_FLAGS "-Wno-missing-field-initializers")
-endif()
 
 add_library(storage-tree-stability OBJECT ${SOURCES})

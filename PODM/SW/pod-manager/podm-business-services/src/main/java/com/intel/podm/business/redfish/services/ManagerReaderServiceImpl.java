@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,19 @@ import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.context.ContextType;
 import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.MANAGERS;
+import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_INTERFACES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.NETWORK_PROTOCOL_RESOURCE_NAME;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -50,7 +53,8 @@ class ManagerReaderServiceImpl implements ReaderService<ManagerDto> {
     @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context serviceRootContext) throws ContextResolvingException {
-        return new CollectionDto(MANAGERS, managerDao.getAllManagerIds());
+        List<Context> contexts = managerDao.getAllManagerIds().stream().map(id -> contextOf(id, ContextType.MANAGER)).sorted().collect(toList());
+        return new CollectionDto(CollectionDto.Type.MANAGER, contexts);
     }
 
     @Transactional(REQUIRED)

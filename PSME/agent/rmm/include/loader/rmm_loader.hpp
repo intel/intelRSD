@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #pragma once
 
 #include "agent-framework/module/loader/loader.hpp"
+#include "discovery/helpers/common.hpp"
 
 namespace agent {
 namespace rmm {
@@ -31,6 +32,8 @@ namespace loader {
 class RmmLoader : public agent_framework::module::loader::Loader {
 public:
 
+    RmmLoader(agent::rmm::discovery::helpers::DiscoveryContext& dc): m_dc(dc) { }
+
     /*!@brief Default destructor.*/
     virtual ~RmmLoader() = default;
 
@@ -40,6 +43,9 @@ public:
      * @return true if success otherwise false
      * */
     bool load(const json::Value& json) override;
+
+private:
+    agent::rmm::discovery::helpers::DiscoveryContext& m_dc;
 };
 
 }

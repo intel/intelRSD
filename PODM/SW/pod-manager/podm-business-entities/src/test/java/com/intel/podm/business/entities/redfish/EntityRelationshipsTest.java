@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.
 import static com.intel.podm.business.entities.redfish.EntityRelationshipHelper.validateIfGetMethodReturnsNullOrEmptyCollection;
 import static com.intel.podm.common.utils.FailManager.failWithMessageIfAnyError;
 import static java.util.Arrays.stream;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 import static org.mockito.Mockito.mockingDetails;
@@ -56,7 +57,8 @@ public class EntityRelationshipsTest {
             add("com.intel.podm.business.entities.redfish.base");
         }
     };
-    private static final String EMBEDDABLES_PACKAGE = "com.intel.podm.business.entities.redfish.embeddables";
+    private static final List<String> EMBEDDABLES_PACKAGE = new ArrayList<>(
+        singletonList("com.intel.podm.business.entities.redfish.embeddables"));
 
     @Test
     public void allEntityRelationshipsShouldHaveProperMethods() {
@@ -98,10 +100,16 @@ public class EntityRelationshipsTest {
 
     @Test
     public void allEmbeddablesShouldBeInProperPackage() {
-        List<String> errors = getEmbeddables().stream()
-            .filter(embeddable -> !EMBEDDABLES_PACKAGE.equals(embeddable.getClass().getPackage().getName()))
-            .map(embeddable -> embeddable.getClass().getName() + ": Class must be located directly in following package: " + EMBEDDABLES_PACKAGE + ".")
-            .collect(toList());
+
+        List<String> errors = new ArrayList<>();
+
+        getEmbeddables().stream()
+            .map(embeddable -> EMBEDDABLES_PACKAGE.stream()
+                .filter(embeddableFromPackage -> embeddableFromPackage.getClass().getPackage().getName().equals(embeddable))
+                .map(embeddableFromPackage -> embeddable.getClass().getName()
+                    + ": Class must be located directly in following package: " + EMBEDDABLES_PACKAGE + ".")
+                .collect(toList()))
+            .forEach(errors::addAll);
 
         failWithMessageIfAnyError(errors, "Embeddable package location");
     }

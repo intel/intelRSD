@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetDriveInfo,
     [] (const GetDriveInfo::Request& req, GetDriveInfo::Response& rsp) {
-        log_debug(GET_LOGGER("agent"), "Getting drive info.");
+        log_debug("agent", "Getting drive info.");
         rsp = CommonComponents::get_instance()->
             get_drive_manager().get_entry(req.get_uuid());
     }

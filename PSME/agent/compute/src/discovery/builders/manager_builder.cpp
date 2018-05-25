@@ -2,7 +2,7 @@
  * @brief Manager builder class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,16 @@ Manager ManagerBuilder::build_default() {
     Manager manager{};
 
     manager.add_collection({enums::CollectionName::Systems,
-                            enums::CollectionType::Systems,
-                            ""});
+                            enums::CollectionType::Systems
+                           });
 
     manager.add_collection({enums::CollectionName::Chassis,
-                            enums::CollectionType::Chassis,
-                            ""});
+                            enums::CollectionType::Chassis
+                           });
+
+    manager.add_collection({enums::CollectionName::PcieDevices,
+                           enums::CollectionType::PCIeDevices
+                           });
 
     manager.set_status({enums::State::Enabled, {}});
 

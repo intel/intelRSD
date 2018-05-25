@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,12 @@ endif()
 add_gtest(loader_load psme-chassis
     loader_build_chassis_test.cpp
     test_runner.cpp
+)
+
+generate_config_file(loader_build_chassis_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/configuration_full.hpp
+    "CHASSIS_FULL_CONFIGURATION"
+    "Declaration of full configuration"
 )
 
 add_library(chassis_objects_test

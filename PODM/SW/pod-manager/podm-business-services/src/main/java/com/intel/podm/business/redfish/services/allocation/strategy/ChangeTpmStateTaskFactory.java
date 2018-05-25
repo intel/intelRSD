@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package com.intel.podm.business.redfish.services.allocation.strategy;
 
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.redfish.services.assembly.tasks.ChangeTpmStateTask;
-import com.intel.podm.business.redfish.services.assembly.tasks.NodeTask;
-import com.intel.podm.business.services.redfish.requests.RequestedNode.Security;
 import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
 import com.intel.podm.common.types.actions.ChangeTpmStatusUpdateDefinition;
 
@@ -27,27 +25,17 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import static javax.transaction.Transactional.TxType.REQUIRED;
+import static javax.transaction.Transactional.TxType.SUPPORTS;
 
 @Dependent
 public class ChangeTpmStateTaskFactory {
     @Inject
     private BeanFactory beanFactory;
 
-    @Inject
-    private TrustedModuleOverseer trustedModuleOverseer;
-
-    @Transactional(REQUIRED)
-    public NodeTask createChangeTpmStateTask(Security security, ComputerSystem computerSystem) {
-        ChangeTpmStatusUpdateDefinition changeTpmStatusUpdateDefinition =
-            trustedModuleOverseer.prepareChangeTpmStateUpdateDefinition(security, computerSystem.getTrustedModules());
-        return prepareChangeTpmStateTask(computerSystem, changeTpmStatusUpdateDefinition);
-    }
-
-    private ChangeTpmStateTask prepareChangeTpmStateTask(ComputerSystem computerSystem,
-                                                         ChangeTpmStatusUpdateDefinition changeTpmStatusUpdateDefinition) {
-        ChangeTpmStateTask changeTpmStateTask = beanFactory.create(ChangeTpmStateTask.class);
-        changeTpmStateTask.setComputerSystem(computerSystem);
+    @Transactional(SUPPORTS)
+    public ChangeTpmStateTask createChangeTpmStateTask(ComputerSystem computerSystem,
+                                                       ChangeTpmStatusUpdateDefinition changeTpmStatusUpdateDefinition) {
+        ChangeTpmStateTask changeTpmStateTask = beanFactory.create(ChangeTpmStateTask.class).init(computerSystem.getId());
         changeTpmStateTask.setChangeTpmStatusUpdateDefinition(changeTpmStatusUpdateDefinition);
         return changeTpmStateTask;
     }

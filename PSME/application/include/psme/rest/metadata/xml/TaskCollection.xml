@@ -18,6 +18,7 @@
         <NavigationProperty Name="Members" Type="Collection(Task.Task)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Contains the members of this collection."/>
+          <Annotation Term="OData.LongDescription" String="Collection of tasks."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </EntityType>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,18 @@ package com.intel.podm.ipxesupplier;
 
 import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
-import com.intel.podm.business.entities.redfish.RemoteTarget;
-import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
+import com.intel.podm.business.entities.redfish.Endpoint;
+import com.intel.podm.business.entities.redfish.IpTransportDetails;
+import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
+import com.intel.podm.business.entities.redfish.embeddables.Identifier;
 
 import javax.enterprise.context.ApplicationScoped;
-import java.util.Collection;
-import java.util.List;
+import java.util.Optional;
 
 import static com.intel.podm.common.types.DeepDiscoveryState.RUNNING;
-import static com.intel.podm.common.utils.IterableHelper.single;
+import static com.intel.podm.common.types.DurableNameFormat.LUN;
+import static com.intel.podm.common.types.EntityRole.INITIATOR;
+import static com.intel.podm.common.utils.Collections.firstByPredicate;
 
 @ApplicationScoped
 public class IpxeScriptFactory {
@@ -34,26 +37,22 @@ public class IpxeScriptFactory {
         if (computerSystem.getMetadata().isInAnyOfStates(RUNNING)) {
             return new DeepDiscoveryIpxeScript();
         } else {
-            return remoteTargetIpxe(computerSystem);
+            Optional<ConnectedEntity> connectedEntity = findConnectedEntityWithBootableVolume(computerSystem);
+
+            Endpoint targetEndpoint = connectedEntity
+                .orElseThrow(() -> new AssetNotFoundException("Connected entity with bootable volume not found in composed node"))
+                .getEndpoint();
+
+            Endpoint initiatorEndpoint = firstByPredicate(targetEndpoint.getZone().getEndpoints(), endpoint -> endpoint.hasRole(INITIATOR))
+                .orElseThrow(() -> new AssetNotFoundException("Initiator endpoint not found"));
+
+            return createSanbootIpxeScript(initiatorEndpoint, targetEndpoint, connectedEntity.get());
         }
     }
 
-    private RemoteTargetIpxeScript remoteTargetIpxe(ComputerSystem computerSystem) throws AssetNotFoundException {
+    private Optional<ConnectedEntity> findConnectedEntityWithBootableVolume(ComputerSystem computerSystem) throws AssetNotFoundException {
         ComposedNode composedNode = findComposedNode(computerSystem);
-        RemoteTarget remoteTarget = findRemoteTarget(composedNode);
-
-        String iscsiInitiatorIqn = remoteTarget.getIscsiInitiatorIqn();
-        RemoteTargetIscsiAddress address = findAddress(remoteTarget);
-        Integer lun = findLun(address);
-
-        return RemoteTargetIpxeScript
-            .newBuilder()
-            .initiatorIqn(iscsiInitiatorIqn)
-            .serverName(address.getTargetPortalIp())
-            .port(address.getTargetPortalPort())
-            .lun(lun)
-            .targetName(address.getTargetIqn())
-            .build();
+        return composedNode.findAnyConnectedEntityWithBootableVolume();
     }
 
     private ComposedNode findComposedNode(ComputerSystem computerSystem) throws AssetNotFoundException {
@@ -64,33 +63,43 @@ public class IpxeScriptFactory {
         return computerSystem.getComposedNode();
     }
 
-    private RemoteTarget findRemoteTarget(ComposedNode composedNode) throws AssetNotFoundException {
-        Collection<RemoteTarget> remoteTargets = composedNode.getRemoteTargets();
+    private SanbootIpxeScript createSanbootIpxeScript(Endpoint initiatorEndpoint, Endpoint targetEndpoint, ConnectedEntity targetConnectedEntity)
+        throws AssetNotFoundException {
+        String initiatorIqn = getIqnFromEndpoint(initiatorEndpoint);
+        String targetIqn = getIqnFromEndpoint(targetEndpoint);
 
-        if (remoteTargets.size() != 1) {
-            throw new AssetNotFoundException("Invalid number of remote targets in composed node (expected: 1, found: " + remoteTargets.size() + ")");
-        }
+        IpTransportDetails transportDetail = getIscsiTransportDetail(targetEndpoint);
+        String targetPortalIp = getIpFromTransportDetail(transportDetail);
+        Integer targetPortalPort = transportDetail.getPort();
 
-        return single(remoteTargets);
+        String lun = targetConnectedEntity.getIdentifiers().stream()
+            .filter(ce -> LUN.equals(ce.getDurableNameFormat()))
+            .map(Identifier::getDurableName)
+            .findFirst()
+            .orElseThrow(() -> new AssetNotFoundException("Connected entity Identifiers has not defined LUN"));
+
+        return SanbootIpxeScript
+            .newBuilder()
+            .initiatorIqn(initiatorIqn)
+            .serverName(targetPortalIp)
+            .port(targetPortalPort)
+            .lun(lun)
+            .targetName(targetIqn)
+            .build();
     }
 
-    private RemoteTargetIscsiAddress findAddress(RemoteTarget remoteTarget) throws AssetNotFoundException {
-        Collection<RemoteTargetIscsiAddress> addresses = remoteTarget.getRemoteTargetIscsiAddresses();
-
-        if (addresses.size() != 1) {
-            throw new AssetNotFoundException("Invalid number of addresses in remote target (expected: 1, found: " + addresses.size() + ")");
-        }
-
-        return single(addresses);
+    private String getIqnFromEndpoint(Endpoint endpoint) throws AssetNotFoundException {
+        return endpoint.findIqnIdentifier()
+            .orElseThrow(() -> new AssetNotFoundException("iQN identifier not found in endpoint"))
+            .getDurableName();
     }
 
-    private Integer findLun(RemoteTargetIscsiAddress address) throws AssetNotFoundException {
-        List<Integer> luns = address.getTargetLuns();
+    private IpTransportDetails getIscsiTransportDetail(Endpoint endpoint) throws AssetNotFoundException {
+        return endpoint.findIscsiTransport()
+            .orElseThrow(() -> new AssetNotFoundException("IpTransportDetails with iSCSI transport not found in endpoint"));
+    }
 
-        if (luns.size() != 1) {
-            throw new AssetNotFoundException("Invalid number of LUNs in remote target (expected: 1, found: " + luns.size() + ")");
-        }
-
-        return single(luns);
+    private String getIpFromTransportDetail(IpTransportDetails transportDetail) throws AssetNotFoundException {
+        return transportDetail.getIp().orElseThrow(() -> new AssetNotFoundException("IP address is not specified"));
     }
 }

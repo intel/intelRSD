@@ -7,7 +7,7 @@
  * the code)
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,10 @@ GpioManager::GpioManager() {
         }
     }
     catch (const std::exception& e) {
-        log_warning(GET_LOGGER("agent"), "Unable to read cyMux connection configuration: "
+        log_warning("agent", "Unable to read cyMux connection configuration: "
             << e.what() << ". Using default address: " << m_mux_socket_address);
     }
-    log_info(GET_LOGGER("agent"), "gpio minimal read interval: " << m_update_interval.count() << "ms");
+    log_info("agent", "gpio minimal read interval: " << m_update_interval.count() << "ms");
 }
 
 std::uint8_t GpioManager::get_presence() {
@@ -93,7 +93,13 @@ void GpioManager::send_request_process_response(IpmiMessage& msg) {
         c_mux.send(buffer);
 
         // Fetch response (slave address : IPMB response)
-        buffer = c_mux.recv(IpmiMessage::IPMI_MAX_MSG_LENGTH + 1);
+        try {
+            buffer = c_mux.recv(IpmiMessage::IPMI_MAX_MSG_LENGTH + 1);
+        }
+        catch (const std::exception& e) {
+            log_error(LOGUSR, "Cannot receive response from cyMUX: " << e.what());
+            throw;
+        }
 
         log_debug(LOGUSR, "Received  (" << buffer.size() << " bytes) frame: "
                                         << utils::print_frame(&buffer[0], static_cast<uint16_t> (buffer.size())));

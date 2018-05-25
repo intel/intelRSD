@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.PreRemove;
 import javax.persistence.Table;
@@ -45,11 +44,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
-import static com.intel.podm.common.types.Health.OK;
-import static com.intel.podm.common.types.State.ENABLED;
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static com.intel.podm.common.utils.IterableHelper.optionalSingle;
 import static java.lang.String.format;
@@ -72,7 +69,7 @@ import static javax.persistence.InheritanceType.JOINED;
 public abstract class DiscoverableEntity extends Entity {
 
     public static final String GET_ENTITY_BY_SERVICE_AND_SOURCE_URI = "GET_ENTITY_BY_SERVICE_AND_SOURCE_URI";
-    private static final Status ABSENT = new Status(State.ABSENT, null, null);
+    protected static final Status ABSENT = new Status(State.ABSENT, null, null);
 
     @Column(name = "name")
     private String name;
@@ -122,8 +119,8 @@ public abstract class DiscoverableEntity extends Entity {
     @OneToMany(mappedBy = "discoverableEntity", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<ExternalLink> externalLinks = new HashSet<>();
 
-    @OneToOne(mappedBy = "entityLink", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private ConnectedEntity connectedEntity;
+    @OneToMany(mappedBy = "entityLink", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<ConnectedEntity> entityConnections = new HashSet<>();
 
     public abstract Id getId();
 
@@ -162,7 +159,7 @@ public abstract class DiscoverableEntity extends Entity {
     }
 
     public URI getSourceUri() {
-        return optionalSingle(externalLinks).map(el -> el.getSourceUri()).orElse(null);
+        return optionalSingle(externalLinks).map(ExternalLink::getSourceUri).orElse(null);
     }
 
     public boolean isComplementary() {
@@ -247,6 +244,27 @@ public abstract class DiscoverableEntity extends Entity {
         }
     }
 
+    public Set<ConnectedEntity> getEntityConnections() {
+        return entityConnections;
+    }
+
+    public void addEntityConnection(ConnectedEntity connectedEntity) {
+        requiresNonNull(connectedEntity, "connectedEntity");
+        entityConnections.add(connectedEntity);
+        if (!this.equals(connectedEntity.getEntityLink())) {
+            connectedEntity.setEntityLink(this);
+        }
+    }
+
+    public void unlinkEntityConnection(ConnectedEntity connectedEntity) {
+        if (entityConnections.contains(connectedEntity)) {
+            entityConnections.remove(connectedEntity);
+            if (connectedEntity != null) {
+                connectedEntity.unlinkEntityLink(this);
+            }
+        }
+    }
+
     public Set<DiscoverableEntity> getRelatedItems() {
         return relatedItems;
     }
@@ -291,53 +309,14 @@ public abstract class DiscoverableEntity extends Entity {
         }
     }
 
-    public ConnectedEntity getConnectedEntity() {
-        return connectedEntity;
-    }
-
-    public void setConnectedEntity(ConnectedEntity connectedEntity) {
-        if (!Objects.equals(this.connectedEntity, connectedEntity)) {
-            unlinkConnectedEntity(this.connectedEntity);
-            this.connectedEntity = connectedEntity;
-            if (connectedEntity != null && !this.equals(connectedEntity.getEntityLink())) {
-                connectedEntity.setEntityLink(this);
-            }
-        }
-    }
-
-    public void unlinkConnectedEntity(ConnectedEntity connectedEntity) {
-        if (Objects.equals(this.connectedEntity, connectedEntity)) {
-            this.connectedEntity = null;
-            if (connectedEntity != null) {
-                connectedEntity.unlinkEntityLink(this);
-            }
-        }
-    }
-
     public ExternalService getService() {
         return optionalSingle(getExternalLinks())
             .map(ExternalLink::getExternalService)
             .orElse(null);
     }
 
-    public boolean canBeAllocated() {
-        return isEnabledAndHealthy();
-    }
-
-    /**
-     * @deprecated Use {@link #canBeAllocated()} method if possible, otherwise think about changing name of this method to more domain friendly.
-     */
-    @Deprecated
-    public boolean isEnabledAndHealthy() {
-        return getStatus() != null && Objects.equals(getStatus().getHealth(), OK) && Objects.equals(getStatus().getState(), ENABLED);
-    }
-
-    public boolean isEnabled() {
-        return getStatus() != null && Objects.equals(getStatus().getState(), ENABLED);
-    }
-
     public boolean isPresent() {
-        return getStatus() != null && getStatus().getState() != State.ABSENT;
+        return getStatus() != null && !statusOf(this).isAbsent().verify();
     }
 
     public void putToAbsentState() {
@@ -349,14 +328,15 @@ public abstract class DiscoverableEntity extends Entity {
         unlinkCollection(ownedRedundancies, this::unlinkOwnedRedundancy);
         unlinkCollection(redundancies, this::unlinkRedundancy);
         unlinkCollection(externalLinks, this::unlinkExternalLink);
+        unlinkCollection(entityConnections, this::unlinkEntityConnection);
         unlinkCollection(relatedItems, this::unlinkRelatedItem);
         unlinkCollection(referencedBy, this::unlinkReferencedBy);
-        unlinkConnectedEntity(connectedEntity);
     }
 
     @Override
     public String toString() {
-        return format("DiscoverableEntity {clazz=%s, entityId=%s, primaryKey=%d}", getClass().getSimpleName(), getId(), getPrimaryKey());
+        return format("DiscoverableEntity {clazz=%s, entityId=%s, primaryKey=%d, externalLinks=%s}",
+            getClass().getSimpleName(), getId(), getPrimaryKey(), getExternalLinks());
     }
 
     public List<ExternalService> getExternalServices() {
@@ -365,6 +345,16 @@ public abstract class DiscoverableEntity extends Entity {
 
     public boolean hasAnyExternalServiceAssigned() {
         return !getExternalLinks().isEmpty();
+    }
+
+    public boolean isAvailable() {
+        return statusOf(this).isEnabled().isHealthy().verify();
+    }
+
+    public boolean isDegraded() {
+        return this.getStatus() == null
+            || !statusOf(this).isEnabled().verify()
+            || statusOf(this).isCritical().verify();
     }
 
 }

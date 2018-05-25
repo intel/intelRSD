@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -102,7 +102,7 @@ int main() {
             PM85X6TwiPort::PORT4, PCA9548TwiExpanderChannel::CHANNEL5);
     }
     catch (const std::exception&) {
-        log_debug(GET_LOGGER("agent"), "Cabble is not connected.");
+        log_debug("agent", "Cabble is not connected.");
     }
 
     try {
@@ -110,7 +110,7 @@ int main() {
             PM85X6TwiPort::PORT4, PCA9548TwiExpanderChannel::CHANNEL0);
     }
     catch (const std::exception&) {
-        log_debug(GET_LOGGER("agent"), "Cabble is not connected.");
+        log_debug("agent", "Cabble is not connected.");
     }
 
     /******** Vital Product Data ********/
@@ -120,7 +120,7 @@ int main() {
             PM85X6TwiPort::PORT3, PCA9548TwiExpanderChannel::CHANNEL0);
     }
     catch (const std::exception&) {
-        log_debug(GET_LOGGER("agent"), "Drive is not connected.");
+        log_debug("agent", "Drive is not connected.");
     }
 
     /******** Partition Binding Info ********/

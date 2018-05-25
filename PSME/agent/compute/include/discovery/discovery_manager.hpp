@@ -2,7 +2,7 @@
  * @brief Discovery manager for compute agent class interface.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,15 @@
 
 
 
-#include "discoverers/generic_discoverer.hpp"
-#include "ipmi/utils/sdv/mdr_region_accessor.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/chassis_components.hpp"
-#include "tree_stability/compute_dry_stabilizer.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
+#include "agent-framework/discovery/discovery_manager.hpp"
+
+#include "discoverers/generic_discoverer.hpp"
+#include "ipmi/utils/sdv/mdr_region_accessor.hpp"
+#include "tree_stability/compute_stabilizer.hpp"
 #include "status/bmc.hpp"
 
 #include <cstdint>
@@ -39,7 +41,7 @@ namespace agent {
 namespace compute {
 namespace discovery {
 
-class DiscoveryManager {
+class DiscoveryManager : public agent_framework::discovery::DiscoveryManager {
 public:
     DiscoveryManager(agent::compute::Bmc& bmc,
                      ipmi::sdv::MdrRegionAccessorFactory::Ptr mdr_accessor_factory,
@@ -65,11 +67,10 @@ public:
      * @brief Perform full discovery of all resources managed by a particular management controller.
      * @return Stabilized UUID of discovered manager
      */
-    virtual std::string discovery();
+    virtual Uuid discover() override;
 
 
 protected:
-
 
     /*!
      * @brief Discover sled manager.
@@ -113,6 +114,25 @@ protected:
      */
     agent_framework::model::System
     discover_system(const std::string& parent_uuid, const std::string& chassis_uuid);
+
+
+    /*!
+     * @brief Discover all system PCIe devices.
+     * @param parent_uuid Parent UUID.
+     * @param chassis_uuid sled chassis UUID.
+     * @return Vector of discovered PcieDevice objects.
+     */
+    std::vector<agent_framework::model::PcieDevice>
+    discover_pcie_devices(const std::string& parent_uuid, const std::string& chassis_uuid);
+
+
+    /*!
+     * @brief Discover all system PCIe functions
+     * @param devices vector of PcieDevice objects, parents of the Pcie functions
+     * @return Vector of discovered PcieFunction objects.
+     */
+    std::vector<agent_framework::model::PcieFunction>
+    discover_pcie_functions(const std::vector<agent_framework::model::PcieDevice>& devices);
 
 
     /*!
@@ -192,16 +212,17 @@ protected:
 
 
     template<typename T, typename... Args>
-    void update_collection(agent_framework::eventing::EventDataVec& events,
+    T update_collection(agent_framework::eventing::EventDataVec& events,
                            T&& collection, const Args&... args) {
         using Model = typename T::value_type;
         auto& table = agent_framework::module::get_manager<Model>();
         const auto before_change_epoch = table.get_current_epoch();
         for (auto& elem : collection) {
-            m_dry_stabilizer.stabilize(elem, args...);
+            m_stabilizer.stabilize(elem, args...);
             add_or_update(events, table, elem);
         }
         remove_untouched(before_change_epoch, events, table);
+        return collection;
     }
 
     template<typename T>
@@ -248,7 +269,7 @@ private:
 
         /* add all metrics and definitions for the resource */
         if (auto telemetry_service = m_bmc.telemetry()) {
-            telemetry_service->build_metrics_for_resource(m_dry_stabilizer, resource);
+            telemetry_service->build_metrics_for_resource(m_stabilizer, resource);
         }
 
         auto add_event = [&events](const T& res, agent_framework::eventing::Notification notification_type) {
@@ -264,20 +285,20 @@ private:
             resource.get_component() == agent_framework::model::enums::Component::System) &&
             (agent_framework::module::TableInterface::UpdateStatus::Added == status)) {
             add_event(resource, agent_framework::eventing::Notification::Add);
-            log_info(GET_LOGGER("discovery-manager"), "Added " << T::get_component().to_string());
-            log_debug(GET_LOGGER("discovery-manager"), "Added " << T::get_component().to_string() << ", UUID " << resource.get_uuid());
+            log_info("discovery-manager", "Added " << T::get_component().to_string());
+            log_debug("discovery-manager", "Added " << T::get_component().to_string() << ", UUID " << resource.get_uuid());
         }
         else if (agent_framework::module::TableInterface::UpdateStatus::StatusChanged == status ||
                  agent_framework::module::TableInterface::UpdateStatus::Updated == status) {
             add_event(resource, agent_framework::eventing::Notification::Update);
-            log_info(GET_LOGGER("discovery-manager"), "Updated " << T::get_component().to_string());
-            log_debug(GET_LOGGER("discovery-manager"), "Updated " << T::get_component().to_string() << ", UUID " << resource.get_uuid());
+            log_info("discovery-manager", "Updated " << T::get_component().to_string());
+            log_debug("discovery-manager", "Updated " << T::get_component().to_string() << ", UUID " << resource.get_uuid());
         }
     }
 
     agent::compute::Bmc& m_bmc;
     GenericDiscoverer::Ptr m_discoverer;
-    agent::compute::ComputeDryStabilizer m_dry_stabilizer{};
+    agent::compute::ComputeStabilizer m_stabilizer{};
 };
 
 }

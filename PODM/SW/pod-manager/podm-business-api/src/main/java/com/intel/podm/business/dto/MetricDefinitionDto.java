@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
     "calculable", "dataType", "accuracy", "timeStampAccuracy", "calculationTimeInterval", "calculationAlgorithm", "discreteValues",
     "calculationParameters", "wildcards", "oem"
 })
-@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings({"checkstyle:MethodCount"})
 public final class MetricDefinitionDto extends RedfishDto {
     private SensorType sensorType;
     private Implementation implementation;

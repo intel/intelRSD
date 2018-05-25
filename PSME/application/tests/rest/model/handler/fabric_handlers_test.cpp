@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ * @file fabric_handlers_test.cpp
  * */
 
 #include "generic_handler_test.cpp"
@@ -177,7 +178,7 @@ TEST_F(FabricHandlersTest, AddEverything) {
     EXPECT_EQ("zone_2_endpoint_2_uuid", psme::rest::model::Find<agent_framework::model::Endpoint>("3").via<agent_framework::model::Fabric>("1").get_uuid());
 
 
-    auto& zone_endpoint_manager = agent_framework::module::PncComponents::get_instance()->get_zone_endpoint_manager();
+    auto& zone_endpoint_manager = agent_framework::module::CommonComponents::get_instance()->get_zone_endpoint_manager();
     auto zone_1_endpoint_children = zone_endpoint_manager.get_children("zone_1_uuid");
     EXPECT_EQ(zone_1_endpoint_children.size(), 1);
     EXPECT_EQ(zone_1_endpoint_children.front(), "zone_1_endpoint_1_uuid");
@@ -206,7 +207,7 @@ TEST_F(FabricHandlersTest, RemoveZone) {
     EXPECT_THROW(psme::rest::model::Find<agent_framework::model::Zone>("1").via<agent_framework::model::Fabric>("1").get_one(), agent_framework::exceptions::NotFound);
     EXPECT_EQ("zone_2_uuid", psme::rest::model::Find<agent_framework::model::Zone>("2").via<agent_framework::model::Fabric>("1").get_uuid());
 
-    auto& zone_endpoint_manager = agent_framework::module::PncComponents::get_instance()->get_zone_endpoint_manager();
+    auto& zone_endpoint_manager = agent_framework::module::CommonComponents::get_instance()->get_zone_endpoint_manager();
     auto zone_1_port_children = zone_endpoint_manager.get_children("zone_1_uuid");
     EXPECT_EQ(zone_1_port_children.size(), 0);
 
@@ -234,7 +235,7 @@ TEST_F(FabricHandlersTest, RemoveEndpoint) {
     EXPECT_EQ("zone_1_endpoint_1_uuid", psme::rest::model::Find<agent_framework::model::Endpoint>("1").via<agent_framework::model::Fabric>("1").get_uuid());
     EXPECT_EQ("zone_2_endpoint_2_uuid", psme::rest::model::Find<agent_framework::model::Endpoint>("3").via<agent_framework::model::Fabric>("1").get_uuid());
 
-    auto& zone_endpoint_manager = agent_framework::module::PncComponents::get_instance()->get_zone_endpoint_manager();
+    auto& zone_endpoint_manager = agent_framework::module::CommonComponents::get_instance()->get_zone_endpoint_manager();
     auto zone_2_endpoints = zone_endpoint_manager.get_children("zone_2_uuid");
     EXPECT_EQ(zone_2_endpoints.size(), 1);
     EXPECT_EQ(zone_2_endpoints.front(), "zone_2_endpoint_2_uuid");
@@ -254,7 +255,7 @@ TEST_F(FabricHandlersTest, LoadAfterAddingEndpointToFabricZone) {
     // Clear the Add event from Test SetUp
     SubscriptionManager::get_instance()->clear();
 
-    // assumption: an AddZoneEndpoint request was sent, adding zone_1_endpoint_1 to zone_2
+    // assumption: an AddZoneEndpoints request was sent, adding zone_1_endpoint_1 to zone_2
 
     auto agent = psme::core::agent::AgentManager::get_instance()->get_agent("anything");
     agent->clear();
@@ -277,7 +278,7 @@ TEST_F(FabricHandlersTest, LoadAfterAddingEndpointToFabricZone) {
     EXPECT_EQ("zone_2_uuid", psme::rest::model::Find<agent_framework::model::Zone>("2").via<agent_framework::model::Fabric>("1").get_uuid());
     EXPECT_EQ("zone_1_endpoint_1_uuid", psme::rest::model::Find<agent_framework::model::Endpoint>("1").via<agent_framework::model::Fabric>("1").get_uuid());
 
-    auto& zone_endpoint_manager = agent_framework::module::PncComponents::get_instance()->get_zone_endpoint_manager();
+    auto& zone_endpoint_manager = agent_framework::module::CommonComponents::get_instance()->get_zone_endpoint_manager();
     auto zone_1_port_children = zone_endpoint_manager.get_children("zone_1_uuid");
     EXPECT_EQ(zone_1_port_children.size(), 1);
     EXPECT_EQ(zone_1_port_children.front(), "zone_1_endpoint_1_uuid");

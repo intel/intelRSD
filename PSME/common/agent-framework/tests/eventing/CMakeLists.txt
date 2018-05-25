@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ endif()
  add_gtest(eventing_queue agent-framework
      test_runner.cpp
      eventing_test_queue.cpp
-     test_worker_thread.cpp
+     worker_thread_test.cpp
+     delay_queue_test.cpp
  )
 
  target_link_libraries(${test_target}
@@ -33,9 +34,3 @@ endif()
      ${SAFESTRING_LIBRARIES}
  )
 
-if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
-    set_source_files_properties(
-        test_worker_thread.cpp
-        COMPILE_FLAGS "-Wno-weak-vtables"
-    )
-endif()

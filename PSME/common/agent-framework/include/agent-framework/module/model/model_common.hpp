@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,3 +30,8 @@
 #include "agent-framework/module/model/network_interface.hpp"
 #include "agent-framework/module/model/metric.hpp"
 #include "agent-framework/module/model/metric_definition.hpp"
+#include "agent-framework/module/model/fabric.hpp"
+#include "agent-framework/module/model/zone.hpp"
+#include "agent-framework/module/model/endpoint.hpp"
+#include "agent-framework/module/model/pcie_device.hpp"
+#include "agent-framework/module/model/pcie_function.hpp"

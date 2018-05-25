@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,32 +43,6 @@ namespace utils {
 
 /*! Unbind Port delay for discovery */
 static constexpr uint8_t UNBIND_BIND_PORT_DISCOVERY_DELAY_MSEC = 100;
-
-
-/*!
- * @brief Template function that converts numeric value into its hexadecimal string
- * representation. It works on various unsigned types, and lets user to decide
- * how many bytes should be show (first template parameter), and wether showbase
- * base or no. Examples:
- *     to_hex_string<3>(0x10203040)        = "0x203040"
- *     to_hex_string<3, false>(0x10203040) = "203040"
- *     to_hex_string<2>(0x00000010)        = "0x0010"
- * @param[in] value Numeric value to be converted
- * @return Input converted to the string
- * */
-template <int BYTES_TO_SHOW, bool SHOW_BASE = true, typename T>
-std::string to_hex_string(T value) {
-    static_assert(std::is_unsigned<T>::value, "Expected unsigned integral type");
-    static_assert(BYTES_TO_SHOW > 0 && BYTES_TO_SHOW <= sizeof(T), "BYTES_TO_SHOW exceeds type size");
-    constexpr auto size_in_chars = 2 * BYTES_TO_SHOW;
-    constexpr T mask = std::numeric_limits<T>::max() >> ((sizeof(T) - BYTES_TO_SHOW) * 8);
-    std::stringstream str{};
-    if (SHOW_BASE) {
-        str << "0x";
-    }
-    str << std::hex << std::setfill('0') << std::setw(size_in_chars) << (value & mask);
-    return str.str();
-}
 
 /*!
  * @brief Function used to convert PartitionState enum into valid Health enum

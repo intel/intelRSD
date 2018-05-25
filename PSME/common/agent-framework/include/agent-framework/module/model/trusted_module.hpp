@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,6 +129,24 @@ public:
 
 
     /*!
+     * @brief Get TPM task
+     * @return TPM task
+     * */
+    const OptionalField<std::string>& get_task() const {
+        return m_task;
+    }
+
+
+    /*!
+     * @brief Set TPM task
+     * @param[in] task the TPM task
+     * */
+    void set_task(const OptionalField<std::string>& task) {
+        m_task = task;
+    }
+
+
+    /*!
      * @brief Converts this to json representation.
      * @return json representation of this class.
      * */
@@ -151,6 +169,13 @@ private:
 
     /*! IPMI specific data */
     std::uint8_t m_configuration_index{};
+
+    /*!
+     * @brief m_task - internal flag. If it's not empty, it points
+     * to a running task whose purpose is to set the TPM's state.
+     * Used to prevent duplicate tasks for the same TPM.
+     */
+    OptionalField<Uuid> m_task{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

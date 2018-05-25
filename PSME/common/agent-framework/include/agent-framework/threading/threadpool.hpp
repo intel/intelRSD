@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@
 #pragma once
 #include "thread_queue.hpp"
 #include <thread>
+#include <functional>
 #include <future>
 #include <vector>
 
@@ -128,6 +129,8 @@ private:
     std::size_t m_thread_count;
     Threads m_threads;
     Tasks m_tasks;
+
+    std::atomic<unsigned> m_running_tasks{};
 };
 
 }

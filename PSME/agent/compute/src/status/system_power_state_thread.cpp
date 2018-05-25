@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,26 +60,26 @@ enums::PowerState read_power_status(ipmi::IpmiController& ipmi) {
 }
 
 void agent::compute::status::update_system_power_state(Bmc& bmc) {
-    log_debug(GET_LOGGER("bmc"), bmc.get_id() << " reading system power status");
+    log_debug("bmc", bmc.get_id() << " reading system power status");
     if (Bmc::State::ONLINE == bmc.get_state()) {
         try {
             auto power_status = read_power_status(bmc.ipmi());
             const auto system_uuids = CommonComponents::get_instance()->get_system_manager().get_keys(bmc.get_manager_uuid());
-            log_debug(GET_LOGGER("bmc"), bmc.get_id() << " power status: " << power_status.to_string()
+            log_debug("bmc", bmc.get_id() << " power status: " << power_status.to_string()
                     << " systems present: " << (system_uuids.empty() ? "no" : "yes"));
             for (const auto& system_uuid: system_uuids) {
                 auto system_ref = CommonComponents::get_instance()->get_system_manager().get_entry_reference(system_uuid);
                 const auto& last_power_status = system_ref->get_power_state();
-                if (!last_power_status.has_value() || last_power_status.value() != power_status) {
+                if (last_power_status != power_status) {
                     system_ref->set_power_state(power_status);
-                    log_info(GET_LOGGER("status"), bmc.get_id() << " powered " << power_status.to_string()
+                    log_info("status", bmc.get_id() << " powered " << power_status.to_string()
                             << " system " << system_uuid);
                     notify(bmc.get_manager_uuid(), system_uuid);
                 }
             }
         }
         catch (const ipmi::ResponseError& e) {
-            log_warning(GET_LOGGER("agent"), "power status read failed: " << e.what());
+            log_warning("agent", "power status read failed: " << e.what());
         }
     }
 }

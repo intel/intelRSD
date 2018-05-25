@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,13 @@ import java.util.Objects;
 import static com.intel.podm.common.utils.Contracts.requires;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
+import static java.util.Comparator.comparing;
 import static java.util.Objects.hash;
 
 /**
  * Represents path to Entity located in Entity Tree.
  */
-public final class Context implements NavigationProperty, OdataIdProvider {
+public final class Context implements Comparable<Context>, NavigationProperty, OdataIdProvider {
     private final Id id;
     private final ContextType type;
     private final Context parent;
@@ -81,8 +82,8 @@ public final class Context implements NavigationProperty, OdataIdProvider {
 
         Context rhs = (Context) o;
         return Objects.equals(id, rhs.id)
-                && Objects.equals(type, rhs.type)
-                && Objects.equals(parent, rhs.parent);
+            && Objects.equals(type, rhs.type)
+            && Objects.equals(parent, rhs.parent);
     }
 
     @Override
@@ -93,8 +94,8 @@ public final class Context implements NavigationProperty, OdataIdProvider {
     @Override
     public String toString() {
         return parent == null
-                ? format("%s(%s)", type, id)
-                : format("%s-%s(%s)", parent, type, id);
+            ? format("%s(%s)", type, id)
+            : format("%s-%s(%s)", parent, type, id);
     }
 
     public static boolean isAcceptableChildOf(ContextType childType, Context parent) {
@@ -124,5 +125,10 @@ public final class Context implements NavigationProperty, OdataIdProvider {
     @Override
     public ODataId asOdataId() {
         return ODataIdFromContextHelper.asOdataId(this);
+    }
+
+    @Override
+    public int compareTo(Context other) {
+        return comparing(Context::getType).thenComparing(Context::getId).compare(this, other);
     }
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ void LinkStatusRetrieve::write_input() {
     memcpy_s(data, LINK_STATUS_RETRIEVE_INPUT_MEMORY_SIZE,
                   &input.fields.input_data, LINK_STATUS_RETRIEVE_INPUT_MEMORY_SIZE);
 
-    log_debug(GET_LOGGER("pnc-link-status"), "LinkStatusRetrieve command input data:"
+    log_debug("pnc-link-status", "LinkStatusRetrieve command input data:"
                                    << " InputData=" << std::hex << std::uint64_t(input.fields.input_data));
 
     m_iface->write(data, LINK_STATUS_RETRIEVE_INPUT_MEMORY_SIZE, MRPC_INPUT_DATA_REG_OFFSET);
@@ -59,7 +59,7 @@ void LinkStatusRetrieve::read_output() {
         m_iface->read(reinterpret_cast<uint8_t*>(&output.fields.port_id),
                       LINK_STATUS_RETRIEVE_OUTPUT_MEMORY_SIZE * sizeof(std::uint8_t), MRPC_OUTPUT_DATA_REG_OFFSET);
 
-        log_debug(GET_LOGGER("pnc-link-status"), "LinkStatusRetrieve command output data:"
+        log_debug("pnc-link-status", "LinkStatusRetrieve command output data:"
                                        << " ReturnValue=0x" << std::hex << std::uint32_t(output.fields.ret_value) << std::dec
                                        << " PhysicalPortId=" << std::uint32_t(output.fields.port_id)
                                        << " PartitionId=" << std::uint32_t(output.fields.partition_id)

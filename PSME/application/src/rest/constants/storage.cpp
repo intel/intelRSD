@@ -1,7 +1,7 @@
 
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,53 +25,52 @@ namespace psme {
 namespace rest {
 namespace constants {
 
-namespace LogicalDrive {
-const char TYPE[] = "Type";
-const char MODE[] = "Mode";
-const char PROTECTED[] = "Protected";
-const char SNAPSHOT[] = "Snapshot";
-const char CAPACITY[] = "CapacityGiB";
-const char IMAGE[] = "Image";
-const char BOOTABLE[] = "Bootable";
-const char LOGICAL_DRIVES[] = "LogicalDrives";
-const char PHYSICAL_DRIVES[] = "PhysicalDrives";
-const char MASTER_DRIVE[] = "MasterDrive";
-const char TARGETS[] = "Targets";
-const char CLONE[] = "Clone";
-const char TARGET[] = "target";
-}
-
-namespace PhysicalDrive {
-}
-
 namespace StorageService {
-const char TARGETS[] = "Targets";
-const char REMOTE_TARGETS[] = "RemoteTargets";
-const char LOGICAL_DRIVES[] = "LogicalDrives";
 const char DRIVES[] = "Drives";
+const char STORAGE_POOLS[] = "StoragePools";
+const char VOLUMES[] = "Volumes";
+const char ENDPOINTS[] = "Endpoints";
+const char HOSTING_SYSTEM[] = "HostingSystem";
 }
 
-namespace RemoteTarget {
-const char TYPE[] = "Type";
-const char ADDRESSES[] = "Addresses";
-const char ISCSI[] = "iSCSI";
-const char TARGET_LUN[] = "TargetLUN";
-const char LUN[] = "LUN";
-const char LOGICAL_DRIVE[] = "LogicalDrive";
-const char TARGET_IQN[] = "TargetIQN";
-const char TARGET_PORTAL_IP[] = "TargetPortalIP";
-const char TARGET_PORTAL_PORT[] = "TargetPortalPort";
-const char INITIATOR[] = "Initiator";
-const char INITIATOR_IQN[] = "InitiatorIQN";
-const char LOGICAL_DRIVES[] = "LogicalDrives";
-const char CHAP[] = "CHAP";
-const char USERNAME[] = "Username";
-const char SECRET[] = "Secret";
-const char MUTUAL_USERNAME[] = "MutualUsername";
-const char MUTUAL_SECRET[] = "MutualSecret";
+namespace Swordfish {
+const char PROVIDED_CAPACITY[] = "ProvidedCapacity";
+const char CAPACITY[] = "Capacity";
+const char CAPACITY_SOURCES[] = "CapacitySources";
+const char CAPACITY_BYTES[] = "CapacityBytes";
+const char PROVIDING_DRIVES[] = "ProvidingDrives";
+const char PROVIDING_POOLS[] = "ProvidingPools";
+const char PROVIDING_VOLUMES[] = "ProvidingVolumes";
+const char ALLOCATED_VOLUMES[] = "AllocatedVolumes";
+const char ALLOCATED_POOLS[] = "AllocatedPools";
+const char ACCESS_CAPABILITIES[] = "AccessCapabilities";
+const char REPLICA_INFOS[] = "ReplicaInfos";
+const char BLOCK_SIZE_BYTES[] = "BlockSizeBytes";
+const char OPTIMUM_IO_SIZE_BYTES[] = "OptimumIOSizeBytes";
+const char BOOTABLE[] = "Bootable";
+const char ERASED[] = "Erased";
+const char ERASE_ON_DETACH[] = "EraseOnDetach";
+const char VOLUME_INITIALIZE[] = "#Volume.Initialize";
+const char VOLUME_INITIALIZE_ENDPOINT[] = "Volume.Initialize";
+const char INITIALIZE_TYPE[] = "InitializeType";
+const char CAPACITY_USED_BYTES[] = "CapacityUsedBytes";
+const char IDENTIFIER[] = "Identifier";
+}
+
+namespace Data {
+const char DATA[] = "Data";
+const char ALLOCATED_BYTES[] = "AllocatedBytes";
+const char CONSUMED_BYTES[] = "ConsumedBytes";
+const char GUARANTEED_BYTES[] = "GuaranteedBytes";
+}
+
+namespace ReplicaInfo {
+const char REPLICA[] = "Replica";
+const char REPLICA_TYPE[] = "ReplicaType";
+const char REPLICA_ROLE[] = "ReplicaRole";
+const char REPLICA_READ_ONLY_ACCESS[] = "ReplicaReadOnlyAccess";
 }
 
 }
 }
 }
-

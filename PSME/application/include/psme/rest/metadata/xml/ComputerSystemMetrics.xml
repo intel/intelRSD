@@ -50,16 +50,14 @@
                       String="The value of this property shall be CPU Utilization on all the available CPUs in Percent. This metric is aggregate of all Processor sockets of this Computer System."/>
           <Annotation Term="Validation.Minimum" Int="0"/>
           <Annotation Term="Validation.Maximum" Int="100"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="MemoryBandwidthPercent" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Memory Bandwidth in Percent"/>
+          <Annotation Term="OData.Description" String="Memory Bandwidth in Percent."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Memory Utilization on all the available Memory channels in Percent. This metric is aggregate of all memory controllers on all Processor sockets of this Computer System."/>
           <Annotation Term="Validation.Minimum" Int="0"/>
           <Annotation Term="Validation.Maximum" Int="100"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="MemoryThrottledCyclesPercent" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
@@ -69,23 +67,20 @@
                       String="The value of this property shall be the percentage of memory cycles that were throttled due to power limiting. This metric is aggregate of all memory controllers on all Processor sockets of this Computer System."/>
           <Annotation Term="Validation.Minimum" Int="0"/>
           <Annotation Term="Validation.Maximum" Int="100"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="ProcessorPowerWatt" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Power consumed by Processor resource"/>
+          <Annotation Term="OData.Description" String="Power consumed by Processor resource."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be global power for CPU domain (all packages) in Watts."/>
           <Annotation Term="Measures.Unit" String="W"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="MemoryPowerWatt" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Power consumed by Memory domain resource"/>
+          <Annotation Term="OData.Description" String="Power consumed by Memory domain resource."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be global power for Memory domain (all packages and channels) in Watts."/>
           <Annotation Term="Measures.Unit" String="W"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="IOBandwidthGBps" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
@@ -94,14 +89,12 @@
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be IO Bandwidth rate in ComputerSystem resource based on PCIe and DMI data transmission rate in GB/s."/>
           <Annotation Term="Measures.Unit" String="GB/s"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="Health" Type="Collection(Edm.String)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="ComputerSystem Health as a discrete sensor reading"/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Computer System Health as a discrete sensor reading."/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
       </EntityType>
 

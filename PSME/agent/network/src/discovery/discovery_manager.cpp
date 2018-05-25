@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,18 +33,24 @@
 #include <eos/sdk.h>
 
 #include "hal/switch_info.hpp"
+#include "hal/switch_info_impl.hpp"
+#include "hal/switch_port_info_impl.hpp"
 #include "hal/switch_agent.hpp"
+#include "hal/eos_eapi/port_running_configuration_parser.hpp"
+#include "hal/eos_eapi/switch_running_configuration_parser.hpp"
 #include "utils/utils.hpp"
 
 #include <safe-string/safe_lib.hpp>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <linux/if_ether.h>
+#include <regex>
 
 using namespace agent::network;
 using namespace agent::network::loader;
 using namespace agent::network::discovery;
 using namespace agent::network::utils;
+using namespace agent::network::hal;
 
 using namespace agent_framework::module;
 using namespace agent_framework::model;
@@ -59,7 +65,7 @@ namespace {
     constexpr uint32_t SERIAL_DEFAULT_STOPBIT = 1;
     constexpr uint32_t SWITCH_DEFAULT_LOCATION = 1;
 
-    static void update_manager_info(const string& uuid) {
+    void update_manager_info(const string& uuid) {
         /* get module reference */
         auto manager = CommonComponents::get_instance()->
                 get_module_manager().get_entry_reference(uuid);
@@ -80,7 +86,7 @@ namespace {
                                 CollectionType::Chassis, ""});
     }
 
-    static string get_switch_uuid(const string& uuid) {
+    string get_switch_uuid(const string& uuid) {
         auto uuids = NetworkComponents::get_instance()->
                                     get_switch_manager().get_keys(uuid);
         if (uuids.empty()) {
@@ -89,7 +95,25 @@ namespace {
         return uuids.front();
     }
 
-    static void update_switch_info(const string& switch_uuid) {
+    EthernetSwitch get_switch_qos_running_config() {
+        EthernetSwitch switch_module{};
+        const auto running_config = hal::SwitchAgent::get_instance()->get_running_config();
+        eapi::SwitchRunningConfigurationParser running_config_parser{running_config.dump()};
+
+        auto qap_array = running_config_parser.get_qos_application_protocol();
+        auto qpg_array = running_config_parser.get_qos_priority_group_mapping();
+        auto qba_array = running_config_parser.get_qos_bandwidth_allocation();
+
+        switch_module.set_qos_application_protocol(qap_array);
+        switch_module.set_qos_priority_group_mapping(qpg_array);
+        switch_module.set_qos_bandwidth_allocation(qba_array);
+        switch_module.set_pfc_enabled(hal::SwitchAgent::get_instance()->is_switch_pfc_enabled());
+        switch_module.set_lldp_enabled(running_config_parser.is_switch_lldp_enabled());
+
+        return switch_module;
+    }
+
+    void update_switch_info(const string& switch_uuid) {
         /* get switch reference */
         auto switch_module = NetworkComponents::get_instance()->
                 get_switch_manager().get_entry_reference(switch_uuid);
@@ -97,68 +121,204 @@ namespace {
         switch_module->set_location(SWITCH_DEFAULT_LOCATION);
         switch_module->add_collection({CollectionName::EthernetSwitchPorts,
                                       CollectionType::EthernetSwitchPorts, ""});
+
+        EthernetSwitch switch_running_config = get_switch_qos_running_config();
+        switch_module->set_qos_application_protocol(switch_running_config.get_qos_application_protocol());
+        switch_module->set_qos_priority_group_mapping(switch_running_config.get_qos_priority_group_mapping());
+        switch_module->set_qos_bandwidth_allocation(switch_running_config.get_qos_bandwidth_allocation());
+        switch_module->set_pfc_enabled(switch_running_config.get_pfc_enabled());
+        switch_module->set_lldp_enabled(switch_running_config.get_lldp_enabled());
     }
 
-    static void add_physical_port(const string& switch_uuid,
-            const string& port_identifier) {
-        /* add port into network manager */
+    void apply_switch_qos_config(const string& switch_uuid) {
+        EthernetSwitch running_switch_config = get_switch_qos_running_config();
+        auto switch_module =  NetworkComponents::get_instance()->get_switch_manager().get_entry(switch_uuid);
+
+        SwitchInfoImpl switch_info(switch_module.get_switch_identifier());
+
+        const auto& qap_from_config_file = switch_module.get_qos_application_protocol();
+        if (!qap_from_config_file.empty()) {
+            switch_info.update_switch_qos_application_protocol(running_switch_config.get_qos_application_protocol(),
+                                                               qap_from_config_file);
+        }
+
+        const auto& qpg_from_config_file = switch_module.get_qos_priority_group_mapping();
+        if (!qpg_from_config_file.empty()) {
+            switch_info.update_switch_qos_priority_group_mapping(running_switch_config.get_qos_priority_group_mapping(),
+                                                                 qpg_from_config_file);
+        }
+
+        const auto& qba_from_config_file = switch_module.get_qos_bandwidth_allocation();
+        if (!qba_from_config_file.empty()) {
+            switch_info.update_switch_qos_bandwidth_allocation(running_switch_config.get_qos_bandwidth_allocation(),
+                                                               qba_from_config_file);
+        }
+
+        if (switch_module.get_pfc_enabled().has_value()) {
+            switch_info.update_switch_pfc_enabled(running_switch_config.get_pfc_enabled(),
+                                                  switch_module.get_pfc_enabled());
+        }
+
+        if (switch_module.get_lldp_enabled().has_value()) {
+            switch_info.update_switch_lldp_enabled(running_switch_config.get_lldp_enabled(),
+                                                   switch_module.get_lldp_enabled());
+        }
+    }
+
+    OptionalField<EthernetSwitchPort> find_and_delete_default_port_config() {
         auto& port_manager = get_manager<EthernetSwitchPort>();
-        EthernetSwitchPort port_model{switch_uuid};
-        port_model.add_collection({CollectionName::Vlans,
-                                  CollectionType::EthernetSwitchPortVlans, ""});
-        port_model.set_link_technology(LinkTechnology::Ethernet);
+        string default_port_uuid{};
+
+        if (get_port_uuid_by_identifier("Default", default_port_uuid)) {
+            EthernetSwitchPort default_port(port_manager.get_entry(default_port_uuid));
+            // Remove 'Default' Port entry from Switch model - it is used only for actual ports configuration purposes
+            port_manager.remove_entry(default_port_uuid);
+
+            return default_port;
+        }
+        return OptionalField<EthernetSwitchPort>();
+    }
+
+    void apply_port_qos_config(EthernetSwitchPort& port_model, const json::Json& port_running_config) {
+        log_debug("network-agent", "Active port " + port_model.get_port_identifier().value() + " - configure/read switch parameters");
+        eapi::PortRunningConfigurationParser current_port_config(port_running_config.dump());
+
+        SwitchPortInfoImpl switch_port_info(port_model.get_port_identifier().value());
+        if (port_model.get_pfc_enabled().has_value()) {
+            switch_port_info.update_switch_port_pfc_enabled(current_port_config.is_pfc_enabled(),
+                                                            port_model.get_pfc_enabled());
+        }
+        else {
+            port_model.set_pfc_enabled(current_port_config.is_pfc_enabled());
+        }
+
+        if (!port_model.get_pfc_enabled_priorities().empty()) {
+            switch_port_info.update_switch_port_pfc_priorities(current_port_config.get_enabled_priorities(),
+                                                               port_model.get_pfc_enabled_priorities());
+        }
+        else {
+            port_model.set_pfc_enabled_priorities(current_port_config.get_enabled_priorities());
+        }
+
+        if (port_model.get_dcbx_state().has_value()) {
+            switch_port_info.update_switch_port_dcbx_state(current_port_config.get_dcbx_state(),
+                                                           port_model.get_dcbx_state());
+        }
+        else {
+            port_model.set_dcbx_state(current_port_config.get_dcbx_state());
+        }
+
+        if (port_model.get_lldp_enabled().has_value()) {
+            switch_port_info.update_switch_port_lldp_enabled(current_port_config.is_lldp_enabled(),
+                                                             port_model.get_lldp_enabled());
+        }
+        else {
+            port_model.set_lldp_enabled(current_port_config.is_lldp_enabled());
+        }
+    }
+
+    void set_common_port_properties(EthernetSwitchPort& port_model) {
+        // Update port static attributes
+        port_model.add_collection({CollectionName::Vlans, CollectionType::EthernetSwitchPortVlans, ""});
         port_model.set_port_class(PortClass::Physical);
-        port_model.set_port_type(PortType::Downstream);
         port_model.set_port_mode(PortMode::Unknown);
-        port_model.set_port_identifier(port_identifier);
         port_model.set_vlan_enable(true);
         port_model.set_status({State::Enabled, Health::OK});
+
+        // Update port type attribute if not set already
+        const auto& port_type = port_model.get_port_type();
+        if (!port_type.has_value() || port_type == PortType::Unknown) {
+            port_model.set_port_type(PortType::Downstream);
+        }
+
+        // Update port link technology attribute if not set already
+        const auto& link_technology = port_model.get_link_technology();
+        if (!link_technology.has_value() || link_technology == LinkTechnology::Unknown) {
+            port_model.set_link_technology(LinkTechnology::Ethernet);
+        }
+    }
+
+    void update_port(const string& port_uuid, const json::Json& interfaces_config) {
+        auto& port_manager = get_manager<EthernetSwitchPort>();
+        auto port_model = port_manager.get_entry_reference(port_uuid);
+        auto& port_identifier = port_model->get_port_identifier().value();
+
+        port_model->set_physical_or_up(is_port_physical_or_up(port_identifier, interfaces_config));
+
+        // Perform switch configuration for physical and working port only
+        if (port_model->is_physical_or_up()) {
+            apply_port_qos_config(port_model.get_raw_ref(),
+                                  interfaces_config[std::string("interface " + port_identifier)]);
+        }
+
+        set_common_port_properties(port_model.get_raw_ref());
+    }
+
+    void add_port(const string& switch_uuid,
+                  const string& port_identifier,
+                  const json::Json& interfaces_config,
+                  const OptionalField<EthernetSwitchPort>& default_port_config) {
+        //  Add port into network manager
+        auto& port_manager = get_manager<EthernetSwitchPort>();
+        EthernetSwitchPort port_model{switch_uuid};
+        port_model.set_port_identifier(port_identifier);
+        port_model.set_physical_or_up(is_port_physical_or_up(port_identifier, interfaces_config));
+
+        // Perform switch configuration for physical and working port only
+        if (port_model.is_physical_or_up()) {
+            // Update port model with default configuration if available
+            if (default_port_config.has_value()) {
+                port_model.set_pfc_enabled(default_port_config.value().get_pfc_enabled());
+                port_model.set_pfc_enabled_priorities(default_port_config.value().get_pfc_enabled_priorities());
+                port_model.set_dcbx_state(default_port_config.value().get_dcbx_state());
+                port_model.set_lldp_enabled(default_port_config.value().get_lldp_enabled());
+            }
+
+            apply_port_qos_config(port_model, interfaces_config[std::string("interface " + port_identifier)]);
+        }
+
+        set_common_port_properties(port_model);
+
         port_manager.add_entry(port_model);
     }
 
-    static void discover_switch_ports(const string& switch_uuid) {
+    const json::Json& get_interfaces_config(const json::Json& switch_config) {
+            return switch_config[0][std::string("cmds")];
+    }
+
+    void discover_switch_ports(const string& switch_uuid) {
         /* discover physical & logical ports */
         auto& port_manager = get_manager<EthernetSwitchPort>();
-        auto& switch_manager = get_manager<EthernetSwitch>();;
+        auto& switch_manager = get_manager<EthernetSwitch>();
         try {
-            /* physical ports */
             auto switch_module = switch_manager.get_entry(switch_uuid);
-            const string& switch_identifier =
-                switch_module.get_switch_identifier();
+            const string& switch_identifier = switch_module.get_switch_identifier();
             auto port_list = hal::SwitchAgent::get_instance()->get_port_list();
+
+            const auto& running_config = hal::SwitchAgent::get_instance()->get_running_config();
+            const auto& interfaces_config = get_interfaces_config(running_config);
+            const auto& default_port_config = find_and_delete_default_port_config();
+
             for (const auto& port_identifier : port_list) {
                 string port_uuid{};
+
                 if (get_port_uuid_by_identifier(port_identifier, port_uuid)) {
-                    log_debug(GET_LOGGER("network-agent"), "Updating port " +
-                                                                port_identifier);
-                    auto port = port_manager.get_entry_reference(port_uuid);
-                    /* add port collections */
-                    port->add_collection({CollectionName::Vlans,
-                                         CollectionType::EthernetSwitchPortVlans, ""});
-                    /* update port link technology attribute */
-                    if (LinkTechnology::Unknown == port->get_link_technology()) {
-                        port->set_link_technology(LinkTechnology::Ethernet);
-                    }
-                    /* update port static attributes */
-                    port->set_port_class(PortClass::Physical);
-                    port->set_port_mode(PortMode::Unknown);
-                    port->set_vlan_enable(true);
-                    port->set_status({State::Enabled, Health::OK});
+                    log_debug("network-agent", "Updating port " + port_identifier);
+                    update_port(port_uuid, interfaces_config);
                 }
                 else {
-                    log_debug(GET_LOGGER("network-agent"), "Adding physical port " +
-                                                                port_identifier);
-                    add_physical_port(switch_uuid, port_identifier);
+                    log_debug("network-agent", "Adding port " + port_identifier);
+                    add_port(switch_uuid, port_identifier, interfaces_config, default_port_config);
                 }
             }
         }
         catch (const std::runtime_error& e) {
-            log_error(GET_LOGGER("network-agent"), e.what());
+            log_error("network-agent", e.what());
             throw;
         }
     }
 
-    static void discover_switch_vlan_ports(const string&) {
+    void discover_switch_vlan_ports(const string&) {
         /* add port-vlan pair to the network manager */
         auto& port_manager = get_manager<EthernetSwitchPort>();
         for (const auto& port_uuid : port_manager.get_keys()) {
@@ -174,11 +334,11 @@ namespace {
         }
     }
 
-    static void discover_port_neighbor_mac_addr(const string&) {
+    void discover_port_neighbor_mac_addr(const string&) {
         hal::SwitchAgent::get_instance()->discover_port_neighbor_mac_addr();
     }
 
-    static void show_network_modules() {
+    void show_network_modules() {
         auto network_components = NetworkComponents::get_instance();
         auto common_components = CommonComponents::get_instance();
 
@@ -187,14 +347,14 @@ namespace {
         auto& port_manager = network_components->get_port_manager();
         auto& port_vlan_manager = network_components->get_port_vlan_manager();
         for (const auto& uuid : module_manager.get_keys()) {
-            log_debug(GET_LOGGER("network-agent"), "Manager UUID: " + uuid);
+            log_debug("network-agent", "Manager UUID: " + uuid);
             for (const auto& switch_uuid : switch_manager.get_keys(uuid)) {
-                log_debug(GET_LOGGER("network-agent"), "Switch UUID: " + switch_uuid);
+                log_debug("network-agent", "Switch UUID: " + switch_uuid);
                 for (const auto& port_uuid : port_manager.get_keys(switch_uuid)) {
-                    log_debug(GET_LOGGER("network-agent"), "Port UUID: " + port_uuid);
+                    log_debug("network-agent", "Port UUID: " + port_uuid);
                     for (const auto& port_vlan_uuid :
                                         port_vlan_manager.get_keys(port_uuid)) {
-                        log_debug(GET_LOGGER("network-agent"), "Port-vlan UUID: "
+                        log_debug("network-agent", "Port-vlan UUID: "
                                                                 + port_vlan_uuid);
                     }
                 }
@@ -217,12 +377,14 @@ void send_event(const std::string& module, const std::string& parent, Component 
 } // namespace
 
 DiscoveryManager::DiscoveryManager() {}
+
 DiscoveryManager::~DiscoveryManager() {}
 
 void DiscoveryManager::discovery(const std::string& uuid) {
     /* start discovery */
     ::update_manager_info(uuid);
     auto switch_uuid = get_switch_uuid(uuid);
+    ::apply_switch_qos_config(switch_uuid);
     ::update_switch_info(switch_uuid);
     ::discover_switch_ports(switch_uuid);
     ::discover_switch_vlan_ports(switch_uuid);

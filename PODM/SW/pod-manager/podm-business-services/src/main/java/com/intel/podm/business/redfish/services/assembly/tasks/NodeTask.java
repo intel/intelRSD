@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.intel.podm.business.redfish.services.assembly.tasks;
 
 import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
+import com.intel.podm.common.enterprise.utils.logger.TimeMeasuredClassIdentityProvider;
 import com.intel.podm.common.enterprise.utils.tasks.DefaultManagedTask;
 import com.intel.podm.common.synchronization.ThrowingRunnable;
 import com.intel.podm.common.types.Id;
@@ -28,8 +29,9 @@ import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.substringBefore;
 
+@TimeMeasuredClassIdentityProvider(NodeTaskClassIdentityProvider.class)
+// Child classes are obligated to rethrow RuntimeException on exception to ensure transaction will be rolled back
 public abstract class NodeTask extends DefaultManagedTask implements ThrowingRunnable<RuntimeException> {
-
     protected Id nodeId;
 
     public void setNodeId(Id nodeId) {
@@ -43,13 +45,13 @@ public abstract class NodeTask extends DefaultManagedTask implements ThrowingRun
 
     protected UUID getAssociatedComputeServiceUuid(ComposedNode node) {
         return ofNullable(node.getAssociatedComputeServiceUuid()).orElseThrow(() ->
-            new RuntimeException(format("AssociatedComputerSystemUuid on Node: %s is null", node.getId())));
+            new RuntimeException(format("Unknown Computer system for Node: %s", node.getId())));
     }
 
     public abstract UUID getServiceUuid();
 
     @Override
     public String toString() {
-        return format("%s(%s)", substringBefore(getClass().getSimpleName(), "$"), nodeId);
+        return format("%s(#%s)", substringBefore(getClass().getSimpleName(), "$"), nodeId);
     }
 }

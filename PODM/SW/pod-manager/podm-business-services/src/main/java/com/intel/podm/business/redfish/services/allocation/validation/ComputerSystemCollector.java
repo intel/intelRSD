@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.context.ContextType;
 import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.types.Id;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -62,10 +62,10 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 @Dependent
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class ComputerSystemCollector {
     @Inject
     private GenericDao genericDao;
@@ -94,7 +94,7 @@ public class ComputerSystemCollector {
         return getCommonComputerSystems(listOfComputerSystemSets);
     }
 
-    private List<Set<ComputerSystem>> getComputerSystemsFromLocalDrives(Set<Drive> localDrives) throws AllocationRequestProcessingException {
+    private List<Set<ComputerSystem>> getComputerSystemsFromLocalDrives(Set<Drive> localDrives) {
         List<Set<ComputerSystem>> listOfComputerSystemSets = new ArrayList<>();
 
         listOfComputerSystemSets.add(getComputerSystemsFromNonNvmeDrives(localDrives));
@@ -104,7 +104,7 @@ public class ComputerSystemCollector {
         return listOfComputerSystemSets;
     }
 
-    private Set<ComputerSystem> getComputerSystemsFromNonNvmeDrives(Set<Drive> localDrives) throws AllocationRequestProcessingException {
+    private Set<ComputerSystem> getComputerSystemsFromNonNvmeDrives(Set<Drive> localDrives) {
         Predicate<Drive> nonNvmeDrive = byExactInterface(NVME).negate();
         return localDrives.stream()
             .filter(nonNvmeDrive)
@@ -115,7 +115,7 @@ public class ComputerSystemCollector {
             .collect(toSet());
     }
 
-    private Set<ComputerSystem> getComputerSystemsFromNvmeDrives(Set<Drive> localDrives) throws AllocationRequestProcessingException {
+    private Set<ComputerSystem> getComputerSystemsFromNvmeDrives(Set<Drive> localDrives) {
         List<ComputerSystem> computerSystems = computerSystemDao.getComputerSystemsPossibleToAllocate();
         Predicate<Drive> nvmeDrive = byExactInterface(NVME);
         return localDrives.stream()

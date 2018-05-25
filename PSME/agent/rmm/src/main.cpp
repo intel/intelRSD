@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,12 @@
 #include "default_configuration.hpp"
 #include "discovery_thread.hpp"
 #include "tree_stability/rmm_tree_stabilizer.hpp"
+
+#include "loader/ipmi_config.hpp"
+#include "ptas_reader/ptas_reader.hpp"
+#include "certificate_management/certificate_manager.hpp"
+#include "telemetry/rmm_telemetry_service.hpp"
+#include "event_collector/event_collector.hpp"
 
 #include "agent-framework/eventing/utils.hpp"
 #include "agent-framework/command/command_server.hpp"
@@ -59,6 +65,15 @@ static constexpr unsigned int DISCOVERY_SLEEP_TIME_SECONDS = 1;
 const json::Value& init_configuration(int argc, const char** argv);
 bool check_configuration(const json::Value& json);
 
+namespace {
+
+constexpr unsigned int PTAS_TIMEOUT_SECONDS = 1;
+constexpr unsigned int PTAS_CONNECTION_PORT = 5678;
+constexpr unsigned int PTAS_FANS_SUPPORTED = 6;
+constexpr unsigned int PTAS_TRAYS_SUPPORTED = 8;
+
+}
+
 /*!
  * @brief Generic Agent main method.
  * */
@@ -73,23 +88,29 @@ int main(int argc, const char* argv[]) {
         return 2;
     }
 
-    /* Initialize logger */
-    agent::rmm::loader::RmmLoader rmm_loader{};
+    LoggerLoader loader(configuration);
+    loader.load(LoggerFactory::instance());
+
+    server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
+    database::Database::set_default_location(configuration["database"]["location"].as_string());
+
+    agent::rmm::discovery::helpers::DiscoveryContext dc{};
+    dc.certificate_manager = std::make_shared<agent::rmm::CertificateManager>();
+    dc.net_reader = std::make_shared<agent::rmm::net_reader::NetReader>();
+    dc.ptas = std::make_shared<agent::rmm::ptas::PtasReader>(
+        PTAS_CONNECTION_PORT, PTAS_TIMEOUT_SECONDS, PTAS_FANS_SUPPORTED, PTAS_TRAYS_SUPPORTED);
+    dc.event_collector = std::make_shared<agent::rmm::event_collector::EventCollector>();
+    dc.telemetry_service = std::make_shared<agent::rmm::RmmTelemetryService>();
+
+    agent::rmm::loader::RmmLoader rmm_loader{dc};
     if (!rmm_loader.load(configuration)) {
-        log_error(GET_LOGGER("rmm-agent"), "Invalid modules configuration");
+        log_error("rmm-agent", "Invalid modules configuration");
         Configuration::cleanup();
         LoggerFactory::cleanup();
         return 6;
     }
 
-    LoggerLoader loader(configuration);
-    LoggerFactory::instance().set_loggers(loader.load());
-    LoggerFactory::set_main_logger_name("agent");
-    log_info(GET_LOGGER("agent"), "Running Rmm...\n");
-
-    server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
-    database::Database::set_default(configuration["database"]["location"].as_string());
-
+    log_info("rmm-agent", "Running RMM...");
     RegistrationData registration_data{configuration};
 
     EventDispatcher event_dispatcher;
@@ -97,13 +118,13 @@ int main(int argc, const char* argv[]) {
 
     /* Start DiscoveryThread */
     agent::rmm::DiscoveryThread::DiscoveryThreadUniquePtr discovery_thread;
-    discovery_thread.reset(new agent::rmm::DiscoveryThread(MONITOR_THREAD_INTERVAL_SECONDS));
+    discovery_thread.reset(new agent::rmm::DiscoveryThread(dc, MONITOR_THREAD_INTERVAL_SECONDS));
     discovery_thread->start();
     /* Wait for initial discovery to finish */
     while (!discovery_thread->is_discovery_finished()) {
         std::this_thread::sleep_for(std::chrono::seconds(DISCOVERY_SLEEP_TIME_SECONDS));
     }
-    log_debug(GET_LOGGER("agent"), "Initial discovery finished!");
+    log_debug("rmm-agent", "Initial discovery finished!");
 
     AmcConnectionManager amc_connection(event_dispatcher, registration_data);
     amc_connection.start();
@@ -115,7 +136,7 @@ int main(int argc, const char* argv[]) {
     server.add(command::Registry::get_instance()->get_commands());
     bool server_started = server.start();
     if (!server_started) {
-        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+        log_error("rmm-agent", "Could not start JSON-RPC command server on port "
             << server_port << " restricted to " << registration_data.get_ipv4_address()
             << ". " << "Quitting now...");
         amc_connection.stop();
@@ -128,7 +149,7 @@ int main(int argc, const char* argv[]) {
     /* Stop the program and wait for interrupt */
     wait_for_interrupt();
 
-    log_info(GET_LOGGER("agent"), "Stopping Rmm Agent...\n");
+    log_info("rmm-agent", "Stopping Rmm Agent...");
 
     /* Cleanup */
     server.stop();
@@ -141,7 +162,7 @@ int main(int argc, const char* argv[]) {
 }
 
 const json::Value& init_configuration(int argc, const char** argv) {
-    log_info(GET_LOGGER("rmm-agent"), agent_framework::generic::Version::build_info());
+    log_info("rmm-agent", agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
     basic_config.set_default_file(DEFAULT_FILE);
@@ -158,7 +179,7 @@ const json::Value& init_configuration(int argc, const char** argv) {
 bool check_configuration(const json::Value& json) {
     json::Value json_schema;
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
-        log_info(GET_LOGGER("rmm-agent"), "JSON Schema load!");
+        log_info("rmm-agent", "JSON Schema load!");
 
         configuration::SchemaErrors errors;
         configuration::SchemaValidator validator;
@@ -167,7 +188,7 @@ bool check_configuration(const json::Value& json) {
 
         validator.validate(json, errors);
         if (!errors.is_valid()) {
-            log_error(GET_LOGGER("rmm-agent"), "Configuration invalid: " << errors.to_string());
+            log_error("rmm-agent", "Configuration invalid: " << errors.to_string());
             return false;
         }
     }

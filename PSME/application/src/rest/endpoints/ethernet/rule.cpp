@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -218,9 +218,11 @@ attribute::Attributes fill_attributes(const json::Value& parsed_json, const AclR
     }
     if (parsed_json.is_member(Rule::MIRROR_PORT_REGION)) {
         attribute::Array<std::string> port_array{};
-        for (const auto& port : parsed_json[Rule::MIRROR_PORT_REGION].as_array()) {
-            const auto port_url = port[Common::ODATA_ID].as_string();
-            port_array.add_entry(endpoint::utils::get_port_uuid_from_url(port_url));
+        if (!parsed_json[Rule::MIRROR_PORT_REGION].is_null()) {
+            for (const auto& port : parsed_json[Rule::MIRROR_PORT_REGION].as_array()) {
+                const auto& port_url = port[Common::ODATA_ID].as_string();
+                port_array.add_entry(endpoint::utils::get_port_uuid_from_url(port_url));
+            }
         }
         attributes.set_value(literals::AclRule::MIRRORED_PORTS, port_array.to_json());
     }

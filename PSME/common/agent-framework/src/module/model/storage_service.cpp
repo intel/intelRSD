@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +56,6 @@ StorageService StorageService::from_json(const json::Json& json) {
     service.set_status(attribute::Status::from_json(json[literals::StorageService::STATUS]));
     service.set_collections(Collections::from_json(json[literals::StorageService::COLLECTIONS]));
     service.set_oem(attribute::Oem::from_json(json[literals::StorageService::OEM]));
-    service.set_resource_hash(json);
 
     return service;
 }

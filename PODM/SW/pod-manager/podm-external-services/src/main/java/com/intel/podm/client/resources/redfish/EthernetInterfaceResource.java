@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.WebClientRequestException;
@@ -25,82 +26,88 @@ import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
 import com.intel.podm.client.resources.ODataId;
 import com.intel.podm.common.types.LinkStatus;
+import com.intel.podm.common.types.Protocol;
 import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 import com.intel.podm.common.types.net.MacAddress;
+import com.intel.podm.common.types.redfish.OemType;
 
 import java.util.List;
 
-import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_EMPTY_COLLECTION;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @OdataTypes({
     "#EthernetInterface" + VERSION_PATTERN + "EthernetInterface"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class EthernetInterfaceResource extends ExternalServiceResourceImpl implements ExternalServiceResource {
-    @JsonProperty("FQDN")
+    @JsonSetter(value = "FQDN", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> fqdn = unassigned();
-    @JsonProperty("HostName")
+    @JsonSetter(value = "HostName", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> hostName = unassigned();
-    @JsonProperty("Status")
+    @JsonSetter(value = "Status", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Status> status = unassigned();
-    @JsonProperty("LinkStatus")
+    @JsonSetter(value = "LinkStatus", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<LinkStatus> linkStatus;
-    @JsonProperty("InterfaceEnabled")
+    @JsonSetter(value = "InterfaceEnabled", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Boolean> interfaceEnabled = unassigned();
-    @JsonProperty("PermanentMACAddress")
+    @JsonSetter(value = "PermanentMACAddress", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<MacAddress> permanentMacAddress = unassigned();
-    @JsonProperty("MACAddress")
+    @JsonSetter(value = "MACAddress", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<MacAddress> macAddress = unassigned();
-    @JsonProperty("SpeedMbps")
+    @JsonSetter(value = "SpeedMbps", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> speedMbps = unassigned();
-    @JsonProperty("AutoNeg")
+    @JsonSetter(value = "AutoNeg", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Boolean> autoNeg = unassigned();
-    @JsonProperty("FullDuplex")
+    @JsonSetter(value = "FullDuplex", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Boolean> fullDuplex = unassigned();
-    @JsonProperty("MTUSize")
+    @JsonSetter(value = "MTUSize", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> mtuSize = unassigned();
-    @JsonProperty("IPv6DefaultGateway")
+    @JsonSetter(value = "IPv6DefaultGateway", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> ipV6DefaultGateway = unassigned();
-    @JsonProperty("MaxIPv6StaticAddresses")
+    @JsonSetter(value = "MaxIPv6StaticAddresses", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> maxIPv6StaticAddresses = unassigned();
-    @JsonProperty("IPv4Addresses")
+    @JsonSetter(value = "IPv4Addresses", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<IpV4AddressObject>> ipV4Addresses = unassigned();
-    @JsonProperty("IPv6Addresses")
+    @JsonSetter(value = "IPv6Addresses", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<IpV6AddressObject>> ipV6Addresses = unassigned();
-    @JsonProperty("IPv6StaticAddresses")
+    @JsonSetter(value = "IPv6StaticAddresses", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<IpV6AddressObject>> ipV6StaticAddresses = unassigned();
-    @JsonProperty("IPv6AddressPolicyTable")
+    @JsonSetter(value = "IPv6AddressPolicyTable", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<IpV6AddressPolicyObject>> ipV6AddressesPolicies = unassigned();
-    @JsonProperty("NameServers")
+    @JsonSetter(value = "NameServers", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<String>> nameServers = unassigned();
-    @JsonProperty("VLAN")
+    @JsonSetter(value = "VLAN", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Vlan> vlan = unassigned();
     @JsonProperty("VLANs")
     private ODataId vlanCollection;
+    @JsonProperty("Oem")
+    private Oem oem = new Oem();
 
     public Ref<String> getFqdn() {
         return fqdn;
@@ -182,6 +189,10 @@ public class EthernetInterfaceResource extends ExternalServiceResourceImpl imple
         return nameServers;
     }
 
+    public Ref<List<Protocol>> getSupportedProtocols() {
+        return oem.rackScaleOem.supportedProtocols;
+    }
+
     public ResourceSupplier getComputerSystem() {
         //FIXME: workaround until link to computer system is available
         return toSupplier(getComputerSystemODataId());
@@ -193,11 +204,23 @@ public class EthernetInterfaceResource extends ExternalServiceResourceImpl imple
     }
 
     private static final class Vlan {
-        @JsonProperty("VLANEnable")
+        @JsonSetter(value = "VLANEnable", nulls = AS_EMPTY)
         @AsUnassigned(WHEN_NULL)
         private Ref<Boolean> vlanEnable = unassigned();
-        @JsonProperty("VLANId")
+        @JsonSetter(value = "VLANId", nulls = AS_EMPTY)
         @AsUnassigned(WHEN_NULL)
         private Ref<Integer> vlanId = unassigned();
+    }
+
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOem {
+        @JsonProperty("Intel_RackScale")
+        private RackScaleOem rackScaleOem = new RackScaleOem();
+
+        public class RackScaleOem {
+            @JsonSetter(value = "SupportedProtocols", nulls = AS_EMPTY)
+            @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+            private Ref<List<Protocol>> supportedProtocols = unassigned();
+        }
     }
 }

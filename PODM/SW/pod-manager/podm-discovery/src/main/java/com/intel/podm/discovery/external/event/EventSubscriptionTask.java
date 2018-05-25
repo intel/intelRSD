@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.intel.podm.client.WebClientExceptionUtils.isConnectionExceptionTheRootCause;
+import static java.lang.String.format;
 
 @RequestScoped
 class EventSubscriptionTask extends DefaultManagedTask implements Runnable {
@@ -58,7 +59,8 @@ class EventSubscriptionTask extends DefaultManagedTask implements Runnable {
     @Override
     public void run() {
         EventServiceDefinition eventServiceDefinition = eventServiceDefinitionFactory.create(serviceUuid);
-        try (WebClient webClient = webClientBuilder.newInstance(eventServiceDefinition.getServiceBaseUri()).retryable().build()) {
+        URI serviceBaseUri = eventServiceDefinition.getServiceBaseUri();
+        try (WebClient webClient = webClientBuilder.newInstance(serviceBaseUri).retryable().build()) {
             EventSubscriptionManager eventSubscriptionManager = new EventSubscriptionManager(webClient, eventServiceDefinition);
             Optional<EventSubscriptionResource> eventSubscription = eventSubscriptionManager.fetchPodmSubscription();
 
@@ -66,19 +68,15 @@ class EventSubscriptionTask extends DefaultManagedTask implements Runnable {
                 EventSubscriptionResource subscription = eventSubscription.get();
                 if (!subscriptionHaveSameDestinationAsThisPodm(subscription.getDestination(), eventServiceDefinition.getPodmEventServiceDestinationUri())) {
                     eventSubscriptionManager.deleteSubscription(subscription);
-                    subscribe(eventSubscriptionManager);
+                    subscribe(eventSubscriptionManager, serviceBaseUri);
                 } else {
-                    logger.t("Subscription is already present for '" + serviceUuid + "'");
+                    logger.t(format("Subscription is already present for %s @ %s", serviceUuid, serviceBaseUri));
                 }
             } else {
-                subscribe(eventSubscriptionManager);
+                subscribe(eventSubscriptionManager, serviceBaseUri);
             }
         } catch (WebClientRequestException e) {
-            if (isConnectionExceptionTheRootCause(e)) {
-                logger.w("Connection error while checking subscriptions for service with UUID: " + serviceUuid + ", " + e.getMessage());
-                serviceExplorer.enqueueVerification(serviceUuid);
-            }
-            logger.e("Error while subscribing to event service for '" + serviceUuid, e);
+            handleRequestException(e, serviceBaseUri);
         }
     }
 
@@ -86,8 +84,17 @@ class EventSubscriptionTask extends DefaultManagedTask implements Runnable {
         return Objects.equals(destination, podmEventServiceDestinationUri);
     }
 
-    private void subscribe(EventSubscriptionManager eventSubscriptionManager) throws WebClientRequestException {
+    private void subscribe(EventSubscriptionManager eventSubscriptionManager, URI serviceBaseUri) throws WebClientRequestException {
         eventSubscriptionManager.subscribeToAllKnownEvents();
-        logger.t("Successfully subscribed to event service for '" + serviceUuid + "'");
+        logger.t(format("Successfully subscribed to event service for %s @ %s", serviceUuid, serviceBaseUri));
+    }
+
+    private void handleRequestException(WebClientRequestException e, URI serviceBaseUri) {
+        if (isConnectionExceptionTheRootCause(e)) {
+            logger.w(format("Connection error while checking subscriptions for %s @ %s, error: %s", serviceUuid, serviceBaseUri, e.getMessage()));
+            serviceExplorer.enqueueVerification(serviceUuid);
+        } else {
+            logger.e(format("Error while subscribing to event service for %s @ %s", serviceUuid, serviceBaseUri), e);
+        }
     }
 }

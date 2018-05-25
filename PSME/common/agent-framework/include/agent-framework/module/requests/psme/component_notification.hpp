@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -122,7 +122,7 @@ private:
             static const jsonrpc::ProcedureValidator procedure{
                 jsonrpc::PARAMS_BY_NAME,
                 literals::ComponentNotification::COMPONENT, VALID_UUID,
-                literals::ComponentNotification::NOTIFICATION, VALID_ENUM(agent_framework::eventing::Notification),
+                literals::ComponentNotification::NOTIFICATION, VALID_ENUM(agent_framework::model::enums::Notification),
                 literals::ComponentNotification::TYPE, VALID_ENUM(agent_framework::model::enums::Component),
                 literals::ComponentNotification::PARENT, jsonrpc::JSON_STRING,
                 nullptr

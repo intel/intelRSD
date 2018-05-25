@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,6 @@
 #include "gas/mrpc/twi_access_read.hpp"
 #include "gas/mrpc/link_status_retrieve.hpp"
 #include "gas/utils.hpp"
-#include "discovery/discovery_utils.hpp"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -105,19 +104,5 @@ TEST_F(UtilsTest, UnbindOption) {
     ASSERT_EQ(get_unbind_option(static_cast<uint32_t>(UnbindPortOption::IF_PHY_PORT_IS_L0_OR_L1_SIM_MANAGED_HOT_REMOVE)), "Managed hot remove");
     ASSERT_EQ(get_unbind_option(static_cast<uint32_t>(UnbindPortOption::IF_PHY_PORT_IS_L0_OR_L1_SIM_SURPRISE_HOT_REMOVE)), "Surprise hot remove");
     ASSERT_EQ(get_unbind_option(static_cast<uint32_t>(UnbindPortOption::IF_PHY_PORT_IS_L0_OR_L1_SIM_LINK_DOWN)), "Simulated link down");
-}
-
-TEST_F(UtilsTest, ToHexStringTest) {
-    using agent::pnc::discovery::utils::to_hex_string;
-    ASSERT_EQ(to_hex_string<1>(0x10203040u), "0x40");
-    ASSERT_EQ(to_hex_string<2>(0x10203040u), "0x3040");
-    ASSERT_EQ(to_hex_string<3>(0x10203040u), "0x203040");
-    ASSERT_EQ(to_hex_string<4>(0x10203040u), "0x10203040");
-    ASSERT_EQ((to_hex_string<3, false>(0x10203040u)), "203040");
-    ASSERT_EQ(to_hex_string<2>(0x00000010u), "0x0010");
-    ASSERT_EQ(to_hex_string<1>(0u), "0x00");
-    ASSERT_EQ(to_hex_string<2>(0u), "0x0000");
-    ASSERT_EQ(to_hex_string<3>(0u), "0x000000");
-    ASSERT_EQ(to_hex_string<1>(uint8_t(0)), "0x00");
 }
 

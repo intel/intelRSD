@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,9 +54,9 @@ json::Value make_prototype() {
     r[Root::MANAGERS][Common::ODATA_ID] = "/redfish/v1/Managers";
     r[Root::FABRICS][Common::ODATA_ID] = "/redfish/v1/Fabrics";
     r[Root::TELEMETRY_SERVICE][Common::ODATA_ID] = "/redfish/v1/TelemetryService";
+    r[Root::STORAGE_SERVICES][Common::ODATA_ID] = "/redfish/v1/StorageServices";
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.ServiceRoot";
     r[Common::OEM][Common::RACKSCALE][Common::API_VERSION] = psme::app::Version::to_string();
-    r[Common::OEM][Common::RACKSCALE][Root::SERVICES][Common::ODATA_ID] = "/redfish/v1/Services";
     r[Common::OEM][Common::RACKSCALE][Root::ETHERNET_SWITCHES][Common::ODATA_ID] = "/redfish/v1/EthernetSwitches";
     r[Common::LINKS] = json::Value::Type::OBJECT;
     return r;

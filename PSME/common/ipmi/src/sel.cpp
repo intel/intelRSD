@@ -2,7 +2,7 @@
  * @brief Class to handle System Event Log entries
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,21 +79,21 @@ bool ipmi::Sel::process_records() {
         }
         catch (const RequestedRecordNotPresentError&) {
             /* SEL content was cleared, last record does not exist */
-            log_debug(GET_LOGGER("telemetry"), "Last record was removed: SEL cleared?");
+            log_debug("telemetry", "Last record was removed: SEL cleared?");
             last_read_record = FIRST_ENTRY;
             records.clear();
             return true;
         }
         catch (const ResponseError& e) {
             /* All read data should be processed, it should continue from the last read one */
-            log_info(GET_LOGGER("telemetry"), "Not all records read: " << e.what());
+            log_info("telemetry", "Not all records read: " << e.what());
             previous_failed = true;
             break;
         }
 
         if (record_id == FIRST_ENTRY) {
             record_id = ipmi::SelRecord::get_id(get_sel_entry_resp.get_entry());
-            log_debug(GET_LOGGER("telemetry"), "First record in SEL " << std::hex << record_id);
+            log_debug("telemetry", "First record in SEL " << std::hex << record_id);
         }
         records.emplace_back(build(get_sel_entry_resp.get_entry()));
         /* in next loop last record must be read to get appropriate next record id.. */
@@ -106,7 +106,7 @@ bool ipmi::Sel::process_records() {
         }
         record_id = get_sel_entry_resp.get_next_entry_id();
     }
-    log_debug(GET_LOGGER("telemetry"), "Last record read from SEL " << std::hex << record_id
+    log_debug("telemetry", "Last record read from SEL " << std::hex << record_id
                                     << ", " << std::dec << read_records << " records read");
 
     /* remove all rolled-out records */
@@ -128,7 +128,7 @@ bool ipmi::Sel::process_records() {
         for (record_it = records.begin(); record_it != records.end(); record_it++) {
             if ((*record_it)->get_id() == record_id) {
                 if (record_it != records.begin()) {
-                    log_debug(GET_LOGGER("telemetry"), (record_it - records.begin()) << " records rolled out from SEL");
+                    log_debug("telemetry", (record_it - records.begin()) << " records rolled out from SEL");
                     records.erase(records.begin(), record_it);
                 }
                 break;

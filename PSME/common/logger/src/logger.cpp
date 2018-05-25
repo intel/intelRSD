@@ -1,7 +1,7 @@
 /*!
  * @brief C++ logger implementation
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,29 @@
  */
 
 #include "logger/logger.hpp"
+
+#include "logger/logger.h"
 #include "logger/stream.hpp"
+#include "logger/logger_factory.hpp"
 
 namespace logger_cpp {
 
-Logger::Logger(const char* tag, const Options& options) :
+std::shared_ptr<Logger> Logger::get_logger(const char* name) {
+    return LoggerFactory::instance().get_logger(name);
+}
+
+Logger::Logger(const std::string& name, const Options& options) :
+    m_name(name),
     m_streams{} {
     union logger_options opt;
     opt.raw = options.m_raw;
-    m_impl = logger_create(tag, &opt);
+    m_impl = logger_create(m_name.data(), &opt);
 }
 
 Logger::~Logger() {
     logger_destroy(m_impl);
 }
+
 
 struct logger* Logger::get_instance() const {
     return m_impl;
@@ -107,23 +116,6 @@ Options Logger::get_options() {
     Options options;
     options.m_raw = opt.raw;
     return options;
-}
-
-const char* logger_get_logger_name(const char* logger_name) {
-    return logger_name;
-}
-
-/*!
- * @brief Get name of the requested logger
- *
- * @param logger logger shared poiter
- * @return logger_name
- */
-const char* logger_get_logger_name(LoggerSPtr logger) {
-    if (!logger) {
-        return nullptr;
-    }
-    return logger_get_tag(logger->get_instance());
 }
 
 }

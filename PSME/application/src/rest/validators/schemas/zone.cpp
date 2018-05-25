@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,10 +28,20 @@ using namespace psme::rest;
 using namespace psme::rest::validators::schema;
 
 
+const jsonrpc::ProcedureValidator& ZonePatchSchema::LinksSchema::get_procedure() {
+    static jsonrpc::ProcedureValidator procedure{
+        jsonrpc::PARAMS_BY_NAME,
+        constants::Fabric::ENDPOINTS, VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema)),
+        nullptr
+    };
+    return procedure;
+}
+
+
 const jsonrpc::ProcedureValidator& ZonePatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
         jsonrpc::PARAMS_BY_NAME,
-        constants::Fabric::ENDPOINTS, VALID_OPTIONAL(VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema))),
+        constants::Common::LINKS, VALID_OPTIONAL(VALID_ATTRIBUTE(LinksSchema)),
         nullptr
     };
     return procedure;

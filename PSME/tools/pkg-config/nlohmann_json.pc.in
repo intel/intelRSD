@@ -1,0 +1,7 @@
+prefix=@CMAKE_BINARY_DIR@
+exec_prefix=${prefix}
+includedir=${prefix}/include
+
+Name: nlohmann_json
+Description: Niels Lohmann's JSON headeronly library
+Version: @NLOHMANN_JSON_VERSION@

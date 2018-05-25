@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ void set_asset_tag(const std::string& uuid, const json::Json& asset_tag) {
     auto reference = get_manager<RAW_TYPE>().get_entry_reference(uuid);
     RESOURCE& resource = reference.get_raw_ref();
 
-    log_info(GET_LOGGER("pnc-gami"), component.to_string() << "(" << uuid << "):: AssetTag = " << asset_tag.dump());
+    log_info("pnc-gami", component.to_string() << "(" << uuid << "):: AssetTag = " << asset_tag.dump());
     resource.set_asset_tag(agent_framework::module::utils::OptionalField<std::string>(asset_tag));
 }
 
@@ -82,7 +82,7 @@ void throw_if_drive_not_ready_for_secure_erase(const std::string& uuid) {
 }
 
 void securely_erase(const std::string& drive_uuid, SetComponentAttributes::Response& response) {
-    log_info(GET_LOGGER("pnc-gami"), "Executing erase drive securely command.");
+    log_info("pnc-gami", "Executing erase drive securely command.");
 
     throw_if_drive_not_ready_for_secure_erase(drive_uuid);
 
@@ -112,19 +112,17 @@ void securely_erase(const std::string& drive_uuid, SetComponentAttributes::Respo
     task_creator.add_subtask([]() { std::this_thread::sleep_for(std::chrono::seconds(DRIVE_DETECTION_DELAY_SEC)); });
     task_creator.add_subtask(NvmeSecureEraseTask{drive_uuid});
 
-    task_creator.add_callback(action::Task::CallbackType::Exception,
-                              std::bind(std::mem_fn(&GasTool::unbind_drive_from_mgmt_partition), *tools.gas_tool,
-                                        tools.model_tool, gas, drive_uuid));
+    task_creator.add_exception_callback(std::bind(
+        std::mem_fn(&GasTool::unbind_drive_from_mgmt_partition), *tools.gas_tool, tools.model_tool, gas, drive_uuid));
 
-    task_creator.add_callback(action::Task::CallbackType::Exception,
-                              std::bind(std::mem_fn(&ModelTool::set_drive_status), *tools.model_tool, drive_uuid,
-                                        attribute::Status{enums::State::StandbyOffline, enums::Health::Warning}));
-    task_creator.add_callback(action::Task::CallbackType::Exception,
-                              std::bind(std::mem_fn(&ModelTool::set_drive_is_in_warning_state), *tools.model_tool,
-                                        drive_uuid, true));
-    task_creator.add_callback(action::Task::CallbackType::Exception,
-                              std::bind(std::mem_fn(&ModelTool::set_drive_is_being_erased), *tools.model_tool,
-                                        drive_uuid, false));
+    task_creator.add_exception_callback(std::bind(std::mem_fn(&ModelTool::set_drive_status),
+                                                  *tools.model_tool, drive_uuid,
+                                                  attribute::Status{enums::State::StandbyOffline,
+                                                                    enums::Health::Warning}));
+    task_creator.add_exception_callback(std::bind(
+        std::mem_fn(&ModelTool::set_drive_is_in_warning_state), *tools.model_tool, drive_uuid, true));
+    task_creator.add_exception_callback(std::bind(
+        std::mem_fn(&ModelTool::set_drive_is_being_erased), *tools.model_tool, drive_uuid, false));
 
     task_creator.set_promised_response(response_builder);
 
@@ -142,7 +140,7 @@ void process_pcie_port(const std::string&, const attribute::Attributes& attribut
     PncValidator::validate_set_pcie_port_attributes(attributes);
     const auto attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
-        log_debug(GET_LOGGER("pnc-gami"), "setComponentAttributes: nothing has been changed (empty request).");
+        log_debug("pnc-gami", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
     for (const auto& name : attribute_names) {
@@ -168,7 +166,7 @@ void process_pcie_switch(const std::string& uuid, const attribute::Attributes& a
     PncValidator::validate_set_pcie_switch_attributes(attributes);
     const auto attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
-        log_debug(GET_LOGGER("pnc-gami"), "setComponentAttributes: nothing has been changed (empty request).");
+        log_debug("pnc-gami", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
     for (const auto& name : attribute_names) {
@@ -194,10 +192,10 @@ void process_pcie_switch(const std::string& uuid, const attribute::Attributes& a
 void process_pcie_device(const std::string& uuid, const attribute::Attributes& attributes,
                          SetComponentAttributes::Response& response) {
 
-    PncValidator::validate_set_pcie_device_attributes(attributes);
+    CommonValidator::validate_set_pcie_device_attributes(attributes);
     const auto attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
-        log_debug(GET_LOGGER("agent"), "setComponentAttributes: nothing has been changed (empty request).");
+        log_debug("agent", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
     for (const auto& name : attribute_names) {
@@ -225,7 +223,7 @@ void process_drive(const std::string& uuid, const attribute::Attributes& attribu
     CommonValidator::validate_set_drive_attributes(attributes);
     const auto& attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
-        log_debug(GET_LOGGER("pnc-gami"), "setComponentAttributes: nothing has been changed (empty request).");
+        log_debug("pnc-gami", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
     for (const auto& name : attribute_names) {
@@ -236,10 +234,9 @@ void process_drive(const std::string& uuid, const attribute::Attributes& attribu
                 set_asset_tag<Drive>(uuid, value);
             }
             else if (literals::Drive::ERASED == name) {
-                auto drive = CommonComponents::get_instance()->
-                    get_drive_manager().get_entry_reference(uuid);
+                auto drive = get_manager<Drive>().get_entry_reference(uuid);
                 drive->set_erased(value.get<bool>());
-                log_debug(GET_LOGGER("pnc-gami"), "Set " + name + " attribute to " << std::boolalpha << value.get<bool>());
+                log_debug("pnc-gami", "Set " + name + " attribute to " << std::boolalpha << value.get<bool>());
             }
             else if (literals::Drive::SECURELY_ERASE == name) {
                 securely_erase(uuid, response);
@@ -261,7 +258,7 @@ void process_chassis(const std::string& uuid, const attribute::Attributes& attri
     CommonValidator::validate_set_chassis_attributes(attributes);
     const auto& attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
-        log_debug(GET_LOGGER("pnc-gami"), "setComponentAttributes: nothing has been changed (empty request).");
+        log_debug("pnc-gami", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
     for (const auto& name : attribute_names) {
@@ -287,7 +284,7 @@ void process_system(const std::string& uuid, const attribute::Attributes& attrib
     CommonValidator::validate_set_system_attributes(attributes);
     const auto& attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
-        log_debug(GET_LOGGER("pnc-gami"), "setComponentAttributes: nothing has been changed (empty request).");
+        log_debug("pnc-gami", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
     for (const auto& name : attribute_names) {
@@ -312,45 +309,70 @@ void process_system(const std::string& uuid, const attribute::Attributes& attrib
     }
 }
 
-bool exists_in_pnc(const std::string& uuid) {
-    const auto& pnc_components = PncComponents::get_instance();
-    const auto& common_components = CommonComponents::get_instance();
+void set_no_attributes(const attribute::Attributes& attributes, SetComponentAttributes::Response& response) {
+    const auto attribute_names = attributes.get_names();
+    if (attribute_names.empty()) {
+        log_debug("pnc-gami", "setComponentAttributes: nothing has been changed (empty request).");
+        return;
+    }
+    for (const auto& name : attribute_names) {
+        try {
+            // The response must have a message for every attribute that could not be set.
+            const auto& field_value = attributes.get_value(name);
+            THROW(agent_framework::exceptions::UnsupportedField, "pnc-gami",
+                  "Setting attribute is not supported.", name, field_value);
+        }
+        catch (const GamiException& ex) {
+            response.add_status({name, ex.get_error_code(), ex.get_message()});
+        }
+    }
+}
 
-    return common_components->get_module_manager().entry_exists(uuid) ||
-           pnc_components->get_pcie_function_manager().entry_exists(uuid) ||
-           pnc_components->get_zone_manager().entry_exists(uuid);
+void set_endpoint_attributes(const attribute::Attributes& attributes, SetComponentAttributes::Response& response) {
+    CommonValidator::validate_set_endpoint_attributes(attributes);
+    set_no_attributes(attributes, response);
+}
+
+bool exists_in_pnc(const std::string& uuid) {
+    return get_manager<Manager>().entry_exists(uuid) ||
+           get_manager<PcieFunction>().entry_exists(uuid) ||
+           get_manager<Zone>().entry_exists(uuid);
 }
 
 
 void set_component_attributes(const SetComponentAttributes::Request& request,
                               SetComponentAttributes::Response& response) {
-    log_info(GET_LOGGER("pnc-gami"), "Executing setComponentAttributes.");
+    log_info("pnc-gami", "Executing setComponentAttributes.");
 
     const auto& uuid = request.get_component();
     const auto& attributes = request.get_attributes();
 
     if (attributes.get_names().empty()) {
-        log_debug(GET_LOGGER("pnc-gami"), "setComponentAttributes: nothing has been changed (empty request).");
+        log_debug("pnc-gami", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
 
-    if (CommonComponents::get_instance()->get_drive_manager().entry_exists(uuid)) {
+    if (get_manager<Drive>().entry_exists(uuid)) {
         process_drive(uuid, attributes, response);
     }
-    else if (CommonComponents::get_instance()->get_chassis_manager().entry_exists(uuid)) {
+    else if (get_manager<Chassis>().entry_exists(uuid)) {
         process_chassis(uuid, attributes, response);
     }
-    else if (CommonComponents::get_instance()->get_system_manager().entry_exists(uuid)) {
+    else if (get_manager<System>().entry_exists(uuid)) {
         process_system(uuid, attributes, response);
     }
-    else if (PncComponents::get_instance()->get_pcie_device_manager().entry_exists(uuid)) {
+    else if (get_manager<PcieDevice>().entry_exists(uuid)) {
         process_pcie_device(uuid, attributes, response);
     }
-    else if (PncComponents::get_instance()->get_switch_manager().entry_exists(uuid)) {
+    else if (get_manager<Switch>().entry_exists(uuid)) {
         process_pcie_switch(uuid, attributes, response);
     }
-    else if (PncComponents::get_instance()->get_port_manager().entry_exists(uuid)) {
+    else if (get_manager<Port>().entry_exists(uuid)) {
         process_pcie_port(uuid, attributes, response);
+    }
+    else if (get_manager<Endpoint>().entry_exists(uuid)) {
+        log_debug("pnc-gami", "Setting Endpoint attributes isn't supported [ uuid=" << uuid << " ]");
+        set_endpoint_attributes(attributes,response);
     }
     else if (exists_in_pnc(uuid)) {
         THROW(InvalidValue, "pnc-gami", "Operation not available for this component.");
@@ -359,7 +381,7 @@ void set_component_attributes(const SetComponentAttributes::Request& request,
         THROW(InvalidUuid, "pnc-gami", "No component with UUID = '" + uuid + "'.");
     }
 
-    log_info(GET_LOGGER("pnc-gami"), "setComponentAttributes finished successfully.");
+    log_info("pnc-gami", "setComponentAttributes finished successfully.");
 }
 
 }

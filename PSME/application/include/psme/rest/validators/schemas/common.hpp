@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,12 @@ namespace schema {
 
 /*! @brief Schema for validating simple redfish object with odata.id property. */
 class SimpleObjectSchema {
+public:
+    static const jsonrpc::ProcedureValidator& get_procedure();
+};
+
+/*! @brief Schema for validating identifiers. */
+class IdentifierSchema {
 public:
     static const jsonrpc::ProcedureValidator& get_procedure();
 };

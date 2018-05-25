@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,6 +109,9 @@ void EndpointBuilder::build_endpoints() {
 
     // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Drives/{driveId:[0-9]+}"
     mp.register_handler(Chassis::UPtr(new Drive(constants::Routes::DRIVE_PATH)));
+
+    // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Drives/{driveId:[0-9]+}/Metrics"
+    mp.register_handler(Chassis::UPtr(new DriveMetrics(constants::Routes::DRIVE_METRICS_PATH)));
 
     // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Drives/{driveId:[0-9]+}/Actions/Drive.SecureErase"
     mp.register_handler(DriveSecureErase::UPtr(new DriveSecureErase(constants::Routes::DRIVE_SECURE_ERASE_PATH)));
@@ -286,33 +289,42 @@ void EndpointBuilder::build_endpoints() {
     mp.register_handler(VlanNetworkInterface::UPtr(
         new VlanNetworkInterface(constants::Routes::VLAN_NETWORK_INTERFACE_PATH)));
 
-    // "/redfish/v1/Services"
-    mp.register_handler(StorageServiceCollection::UPtr(
-        new StorageServiceCollection(constants::Routes::STORAGE_SERVICE_COLLECTION_PATH)));
+    // "/redfish/v1/StorageServices"
+    mp.register_handler(StorageServicesCollection::UPtr(
+        new StorageServicesCollection(constants::Routes::STORAGE_SERVICES_COLLECTION_PATH)));
 
-    // "/redfish/v1/Services/{serviceId:[0-9]+}"
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}"
     mp.register_handler(StorageService::UPtr(new StorageService(constants::Routes::STORAGE_SERVICE_PATH)));
 
-    // "/redfish/v1/Services/{serviceId:[0-9]+}/Drives"
-    mp.register_handler(PhysicalDrivesCollection::UPtr(
-        new PhysicalDrivesCollection(constants::Routes::PHYSICAL_DRIVES_COLLECTION_PATH)));
-
-    // "/redfish/v1/Services/{serviceId:[0-9]+}/Drives/{driveId:[0-9]+}"
-    mp.register_handler(PhysicalDrive::UPtr(new PhysicalDrive(constants::Routes::PHYSICAL_DRIVE_PATH)));
-
-    // "/redfish/v1/Services/{serviceId:[0-9]+}/LogicalDrives"
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools"
     mp.register_handler(
-        LogicalDriveCollection::UPtr(new LogicalDriveCollection(constants::Routes::LOGICAL_DRIVE_COLLECTION_PATH)));
+        StoragePoolCollection::UPtr(new StoragePoolCollection(constants::Routes::STORAGE_POOL_COLLECTION_PATH)));
 
-    // "/redfish/v1/Services/{serviceId:[0-9]+}/LogicalDrives/{logicalDriveId:[0-9]+}"
-    mp.register_handler(LogicalDrive::UPtr(new LogicalDrive(constants::Routes::LOGICAL_DRIVE_PATH)));
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}"
+    mp.register_handler(StoragePool::UPtr(new StoragePool(constants::Routes::STORAGE_POOL_PATH)));
 
-    // "/redfish/v1/Services/{serviceId:[0-9]+}/Targets"
-    mp.register_handler(RemoteTargetCollection::UPtr(
-        new RemoteTargetCollection(constants::Routes::REMOTE_TARGET_COLLECTION_PATH)));
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/AllocatedVolumes"
+    mp.register_handler(AllocatedVolumesCollection::UPtr(new AllocatedVolumesCollection(constants::Routes::ALLOCATED_VOLUMES_COLLECTION_PATH)));
 
-    // "/redfish/v1/Services/{serviceId:[0-9]+}/Targets/{remoteTargetId:[0-9]+}"
-    mp.register_handler(RemoteTarget::UPtr(new RemoteTarget(constants::Routes::REMOTE_TARGET_PATH)));
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/AllocatedPools"
+    mp.register_handler(AllocatedPoolsCollection::UPtr(new AllocatedPoolsCollection(constants::Routes::ALLOCATED_POOLS_COLLECTION_PATH)));
+
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes"
+    mp.register_handler(
+        VolumeCollection::UPtr(new VolumeCollection(constants::Routes::VOLUME_COLLECTION_PATH)));
+
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}"
+    mp.register_handler(Volume::UPtr(new Volume(constants::Routes::VOLUME_PATH)));
+
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}/Metrics"
+    mp.register_handler(Volume::UPtr(new VolumeMetrics(constants::Routes::VOLUME_METRICS_PATH)));
+
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}/Actions/Volume.Initialize"
+    mp.register_handler(VolumeInitialize::UPtr(new VolumeInitialize(constants::Routes::VOLUME_INITIALIZE_PATH)));
+
+    // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Drives"
+    mp.register_handler(DriveCollection::UPtr(
+        new DriveCollection(constants::Routes::DRIVE_COLLECTION_PATH)));
 
     // "/redfish/v1/Fabrics"
     mp.register_handler(FabricsCollection::UPtr(

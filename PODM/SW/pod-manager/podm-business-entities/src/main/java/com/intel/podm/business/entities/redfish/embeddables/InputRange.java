@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 package com.intel.podm.business.entities.redfish.embeddables;
 
 import com.intel.podm.common.types.PowerInputType;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Enumerated;
 import java.math.BigDecimal;
-import java.util.Objects;
 
 import static javax.persistence.EnumType.STRING;
 
@@ -108,26 +109,38 @@ public class InputRange {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         InputRange that = (InputRange) o;
-        return inputType == that.inputType
-            && Objects.equals(minimumVoltage, that.minimumVoltage)
-            && Objects.equals(maximumVoltage, that.maximumVoltage)
-            && Objects.equals(outputWattage, that.outputWattage)
-            && Objects.equals(minimumFrequencyHz, that.minimumFrequencyHz)
-            && Objects.equals(maximumFrequencyHz, that.maximumFrequencyHz)
-            && Objects.equals(oem, that.oem);
+
+        return new EqualsBuilder()
+            .append(inputType, that.inputType)
+            .append(minimumVoltage, that.minimumVoltage)
+            .append(maximumVoltage, that.maximumVoltage)
+            .append(outputWattage, that.outputWattage)
+            .append(minimumFrequencyHz, that.minimumFrequencyHz)
+            .append(maximumFrequencyHz, that.maximumFrequencyHz)
+            .append(oem, that.oem)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(inputType, minimumVoltage, maximumVoltage, outputWattage, minimumFrequencyHz, maximumFrequencyHz, oem);
+        return new HashCodeBuilder()
+            .append(inputType)
+            .append(minimumVoltage)
+            .append(maximumVoltage)
+            .append(outputWattage)
+            .append(minimumFrequencyHz)
+            .append(maximumFrequencyHz)
+            .append(oem)
+            .toHashCode();
     }
 }

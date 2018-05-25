@@ -2,7 +2,7 @@
  * @brief Provides class for generating unique keys for resources under compute agent.
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +55,9 @@ const std::map<std::string, std::string> ComputeKeyGenerator::m_keys_base_map{
     map_value_type(NetworkInterface::get_component().to_string(), "_NetworkInterface_"),
     map_value_type(NetworkDevice::get_component().to_string(), "_NetworkDevice_"),
     map_value_type(NetworkDeviceFunction::get_component().to_string(), "_NetworkDeviceFunction_"),
-    map_value_type(TrustedModule::get_component().to_string(), "_TrustedPlatformModule_")
+    map_value_type(TrustedModule::get_component().to_string(), "_TrustedPlatformModule_"),
+    map_value_type(PcieDevice::get_component().to_string(), "_PcieDevice_"),
+    map_value_type(PcieFunction::get_component().to_string(), "_PcieFunction_")
 };
 
 std::string ComputeKeyGenerator::m_agent_id{};
@@ -90,6 +92,24 @@ const std::string ComputeKeyGenerator::generate_key(const ThermalZone& zone, con
 template<>
 const std::string ComputeKeyGenerator::generate_key(const PowerZone& zone, const Chassis& parent_chassis) {
     return generate_key_base(zone) + parent_chassis.get_uuid();
+}
+
+
+template<>
+const std::string ComputeKeyGenerator::generate_key(const PcieDevice& device, const Chassis& parent_chassis) {
+    auto key =  generate_key_base(device) + parent_chassis.get_uuid();
+    const auto& fru = device.get_fru_info();
+
+    if (!(fru.get_manufacturer().has_value() && fru.get_model_number().has_value())) {
+        throw KeyValueMissingError("PCIeDevice model number or manufacturer is missing.");
+    }
+    key += fru.get_manufacturer() + fru.get_model_number();
+    return key;
+}
+
+template<>
+const std::string ComputeKeyGenerator::generate_key(const PcieFunction& function) {
+    return generate_key_base(function) + function.get_parent_uuid();
 }
 
 

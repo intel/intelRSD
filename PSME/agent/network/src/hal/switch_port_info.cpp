@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +35,10 @@
 using namespace agent::network::hal;
 using namespace agent_framework::exceptions;
 
-SwitchPortInfo::SwitchPortInfo(const string& port_identifier)
+SwitchPortInfo::SwitchPortInfo(const std::string& port_identifier)
     : m_identifier(port_identifier) {}
+
+SwitchPortInfo::~SwitchPortInfo() {}
 
 SwitchPortInfo::PortAttributeType
 SwitchPortInfo::get_port_attribute_type(const std::string& attr_name, const json::Json& value) {
@@ -106,5 +108,3 @@ const std::string& SwitchPortInfo::PortAttributeValue::get_string() const {
     }
     return m_string;
 }
-
-SwitchPortInfo::~SwitchPortInfo() {}

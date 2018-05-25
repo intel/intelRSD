@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import static com.intel.podm.redfish.json.templates.actions.constraints.Ethernet
 import static com.intel.podm.redfish.json.templates.actions.constraints.EthernetSwitchAclRuleConstraintValidatorHelper.getMirrorType;
 import static com.intel.podm.redfish.json.templates.actions.constraints.EthernetSwitchAclRuleConstraintValidatorHelper.isNotEmptyRequest;
 import static com.intel.podm.redfish.json.templates.actions.constraints.EthernetSwitchAclRuleConstraintValidatorHelper.refAssignedAndNotNull;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 public class EthernetSwitchAclRuleConstraintValidator implements ConstraintValidator<EthernetSwitchAclRuleConstraint, AclRuleModificationJson> {
 

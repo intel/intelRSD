@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,10 +56,7 @@ agent_framework::model::TrustedModule get_tpm_by_interface_type(const agent_fram
     else {
         auto trusted_modules = agent_framework::module::get_manager<agent_framework::model::TrustedModule>()
             .get_entries(system.get_uuid(), [interface_type](const agent_framework::model::TrustedModule& tpm) -> bool {
-                return tpm.get_interface_type().has_value() ?
-                       (InterfaceType::from_string(interface_type) == tpm.get_interface_type().value()) :
-                       false;
-
+                return tpm.get_interface_type() == InterfaceType::from_string(interface_type);
             });
         if (trusted_modules.empty()) {
             throw error::ServerException(
@@ -148,10 +145,10 @@ void endpoint::SystemChangeTPMState::post(const server::Request& request, server
                                task_uuid,
                                false);
 
-            auto response_renderer = [system](json::Json) -> server::Response {
+            auto response_renderer = [system, request](json::Json) -> server::Response {
                 Response promised_response{};
                 promised_response.set_status(server::status_2XX::NO_CONTENT);
-                psme::rest::endpoint::utils::set_location_header(promised_response, psme::rest::endpoint::utils::get_component_url(Component::System, system.get_uuid()));
+                psme::rest::endpoint::utils::set_location_header(request, promised_response, psme::rest::endpoint::utils::get_component_url(Component::System, system.get_uuid()));
 
                 return promised_response;
             };
@@ -185,7 +182,7 @@ void endpoint::SystemChangeTPMState::post(const server::Request& request, server
             std::string task_monitor_url = PathBuilder(
                 utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid)).append(
                 Monitor::MONITOR).build();
-            psme::rest::endpoint::utils::set_location_header(response, task_monitor_url);
+            psme::rest::endpoint::utils::set_location_header(request, response, task_monitor_url);
             response.set_body(psme::rest::endpoint::task_service_utils::call_task_get(task_uuid).get_body());
         };
 

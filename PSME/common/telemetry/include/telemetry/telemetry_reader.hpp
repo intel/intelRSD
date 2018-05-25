@@ -4,7 +4,7 @@
  * Each object derived from this class represents metric (value).
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@
 
 #pragma once
 
-#include "telemetry/resource_key.hpp"
+#include "resource_key.hpp"
+#include "value_rounder.hpp"
+#include "samples_processor.hpp"
 #include "agent-framework/module/model/metric_definition.hpp"
 #include "agent-framework/module/model/metric.hpp"
 #include "ipmi/ipmi_controller.hpp"
@@ -30,7 +32,6 @@
 #include <vector>
 #include <memory>
 #include <chrono>
-#include <list>
 
 namespace telemetry {
 
@@ -44,8 +45,7 @@ class TelemetryReader {
 public:
     using MetricDefinition = agent_framework::model::MetricDefinition;
     using Metric = agent_framework::model::Metric;
-
-    using SampleTime = std::chrono::time_point<std::chrono::steady_clock>;
+    using TimePoint = std::chrono::steady_clock::time_point;
 
     class Context {
     public:
@@ -64,12 +64,6 @@ public:
     using PtrVector = std::vector<Ptr>;
     using ReaderId = std::uint16_t;
 
-    enum class State {
-        NOT_VALID,   //!< sensor not initialized or has wrong configuration
-        VALUE_NOT_PRESENT, //!< value was not read (after initialization/data not available)
-        VALUE_READ         //!< value was read, should be reported
-    };
-
 
     /*!
      * @brief Reader "name", to be used in logging, etc.
@@ -83,27 +77,27 @@ public:
      * @return reader type
      * @warning Readers are grouped by the type, each reader should have uniq type!
      */
-    ReaderId get_reader_id() const { return reader_id; }
+    ReaderId get_reader_id() const { return m_reader_id; }
 
 
     /*!
      * @brief Get resource key to identify the resource
      * @return related resource key
      */
-    const ResourceInstance& get_resource_key() const { return resource_key; }
+    const ResourceInstance& get_resource_key() const { return m_resource_key; }
 
     /*!
      * @brief Get metric definition
      * @return metric definition object reference.
      */
     const MetricDefinition& get_metric_definition() const {
-        return metric_definition;
+        return m_metric_definition;
     }
 
     template<typename R>
     void fill_component(const R& resource) {
-        metric.set_component_uuid(resource.get_uuid());
-        metric.set_component_type(resource.get_component());
+        m_metric.set_component_uuid(resource.get_uuid());
+        m_metric.set_component_type(resource.get_component());
     }
 
     /*!
@@ -113,10 +107,10 @@ public:
      */
     template<typename U>
     const MetricDefinition& get_metric_definition(const U& uuid_generator) {
-        if (!metric_definition.has_persistent_uuid()) {
-            uuid_generator.stabilize(metric_definition);
+        if (!m_metric_definition.has_persistent_uuid()) {
+            uuid_generator.stabilize(m_metric_definition);
         }
-        return metric_definition;
+        return m_metric_definition;
     }
 
 
@@ -130,10 +124,10 @@ public:
     const Metric& get_metric(const U& uuid_generator, const R& resource) {
         static_assert(std::is_base_of<agent_framework::model::Resource, R>::value, "Invalid resource type");
         get_metric_definition(uuid_generator);
-        metric.set_metric_definition_uuid(metric_definition.get_uuid());
-        metric.set_name(metric_definition.get_metric_jsonptr());
-        uuid_generator.stabilize(metric, static_cast<const agent_framework::model::Resource&>(resource));
-        return metric;
+        m_metric.set_metric_definition_uuid(m_metric_definition.get_uuid());
+        m_metric.set_name(m_metric_definition.get_metric_jsonptr());
+        uuid_generator.stabilize(m_metric, static_cast<const agent_framework::model::Resource&>(resource));
+        return m_metric;
     }
 
 
@@ -142,7 +136,7 @@ public:
      * @return metric UUID
      */
     const std::string& get_metric_uuid() const {
-        return metric.get_uuid();
+        return m_metric.get_uuid();
     }
 
 
@@ -151,29 +145,21 @@ public:
      * @return metric's component UUID
      */
     const std::string& get_resource_uuid() const {
-        return metric.get_component_uuid();
+        return m_metric.get_component_uuid();
     }
 
-
-    /*!
-     * @brief Get reader state
-     * @return reader state
-     */
-    State get_reader_state() const { return reader_state; }
-
-
     const json::Json& get_value() const {
-        return metric.get_value();
+        return m_metric.get_value();
     }
 
     /*! If reader fills metric data */
     bool fills_metric() const {
-        return (filled_properties & FILL_METRIC) == FILL_METRIC;
+        return (m_filled_properties & FILL_METRIC) == FILL_METRIC;
     }
 
     /*! If reader fills health of the resource */
     bool fills_health() const {
-        return (filled_properties & FILL_HEALTH) == FILL_HEALTH;
+        return (m_filled_properties & FILL_HEALTH) == FILL_HEALTH;
     }
 
     /*!
@@ -188,8 +174,8 @@ public:
      * @brief Get time when reader data should be calculated
      * @return next update time point
      */
-    SampleTime get_time_to_update() const {
-        return next_time_to_update;
+    const OptionalField<TimePoint>& get_time_to_update() const {
+        return m_next_time_to_update;
     }
 
     /*!
@@ -221,7 +207,7 @@ public:
      * @return true if reader is to be read when update_time is passed
      */
     bool is_to_be_read() const {
-        return to_be_read;
+        return m_to_be_read;
     }
 
     /*!
@@ -229,6 +215,7 @@ public:
      * @return true if is context-valid and has next computation time set.
      */
     bool is_being_processed() const;
+
 
 protected:
     /*!
@@ -261,7 +248,6 @@ protected:
     virtual bool read(Context::Ptr context, ipmi::IpmiController& ctrl) = 0;
 
 
-protected:
     /*!
      * @brief Assign reader id for new reader type (class)
      * @return unique (per class) reader id
@@ -285,82 +271,40 @@ protected:
      */
     TelemetryReader(ResourceInstance _resource_key, MetricDefinition& _metric_definition,
                     ReaderId _reader_id, unsigned _filled_properties = FILL_METRIC) :
-        resource_key(_resource_key), metric_definition(_metric_definition), reader_id(_reader_id),
-        filled_properties(_filled_properties) {}
+        m_resource_key(_resource_key), m_metric_definition(_metric_definition), m_reader_id(_reader_id),
+        m_filled_properties(_filled_properties) {
+        // value rounder
+        if (m_metric_definition.get_calculation_precision().has_value()
+            && m_metric_definition.get_calculation_precision().value() > 0) {
+            m_value_rounder.reset(new ValueRounder<>(m_metric_definition.get_calculation_precision().value()));
+        }
+        // samples processor
+        if (m_metric_definition.get_calculation_algorithm().has_value()
+            && m_metric_definition.get_calculation_time_interval().has_value()) {
+            auto calculation_interval = m_metric_definition.get_calculation_period().as<typename SamplesProcessor<>::TimePoint::duration>();
+            auto sensing_interval = m_metric_definition.get_sensing_period().as<typename SamplesProcessor<>::TimePoint::duration>();
+            auto algorithm = select_algorithm<typename SamplesProcessor<>::Samples>(*m_metric_definition.get_calculation_algorithm());
+            m_samples_processor.reset(new SamplesProcessor<>(calculation_interval, sensing_interval, algorithm));
+        }
+    }
 
     virtual ~TelemetryReader() {}
 
-    TelemetryReader(const TelemetryReader&) = default;
 
     /*!
-     * @brief Set read value
-     * @param raw_value locally kept value (to be compared with read one)
-     * @param read_value just read value to be set
-     * @param no_reading_value "special" value, which indicates no value is available
-     * @param convert function to convert the value
+     * @brief Update value
+     * @param value new value to be set
      * @return true if previous value was changed
      */
-    template<typename T>
-    bool set_value(T& raw_value, T read_value, T no_reading_value,
-                   std::function<json::Json(T)> convert = [](T val) -> json::Json { return val; }) {
-
-        if (read_value != no_reading_value) {
-            return set_value(raw_value, read_value, convert);
+    bool update_value(json::Json value) {
+        if (m_samples_processor) {
+            value = m_samples_processor->add_and_process_samples(value);
         }
-        else {
-            return clear_value();
+        if (m_value_rounder) {
+            value = (*m_value_rounder)(value);
         }
-    }
-
-    /*!
-     * @brief Set read value
-     * @param raw_value locally kept value (to be compared with read one)
-     * @param read_value just read value to be set
-     * @param convert function to convert the value
-     * @return true if previous value was changed
-     */
-    template<typename T>
-    bool set_value(T& raw_value, T read_value,
-                   std::function<json::Json(T)> convert = [](T val) -> json::Json { return val; }) {
-
-        if (get_reader_state() == State::VALUE_NOT_PRESENT) {
-            set_reader_state(State::VALUE_READ);
-            raw_value = read_value;
-
-            json::Json converted = convert(read_value);
-            if (is_computable()) {
-                /* converted value IS same as processed with history.. there is exactly one sample */
-                process_values_with_historical(converted);
-            }
-            set_value(nullptr);
-            return set_rounded(converted);
-        }
-        else if (is_computable()) {
-            /* add read value to the values and compute average from all collected values */
-            json::Json computed = process_values_with_historical(convert(read_value));
-            raw_value = read_value;
-            return set_rounded(computed);
-        }
-        else if (raw_value != read_value) {
-            raw_value = read_value;
-            return set_rounded(convert(read_value));
-        }
-        return false;
-    }
-
-    /*!
-     * @brief Clear reader state
-     *
-     * Should be called when data cannot be read
-     *
-     * @return true if previosly value was read.
-     */
-    bool clear_value() {
-        if (get_reader_state() == State::VALUE_READ) {
-            if (is_computable()) {
-                samples.clear();
-            }
-            set_reader_state(State::VALUE_NOT_PRESENT);
+        if (get_value() != value) {
+            set_value(value);
             return true;
         }
         return false;
@@ -371,14 +315,8 @@ protected:
      * @param should_be_read if reader should process context in next run
      */
     void set_to_be_read(bool should_be_read) {
-        to_be_read = should_be_read;
+        m_to_be_read = should_be_read;
     }
-
-    /*!
-     * @brief Alter reader state on the data
-     * @param state to be set
-     */
-    void set_reader_state(State state) { reader_state = state; }
 
 
     /*!
@@ -395,25 +333,24 @@ protected:
      * @param value new value
      */
     void set_value(const json::Json& value) {
-        metric.set_value(value);
+        m_metric.set_value(value);
     }
 
     /*!
      * @brief Metric definition to be modified by the reader
      */
-    MetricDefinition metric_definition{};
+    MetricDefinition& m_metric_definition;
 
 private:
     TelemetryReader() = delete;
-
+    TelemetryReader(const TelemetryReader&) = delete;
+    TelemetryReader(const TelemetryReader&&) = delete;
     TelemetryReader& operator=(const TelemetryReader&) = delete;
+    TelemetryReader& operator=(const TelemetryReader&&) = delete;
 
-    const ResourceInstance resource_key;
-    const ReaderId reader_id;
-
-    State reader_state{State::NOT_VALID};
-
-    unsigned filled_properties;
+    const ResourceInstance m_resource_key;
+    const ReaderId m_reader_id;
+    unsigned m_filled_properties;
     agent_framework::model::enums::Health::base_enum m_health{};
 
     /*!
@@ -422,8 +359,7 @@ private:
      * The time, when value should be updated. If not initialized
      * (first) reading is done immediatelly and appropriate time is set.
      */
-    SampleTime next_time_to_update{};
-    bool time_to_update_set{false};
+    OptionalField<TimePoint> m_next_time_to_update{};
 
     /*!
      * @brief Flag to request processing the reading
@@ -433,7 +369,7 @@ private:
      * If flag is not set, reader is "ignored", no calculation is
      * done.
      */
-    bool to_be_read{true};
+    bool m_to_be_read{true};
 
     /*!
      * @brief Computation algorithms
@@ -442,26 +378,11 @@ private:
      * All necessary computations are done on these.
      * @{
      */
-    using Sample = std::pair<double, SampleTime>;
-    using Samples = std::list<Sample>;
-    Samples samples{};
-
-    json::Json process_values_with_historical(const json::Json& value);
-    bool is_computable() const;
+    std::unique_ptr<SamplesProcessor<>> m_samples_processor{};
+    std::unique_ptr<ValueRounder<>> m_value_rounder{};
     /* @} */
 
-    /*!
-     * @brief Set value with respect to calculation precision
-     *
-     * Numeric values are rouded when calculation precision is set. Other
-     * values are only compared to get if changed.
-     *
-     * @brief value value to be set
-     * @return true if the value has changed
-     */
-    bool set_rounded(const json::Json& value);
-
-    Metric metric{};
+    Metric m_metric{};
 };
 
 }

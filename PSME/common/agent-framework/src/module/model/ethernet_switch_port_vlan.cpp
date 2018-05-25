@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +53,6 @@ EthernetSwitchPortVlan EthernetSwitchPortVlan::from_json(const json::Json& json)
     vlan.set_vlan_enable(json[literals::EthernetSwitchPortVlan::VLAN_ENABLE]);
     vlan.set_tagged(json[literals::EthernetSwitchPortVlan::TAGGED]);
     vlan.set_oem(attribute::Oem::from_json(json[literals::EthernetSwitchPortVlan::OEM]));
-    vlan.set_resource_hash(json);
 
     return vlan;
 }

@@ -9,7 +9,7 @@
  * done only during initialization, while modification afterwards "on event").
  *
  * @header{License}
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -55,8 +55,9 @@ public:
 
     /*! @brief Validity type of the entry */
     enum class EntityValidity {
-        ERROR, //!< Cannot read/stat the file
-        VALID, //!< File has sticky bit set
+        ERROR,   //!< Cannot read/stat the file
+        NOENTRY, //!< File has no appropriate flags set
+        VALID,   //!< File has sticky bit set
         INVALID, //!< File has sticky bit cleared
         OUTDATED //!< File has sticky bit cleared and status was changed before interval
     };
@@ -66,8 +67,10 @@ public:
      *
      * Databases are stored under given location or in default one
      * (if not given).
+     *
+     * @param location directory name where the data is to be stored.
      */
-    static void set_default(const std::string& location);
+    static void set_default_location(const std::string& location);
 
     /*!
      * @brief database factory method
@@ -80,10 +83,11 @@ public:
      * (in the location).
      *
      * @param name database name to be returned
+     * @param with_policy if entries should be handled by retention policy
      * @param location to store the data or empty if default is to be used
      * @return database pointer for requested name.
      */
-    static SPtr create(const std::string& name, const std::string& location = EMPTY);
+    static SPtr create(const std::string& name, bool with_policy = false, const std::string& location = EMPTY);
 
 
     /*! @brief Get name of the database */
@@ -227,8 +231,7 @@ protected:
     /*!
      * @brief Database constructor.
      *
-     * General constructor to build Database object. It constructs database with
-     * givent name.
+     * General constructor to build Database object. It constructs database with given name.
      *
      * @param name Database name.
      */
@@ -238,17 +241,19 @@ protected:
     virtual ~Database();
 
 private:
+
+    /*! @brief Collection of all created databases */
+    using Databases = std::vector<SPtr>;
+
+
     Database(const Database&) = delete;
     Database() = delete;
 
     /*! @brief (Unique) database name */
-    std::string name;
+    std::string name{};
 
     /*! @brief Mutex to disallow access to database list from multiple threads. */
     static std::recursive_mutex mutex;
-
-    /*! @brief Collection of all created databases */
-    using Databases = std::vector<SPtr>;
 
     /*! @brief All created databases. */
     static Databases databases;
@@ -285,6 +290,7 @@ protected:
     Serializable();
 };
 
+std::ostream& operator<<(std::ostream& stream, const Serializable& str);
 
 /*!
  * @brief Any string serializable
@@ -294,6 +300,8 @@ protected:
  * (the key might be not valid thus)
  */
 class String final : public Serializable {
+    friend std::ostream& operator<<(std::ostream& stream, const String& str);
+
 public:
     String();
     String(const std::string& str);
@@ -301,8 +309,14 @@ public:
 
     String& operator=(const std::string& str);
     String& operator=(std::string&& str);
+    void set(const std::string& str) {
+        m_str = str;
+    }
 
     operator std::string() const {
+        return m_str;
+    }
+    const std::string& get() {
         return m_str;
     }
 
@@ -313,6 +327,9 @@ private:
 
     bool unserialize(const std::string& str) override;
 };
+
+
+std::ostream& operator<<(std::ostream& stream, const String& str);
 
 
 /*!

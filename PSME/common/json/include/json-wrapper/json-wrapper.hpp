@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -31,7 +31,7 @@
 #pragma GCC diagnostic ignored "-Wswitch-enum"
 #endif
 
-#include "json-wrapper/json_for_modern_cpp/json.hpp"
+#include <json.hpp>
 
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -43,14 +43,6 @@
 
 namespace json {
 
-using uint_t = std::uint64_t;
-using int_t = std::int64_t;
-using string_t = std::string;
-template <typename T, typename... Args> using array_t = std::vector<T>;
-template <typename K, typename T, typename... Args> using object_t = std::map<K, T>;
-using bool_t = bool;
-using float_t = double;
-
-using Json = nlohmann::basic_json<object_t, array_t, string_t, bool_t, int_t, uint_t, float_t>;
+using Json = nlohmann::json;
 
 }

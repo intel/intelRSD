@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.reader.ResourceSupplier;
@@ -37,10 +38,11 @@ import com.intel.podm.common.types.redfish.OemType;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_EMPTY_COLLECTION;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @OdataTypes({
@@ -48,95 +50,95 @@ import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class MemoryResource extends ExternalServiceResourceImpl implements ExternalServiceResource {
-    @JsonProperty("MemoryType")
+    @JsonSetter(value = "MemoryType", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<MemoryType> memoryType = unassigned();
 
-    @JsonProperty("MemoryDeviceType")
+    @JsonSetter(value = "MemoryDeviceType", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<MemoryDeviceType> memoryDeviceType = unassigned();
 
-    @JsonProperty("BaseModuleType")
+    @JsonSetter(value = "BaseModuleType", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<BaseModuleType> baseModuleType = unassigned();
 
-    @JsonProperty("MemoryMedia")
+    @JsonSetter(value = "MemoryMedia", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<MemoryMedia>> memoryMedia = unassigned();
 
-    @JsonProperty("CapacityMiB")
+    @JsonSetter(value = "CapacityMiB", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> capacityMib = unassigned();
 
-    @JsonProperty("DataWidthBits")
+    @JsonSetter(value = "DataWidthBits", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> dataWidthBits = unassigned();
 
-    @JsonProperty("BusWidthBits")
+    @JsonSetter(value = "BusWidthBits", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> busWidthBits = unassigned();
 
-    @JsonProperty("Manufacturer")
+    @JsonSetter(value = "Manufacturer", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> manufacturer = unassigned();
 
-    @JsonProperty("SerialNumber")
+    @JsonSetter(value = "SerialNumber", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> serialNumber = unassigned();
 
-    @JsonProperty("PartNumber")
+    @JsonSetter(value = "PartNumber", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> partNumber = unassigned();
 
-    @JsonProperty("AllowedSpeedsMHz")
+    @JsonSetter(value = "AllowedSpeedsMHz", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<Integer>> allowedSpeedsMhz = unassigned();
 
-    @JsonProperty("FirmwareRevision")
+    @JsonSetter(value = "FirmwareRevision", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> firmwareRevision = unassigned();
 
-    @JsonProperty("FirmwareApiVersion")
+    @JsonSetter(value = "FirmwareApiVersion", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> firmwareApiVersion = unassigned();
 
-    @JsonProperty("FunctionClasses")
+    @JsonSetter(value = "FunctionClasses", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<String>> functionClasses = unassigned();
 
-    @JsonProperty("VendorID")
+    @JsonSetter(value = "VendorID", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> vendorId = unassigned();
 
-    @JsonProperty("DeviceID")
+    @JsonSetter(value = "DeviceID", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> deviceId = unassigned();
 
-    @JsonProperty("RankCount")
+    @JsonSetter(value = "RankCount", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> rankCount = unassigned();
 
-    @JsonProperty("DeviceLocator")
+    @JsonSetter(value = "DeviceLocator", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> deviceLocator = unassigned();
 
-    @JsonProperty("ErrorCorrection")
+    @JsonSetter(value = "ErrorCorrection", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<ErrorCorrection> errorCorrection = unassigned();
 
-    @JsonProperty("Status")
+    @JsonSetter(value = "Status", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Status> status = unassigned();
 
-    @JsonProperty("OperatingSpeedMhz")
+    @JsonSetter(value = "OperatingSpeedMhz", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> operatingSpeedMhz = unassigned();
 
-    @JsonProperty("Regions")
+    @JsonSetter(value = "Regions", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<MemoryRegionObject>> regions = unassigned();
 
-    @JsonProperty("OperatingMemoryModes")
+    @JsonSetter(value = "OperatingMemoryModes", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<OperatingMemoryMode>> operatingMemoryModes = unassigned();
 
@@ -269,7 +271,7 @@ public class MemoryResource extends ExternalServiceResourceImpl implements Exter
         private RackScaleOem rackScaleOem = new RackScaleOem();
 
         public class RackScaleOem {
-            @JsonProperty("VoltageVolt")
+            @JsonSetter(value = "VoltageVolt", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<BigDecimal> voltageVolt = unassigned();
         }

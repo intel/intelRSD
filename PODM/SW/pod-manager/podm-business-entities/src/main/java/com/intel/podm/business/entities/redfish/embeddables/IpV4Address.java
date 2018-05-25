@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 package com.intel.podm.business.entities.redfish.embeddables;
 
 import com.intel.podm.common.types.IpV4AddressOrigin;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Enumerated;
-import java.util.Objects;
 
 import static javax.persistence.EnumType.STRING;
 
@@ -84,24 +85,34 @@ public class IpV4Address {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         IpV4Address that = (IpV4Address) o;
-        return Objects.equals(address, that.address)
-            && Objects.equals(subnetMask, that.subnetMask)
-            && addressOrigin == that.addressOrigin
-            && Objects.equals(gateway, that.gateway)
-            && Objects.equals(oem, that.oem);
+
+        return new EqualsBuilder()
+            .append(address, that.address)
+            .append(subnetMask, that.subnetMask)
+            .append(addressOrigin, that.addressOrigin)
+            .append(gateway, that.gateway)
+            .append(oem, that.oem)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(address, subnetMask, addressOrigin, gateway, oem);
+        return new HashCodeBuilder()
+            .append(address)
+            .append(subnetMask)
+            .append(addressOrigin)
+            .append(gateway)
+            .append(oem)
+            .toHashCode();
     }
 }

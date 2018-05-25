@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -309,7 +309,7 @@ bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const
     Component parent_component = find_component(event.get_parent());
     ctx.stack.emplace(parent_component);
 
-    log_info(GET_LOGGER("rest"), ctx.indent << ctx.indent << "[" << char(ctx.mode) << "] "
+    log_info("rest", ctx.indent << ctx.indent << "[" << char(ctx.mode) << "] "
                                             << "Agent event received: " << event.get_notification().to_string()
                                             << " " << component_s() << " uuid=" << event.get_component() << ", "
                                             << "parent uuid=" << event.get_parent() << ", agent_id="
@@ -320,7 +320,7 @@ bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const
             case Notification::Add: {
                 try {
                     if (agent_framework::module::get_manager<Model>().entry_exists(event.get_component())) {
-                        log_info(GET_LOGGER("rest"), ctx.indent << ctx.indent << "[" << char(ctx.mode) << "] "
+                        log_info("rest", ctx.indent << ctx.indent << "[" << char(ctx.mode) << "] "
                                                                 << "Duplicated or late event. Ignoring.");
                         return true;
                     }
@@ -332,7 +332,7 @@ bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const
                 catch (const psme::core::agent::AgentUnreachable&) {
                     // in case of connection error, added element plus all his descendants will be removed from
                     // local "database". Events collected in Context will not be returned in northbound_events
-                    log_error(GET_LOGGER("rest"),
+                    log_error("rest",
                               ctx.indent << "Exception while handling Agent Event. Removing non-complete data.");
                     do_remove(ctx, event.get_component());
                     return false;
@@ -345,11 +345,11 @@ bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const
                     northbound_events = ctx.events;
                 }
                 catch (const agent_framework::exceptions::InvalidValue&) {
-                    log_info(GET_LOGGER("rest"), "Got notification about removal"
+                    log_info("rest", "Got notification about removal"
                         << "of a component, but component is not present in the model.");
                 }
                 catch (const agent_framework::exceptions::NotFound&) {
-                    log_info(GET_LOGGER("rest"), "Got notification about removal"
+                    log_info("rest", "Got notification about removal"
                         << "of a component, but component is not present in the model.");
                 }
                 return true;
@@ -367,22 +367,22 @@ bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const
                 return true;
             }
             default:
-                log_error(GET_LOGGER("rest"), "Unknown agent event received: " << event.get_notification().to_string());
+                log_error("rest", "Unknown agent event received: " << event.get_notification().to_string());
                 break;
         }
     }
     catch (const core::agent::AgentUnreachable& e) {
-        log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_error("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                  << "AgentEvent Handling failed due to agent connection error: "
                                                  << e.what());
     }
     catch (const json_rpc::JsonRpcException& e) {
-        log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_error("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                  << "AgentEvent Handling failed due to JsonRpcException: "
                                                  << e.what());
     }
     catch (...) {
-        log_error(GET_LOGGER("rest"), ctx.indent << "Exception while handling Agent Event. State may be incomplete.");
+        log_error("rest", ctx.indent << "Exception while handling Agent Event. State may be incomplete.");
         return false;
     }
 
@@ -408,7 +408,7 @@ void GenericHandler<Request, Model, IdPolicy>
     ctx.stack.emplace(parent_component);
 
     try {
-        log_info(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] " << "Polling started on "
+        log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] " << "Polling started on "
                                                 << component_s() << " uuid=" << uuid);
         try {
             add(ctx, parent_uuid, uuid, true /*recursively*/); // add may throw
@@ -418,7 +418,7 @@ void GenericHandler<Request, Model, IdPolicy>
         SubscriptionManager::get_instance()->notify(ctx.events);
     }
     catch (const core::agent::AgentUnreachable&) {
-        log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_error("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                  << "Polling failed due to agent error (unreachable).");
     }
 
@@ -432,7 +432,7 @@ void GenericHandler<Request, Model, IdPolicy>
     }
     if (ctx.num_updated > 0) {
         log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] "
-                                                << "#udpated: " << ctx.num_updated);
+                                                << "#updated: " << ctx.num_updated);
     }
     if (ctx.num_status_changed > 0) {
         log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] "
@@ -451,7 +451,7 @@ std::uint64_t GenericHandler<Request, Model, IdPolicy>
 
     assert(parent != uuid);
 
-    log_info(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+    log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                             << "Loading [" << component_s() << " " << uuid << ", parent_uuid: "
                                             << parent << "]");
 
@@ -489,7 +489,7 @@ void GenericHandler<Request, Model, IdPolicy>
     auto indent = ctx.indent;
     ctx.indent += "    ";
 
-    log_info(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+    log_info("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                             << "Loading collections of type [" << collection_type << "] for ["
                                             << component_s() << " " << parent << "]");
 
@@ -506,7 +506,7 @@ void GenericHandler<Request, Model, IdPolicy>
     );
 
     if (collections.empty()) {
-        log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_error("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                  << "No collection of type \'" << collection_type
                                                  << "\' for [" << component_s() << " " << parent << "]");
     }
@@ -519,7 +519,7 @@ void GenericHandler<Request, Model, IdPolicy>
         // to the epoch from before loading in order to know what we should remove
         std::map<CollectionType, uint64_t> epochs{};
         for (const auto& collection : collections) {
-            log_info(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode)
+            log_info("rest", ctx.indent << "[" << char(ctx.mode)
                                                     << "] Collection [" << collection.get_name() << "]");
             auto handler = HandlerManager::get_instance()->get_handler(collection.get_type());
             if (epochs.find(collection.get_type()) == epochs.end()) {
@@ -676,7 +676,7 @@ void GenericHandler<Request, Model, IdPolicy>
 
         for (const auto& to_remove_uuid : not_updated) {
             std::string updated_by = Context::Mode::POLLING == ctx.mode ? "polling" : "loading";
-            log_debug(GET_LOGGER("rest"), "[" << char(ctx.mode) << "] [" << component_s()
+            log_debug("rest", "[" << char(ctx.mode) << "] [" << component_s()
                                               << " = " << to_remove_uuid << "] not found by " << updated_by
                                               << ". Removing.");
             do_remove(ctx, to_remove_uuid);
@@ -691,7 +691,7 @@ Model GenericHandler<Request, Model, IdPolicy>
 ::fetch_entry(Context& ctx, const std::string& parent, const std::string& uuid) {
 
     Request request{uuid};
-    log_debug(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+    log_debug("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                              << "Fetching [" << component_s() << " " << uuid << "]");
     try {
         auto element = ctx.agent->execute<Model>(request);
@@ -701,31 +701,31 @@ Model GenericHandler<Request, Model, IdPolicy>
         return element;
     }
     catch (const json_rpc::JsonRpcException& e) {
-        log_error(GET_LOGGER("rest"),
+        log_error("rest",
                   ctx.indent << "[" << char(ctx.mode) << "] "
                              << "RPC Error while fetching [" << component_s() << " - "
                              << uuid << "]: " << e.what());
         throw;
     }
     catch (const psme::core::agent::AgentUnreachable& e) {
-        log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_error("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                  << "RPC Error (AgentUnreachable) while fetching ["
                                                  << component_s() << " " << uuid << "] " << e.what());
         throw;
     }
     catch (const psme::rest::error::ServerException& e) {
-        log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_error("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                  << "Server Error while fetching ["
                                                  << component_s() << " " << uuid << "] "
                                                  << e.get_error().as_string());
         throw;
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("rest"), "Exception while fetching a " << component_s() << ": " << e.what());
+        log_error("rest", "Exception while fetching a " << component_s() << ": " << e.what());
         throw;
     }
     catch (...) {
-        log_error(GET_LOGGER("rest"), "Other exception while fetching a " << component_s());
+        log_error("rest", "Other exception while fetching a " << component_s());
         throw;
     }
 }
@@ -758,20 +758,20 @@ GenericHandler<Request, Model, IdPolicy>
                           const std::string& collection_name) {
     GetCollectionReq collection{parent_uuid, collection_name};
 
-    log_debug(GET_LOGGER("rest"), ctx.indent
+    log_debug("rest", ctx.indent
         << "[" << char(ctx.mode) << "] "
         << "Fetching list of all components of type [" << component_s()
         << "] from collection [" << collection_name
         << "] for parent " << parent_uuid);
     try {
         auto res = ctx.agent->execute < Array < SubcomponentEntry >> (collection);
-        log_debug(GET_LOGGER("rest"), ctx.indent
+        log_debug("rest", ctx.indent
             << "[" << char(ctx.mode) << "] "
             << "Got " << res.get_array().size());
         return res;
     }
     catch (const psme::core::agent::AgentUnreachable& e) {
-        log_error(GET_LOGGER("rest"), ctx.indent
+        log_error("rest", ctx.indent
             << "[" << char(ctx.mode) << "] "
             << "Agent connection error while fetching list of all"
                 "components of type [" << component_s()
@@ -781,7 +781,7 @@ GenericHandler<Request, Model, IdPolicy>
         throw; // connection error - stop transaction
     }
     catch (const json_rpc::JsonRpcException& e) {
-        log_error(GET_LOGGER("rest"), ctx.indent
+        log_error("rest", ctx.indent
             << "[" << char(ctx.mode) << "] "
             << "Agent exception while fetching list of"
                 "all components of type [" << component_s()
@@ -830,7 +830,7 @@ void GenericHandler<Request, Model, IdPolicy>::remove_single(Context& ctx, const
     ctx.add_event(get_component(), eventing::EventType::ResourceRemoved, uuid);
 
     auto parent_uuid = agent_framework::module::get_manager<Model>().get_entry_reference(uuid)->get_parent_uuid();
-    log_info(GET_LOGGER("rest"), ctx.indent << "[" << static_cast<char>(ctx.mode) << "] "
+    log_info("rest", ctx.indent << "[" << static_cast<char>(ctx.mode) << "] "
                                             << "Removing [" << component_s() << " " << uuid
                                             << ", parent_uuid: " << parent_uuid
                                             << ", id: "
@@ -839,7 +839,7 @@ void GenericHandler<Request, Model, IdPolicy>::remove_single(Context& ctx, const
 
     agent_framework::module::get_manager<Model>().remove_entry(uuid);
 
-    log_debug(GET_LOGGER("db"), "remove single " << parent_uuid << "." << uuid);
+    log_debug("db", "remove single " << parent_uuid << "." << uuid);
     m_id_policy.purge(uuid, parent_uuid); // we do not want to have same rest id when FRU is reinserted
 }
 
@@ -850,7 +850,7 @@ void GenericHandler<Request, Model, IdPolicy>::remove_agent_data(Context& ctx, c
     const auto uuids_to_remove = agent_framework::module::get_manager<Model>().get_keys(agent_predicate);
 
     for (const auto& uuid : uuids_to_remove) {
-        log_debug(GET_LOGGER("db"), "remove agent data " << uuid);
+        log_debug("db", "remove agent data " << uuid);
         do_remove(ctx, uuid);
     }
 }
@@ -956,7 +956,7 @@ void GenericHandler<Request, Model, IdPolicy>::fetch_parent_children(
 
     const auto parent_type = ctx.get_parent_component().to_string();
     const auto child_type = Model::get_component().to_string();
-    log_debug(GET_LOGGER("rest"), ctx.indent
+    log_debug("rest", ctx.indent
         << "[" << static_cast<char>(ctx.mode) << "] "
         << "Assigning " << collection_name << " to " << parent_type << " " << parent_uuid);
 
@@ -971,7 +971,7 @@ void GenericHandler<Request, Model, IdPolicy>::fetch_parent_children(
                                to_remove);
 
     for (const auto& uuid : to_add) {
-        log_debug(GET_LOGGER("rest"), ctx.indent
+        log_debug("rest", ctx.indent
             << "[" << static_cast<char>(ctx.mode) << "] "
             << "Assigning " << child_type << " " << uuid << " to " << parent_type << " "
             << parent_uuid);
@@ -979,7 +979,7 @@ void GenericHandler<Request, Model, IdPolicy>::fetch_parent_children(
     }
 
     for (const auto& uuid : to_remove) {
-        log_debug(GET_LOGGER("rest"), ctx.indent
+        log_debug("rest", ctx.indent
             << "[" << static_cast<char>(ctx.mode) << "] "
             << "Disassociate " << child_type << " " << uuid << " from " << parent_type << " "
             << parent_uuid);

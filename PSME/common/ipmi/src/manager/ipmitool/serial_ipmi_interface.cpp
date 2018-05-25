@@ -2,7 +2,7 @@
  * @brief Session implementation for "serial_oem" communication interface.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ void SerialIpmiInterface::send(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInter
                             const ipmi::BridgeInfo& bridge,
                             const ipmi::IpmiInterface::ByteBuffer& request, ipmi::IpmiInterface::ByteBuffer& response) {
 
-    /* send() fails only if critical condition is met (eg. connection is broken). New session is to be reastabilished */
+    /* send() fails only if critical condition is met (eg. connection is broken). New session is to be reestablished */
     try {
         intf->send(netfn, command, lun, bridge, request, response, request_failed);
         request_failed = false;
@@ -99,4 +99,27 @@ void SerialIpmiInterface::send(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInter
         request_failed = true;
         throw;
     }
+}
+
+void SerialIpmiInterface::send_unlocked(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterface::Cmd command,
+                                        ipmi::IpmiInterface::Lun lun, const ipmi::BridgeInfo& bridge,
+                                        const ipmi::IpmiInterface::ByteBuffer& request,
+                                        ipmi::IpmiInterface::ByteBuffer& response) {
+    /* send() fails only if critical condition is met (eg. connection is broken). New session is to be reestablished */
+    try {
+        intf->send_unlocked(netfn, command, lun, bridge, request, response, request_failed);
+        request_failed = false;
+    }
+    catch (std::runtime_error&) {
+        request_failed = true;
+        throw;
+    }
+}
+
+void SerialIpmiInterface::lock() {
+    intf->lock();
+}
+
+void SerialIpmiInterface::unlock() {
+    intf->unlock();
 }

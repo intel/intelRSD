@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,6 @@
 
 
 #include "agent-framework/exceptions/error_codes.hpp"
-#include "logger/logger_factory.hpp"
 #include "json-rpc/json_rpc_exception.hpp"
 
 
@@ -125,8 +124,8 @@ protected:
     static std::string get_string_from_data(const json::Json& data, const std::string& field_key);
 
 private:
-    ErrorCode m_error_code{ErrorCode::UNKNOWN_ERROR};
-    std::string m_message{};
+    const ErrorCode m_error_code;
+    const std::string m_message;
 };
 
 } // namespace exceptions

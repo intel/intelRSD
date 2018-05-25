@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,16 @@ package com.intel.podm.discovery.external;
 
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.synchronization.TaskCoordinator;
+import com.intel.podm.common.types.discovery.ServiceEndpoint;
 import com.intel.podm.discovery.ServiceExplorer;
+import com.intel.podm.services.configuration.DiscoveryServiceDetectionHandler;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.UUID;
 
 @ApplicationScoped
-public class ServiceDetectionListenerImpl implements ServiceDetectionListener { // Do not change form of logs of method onServiceDetected!
+public class ServiceDetectionListenerImpl implements ServiceDetectionListener {
     @Inject
     private Logger logger;
 
@@ -38,18 +40,37 @@ public class ServiceDetectionListenerImpl implements ServiceDetectionListener { 
     @Inject
     private TaskCoordinator taskCoordinator;
 
+    @Inject
+    private DiscoveryServiceDetectionHandler discoveryServiceDetectionHandler;
+
     @Override
     public void onServiceDetected(ServiceEndpoint serviceEndpoint) {
         UUID serviceUuid = serviceEndpoint.getServiceUuid();
         taskCoordinator.registerAsync(serviceUuid, () -> {
+            // Do not change form of this log, as this is being used in developer tools!
             logger.i("Service {} detected", serviceEndpoint);
-            externalServiceUpdater.updateExternalService(serviceEndpoint);
-            serviceExplorer.startMonitoringOfService(serviceUuid);
+
+            switch (serviceEndpoint.getServiceType()) {
+                case DISCOVERY_SERVICE:
+                    discoveryServiceDetectionHandler.onServiceDetected(serviceEndpoint);
+                    break;
+                default:
+                    externalServiceUpdater.updateExternalService(serviceEndpoint);
+                    serviceExplorer.startMonitoringOfService(serviceUuid);
+                    break;
+            }
         });
     }
 
     @Override
-    public void onServiceRemoved(UUID serviceUuid) {
-        serviceExplorer.enqueueVerification(serviceUuid);
+    public void onServiceRemoved(ServiceEndpoint serviceEndpoint) {
+        switch (serviceEndpoint.getServiceType()) {
+            case DISCOVERY_SERVICE:
+                discoveryServiceDetectionHandler.onServiceRemoved(serviceEndpoint);
+                break;
+            default:
+                serviceExplorer.enqueueVerification(serviceEndpoint.getServiceUuid());
+                break;
+        }
     }
 }

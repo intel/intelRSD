@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ import static com.intel.podm.common.types.BootSourceState.CONTINUOUS;
 import static com.intel.podm.common.types.BootSourceType.HDD;
 import static com.intel.podm.common.types.BootSourceType.PXE;
 import static com.intel.podm.common.types.BootSourceType.REMOTE_DRIVE;
+import static com.intel.podm.common.types.Protocol.ISCSI;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 @Dependent
 public class ContinuouslyOverrideBootSourceTask extends NodeTask {
@@ -70,7 +70,9 @@ public class ContinuouslyOverrideBootSourceTask extends NodeTask {
     }
 
     private BootSourceType getProperBootSource(ComposedNode composedNode, ComputerSystem computerSystem) {
-        return isEmpty(composedNode.getRemoteTargets()) ? HDD : getProperBootSourceForComputerSystem(computerSystem);
+        return composedNode.getEndpoints().stream().noneMatch(endpoint -> ISCSI.equals(endpoint.getProtocol()))
+            ? HDD
+            : getProperBootSourceForComputerSystem(computerSystem);
     }
 
     private BootSourceType getProperBootSourceForComputerSystem(ComputerSystem computerSystem) {

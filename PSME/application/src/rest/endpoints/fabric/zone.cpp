@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
 
 #include "agent-framework/module/constants/pnc.hpp"
 #include "agent-framework/module/requests/pnc.hpp"
-#include "agent-framework/module/responses/pnc.hpp"
+#include "agent-framework/module/responses/common.hpp"
 
 #include "psme/rest/endpoints/fabric/zone.hpp"
 #include "psme/rest/model/handlers/handler_manager.hpp"
@@ -31,7 +31,6 @@
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/zone.hpp"
 #include "psme/rest/endpoints/task_service/monitor_content_builder.hpp"
-
 
 
 
@@ -49,19 +48,20 @@ json::Value make_prototype() {
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Zone.Zone";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#Zone.v1_0_0.Zone";
-    r[Common::NAME] = "PCIe Zone";
-
-    r[Common::DESCRIPTION] = "PCIe Zone";
+    r[Common::NAME] = "Zone";
+    r[Common::DESCRIPTION] = "Zone";
     r[Common::ID] = json::Value::Type::NIL;
-    json::Value links;
-    links[constants::Fabric::ENDPOINTS] = json::Value::Type::ARRAY;
-    links[constants::Zone::INVOLVED_SWITCHES] = json::Value::Type::ARRAY;
-    r[Common::LINKS] = std::move(links);
-    r[Common::OEM] = json::Value::Type::OBJECT;
 
     r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+
+    json::Value links{};
+    links[constants::Fabric::ENDPOINTS] = json::Value::Type::ARRAY;
+    links[constants::Zone::INVOLVED_SWITCHES] = json::Value::Type::ARRAY;
+    links[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::LINKS] = std::move(links);
+    r[Common::OEM] = json::Value::Type::OBJECT;
 
     return r;
 }
@@ -69,7 +69,7 @@ json::Value make_prototype() {
 
 void fill_links(const agent_framework::model::Zone& zone, json::Value& json) {
     // fill Endpoint links
-    for (const auto& endpoint_uuid : agent_framework::module::PncComponents::get_instance()->get_zone_endpoint_manager().get_children(
+    for (const auto& endpoint_uuid : agent_framework::module::CommonComponents::get_instance()->get_zone_endpoint_manager().get_children(
         zone.get_uuid())) {
         json::Value endpoint_link;
         endpoint_link[Common::ODATA_ID] = endpoint::PathBuilder(
@@ -124,16 +124,16 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
     const auto zone = psme::rest::model::Find<agent_framework::model::Zone>(request.params[PathParam::ZONE_ID])
         .via<agent_framework::model::Fabric>(request.params[PathParam::FABRIC_ID]).get();
 
-    if (!json.is_member(constants::Fabric::ENDPOINTS)) {
+    if (!json[Common::LINKS]) { // Schema validators ensure that Endpoints are inside Links
         get(request, response);
         return;
     }
     // else : execute PATCH
 
-    const auto requested_endpoints = ZoneUtils::validate_patch_links_and_get_endpoint_uuids(json);
+    const auto requested_endpoints = ZoneUtils::validate_patch_links_and_get_endpoint_uuids(json[Common::LINKS]);
 
-    responses::AddZoneEndpoint add_endpoints_response;
-    responses::DeleteZoneEndpoint delete_endpoints_response;
+    responses::AddZoneEndpoints add_endpoints_response;
+    responses::DeleteZoneEndpoints delete_endpoints_response;
     std::string task_uuid;
 
     const auto& agent_id = zone.get_agent_id();
@@ -142,14 +142,14 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
     auto gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(agent_id);
 
     auto response_renderer = [this, request](json::Json /* in_json */) -> server::Response {
-        // on finished task, the agent sends a command response. In the case od addZoneEndpoint and deleteZoneEndpoint
+        // on finished task, the agent sends a command response. In the case od addZoneEndpoints and deleteZoneEndpoints
         // it has only an Oem field.
         server::Response finished_task_response{};
         this->get(request, finished_task_response);
         return finished_task_response;
     };
 
-    auto completion_notifier = [zone_uuid, parent_uuid, agent_id] () {
+    auto completion_notifier = [zone_uuid, parent_uuid, agent_id]() {
         HandlerManager::get_instance()->get_handler(enums::Component::Zone)->
             load(psme::core::agent::AgentManager::get_instance()->get_agent(agent_id),
                  parent_uuid,
@@ -160,12 +160,12 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
 
     bool send_add_endpoints = false;
     bool send_delete_endpoints = false;
-    std::shared_ptr<requests::AddZoneEndpoint> add_request;
-    std::shared_ptr<requests::DeleteZoneEndpoint> delete_request;
+    std::shared_ptr<requests::AddZoneEndpoints> add_request;
+    std::shared_ptr<requests::DeleteZoneEndpoints> delete_request;
 
     std::vector<std::string> endpoints_to_add;
     std::vector<std::string> endpoints_to_remove;
-    psme::rest::endpoint::utils::children_to_add_to_remove(agent_framework::module::PncComponents::get_instance()->
+    psme::rest::endpoint::utils::children_to_add_to_remove(agent_framework::module::CommonComponents::get_instance()->
         get_zone_endpoint_manager(), zone.get_uuid(), requested_endpoints, endpoints_to_add, endpoints_to_remove);
 
     if (endpoints_to_add.size() > 0) {
@@ -179,8 +179,8 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
             );
         }
 
-        log_info(GET_LOGGER("rest"), "Zone PATCH: adding " + std::to_string(endpoints_to_add.size()) + " endpoints to zone.");
-        add_request = std::make_shared<requests::AddZoneEndpoint>(
+        log_info("rest", "Zone PATCH: adding " + std::to_string(endpoints_to_add.size()) + " endpoints to zone.");
+        add_request = std::make_shared<requests::AddZoneEndpoints>(
             zone.get_uuid(), endpoints_to_add, attribute::Oem());
         send_add_endpoints = true;
     }
@@ -196,22 +196,23 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
             );
         }
 
-        log_info(GET_LOGGER("rest"), "Zone PATCH: removing " + std::to_string(endpoints_to_remove.size()) + " endpoints from zone.");
-        delete_request = std::make_shared<requests::DeleteZoneEndpoint>(
+        log_info("rest",
+                 "Zone PATCH: removing " + std::to_string(endpoints_to_remove.size()) + " endpoints from zone.");
+        delete_request = std::make_shared<requests::DeleteZoneEndpoints>(
             zone.get_uuid(), endpoints_to_remove, attribute::Oem());
         send_delete_endpoints = true;
     }
 
     auto patch_zone_endpoints = [&, gami_agent] {
         if (send_add_endpoints) {
-            add_endpoints_response = gami_agent->execute<responses::AddZoneEndpoint>(*add_request);
+            add_endpoints_response = gami_agent->execute<responses::AddZoneEndpoints>(*add_request);
         }
         if (send_delete_endpoints) {
-            delete_endpoints_response = gami_agent->execute<responses::DeleteZoneEndpoint>(*delete_request);
+            delete_endpoints_response = gami_agent->execute<responses::DeleteZoneEndpoints>(*delete_request);
         }
 
         auto is_add_task = !add_endpoints_response.get_task().empty();
-        auto is_delete_task = ! delete_endpoints_response.get_task().empty();
+        auto is_delete_task = !delete_endpoints_response.get_task().empty();
 
         // If neither gami command returned a task - reload zone and return PATCH response.
         // If the second command returned a task, we ASSUME (!) that the commands have been executed sequentially,
@@ -220,7 +221,7 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
         // Finally, if the first command returned a task, and the second didn't, monitor the task from the first command.
 
         if ((!is_add_task) && (!is_delete_task)) {
-            log_info(GET_LOGGER("rest"), "Zone PATCH: no tasks were required to execute PATCH");
+            log_info("rest", "Zone PATCH: no tasks were required to execute PATCH");
             // reload the zone and it's collections
             HandlerManager::get_instance()->get_handler(enums::Component::Zone)->
                 load(gami_agent,
@@ -233,23 +234,24 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
         }
         else if (is_delete_task) {
             if (is_add_task) {
-                log_info(GET_LOGGER("rest"), "Zone PATCH: addZoneEndpoint returned a task,"
-                    " but it's ignored in favour of the second task returned by deleteZoneEndpoint");
+                log_info("rest", "Zone PATCH: addZoneEndpoints returned a task,"
+                    " but it's ignored in favour of the second task returned by deleteZoneEndpoints");
             }
-            log_info(GET_LOGGER("rest"), "Zone PATCH: deleteZoneEndpoint returned a task.");
+            log_info("rest", "Zone PATCH: deleteZoneEndpoints returned a task.");
             task_uuid = delete_endpoints_response.get_task();
-        } else {
-            log_info(GET_LOGGER("rest"), "Zone PATCH: addZoneEndpoint returned a task.");
+        }
+        else {
+            log_info("rest", "Zone PATCH: addZoneEndpoints returned a task.");
             task_uuid = add_endpoints_response.get_task();
         }
 
-        auto task_handler = psme::rest::model::handler::HandlerManager::get_instance()->get_handler(agent_framework::model::enums::Component::Task);
+        auto task_handler = psme::rest::model::handler::HandlerManager::get_instance()->get_handler(
+            agent_framework::model::enums::Component::Task);
         task_handler->load(gami_agent,
                            "",
                            agent_framework::model::enums::Component::Task,
                            task_uuid,
                            false);
-
 
         endpoint::MonitorContentBuilder::get_instance()->add_builder(task_uuid, response_renderer);
         agent_framework::module::CommonComponents::get_instance()->get_task_manager()
@@ -257,7 +259,7 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
 
         std::string task_monitor_url = endpoint::PathBuilder(endpoint::utils::get_component_url(
             agent_framework::model::enums::Component::Task, task_uuid)).append(Monitor::MONITOR).build();
-        psme::rest::endpoint::utils::set_location_header(response, task_monitor_url);
+        psme::rest::endpoint::utils::set_location_header(request, response, task_monitor_url);
         response.set_status(server::status_2XX::ACCEPTED);
 
     };
@@ -265,11 +267,18 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
     gami_agent->execute_in_transaction(patch_zone_endpoints);
 }
 
+
 void endpoint::Zone::del(const server::Request& request, server::Response& response) {
     using AgentManager = psme::core::agent::AgentManager;
 
     const auto zone_uuid = psme::rest::model::Find<agent_framework::model::Zone>(request.params[PathParam::ZONE_ID])
         .via<agent_framework::model::Fabric>(request.params[PathParam::FABRIC_ID]).get_uuid();
+
+    bool has_switches = true;
+    if (agent_framework::module::get_manager<agent_framework::model::Zone>().get_entry(
+        zone_uuid).get_switch_uuid().size() == 0) {
+        has_switches = false;
+    }
 
     const auto fabric = psme::rest::model::Find<agent_framework::model::Fabric>(
         request.params[PathParam::FABRIC_ID]).get();
@@ -285,12 +294,15 @@ void endpoint::Zone::del(const server::Request& request, server::Response& respo
         // remove the resource
         HandlerManager::get_instance()->get_handler(enums::Component::Zone)->remove(zone_uuid);
 
-        HandlerManager::get_instance()->get_handler(enums::Component::EthernetSwitchPort)->
-            load(gami_agent,
-                 fabric.get_parent_uuid(),
-                 enums::Component::Manager,
-                 fabric.get_uuid(),
-                 true);
+        // remove EthernetSwitchPort only for NVMe agent
+        if (has_switches) {
+            HandlerManager::get_instance()->get_handler(enums::Component::EthernetSwitchPort)->
+                load(gami_agent,
+                     fabric.get_parent_uuid(),
+                     enums::Component::Manager,
+                     fabric.get_uuid(),
+                     true);
+        }
 
         response.set_status(server::status_2XX::NO_CONTENT);
     };

@@ -48,7 +48,7 @@
       <Action Name="Reset" IsBound="true">
         <Parameter Name="Port" Type="Port.v1_0_0.Actions"/>
         <Parameter Name="ResetType" Type="Resource.ResetType">
-          <Annotation Term="OData.Description" String="The type of reset to be performed"/>
+          <Annotation Term="OData.Description" String="The type of reset to be performed."/>
           <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
         </Parameter>
         <Annotation Term="OData.Description" String="This action is used to reset this switch."/>
@@ -153,19 +153,19 @@
 
       <EnumType Name="PortType">
         <Member Name="UpstreamPort">
-          <Annotation Term="OData.Description" String="This port connects to a host device"/>
+          <Annotation Term="OData.Description" String="This port connects to a host device."/>
         </Member>
         <Member Name="DownstreamPort">
-          <Annotation Term="OData.Description" String="This port connects to a target device"/>
+          <Annotation Term="OData.Description" String="This port connects to a target device."/>
         </Member>
         <Member Name="InterswitchPort">
-          <Annotation Term="OData.Description" String="This port connects to another switch"/>
+          <Annotation Term="OData.Description" String="This port connects to another switch."/>
         </Member>
         <Member Name="ManagementPort">
-          <Annotation Term="OData.Description" String="This port connects to a switch manager"/>
+          <Annotation Term="OData.Description" String="This port connects to a switch manager."/>
         </Member>
         <Member Name="BidirectionalPort">
-          <Annotation Term="OData.Description" String="This port connects to any type of device"/>
+          <Annotation Term="OData.Description" String="This port connects to any type of device."/>
         </Member>
         <Member Name="UnconfiguredPort">
           <Annotation Term="OData.Description" String="This port has not yet been configured."/>

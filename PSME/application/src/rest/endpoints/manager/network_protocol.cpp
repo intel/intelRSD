@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -141,7 +141,6 @@ void endpoint::NetworkProtocol::get(const server::Request& req, server::Response
     };
 
     auto manager = psme::rest::model::Find<agent_framework::model::Manager>(req.params[PathParam::MANAGER_ID]).get();
-    psme::rest::endpoint::status_to_json(manager, r);
 
     for (const auto& service: manager.get_network_services()){
         r[service_name_to_rest_literal[service.get_name()]][constants::NetworkProtocol::PROTOCOL_ENABLED] = service.get_enabled();

@@ -1,0 +1,123 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="podm (generated)" id="1504182798182-1">
+        <createTable tableName="capacity_source">
+            <column name="entity_id" type="TEXT"/>
+            <column name="data_allocated_bytes" type="numeric"/>
+            <column name="data_consumed_bytes" type="numeric"/>
+            <column name="data_guaranteed_bytes" type="numeric"/>
+            <column name="data_provisioned_bytes" type="numeric"/>
+            <column name="is_thin_provisioned" type="BOOLEAN"/>
+            <column name="metadata_allocated_bytes" type="numeric"/>
+            <column name="metadata_consumed_bytes" type="numeric"/>
+            <column name="metadata_guaranteed_bytes" type="numeric"/>
+            <column name="metadata_provisioned_bytes" type="numeric"/>
+            <column name="snapshot_allocated_bytes" type="numeric"/>
+            <column name="snapshot_consumed_bytes" type="numeric"/>
+            <column name="snapshot_guaranteed_bytes" type="numeric"/>
+            <column name="snapshot_provisioned_bytes" type="numeric"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="volume_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-2">
+        <createTable tableName="volume">
+            <column name="block_size_bytes" type="numeric"/>
+            <column name="data_allocated_bytes" type="numeric"/>
+            <column name="data_consumed_bytes" type="numeric"/>
+            <column name="data_guaranteed_bytes" type="numeric"/>
+            <column name="data_provisioned_bytes" type="numeric"/>
+            <column name="is_thin_provisioned" type="BOOLEAN"/>
+            <column name="metadata_allocated_bytes" type="numeric"/>
+            <column name="metadata_consumed_bytes" type="numeric"/>
+            <column name="metadata_guaranteed_bytes" type="numeric"/>
+            <column name="metadata_provisioned_bytes" type="numeric"/>
+            <column name="snapshot_allocated_bytes" type="numeric"/>
+            <column name="snapshot_consumed_bytes" type="numeric"/>
+            <column name="snapshot_guaranteed_bytes" type="numeric"/>
+            <column name="snapshot_provisioned_bytes" type="numeric"/>
+            <column name="capacity_bytes" type="numeric"/>
+            <column name="encrypted" type="BOOLEAN"/>
+            <column name="encryption_types" type="TEXT"/>
+            <column name="entity_id" type="TEXT"/>
+            <column name="optimum_io_size_bytes" type="numeric"/>
+            <column name="volume_type" type="TEXT"/>
+            <column name="erase_on_detach" type="BOOLEAN"/>
+            <column name="initialize_action_supported" type="BOOLEAN"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="storage_service_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-3">
+        <createTable tableName="volume_identifier">
+            <column name="volume_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="durable_name" type="TEXT"/>
+            <column name="durable_name_format" type="TEXT"/>
+            <column name="identifier_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-4">
+        <createTable tableName="volume_operation">
+            <column name="volume_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="operation_name" type="TEXT"/>
+            <column name="percentage_complete" type="numeric"/>
+            <column name="operation_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-5">
+        <addPrimaryKey columnNames="id" constraintName="capacity_source_pkey" tableName="capacity_source"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-6">
+        <addPrimaryKey columnNames="volume_id, identifier_order" constraintName="volume_identifier_pkey" tableName="volume_identifier"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-7">
+        <addPrimaryKey columnNames="volume_id, operation_order" constraintName="volume_operation_pkey" tableName="volume_operation"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-8">
+        <addPrimaryKey columnNames="id" constraintName="volume_pkey" tableName="volume"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-9">
+        <addUniqueConstraint columnNames="entity_id" constraintName="idx_capacity_source_entity_id" tableName="capacity_source"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-10">
+        <addUniqueConstraint columnNames="entity_id" constraintName="idx_volume_entity_id" tableName="volume"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-11">
+        <addForeignKeyConstraint baseColumnNames="volume_id" baseTableName="volume_operation" constraintName="fk_3tvkitl5axuxbddhf8latbina" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-12">
+        <addForeignKeyConstraint baseColumnNames="volume_id" baseTableName="capacity_source" constraintName="fk_aid7k5fb4mit5x55r5y3imblg" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-13">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="volume" constraintName="fk_f4fmido82kejr7g7ijcffs9js" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-14">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="capacity_source" constraintName="fk_fybc548xnj1ugmfle7xceib3u" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-15">
+        <addForeignKeyConstraint baseColumnNames="storage_service_id" baseTableName="volume" constraintName="fk_oncgq0cahnas9itl0a19gqpt6" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_service"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504182798182-16">
+        <addForeignKeyConstraint baseColumnNames="volume_id" baseTableName="volume_identifier" constraintName="fk_qq4xxk5acatfyti1m8xdpfw5i" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504474183888-1">
+        <addColumn tableName="drive">
+            <column name="volume_id" type="int8"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1504531146321-3">
+        <addForeignKeyConstraint baseColumnNames="volume_id" baseTableName="drive" constraintName="fk_o8ffpxxn9aqpniay6ji6rn3yx" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume"/>
+    </changeSet>
+</databaseChangeLog>

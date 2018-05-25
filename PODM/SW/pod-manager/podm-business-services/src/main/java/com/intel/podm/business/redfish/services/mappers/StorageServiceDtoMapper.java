@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,20 @@ import com.intel.podm.business.entities.redfish.StorageService;
 
 import javax.enterprise.context.Dependent;
 
+import static com.intel.podm.business.redfish.ContextCollections.asManagerContexts;
+import static com.intel.podm.business.redfish.Contexts.toContext;
+
 @Dependent
 class StorageServiceDtoMapper extends DtoMapper<StorageService, StorageServiceDto> {
     StorageServiceDtoMapper() {
         super(StorageService.class, StorageServiceDto.class);
-        this.ignoredProperties("remoteTargets", "logicalDrives", "drives", "links");
+        this.ignoredProperties("drives", "volumes", "endpoints", "links");
+    }
+
+    @Override
+    protected void performNotAutomatedMapping(StorageService source, StorageServiceDto target) {
+        super.performNotAutomatedMapping(source, target);
+        target.getLinks().setHostingSystem(toContext(source.getComputerSystem()));
+        target.getLinks().getOem().getRackScaleOem().setManagedBy(asManagerContexts(source.getManagers()));
     }
 }

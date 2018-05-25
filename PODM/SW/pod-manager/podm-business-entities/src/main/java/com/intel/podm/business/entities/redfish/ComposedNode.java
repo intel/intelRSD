@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,19 @@ package com.intel.podm.business.entities.redfish;
 
 import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.converters.IdToLongConverter;
+import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
+import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.embeddables.Identifier;
 import com.intel.podm.common.types.ComposedNodeState;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.Status;
 import org.hibernate.annotations.Generated;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.Convert;
+import javax.persistence.ElementCollection;
 import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -34,11 +39,13 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -47,6 +54,7 @@ import static com.intel.podm.common.types.Health.OK;
 import static com.intel.podm.common.types.State.ENABLED;
 import static com.intel.podm.common.types.State.UNAVAILABLE_OFFLINE;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
@@ -60,15 +68,18 @@ import static org.hibernate.annotations.GenerationTime.INSERT;
 @NamedQueries({
     @NamedQuery(name = ComposedNode.GET_ALL_NODES_IDS,
         query = "SELECT composedNode.entityId FROM ComposedNode composedNode"),
+    @NamedQuery(name = ComposedNode.GET_NODE_BY_ASSOCIATED_COMPUTER_SYSTEM_UUID,
+        query = "SELECT composedNode FROM ComposedNode composedNode WHERE composedNode.associatedComputerSystemUuid = :uuid"),
     @NamedQuery(name = ComposedNode.GET_NODES_ELIGIBLE_FOR_RECOVERY,
         query = "SELECT composedNode FROM ComposedNode composedNode WHERE composedNode.eligibleForRecovery = true")
 })
 @Table(name = "composed_node", indexes = @Index(name = "idx_composed_node_entity_id", columnList = "entity_id", unique = true))
 @Eventable
-@SuppressWarnings({"checkstyle:MethodCount"})
+@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
 public class ComposedNode extends Entity {
     public static final String GET_ALL_NODES_IDS = "GET_ALL_NODES_IDS";
     public static final String GET_NODES_ELIGIBLE_FOR_RECOVERY = "GET_NODES_ELIGIBLE_FOR_RECOVERY";
+    public static final String GET_NODE_BY_ASSOCIATED_COMPUTER_SYSTEM_UUID = "GET_NODE_BY_ASSOCIATED_COMPUTER_SYSTEM_UUID";
     public static final Status OFFLINE_CRITICAL_STATUS = new Status(UNAVAILABLE_OFFLINE, CRITICAL, null);
 
     @Generated(INSERT)
@@ -98,9 +109,6 @@ public class ComposedNode extends Entity {
     @Column(name = "associated_compute_service_uuid")
     private UUID associatedComputeServiceUuid;
 
-    @Column(name = "associated_remote_target_iqn")
-    private String associatedRemoteTargetIqn;
-
     @Column(name = "associated_storage_service_uuid")
     private UUID associatedStorageServiceUuid;
 
@@ -113,14 +121,30 @@ public class ComposedNode extends Entity {
     @Column(name = "number_of_requested_drives")
     private int numberOfRequestedDrives;
 
+    @Column(name = "clear_tpm_on_delete")
+    private boolean clearTpmOnDelete;
+
+    @ElementCollection
+    @CollectionTable(name = "associated_endpoint_identifier", joinColumns = @JoinColumn(name = "associated_endpoint_identifier_id"))
+    @OrderColumn(name = "associated_endpoint_identifier_order")
+    private Set<Identifier> associatedEndpointIdentifiers = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "associated_volume_identifier", joinColumns = @JoinColumn(name = "associated_volume_identifier_id"))
+    @OrderColumn(name = "associated_volume_identifier")
+    private Set<Identifier> associatedVolumeIdentifiers = new HashSet<>();
+
     @OneToMany(mappedBy = "composedNode", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<RemoteTarget> remoteTargets = new HashSet<>();
+    private Set<Endpoint> endpoints = new HashSet<>();
+
+    @OneToMany(mappedBy = "composedNode", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<Volume> volumes = new HashSet<>();
 
     @OneToMany(mappedBy = "composedNode", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Drive> drives = new HashSet<>();
 
     @ManyToMany(mappedBy = "composedNodes", fetch = LAZY, cascade = {MERGE, PERSIST})
-    private Set<LogicalDrive> logicalDrives = new HashSet<>();
+    private Set<StoragePool> storagePools = new HashSet<>();
 
     @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "computer_system_id")
@@ -186,14 +210,6 @@ public class ComposedNode extends Entity {
         this.associatedComputeServiceUuid = associatedComputerServiceUuid;
     }
 
-    public String getAssociatedRemoteTargetIqn() {
-        return associatedRemoteTargetIqn;
-    }
-
-    public void setAssociatedRemoteTargetIqn(String associatedRemoteTargetIqn) {
-        this.associatedRemoteTargetIqn = associatedRemoteTargetIqn;
-    }
-
     public UUID getAssociatedStorageServiceUuid() {
         return associatedStorageServiceUuid;
     }
@@ -230,24 +246,70 @@ public class ComposedNode extends Entity {
         this.numberOfRequestedDrives--;
     }
 
-    public Set<RemoteTarget> getRemoteTargets() {
-        return remoteTargets;
+    public boolean getClearTpmOnDelete() {
+        return clearTpmOnDelete;
     }
 
-    public void addRemoteTarget(RemoteTarget remoteTarget) {
-        requiresNonNull(remoteTarget, "remoteTarget");
+    public void setClearTpmOnDelete(boolean clearTpmOnDelete) {
+        this.clearTpmOnDelete = clearTpmOnDelete;
+    }
 
-        remoteTargets.add(remoteTarget);
-        if (!this.equals(remoteTarget.getComposedNode())) {
-            remoteTarget.setComposedNode(this);
+    public Set<Identifier> getAssociatedEndpointIdentifiers() {
+        return associatedEndpointIdentifiers;
+    }
+
+    public void addAssociatedEndpointIdentifiers(Set<Identifier> associatedEndpointIdentifier) {
+        associatedEndpointIdentifiers.addAll(associatedEndpointIdentifier);
+    }
+
+    public Set<Identifier> getAssociatedVolumeIdentifiers() {
+        return associatedVolumeIdentifiers;
+    }
+
+    public void addAssociatedVolumeIdentifiers(Collection<Identifier> associatedVolumeIdentifier) {
+        associatedVolumeIdentifiers.addAll(associatedVolumeIdentifier);
+    }
+
+    public Set<Endpoint> getEndpoints() {
+        return endpoints;
+    }
+
+    public void addEndpoint(Endpoint endpoint) {
+        requiresNonNull(endpoint, "endpoint");
+
+        endpoints.add(endpoint);
+        if (!this.equals(endpoint.getComposedNode())) {
+            endpoint.setComposedNode(this);
         }
     }
 
-    public void unlinkRemoteTarget(RemoteTarget remoteTarget) {
-        if (remoteTargets.contains(remoteTarget)) {
-            remoteTargets.remove(remoteTarget);
-            if (remoteTarget != null) {
-                remoteTarget.unlinkComposedNode(this);
+    public void unlinkEndpoint(Endpoint endpoint) {
+        if (endpoints.contains(endpoint)) {
+            endpoints.remove(endpoint);
+            if (endpoint != null) {
+                endpoint.unlinkComposedNode(this);
+            }
+        }
+    }
+
+    public Set<Volume> getVolumes() {
+        return volumes;
+    }
+
+    public void addVolume(Volume volume) {
+        requiresNonNull(volume, "volume");
+
+        volumes.add(volume);
+        if (!this.equals(volume.getComposedNode())) {
+            volume.setComposedNode(this);
+        }
+    }
+
+    public void unlinkVolume(Volume volume) {
+        if (volumes.contains(volume)) {
+            volumes.remove(volume);
+            if (volume != null) {
+                volume.unlinkComposedNode(this);
             }
         }
     }
@@ -274,24 +336,24 @@ public class ComposedNode extends Entity {
         }
     }
 
-    public Set<LogicalDrive> getLogicalDrives() {
-        return logicalDrives;
+    public Set<StoragePool> getStoragePools() {
+        return storagePools;
     }
 
-    public void addLogicalDrive(LogicalDrive logicalDrive) {
-        requiresNonNull(logicalDrive, "logicalDrive");
+    public void addStoragePool(StoragePool storagePool) {
+        requiresNonNull(storagePool, "storagePool");
 
-        logicalDrives.add(logicalDrive);
-        if (!logicalDrive.getComposedNodes().contains(this)) {
-            logicalDrive.addComposedNode(this);
+        storagePools.add(storagePool);
+        if (!storagePool.getComposedNodes().contains(this)) {
+            storagePool.addComposedNode(this);
         }
     }
 
-    public void unlinkLogicalDrive(LogicalDrive logicalDrive) {
-        if (logicalDrives.contains(logicalDrive)) {
-            logicalDrives.remove(logicalDrive);
-            if (logicalDrive != null) {
-                logicalDrive.unlinkComposedNode(this);
+    public void unlinkStoragePool(StoragePool storagePool) {
+        if (storagePools.contains(storagePool)) {
+            storagePools.remove(storagePool);
+            if (storagePool != null) {
+                storagePool.unlinkComposedNode(this);
             }
         }
     }
@@ -351,14 +413,34 @@ public class ComposedNode extends Entity {
 
     @Override
     public void preRemove() {
-        unlinkCollection(remoteTargets, this::unlinkRemoteTarget);
+        unlinkCollection(endpoints, this::unlinkEndpoint);
+        unlinkCollection(volumes, this::unlinkVolume);
         unlinkCollection(drives, this::unlinkDrive);
-        unlinkCollection(logicalDrives, this::unlinkLogicalDrive);
+        unlinkCollection(storagePools, this::unlinkStoragePool);
         unlinkComputerSystem(computerSystem);
     }
 
     @Override
     public boolean containedBy(Entity possibleParent) {
+        return false;
+    }
+
+    public Optional<ConnectedEntity> findAnyConnectedEntityWithBootableVolume() {
+        return getEndpoints().stream()
+            .flatMap(endpoint -> endpoint.getConnectedEntities().stream())
+            .filter(this::hasLinkToBootableVolume)
+            .findFirst();
+    }
+
+    private boolean hasLinkToBootableVolume(ConnectedEntity connectedEntity) {
+        DiscoverableEntity discoverableEntity = connectedEntity.getEntityLink();
+
+        if (discoverableEntity instanceof Volume) {
+            Volume volume = (Volume) discoverableEntity;
+
+            return Objects.equals(volume.getBootable(), TRUE);
+        }
+
         return false;
     }
 }

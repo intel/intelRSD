@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.intel.podm.discovery.external;
 import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.synchronization.TaskCoordinator;
-import com.intel.podm.common.types.ServiceType;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.DiscoveryConfig;
@@ -32,13 +31,11 @@ import javax.inject.Named;
 import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 import static com.intel.podm.common.enterprise.utils.beans.JndiNames.SYNCHRONIZED_TASK_EXECUTOR;
-import static com.intel.podm.common.types.ServiceType.LUI;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ejb.LockType.WRITE;
 import static javax.transaction.Transactional.TxType.SUPPORTS;
@@ -71,9 +68,9 @@ public class ScheduledDiscoveryManager {
     @Lock(WRITE)
     @Transactional(SUPPORTS)
     @AccessTimeout(value = 5, unit = SECONDS)
-    public void scheduleDiscovery(UUID serviceUuid, ServiceType serviceType) {
+    public void scheduleDiscovery(UUID serviceUuid) {
         if (!discoveryTasks.containsKey(serviceUuid)) {
-            ScheduledFuture<?> discoveryTask = scheduleDiscoveryTask(serviceUuid, serviceType);
+            ScheduledFuture<?> discoveryTask = scheduleDiscoveryTask(serviceUuid);
             discoveryTasks.put(serviceUuid, discoveryTask);
         } else {
             logger.w("Discovery is already scheduled for service {}", serviceUuid);
@@ -97,15 +94,10 @@ public class ScheduledDiscoveryManager {
         }
     }
 
-    private ScheduledFuture<?> scheduleDiscoveryTask(UUID serviceUuid, ServiceType serviceType) {
+    private ScheduledFuture<?> scheduleDiscoveryTask(UUID serviceUuid) {
         DiscoveryConfig discoveryConfig = discoveryConfigHolder.get();
         long discoveryIntervalSeconds = discoveryConfig.getDiscoveryIntervalSeconds();
         long discoveryDelaySeconds = 0;
-
-        if (Objects.equals(LUI, serviceType)) {
-            discoveryDelaySeconds = discoveryConfig.getDeepDiscoveryInitialDelaySeconds();
-            logger.d("Delaying LUI discovery for {} seconds", discoveryDelaySeconds);
-        }
 
         return discoveryTaskExecutor.scheduleWithFixedDelay(
             () -> enqueueDiscovery(serviceUuid),

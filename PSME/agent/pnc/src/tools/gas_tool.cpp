@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,7 +83,7 @@ bool GasTool::read_csr_for_usp_port(std::uint8_t partition_id, GlobalAddressSpac
         return true;
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("gas-tool"), "Cannot read port's PCI configuration space: " << e.what());
+        log_error("gas-tool", "Cannot read port's PCI configuration space: " << e.what());
     }
     return false;
 }
@@ -92,8 +92,12 @@ bool GasTool::read_csr_for_usp_port(std::uint8_t partition_id, GlobalAddressSpac
 PortBindingInfo GasTool::get_port_binding_info(const GlobalAddressSpaceRegisters& gas, uint8_t physical_id) const {
     PortBindingInfo binding_info{gas.get_interface()};
     binding_info.input.fields.phy_port_id = physical_id;
-    if (CommandStatus::DONE != gas.execute_cmd(binding_info)
-        || PortPartitionP2PBindingReturnValue::COMMAND_SUCCEED != binding_info.output.fields.ret_value) {
+    auto status = gas.execute_cmd(binding_info);
+    if (status != CommandStatus::DONE) {
+        THROW(agent_framework::exceptions::PncError, "agent",
+              "Cannot execute PartitionBindingInfo command. MRPC status code: " + std::to_string(uint32_t(status)));
+    }
+    if (PortPartitionP2PBindingReturnValue::COMMAND_SUCCEED != binding_info.output.fields.ret_value) {
         THROW(agent_framework::exceptions::PncError, "agent",
               "Cannot execute PortBindingInfo command. Command status code: "
               + get_p2p_binding_command_result(static_cast<uint32_t>(binding_info.output.fields.ret_value)));
@@ -106,8 +110,12 @@ PartitionBindingInfo GasTool::get_partition_binding_info(const GlobalAddressSpac
                                                          uint8_t zone_id) const {
     PartitionBindingInfo binding_info{gas.get_interface()};
     binding_info.input.fields.partition_id = zone_id;
-    if (CommandStatus::DONE != gas.execute_cmd(binding_info)
-        || PortPartitionP2PBindingReturnValue::COMMAND_SUCCEED != binding_info.output.fields.ret_value) {
+    auto status = gas.execute_cmd(binding_info);
+    if (status != CommandStatus::DONE) {
+        THROW(agent_framework::exceptions::PncError, "agent",
+              "Cannot execute PartitionBindingInfo command. MRPC status code: " + std::to_string(uint32_t(status)));
+    }
+    if (PortPartitionP2PBindingReturnValue::COMMAND_SUCCEED != binding_info.output.fields.ret_value) {
         THROW(agent_framework::exceptions::PncError, "agent",
               "Cannot execute PartitionBindingInfo command. Command status code: "
               + get_p2p_binding_command_result(static_cast<uint32_t>(binding_info.output.fields.ret_value)));
@@ -137,7 +145,7 @@ std::uint8_t GasTool::bridge_num_to_phys_port_id(const GlobalAddressSpaceRegiste
 
 LinkStatusRetrieve GasTool::get_link_status(const GlobalAddressSpaceRegisters& gas, std::uint8_t phys_port_id) const {
     if (phys_port_id >= PM85X6_PHY_PORTS_NUMBER) {
-        log_debug(GET_LOGGER("gas-tool"), "Invalid physical port id = " << unsigned(phys_port_id));
+        log_debug("gas-tool", "Invalid physical port id = " << unsigned(phys_port_id));
         throw std::runtime_error("Incorrect PCIe port Id");
     }
     LinkStatusRetrieve cmd{gas.get_interface()};
@@ -147,7 +155,7 @@ LinkStatusRetrieve GasTool::get_link_status(const GlobalAddressSpaceRegisters& g
         LinkStatusRetrieveReturnValue::COMMAND_SUCCEED != cmd.output.fields.ret_value) {
         throw std::runtime_error("Cannot get PCIe Port Link status.");
     }
-    log_debug(GET_LOGGER("gas-tool"), "PortLinkStatus for port " << std::uint32_t(phys_port_id)
+    log_debug("gas-tool", "PortLinkStatus for port " << std::uint32_t(phys_port_id)
                                                                  << " = " << std::uint32_t(cmd.output.fields.major));
     return cmd;
 }
@@ -156,13 +164,13 @@ LinkStatusRetrieve GasTool::get_link_status(const GlobalAddressSpaceRegisters& g
 uint8_t GasTool::get_logical_bridge_for_port(const PortBindingInfo& pbi) const {
 
     if (pbi.output.fields.info_count != 1) {
-        log_debug(GET_LOGGER("gas-tool"), "Port bound to " << unsigned(pbi.output.fields.info_count)
+        log_debug("gas-tool", "Port bound to " << unsigned(pbi.output.fields.info_count)
                                                            << " partitions, expected 1");
         throw std::runtime_error("Incorrect port binding info");
     }
     if (0xFF == pbi.output.fields.port_binding_info[0].partition_id ||
         0xFF == pbi.output.fields.port_binding_info[0].logical_bridge_id) {
-        log_debug(GET_LOGGER("gas-tool"),
+        log_debug("gas-tool",
                   "Port bound to " << unsigned(pbi.output.fields.port_binding_info[0].partition_id)
                                    << " partition on a bridge "
                                    << unsigned(pbi.output.fields.port_binding_info[0].logical_bridge_id));
@@ -179,8 +187,12 @@ void GasTool::bind_to_partition(const GlobalAddressSpaceRegisters& gas, uint8_t 
     cmd.input.fields.partition_id = partition_id;
     cmd.input.fields.phy_port_id = phys_port_id;
 
-    if (CommandStatus::DONE != gas.execute_cmd(cmd)
-        || PortPartitionP2PBindingReturnValue::COMMAND_SUCCEED != cmd.output.fields.ret_value) {
+    auto status = gas.execute_cmd(cmd);
+    if (status != CommandStatus::DONE) {
+        THROW(agent_framework::exceptions::PncError, "agent",
+              "Cannot bind function to partition. MRPC status code: " + std::to_string(uint32_t(status)));
+    }
+    if (PortPartitionP2PBindingReturnValue::COMMAND_SUCCEED != cmd.output.fields.ret_value) {
         THROW(agent_framework::exceptions::PncError, "agent",
               "Cannot bind function to partition. Command status code: "
               + get_p2p_binding_command_result(static_cast<uint32_t>(cmd.output.fields.ret_value)));
@@ -224,7 +236,8 @@ void GasTool::unbind_from_partition(const GlobalAddressSpaceRegisters& gas, uint
     // Checking if MRPC status is DONE. IN_PROGRESS/IDLE/ERROR status handle in execute_cmd.
     auto gas_ret = gas.execute_cmd(unbind_cmd);
     if (CommandStatus::DONE != gas_ret) {
-        THROW(agent_framework::exceptions::PncError, "agent", "MRPC status code: " + std::to_string(uint32_t(gas_ret)));
+        THROW(agent_framework::exceptions::PncError, "agent",
+              "Cannot execute UnbindPort command. MRPC status code: " + std::to_string(uint32_t(gas_ret)));
     }
 
     // Here we are sure that MRPC returned DONE. We can check command status.
@@ -247,7 +260,7 @@ void GasTool::check_port_unbinding_result(const gas::GlobalAddressSpaceRegisters
         port_info = get_port_binding_info(gas, phys_port_id);
         result = get_operation_result_enum(
             port_info.output.fields.port_binding_info[0].state_operation_result);
-        log_debug(GET_LOGGER("gas-tool"),
+        log_debug("gas-tool",
                   "Unbinding command result " << get_operation_result(static_cast<uint8_t>(result)));
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
@@ -256,7 +269,7 @@ void GasTool::check_port_unbinding_result(const gas::GlobalAddressSpaceRegisters
         THROW(agent_framework::exceptions::PncError, "agent",
               "Unbinding port failed. Command result " + get_operation_result(static_cast<uint8_t>(result)));
     }
-    log_debug(GET_LOGGER("gas-tool"),
+    log_debug("gas-tool",
               "Unbinding command result " << get_operation_result(static_cast<uint8_t>(result)));
 }
 
@@ -277,7 +290,7 @@ void GasTool::check_port_binding_result(const gas::GlobalAddressSpaceRegisters& 
         THROW(agent_framework::exceptions::PncError, "agent",
               "Binding port failed. Command result : " + get_operation_result(static_cast<uint8_t>(result)));
     }
-    log_debug(GET_LOGGER("gas-tool"), "Binding result " << get_operation_result(static_cast<uint8_t>(result)));
+    log_debug("gas-tool", "Binding result " << get_operation_result(static_cast<uint8_t>(result)));
 }
 
 

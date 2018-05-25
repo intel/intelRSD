@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package com.intel.podm.discovery.external.linker;
 
+import com.intel.podm.business.entities.redfish.CapacitySource;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.ComputerSystemMetrics;
 import com.intel.podm.business.entities.redfish.Drive;
+import com.intel.podm.business.entities.redfish.DriveMetrics;
 import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
@@ -31,7 +33,7 @@ import com.intel.podm.business.entities.redfish.EthernetSwitchPortMetrics;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.entities.redfish.EthernetSwitchStaticMac;
 import com.intel.podm.business.entities.redfish.Fabric;
-import com.intel.podm.business.entities.redfish.LogicalDrive;
+import com.intel.podm.business.entities.redfish.IpTransportDetails;
 import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.entities.redfish.Memory;
 import com.intel.podm.business.entities.redfish.MemoryMetrics;
@@ -43,7 +45,6 @@ import com.intel.podm.business.entities.redfish.NetworkInterface;
 import com.intel.podm.business.entities.redfish.NetworkProtocol;
 import com.intel.podm.business.entities.redfish.PcieDevice;
 import com.intel.podm.business.entities.redfish.PcieDeviceFunction;
-import com.intel.podm.business.entities.redfish.PhysicalDrive;
 import com.intel.podm.business.entities.redfish.Port;
 import com.intel.podm.business.entities.redfish.PortMetrics;
 import com.intel.podm.business.entities.redfish.Power;
@@ -53,15 +54,18 @@ import com.intel.podm.business.entities.redfish.PowerVoltage;
 import com.intel.podm.business.entities.redfish.Processor;
 import com.intel.podm.business.entities.redfish.ProcessorMetrics;
 import com.intel.podm.business.entities.redfish.Redundancy;
-import com.intel.podm.business.entities.redfish.RemoteTarget;
+import com.intel.podm.business.entities.redfish.ReplicaInfo;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
 import com.intel.podm.business.entities.redfish.Storage;
 import com.intel.podm.business.entities.redfish.StorageController;
+import com.intel.podm.business.entities.redfish.StoragePool;
 import com.intel.podm.business.entities.redfish.StorageService;
 import com.intel.podm.business.entities.redfish.Switch;
 import com.intel.podm.business.entities.redfish.Thermal;
 import com.intel.podm.business.entities.redfish.ThermalFan;
 import com.intel.podm.business.entities.redfish.ThermalTemperature;
+import com.intel.podm.business.entities.redfish.Volume;
+import com.intel.podm.business.entities.redfish.VolumeMetrics;
 import com.intel.podm.business.entities.redfish.Zone;
 import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
@@ -115,6 +119,7 @@ public class LinkerCollectionProducer {
         register(ComputerSystem.class, PcieDevice.class, "pcieDevices", ComputerSystem::addPcieDevice);
         register(ComputerSystem.class, PcieDeviceFunction.class, "pcieFunctions", ComputerSystem::addPcieDeviceFunction);
         register(ComputerSystem.class, NetworkInterface.class, "networkInterfaces", ComputerSystem::addNetworkInterface);
+        register(ComputerSystem.class, StorageService.class, "storageServices", ComputerSystem::addStorageService);
         register(NetworkInterface.class, NetworkDeviceFunction.class, "networkDeviceFunctions", NetworkInterface::addNetworkDeviceFunction);
         register(ComputerSystem.class, ComputerSystemMetrics.class, "computerSystemMetrics", ComputerSystem::setComputerSystemMetrics);
 
@@ -125,6 +130,9 @@ public class LinkerCollectionProducer {
         register(Storage.class, Drive.class, "drives", Storage::addDrive);
         register(Storage.class, Drive.class, "devices", Storage::addDrive);
         register(Storage.class, StorageController.class, "storageControllers", Storage::addStorageController);
+
+        register(Drive.class, DriveMetrics.class, "driveMetrics", Drive::setMetrics);
+        register(Volume.class, VolumeMetrics.class, "volumeMetrics", Volume::setMetrics);
 
         register(EthernetInterface.class, EthernetSwitchPortVlan.class, "ethernetInterfaceVlans", EthernetInterface::addEthernetSwitchPortVlan);
 
@@ -145,10 +153,6 @@ public class LinkerCollectionProducer {
         register(EthernetSwitchPort.class, EthernetSwitchPort.class, "portMembers", EthernetSwitchPort::addPortMember);
         register(EthernetSwitchPort.class, EthernetSwitchPortVlan.class, "primaryVlan", EthernetSwitchPort::setPrimaryVlan);
 
-        register(LogicalDrive.class, LogicalDrive.class, "masterDrive", LogicalDrive::setMasterDrive);
-        register(LogicalDrive.class, LogicalDrive.class, "logicalDrives", LogicalDrive::addUsedLogicalDrive);
-        register(LogicalDrive.class, PhysicalDrive.class, "physicalDrives", LogicalDrive::addPhysicalDrive);
-
         register(Manager.class, NetworkProtocol.class, "networkProtocol", Manager::setNetworkProtocol);
         register(Manager.class, EthernetInterface.class, "ethernetInterfaces", Manager::addEthernetInterface);
         register(Manager.class, ComputerSystem.class, "managedComputerSystems", Manager::addComputerSystem);
@@ -157,12 +161,16 @@ public class LinkerCollectionProducer {
         register(Manager.class, EthernetSwitch.class, "managedEthernetSwitches", Manager::addEthernetSwitch);
         register(Manager.class, StorageService.class, "managedServices", Manager::addStorageService);
 
-        register(RemoteTarget.class, LogicalDrive.class, "logicalDrives", RemoteTarget::addLogicalDrive);
+        register(StorageService.class, Drive.class, "physicalDrives", StorageService::addDrive);
+        register(StorageService.class, Endpoint.class, "endpoints", StorageService::addEndpoint);
+        register(StorageService.class, Volume.class, "volumes", StorageService::addVolume);
+        register(StorageService.class, StoragePool.class, "storagePools", StorageService::addStoragePool);
+        register(StorageService.class, Manager.class, "managersInStorage", StorageService::addManager);
+        register(StorageService.class, ComputerSystem.class, "hostingSystemInStorage", StorageService::setComputerSystem);
 
-        register(StorageService.class, LogicalDrive.class, "logicalDrives", StorageService::addLogicalDrive);
-        register(StorageService.class, RemoteTarget.class, "targets", StorageService::addRemoteTarget);
-        register(StorageService.class, Manager.class, "managedBy", StorageService::addManager);
-        register(StorageService.class, PhysicalDrive.class, "physicalDrives", StorageService::addPhysicalDrive);
+        register(Volume.class, Drive.class, "drives", Volume::addDrives);
+        register(Volume.class, CapacitySource.class, "capacitySourcesInVolume", Volume::addCapacitySource);
+        register(Volume.class, ReplicaInfo.class, "replicaInfosInVolume", Volume::addReplicaInfo);
 
         register(PcieDevice.class, PcieDeviceFunction.class, "pcieDeviceFunctions", PcieDevice::addPcieDeviceFunction);
         register(PcieDevice.class, Chassis.class, "deviceInChassis", PcieDevice::addChassis);
@@ -176,23 +184,31 @@ public class LinkerCollectionProducer {
         register(Switch.class, Chassis.class, "chassisInSwitch", Switch::addChassis);
         register(Switch.class, Manager.class, "managedByInSwitch", Switch::addManager);
 
+        register(Endpoint.class, EthernetInterface.class, "ethernetInterfaceInEndpoint", Endpoint::addEthernetInterface);
         register(Endpoint.class, Port.class, "portsInEndpoint", Endpoint::addPort);
         register(Endpoint.class, ConnectedEntity.class, "connectedEntityInEndpoint", Endpoint::addConnectedEntity);
-        register(ConnectedEntity.class, Drive.class, "drivesInConnectedEntity", ConnectedEntity::setEntityLink);
+        register(Endpoint.class, IpTransportDetails.class, "transportInEndpoint", Endpoint::addTransport);
+        register(ConnectedEntity.class, Drive.class, "resourceInConnectedEntity", ConnectedEntity::setEntityLink);
+        register(ConnectedEntity.class, Volume.class, "resourceInConnectedEntity", ConnectedEntity::setEntityLink);
+        register(ConnectedEntity.class, ComputerSystem.class, "resourceInConnectedEntity", ConnectedEntity::setEntityLink);
 
         register(Zone.class, Endpoint.class, "endpointInZone", Zone::addEndpoint);
         register(Zone.class, Switch.class, "switchInZone", Zone::addSwitch);
 
-        register(Drive.class, Storage.class, "storageInDrive", Drive::setStorage);
-        register(Drive.class, PcieDeviceFunction.class, "pcieDeviceFunctionInDrive", Drive::setPcieDeviceFunction);
-
-        register(PcieDeviceFunction.class, PcieDevice.class, "pcieDevice", PcieDeviceFunction::setPcieDevice);
         register(PcieDeviceFunction.class, Drive.class, "functionOfDrives", PcieDeviceFunction::addDrive);
         register(PcieDeviceFunction.class, StorageController.class, "functionStorageControllers", PcieDeviceFunction::addStorageController);
         register(PcieDeviceFunction.class, EthernetInterface.class, "functionEthernetInterfaces", PcieDeviceFunction::addEthernetInterface);
 
         register(MetricReportDefinition.class, MetricItem.class, "metricsInMetricReportDefinition", MetricReportDefinition::addMetricItem);
         register(MetricItem.class, MetricDefinition.class, "metricDefinitionsInMetrics", MetricItem::setMetricDefinition);
+
+        register(StoragePool.class, Volume.class, "allocatedVolumes", StoragePool::addAllocatedVolume);
+        register(StoragePool.class, StoragePool.class, "allocatedPools", StoragePool::addAllocatedPool);
+        register(StoragePool.class, CapacitySource.class, "capacitySourcesInStoragePool", StoragePool::addCapacitySource);
+
+        register(CapacitySource.class, Drive.class, "providingDrives", CapacitySource::addDrive);
+        register(CapacitySource.class, StoragePool.class, "providingPools", CapacitySource::addProvidingPool);
+        register(ReplicaInfo.class, Volume.class, "replica", ReplicaInfo::setReplica);
     }
 
     private static <S extends Entity, T extends Entity>

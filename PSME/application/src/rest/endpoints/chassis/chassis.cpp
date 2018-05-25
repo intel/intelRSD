@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,6 @@
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/chassis.hpp"
 #include "psme/rest/server/error/error_factory.hpp"
-
-
 
 using namespace psme::rest;
 using namespace psme::rest::constants;
@@ -80,6 +78,8 @@ json::Value make_prototype() {
     r[Common::LINKS][Chassis::STORAGE] = json::Value::Type::ARRAY;
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.ChassisLinks";
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Chassis::SWITCHES] = json::Value::Type::ARRAY;
+
+    r[Common::ACTIONS] = json::Value::Type::OBJECT;
 
     return r;
 }
@@ -170,7 +170,7 @@ void fill_containing_links(const agent_framework::model::Chassis& chassis, json:
         }
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("rest"), "Exception caught during filling Chassis"
+        log_error("rest", "Exception caught during filling Chassis"
             "links Contains and ContainedBy: " << e.what());
     }
 
@@ -291,7 +291,7 @@ void fill_power_and_thermal_links(const agent_framework::model::Chassis& chassis
 
     auto thermal_zones = agent_framework::module::get_manager<agent_framework::model::ThermalZone>()
         .get_keys(chassis.get_uuid());
-    if(thermal_zones.size() > 0) {
+    if (thermal_zones.size() > 0) {
         r[Chassis::THERMAL][Common::ODATA_ID] = endpoint::PathBuilder(PathParam::BASE_URL)
             .append(constants::Common::CHASSIS)
             .append(chassis.get_id())
@@ -301,7 +301,7 @@ void fill_power_and_thermal_links(const agent_framework::model::Chassis& chassis
 
     auto power_zones = agent_framework::module::get_manager<agent_framework::model::PowerZone>()
         .get_keys(chassis.get_uuid());
-    if(power_zones.size() > 0) {
+    if (power_zones.size() > 0) {
         r[Chassis::POWER][Common::ODATA_ID] = endpoint::PathBuilder(PathParam::BASE_URL)
             .append(constants::Common::CHASSIS)
             .append(chassis.get_id())
@@ -379,7 +379,6 @@ void endpoint::Chassis::get(const server::Request& request, server::Response& re
 
     set_response(response, r);
 }
-
 
 void endpoint::Chassis::patch(const server::Request& request, server::Response& response) {
     auto chassis = model::Find<agent_framework::model::Chassis>(request.params[PathParam::CHASSIS_ID]).get();

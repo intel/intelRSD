@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeoutException;
 import static com.intel.podm.business.services.context.PathParamConstants.PCIE_DEVICE_ID;
 import static com.intel.podm.business.services.context.PathParamConstants.PCIE_DRIVE_ID;
 import static com.intel.podm.common.types.redfish.ResourceNames.PCIE_DEVICES_RESOURCE_NAME;
-import static com.intel.podm.common.types.redfish.ResourceNames.PCIE_DRIVES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.DRIVES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.POWER_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.THERMAL_RESOURCE_NAME;
 import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
@@ -62,9 +62,14 @@ public class ChassisResource extends BaseResource {
         return new RedfishResourceAmazingWrapper(context, chassisDto);
     }
 
-    @Path(PCIE_DRIVES_RESOURCE_NAME + "/" + PCIE_DRIVE_ID)
+    @Path(DRIVES_RESOURCE_NAME + "/" + PCIE_DRIVE_ID)
     public DriveResource getPcieDrives() {
         return getResource(DriveResource.class);
+    }
+
+    @Path(DRIVES_RESOURCE_NAME)
+    public DriveCollectionResource getDrivesCollection() {
+        return getResource(DriveCollectionResource.class);
     }
 
     @Path(PCIE_DEVICES_RESOURCE_NAME + "/" + PCIE_DEVICE_ID)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,15 @@
 package com.intel.podm.common.synchronization;
 
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 public interface TaskCoordinator {
-    void registerAsync(Object synchronizationKey, Runnable task);
+    void registerAsync(UUID synchronizationKey, Runnable task);
 
-    <E extends Exception> void run(Object synchronizationKey, Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E;
+    <E extends Exception> void run(UUID synchronizationKey, ThrowingRunnable<E> task) throws TimeoutException, E;
 
-    <E extends Exception> void run(Object synchronizationKey, ThrowingRunnable<E> task) throws TimeoutException, E;
+    <E extends Exception, R> R call(UUID synchronizationKey, ThrowingCallable<R, E> task) throws TimeoutException, E;
 
-    <E extends Exception, R> R call(Object synchronizationKey, ThrowingCallable<R, E> task) throws TimeoutException, E;
-
-    void scheduleWithFixedDelay(Object synchronizationKey, Runnable task, Duration initialDelay, Duration delay);
+    void scheduleWithFixedDelay(UUID synchronizationKey, Runnable task, Duration initialDelay, Duration delay);
 }

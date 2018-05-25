@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,13 @@ import com.intel.podm.common.types.redfish.OemType;
 
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
-@JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description",
-    "status", "vlanEnable", "vlanId", "oem"
-})
+@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "vlanEnable", "vlanId", "oem"})
 public final class VlanNetworkInterfaceDto extends RedfishDto {
+    private final Oem oem = new Oem();
     @JsonProperty("VLANEnable")
     private Boolean vlanEnable;
     @JsonProperty("VLANId")
     private Integer vlanId;
-    private Oem oem = new Oem();
 
     public VlanNetworkInterfaceDto() {
         super("#VLanNetworkInterface.v1_0_1.VLanNetworkInterface");
@@ -58,10 +55,6 @@ public final class VlanNetworkInterfaceDto extends RedfishDto {
         return oem;
     }
 
-    public void setOem(Oem oem) {
-        this.oem = oem;
-    }
-
     @OemType(TOP_LEVEL_OEM)
     public class Oem extends RedfishOemDto {
         @JsonProperty("Intel_RackScale")
@@ -71,7 +64,7 @@ public final class VlanNetworkInterfaceDto extends RedfishDto {
             return rackScaleOem;
         }
 
-        @JsonPropertyOrder({"oDataType", "tagged", "status"})
+        @JsonPropertyOrder({"@odata.type", "tagged", "status"})
         public class RackScaleOem {
             @JsonProperty("@odata.type")
             private final String oDataType = "#Intel.Oem.VLanNetworkInterface";

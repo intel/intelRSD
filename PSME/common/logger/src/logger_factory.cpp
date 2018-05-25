@@ -5,7 +5,7 @@
  * Default one is used when requested (by name) doesn't exist. System one
  * exists always (is configuration agnostic).
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,9 @@
  */
 
 #include "logger/logger_factory.hpp"
+#include "logger/logger.h"
 #include <csignal>
-#include <string.h>
+#include <mutex>
 
 extern "C" {
 
@@ -41,8 +42,7 @@ struct logger* logger_get_logger_by_name(const char* name);
  * @brief Set logging level for main_logger
  * @param sig SIGUSR1 for DEBUGs, SIGUSR2 for INFOs
  */
-static void logger_handle_usr_signal(int sig)
-{
+static void logger_handle_usr_signal(int sig) {
     logger_cpp::Level level;
     for (auto logger: logger_cpp::LoggerFactory::instance().get_loggers()) {
         switch (sig) {
@@ -59,8 +59,7 @@ static void logger_handle_usr_signal(int sig)
     }
 }
 
-struct logger* logger_get_logger_by_name(const char* name)
-{
+struct logger* logger_get_logger_by_name(const char* name) {
     logger_cpp::LoggerSPtr logger = logger_cpp::LoggerFactory::instance().get_logger(name, true);
     if (logger) {
         return logger->get_instance();
@@ -70,22 +69,11 @@ struct logger* logger_get_logger_by_name(const char* name)
 
 namespace logger_cpp {
 
-LoggerFactory* LoggerFactory::g_logger_factory = nullptr;
 const char* LoggerFactory::g_main_logger_name = nullptr;
 
-LoggerSPtr LoggerFactory::g_global_logger{nullptr};
-StreamSPtr LoggerFactory::g_global_stream{nullptr};
-
 LoggerFactory& LoggerFactory::instance() {
-    if (!g_logger_factory) {
-        g_logger_factory = new LoggerFactory{};
-
-        // handle signals for changing log level (DEBUG/INFO)
-        // previous handler is ignored (by default it is Term).
-        std::signal(SIGUSR1, logger_handle_usr_signal);
-        std::signal(SIGUSR2, logger_handle_usr_signal);
-    }
-    return *g_logger_factory;
+    static LoggerFactory factory{};
+    return factory;
 }
 
 std::vector<LoggerSPtr> LoggerFactory::get_loggers() const {
@@ -139,38 +127,31 @@ LoggerSPtr LoggerFactory::get_logger(LoggerSPtr logger) const {
 }
 
 LoggerFactory::LoggerFactory() :
-    m_loggers{} {
-    /* empty */
+    m_loggers{},
+    m_global_stream{std::make_shared<Stream>(Stream::Type::DIRECT, GLOBAL_LOGGER_NAME)},
+    m_global_logger{std::make_shared<Logger>(GLOBAL_LOGGER_NAME)} {
+    m_global_logger->add_stream(m_global_stream);
+    // handle signals for changing log level (DEBUG/INFO)
+    // previous handler is ignored (by default it is Term).
+    std::signal(SIGUSR1, logger_handle_usr_signal);
+    std::signal(SIGUSR2, logger_handle_usr_signal);
+}
+
+LoggerFactory::~LoggerFactory() {
+    m_global_logger.reset();
+    for(auto& logger : m_loggers) {
+        /* Explicit remove loggers */
+        logger.second.reset();
+    }
+    m_loggers.clear();
 }
 
 StreamSPtr LoggerFactory::global_stream() {
-    if (!g_global_stream) {
-        g_global_stream = std::make_shared<Stream>(Stream::Type::DIRECT,
-            GLOBAL_LOGGER_NAME);
-    }
-    return g_global_stream;
+    return instance().m_global_stream;
 }
 
 LoggerSPtr LoggerFactory::global_logger() {
-    if (!g_global_logger) {
-        g_global_logger = std::make_shared<Logger>(GLOBAL_LOGGER_NAME);
-        g_global_logger->add_stream(global_stream());
-    }
-    return g_global_logger;
-}
-
-void LoggerFactory::cleanup() {
-    if (g_global_stream) {
-        g_global_stream.reset();
-    }
-
-    if (g_global_logger) {
-        g_global_logger.reset();
-    }
-    if (g_logger_factory) {
-        delete g_logger_factory;
-        g_logger_factory = nullptr;
-    }
+    return instance().m_global_logger;
 }
 
 void LoggerFactory::set_main_logger_name(const char* name) {

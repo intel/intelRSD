@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -111,7 +111,7 @@ void endpoint::AclCollection::post(const server::Request& request, server::Respo
             load(gami_agent, parent_switch.get_uuid(),
                  enums::Component::EthernetSwitch, add_acl_response.get_acl(), true);
 
-        endpoint::utils::set_location_header(response, PathBuilder(request).append(acl_id).build());
+        endpoint::utils::set_location_header(request, response, PathBuilder(request).append(acl_id).build());
         response.set_status(server::status_2XX::CREATED);
     };
 

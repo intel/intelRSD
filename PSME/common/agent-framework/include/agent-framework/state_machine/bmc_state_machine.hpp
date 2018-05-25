@@ -2,7 +2,7 @@
  * @brief Simple Bmc FSM.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,26 +124,26 @@ public:
             update_online_state();
         }
         catch (const std::exception& e) {
-            log_error(GET_LOGGER("bmc"), " (" << m_id << ") update state failed: " << e.what());
+            log_error("bmc", " (" << m_id << ") update state failed: " << e.what());
         }
         catch (...) {
-            log_error(GET_LOGGER("bmc"), " (" << m_id << ") update state failed.");
+            log_error("bmc", " (" << m_id << ") update state failed.");
         }
     }
 
 protected:
     bool do_transition(const Transition& transition) override {
-        log_info(GET_LOGGER("bmc"), " (" << m_id << ") state transition "
+        log_info("bmc", " (" << m_id << ") state transition "
                 << transition.init_state.to_string() << " --> " << transition.end_state.to_string()
                 << " caused by " << transition.event.to_string());
         const auto result = EnumStateMachine::do_transition(transition);
-        log_info(GET_LOGGER("bmc"), " (" << m_id
+        log_info("bmc", " (" << m_id
                 << ") transition status: " << (result ? "OK" : "FAILED"));
         return result;
     }
 
     void do_on_event_action(const BmcEvent& event) override {
-        log_info(GET_LOGGER("bmc"), " (" << m_id << ") in state: "
+        log_info("bmc", " (" << m_id << ") in state: "
             << get_current_state().to_string() << " received event: " << event.to_string());
     }
 
@@ -205,7 +205,7 @@ private:
         }
         else {
             if (m_is_online) {
-                log_info(GET_LOGGER("bmc"), " (" << m_id
+                log_info("bmc", " (" << m_id
                     << ") online changed to false");
             }
             m_is_online = false;

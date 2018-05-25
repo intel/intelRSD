@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,21 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 class Locker {
-    private final ReentrantLock lock = new ReentrantLock(true);
+    private final Lock lock = new Lock();
 
     public void lockOrThrow(Duration timeToWait) throws TimeoutException {
         try {
             if (!lock.tryLock(timeToWait.toMillis(), MILLISECONDS)) {
-                throw new TimeoutException("Could not acquire lock for " + timeToWait.getSeconds() + " seconds.");
+                Thread owner = lock.getOwner();
+                String ownerName = owner != null ? owner.getName() : null;
+                String msg = format("Could not acquire lock for %d seconds. Probably locked by: %s",
+                        timeToWait.getSeconds(),
+                        ownerName);
+                throw new TimeoutException(msg);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -47,5 +53,16 @@ class Locker {
         return toStringHelper(this)
             .add("lock", lock)
             .toString();
+    }
+
+    private final class Lock extends ReentrantLock {
+        Lock() {
+            super(true);
+        }
+
+        @Override
+        public Thread getOwner() {
+            return super.getOwner();
+        }
     }
 }

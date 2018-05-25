@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@
 package com.intel.podm.redfish.serializers;
 
 import com.intel.podm.business.dto.redfish.CollectionDto;
-import com.intel.podm.business.services.redfish.odataid.ODataId;
+import com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper;
 import com.intel.podm.redfish.json.templates.CollectionJson;
 import com.intel.podm.rest.representation.json.serializers.DtoJsonSerializer;
 
 import javax.enterprise.context.Dependent;
 
 import static com.intel.podm.business.services.redfish.odataid.ODataContextProvider.getContextFromODataType;
-import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.appendOdataId;
 import static com.intel.podm.business.services.redfish.odataid.ODataIdHelper.oDataIdFromUri;
 import static com.intel.podm.redfish.serializers.CollectionTypeToCollectionODataMapping.getOdataForCollectionType;
 import static java.util.stream.Collectors.toList;
@@ -42,13 +41,10 @@ public class CollectionDtoJsonSerializer extends DtoJsonSerializer<CollectionDto
         CollectionJson result = new CollectionJson(oData.getODataType());
         result.name = oData.getName();
         result.description = oData.getName();
-        ODataId oDataId = oDataIdFromUri(context.getRequestPath());
-        result.oDataId = oDataId;
+        result.oDataId = oDataIdFromUri(context.getRequestPath());
         result.oDataContext = getContextFromODataType(oData.getODataType());
 
-        result.members.addAll(dto.getMembers().stream()
-            .map(id -> appendOdataId(result.oDataId, id))
-            .collect(toList()));
+        result.members.addAll(dto.getMembers().stream().map(ODataIdFromContextHelper::asOdataId).collect(toList()));
 
         return result;
     }

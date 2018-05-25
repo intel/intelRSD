@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,10 @@ public final class ClassGatherer {
     private ClassGatherer() {
     }
 
+    public static Set<Class<?>> getAllClassesByPackage(String packageName) {
+        return new HashSet<>(scanClasses(new ClassFilter().packageName(packageName)));
+    }
+
     public static Set<Class<?>> getAllClassesByPackageAndAnnotation(String packageName, Class<? extends Annotation> annotation) {
         return new HashSet<>(scanClasses(new ClassFilter()
             .packageName(packageName)
@@ -68,6 +72,14 @@ public final class ClassGatherer {
         return foundClasses;
     }
 
+    public static Class<?> extractTypeOfField(Field field) {
+        if (field.getGenericType() instanceof ParameterizedType) {
+            return (Class<?>) extractTypeFromParameterizedType(field.getGenericType());
+        }
+
+        return field.getType();
+    }
+
     private static Set<Class<?>> getDeclaredClassesRecursively(Class<?> clazz, Set<Class<?>> foundDeclaredClasses) {
         stream(clazz.getDeclaredClasses())
             .filter(declaredClass -> !foundDeclaredClasses.contains(declaredClass))
@@ -89,14 +101,6 @@ public final class ClassGatherer {
             .map(ClassGatherer::extractTypeOfField)
             .filter(fieldType -> packageNamePattern.matcher(fieldType.getName()).find())
             .forEach(fieldType -> getAllFieldsDeeplyFromClassDeclaredInPackage(fieldType, packageNamePattern, foundClasses));
-    }
-
-    private static Class<?> extractTypeOfField(Field field) {
-        if (field.getGenericType() instanceof ParameterizedType) {
-            return (Class<?>) extractTypeFromParameterizedType(field.getGenericType());
-        }
-
-        return field.getType();
     }
 
     private static Type extractTypeFromParameterizedType(Type genericType) {

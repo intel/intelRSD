@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,12 @@
 
 package com.intel.podm.business.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.intel.podm.common.types.redfish.OemType;
 
-import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_ACTIONS;
-
-@JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "health"
-})
+@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "health", "actions", "oem"})
 public class PortMetricsDto extends RedfishDto {
-    @JsonProperty("Health")
-    private String health;
-    @JsonProperty("Actions")
     private final Actions actions = new Actions();
+    private String health;
 
     public PortMetricsDto() {
         super("#PortMetrics.v1_0_0.PortMetrics");
@@ -48,8 +40,5 @@ public class PortMetricsDto extends RedfishDto {
     }
 
     public final class Actions extends RedfishActionsDto {
-        @OemType(OEM_IN_ACTIONS)
-        public class Oem {
-        }
     }
 }

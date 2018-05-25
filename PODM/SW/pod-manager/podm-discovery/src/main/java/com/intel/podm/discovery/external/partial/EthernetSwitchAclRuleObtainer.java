@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,13 +56,15 @@ public class EthernetSwitchAclRuleObtainer {
     @Transactional(MANDATORY)
     public EthernetSwitchAclRule discoverEthernetSwitchAclRule(ExternalService service, URI ruleUri) throws WebClientRequestException {
         requiresNonNull(service, "service", "There is no Service associated with selected ACL rule");
+
         try (WebClient webClient = webClientBuilder.newInstance(service.getBaseUri()).retryable().build()) {
             EthernetSwitchAclRuleResource psmeRule = (EthernetSwitchAclRuleResource) webClient.get(ruleUri);
-            URI uri = URI.create(ruleUri.getPath());
-            Id entityId = psmeRule.getGlobalId(service.getId(), uri);
-            EthernetSwitchAclRule target = discoverableEntityDao.findOrCreateEntity(service, entityId, uri, EthernetSwitchAclRule.class);
+
+            Id entityId = psmeRule.getGlobalId(service.getId());
+            EthernetSwitchAclRule target = discoverableEntityDao.findOrCreateEntity(service, entityId, psmeRule.getUri(), EthernetSwitchAclRule.class);
             updateMirrorPorts(psmeRule, target);
             mapper.map(psmeRule, target);
+
             return target;
         }
     }

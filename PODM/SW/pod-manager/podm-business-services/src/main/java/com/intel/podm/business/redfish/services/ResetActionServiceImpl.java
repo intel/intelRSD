@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import static com.intel.podm.common.types.ComposedNodeState.ASSEMBLED;
 import static com.intel.podm.common.types.ComposedNodeState.FAILED;
 import static java.lang.String.format;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 @RequestScoped
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})

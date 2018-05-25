@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ bool Subscription::is_subscribed_for(const Event& event) const {
 }
 
 json::Value Subscription::to_json() const {
-    json::Value j;
+    json::Value j{};
     fill_json(j);
     return j;
 }
@@ -77,33 +77,36 @@ Subscription Subscription::from_json(const json::Value& json, bool validate_orig
     const auto& destination = json[EventSubscription::DESTINATION].as_string();
     const auto& context = json[EventSubscription::CONTEXT].as_string();
     const auto& protocol = json[EventSubscription::PROTOCOL].as_string();
-    EventTypes event_types;
+    EventTypes event_types{};
     for (const auto& event_type : json[EventSubscription::EVENT_TYPES]){
         event_types.add(EventType::from_string(event_type.as_string()));
     }
-    Subscription subscription;
+    Subscription subscription{};
     subscription.set_name(name);
     subscription.set_destination(destination);
     subscription.set_context(context);
     subscription.set_protocol(SubscriptionProtocol::from_string(protocol));
     subscription.set_event_types(event_types);
 
-    if (validate_origin_resources) {
-        auto& mp = *(psme::rest::server::Multiplexer::get_instance());
-        for (const auto& origin_resource : json[EventSubscription::ORIGIN_RESOURCES]) {
-            const auto& resource_url = origin_resource[Common::ODATA_ID].as_string();
-            if (mp.is_correct_endpoint_url(resource_url)) {
-                subscription.add_origin_resource(resource_url);
-            }
-            else {
-                throw agent_framework::exceptions::InvalidValue(
-                    "Origin resource '" + resource_url + "' is not a valid endpoint in /redfish/v1 namespace.");
+    if (json.is_member(EventSubscription::ORIGIN_RESOURCES) && !json[EventSubscription::ORIGIN_RESOURCES].is_null()) {
+        if (validate_origin_resources) {
+            auto& mp = *(psme::rest::server::Multiplexer::get_instance());
+            for (const auto& origin_resource : json[EventSubscription::ORIGIN_RESOURCES]) {
+                const auto& resource_url = origin_resource[Common::ODATA_ID].as_string();
+                if (mp.is_correct_endpoint_url(resource_url)) {
+                    subscription.add_origin_resource(resource_url);
+                }
+                else {
+                    throw agent_framework::exceptions::InvalidValue(
+                        "Origin resource '" + resource_url + "' is not a valid endpoint in /redfish/v1 namespace.");
+                }
             }
         }
-    } else {
-        for (const auto& origin_resource : json[EventSubscription::ORIGIN_RESOURCES]) {
-            const auto& resource_url = origin_resource[Common::ODATA_ID].as_string();
-            subscription.add_origin_resource(resource_url);
+        else {
+            for (const auto& origin_resource : json[EventSubscription::ORIGIN_RESOURCES]) {
+                const auto& resource_url = origin_resource[Common::ODATA_ID].as_string();
+                subscription.add_origin_resource(resource_url);
+            }
         }
     }
     return subscription;

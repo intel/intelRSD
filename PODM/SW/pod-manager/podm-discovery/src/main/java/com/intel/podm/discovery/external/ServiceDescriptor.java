@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.intel.podm.common.types.ServiceType;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.ServiceDetectionConfig;
+import com.intel.podm.common.types.discovery.ServiceEndpoint;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;

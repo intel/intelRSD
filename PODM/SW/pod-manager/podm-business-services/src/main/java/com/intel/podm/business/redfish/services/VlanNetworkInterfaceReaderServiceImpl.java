@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
+import com.intel.podm.business.redfish.Contexts;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.aggregation.MultiSourceEntityTreeTraverser;
 import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
@@ -32,12 +33,13 @@ import com.intel.podm.business.services.redfish.ReaderService;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Objects;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_PORT_VLANS;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_PORT_VLAN;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_INTERFACE;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -58,10 +60,12 @@ class VlanNetworkInterfaceReaderServiceImpl implements ReaderService<VlanNetwork
         ContextType type = context.getType();
         if (Objects.equals(ETHERNET_SWITCH_PORT, type)) {
             EthernetSwitchPort port = (EthernetSwitchPort) traverser.traverse(context);
-            return new CollectionDto(ETHERNET_SWITCH_PORT_VLANS, getAsIdSet(port.getEthernetSwitchPortVlans()));
+            List<Context> contexts = port.getEthernetSwitchPortVlans().stream().map(Contexts::toContext).sorted().collect(toList());
+            return new CollectionDto(ETHERNET_SWITCH_PORT_VLAN, contexts);
         } else if (Objects.equals(ETHERNET_INTERFACE, type)) {
             EthernetInterface iface = (EthernetInterface) multiTraverser.traverse(context);
-            return new CollectionDto(ETHERNET_SWITCH_PORT_VLANS, getAsIdSet(iface.getEthernetSwitchPortVlans()));
+            List<Context> contexts = iface.getEthernetSwitchPortVlans().stream().map(Contexts::toContext).sorted().collect(toList());
+            return new CollectionDto(ETHERNET_SWITCH_PORT_VLAN, contexts);
         }
         throw new ContextResolvingException(context);
     }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,8 @@
 
 
 
-#include "agent-framework/module/requests/pnc/get_pcie_function_info.hpp"
-#include "agent-framework/module/pnc_components.hpp"
+#include "agent-framework/module/requests/common/get_pcie_function_info.hpp"
+#include "agent-framework/module/common_components.hpp"
 
 
 
@@ -91,7 +91,7 @@ protected:
                                   agent_framework::module::PncComponents::get_instance()->get_drive_function_manager());
         }
         else {
-            log_debug(GET_LOGGER("rest"), ctx.indent
+            log_debug("rest", ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Found a PcieZone under an unexpected parent " << parent_uuid);
         }

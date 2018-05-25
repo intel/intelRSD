@@ -142,70 +142,70 @@
 
       <EnumType Name="DeviceClass">
         <Member Name="UnclassifiedDevice">
-          <Annotation Term="OData.Description" String="An unclassified device"/>
+          <Annotation Term="OData.Description" String="An unclassified device."/>
         </Member>
         <Member Name="MassStorageController">
-          <Annotation Term="OData.Description" String="A mass storage controller"/>
+          <Annotation Term="OData.Description" String="A mass storage controller."/>
         </Member>
         <Member Name="NetworkController">
-          <Annotation Term="OData.Description" String="A network controller"/>
+          <Annotation Term="OData.Description" String="A network controller."/>
         </Member>
         <Member Name="DisplayController">
-          <Annotation Term="OData.Description" String="A display controller"/>
+          <Annotation Term="OData.Description" String="A display controller."/>
         </Member>
         <Member Name="MultimediaController">
-          <Annotation Term="OData.Description" String="A multimedia controller"/>
+          <Annotation Term="OData.Description" String="A multimedia controller."/>
         </Member>
         <Member Name="MemoryController">
-          <Annotation Term="OData.Description" String="A memory controller"/>
+          <Annotation Term="OData.Description" String="A memory controller."/>
         </Member>
         <Member Name="Bridge">
-          <Annotation Term="OData.Description" String="A bridge"/>
+          <Annotation Term="OData.Description" String="A bridge."/>
         </Member>
         <Member Name="CommunicationController">
-          <Annotation Term="OData.Description" String="A communication controller"/>
+          <Annotation Term="OData.Description" String="A communication controller."/>
         </Member>
         <Member Name="GenericSystemPeripheral">
-          <Annotation Term="OData.Description" String="A generic system peripheral"/>
+          <Annotation Term="OData.Description" String="A generic system peripheral."/>
         </Member>
         <Member Name="InputDeviceController">
-          <Annotation Term="OData.Description" String="An input device controller"/>
+          <Annotation Term="OData.Description" String="An input device controller."/>
         </Member>
         <Member Name="DockingStation">
-          <Annotation Term="OData.Description" String="A docking station"/>
+          <Annotation Term="OData.Description" String="A docking station."/>
         </Member>
         <Member Name="Processor">
-          <Annotation Term="OData.Description" String="A processor"/>
+          <Annotation Term="OData.Description" String="A processor."/>
         </Member>
         <Member Name="SerialBusController">
-          <Annotation Term="OData.Description" String="A serial bus controller"/>
+          <Annotation Term="OData.Description" String="A serial bus controller."/>
         </Member>
         <Member Name="WirelessController">
-          <Annotation Term="OData.Description" String="A wireless controller"/>
+          <Annotation Term="OData.Description" String="A wireless controller."/>
         </Member>
         <Member Name="IntelligentController">
-          <Annotation Term="OData.Description" String="An intelligent controller"/>
+          <Annotation Term="OData.Description" String="An intelligent controller."/>
         </Member>
         <Member Name="SatelliteCommunicationsController">
-          <Annotation Term="OData.Description" String="A satellite communications controller"/>
+          <Annotation Term="OData.Description" String="A satellite communications controller."/>
         </Member>
         <Member Name="EncryptionController">
-          <Annotation Term="OData.Description" String="An encryption controller"/>
+          <Annotation Term="OData.Description" String="An encryption controller."/>
         </Member>
         <Member Name="SignalProcessingController">
-          <Annotation Term="OData.Description" String="A signal processing controller"/>
+          <Annotation Term="OData.Description" String="A signal processing controller."/>
         </Member>
         <Member Name="ProcessingAccelerators">
-          <Annotation Term="OData.Description" String="A processing accelerators"/>
+          <Annotation Term="OData.Description" String="A processing accelerators."/>
         </Member>
         <Member Name="NonEssentialInstrumentation">
-          <Annotation Term="OData.Description" String="A non-essential instrumentation"/>
+          <Annotation Term="OData.Description" String="A non-essential instrumentation."/>
         </Member>
         <Member Name="Coprocessor">
-          <Annotation Term="OData.Description" String="A coprocessor"/>
+          <Annotation Term="OData.Description" String="A coprocessor."/>
         </Member>
         <Member Name="UnassignedClass">
-          <Annotation Term="OData.Description" String="An unassigned class"/>
+          <Annotation Term="OData.Description" String="An unassigned class."/>
         </Member>
         <Member Name="Other">
           <Annotation Term="OData.Description"
@@ -214,10 +214,10 @@
       </EnumType>
       <EnumType Name="FunctionType">
         <Member Name="Physical">
-          <Annotation Term="OData.Description" String="A physical PCie function"/>
+          <Annotation Term="OData.Description" String="A physical PCie function."/>
         </Member>
         <Member Name="Virtual">
-          <Annotation Term="OData.Description" String="A virtual PCIe function"/>
+          <Annotation Term="OData.Description" String="A virtual PCIe function."/>
         </Member>
       </EnumType>
 

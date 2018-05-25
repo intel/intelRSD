@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,8 +73,8 @@ void VitalProductData::log_vpd(PM85X6TwiPort port, PCA9548TwiExpanderChannel cha
     std::string serial_number(reinterpret_cast<const char*>(fields.serial_number), NVME_SERIAL_NUMBER_SIZE_BYTES);
     std::string model_number(reinterpret_cast<const char*>(fields.model_number), NVME_MODEL_NUMBER_SIZE_BYTES);
 
-    log_debug(GET_LOGGER("pnc-vpd"), "NVMe VPD structure for drive connected to TWI Port: "
+    log_debug("pnc-vpd", "NVMe VPD structure for drive connected to TWI Port: "
         << std::uint32_t(port) << " TWI Channel: " << std::uint32_t(channel));
-    log_debug(GET_LOGGER("pnc-vpd"), "NVMe drive serial number: " << serial_number);
-    log_debug(GET_LOGGER("pnc-vpd"), "NVMe drive model number: " << model_number);
+    log_debug("pnc-vpd", "NVMe drive serial number: " << serial_number);
+    log_debug("pnc-vpd", "NVMe drive model number: " << model_number);
 }

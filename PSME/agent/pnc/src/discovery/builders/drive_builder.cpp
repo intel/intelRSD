@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,14 +27,17 @@
 #include "discovery/builders/drive_builder.hpp"
 #include "gas/csr/configuration_space_register.hpp"
 #include "discovery/discovery_utils.hpp"
+#include "agent-framework/module/utils/to_hex_string.hpp"
 
 using namespace agent::pnc::discovery::builders;
 using namespace agent_framework::model;
+using namespace agent_framework::model::utils;
 using namespace agent::pnc::sysfs;
 using namespace agent::pnc::nvme;
 using namespace agent::pnc::gas::csr;
 using namespace agent::pnc::discovery::utils;
 using namespace agent::pnc::tools;
+using namespace fru_eeprom::parser;
 
 void DriveBuilder::build_default() {
     attribute::Status status;
@@ -75,7 +78,7 @@ DriveBuilder::ReturnType DriveBuilder::update_sysfs_device_data(const SysfsDevic
             m_obj.set_capable_speed_gbs(csr.get_max_speed());
         }
         catch (const std::exception& e) {
-            log_error(GET_LOGGER("pnc-discovery"), "Invalid speed/max speed of the drive: " << e.what());
+            log_error("pnc-discovery", "Invalid speed/max speed of the drive: " << e.what());
             throw std::runtime_error("Invalid CSR data format");
         }
     }
@@ -98,6 +101,25 @@ DriveBuilder::ReturnType DriveBuilder::update_vpd(const VitalProductData& vpd) {
     fru_info.set_model_number(get_null_terminated_string(
         vpd.fields.model_number, vpd.NVME_MODEL_NUMBER_SIZE_BYTES));
     m_obj.set_fru_info(std::move(fru_info));
+    return *this;
+}
+
+DriveBuilder::ReturnType DriveBuilder::update_vpd(const FruEepromParser& parser) {
+    attribute::FruInfo fru_info{};
+    auto product_info_area = parser.get_product_info();
+    fru_info.set_manufacturer(get_null_terminated_optional_string(
+            reinterpret_cast<uint8_t*>(product_info_area.manufacturer.data), product_info_area.manufacturer.data_len));
+    fru_info.set_serial_number(get_null_terminated_optional_string(
+            reinterpret_cast<uint8_t*>(product_info_area.serial_number.data), product_info_area.serial_number.data_len));
+    fru_info.set_part_number(get_null_terminated_optional_string(
+            reinterpret_cast<uint8_t*>(product_info_area.product_name.data), product_info_area.product_name.data_len));
+    fru_info.set_model_number(get_null_terminated_optional_string(
+            reinterpret_cast<uint8_t*>(product_info_area.model_number.data), product_info_area.model_number.data_len));
+    m_obj.set_fru_info(fru_info);
+    m_obj.set_revision(get_null_terminated_optional_string(
+            reinterpret_cast<uint8_t*>(product_info_area.product_version.data), product_info_area.product_version.data_len));
+    m_obj.set_asset_tag(get_null_terminated_optional_string(
+            reinterpret_cast<uint8_t*>(product_info_area.asset_tag.data), product_info_area.asset_tag.data_len));
     return *this;
 }
 

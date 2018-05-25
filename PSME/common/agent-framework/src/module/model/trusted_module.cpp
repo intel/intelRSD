@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,6 +52,5 @@ TrustedModule TrustedModule::from_json(const json::Json& json) {
     trusted_module.set_interface_type(json[literals::TrustedModule::INTERFACE_TYPE]);
     trusted_module.set_firmware_version(json[literals::TrustedModule::FIRMWARE_VERSION]);
 
-    trusted_module.set_resource_hash(json);
     return trusted_module;
 }

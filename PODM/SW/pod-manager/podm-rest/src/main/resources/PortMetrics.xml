@@ -31,9 +31,9 @@
 
       <EntityType Name="PortMetrics" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description"
-                    String="Contains usage and health statistics of a Fabric Port."/>
+                    String="PortMetrics contains usage and health statistics for a Processor (all Cores) ."/>
         <Annotation Term="OData.LongDescription"
-                    String="This resource shall be used to represent the Fabric Port metrics in a Redfish implementation."/>
+                    String="This resource shall be used to represent the Processor Metrics for a single Processor in a Redfish implementation."/>
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
       </EntityType>
     </Schema>
@@ -43,10 +43,9 @@
       <EntityType Name="PortMetrics" BaseType="PortMetrics.PortMetrics">
         <Property Name="Health" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Port health as a discrete sensor reading"/>
+          <Annotation Term="OData.Description" String="Port health as a discrete sensor reading."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Port health as a discrete sensor reading."/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="Actions" Type="PortMetrics.v1_0_0.Actions">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>

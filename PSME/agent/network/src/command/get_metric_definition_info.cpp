@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetMetricDefinitionInfo,
     [] (const GetMetricDefinitionInfo::Request& req, GetMetricDefinitionInfo::Response& rsp) {
-        log_debug(GET_LOGGER("network-agent"), "Getting metric definitions info");
+        log_debug("network-agent", "Getting metric definitions info");
         rsp = get_manager<agent_framework::model::MetricDefinition>().get_entry(req.get_uuid());
     }
 );

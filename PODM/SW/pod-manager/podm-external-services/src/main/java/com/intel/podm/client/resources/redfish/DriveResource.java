@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
+import com.intel.podm.client.WebClientRequestException;
 import com.intel.podm.client.reader.ResourceSupplier;
 import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
@@ -38,10 +40,11 @@ import com.intel.podm.common.types.redfish.OemType;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_EMPTY_COLLECTION;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 import static com.intel.podm.common.utils.Contracts.checkState;
 import static java.util.Arrays.stream;
@@ -53,99 +56,99 @@ import static java.util.stream.Collectors.joining;
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class DriveResource extends ExternalServiceResourceImpl implements ExternalServiceResource {
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("StatusIndicator")
+    @JsonSetter(value = "StatusIndicator", nulls = AS_EMPTY)
     private Ref<StatusIndicator> statusIndicator = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("IndicatorLED")
+    @JsonSetter(value = "IndicatorLED", nulls = AS_EMPTY)
     private Ref<IndicatorLed> indicatorLed = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("Model")
+    @JsonSetter(value = "Model", nulls = AS_EMPTY)
     private Ref<String> model = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("Revision")
+    @JsonSetter(value = "Revision", nulls = AS_EMPTY)
     private Ref<String> revision = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("CapacityBytes")
+    @JsonSetter(value = "CapacityBytes", nulls = AS_EMPTY)
     private Ref<Long> capacityBytes = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("FailurePredicted")
+    @JsonSetter(value = "FailurePredicted", nulls = AS_EMPTY)
     private Ref<Boolean> failurePredicted = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("Protocol")
+    @JsonSetter(value = "Protocol", nulls = AS_EMPTY)
     private Ref<Protocol> protocol = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("MediaType")
+    @JsonSetter(value = "MediaType", nulls = AS_EMPTY)
     private Ref<MediaType> mediaType = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("Manufacturer")
+    @JsonSetter(value = "Manufacturer", nulls = AS_EMPTY)
     private Ref<String> manufacturer = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("SKU")
+    @JsonSetter(value = "SKU", nulls = AS_EMPTY)
     private Ref<String> sku = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("SerialNumber")
+    @JsonSetter(value = "SerialNumber", nulls = AS_EMPTY)
     private Ref<String> serialNumber = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("PartNumber")
+    @JsonSetter(value = "PartNumber", nulls = AS_EMPTY)
     private Ref<String> partNumber = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("AssetTag")
+    @JsonSetter(value = "AssetTag", nulls = AS_EMPTY)
     private Ref<String> assetTag = unassigned();
 
-    @JsonProperty("Identifiers")
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
+    @JsonSetter(value = "Identifiers", nulls = AS_EMPTY)
     private Ref<List<IdentifierObject>> identifiers = unassigned();
 
-    @JsonProperty("Location")
+    @JsonSetter(value = "Location", nulls = AS_EMPTY)
     @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
     private Ref<List<RedfishLocationObject>> location = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("HotspareType")
+    @JsonSetter(value = "HotspareType", nulls = AS_EMPTY)
     private Ref<HotspareType> hotspareType = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("EncryptionAbility")
+    @JsonSetter(value = "EncryptionAbility", nulls = AS_EMPTY)
     private Ref<EncryptionAbility> encryptionAbility = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("EncryptionStatus")
+    @JsonSetter(value = "EncryptionStatus", nulls = AS_EMPTY)
     private Ref<EncryptionStatus> encryptionStatus = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("RotationSpeedRPM")
+    @JsonSetter(value = "RotationSpeedRPM", nulls = AS_EMPTY)
     private Ref<BigDecimal> rotationSpeedRpm = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("BlockSizeBytes")
+    @JsonSetter(value = "BlockSizeBytes", nulls = AS_EMPTY)
     private Ref<Integer> blockSizeBytes = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("CapableSpeedGbs")
+    @JsonSetter(value = "CapableSpeedGbs", nulls = AS_EMPTY)
     private Ref<BigDecimal> capableSpeedGbs = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("NegotiatedSpeedGbs")
+    @JsonSetter(value = "NegotiatedSpeedGbs", nulls = AS_EMPTY)
     private Ref<BigDecimal> negotiatedSpeedGbs = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("PredictedMediaLifeLeftPercent")
+    @JsonSetter(value = "PredictedMediaLifeLeftPercent", nulls = AS_EMPTY)
     private Ref<BigDecimal> predictedMediaLifeLeftPercent = unassigned();
 
     @AsUnassigned(WHEN_NULL)
-    @JsonProperty("Status")
+    @JsonSetter(value = "Status", nulls = AS_EMPTY)
     private Ref<Status> status = unassigned();
 
     @JsonProperty("Oem")
@@ -158,22 +161,6 @@ public class DriveResource extends ExternalServiceResourceImpl implements Extern
         String chassisUri = stream(splitUri).limit(splitUri.length - 2).collect(joining(splittingChar));
 
         return toSupplier(new ODataId(chassisUri));
-    }
-
-    @LinkName("storageInDrive")
-    public ResourceSupplier getStorage() {
-        if (oem.rackScaleOem.storage == null) {
-            return null;
-        }
-        return toSupplier(oem.rackScaleOem.storage);
-    }
-
-    @LinkName("pcieDeviceFunctionInDrive")
-    public ResourceSupplier getPcieDeviceFunction() {
-        if (oem.rackScaleOem.pcieFunction == null) {
-            return null;
-        }
-        return toSupplier(oem.rackScaleOem.pcieFunction);
     }
 
     public Ref<StatusIndicator> getStatusIndicator() {
@@ -280,29 +267,34 @@ public class DriveResource extends ExternalServiceResourceImpl implements Extern
         return status;
     }
 
+    @LinkName("driveMetrics")
+    public ResourceSupplier getMetrics() throws WebClientRequestException {
+        if (oem.rackScaleOem.metrics == null) {
+            return null;
+        }
+        return toSupplier(oem.rackScaleOem.metrics);
+    }
+
     @OemType(TOP_LEVEL_OEM)
     public class Oem extends RedfishOem {
         @JsonProperty("Intel_RackScale")
         private RackScaleOem rackScaleOem = new RackScaleOem();
 
         public class RackScaleOem {
-            @JsonProperty("FirmwareVersion")
+            @JsonSetter(value = "FirmwareVersion", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<String> firmwareVersion = unassigned();
 
-            @JsonProperty("EraseOnDetach")
+            @JsonSetter(value = "EraseOnDetach", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<String> eraseOnDetach = unassigned();
 
-            @JsonProperty("PCIeFunction")
-            private ODataId pcieFunction;
-
-            @JsonProperty("Storage")
-            private ODataId storage;
-
-            @JsonProperty("DriveErased")
+            @JsonSetter(value = "DriveErased", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<Boolean> driveErased = unassigned();
+
+            @JsonProperty("Metrics")
+            private ODataId metrics;
         }
     }
 }

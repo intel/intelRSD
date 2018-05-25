@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,6 +46,8 @@ constexpr const char Command::GET_METRIC_DEFINITION_INFO[];
 constexpr const char Command::GET_TASK_INFO[];
 constexpr const char Command::GET_TASK_RESULT_INFO[];
 constexpr const char Command::GET_DRIVE_INFO[];
+constexpr const char Command::ADD_ENDPOINT[];
+constexpr const char Command::DELETE_ENDPOINT[];
 
 constexpr const char Command::DELETE_TASK[];
 
@@ -71,13 +73,10 @@ constexpr const char Command::GET_CHASSIS_SENSOR_INFO[];
 
 // storage commands
 constexpr const char Command::GET_STORAGE_SERVICE_INFO[];
-constexpr const char Command::GET_PHYSICAL_DRIVE_INFO[];
-constexpr const char Command::GET_LOGICAL_DRIVE_INFO[];
-constexpr const char Command::ADD_LOGICAL_DRIVE[];
-constexpr const char Command::DELETE_LOGICAL_DRIVE[];
-constexpr const char Command::GET_ISCSI_TARGET_INFO[];
-constexpr const char Command::ADD_ISCSI_TARGET[];
-constexpr const char Command::DELETE_ISCSI_TARGET[];
+constexpr const char Command::GET_STORAGE_POOL_INFO[];
+constexpr const char Command::GET_VOLUME_INFO[];
+constexpr const char Command::ADD_VOLUME[];
+constexpr const char Command::DELETE_VOLUME[];
 
 // network commands
 constexpr const char Command::GET_ETHERNET_SWITCH_INFO[];
@@ -110,8 +109,8 @@ constexpr const char Command::GET_ZONE_INFO[];
 constexpr const char Command::GET_ENDPOINT_INFO[];
 constexpr const char Command::ADD_ZONE[];
 constexpr const char Command::DELETE_ZONE[];
-constexpr const char Command::ADD_ZONE_ENDPOINT[];
-constexpr const char Command::DELETE_ZONE_ENDPOINT[];
+constexpr const char Command::ADD_ZONE_ENDPOINTS[];
+constexpr const char Command::DELETE_ZONE_ENDPOINTS[];
 constexpr const char Command::ERASE_DRIVE_SECURELY[];
 
 }

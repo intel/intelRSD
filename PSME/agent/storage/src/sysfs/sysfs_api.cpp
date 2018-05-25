@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
  * @file sysfs_api.cpp
  *
- * @brief C++ wrapper for sysfs
+ * @brief C++ wrapper for sysfs operations
  * */
+
 #include "sysfs/sysfs_api.hpp"
 #include "agent-framework/logger_ext.hpp"
 #include "agent-framework/module/utils/is_ascii_string.hpp"
@@ -45,39 +42,39 @@
 using namespace agent::storage;
 using namespace agent_framework::model::utils;
 
-constexpr const char SysfsAPI::DEV_FS[];
-constexpr const char SysfsAPI::MTAB_FILE[];
-constexpr const char SysfsAPI::VIRTUAL[];
-constexpr const char SysfsAPI::SIZE[];
-constexpr const char SysfsAPI::DEVICE_MODEL[];
-constexpr const char SysfsAPI::DEVICE_TYPE[];
-constexpr const char SysfsAPI::SYSFS_BLOCK_CLASS[];
+constexpr const char SysfsApi::DEV_FS[];
+constexpr const char SysfsApi::MTAB_FILE[];
+constexpr const char SysfsApi::VIRTUAL[];
+constexpr const char SysfsApi::SIZE[];
+constexpr const char SysfsApi::DEVICE_MODEL[];
+constexpr const char SysfsApi::DEVICE_TYPE[];
+constexpr const char SysfsApi::SYSFS_BLOCK_CLASS[];
 
-constexpr const char SysfsAPI::HardDrive::TYPE_SSD[];
-constexpr const char SysfsAPI::HardDrive::TYPE_HDD[];
+constexpr const char SysfsApi::HardDrive::TYPE_SSD[];
+constexpr const char SysfsApi::HardDrive::TYPE_HDD[];
 
-static SysfsAPI* g_sysfs_api = nullptr;
+static SysfsApi* g_sysfs_api = nullptr;
 
-SysfsAPI* SysfsAPI::get_instance() {
+SysfsApi* SysfsApi::get_instance() {
     if (nullptr == g_sysfs_api) {
-        g_sysfs_api = new SysfsAPI(std::make_shared<sysfs::SysfsInterface>());
+        g_sysfs_api = new SysfsApi(std::make_shared<sysfs::SysfsInterface>());
     }
 
     return g_sysfs_api;
 }
 
-SysfsAPI::SysfsAPI(std::shared_ptr<sysfs::AbstractSysfsInterface> sysfs_interface)
+SysfsApi::SysfsApi(std::shared_ptr<sysfs::AbstractSysfsInterface> sysfs_interface)
     : m_sysfs(sysfs_interface) {
 
     m_mount_points = m_sysfs->get_mounts(MTAB_FILE);
 }
 
 
-SysfsAPI::~SysfsAPI() {}
+SysfsApi::~SysfsApi() {}
 
 
-vector<SysfsAPI::HardDrive> SysfsAPI::get_hard_drives() {
-    vector<HardDrive> hard_drives{};
+std::vector<SysfsApi::HardDrive> SysfsApi::get_hard_drives() {
+    std::vector<HardDrive> hard_drives{};
     std::list<std::thread> threads{};
     std::mutex push_back_mutex{};
 
@@ -99,13 +96,13 @@ vector<SysfsAPI::HardDrive> SysfsAPI::get_hard_drives() {
                     std::lock_guard<std::mutex> guard(push_back_mutex);
                     hard_drives.push_back(hard_drive);
                 } else {
-                    log_debug("storage-agent", "Cannot read parameters directly from device: "
+                    log_info("storage-agent", "Cannot read parameters directly from device: "
                         << hard_drive.get_device_path() << ", it might have been recently removed or is not responding.");
                 }
             }
         }
         catch (const std::exception& ex) {
-            log_debug("storage-agent", "Could not read block device " << device_path << ": " << ex.what());
+            log_info("storage-agent", "Could not read block device " << device_path << ": " << ex.what());
         }
     };
 
@@ -114,7 +111,7 @@ vector<SysfsAPI::HardDrive> SysfsAPI::get_hard_drives() {
         block_devices = m_sysfs->get_dir(SYSFS_BLOCK_CLASS);
     }
     catch (const std::exception& ex) {
-        log_debug("storage-agent", "Could not read block devices: " << ex.what());
+        log_info("storage-agent", "Could not read block devices: " << ex.what());
         return {};
     }
 
@@ -129,34 +126,39 @@ vector<SysfsAPI::HardDrive> SysfsAPI::get_hard_drives() {
 }
 
 
-bool SysfsAPI::m_is_virtual_device(const sysfs::SysfsDir& device) {
-    return string::npos != device.path.to_string().find(VIRTUAL);
+
+bool SysfsApi::m_is_virtual_device(const sysfs::SysfsDir& device) {
+    if (device.path.to_string().find(VIRTUAL) != std::string::npos) {
+        log_info("storage-agent", "Device " << m_get_devfs_path(device) << " is a virtual device.");
+        return true;
+    }
+    return false;
 }
 
 
-bool SysfsAPI::m_is_direct_access_device(const sysfs::SysfsDir& device) {
+bool SysfsApi::m_is_direct_access_device(const sysfs::SysfsDir& device) {
     try {
         auto type_string = m_sysfs->get_file(device.path / DEVICE_TYPE).value;
         unsigned long long type = std::stoull(type_string);
 
         if (type != DIRECT_ACCESS_TYPE) {
-            log_debug("storage-agent", "Device " << m_get_devfs_path(device) << " has type: " << std::hex << type);
+            log_info("storage-agent", "Device " << m_get_devfs_path(device) << " has type: " << std::hex << type);
             return false;
         }
         return true;
     }
     catch (const std::exception& ex) {
-        log_debug("storage-agent", "Could not read the type of device "
+        log_info("storage-agent", "Could not read the type of device "
             << m_get_devfs_path(device) << ": " << ex.what());
         return false;
     }
 }
 
 
-bool SysfsAPI::m_is_boot_device(const sysfs::SysfsDir& device) {
+bool SysfsApi::m_is_boot_device(const sysfs::SysfsDir& device) {
     for (const auto& mount : m_mount_points) {
         if (mount.name == m_get_devfs_path(device)) {
-            log_debug("storage-agent", "Device " << m_get_devfs_path(device) << " is a boot device.");
+            log_info("storage-agent", "Device " << m_get_devfs_path(device) << " is a boot device.");
             return true;
         }
     }
@@ -164,16 +166,11 @@ bool SysfsAPI::m_is_boot_device(const sysfs::SysfsDir& device) {
 }
 
 
-
-void SysfsAPI::m_read_block_device_attributes(const sysfs::SysfsDir& device, HardDrive& hard_drive) {
+void SysfsApi::m_read_block_device_attributes(const sysfs::SysfsDir& device, HardDrive& hard_drive) {
     hard_drive.set_name(device.name);
     hard_drive.set_device_path(m_get_devfs_path(device));
 
     try {
-        auto model = m_sysfs->get_file(device.path / DEVICE_MODEL).value;
-        m_trim(model);
-        hard_drive.set_model(model);
-
         auto capacity_string = m_sysfs->get_file(device.path / SIZE).value;
         unsigned long long capacity_bytes = std::stoull(capacity_string);
         hard_drive.set_capacity_gb(double(capacity_bytes) * SECTORS_TO_GB);
@@ -187,13 +184,14 @@ void SysfsAPI::m_read_block_device_attributes(const sysfs::SysfsDir& device, Har
 }
 
 
-void SysfsAPI::m_read_ata_attributes(const sysfs::SysfsDir& device, HardDrive& hard_drive) {
+void SysfsApi::m_read_ata_attributes(const sysfs::SysfsDir& device, HardDrive& hard_drive) {
 
-    std::unique_ptr<uint16_t[]> p_hdio_data{};
+    std::unique_ptr<std::uint16_t[]> p_hdio_data{};
     try {
-        uint32_t rpm{};
-        string serial_number{};
-        string manufacturer{};
+        std::uint32_t rpm{};
+        std::string serial_number{};
+        std::string manufacturer{};
+        std::string model{};
 
         try {
             m_perform_sg_io(device, p_hdio_data);
@@ -206,6 +204,7 @@ void SysfsAPI::m_read_ata_attributes(const sysfs::SysfsDir& device, HardDrive& h
 
         m_read_rpm(rpm, p_hdio_data);
         m_read_serial_number(serial_number, p_hdio_data);
+        m_read_model_number(model, p_hdio_data);
         m_read_manufacturer(manufacturer, p_hdio_data);
 
         if (SSD_RPM_VALUE == rpm) {
@@ -223,6 +222,13 @@ void SysfsAPI::m_read_ata_attributes(const sysfs::SysfsDir& device, HardDrive& h
             log_warning("storage-agent", "Serial Number for " << m_get_devfs_path(device)
                                                             << " drive contains invalid characters: " << serial_number);
         }
+        if (is_ascii_string(model)) {
+            hard_drive.set_model(model);
+        }
+        else {
+            log_warning("storage-agent", "Model Number for " << m_get_devfs_path(device)
+                                                              << " drive contains invalid characters: " << model);
+        }
         if (is_ascii_string(manufacturer)) {
             hard_drive.set_manufacturer(manufacturer);
         }
@@ -238,12 +244,12 @@ void SysfsAPI::m_read_ata_attributes(const sysfs::SysfsDir& device, HardDrive& h
 }
 
 
-void SysfsAPI::m_perform_hdio_drive_cmd(const sysfs::SysfsDir& device, std::unique_ptr<uint16_t[]>& p_hdio_data) {
+void SysfsApi::m_perform_hdio_drive_cmd(const sysfs::SysfsDir& device, std::unique_ptr<uint16_t[]>& p_hdio_data) {
 
-    static constexpr uint8_t ATA_OP_IDENTIFY = 0xec;
-    static constexpr uint8_t ATA_OP_PIDENTIFY = 0xa1;
+    static constexpr std::uint8_t ATA_OP_IDENTIFY = 0xec;
+    static constexpr std::uint8_t ATA_OP_PIDENTIFY = 0xa1;
 
-    string dev_path = m_get_devfs_path(device);
+    std::string dev_path = m_get_devfs_path(device);
 
     if (nullptr == p_hdio_data.get()) {
         p_hdio_data.reset(new uint16_t[ATA_DATA_SIZE/2]);
@@ -256,7 +262,7 @@ void SysfsAPI::m_perform_hdio_drive_cmd(const sysfs::SysfsDir& device, std::uniq
 
     memset_s(p_hdio_data.get(), ATA_DATA_SIZE, 0);
 
-    uint8_t* hdio_data = reinterpret_cast<uint8_t*>(p_hdio_data.get());
+    std::uint8_t* hdio_data = reinterpret_cast<std::uint8_t*>(p_hdio_data.get());
     hdio_data[0] = ATA_OP_IDENTIFY;
     hdio_data[3] = 1;
     if (0 != ioctl(fd, HDIO_DRIVE_CMD, hdio_data)) {
@@ -273,28 +279,28 @@ void SysfsAPI::m_perform_hdio_drive_cmd(const sysfs::SysfsDir& device, std::uniq
 }
 
 
-void SysfsAPI::m_perform_sg_io(const sysfs::SysfsDir& device, std::unique_ptr<uint16_t[]>& p_hdio_data) {
+void SysfsApi::m_perform_sg_io(const sysfs::SysfsDir& device, std::unique_ptr<uint16_t[]>& p_hdio_data) {
 
-    static constexpr const size_t COMMAND_BUFFER_SIZE = 16;
-    static constexpr const size_t SENSE_BUFFER_SIZE = 32;
-    static constexpr const uint32_t SG_IO_TIMEOUT = 1000;
-    static constexpr const uint8_t ATA_OP_IDENTIFY = 0xec;
-    static constexpr const uint8_t SG_ATA_16 = 0x85;
-    static constexpr const uint8_t SG_ATA_PROTO_PIO_IN = 0x08;
-    static constexpr const uint8_t SG_CDB2_TLEN_NSECT = 0x02;
-    static constexpr const uint8_t SG_CDB2_TLEN_SECTORS = 0x04;
-    static constexpr const uint8_t SG_CDB2_TDIR_FROM_DEV = 0x08;
-    static constexpr const uint8_t ATA_USING_LBA = 0x40;
+    static constexpr const std::size_t COMMAND_BUFFER_SIZE = 16;
+    static constexpr const std::size_t SENSE_BUFFER_SIZE = 32;
+    static constexpr const std::uint32_t SG_IO_TIMEOUT = 1000;
+    static constexpr const std::uint8_t ATA_OP_IDENTIFY = 0xec;
+    static constexpr const std::uint8_t SG_ATA_16 = 0x85;
+    static constexpr const std::uint8_t SG_ATA_PROTO_PIO_IN = 0x08;
+    static constexpr const std::uint8_t SG_CDB2_TLEN_NSECT = 0x02;
+    static constexpr const std::uint8_t SG_CDB2_TLEN_SECTORS = 0x04;
+    static constexpr const std::uint8_t SG_CDB2_TDIR_FROM_DEV = 0x08;
+    static constexpr const std::uint8_t ATA_USING_LBA = 0x40;
 
-    string dev_path = m_get_devfs_path(device);
+    std::string dev_path = m_get_devfs_path(device);
 
     if (nullptr == p_hdio_data.get()) {
         p_hdio_data.reset(new uint16_t[ATA_DATA_SIZE/2]);
     }
 
-    uint8_t command_buffer[COMMAND_BUFFER_SIZE];
-    uint8_t sense_buffer[SENSE_BUFFER_SIZE];
-    uint8_t* data_buffer = reinterpret_cast<uint8_t*>(p_hdio_data.get() + 2);
+    std::uint8_t command_buffer[COMMAND_BUFFER_SIZE];
+    std::uint8_t sense_buffer[SENSE_BUFFER_SIZE];
+    std::uint8_t* data_buffer = reinterpret_cast<uint8_t*>(p_hdio_data.get() + 2);
     sg_io_hdr_t io_hdr;
 
     int fd = open(dev_path.c_str(), O_RDONLY | O_NONBLOCK);
@@ -309,8 +315,7 @@ void SysfsAPI::m_perform_sg_io(const sysfs::SysfsDir& device, std::unique_ptr<ui
 
     command_buffer[0] = SG_ATA_16;
     command_buffer[1] = SG_ATA_PROTO_PIO_IN;
-    command_buffer[2] =
-        SG_CDB2_TLEN_NSECT | SG_CDB2_TLEN_SECTORS | SG_CDB2_TDIR_FROM_DEV;
+    command_buffer[2] = SG_CDB2_TLEN_NSECT | SG_CDB2_TLEN_SECTORS | SG_CDB2_TDIR_FROM_DEV;
     command_buffer[6] = 1;     // number of sectors
     command_buffer[13] = ATA_USING_LBA;
     command_buffer[14] = ATA_OP_IDENTIFY;
@@ -334,7 +339,8 @@ void SysfsAPI::m_perform_sg_io(const sysfs::SysfsDir& device, std::unique_ptr<ui
 }
 
 
-void SysfsAPI::m_read_ata_string(string& value, size_t offset, size_t length, std::unique_ptr<uint16_t[]>& p_hdio_data) {
+void SysfsApi::m_read_ata_string(std::string& value, std::size_t offset, std::size_t length,
+                                 std::unique_ptr<std::uint16_t[]>& p_hdio_data) {
     if (0 == p_hdio_data[offset]) {
         return;
     }
@@ -348,38 +354,45 @@ void SysfsAPI::m_read_ata_string(string& value, size_t offset, size_t length, st
 }
 
 
-void SysfsAPI::m_read_serial_number(string& serial_number, std::unique_ptr<uint16_t[]>& p_hdio_data) {
-    static constexpr const uint32_t SERIAL_OFFSET = 12;
-    static constexpr const uint32_t SERIAL_LENGTH = 10;
+void SysfsApi::m_read_serial_number(std::string& serial_number, std::unique_ptr<std::uint16_t[]>& p_hdio_data) {
+    static constexpr const std::uint32_t SERIAL_OFFSET = 12;
+    static constexpr const std::uint32_t SERIAL_LENGTH = 10;
 
     m_read_ata_string(serial_number, SERIAL_OFFSET, SERIAL_LENGTH, p_hdio_data);
     log_debug("storage-agent", "Serial number: " << serial_number);
 }
 
+void SysfsApi::m_read_model_number(std::string& model_number, std::unique_ptr<std::uint16_t[]>& p_hdio_data) {
+    static constexpr const std::uint32_t MODEL_OFFSET = 29;
+    static constexpr const std::uint32_t MODEL_LENGTH = 20;
 
-void SysfsAPI::m_read_manufacturer(string& manufacturer, std::unique_ptr<uint16_t[]>& p_hdio_data) {
-    static constexpr const uint32_t MANUFACTURER_OFFSET = 198;
-    static constexpr const uint32_t MANUFACTURER_LENGTH = 10;
+    m_read_ata_string(model_number, MODEL_OFFSET, MODEL_LENGTH, p_hdio_data);
+    log_debug("storage-agent", "Model: " << model_number);
+}
+
+
+void SysfsApi::m_read_manufacturer(std::string& manufacturer, std::unique_ptr<std::uint16_t[]>& p_hdio_data) {
+    static constexpr const std::uint32_t MANUFACTURER_OFFSET = 198;
+    static constexpr const std::uint32_t MANUFACTURER_LENGTH = 10;
 
     m_read_ata_string(manufacturer, MANUFACTURER_OFFSET, MANUFACTURER_LENGTH,  p_hdio_data);
 }
 
 
-void SysfsAPI::m_read_rpm(uint32_t& rpm, std::unique_ptr<uint16_t[]>& p_hdio_data) {
+void SysfsApi::m_read_rpm(std::uint32_t& rpm, std::unique_ptr<std::uint16_t[]>& p_hdio_data) {
     /* Nominal Media Rotation Rate */
-    static constexpr uint32_t NMRR = 219;
+    static constexpr std::uint32_t NMRR = 219;
 
     rpm = p_hdio_data[NMRR];
     log_debug("storage-agent", "Nominal Media Rotation Rate: " << rpm);
 }
 
 
-sysfs::Path SysfsAPI::m_get_devfs_path(const sysfs::SysfsDir& device) {
+sysfs::Path SysfsApi::m_get_devfs_path(const sysfs::SysfsDir& device) {
     return sysfs::Path(DEV_FS) / device.name;
 }
 
-
-void SysfsAPI::m_trim(string& input_string) {
+void SysfsApi::m_trim(std::string& input_string) {
     static constexpr char WHITE_CHARS[] = " \t\n\r";
 
     input_string.erase(0, input_string.find_first_not_of(WHITE_CHARS));

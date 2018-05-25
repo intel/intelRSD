@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package com.intel.podm.business.entities.migration.tasks;
 
-import com.intel.podm.business.entities.dao.GenericDao;
+import com.intel.podm.business.entities.migration.JpaBasedDataMigrationTask;
 import com.intel.podm.business.entities.observers.EventableEntityEventSourceContextInitializer;
 import com.intel.podm.business.entities.redfish.ComposedNode;
-import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
 import com.intel.podm.business.entities.redfish.StorageController;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
-import com.intel.podm.business.entities.migration.JpaBasedDataMigrationTask;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -41,15 +39,11 @@ public class EventSourceContextInitializingTask extends JpaBasedDataMigrationTas
     private static final List<Class<? extends Entity>> EVENTABLE_CLASSES = newArrayList(
         DiscoverableEntity.class,
         ComposedNode.class,
-        RemoteTargetIscsiAddress.class,
         StorageController.class
     );
 
     @Inject
     private EventableEntityEventSourceContextInitializer eventableEntityEventSourceContextInitializer;
-
-    @Inject
-    private GenericDao dao;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -59,7 +53,7 @@ public class EventSourceContextInitializingTask extends JpaBasedDataMigrationTas
     public void run() {
         for (Class<? extends Entity> eventableClass : EVENTABLE_CLASSES) {
             List<? extends Entity> entities = findAll(eventableClass);
-            entities.stream().forEach(entity -> eventableEntityEventSourceContextInitializer.onEntityAdded(entity));
+            entities.forEach(entity -> eventableEntityEventSourceContextInitializer.onEntityAdded(entity));
         }
     }
 

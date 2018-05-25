@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public final class RequestedProcessorImpl implements RequestedNode.Processor {
 
     @Override
     public ProcessorBrand getBrand() {
-        return oem.brand;
+        return oem == null ? null : oem.brand;
     }
 
     @Override
@@ -87,6 +87,11 @@ public final class RequestedProcessorImpl implements RequestedNode.Processor {
         return processorType;
     }
 
+    @Override
+    public Context getResourceContext() {
+        return resourceContext;
+    }
+
     @JsonProperty("Resource")
     public void setResourceContext(ODataId resource) {
         if (resource == null) {
@@ -97,8 +102,8 @@ public final class RequestedProcessorImpl implements RequestedNode.Processor {
     }
 
     @Override
-    public Context getResourceContext() {
-        return resourceContext;
+    public Context getChassisContext() {
+        return chassisContext;
     }
 
     @JsonProperty("Chassis")
@@ -111,13 +116,8 @@ public final class RequestedProcessorImpl implements RequestedNode.Processor {
     }
 
     @Override
-    public Context getChassisContext() {
-        return chassisContext;
-    }
-
-    @Override
     public List<String> getCapabilities() {
-        return oem.capabilities;
+        return oem == null ? null : oem.capabilities;
     }
 
     private static final class ProcessorOem {

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,8 @@ constexpr const char ConnectorOptions::THREAD_MODE_THREAD_PER_CONNECTION[];
 constexpr const char ConnectorOptions::THREAD_POOL_SIZE[];
 constexpr const char ConnectorOptions::DEBUG_MODE[];
 
-ConnectorOptions::ConnectorOptions(const json::Value& config) {
+ConnectorOptions::ConnectorOptions(const json::Value& config, const std::string& network_interface_name)
+    : m_network_interface_name(network_interface_name) {
     m_port = static_cast<uint16_t> (config[PORT].as_uint());
     if (config.is_member(REDIRECT_PORT)) {
         m_redirect_port = static_cast<uint16_t> (config[REDIRECT_PORT].as_uint());
@@ -100,4 +101,8 @@ unsigned int ConnectorOptions::get_thread_pool_size() const {
 
 bool ConnectorOptions::use_debug() const {
     return m_use_debug;
+}
+
+const std::string& ConnectorOptions::get_network_interface_name() const {
+    return m_network_interface_name;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.intel.podm.client.OdataTypes;
 import com.intel.podm.common.types.InterfaceType;
 import com.intel.podm.common.types.InterfaceTypeSelection;
 import com.intel.podm.common.types.Ref;
@@ -24,27 +25,32 @@ import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 import com.intel.podm.common.types.redfish.RedfishComputerSystem;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
+import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
 
+@OdataTypes({
+    "#ComputerSystem" + VERSION_PATTERN + "TrustedModules"
+})
 class TrustedModuleObject implements RedfishComputerSystem.TrustedModule {
-    @JsonProperty("FirmwareVersion")
+    @JsonSetter(value = "FirmwareVersion", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> firmwareVersion = unassigned();
 
-    @JsonProperty("FirmwareVersion2")
+    @JsonSetter(value = "FirmwareVersion2", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> firmwareVersion2 = unassigned();
 
-    @JsonProperty("InterfaceType")
-    @AsUnassigned(WHEN_NULL)
-    private Ref<InterfaceType> interfaceType = unassigned();
-
-    @JsonProperty("InterfaceTypeSelection")
+    @JsonSetter(value = "InterfaceTypeSelection", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<InterfaceTypeSelection> interfaceTypeSelection = unassigned();
 
-    @JsonProperty("Status")
+    @JsonSetter(value = "InterfaceType", nulls = AS_EMPTY)
+    @AsUnassigned(WHEN_NULL)
+    private Ref<InterfaceType> interfaceType = unassigned();
+
+    @JsonSetter(value = "Status", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Status> status = unassigned();
 

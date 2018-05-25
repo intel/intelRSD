@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ GetLanConfiguration::GetLanConfiguration() :
 GetLanConfiguration::~GetLanConfiguration() {}
 
 void GetLanConfiguration::unpack(IpmiMessage& msg) {
-    log_debug(GET_LOGGER("ipmb"), "Unpacking Get Lan Configuration message.");
+    log_debug("ipmb", "Unpacking Get Lan Configuration message.");
     msg.set_to_request();
     process_selector(msg);
     m_current->unpack(msg);

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,7 +61,7 @@ mrpc::CommandStatus GlobalAddressSpaceRegisters::execute_cmd(mrpc::Command& cmd)
     auto error_delay_ms = 2 * GlobalAddressSpaceRegisters::MRPC_DELAY_MS; // 20ms.
     unsigned tries = 3;
     while (mrpc::CommandStatus::FAILED == status && tries > 0) {
-        log_warning(GET_LOGGER("gas-tool"), "MRPC status: FAILED. Will try again...");
+        log_warning("gas-tool", "MRPC status: FAILED. Will try again...");
         std::this_thread::sleep_for(std::chrono::milliseconds(error_delay_ms));
         status = cmd.read_status();
         tries--;
@@ -70,7 +70,7 @@ mrpc::CommandStatus GlobalAddressSpaceRegisters::execute_cmd(mrpc::Command& cmd)
 
     // If still error we return status without command status read.
     if (mrpc::CommandStatus::FAILED == status) {
-        log_error(GET_LOGGER("gas-tool"), "MRPC FAILED after 3 tries.");
+        log_error("gas-tool", "MRPC FAILED after 3 tries.");
         return status;
     }
 

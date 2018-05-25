@@ -2,7 +2,7 @@
  * @brief Definition of getNetworkDeviceInfo command for Compute agent
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetNetworkDeviceInfo,
                  [] (const GetNetworkDeviceInfo::Request& req, GetNetworkDeviceInfo::Response& rsp) {
-                     log_debug(GET_LOGGER("agent"), "Getting network function info.");
+                     log_debug("agent", "Getting network function info.");
                      rsp = ComputeComponents::get_instance()->get_network_device_manager().get_entry(req.get_uuid());
                  }
 );

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,9 +29,13 @@ using namespace psme::rest::error;
 using namespace psme::rest::utils;
 using namespace agent_framework::model;
 
-std::vector<std::string> LagUtils::get_port_members(const json::Value& json) {
-    std::vector<std::string> port_members;
-    for (const auto& member : json[constants::Common::LINKS][constants::EthernetSwitchPort::PORT_MEMBERS].as_array()) {
+std::vector<Uuid> LagUtils::get_port_members(const json::Value& json) {
+    std::vector<Uuid> port_members{};
+    const auto& links_members = json[constants::Common::LINKS][constants::EthernetSwitchPort::PORT_MEMBERS];
+    if (links_members.is_null()) {
+        return port_members;
+    }
+    for (const auto& member : links_members.as_array()) {
         auto member_path = member[constants::Common::ODATA_ID].as_string();
         try {
             auto params = server::Multiplexer::get_instance()->
@@ -44,8 +48,7 @@ std::vector<std::string> LagUtils::get_port_members(const json::Value& json) {
             port_members.push_back(port_uuid);
         }
         catch (const agent_framework::exceptions::NotFound&) {
-            THROW(agent_framework::exceptions::InvalidValue, "rest",
-                "Could not find port member: " + member_path);
+            THROW(agent_framework::exceptions::InvalidValue, "rest", "Could not find port member: " + member_path);
         }
     }
     return port_members;
@@ -69,20 +72,20 @@ void LagUtils::validate_port_type(const enums::PortType port_type) {
     }
 }
 
-void LagUtils::validate_collection_not_empty(const std::vector<std::string> port_members) {
+void LagUtils::validate_collection_not_empty(const std::vector<Uuid> port_members) {
     if (port_members.empty()) {
         throw agent_framework::exceptions::InvalidValue("Port members collection cannot be empty.");
     }
 }
 
-void LagUtils::validate_is_member_of_port(const std::string& port, const std::string& parent) {
+void LagUtils::validate_is_member_of_port(const Uuid& port, const Uuid& parent) {
     const auto& lag_manager = agent_framework::module::NetworkComponents::get_instance()->get_port_members_manager();
     if (lag_manager.child_exists(port) && !lag_manager.entry_exists(parent, port)) {
         throw agent_framework::exceptions::InvalidValue("Switch port is already a member of logical port.");
     }
 }
 
-void LagUtils::validate_port_members(const std::vector<std::string> port_members, const std::string& parent) {
+void LagUtils::validate_port_members(const std::vector<Uuid> port_members, const Uuid& parent) {
     bool is_first_member{true};
     std::uint32_t link_speed = 0;
 

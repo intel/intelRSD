@@ -1,7 +1,7 @@
 
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,6 +67,10 @@ constexpr const char EthernetSwitchPort::NEIGHBOR_INFO[];
 constexpr const char EthernetSwitchPort::NEIGHBOR_MAC[];
 constexpr const char EthernetSwitchPort::VLAN_ENABLE[];
 constexpr const char EthernetSwitchPort::DEFAULT_VLAN[];
+constexpr const char EthernetSwitchPort::LLDP_ENABLED[];
+constexpr const char EthernetSwitchPort::PFC_ENABLED[];
+constexpr const char EthernetSwitchPort::PFC_ENABLED_PRIORITIES[];
+constexpr const char EthernetSwitchPort::DCBX_STATE[];
 constexpr const char EthernetSwitchPort::COLLECTIONS[];
 constexpr const char EthernetSwitchPort::OEM[];
 
@@ -83,6 +87,13 @@ constexpr const char EthernetSwitch::MANUFACTURING_DATE[];
 constexpr const char EthernetSwitch::LOCATION[];
 constexpr const char EthernetSwitch::CHASSIS[];
 constexpr const char EthernetSwitch::MAX_ACL_NUMBER[];
+constexpr const char EthernetSwitch::LLDP_ENABLED[];
+constexpr const char EthernetSwitch::PFC_ENABLED[];
+constexpr const char EthernetSwitch::ETS_ENABLED[];
+constexpr const char EthernetSwitch::DCBX_ENABLED[];
+constexpr const char EthernetSwitch::QOS_APPLICATION_PROTOCOL[];
+constexpr const char EthernetSwitch::QOS_PRIORITY_TO_PRIORITY_GROUP_MAPPING[];
+constexpr const char EthernetSwitch::QOS_BANDWIDTH_ALLOCATION[];
 constexpr const char EthernetSwitch::COLLECTIONS[];
 constexpr const char EthernetSwitch::OEM[];
 
@@ -149,6 +160,12 @@ constexpr const char StaticMac::OEM[];
 constexpr const char StaticMac::STATUS[];
 constexpr const char StaticMac::ADDRESS[];
 constexpr const char StaticMac::VLAN_ID[];
+
+constexpr const char NetworkQosAttribute::PRIORITY_GROUP[];
+constexpr const char NetworkQosAttribute::PRIORITY[];
+constexpr const char NetworkQosAttribute::PROTOCOL[];
+constexpr const char NetworkQosAttribute::PORT[];
+constexpr const char NetworkQosAttribute::BANDWIDTH_PERCENT[];
 
 }
 }

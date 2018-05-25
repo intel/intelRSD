@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,9 @@ import com.intel.podm.discovery.external.matchers.EntityObtainer;
 import com.intel.podm.mappers.Mapper;
 import com.intel.podm.mappers.MapperFinder;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,9 +45,10 @@ import static java.util.Objects.nonNull;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
-@Dependent
-class EntityMultiMapper {
+@ApplicationScoped
+public class EntityMultiMapper {
     @Inject
     private EntityObtainer entityObtainer;
 
@@ -66,6 +68,7 @@ class EntityMultiMapper {
     @Inject
     private MapperFinder mapperFinder;
 
+    @Transactional(MANDATORY)
     public Map<ExternalServiceResource, DiscoverableEntity> map(Collection<ExternalServiceResource> resources, ExternalService externalService) {
         requires(nonNull(externalService), "externalService should not be null");
 
@@ -81,11 +84,12 @@ class EntityMultiMapper {
     }
 
     private void deleteStaleEntities(Collection<ExternalServiceResource> resources, ExternalService externalService) {
-        Collection<Id> resourceIds = resources.stream().map(r -> r.getGlobalId(externalService.getId(), r.getUri())).collect(toSet());
+        Collection<Id> resourceIds = resources.stream().map(r -> r.getGlobalId(externalService.getId())).collect(toSet());
         externalLinkDao.removeAll(externalService, el -> !resourceIds.contains(el.getDiscoverableEntity().getGlobalId()));
     }
 
-    private DiscoverableEntity map(ExternalServiceResource resource, ExternalService service) {
+    @Transactional(MANDATORY)
+    public DiscoverableEntity map(ExternalServiceResource resource, ExternalService service) {
         return mapperFinder.find(resource)
             .flatMap(mapper -> mapWithMapper(resource, service, mapper))
             .orElse(null);
@@ -105,7 +109,7 @@ class EntityMultiMapper {
     }
 
     private Optional<DiscoverableEntity> matchResourceByServiceType(ExternalServiceResource resource, ExternalService service, Class targetClass) {
-        Id entityId = resource.getGlobalId(service.getId(), resource.getUri());
+        Id entityId = resource.getGlobalId(service.getId());
         return ofNullable(
             Objects.equals(LUI, service.getServiceType())
                 ? entityObtainer.obtain(service, resource)

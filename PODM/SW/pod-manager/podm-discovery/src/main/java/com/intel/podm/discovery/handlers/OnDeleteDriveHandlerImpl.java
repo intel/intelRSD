@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,38 @@
 
 package com.intel.podm.discovery.handlers;
 
-import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.handlers.OnDeleteDriveHandler;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.Drive;
-import com.intel.podm.discovery.ComposedNodeUpdater;
+import com.intel.podm.business.entities.redfish.Volume;
+import com.intel.podm.discovery.external.finalizers.ComposedNodeDisableService;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import static com.intel.podm.common.types.Protocol.NVME;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 @Transactional(MANDATORY)
 public class OnDeleteDriveHandlerImpl implements OnDeleteDriveHandler {
     @Inject
-    private GenericDao genericDao;
-
-    @Inject
-    private ComposedNodeUpdater composedNodeUpdater;
+    private ComposedNodeDisableService composedNodeDisableService;
 
     @Override
     public void preRemove(Drive drive) {
-        genericDao.remove(drive.getMetadata());
-
-        if (drive.getProtocol() == NVME) {
-            composedNodeUpdater.disableComposedNode(drive.getComposedNode());
+        ComposedNode composedNode = drive.getComposedNode();
+        if (composedNode != null) {
+            composedNodeDisableService.disableComposedNode(composedNode);
+        } else {
+            Volume volume = drive.getVolume();
+            if (isVolumeAttachedToNode(volume)) {
+                composedNodeDisableService.disableComposedNode(volume.getComposedNode());
+            }
         }
+    }
+
+    private boolean isVolumeAttachedToNode(Volume volume) {
+        return volume != null && volume.getComposedNode() != null;
     }
 }

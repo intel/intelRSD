@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +64,7 @@ void NetworkChangeNotifier::notify_listeners(unsigned iface_index,
                 l->on_network_change(iface_index, change_type);
             }
             catch(const std::exception& e) {
-                log_error(GET_LOGGER("net"),
+                log_error("net",
                         "NetworkChangeListener callback error: " << e.what());
             }
         }

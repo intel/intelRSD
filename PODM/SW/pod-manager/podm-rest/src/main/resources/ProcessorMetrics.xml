@@ -55,7 +55,6 @@
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be average frequency across all enabled cores in MHz."/>
           <Annotation Term="Measures.Unit" String="MHz"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="ThrottlingCelsius" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
@@ -63,29 +62,26 @@
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be CPU margin to throttle based on an offset between max temperature resource can operate and its current temperature."/>
           <Annotation Term="Measures.Unit" String="Cel"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="TemperatureCelsius" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Temperature of the Processor resource"/>
+          <Annotation Term="OData.Description" String="Temperature of the Processor resource."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be temperature of the Processor resource in Celsius."/>
           <Annotation Term="Measures.Unit" String="Cel"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="ConsumedPowerWatt" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Power consumed by Processor resource"/>
+          <Annotation Term="OData.Description" String="Power consumed by Processor resource."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be power for specific CPU domain in Watts."/>
           <Annotation Term="Measures.Unit" String="W"/>
         </Property>
         <Property Name="Health" Type="Collection(Edm.String)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="CPU Health as a discrete sensor reading"/>
+          <Annotation Term="OData.Description" String="CPU Health as a discrete sensor reading."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Processor Health as a discrete sensor reading."/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
       </EntityType>
 

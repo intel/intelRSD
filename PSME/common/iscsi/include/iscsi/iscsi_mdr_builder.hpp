@@ -1,7 +1,7 @@
 /*!
  * @brief iSCSI MDR v1.0 attempt region builder.
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,20 +47,30 @@ public:
      * @param conn_wait the attempt timeout in milliseconds.
      * @param retry_count the attempt retry count.
      */
-    template<typename DevFuncCtx>
-    static void build(ipmi::IpmiInterface::ByteBuffer& buffer, const DevFuncCtx& ctx, uint16_t conn_wait,
-        uint8_t retry_count) {
+    template<typename DevFuncCtxContainer>
+    static void build(ipmi::IpmiInterface::ByteBuffer& buffer, const DevFuncCtxContainer& ctx_container,
+        uint16_t conn_wait, uint8_t retry_count) {
         uint16_t current_handle = {1}; // zero is reserved for the version structure
+        std::vector<uint16_t> initiator_handles;
+        std::vector<uint16_t> target_handles;
         auto handle_inc = [&current_handle] () -> uint16_t {return current_handle++;};
 
-        // the current design only accepts one of each initiator, target, attempt
         IscsiVersionBuilder::append_structure(buffer, nullptr);
-        auto initiator_handle = current_handle;
-        IscsiInitiatorBuilder::append_structure(buffer, ctx, handle_inc);
-        auto target_handle = current_handle;
-        IscsiTargetBuilder::append_structure(buffer, ctx, handle_inc);
-        IscsiAttemptBuilder::append_structure(buffer, initiator_handle, target_handle, conn_wait, retry_count,
-            handle_inc);
+
+        // Go through the vector of possible initiator-target-attempt tuples
+        for (const auto& ctx : ctx_container) {
+            initiator_handles.push_back(current_handle);
+            IscsiInitiatorBuilder::append_structure(buffer, ctx, handle_inc);
+        }
+        for (const auto& ctx : ctx_container) {
+            target_handles.push_back(current_handle);
+            IscsiTargetBuilder::append_structure(buffer, ctx, handle_inc);
+        }
+
+        for (typename DevFuncCtxContainer::size_type i = 0; i < ctx_container.size(); i++) {
+            IscsiAttemptBuilder::append_structure(buffer, initiator_handles[i], target_handles[i], conn_wait,
+                retry_count, handle_inc);
+        }
     }
 
     /*!
@@ -69,8 +79,8 @@ public:
      * @param buffer the buffer to append the structure to.
      * @param device_functions the network device functions context to build from.
      */
-    template<typename DevFuncCtx>
-    static void clear(ipmi::IpmiInterface::ByteBuffer& buffer, const DevFuncCtx&) {
+    template<typename DevFuncCtxContainer>
+    static void clear(ipmi::IpmiInterface::ByteBuffer& buffer, const DevFuncCtxContainer&) {
 
         // a single valid version structure clears the iSCSI boot options
         IscsiVersionBuilder::append_structure(buffer, nullptr);

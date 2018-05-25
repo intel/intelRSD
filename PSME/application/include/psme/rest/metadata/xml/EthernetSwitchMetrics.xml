@@ -30,9 +30,9 @@
 
       <EntityType Name="EthernetSwitchMetrics" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description"
-                    String="EthernetSwitchMetrics contains usage and health statistics of an Ethernet Switch ."/>
+                    String="EthernetSwitchMetrics contains usage and health statistics for a Processor (all Cores) ."/>
         <Annotation Term="OData.LongDescription"
-                    String="This resource shall be used to represent metrics for an Ethernet Switch in a Redfish implementation."/>
+                    String="This resource shall be used to represent the Processor Metrics for a single Processor in a Redfish implementation."/>
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
       </EntityType>
     </Schema>
@@ -42,7 +42,7 @@
       <EntityType Name="EthernetSwitchMetrics" BaseType="EthernetSwitchMetrics.EthernetSwitchMetrics">
         <Property Name="Health" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Health of Ethernet Switch as a discrete sensor reading"/>
+          <Annotation Term="OData.Description" String="Health of Ethernet Switch as a discrete sensor reading."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Health of EthernetSwitch as a discrete sensor reading."/>
           <Annotation Term="Measures.Unit" String="By"/>

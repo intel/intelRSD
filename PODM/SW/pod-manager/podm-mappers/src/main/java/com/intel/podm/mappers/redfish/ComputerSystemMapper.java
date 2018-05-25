@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,9 @@ public class ComputerSystemMapper extends EntityMapper<ComputerSystemResource, C
         );
         sourceComputerSystem.getAllowableInterfaceTypes().ifAssigned(allowableInterfaceTypes ->
             simpleTypeMapper.map(allowableInterfaceTypes, targetComputerSystem.getAllowableInterfaceTypes(), targetComputerSystem::addAllowableInterfaceType)
+        );
+        sourceComputerSystem.getHostingRoles().ifAssigned(hostingRoles ->
+            simpleTypeMapper.map(hostingRoles, targetComputerSystem.getHostingRoles(), targetComputerSystem::addHostingRole)
         );
         sourceComputerSystem.getPcieConnectionId().ifAssigned(pcieConnectionId ->
             simpleTypeMapper.map(pcieConnectionId, targetComputerSystem.getPcieConnectionIds(), targetComputerSystem::addPcieConnectionId)

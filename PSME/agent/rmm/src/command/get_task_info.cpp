@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ using namespace agent_framework::model;
 
 REGISTER_COMMAND(GetTaskInfo,
      [] (const GetTaskInfo::Request& req, GetTaskInfo::Response& rsp) {
-         log_debug(GET_LOGGER("rmm-agent"), "Getting Task info");
+         log_debug("rmm-agent", "Getting Task info");
          rsp = get_manager<Task>().get_entry(req.get_uuid());
      }
 );

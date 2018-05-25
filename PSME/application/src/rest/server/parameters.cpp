@@ -21,7 +21,7 @@
  */
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,31 +40,31 @@
  * */
 #include "psme/rest/server/parameters.hpp"
 
+
+
 using namespace psme::rest::server;
 
+
 std::string& Parameters::operator[](const std::string& key) {
-	return m_list[key];
+    return m_list[key];
 }
+
 
 void Parameters::set(const std::string& key, const std::string& value) {
-	m_list[key] = value;
+    m_list[key] = value;
 }
 
-//  -----  parameter accessors  -----
 
 std::string Parameters::operator[](const std::string& key) const {
-	auto it = m_list.find(key);
-	if (it != m_list.end()) {
-		return it->second;
-	}
-	return std::string();
+    return get(key);
 }
 
+
 std::string Parameters::get(const std::string& key) const {
-	auto it = m_list.find(key);
-	if (it != m_list.end()) {
-		return it->second;
-	}
-	return std::string();
+    auto it = m_list.find(key);
+    if (it != m_list.end()) {
+        return it->second;
+    }
+    return std::string();
 }
 

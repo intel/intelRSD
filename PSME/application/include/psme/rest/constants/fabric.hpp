@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,13 +90,21 @@ namespace Endpoint {
 extern const char ENDPOINT_PROTOCOL[];
 extern const char PCI_ID[];
 extern const char CONNECTED_ENTITIES[];
-extern const char ENTITY_TYPE[];
 extern const char ENTITY_ROLE[];
 extern const char PCI_FUNCTION_NUMBER[];
 extern const char PCI_CLASS_CODE[];
 extern const char ENTITY_PCI_ID[];
 extern const char ENTITY_LINK[];
 extern const char HOST_RESERVATION_MEMORY_BYTES[];
+extern const char IP_TRANSPORT_DETAILS[];
+extern const char TRANSPORT_PROTOCOL[];
+extern const char IPV4_ADDRESS[];
+extern const char IPV6_ADDRESS[];
+extern const char PORT[];
+extern const char INTERFACES[];
+extern const char AUTHENTICATION[];
+extern const char USERNAME[];
+extern const char PASSWORD[];
 }
 
 }

@@ -1,7 +1,7 @@
 /*!
  * @brief Definition of function processing Set Component Attributes command on Network Device Function
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 #include "ipmi/command/sdv/iscsi_oob_boot/set_oob_reset_boot_options.hpp"
 #include "ipmi/command/generic/enums.hpp"
 #include "ipmi/utils/sdv/mdr_region_accessor.hpp"
+#include "ipmi/manager/ipmitool/locked_management_controller.hpp"
 
 #include "iscsi/structs/iscsi_mdr_header.hpp"
 #include "iscsi/structs/iscsi_mdr_target.hpp"
@@ -64,22 +65,22 @@ struct DeviceFunctionContext final {
     /*!
      * @brief Deleted copy constructor.
      */
-    DeviceFunctionContext(const DeviceFunctionContext&) = delete;
+    DeviceFunctionContext(const DeviceFunctionContext&) = default;
 
     /*!
      * @brief Deleted move constructor.
      */
-    DeviceFunctionContext(DeviceFunctionContext&&) = delete;
+    DeviceFunctionContext(DeviceFunctionContext&&) = default;
 
     /*!
      * @brief Deleted copy assignment.
      */
-    DeviceFunctionContext& operator=(const DeviceFunctionContext&) = delete;
+    DeviceFunctionContext& operator=(const DeviceFunctionContext&) = default;
 
     /*!
      * @brief Deleted move assignment.
      */
-    DeviceFunctionContext& operator=(DeviceFunctionContext&&) = delete;
+    DeviceFunctionContext& operator=(DeviceFunctionContext&&) = default;
 
     /*!
      * @brief Default destructor.
@@ -147,8 +148,40 @@ struct DeviceFunctionContext final {
     }
 
 private:
-    const NetworkDeviceFunction& m_net_dev;
+    NetworkDeviceFunction m_net_dev;
 };
+
+using DeviceFunctionContextContainer = std::vector<DeviceFunctionContext>;
+
+DeviceFunctionContextContainer get_ndf_context_vector(const NetworkDeviceFunction& network_device_function) {
+    DeviceFunctionContextContainer ret;
+    if (network_device_function.get_mac_address().has_value()) {
+        ret.emplace_back(network_device_function);
+    } else {
+        // get NetworkInterfaces from the same system as the NetworkDeviceFunction
+        const auto& ndf_parent = get_manager<NetworkDevice>().get_entry(network_device_function.get_parent_uuid());
+        const auto& interfaces = get_manager<NetworkInterface>().get_entries(ndf_parent.get_parent_uuid());
+        log_debug("compute-agent", "No MAC address provided, retrieving MAC address from "
+            << interfaces.size() << " NetworkInterfaces");
+        for (const auto& network_interface : interfaces) {
+            const auto& mac_address = network_interface.get_mac_address();
+            if (mac_address.has_value()) {
+                NetworkDeviceFunction copy{network_device_function};
+                copy.set_mac_address(mac_address);
+                ret.emplace_back(std::move(copy));
+            } else {
+                log_debug("compute-agent", "NetworkInterface " << network_interface.get_uuid() << " has no MAC address.");
+            }
+        }
+    }
+
+    // this should never happen
+    if (ret.empty()) {
+        THROW(IpmiError, "compute-agent", "iSCSI error: MAC address not specified and no NetworkInterface available");
+    }
+
+    return ret;
+}
 
 void clear_data(ManagementController& mc) {
     request::SetOobResetBootOptions request{};
@@ -483,13 +516,16 @@ void send_iscsi_oob_parameters(const NetworkDeviceFunction& function, Management
     }
     else if (platform == enums::PlatformType::PURLEY) {
         ipmi::IpmiInterface::ByteBuffer data{};
-        iscsi::builder::IscsiMdrBuilder::build(data, DeviceFunctionContext(function),
+        iscsi::builder::IscsiMdrBuilder::build(data, get_ndf_context_vector(function),
             request::SetOobInitiatorBootOptions::PURLEY_DEFAULT_WAIT_TIME,
             request::SetOobInitiatorBootOptions::DEFAULT_RETRY_COUNT);
 
         try {
+            // the MDR ISCI boot options requires a sequence of IPMI operations to complete within a certain time
+            // therefore the need to lock the interface for the whole pack of commands
+            LockedManagementController lmc(mc);
             std::shared_ptr<ipmi::sdv::MdrRegionAccessor> accessor = ipmi::sdv::MdrRegionAccessorFactory().create(
-                ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_PURLEY, mc,
+                ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_PURLEY, lmc,
                 ipmi::command::sdv::DataRegionId::ISCSI_BOOT_OPTIONS);
             accessor->write_mdr_region(data);
         } catch (std::runtime_error& re) {
@@ -510,11 +546,14 @@ void send_clear_iscsi_oob_parameters(const NetworkDeviceFunction& function, Mana
     else if (platform == enums::PlatformType::PURLEY) {
         // writing only the version structure clears iSCSI boot options
         ipmi::IpmiInterface::ByteBuffer data{};
-        iscsi::builder::IscsiMdrBuilder::clear(data, DeviceFunctionContext(function));
+        iscsi::builder::IscsiMdrBuilder::clear(data, get_ndf_context_vector(function));
 
         try {
+            // the MDR ISCI boot options requires a sequence of IPMI operations to complete within a certain time
+            // therefore the need to lock the interface for the whole pack of commands
+            LockedManagementController lmc(mc);
             std::shared_ptr<ipmi::sdv::MdrRegionAccessor> accessor = ipmi::sdv::MdrRegionAccessorFactory().create(
-                ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_PURLEY, mc,
+                ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_PURLEY, lmc,
                 ipmi::command::sdv::DataRegionId::ISCSI_BOOT_OPTIONS);
             accessor->write_mdr_region(data);
         } catch (std::runtime_error& re) {
@@ -535,7 +574,7 @@ void agent::compute::process_network_device_function(const std::string& uuid,
     ComputeValidator::validate_set_network_device_function_attributes(attributes);
     const auto attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
-        log_debug(GET_LOGGER("compute-agent"), "setComponentAttributes: nothing has been changed (empty request).");
+        log_debug("compute-agent", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
 
@@ -575,7 +614,7 @@ void agent::compute::process_network_device_function(const std::string& uuid,
         mc.set_username(connection_data.get_username());
         mc.set_password(connection_data.get_password());
 
-        log_info(GET_LOGGER("compute-agent"), "Updating iSCSI OOB parameters over IPMI!");
+        log_info("compute-agent", "Updating iSCSI OOB parameters over IPMI!");
         send_iscsi_oob_parameters(function, mc);
     }
 }
@@ -596,7 +635,7 @@ void agent::compute::set_iscsi_oob_parameters(const System& system, ManagementCo
     auto& function = locked_function.get_raw_ref();
 
     if (!function.get_device_enabled()) {
-        log_info(GET_LOGGER("compute-agent"), "Setting iSCSI OOB parameters over IPMI!");
+        log_info("compute-agent", "Setting iSCSI OOB parameters over IPMI!");
         function.set_device_enabled(true);
         send_iscsi_oob_parameters(function, mc);
     }
@@ -617,7 +656,7 @@ void agent::compute::clear_iscsi_oob_parameters(const System& system, Management
     auto function = get_manager<NetworkDeviceFunction>().get_entry_reference(network_function_uuids.front());
 
     if (function->get_device_enabled()) {
-        log_info(GET_LOGGER("compute-agent"), "Clearing iSCSI OOB parameters over IPMI!");
+        log_info("compute-agent", "Clearing iSCSI OOB parameters over IPMI!");
         function->set_device_enabled(false);
         send_clear_iscsi_oob_parameters(function.get_raw_ref(), mc);
     }
@@ -627,14 +666,14 @@ void agent::compute::clear_iscsi_oob_parameters(const System& system, Management
 bool agent::compute::get_iscsi_enabled(const System& system) {
     const auto network_device_uuids = get_manager<NetworkDevice>().get_keys(system.get_uuid());
     if (network_device_uuids.empty() || network_device_uuids.size() > 1) {
-        log_error(GET_LOGGER("compute-agent"),
+        log_error("compute-agent",
                   "Invalid number of Network Devices for System: '" + system.get_uuid() + "'!");
         return false;
     }
 
     const auto network_function_uuids = get_manager<NetworkDeviceFunction>().get_keys(network_device_uuids.front());
     if (network_function_uuids.empty() || network_function_uuids.size() > 1) {
-        log_error(GET_LOGGER("compute-agent"),
+        log_error("compute-agent",
                   "Invalid number of Network Device Functions for Device: '" + network_device_uuids.front() + "'!");
         return false;
     }

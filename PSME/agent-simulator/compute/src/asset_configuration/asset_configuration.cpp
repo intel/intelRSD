@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,54 +80,50 @@ void AssetConfiguration::read_configuration(const json::Value& configuration) {
 
 void AssetConfiguration::read_filename(const json::Value& asset_configuration) {
     if (asset_configuration["input"].is_string()) {
-        process_input(asset_configuration["input"].as_string());
+        m_input_file = asset_configuration["input"].as_string();
+        m_parser.parse_file(m_input_file);
     }
     else {
-        log_info(GET_LOGGER("agent"), "Cannot read asset configuration.");
+        log_info("agent", "Cannot read asset configuration.");
     }
 
     if (asset_configuration["output"].is_string()) {
-        process_output(asset_configuration["output"].as_string());
+        m_output_file = asset_configuration["output"].as_string();
+        process_output();
     }
     else {
-        log_info(GET_LOGGER("agent"), "No output will be saved.");
+        log_info("agent", "No output will be saved.");
     }
 
     if (asset_configuration["schema"].is_string()) {
-        process_schema(asset_configuration["schema"].as_string());
+        m_schema_file = asset_configuration["schema"].as_string();
+        process_schema();
     }
     else {
-        log_info(GET_LOGGER("agent"), "No validation will be performed.");
+        log_info("agent", "No validation will be performed.");
     }
 }
 
-void AssetConfiguration::process_input(const json::Value& asset_input) {
-    m_input_file = asset_input.as_string();
-    m_parser.parse_file(m_input_file);
-}
-
-void AssetConfiguration::process_output(const json::Value& asset_output) {
-    m_output_file = asset_output.as_string();
+void AssetConfiguration::process_output() {
     if (file_exists(m_output_file)) {
-        log_info(GET_LOGGER("agent"), "Output will be saved to " << m_output_file);
+        log_info("agent", "Output will be saved to " << m_output_file);
         m_save_output = true;
     }
     else {
-        log_info(GET_LOGGER("agent"), "Cannot write to file " << m_output_file);
+        log_info("agent", "Cannot write to file " << m_output_file);
         m_save_output = false;
     }
 }
 
-void AssetConfiguration::process_schema(const json::Value& asset_schema) {
-    m_schema_file = asset_schema.as_string();
+void AssetConfiguration::process_schema() {
     if (file_exists(m_schema_file)) {
-        log_info(GET_LOGGER("agent"), m_input_file << " will be validated according to " << m_schema_file);
+        log_info("agent", m_input_file << " will be validated according to " << m_schema_file);
         m_validate = false;
         m_validator.parse_file(m_schema_file);
         m_validator.validate(this->get_document());
     }
     else {
-        log_info(GET_LOGGER("agent"), "Cannot read file " << m_schema_file);
+        log_info("agent", "Cannot read file " << m_schema_file);
         m_validate = false;
     }
 }
@@ -174,7 +170,7 @@ read_int(const xmlpp::Node* element, const std::string& name) {
             (static_cast<uint32_t>(std::stoul(read_string(element, name))));
         }
         catch (std::invalid_argument&) {
-            log_debug(GET_LOGGER("agent"), "Property" <<
+            log_debug("agent", "Property" <<
                                             " '"<< name << "' "
                                             "is not convertible to unsigned int");
             return 0;
@@ -191,7 +187,7 @@ read_opt_int(const xmlpp::Node* element, const std::string& name) {
                 OptionalField<std::uint32_t>(static_cast<uint32_t>(std::stoul(read_string(element, name))));
         }
         catch (std::invalid_argument&) {
-            log_debug(GET_LOGGER("agent"), "Property" <<
+            log_debug("agent", "Property" <<
                                             " '"<< name << "' "
                                             "is not convertible to unsigned int");
             return OptionalField<std::uint32_t>();
@@ -208,7 +204,7 @@ read_opt_double(const xmlpp::Node* element, const std::string& name) {
             OptionalField<double>(static_cast<double>(std::stod(read_string(element, name))));
         }
         catch (std::invalid_argument&) {
-            log_debug(GET_LOGGER("agent"), "Property" <<
+            log_debug("agent", "Property" <<
                                             " '"<< name << "' "
                                             "is not convertible to double");
             return OptionalField<double>();
@@ -226,7 +222,7 @@ read_double(const xmlpp::Node* element, const std::string& name) {
                 (static_cast<double>(std::stod(read_string(element, name))));
         }
         catch (std::invalid_argument&) {
-            log_debug(GET_LOGGER("agent"), "Property" <<
+            log_debug("agent", "Property" <<
                                             "'"<< name << "'"
                                             "is not convertible to double");
             return 0.0;
@@ -290,7 +286,7 @@ AssetConfiguration::~AssetConfiguration() {
             output_file->write_to_file(m_output_file);
         }
         catch (const xmlpp::exception& e) {
-            log_error(GET_LOGGER("agent"), "Writing to file failed! "
+            log_error("agent", "Writing to file failed! "
                     << e.what());
         }
 

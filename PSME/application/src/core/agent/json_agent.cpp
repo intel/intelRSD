@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,20 +56,21 @@ std::string JsonAgent::make_connection_url(const std::string& ipv4address, const
 
 void JsonAgent::clean_resource_for_agent() {
     psme::rest::model::handler::HandlerManager::get_instance()->remove_agent_data(get_gami_id());
-    log_info(GET_LOGGER("rest"), "Agent's data has been cleared [gami_id: " << m_gami_id << " ]");
+    log_info("rest", "Agent's data has been cleared [gami_id: " << m_gami_id << " ]");
 }
 
 void JsonAgent::unregister_agent() {
     core::agent::AgentManager::get_instance()->remove_agent(get_gami_id());
-    log_info(GET_LOGGER("rest"), "Agent " << m_gami_id << " unregistered");
+    log_info("rest", "Agent " << m_gami_id << " unregistered");
 }
 
 void JsonAgent::execute_in_transaction(const FunctionType& function){
     std::unique_lock<std::mutex> lock(m_transaction_mutex, std::defer_lock);
     auto success = lock.try_lock();
     if (!success) {
-        log_info(GET_LOGGER("rest"), "Waiting for an unfinished transaction with agent " << m_gami_id << ".");
+        log_info("rest", "Waiting for an unfinished transaction with agent " << m_gami_id << ".");
         lock.lock();
+        log_info("rest", "Starting the previously waiting transaction with agent " << m_gami_id << ".");
     }
 
     function();

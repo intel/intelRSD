@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,6 +54,22 @@ public:
      * @param response the GET response
      */
     void get(const server::Request& request, server::Response& response) override;
+
+    /*!
+     * @brief the implementation of DELETE method on this endpoint
+     *
+     * @param request the client's request
+     * @param response the DELETE response
+     */
+    void del(const server::Request& request, server::Response& response) override;
+
+    /*!
+     * @brief the implementation of PATCH method on this endpoint
+     *
+     * @param request the client's request
+     * @param response the PATCH response
+     */
+    void patch(const server::Request& request, server::Response& response) override;
 };
 
 }

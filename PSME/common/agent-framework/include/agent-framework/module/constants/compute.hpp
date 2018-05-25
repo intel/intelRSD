@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -202,32 +202,6 @@ public:
     static constexpr const char ERROR_CORRECTION[] = "errorCorrection";
     static constexpr const char REGIONS[] = "regions";
     static constexpr const char OPERATING_MODES[] = "operatingModes";
-    static constexpr const char OEM[] = "oem";
-};
-
-/*!
- * @brief Class consisting of literals for NetworkInterface model objects
- */
-class NetworkInterface {
-public:
-    static constexpr const char INTERFACE[] = "interface";
-    static constexpr const char STATUS[] = "status";
-    static constexpr const char FRAME_SIZE[] = "frameSize";
-    static constexpr const char SPEED[] = "speedMbps";
-    static constexpr const char AUTO_SENSE[] = "autoSense";
-    static constexpr const char MAC_ADDRESS[] = "macAddress";
-    static constexpr const char FACTORY_MAC_ADDRESS[] = "factoryMacAddress";
-    static constexpr const char VLAN_ENABLE[] = "vlanEnable";
-    static constexpr const char VLAN_COUNT[] = "vlanCount";
-    static constexpr const char FULL_DUPLEX[] = "fullDuplex";
-    static constexpr const char IPv4_ADDRESS[] = "ipv4Address";
-    static constexpr const char IPv6_ADDRESS[] = "ipv6Address";
-    static constexpr const char IPv4_ADDRESSES[] = "ipv4Addresses";
-    static constexpr const char IPv6_ADDRESSES[] = "ipv6Addresses";
-    static constexpr const char IPv6_DEFAULT_GATEWAY[] = "ipv6DefaultGateway";
-    static constexpr const char MAX_IPv6_STATIC_ADDRESSES[] = "maxIPv6StaticAddresses";
-    static constexpr const char DEFAULT_VLAN[] = "defaultVlan";
-    static constexpr const char COLLECTIONS[] = "collections";
     static constexpr const char OEM[] = "oem";
 };
 

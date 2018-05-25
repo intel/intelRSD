@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,34 @@
 package com.intel.podm.redfish.resources;
 
 import com.intel.podm.business.BusinessApiException;
+import com.intel.podm.business.dto.actions.actionInfo.ActionInfoDto;
+import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ActionService;
 import com.intel.podm.business.services.redfish.requests.AssemblyRequest;
-import com.intel.podm.business.services.redfish.requests.AttachEndpointRequest;
-import com.intel.podm.business.services.redfish.requests.DetachEndpointRequest;
+import com.intel.podm.business.services.redfish.requests.AttachResourceRequest;
+import com.intel.podm.business.services.redfish.requests.DetachResourceRequest;
 import com.intel.podm.business.services.redfish.requests.ResetRequest;
-import com.intel.podm.redfish.json.templates.actions.AttachEndpointJson;
-import com.intel.podm.redfish.json.templates.actions.DetachEndpointJson;
+import com.intel.podm.redfish.json.templates.RedfishResourceAmazingWrapper;
+import com.intel.podm.redfish.json.templates.actions.AttachResourceJson;
+import com.intel.podm.redfish.json.templates.actions.DetachResourceJson;
 import com.intel.podm.redfish.json.templates.actions.ResetActionJson;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.concurrent.TimeoutException;
 
+import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
+import static com.intel.podm.common.types.actions.ActionInfoNames.ATTACH_RESOURCE_ACTION_INFO;
+import static com.intel.podm.common.types.actions.ActionInfoNames.DETACH_RESOURCE_ACTION_INFO;
 import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceActionBuilder;
 import static com.intel.podm.rest.error.PodmExceptions.invalidHttpMethod;
+import static java.lang.String.format;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.noContent;
 
@@ -50,10 +58,10 @@ public class ComposedNodeActionsResource extends BaseResource {
     private ActionService<AssemblyRequest> assemblyRequestActionService;
 
     @Inject
-    private ActionService<AttachEndpointRequest> attachEndpointRequestActionService;
+    private ActionService<AttachResourceRequest> attachResourceRequestActionService;
 
     @Inject
-    private ActionService<DetachEndpointRequest> detachEndpointRequestActionService;
+    private ActionService<DetachResourceRequest> detachResourceRequestActionService;
 
     @Override
     public Object get() {
@@ -76,17 +84,33 @@ public class ComposedNodeActionsResource extends BaseResource {
     }
 
     @POST
-    @Path("ComposedNode.AttachEndpoint")
-    public Response attachEndpoint(AttachEndpointJson attachEndpointJson) throws TimeoutException, BusinessApiException {
-        attachEndpointRequestActionService.perform(getCurrentContext(), attachEndpointJson);
+    @Path("ComposedNode.AttachResource")
+    public Response attachEndpoint(AttachResourceJson attachResourceJson) throws TimeoutException, BusinessApiException {
+        attachResourceRequestActionService.perform(getCurrentContext(), attachResourceJson);
         return noContent().build();
     }
 
     @POST
-    @Path("ComposedNode.DetachEndpoint")
-    public Response detachEndpoint(DetachEndpointJson detachEndpointJson) throws TimeoutException, BusinessApiException {
-        detachEndpointRequestActionService.perform(getCurrentContext(), detachEndpointJson);
+    @Path("ComposedNode.DetachResource")
+    public Response detachResource(DetachResourceJson detachResourceJson) throws TimeoutException, BusinessApiException {
+        detachResourceRequestActionService.perform(getCurrentContext(), detachResourceJson);
         return noContent().build();
+    }
+
+    @GET
+    @Path(ATTACH_RESOURCE_ACTION_INFO)
+    public RedfishResourceAmazingWrapper getAttachResourceActionInfo() throws BusinessApiException {
+        Context context = getCurrentContext();
+        ActionInfoDto actionInfoDto = attachResourceRequestActionService.getActionInfo(context);
+        return new RedfishResourceAmazingWrapper(singletonContextOf(context, format("Actions/%s", ATTACH_RESOURCE_ACTION_INFO)), actionInfoDto);
+    }
+
+    @GET
+    @Path(DETACH_RESOURCE_ACTION_INFO)
+    public RedfishResourceAmazingWrapper getDetachResourceActionInfo() throws BusinessApiException {
+        Context context = getCurrentContext();
+        ActionInfoDto actionInfoDto = detachResourceRequestActionService.getActionInfo(context);
+        return new RedfishResourceAmazingWrapper(singletonContextOf(context, format("Actions/%s", DETACH_RESOURCE_ACTION_INFO)), actionInfoDto);
     }
 
     @Override

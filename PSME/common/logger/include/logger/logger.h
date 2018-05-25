@@ -1,7 +1,7 @@
 /*!
  * @brief C logger prototypes and macros
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,34 +66,6 @@
  * */
 #define LOGGER_PRINTF_FORMAT(fmt_index, val_index)\
     __attribute__((__format__(__printf__, fmt_index, val_index)))
-
-/*!
- * @def LOGGER_FILE_NAME
- * Generate file name for log_* functions called in that file
- *
- * @def LOGGER_FUNCTION_NAME
- * Generate function name for log_* functions called in that function
- *
- * @def LOGGER_LINE_NUMBER
- * Generate line number for log_* functions called in that file
- * */
-#ifndef LOGGER_CPP_OVER_LOGGER_C_MACROS
-
-#ifndef LOGGER_MORE_DEBUG_OFF
-#ifndef __FILENAME__
-#define LOGGER_FILE_NAME                    __FILE__
-#else
-#define LOGGER_FILE_NAME                    __FILENAME__
-#endif
-#define LOGGER_FUNCTION_NAME                __func__
-#define LOGGER_LINE_NUMBER                  __LINE__
-#else
-#define LOGGER_FILE_NAME                    NULL
-#define LOGGER_FUNCTION_NAME                NULL
-#define LOGGER_LINE_NUMBER                  0
-#endif
-
-#endif /* LOGGER_CPP_OVER_LOGGER_C_MACROS */
 
 /*!
  * @def LOG_LEVEL_MASK
@@ -408,6 +380,35 @@ void _log_vwrite(
 
 #ifndef LOGGER_CPP_OVER_LOGGER_C_MACROS
 
+#if defined(LOGGER_DISABLED)
+#define log_write(inst, level, stream)
+#else
+
+/*!
+ * @def LOGGER_FILE_NAME
+ * Generate file name for log_* functions called in that file
+ *
+ * @def LOGGER_FUNCTION_NAME
+ * Generate function name for log_* functions called in that function
+ *
+ * @def LOGGER_LINE_NUMBER
+ * Generate line number for log_* functions called in that file
+ */
+
+#ifndef LOGGER_MORE_DEBUG_OFF
+#ifndef __FILENAME__
+#define LOGGER_FILE_NAME                    __FILE__
+#else
+#define LOGGER_FILE_NAME                    __FILENAME__
+#endif
+#define LOGGER_FUNCTION_NAME                __func__
+#define LOGGER_LINE_NUMBER                  __LINE__
+#else
+#define LOGGER_FILE_NAME                    NULL
+#define LOGGER_FUNCTION_NAME                NULL
+#define LOGGER_LINE_NUMBER                  0
+#endif
+
 /*!
  * @brief Write log
  *
@@ -430,6 +431,8 @@ void _log_vwrite(
                 __VA_ARGS__);\
         }\
     } while (0)
+
+#endif /* defined(LOGGER_DISABLED) */
 
 /*!
  * @brief Emergency message, system is about to crash or is unstable

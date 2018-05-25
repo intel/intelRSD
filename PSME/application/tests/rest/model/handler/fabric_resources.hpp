@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -158,14 +158,18 @@ static std::string Endpoint1InZone1 =
                 "type": "Ports"
             }
         ],
-        "entities": [
+        "connectedEntities": [
             {
                 "entity": null,
-                "entityRole": "Initiator",
-                "entityType": "RootComplex"
+                "role": "Initiator",
+                "identifiers" : []
             }
         ],
+        "fabric": "9e8aa67c-a8f9-11e7-9371-b3c84ca2076c",
         "identifiers": [],
+        "ipTransportDetails": [],
+        "username": "user",
+        "password": "pass",
         "oem": {},
         "protocol": "PCIe",
         "status": {
@@ -183,14 +187,18 @@ static std::string Endpoint1InZone2 =
                 "type": "Ports"
             }
         ],
-        "entities": [
+        "connectedEntities": [
             {
                 "entity": null,
-                "entityRole": "Initiator",
-                "entityType": "RootComplex"
+                "role": "Initiator",
+                "identifiers" : []
             }
         ],
+        "fabric": "9e8aa67c-a8f9-11e7-9371-b3c84ca2076c",
         "identifiers": [],
+        "ipTransportDetails": [],
+        "username": "user",
+        "password": "pass",
         "oem": {},
         "protocol": "PCIe",
         "status": {
@@ -208,14 +216,18 @@ static std::string Endpoint2InZone2 =
                 "type": "Ports"
             }
         ],
-        "entities": [
+        "connectedEntities": [
             {
                 "entity": null,
-                "entityRole": "Initiator",
-                "entityType": "RootComplex"
+                "role": "Initiator",
+                "identifiers" : []
             }
         ],
+        "fabric": "9e8aa67c-a8f9-11e7-9371-b3c84ca2076c",
         "identifiers": [],
+        "ipTransportDetails": [],
+        "username": "user",
+        "password": "pass",
         "oem": {},
         "protocol": "PCIe",
         "status": {

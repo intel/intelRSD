@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,7 +140,6 @@ public class ExternalService extends Entity {
     }
 
     public void markAsNotReachable() {
-        //todo order of following two calls should be reverted(unfortunatelly it does't work now). Find a root cause of this behaviour.
         getOwnedLinks().stream()
             .map(ExternalLink::getDiscoverableEntity)
             .filter(this::allOtherRelatedServices)
@@ -186,6 +185,7 @@ public class ExternalService extends Entity {
         this.eventingAvailable = eventingAvailable;
     }
 
+    @SuppressWarnings({"unchecked"})
     public <T extends DiscoverableEntity> List<T> getOwned(Class<T> clazz) {
         return ownedLinks.stream()
             .map(ExternalLink::getDiscoverableEntity)
@@ -242,6 +242,6 @@ public class ExternalService extends Entity {
     }
 
     public Set<DiscoverableEntity> getOwnedEntities() {
-        return getOwnedLinks().stream().map(link -> link.getDiscoverableEntity()).collect(toSet());
+        return getOwnedLinks().stream().map(ExternalLink::getDiscoverableEntity).collect(toSet());
     }
 }

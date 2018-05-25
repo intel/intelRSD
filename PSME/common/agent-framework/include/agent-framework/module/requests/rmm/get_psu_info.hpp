@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +82,8 @@ public:
             jsonrpc::PARAMS_BY_NAME,
             jsonrpc::JSON_STRING,
             literals::Psu::PSU, jsonrpc::JSON_STRING,
-            nullptr};
+            nullptr
+        };
         return procedure;
     }
 

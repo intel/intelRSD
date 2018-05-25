@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -258,7 +258,7 @@ void fill_power_supplies(const std::vector<std::string>& power_zones, const std:
                     .build();
 
             power_supply[Common::MEMBER_ID] = std::to_string(psu.get_id());
-            power_supply[Common::NAME] = "Power Supply Bay " + std::to_string(psu_index + 1);
+            power_supply[Common::NAME] = "Power Supply " + std::to_string(psu_index + 1);
 
             power_supply[PowerZone::POWER_SUPPLY_TYPE] = psu.get_power_supply_type();
             power_supply[PowerZone::LINE_INPUT_VOLTAGE_TYPE] = psu.get_line_input_voltage_type();

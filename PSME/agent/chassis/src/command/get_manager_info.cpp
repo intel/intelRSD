@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ using namespace agent_framework::model;
 
 REGISTER_COMMAND(GetManagerInfo,
     [] (const GetManagerInfo::Request& req, GetManagerInfo::Response& rsp) {
-        log_debug(GET_LOGGER("rpc"), "GetManagerInfo with parameters: manager "
+        log_debug("rpc", "GetManagerInfo with parameters: manager "
             << req.get_uuid());
         const auto& manager = CommonComponents::get_instance()->get_module_manager().get_entry(req.get_uuid());
         if (manager.get_manager_type() == enums::ManagerInfoType::EnclosureManager && manager.has_persistent_uuid()) {

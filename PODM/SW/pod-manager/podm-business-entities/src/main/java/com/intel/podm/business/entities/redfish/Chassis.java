@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.intel.podm.business.entities.redfish;
 
 import com.intel.podm.business.entities.Eventable;
-import com.intel.podm.business.entities.listeners.ChassisListener;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.embeddables.RackChassisAttributes;
@@ -28,7 +27,6 @@ import com.intel.podm.common.types.PowerState;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
-import javax.persistence.EntityListeners;
 import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -72,7 +70,6 @@ import static javax.persistence.FetchType.LAZY;
     ),
 })
 @Table(name = "chassis", indexes = @Index(name = "idx_chassis_entity_id", columnList = "entity_id", unique = true))
-@EntityListeners(ChassisListener.class)
 @Eventable
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public class Chassis extends DiscoverableEntity {

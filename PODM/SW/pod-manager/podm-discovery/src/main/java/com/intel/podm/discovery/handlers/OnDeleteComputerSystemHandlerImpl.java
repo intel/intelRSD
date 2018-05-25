@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,15 @@ import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.handlers.OnDeleteComputerSystemHandler;
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Drive;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.InBandServiceConfig;
-import com.intel.podm.discovery.ComposedNodeUpdater;
 import com.intel.podm.discovery.ServiceExplorer;
+import com.intel.podm.discovery.external.finalizers.ComposedNodeDisableService;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -55,7 +56,7 @@ public class OnDeleteComputerSystemHandlerImpl implements OnDeleteComputerSystem
     private ServiceExplorer serviceExplorer;
 
     @Inject
-    private ComposedNodeUpdater composedNodeUpdater;
+    private ComposedNodeDisableService composedNodeDisableService;
 
     @Inject
     private ComputerSystemDao computerSystemDao;
@@ -71,12 +72,14 @@ public class OnDeleteComputerSystemHandlerImpl implements OnDeleteComputerSystem
     @Transactional(MANDATORY)
     public void preRemove(ComputerSystem computerSystem) {
         removeAffectedEntitiesFromComplementaryService(computerSystem);
-        genericDao.remove(computerSystem.getMetadata());
         removeEthernetInterfacesReadFromLui(computerSystem);
         removeDrivesReadFromLui(computerSystem);
         triggerStorageServicesCheck();
 
-        composedNodeUpdater.disableComposedNode(computerSystem.getComposedNode());
+        ComposedNode composedNode = computerSystem.getComposedNode();
+        if (composedNode != null) {
+            composedNodeDisableService.disableComposedNode(composedNode);
+        }
     }
 
     private void removeAffectedEntitiesFromComplementaryService(ComputerSystem computerSystem) {
@@ -95,14 +98,13 @@ public class OnDeleteComputerSystemHandlerImpl implements OnDeleteComputerSystem
     }
 
     private Set<Drive> getDrivesFromComputerSystemStorage(ComputerSystem computerSystem) {
-        return computerSystem.getStorages()
-                             .stream()
-                             .flatMap(storage -> storage.getDrives().stream())
-                             .collect(toSet());
+        return computerSystem.getStorages().stream()
+            .flatMap(storage -> storage.getDrives().stream())
+            .collect(toSet());
     }
 
     private boolean isLui(ExternalService service) {
-        return service == null || LUI.equals(service.getServiceType());
+        return service != null && LUI.equals(service.getServiceType());
     }
 
     private void triggerStorageServicesCheck() {

@@ -16,7 +16,7 @@
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Service">
       <EntityContainer Name="Service" Extends="ServiceRoot.v1_1_1.ServiceContainer">
-        <Annotation Term="OData.Description" String="Default Entity Container"/>
+        <Annotation Term="OData.Description" String="Default Entity Container."/>
       </EntityContainer>
     </Schema>
   </edmx:DataServices>

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,10 +50,8 @@ Fan Fan::from_json(const json::Json& json) {
     fan.set_current_speed(json[literals::Fan::CURRENT_SPEED]);
     fan.set_current_speed_units(json[literals::Fan::CURRENT_SPEED_UNITS]);
     fan.set_physical_context(json[literals::Fan::PHYSICAL_CONTEXT]);
-    fan.set_fru_info(attribute::FruInfo::from_json(
-        json[literals::Fan::FRU_INFO]));
+    fan.set_fru_info(attribute::FruInfo::from_json(json[literals::Fan::FRU_INFO]));
     fan.set_oem(attribute::Oem::from_json(json[literals::Fan::OEM]));
-    fan.set_resource_hash(json);
 
     return fan;
 }

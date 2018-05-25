@@ -2,7 +2,7 @@
  * @brief Drive builder class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ void DriveBuilder::update_smbios_data(agent_framework::model::Drive& drive,
     drive.set_interface(OptionalField<enums::StorageProtocol>{});
     drive.set_type(OptionalField<enums::DriveType>{});
 
-    log_debug(GET_LOGGER("smbios-discovery"), "Drive was discovered.");
+    log_debug("smbios-discovery", "Drive was discovered.");
 }
 
 
@@ -125,7 +125,7 @@ void DriveBuilder::update_smbios_data(agent_framework::model::Drive& drive,
     drive.set_interface(OptionalField<enums::StorageProtocol>{});
     drive.set_type(OptionalField<enums::DriveType>{});
 
-    log_debug(GET_LOGGER("smbios-discovery"), "Drive V2 was discovered.");
+    log_debug("smbios-discovery", "Drive V2 was discovered.");
 }
 
 
@@ -149,5 +149,5 @@ void DriveBuilder::update_smbios_data(agent_framework::model::Drive& drive,
     drive.set_rpm(smbios_data.data.device_rpm);
 
 
-    log_debug(GET_LOGGER("smbios-discovery"), "Drive of StorageDevice type was discovered.");
+    log_debug("smbios-discovery", "Drive of StorageDevice type was discovered.");
 }

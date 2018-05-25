@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,7 +88,9 @@ const char INTERFACE_TYPE[] = "InterfaceType";
 const char DEVICE_ENABLED[] = "DeviceEnabled";
 const char CLEAR_OWNERSHIP[] = "ClearOwnership";
 const char ALLOWABLE_INTERFACE_TYPE[] = "InterfaceType@Redfish.AllowableValues";
-
+const char HOSTED_SERVICES[] = "HostedServices";
+const char STORAGE_SERVICES[] = "StorageServices";
+const char HOSTING_ROLES[] = "HostingRoles";
 }
 
 namespace SystemMetrics {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,10 +56,10 @@ public class MemoryMetricsDtoMapper extends DtoMapper<MemoryMetrics, MemoryMetri
     private void mapMemoryMetricsOem(MemoryMetrics source, MemoryMetricsDto target) {
         MemoryMetricsDto.Oem.RackScaleOem rackScaleOem = target.getOem().getRackScaleOem();
         rackScaleOem.setTemperatureCelsius(source.getTemperatureCelsius());
-        rackScaleOem.setThermalMarginCelsius(source.getThermalMarginCelsius());
         rackScaleOem.setBandwidthPercent(source.getBandwidthPercent());
         rackScaleOem.setConsumedPowerWatt(source.getConsumedPowerWatt());
         rackScaleOem.setThrottledCyclesPercent(source.getThrottledCyclesPercent());
+        rackScaleOem.setThermalMarginCelsius(source.getThermalMarginCelsius());
         rackScaleOem.setEccErrorsCount(source.getEccErrorsCount());
         rackScaleOem.setHealthList(source.getHealthList());
     }

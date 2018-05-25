@@ -5,7 +5,7 @@
  * This is only wrapper to the library.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public:
 
 
     /*!
-     * @brief Send request and wait for the response
+     * @brief Send request and wait for the response. Multithread safe version.
      * @param netfn network function
      * @param command command
      * @param lun logical unit number
@@ -76,6 +76,31 @@ public:
               const ipmi::BridgeInfo& bridge,
               const ipmi::IpmiInterface::ByteBuffer& request, ipmi::IpmiInterface::ByteBuffer& response,
               bool reconnect);
+
+    /*!
+     * @brief Send request and wait for the response. Multithread unsafe version.
+     * @param netfn network function
+     * @param command command
+     * @param lun logical unit number
+     * @param bridge bridging info
+     * @param request request data to be sent
+     * @param response received response
+     * @param reconnect is session is expected to be ended by other side
+     */
+    void send_unlocked(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterface::Cmd command, ipmi::IpmiInterface::Lun lun,
+                  const ipmi::BridgeInfo& bridge,
+                  const ipmi::IpmiInterface::ByteBuffer& request, ipmi::IpmiInterface::ByteBuffer& response,
+                  bool reconnect);
+
+    /*!
+     * @brief Lock the IPMI interface.
+     */
+    void lock();
+
+    /*!
+     * @brief Unlock the IPMI interface.
+     */
+    void unlock();
 
 
 private:

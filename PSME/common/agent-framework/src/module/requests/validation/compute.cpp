@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,7 +96,7 @@ public:
         static constexpr const uint32_t MIN_VLAN_ID{1};
         static constexpr const uint32_t MAX_VLAN_ID{4094};
         static constexpr const uint32_t MAX_TCP_PORT{65535};
-        static constexpr const uint32_t MAX_LUN{255};
+        static constexpr const uint32_t MAX_LUN{65535};
 
         static jsonrpc::ProcedureValidator procedure{
             jsonrpc::PARAMS_BY_NAME,
@@ -169,7 +169,7 @@ void ComputeValidator::validate_set_network_device_function_attributes(const Att
         check_length(literals::IscsiBoot::MUTUAL_CHAP_SECRET, 12, 16);
     }
 
-    log_debug(GET_LOGGER("compute-agent"), "Request validation passed.");
+    log_debug("compute-agent", "Request validation passed.");
 }
 
 

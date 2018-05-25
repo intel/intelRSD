@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,6 +67,5 @@ Switch Switch::from_json(const json::Json& json) {
     fabric_switch.set_indicator_led(json[literals::Switch::INDICATOR_LED]);
     fabric_switch.set_protocol(json[literals::Switch::PROTOCOL]);
 
-    fabric_switch.set_resource_hash(json);
     return fabric_switch;
 }

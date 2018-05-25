@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -106,7 +106,7 @@ void endpoint::StaticMacCollection::post(const server::Request& req, server::Res
             load(gami_agent, parent_port.get_uuid(), enums::Component::EthernetSwitchPort,
                  add_port_static_mac_response.get_static_mac(), true);
 
-        endpoint::utils::set_location_header(res, PathBuilder(req).append(static_mac_id).build());
+        endpoint::utils::set_location_header(req, res, PathBuilder(req).append(static_mac_id).build());
 
         res.set_status(server::status_2XX::CREATED);
     };

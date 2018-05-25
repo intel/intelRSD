@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,15 +54,15 @@ public class NetworkDeviceFunctionInvoker {
         requires(service != null, "There is no Service associated with selected Network Device Function");
 
         URI baseUri = service.getBaseUri();
-        URI systemUri = networkDeviceFunction.getSourceUri();
+        URI sourceUri = networkDeviceFunction.getSourceUri();
 
         try (WebClient webClient = webClientBuilder.newInstance(baseUri).retryable().build()) {
             NetworkDeviceFunctionRequest request = new NetworkDeviceFunctionRequest(networkDeviceFunctionDefinition);
-            NetworkDeviceFunctionResource networkDeviceFunctionResource = webClient.patchAndRetrieve(systemUri, request);
+            NetworkDeviceFunctionResource networkDeviceFunctionResource = webClient.patchAndRetrieve(sourceUri, request);
             networkDeviceFunctionMapper.map(networkDeviceFunctionResource, networkDeviceFunction);
         } catch (WebClientRequestException e) {
             String errorMessage = "Update on selected NetworkDeviceFunction failed";
-            logger.w(errorMessage + " on [ service: {}, path: {} ]", service.getBaseUri(), systemUri);
+            logger.w(errorMessage + " on [ service: {}, path: {} ]", service.getBaseUri(), sourceUri);
             throw new EntityOperationException(errorMessage, e);
         }
     }

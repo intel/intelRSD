@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@ import com.intel.podm.common.types.NotifyIpV6Scope;
 import com.intel.podm.common.types.Status;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name",
-    "description", "status", "hostName", "fqdn", "http", "https",
-    "ipmi", "ssh", "snmp", "virtualMedia", "ssdp", "telnet", "kvmip", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "hostName", "fqdn", "http", "https", "ipmi", "ssh", "snmp",
+    "virtualMedia", "ssdp", "telnet", "kvmip", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class NetworkProtocolDto extends RedfishDto {
@@ -42,11 +41,9 @@ public final class NetworkProtocolDto extends RedfishDto {
     private ProtocolDto ssh;
     @JsonProperty("SNMP")
     private ProtocolDto snmp;
-    @JsonProperty("VirtualMedia")
     private ProtocolDto virtualMedia;
     @JsonProperty("SSDP")
     private SimpleServiceDiscoveryProtocolDto ssdp;
-    @JsonProperty("Telnet")
     private ProtocolDto telnet;
     @JsonProperty("KVMIP")
     private ProtocolDto kvmip;

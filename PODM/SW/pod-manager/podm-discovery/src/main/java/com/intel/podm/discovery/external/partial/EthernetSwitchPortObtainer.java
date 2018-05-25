@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class EthernetSwitchPortObtainer {
     public EthernetSwitchPort discoverPort(ExternalService service, URI portUri) throws WebClientRequestException {
         try (WebClient webClient = webClientBuilder.newInstance(service.getBaseUri()).retryable().build()) {
             EthernetSwitchPortResource switchPortResource = (EthernetSwitchPortResource) webClient.get(portUri);
-            EthernetSwitchPort targetSwitchPort = readEthernetSwitchPortResource(service, portUri, switchPortResource);
+            EthernetSwitchPort targetSwitchPort = readEthernetSwitchPortResource(service, switchPortResource);
             updatePortMembers(webClient, switchPortResource, targetSwitchPort);
 
             Set<EthernetSwitchPortVlan> vlans = vlanObtainer.discoverEthernetSwitchPortVlans(service, getUrisFromResources(switchPortResource.getVlans()));
@@ -70,12 +70,11 @@ public class EthernetSwitchPortObtainer {
         }
     }
 
-    private EthernetSwitchPort readEthernetSwitchPortResource(ExternalService service, URI switchPortUri,
-                                                              EthernetSwitchPortResource switchPortResource) {
-        URI sourceSwitchPortUri = URI.create(switchPortUri.getPath());
-        Id entityId = switchPortResource.getGlobalId(service.getId(), sourceSwitchPortUri);
-        EthernetSwitchPort targetSwitchPort = discoverableEntityDao.findOrCreateEntity(service, entityId, sourceSwitchPortUri, EthernetSwitchPort.class);
-        switchPortMapper.map(switchPortResource, targetSwitchPort);
+    private EthernetSwitchPort readEthernetSwitchPortResource(ExternalService service, EthernetSwitchPortResource resource) {
+        Id entityId = resource.getGlobalId(service.getId());
+        EthernetSwitchPort targetSwitchPort = discoverableEntityDao.findOrCreateEntity(service, entityId, resource.getUri(), EthernetSwitchPort.class);
+        switchPortMapper.map(resource, targetSwitchPort);
+
         return targetSwitchPort;
     }
 
@@ -85,7 +84,7 @@ public class EthernetSwitchPortObtainer {
         Set<URI> portMemberUris = getUrisFromResources(switchPortResource.getPortMembers());
         for (URI portMemberUri : portMemberUris) {
             EthernetSwitchPortResource memberSwitchPortResource = (EthernetSwitchPortResource) webClient.get(portMemberUri);
-            EthernetSwitchPort ethernetSwitchPort = readEthernetSwitchPortResource(externalService, portMemberUri, memberSwitchPortResource);
+            EthernetSwitchPort ethernetSwitchPort = readEthernetSwitchPortResource(externalService, memberSwitchPortResource);
             targetSwitchPort.addPortMember(ethernetSwitchPort);
         }
 

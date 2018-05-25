@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,11 +25,6 @@
 #include "agent-framework/module/utils/is_framework_object.hpp"
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "agent-framework/module/model/metric.hpp"
-#include "agent-framework/module/enum/common.hpp"
-#include "agent-framework/module/enum/pnc.hpp"
-#include "json-wrapper/json-wrapper.hpp"
-
-#include <cassert>
 
 
 
@@ -192,6 +187,12 @@ template class Array<Wildcard>;
 template class Array<CalculationParameters>;
 template class Array<MetricDefinitionEntry>;
 template class Array<NextHop>;
+template class Array<IpTransportDetail>;
+template class Array<CapacitySource>;
+template class Array<ReplicaInfo>;
+template class Array<QosApplicationProtocol>;
+template class Array<QosPriorityGroupMapping>;
+template class Array<QosBandwidthAllocation>;
 
 /* Model classes */
 template class Array<Metric>;
@@ -208,7 +209,11 @@ template class Array<enums::DeviceType>;
 template class Array<enums::MemoryMode>;
 template class Array<enums::MemoryClass>;
 template class Array<enums::StorageProtocol>;
+template class Array<enums::TransportProtocol>;
 template class Array<enums::ResetType>;
+template class Array<enums::VolumeType>;
+template class Array<enums::EncryptionType>;
+template class Array<enums::AccessCapability>;
 
 }
 }

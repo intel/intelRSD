@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,12 +101,6 @@ void check_required_fields(const json::Value& config) {
         }
         if (!manager["slot"].is_number()) {
             throw std::runtime_error("Each entry in manager must have slot field.");
-        }
-        if (!manager["switchPortIdentifier"].is_string()) {
-            throw std::runtime_error("Each entry in manager must have switchPortIdentifier field.");
-        }
-        if (!manager["serialConsoleEnabled"].is_boolean()) {
-            throw std::runtime_error("Each entry in manager must have serialConsoleEnabled field.");
         }
     }
 }

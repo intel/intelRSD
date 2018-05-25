@@ -2,7 +2,7 @@
  * @brief Provides class for generating keys for compute agent resources
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ namespace compute {
  * This class is responsible for generating unique keys for all resources in compute agent,
  * regardless of the stabilization type (e.g. dry running or 'real' tree stabilization).
  * If it happens that the key generation method needs to be changed, this is the only
- * placeto do so.
+ * place to do so.
  * */
 class ComputeKeyGenerator {
 public:
@@ -52,9 +52,10 @@ public:
      * This method accepts a particular resource and generates the
      * unique key basing on this resource and data already present
      * in the model. However, it is also possible to provide additional
-     * data via variable arguments list. WARNING: if information
-     * necessary for key generation is not present, this method throws
-     * an exception of type KeyValueMissingError.
+     * data via variable arguments list.
+     *
+     * @warning if information necessary for key generation is not present,
+     * this method throws an exception of type KeyValueMissingError.
      *
      * @param resource Resource for which unique key should be generated.
      * @return Resource unique key.

@@ -2,7 +2,7 @@
  * @brief Registers GetTasksCollection command in pnc agent
  *pnc
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetTasksCollection,
     [] (const GetTasksCollection::Request&, GetTasksCollection::Response& rsp) {
-        log_debug(GET_LOGGER("pnc-agent"), "Getting collection of tasks");
+        log_debug("pnc-agent", "Getting collection of tasks");
         auto keys = CommonComponents::get_instance()->get_task_manager().get_keys();
         for (const auto& key : keys) {
             rsp.add_entry(agent_framework::model::attribute::TaskEntry{key});

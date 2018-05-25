@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,12 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "name", "description", "id", "socket", "processorType", "processorArchitecture",
-    "instructionSet", "manufacturer", "model", "processorId", "maxSpeedMhz", "totalCores", "totalThreads", "status", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "name", "description", "id", "socket", "processorType", "processorArchitecture", "instructionSet",
+    "manufacturer", "model", "processorId", "maxSpeedMhz", "totalCores", "totalThreads", "status", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class ProcessorDto extends RedfishDto {
+    private final Oem oem = new Oem();
     private String socket;
     private ProcessorType processorType;
     private ProcessorArchitecture processorArchitecture;
@@ -55,10 +56,8 @@ public final class ProcessorDto extends RedfishDto {
     private Integer maxSpeedMhz;
     private Integer totalCores;
     private Integer totalThreads;
-    @JsonProperty("ProcessorId")
     private ProcessorIdDto processorId = new ProcessorIdDto();
     private Status status;
-    private Oem oem = new Oem();
 
     public ProcessorDto() {
         super("#Processor.v1_0_0.Processor");
@@ -214,9 +213,8 @@ public final class ProcessorDto extends RedfishDto {
         }
     }
 
-    @JsonPropertyOrder({"type", "capacityMB", "speedMHz"})
+    @JsonPropertyOrder({"type", "capacityMb", "speedMhz"})
     public static final class OemProcessorMemory {
-        @JsonProperty("Type")
         private ProcessorMemoryType type;
         @JsonProperty("CapacityMB")
         private int capacityMb;
@@ -250,15 +248,12 @@ public final class ProcessorDto extends RedfishDto {
 
     @JsonPropertyOrder({"type", "bitStreamVersion", "hssiConfiguration", "hssiSideband", "reconfigurationSlots"})
     public static final class OemFpga {
-        @JsonProperty("Type")
         private FpgaType type;
-        @JsonProperty("BitStreamVersion")
         private String bitStreamVersion;
         @JsonProperty("HSSIConfiguration")
         private HssiConfig hssiConfiguration;
         @JsonProperty("HSSISideband")
         private HssiSideband hssiSideband;
-        @JsonProperty("ReconfigurationSlots")
         private int reconfigurationSlots;
 
         public FpgaType getType() {
@@ -311,8 +306,9 @@ public final class ProcessorDto extends RedfishDto {
             return rackScaleOem;
         }
 
-        @JsonPropertyOrder({"odataType", "brand", "capabilities", "onPackageMemory", "thermalDesignPowerWatt", "fpga", "processorMetrics",
-            "extendedIdentificationRegisters"})
+        @JsonPropertyOrder({
+            "@odata.type", "brand", "capabilities", "onPackageMemory", "thermalDesignPowerWatt", "fpga", "processorMetrics", "extendedIdentificationRegisters"
+        })
         public class RackScaleOem {
             @JsonProperty("@odata.type")
             private final String odataType = "#Intel.Oem.Processor";

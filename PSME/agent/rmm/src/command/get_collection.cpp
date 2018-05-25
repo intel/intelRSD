@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ void get_collection(const GetCollection::Request& request, GetCollection::Respon
             "Component not found - invalid UUID: " + uuid);
     }
 
-    log_debug(GET_LOGGER("rmm-agent"), "Getting " << name << " collection successful.");
+    log_debug("rmm-agent", "Getting " << name << " collection successful.");
  }
 
  }

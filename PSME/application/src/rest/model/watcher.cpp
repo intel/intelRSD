@@ -5,7 +5,7 @@
  * @todo To be splited into several classes: EventProcessor, TaskSheduler, tasks
  *
  * @header{License}
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -70,7 +70,7 @@ void PollingTask::execute() {
             agent->execute_in_transaction(polling);
         }
         catch (const psme::core::agent::AgentUnreachable&)  {
-            log_error(GET_LOGGER("rest"), "Polling failed due to agent (id:" << agent.get()->get_gami_id() << ") unreachable");
+            log_error("rest", "Polling failed due to agent (id:" << agent.get()->get_gami_id() << ") unreachable");
         }
     }
 }
@@ -86,7 +86,7 @@ public:
     std::chrono::seconds get_interval() const override;
 
     /*!
-     * @brief Check persisten UUID database
+     * @brief Check persistent UUID database
      *
      * When called for first time, it invalidates all existing entries. Next
      * executions removes all outdated ones (to keep database clean).
@@ -120,7 +120,7 @@ RetentionPolicyTask::RetentionPolicyTask() : WatcherTask("RetentionPolicy") {
 
 void RetentionPolicyTask::started() {
     unsigned invalidated = database::Database::invalidate_all(outdated);
-    log_info(GET_LOGGER("rest"), "Initially invalidated " << invalidated << " persistence entries");
+    log_info("rest", "Initially invalidated " << invalidated << " persistence entries");
 }
 
 std::chrono::seconds RetentionPolicyTask::get_interval() const {
@@ -134,7 +134,7 @@ void RetentionPolicyTask::execute() {
     }
     unsigned removed = database::Database::remove_outdated(outdated);
     if (0 != removed) {
-        log_info(GET_LOGGER("rest"), "Removed " << removed << " persistance entries on outdate," <<
+        log_info("rest", "Removed " << removed << " persistance entries on outdate," <<
             " interval " << outdated.count());
     }
 }
@@ -142,7 +142,7 @@ void RetentionPolicyTask::execute() {
 void RetentionPolicyTask::stopped() {
     if (0 != interval.count()) {
         unsigned invalidated = database::Database::invalidate_all(outdated);
-        log_info(GET_LOGGER("rest"), "Invalidated " << invalidated << " persistance entries");
+        log_info("rest", "Invalidated " << invalidated << " persistance entries");
     }
 }
 
@@ -165,7 +165,7 @@ void Watcher::stop() {
         m_running = false;
         if (m_thread.joinable()) {
             m_thread.join();
-            log_debug(GET_LOGGER("rest"), "Watcher job done!");
+            log_debug("rest", "Watcher job done!");
         }
     }
 }
@@ -219,25 +219,25 @@ void Watcher::watch() {
             found.executed++;
 
             try {
-                log_info(GET_LOGGER("rest"), found.task->get_name() << " started run #" << found.executed);
+                log_info("rest", found.task->get_name() << " started run #" << found.executed);
                 auto started_at = std::chrono::high_resolution_clock::now();
 
                 found.task->execute();
 
                 auto finished_at = std::chrono::high_resolution_clock::now();
                 auto duration = finished_at - started_at;
-                log_info(GET_LOGGER("rest"), found.task->get_name() << " completed run #" << found.executed <<
+                log_info("rest", found.task->get_name() << " completed run #" << found.executed <<
                         " [" << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << "ms]");
             }
             catch (const PollingTask::StopWatching&) {
-                log_warning(GET_LOGGER("rest"), found.task->get_name() << " requested to be removed" <<
+                log_warning("rest", found.task->get_name() << " requested to be removed" <<
                         ", run #" << found.executed);
                 /* don't push registration back! Task will be deleted when 'found' goes out of scope */
                 found.task->stopped();
                 continue;
             }
             catch (...) {
-                log_error(GET_LOGGER("rest"), found.task->get_name() << " failed with exception" <<
+                log_error("rest", found.task->get_name() << " failed with exception" <<
                         ", run #" << found.executed);
             }
 
@@ -267,7 +267,7 @@ void Watcher::process_notification(const agent_framework::eventing::ComponentNot
     try {
         auto agent = core::agent::AgentManager::get_instance()->get_agent(gami_notification.get_gami_id());
         if (nullptr == agent) {
-            log_error(GET_LOGGER("rest"), "Agent GAMI ID " << gami_notification.get_gami_id() << " not recognized");
+            log_error("rest", "Agent GAMI ID " << gami_notification.get_gami_id() << " not recognized");
             return;
         }
 
@@ -292,10 +292,10 @@ void Watcher::process_notification(const agent_framework::eventing::ComponentNot
         // send all collected events in one batch
         psme::rest::eventing::manager::SubscriptionManager::get_instance()->notify(collected_northbound_events);
 
-    } catch (const std::exception &error) {
-        log_error(GET_LOGGER("rest"), "Event exception occured: " << error.what());
+    } catch (const std::exception& error) {
+        log_error("rest", "Event exception occurred: " << error.what());
     } catch (...) {
-        log_error(GET_LOGGER("rest"), "Unknown exception occured.");
+        log_error("rest", "Unknown exception occurred.");
     }
 }
 

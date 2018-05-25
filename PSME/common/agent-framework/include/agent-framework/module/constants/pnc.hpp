@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,9 +69,7 @@ public:
     static constexpr const char STATUS[] = "status";
     static constexpr const char PORT_ID[] = "portId";
     static constexpr const char PORT_TYPE[] = "portType";
-    static constexpr const char CABLE_ID[] = "cableId";
-    static constexpr const char OPERATIONAL_STATE[] = "operationalState";
-    static constexpr const char ADMINISTRATIVE_STATE[] = "administrativeState";
+    static constexpr const char CABLE_IDS[] = "cableIds";
     static constexpr const char SPEED_GBPS[] = "speedGBps";
     static constexpr const char WIDTH[] = "width";
     static constexpr const char MAX_SPEED_GBPS[] = "maxSpeedGBps";
@@ -122,33 +120,6 @@ public:
     static constexpr const char PCI_SUBSYSTEM_VENDOR_ID[] = "pciSubsystemVendorId";
     static constexpr const char FUNCTIONAL_DEVICE[] = "functionalDevice";
     static constexpr const char OEM[] = "oem";
-};
-
-/*!
- * @brief Class consisting of literals for Zone
- */
-class Zone {
-public:
-    static constexpr const char ZONE[] = "zone";
-    static constexpr const char STATUS[] = "status";
-    static constexpr const char COLLECTIONS[] = "collections";
-    static constexpr const char OEM[] = "oem";
-    static constexpr const char FABRIC[] = "fabric";
-    static constexpr const char ENDPOINTS[] = "endpoints";
-};
-
-/*!
- * @brief Class consisting of literals for Endpoint
- */
-class Endpoint {
-public:
-    static constexpr const char ENDPOINT[] = "endpoint";
-    static constexpr const char PROTOCOL[] = "protocol";
-    static constexpr const char COLLECTIONS[] = "collections";
-    static constexpr const char OEM[] = "oem";
-    static constexpr const char ENTITIES[] = "entities";
-    static constexpr const char IDENTIFIERS[] = "identifiers";
-    static constexpr const char STATUS[] = "status";
 };
 
 }

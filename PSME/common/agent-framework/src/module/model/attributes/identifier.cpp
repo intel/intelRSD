@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,24 +30,25 @@
 using namespace agent_framework::model::attribute;
 
 
-Identifier::Identifier() { }
+Identifier::Identifier(const OptionalField<std::string>& durable_name,
+                       const OptionalField<enums::IdentifierType>& durable_format) :
+    m_durable_name(durable_name), m_durable_name_format(durable_format) { }
 
 
 Identifier::~Identifier() { }
 
 
 json::Json Identifier::to_json() const {
-    json::Json json;
+    json::Json json{};
     json[literals::Identifier::DURABLE_NAME] = get_durable_name();
-    json[literals::Identifier::DURABLE_NAME_FORMAT] = get_durable_name_format().to_string();
+    json[literals::Identifier::DURABLE_NAME_FORMAT] = get_durable_name_format();
     return json;
 }
 
 
 Identifier Identifier::from_json(const json::Json& json) {
-    attribute::Identifier location;
+    attribute::Identifier location{};
     location.set_durable_name(json[literals::Identifier::DURABLE_NAME]);
-    location.set_durable_name_format(
-        enums::IdentifierType::from_string(json[literals::Identifier::DURABLE_NAME_FORMAT]));
+    location.set_durable_name_format(json[literals::Identifier::DURABLE_NAME_FORMAT]);
     return location;
 }

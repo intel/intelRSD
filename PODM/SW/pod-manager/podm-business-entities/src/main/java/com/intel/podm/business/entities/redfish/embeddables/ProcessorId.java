@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package com.intel.podm.business.entities.redfish.embeddables;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import java.util.Objects;
 
 @Embeddable
 @SuppressWarnings("checkstyle:MethodCount")
@@ -90,25 +92,36 @@ public class ProcessorId {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         ProcessorId that = (ProcessorId) o;
-        return Objects.equals(vendorId, that.vendorId)
-                && Objects.equals(identificationRegisters, that.identificationRegisters)
-                && Objects.equals(effectiveFamily, that.effectiveFamily)
-                && Objects.equals(effectiveModel, that.effectiveModel)
-                && Objects.equals(step, that.step)
-                && Objects.equals(microcodeInfo, that.microcodeInfo);
+
+        return new EqualsBuilder()
+            .append(vendorId, that.vendorId)
+            .append(identificationRegisters, that.identificationRegisters)
+            .append(effectiveFamily, that.effectiveFamily)
+            .append(effectiveModel, that.effectiveModel)
+            .append(step, that.step)
+            .append(microcodeInfo, that.microcodeInfo)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(vendorId, identificationRegisters, effectiveFamily, effectiveModel, step, microcodeInfo);
+        return new HashCodeBuilder()
+            .append(vendorId)
+            .append(identificationRegisters)
+            .append(effectiveFamily)
+            .append(effectiveModel)
+            .append(step)
+            .append(microcodeInfo)
+            .toHashCode();
     }
 }

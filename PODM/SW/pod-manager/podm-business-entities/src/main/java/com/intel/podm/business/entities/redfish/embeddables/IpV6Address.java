@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ package com.intel.podm.business.entities.redfish.embeddables;
 
 import com.intel.podm.common.types.AddressState;
 import com.intel.podm.common.types.IpV6AddressOrigin;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Enumerated;
-import java.util.Objects;
 
 import static javax.persistence.EnumType.STRING;
 
@@ -86,24 +87,34 @@ public class IpV6Address {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         IpV6Address that = (IpV6Address) o;
-        return Objects.equals(address, that.address)
-            && Objects.equals(prefixLength, that.prefixLength)
-            && addressOrigin == that.addressOrigin
-            && addressState == that.addressState
-            && Objects.equals(oem, that.oem);
+
+        return new EqualsBuilder()
+            .append(address, that.address)
+            .append(prefixLength, that.prefixLength)
+            .append(addressOrigin, that.addressOrigin)
+            .append(addressState, that.addressState)
+            .append(oem, that.oem)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(address, prefixLength, addressOrigin, addressState, oem);
+        return new HashCodeBuilder()
+            .append(address)
+            .append(prefixLength)
+            .append(addressOrigin)
+            .append(addressState)
+            .append(oem)
+            .toHashCode();
     }
 }

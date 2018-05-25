@@ -3,7 +3,7 @@
  *
  * File contains all implementations of methods for GetCollection command.
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,7 +228,7 @@ void get_collection(const GetCollection::Request& request, GetCollection::Respon
         THROW(agent_framework::exceptions::InvalidCollection, "network-agent",
               "Unknown collection requested " + request.get_name());
     }
-    log_debug(GET_LOGGER("network-agent"), "Getting collection \"" + request.get_name() + "\" is successfully finished.");
+    log_debug("network-agent", "Getting collection \"" + request.get_name() + "\" is successfully finished.");
 }
 }
 

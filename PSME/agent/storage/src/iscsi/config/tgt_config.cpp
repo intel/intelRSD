@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ void TgtConfig::add_target(const IscsiTarget& target) const {
     TgtTargetConfig tgtTargetConfig(target);
 
     auto target_conf_file_name = get_target_conf_file_name(target.get_target_iqn());
-    log_info(GET_LOGGER("tgt"), "Add TGT target config file: " + target_conf_file_name);
+    log_info("tgt", "Add TGT target config file: " + target_conf_file_name);
 
     ofstream targetConfigFile;
     const auto& content = tgtTargetConfig.to_string();
@@ -62,7 +62,7 @@ void TgtConfig::add_target(const IscsiTarget& target) const {
 
 void TgtConfig::remove_target(const string& target_iqn) const {
     auto target_conf_file_name = get_target_conf_file_name(target_iqn);
-    log_info(GET_LOGGER("tgt"), "Remove TGT target config file: " +
+    log_info("tgt", "Remove TGT target config file: " +
             target_conf_file_name);
     if (0 != remove(target_conf_file_name.c_str())) {
         throw runtime_error("Error removing file: " + target_conf_file_name);
@@ -73,7 +73,7 @@ void TgtConfig::remove_target(const string& target_iqn) const {
 string TgtConfig::get_target_conf_file_name(const string& target_iqn) const {
     string configuration_path = m_configuration_path;
     if (configuration_path.empty()) {
-        log_warning(GET_LOGGER("tgt"), "TGT conf-path is empty. Using default path: " <<
+        log_warning("tgt", "TGT conf-path is empty. Using default path: " <<
                 TGT_TARGET_CONF_PATH);
         configuration_path = TGT_TARGET_CONF_PATH;
     }

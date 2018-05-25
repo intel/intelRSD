@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,7 @@
 using namespace sysfs;
 using namespace std;
 
-const vector<string> SysFs::get_interface_list(const string&,
-                                               const string&) const {
+const vector<string> Sysfs::get_interface_list(const string&, const string&) const {
     vector<string> v;
     v.push_back("swp1");
     v.push_back("swp2");

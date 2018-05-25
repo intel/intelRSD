@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +60,7 @@ void agent::network::utils::init_switch_vlan_port(const string& port_identifier)
         portvlan_model.set_vlan_enable(true);
         portvlan_model.set_status({State::Enabled, Health::OK});
         port_vlan_manager.add_entry(std::move(portvlan_model));
-        log_debug(GET_LOGGER("network-agent"), "Adding port-vlan ["
+        log_debug("network-agent", "Adding port-vlan ["
                   << "port=" << port_identifier
                   << " vlan=" << vlan.get_vlan_id()
                   << " tag=" << vlan.is_tagged()
@@ -103,13 +103,13 @@ void agent::network::utils::set_port_neighbor_mac(const std::string& port_name,
         if (PortType::Downstream == port_model->get_port_type()) {
             if (port_model->get_port_identifier() == port_name) {
                 port_model->set_neighbor_mac(neighbor_mac);
-                log_debug(GET_LOGGER("network-agent"), "Adding neighbor MAC address " + neighbor_mac +
+                log_debug("network-agent", "Adding neighbor MAC address " + neighbor_mac +
                                                        " to interface " + port_name);
                 send_update_event(switch_uuid, port_uuid);
 
             } else {
                 if (port_model->get_neighbor_mac() == neighbor_mac) {
-                    log_debug(GET_LOGGER("network-agent"), "Deleting neighbor MAC address " + neighbor_mac +
+                    log_debug("network-agent", "Deleting neighbor MAC address " + neighbor_mac +
                                                            " from interface " + port_name);
                     port_model->set_neighbor_mac({});
                     send_update_event(switch_uuid, port_uuid);
@@ -117,4 +117,12 @@ void agent::network::utils::set_port_neighbor_mac(const std::string& port_name,
             }
         }
     }
+}
+
+
+bool agent::network::utils::is_port_physical_or_up(const std::string& port_identifier, const json::Json& switch_config) {
+    if (switch_config.count("interface " + port_identifier) == 1) {
+        return true;
+    }
+    return false;
 }

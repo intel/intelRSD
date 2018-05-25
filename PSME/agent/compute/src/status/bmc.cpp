@@ -2,7 +2,7 @@
  * @brief Implementation of Bmc class
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,21 +47,21 @@ namespace {
 
 OptionalField<std::uint16_t> read_platform_id(Bmc& bmc) {
     try {
-        log_debug(GET_LOGGER("bmc"), bmc.get_id() << " reading platform id...");
+        log_debug("bmc", bmc.get_id() << " reading platform id...");
         ipmi::command::generic::response::GetDeviceId device_rsp{};
         bmc.ipmi().send(ipmi::command::generic::request::GetDeviceId{}, device_rsp);
-        log_debug(GET_LOGGER("bmc"), bmc.get_id() << " platform id: 0x" << std::hex << static_cast<unsigned>(device_rsp.get_product_id()));
+        log_debug("bmc", bmc.get_id() << " platform id: 0x" << std::hex << static_cast<unsigned>(device_rsp.get_product_id()));
         return static_cast<std::uint16_t>(device_rsp.get_product_id());
     }
     catch (std::exception& e) {
-        log_error(GET_LOGGER("bmc"), bmc.get_id() << " platform id read failed: " << e.what());
+        log_error("bmc", bmc.get_id() << " platform id read failed: " << e.what());
     }
     return {};
 }
 
 
 OptionalField<std::uint16_t> read_smbios_checksum(Bmc& bmc) {
-    log_debug(GET_LOGGER("bmc"), bmc.get_id() << " reading smbios region status ");
+    log_debug("bmc", bmc.get_id() << " reading smbios region status ");
     if (Bmc::State::ONLINE == bmc.get_state()) {
         try {
             auto mdr_accessor = ipmi::sdv::MdrRegionAccessorFactory()
@@ -69,7 +69,7 @@ OptionalField<std::uint16_t> read_smbios_checksum(Bmc& bmc) {
             return mdr_accessor->get_mdr_region_checksum();
         }
         catch (const std::exception& e) {
-            log_warning(GET_LOGGER("bmc"), bmc.get_id() << " smbios region status read failed: " << e.what());
+            log_warning("bmc", bmc.get_id() << " smbios region status read failed: " << e.what());
         }
     }
     return {};
@@ -83,7 +83,7 @@ void send_event(const std::string& module, const std::string& parent, Component 
     edat.set_type(type);
     edat.set_notification(notification);
     agent_framework::eventing::EventsQueue::get_instance()->push_back(edat);
-    log_info(GET_LOGGER("bmc"), "Sending an event for component " << edat.get_component() << "," << "("
+    log_info("bmc", "Sending an event for component " << edat.get_component() << "," << "("
                                   << edat.get_type() << ")" << ", notification type: " << edat.get_notification());
 }
 
@@ -189,9 +189,24 @@ void remove_chassis(const std::string& manager_uuid) {
     }
 }
 
+void remove_pcie_functions(const std::string& pcie_device_uuid) {
+    auto& pfm = get_manager<agent_framework::model::PcieFunction>();
+    pfm.remove_by_parent(pcie_device_uuid);
+}
+
+void remove_pcie_devices(const std::string& manager_uuid) {
+    auto& pdm = get_manager<agent_framework::model::PcieDevice>();
+    auto pcie_device_keys = pdm.get_keys(manager_uuid);
+    for (const auto& uuid : pcie_device_keys) {
+        remove_pcie_functions(uuid);
+    }
+    pdm.remove_by_parent(manager_uuid);
+}
+
 void remove_manager(const std::string& manager_uuid) {
     remove_systems(manager_uuid);
     remove_chassis(manager_uuid);
+    remove_pcie_devices(manager_uuid);
 
     auto& mm = get_manager<agent_framework::model::Manager>();
     mm.remove_entry(manager_uuid);
@@ -233,11 +248,11 @@ public:
             if (checksum.has_value()) {
                 if (checksum != m_smbios_checksum) {
                     if (m_smbios_checksum.has_value()) {
-                        log_info(GET_LOGGER("periodic_discovery"), m_bmc.get_id() << " SMBIOS checksum changed 0x"
+                        log_info("periodic_discovery", m_bmc.get_id() << " SMBIOS checksum changed 0x"
                                 << std::hex << uint(m_smbios_checksum) << " -> 0x" << uint(checksum));
                     }
                     else {
-                        log_info(GET_LOGGER("periodic_discovery"), m_bmc.get_id() << " SMBIOS checksum: "
+                        log_info("periodic_discovery", m_bmc.get_id() << " SMBIOS checksum: "
                                 << std::hex << " 0x" << uint(checksum));
                     }
                     m_smbios_checksum = checksum;
@@ -257,7 +272,7 @@ public:
     }
 
     ~PeriodicDiscovery() {
-        log_info(GET_LOGGER("periodic_discovery"), m_bmc.get_id()
+        log_info("periodic_discovery", m_bmc.get_id()
                 << " stopped. # of discoveries run: " << m_discovery_counter);
     }
 
@@ -265,11 +280,11 @@ private:
 
     void do_discovery() {
         m_discovery_counter++;
-        log_info(GET_LOGGER("periodic_discovery"), m_bmc.get_id() << " Starting discovery #" << m_discovery_counter);
+        log_info("periodic_discovery", m_bmc.get_id() << " Starting discovery #" << m_discovery_counter);
         try {
             auto mdr_accessor_factory = std::make_shared<ipmi::sdv::MdrRegionAccessorFactory>();
             discovery::DiscoveryManager discovery_manager{m_bmc, mdr_accessor_factory};
-            const auto stabilized_manager_uuid = discovery_manager.discovery();
+            const auto stabilized_manager_uuid = discovery_manager.discover();
             m_bmc.set_manager_uuid(stabilized_manager_uuid);
         }
         catch (const std::exception& e) {
@@ -279,7 +294,7 @@ private:
 
     Bmc::Duration get_rerun_delay() {
         if (is_discoverable_when_no_smbios() && !m_discovery_counter && (1 == m_no_smbios_counter)) {
-            log_info(GET_LOGGER("periodic_discovery"), m_bmc.get_id() << " Waiting for SMBIOS... ");
+            log_info("periodic_discovery", m_bmc.get_id() << " Waiting for SMBIOS... ");
             return m_smbios_wait_time;
         }
         return m_period;
@@ -319,7 +334,6 @@ Bmc::Bmc(const ConnectionData& conn, Bmc::Duration state_update_interval,
          ReadPresenceFn read_presence, ReadOnlineStatusFn read_online_state)
     : agent_framework::Bmc(conn, state_update_interval, read_presence, read_online_state),
       m_ipmi{conn.get_ip_address(), conn.get_port(), conn.get_username(), conn.get_password()} {
-    reset_tasks();
 }
 
 bool Bmc::on_become_online(const Transition&) {
@@ -327,7 +341,7 @@ bool Bmc::on_become_online(const Transition&) {
     if (m_platform_id.has_value()) {
         m_telemetry_service = std::make_shared<ComputeTelemetryService>(ipmi(), m_platform_id);
         if (m_telemetry_service->get_reader_ptrs().empty()) {
-            log_error(GET_LOGGER("bmc"), "No metrics defined for " << m_platform_id);
+            log_error("bmc", "No metrics defined for " << m_platform_id);
         }
     }
     const auto rerun_delay = std::chrono::seconds(10);
@@ -352,7 +366,7 @@ bool Bmc::on_become_offline(const Transition& t) {
             update_status(get_manager_uuid(), agent_framework::model::enums::State::UnavailableOffline, Notification::Update);
         }
         catch (const std::exception& e) {
-            log_error(GET_LOGGER("bmc"), e.what());
+            log_error("bmc", e.what());
         }
     }
     return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,12 @@ import com.intel.podm.common.types.exceptions.NoRetriesLeftException;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
-import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import javax.persistence.OptimisticLockException;
 import javax.transaction.RollbackException;
 
-@Interceptor
 @Dependent
 public class RetryOnRollbackInterceptor {
-
     @Inject
     private Logger logger;
 
@@ -51,7 +48,7 @@ public class RetryOnRollbackInterceptor {
     }
 
     private Integer getNumberOfRetries(InvocationContext ic) {
-        NumberOfRetriesOnRollback annotation = ic.getMethod().getAnnotation(NumberOfRetriesOnRollback.class);
+        RetryOnRollback annotation = ic.getMethod().getAnnotation(RetryOnRollback.class);
         return annotation == null ? 1 : annotation.value();
     }
 }

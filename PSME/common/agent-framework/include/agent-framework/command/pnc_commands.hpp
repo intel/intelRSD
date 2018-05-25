@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,10 +25,10 @@
 #pragma once
 #include "agent-framework/command/command.hpp"
 #include "agent-framework/module/model/model_pnc.hpp"
+#include "agent-framework/module/model/model_common.hpp"
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/requests/pnc.hpp"
 #include "agent-framework/module/responses/common.hpp"
-#include "agent-framework/module/responses/pnc.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
 
 namespace agent_framework {
@@ -60,12 +60,14 @@ using GetTaskResultInfo = Command<model::requests::GetTaskResultInfo, model::res
 using GetMetricDefinitionInfo = Command<model::requests::GetMetricDefinitionInfo, model::MetricDefinition>;
 
 // declarations of all add methods
+using AddEndpoint = Command<model::requests::AddEndpoint, model::responses::AddEndpoint>;
 using AddZone = Command<model::requests::AddZone, model::responses::AddZone>;
-using AddZoneEndpoint = Command<model::requests::AddZoneEndpoint, model::responses::AddZoneEndpoint>;
+using AddZoneEndpoints = Command<model::requests::AddZoneEndpoints, model::responses::AddZoneEndpoints>;
 
 // declarations of all delete methods
+using DeleteEndpoint = Command<model::requests::DeleteEndpoint, model::responses::DeleteEndpoint>;
 using DeleteZone = Command<model::requests::DeleteZone, model::responses::DeleteZone>;
-using DeleteZoneEndpoint = Command<model::requests::DeleteZoneEndpoint, model::responses::DeleteZoneEndpoint>;
+using DeleteZoneEndpoints = Command<model::requests::DeleteZoneEndpoints, model::responses::DeleteZoneEndpoints>;
 using DeleteTask = Command<model::requests::DeleteTask, model::responses::DeleteTask>;
 
 // declarations of all set methods

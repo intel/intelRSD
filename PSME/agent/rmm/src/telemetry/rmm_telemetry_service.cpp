@@ -1,7 +1,7 @@
 /*!
  * @brief RmmTelemetryService definition
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,8 @@ namespace rmm {
 
 namespace {
 using ::telemetry::MetricDefinitionBuilder;
+
+constexpr int EXPECTED_FAN_SLOTS = 6;
 
 model::MetricDefinition AIRFLOW =
     MetricDefinitionBuilder("/Oem/Intel_RackScale/VolumetricAirflowCfm")
@@ -245,22 +247,29 @@ bool update_pzone(agent_framework::model::PowerZone&, const DiscoveryContext&,
 
 RmmTelemetryService::~RmmTelemetryService() { }
 
-RmmTelemetryService::RmmTelemetryService() : RmmTelemetryServiceInterface(), m_resource_sensors{
-    std::make_shared<Sensor<RmmType::ThermalZone>>(
-        ResourceInstance{ Component::ThermalZone }, INLET_TEMPERATURE, update_inlet_temperature_reading, update_tzone),
-    std::make_shared<Sensor<RmmType::Fan>>(ResourceInstance{ Component::Fan, 0 }, FAN_READING, update_fan_reading, update_fan),
-    std::make_shared<Sensor<RmmType::Fan>>(ResourceInstance{ Component::Fan, 1 }, FAN_READING, update_fan_reading, update_fan),
-    std::make_shared<Sensor<RmmType::Fan>>(ResourceInstance{ Component::Fan, 2 }, FAN_READING, update_fan_reading, update_fan),
-    std::make_shared<Sensor<RmmType::Fan>>(ResourceInstance{ Component::Fan, 3 }, FAN_READING, update_fan_reading, update_fan),
-    std::make_shared<Sensor<RmmType::Fan>>(ResourceInstance{ Component::Fan, 4 }, FAN_READING, update_fan_reading, update_fan),
-    std::make_shared<Sensor<RmmType::Fan>>(ResourceInstance{ Component::Fan, 5 }, FAN_READING, update_fan_reading, update_fan),
-    std::make_shared<Sensor<RmmType::PowerZone>>(
-        ResourceInstance{ Component::PowerZone }, CONSUMED_POWER, update_consumed_power_reading, update_pzone)
+RmmTelemetryService::RmmTelemetryService() : RmmTelemetryServiceInterface(), m_resource_sensors{} {
+    // m_resource_sensors vector is now filled in the constructor's body.
+    // When it was filled in the initializer list, SonarQube hanged forever during code analysis.
 
-        // Possible extensions :
-        // std::make_shared<Sensor<RmmType::ThermalZone>>(ResourceInstance{Component::ThermalZone}, AIRFLOW}, ...
-        // std::make_shared<Sensor<RmmType::PowerZone>>(ResourceInstance{Component::PowerZone}, VOLTAGE}, ...
-    } { }
+    m_resource_sensors.emplace_back(
+        std::make_shared<Sensor<RmmType::ThermalZone>>(
+            ResourceInstance{Component::ThermalZone}, INLET_TEMPERATURE, update_inlet_temperature_reading, update_tzone)
+    );
+    m_resource_sensors.emplace_back(
+        std::make_shared<Sensor<RmmType::PowerZone>>(
+            ResourceInstance{Component::PowerZone}, CONSUMED_POWER, update_consumed_power_reading, update_pzone)
+    );
+    for (int fan_index = 0; fan_index < EXPECTED_FAN_SLOTS; ++fan_index) {
+        m_resource_sensors.emplace_back(
+            std::make_shared<Sensor<RmmType::Fan>>(
+                ResourceInstance{ Component::Fan, fan_index }, FAN_READING, update_fan_reading, update_fan)
+        );
+    }
+
+// Possible extensions :
+// std::make_shared<Sensor<RmmType::ThermalZone>>(ResourceInstance{Component::ThermalZone}, AIRFLOW}, ...
+// std::make_shared<Sensor<RmmType::PowerZone>>(ResourceInstance{Component::PowerZone}, VOLTAGE}, ...
+}
 
 
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,19 @@ const char PORTS[] = "Ports";
 const char SWITCH_ID[] = "SwitchId";
 const char ACLS[] = "ACLs";
 const char MAX_ACL_NUMBER[] = "MaxACLNumber";
+const char PFC_ENABLED[] = "PFCEnabled";
+const char LLDP_ENABLED[] = "LLDPEnabled";
+const char ETS_ENABLED[] = "ETSEnabled";
+const char DCBX_ENABLED[] = "DCBXEnabled";
+const char DCBX_SHARED_CONFIGURATION[] = "DCBXSharedConfiguration";
+const char APPLICATION_PROTOCOL[] = "ApplicationProtocol";
+const char PRIORITY_TO_PRIORITY_GROUP_MAPPING[] = "PriorityToPriorityGroupMapping";
+const char BANDWIDTH_ALLOCATION[] = "BandwidthAllocation";
+const char PRIORITY_GROUP[] = "PriorityGroup";
+const char PRIORITY[] = "Priority";
+const char PROTOCOL[] = "Protocol";
+const char PORT[] = "Port";
+const char BANDWIDTH_PERCENT[] = "BandwidthPercent";
 }
 
 namespace EthernetSwitchPort {
@@ -65,6 +78,11 @@ const char FULL_DUPLEX[] = "FullDuplex";
 const char ACTIVE_ACLS[] = "ActiveACLs";
 const char NEIGHBOR_INTERFACE[] = "NeighborInterface";
 const char STATIC_MACS[] = "StaticMACs";
+const char LLDP_ENABLED[] = "LLDPEnabled";
+const char DCBX_STATE[] = "DCBXState";
+const char PRIORITY_FLOW_CONTROL[] = "PriorityFlowControl";
+const char ENABLED[] = "Enabled";
+const char ENABLED_PRIORITIES[] = "EnabledPriorities";
 }
 
 

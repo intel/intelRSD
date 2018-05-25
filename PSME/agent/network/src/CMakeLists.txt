@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ if (BUILD_EOS_SDK)
         $<TARGET_OBJECTS:network-tree-stability>
         $<TARGET_OBJECTS:network-discovery-impl>
         $<TARGET_OBJECTS:eos-sdk-hal-impl>
+        $<TARGET_OBJECTS:eos-eapi-hal-impl>
         $<TARGET_OBJECTS:hal>
     )
 else()
@@ -70,6 +71,13 @@ if (BUILD_EOS_SDK)
 
     add_executable(psme-network
         main.cpp
+    )
+
+    generate_default_config_file(
+        main.cpp
+        agent
+        generic
+        "AGENT_NETWORK_CONFIGURATION_FILE"
     )
 
     target_link_libraries(psme-network

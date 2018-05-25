@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,16 @@ public class TmpLeasesRecord {
     private LocalDateTime date;
 
     public TmpLeasesRecord(ServiceType serviceType, String ip, String date) {
+        this(serviceType, ip, parse(date));
+    }
+
+    public TmpLeasesRecord(ServiceType serviceType, String ip, LocalDateTime date) {
         requiresNonNull(serviceType, "serviceType");
         requiresNonNull(ip, "ip");
         requiresNonNull(date, "date");
         this.serviceType = serviceType;
         this.ipAddress = ip;
-        this.date = parse(date);
+        this.date = date;
     }
 
     public String getIpAddress() {
@@ -48,6 +52,7 @@ public class TmpLeasesRecord {
     public ServiceType getServiceType() {
         return serviceType;
     }
+
     public LocalDateTime getDate() {
         return date;
     }
@@ -63,8 +68,8 @@ public class TmpLeasesRecord {
 
         TmpLeasesRecord that = (TmpLeasesRecord) o;
         return Objects.equals(ipAddress, that.ipAddress)
-                && serviceType == that.serviceType
-                && Objects.equals(date, that.date);
+            && serviceType == that.serviceType
+            && Objects.equals(date, that.date);
     }
 
     @Override

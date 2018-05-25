@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +60,6 @@ PowerZone PowerZone::from_json(const json::Json& json) {
     zone.set_power_consumed_watts(json[literals::PowerZone::POWER_CONSUMED]);
     zone.set_collections(Collections::from_json(json[literals::PowerZone::COLLECTIONS]));
     zone.set_oem(attribute::Oem::from_json(json[literals::PowerZone::OEM]));
-    zone.set_resource_hash(json);
 
     return zone;
 }

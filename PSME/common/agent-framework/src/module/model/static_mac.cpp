@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +48,5 @@ StaticMac StaticMac::from_json(const json::Json& json) {
     static_mac.set_address(json[literals::StaticMac::ADDRESS]);
     static_mac.set_vlan_id(json[literals::StaticMac::VLAN_ID]);
     static_mac.set_oem(attribute::Oem::from_json(json[literals::StaticMac::OEM]));
-    static_mac.set_resource_hash(json);
     return static_mac;
 }

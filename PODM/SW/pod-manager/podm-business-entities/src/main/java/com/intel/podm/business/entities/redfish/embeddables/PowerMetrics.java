@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package com.intel.podm.business.entities.redfish.embeddables;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.math.BigDecimal;
-import java.util.Objects;
 
 @Embeddable
 public class PowerMetrics {
@@ -68,23 +70,32 @@ public class PowerMetrics {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         PowerMetrics that = (PowerMetrics) o;
-        return Objects.equals(intervalInMin, that.intervalInMin)
-                && Objects.equals(minConsumedWatts, that.minConsumedWatts)
-                && Objects.equals(maxConsumedWatts, that.maxConsumedWatts)
-                && Objects.equals(averageConsumedWatts, that.averageConsumedWatts);
+
+        return new EqualsBuilder()
+            .append(intervalInMin, that.intervalInMin)
+            .append(minConsumedWatts, that.minConsumedWatts)
+            .append(maxConsumedWatts, that.maxConsumedWatts)
+            .append(averageConsumedWatts, that.averageConsumedWatts)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(intervalInMin, minConsumedWatts, maxConsumedWatts, averageConsumedWatts);
+        return new HashCodeBuilder()
+            .append(intervalInMin)
+            .append(minConsumedWatts)
+            .append(maxConsumedWatts)
+            .append(averageConsumedWatts)
+            .toHashCode();
     }
 }

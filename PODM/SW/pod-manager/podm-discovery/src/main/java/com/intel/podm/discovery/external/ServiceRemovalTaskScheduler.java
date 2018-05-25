@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,34 +17,40 @@
 package com.intel.podm.discovery.external;
 
 import com.intel.podm.common.logger.Logger;
-import com.intel.podm.common.synchronization.TaskCoordinator;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.enterprise.concurrent.ManagedScheduledExecutorService;
 import javax.inject.Inject;
-import java.time.Duration;
 
-import static java.time.Duration.ZERO;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Startup
 @Singleton
 @DependsOn({"DiscoveryStartup"})
 public class ServiceRemovalTaskScheduler {
-    public static final Duration TASK_DELAY = Duration.ofSeconds(10);
+    private static final Long TASK_DELAY_SECONDS = 10L;
+
     @Inject
     private Logger logger;
 
     @Inject
     private ServiceRemovalTask task;
 
-    @Inject
-    private TaskCoordinator taskCoordinator;
+    @Resource
+    private ManagedScheduledExecutorService managedExecutorService;
 
     @PostConstruct
     private void schedule() {
         logger.d("Scheduling Service Removal Task...");
-        taskCoordinator.scheduleWithFixedDelay("Service Removal Task", task, ZERO, TASK_DELAY);
+        managedExecutorService.scheduleWithFixedDelay(
+            task,
+            TASK_DELAY_SECONDS,
+            TASK_DELAY_SECONDS,
+            SECONDS
+        );
     }
 }

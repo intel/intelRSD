@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,18 +27,16 @@ import java.util.TreeSet;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name",
-    "description", "powerControl", "voltages", "powerSupplies", "redundancy", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "powerControls", "voltages", "powerSupplies", "redundancies", "oem"
 })
-@SuppressWarnings({"checkstyle:MethodCount"})
 public final class PowerDto extends RedfishDto {
+    private final Oem oem = new Oem();
     @JsonProperty("PowerControl")
     private Set<PowerControlDto> powerControls = new TreeSet<>();
     private Set<PowerVoltageDto> voltages = new TreeSet<>();
     private Set<PowerSupplyDto> powerSupplies = new TreeSet<>();
     @JsonProperty("Redundancy")
     private Set<RedundancyDto> redundancies = new TreeSet<>();
-    private Oem oem = new Oem();
 
     public PowerDto() {
         super("#Power.v1_1_0.Power");
@@ -80,10 +78,6 @@ public final class PowerDto extends RedfishDto {
         return oem;
     }
 
-    public void setOem(Oem oem) {
-        this.oem = oem;
-    }
-
     @OemType(TOP_LEVEL_OEM)
     public class Oem extends RedfishOemDto {
         @JsonProperty("Intel_RackScale")
@@ -93,7 +87,7 @@ public final class PowerDto extends RedfishDto {
             return rackScaleOem;
         }
 
-        @JsonPropertyOrder({"oDataType", "inputAcPowerWatts"})
+        @JsonPropertyOrder({"@odata.type", "inputAcPowerWatts"})
         public class RackScaleOem {
             @JsonProperty("@odata.type")
             private final String oDataType = "#Intel.Oem.Power";

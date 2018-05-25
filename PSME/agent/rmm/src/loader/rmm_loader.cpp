@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,10 @@ using namespace agent::rmm;
 namespace {
 
 void check_required_fields(const json::Value& config) {
+    if (!config["service"].is_string()) {
+        throw std::runtime_error("'service' field is required.");
+    }
+
     if (!config["agent"].is_object()) {
         throw std::runtime_error("'agent' field is required.");
     }
@@ -72,18 +76,11 @@ void check_required_fields(const json::Value& config) {
         throw std::runtime_error("Database location is not set.");
     }
 
-    if (!config["service-uuid-file"].is_string()) {
-        throw std::runtime_error("'service-uuid-file' field is required.");
-    }
-
     if (!config["certificate-files"].is_object()) {
         throw std::runtime_error("'certificate-files' field is required.");
     }
     if (!config["certificate-files"]["podm"].is_string()) {
         throw std::runtime_error("'certificate-files/podm' field is required.");
-    }
-    if (!config["certificate-files"]["rmm"].is_string()) {
-        throw std::runtime_error("'certificate-files/rmm' field is required.");
     }
 
     if (!config["managers"].is_array()) {
@@ -109,11 +106,9 @@ void configure_ipmi(const json::Value& config) {
     }
 }
 
-void configure_certificates(const json::Value& config) {
-    CertificateManager::set_cert_file_path(CertificateManager::CertificateType::PODM,
+void configure_certificates(agent::rmm::discovery::helpers::DiscoveryContext& dc, const json::Value& config) {
+    dc.certificate_manager->set_cert_file_path(CertificateManager::CertificateType::PODM,
         config["certificate-files"]["podm"].as_string());
-    CertificateManager::set_cert_file_path(CertificateManager::CertificateType::RMM,
-        config["certificate-files"]["rmm"].as_string());
 }
 
 }
@@ -122,10 +117,10 @@ bool RmmLoader::load(const json::Value& config) {
     try {
         check_required_fields(config);
         configure_ipmi(config);
-        configure_certificates(config);
+        configure_certificates(m_dc, config);
     }
     catch (const std::runtime_error& error) {
-        log_error(GET_LOGGER("rmm-agent"), "Loading modules configuration failed: " << error.what());
+        log_error("rmm-agent", "Loading modules configuration failed: " << error.what());
         return false;
     }
 

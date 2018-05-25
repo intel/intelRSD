@@ -21,7 +21,7 @@
  */
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,7 +85,6 @@ public:
      * */
     void set(const std::string& key, const std::string& value);
 
-    //  -----  parameter accessors  -----
 
     /*!
      * @brief Obtain the value of a parameter.
@@ -104,8 +103,6 @@ public:
      * @return The value of the parameter, or an empty string if the key is not matched.
      * */
     std::string get(const std::string& key) const;
-
-    //  -----  iterators  -----
 
     ParameterList::iterator begin() {
         return m_list.begin();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -27,11 +28,13 @@ import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-@SuppressWarnings({"checkstyle:MethodCount"})
-@JsonPropertyOrder({"@odata.type", "id", "switchId", "name", "description", "manufacturer", "model",
-    "manufacturingDate", "serialNumber", "partNumber", "firmwareName", "firmwareVersion", "role", "status", "acls", "oem",
-    "ports", "links"
+@JsonPropertyOrder({
+    "@odata.context", "@odata.id", "@odata.type", "id", "switchId", "name", "description", "manufacturer", "model", "manufacturingDate", "serialNumber",
+    "partNumber", "firmwareName", "firmwareVersion", "role", "status", "acls", "ports", "metrics", "lldpEnabled", "etsEnabled", "dcbxEnabled",
+    "dcbxSharedConfigurationDto", "pfcEnabled", "links", "oem"
 })
+@JsonIgnoreProperties({"Oem"})
+@SuppressWarnings({"checkstyle:MethodCount"})
 public final class EthernetSwitchDto extends RedfishDto {
     private String switchId;
     private String manufacturer;
@@ -48,6 +51,16 @@ public final class EthernetSwitchDto extends RedfishDto {
     private SingletonContext ports;
     @JsonInclude(NON_NULL)
     private SingletonContext metrics;
+    @JsonProperty("LLDPEnabled")
+    private Boolean lldpEnabled;
+    @JsonProperty("ETSEnabled")
+    private Boolean etsEnabled;
+    @JsonProperty("DCBXEnabled")
+    private Boolean dcbxEnabled;
+    @JsonProperty("DCBXSharedConfiguration")
+    private DcbxConfigDto dcbxSharedConfigurationDto = new DcbxConfigDto();
+    @JsonProperty("PFCEnabled")
+    private Boolean pfcEnabled;
     private Links links;
 
     public EthernetSwitchDto() {
@@ -158,6 +171,46 @@ public final class EthernetSwitchDto extends RedfishDto {
         this.metrics = metrics;
     }
 
+    public Boolean getLldpEnabled() {
+        return lldpEnabled;
+    }
+
+    public void setLldpEnabled(Boolean lldpEnabled) {
+        this.lldpEnabled = lldpEnabled;
+    }
+
+    public Boolean getEtsEnabled() {
+        return etsEnabled;
+    }
+
+    public void setEtsEnabled(Boolean etsEnabled) {
+        this.etsEnabled = etsEnabled;
+    }
+
+    public Boolean getDcbxEnabled() {
+        return dcbxEnabled;
+    }
+
+    public void setDcbxEnabled(Boolean dcbxEnabled) {
+        this.dcbxEnabled = dcbxEnabled;
+    }
+
+    public DcbxConfigDto getDcbxSharedConfigurationDto() {
+        return dcbxSharedConfigurationDto;
+    }
+
+    public void setDcbxSharedConfigurationDto(DcbxConfigDto dcbxSharedConfigurationDto) {
+        this.dcbxSharedConfigurationDto = dcbxSharedConfigurationDto;
+    }
+
+    public Boolean getPfcEnabled() {
+        return pfcEnabled;
+    }
+
+    public void setPfcEnabled(Boolean pfcEnabled) {
+        this.pfcEnabled = pfcEnabled;
+    }
+
     public Links getLinks() {
         return links;
     }
@@ -170,6 +223,7 @@ public final class EthernetSwitchDto extends RedfishDto {
         return new Links(chassis, managedBy);
     }
 
+    @JsonPropertyOrder({"chassis", "managedBy", "oem"})
     private final class Links extends RedfishLinksDto {
         private final Context chassis;
         private final Set<Context> managedBy;
@@ -188,3 +242,4 @@ public final class EthernetSwitchDto extends RedfishDto {
         }
     }
 }
+

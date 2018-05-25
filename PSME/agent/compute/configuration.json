@@ -1,4 +1,5 @@
 {
+    "service" : "compute",
     "agent": {
         "vendor" : "Intel Corporation",
         "capabilities" : [ "Compute" ]
@@ -14,48 +15,43 @@
     "managers": [
         {
             "slot" : 1,
-            "switchPortIdentifier" : "sw0p37",
             "ipv4": "1.1.2.1",
             "username": "put_username_hash_here",
             "password": "put_password_hash_here",
-            "port": 623,
-            "serialConsoleEnabled": true
+            "port": 623
         },
         {
             "slot" : 2,
-            "switchPortIdentifier" : "sw0p41",
             "ipv4": "1.1.2.2",
             "username": "put_username_hash_here",
             "password": "put_password_hash_here",
-            "port": 623,
-            "serialConsoleEnabled": true
+            "port": 623
         },
         {
             "slot" : 3,
-            "switchPortIdentifier" : "sw0p39",
             "ipv4": "1.1.2.3",
             "username": "put_username_hash_here",
             "password": "put_password_hash_here",
-            "port": 623,
-            "serialConsoleEnabled": true
+            "port": 623
         },
         {
             "slot" : 4,
-            "switchPortIdentifier" : "sw0p43",
             "ipv4": "1.1.2.4",
             "username": "put_username_hash_here",
             "password": "put_password_hash_here",
-            "port": 623,
-            "serialConsoleEnabled": true
+            "port": 623
         }
     ],
     "cyMux": {
         "ipv4": "127.0.0.1",
         "port": 5623
     },
-    "service-uuid-file" : "/var/opt/psme/compute-service-uuid.json",
-    "logger" : {
-        "agent" : {
+    "database": {
+        "location": "/var/opt/psme/compute"
+    },
+    "loggers" : [
+        {
+            "name" : "compute-agent",
             "level" : "INFO",
             "timeformat" : "DATE_NS",
             "color" : true,
@@ -68,5 +64,5 @@
                 }
             ]
         }
-    }
+    ]
 }

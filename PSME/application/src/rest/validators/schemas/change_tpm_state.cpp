@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,12 @@
 #include "psme/rest/constants/constants.hpp"
 #include "agent-framework/module/enum/common.hpp"
 
+
+
 using namespace psme::rest;
 using namespace psme::rest::validators::schema;
 using namespace agent_framework::model;
+
 
 const jsonrpc::ProcedureValidator& ChangeTPMStatePostSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{

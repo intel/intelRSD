@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +53,6 @@ void EndpointBuilder::build_default() {
 EndpointBuilder::ReturnType EndpointBuilder::add_host_entity() {
 
     attribute::ConnectedEntity entity{};
-    entity.set_entity_type(enums::EntityType::RootComplex);
     entity.set_entity_role(enums::EntityRole::Initiator);
     m_obj.add_connected_entity(std::move(entity));
 
@@ -63,7 +62,6 @@ EndpointBuilder::ReturnType EndpointBuilder::add_host_entity() {
 EndpointBuilder::ReturnType EndpointBuilder::add_drive_entity(const std::string& uuid) {
 
     attribute::ConnectedEntity entity{};
-    entity.set_entity_type(enums::EntityType::Drive);
     entity.set_entity_role(enums::EntityRole::Target);
     entity.set_entity(uuid);
     m_obj.add_connected_entity(std::move(entity));

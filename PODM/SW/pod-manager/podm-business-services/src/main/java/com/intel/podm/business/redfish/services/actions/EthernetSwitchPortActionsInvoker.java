@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.intel.podm.client.WebClientBuilder;
 import com.intel.podm.client.WebClientRequestException;
 import com.intel.podm.client.actions.EthernetSwitchPortResourceCreationRequest;
 import com.intel.podm.client.actions.EthernetSwitchPortResourceModificationRequest;
+import com.intel.podm.client.actions.EthernetSwitchPortResourceModificationRequest.PriorityFlowControlImpl;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.actions.EthernetSwitchPortDefinition;
 import com.intel.podm.common.types.actions.EthernetSwitchPortRedefinition;
@@ -118,11 +119,22 @@ public class EthernetSwitchPortActionsInvoker {
     }
 
     private EthernetSwitchPortResourceModificationRequest requestFromRedefinition(EthernetSwitchPortRedefinition ethernetSwitchPortRedefinition) {
+        PriorityFlowControlImpl priorityFlowControl = null;
+
+        if (ethernetSwitchPortRedefinition.getPriorityFlowControl() != null) {
+            priorityFlowControl = new PriorityFlowControlImpl(
+                ethernetSwitchPortRedefinition.getPriorityFlowControl().getEnabled(),
+                ethernetSwitchPortRedefinition.getPriorityFlowControl().getEnabledPriorities());
+        }
+
         EthernetSwitchPortResourceModificationRequest request = new EthernetSwitchPortResourceModificationRequest();
         request.setAdministrativeState(ethernetSwitchPortRedefinition.getAdministrativeState());
         request.setLinkSpeed(ethernetSwitchPortRedefinition.getLinkSpeed());
         request.setFrameSize(ethernetSwitchPortRedefinition.getFrameSize());
         request.setAutosense(ethernetSwitchPortRedefinition.getAutosense());
+        request.setDcbxState(ethernetSwitchPortRedefinition.getDcbxState());
+        request.setLldpEnabled(ethernetSwitchPortRedefinition.getLldpEnabled());
+        request.setPriorityFlowControl(priorityFlowControl);
         request.setLinks(ethernetSwitchPortRedefinition.getUris(), ethernetSwitchPortRedefinition.getPrimaryVlan());
         return request;
     }

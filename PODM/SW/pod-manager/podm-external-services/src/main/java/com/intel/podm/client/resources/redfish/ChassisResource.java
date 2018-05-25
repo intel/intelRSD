@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.intel.podm.client.LinkName;
@@ -36,7 +37,6 @@ import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 import com.intel.podm.common.types.redfish.OemType;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.client.resources.UnknownOemsHelper.convertObjectNodeToObject;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
@@ -60,28 +61,28 @@ import static java.lang.String.format;
 public class ChassisResource extends ExternalServiceResourceImpl implements ExternalServiceResource {
     @JsonProperty("ChassisType")
     private ChassisType chassisType;
-    @JsonProperty("Manufacturer")
+    @JsonSetter(value = "Manufacturer", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> manufacturer = unassigned();
-    @JsonProperty("Model")
+    @JsonSetter(value = "Model", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> model = unassigned();
-    @JsonProperty("SKU")
+    @JsonSetter(value = "SKU", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> sku = unassigned();
-    @JsonProperty("SerialNumber")
+    @JsonSetter(value = "SerialNumber", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> serialNumber = unassigned();
-    @JsonProperty("PartNumber")
+    @JsonSetter(value = "PartNumber", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> partNumber = unassigned();
-    @JsonProperty("AssetTag")
+    @JsonSetter(value = "AssetTag", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> assetTag = unassigned();
-    @JsonProperty("IndicatorLED")
+    @JsonSetter(value = "IndicatorLED", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<IndicatorLed> indicatorLed = unassigned();
-    @JsonProperty("PowerState")
+    @JsonSetter(value = "PowerState", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<PowerState> powerState = unassigned();
     @JsonProperty("Status")
@@ -245,7 +246,7 @@ public class ChassisResource extends ExternalServiceResourceImpl implements Exte
     }
 
     @Override
-    public Id getGlobalId(Id externalServiceId, URI uri) {
+    public Id getGlobalId(Id externalServiceId) {
         switch (getChassisType()) {
             case DRAWER:
                 String globalIdString = getChassisType().getValue()
@@ -253,7 +254,7 @@ public class ChassisResource extends ExternalServiceResourceImpl implements Exte
                     .concat(format("-PID-%s", getLocationParentId()));
                 return Id.fromString(Base64.getEncoder().withoutPadding().encodeToString(globalIdString.getBytes()));
             default:
-                return super.getGlobalId(externalServiceId, uri);
+                return super.getGlobalId(externalServiceId);
         }
     }
 

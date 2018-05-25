@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,7 +69,7 @@ Response Manager::create_target(const std::int32_t target_id, const std::string&
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -88,7 +88,7 @@ Response Manager::create_lun(const int32_t target_id, const uint64_t lun_id, con
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -107,7 +107,7 @@ Response Manager::bind_target(const int32_t target_id, const Manager::OptionMapp
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -126,7 +126,7 @@ Response Manager::unbind_target(const int32_t target_id, const Manager::OptionMa
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -145,7 +145,7 @@ Response Manager::update_target(const int32_t target_id, const Manager::OptionMa
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -164,7 +164,7 @@ Response Manager::destroy_target(const int32_t target_id) const {
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -195,7 +195,7 @@ Response Manager::show_targets() const {
         }
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
 
     return response;
@@ -214,7 +214,7 @@ Response Manager::create_chap_account(const string& username, const string& pass
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -232,7 +232,7 @@ Response Manager::delete_chap_account(const string& username) const {
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -250,7 +250,7 @@ Response Manager::bind_chap_account(const int32_t target_id, const string& usern
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -268,7 +268,7 @@ Response Manager::unbind_chap_account(const int32_t target_id, const string& use
         socket.receive_bytes(response.data(), response.get_response_pod_size());
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("tgt"), e.what());
+        log_error("tgt", e.what());
     }
     return response;
 }
@@ -348,6 +348,7 @@ Request Manager::destroy_target_request(const int32_t target_id) const {
     request.set_operation(Operation::DELETE);
     request.set_mode(Mode::TARGET);
     request.set_lld("iscsi");
+    request.set_force(1); // WARNING: Will delete an iSCSI target even when there is an active connection to it!!
     return request;
 }
 

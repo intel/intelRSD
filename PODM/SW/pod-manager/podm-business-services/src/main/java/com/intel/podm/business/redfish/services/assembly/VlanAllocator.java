@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class VlanAllocator {
 
     @Transactional(MANDATORY)
     public void createNecessaryVlans(EthernetSwitchPort associatedSwitchPort, List<Vlan> requestedVlans) throws EntityOperationException {
-        List<VlanCreationRequest> vlansToCreate = vlanSelector.vlansToCreate(associatedSwitchPort.getEthernetSwitchPortVlans(), requestedVlans);
+        List<VlanCreationRequest> vlansToCreate = vlanSelector.getVlansToCreate(associatedSwitchPort.getEthernetSwitchPortVlans(), requestedVlans);
         for (VlanCreationRequest vlanCreationRequest : vlansToCreate) {
             createVlan(associatedSwitchPort, vlanCreationRequest);
         }
@@ -77,7 +77,7 @@ public class VlanAllocator {
 
     @Transactional(MANDATORY)
     public void removeUnnecessaryTaggedVlans(EthernetSwitchPort associatedSwitchPort, List<Vlan> vlansToPreserve) throws EntityOperationException {
-        List<EthernetSwitchPortVlan> vlansToDelete = vlanSelector.taggedVlansToDelete(associatedSwitchPort, vlansToPreserve);
+        List<EthernetSwitchPortVlan> vlansToDelete = vlanSelector.getTaggedVlansToDelete(associatedSwitchPort, vlansToPreserve);
         vlanTerminator.deleteVlans(vlansToDelete);
     }
 
@@ -92,7 +92,7 @@ public class VlanAllocator {
 
     @Transactional(MANDATORY)
     public VlanRemoveStatus tryRemoveUntaggedVlans(EthernetSwitchPort associatedSwitchPort, Vlan untaggedVlanToPreserve) {
-        List<EthernetSwitchPortVlan> vlansToDelete = vlanSelector.untaggedVlansToDelete(associatedSwitchPort, untaggedVlanToPreserve);
+        List<EthernetSwitchPortVlan> vlansToDelete = vlanSelector.getUntaggedVlansToDelete(associatedSwitchPort, untaggedVlanToPreserve);
         try {
             vlanTerminator.deleteVlans(vlansToDelete);
         } catch (EntityOperationException e) {
@@ -135,4 +135,3 @@ public class VlanAllocator {
         return vlans.iterator().next().getSourceUri();
     }
 }
-

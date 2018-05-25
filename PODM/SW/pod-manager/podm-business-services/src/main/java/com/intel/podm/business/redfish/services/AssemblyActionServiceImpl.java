@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.intel.podm.business.redfish.services.assembly.NodeAssembler;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ActionService;
 import com.intel.podm.business.services.redfish.requests.AssemblyRequest;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
+import com.intel.podm.common.enterprise.utils.retry.RetryOnRollback;
 import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
 
 import javax.enterprise.context.RequestScoped;
@@ -45,7 +45,7 @@ class AssemblyActionServiceImpl implements ActionService<AssemblyRequest> {
     private EntityTreeTraverser traverser;
 
     @Override
-    @NumberOfRetriesOnRollback(3)
+    @RetryOnRollback(3)
     @Transactional(REQUIRES_NEW)
     public void perform(Context target, AssemblyRequest request) throws BusinessApiException {
         ComposedNode composedNode = (ComposedNode) traverser.traverse(target);

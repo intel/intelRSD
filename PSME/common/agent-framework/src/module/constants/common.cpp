@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -112,6 +112,27 @@ constexpr const char Manager::FACTORY_DEFAULTS[];
 constexpr const char Manager::PACKAGE_URL[];
 constexpr const char Manager::ALLOWED_ACTIONS[];
 
+constexpr const char NetworkInterface::INTERFACE[];
+constexpr const char NetworkInterface::STATUS[];
+constexpr const char NetworkInterface::FRAME_SIZE[];
+constexpr const char NetworkInterface::SPEED[];
+constexpr const char NetworkInterface::AUTO_SENSE[];
+constexpr const char NetworkInterface::MAC_ADDRESS[];
+constexpr const char NetworkInterface::VLAN_ENABLE[];
+constexpr const char NetworkInterface::VLAN_COUNT[];
+constexpr const char NetworkInterface::FULL_DUPLEX[];
+constexpr const char NetworkInterface::IPv4_ADDRESS[];
+constexpr const char NetworkInterface::IPv6_ADDRESS[];
+constexpr const char NetworkInterface::IPv4_ADDRESSES[];
+constexpr const char NetworkInterface::IPv6_ADDRESSES[];
+constexpr const char NetworkInterface::IPv6_DEFAULT_GATEWAY[];
+constexpr const char NetworkInterface::MAX_IPv6_STATIC_ADDRESSES[];
+constexpr const char NetworkInterface::DEFAULT_VLAN[];
+constexpr const char NetworkInterface::SUPPORTED_PROTOCOLS[];
+constexpr const char NetworkInterface::FACTORY_MAC_ADDRESS[];
+constexpr const char NetworkInterface::COLLECTIONS[];
+constexpr const char NetworkInterface::OEM[];
+
 constexpr const char GraphicalConsole::ENABLED[];
 constexpr const char GraphicalConsole::MAX_SESSIONS[];
 constexpr const char GraphicalConsole::TYPES_SUPPORTED[];
@@ -186,9 +207,22 @@ constexpr const char Task::NAME[];
 constexpr const char Task::OEM[];
 
 
-constexpr const char ConnectedEntity::ENTITY_TYPE[];
-constexpr const char ConnectedEntity::ENTITY_ROLE[];
+constexpr const char ConnectedEntity::ROLE[];
 constexpr const char ConnectedEntity::ENTITY[];
+constexpr const char ConnectedEntity::IDENTIFIERS[];
+
+
+constexpr const char Transport::PROTOCOL[];
+constexpr const char Transport::TYPE[];
+constexpr const char Transport::DETAILS[];
+
+
+constexpr const char IpTransportDetail::IPV4_ADDRESS[];
+constexpr const char IpTransportDetail::IPV6_ADDRESS[];
+constexpr const char IpTransportDetail::PORT[];
+constexpr const char IpTransportDetail::PROTOCOL[];
+constexpr const char IpTransportDetail::INTERFACE[];
+
 
 constexpr const char Metric::METRIC[];
 constexpr const char Metric::UUID[];
@@ -233,6 +267,36 @@ constexpr const char Wildcard::VALUES[];
 constexpr const char CalculationParameters::SOURCE_METRIC[];
 constexpr const char CalculationParameters::RESULT_METRIC[];
 
+constexpr const char Zone::ZONE[];
+constexpr const char Zone::STATUS[];
+constexpr const char Zone::COLLECTIONS[];
+constexpr const char Zone::OEM[];
+constexpr const char Zone::FABRIC[];
+constexpr const char Zone::ENDPOINTS[];
+
+constexpr const char Endpoint::ENDPOINT[];
+constexpr const char Endpoint::FABRIC[];
+constexpr const char Endpoint::PROTOCOL[];
+constexpr const char Endpoint::IDENTIFIERS[];
+constexpr const char Endpoint::CONNECTED_ENTITIES[];
+constexpr const char Endpoint::IP_TRANSPORT_DETAILS[];
+constexpr const char Endpoint::USERNAME[];
+constexpr const char Endpoint::PASSWORD[];
+constexpr const char Endpoint::COLLECTIONS[];
+constexpr const char Endpoint::STATUS[];
+constexpr const char Endpoint::OEM[];
+constexpr const char Endpoint::NQN_FORMAT[];
+constexpr const char Endpoint::TARGET[];
+constexpr const char Endpoint::INITIATOR[];
+
+constexpr const char Capacity::ALLOCATED_BYTES[];
+constexpr const char Capacity::CONSUMED_BYTES[];
+constexpr const char Capacity::GUARANTEED_BYTES[];
+constexpr const char Capacity::PROVISIONED_BYTES[];
+
+constexpr const char CapacitySource::PROVIDING_DRIVES[];
+constexpr const char CapacitySource::PROVIDING_VOLUMES[];
+constexpr const char CapacitySource::PROVIDING_POOLS[];
 }
 }
 }

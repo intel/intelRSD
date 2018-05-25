@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ public class SwitchResource extends ExternalServiceResourceImpl implements Exter
         return domainId;
     }
 
-    public Boolean getManaged() {
+    public Boolean getIsManaged() {
         return isManaged;
     }
 
@@ -175,7 +175,6 @@ public class SwitchResource extends ExternalServiceResourceImpl implements Exter
         return redundancy;
     }
 
-    @JsonPropertyOrder({"chassis", "managedBy", "oem"})
     public class Links extends RedfishLinks {
         @JsonProperty("Chassis")
         private Set<ODataId> chassis;

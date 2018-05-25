@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,9 +28,7 @@
 #include "drive.hpp"
 #include "switch.hpp"
 #include "zone.hpp"
-#include "pcie_function.hpp"
 #include "port.hpp"
-#include "pcie_device.hpp"
 #include "task.hpp"
 #include "endpoint.hpp"
 #include "fabric.hpp"

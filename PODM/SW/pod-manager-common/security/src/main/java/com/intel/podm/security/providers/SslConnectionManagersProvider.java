@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
 package com.intel.podm.security.providers;
 
 import com.intel.podm.common.logger.Logger;
+import com.intel.podm.config.base.dto.SecurityConfig.CertificateType;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.naming.NamingException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -30,7 +33,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 
+import static com.intel.podm.config.base.dto.SecurityConfig.CertificateType.CLIENT;
+import static com.intel.podm.config.base.dto.SecurityConfig.CertificateType.SERVER;
+
 @ApplicationScoped
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class SslConnectionManagersProvider {
     @Inject
     private Logger logger;
@@ -39,16 +46,26 @@ public class SslConnectionManagersProvider {
     private KeyStoreProvider keyStoreProvider;
 
     public KeyManager[] getKeyManagersArray() {
-        String password = PasswordProvider.INSTANCE.getPassword();
-
         try {
-            KeyStore keyStore = keyStoreProvider.loadCertificate(password);
+            KeyStore keyStore = loadCertificate(CLIENT);
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keyStore, password.toCharArray());
+            keyManagerFactory.init(keyStore, getPasswordForType(CLIENT).toCharArray());
             return keyManagerFactory.getKeyManagers();
         } catch (NoSuchAlgorithmException | UnrecoverableKeyException | KeyStoreException e) {
-            logger.e("Managers array has not been initialized due to error {}", e.getMessage());
-            throw new RuntimeException("Error during managers array initialize process", e);
+            logger.e("Key managers array has not been initialized due to error {}", e.getMessage());
+            throw new RuntimeException("Error during key managers array initialize process", e);
+        }
+    }
+
+    public TrustManager[] getTrustManagersArray() {
+        try {
+            KeyStore trustStore = loadCertificate(SERVER);
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(trustStore);
+            return trustManagerFactory.getTrustManagers();
+        } catch (NoSuchAlgorithmException | KeyStoreException e) {
+            logger.e("Trust managers array has not been initialized due to error {}", e.getMessage());
+            throw new RuntimeException("Error during trust managers array initialize process", e);
         }
     }
 
@@ -69,5 +86,19 @@ public class SslConnectionManagersProvider {
                 }
             }
         };
+    }
+
+    private KeyStore loadCertificate(CertificateType certificateType) {
+        String password = getPasswordForType(certificateType);
+        return keyStoreProvider.loadCertificate(password, certificateType);
+    }
+
+    private String getPasswordForType(CertificateType certificateType) {
+        try {
+            return PasswordProvider.INSTANCE.getPassword(certificateType);
+        } catch (NamingException e) {
+            logger.e("Context not found {}", e.getMessage());
+            throw new RuntimeException("Context not found. Keystore password could not be retrieved.", e);
+        }
     }
 }

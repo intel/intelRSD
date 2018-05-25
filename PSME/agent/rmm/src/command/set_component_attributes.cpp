@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -270,8 +270,8 @@ void process_thermal_zone_attributes(const std::string& uuid, const Attributes& 
         try {
             const auto& value = attributes.get_value(attribute_name);
 
-            log_debug(GET_LOGGER("rmm-agent"), "Attribute name: " << attribute_name);
-            log_debug(GET_LOGGER("rmm-agent"), "Attribute value: " << value.dump());
+            log_debug("rmm-agent", "Attribute name: " << attribute_name);
+            log_debug("rmm-agent", "Attribute value: " << value.dump());
 
             if (literals::ThermalZone::DESIRED_SPEED_PWM == attribute_name) {
                 const auto pwm = value.get<unsigned>();
@@ -308,8 +308,8 @@ void process_psu_attributes(const std::string& uuid, const Attributes& attribute
         try {
             const auto& value = attributes.get_value(attribute_name);
 
-            log_debug(GET_LOGGER("rmm-agent"), "Attribute name: " << attribute_name);
-            log_debug(GET_LOGGER("rmm-agent"), "Attribute value: " << value.dump());
+            log_debug("rmm-agent", "Attribute name: " << attribute_name);
+            log_debug("rmm-agent", "Attribute value: " << value.dump());
 
             if (literals::Psu::REQUESTED_STATE == attribute_name) {
                 const auto state = enums::State::from_string(value.get<std::string>());
@@ -371,8 +371,8 @@ void process_chassis_attributes(const std::string uuid, const Attributes& attrib
         try {
             const auto& value = attributes.get_value(attribute_name);
 
-            log_debug(GET_LOGGER("rmm-agent"), "Attribute name: " << attribute_name);
-            log_debug(GET_LOGGER("rmm-agent"), "Attribute value: " << value.dump());
+            log_debug("rmm-agent", "Attribute name: " << attribute_name);
+            log_debug("rmm-agent", "Attribute value: " << value.dump());
 
             if (literals::Chassis::RESET == attribute_name) {
                 auto reset = enums::ResetType::from_string(value.get<std::string>());
@@ -447,8 +447,8 @@ void process_manager_attributes(const std::string uuid, const Attributes& attrib
         try {
             const auto& value = attributes.get_value(attribute_name);
 
-            log_debug(GET_LOGGER("rmm-agent"), "Attribute name: " << attribute_name);
-            log_debug(GET_LOGGER("rmm-agent"), "Attribute value: " << value.dump());
+            log_debug("rmm-agent", "Attribute name: " << attribute_name);
+            log_debug("rmm-agent", "Attribute value: " << value.dump());
 
             if (literals::Manager::RESET == attribute_name) {
                 auto reset = enums::ResetType::from_string(value.get<std::string>());
@@ -481,13 +481,13 @@ bool is_managed_by_rmm(const std::string& uuid) {
 void set_component_attributes(const SetComponentAttributes::Request& request,
                               SetComponentAttributes::Response& response) {
 
-    log_info(GET_LOGGER("rmm-agent"), "Executing setComponentAttributes.");
+    log_info("rmm-agent", "Executing setComponentAttributes.");
 
     const auto& uuid = request.get_component();
     const auto& attributes = request.get_attributes();
 
     if (attributes.empty()) {
-        log_info(GET_LOGGER("rmm-agent"), "Nothing has been changed (empty request).");
+        log_info("rmm-agent", "Nothing has been changed (empty request).");
         return;
     }
 
@@ -514,7 +514,7 @@ void set_component_attributes(const SetComponentAttributes::Request& request,
         THROW(InvalidUuid, "rmm-agent", "No component with UUID = '" + uuid + "'.");
     }
 
-    log_info(GET_LOGGER("rmm-agent"), "setComponentAttributes finished successfully.");
+    log_info("rmm-agent", "setComponentAttributes finished successfully.");
 }
 
 }

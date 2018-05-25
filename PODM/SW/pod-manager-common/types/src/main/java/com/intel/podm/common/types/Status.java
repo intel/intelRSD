@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,11 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
  * Provides representation of State, Health and HealthRollup objects.
  */
 public class Status implements Serializable {
-    public static final String STATE_PROPERTY = "State";
-    public static final String HEALTH_PROPERTY = "Health";
-    public static final String HEALTH_ROLLUP_PROPERTY = "HealthRollup";
-
     private static final long serialVersionUID = -1239512910107787280L;
+
+    private static final String STATE_PROPERTY = "State";
+    private static final String HEALTH_PROPERTY = "Health";
+    private static final String HEALTH_ROLLUP_PROPERTY = "HealthRollup";
 
     private State state;
     private Health health;

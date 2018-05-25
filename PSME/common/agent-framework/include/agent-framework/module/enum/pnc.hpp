@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,18 +37,6 @@ ENUM(PciePortType, uint32_t, UpstreamPort, DownstreamPort, InterswitchPort,
      ManagementPort, BidirectionalPort, UnconfiguredPort);
 
 /*!
- * @brief ENUM PciePortOperationalState for PciePort class
- *
- */
-ENUM(PciePortOperationalState, uint32_t, Up, Down, Unknown);
-
-/*!
- * @brief ENUM PciePortAdministrativeState for PciePort class
- *
- */
-ENUM(PciePortAdministrativeState, uint32_t, Up, Down);
-
-/*!
  * @brief ENUM PcieDeviceClass for PcieDevice class
  *
  */
@@ -76,18 +64,6 @@ ENUM(PcieFunctionDeviceClass, uint32_t, UnclassifiedDevice, MassStorageControlle
  * @brief ENUM PowerState for PcieSwitches
  */
 ENUM(PcieSwitchPowerState, uint32_t, On, Off, PoweringOn, PoweringOff);
-
-
-/*!
- * @brief ENUM ConnectedEntity entity type
- */
-ENUM(EntityType, uint32_t, RootComplex, StorageInitiator, NetworkController, Drive,
-    StorageExpander, DisplayController, Bridge, Processor);
-
-/*!
- * @brief ENUM ConnectedEntity entity role
- */
-ENUM(EntityRole, uint32_t, Initiator, Target, Both);
 
 }
 }

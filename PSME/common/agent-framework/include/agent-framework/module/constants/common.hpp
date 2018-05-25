@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -211,6 +211,33 @@ public:
     static constexpr const char ALLOWED_ACTIONS[] = "allowedActions";
 };
 
+/*!
+ * @brief Class consisting of literals for NetworkInterface model objects
+ */
+class NetworkInterface {
+public:
+    static constexpr const char INTERFACE[] = "interface";
+    static constexpr const char STATUS[] = "status";
+    static constexpr const char FRAME_SIZE[] = "frameSize";
+    static constexpr const char SPEED[] = "speedMbps";
+    static constexpr const char AUTO_SENSE[] = "autoSense";
+    static constexpr const char MAC_ADDRESS[] = "macAddress";
+    static constexpr const char FACTORY_MAC_ADDRESS[] = "factoryMacAddress";
+    static constexpr const char VLAN_ENABLE[] = "vlanEnable";
+    static constexpr const char VLAN_COUNT[] = "vlanCount";
+    static constexpr const char FULL_DUPLEX[] = "fullDuplex";
+    static constexpr const char IPv4_ADDRESS[] = "ipv4Address";
+    static constexpr const char IPv6_ADDRESS[] = "ipv6Address";
+    static constexpr const char IPv4_ADDRESSES[] = "ipv4Addresses";
+    static constexpr const char IPv6_ADDRESSES[] = "ipv6Addresses";
+    static constexpr const char IPv6_DEFAULT_GATEWAY[] = "ipv6DefaultGateway";
+    static constexpr const char MAX_IPv6_STATIC_ADDRESSES[] = "maxIPv6StaticAddresses";
+    static constexpr const char DEFAULT_VLAN[] = "defaultVlan";
+    static constexpr const char SUPPORTED_PROTOCOLS[] = "supportedProtocols";
+    static constexpr const char COLLECTIONS[] = "collections";
+    static constexpr const char OEM[] = "oem";
+};
+
 /*! @brief Class consisting of literals for Ipv4Address model objects */
 class Ipv4Address {
 public:
@@ -306,9 +333,25 @@ public:
 
 class ConnectedEntity {
 public:
-    static constexpr const char ENTITY_TYPE[] = "entityType";
-    static constexpr const char ENTITY_ROLE[] = "entityRole";
+    static constexpr const char ROLE[] = "role";
     static constexpr const char ENTITY[] = "entity";
+    static constexpr const char IDENTIFIERS[] = "identifiers";
+};
+
+class Transport {
+public:
+    static constexpr const char PROTOCOL[] = "protocol";
+    static constexpr const char TYPE[] = "type";
+    static constexpr const char DETAILS[] = "details";
+};
+
+class IpTransportDetail {
+public:
+    static constexpr const char IPV4_ADDRESS[] = "ipv4Address";
+    static constexpr const char IPV6_ADDRESS[] = "ipv6Address";
+    static constexpr const char PORT[] = "port";
+    static constexpr const char PROTOCOL[] = "protocol";
+    static constexpr const char INTERFACE[] = "interface";
 };
 
 class Metric {
@@ -370,6 +413,61 @@ class CalculationParameters {
 public:
     static constexpr const char SOURCE_METRIC[] = "sourceMetric";
     static constexpr const char RESULT_METRIC[] = "resultMetric";
+};
+
+/*!
+ * @brief Class consisting of literals for Zone
+ */
+class Zone {
+public:
+    static constexpr const char ZONE[] = "zone";
+    static constexpr const char STATUS[] = "status";
+    static constexpr const char COLLECTIONS[] = "collections";
+    static constexpr const char OEM[] = "oem";
+    static constexpr const char FABRIC[] = "fabric";
+    static constexpr const char ENDPOINTS[] = "endpoints";
+};
+
+/*!
+ * @brief Class consisting of literals for Endpoint
+ */
+class Endpoint {
+public:
+    static constexpr const char ENDPOINT[] = "endpoint";
+    static constexpr const char FABRIC[] = "fabric";
+    static constexpr const char PROTOCOL[] = "protocol";
+    static constexpr const char COLLECTIONS[] = "collections";
+    static constexpr const char OEM[] = "oem";
+    static constexpr const char CONNECTED_ENTITIES[] = "connectedEntities";
+    static constexpr const char IDENTIFIERS[] = "identifiers";
+    static constexpr const char STATUS[] = "status";
+    static constexpr const char IP_TRANSPORT_DETAILS[] = "ipTransportDetails";
+    static constexpr const char USERNAME[] = "username";
+    static constexpr const char PASSWORD[] = "password";
+    static constexpr const char NQN_FORMAT[] = "nqn.2014-08.org.nvmexpress:uuid:";
+    static constexpr const char TARGET[] = "Target";
+    static constexpr const char INITIATOR[] = "Initiator";
+};
+
+/*!
+ * @brief Capacity consisting of literals for Swordfish StoragePools and Volumes
+ */
+class Capacity {
+public:
+    static constexpr const char ALLOCATED_BYTES[] = "allocatedBytes";
+    static constexpr const char CONSUMED_BYTES[] = "consumedBytes";
+    static constexpr const char GUARANTEED_BYTES[] = "guaranteedBytes";
+    static constexpr const char PROVISIONED_BYTES[] = "provisionedBytes";
+};
+
+/*!
+ * @brief CapacitySource consisting of literals for Swordfish StoragePools and Volumes
+ */
+class CapacitySource {
+public:
+    static constexpr const char PROVIDING_DRIVES[] = "providingDrives";
+    static constexpr const char PROVIDING_VOLUMES[] = "providingVolumes";
+    static constexpr const char PROVIDING_POOLS[] = "providingPools";
 };
 
 }

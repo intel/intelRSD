@@ -2,7 +2,7 @@
  * @brief Provides class for stabilizing compute agent resource tree
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +42,7 @@ namespace compute {
  * */
 class ComputeTreeStabilizer : public agent_framework::TreeStabilizer {
 public:
+
     /*! Destructor */
     virtual ~ComputeTreeStabilizer();
 

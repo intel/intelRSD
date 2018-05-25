@@ -1,7 +1,7 @@
 /*!
  * @brief Definition of Network Device Function endpoint
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include "psme/rest/validators/schemas/network_device_function.hpp"
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/responses/common.hpp"
+#include "agent-framework/module/utils/json_transformations.hpp"
 
 using namespace psme::rest;
 using namespace psme::rest::constants;
@@ -151,61 +152,44 @@ agent_framework::model::attribute::Attributes fill_attributes(const json::Value&
         attributes.set_value(literals::NetworkDeviceFunction::ETHERNET, ethernet);
     }
     if (json.is_member(NetworkDeviceFunction::ISCSI_BOOT)) {
+
         json::Json gami_iscsi_boot = json::Json::object();
         const json::Value& rest_iscsi_boot = json[NetworkDeviceFunction::ISCSI_BOOT];
 
-        auto has_value_to_set = [&] (const char* rest_literal, const char* gami_literal) {
+        auto set_property = [&] (const char* rest_literal, const char* gami_literal) {
             if (rest_iscsi_boot.is_member(rest_literal)) {
-                if (rest_iscsi_boot[rest_literal].is_null()) {
-                    gami_iscsi_boot[gami_literal] = json::Json{};
-                } else {
-                    return true;
-                }
-            }
-            return false;
-        };
-        auto set_string = [&] (const char* rest_literal, const char* gami_literal) {
-            if (has_value_to_set(rest_literal, gami_literal)) {
-                gami_iscsi_boot[gami_literal] = rest_iscsi_boot[rest_literal].as_string();
+                gami_iscsi_boot[gami_literal] =
+                    agent_framework::model::utils::to_json_rpc(rest_iscsi_boot[rest_literal]);
             }
         };
-        auto set_boolean = [&] (const char* rest_literal, const char* gami_literal) {
-            if (has_value_to_set(rest_literal, gami_literal)) {
-                gami_iscsi_boot[gami_literal] = rest_iscsi_boot[rest_literal].as_bool();
-            }
-        };
-        auto set_uint32 = [&] (const char* rest_literal, const char* gami_literal) {
-            if (has_value_to_set(rest_literal, gami_literal)) {
-                gami_iscsi_boot[gami_literal] = rest_iscsi_boot[rest_literal].as_uint();
-            }
-        };
-        set_string(NetworkDeviceFunction::IP_ADDRESS_TYPE, literals::IscsiBoot::IP_ADDRESS_TYPE);
-        set_string(NetworkDeviceFunction::INITIATOR_IP_ADDRESS, literals::IscsiBoot::INITIATOR_IP_ADDRESS);
-        set_string(NetworkDeviceFunction::INITIATOR_NAME, literals::IscsiBoot::INITIATOR_NAME);
-        set_string(NetworkDeviceFunction::INITIATOR_DEFAULT_GATEWAY, literals::IscsiBoot::INITIATOR_DEFAULT_GATEWAY);
-        set_string(NetworkDeviceFunction::INITIATOR_NETMASK, literals::IscsiBoot::INITIATOR_NETMASK);
-        set_boolean(NetworkDeviceFunction::TARGET_INFO_VIA_DHCP, literals::IscsiBoot::TARGET_INFO_VIA_DHCP);
-        set_string(NetworkDeviceFunction::PRIMARY_TARGET_NAME, literals::IscsiBoot::PRIMARY_TARGET_NAME);
-        set_string(NetworkDeviceFunction::PRIMARY_TARGET_IP_ADDRESS, literals::IscsiBoot::PRIMARY_TARGET_IP_ADDRESS);
-        set_uint32(NetworkDeviceFunction::PRIMARY_TARGET_TCP_PORT, literals::IscsiBoot::PRIMARY_TARGET_TCP_PORT);
-        set_uint32(NetworkDeviceFunction::PRIMARY_LUN, literals::IscsiBoot::PRIMARY_LUN);
-        set_boolean(NetworkDeviceFunction::PRIMARY_VLAN_ENABLE, literals::IscsiBoot::PRIMARY_VLAN_ENABLE);
-        set_uint32(NetworkDeviceFunction::PRIMARY_VLAN_ID, literals::IscsiBoot::PRIMARY_VLAN_ID);
-        set_string(NetworkDeviceFunction::PRIMARY_DNS, literals::IscsiBoot::PRIMARY_DNS);
-        set_string(NetworkDeviceFunction::SECONDARY_TARGET_NAME, literals::IscsiBoot::SECONDARY_TARGET_NAME);
-        set_string(NetworkDeviceFunction::SECONDARY_TARGET_IP_ADDRESS, literals::IscsiBoot::SECONDARY_TARGET_IP_ADDRESS);
-        set_uint32(NetworkDeviceFunction::SECONDARY_TARGET_TCP_PORT, literals::IscsiBoot::SECONDARY_TARGET_TCP_PORT);
-        set_uint32(NetworkDeviceFunction::SECONDARY_LUN, literals::IscsiBoot::SECONDARY_LUN);
-        set_boolean(NetworkDeviceFunction::SECONDARY_VLAN_ENABLE, literals::IscsiBoot::SECONDARY_VLAN_ENABLE);
-        set_uint32(NetworkDeviceFunction::SECONDARY_VLAN_ID, literals::IscsiBoot::SECONDARY_VLAN_ID);
-        set_string(NetworkDeviceFunction::SECONDARY_DNS, literals::IscsiBoot::SECONDARY_DNS);
-        set_boolean(NetworkDeviceFunction::IP_MASK_DNS_VIA_DHCP, literals::IscsiBoot::IP_MASK_DNS_VIA_DHCP);
-        set_boolean(NetworkDeviceFunction::ROUTER_ADVERTISEMENT_ENABLED, literals::IscsiBoot::ROUTER_ADVERTISEMENT_ENABLED);
-        set_string(NetworkDeviceFunction::AUTHENTICATION_METHOD, literals::IscsiBoot::AUTHENTICATION_METHOD);
-        set_string(NetworkDeviceFunction::CHAP_USERNAME, literals::IscsiBoot::CHAP_USERNAME);
-        set_string(NetworkDeviceFunction::CHAP_SECRET, literals::IscsiBoot::CHAP_SECRET);
-        set_string(NetworkDeviceFunction::MUTUAL_CHAP_USERNAME, literals::IscsiBoot::MUTUAL_CHAP_USERNAME);
-        set_string(NetworkDeviceFunction::MUTUAL_CHAP_SECRET, literals::IscsiBoot::MUTUAL_CHAP_SECRET);
+
+        set_property(NetworkDeviceFunction::IP_ADDRESS_TYPE, literals::IscsiBoot::IP_ADDRESS_TYPE);
+        set_property(NetworkDeviceFunction::INITIATOR_IP_ADDRESS, literals::IscsiBoot::INITIATOR_IP_ADDRESS);
+        set_property(NetworkDeviceFunction::INITIATOR_NAME, literals::IscsiBoot::INITIATOR_NAME);
+        set_property(NetworkDeviceFunction::INITIATOR_DEFAULT_GATEWAY, literals::IscsiBoot::INITIATOR_DEFAULT_GATEWAY);
+        set_property(NetworkDeviceFunction::INITIATOR_NETMASK, literals::IscsiBoot::INITIATOR_NETMASK);
+        set_property(NetworkDeviceFunction::TARGET_INFO_VIA_DHCP, literals::IscsiBoot::TARGET_INFO_VIA_DHCP);
+        set_property(NetworkDeviceFunction::PRIMARY_TARGET_NAME, literals::IscsiBoot::PRIMARY_TARGET_NAME);
+        set_property(NetworkDeviceFunction::PRIMARY_TARGET_IP_ADDRESS, literals::IscsiBoot::PRIMARY_TARGET_IP_ADDRESS);
+        set_property(NetworkDeviceFunction::PRIMARY_TARGET_TCP_PORT, literals::IscsiBoot::PRIMARY_TARGET_TCP_PORT);
+        set_property(NetworkDeviceFunction::PRIMARY_LUN, literals::IscsiBoot::PRIMARY_LUN);
+        set_property(NetworkDeviceFunction::PRIMARY_VLAN_ENABLE, literals::IscsiBoot::PRIMARY_VLAN_ENABLE);
+        set_property(NetworkDeviceFunction::PRIMARY_VLAN_ID, literals::IscsiBoot::PRIMARY_VLAN_ID);
+        set_property(NetworkDeviceFunction::PRIMARY_DNS, literals::IscsiBoot::PRIMARY_DNS);
+        set_property(NetworkDeviceFunction::SECONDARY_TARGET_NAME, literals::IscsiBoot::SECONDARY_TARGET_NAME);
+        set_property(NetworkDeviceFunction::SECONDARY_TARGET_IP_ADDRESS, literals::IscsiBoot::SECONDARY_TARGET_IP_ADDRESS);
+        set_property(NetworkDeviceFunction::SECONDARY_TARGET_TCP_PORT, literals::IscsiBoot::SECONDARY_TARGET_TCP_PORT);
+        set_property(NetworkDeviceFunction::SECONDARY_LUN, literals::IscsiBoot::SECONDARY_LUN);
+        set_property(NetworkDeviceFunction::SECONDARY_VLAN_ENABLE, literals::IscsiBoot::SECONDARY_VLAN_ENABLE);
+        set_property(NetworkDeviceFunction::SECONDARY_VLAN_ID, literals::IscsiBoot::SECONDARY_VLAN_ID);
+        set_property(NetworkDeviceFunction::SECONDARY_DNS, literals::IscsiBoot::SECONDARY_DNS);
+        set_property(NetworkDeviceFunction::IP_MASK_DNS_VIA_DHCP, literals::IscsiBoot::IP_MASK_DNS_VIA_DHCP);
+        set_property(NetworkDeviceFunction::ROUTER_ADVERTISEMENT_ENABLED, literals::IscsiBoot::ROUTER_ADVERTISEMENT_ENABLED);
+        set_property(NetworkDeviceFunction::AUTHENTICATION_METHOD, literals::IscsiBoot::AUTHENTICATION_METHOD);
+        set_property(NetworkDeviceFunction::CHAP_USERNAME, literals::IscsiBoot::CHAP_USERNAME);
+        set_property(NetworkDeviceFunction::CHAP_SECRET, literals::IscsiBoot::CHAP_SECRET);
+        set_property(NetworkDeviceFunction::MUTUAL_CHAP_USERNAME, literals::IscsiBoot::MUTUAL_CHAP_USERNAME);
+        set_property(NetworkDeviceFunction::MUTUAL_CHAP_SECRET, literals::IscsiBoot::MUTUAL_CHAP_SECRET);
 
         attributes.set_value(literals::NetworkDeviceFunction::ISCSI_BOOT, gami_iscsi_boot);
     }

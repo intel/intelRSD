@@ -2,7 +2,7 @@
  * @brief Implementation of Telemetry Hub reader
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ public:
         const auto& reading = m_package_readings.at(index).m_raw_value;
         return reading != NO_READING_AVAILABLE
                ? hub_metric_definitions.at(index).conversion_fn(reading)
-               : json::Json(NO_READING_AVAILABLE);
+               : json::Json();
     }
 
     bool update() override {
@@ -129,11 +129,11 @@ public:
             return true;
         }
         catch(const ipmi::NodeBusyError& e) {
-            log_warning(GET_LOGGER("telemetry"), e.what());
+            log_warning("telemetry", e.what());
             return false;
         }
         catch (const ipmi::command::sdv::InvalidPackageGuid& e) {
-            log_info(GET_LOGGER("telemetry"), e.what() << ": " << m_package_id);
+            log_info("telemetry", e.what() << ": " << m_package_id);
             // after power off packages are cleared -> recreate them
             init_telemetry_hub();
             throw;
@@ -169,7 +169,7 @@ private:
                                && r1.m_metric_id.m_measure_type == r2.m_metric_id.m_measure_type;
                     })) {
                 m_package_id = package.first;
-                log_info(GET_LOGGER("telemetry"), " Found existing package id: " << m_package_id);
+                log_info("telemetry", " Found existing package id: " << m_package_id);
                 return true;
             }
         }
@@ -182,7 +182,7 @@ private:
             metrics.emplace_back(reading.m_metric_id);
         }
         m_package_id = m_telemetry_hub.create_package(metrics);
-        log_info(GET_LOGGER("telemetry"), " Created package id: " << m_package_id);
+        log_info("telemetry", " Created package id: " << m_package_id);
     }
 
     void init_telemetry_hub() {
@@ -204,8 +204,7 @@ TelemetryReader::ReaderId TelemetryHubTelemetryReader::assigned_reader_id() {
 
 TelemetryHubTelemetryReader::TelemetryHubTelemetryReader(MetricDefinition& _metric_definition, MetricUid metric_uid)
     : TelemetryReader(get_hub_metric_definition(metric_uid).resource, _metric_definition, assigned_reader_id()),
-      reading_index(get_reading_index(metric_uid)),
-      reading(NO_READING_AVAILABLE) {}
+      reading_index(get_reading_index(metric_uid)) {}
 
 
 TelemetryReader::Context::Ptr TelemetryHubTelemetryReader::create_context(ipmi::IpmiController& ctrl,
@@ -221,36 +220,41 @@ bool TelemetryHubTelemetryReader::is_valid(Context::Ptr) const {
 
 bool TelemetryHubTelemetryReader::read(TelemetryReader::Context::Ptr context, ipmi::IpmiController&) {
     TelemetryHubContext& ctx = static_cast<TelemetryHubContext&>(*context);
-    return set_value(reading,
-                     ctx.get_reading_value(reading_index),
-                     json::Json(NO_READING_AVAILABLE));
+    return update_value(ctx.get_reading_value(reading_index));
 }
 
 
 TelemetryHubAggregatedTelemetryReader::TelemetryHubAggregatedTelemetryReader(ResourceInstance _resource_key,
                                                                              MetricDefinition& _metric_definition,
-                                                                            const MetricsToAggregate& metrics)
+                                                                             const MetricsToAggregate& metrics)
     : TelemetryReader(_resource_key, _metric_definition, TelemetryHubTelemetryReader::assigned_reader_id()),
-      m_operation(metrics.m_op), reading(NO_READING_AVAILABLE) {
+      m_operation(metrics.m_op) {
     for (const auto& metric_uid: metrics.m_metrics) {
-        m_readers.push_back(TelemetryHubTelemetryReader(_metric_definition, metric_uid));
+        m_readers.push_back(std::unique_ptr<TelemetryHubTelemetryReader>(new TelemetryHubTelemetryReader(_metric_definition, metric_uid)));
     }
+}
+
+
+TelemetryReader::Context::Ptr TelemetryHubAggregatedTelemetryReader::create_context(ipmi::IpmiController& ctrl, PtrVector&) {
+    return std::make_shared<TelemetryHubContext>(ctrl);
 }
 
 
 bool TelemetryHubAggregatedTelemetryReader::is_valid(Context::Ptr context) const {
     return  !m_readers.empty()
             && std::all_of(m_readers.cbegin(), m_readers.cend(),
-                           [context](const TelemetryHubTelemetryReader& reader) { return reader.is_valid(context); });
+                           [context](const std::unique_ptr<TelemetryHubTelemetryReader>& reader) {
+                               return reader->is_valid(context);
+                           });
 }
 
 
 bool TelemetryHubAggregatedTelemetryReader::read(Context::Ptr context, ipmi::IpmiController& ctrl) {
-    double new_reading{};
+    double new_reading{0.0};
     for (auto& reader: m_readers) {
-        reader.read(context, ctrl);
-        const auto& value = reader.get_value();
-        if (value.is_number() && value != json::Json(NO_READING_AVAILABLE)) {
+        reader->read(context, ctrl);
+        const auto& value = reader->get_value();
+        if (value.is_number()) {
             switch (m_operation) {
             case MetricsToAggregate::Operation::SUM:
                 new_reading += value.get<double>();
@@ -260,11 +264,10 @@ bool TelemetryHubAggregatedTelemetryReader::read(Context::Ptr context, ipmi::Ipm
             }
         }
         else {
-            new_reading = NO_READING_AVAILABLE;
-            break;
+            return update_value(nullptr);
         }
     }
-    return set_value(reading, json::Json(new_reading), json::Json(NO_READING_AVAILABLE));
+    return update_value(new_reading);
 }
 
 

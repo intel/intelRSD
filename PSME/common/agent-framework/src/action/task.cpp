@@ -2,7 +2,7 @@
  * @brief
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,13 +43,18 @@ void Task::operator()() {
         run_completion_callbacks();
     }
     catch (const GamiException& e) {
-        run_exception_callbacks();
+        run_exception_callbacks(e);
         run_exception_handlers(e);
     }
+    catch (const std::exception& e) {
+        auto gami_exception = GamiException(ErrorCode::UNKNOWN_ERROR, e.what());
+        run_exception_callbacks(gami_exception);
+        run_exception_handlers(gami_exception);
+    }
     catch (...) {
-        run_exception_callbacks();
-        run_exception_handlers(
-            GamiException(ErrorCode::UNKNOWN_ERROR, "An unknown error occurred during task execution."));
+        auto unknown_exception = GamiException(ErrorCode::UNKNOWN_ERROR, "An unknown error occurred during task execution.");
+        run_exception_callbacks(unknown_exception);
+        run_exception_handlers(unknown_exception);
     }
     postrun();
 }
@@ -192,22 +197,6 @@ Task& Task::remove_postrun_action(std::size_t position) {
 }
 
 
-Task& Task::add_callback(CallbackType callback_type, const CallbackFunctionType& callback) {
-    switch (callback_type) {
-        case CallbackType::Completion:
-            add_completion_callback(callback);
-            break;
-        case CallbackType::Exception:
-            add_exception_callback(callback);
-            break;
-        default:
-            break;
-    }
-
-    return *this;
-}
-
-
 Task& Task::add_exception_handler(const action::Task::ExceptionHandlerFunctionType& exception_handler) {
     m_exception_handlers.push_back(exception_handler);
     return *this;
@@ -233,7 +222,7 @@ Task& Task::add_completion_callback(const CallbackFunctionType& callback) {
 }
 
 
-Task& Task::add_exception_callback(const CallbackFunctionType& callback) {
+Task& Task::add_exception_callback(const ExceptionCallbackFunctionType& callback) {
     m_exception_callbacks.push_back(callback);
     return *this;
 }
@@ -246,14 +235,14 @@ void Task::run_completion_callbacks() {
 }
 
 
-void Task::run_exception_callbacks() {
+void Task::run_exception_callbacks(const GamiException& e) {
     for (const auto& exception_callback : m_exception_callbacks) {
-        exception_callback();
+        exception_callback(e);
     }
 }
 
 
-void Task::run_exception_handlers(const agent_framework::exceptions::GamiException& e) {
+void Task::run_exception_handlers(const GamiException& e) {
     for (const auto& exception_handler : m_exception_handlers) {
         exception_handler(e);
     }
@@ -278,7 +267,7 @@ Task& Task::move_exception_callback(std::size_t old_position, std::size_t new_po
         throw std::out_of_range("Cannot delete callback: index out of range");
     }
 
-    CallbackFunctionType exception_callback = m_exception_callbacks[old_position];
+    ExceptionCallbackFunctionType exception_callback = m_exception_callbacks[old_position];
     m_exception_callbacks.erase(m_exception_callbacks.begin() + old_position);
     m_exception_callbacks.insert(m_exception_callbacks.begin() + new_position, exception_callback);
 

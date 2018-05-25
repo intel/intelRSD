@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,10 +20,10 @@
 
 #include "psme/rest/endpoints/manager/manager_network_interface.hpp"
 #include "psme/rest/constants/constants.hpp"
-#include "psme/rest/utils/network_interface_info.hpp"
 #include "psme/rest/utils/status_helpers.hpp"
 #include "configuration/configuration.hpp"
-
+#include "net/network_interface.hpp"
+#include <sstream>
 
 
 using namespace psme::rest;
@@ -63,48 +63,51 @@ json::Value make_prototype() {
     r[NetworkInterface::NAME_SERVERS] = json::Value::Type::ARRAY;
     r[NetworkInterface::VLANS] = json::Value::Type::NIL;
 
-    json::Value links;
+    json::Value links{};
     links[Fabric::ENDPOINTS] = json::Value::Type::ARRAY;
-    links[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EthernetInterface";
+    links[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EthernetInterfaceLinks";
     links[Common::OEM][Common::RACKSCALE][NetworkInterface::NEIGHBOR_PORT] = json::Value::Type::NIL;
     r[Common::LINKS] = std::move(links);
-    r[Common::OEM] = json::Value::Type::OBJECT;
+
+    r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EthernetInterface";
+    r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS] = json::Value::Type::ARRAY;
 
     return r;
 }
 
-
-void read_interface_from_hw(json::Value& r) {
-    const json::Value config = configuration::Configuration::get_instance().to_json();
-    const auto& nic_name = config["server"]["network-interface-name"].as_string();
-    psme::rest::utils::NetworkInterfaceInfo nic_info(nic_name);
-
+void read_interface_from_hw(json::Value& r, const std::string& nic_name) {
     try {
-        const auto& nic_address = nic_info.get_interface_address();
+        auto iface = net::NetworkInterface::for_name(nic_name);
 
-        if (!nic_address.get_ip_address().empty()) {
-            const auto& ip_address = nic_address.get_ip_address();
-            const auto& subnet_mask = nic_address.get_netmask();
-            const auto& mac_address = nic_address.get_mac_address();
+        const auto& address_list = iface.get_address_list();
+        for (size_t idx = 0; idx < address_list.size(); ++idx) {
+            const auto& ip_address = iface.get_address(idx);
+            const auto& subnet_mask = iface.get_subnet_mask(idx);
 
-            json::Value ipv4_address;
-            ipv4_address[IpAddress::ADDRESS] = ip_address;
-            ipv4_address[IpAddress::SUBNET_MASK] = subnet_mask;
-            r[NetworkInterface::IPv4_ADDRESSES].push_back(std::move(ipv4_address));
-
-            r[Common::MAC_ADDRESS] = mac_address;
+            if (net::AddressFamily::IPv4 == ip_address.get_address_family()) {
+                json::Value ipv4_address;
+                ipv4_address[IpAddress::ADDRESS] = ip_address.to_string();
+                ipv4_address[IpAddress::SUBNET_MASK] = subnet_mask.to_string();
+                r[NetworkInterface::IPv4_ADDRESSES].push_back(std::move(ipv4_address));
+            }
         }
-        else {
-            log_warning(GET_LOGGER("rest"),
-                        "Empty IPv4 Address in the network interface read from the configuration file.");
-        }
-
+        std::stringstream mac_address_str{};
+        mac_address_str << iface.get_hw_address();
+        r[Common::MAC_ADDRESS] = mac_address_str.str();
     }
     catch (const std::exception& ex) {
-        log_error(GET_LOGGER("rest"), "Unable to read data for nic: " + nic_name + ". Exception " << ex.what());
+        log_error("rest", "Unable to read data for nic: " + nic_name + ". Exception " << ex.what());
     }
 }
 
+void read_interface_from_hw(json::Value& r, std::uint64_t idx) {
+    const json::Value config = configuration::Configuration::get_instance().to_json();
+    const auto& nic_names = config["server"]["network-interface-name"];
+    if (idx == 0 || nic_names.size() < idx) {
+        THROW(agent_framework::exceptions::NotFound, "rest", "EthernetInterface entry not found.");
+    }
+    read_interface_from_hw(r, nic_names[size_t(idx-1)].as_string());
+}
 
 void read_from_model(json::Value& r, const agent_framework::model::Manager& manager) {
     r[Common::MAC_ADDRESS] = json::Value::Type::NIL;
@@ -129,6 +132,11 @@ void read_from_network_interface(const agent_framework::model::NetworkInterface&
     r[NetworkInterface::MAX_IPv6_STATIC_ADDRESSES] = nic.get_max_ipv6_static_addresses();
     r[NetworkInterface::INTERFACE_ENABLED] = true;
     r[NetworkInterface::IPv6_DEFAULT_GATEWAY] = nic.get_ipv6_default_gateway();
+
+    const auto& supported_protocols = nic.get_supported_transport_protocols();
+    for (const auto& supported_protocol : supported_protocols) {
+        r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS].push_back(supported_protocol.to_string());
+    }
 
     for (const auto& address : nic.get_ipv4_addresses()) {
         json::Value ipv4_address{};
@@ -185,19 +193,21 @@ void endpoint::ManagerNetworkInterface::get(const server::Request& request, serv
                 .append(NetworkInterface::VLANS)
                 .build();
     }
-    else if (id != 1) {
-        THROW(agent_framework::exceptions::NotFound, "rest", "EthernetInterface entry not found.");
-    }
     else {
         // If the manager that has this NIC controls a Drawer or an Enclosure
         // (Chassis of type Drawer or Enclosure) - read data from hardware.
         // If it doesn't - fill this NIC with stub data.
         if (psme::rest::endpoint::utils::is_manager_for_drawer_or_enclosure(manager.get_uuid()) ||
             manager.get_manager_type() == ManagerInfoType::EnclosureManager) {
-            ::read_interface_from_hw(r);
+            ::read_interface_from_hw(r, id);
         }
         else {
-            ::read_from_model(r, manager);
+            if (id != 1) {
+                THROW(agent_framework::exceptions::NotFound, "rest", "EthernetInterface entry not found.");
+            }
+            else {
+                ::read_from_model(r, manager);
+            }
         }
     }
 

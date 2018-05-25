@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,58 +17,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
  * @file lvm_api.cpp
- *
- * @brief C++ wrapper for Liblvm
+ * @brief C++ wrapper for liblvm
  * */
+
 #include "storage_config.hpp"
 #include "lvm/lvm_api.hpp"
 
+
+
 using namespace agent::storage::lvm;
 
-#ifdef LVM2APP_FOUND
+
+
 #include "lvm_api_impl.cpp"
-#else
-#include "lvm_api_default.cpp"
-#endif
 
-std::mutex LvmAPI::g_lvm_mutex{};
 
-LvmAPI::LvmAPI() : m_impl{new LvmAPI::LvmImpl} {}
 
-LvmAPI::~LvmAPI() {}
+std::mutex LvmApi::g_lvm_mutex{};
 
-LvmAPI::VolumeGroupVec LvmAPI::discovery_volume_groups() {
+
+LvmApi::LvmApi() : m_impl{new LvmApi::LvmImpl} {}
+
+
+LvmApi::~LvmApi() {}
+
+
+LvmApi::VolumeGroups LvmApi::discover_volume_groups(DiscoveryType discovery_type) {
     std::lock_guard<std::mutex> lock{g_lvm_mutex};
-    return m_impl->discover_volume_groups();
+    return m_impl->discover_volume_groups(discovery_type);
 }
 
-void LvmAPI::create_snapshot(const LvmCreateData& data) {
+
+model::LogicalVolume LvmApi::create_snapshot(const model::CreationData& data) {
     std::lock_guard<std::mutex> lock{g_lvm_mutex};
-    m_impl->create_snapshot(data);
+    return m_impl->create_snapshot(data);
 }
 
-void LvmAPI::create_clone(const LvmCreateData& data) {
+
+model::LogicalVolume LvmApi::create_volume(const model::CreationData& data) {
     std::lock_guard<std::mutex> lock{g_lvm_mutex};
-    m_impl->create_clone(data);
+    return m_impl->create_volume(data);
 }
 
-void LvmAPI::remove_logical_volume(const std::string& vg_name,
-                                   const std::string& lg_name) {
+
+void LvmApi::remove_logical_volume(const std::string& vg_name, const std::string& lg_name) {
     std::lock_guard<std::mutex> lock{g_lvm_mutex};
     m_impl->remove_logical_volume(vg_name, lg_name);
 }
 
-void LvmAPI::add_logical_volume_tag(const std::string& vg_name,
-                               const std::string& lv_name, const std::string& tag){
+
+void LvmApi::add_logical_volume_tag(const std::string& vg_name, const std::string& lv_name, const std::string& tag) {
     std::lock_guard<std::mutex> lock{g_lvm_mutex};
     m_impl->add_lv_tag(vg_name, lv_name, tag);
 }
 
-void LvmAPI::remove_logical_volume_tag(const std::string& vg_name,
-                               const std::string& lv_name, const std::string& tag){
+
+void LvmApi::remove_logical_volume_tag(const std::string& vg_name, const std::string& lv_name, const std::string& tag) {
     std::lock_guard<std::mutex> lock{g_lvm_mutex};
     m_impl->remove_lv_tag(vg_name, lv_name, tag);
 }

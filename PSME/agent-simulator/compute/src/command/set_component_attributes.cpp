@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +72,7 @@ namespace {
         ComputeValidator::validate_set_system_attributes(attributes);
         const auto& attribute_names = attributes.get_names();
         if (attribute_names.empty()) {
-            log_info(GET_LOGGER("compute-agent"), "Nothing has been changed (empty request).");
+            log_info("compute-agent", "Nothing has been changed (empty request).");
             return;
         }
 
@@ -91,7 +91,7 @@ namespace {
                 }
                 else if (literals::OEMData::OEM == attribute_name) {
                     set_oem(Oem::from_json(value));
-                    log_debug(GET_LOGGER("compute-agent"), "Changed " + name + " attribute.");
+                    log_debug("compute-agent", "Changed " + name + " attribute.");
                 }
                 else {
                     THROW(UnsupportedField, "compute-agent", "Unsupported attribute: " + attribute_name + ".");

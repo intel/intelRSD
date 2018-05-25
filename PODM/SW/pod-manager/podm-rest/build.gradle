@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,17 +34,20 @@ dependencies {
     compile(project(':serialization')) { transitive = false }
     runtime(project(':podm-discovery')) { transitive = false }
     compile(project(':ipxe-supplier')) { transitive = false }
+    runtime(project(':podm-external-service-configurer')) { transitive = false }
 
     runtime("$MODEL_MAPPER_DEPENDENCY") { transitive = false }
     compile "$GUAVA_DEPENDENCY"
     compile("$JACKSON_JSR310_DEPENDENCY") { transitive = true }
     compile("$JACKSON_PROVIDER_DEPENDENCY") { transitive = true }
     compile "$APACHE_COMMONS_VALIDATOR"
-    compile "$APACHE_COMMONS_LANG"
+    compile "$APACHE_COMMONS_LANG3"
     compile "$APACHE_COMMONS_IO"
     runtime "$APACHE_COMMONS_NET"
+    runtime "$APACHE_COMMONS_TEXT"
+    compile "$APACHE_COMMONS_COLLECTIONS4"
     runtime "$METRICS_CDI"
-    compile (project(':classindex'))
+    compile(project(':classindex'))
     runtime "$CLING_CORE"
     compile "$LIQUIBASE_CORE"
     compile "$LIQUIBASE_CDI"
@@ -56,6 +59,7 @@ dependencies {
     providedCompile "$HIBERNATE_EM"
 
     testCompile project(path: ':utils', configuration: 'testOutput')
+    testCompile project(path: ':serialization', configuration: 'testOutput')
 }
 
 

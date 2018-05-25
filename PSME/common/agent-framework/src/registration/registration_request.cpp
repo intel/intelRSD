@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@
 
 
 #include "agent-framework/registration/registration_request.hpp"
+#include "agent-framework/module/constants/psme.hpp"
 #include "agent-framework/service_uuid.hpp"
 #include "agent-framework/logger_ext.hpp"
 
@@ -32,20 +33,21 @@
 using configuration::Configuration;
 
 using namespace agent_framework::generic;
+using namespace agent_framework::model::literals;
 
 RegistrationRequest::RegistrationRequest() {
     load_configuration();
 }
 
 json::Json RegistrationRequest::to_json() {
-    json::Json request;
-    request["gamiId"] = ServiceUuid::get_instance()->get_service_uuid();
-    request["version"] = m_version;
-    request["vendor"] = m_vendor;
-    request["ipv4address"] = m_ipv4address;
-    request["port"] = m_port;
-    request["capabilities"] = get_capabilities();
-    return request;
+    return json::Json {
+        {Attach::GAMI_ID, ServiceUuid::get_instance()->get_service_uuid()},
+        {Attach::VERSION, m_version},
+        {Attach::VENDOR, m_vendor},
+        {Attach::IPV4_ADDRESS, m_ipv4address},
+        {Attach::PORT, m_port},
+        {Attach::CAPABILITIES, get_capabilities()}
+    };
 }
 
 void RegistrationRequest::load_configuration() {

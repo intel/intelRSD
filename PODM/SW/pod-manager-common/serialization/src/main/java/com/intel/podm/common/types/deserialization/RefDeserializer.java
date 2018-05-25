@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import com.intel.podm.common.types.annotations.AsUnassigned;
 import java.io.IOException;
 import java.util.Collection;
 
+import static com.intel.podm.common.types.Ref.of;
+import static com.intel.podm.common.types.Ref.unassigned;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
@@ -51,11 +53,7 @@ public class RefDeserializer extends JsonDeserializer<Ref<?>> implements Context
         JsonDeserializer<Object> contextualValueDeserializer = ctxt.findContextualValueDeserializer(targetType, beanProperty);
         Object containedObject = contextualValueDeserializer.deserialize(p, ctxt);
 
-        return unassignedStrategies.stream().anyMatch(s -> s.isUnassigned(containedObject))
-            ?
-            Ref.unassigned()
-            :
-            Ref.of(containedObject);
+        return unassignedStrategies.stream().anyMatch(s -> s.isUnassigned(containedObject)) ? unassigned() : of(containedObject);
     }
 
     @Override
@@ -73,7 +71,7 @@ public class RefDeserializer extends JsonDeserializer<Ref<?>> implements Context
     }
 
     @Override
-    public Ref<?> getNullValue() {
-        return unassignedStrategies.stream().anyMatch(s -> s.isUnassigned(null)) ? Ref.unassigned() : Ref.of(null);
+    public Ref<?> getEmptyValue(DeserializationContext ctxt) throws JsonMappingException {
+        return unassignedStrategies.stream().anyMatch(s -> s.isUnassigned(null)) ? unassigned() : of(null);
     }
 }

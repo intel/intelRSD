@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@
 
 #include "agent-framework/module/model/metric_definition.hpp"
 #include "agent-framework/module/constants/common.hpp"
-
+#include "agent-framework/module/utils/iso8601_time_interval.hpp"
 
 using namespace agent_framework::model;
+using agent_framework::utils::Iso8601TimeInterval;
 
 const enums::Component MetricDefinition::component = enums::Component::MetricDefinition;
 const enums::CollectionName MetricDefinition::collection_name = enums::CollectionName::MetricDefinitions;
@@ -44,8 +45,6 @@ MetricDefinition MetricDefinition::from_json(const json::Json& json) {
     metric.set_discrete_values(DiscreteValues::from_json(json[literals::MetricDefinition::DISCRETE_VALUES]));
 
     metric.fill_from_json(json);
-
-    metric.set_resource_hash(json);
     return metric;
 }
 
@@ -156,44 +155,21 @@ json::Json MetricDefinition::to_json() const {
 void MetricDefinition::set_sensing_interval(const OptionalField<std::string>& sensing_interval) {
     m_sensing_interval = sensing_interval;
     if (sensing_interval.has_value()) {
-        m_sensing_period = parse_period(*sensing_interval);
-    }
-}
-
-void MetricDefinition::set_sensing_period(MetricDefinition::Seconds interval) {
-    if (!m_sensing_interval.has_value()) {
-        m_sensing_period = interval.count();
+        m_sensing_period = Iso8601TimeInterval::parse(*sensing_interval);
     }
 }
 
 void MetricDefinition::set_calculation_time_interval(const OptionalField<std::string>& calculation_time_interval) {
     m_calculation_time_interval = calculation_time_interval;
     if (calculation_time_interval.has_value()) {
-        m_calculation_period = parse_period(*calculation_time_interval);
+        m_calculation_period = Iso8601TimeInterval::parse(*calculation_time_interval);
     }
 }
 
 void MetricDefinition::set_shoreup_period(const std::string& period) {
-    m_shoreup_period = parse_period(period);
+    m_shoreup_period = Iso8601TimeInterval::parse(period).as<std::chrono::duration<double>>().count();
 }
 
 void MetricDefinition::set_shoreup_period(double period) {
     m_shoreup_period = period;
-}
-
-/* TODO implement proper ISO format */
-double MetricDefinition::parse_period(const std::string& period) {
-    double interval = 0.0;
-    char* delimiter_ptr = nullptr;
-    interval = std::strtod(period.c_str(), &delimiter_ptr);
-    if (delimiter_ptr != nullptr) {
-        std::string delimiter = delimiter_ptr;
-        if (delimiter.empty() || (delimiter == "s") || (delimiter == "S")) {
-            // nothing
-        }
-        else if ((delimiter == "min") || (delimiter == "Min") || (delimiter == "MIN") || (delimiter == "M")) {
-            interval *= 60;
-        }
-    }
-    return interval;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,14 @@ import java.util.UUID;
 
 import static com.intel.podm.business.entities.redfish.ComputerSystem.GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE;
 import static com.intel.podm.business.entities.redfish.ComputerSystem.GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID;
+import static com.intel.podm.business.entities.redfish.ComputerSystem.GET_PHYSICAL_COMPUTER_SYSTEM_BY_UUID;
 import static com.intel.podm.business.entities.redfish.ComputerSystem.GET_COMPUTER_SYSTEM_IDS_FROM_PRIMARY_DATA_SOURCE;
 import static com.intel.podm.business.entities.redfish.ComputerSystem.GET_COMPUTER_SYSTEM_MULTI_SOURCE;
 import static com.intel.podm.business.entities.redfish.ComputerSystem.GET_PRIMARY_COMPUTER_SYSTEM;
 import static com.intel.podm.common.types.SystemType.PHYSICAL;
+import static com.intel.podm.common.types.SystemType.VIRTUAL;
 import static com.intel.podm.common.utils.IterableHelper.getUniqueValueFromSingletonListOrNull;
+import static com.intel.podm.common.utils.IterableHelper.optionalSingle;
 import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
 import static java.util.Optional.ofNullable;
 import static javax.transaction.Transactional.TxType.MANDATORY;
@@ -53,6 +56,7 @@ public class ComputerSystemDao extends Dao<ComputerSystem> {
     public Optional<ComputerSystem> findPrimarySystem(UUID complementarySystemUuid) {
         TypedQuery<ComputerSystem> query = entityManager.createNamedQuery(GET_PRIMARY_COMPUTER_SYSTEM, ComputerSystem.class);
         query.setParameter("uuid", complementarySystemUuid);
+        query.setParameter("systemTypeToBeExcluded", VIRTUAL);
         return ofNullable(singleOrNull(query.getResultList()));
     }
 
@@ -78,5 +82,13 @@ public class ComputerSystemDao extends Dao<ComputerSystem> {
         TypedQuery<ComputerSystem> query = entityManager.createNamedQuery(GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID, ComputerSystem.class);
         query.setParameter("pcieConnectionId", connectionId);
         return getUniqueValueFromSingletonListOrNull(query.getResultList());
+    }
+
+    @Transactional(MANDATORY)
+    public Optional<ComputerSystem> getUniquePhysicalComputerSystemByUuid(UUID uuid) {
+        TypedQuery<ComputerSystem> query = entityManager.createNamedQuery(GET_PHYSICAL_COMPUTER_SYSTEM_BY_UUID, ComputerSystem.class);
+        query.setParameter("uuid", uuid);
+        query.setParameter("systemType", PHYSICAL);
+        return optionalSingle(query.getResultList());
     }
 }

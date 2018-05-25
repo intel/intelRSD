@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -128,7 +128,7 @@ namespace {
                 // read capability header
                 CAP_T header{};
                 if (EOK != memcpy_s(&header, sizeof(CAP_T), config_ptr + offset, sizeof(CAP_T))) {
-                    log_error(GET_LOGGER("sysfs-decoder"), "Failed to access pci capability header for a device");
+                    log_error("sysfs-decoder", "Failed to access pci capability header for a device");
                     break;
                 }
                 // check for capability_id - return address or go to the next capability
@@ -176,7 +176,7 @@ void SysfsDecoder::decode_device_data(const RawSysfsDevice& function, SysfsDevic
                                         + uint64_t{sn_cap.serial_number_lower};
             }
             else {
-                log_error(GET_LOGGER("sysfs-decoder"), "Failed to access pci serial number capability for a device");
+                log_error("sysfs-decoder", "Failed to access pci serial number capability for a device");
             }
         }
     }
@@ -279,7 +279,7 @@ SysfsSwitch SysfsDecoder::make_switch(const RawSysfsDevice& memory,
 
     // continue only if device has a valid capability pointer
     if (!has_valid_capability_pointer(bridge.configuration.fields)) {
-        log_warning(GET_LOGGER("sysfs-decoder"), "No serial number provided in PCIe Switch configuration space.");
+        log_warning("sysfs-decoder", "No serial number provided in PCIe Switch configuration space.");
         return pci_switch;
     }
     // find PCI Express capability
@@ -302,7 +302,7 @@ SysfsSwitch SysfsDecoder::make_switch(const RawSysfsDevice& memory,
                                        + uint64_t{sn_cap.serial_number_lower};
             }
             else {
-                log_error(GET_LOGGER("sysfs-decoder"), "Failed to access pci serial number capability for a PCIe Switch");
+                log_error("sysfs-decoder", "Failed to access pci serial number capability for a PCIe Switch");
             }
         }
     }

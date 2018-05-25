@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonInclude(NON_NULL)
 public final class ExtendedInfoDto implements ExtendedInfo {
+
+    private static final String GENERAL_ERROR_MESSAGE_ID = "Base.1.0.GeneralError";
+
     @JsonProperty("MessageId")
     private String messageId;
 
@@ -34,7 +37,7 @@ public final class ExtendedInfoDto implements ExtendedInfo {
     private String resolution;
 
     public ExtendedInfoDto(String messageId, String message, String resolution) {
-        this.messageId = messageId;
+        this.messageId = messageId != null ? messageId : GENERAL_ERROR_MESSAGE_ID;
         this.message = message;
         this.resolution = resolution;
     }

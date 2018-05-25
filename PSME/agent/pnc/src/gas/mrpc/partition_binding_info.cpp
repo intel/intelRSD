@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ void PartitionBindingInfo::write_input() {
     data[OFFSET_SUB_COMMAND] = std::uint8_t(sub_command);
     data[OFFSET_PARTITION_ID] = input.fields.partition_id;
 
-    log_debug(GET_LOGGER("pnc-mrpc"), "PartitionBindingInfo command input data:"
+    log_debug("pnc-mrpc", "PartitionBindingInfo command input data:"
         << " PartitionID=" << std::uint32_t(input.fields.partition_id));
 
     m_iface->write(data, PARTITION_BINDING_INFO_INPUT_MEMORY_SIZE, MRPC_INPUT_DATA_REG_OFFSET);
@@ -67,14 +67,14 @@ void PartitionBindingInfo::read_output() {
         m_iface->read(reinterpret_cast<uint8_t*>(&output.fields.partition_binding_info),
                       output.fields.logical_bridge_count * PARTITION_BINDING_ENTRY_SIZE,
                       MRPC_OUTPUT_DATA_REG_OFFSET + 4);
-        log_debug(GET_LOGGER("pnc-mrpc"), "PartitionBindingInfo command return code: "
+        log_debug("pnc-mrpc", "PartitionBindingInfo command return code: "
             << get_p2p_binding_command_result(static_cast<uint32_t>(output.fields.ret_value)));
-        log_debug(GET_LOGGER("pnc-mrpc"), "PartitionBindingInfo command output data:"
+        log_debug("pnc-mrpc", "PartitionBindingInfo command output data:"
             << "PartitionID=" << std::uint32_t(output.fields.partition_id)
             << ", LogicalBridgeCount=" << std::uint32_t(output.fields.logical_bridge_count));
 
         for (size_t entry = 0; entry < output.fields.logical_bridge_count; entry++) {
-            log_debug(GET_LOGGER("pnc-mrpc"), "\tPhysicalPort="
+            log_debug("pnc-mrpc", "\tPhysicalPort="
                 << std::uint32_t(output.fields.partition_binding_info[entry].phy_port_id)
                 << ", BindingState="
                 << (get_binding_state(output.fields.partition_binding_info[entry].state_operation_result))

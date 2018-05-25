@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package com.intel.podm.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.context.SingletonContext;
 import com.intel.podm.common.types.AdministrativeState;
+import com.intel.podm.common.types.DcbxState;
 import com.intel.podm.common.types.LinkType;
 import com.intel.podm.common.types.NeighborInfo;
 import com.intel.podm.common.types.OperationalState;
@@ -32,6 +34,8 @@ import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.net.MacAddress;
 import com.intel.podm.common.types.redfish.RedfishErrorResponse.Error.ExtendedInfo;
 import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,13 +45,15 @@ import java.util.Set;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "portId", "status", "linkType",
-    "operationalState", "administrativeState", "linkSpeedMbps", "neighborInfo", "neighborMac", "frameSize",
-    "autosense", "fullDuplex", "macAddress", "ipV4Addresses", "ipV6Addresses", "portClass", "portMode", "portType",
-    "vlans", "staticMacs", "metrics", "neighborInterface", "neighborInterfaceExtendedInfo", "links", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "portId", "status", "linkType", "operationalState", "administrativeState",
+    "linkSpeedMbps", "neighborInfo", "neighborMac", "frameSize", "autosense", "fullDuplex", "macAddress", "ipV4Addresses", "ipV6Addresses", "portClass",
+    "portMode", "portType", "vlans", "staticMacs", "metrics", "neighborInterface", "neighborInterfaceExtendedInfo", "dcbxState", "lldpEnabled",
+    "priorityFlowControl", "links", "oem"
 })
+@JsonIgnoreProperties({"Oem"})
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public final class EthernetSwitchPortDto extends RedfishDto implements RedfishEthernetSwitchPort {
+    private final Links links = new Links();
     private String portId;
     private Status status;
     private LinkType linkType;
@@ -58,7 +64,6 @@ public final class EthernetSwitchPortDto extends RedfishDto implements RedfishEt
     @JsonProperty("NeighborMAC")
     private MacAddress neighborMac;
     private Integer frameSize;
-    @JsonProperty("Autosense")
     private Boolean autosense;
     private Boolean fullDuplex;
     @JsonProperty("MACAddress")
@@ -75,15 +80,16 @@ public final class EthernetSwitchPortDto extends RedfishDto implements RedfishEt
     @JsonProperty("StaticMACs")
     private SingletonContext staticMacs;
     @JsonInclude(NON_NULL)
-    @JsonProperty("Metrics")
     private SingletonContext metrics;
-    @JsonProperty("NeighborInterface")
     private Context neighborInterface;
     @JsonInclude(NON_NULL)
     @JsonProperty("NeighborInterface@Message.ExtendedInfo")
     private List<ExtendedInfo> neighborInterfaceExtendedInfo;
-    @JsonProperty("Links")
-    private Links links = new Links();
+    @JsonProperty("DCBXState")
+    private DcbxState dcbxState;
+    @JsonProperty("LLDPEnabled")
+    private Boolean lldpEnabled;
+    private PriorityFlowControlDto priorityFlowControl;
 
     public EthernetSwitchPortDto() {
         super("#EthernetSwitchPort.v1_1_0.EthernetSwitchPort");
@@ -280,13 +286,33 @@ public final class EthernetSwitchPortDto extends RedfishDto implements RedfishEt
         this.neighborInterfaceExtendedInfo = neighborInterfaceExtendedInfo;
     }
 
+    public DcbxState getDcbxState() {
+        return dcbxState;
+    }
+
+    public void setDcbxState(DcbxState dcbxState) {
+        this.dcbxState = dcbxState;
+    }
+
+    public Boolean getLldpEnabled() {
+        return lldpEnabled;
+    }
+
+    public void setLldpEnabled(Boolean lldpEnabled) {
+        this.lldpEnabled = lldpEnabled;
+    }
+
+    public PriorityFlowControlDto getPriorityFlowControl() {
+        return priorityFlowControl;
+    }
+
+    public void setPriorityFlowControl(PriorityFlowControlDto priorityFlowControl) {
+        this.priorityFlowControl = priorityFlowControl;
+    }
+
     @Override
     public Links getLinks() {
         return links;
-    }
-
-    public void setLinks(Links links) {
-        this.links = links;
     }
 
     @JsonPropertyOrder({"primaryVlan", "switchContext", "memberOfPort", "portMembers", "activeAcls", "oem"})
@@ -334,6 +360,52 @@ public final class EthernetSwitchPortDto extends RedfishDto implements RedfishEt
 
         public Set<Context> getActiveAcls() {
             return activeAcls;
+        }
+    }
+
+    @JsonPropertyOrder({"enabled", "enabledPriorities"})
+    public static final class PriorityFlowControlDto implements PriorityFlowControl {
+        private Boolean enabled;
+        private List<Integer> enabledPriorities = new ArrayList<>();
+
+        @Override
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Override
+        public List<Integer> getEnabledPriorities() {
+            return enabledPriorities;
+        }
+
+        public void setEnabledPriorities(List<Integer> enabledPriorities) {
+            this.enabledPriorities = enabledPriorities;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            PriorityFlowControlDto that = (PriorityFlowControlDto) o;
+            return new EqualsBuilder()
+                .append(enabled, that.enabled)
+                .append(enabledPriorities, that.enabledPriorities)
+                .isEquals();
+        }
+
+        public int hashCode() {
+            return new HashCodeBuilder()
+                .append(enabled)
+                .append(enabledPriorities)
+                .toHashCode();
         }
     }
 }

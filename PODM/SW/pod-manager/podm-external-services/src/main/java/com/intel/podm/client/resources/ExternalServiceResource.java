@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,9 +45,7 @@ public interface ExternalServiceResource {
 
     void setWebClient(WebClient webClient);
 
-    default ResourceLinks getLinks() {
-        return null;
-    }
+    ResourceLinks getLinks();
 
     default List<UnknownOemObject> getUnknownOems() {
         return emptyList();
@@ -57,8 +55,8 @@ public interface ExternalServiceResource {
         throw null;
     }
 
-    default Id getGlobalId(Id externalServiceId, URI uri) {
-        return IdFromUriGenerator.instance().getIdFromUri(uri, externalServiceId.getValue());
+    default Id getGlobalId(Id externalServiceId) {
+        return IdFromUriGenerator.instance().getIdFromUri(getUri(), externalServiceId.getValue());
     }
 
     default Iterable<ResourceSupplier> toSuppliers(WebClient webClient, Iterable<? extends OdataIdProvider.ODataId> collection)

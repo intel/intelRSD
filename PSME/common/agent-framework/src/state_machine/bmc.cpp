@@ -2,7 +2,7 @@
  * @brief Implementation of Bmc class
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,14 +28,23 @@ using namespace agent_framework;
 
 Bmc::Bmc(const ConnectionData& conn, Bmc::Duration state_update_interval,
          ReadPresenceFn read_presence, ReadOnlineStatusFn read_online_state)
-    : m_connection_data{conn},
+    : BmcStateMachine(conn.get_ip_address() + ":" + std::to_string(conn.get_port()), read_presence, read_online_state),
+      m_connection_data{conn},
       m_state_update_interval{state_update_interval},
-      m_worker{conn.get_ip_address()},
-      BmcStateMachine(conn.get_ip_address() + ":" + std::to_string(conn.get_port()), read_presence, read_online_state) {
+      m_worker{conn.get_ip_address()} {
 }
 
 Bmc::~Bmc() {
-    log_debug(GET_LOGGER("bmc"), get_id() << " stopped ");
+    stop();
+}
+
+void Bmc::start() {
+    reset_tasks();
+}
+
+void Bmc::stop() {
+    m_worker.stop();
+    log_debug("bmc", get_id() << " stopped ");
 }
 
 void Bmc::reset_tasks() {

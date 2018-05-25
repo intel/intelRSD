@@ -2,7 +2,7 @@
  * @brief Grantley memory builder class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ bool is_present(const MEMORY_DEVICE& device) {
 OptionalField<std::uint32_t> get_memory_size_mbytes(const MEMORY_DEVICE& device) {
     auto capacity = device.size;
     if (0xffff == capacity) {
-        log_warning(GET_LOGGER("smbios-discovery"), "SMBIOS reports 'unknown' memory device size!");
+        log_warning("smbios-discovery", "SMBIOS reports 'unknown' memory device size!");
         return {};
     }
 
@@ -174,7 +174,7 @@ void MemoryBuilder::update_smbios_data(agent_framework::model::Memory& memory,
     attribute::FruInfo fru_info{};
 
     memory.set_device_locator(device.get_string(device.data.device_locator));
-    log_debug(GET_LOGGER("smbios-discovery"), "Discovering Memory (" << memory.get_device_locator() << ").");
+    log_debug("smbios-discovery", "Discovering Memory (" << memory.get_device_locator() << ").");
 
     if (is_present(device.data)) {
         status.set_state(enums::State::Enabled);
@@ -210,7 +210,7 @@ void MemoryBuilder::update_smbios_data(agent_framework::model::Memory& memory,
         }
     }
     else {
-        log_warning(GET_LOGGER("basic-discovery"), "Memory (" << memory.get_device_locator() << ") is not present.");
+        log_warning("smbios-discovery", "Memory (" << memory.get_device_locator() << ") is not present.");
         status.set_state(enums::State::Absent);
         status.set_health({}); // Set to null
     }

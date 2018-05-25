@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,6 @@ REGISTER_COMMAND(GetManagersCollection,
         for (const auto& key : keys) {
             rsp.add_entry(agent_framework::model::attribute::ManagerEntry{key});
         }
-                     log_debug(GET_LOGGER("pnc-gami"), "Getting ManagersCollection successful.");
+                     log_debug("pnc-gami", "Getting ManagersCollection successful.");
     }
 );

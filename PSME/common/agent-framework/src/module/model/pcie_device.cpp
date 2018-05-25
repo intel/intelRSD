@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,7 +73,5 @@ PcieDevice PcieDevice::from_json(const json::Json& json) {
     pcie_device.set_collections(Collections::from_json(json[literals::PcieDevice::COLLECTIONS]));
     pcie_device.set_status(Status::from_json(json[literals::PcieDevice::STATUS]));
     pcie_device.set_oem(Oem::from_json(json[literals::PcieDevice::OEM]));
-
-    pcie_device.set_resource_hash(json);
     return pcie_device;
 }

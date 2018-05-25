@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@
 #include "nvme/vital_product_data.hpp"
 #include "nvme/fw_version.hpp"
 #include "tools/toolset.hpp"
+#include "fru_eeprom/fru_eeprom_parser.hpp"
 
 namespace agent {
 namespace pnc {
@@ -79,6 +80,13 @@ public:
      * @return Pointer to the builder
      * */
     virtual ReturnType update_vpd(const nvme::VitalProductData& vpd);
+
+    /*!
+     * @brief Updates vpd of the drive
+     * @param[in] parser Fru Ipmi format parser used as data source
+     * @return Pointer to the builder
+     * */
+    virtual ReturnType update_vpd(const fru_eeprom::parser::FruEepromParser& parser);
 
     /*!
      * @brief Updates SMART data of the drive

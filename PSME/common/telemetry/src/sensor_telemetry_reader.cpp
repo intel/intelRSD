@@ -2,7 +2,7 @@
  * @brief Implementation of all methods for Sensor telemetry reader
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,7 +183,7 @@ SensorContext::SensorMap SensorContext::read_sdr_definitions(ipmi::IpmiControlle
         }
 
         if (ret.count(record.cmn->keys.sensor_num) != 0) {
-            log_warning(GET_LOGGER("telemetry"), "Duplicated sensor#"
+            log_warning("telemetry", "Duplicated sensor#"
                 << std::hex << static_cast<unsigned> (record.cmn->keys.sensor_num) << " in SDR");
         }
         else {
@@ -249,16 +249,16 @@ bool SensorTelemetryReader::is_valid(TelemetryReader::Context::Ptr context) cons
     bool ret = false;
     auto sensor_def_it = defined.find(get_sensor_number());
     if (sensor_def_it == defined.end()) {
-        log_error(GET_LOGGER("telemetry"), "Sensor #0x" << std::hex << static_cast<unsigned>(get_sensor_number())
+        log_error("telemetry", "Sensor #0x" << std::hex << static_cast<unsigned>(get_sensor_number())
                   << " not defined in SDR");
     }
     else if (sensor_def_it->second.entity_id == 0) {
-        log_error(GET_LOGGER("telemetry"), "Duplicated sensor #0x" << std::hex << static_cast<unsigned>(get_sensor_number())
+        log_error("telemetry", "Duplicated sensor #0x" << std::hex << static_cast<unsigned>(get_sensor_number())
                   << " in definitions");
     }
     else if ((sensor_def_it->second.entity_id != get_entity_id()) ||
              (sensor_def_it->second.entity_instance != get_entity_instance())) {
-        log_error(GET_LOGGER("telemetry"), "Entity mismatch " << sensor_def_it->second.entity_id << "."
+        log_error("telemetry", "Entity mismatch " << sensor_def_it->second.entity_id << "."
                   << sensor_def_it->second.entity_instance << " for sensor #0x" << std::hex
                   << static_cast<unsigned>(get_sensor_number()));
     }
@@ -279,13 +279,10 @@ bool SensorTelemetryReader::read(TelemetryReader::Context::Ptr context, ipmi::Ip
 
     ctrl.send(request, response);
 
-    if (response.is_valid_reading()) {
-        return set_value(raw_reading, response.get_sensor_reading(),
-                         ctx->get_sdr_definitions()[get_sensor_number()].conversion_fn);
-    }
-    else {
-        return clear_value();
-    }
+    const auto value = response.is_valid_reading()
+                       ? ctx->get_sdr_definitions()[get_sensor_number()].conversion_fn(response.get_sensor_reading())
+                       : json::Json();
+    return update_value(value);
 }
 
 }

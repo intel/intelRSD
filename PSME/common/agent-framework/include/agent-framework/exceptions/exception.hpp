@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@
 #include "agent-framework/exceptions/not_found.hpp"
 #include "agent-framework/exceptions/not_implemented.hpp"
 #include "agent-framework/exceptions/method_not_allowed.hpp"
+#include "agent-framework/exceptions/method_conflict.hpp"
 #include "agent-framework/exceptions/lvm_error.hpp"
 #include "agent-framework/exceptions/iscsi_error.hpp"
 #include "agent-framework/exceptions/fm10000_error.hpp"
@@ -43,6 +44,9 @@
 #include "agent-framework/exceptions/certificate_error.hpp"
 #include "agent-framework/exceptions/pcie_fabric_error.hpp"
 #include "agent-framework/exceptions/network_error.hpp"
+#include "agent-framework/exceptions/nvme_error.hpp"
+
+#include "logger/logger.hpp"
 
 /*! @brief Logs and throws exception */
 #define THROW(clazz, logger, ...) \

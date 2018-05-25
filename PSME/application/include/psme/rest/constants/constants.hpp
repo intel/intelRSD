@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,9 +58,9 @@ extern const char SYSTEM_ID[];
 extern const char ADAPTER_ID[];
 extern const char DEVICE_ID[];
 extern const char SERVICE_ID[];
+extern const char STORAGE_POOL_ID[];
+extern const char VOLUME_ID[];
 extern const char DRIVE_ID[];
-extern const char LOGICAL_DRIVE_ID[];
-extern const char REMOTE_TARGET_ID[];
 extern const char MANAGER_ID[];
 extern const char NIC_ID[];
 extern const char NETWORK_INTERFACE_ID[];
@@ -143,6 +143,10 @@ extern const char RELATED_ITEM[];
 extern const char MAC_ADDRESS[];
 extern const char METRICS[];
 extern const char REDUNDANCY[];
+extern const char IDENTIFIERS[];
+extern const char DURABLE_NAME[];
+extern const char DURABLE_NAME_FORMAT[];
+
 }
 
 namespace ErrorMessage {
@@ -181,7 +185,7 @@ extern const char REDFISH_VERSION[];
 extern const char EVENT_SERVICE[];
 extern const char TASKS[];
 extern const char SYSTEMS[];
-extern const char SERVICES[];
+extern const char STORAGE_SERVICES[];
 extern const char MANAGERS[];
 extern const char ETHERNET_SWITCHES[];
 extern const char REGISTRIES[];
@@ -230,9 +234,6 @@ extern const char MANAGER_FOR_SERVERS[];
 extern const char MANAGER_FOR_SWITCHES[];
 extern const char MANAGER_IN_CHASSIS[];
 extern const char MANAGER_FOR_SERVICES[];
-extern const char MANAGER_FOR_REMOTE_TARGETS[];
-extern const char MANAGER_FOR_LOGICAL_DRIVES[];
-extern const char MANAGER_FOR_PHYSICAL_DRIVES[];
 extern const char NETWORK_PROTOCOL[];
 extern const char ETHERNET_INTERFACES[];
 extern const char HASH_MANAGER_RESET[];
@@ -303,6 +304,7 @@ extern const char INTERFACE_ENABLED[];
 extern const char UEFI_DEVICE_PATH[];
 extern const char VLANS[];
 extern const char NEIGHBOR_PORT[];
+extern const char SUPPORTED_PROTOCOLS[];
 extern const char LINK_STATUS[];
 }
 
@@ -386,6 +388,7 @@ extern const char NETWORK[];
 extern const char STORAGE[];
 extern const char PNC[];
 extern const char RMM[];
+extern const char NVME[];
 }
 
 /*!

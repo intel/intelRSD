@@ -1,0 +1,9 @@
+prefix=@CMAKE_BINARY_DIR@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: json_schema
+Description: Niels Lohmann's JSON schema validation library
+Version: @JSONSCHEMA_VERSION@
+Libs: -L${libdir} -ljson-schema-validator

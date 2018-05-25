@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.Port;
 import com.intel.podm.business.entities.redfish.Switch;
 import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
-import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.common.logger.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -38,7 +37,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.intel.podm.business.entities.redfish.Drive.GET_PRIMARY_DRIVE;
-import static com.intel.podm.common.types.EntityType.DRIVE;
 import static com.intel.podm.common.types.PciePortType.DOWNSTREAM_PORT;
 import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
 import static java.util.Optional.ofNullable;
@@ -73,7 +71,7 @@ public class DriveDao extends Dao<Drive> {
         return getConnectedDrives(downstreamPorts)
             .filter(pcieDrive -> !pcieDrive.getMetadata().isAllocated())
             .peek(pcieDrive -> logger.t("Drive preselected after applying 'is already allocated' filter: {}", pcieDrive))
-            .filter(DiscoverableEntity::canBeAllocated)
+            .filter(Drive::isAvailable)
             .peek(pcieDrive -> logger.t("Drive preselected after applying 'can be allocated' filter: {}", pcieDrive))
             .collect(toSet());
     }
@@ -98,15 +96,13 @@ public class DriveDao extends Dao<Drive> {
 
     private Stream<Drive> getConnectedDrives(Stream<Port> downstreamPorts) {
         return downstreamPorts
-            .filter(pciePort -> pciePort.getEndpoints() != null)
             .map(Port::getEndpoints)
+            .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .map(Endpoint::getConnectedEntities)
             .flatMap(Collection::stream)
-            .filter(connectedEntity -> connectedEntity.getEntityType() == DRIVE)
             .map(ConnectedEntity::getEntityLink)
-            .filter(Objects::nonNull)
-            .filter(entity -> entity instanceof Drive)
+            .filter(Drive.class::isInstance)
             .map(Drive.class::cast);
     }
 

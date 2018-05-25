@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,9 @@ public class ServiceRootResource extends ExternalServiceResourceImpl implements 
     @JsonProperty("Fabrics")
     private ODataId fabrics;
 
+    @JsonProperty("StorageServices")
+    private ODataId storageServices;
+
     @JsonProperty("TelemetryService")
     private ODataId telemetryService;
 
@@ -107,6 +110,11 @@ public class ServiceRootResource extends ExternalServiceResourceImpl implements 
     @LinkName("fabrics")
     public Iterable<ResourceSupplier> getFabrics() throws WebClientRequestException {
         return processMembersListResource(fabrics);
+    }
+
+    @LinkName("storageServices")
+    public Iterable<ResourceSupplier> getStorageServices() throws WebClientRequestException {
+        return processMembersListResource(storageServices);
     }
 
     @LinkName("telemetryService")

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,15 +54,6 @@ public:
      * @throw Throws exception if parameter is invalid.
      * */
     static void validate_set_pcie_port_attributes(
-        const agent_framework::model::attribute::Attributes& attributes);
-
-
-    /*!
-     * @brief Validates SetComponentAttributes method for PCIeDevice resource.
-     * @param[in] attributes Attributes deserialized from JSON request.
-     * @throw Throws exception if parameter is invalid.
-     * */
-    static void validate_set_pcie_device_attributes(
         const agent_framework::model::attribute::Attributes& attributes);
 
 };

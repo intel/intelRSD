@@ -42,7 +42,7 @@
         </Property>
         <Property Name="Action" Type="EthernetSwitchACLRule.v1_0_0.ActionType">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
-          <Annotation Term="OData.Description" String="Action that will be executed when rule condition will be met.s"/>
+          <Annotation Term="OData.Description" String="Action that will be executed when rule condition will be met.s."/>
         </Property>
 
         <NavigationProperty Name="ForwardMirrorInterface" Type="EthernetSwitchPort.EthernetSwitchPort"
@@ -137,7 +137,7 @@
         </Property>
         <Property Name="L4Protocol" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="IP layer 4 protocol number"/>
+          <Annotation Term="OData.Description" String="IP layer 4 protocol number."/>
           <Annotation Term="OData.LongDescription"
                       String="IP layer 4 protocol number as defined here: http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml"/>
         </Property>

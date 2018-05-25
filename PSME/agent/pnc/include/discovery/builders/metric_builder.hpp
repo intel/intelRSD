@@ -1,7 +1,7 @@
 /*!
  * @brief MetricBuilder interface
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public:
 
     /*!
      * @brief Updates MetricDefinition uuid in Metric
-     * @param definition_uuid MetricDefinition uuid
+     * @param definition MetricDefinition object
      * @return Pointer to the builder
      * */
     ReturnType update_from_metric_definition(const agent_framework::model::MetricDefinition& definition);

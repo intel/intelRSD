@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,17 +33,17 @@ PortStateMachine::PortStateMachine(const std::string& id, const PortState& init_
 PortStateMachine::~PortStateMachine() {}
 
 bool PortStateMachine::do_transition(const Transition& transition) {
-    log_debug(GET_LOGGER("port-state-machine"), "Port state machine (" << m_id << "): Transition "
+    log_debug("port-state-machine", "Port state machine (" << m_id << "): Transition "
         << transition.init_state.to_string() << " --> " << transition.end_state.to_string()
         << " due to event: " << transition.event.to_string());
     bool result = EnumStateMachine::do_transition(transition);
     std::string message = result ? "OK" : "FAILED";
-    log_debug(GET_LOGGER("port-state-machine"), "Port state machine (" << m_id
+    log_debug("port-state-machine", "Port state machine (" << m_id
         << "): Transition status: " << message);
     return result;
 }
 
 void PortStateMachine::do_on_event_action(const PortEvent& event) {
-    log_debug(GET_LOGGER("port-state-machine"), "Port state machine (" << m_id << "): In state "
+    log_debug("port-state-machine", "Port state machine (" << m_id << "): In state "
         << get_current_state().to_string() << ": received event: " << event.to_string());
 }

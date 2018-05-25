@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,10 +20,13 @@
 
 #include "agent-framework/module/constants/compute.hpp"
 #include "agent-framework/module/constants/chassis.hpp"
+#include "agent-framework/module/constants/pnc.hpp"
+#include "agent-framework/module/constants/regular_expressions.hpp"
 #include "agent-framework/module/model/attributes/attributes.hpp"
 #include "agent-framework/module/requests/validation/common.hpp"
 #include "agent-framework/module/requests/validation/json_check_type.hpp"
 #include "agent-framework/module/common_components.hpp"
+#include "agent-framework/validators/procedure_validator.hpp"
 
 
 
@@ -136,6 +139,32 @@ void CommonValidator::validate_set_manager_attributes(const Attributes& attribut
             THROW(InvalidField, "agent-framework", "Unrecognized attribute.", name, value);
         }
     }
+    log_debug("agent-framework", "Request validation passed.");
+}
+
+
+void CommonValidator::validate_set_pcie_device_attributes(const Attributes& attributes) {
+    jsonrpc::ProcedureValidator validator(
+        jsonrpc::PARAMS_BY_NAME,
+        literals::PcieDevice::ASSET_TAG, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
+        literals::PcieDevice::OEM, VALID_OPTIONAL(VALID_JSON_OBJECT),
+        nullptr
+    );
+
+    validator.validate(attributes.to_json());
+    log_debug("agent-framework", "Request validation passed.");
+}
+
+
+void CommonValidator::validate_set_endpoint_attributes(const Attributes& attributes) {
+    static jsonrpc::ProcedureValidator validator(
+        jsonrpc::PARAMS_BY_NAME,
+        literals::Endpoint::USERNAME, VALID_NULLABLE(VALID_REGEX(literals::regex::Common::NO_WHITESPACE_STRING)),
+        literals::Endpoint::PASSWORD, VALID_OPTIONAL(VALID_NULLABLE(VALID_REGEX(literals::regex::Common::NO_WHITESPACE_STRING))),
+        nullptr
+    );
+    validator.validate(attributes.to_json());
+
     log_debug("agent-framework", "Request validation passed.");
 }
 

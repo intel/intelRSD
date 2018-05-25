@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
@@ -58,16 +59,14 @@ public class EthernetSwitchPortVlanObtainer {
 
     @Transactional(MANDATORY)
     public EthernetSwitchPortVlan discoverEthernetSwitchPortVlan(ExternalService service, URI vlanUri) throws WebClientRequestException {
-        if (service == null) {
-            throw new IllegalStateException("There is no Service associated with selected switch port");
-        }
+        requiresNonNull(service, "service", "There is no Service associated with selected switch port");
 
         try (WebClient webClient = webClientBuilder.newInstance(service.getBaseUri()).retryable().build()) {
             EthernetSwitchPortVlanResource psmeVlan = (EthernetSwitchPortVlanResource) webClient.get(vlanUri);
-            URI relativeUri = URI.create(vlanUri.getPath());
-            Id entityId = psmeVlan.getGlobalId(service.getId(), relativeUri);
-            EthernetSwitchPortVlan target = discoverableEntityDao.findOrCreateEntity(service, entityId, relativeUri, EthernetSwitchPortVlan.class);
+            Id entityId = psmeVlan.getGlobalId(service.getId());
+            EthernetSwitchPortVlan target = discoverableEntityDao.findOrCreateEntity(service, entityId, psmeVlan.getUri(), EthernetSwitchPortVlan.class);
             mapper.map(psmeVlan, target);
+
             return target;
         }
     }

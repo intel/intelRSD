@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.business.entities.redfish.MetricDefinition;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.common.logger.Logger;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -35,6 +36,8 @@ import static java.util.stream.Collectors.toList;
 
 @Dependent
 class MetricDefinitionDtoMapper extends DtoMapper<MetricDefinition, MetricDefinitionDto> {
+    @Inject
+    private Logger logger;
 
     @Inject
     private DiscoverableEntityDao discoverableEntityDao;
@@ -48,7 +51,7 @@ class MetricDefinitionDtoMapper extends DtoMapper<MetricDefinition, MetricDefini
         super.performNotAutomatedMapping(source, target);
         ExternalService externalService = source.getService();
         List<String> collect = source.getMetricProperties().stream()
-            .map(uriValue -> transformUriToNorthboundFormat(externalService, uriValue))
+            .map(uriValue -> transformUriToNorthboundFormat(externalService, source.getSourceUri(), uriValue))
             .collect(toList());
         target.setMetricProperties(collect);
 
@@ -62,11 +65,17 @@ class MetricDefinitionDtoMapper extends DtoMapper<MetricDefinition, MetricDefini
         rackScaleOem.setDiscreteMetricType(source.getDiscreteMetricType());
     }
 
-    private String transformUriToNorthboundFormat(ExternalService externalService, String southboundUriValue) {
+    private String transformUriToNorthboundFormat(ExternalService externalService, URI sourceUri, String southboundUriValue) {
         URI resourceUri = create(southboundUriValue);
         DiscoverableEntity entityFromSourceUri = discoverableEntityDao.findBy(externalService, create(resourceUri.getPath()), DiscoverableEntity.class);
-        Context context = toContext(entityFromSourceUri);
-        URI uri = context.asOdataId().toUri();
-        return uri + "#" + resourceUri.getFragment();
+        if (entityFromSourceUri != null) {
+            Context context = toContext(entityFromSourceUri);
+            URI uri = context.asOdataId().toUri();
+            return uri + "#" + resourceUri.getFragment();
+        } else {
+            // TODO Handle not mapped metric properties with e.g. @Message.ExtendedInfo on NB API
+            logger.w("Could not match MetricProperties: {} for resource: {}", southboundUriValue, sourceUri);
+            return null;
+        }
     }
 }

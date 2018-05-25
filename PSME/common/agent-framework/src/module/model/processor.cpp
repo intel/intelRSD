@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,8 +60,8 @@ json::Json Processor::to_json() const {
     result[literals::Processor::THERMAL_DESIGN_POWER_WATT] = get_tdp_watt();
     result[literals::Processor::FPGA] = get_fpga().to_json();
     result[literals::Processor::ON_PACKAGE_MEMORY] = get_on_package_memory().to_json();
-
     result[literals::Processor::OEM] = get_oem().to_json();
+
     return result;
 }
 
@@ -89,7 +89,6 @@ Processor Processor::from_json(const json::Json& json) {
     processor.set_tdp_watt(json[literals::Processor::THERMAL_DESIGN_POWER_WATT]);
     processor.set_fpga(attribute::Fpga::from_json(json[literals::Processor::FPGA]));
     processor.set_oem(attribute::Oem::from_json(json[literals::Processor::OEM]));
-    processor.set_resource_hash(json);
 
     return processor;
 }

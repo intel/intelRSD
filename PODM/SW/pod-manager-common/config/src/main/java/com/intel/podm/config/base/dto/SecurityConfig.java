@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,36 @@ package com.intel.podm.config.base.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.config.base.ConfigFile;
 
+import static java.lang.String.format;
+
 @ConfigFile(filename = "security.json")
 public class SecurityConfig extends BaseConfig {
+    public enum CertificateType {
+        CLIENT,
+        SERVER
+    }
 
     @JsonProperty("ClientKeystorePath")
     private String clientKeystorePath = "/var/lib/pod-manager/client.jks";
 
-    public String getClientKeystorePath() {
-        return clientKeystorePath;
+    @JsonProperty("ServerKeystorePath")
+    private String serverKeystorePath = "/var/lib/pod-manager/server.jks";
+
+    @JsonProperty("ServerCertificateVerificationEnabled")
+    private boolean serverCertificateVerificationEnabled;
+
+    public String getKeystorePath(CertificateType type) {
+        switch (type) {
+            case CLIENT:
+                return clientKeystorePath;
+            case SERVER:
+                return serverKeystorePath;
+            default:
+                throw new UnsupportedOperationException(format("Certificate of type %s keystore does not exist.", type));
+        }
+    }
+
+    public boolean isServerCertificateVerificationEnabled() {
+        return serverCertificateVerificationEnabled;
     }
 }

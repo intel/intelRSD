@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,7 +229,7 @@ public final class MemoryMetricsDto extends RedfishDto {
             return rackScaleOem;
         }
 
-        @JsonPropertyOrder({"odataType", "temperatureCelsius", "bandwidthPercent", "throttledCyclesPercent", "thermalMarginCelsius", "consumedPowerWatt",
+        @JsonPropertyOrder({"@odata.type", "temperatureCelsius", "bandwidthPercent", "throttledCyclesPercent", "thermalMarginCelsius", "consumedPowerWatt",
             "eccErrorsCount", "healthList"})
         public class RackScaleOem {
             @JsonProperty("@odata.type")
@@ -239,8 +239,10 @@ public final class MemoryMetricsDto extends RedfishDto {
             private BigDecimal throttledCyclesPercent;
             private BigDecimal thermalMarginCelsius;
             private BigDecimal consumedPowerWatt;
+
             @JsonProperty("ECCErrorsCount")
             private Long eccErrorsCount;
+
             @JsonProperty("Health")
             private List<String> healthList;
 

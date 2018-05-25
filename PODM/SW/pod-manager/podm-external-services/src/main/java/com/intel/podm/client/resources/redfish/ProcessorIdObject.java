@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,38 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
+import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
 public class ProcessorIdObject {
-    @JsonProperty("VendorId")
+    @JsonSetter(value = "VendorId", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
-    private Ref<String> vendorId = Ref.unassigned();
-    @JsonProperty("IdentificationRegisters")
+    private Ref<String> vendorId = unassigned();
+
+    @JsonSetter(value = "IdentificationRegisters", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
-    private Ref<String> identificationRegisters = Ref.unassigned();
-    @JsonProperty("EffectiveFamily")
+    private Ref<String> identificationRegisters = unassigned();
+
+    @JsonSetter(value = "EffectiveFamily", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
-    private Ref<String> effectiveFamily = Ref.unassigned();
-    @JsonProperty("EffectiveModel")
+    private Ref<String> effectiveFamily = unassigned();
+
+    @JsonSetter(value = "EffectiveModel", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
-    private Ref<String> effectiveModel = Ref.unassigned();
-    @JsonProperty("Step")
+    private Ref<String> effectiveModel = unassigned();
+
+    @JsonSetter(value = "Step", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
-    private Ref<String> step = Ref.unassigned();
-    @JsonProperty("MicrocodeInfo")
+    private Ref<String> step = unassigned();
+
+    @JsonSetter(value = "MicrocodeInfo", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
-    private Ref<String> microcodeInfo = Ref.unassigned();
+    private Ref<String> microcodeInfo = unassigned();
 
     public Ref<String> getVendorId() {
         return vendorId;

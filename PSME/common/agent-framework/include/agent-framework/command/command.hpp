@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,9 @@
  * */
 
 #pragma once
+
+
+
 #include "agent-framework/generic/singleton.hpp"
 #include "agent-framework/validators/procedure_validator.hpp"
 
@@ -35,11 +38,13 @@ namespace agent_framework {
 namespace command {
 
 /*
- * @brief Generic interface of the json rpc commands
+ * @brief Generic interface of the JSON RPC commands
  * */
 class CommandBase {
 public:
     virtual ~CommandBase();
+
+
     /*
      * @brief Generic JSON RPC Method Call
      * @param[in] req request
@@ -54,6 +59,7 @@ public:
      * */
     virtual void notification(const json::Json& req) = 0;
 
+
     /*
      * @brief Returns scheme defining procedure format
      * @return Scheme of the procedure
@@ -62,10 +68,9 @@ public:
 };
 
 /*
- * @brief Generic implementation of the CommandBase based on the agent_framework
- *        model classes
+ * @brief Generic implementation of the CommandBase based on the agent_framework model classes
  * */
-template <typename REQ, typename RSP>
+template<typename REQ, typename RSP>
 class Command : public CommandBase {
 public:
 
@@ -73,42 +78,45 @@ public:
     using Response = RSP;
     using HandlerFunc = std::function<void(REQ, RSP&)>;
 
-    Command(HandlerFunc handler):
-        m_handler(handler)
-    {}
+
+    Command(HandlerFunc handler) : m_handler(handler) {}
+
 
     /*
      * @brief Method handler implementation based on model request/response classes
      * @param[in] req request
      * @param[out] rsp response
      * */
-    void method(const json::Json& req, json::Json& rsp)  {
+    void method(const json::Json& req, json::Json& rsp) {
         Request request = Request::from_json(req);
         Response response{};
         m_handler(request, response);
         rsp = response.to_json();
     }
 
+
     /*
      * @brief Notification handler implementation based on model request classes
      * @param[in] req request
      * */
-    void notification(const json::Json& req)  {
+    void notification(const json::Json& req) {
         Request request = Request::from_json(req);
         Response response{};
         m_handler(request, response);
     }
 
+
     /*
      * @brief Returns JSON RPC command scheme
-     * @return Scheme of the procedure, to be used by jsonrpc library
+     * @return Scheme of the procedure, to be used by JSON RPC library
      * */
     const jsonrpc::ProcedureValidator& get_procedure() const {
         return Request::get_procedure();
     }
 
+
 private:
-    HandlerFunc m_handler {};
+    HandlerFunc m_handler{};
 
 };
 

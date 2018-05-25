@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.embeddables.Boot;
 import com.intel.podm.client.resources.redfish.BootObject;
 import com.intel.podm.client.resources.redfish.ComputerSystemResource;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
+import com.intel.podm.common.enterprise.utils.retry.RetryOnRollback;
 import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.Id;
@@ -48,7 +48,7 @@ class ComputerSystemUpdater {
     @Inject
     private Logger logger;
 
-    @NumberOfRetriesOnRollback(3)
+    @RetryOnRollback(3)
     @Transactional(REQUIRES_NEW)
     public void updateComputerSystemWithRetry(Id computerSystemId, ComputerSystemResource computerSystemResource) throws IllegalStateException {
         Optional<ComputerSystem> expectedComputerSystem = computerSystemDao.tryFind(computerSystemId);

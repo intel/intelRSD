@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2017 Intel Corporation
+# Copyright (c) 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,10 +34,12 @@ add_library(pnc-command OBJECT
     get_system_info.cpp
     get_task_info.cpp
     get_task_result_info.cpp
+    add_endpoint.cpp
     add_zone.cpp
+    delete_endpoint.cpp
     delete_zone.cpp
-    add_zone_endpoint.cpp
-    delete_zone_endpoint.cpp
+    add_zone_endpoints.cpp
+    delete_zone_endpoints.cpp
     delete_task.cpp
     set_component_attributes.cpp
     get_metric_definition_info.cpp

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,18 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.common.types.AdministrativeState;
+import com.intel.podm.common.types.DcbxState;
+import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort.PriorityFlowControl;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static java.util.Collections.unmodifiableList;
 
-@JsonPropertyOrder({"AdministrativeState", "LinkSpeedMbps", "FrameSize", "Autosense", "Links"})
+@JsonPropertyOrder({"AdministrativeState", "LinkSpeedMbps", "FrameSize", "Autosense", "DCBXState", "LLDPEnabled", "PriorityFlowControl", "Links"})
 @JsonInclude(NON_DEFAULT)
 public class EthernetSwitchPortResourceModificationRequest {
     @JsonProperty("AdministrativeState")
@@ -40,6 +45,15 @@ public class EthernetSwitchPortResourceModificationRequest {
 
     @JsonProperty("Autosense")
     private Boolean autosense;
+
+    @JsonProperty("DCBXState")
+    private DcbxState dcbxState;
+
+    @JsonProperty("LLDPEnabled")
+    private Boolean lldpEnabled;
+
+    @JsonProperty("PriorityFlowControl")
+    private PriorityFlowControl priorityFlowControl;
 
     @JsonProperty("Links")
     private EthernetSwitchPortLinks links;
@@ -60,6 +74,20 @@ public class EthernetSwitchPortResourceModificationRequest {
         this.autosense = autosense;
     }
 
+    public void setDcbxState(DcbxState dcbxState) {
+        this.dcbxState = dcbxState;
+    }
+
+    public void setLldpEnabled(Boolean lldpEnabled) {
+        this.lldpEnabled = lldpEnabled;
+    }
+
+    public void setPriorityFlowControl(PriorityFlowControl priorityFlowControl) {
+        if (priorityFlowControl != null) {
+            this.priorityFlowControl = new PriorityFlowControlImpl(priorityFlowControl.getEnabled(), priorityFlowControl.getEnabledPriorities());
+        }
+    }
+
     public void setLinks(Set<URI> uris, URI primaryVlanUri) {
         EthernetSwitchPortLinks portLinks = new EthernetSwitchPortLinks();
         portLinks.setRequestedPortMembers(uris);
@@ -67,6 +95,31 @@ public class EthernetSwitchPortResourceModificationRequest {
 
         if (portLinks.getPortMembers() != null || portLinks.getPrimaryVlan() != null) {
             links = portLinks;
+        }
+    }
+
+    @JsonInclude(NON_NULL)
+    @JsonPropertyOrder({"Enabled", "EnabledPriorities"})
+    public static class PriorityFlowControlImpl implements PriorityFlowControl {
+        @JsonProperty("Enabled")
+        private Boolean enabled;
+
+        @JsonProperty("EnabledPriorities")
+        private List<Integer> enabledPriorities;
+
+        public PriorityFlowControlImpl(Boolean enabled, List<Integer> enabledPriorities) {
+            this.enabled = enabled;
+            this.enabledPriorities = unmodifiableList(enabledPriorities);
+        }
+
+        @Override
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        @Override
+        public List<Integer> getEnabledPriorities() {
+            return enabledPriorities;
         }
     }
 }

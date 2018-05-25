@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.intel.podm.common.types.ServiceType.DISCOVERY_SERVICE;
 import static com.intel.podm.common.types.ServiceType.INBAND;
 import static com.intel.podm.common.types.ServiceType.LUI;
 import static com.intel.podm.common.types.ServiceType.PSME;
@@ -108,7 +109,7 @@ public class ServiceDetectionConfig extends BaseConfig {
             private Integer msearchBulkIntervalMilliseconds = 500;
 
             @JsonProperty("AnnouncementFrequencyInSeconds")
-            private Long announcementFrequencyInSeconds = 600L;
+            private Long announcementFrequencyInSeconds = 60L;
 
             @JsonProperty("Subnets")
             private List<SubnetUtils> subnets = new ArrayList<SubnetUtils>() {
@@ -145,6 +146,9 @@ public class ServiceDetectionConfig extends BaseConfig {
             @JsonProperty("RSS")
             private String rssServiceName = "RSS Service Root";
 
+            @JsonProperty("DISCOVERY_SERVICE")
+            private String discoveryServiceName = "NVMe Discovery Service Root";
+
             @JsonProperty("LUI")
             private String luiServiceName = "LUI Service Root";
 
@@ -163,6 +167,7 @@ public class ServiceDetectionConfig extends BaseConfig {
                     mappingType.put(rmmServiceName, RMM);
                     mappingType.put(rssServiceName, RSS);
                     mappingType.put(inBandServiceName, INBAND);
+                    mappingType.put(discoveryServiceName, DISCOVERY_SERVICE);
                 }
                 return mappingType.get(serviceName);
             }

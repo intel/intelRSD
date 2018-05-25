@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,11 +18,14 @@
  * limitations under the License.
  *
  * */
-#include "psme/rest/server/error/message_object.hpp"
 #include "psme/rest/server/error/error_factory.hpp"
-#include "psme/rest/server/status.hpp"
-#include "logger/logger_factory.hpp"
 
+#include "psme/rest/server/error/message_object.hpp"
+#include "psme/rest/server/status.hpp"
+#include "psme/rest/endpoints/utils.hpp"
+#include "logger/logger.hpp"
+
+#include <stdarg.h>
 #include <cstdio>
 
 
@@ -123,6 +126,7 @@ const MessageObject create_message_object_from_gami_code(ErrorCode gami_error_co
         case ErrorCode::STORAGE:
         case ErrorCode::ISCSI:
         case ErrorCode::LVM:
+        case ErrorCode::NVME:
         case ErrorCode::PCIE_FABRIC:
         case ErrorCode::CHASSIS:
         case ErrorCode::CERTIFICATE:
@@ -137,6 +141,7 @@ const MessageObject create_message_object_from_gami_code(ErrorCode gami_error_co
             severity = Severity::Critical;
             break;
 
+        case ErrorCode::METHOD_CONFLICT:
         case ErrorCode::METHOD_NOT_FOUND:
         case ErrorCode::NOT_IMPLEMENTED:
             redfish_code = ServerError::GENERAL_ERROR;
@@ -610,7 +615,7 @@ ServerError ErrorFactory::create_error_from_set_component_attributes_results(
     auto error = create_internal_error();
     for (const auto& status : statuses) {
         auto message_object = ::create_message_object_from_gami_code(status.get_status_code(), status.get_message());
-        log_error(GET_LOGGER("rest"), "SetComponentAttributes failed for attribute '"
+        log_error("rest", "SetComponentAttributes failed for attribute '"
             << status.get_attribute() << "' with message '" << int(status.get_status_code())
             << ":" << status.get_message() << "'");
 
@@ -619,7 +624,7 @@ ServerError ErrorFactory::create_error_from_set_component_attributes_results(
         }
         catch (...) {
             // Do not add attribute name to response
-            log_warning(GET_LOGGER("rest"),
+            log_warning("rest",
                         "Create REST error: unrecognized GAMI attribute: " << status.get_attribute());
         }
 
@@ -647,6 +652,7 @@ ServerError ErrorFactory::create_error_from_gami_exception(const GamiException& 
         case ErrorCode::STORAGE:
         case ErrorCode::ISCSI:
         case ErrorCode::LVM:
+        case ErrorCode::NVME:
         case ErrorCode::PCIE_FABRIC:
         case ErrorCode::CHASSIS:
         case ErrorCode::CERTIFICATE:
@@ -698,6 +704,21 @@ ServerError ErrorFactory::create_error_from_gami_exception(const GamiException& 
             // Creates error with empty message because there will be added extended message later.
             server_error = create_method_not_allowed_error({});
             break;
+
+        case ErrorCode::METHOD_CONFLICT: {
+            auto task_uuid = MethodConflict::get_task_uuid(data);
+            try {
+                auto task_url = psme::rest::endpoint::utils::get_component_url(
+                    agent_framework::model::enums::Component::Task, task_uuid);
+                auto resolution = "Please wait until task " + task_url + " is finished, then try again";
+                server_error = create_conflict_error(message, resolution);
+            }
+            catch (const NotFound&) {
+                log_error("rest", "GAMI command failed because of a conflict with an unknown task: " + task_uuid);
+                server_error = create_conflict_error(message);
+            }
+            return server_error;
+        }
 
         case ErrorCode::NOT_FOUND:
             server_error = create_resource_missing_error(NotFound::get_uri_from_json_data(data, false));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,14 +40,15 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "name", "id", "description", "memoryType", "memoryDeviceType", "baseModuleType",
-    "memoryMedia", "capacityMib", "dataWidthBits", "busWidthBits", "manufacturer", "serialNumber", "partNumber",
-    "allowedSpeedsMhz", "firmwareRevision", "firmwareApiVersion", "functionClasses", "vendorId", "deviceId",
-    "rankCount", "deviceLocator", "memoryLocation", "errorCorrection", "status", "operatingSpeedMhz", "regions",
-    "operatingMemoryModes", "memoryMetrics", "oem"})
+    "@odata.context", "@odata.id", "@odata.type", "name", "id", "description", "memoryType", "memoryDeviceType", "baseModuleType", "memoryMedia",
+    "capacityMib", "dataWidthBits", "busWidthBits", "manufacturer", "serialNumber", "partNumber", "allowedSpeedsMhz", "firmwareRevision",
+    "firmwareApiVersion", "functionClasses", "vendorId", "deviceId", "rankCount", "deviceLocator", "memoryLocation", "errorCorrection", "status",
+    "operatingSpeedMhz", "regions", "operatingMemoryModes", "memoryMetrics", "actions", "oem"})
 @JsonInclude(ALWAYS)
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class MemoryDto extends RedfishDto {
+    private final Oem oem = new Oem();
+    private final Actions actions = new Actions();
     private MemoryType memoryType;
     private MemoryDeviceType memoryDeviceType;
     private BaseModuleType baseModuleType;
@@ -76,8 +77,6 @@ public final class MemoryDto extends RedfishDto {
     private Collection<MemoryRegionDto> regions = new ArrayList<>();
     private List<OperatingMemoryMode> operatingMemoryModes = new ArrayList<>();
     private MemoryLocationDto memoryLocation = new MemoryLocationDto();
-    private Oem oem = new Oem();
-    private Actions actions = new Actions();
     @JsonProperty("Metrics")
     @JsonInclude(NON_NULL)
     private SingletonContext memoryMetrics;
@@ -282,16 +281,8 @@ public final class MemoryDto extends RedfishDto {
         return oem;
     }
 
-    public void setOem(Oem oem) {
-        this.oem = oem;
-    }
-
     public Actions getActions() {
         return actions;
-    }
-
-    public void setActions(Actions actions) {
-        this.actions = actions;
     }
 
     public SingletonContext getMemoryMetrics() {
@@ -304,9 +295,7 @@ public final class MemoryDto extends RedfishDto {
 
     @JsonPropertyOrder({"regionId", "memoryClassification", "offsetMib", "sizeMib"})
     public static final class MemoryRegionDto {
-        @JsonProperty("RegionId")
         private String regionId;
-        @JsonProperty("MemoryClassification")
         private MemoryClassification memoryClassification;
         @JsonProperty("OffsetMiB")
         private Integer offsetMib;
@@ -349,13 +338,9 @@ public final class MemoryDto extends RedfishDto {
     @JsonPropertyOrder({"socket", "memoryController", "channel", "slot"})
     @JsonInclude(ALWAYS)
     public static final class MemoryLocationDto {
-        @JsonProperty("Socket")
         private Integer socket;
-        @JsonProperty("MemoryController")
         private Integer memoryController;
-        @JsonProperty("Channel")
         private Integer channel;
-        @JsonProperty("Slot")
         private Integer slot;
 
         public Integer getSocket() {
@@ -400,7 +385,7 @@ public final class MemoryDto extends RedfishDto {
             return rackScaleOem;
         }
 
-        @JsonPropertyOrder({"odataType", "voltageVolt"})
+        @JsonPropertyOrder({"@odata.type", "voltageVolt"})
         public class RackScaleOem {
             @JsonProperty("@odata.type")
             private final String odataType = "#Intel.Oem.Memory";

@@ -4,7 +4,7 @@
  * This file maps user configuration (parsed from configuration.json) to
  * logger objects.
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,14 @@
  * @file logger_loader.cpp
  */
 #include "agent-framework/logger_loader.hpp"
+#include "agent-framework/exceptions/exception.hpp"
 #include "json/json.hpp"
 
 #include <algorithm>
 #include <memory>
 #include <iostream>
+
+
 
 using namespace logger_cpp;
 
@@ -66,20 +69,59 @@ std::array<const char*, 6> LoggerLoader::g_stream_type = {
     }
 };
 
-LoggerFactory::loggers_t LoggerLoader::load() {
+void LoggerLoader::load(LoggerFactory& factory) {
     try {
-        const auto& loggers = m_config_json["logger"];
-        if (loggers.is_object()) {
-            return process_loggers(loggers);
+        if (m_config_json.is_member("loggers")) {
+            const auto& config = m_config_json["loggers"];
+            LoggerFactory::loggers_t loggers = process_loggers(config);
+            factory.set_loggers(loggers);
+
         }
-    } catch (const json::Value::Exception& e) {
+    }
+    catch (const json::Value::Exception& e) {
         log_error(LOGUSR, "Cannot parse loggers settings "  << e.what() << "\n");
     }
-    return LoggerFactory::loggers_t{};
 }
 
-LoggerSPtr LoggerLoader::get_logger(const std::string& name, const json::Value& config) {
-    auto logger_ptr = std::make_shared<logger_cpp::Logger>(name.data());
+LoggerFactory::loggers_t LoggerLoader::process_loggers(const json::Value& loggers) {
+    LoggerFactory::loggers_t loggers_map;
+    bool found_default_logger = false;
+    for (const auto& logger_json : loggers.as_array()) {
+        LoggerSPtr logger = get_logger(logger_json);
+        loggers_map.emplace(logger->get_name(), logger);
+        if (logger_json.is_member("default") && logger_json["default"].as_bool()) {
+            if (!found_default_logger) {
+                const std::string& main_logger_name = logger->get_name();
+                LoggerFactory::set_main_logger_name(main_logger_name.c_str());
+                found_default_logger = true;
+            }
+            else {
+                const std::string& main_logger_name = LoggerFactory::get_main_logger_name();
+                log_warning(LOGUSR, "Multiple default loggers. Logger \"" + main_logger_name +"\" set as default.\n");
+            }
+        }
+    }
+
+    if (!loggers_map.empty() && !found_default_logger){
+        const std::string& main_logger_name = loggers_map.begin()->second->get_name();
+        LoggerFactory::set_main_logger_name(main_logger_name.c_str());
+        if (loggers_map.size() > 1) {
+            log_info(LOGUSR, "No default logger specified. Logger \"" + main_logger_name +"\" set as default.\n");
+        }
+    }
+    return loggers_map;
+}
+
+LoggerSPtr LoggerLoader::get_logger(const json::Value& config) {
+    if (!config.is_object()) {
+        throw json::Value::Exception("Logger is not an object");
+    }
+    if (!config.is_member("name")) {
+        throw json::Value::Exception("Logger has no name");
+    }
+
+    const std::string& name = config["name"].as_string();
+    auto logger_ptr = std::make_shared<logger_cpp::Logger>(name);
     add_options(logger_ptr, config);
     add_streams(logger_ptr, config);
     return logger_ptr;
@@ -123,7 +165,7 @@ Options LoggerLoader::get_options(const json::Value& config) {
 
     if (!config["level"].is_null()) {
         int index = LoggerLoader::check_enums(g_level, config["level"].as_string());
-        if(-1 != index) {
+        if (-1 != index) {
             options.set_level(Level(index));
         }
     }
@@ -152,15 +194,6 @@ Options LoggerLoader::get_options(const json::Value& config) {
     }
 
     return options;
-}
-
-LoggerFactory::loggers_t LoggerLoader::process_loggers(const json::Value& loggers) {
-    LoggerFactory::loggers_t loggers_map;
-    for (const auto& log : loggers.as_object()) {
-        loggers_map.emplace(log.first,
-                            get_logger(log.first, log.second));
-    }
-    return loggers_map;
 }
 
 bool LoggerLoader::process_streams(LoggerSPtr logger, const json::Value& streams) {

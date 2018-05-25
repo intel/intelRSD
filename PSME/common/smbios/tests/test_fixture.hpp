@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -107,10 +107,10 @@ static const uint8_t smbios[] = {
         0x00,                       // entry point revision
         0x00, 0x00, 0x00, 0x00, 0x00, // formatted area
         0x5f, 0x44, 0x4d, 0x49, 0x5f, // intermediate anchor string "_DMI_"
-        0x50,                       // intermediate checksum
+        0x49,                       // intermediate checksum
         0x7f+(0x41-0x07), 0x0f,     // structure table length
         0x20, 0x00, 0x00, 0x00,     // structure table address
-        0x08, 0x00,                 // number of smbios structures
+        0x0F, 0x00,                 // number of smbios structures
         0x28,                       // smbios BCD revision
         0x00,                       // align to 32-bits
 
@@ -298,7 +298,7 @@ static const uint8_t smbios[] = {
         FPGA_DEVICE     @115
         */
         0xc6,                   // FPGA
-        35,                     // length
+        36,                     // length
         0x73, 0x00,             // handle
         1,                      // uint8_t fpga_index;
         0,                      // FpgaType fpga_type;
@@ -309,6 +309,7 @@ static const uint8_t smbios[] = {
         3,                      // uint8_t fpga_model;
         4,                      // uint8_t fpga_bit_stream_version;
         0x22,                   // uint8_t fpga_hps_core_count;
+        0,                      // uint8_t reserved
         0x03,                   // uint8_t fpga_hps_isa;
         0x00,                   // uint8_t fpga_hssi_configuration;
         0x07,                   // uint8_t fpga_hssi_port_count;
@@ -404,6 +405,42 @@ static const uint8_t smbios[] = {
         0x07,                   // uint8_t smbus_address;
         '1', '2', '3', 'M', 'E', 'M', 'O', 'R', 'Y', 0x00,
         'X', 'Y', 'Z', '_', '5', '6', '7', '8', 0x00,
+        0x00,
+
+        /*
+        FPGA_DEVICE_OEM     @121
+        */
+        0xc6,                   // FPGA
+        35,                     // length
+        0x79, 0x00,             // handle
+        1,                      // uint8_t fpga_index;
+        0,                      // FpgaType fpga_type;
+        1,                      // FpgaStatus fpga_status;
+        58,                     // uint8_t socket_identifier;
+        1,                      // uint8_t fpga_vendor;
+        2,                      // uint8_t fpga_family;
+        3,                      // uint8_t fpga_model;
+        4,                      // uint8_t fpga_bit_stream_version;
+        0x22,                   // uint8_t fpga_hps_core_count;
+        0x03,                   // uint8_t fpga_hps_isa;
+        0x00,                   // uint8_t fpga_hssi_configuration;
+        0x07,                   // uint8_t fpga_hssi_port_count;
+        0x08,                   // uint8_t fpga_hssi_port_speed;
+        5,                      // uint8_t fpga_hssi_side_band_configuration;
+        0x36,                   // uint8_t fpga_reconfiguration_slots;
+        0x26, 0x76,             // uint16_t fpga_pcie_slot_number;
+        0x66,                   // uint8_t fpga_pcie_bus_identifier;
+        0x55,                   // uint8_t fpga_pcie_device_identifier;
+        0x21,                   // uint8_t fpga_pcie_function_identifier;
+        0x02, 0x32, 0x61, 0x12, // uint32_t thermal_design_power;
+        0x02,                   // OnPackageMemoryTechnology memory_technology;
+        0x01, 0x55, 0x47, 0x38, // uint32_t on_package_memory_capacity;
+        0x42, 0x63,             // uint16_t on_package_memory_speed;
+        'A', 'B', 0x00,         // "AB"
+        'C', 'D', 0x00,         // "CD"
+        'E', 'F', 'F', 0x00,    // "EFF"
+        'G', 'H', 'H', 0x00,    // "GHH"
+        'I', 'P', 'Q', 0x00,    // "IPQ
         0x00
 };
 

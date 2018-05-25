@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,27 @@
 package com.intel.podm.discovery.external.finalizers;
 
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.ExternalService;
+import com.intel.podm.business.entities.redfish.base.ComposableAsset;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
-import com.intel.podm.discovery.ComposedNodeUpdater;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.Set;
 
 import static com.intel.podm.common.types.ServiceType.RSS;
 import static com.intel.podm.common.utils.Collections.filterByType;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 public class RssDiscoveryFinalizer extends ServiceTypeSpecializedDiscoveryFinalizer {
     @Inject
-    private ComposedNodeUpdater composedNodeUpdater;
+    private ComposableAssetsDiscoveryListener composableAssetsDiscoveryListener;
+
+    @Inject
+    private EndpointLinker endpointLinker;
 
     @Inject
     private ChassisHierarchyMaintainer chassisHierarchyMaintainer;
@@ -41,8 +47,10 @@ public class RssDiscoveryFinalizer extends ServiceTypeSpecializedDiscoveryFinali
     }
 
     @Override
+    @Transactional(MANDATORY)
     public void finalize(Set<DiscoverableEntity> discoveredEntities, ExternalService service) {
         chassisHierarchyMaintainer.maintain(filterByType(discoveredEntities, Chassis.class));
-        composedNodeUpdater.updateRelatedComposedNodes(discoveredEntities);
+        endpointLinker.linkEndpointToRelatedSystem(filterByType(discoveredEntities, Endpoint.class));
+        composableAssetsDiscoveryListener.updateRelatedComposedNodes(filterByType(discoveredEntities, ComposableAsset.class));
     }
 }

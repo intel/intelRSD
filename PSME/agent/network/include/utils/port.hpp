@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #pragma once
 
 #include <string>
+#include "json-wrapper/json-wrapper.hpp"
 
 namespace agent {
 namespace network {
@@ -54,6 +55,16 @@ void send_update_event(const std::string& parent_uuid,
 
 void set_port_neighbor_mac(const std::string& port_name,
                            const std::string& neighbor_mac);
+
+/*!
+ * @brief Determine whether a port is one of the physical ports (Ethernet X/1) or the virtual ones (Ethernet X/2, X/3, X/4) with cable in (up)
+ * @param port_identifier, e.g. Ethernet X/Y
+ * @param switch_config switch configuration in json format, returned from get switch running configuration command
+ * @return true when is one of the physical ports (Ethernet X/1) or the virtual ones (Ethernet X/2, X/3, X/4) with cable in,
+ * false when is one of the virtual ports (Ethernet X/2, X/3, X/4) without cable inserted
+ */
+bool is_port_physical_or_up(const std::string& port_identifier, const json::Json& switch_config);
+
 }
 }
 }

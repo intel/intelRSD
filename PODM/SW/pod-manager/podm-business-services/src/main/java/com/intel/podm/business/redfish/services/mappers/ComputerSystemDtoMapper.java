@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import static com.intel.podm.business.redfish.ContextCollections.asEndpointConte
 import static com.intel.podm.business.redfish.ContextCollections.asManagerContexts;
 import static com.intel.podm.business.redfish.ContextCollections.asPcieDeviceContexts;
 import static com.intel.podm.business.redfish.ContextCollections.asPcieDeviceFunctionContexts;
+import static com.intel.podm.business.redfish.ContextCollections.asStorageServicesContexts;
 import static com.intel.podm.mappers.Conditions.aggregateCondition;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -54,7 +55,7 @@ class ComputerSystemDtoMapper extends DtoMapper<ComputerSystem, ComputerSystemDt
     ComputerSystemDtoMapper() {
         super(ComputerSystem.class, ComputerSystemDto.class);
         this.ignoredProperties("boot", "pcieDevices", "pcieDeviceFunctions", "computerSystemMetrics",
-            "links", "actions", "oem", "status", "trustedModules");
+            "links", "actions", "oem", "status", "trustedModules", "hostingRoles");
     }
 
     @Override
@@ -65,6 +66,7 @@ class ComputerSystemDtoMapper extends DtoMapper<ComputerSystem, ComputerSystemDt
             target.setPcieDeviceFunctions(asPcieDeviceFunctionContexts(source.getPcieDeviceFunctions()));
             target.setPcieDevices(asPcieDeviceContexts(source.getPcieDevices()));
             mapLinks(source, target);
+            mapHostedServices(source, target);
             target.getActions().getReset().setAllowableResetTypes(source.getAllowableResetTypes());
             target.getActions().getOem().getChangeTpmState().setAllowableInterfaceTypes(source.getAllowableInterfaceTypes());
             mapTrustedModules(source, target);
@@ -73,7 +75,17 @@ class ComputerSystemDtoMapper extends DtoMapper<ComputerSystem, ComputerSystemDt
 
         bootDtoMapper.setMappingConditions(aggregateCondition(true, false));
         bootDtoMapper.map(source.getBoot(), target.getBoot());
+        mapHostingRoles(source, target);
         mapRackScaleOem(source, target);
+    }
+
+    private void mapHostedServices(ComputerSystem source, ComputerSystemDto target) {
+        ComputerSystemDto.HostedServices hostedServices = target.getHostedServices();
+        hostedServices.setStorageServices(asStorageServicesContexts(source.getStorageServices()));
+    }
+
+    private void mapHostingRoles(ComputerSystem source, ComputerSystemDto target) {
+        ofNullable(source.getHostingRoles()).ifPresent(target::setHostingRoles);
     }
 
     private void mapStatus(ComputerSystem source, ComputerSystemDto target) {
@@ -120,6 +132,9 @@ class ComputerSystemDtoMapper extends DtoMapper<ComputerSystem, ComputerSystemDt
             .map(Port::getEndpoints)
             .flatMap(Collection::stream)
             .collect(toSet());
+
+        endpoints.addAll(computerSystem.getEndpoints());
+
         return asEndpointContexts(endpoints);
     }
 

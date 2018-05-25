@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@ int main() {
         GlobalAddressSpaceRegisters gas =
             GlobalAddressSpaceRegisters::get_default(sysfs_switch.memory_resource);
         gas.read_top();
-        log_info(GET_LOGGER("example"), "Unbinding all drives from mgmt partition");
+        log_info("example", "Unbinding all drives from mgmt partition");
         for (size_t i = 0; i < DSP_PORT_NUMBER; i++) {
             UnbindPort cmd{gas.get_interface()};
             cmd.input.fields.partition_id = gas.top.output.fields.current_partition_id;

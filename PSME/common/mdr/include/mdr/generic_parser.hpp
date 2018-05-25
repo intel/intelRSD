@@ -1,7 +1,7 @@
 /*!
  * @brief Generic SMBIOS style structure parser.
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,6 +133,11 @@ GenericParser<Traits>::StructVec<T> GenericParser<Traits>::get_all(const uint16_
         const HeaderType& header = *reinterpret_cast<const HeaderType*>(buf.get() + offset);
         if (offset + Traits::template table_length(header) > buf_size) {
             throw Exception("Unexpectedly reached end of MDR blob");
+        }
+
+        if (header.length < sizeof(HeaderType)) {
+            throw GenericParser::Exception("Invalid entry length: "
+                    + std::to_string(int(header.length)) + ". Table is broken.");
         }
 
         if (Traits::template header_type_equal<T>(header, handle)) {

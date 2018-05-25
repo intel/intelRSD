@@ -2,7 +2,7 @@
  * @brief Compute agent generic discoverer implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License") override;
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@
 #include "discovery/builders/chassis_builder.hpp"
 #include "discovery/builders/trusted_module_builder.hpp"
 #include "discovery/builders/manager_builder.hpp"
+#include "discovery/builders/pcie_device_builder.hpp"
+#include "discovery/builders/pcie_function_builder.hpp"
 #include "smbios/utilities/conversions.hpp"
 #include "iscsi/structs/iscsi_mdr_initiator.hpp"
 #include "iscsi/structs/iscsi_mdr_target.hpp"
@@ -52,19 +54,21 @@ GenericDiscoverer::~GenericDiscoverer() {}
 
 void GenericDiscoverer::read_mdr() {
     try {
-        log_debug(GET_LOGGER("compute-discovery"), "Trying to read MDR region");
+        log_debug("compute-discovery", "Trying to read MDR region");
         auto smbios_mdr_accessor = m_mdr_accessor_factory->create(get_platform_id(),
-                m_management_controller, ipmi::command::sdv::DataRegionId::SMBIOS_TABLE);
+                                                                  m_management_controller,
+                                                                  ipmi::command::sdv::DataRegionId::SMBIOS_TABLE);
         auto iscsi_mdr_accessor = m_mdr_accessor_factory->create(get_platform_id(),
-                m_management_controller, ipmi::command::sdv::DataRegionId::ISCSI_BOOT_OPTIONS);
+                                                                 m_management_controller,
+                                                                 ipmi::command::sdv::DataRegionId::ISCSI_BOOT_OPTIONS);
         set_up_smbios_data(smbios_mdr_accessor->get_mdr_region());
-        log_debug(GET_LOGGER("compute-discovery"), "SMBIOS parser initialized");
+        log_debug("compute-discovery", "SMBIOS parser initialized");
         set_up_iscsi_data(iscsi_mdr_accessor->get_mdr_region());
-        log_debug(GET_LOGGER("compute-discovery"), "iSCSI parser initialized");
+        log_debug("compute-discovery", "iSCSI parser initialized");
     }
     catch (const std::exception& e) {
-        log_warning(GET_LOGGER("compute-discovery"),
-                "Unable to read MDR region: " << e.what() << "; SMBIOS/iSCSI parser not initialized!");
+        log_warning("compute-discovery",
+                    "Unable to read MDR region: " << e.what() << "; SMBIOS/iSCSI parser not initialized!");
     }
 }
 
@@ -77,9 +81,9 @@ bool GenericDiscoverer::discover_manager(Manager& manager) {
     generic::response::GetDeviceId get_id_response{};
 
     try {
-        log_debug(GET_LOGGER("legacy-discovery"), "Sending " << get_guid_request.get_command_name());
+        log_debug("legacy-discovery", "Sending " << get_guid_request.get_command_name());
         get_management_controller().send(get_guid_request, get_guid_response);
-        log_debug(GET_LOGGER("legacy-discovery"), "Sending " << get_id_request.get_command_name());
+        log_debug("legacy-discovery", "Sending " << get_id_request.get_command_name());
         get_management_controller().send(get_id_request, get_id_response);
 
         ManagerBuilder::update_device_id_data(manager, get_id_response);
@@ -110,7 +114,7 @@ bool GenericDiscoverer::discover_chassis(agent_framework::model::Chassis& chassi
             auto smbios_module = get_smbios_parser()->get_all<SMBIOS_MODULE_INFO_DATA>();
 
             if (smbios_module.size() > 1) {
-                log_warning(GET_LOGGER("smbios-discovery"),
+                log_warning("smbios-discovery",
                             "Only one SMBIOS module information record expected. Number of records: "
                                 << smbios_module.size());
             }
@@ -126,22 +130,22 @@ bool GenericDiscoverer::discover_chassis(agent_framework::model::Chassis& chassi
                 &module.data.chassis_handle);
 
             if (smbios_chassis_array.size() > 1) {
-                log_warning(GET_LOGGER("smbios-discovery"),
+                log_warning("smbios-discovery",
                             "Only one system enclosure or chassis information record expected. Number of records: "
                                 << smbios_chassis_array.size());
             }
             else if (smbios_chassis_array.empty()) {
-                log_warning(GET_LOGGER("smbios-discovery"),
+                log_warning("smbios-discovery",
                             "There are no system enclosures or chassis in SMBIOS table.");
             }
             else {
                 ChassisBuilder::update_smbios_system_enclosure_or_chassis_info(chassis, smbios_chassis_array[0]);
             }
 
-            log_info(GET_LOGGER("smbios-discovery"), "Chassis SMBIOS discovery successful.");
+            log_info("smbios-discovery", "Chassis SMBIOS discovery successful.");
         }
         catch (const std::exception& e) {
-            log_error(GET_LOGGER("smbios-discovery"), "Chassis SMBIOS discovery error: " << e.what());
+            log_error("smbios-discovery", "Chassis SMBIOS discovery error: " << e.what());
             smbios_successful = false;
         }
     }
@@ -151,7 +155,7 @@ bool GenericDiscoverer::discover_chassis(agent_framework::model::Chassis& chassi
         generic::response::GetDeviceId get_device_id_response{};
 
         try {
-            log_debug(GET_LOGGER("legacy-discovery"), "Sending " << get_device_id_request.get_command_name());
+            log_debug("legacy-discovery", "Sending " << get_device_id_request.get_command_name());
             get_management_controller().send(get_device_id_request, get_device_id_response);
 
             ChassisBuilder::update_device_id(chassis, get_device_id_response);
@@ -195,7 +199,7 @@ bool GenericDiscoverer::discover_system(agent_framework::model::System& system) 
             auto smbios_txts = get_smbios_parser()->get_all<SMBIOS_TXT_INFO_DATA>();
 
             if (smbios_systems.size() > 1) {
-                log_warning(GET_LOGGER("smbios-discovery"),
+                log_warning("smbios-discovery",
                             "SMBIOS: Only one System information record expected. Number of records: "
                                 << smbios_systems.size());
             }
@@ -207,31 +211,31 @@ bool GenericDiscoverer::discover_system(agent_framework::model::System& system) 
             }
 
             if (smbios_modules.size() > 1) {
-                log_warning(GET_LOGGER("smbios-discovery"),
+                log_warning("smbios-discovery",
                             "Only one Module information record expected. Number of records: "
                                 << smbios_modules.size());
             }
             else if (smbios_modules.empty()) {
-                log_warning(GET_LOGGER("smbios-discovery"), "There are no Modules in SMBIOS table.");
+                log_warning("smbios-discovery", "There are no Modules in SMBIOS table.");
             }
             else {
                 SystemBuilder::update_smbios_module_info(system, smbios_modules[0]);
             }
 
             if (smbios_bioses.size() > 1) {
-                log_warning(GET_LOGGER("smbios-discovery"),
+                log_warning("smbios-discovery",
                             "SMBIOS: Only one BIOS information record expected. Number of records: "
                                 << smbios_bioses.size());
             }
             else if (smbios_bioses.empty()) {
-                log_warning(GET_LOGGER("smbios-discovery"), "SMBIOS: Unable to discover system BIOS information.");
+                log_warning("smbios-discovery", "SMBIOS: Unable to discover system BIOS information.");
             }
             else {
                 SystemBuilder::update_smbios_bios_info(system, smbios_bioses[0]);
             }
 
             if (1 != smbios_txts.size()) {
-                log_warning(GET_LOGGER("smbios-discovery"),
+                log_warning("smbios-discovery",
                             "Not exactly 1 TXT structure (" << smbios_txts.size() << " found).");
             }
             else {
@@ -241,10 +245,10 @@ bool GenericDiscoverer::discover_system(agent_framework::model::System& system) 
 
             SystemBuilder::update_smbios_pcie_info(system, get_smbios_parser()->get_all<SMBIOS_PCIE_INFO_DATA>());
 
-            log_info(GET_LOGGER("smbios-discovery"), "System discovery successful.");
+            log_info("smbios-discovery", "System discovery successful.");
         }
         catch (const std::exception& e) {
-            log_error(GET_LOGGER("smbios-discovery"), "System SMBIOS discovery error: " << e.what());
+            log_error("smbios-discovery", "System SMBIOS discovery error: " << e.what());
             smbios_successful = false;
         }
     }
@@ -254,7 +258,7 @@ bool GenericDiscoverer::discover_system(agent_framework::model::System& system) 
         generic::response::GetSystemGuid get_system_guid_response{};
 
         try {
-            log_debug(GET_LOGGER("legacy-discovery"), "Sending " << get_system_guid_request.get_command_name());
+            log_debug("legacy-discovery", "Sending " << get_system_guid_request.get_command_name());
             get_management_controller().send(get_system_guid_request, get_system_guid_response);
 
             SystemBuilder::update_system_guid(system, get_system_guid_response);
@@ -273,6 +277,41 @@ bool GenericDiscoverer::discover_system(agent_framework::model::System& system) 
 }
 
 
+bool GenericDiscoverer::discover_pcie_devices(std::vector<PcieDevice>& devices, const std::string& parent_uuid,
+                                              const std::string& chassis_uuid) {
+    if (!get_smbios_parser()) {
+        return false;
+    }
+
+    auto smbios_devices = get_smbios_parser()->get_all<SMBIOS_PCIE_INFO_DATA>();
+    for (const auto& device_data : smbios_devices) {
+        auto pcie_device = PcieDeviceBuilder::build_default(parent_uuid);
+        PcieDeviceBuilder::update_smbios_data(pcie_device, device_data);
+        PcieDeviceBuilder::update_chassis_link(pcie_device, chassis_uuid);
+        devices.emplace_back(std::move(pcie_device));
+    }
+
+    return true;
+}
+
+
+bool GenericDiscoverer::discover_pcie_functions(std::vector<PcieFunction>& functions,
+                                                const std::vector<PcieDevice>& devices) {
+    if (!get_smbios_parser()) {
+        return false;
+    }
+
+    auto smbios_devices = get_smbios_parser()->get_all<SMBIOS_PCIE_INFO_DATA>();
+    for (size_t i = 0; i < smbios_devices.size(); ++i) {
+        auto pcie_function = PcieFunctionBuilder::build_default(devices[i].get_uuid());
+        PcieFunctionBuilder::update_smbios_data(pcie_function, smbios_devices[i]);
+        functions.emplace_back(std::move(pcie_function));
+    }
+
+    return true;
+}
+
+
 bool GenericDiscoverer::discover_processors(std::vector<agent_framework::model::Processor>& processors,
                                             const std::string& parent_uuid) {
     if (!get_smbios_parser()) {
@@ -282,6 +321,7 @@ bool GenericDiscoverer::discover_processors(std::vector<agent_framework::model::
     try {
         auto smbios_processors = get_smbios_parser()->get_all<SMBIOS_PROCESSOR_INFO_DATA>();
         auto smbios_fpgas = get_smbios_parser()->get_all<SMBIOS_FPGA_DATA>();
+        auto smbios_fpgas_oem = get_smbios_parser()->get_all<SMBIOS_FPGA_DATA_OEM>();
         auto cpu_ids_v1 = get_smbios_parser()->get_all<SMBIOS_CPUID_DATA>();
         auto cpu_ids_v2 = get_smbios_parser()->get_all<SMBIOS_CPUID_DATA_V2>();
 
@@ -298,10 +338,16 @@ bool GenericDiscoverer::discover_processors(std::vector<agent_framework::model::
             processors.emplace_back(fpga);
         }
 
-        log_info(GET_LOGGER("smbios-discovery"), "Processor discovery successful.");
+        for (const auto& smbios_fpga_oem : smbios_fpgas_oem) {
+            auto fpga = ProcessorBuilder::build_default(parent_uuid);
+            ProcessorBuilder::update_smbios_fpga_data(fpga, smbios_fpga_oem);
+            processors.emplace_back(fpga);
+        }
+
+        log_info("smbios-discovery", "Processor discovery successful.");
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("smbios-discovery"), "Processor SMBIOS discovery error: " << e.what());
+        log_error("smbios-discovery", "Processor SMBIOS discovery error: " << e.what());
         return false;
     }
 
@@ -321,7 +367,7 @@ bool GenericDiscoverer::discover_memory(std::vector<agent_framework::model::Memo
         auto devices_extended = get_smbios_parser()->get_all<SMBIOS_MEMORY_DEVICE_EXTENDED_INFO_DATA>();
 
         if (devices.empty()) {
-            log_info(GET_LOGGER("smbios-discovery"), "No Memory Device found in SMBIOS");
+            log_info("smbios-discovery", "No Memory Device found in SMBIOS");
             return false;
         }
 
@@ -341,7 +387,7 @@ bool GenericDiscoverer::discover_memory(std::vector<agent_framework::model::Memo
         return true;
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("smbios-discovery"), "Memory SMBIOS discovery error: " << e.what());
+        log_error("smbios-discovery", "Memory SMBIOS discovery error: " << e.what());
         return false;
     }
 }
@@ -390,7 +436,7 @@ bool GenericDiscoverer::discover_drives(std::vector<agent_framework::model::Driv
         return true;
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("smbios-discovery"), "Drives SMBIOS discovery error: " << e.what());
+        log_error("smbios-discovery", "Drives SMBIOS discovery error: " << e.what());
         return false;
     }
 }
@@ -435,7 +481,7 @@ bool GenericDiscoverer::discover_network_interfaces(
         return true;
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("smbios-discovery"), "Network interfaces SMBIOS discovery error: " << e.what());
+        log_error("smbios-discovery", "Network interfaces SMBIOS discovery error: " << e.what());
         return false;
     }
 }
@@ -461,46 +507,45 @@ bool GenericDiscoverer::discover_network_device_function(agent_framework::model:
         // no iSCSI configuration available
         if (initiators.size() == 0 && targets.size() == 0 && attempts.size() == 0 && versions.size() == 1) {
             NetworkDeviceFunctionBuilder::clear_iscsi_mdr_data(ndf);
-        } else {
+        }
+        else {
 
-            // currently only one initiator, target and attempt structure in MDR is supported
-            if (initiators.size() != 1) {
-                log_error(GET_LOGGER("iscsi-discovery"),
-                    "iSCSI MDR configuration supports exactly one initiator,"
-                        " configured initiators: " << initiators.size());
-                return false;
-            }
-            if (targets.size() != 1) {
-                log_error(GET_LOGGER("iscsi-discovery"),
-                    "iSCSI MDR configuration supports exactly one target,"
-                        " configured targets: " << targets.size());
-                return false;
-
-            }
-            if (attempts.size() != 1) {
-                log_error(GET_LOGGER("iscsi-discovery"),
-                    "iSCSI MDR configuration supports exactly one attempt,"
-                        " configured attempts: " << attempts.size());
+            // currently only the same number of initiator, target and attempt structures in MDR are supported
+            if (initiators.size() != targets.size() || targets.size() != attempts.size()) {
+                log_error("iscsi-discovery",
+                          "iSCSI MDR configuration supports an equal number of initiator, target and attempt structures,"
+                              " configured initiators: " << initiators.size() <<
+                                                         " configured targets: " << targets.size() <<
+                                                         " configured attempts: " << attempts.size());
                 return false;
             }
 
             // attempt handles must match initiator and target handles
-            if ((attempts.front().data.initiator_handle != initiators.front().header.handle)
-                && (attempts.front().data.target_handle != targets.front().header.handle)) {
-                log_error(GET_LOGGER("iscsi-discovery"),
-                    "Initiator, target and attempt handles do not match,"
-                        " attempt: (" << attempts.front().data.initiator_handle << ", "
-                        << attempts.front().data.target_handle << ") initiator, target: ("
-                        << initiators.front().header.handle << ", " << targets.front().header.handle << ")");
-                return false;
+            for (decltype(initiators)::size_type i = 0; i < initiators.size(); i++) {
+                if ((attempts[i].data.initiator_handle != initiators[i].header.handle)
+                    && (attempts[i].data.target_handle != targets[i].header.handle)) {
+                    log_error("iscsi-discovery",
+                              "Initiator, target and attempt handles do not match,"
+                                  " attempt: (" << attempts[i].data.initiator_handle << ", "
+                                                << attempts[i].data.target_handle << ") initiator, target: ("
+                                                << initiators[i].header.handle << ", " << targets[i].header.handle
+                                                << ")");
+                    return false;
+                }
             }
 
             NetworkDeviceFunctionBuilder::update_iscsi_mdr_data(ndf, initiators.front(), targets.front());
+            // special case, where when writing, MAC address was null. Show the same state on REST.
+            if (initiators.size() != 1) {
+                log_debug("iscsi-discovery", "Multiple iSCSI MDR structures available, setting MAC address to null");
+                ndf.set_mac_address({});
+            }
             ndf.set_device_enabled(true);
         }
 
-    } catch (const std::exception& e) {
-        log_error(GET_LOGGER("iscsi-discovery"), "iSCSI discovery error: " << e.what());
+    }
+    catch (const std::exception& e) {
+        log_error("iscsi-discovery", "iSCSI discovery error: " << e.what());
         return false;
     }
 
@@ -536,7 +581,7 @@ bool GenericDiscoverer::discover_trusted_modules(std::vector<agent_framework::mo
 
         trusted_modules.push_back(std::move(trusted_module));
     }
-    log_info(GET_LOGGER("smbios-discovery"), "TPM and Discovery was successful.");
+    log_info("smbios-discovery", "TPM discovery was successful.");
 
     return true;
 }
@@ -546,9 +591,11 @@ bool GenericDiscoverer::discover_user_mode(agent_framework::model::System& /*sys
     return false;
 }
 
+
 bool GenericDiscoverer::set_rackscale_mode(agent_framework::model::System& /*system*/) {
     return false;
 }
+
 
 GenericDiscoverer::Ptr DiscovererFactory::create(std::uint32_t platform_id,
                                                  ipmi::IpmiController& ipmi_controller,
@@ -563,5 +610,6 @@ GenericDiscoverer::Ptr DiscovererFactory::create(std::uint32_t platform_id,
     }
     throw std::runtime_error("Unknown platform type: " + std::to_string(unsigned(platform_id)));
 }
+
 
 DiscovererFactory::~DiscovererFactory() {}

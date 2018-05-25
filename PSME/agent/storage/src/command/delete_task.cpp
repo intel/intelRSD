@@ -2,7 +2,7 @@
  * @brief Registers GetTasksInfo command in storage agent
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ using namespace agent_framework::model;
 namespace {
 
 void delete_task(const DeleteTask::Request& request, DeleteTask::Response&) {
-    log_debug(GET_LOGGER("storage-agent"), "Delete task " << request.get_task());
+    log_debug("storage-agent", "Delete task " << request.get_task());
     auto& task_manager = CommonComponents::get_instance()->get_task_manager();
     task_manager.remove_entry(request.get_task());
 }

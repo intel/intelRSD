@@ -113,7 +113,7 @@
       <ComplexType Name="Links" BaseType="Resource.Links">
         <NavigationProperty Name="OriginOfCondition" Type="Resource.Item" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="This is the URI of the resource that caused the log entry"/>
+          <Annotation Term="OData.Description" String="This is the URI of the resource that caused the log entry."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be an href that references the resource for which the log is associated."/>
           <Annotation Term="OData.AutoExpandReferences"/>

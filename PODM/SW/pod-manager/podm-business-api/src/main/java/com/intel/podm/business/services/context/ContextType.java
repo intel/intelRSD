@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,8 @@ public enum ContextType {
     MANAGER,
     STORAGE_SERVICE,
     COMPOSED_NODE,
-    PHYSICAL_DRIVE(STORAGE_SERVICE),
-    LOGICAL_DRIVE(STORAGE_SERVICE),
-    REMOTE_TARGET(STORAGE_SERVICE),
+    STORAGE_POOL(STORAGE_SERVICE),
+    VOLUME(STORAGE_SERVICE),
 
     CHASSIS,
     THERMAL(CHASSIS),
@@ -61,6 +60,8 @@ public enum ContextType {
     NETWORK_PROTOCOL(MANAGER),
 
     DRIVE(CHASSIS),
+    DRIVE_METRICS(DRIVE),
+    VOLUME_METRICS(VOLUME),
     PCIE_DEVICE(CHASSIS),
     PCIE_DEVICE_FUNCTION(PCIE_DEVICE),
     FABRIC,

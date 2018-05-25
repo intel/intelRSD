@@ -2,7 +2,7 @@
  * @brief Unit tests for generation of UUIDv5
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,12 +24,12 @@
 
 
 #include "certificate_management/certificate_manager.hpp"
+#include "logger/logger.hpp"
 
 #include "gtest/gtest.h"
 
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <logger/logger_factory.hpp>
 
 using namespace agent::rmm;
 
@@ -37,15 +37,10 @@ TEST(CertificateManagerTest, NoDoubleCertificateFilepathSettingTest) {
     CertificateManager certificate_manager{};
 
     const CertificateManager::CertificateType podm_cert_type{CertificateManager::CertificateType::PODM};
-    const CertificateManager::CertificateType rmm_cert_type{CertificateManager::CertificateType::RMM};
     const std::string podm_certificate_file_path{"/etc/psme/certs/podm.crt"};
-    const std::string rmm_certificate_file_path{"/etc/psme/certs/rmm.crt"};
 
     ASSERT_NO_THROW(certificate_manager.set_cert_file_path(podm_cert_type, podm_certificate_file_path));
-    ASSERT_NO_THROW(certificate_manager.set_cert_file_path(rmm_cert_type, rmm_certificate_file_path));
-
     ASSERT_THROW(certificate_manager.set_cert_file_path(podm_cert_type, podm_certificate_file_path), std::logic_error);
-    ASSERT_THROW(certificate_manager.set_cert_file_path(rmm_cert_type, rmm_certificate_file_path), std::logic_error);
 }
 
 namespace {
@@ -53,7 +48,9 @@ namespace {
 class CertificateManagerTester : public CertificateManager {
 public:
     CertificateManagerTester(const std::string& file) {
-        CertificateData& certificate_data = select_certificate_data(CertificateManager::CertificateType::PODM);
+        CertificateDataReference reference = get_certificate(CertificateManager::CertificateType::PODM);
+        CertificateData& certificate_data = *reference;
+
         certificate_data.set_certificate_file_path(file);
         ::unlink(file.c_str());
     }
@@ -61,7 +58,8 @@ public:
     virtual ~CertificateManagerTester() { }
 
     void create_cert_file(size_t size, mode_t mode) {
-        CertificateData& certificate_data = select_certificate_data(CertificateManager::CertificateType::PODM);
+        CertificateDataReference reference = get_certificate(CertificateManager::CertificateType::PODM);
+        CertificateData& certificate_data = *reference;
 
         ::unlink(certificate_data.get_certificate_file_path().c_str());
         int fd = ::open(certificate_data.get_certificate_file_path().c_str(), O_WRONLY | O_CREAT, mode);
@@ -91,12 +89,16 @@ public:
     }
 
     bool check_cert_file_changed() {
-        CertificateData& certificate_data = select_certificate_data(CertificateManager::CertificateType::PODM);
+        CertificateDataReference reference = get_certificate(CertificateManager::CertificateType::PODM);
+        CertificateData& certificate_data = *reference;
+
         return read_cert_file_and_update(certificate_data);
     }
 
     size_t get_cert_size() const {
-        CertificateData& certificate_data = select_certificate_data(CertificateManager::CertificateType::PODM);
+        CertificateDataReference reference = get_certificate(CertificateManager::CertificateType::PODM);
+        CertificateData& certificate_data = *reference;
+
         return certificate_data.get_certificate_data().size();
     }
 

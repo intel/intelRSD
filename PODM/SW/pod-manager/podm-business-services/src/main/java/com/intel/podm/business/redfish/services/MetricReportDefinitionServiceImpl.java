@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,18 @@ import com.intel.podm.business.entities.dao.MetricReportDefinitionDao;
 import com.intel.podm.business.entities.redfish.MetricReportDefinition;
 import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.context.ContextType;
 import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.METRICS_REPORT_DEFINITION;
+import static com.intel.podm.business.services.context.Context.contextOf;
+import static com.intel.podm.business.services.context.ContextType.TELEMETRY_SERVICE;
+import static com.intel.podm.common.types.Id.id;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -44,7 +49,10 @@ public class MetricReportDefinitionServiceImpl implements ReaderService<MetricRe
     @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context context) throws ContextResolvingException {
-        return new CollectionDto(METRICS_REPORT_DEFINITION, metricReportDefinitionDao.getAllMetricReportDefinitionIds());
+        List<Context> contexts = metricReportDefinitionDao.getAllMetricReportDefinitionIds().stream()
+            .map(id -> contextOf(id(""), TELEMETRY_SERVICE).child(id, ContextType.METRIC_REPORT_DEFINITION))
+            .sorted().collect(toList());
+        return new CollectionDto(CollectionDto.Type.METRIC_REPORT_DEFINITION, contexts);
     }
 
     @Transactional(REQUIRED)

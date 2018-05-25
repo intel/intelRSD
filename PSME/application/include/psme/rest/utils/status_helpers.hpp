@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +82,7 @@ public:
      *
      * @param[in] resource Resource object (one of descendants of nodes passed to get() method)
      * @param[in] component Component type of Resource
-     * @return returns false if execution of visitor shuld be stopped
+     * @return returns false if execution of visitor should be stopped
      */
     bool visit(const agent_framework::model::Resource& resource, const Component component) override {
         if (Component::None == component_filter || component == component_filter) {

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,6 +55,8 @@ public:
     static constexpr const char GET_TASK_RESULT_INFO[] = "getTaskResultInfo";
 
     static constexpr const char DELETE_TASK[] = "deleteTask";
+    static constexpr const char ADD_ENDPOINT[] = "addEndpoint";
+    static constexpr const char DELETE_ENDPOINT[] = "deleteEndpoint";
 
     // compute commands
     static constexpr const char GET_MEMORY_INFO[] = "getMemoryInfo";
@@ -77,13 +79,10 @@ public:
 
     // storage commands
     static constexpr const char GET_STORAGE_SERVICE_INFO[] = "getStorageServiceInfo";
-    static constexpr const char GET_PHYSICAL_DRIVE_INFO[] = "getPhysicalDriveInfo";
-    static constexpr const char GET_LOGICAL_DRIVE_INFO[] = "getLogicalDriveInfo";
-    static constexpr const char ADD_LOGICAL_DRIVE[] = "addLogicalDrive";
-    static constexpr const char DELETE_LOGICAL_DRIVE[] = "deleteLogicalDrive";
-    static constexpr const char GET_ISCSI_TARGET_INFO[] = "getiSCSITargetInfo";
-    static constexpr const char ADD_ISCSI_TARGET[] = "addiSCSITarget";
-    static constexpr const char DELETE_ISCSI_TARGET[] = "deleteiSCSITarget";
+    static constexpr const char GET_STORAGE_POOL_INFO[] = "getStoragePoolInfo";
+    static constexpr const char GET_VOLUME_INFO[] = "getVolumeInfo";
+    static constexpr const char ADD_VOLUME[] = "addVolume";
+    static constexpr const char DELETE_VOLUME[] = "deleteVolume";
 
     // network commands
     static constexpr const char GET_ETHERNET_SWITCH_INFO[] = "getEthernetSwitchInfo";
@@ -116,8 +115,8 @@ public:
     static constexpr const char GET_ENDPOINT_INFO[] = "getEndpointInfo";
     static constexpr const char ADD_ZONE[] = "addZone";
     static constexpr const char DELETE_ZONE[] = "deleteZone";
-    static constexpr const char ADD_ZONE_ENDPOINT[] = "addZoneEndpoint";
-    static constexpr const char DELETE_ZONE_ENDPOINT[] = "deleteZoneEndpoint";
+    static constexpr const char ADD_ZONE_ENDPOINTS[] = "addZoneEndpoints";
+    static constexpr const char DELETE_ZONE_ENDPOINTS[] = "deleteZoneEndpoints";
     static constexpr const char ERASE_DRIVE_SECURELY[] = "eraseDriveSecurely";
 };
 

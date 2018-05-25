@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetMetricDefinitionsCollection,
     [] (const GetMetricDefinitionsCollection::Request&, GetMetricDefinitionsCollection::Response& rsp) {
-        log_debug(GET_LOGGER("compute-agent"), "Getting collection of metric definitions");
+        log_debug("compute-agent", "Getting collection of metric definitions");
         auto keys = get_manager<agent_framework::model::MetricDefinition>().get_keys();
         for (const auto& key : keys) {
             rsp.add_entry(agent_framework::model::attribute::MetricDefinitionEntry{key});

@@ -3,7 +3,7 @@
  *
  * All logger settings container
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,15 @@
 namespace logger_cpp {
 
 /*
- * level = LOG_DEBUG,
+ * level = LOG_INFO,
  * time_format = LOG_TIME_DATE_NS,
  * color = false,
  * tagging = true,
  * more_debug = true,
  * output_enable = true
- * This default options store in int value give number 0x3a7
+ * This default options store in int value give number 0x3a6
  * */
-static constexpr unsigned int OPTION_DEFAULT = 0x3a7;
+static constexpr unsigned int OPTION_DEFAULT = 0x3a6;
 
 
 Options::Options() :

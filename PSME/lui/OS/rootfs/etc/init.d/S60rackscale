@@ -1,7 +1,6 @@
 #! /bin/sh
 case "$1" in
 	start|"")
-		. /usr/bin/psme-gen-serv-cert.sh --srv-cert=/etc/psme/certs/server.crt --srv-key=/etc/psme/certs/server.key
 		echo "Waiting additional 10s for all devices to initialize..."
 		sleep 10
 		export PYTHONPATH="/opt/intel/rackscale/"

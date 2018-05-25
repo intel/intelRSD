@@ -2,7 +2,7 @@
  * @brief Network device function builder class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@
 #include "iscsi/structs/iscsi_mdr_target.hpp"
 #include "mdr/printers.hpp"
 
+
+
 using namespace agent_framework::model;
 
 namespace agent {
@@ -38,9 +40,10 @@ agent_framework::model::NetworkDeviceFunction NetworkDeviceFunctionBuilder::buil
     return ndf;
 }
 
+
 void NetworkDeviceFunctionBuilder::update_iscsi_mdr_data(agent_framework::model::NetworkDeviceFunction& ndf,
-                                          const mdr::StructEnhanced<iscsi::structs::ISCSI_MDR_INITIATOR>& initiator,
-                                          const mdr::StructEnhanced<iscsi::structs::ISCSI_MDR_TARGET>& target) {
+                                                         const mdr::StructEnhanced<iscsi::structs::ISCSI_MDR_INITIATOR>& initiator,
+                                                         const mdr::StructEnhanced<iscsi::structs::ISCSI_MDR_TARGET>& target) {
     attribute::IscsiBoot boot;
     ndf.set_mac_address(mdr::print_mac(initiator.data.nic_mac_address));
     boot.set_authentication_method(
@@ -63,7 +66,9 @@ void NetworkDeviceFunctionBuilder::update_iscsi_mdr_data(agent_framework::model:
     boot.set_primary_target_name(target.get_string(target.data.target_name));
     boot.set_primary_target_port(target.data.target_port);
     boot.set_primary_vlan_enable(static_cast<bool>(target.data.vlan_enabled));
-    boot.set_primary_vlan_id(target.data.vlan_id);
+    if (target.data.vlan_id >= 1 && target.data.vlan_id <= 4094) {
+        boot.set_primary_vlan_id(target.data.vlan_id);
+    }
     boot.set_router_advertisement_enabled(static_cast<bool>(target.data.router_advertisement));
     boot.set_secondary_dns(mdr::print_ip(initiator.data.initiator_secondary_dns));
     boot.set_target_info_via_dhcp(static_cast<bool>(target.data.target_dhcp_enabled));
@@ -71,6 +76,7 @@ void NetworkDeviceFunctionBuilder::update_iscsi_mdr_data(agent_framework::model:
 
     ndf.set_iscsi_boot(boot);
 }
+
 
 void NetworkDeviceFunctionBuilder::clear_iscsi_mdr_data(agent_framework::model::NetworkDeviceFunction& ndf) {
     using namespace agent_framework::model;

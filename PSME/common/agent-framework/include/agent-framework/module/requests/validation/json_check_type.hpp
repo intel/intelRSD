@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -95,6 +95,45 @@ void check_nullable_string(const json::Json& value,
 
 
 /*!
+ * @brief Check if JSON value is string type and has no whitespace characters
+ *
+ * @param[in] value JSON value to check
+ * @param[in] parameter_name Name of JSON field
+ * @param[in] logger_name Logger name
+ *
+ * @throw agent_framework::exceptions::InvalidField
+ * when value is another type
+ * */
+void check_string_no_whitespace(const json::Json& value,
+                                const std::string& parameter_name,
+                                const char* logger_name);
+
+
+/*!
+ * @brief Check if JSON value is null or string type and has no whitespace characters
+ *
+ * @param[in] value JSON value to check
+ * @param[in] parameter_name Name of JSON field
+ * @param[in] logger_name Logger name
+ *
+ * @throw agent_framework::exceptions::InvalidField
+ * when value is another type
+ * */
+void check_nullable_string_no_whitespace(const json::Json& value,
+                                         const std::string& parameter_name,
+                                         const char* logger_name);
+
+
+/*!
+* @brief Check if string has no whitespace characters
+*
+* @param[in] name string value to check
+* @return bool false if string has whitespace characters
+* */
+bool validate_iscsi_name(const std::string name);
+
+
+/*!
  * @brief Check if JSON value could be converted from string to enum
  *
  * @tparam E JSON value will be converted to this type. Type has to
@@ -119,7 +158,7 @@ void check_enum(const json::Json& value,
         E::from_string(value.get<std::string>());
     }
     catch (...) {
-        log_error(GET_LOGGER(logger_name),
+        log_error(logger_name,
                   "Invalid value for " << parameter_name << " attribute: '" << value.dump() << "'.");
         throw agent_framework::exceptions::InvalidValue("Invalid attribute value: '" + value.dump() + "'.");
     }
@@ -152,7 +191,7 @@ void check_nullable_enum(const json::Json& value,
             E::from_string(value.get<std::string>());
         }
         catch (...) {
-            log_error(GET_LOGGER(logger_name),
+            log_error(logger_name,
                       "Invalid value for " << parameter_name << " attribute: '" << value.dump() << "'.");
             throw agent_framework::exceptions::InvalidValue("Invalid attribute value: '" + value.dump() + "'.");
         }

@@ -113,10 +113,10 @@
       </ComplexType>
       <EnumType Name="DeviceType">
         <Member Name="SingleFunction">
-          <Annotation Term="OData.Description" String="A single-function PCIe device"/>
+          <Annotation Term="OData.Description" String="A single-function PCIe device."/>
         </Member>
         <Member Name="MultiFunction">
-          <Annotation Term="OData.Description" String="A multi-function PCIe device"/>
+          <Annotation Term="OData.Description" String="A multi-function PCIe device."/>
         </Member>
         <Member Name="Simulated">
           <Annotation Term="OData.Description"

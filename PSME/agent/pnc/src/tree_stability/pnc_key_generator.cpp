@@ -2,7 +2,7 @@
  * @brief Provides class for stabilizing compute agent resource tree
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,8 @@
 #include "tree_stability/pnc_key_generator.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
 #include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/model/model_pnc.hpp"
+#include "agent-framework/module/model/model_common.hpp"
 
 
 

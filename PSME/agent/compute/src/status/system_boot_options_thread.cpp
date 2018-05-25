@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -102,9 +102,9 @@ BootOptions read_boot_options(ipmi::IpmiController& ipmi) {
 
 void update_system(BootOptions& boot_options, System& system) {
 
-    agent_framework::model::enums::BootOverride last_boot_override = system.get_boot_override();
-    agent_framework::model::enums::BootOverrideTarget last_boot_target = system.get_boot_override_target();
-    agent_framework::model::enums::BootOverrideMode last_boot_mode = system.get_boot_override_mode();
+    auto last_boot_override = system.get_boot_override();
+    auto last_boot_target = system.get_boot_override_target();
+    auto last_boot_mode = system.get_boot_override_mode();
 
 
     bool iscsi_enabled = agent::compute::get_iscsi_enabled(system);
@@ -114,24 +114,24 @@ void update_system(BootOptions& boot_options, System& system) {
     }
 
     if (last_boot_override != boot_options.BootOverride) {
-        log_info(GET_LOGGER("agent"), "Boot Override for system " <<
+        log_info("agent", "Boot Override for system " <<
                                                                    system.get_uuid() << " changed from "
-                                                                   << last_boot_override.to_string() <<
+                                                                   << last_boot_override <<
                                                                    " to " << boot_options.BootOverride.to_string());
     }
 
     if (last_boot_target != boot_options.BootOverrideTarget) {
-        log_info(GET_LOGGER("agent"), "Boot Override Target for system " <<
+        log_info("agent", "Boot Override Target for system " <<
                                                                           system.get_uuid() << " changed from "
-                                                                          << last_boot_target.to_string() <<
+                                                                          << last_boot_target <<
                                                                           " to "
                                                                           << boot_options.BootOverrideTarget.to_string());
     }
 
     if (last_boot_mode != boot_options.BootMode) {
-        log_info(GET_LOGGER("agent"), "Boot Mode for system " <<
+        log_info("agent", "Boot Mode for system " <<
                                                                system.get_uuid() << " changed from "
-                                                               << last_boot_mode.to_string() <<
+                                                               << last_boot_mode <<
                                                                " to " << boot_options.BootMode.to_string());
     }
 
@@ -148,7 +148,7 @@ void update_system(BootOptions& boot_options, System& system) {
 
 void agent::compute::status::update_system_boot_options(Bmc& bmc) {
     using agent_framework::module::get_manager;
-    log_debug(GET_LOGGER("bmc"), bmc.get_id() << " reading system boot options");
+    log_debug("bmc", bmc.get_id() << " reading system boot options");
     if (Bmc::State::ONLINE == bmc.get_state()) {
         try {
             auto boot_options = read_boot_options(bmc.ipmi());
@@ -159,7 +159,7 @@ void agent::compute::status::update_system_boot_options(Bmc& bmc) {
             }
         }
         catch (const ipmi::ResponseError& e) {
-            log_warning(GET_LOGGER("bmc"), bmc.get_id() << "boot options read failed: " << e.what());
+            log_warning("bmc", bmc.get_id() << "boot options read failed: " << e.what());
         }
     }
 }

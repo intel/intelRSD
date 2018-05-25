@@ -5,7 +5,7 @@
  * It discuss with ipmitool library by the means of its structs.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,31 @@ void LanIpmiInterface::send(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterfac
 
     /* update last sent message time, to check if valid */
     last_sent = get_millis();
+}
+
+void LanIpmiInterface::send_unlocked(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterface::Cmd command,
+                                     ipmi::IpmiInterface::Lun lun, const ipmi::BridgeInfo& bridge,
+                                     const ipmi::IpmiInterface::ByteBuffer& request,
+                                     ipmi::IpmiInterface::ByteBuffer& response) {
+
+    intf->send_unlocked(netfn, command, lun, bridge, request, response, !is_valid());
+
+    /* update last sent message time, to check if valid */
+    last_sent = get_millis();
+}
+
+/*!
+ * @brief Locks the IPMI interface instance.
+ */
+void LanIpmiInterface::lock() {
+    intf->lock();
+}
+
+/*!
+ * @brief Unlocks the IPMI interface instance.
+ */
+void LanIpmiInterface::unlock() {
+    intf->unlock();
 }
 
 /*!

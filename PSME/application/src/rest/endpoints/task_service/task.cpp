@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,11 +40,11 @@ json::Value make_prototype() {
     r[constants::Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Task.Task";
     r[constants::Common::ODATA_ID] = json::Value::Type::NIL;
     r[constants::Common::ODATA_TYPE] = "#Task.v1_0_0.Task";
+    r[constants::Common::ID] = json::Value::Type::NIL;
     r[constants::Common::NAME] = "Task";
     r[constants::Common::DESCRIPTION] = "Task description";
 
     r[constants::Task::TASK_STATE] = json::Value::Type::NIL;
-    r[constants::Task::START_TIME] = json::Value::Type::NIL;
     r[constants::Task::TASK_STATUS] = json::Value::Type::NIL;
     r[constants::Task::MESSAGES] = json::Value::Type::ARRAY;
 
@@ -81,11 +81,15 @@ void endpoint::Task::get(const server::Request& request, server::Response& respo
     r[constants::Common::ODATA_ID] = PathBuilder(request).build();
     r[constants::Common::ID] = request.params[constants::PathParam::TASK_ID];
     r[constants::Task::TASK_STATE] = s.get_state();
-    r[constants::Task::START_TIME] = s.get_start_time();
-    // According to redfish metadata this field should not be shown if no value is held in it
+
+    // According to redfish metadata these fields should not be shown if no value is held in them
     if (s.get_end_time().has_value()) {
         r[constants::Task::END_TIME] = s.get_end_time();
     }
+    if (s.get_start_time().has_value()) {
+        r[constants::Task::START_TIME] = s.get_start_time();
+    }
+
     // in metadata, TaskStatus has values from Health enum
     r[constants::Task::TASK_STATUS] = s.get_status().get_health();
 

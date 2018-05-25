@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,12 @@ import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
 import com.intel.podm.business.entities.resolvers.MultiSourceEntityResolver;
 import com.intel.podm.business.entities.resolvers.MultiSourceEntityResolverProvider;
 import com.intel.podm.business.entities.types.EntityAdded;
+import com.intel.podm.common.logger.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -48,11 +50,19 @@ public class EventableEntityEventSourceContextInitializer {
     @Inject
     private MultiSourceEntityResolverProvider multiSourceEntityResolverProvider;
 
+    @Inject
+    private Logger logger;
+
     public void onEntityAdded(@EntityAdded @Observes(during = BEFORE_COMPLETION) Entity entity) {
         if (!eventSuppressions.isSuppressed(entity)) {
             fillMultiSourceDiscriminatorIfMultiSourceResource(entity);
-            entityToUriConverter.entityToUri(eventOriginInfoProvider.findEventOrigin(entity))
-                .ifPresent(entity::setEventSourceContext);
+            final Entity eventOriginEntity = eventOriginInfoProvider.findEventOrigin(entity);
+            final Optional<URI> uriOptional = entityToUriConverter.entityToUri(eventOriginEntity);
+            if (uriOptional.isPresent()) {
+                entity.setEventSourceContext(uriOptional.get());
+            } else {
+                throw new IllegalStateException("Every entity should have its own EventOrigin");
+            }
         }
     }
 

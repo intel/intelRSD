@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.client.WebClient;
 import com.intel.podm.client.WebClientBuilder;
 import com.intel.podm.client.WebClientRequestException;
-import com.intel.podm.client.actions.PcieZoneAttachDetachEndpointRequest;
+import com.intel.podm.client.actions.ZoneActionJson;
 import com.intel.podm.common.logger.Logger;
 
 import javax.enterprise.context.Dependent;
@@ -86,7 +86,7 @@ public class PcieZoneActionsInvoker {
 
     private void updateZone(ExternalService service, Zone zone) throws EntityOperationException {
         try (WebClient webClient = webClientBuilder.newInstance(service.getBaseUri()).retryable().build()) {
-            webClient.patch(zone.getSourceUri(), new PcieZoneAttachDetachEndpointRequest(zone.getEndpoints().stream()
+            webClient.patch(zone.getSourceUri(), new ZoneActionJson(zone.getEndpoints().stream()
                 .map(DiscoverableEntity::getSourceUri)
                 .collect(toSet())));
         } catch (WebClientRequestException e) {

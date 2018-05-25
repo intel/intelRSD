@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,20 +25,16 @@ import com.intel.podm.common.types.Status;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "metricDefinitions", "metricReportDefinitions", "triggers", "oem"})
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "metricDefinitions", "metricReportDefinitions", "oem"
+})
 public final class TelemetryServiceDto extends RedfishDto {
     @JsonInclude(NON_NULL)
     private Status status;
-
     private SingletonContext metricDefinitions;
-
     private SingletonContext metricReportDefinitions;
-
     // TODO: RSASW-6796
     @JsonIgnore
     private SingletonContext triggers;
-
-    private DefaultTopLevelOemDto oem;
 
     public TelemetryServiceDto() {
         super("#TelemetryService.v1_0_0.TelemetryService");

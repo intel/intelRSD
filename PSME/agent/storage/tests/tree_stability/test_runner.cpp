@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
- * @brief Main entry for all AGENT_FRAMEWORK Agent Framework tests
+ * @brief Main entry for all Storage Tree stability tests
  *
  * Initialize Google C++ Mock and Google C++ Testing Framework
  * Do general cleanup after tests like delete resources from singletons

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package com.intel.podm.business.entities.redfish.embeddables;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import java.util.Objects;
 
 @Embeddable
 public class MemoryLocation {
@@ -67,23 +69,32 @@ public class MemoryLocation {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         MemoryLocation that = (MemoryLocation) o;
-        return Objects.equals(socket, that.socket)
-                && Objects.equals(memoryController, that.memoryController)
-                && Objects.equals(channel, that.channel)
-                && Objects.equals(slot, that.slot);
+
+        return new EqualsBuilder()
+            .append(socket, that.socket)
+            .append(memoryController, that.memoryController)
+            .append(channel, that.channel)
+            .append(slot, that.slot)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(socket, memoryController, channel, slot);
+        return new HashCodeBuilder()
+            .append(socket)
+            .append(memoryController)
+            .append(channel)
+            .append(slot)
+            .toHashCode();
     }
 }

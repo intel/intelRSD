@@ -2,7 +2,7 @@
  * @brief Base class of SEL record (event)
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -305,6 +305,7 @@ bool ipmi::SelRecordGeneric::is_of_type(ipmi::SelRecordSensor::EventSensorType s
 
     return true;
 }
+
 
 
 std::string ipmi::SelRecordDiscrete::get_info() const {

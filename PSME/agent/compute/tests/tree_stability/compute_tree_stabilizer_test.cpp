@@ -2,7 +2,7 @@
  * @brief Unit tests for generation of UUIDv5
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -179,8 +179,8 @@ TEST_F(ComputeTreeStabilizerTest, NoNewOrDeletedResourcesTest) {
 
 TEST_F(ComputeTreeStabilizerTest, PersistentUUIDsGeneratedTest) {
 
-    log_debug(GET_LOGGER("default"), get_manager<agent_framework::model::NetworkDevice>().get_keys().front());
-    log_debug(GET_LOGGER("default"), get_manager<agent_framework::model::NetworkDeviceFunction>().get_keys().front());
+    log_debug("default", get_manager<agent_framework::model::NetworkDevice>().get_keys().front());
+    log_debug("default", get_manager<agent_framework::model::NetworkDeviceFunction>().get_keys().front());
 
     // Assert that all resources now have persistent UUIDs
     ASSERT_NO_THROW(get_manager<agent_framework::model::Manager>().get_entry(constants::MANAGER_PERSISTENT_UUID));

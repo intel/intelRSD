@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@ public class RequestedSecurityImpl implements RequestedNode.Security {
     @JsonProperty
     private Boolean txtEnabled;
 
+    @JsonProperty("ClearTPMOnDelete")
+    private Boolean clearTpmOnDelete;
+
     @Override
     public Boolean getTpmPresent() {
         if (tpmInterfaceType != null && tpmPresent == null) {
@@ -46,5 +49,10 @@ public class RequestedSecurityImpl implements RequestedNode.Security {
     @Override
     public Boolean getTxtEnabled() {
         return txtEnabled;
+    }
+
+    @Override
+    public Boolean getClearTpmOnDelete() {
+        return clearTpmOnDelete;
     }
 }

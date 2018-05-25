@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.ReferenceableMember;
@@ -41,8 +40,7 @@ import static com.intel.podm.common.utils.Collections.firstByPredicate;
 @OdataTypes({
     "#Power" + VERSION_PATTERN + "Power"
 })
-@SuppressWarnings({"checkstyle:MethodCount"})
-public class PowerResource extends ExternalServiceResourceImpl implements ExternalServiceResource {
+public class PowerResource extends ExternalServiceResourceImpl {
     @JsonProperty("PowerControl")
     List<PowerControlItem> powerControls = new ArrayList<>();
 
@@ -114,7 +112,6 @@ public class PowerResource extends ExternalServiceResourceImpl implements Extern
         @JsonProperty("Intel_RackScale")
         private final RackScaleOem rackScaleOem = new RackScaleOem();
 
-        @JsonPropertyOrder({"oDataType", "inputAcPowerWatts"})
         public class RackScaleOem {
             @JsonProperty("@odata.type")
             private final String oDataType = "#Intel.Oem.Power";

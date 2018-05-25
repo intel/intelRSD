@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.services.context.Context;
@@ -32,23 +33,26 @@ import com.intel.podm.common.types.redfish.OemType;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.intel.podm.business.services.redfish.odataid.ODataIdFromSingletonContextHelper.asOdataId;
-import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "indicatorLed", "model", "status",
-    "capacityBytes", "protocol", "mediaType", "manufacturer", "serialNumber", "partNumber", "sku", "statusIndicator",
-    "revision", "failurePredicted", "assetTag", "capableSpeedGbs", "negotiatedSpeedGbs", "location", "identifiers",
-    "hotspareType", "encryptionAbility", "encryptionStatus", "rotationSpeedRpm", "blockSizeBytes", "predictedMediaLifeLeftPercent",
-    "links", "actions", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "indicatorLed", "model", "status", "capacityBytes", "protocol", "mediaType",
+    "manufacturer", "serialNumber", "partNumber", "sku", "statusIndicator", "revision", "failurePredicted", "assetTag", "capableSpeedGbs",
+    "negotiatedSpeedGbs", "location", "identifiers", "hotspareType", "encryptionAbility", "encryptionStatus", "rotationSpeedRpm", "blockSizeBytes",
+    "predictedMediaLifeLeftPercent", "links", "actions", "oem"
 })
-@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ExecutableStatementCount", "checkstyle:ClassFanOutComplexity", "checkstyle:MethodLength"})
+@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
 public final class DriveDto extends RedfishDto {
+    private final Links links = new Links();
+    private final Actions actions = new Actions();
+    private final Oem oem = new Oem();
     @JsonProperty("IndicatorLED")
     private IndicatorLed indicatorLed;
     private String model;
@@ -76,12 +80,9 @@ public final class DriveDto extends RedfishDto {
     private BigDecimal rotationSpeedRpm;
     private Integer blockSizeBytes;
     private BigDecimal predictedMediaLifeLeftPercent;
-    private Links links = new Links();
-    private Actions actions = new Actions();
-    private Oem oem = new Oem();
 
     public DriveDto() {
-        super("#Drive.v1_1_1.Drive");
+        super("#Drive.v1_2_0.Drive");
     }
 
     public IndicatorLed getIndicatorLed() {
@@ -280,36 +281,21 @@ public final class DriveDto extends RedfishDto {
         return links;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
-    }
-
     public Actions getActions() {
         return actions;
-    }
-
-    public void setActions(Actions actions) {
-        this.actions = actions;
     }
 
     public Oem getOem() {
         return oem;
     }
 
-    public void setOem(Oem oem) {
-        this.oem = oem;
-    }
-
-    @JsonPropertyOrder({"@odata.type", "volumes", "endpoints", "oem"})
+    @JsonPropertyOrder({"@odata.type", "volumes", "endpoints", "chassis", "oem"})
     public class Links extends RedfishLinksDto {
         @JsonProperty("@odata.type")
-        private final String oDataType = "#Drive.v1_1_0.Links";
-        @JsonProperty("Volumes")
+        private final String oDataType = "#Drive.v1_2_0.Links";
         private Set<Context> volumes = new LinkedHashSet<>();
-        @JsonProperty("Endpoints")
         private Set<Context> endpoints = new LinkedHashSet<>();
-        @JsonProperty("Oem")
-        private Oem oem = new Oem();
+        private Context chassis;
 
         public Set<Context> getVolumes() {
             return volumes;
@@ -327,18 +313,12 @@ public final class DriveDto extends RedfishDto {
             this.endpoints = endpoints;
         }
 
-        public Oem getOem() {
-            return oem;
+        public Context getChassis() {
+            return chassis;
         }
 
-        public void setOem(Oem oem) {
-            this.oem = oem;
-        }
-
-        @OemType(OEM_IN_LINKS)
-        public class Oem extends RedfishOemDto {
-            public Oem() {
-            }
+        public void setChassis(Context chassis) {
+            this.chassis = chassis;
         }
     }
 
@@ -375,7 +355,7 @@ public final class DriveDto extends RedfishDto {
             return rackScaleOem;
         }
 
-        @JsonPropertyOrder({"oDataType", "eraseOnDetach", "firmwareVersion", "driveErased", "pcieFunction", "storage"})
+        @JsonPropertyOrder({"@odata.type", "eraseOnDetach", "firmwareVersion", "driveErased", "pcieFunction", "storage", "usedBy", "metrics"})
         public class RackScaleOem {
             @JsonProperty("@odata.type")
             private final String oDataType = "#Intel.Oem.Drive";
@@ -384,8 +364,10 @@ public final class DriveDto extends RedfishDto {
             private Boolean driveErased;
             @JsonProperty("PCIeFunction")
             private Context pcieFunction;
-            @JsonProperty("Storage")
             private Context storage;
+            private Set<Context> usedBy = new HashSet<>();
+            @JsonInclude(NON_NULL)
+            private SingletonContext metrics;
 
             public String getoDataType() {
                 return oDataType;
@@ -429,6 +411,22 @@ public final class DriveDto extends RedfishDto {
 
             public void setStorage(Context storage) {
                 this.storage = storage;
+            }
+
+            public Set<Context> getUsedBy() {
+                return usedBy;
+            }
+
+            public void setUsedBy(Set<Context> usedBy) {
+                this.usedBy = usedBy;
+            }
+
+            public SingletonContext getMetrics() {
+                return metrics;
+            }
+
+            public void setMetrics(SingletonContext metrics) {
+                this.metrics = metrics;
             }
         }
     }

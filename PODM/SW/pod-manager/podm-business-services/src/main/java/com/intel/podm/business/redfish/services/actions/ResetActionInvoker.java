@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ public class ResetActionInvoker {
 
         try (WebClient webClient = webClientBuilder.newInstance(service.getBaseUri()).retryable().build()) {
             URI resourceResetUri = getResettableEntityUriForResetAction(resettableEntity);
+            logger.i("Invoking reset action ({}) on resource [ service: {}, path: {} ]", resetType, service.getBaseUri(), resettableEntity.getSourceUri());
             webClient.post(resourceResetUri, new ResetRequest(resetType));
         } catch (WebClientRequestException e) {
             String errorMessage = format("Resource %s reset action (%s) failed", resettableEntity.getId(), resetType);

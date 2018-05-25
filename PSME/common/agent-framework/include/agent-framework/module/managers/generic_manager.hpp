@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,14 @@
  * */
 
 #pragma once
+
 #include "table_interface.hpp"
 #include "agent-framework/exceptions/exception.hpp"
 #include "agent-framework/generic/obj_reference.hpp"
 #include "agent-framework/module/managers/generic_manager_registry.hpp"
 #include "agent-framework/module/model/task.hpp"
+#include "agent-framework/module/utils/utils.hpp"
+
 #include <vector>
 #include <mutex>
 #include <algorithm>
@@ -49,7 +52,7 @@ public:
     using ManagerDataVec = std::vector<T>;
     using KeysVec = std::vector<std::string>;
     using IdsVec = std::vector<std::uint64_t>;
-    using Reference = agent_framework::generic::ObjReference<T, std::recursive_mutex>;
+    using Reference = generic::ObjReference<T, std::recursive_mutex>;
     using ReferenceVec = std::vector<Reference>;
     using Filter = std::function<bool(const T&)>;
 
@@ -69,9 +72,8 @@ public:
         std::lock_guard<std::recursive_mutex> lock{m_mutex};
         const auto it = find_entry(entry.get_uuid());
         if (m_manager_data.end() != it) {
-            THROW(::agent_framework::exceptions::InvalidUuid, "model",
-                    "Object with this UUID already exists. UUID = '"
-                    + entry.get_uuid() + "'.");
+            THROW(exceptions::InvalidUuid, "model",
+                  "Object with this UUID already exists. UUID = '" + entry.get_uuid() + "'.");
         }
         entry.touch(++m_current_epoch);
         m_manager_data.push_back(std::move(entry));
@@ -87,12 +89,12 @@ public:
         auto it = find_entry(entry.get_uuid());
         if (m_manager_data.end() != it) {
             if (it->get_parent_uuid() != entry.get_parent_uuid()) {
-                THROW(::agent_framework::exceptions::InvalidUuid, "model",
+                THROW(exceptions::InvalidUuid, "model",
                       "Parent UUID cannot be updated. Entry = '" + entry.get_uuid() + "', parent changed from "
                       + it->get_parent_uuid() + " to " + entry.get_parent_uuid());
             }
-            const auto& db_hash = it->get_resource_hash();
-            const auto& entry_hash = entry.get_resource_hash();
+            const auto& db_hash = model::utils::Hash::from_resource(*it);
+            const auto& entry_hash = model::utils::Hash::from_resource(entry);
 
             if (db_hash.status != entry_hash.status) {
                 res = UpdateStatus::StatusChanged;
@@ -116,7 +118,7 @@ public:
         if (m_manager_data.end() != it) {
             return *it;
         }
-        THROW(::agent_framework::exceptions::InvalidUuid, "model",
+        THROW(exceptions::InvalidUuid, "model",
               std::string(T::get_collection_name().to_string()) + " [UUID = '" + uuid + "'] not found.");
     }
 
@@ -149,9 +151,8 @@ public:
         if (m_manager_data.end() != it) {
             return Reference(*it, m_mutex);
         }
-        THROW(::agent_framework::exceptions::InvalidUuid, "model",
-              std::string(T::get_collection_name().to_string()) +
-                      " [UUID = '" + uuid + "'] not found.");
+        THROW(exceptions::InvalidUuid, "model",
+              std::string(T::get_collection_name().to_string()) + " [UUID = '" + uuid + "'] not found.");
     }
 
     using Hook = std::function<void(const T&)>;
@@ -168,8 +169,7 @@ public:
         std::lock_guard<std::recursive_mutex> lock{m_mutex};
         auto n = remove_if([&uuid](const T& entry) { return entry.get_parent_uuid() == uuid; });
         if (n != 0) {
-            log_info(GET_LOGGER("model"), "Removed " << n << " " << T::get_collection_name().to_string()
-                    << ", parent " << uuid);
+            log_info("model", "Removed " << n << " " << T::get_collection_name().to_string() << ", parent " << uuid);
         }
     }
 
@@ -304,8 +304,7 @@ public:
         std::lock_guard<std::recursive_mutex> lock{m_mutex};
         auto n = remove_if([&gami_id](const T& entry) { return entry.get_agent_id() == gami_id; });
         if (n != 0) {
-            log_info(GET_LOGGER("model"), "Removed " << n << " " << T::get_collection_name().to_string()
-                    << ", agent " << gami_id);
+            log_info("model", "Removed " << n << " " << T::get_collection_name().to_string() << ", agent " << gami_id);
         }
     }
 
@@ -352,8 +351,8 @@ private:
         const auto& message = std::string("Could not find ") +
                 T::get_collection_name().to_string() + " with id: " + std::to_string(id) + ".";
 
-        log_warning(GET_LOGGER("model"), message);
-        throw agent_framework::exceptions::NotFound(message);
+        log_warning("model", message);
+        throw exceptions::NotFound(message);
     }
 
     /*!
@@ -374,8 +373,8 @@ private:
 
         const auto& message = std::string("Could not find ") +
                 T::get_collection_name().to_string() + " with id: " + std::to_string(id) + ".";
-        log_warning(GET_LOGGER("model"), message + " Parent UUID = " + parent_uuid + ".");
-        throw agent_framework::exceptions::NotFound(message);
+        log_warning("model", message + " Parent UUID = " + parent_uuid + ".");
+        throw exceptions::NotFound(message);
 
     }
 
@@ -391,7 +390,7 @@ private:
             }
         }
 
-        THROW(::agent_framework::exceptions::InvalidUuid, "model",
+        THROW(exceptions::InvalidUuid, "model",
             "Entry not found in the manager for UUID = " + uuid + ".");
     }
 
@@ -418,22 +417,21 @@ GenericManager<T>::~GenericManager() {}
 
 template<>
 template<typename U>
-GenericManager<agent_framework::model::Task>::UpdateStatus
-GenericManager<agent_framework::model::Task>::add_or_update_entry(U&& entry_r) {
-    agent_framework::model::Task entry = std::forward<U>(entry_r);
+GenericManager<model::Task>::UpdateStatus GenericManager<model::Task>::add_or_update_entry(U&& entry_r) {
+    model::Task entry = std::forward<U>(entry_r);
     UpdateStatus res = UpdateStatus::NoUpdate;
     std::lock_guard<std::recursive_mutex> lock{m_mutex};
     entry.touch(++m_current_epoch);
 
     auto it = find_entry(entry.get_uuid());
     if (m_manager_data.end() != it) {
-        if (it->get_parent_uuid() != entry_r.get_parent_uuid()) {
-            THROW(::agent_framework::exceptions::InvalidUuid, "model",
-                  "Parent UUID cannot be updated. Entry = '" + entry_r.get_uuid() + "', parent changed from "
-                  + it->get_parent_uuid() + " to " + entry_r.get_parent_uuid());
+        if (it->get_parent_uuid() != entry.get_parent_uuid()) {
+            THROW(exceptions::InvalidUuid, "model",
+                  "Parent UUID cannot be updated. Entry = '" + entry.get_uuid() + "', parent changed from "
+                  + it->get_parent_uuid() + " to " + entry.get_parent_uuid());
         }
-        const auto& db_hash = it->get_resource_hash();
-        const auto& entry_hash = entry.get_resource_hash();
+        const auto& db_hash = model::utils::Hash::from_resource(*it);
+        const auto& entry_hash = model::utils::Hash::from_resource(entry);
 
         if (db_hash.status != entry_hash.status) {
             res = UpdateStatus::StatusChanged;
@@ -443,10 +441,9 @@ GenericManager<agent_framework::model::Task>::add_or_update_entry(U&& entry_r) {
         }
 
         (*it) = std::forward<U>(entry);
-        if (UpdateStatus::NoUpdate != res && entry_r.get_end_time().has_value()) {
+        if (UpdateStatus::NoUpdate != res && entry.get_end_time().has_value()) {
             it->call_completion_notifiers();
         }
-
     }
     else {
         m_manager_data.emplace_back(std::move(entry));
@@ -457,4 +454,3 @@ GenericManager<agent_framework::model::Task>::add_or_update_entry(U&& entry_r) {
 
 }
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,18 @@ public final class Collector {
                     }
                     return list.get(0);
                 }
+        );
+    }
+
+    public static <T> java.util.stream.Collector<T, ?, T> toSingleOrNull() {
+        return collectingAndThen(
+            toList(),
+            list -> {
+                if (list.size() > 1) {
+                    throw new IllegalStateException("There must be zero or one element in provided collection");
+                }
+                return list.stream().findFirst().orElse(null);
+            }
         );
     }
 }

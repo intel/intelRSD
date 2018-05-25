@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ namespace command {
 
 using Keys = std::vector<std::string>;
 using Collections = model::attribute::Array<model::attribute::Collection>;
-using Response = GetCollection::Response;
+using Response = model::attribute::Array<model::attribute::SubcomponentEntry>;
 
 /*! @brief For templates we need pure 'enum' types, not our enum 'wrappers' */
 using CollectionType = model::enums::CollectionType::CollectionType_enum;
@@ -181,8 +181,7 @@ public:
  * @return True if collection was found and processed, false otherwise
  * */
 template<typename RESOURCE, typename... COLLECTIONS>
-bool process_resource_collections(const std::string& uuid, const std::string& collection_name,
-                                  GetCollection::Response& response) {
+bool process_resource_collections(const std::string& uuid, const std::string& collection_name, Response& response) {
     if (module::get_manager<RESOURCE>().entry_exists(uuid)) {
         auto resource = module::get_manager<RESOURCE>().get_entry(uuid);
         auto collection = find_collection(resource.get_collections(), collection_name);

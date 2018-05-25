@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,29 +28,6 @@ namespace agent_framework {
 namespace model {
 namespace literals {
 
-constexpr const char PhysicalDrive::DRIVE[];
-constexpr const char PhysicalDrive::STATUS[];
-constexpr const char PhysicalDrive::INTERFACE[];
-constexpr const char PhysicalDrive::TYPE[];
-constexpr const char PhysicalDrive::CAPACITY[];
-constexpr const char PhysicalDrive::RPM[];
-constexpr const char PhysicalDrive::FRU_INFO[];
-constexpr const char PhysicalDrive::OEM[];
-
-constexpr const char LogicalDrive::DRIVE[];
-constexpr const char LogicalDrive::STATUS[];
-constexpr const char LogicalDrive::TYPE[];
-constexpr const char LogicalDrive::CAPACITY[];
-constexpr const char LogicalDrive::SNAPSHOT[];
-constexpr const char LogicalDrive::BOOTABLE[];
-constexpr const char LogicalDrive::IMAGE[];
-constexpr const char LogicalDrive::MASTER[];
-constexpr const char LogicalDrive::MODE[];
-constexpr const char LogicalDrive::PROTECTED[];
-constexpr const char LogicalDrive::COLLECTIONS[];
-constexpr const char LogicalDrive::DRIVES[];
-constexpr const char LogicalDrive::OEM[];
-
 constexpr const char IscsiTarget::TARGET[];
 constexpr const char IscsiTarget::STATUS[];
 constexpr const char IscsiTarget::INITIATOR_IQN[];
@@ -73,6 +50,39 @@ constexpr const char StorageService::STATUS[];
 constexpr const char StorageService::COLLECTIONS[];
 constexpr const char StorageService::OEM[];
 
+constexpr const char StoragePool::STORAGE_POOL[];
+constexpr const char StoragePool::STATUS[];
+constexpr const char StoragePool::COLLECTIONS[];
+constexpr const char StoragePool::OEM[];
+constexpr const char StoragePool::BLOCK_SIZE_BYTES[];
+constexpr const char StoragePool::IDENTIFIERS[];
+constexpr const char StoragePool::CAPACITY[];
+constexpr const char StoragePool::CAPACITY_SOURCES[];
+
+constexpr const char Volume::VOLUME[];
+constexpr const char Volume::STATUS[];
+constexpr const char Volume::COLLECTIONS[];
+constexpr const char Volume::OEM[];
+constexpr const char Volume::BLOCK_SIZE_BYTES[];
+constexpr const char Volume::CAPACITY[];
+constexpr const char Volume::CAPACITY_BYTES[];
+constexpr const char Volume::CAPACITY_SOURCES[];
+constexpr const char Volume::VOLUME_TYPE[];
+constexpr const char Volume::ENCRYPTED[];
+constexpr const char Volume::ENCRYPTION_TYPES[];
+constexpr const char Volume::IDENTIFIERS[];
+constexpr const char Volume::OPTIMUM_IO_SIZE_BYTES[];
+constexpr const char Volume::BOOTABLE[];
+constexpr const char Volume::INITIALIZATION[];
+constexpr const char Volume::ERASED[];
+constexpr const char Volume::ERASE_ON_DETACH[];
+constexpr const char Volume::REPLICA_INFOS[];
+constexpr const char Volume::ACCESS_CAPABILITIES[];
+
+constexpr const char ReplicaInfo::REPLICA_READ_ONLY_ACCESS[];
+constexpr const char ReplicaInfo::REPLICA_TYPE[];
+constexpr const char ReplicaInfo::REPLICA_ROLE[];
+constexpr const char ReplicaInfo::REPLICA[];
 }
 }
 }

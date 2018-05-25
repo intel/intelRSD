@@ -2,7 +2,7 @@
  * @brief Rmm certificate manager interface
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,18 @@ public:
     virtual ~CertificateManagerInterface() {}
 
     /*!
+     * @brief Set certificate file path.
+     *
+     * For security reasons it is only allowed that file_path is absolute and
+     * references a regular file, i.e. is not a device or a link.
+     *
+     * @param cert_type Type of certificate.
+     * @param file_path Certificate absolute file path.
+     */
+    virtual void set_cert_file_path(CertificateData::CertificateType cert_type,
+                                    const std::string& file_path) = 0;
+
+    /*!
      * @brief Update certificate for a particular client.
      *
      * This method communicates with a client and checks validity of its certificate. In
@@ -54,8 +66,9 @@ public:
      * @param controller IPMI controller to communicate with a client.
      * @param bridge_info Bridge information for clients that need bridged connection.
      */
-    virtual void update_certificate(CertificateType certificate_type, const ipmi::IpmiController::Ptr controller,
-                            const ipmi::BridgeInfo& bridge_info) = 0;
+    virtual void update_certificate(CertificateData::CertificateType certificate_type,
+                                    const ipmi::IpmiController::Ptr controller,
+                                    const ipmi::BridgeInfo& bridge_info) = 0;
 
 };
 

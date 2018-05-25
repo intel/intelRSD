@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +55,8 @@ public:
     static constexpr const char SUBSYSTEM_ID[] = "^0[xX](([a-fA-F]|[0-9]){2}){2}$";
     static constexpr const char SUBSYSTEM_VENDOR_ID[] = "^0[xX](([a-fA-F]|[0-9]){2}){2}$";
     static constexpr const char DATE_TIME_LOCAL_OFFSET[] = "([-+][0-1][0-9]:[0-5][0-9])";
-    static constexpr const char NO_WHITESPACE_STRING[] = "^[\\S]*$";
+    static constexpr const char NO_WHITESPACE_STRING[] = "^[\\S]+$";
+    static constexpr const char EMPTY_OR_NO_WHITESPACE_STRING[] = "^$|^[\\S]+$";
 };
 
 /*!
@@ -99,6 +100,22 @@ public:
     static constexpr const char ADDRESS[] = "^(((([1]?\\d)?\\d|2[0-4]\\d|25[0-5])\\.){3})((([1]?\\d)?\\d|2[0-4]\\d|25[0-5]))$";
     static constexpr const char GATEWAY[] = "^(((([1]?\\d)?\\d|2[0-4]\\d|25[0-5])\\.){3})((([1]?\\d)?\\d|2[0-4]\\d|25[0-5]))$";
     static constexpr const char SUBNET_MASK[] = "^(((([1]?\\d)?\\d|2[0-4]\\d|25[0-5])\\.){3})((([1]?\\d)?\\d|2[0-4]\\d|25[0-5]))$";
+};
+
+/*!
+ * @brief Class consisting of literals for IPv6Addresses regular expression validation
+ */
+class IPv6Addresses {
+public:
+    static constexpr const char ADDRESS[] = "(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))";
+};
+
+/*!
+* @brief Class consisting of literals for Chassis regular expression validation
+*/
+class Chassis {
+public:
+    static constexpr const char LOCATION_ID[] = "^(?!\\s*$).+";
 };
 
 }

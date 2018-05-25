@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
  * @file attribute_validity_checker.cpp
  * */
 
-#include "agent-framework/exceptions/exception.hpp"
 #include "agent-framework/validators/checkers/attribute_validity_checker.hpp"
 #include "agent-framework/validators/procedure_validator.hpp"
 
+#include "agent-framework/exceptions/exception.hpp"
+
+#include <stdarg.h>
 
 
 using namespace jsonrpc;

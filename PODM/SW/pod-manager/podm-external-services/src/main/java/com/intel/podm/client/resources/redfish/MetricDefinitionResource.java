@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
-import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @OdataTypes({
@@ -209,13 +208,6 @@ public class MetricDefinitionResource extends ExternalServiceResourceImpl implem
     public class Links extends RedfishLinks {
         @JsonProperty("Metrics")
         private List<ODataId> metrics;
-
-        @JsonProperty("Oem")
-        private Links.Oem oem = new Links.Oem();
-
-        @OemType(OEM_IN_LINKS)
-        public class Oem extends RedfishOem {
-        }
     }
 
     @OemType(TOP_LEVEL_OEM)

@@ -21,7 +21,7 @@
  */
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,7 +96,7 @@ void Multiplexer::register_handler(MethodsHandler::UPtr handler, AccessType acce
     // Find existing candidate
     for (auto& candidate : m_handler_candidates) {
         if (std::get<2>(candidate) == path) {
-            log_error(GET_LOGGER("rest"), "Attempted to register a duplicate handler for " + handler->get_path() + ".");
+            log_error("rest", "Attempted to register a duplicate handler for " + handler->get_path() + ".");
             return;
         }
     }
@@ -118,7 +118,7 @@ const Multiplexer::PathHandlerCandidate& Multiplexer::select_handler(const std::
     }
 
     // If no handler was matched throw a 404
-    log_warning(GET_LOGGER("rest"), "No handler was matched!");
+    log_warning("rest", "No handler was matched!");
     auto message = "Invalid endpoint in /redfish/v1 namespace.";
     throw error::ServerException(error::ErrorFactory::create_resource_missing_error(uri, message));
 }
@@ -195,7 +195,7 @@ Parameters Multiplexer::get_params(const std::string& path, const std::string& p
         throw agent_framework::exceptions::NotFound(message);
     }
 
-    Parameters params;
+    Parameters params{};
     auto& handler_segments = std::get<0>(handler);
     auto segments_size = handler_segments.size();
     for (size_t seg_index(0); seg_index < segments_size; ++seg_index) {

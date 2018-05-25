@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -192,13 +192,13 @@ RestClient::Response RestClient::rest_method_template(Method method,
     else {
         curl_slist_free_all(custom_headers);
         curl_easy_cleanup(curl);
-        log_warning(GET_LOGGER("rest"), "Curl exit code "
+        log_warning("rest", "Curl exit code "
              << static_cast<int>(res)
              << " : " << curl_easy_strerror(res));
         throw std::runtime_error("Curl call failed.");
     }
 
-    log_debug(GET_LOGGER("rest"), " send EVENT -> " << target_url << " :"
+    log_debug("rest", " send EVENT -> " << target_url << " :"
              << curl_easy_strerror(res)
              << " (code " << static_cast<int>(res) << ")");
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ bool ScheduledMessage::is_ready_to_send(const Socket::List& writable) const {
 }
 
 long ScheduledMessage::try_send() {
-    log_debug(GET_LOGGER("ssdp"), "try_send to:" << m_receiver
+    log_debug("ssdp", "try_send to:" << m_receiver
                                   << " len:" << m_payload->size());
     long rc{0};
     try {
@@ -48,11 +48,11 @@ long ScheduledMessage::try_send() {
                               m_payload->size(), m_receiver);
 
         if (m_payload->size() != size_t(rc)) {
-            log_warning(GET_LOGGER("ssdp"), "send to:" << m_receiver
+            log_warning("ssdp", "send to:" << m_receiver
                 << " send " << rc << " bytes out of: " << m_payload->size());
         }
         else {
-            log_debug(GET_LOGGER("ssdp"), "send OK");
+            log_debug("ssdp", "send OK");
         }
     }
     catch(const net::NetException& e) {
@@ -60,16 +60,16 @@ long ScheduledMessage::try_send() {
         if (EWOULDBLOCK == error_code || EAGAIN == error_code) {
             m_state = ScheduledMessage::State::WAIT_READY;
             rc = 0;
-            log_debug(GET_LOGGER("ssdp"), "send postponed");
+            log_debug("ssdp", "send postponed");
         }
         else if (EINTR == error_code) {
             m_state = ScheduledMessage::State::READY_TO_SEND;
             rc = 0;
-            log_debug(GET_LOGGER("ssdp"), "send postponed");
+            log_debug("ssdp", "send postponed");
         }
         else {
             rc = -1;
-            log_error(GET_LOGGER("ssdp"), "send to:" << m_receiver
+            log_error("ssdp", "send to:" << m_receiver
                 << " failed: " << e.what());
         }
     }

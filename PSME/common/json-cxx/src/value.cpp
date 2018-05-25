@@ -652,8 +652,12 @@ Value& Value::operator[](const char* key) {
         }
     }
 
+    /*
+     * Do you encounter an undefined behavior or thrash objects in your JSON array?
+     * Notice that m_object is a vector and it can reallocate itself here...
+     * ...so your previous references could point to nothing.
+     * */
     m_object.emplace_back(key, Value());
-
     return m_object.back().second;
 }
 

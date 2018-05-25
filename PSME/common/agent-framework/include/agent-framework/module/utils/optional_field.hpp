@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,11 +103,6 @@ public:
         if(!(this->has_value()) || rhs != *this) { optional<T>::operator=(T(rhs)); }
         return *this;
     }
-
-    /*!
-     * @brief ObjectField to json::Json conversion operator
-     * */
-    operator json::Json() const;
 
     /*!
      * @brief ObjectField to json::Value conversion operator
@@ -390,20 +385,22 @@ std::ostream& operator<<(std::ostream& out_stream, const OptionalField<T>& in_fi
 }
 
 /*!
- * @brief Logical equals operator for OptionalField holding framework enums.
+ * @brief Logical equals operator for OptionalField holding framework enum object
+ * and an object representing framework enum.
  *
  * @param[in] lhs Object on the LHS of the operator.
  * @param[in] rhs Object on the RHS of the operator.
  *
- * @return True if both objects are initialized with the same value, false otherwise.
+ * @return True if the enum value and the object held by OptionalField are the same, false otherwise.
  * */
 template<typename T, typename std::enable_if<model::utils::is_framework_enum<T>::value>::type* = nullptr>
-bool operator==(const OptionalField<T>& lhs, const OptionalField<T>& rhs) {
-    return ( lhs.has_value() && rhs.has_value() ? lhs.value() == rhs.value() : false );
+bool operator==(const OptionalField<T>& lhs, const T& rhs) {
+    return ( lhs.has_value() ? lhs.value() == rhs : false );
 }
 
 /*!
- * @brief Logical equals operator for OptionalField holding framework enums and a framework enum.
+ * @brief Logical equals operator for OptionalField holding framework enum object
+ * and an underlying value for framework enum object.
  *
  * @param[in] lhs Object on the LHS of the operator.
  * @param[in] rhs Object on the RHS of the operator.
@@ -416,7 +413,22 @@ bool operator==(const OptionalField<T>& lhs, const typename T::underlying_type& 
 }
 
 /*!
- * @brief Logical equals operator for OptionalField holding framework enums and a framework enum.
+ * @brief Logical equals operator for OptionalField holding framework enum object
+ * and an object representing framework enum.
+ *
+ * @param[in] lhs Object on the LHS of the operator.
+ * @param[in] rhs Object on the RHS of the operator.
+ *
+ * @return True if the enum value and the object held by OptionalField are the same, false otherwise.
+ * */
+template<typename T, typename std::enable_if<model::utils::is_framework_enum<T>::value>::type* = nullptr>
+bool operator==(const T& lhs, const OptionalField<T>& rhs) {
+    return rhs == lhs;
+}
+
+/*!
+ * @brief Logical equals operator for OptionalField holding framework enum object
+ * and an underlying value for framework enum object.
  *
  * @param[in] lhs Object on the LHS of the operator.
  * @param[in] rhs Object on the RHS of the operator.
@@ -425,11 +437,12 @@ bool operator==(const OptionalField<T>& lhs, const typename T::underlying_type& 
  * */
 template<typename T, typename std::enable_if<model::utils::is_framework_enum<T>::value>::type* = nullptr>
 bool operator==(const typename T::underlying_type& lhs, const OptionalField<T>& rhs) {
-    return ( rhs.has_value() ? lhs == rhs.value() : false );
+    return rhs == lhs;
 }
 
 /*!
- * @brief Logical not equals operator for OptionalField holding framework enums.
+ * @brief Logical not equals operator for OptionalField holding framework enum object
+ * and an object representing framework enum.
  *
  * @param[in] lhs Object on the LHS of the operator.
  * @param[in] rhs Object on the RHS of the operator.
@@ -437,12 +450,13 @@ bool operator==(const typename T::underlying_type& lhs, const OptionalField<T>& 
  * @return True if both objects are initialized with the same value, false otherwise.
  * */
 template<typename T, typename std::enable_if<model::utils::is_framework_enum<T>::value>::type* = nullptr>
-bool operator!=(const OptionalField<T>& lhs, const OptionalField<T>& rhs) {
-    return ( lhs.has_value() && rhs.has_value() ? lhs.value() != rhs.value() : false );
+bool operator!=(const OptionalField<T>& lhs, const T& rhs) {
+    return !(lhs == rhs);
 }
 
 /*!
- * @brief Logical not equals operator for OptionalField holding framework enums.
+ * @brief Logical not equals operator for OptionalField holding framework enum object
+ * and an underlying value for framework enum object.
  *
  * @param[in] lhs Object on the LHS of the operator.
  * @param[in] rhs Object on the RHS of the operator.
@@ -451,11 +465,26 @@ bool operator!=(const OptionalField<T>& lhs, const OptionalField<T>& rhs) {
  * */
 template<typename T, typename std::enable_if<model::utils::is_framework_enum<T>::value>::type* = nullptr>
 bool operator!=(const OptionalField<T>& lhs, const typename T::underlying_type& rhs) {
-    return ( lhs.has_value() ? lhs.value() != rhs : false );
+    return !(lhs == rhs);
 }
 
 /*!
- * @brief Logical not equals operator for OptionalField holding framework enums and a framework enum.
+ * @brief Logical not equals operator for OptionalField holding framework enum object
+ * and an object representing framework enum.
+ *
+ * @param[in] lhs Object on the LHS of the operator.
+ * @param[in] rhs Object on the RHS of the operator.
+ *
+ * @return True if the enum value and the object held by OptionalField are the same, false otherwise.
+ * */
+template<typename T, typename std::enable_if<model::utils::is_framework_enum<T>::value>::type* = nullptr>
+bool operator!=(const  T& lhs, const OptionalField<T>& rhs) {
+    return !(rhs == lhs);
+}
+
+/*!
+ * @brief Logical not equals operator for OptionalField holding framework enum object
+ * and an underlying value for framework enum object.
  *
  * @param[in] lhs Object on the LHS of the operator.
  * @param[in] rhs Object on the RHS of the operator.
@@ -464,16 +493,7 @@ bool operator!=(const OptionalField<T>& lhs, const typename T::underlying_type& 
  * */
 template<typename T, typename std::enable_if<model::utils::is_framework_enum<T>::value>::type* = nullptr>
 bool operator!=(const typename T::underlying_type& lhs, const OptionalField<T>& rhs) {
-    return ( rhs.has_value() ? lhs != rhs.value() : false );
-}
-
-template<typename T>
-OptionalField<T>::operator json::Json() const {
-    if(this->has_value()) {
-        return JsonConverter<json::Json>::to_json(this->value());
-    } else {
-        return JsonConverter<json::Json>::to_json(json::Json{});
-    }
+    return !(rhs == lhs);
 }
 
 template<typename T>

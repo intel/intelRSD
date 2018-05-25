@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,24 +54,35 @@ bool update(ModelType<TYPE>&, const DiscoveryContext&, const DiscoveryParams<TYP
 template <>
 bool update<RmmType::Psu>(ModelType<RmmType::Psu>& psu, const DiscoveryContext& dc,
                           const DiscoveryParams<RmmType::Psu>& dp) {
-    log_debug("rmm-discovery", "Psu update");
+    log_debug("rmm-discovery", "Psu " << static_cast<unsigned>(psu.get_slot_id()) << " update");
     bool changed = false;
 
     auto operation_state = call_psu_command<ipmi::command::sdv::request::SendPsuReadOperation,
         ipmi::command::sdv::response::SendPsuReadOperation>(dc, dp.slot_id);
-    auto status_word = call_psu_command<ipmi::command::sdv::request::SendPsuReadStatusWord,
-        ipmi::command::sdv::response::SendPsuReadStatusWord>(dc, dp.slot_id);
+    log_debug("rmm-discovery", "Operation: 0x" << std::hex << unsigned(operation_state.get_operation_byte()));
 
     enums::State state = operation_state.is_enabled() ? enums::State::Enabled : enums::State::Disabled;
-    enums::Health health = status_word.warnings_present() ? enums::Health::Warning : enums::Health::OK;
+
+
+    enums::Health health = enums::Health::OK;
+    auto psu_sta = call_psu_command<ipmi::command::sdv::request::SendPsuReadMfrPsuSta,
+        ipmi::command::sdv::response::SendPsuReadMfrPsuSta>(dc, dp.slot_id);
+    log_debug("rmm-discovery", "ALM STA: 0x" << std::hex << psu_sta.get_alm_sta()
+                            << ", AC " << (psu_sta.ac_has_failed() ? "failed" : "OK"));
+
+    if (psu_sta.errors_present()) {
+        health = enums::Health::Critical;
+    }
+    else if (psu_sta.ac_has_failed() || psu_sta.warnings_present()) {
+        health = enums::Health::Warning;
+    }
+
 
     auto status = psu.get_status();
-    if (!status.get_health().has_value() || status.get_state() != state || status.get_health().value() != health) {
-        log_debug("rmm-discovery", "Psu (" << unsigned(psu.get_slot_id()) << ") status changed: state: "
+    if (status.get_health() != health || status.get_state() != state) {
+        log_info("rmm-discovery", "Psu (" << unsigned(psu.get_slot_id()) << ") status changed: state: "
             << status.get_state().to_string() << " -> " << state.to_string() << ", health: "
             << status.get_health() << " -> " << health.to_string());
-        log_debug("rmm-discovery", "Raw data: operation 0x" << std::hex << unsigned(operation_state.get_operation_byte())
-            << ", status word: 0x" << std::hex << status_word.get_status_word() );
 
         status.set_state(state);
         status.set_health(health);
@@ -99,7 +110,7 @@ bool update<RmmType::Drawer>(ModelType<RmmType::Drawer>& chassis, const Discover
     bool changed = false;
     auto status = chassis.get_status();
     enums::Health current_health = dp.is_alert_present ? enums::Health::Critical : enums::Health::OK;
-    if (!status.get_health().has_value() || current_health != enums::Health(status.get_health())) {
+    if (status.get_health() != current_health) {
         log_debug("rmm-discovery", "Drawer (" << unsigned(chassis.get_slot_id()) << ") health changed: "
                                               << status.get_health() << " -> " << current_health);
         status.set_health(current_health);
@@ -223,7 +234,7 @@ bool update<RmmType::PowerZone>(ModelType<RmmType::PowerZone>& pz, const Discove
     enums::Health health = critical.is_critical() ? enums::Health::Critical : enums::Health::OK;
     enums::State state = presence.is_present() ? enums::State::Enabled : enums::State::Absent;
     auto status = pz.get_status();
-    if (!status.get_health().has_value() || status.get_health().value() != health || status.get_state() != state) {
+    if (status.get_health() != health || status.get_state() != state) {
         log_debug("rmm-discovery", "Power zone state changed: " << status.get_state() << " -> " << state);
         log_debug("rmm-discovery", "Power zone health changed: " << status.get_health() << " -> " << health);
         status.set_health(health);

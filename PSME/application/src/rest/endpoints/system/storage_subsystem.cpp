@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +60,7 @@ json::Value storage_controller_to_json(const std::string& controller_uuid) {
     const auto sc = agent_framework::module::get_manager<agent_framework::model::StorageController>()
         .get_entry(controller_uuid);
 
-    json::Value json;
+    json::Value json{};
     json[Common::ODATA_ID] = endpoint::utils::get_component_url(enums::Component::StorageController, controller_uuid);
     json[Common::ODATA_TYPE] = "#Storage.v1_1_0.StorageController";
     json[Common::MEMBER_ID] = std::to_string(sc.get_id());
@@ -95,11 +95,10 @@ json::Value storage_controller_to_json(const std::string& controller_uuid) {
 
     json[constants::StorageSubsystem::IDENTIFIERS] = json::Value::Type::ARRAY;
     for (const auto& identifier : sc.get_identifiers()) {
-        json::Value ident;
-        ident[constants::StorageSubsystem::DURABLE_NAME] = identifier.get_durable_name();
-        ident[constants::StorageSubsystem::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format().to_string();
-        json[constants::StorageSubsystem::IDENTIFIERS].push_back(
-            std::move(ident));
+        json::Value id{};
+        id[constants::StorageSubsystem::DURABLE_NAME] = identifier.get_durable_name();
+        id[constants::StorageSubsystem::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format();
+        json[constants::StorageSubsystem::IDENTIFIERS].push_back(std::move(id));
     }
 
     // this array will never have any links, because we do not create a StorageController in the PNC agent
@@ -146,10 +145,10 @@ void endpoint::StorageSubsystem::get(const server::Request& req, server::Respons
     const auto chassis_uuids = agent_framework::module::get_manager<agent_framework::model::Chassis>().get_keys(
         manager_uuid);
     if (chassis_uuids.size() == 0) {
-        log_error(GET_LOGGER("rest"), "Local storage Chassis not found.");
+        log_error("rest", "Local storage Chassis not found.");
     }
     else if (chassis_uuids.size() > 1) {
-        log_error(GET_LOGGER("rest"), "Too many Local storage Chassis found.");
+        log_error("rest", "Too many Local storage Chassis found.");
     }
     else {
         // fill Chassis link

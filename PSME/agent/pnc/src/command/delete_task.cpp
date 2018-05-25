@@ -2,7 +2,7 @@
  * @brief Registers GetTasksInfo command in pnc agent
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ using namespace agent_framework::model;
 namespace {
 
 void delete_task(const DeleteTask::Request& req, DeleteTask::Response&) {
-    log_debug(GET_LOGGER("pnc-agent"), "Delete task " << req.get_task());
+    log_debug("pnc-agent", "Delete task " << req.get_task());
     get_manager<Task>().remove_entry(req.get_task());
 }
 

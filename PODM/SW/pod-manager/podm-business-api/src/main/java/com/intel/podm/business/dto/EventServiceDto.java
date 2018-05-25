@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,9 @@ import com.intel.podm.common.types.redfish.IgnoreAutomaticOem;
 import java.util.Collection;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "serviceEnabled", "status",
-    "deliveryRetryAttempts", "deliveryRetryIntervalSeconds", "eventTypesForSubscription", "subscriptions",
-    "links", "actions", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "serviceEnabled", "status", "deliveryRetryAttempts",
+    "deliveryRetryIntervalSeconds", "eventTypesForSubscription", "subscriptions", "actions", "oem"
 })
-@SuppressWarnings({"checkstyle:MethodCount"})
 public final class EventServiceDto extends RedfishDto {
     private Boolean serviceEnabled;
     private Long deliveryRetryAttempts;
@@ -37,7 +35,7 @@ public final class EventServiceDto extends RedfishDto {
     private Collection<EventType> eventTypesForSubscription;
     private Status status;
     @IgnoreAutomaticOem
-    private final Object actions = new Object();
+    private Object actions = new Object();
     private ODataId subscriptions;
 
     public EventServiceDto() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.intel.podm.business.redfish.services.allocation;
 
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.ComposedNode;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
+import com.intel.podm.common.enterprise.utils.retry.RetryOnRollback;
 import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
 import com.intel.podm.common.types.ComposedNodeState;
 import com.intel.podm.common.types.Id;
@@ -36,7 +36,7 @@ public class ComposedNodeStateChanger {
     @Inject
     private GenericDao genericDao;
 
-    @NumberOfRetriesOnRollback(3)
+    @RetryOnRollback(3)
     @Transactional(REQUIRES_NEW)
     public void change(Id nodeId, ComposedNodeState nodeState) {
         ComposedNode composedNode = genericDao.find(ComposedNode.class, nodeId);

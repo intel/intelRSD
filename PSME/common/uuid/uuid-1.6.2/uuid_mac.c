@@ -2,7 +2,7 @@
  * @brief OSSP UUID Media Access Control (MAC) resolver implementation
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,15 @@
 #include <sys/sockio.h>
 #endif
 #ifdef HAVE_NET_IF_H
+
+#ifdef __clang__
+#define __USE_MISC
+#endif
 #include <net/if.h>
+#ifdef __clang__
+#undef __USE_MISC
+#endif
+
 #endif
 #ifdef HAVE_NET_IF_DL_H
 #include <net/if_dl.h>
@@ -138,4 +146,3 @@ int mac_address(unsigned char *data_ptr, size_t data_len)
 
     return FALSE;
 }
-

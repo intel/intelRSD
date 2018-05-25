@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,7 +75,7 @@ namespace compute {
 
 class BmcMock : public Bmc {
 public:
-    BmcMock(const Bmc::ConnectionData& conn) : Bmc(conn, Bmc::Duration{}) {}
+    BmcMock(const Bmc::ConnectionData& conn) : Bmc(conn, /*std::chrono::milliseconds{100} */Bmc::Duration{}) {}
 
     MOCK_METHOD1(on_become_online, bool(const Transition&));
 
@@ -171,6 +171,7 @@ TEST_F(DiscoveryManagerTest, DiscoverDrivesTwice) {
     Bmc::ConnectionData conn{};
     conn.set_ip_address("0.0.0.1");
     agent::compute::BmcMock bmc{conn};
+    bmc.start();
     auto mdr_region_factory = std::make_shared<ipmi::sdv::MockMdrRegionAccessorFactory>();
     ipmi::MockIpmiController ipmi_ctrl{};
 
@@ -192,7 +193,7 @@ TEST_F(DiscoveryManagerTest, DiscoverDrivesTwice) {
     ASSERT_TRUE(get_manager<Drive>().get_keys().empty());
 
     DiscoveryManager discovery_manager{bmc, mdr_region_factory, discoverer_factory};
-    discovery_manager.discovery();
+    discovery_manager.discover();
 
     const auto uuids = get_manager<Drive>().get_keys();
     ASSERT_EQ(2, uuids.size());
@@ -203,11 +204,13 @@ TEST_F(DiscoveryManagerTest, DiscoverDrivesTwice) {
     EXPECT_EQ("0.0.0.1:0", drive2.get_agent_id());
     EXPECT_EQ("dummy_parent2", drive2.get_parent_uuid());
 
-    discovery_manager.discovery();
+    discovery_manager.discover();
     ASSERT_EQ(1, get_manager<Drive>().get_keys().size());
     const auto drive = get_manager<Drive>().get_entry(uuids[0]);
     EXPECT_EQ("0.0.0.1:0", drive.get_agent_id());
     EXPECT_EQ("dummy_parent1", drive.get_parent_uuid());
+
+    bmc.stop();
 }
 
 }

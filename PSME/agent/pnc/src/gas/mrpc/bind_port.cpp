@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ void BindPort::write_input() {
     data[OFFSET_LOGICAL_BRIDGE_ID] = input.fields.logical_bridge_id;
     data[OFFSET_PHY_PORT_ID] = input.fields.phy_port_id;
 
-    log_debug(GET_LOGGER("pnc-mrpc"), "BindPort command input data:"
+    log_debug("pnc-mrpc", "BindPort command input data:"
         << " PartitionId=" << std::uint32_t(input.fields.partition_id)
         << ", LogicalBridgeId=" << std::uint32_t(input.fields.logical_bridge_id)
         << ", PhysicalPortId=" << std::uint32_t(input.fields.phy_port_id));
@@ -62,7 +62,7 @@ void BindPort::read_output() {
     output.fields.ret_value = PortPartitionP2PBindingReturnValue(
         ret_value[0] | (ret_value[1] << 8) | (ret_value[2] << 16) | (ret_value[3] << 24));
 
-    log_debug(GET_LOGGER("pnc-mrpc"), "BindPort command return code: "
+    log_debug("pnc-mrpc", "BindPort command return code: "
         << get_p2p_binding_command_result(static_cast<uint32_t>(output.fields.ret_value)));
 }
 

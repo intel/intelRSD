@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,20 @@ import com.intel.podm.business.entities.redfish.EthernetSwitch;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.context.ContextType;
 import com.intel.podm.business.services.redfish.ReaderService;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCHES;
+import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
 import static com.intel.podm.common.types.redfish.ResourceNames.ACLS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_METRICS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.PORTS_RESOURCE_NAME;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -51,7 +54,9 @@ class EthernetSwitchServiceImpl implements ReaderService<EthernetSwitchDto> {
     @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context serviceRootContext) throws ContextResolvingException {
-        return new CollectionDto(ETHERNET_SWITCHES, ethernetSwitchDao.getAllEthernetSwitchIds());
+        List<Context> contexts = ethernetSwitchDao.getAllEthernetSwitchIds().stream().map(id -> contextOf(id, ContextType.ETHERNET_SWITCH)).sorted()
+            .collect(toList());
+        return new CollectionDto(CollectionDto.Type.ETHERNET_SWITCH, contexts);
     }
 
     @Transactional(REQUIRED)

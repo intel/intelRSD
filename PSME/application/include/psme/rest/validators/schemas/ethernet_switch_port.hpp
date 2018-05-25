@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,10 @@ namespace schema {
 /*! @brief Schema for validating PATCH requests on ethernet switch port resource. */
 class EthernetSwitchPortPatchSchema {
     class LinksSchema {
+    public:
+        static const jsonrpc::ProcedureValidator& get_procedure();
+    };
+    class PriorityFlowControlSchema {
     public:
         static const jsonrpc::ProcedureValidator& get_procedure();
     };

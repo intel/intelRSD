@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,22 @@
 
 package com.intel.podm.redfish.resources;
 
+import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.dto.EndpointDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
+import com.intel.podm.business.services.context.Context;
+import com.intel.podm.business.services.redfish.CreationService;
 import com.intel.podm.business.services.redfish.ReaderService;
+import com.intel.podm.redfish.json.templates.actions.constraints.EndpointCreationConstraint;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import java.util.concurrent.TimeoutException;
 
 import static com.intel.podm.business.services.context.PathParamConstants.ENDPOINT_ID;
 import static com.intel.podm.redfish.OptionsResponseBuilder.newOptionsForResourceBuilder;
@@ -36,6 +43,9 @@ public class EndpointCollectionResource extends BaseResource {
     @Inject
     private ReaderService<EndpointDto> readerService;
 
+    @Inject
+    private CreationService<EndpointDto> creationService;
+
     @Override
     public CollectionDto get() {
         return getOrThrow(() -> readerService.getCollection(getCurrentContext()));
@@ -46,9 +56,16 @@ public class EndpointCollectionResource extends BaseResource {
         return getResource(EndpointResource.class);
     }
 
+    @POST
+    @Consumes(APPLICATION_JSON)
+    public Response createEndpoint(@EndpointCreationConstraint EndpointDto createEndpointRequest) throws BusinessApiException, TimeoutException {
+        Context contextOfCreatedEndpoint = creationService.create(getCurrentContext(), createEndpointRequest);
+        return Response.created(contextOfCreatedEndpoint.asOdataId().toUri()).build();
+    }
+
     @Override
     protected Response createOptionsResponse() {
-        return newOptionsForResourceBuilder().build();
+        return newOptionsForResourceBuilder().addPostMethod().build();
     }
 }
 

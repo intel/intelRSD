@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.WebClientRequestException;
@@ -29,6 +30,7 @@ import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 import com.intel.podm.common.types.redfish.OdataTypeVersions;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
@@ -36,8 +38,7 @@ import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN
     "#NetworkInterface" + OdataTypeVersions.VERSION_PATTERN + "NetworkInterface"
 })
 public class NetworkInterfaceResource extends ExternalServiceResourceImpl implements ExternalServiceResource {
-
-    @JsonProperty("Status")
+    @JsonSetter(value = "Status", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Status> status = unassigned();
 

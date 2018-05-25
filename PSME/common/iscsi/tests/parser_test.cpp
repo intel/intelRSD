@@ -1,7 +1,7 @@
 /*!
  * @brief Test of the iSCSI MDR parser.
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ TEST_F(IscsiMdrParserTest, ReadAndParseCompleteBlob) {
 
 TEST_F(IscsiMdrParserTest, IterateOverInitiators) {
     IscsiMdrParser parser(get_blob(), m_blob.size());
-    char ipaddr[IP_ADDRESS_SIZE];
+    char ipaddr[INET6_ADDRSTRLEN];
 
     auto initiators = parser.get_all<ISCSI_MDR_INITIATOR>();
     ASSERT_EQ(2, initiators.size());
@@ -97,7 +97,7 @@ TEST_F(IscsiMdrParserTest, IterateOverInitiators) {
 
 TEST_F(IscsiMdrParserTest, IterateOverTargets) {
     IscsiMdrParser parser(get_blob(), m_blob.size());
-    char ipaddr[IP_ADDRESS_SIZE];
+    char ipaddr[INET_ADDRSTRLEN];
 
     auto targets = parser.get_all<ISCSI_MDR_TARGET>();
     const auto& tgt = targets.front();

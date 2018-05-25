@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,20 @@ import com.intel.podm.business.services.context.SingletonContext;
 import com.intel.podm.common.types.Protocol;
 import com.intel.podm.common.types.Status;
 
-@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description",
-    "fabricType", "maxZones", "status", "zones", "endpoints", "switches", "fabricType",
-    "links", "actions", "oem"
+@JsonPropertyOrder({
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "fabricType", "maxZones", "status", "zones", "endpoints", "switches",
+    "fabricType", "links", "actions", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class FabricDto extends RedfishDto {
+    private final Links links = new Links();
+    private final Actions actions = new Actions();
     private Protocol fabricType;
     private Status status;
     private Integer maxZones;
     private SingletonContext zones;
     private SingletonContext endpoints;
     private SingletonContext switches;
-    private final Links links = new Links();
-    private final Actions actions = new Actions();
 
     public FabricDto() {
         super("#Fabric.v1_0_0.Fabric");

@@ -2,7 +2,7 @@
  * @brief Network interface builder class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,19 @@
  * @file network_interface_builder.hpp
  */
 
-#include "discovery/builders/platform_specific/grantley/grantley_network_interface_builder.hpp"
+#include "discovery/builders/network_interface_builder.hpp"
 
 #include <bitset>
-#include <algorithm>
 
 
 
 using namespace agent::compute::discovery;
-using namespace smbios::parser;
 using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
 
-namespace {
-static constexpr size_t MAC_ADDRESS_LENGTH = 18;
 
-
-std::string format_mac_address(uint8_t const* mac_as_byte_array) {
+std::string NetworkInterfaceBuilder::format_mac_address(uint8_t const* mac_as_byte_array) {
+    static constexpr size_t MAC_ADDRESS_LENGTH = 18;
     char mac_address[MAC_ADDRESS_LENGTH];
     std::snprintf(&mac_address[0], MAC_ADDRESS_LENGTH, "%02x:%02x:%02x:%02x:%02x:%02x",
                   static_cast<unsigned int>(mac_as_byte_array[0]),
@@ -49,7 +45,7 @@ std::string format_mac_address(uint8_t const* mac_as_byte_array) {
 }
 
 
-bool is_valid_mac(uint8_t const* mac_as_byte_array) {
+bool NetworkInterfaceBuilder::is_valid_mac(uint8_t const* mac_as_byte_array) {
     static constexpr int MAC_OUI_LEN = 3;
     for (int i = 0; i < MAC_OUI_LEN; ++i) {
         if (0 != mac_as_byte_array[i]) {
@@ -59,6 +55,15 @@ bool is_valid_mac(uint8_t const* mac_as_byte_array) {
     return false;
 }
 
+
+OptionalField<enums::TransportProtocol>
+NetworkInterfaceBuilder::get_supported_protocol(uint16_t vendor_id, uint16_t device_id) {
+    static constexpr uint16_t MELLANOX = 0x15b3;
+    static constexpr uint16_t CONNECTX_4 = 0x1015;
+    if (vendor_id == MELLANOX && device_id == CONNECTX_4) {
+        return enums::TransportProtocol::RoCEv2;
+    }
+    return OptionalField<enums::TransportProtocol>{};
 }
 
 
@@ -66,25 +71,3 @@ NetworkInterface NetworkInterfaceBuilder::build_default(const std::string& paren
     return NetworkInterface{parent_uuid};
 }
 
-
-void NetworkInterfaceBuilder::update_smbios_data(agent_framework::model::NetworkInterface& network_interface,
-                                                 const smbios::parser::SmbiosParser::StructEnhanced<smbios::parser::SMBIOS_NIC_INFO_DATA>& smbios_data) {
-
-    if (is_valid_mac(smbios_data.data.PortData.Mac)) {
-        std::string mac_address = format_mac_address(smbios_data.data.PortData.Mac);
-        network_interface.set_mac_address(mac_address);
-        network_interface.set_factory_mac_address(mac_address);
-        network_interface.set_status({enums::State::Enabled, {}});
-    }
-}
-
-void NetworkInterfaceBuilder::update_smbios_data(agent_framework::model::NetworkInterface& network_interface,
-                                                 const smbios::parser::SmbiosParser::StructEnhanced<smbios::parser::SMBIOS_NIC_INFO_DATA_V2>& smbios_data) {
-
-    if (is_valid_mac(smbios_data.data.PortData.Mac)) {
-        std::string mac_address = format_mac_address(smbios_data.data.PortData.Mac);
-        network_interface.set_mac_address(mac_address);
-        network_interface.set_factory_mac_address(mac_address);
-        network_interface.set_status({enums::State::Enabled, {}});
-    }
-}

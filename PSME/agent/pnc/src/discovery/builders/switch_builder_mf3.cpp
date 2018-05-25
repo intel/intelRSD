@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,13 @@
 
 #include "discovery/builders/switch_builder_mf3.hpp"
 #include "discovery/discovery_utils.hpp"
+#include "agent-framework/module/utils/to_hex_string.hpp"
 
 #include <exception>
 
 using namespace agent::pnc::discovery::builders;
 using namespace agent_framework::model;
+using namespace agent_framework::model::utils;
 using namespace agent::pnc::sysfs;
 using namespace agent::pnc::discovery::utils;
 

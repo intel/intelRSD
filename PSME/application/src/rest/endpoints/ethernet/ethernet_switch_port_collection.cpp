@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,7 +144,7 @@ void EthernetSwitchPortCollection::post(const server::Request& req, server::Resp
         }
 
         ::psme::rest::endpoint::utils::set_location_header(
-            res, PathBuilder(req).append(created_port->get_id()).build());
+            req, res, PathBuilder(req).append(created_port->get_id()).build());
 
         res.set_status(server::status_2XX::CREATED);
     };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.business.services.redfish.requests.RequestedNode;
-import com.intel.podm.common.types.ReplicationMethod;
+import com.intel.podm.common.types.ReplicaType;
 
-import static com.intel.podm.business.services.context.ContextType.LOGICAL_DRIVE;
+import static com.intel.podm.business.services.context.ContextType.VOLUME;
 import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUri;
 
 public final class RequestedMasterDriveImpl implements RequestedNode.RemoteDrive.MasterDrive {
     @JsonProperty
-    private ReplicationMethod type;
+    private ReplicaType type;
 
-    private Context logicalDriveContext;
+    private Context volumeContext;
 
     @Override
-    public ReplicationMethod getType() {
+    public ReplicaType getType() {
         return type;
     }
 
@@ -42,11 +42,11 @@ public final class RequestedMasterDriveImpl implements RequestedNode.RemoteDrive
             return;
         }
 
-        logicalDriveContext = getContextFromUri(resource.toUri(), LOGICAL_DRIVE);
+        volumeContext = getContextFromUri(resource.toUri(), VOLUME);
     }
 
     @Override
     public Context getResourceContext() {
-        return logicalDriveContext;
+        return volumeContext;
     }
 }

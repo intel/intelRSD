@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,14 @@ import java.util.List;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "portId", "portProtocol",
-    "portType", "currentSpeedGbps", "width", "maxSpeedGbps", "actions", "links", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "portId", "portProtocol", "portType", "currentSpeedGbps", "width",
+    "maxSpeedGbps", "links", "actions", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class PortDto extends RedfishDto {
+    private final Links links = new Links();
+    private final Actions actions = new Actions();
+    private final Oem oem = new Oem();
     private Status status;
     private String portId;
     private PciePortType portType;
@@ -46,9 +49,6 @@ public final class PortDto extends RedfishDto {
     private Long currentSpeedGbps;
     private Long width;
     private Long maxSpeedGbps;
-    private final Links links = new Links();
-    private final Actions actions = new Actions();
-    private final Oem oem = new Oem();
 
     public PortDto() {
         super("#Port.v1_0_0.Port");
@@ -122,7 +122,7 @@ public final class PortDto extends RedfishDto {
         return oem;
     }
 
-    @JsonPropertyOrder({"associatedEndpoints", "ConnectedSwitches", "connectedSwitchPorts", "oem"})
+    @JsonPropertyOrder({"associatedEndpoints", "connectedSwitches", "connectedSwitchPorts", "oem"})
     public final class Links extends RedfishLinksDto {
         private final Collection<Context> associatedEndpoints = new HashSet<>();
         private final Collection<Context> connectedSwitches = new HashSet<>();
@@ -150,13 +150,12 @@ public final class PortDto extends RedfishDto {
             return rackScale;
         }
 
-        @JsonPropertyOrder({"@odata.type", "PCIeConnectionId", "Metrics"})
+        @JsonPropertyOrder({"@odata.type", "cableIds", "metrics"})
         public class RackScaleOem {
             @JsonProperty("@odata.type")
             private final String oDataType = "#Intel.Oem.Port";
             @JsonProperty("PCIeConnectionId")
             private final List<String> cableIds = new ArrayList<>();
-            @JsonProperty("Metrics")
             private SingletonContext metrics;
 
             public SingletonContext getMetrics() {
@@ -177,7 +176,7 @@ public final class PortDto extends RedfishDto {
         }
     }
 
-    @JsonPropertyOrder({"reset"})
+    @JsonPropertyOrder({"reset", "oem"})
     public class Actions extends RedfishActionsDto {
         @JsonProperty("#Port.Reset")
         private final ResetActionDto reset = new ResetActionDto();

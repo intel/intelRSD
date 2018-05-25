@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,13 +61,13 @@ class EthernetInterfaceDtoMapper extends DtoMapper<EthernetInterface, EthernetIn
             mapNeighborEthernetSwitchPort(source, target);
             mapStatus(source, target);
         }
-
         ipV4AddressDtoMapper.setExternalService(sourceService);
         mapIpV4Addresses(source, target);
 
         ipV6AddressDtoMapper.setExternalService(sourceService);
         mapIpV6Addresses(source, target);
         mapIpV6StaticAddresses(source, target);
+        mapRackScaleOem(source, target);
     }
 
     private void mapStatus(EthernetInterface source, EthernetInterfaceDto target) {
@@ -109,5 +109,12 @@ class EthernetInterfaceDtoMapper extends DtoMapper<EthernetInterface, EthernetIn
             ipV6AddressDtoMapper.map(ipV6Address, ipV6AddressDto);
             target.getIpV6StaticAddresses().add(ipV6AddressDto);
         }
+    }
+
+    private void mapRackScaleOem(EthernetInterface source, EthernetInterfaceDto target) {
+        if (!source.isComplementary()) {
+            target.getOem().getRackScaleOem().setSupportedProtocols(source.getSupportedProtocols());
+        }
+
     }
 }

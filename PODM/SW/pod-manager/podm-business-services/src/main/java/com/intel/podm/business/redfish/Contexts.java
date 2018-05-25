@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.ComputerSystemMetrics;
 import com.intel.podm.business.entities.redfish.Drive;
+import com.intel.podm.business.entities.redfish.DriveMetrics;
 import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
@@ -31,7 +32,6 @@ import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.entities.redfish.EthernetSwitchStaticMac;
 import com.intel.podm.business.entities.redfish.EventSubscription;
 import com.intel.podm.business.entities.redfish.Fabric;
-import com.intel.podm.business.entities.redfish.LogicalDrive;
 import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.entities.redfish.Memory;
 import com.intel.podm.business.entities.redfish.MemoryMetrics;
@@ -41,7 +41,6 @@ import com.intel.podm.business.entities.redfish.NetworkInterface;
 import com.intel.podm.business.entities.redfish.NetworkProtocol;
 import com.intel.podm.business.entities.redfish.PcieDevice;
 import com.intel.podm.business.entities.redfish.PcieDeviceFunction;
-import com.intel.podm.business.entities.redfish.PhysicalDrive;
 import com.intel.podm.business.entities.redfish.Port;
 import com.intel.podm.business.entities.redfish.PortMetrics;
 import com.intel.podm.business.entities.redfish.Power;
@@ -51,14 +50,16 @@ import com.intel.podm.business.entities.redfish.PowerVoltage;
 import com.intel.podm.business.entities.redfish.Processor;
 import com.intel.podm.business.entities.redfish.ProcessorMetrics;
 import com.intel.podm.business.entities.redfish.Redundancy;
-import com.intel.podm.business.entities.redfish.RemoteTarget;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
 import com.intel.podm.business.entities.redfish.Storage;
+import com.intel.podm.business.entities.redfish.StoragePool;
 import com.intel.podm.business.entities.redfish.StorageService;
 import com.intel.podm.business.entities.redfish.Switch;
 import com.intel.podm.business.entities.redfish.Thermal;
 import com.intel.podm.business.entities.redfish.ThermalFan;
 import com.intel.podm.business.entities.redfish.ThermalTemperature;
+import com.intel.podm.business.entities.redfish.Volume;
+import com.intel.podm.business.entities.redfish.VolumeMetrics;
 import com.intel.podm.business.entities.redfish.Zone;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
@@ -77,6 +78,7 @@ import static com.intel.podm.business.services.context.ContextType.COMPOSED_NODE
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM;
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM_METRICS;
 import static com.intel.podm.business.services.context.ContextType.DRIVE;
+import static com.intel.podm.business.services.context.ContextType.DRIVE_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ENDPOINT;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_INTERFACE;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH;
@@ -88,7 +90,6 @@ import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWIT
 import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SUBSCRIPTION;
 import static com.intel.podm.business.services.context.ContextType.FABRIC;
-import static com.intel.podm.business.services.context.ContextType.LOGICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.MANAGER;
 import static com.intel.podm.business.services.context.ContextType.MEMORY;
 import static com.intel.podm.business.services.context.ContextType.MEMORY_METRICS;
@@ -98,7 +99,6 @@ import static com.intel.podm.business.services.context.ContextType.NETWORK_INTER
 import static com.intel.podm.business.services.context.ContextType.NETWORK_PROTOCOL;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE_FUNCTION;
-import static com.intel.podm.business.services.context.ContextType.PHYSICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.PORT;
 import static com.intel.podm.business.services.context.ContextType.PORT_METRICS;
 import static com.intel.podm.business.services.context.ContextType.POWER;
@@ -108,15 +108,17 @@ import static com.intel.podm.business.services.context.ContextType.POWER_VOLTAGE
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR;
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR_METRICS;
 import static com.intel.podm.business.services.context.ContextType.REDUNDANCY;
-import static com.intel.podm.business.services.context.ContextType.REMOTE_TARGET;
 import static com.intel.podm.business.services.context.ContextType.SIMPLE_STORAGE;
 import static com.intel.podm.business.services.context.ContextType.STORAGE;
+import static com.intel.podm.business.services.context.ContextType.STORAGE_POOL;
 import static com.intel.podm.business.services.context.ContextType.STORAGE_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.SWITCH;
 import static com.intel.podm.business.services.context.ContextType.TELEMETRY_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.THERMAL;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_FAN;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_TEMPERATURE;
+import static com.intel.podm.business.services.context.ContextType.VOLUME;
+import static com.intel.podm.business.services.context.ContextType.VOLUME_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ZONE;
 import static com.intel.podm.common.enterprise.utils.proxy.Unproxier.unproxy;
 import static com.intel.podm.common.types.Id.id;
@@ -297,16 +299,12 @@ public final class Contexts {
         return getParentContext(simpleStorage, SimpleStorage::getComputerSystem).child(simpleStorage.getId(), SIMPLE_STORAGE);
     }
 
-    private static Context toContext(PhysicalDrive physicalDrive) {
-        return getParentContext(physicalDrive, PhysicalDrive::getStorageService).child(physicalDrive.getId(), PHYSICAL_DRIVE);
+    private static Context toContext(StoragePool storagePool) {
+        return getParentContext(storagePool, StoragePool::getStorageService).child(storagePool.getId(), STORAGE_POOL);
     }
 
-    private static Context toContext(LogicalDrive logicalDrive) {
-        return getParentContext(logicalDrive, LogicalDrive::getStorageService).child(logicalDrive.getId(), LOGICAL_DRIVE);
-    }
-
-    private static Context toContext(RemoteTarget remoteTarget) {
-        return getParentContext(remoteTarget, RemoteTarget::getStorageService).child(remoteTarget.getId(), REMOTE_TARGET);
+    private static Context toContext(Volume volume) {
+        return getParentContext(volume, Volume::getStorageService).child(volume.getId(), VOLUME);
     }
 
     private static Context toContext(NetworkProtocol networkProtocol) {
@@ -323,6 +321,14 @@ public final class Contexts {
 
     private static Context toContext(Drive drive) {
         return getParentContext(drive, Drive::getChassis).child(drive.getId(), DRIVE);
+    }
+
+    private static Context toContext(DriveMetrics driveMetrics) {
+        return getParentContext(driveMetrics, DriveMetrics::getDrive).child(id(""), DRIVE_METRICS);
+    }
+
+    private static Context toContext(VolumeMetrics volumeMetrics) {
+        return getParentContext(volumeMetrics, VolumeMetrics::getVolume).child(id(""), VOLUME_METRICS);
     }
 
     private static Context toContext(Storage storage) {

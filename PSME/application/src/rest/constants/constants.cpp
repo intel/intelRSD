@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,9 +42,9 @@ const char SYSTEM_ID[] = "systemId";
 const char ADAPTER_ID[] = "adapterId";
 const char DEVICE_ID[] = "deviceId";
 const char SERVICE_ID[] = "serviceId";
+const char STORAGE_POOL_ID[] = "storagePoolId";
+const char VOLUME_ID[] = "volumeId";
 const char DRIVE_ID[] = "driveId";
-const char LOGICAL_DRIVE_ID[] = "logicalDriveId";
-const char REMOTE_TARGET_ID[] = "remoteTargetId";
 const char MANAGER_ID[] = "managerId";
 const char NIC_ID[] = "nicId";
 const char NETWORK_INTERFACE_ID[] = "networkInterfaceId";
@@ -125,6 +125,11 @@ const char RELATED_ITEM[] = "RelatedItem";
 const char MAC_ADDRESS[] = "MACAddress";
 const char METRICS[] = "Metrics";
 const char REDUNDANCY[] = "Redundancy";
+const char IDENTIFIERS[] = "Identifiers";
+const char DURABLE_NAME[] = "DurableName";
+const char DURABLE_NAME_FORMAT[] = "DurableNameFormat";
+
+
 }
 
 namespace ErrorMessage {
@@ -154,7 +159,7 @@ const char REDFISH_VERSION[] = "RedfishVersion";
 const char EVENT_SERVICE[] = "EventService";
 const char TASKS[] = "Tasks";
 const char SYSTEMS[] = "Systems";
-const char SERVICES[] = "Services";
+const char STORAGE_SERVICES[] = "StorageServices";
 const char MANAGERS[] = "Managers";
 const char ETHERNET_SWITCHES[] = "EthernetSwitches";
 const char REGISTRIES[] = "Registries";
@@ -194,9 +199,6 @@ const char MANAGER_FOR_SERVERS[] = "ManagerForServers";
 const char MANAGER_FOR_SWITCHES[] = "ManagerForSwitches";
 const char MANAGER_IN_CHASSIS[] = "ManagerInChassis";
 const char MANAGER_FOR_SERVICES[] = "ManagerForServices";
-const char MANAGER_FOR_REMOTE_TARGETS[] = "ManagerForRemoteTargets";
-const char MANAGER_FOR_LOGICAL_DRIVES[] = "ManagerForLogicalDrives";
-const char MANAGER_FOR_PHYSICAL_DRIVES[] = "ManagerForPhysicalDrives";
 const char NETWORK_PROTOCOL[] = "NetworkProtocol";
 const char ETHERNET_INTERFACES[] = "EthernetInterfaces";
 const char HASH_MANAGER_RESET[] = "#Manager.Reset";
@@ -261,6 +263,7 @@ const char INTERFACE_ENABLED[] = "InterfaceEnabled";
 const char UEFI_DEVICE_PATH[] = "UefiDevicePath";
 const char VLANS[] = "VLANs";
 const char NEIGHBOR_PORT[] = "NeighborPort";
+const char SUPPORTED_PROTOCOLS[] = "SupportedProtocols";
 const char LINK_STATUS[] = "LinkStatus";
 }
 
@@ -323,6 +326,7 @@ const char NETWORK[] = "Network";
 const char STORAGE[] = "Storage";
 const char PNC[] = "Pnc";
 const char RMM[] = "Rmm";
+const char NVME[] = "NVMe";
 }
 
 namespace TaskService {

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +48,7 @@ public:
 
     void read_asset(const xmlpp::Node* element) {
     if (element) {
-            log_debug(GET_LOGGER("discovery"), "Reading asset.");
+            log_debug("discovery", "Reading asset.");
             auto manager = make_manager(element);
             read_chassis(manager,element);
             read_managers(manager, element);
@@ -75,7 +75,7 @@ public:
             if (enums::ChassisType::is_allowable_value(type)) {
                 chassis.set_type(enums::ChassisType::from_string(type));
             }
-            log_debug(GET_LOGGER("discovery"), "Creating chassis.");
+            log_debug("discovery", "Creating chassis.");
             chassis.set_status(make_status(element));
             chassis.set_location_offset(agent::AssetConfiguration::read_int(element, literals::Chassis::LOCATION_OFFSET));
             chassis.set_parent_id(agent::AssetConfiguration::read_string(element, literals::Chassis::PARENT_ID));
@@ -91,9 +91,9 @@ public:
 
     void read_managers(const Manager& parent_manager, const xmlpp::Node* parent) {
         if (parent) {
-            log_debug(GET_LOGGER("discovery"), "Reading managers.");
+            log_debug("discovery", "Reading managers.");
             for (const auto& element : parent->get_children(literals::Manager::MANAGER)) {
-                log_debug(GET_LOGGER("discovery"), "Reading manager.");
+                log_debug("discovery", "Reading manager.");
                 auto manager = make_manager(parent_manager, element);
                 read_chassis(manager,element);
                 read_systems(manager, element);
@@ -101,7 +101,7 @@ public:
                         get_module_manager().add_entry(manager);
             }
         } else {
-            log_warning(GET_LOGGER("discovery"), "No managers found.");
+            log_warning("discovery", "No managers found.");
         }
     }
 
@@ -125,7 +125,7 @@ public:
                     read_opt_string(element, literals::Manager::MODEL));
             manager.set_serial_console(make_serial_console(element));
 
-            log_debug(GET_LOGGER("discovery"), "Creating root manager.");
+            log_debug("discovery", "Creating root manager.");
         }
         return manager;
     }
@@ -149,7 +149,7 @@ public:
             manager.set_manager_model(AssetConfiguration::
                     read_opt_string(element, literals::Manager::MODEL));
             manager.set_serial_console(make_serial_console(element));
-            log_debug(GET_LOGGER("discovery"), "Creating manager.");
+            log_debug("discovery", "Creating manager.");
         }
         manager.add_collection(attribute::Collection(
             enums::CollectionName::Chassis,
@@ -166,9 +166,9 @@ public:
 
     void read_systems(Manager& manager, const xmlpp::Node* parent) {
         if (parent) {
-            log_debug(GET_LOGGER("discovery"), "Reading compute systems.");
+            log_debug("discovery", "Reading compute systems.");
             for (const auto& element : parent->get_children("ComputeSystem")) {
-                log_debug(GET_LOGGER("discovery"), "Reading compute system.");
+                log_debug("discovery", "Reading compute system.");
                 auto system = make_system(manager, element);
                 read_network_interfaces(system, element);
                 read_storage_subsystem(system, element);
@@ -181,14 +181,14 @@ public:
                         get_system_manager().add_entry(system);
             }
         } else {
-            log_warning(GET_LOGGER("discovery"), "No compute systems found.");
+            log_warning("discovery", "No compute systems found.");
         }
     }
 
     System make_system(const Manager& manager, const xmlpp::Node* element) {
         System system{manager.get_uuid()};
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating compute system.");
+            log_debug("discovery", "Creating compute system.");
             system.set_fru_info(make_fru_info(element));
             system.set_bios_version(AssetConfiguration::
                     read_opt_string(element, literals::System::BIOS_VERSION));
@@ -245,7 +245,7 @@ public:
             serial_console.set_enabled(AssetConfiguration::
                     read_opt_bool(console, literals::SerialConsole::ENABLED));
 
-            log_debug(GET_LOGGER("discovery"), "Creating serial console.");
+            log_debug("discovery", "Creating serial console.");
         }
         return serial_console;
     }
@@ -253,27 +253,27 @@ public:
     void read_network_interfaces(const System& system, const xmlpp::Node* parent) {
         if (parent) {
             if (!parent->get_children("networkInterface").empty()) {
-                log_debug(GET_LOGGER("discovery"), "Reading network interfaces.");
+                log_debug("discovery", "Reading network interfaces.");
                 for (const auto& element : parent->get_children("networkInterface")) {
-                    log_debug(GET_LOGGER("discovery"), "Reading network interface.");
+                    log_debug("discovery", "Reading network interface.");
                      auto interface = make_network_interface(system, element);
                          get_manager<NetworkInterface>().add_entry(interface);
                 }
             }
             else {
-                log_warning(GET_LOGGER("discovery"), "No network interfaces found.");
+                log_warning("discovery", "No network interfaces found.");
             }
         }
         else {
-            log_warning(GET_LOGGER("discovery"), "No network interfaces found.");
+            log_warning("discovery", "No network interfaces found.");
         }
     }
 
     NetworkInterface
-    make_network_interface(const System & system, const xmlpp::Node* element) {
+    make_network_interface(const System& system, const xmlpp::Node* element) {
         NetworkInterface interface{system.get_uuid()};
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating network interface.");
+            log_debug("discovery", "Creating network interface.");
             interface.set_frame_size(AssetConfiguration::
                     read_int(element, literals::NetworkInterface::FRAME_SIZE));
             interface.set_speed_mbps(AssetConfiguration::
@@ -286,8 +286,6 @@ public:
                     read_string(element, literals::NetworkInterface::MAC_ADDRESS));
             interface.set_factory_mac_address(AssetConfiguration::
                     read_string(element, literals::NetworkInterface::FACTORY_MAC_ADDRESS));
-            interface.set_vlan_enable(AssetConfiguration::
-                    read_opt_bool(element, literals::NetworkInterface::VLAN_ENABLE));
             read_ipv4_addresses(interface, element);
             read_ipv6_addresses(interface, element);
             interface.set_status(make_status(element));
@@ -297,8 +295,7 @@ public:
 
     void read_ipv4_addresses(NetworkInterface& interface, const xmlpp::Node* parent) {
         if (parent) {
-            for (const auto& element : parent->get_children(literals::
-                                    NetworkInterface::IPv4_ADDRESS)) {
+            for (const auto& element : parent->get_children(literals::NetworkInterface::IPv4_ADDRESS)) {
                 interface.add_ipv4_address(make_ipv4_address(element));
             }
         }
@@ -306,8 +303,7 @@ public:
 
     void read_ipv6_addresses(NetworkInterface& interface, const xmlpp::Node* parent) {
         if (parent) {
-            for (const auto& element : parent->get_children(literals::
-                                    NetworkInterface::IPv6_ADDRESS)) {
+            for (const auto& element : parent->get_children(literals::NetworkInterface::IPv6_ADDRESS)) {
                 interface.add_ipv6_address(make_ipv6_address(element));
             }
         }
@@ -316,7 +312,7 @@ public:
     Ipv4Address make_ipv4_address(const xmlpp::Node* element) {
         Ipv4Address address{};
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating ipv4 adress.");
+            log_debug("discovery", "Creating ipv4 adress.");
             address.set_address(AssetConfiguration::
                     read_opt_string(element, literals::Ipv4Address::ADDRESS));
             address.set_subnet_mask(AssetConfiguration::
@@ -336,7 +332,7 @@ public:
     Ipv6Address make_ipv6_address(const xmlpp::Node* element) {
         Ipv6Address address{};
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating ipv6 adress.");
+            log_debug("discovery", "Creating ipv6 adress.");
             address.set_address(AssetConfiguration::
                     read_opt_string(element, literals::Ipv6Address::ADDRESS));
             address.set_prefix_length(AssetConfiguration::
@@ -360,7 +356,7 @@ public:
     NeighborInfo make_neighbor_info(const xmlpp::Node* element) {
         NeighborInfo neighbor_info{};
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating neighbor info.");
+            log_debug("discovery", "Creating neighbor info.");
             auto info = element->get_first_child("neighborInfo");
             neighbor_info.set_switch_identifier(AssetConfiguration::
                     read_string(info,"switchIdentifier"));
@@ -407,7 +403,7 @@ public:
         StorageSubsystem storage{system.get_uuid()};
         storage.set_status(make_status(element));
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating storage subsystem.");
+            log_debug("discovery", "Creating storage subsystem.");
         }
         storage.add_collection(attribute::Collection(
             enums::CollectionName::StorageControllers,
@@ -427,7 +423,7 @@ public:
         StorageController controller{storage.get_uuid()};
         controller.set_status(make_status(element));
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating storage controller.");
+            log_debug("discovery", "Creating storage controller.");
             std::string interface = AssetConfiguration::
                     read_string(element, literals::StorageController::INTERFACE);
             if (enums::StorageProtocol::is_allowable_value(interface)) {
@@ -471,7 +467,7 @@ public:
     Drive make_hard_drive(const Chassis& chassis, const xmlpp::Node* element) {
         Drive hard_drive{chassis.get_uuid()};
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating hard drive.");
+            log_debug("discovery", "Creating hard drive.");
             std::string interface = AssetConfiguration::
                     read_string(element, literals::Drive::INTERFACE);
             if (enums::StorageProtocol::is_allowable_value(interface)) {
@@ -508,7 +504,7 @@ public:
     Memory make_memory(const System& system, const xmlpp::Node* element) {
         Memory memory{system.get_uuid()};
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating memory module.");
+            log_debug("discovery", "Creating memory module.");
 
             memory.set_device_locator(AssetConfiguration::
                     read_opt_string(element, literals::Memory::DEVICE_LOCATOR));
@@ -555,7 +551,7 @@ public:
     Processor make_processor(const System& system, const xmlpp::Node* element) {
         Processor processor{system.get_uuid()};
         if (element) {
-            log_debug(GET_LOGGER("discovery"), "Creating processor.");
+            log_debug("discovery", "Creating processor.");
             processor.set_manufacturer(AssetConfiguration::
                     read_opt_string(element, literals::Processor::MANUFACTURER));
             processor.set_enabled_cores(AssetConfiguration::
@@ -666,7 +662,7 @@ bool ComputeLoader::load(const xmlpp::Node* element) {
             LoadModules lm{};
             lm.read_asset(element);
         } catch (const xmlpp::exception& e) {
-            log_error(GET_LOGGER("discovery"),
+            log_error("discovery",
                     "Loading modules configuration failed: " << e.what());
             return false;
         }
