@@ -8,9 +8,9 @@ from cts_core.validation.validation_status import ValidationStatus
 from unit_tests.helpers.stdout_capture import StdoutCapture
 
 METADATA = """
+          <Schemas>
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource">
                <EntityType Name="Resource" Abstract="true"/>
-               </EntityType>
            </Schema>
 
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Resource.v1_0_0">
@@ -31,14 +31,12 @@ METADATA = """
            </Schema>
 
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis">
-             <EntityType Name="Chassis" BaseType="Resource.v1_0_0.Resource" Abstract="true">
-             </EntityType>
+             <EntityType Name="Chassis" BaseType="Resource.v1_0_0.Resource" Abstract="true"/>
            </Schema>
 
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_0_0">
              <EntityType Name="Chassis" BaseType="Chassis.Chassis">
-               <Property Name="ChassisType" Nullable="false" Type="Chassis.v1_0_0.ChassisType">
-               </Property>
+               <Property Name="ChassisType" Nullable="false" Type="Chassis.v1_0_0.ChassisType"/>
              </EntityType>
 
              <EnumType Name="ChassisType">
@@ -52,16 +50,16 @@ METADATA = """
            </Schema>
 
            <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_2_0">
-             <EntityType Name="Chassis" BaseType="Chassis.v1_0_0.Chassis">
-             </EntityType>
+             <EntityType Name="Chassis" BaseType="Chassis.v1_0_0.Chassis"/>
            </Schema>
+          </Schemas>
        """
 
 
 class HierarchyValidatorTest(unittest.TestCase):
     def setUp(self):
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
         self.discovery_container = DiscoveryContainer(metadata_container=self.metadata_container)
         self.validator = HierarchyValidator(self.discovery_container, self.metadata_container, MetadataConstants2_1)
         self.builder = ResourceBuilder(self.discovery_container)

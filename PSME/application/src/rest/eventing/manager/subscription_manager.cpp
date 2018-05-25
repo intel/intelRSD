@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,8 @@
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/eventing/event_service.hpp"
 #include "psme/rest/server/error/server_exception.hpp"
-#include "psme/rest/server/error/error_factory.hpp"
+#include "configuration/utils.hpp"
 
-#include <json/json.hpp>
 #include <fstream>
 
 
@@ -34,34 +33,46 @@ namespace rest {
 namespace eventing {
 namespace manager {
 
-std::uint64_t SubscriptionManager::id = 1;
+SubscriptionManager::SubscriptionManager() {
 
-void SubscriptionManager::set_subscriptions(const SubscriptionMap& subscriptions) {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    m_subscriptions = subscriptions;
-    // set next subscription id after the maximal of those in subscriptions
-    uint64_t max_id =
-        std::max_element(subscriptions.begin(), subscriptions.end(),
-                         [](const SubscriptionMap::value_type& a, const SubscriptionMap::value_type& b) {
-                             return a.first < b.first;
-                         })->first;
-    SubscriptionManager::id = max_id + 1;
-}
+    m_db = database::Database::create("Subscription");
 
-uint64_t SubscriptionManager::add(Subscription subscription) {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    auto found =  std::find_if(std::begin(m_subscriptions), std::end(m_subscriptions),
-                               [&subscription](const SubscriptionMap::value_type& v) {
-                                   return equal_subscriptions(v.second, subscription);
-                               });
-    if (found != std::end(m_subscriptions)) {
-        log_warning("rest", " subscription already exists: " << found->second.to_json()
-                            << "\n duplicated subscription id: " << id);
+    /* read all subscriptions from the DB */
+    database::IdValue id{};
+    database::String json{};
+    m_db->start();
+    while (m_db->next(id, json)) {
+        try {
+            json::Value root{};
+            if (configuration::string_to_json(json.get(), root)) {
+                /* don't check origin resources: endpoints might not be initialized yet */
+                Subscription subscription = Subscription::from_json(root, false);
+                subscription.set_id(id.get());
+                m_subscriptions[id.get()] = subscription;
+                /* make subscription valid */
+                m_db->put(id, json);
+                /* get new id for "new" subscription */
+                if (m_id < id.get()) {
+                    m_id = id.get();
+                }
+            }
+            else {
+                log_error("rest", "Cannot parse subscription " << id << ": " << json);
+                m_db->remove(id);
+            }
+        }
+        catch (const std::exception& e) {
+            log_error("rest", "Cannot add subscription " << id << ": " << e.what() << " " << json);
+            m_db->remove(id);
+        }
     }
-    subscription.set_id(id++);
-    m_subscriptions[subscription.get_id()] = subscription;
-    return subscription.get_id();
+    m_db->end();
 }
+
+SubscriptionManager::~SubscriptionManager() {
+    clean_up();
+}
+
 
 Subscription SubscriptionManager::get(uint64_t subscription_id) {
     std::lock_guard<std::mutex> lock{m_mutex};
@@ -73,9 +84,33 @@ Subscription SubscriptionManager::get(uint64_t subscription_id) {
     return it->second;
 }
 
-SubscriptionMap SubscriptionManager::get() {
+void SubscriptionManager::for_each(const SubscriptionCallback& handle) const {
     std::lock_guard<std::mutex> lock{m_mutex};
-    return m_subscriptions;
+    for (const auto& entry : m_subscriptions) {
+        handle(entry.second);
+    }
+}
+
+uint64_t SubscriptionManager::add(Subscription subscription) {
+    std::lock_guard<std::mutex> lock{m_mutex};
+
+    /* find first not used subscription ID */
+    while (m_subscriptions.count(++m_id) != 0);
+    subscription.set_id(m_id);
+
+    /* check for duplicates */
+    auto found = std::find_if(std::begin(m_subscriptions), std::end(m_subscriptions),
+        [&subscription](const SubscriptionMap::value_type& v) {
+            return equal_subscriptions(v.second, subscription);
+        });
+    if (found != std::end(m_subscriptions)) {
+        log_warning("rest", " subscription " << m_id << " has duplicate id=" << found->second.get_id()
+                                             << ": " << found->second.to_json());
+    }
+
+    m_db->put(database::IdValue(m_id), database::String(configuration::json_value_to_string(subscription.to_json())));
+    m_subscriptions[subscription.get_id()] = std::move(subscription);
+    return m_id;
 }
 
 void SubscriptionManager::del(uint64_t subscription_id) {
@@ -86,11 +121,7 @@ void SubscriptionManager::del(uint64_t subscription_id) {
             + std::to_string(subscription_id) + ") not found.");
     }
     m_subscriptions.erase(it);
-}
-
-uint32_t SubscriptionManager::size() {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    return static_cast<uint32_t>(m_subscriptions.size());
+    m_db->remove(database::IdValue(subscription_id));
 }
 
 void SubscriptionManager::notify(const Event& event) {
@@ -106,7 +137,12 @@ void SubscriptionManager::notify(const EventVec& events) {
     }
 }
 
-SubscriptionManager::~SubscriptionManager() { }
+void SubscriptionManager::clean_up() {
+    if (m_db) {
+        m_db->remove();
+        m_db.reset();
+    }
+}
 
 }
 }

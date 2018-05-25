@@ -2,7 +2,7 @@
  * @brief Processor builder class interface.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@
 
 #include "agent-framework/module/model/processor.hpp"
 #include "smbios/smbios_parser.hpp"
-
-
 
 namespace agent {
 namespace compute {
@@ -67,6 +65,18 @@ public:
      */
     static void update_smbios_fpga_data(agent_framework::model::Processor& processor,
                                         const smbios::parser::SmbiosParser::StructEnhanced<smbios::parser::SMBIOS_FPGA_DATA>& smbios_data);
+
+    /*!
+    * @brief Update processor object with SMBIOS FPGA data.
+    * @param processor Processor object to be filled with discovered data.
+    * @param smbios_data SMBIOS data.
+    */
+    static void update_smbios_fpga_data(agent_framework::model::Processor& processor,
+                                            const smbios::parser::SmbiosParser::StructEnhanced<smbios::parser::SMBIOS_FPGA_DATA_OEM>& smbios_data);
+
+
+
+
 };
 
 }

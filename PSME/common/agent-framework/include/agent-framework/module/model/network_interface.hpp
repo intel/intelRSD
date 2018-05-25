@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,7 @@ public:
 
     using Ipv6Addresses = attribute::Array<attribute::Ipv6Address>;
     using Ipv4Addresses = attribute::Array<attribute::Ipv4Address>;
+    using TransportProtocols = attribute::Array<enums::TransportProtocol>;
 
     NetworkInterface(const NetworkInterface&) = default;
     NetworkInterface& operator=(const NetworkInterface&) = default;
@@ -191,22 +192,6 @@ public:
     }
 
     /*!
-     * @brief Returns VLAN enable
-     * @return VLAN enable
-     * */
-    const OptionalField<bool>& get_vlan_enable() const {
-        return m_vlan_enable;
-    }
-
-    /*!
-     * @brief Set vlan enable
-     * @param[in] vlan_enable vlan enable
-     * */
-    void set_vlan_enable(const OptionalField<bool>& vlan_enable) {
-        m_vlan_enable = vlan_enable;
-    }
-
-    /*!
      * @brief Returns Ipv4 addresses.
      * @return Reference to Ipv4Addresses.
      * */
@@ -285,8 +270,7 @@ public:
      * @brief sets for Max IPv6 Static Addresses
      * @param max_ipv6_static_addresses Max IPv6 Static Addresses
      */
-    void set_max_ipv6_static_addresses(
-            const OptionalField<std::uint32_t>& max_ipv6_static_addresses) {
+    void set_max_ipv6_static_addresses(const OptionalField<std::uint32_t>& max_ipv6_static_addresses) {
         m_max_ipv6_static_addresses = max_ipv6_static_addresses;
     }
 
@@ -307,6 +291,25 @@ public:
         m_name = name;
     }
 
+
+    /*!
+     * @brief Get supported transport protocols
+     * @return array with supported transport protocols
+     */
+    const TransportProtocols& get_supported_transport_protocols() const {
+        return m_supported_transport_protocols;
+    }
+
+
+    /*!
+     * @brief Set supported transport protocols
+     * @param[in] supported_transport_protocols array with supported types of ethernet protocols
+     */
+    void set_supported_transport_protocols(const TransportProtocols& supported_transport_protocols) {
+        m_supported_transport_protocols = supported_transport_protocols;
+    }
+
+
 private:
 
     OptionalField<std::uint32_t> m_frame_size{};
@@ -319,10 +322,10 @@ private:
     Ipv6Addresses m_ipv6_addresses{};
     OptionalField<std::string> m_ipv6_default_gateway{};
     OptionalField<std::uint32_t> m_max_ipv6_static_addresses{};
-    OptionalField<bool> m_vlan_enable{};
     OptionalField<std::uint32_t> m_default_vlan{};
+    TransportProtocols m_supported_transport_protocols{};
 
-    /* agent-specific data used in psme-rmm */
+    /* agent-specific data used in psme-rmm and psme-storage */
     std::string m_name{};
 
     static const enums::CollectionName collection_name;

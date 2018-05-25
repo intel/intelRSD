@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,10 @@ public enum Protocol implements EnumeratedType {
     HTTP("HTTP", 15),
     HTTPS("HTTPS", 16),
     FTP("FTP", 17),
-    SFTP("SFTP", 18);
+    SFTP("SFTP", 18),
+    IWARP("iWARP", 19),
+    ROCE("RoCE", 20),
+    ROCEV2("RoCEv2", 21);
 
     private final String value;
     private final Integer priority;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @JsonPropertyOrder({
-    "@odata.id", "memberId", "name", "sensorNumber", "status",
-    "readingVolts", "upperThresholdNonCritical", "upperThresholdCritical", "upperThresholdFatal",
-    "lowerThresholdNonCritical", "lowerThresholdCritical", "lowerThresholdFatal", "minReadingRange",
-    "maxReadingRange", "physicalContext", "relatedItem"
+    "@odata.id", "memberId", "name", "sensorNumber", "status", "readingVolts", "upperThresholdNonCritical", "upperThresholdCritical", "upperThresholdFatal",
+    "lowerThresholdNonCritical", "lowerThresholdCritical", "lowerThresholdFatal", "minReadingRange", "maxReadingRange", "physicalContext", "relatedItem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class PowerVoltageDto implements Comparable<PowerVoltageDto> {
+    @JsonUnwrapped
+    @JsonProperty("@odata.id")
     private ODataId oDataId;
     private String memberId;
     private String name;
@@ -53,13 +53,11 @@ public final class PowerVoltageDto implements Comparable<PowerVoltageDto> {
     private PhysicalContext physicalContext;
     private List<Context> relatedItem = new ArrayList<>();
 
-    @JsonUnwrapped
-    @JsonProperty("@odata.id")
-    public ODataId getOdataId() {
+    public ODataId getoDataId() {
         return oDataId;
     }
 
-    public void setOdataId(ODataId oDataId) {
+    public void setoDataId(ODataId oDataId) {
         this.oDataId = oDataId;
     }
 

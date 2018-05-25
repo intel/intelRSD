@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,7 @@ public final class PathParamConstants {
     public static final String COMPOSED_NODE_ID = "composedNodeId";
     public static final String PROCESSOR_ID = "{processorId}";
     public static final String ETHERNET_INTERFACE_ID = "{ethernetInterfaceId}";
-    public static final String PHYSICAL_DRIVE_ID = "{physicalDriveId}";
-    public static final String LOGICAL_DRIVE_ID = "{logicalDriveId}";
-    public static final String REMOTE_TARGET_ID = "{remoteTargetId}";
+    public static final String VOLUME_ID = "{volumeId}";
     public static final String MANAGER_ID = "{managerId}";
     public static final String STORAGE_SERVICE_ID = "{storageServiceId}";
     public static final String CHASSIS_ID = "{chassisId}";
@@ -70,6 +68,9 @@ public final class PathParamConstants {
     public static final String PORT_METRICS_ID = "{portMetricsId}";
     public static final String ETHERNET_SWITCH_METRICS_ID = "{ethernetSwitchMetricsId}";
     public static final String ETHERNET_SWITCH_PORT_METRICS_ID = "{ethernetSwitchPortMetricsId}";
+    public static final String STORAGE_POOL_ID = "{storagePoolId}";
+    public static final String DRIVE_METRICS_ID = "{driveMetricsID}";
+    public static final String VOLUME_METRICS_ID = "{volumeMetricsID}";
 
     private static final List<String> TOPOLOGICALLY_ORDERED_PARAMETERS;
 
@@ -78,9 +79,8 @@ public final class PathParamConstants {
             COMPOSED_NODE_ID,
             MANAGER_ID,
             STORAGE_SERVICE_ID,
-            PHYSICAL_DRIVE_ID,
-            LOGICAL_DRIVE_ID,
-            REMOTE_TARGET_ID,
+            STORAGE_POOL_ID,
+            VOLUME_ID,
             CHASSIS_ID,
             COMPUTER_SYSTEM_ID,
             PROCESSOR_ID,
@@ -90,6 +90,8 @@ public final class PathParamConstants {
             MEMORY_ID,
             MEMORY_METRICS_ID,
             COMPUTER_SYSTEM_METRICS_ID,
+            DRIVE_METRICS_ID,
+            VOLUME_METRICS_ID,
             PROCESSOR_METRICS_ID,
             ETHERNET_SWITCH_ID,
             ETHERNET_SWITCH_METRICS_ID,

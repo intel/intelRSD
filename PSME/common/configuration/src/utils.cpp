@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +77,7 @@ bool configuration::string_to_json(const std::string& json_string,
 
     if (deserializer.is_invalid()) {
         auto error = deserializer.get_error();
-        log_error(GET_LOGGER("validator"),
+        log_error("validator",
                 "Parsing error:'" << error.decode() <<
                 "' at line:" << error.line <<
                 " column:" << error.column <<

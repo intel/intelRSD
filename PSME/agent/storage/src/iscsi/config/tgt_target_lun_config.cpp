@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,18 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
  */
 
 #include "iscsi/tgt/config/tgt_target_lun_config.hpp"
-#include "agent-framework/module/model/logical_drive.hpp"
 #include "agent-framework/module/storage_components.hpp"
 
 using namespace agent::storage::iscsi::tgt::config;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
-using namespace std;
 
 constexpr const char* TGT_CONFIG_PROPERTY_LUN = "lun";
 constexpr const char* TGT_CONFIG_PROPERTY_DEVICE_TYPE = "backing-store";
@@ -39,15 +34,16 @@ constexpr const char* SPACE = " ";
 constexpr const char* LT = "<";
 constexpr const char* GT = ">";
 
-const string TgtTargetLunConfig::to_string() const {
-    const auto drive = get_manager<LogicalDrive>().get_entry(m_lun.get_logical_drive());
-    const auto& device_path = drive.get_device_path();
+const std::string TgtTargetLunConfig::to_string() const {
+    const auto volume = get_manager<Volume>().get_entry(m_lun.get_logical_drive());
+    const auto& device_path = Identifier::get_system_path(volume);
     if (device_path.empty()) {
-        throw invalid_argument("Device path is empty");
+        throw std::invalid_argument("Device path is empty.");
     }
-    ostringstream content;
-    content << TAB << LT << TGT_CONFIG_PROPERTY_DEVICE_TYPE << SPACE << device_path << GT << endl;
-    content << TAB << TAB << TGT_CONFIG_PROPERTY_LUN << SPACE << m_lun.get_lun() << endl;
-    content << TAB << LT << "/" << TGT_CONFIG_PROPERTY_DEVICE_TYPE << GT << endl;
+
+    std::ostringstream content{};
+    content << TAB << LT << TGT_CONFIG_PROPERTY_DEVICE_TYPE << SPACE << device_path << GT << std::endl;
+    content << TAB << TAB << TGT_CONFIG_PROPERTY_LUN << SPACE << m_lun.get_lun() << std::endl;
+    content << TAB << LT << "/" << TGT_CONFIG_PROPERTY_DEVICE_TYPE << GT << std::endl;
     return content.str();
 }

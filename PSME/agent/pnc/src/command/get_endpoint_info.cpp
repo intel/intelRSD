@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,6 @@ using namespace agent_framework::model;
 REGISTER_COMMAND(GetEndpointInfo,
     [] (const GetEndpointInfo::Request& req, GetEndpointInfo::Response& rsp) {
         rsp = get_manager<Endpoint>().get_entry(req.get_uuid());
-        log_debug(GET_LOGGER("pnc-gami"), "Getting EndpointInfo successful.");
+        log_debug("pnc-gami", "Getting EndpointInfo successful.");
     }
 );

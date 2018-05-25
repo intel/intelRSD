@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,6 @@ ThermalZone ThermalZone::from_json(const json::Json& json) {
     zone.set_desired_speed_pwm(json[literals::ThermalZone::DESIRED_SPEED_PWM]);
     zone.set_collections(Collections::from_json(json[literals::ThermalZone::COLLECTIONS]));
     zone.set_oem(attribute::Oem::from_json(json[literals::ThermalZone::OEM]));
-    zone.set_resource_hash(json);
 
     return zone;
 }

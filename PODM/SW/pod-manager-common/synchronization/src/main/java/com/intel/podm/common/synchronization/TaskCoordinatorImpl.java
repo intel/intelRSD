@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
 
@@ -49,29 +50,28 @@ public class TaskCoordinatorImpl implements TaskCoordinator {
     private ScheduledExecutorService synchronizedTaskExecutor;
 
     @Override
-    public void registerAsync(Object synchronizationKey, Runnable task) {
+    public void registerAsync(UUID synchronizationKey, Runnable task) {
         executorsRegistry.getExecutor(synchronizationKey).executeAsync(task);
     }
 
     @Override
+    public <E extends Exception> void run(UUID synchronizationKey, ThrowingRunnable<E> task) throws TimeoutException, E {
+        run(synchronizationKey, configHolder.get().getMaxTimeToWaitForAsyncTaskSeconds(), task);
+    }
+
     @Metered(name = "coordinated-synchronous-tasks")
-    public <E extends Exception> void run(Object synchronizationKey, Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E {
+    private <E extends Exception> void run(Object synchronizationKey, Duration timeToWaitFor, ThrowingRunnable<E> task) throws TimeoutException, E {
         executorsRegistry.getExecutor(synchronizationKey).executeSync(timeToWaitFor, task);
     }
 
     @Override
-    public <E extends Exception> void run(Object synchronizationKey, ThrowingRunnable<E> task) throws TimeoutException, E {
-        run(synchronizationKey, configHolder.get().getMaxTimeToWaitForAsyncTaskSeconds(), task);
-    }
-
-    @Override
-    public <E extends Exception, R> R call(Object synchronizationKey, ThrowingCallable<R, E> task) throws TimeoutException, E {
+    public <E extends Exception, R> R call(UUID synchronizationKey, ThrowingCallable<R, E> task) throws TimeoutException, E {
         return run(synchronizationKey, configHolder.get().getMaxTimeToWaitForAsyncTaskSeconds(), task);
     }
 
     @Override
     @SuppressWarnings({"checkstyle:IllegalCatch"})
-    public void scheduleWithFixedDelay(Object synchronizationKey, Runnable task, Duration initialDelay, Duration delay) {
+    public void scheduleWithFixedDelay(UUID synchronizationKey, Runnable task, Duration initialDelay, Duration delay) {
         schedule(synchronizationKey, () -> {
             try {
                 task.run();
@@ -87,7 +87,7 @@ public class TaskCoordinatorImpl implements TaskCoordinator {
         return executorsRegistry.getExecutor(synchronizationKey).executeSync(timeToWaitFor, task);
     }
 
-    private void schedule(Object synchronizationKey, Runnable task, Duration delay) {
+    private void schedule(UUID synchronizationKey, Runnable task, Duration delay) {
         synchronizedTaskExecutor.schedule(() -> registerAsync(synchronizationKey, task), delay.toMillis(), MILLISECONDS);
     }
 }

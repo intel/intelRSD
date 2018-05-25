@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ using namespace agent_framework::model;
 
 REGISTER_COMMAND(GetProcessorInfo,
     [] (const GetProcessorInfo::Request& req, GetProcessorInfo::Response& rsp) {
-        log_debug(GET_LOGGER("agent"), "Getting processor info.");
+        log_debug("agent", "Getting processor info.");
         rsp = get_manager<Processor>().get_entry(req.get_uuid());
     }
 );

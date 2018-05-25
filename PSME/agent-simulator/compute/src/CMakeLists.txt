@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ include_directories(
     ${LIBXMLPP_INCLUDE_DIRS}
 )
 
-add_subdirectory(discovery)
 add_subdirectory(asset_configuration)
 add_subdirectory(command)
 
@@ -39,18 +38,20 @@ add_library(asset_configuration
     $<TARGET_OBJECTS:asset_configuration_impl>
 )
 
-add_library(common-discovery
-    $<TARGET_OBJECTS:discovery-impl>
-)
-
 add_executable(psme-compute-simulator
     loader/compute_loader.cpp
     main.cpp
 )
 
+generate_default_config_file(
+    main.cpp
+    agent
+    generic
+    "AGENT_COMPUTE_CONFIGURATION_FILE"
+)
+
 target_link_libraries(psme-compute-simulator
     ${PSME_COMPUTE_SIMULATOR_LIBRARIES}
-    common-discovery
     asset_configuration
     ${AGENT_FRAMEWORK_LIBRARIES}
     ${UUID_LIBRARIES}

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,8 +33,8 @@ json::Value make_prototype() {
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Fabric.Fabric";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#Fabric.v1_0_0.Fabric";
-    r[Common::NAME] = "PCIe Fabric";
-    r[Common::DESCRIPTION] = "PCIe Fabric";
+    r[Common::NAME] = "Fabric";
+    r[Common::DESCRIPTION] = "Fabric";
     r[Common::ID] = json::Value::Type::NIL;
 
     r[constants::Fabric::MAX_ZONES] = json::Value::Type::NIL;

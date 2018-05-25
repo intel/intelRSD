@@ -18,7 +18,8 @@
         <Annotation Term="OData.Description" String="A Collection of Manager resource instances."/>
         <NavigationProperty Name="Members" Type="Collection(Manager.Manager)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Contains the members of this collection."/>
+          <Annotation Term="OData.Description" String="Collection of managers."/>
+          <Annotation Term="OData.LongDescription" String="Collection of managers."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </EntityType>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,10 @@ package com.intel.podm.redfish.json.templates.actions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.common.types.AdministrativeState;
+import com.intel.podm.common.types.DcbxState;
 import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort;
+
+import java.util.List;
 
 @SuppressWarnings({"checkstyle:VisibilityModifier"})
 public class UpdateEthernetSwitchPortActionJson implements RedfishEthernetSwitchPort {
@@ -33,6 +36,15 @@ public class UpdateEthernetSwitchPortActionJson implements RedfishEthernetSwitch
 
     @JsonProperty("Autosense")
     public Boolean autosense;
+
+    @JsonProperty("DCBXState")
+    public DcbxState dcbxState;
+
+    @JsonProperty("LLDPEnabled")
+    public Boolean lldpEnabled;
+
+    @JsonProperty("PriorityFlowControl")
+    public PriorityFlowControl priorityFlowControl;
 
     @JsonProperty("Links")
     public EthernetSwitchPortLinksJson links = new EthernetSwitchPortLinksJson();
@@ -58,7 +70,40 @@ public class UpdateEthernetSwitchPortActionJson implements RedfishEthernetSwitch
     }
 
     @Override
+    public DcbxState getDcbxState() {
+        return dcbxState;
+    }
+
+    @Override
+    public Boolean getLldpEnabled() {
+        return lldpEnabled;
+    }
+
+    @Override
+    public PriorityFlowControl getPriorityFlowControl() {
+        return priorityFlowControl;
+    }
+
+    @Override
     public RedfishEthernetSwitchPort.Links getLinks() {
         return links;
+    }
+
+    public static class PriorityFlowControl implements RedfishEthernetSwitchPort.PriorityFlowControl {
+        @JsonProperty("Enabled")
+        public Boolean enabled;
+
+        @JsonProperty("EnabledPriorities")
+        public List<Integer> enabledPriorities;
+
+        @Override
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        @Override
+        public List<Integer> getEnabledPriorities() {
+            return enabledPriorities;
+        }
     }
 }

@@ -30,6 +30,11 @@ class ServiceTypes:
     RMM_2_2  = "RMM_2_2"
     SS_2_2   = "SS_2_2"
 
+    PODM_2_3 = "PODM_2_3"
+    PSME_2_3 = "PSME_2_3"
+    RMM_2_3  = "RMM_2_3"
+    SS_2_3   = "SS_2_3"
+
 
     @staticmethod
     def all():
@@ -57,6 +62,10 @@ class ServiceTypes:
                 ServiceTypes.PSME_2_2,
                 ServiceTypes.RMM_2_2,
                 ServiceTypes.SS_2_2,
+                ServiceTypes.PODM_2_3,
+                ServiceTypes.PSME_2_3,
+                ServiceTypes.RMM_2_3,
+                ServiceTypes.SS_2_3,
                 ]
 
     @staticmethod

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,29 +27,15 @@
 
 using namespace psme::rest::server;
 
-namespace {
-    ConnectorOptionsVec load_connectors_options() {
-        const json::Value& config = configuration::Configuration::get_instance().to_json();
-        const auto& connectors_config = config["server"]["connectors"];
-        ConnectorOptionsVec options{};
-        for (const auto& connector_config : connectors_config) {
-            options.emplace_back(ConnectorOptions{connector_config});
-        }
-        if (options.empty()) {
-            throw std::runtime_error("No valid connector configuration found.");
-        }
-        return options;
-    }
-}
-
 RestServer::RestServer() {
-    auto options = load_connectors_options();
+    const json::Value& config = configuration::Configuration::get_instance().to_json();
+    auto connectors_options = load_connectors_options(config);
 
     endpoint::EndpointBuilder endpoint_builder;
     endpoint_builder.build_endpoints();
 
     ConnectorFactory connector_factory{};
-    for (const auto& connector_options: options) {
+    for (const auto& connector_options: connectors_options) {
         m_connectors.emplace_back(
             connector_factory.create_connector(connector_options,
                 [](const Request& req, Response& res) {
@@ -61,17 +47,17 @@ RestServer::RestServer() {
 RestServer::~RestServer() { }
 
 void RestServer::start() {
-    log_info(GET_LOGGER("rest"), "Starting REST server ...");
+    log_info("rest", "Starting REST server ...");
     for (const auto& connector : m_connectors) {
         connector->start();
     }
-    log_info(GET_LOGGER("rest"), "REST server started.");
+    log_info("rest", "REST server started.");
 }
 
 void RestServer::stop() {
-    log_info(GET_LOGGER("rest"), "Stopping REST server ...");
+    log_info("rest", "Stopping REST server ...");
     for (const auto& connector : m_connectors) {
         connector->stop();
     }
-    log_info(GET_LOGGER("rest"), "REST server stopped.");
+    log_info("rest", "REST server stopped.");
 }

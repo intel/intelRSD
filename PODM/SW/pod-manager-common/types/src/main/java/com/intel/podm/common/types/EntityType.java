@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ public enum EntityType implements EnumeratedType {
     ROOT_COMPLEX("RootComplex"),
     NETWORK_CONTROLLER("NetworkController"),
     DRIVE("Drive"),
+    SYSTEM("System"),
+    VOLUME("Volume"),
     STORAGE_EXPANDER("StorageExpander"),
     DISPLAY_CONTROLLER("DisplayController"),
     BRIDGE("Bridge"),

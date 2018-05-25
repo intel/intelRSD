@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -110,15 +110,15 @@ namespace {
         SwitchPortInfoImpl port_info(port.get_port_identifier());
         port_info.get_switch_port_attribute(SwitchPortInfo::MACADDRESS, value);
         if (value.is_set()) {
-            port.set_mac_address(string(value));
+            port.set_mac_address(std::string(value));
         }
         port_info.get_switch_port_attribute(SwitchPortInfo::IPV4ADDRESS, value);
-        if (value.is_set() && !string(value).empty()) {
+        if (value.is_set() && !std::string(value).empty()) {
             attribute::Ipv4Address ipv4{};
-            ipv4.set_address(string(value));
+            ipv4.set_address(std::string(value));
             port_info.get_switch_port_attribute(SwitchPortInfo::IPV4SUBNETMASK,
                                                 value);
-            ipv4.set_subnet_mask(string(value));
+            ipv4.set_subnet_mask(std::string(value));
             port.set_ipv4_address(ipv4);
         }
         port_info.get_switch_port_attribute(SwitchPortInfo::AUTOSENSE, value);
@@ -155,11 +155,11 @@ namespace {
         port_info.get_switch_port_attribute(SwitchPortInfo::ADMINISTRATIVESTATE,
                                             value);
         port.set_administrative_state(AdministrativeState::from_string(
-                                            string(value)));
+                                            std::string(value)));
         port_info.get_switch_port_attribute(SwitchPortInfo::OPERATIONALSTATE,
                                             value);
         port.set_operational_state(OperationalState::from_string(
-                                            string(value)));
+                                            std::string(value)));
         /* get port speed thru Netlink API */
         port_info.get_switch_port_attribute(SwitchPortInfo::LINKSPEEDMBPS,
                                             value);
@@ -172,7 +172,6 @@ namespace {
         auto network_components = NetworkComponents::get_instance();
         auto& port_manager = network_components->get_port_manager();
         auto port_model = port_manager.get_entry(request.get_uuid());
-
         if (PortClass::Logical == port_model.get_port_class()) {
             /* get logical port info */
             get_logical_port_attributes(port_model);

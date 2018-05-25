@@ -2,7 +2,7 @@
  * @brief Provides implementation of ComputeTreeStabilizer class
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,7 +84,7 @@ const std::string ComputeTreeStabilizer::stabilize_network_device_function(
         return network_device_function_persistent_uuid;
     }
     else {
-        log_key_value_missing(network_device_function.get_component().to_string(), network_device_function_uuid);
+        agent_framework::log_key_value_missing(network_device_function.get_component().to_string(), network_device_function_uuid);
         return network_device_function_uuid;
     }
 }
@@ -114,7 +114,7 @@ const std::string ComputeTreeStabilizer::stabilize_network_device(const std::str
         return network_device_persistent_uuid;
     }
     else {
-        log_key_value_missing(network_device.get_component().to_string(), network_device_uuid);
+        agent_framework::log_key_value_missing(network_device.get_component().to_string(), network_device_uuid);
         return network_device_uuid;
     }
 }
@@ -135,7 +135,7 @@ const std::string ComputeTreeStabilizer::stabilize_storage_controller(const std:
         return storage_controller_persistent_uuid;
     }
     else {
-        log_key_value_missing(storage_controller.get_component().to_string(), storage_controller_uuid);
+        agent_framework::log_key_value_missing(storage_controller.get_component().to_string(), storage_controller_uuid);
         return storage_controller_uuid;
     }
 }
@@ -165,7 +165,7 @@ const std::string ComputeTreeStabilizer::stabilize_storage_subsystem(const std::
         return storage_subsystem_persistent_uuid;
     }
     else {
-        log_key_value_missing(storage_subsystem.get_component().to_string(), storage_subsystem_uuid);
+        agent_framework::log_key_value_missing(storage_subsystem.get_component().to_string(), storage_subsystem_uuid);
         return storage_subsystem_uuid;
     }
 }
@@ -186,7 +186,7 @@ const std::string ComputeTreeStabilizer::stabilize_nic(const std::string& nic_uu
         return nic_persistent_uuid;
     }
     else {
-        log_key_value_missing(nic.get_component().to_string(), nic_uuid);
+        agent_framework::log_key_value_missing(nic.get_component().to_string(), nic_uuid);
         return nic_uuid;
     }
 }
@@ -208,7 +208,7 @@ const std::string ComputeTreeStabilizer::stabilize_memory(const std::string& mem
         return memory_persistent_uuid;
     }
     else {
-        log_key_value_missing(memory.get_component().to_string(), memory_uuid);
+        agent_framework::log_key_value_missing(memory.get_component().to_string(), memory_uuid);
         return memory_uuid;
     }
 }
@@ -229,7 +229,7 @@ const std::string ComputeTreeStabilizer::stabilize_processor(const std::string& 
         return processor_persistent_uuid;
     }
     else {
-        log_key_value_missing(processor.get_component().to_string(), processor_uuid);
+        agent_framework::log_key_value_missing(processor.get_component().to_string(), processor_uuid);
         return processor_uuid;
     }
 }
@@ -250,7 +250,7 @@ const std::string ComputeTreeStabilizer::stabilize_trusted_module(const std::str
         return persistent_uuid;
     }
     else {
-        log_key_value_missing(module.get_component().to_string(), uuid);
+        agent_framework::log_key_value_missing(module.get_component().to_string(), uuid);
         return uuid;
     }
 }
@@ -314,7 +314,7 @@ const std::string ComputeTreeStabilizer::stabilize_system(const std::string& sys
         return system_persistent_uuid;
     }
     else {
-        log_key_value_missing(system.get_component().to_string(), system_uuid);
+        agent_framework::log_key_value_missing(system.get_component().to_string(), system_uuid);
         return system_uuid;
     }
 }
@@ -335,7 +335,7 @@ const std::string ComputeTreeStabilizer::stabilize_drive(const std::string& driv
         return drive_persistent_uuid;
     }
     else {
-        log_key_value_missing(drive.get_component().to_string(), drive_uuid);
+        agent_framework::log_key_value_missing(drive.get_component().to_string(), drive_uuid);
         return drive_uuid;
     }
 }
@@ -366,7 +366,7 @@ const std::string ComputeTreeStabilizer::stabilize_chassis(const std::string& ch
         return chassis_persistent_uuid;
     }
     else {
-        log_key_value_missing(chassis.get_component().to_string(), chassis_uuid);
+        agent_framework::log_key_value_missing(chassis.get_component().to_string(), chassis_uuid);
         return chassis_uuid;
     }
 }
@@ -401,7 +401,7 @@ const std::string ComputeTreeStabilizer::stabilize(const std::string& module_uui
         return module_persistent_uuid;
     }
     else {
-        log_key_value_missing(module.get_component().to_string(), module_uuid);
+        agent_framework::log_key_value_missing(module.get_component().to_string(), module_uuid);
         return module_uuid;
     }
 }

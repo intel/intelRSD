@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
  * limitations under the License.
  *
  * @file sysfs/sysfs_reader.hpp
- * @brief SysfsReader - implementation of the SysfsReaderInterface common sysfs lib
+ * @brief SysfsReader - implementation of the SysfsReaderInterface using common sysfs lib
  * */
 
 #pragma once

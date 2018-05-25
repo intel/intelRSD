@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@
 set(SOURCES
     # Interface
     switch_port_info.cpp
+    switch_port_info_impl.cpp
     switch_info.cpp
+    switch_info_impl.cpp
+    switch_agent.cpp
     remote_switch_info.cpp
-    #acl.cpp
     static_mac.cpp
 )
 
@@ -34,4 +36,8 @@ add_library(hal OBJECT ${SOURCES})
 
 if (BUILD_EOS_SDK)
     add_subdirectory(eos_sdk)
+endif()
+
+if (BUILD_EOS_EAPI)
+    add_subdirectory(eos_eapi)
 endif()

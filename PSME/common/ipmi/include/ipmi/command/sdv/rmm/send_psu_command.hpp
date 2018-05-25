@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,14 +53,17 @@ public:
     };
 
     enum class Command : std::uint8_t {
+        PAGE = 0x00,
         OPERATION = 0x01,
+        CLEAR_FAULTS = 0x03,
         STATUS_WORD = 0x79,
         READ_POUT = 0x96,
         MFR_ID = 0x99,
         MFR_MODEL = 0x9A,
         MFR_REVISION = 0x9B,
         MFR_SERIAL = 0x9E,
-        MFR_POUT_MAX = 0xA7
+        MFR_POUT_MAX = 0xA7,
+        MFR_PSU_STA = 0xE7
     };
 
     /*!
@@ -93,27 +96,65 @@ private:
     void pack(IpmiInterface::ByteBuffer& data) const override;
 };
 
-class SendPsuReadStatusWord : public SendPsuCommand {
+
+/*!
+ * @brief Command to clear STATUS_WORD registry
+ * @warning Doesn't work with DPST-2400CB A
+ */
+class SendPsuClearFaults : public SendPsuCommand {
 public:
     /*!
      * @brief Constructor
      */
+    SendPsuClearFaults();
+    SendPsuClearFaults(const SendPsuClearFaults&) = default;
+    SendPsuClearFaults(SendPsuClearFaults&&) = default;
+
+    virtual ~SendPsuClearFaults();
+
+    virtual const char* get_command_name() const override {
+        return "SendPsuClearFaults";
+    }
+
+protected:
+    void pack_fields(IpmiInterface::ByteBuffer& data) const override;
+
+private:
+    static constexpr const std::uint8_t REQUEST_DATA_SIZE = 1;
+};
+
+
+class SendPsuReadStatusWord : public SendPsuCommand {
+public:
     SendPsuReadStatusWord();
-
-
     SendPsuReadStatusWord(const SendPsuReadStatusWord&) = default;
-
-
     SendPsuReadStatusWord(SendPsuReadStatusWord&&) = default;
-
 
     virtual ~SendPsuReadStatusWord();
 
     virtual const char* get_command_name() const override {
         return "SendPsuReadStatusWord";
     }
-
 };
+
+
+/*!
+ * @brief Read data from MFR PSU STA registry
+ * @warning This is extended interface available with DPST-2400CB A
+ */
+class SendPsuReadMfrPsuSta : public SendPsuCommand {
+public:
+    SendPsuReadMfrPsuSta();
+    SendPsuReadMfrPsuSta(const SendPsuReadMfrPsuSta&) = default;
+    SendPsuReadMfrPsuSta(SendPsuReadMfrPsuSta&&) = default;
+
+    virtual ~SendPsuReadMfrPsuSta();
+
+    virtual const char* get_command_name() const override {
+        return "SendPsuReadMfrPsuSta";
+    }
+};
+
 
 class SendPsuReadPowerOutput : public SendPsuCommand {
 public:
@@ -302,17 +343,34 @@ public:
     virtual const char* get_command_name() const override {
         return "SendPsuWriteOperation";
     }
-
-protected:
-    void pack_fields(IpmiInterface::ByteBuffer& data) const override;
-
-
-private:
 };
 
 }
 
+
 namespace response {
+
+class SendPsuClearFaults : public Response {
+public:
+    /*!
+     * @brief Constructor
+     */
+    SendPsuClearFaults();
+    SendPsuClearFaults(const SendPsuClearFaults&) = default;
+    SendPsuClearFaults(SendPsuClearFaults&&) = default;
+
+    virtual ~SendPsuClearFaults();
+
+    virtual const char* get_command_name() const override {
+        return "SendPsuClearFaults";
+    }
+
+private:
+    static constexpr const std::size_t RESP_SIZE = 1;
+
+    void unpack(const IpmiInterface::ByteBuffer& data) override;
+};
+
 
 class SendPsuReadStatusWord : public Response {
 public:
@@ -355,6 +413,84 @@ private:
     std::uint16_t m_status_word{0};
     bool m_warnings_present{false};
 
+
+    void unpack(const IpmiInterface::ByteBuffer& data) override;
+};
+
+class SendPsuReadMfrPsuSta : public Response {
+public:
+    SendPsuReadMfrPsuSta();
+    SendPsuReadMfrPsuSta(const SendPsuReadMfrPsuSta&) = default;
+    SendPsuReadMfrPsuSta(SendPsuReadMfrPsuSta&&) = default;
+
+    virtual ~SendPsuReadMfrPsuSta();
+
+    virtual const char* get_command_name() const override {
+        return "SendPsuReadMfrPsuSta";
+    }
+
+    /*!
+     * @brief Gets raw ALM_STA value
+     * @return Raw ALM_STA value
+     */
+    std::uint32_t get_alm_sta() const {
+        return m_alm_sta;
+    }
+
+    /*!
+     * @brief Checks if AC has failed
+     * @return true if AC has failed
+     */
+    bool ac_has_failed() const;
+
+    /*!
+     * @brief Checks if any error flags are present
+     * @return True if any error flag is set
+     */
+    bool errors_present() const;
+
+    /*
+     * @brief Checks if any warning flags are present
+     * @return True if any warning flag is set
+     */
+    bool warnings_present() const;
+
+private:
+    static constexpr const std::size_t RESP_SIZE = 6;
+
+    // ALM_STA0
+    static constexpr const std::uint32_t PSON_FAULT        = 0x80;
+    static constexpr const std::uint32_t SHORT_PIN_FAULT   = 0x40;
+    static constexpr const std::uint32_t NTC_OT_FAULT      = 0x20;
+    static constexpr const std::uint32_t IOUT_OC_FAULT     = 0x10;
+    static constexpr const std::uint32_t STDBY_OV_FAULT    = 0x08;
+    static constexpr const std::uint32_t STDBY_UV_FAULT    = 0x04;
+    static constexpr const std::uint32_t HW_OV_FAULT       = 0x02;
+    static constexpr const std::uint32_t VOUT_UV_FAULT     = 0x01;
+
+    // ALM_STA1
+    // Bits 7..5 Reserved
+    static constexpr const std::uint32_t SR2_OT_FAULT    = 0x1000;
+    static constexpr const std::uint32_t SR1_OT_FAULT    = 0x0800;
+    static constexpr const std::uint32_t VOUT_OV_FAULT   = 0x0400;
+    static constexpr const std::uint32_t FAN_FAULT       = 0x0200;
+    static constexpr const std::uint32_t FAN_WARN        = 0x0100;
+
+    // ALM_STA2
+    static constexpr const std::uint32_t DD_OT_FAULT   = 0x800000;
+    static constexpr const std::uint32_t PFC_OT_FAULT  = 0x400000;
+    static constexpr const std::uint32_t OT_FAULT      = 0x200000;
+    static constexpr const std::uint32_t OT_WARN       = 0x100000;
+    static constexpr const std::uint32_t VIN1_OV_FAULT = 0x080000;
+    static constexpr const std::uint32_t VIN1_UV_FAULT = 0x040000;
+    static constexpr const std::uint32_t VIN0_OV_FAULT = 0x020000;
+    static constexpr const std::uint32_t VIN0_UV_FAULT = 0x010000;
+
+    // ALM_STA3
+    // All bits reserved
+
+    std::uint32_t m_alm_sta{};
+    std::uint8_t m_ac_status{};
 
     void unpack(const IpmiInterface::ByteBuffer& data) override;
 };

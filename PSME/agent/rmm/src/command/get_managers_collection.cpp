@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,5 +30,5 @@ REGISTER_COMMAND(GetManagersCollection, [](const GetManagersCollection::Request&
     for (const auto& key : keys) {
         response.add_entry(agent_framework::model::attribute::ManagerEntry{key});
     }
-    log_debug(GET_LOGGER("rmm-agent"), "Getting ManagerCollection successful.");
+    log_debug("rmm-agent", "Getting ManagerCollection successful.");
 });

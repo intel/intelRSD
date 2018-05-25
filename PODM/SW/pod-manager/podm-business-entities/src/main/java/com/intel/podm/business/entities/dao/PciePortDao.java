@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static com.intel.podm.business.entities.redfish.Port.GET_PORTS_BY_PCIE_CONNECTION_ID;
-import static com.intel.podm.common.types.EntityType.ROOT_COMPLEX;
+import static com.intel.podm.common.types.EntityRole.INITIATOR;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static javax.transaction.Transactional.TxType.MANDATORY;
@@ -58,7 +57,7 @@ public class PciePortDao extends Dao<Port> {
 
     @Transactional(MANDATORY)
     public Collection<Port> getUpstreamPortsByDiscoverableEntity(DiscoverableEntity entity) {
-        return Stream.of(entity.getConnectedEntity())
+        return entity.getEntityConnections().stream()
             .filter(Objects::nonNull)
             .map(connectedEntity -> connectedEntity.getEndpoint().getZone())
             .filter(Objects::nonNull)
@@ -66,7 +65,7 @@ public class PciePortDao extends Dao<Port> {
             .flatMap(Collection::stream)
             .map(Endpoint::getConnectedEntities)
             .flatMap(Collection::stream)
-            .filter(connectedEntity -> Objects.equals(ROOT_COMPLEX, connectedEntity.getEntityType()))
+            .filter(connectedEntity -> Objects.equals(INITIATOR, connectedEntity.getEntityRole()))
             .map(ConnectedEntity::getEndpoint)
             .map(Endpoint::getPorts)
             .flatMap(Collection::stream)

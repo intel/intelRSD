@@ -22,6 +22,7 @@
  * @section DESCRIPTION
 """
 import re
+import pickle
 
 from pandas import concat, DataFrame
 from pandas.io.json import json_normalize
@@ -338,3 +339,7 @@ class DiscoveryContainer(dict):
                 cts_error('References to unknown resources: {refs}', refs=', '.join(diff))
 
         return resources
+
+    def dump_content(self, filename):
+        with open(filename, 'wb') as f:
+            pickle.dump(dict(self), f, 0)

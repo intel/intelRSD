@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,6 +59,8 @@ using GetNetworkInterfaceInfo = Command<model::requests::GetNetworkInterfaceInfo
 using GetNetworkDeviceInfo = Command<model::requests::GetNetworkDeviceInfo, model::NetworkDevice>;
 using GetNetworkDeviceFunctionInfo = Command<model::requests::GetNetworkDeviceFunctionInfo, model::NetworkDeviceFunction>;
 using GetProcessorInfo = Command<model::requests::GetProcessorInfo, model::Processor>;
+using GetPcieDeviceInfo = Command<model::requests::GetPcieDeviceInfo, model::PcieDevice>;
+using GetPcieFunctionInfo = Command<model::requests::GetPcieFunctionInfo, model::PcieFunction>;
 using GetStorageControllerInfo = Command<model::requests::GetStorageControllerInfo, model::StorageController>;
 using GetSystemInfo = Command<model::requests::GetSystemInfo, model::System>;
 using GetStorageSubsystemInfo = Command<model::requests::GetStorageSubsystemInfo, model::StorageSubsystem>;

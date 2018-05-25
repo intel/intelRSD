@@ -1,21 +1,24 @@
 {
   "ConnectionConfiguration": {
     "ServiceConnectionTimeoutInSeconds": 10,
-    "ServiceSocketTimeoutInSeconds": 10
+    "ServiceSocketTimeoutInSeconds": 10,
+    "ConnectionPoolSize": 200,
+    "MaxPooledPerRoute": 20
   },
   "ConnectionSecurity": {
     "SslEnabledForRmm": true,
-    "SslPortsForRmm": [ 8443, 8091 ],
-    "DefaultPortsForRmm": [ 8888, 8090 ],
+    "SslPortsForRmm": [ 8443 ],
+    "HttpPortsForRmm": [ 8888 ],
     "SslEnabledForPsme": true,
-    "SslPortsForPsme": [ 8443, 50000 ],
-    "DefaultPortsForPsme": [ 8888, 50000 ],
+    "SslPortsForPsme": [ 8443 ],
+    "HttpPortsForPsme": [ 8888 ],
     "SslEnabledForRss": true,
     "SslPortsForRss": [ 8443 ],
-    "DefaultPortsForRss": [ 8888 ],
+    "HttpPortsForRss": [ 8888 ],
     "SslEnabledForLui": true,
     "SslPortsForLui": [ 8443 ],
-    "DefaultPortsForLui": [ 8888 ],
-    "SslPortsForInBand": [ 8448 ]
+    "HttpPortsForLui": [ 8888 ],
+    "SslPortsForInBand": [ 8448 ],
+    "SslPortsForDiscoveryService": [ 8444 ]
   }
 }

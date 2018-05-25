@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.intel.podm.business.redfish.services.assembly.tasks;
 
 import com.intel.podm.common.enterprise.utils.logger.TimeMeasured;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
+import com.intel.podm.common.enterprise.utils.retry.RetryOnRollback;
 import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
 
 import javax.interceptor.Interceptors;
@@ -37,7 +37,7 @@ public abstract class NodeRemovalTask extends NodeTask {
     public abstract void deallocate();
 
     @Override
-    @NumberOfRetriesOnRollback(3)
+    @RetryOnRollback(3)
     @Interceptors(RetryOnRollbackInterceptor.class)
     @Transactional(REQUIRES_NEW)
     @TimeMeasured(tag = "[NodeRemovalTask]")

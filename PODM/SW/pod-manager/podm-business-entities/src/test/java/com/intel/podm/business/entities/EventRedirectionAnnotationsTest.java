@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.intel.podm.common.utils.ClassGatherer.getAllClassesByPackageAndAnnotation;
+import static org.apache.commons.lang3.reflect.FieldUtils.getFieldsListWithAnnotation;
+import static org.apache.commons.lang3.reflect.MethodUtils.getMethodsListWithAnnotation;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.reflect.FieldUtils.getFieldsListWithAnnotation;
-import static org.apache.commons.lang3.reflect.MethodUtils.getMethodsListWithAnnotation;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.collection.IsMapContaining.hasValue;

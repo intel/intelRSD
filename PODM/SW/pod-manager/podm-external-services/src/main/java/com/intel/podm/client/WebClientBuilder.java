@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,14 +36,16 @@ import java.net.URI;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.UPPER_CAMEL_CASE;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder.HostnameVerificationPolicy.ANY;
 
 @Dependent
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class WebClientBuilder {
-
     private SslContextProvider sslContextProvider;
     private ConnectionParameters connectionParameters;
+    private final ResteasyJackson2Provider jackson2Provider = initializeProvider();
 
     @Inject
     public WebClientBuilder(@Config Holder<ServiceConnectionConfig> configHolder, SslContextProvider sslContextProvider) {
@@ -61,15 +63,9 @@ public class WebClientBuilder {
      * @return configured client with jackson provider
      */
     private Client getClientWithJacksonProvider() {
-        ResteasyJackson2Provider jackson2Provider = new ResteasyJackson2Provider();
-        ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .registerModule(new SerializersProvider().getSerializersModule())
-            .disable(FAIL_ON_UNKNOWN_PROPERTIES)
-            .enable(FAIL_ON_NULL_FOR_PRIMITIVES);
-        jackson2Provider.setMapper(mapper);
-
         ResteasyClientBuilder clientBuilder = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder())
+            .connectionPoolSize(connectionParameters.getConnectionPoolSize())
+            .maxPooledPerRoute(connectionParameters.getMaxPooledPerRoute())
             .register(jackson2Provider)
             .sslContext(sslContextProvider.getContext())
             .hostnameVerification(ANY);
@@ -79,6 +75,19 @@ public class WebClientBuilder {
             .socketTimeout(connectionParameters.getServiceSocketTimeout(), SECONDS);
 
         return clientBuilder.build();
+    }
+
+    private ResteasyJackson2Provider initializeProvider() {
+        ResteasyJackson2Provider jackson2Provider = new CustomResteasyJackson2Provider();
+        ObjectMapper mapper = new ObjectMapper()
+            .setPropertyNamingStrategy(UPPER_CAMEL_CASE)
+            .registerModule(new JavaTimeModule())
+            .registerModule(new SerializersProvider().getSerializersModule())
+            .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+            .enable(FAIL_ON_NULL_FOR_PRIMITIVES);
+        jackson2Provider.setMapper(mapper);
+
+        return jackson2Provider;
     }
 
     public class Builder {
@@ -115,5 +124,14 @@ public class WebClientBuilder {
             }
             return webClient;
         }
+    }
+
+    public class CustomResteasyJackson2Provider extends ResteasyJackson2Provider {
+        /*
+         * Workaround for:
+         *
+         * RESTEASY002155: Provider class org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider is already registered.
+         *     2nd registration is being ignored.
+         */
     }
 }

@@ -1,0 +1,44 @@
+{
+    "service" : "nvme",
+    "agent": {
+        "vendor" : "Intel Corporation",
+        "capabilities" : [ "NVMe" ]
+    },
+    "server": {
+        "port": 7782
+    },
+    "registration": {
+        "ipv4": "127.0.0.1",
+        "port": 8383,
+        "interval": 3
+    },
+    "managers": [
+        {
+            "ipv4": "127.0.0.1",
+            "locationOffset": 10,
+            "parentId": "1",
+            "nic-drivers": "ixgbe i40e mlx5_core mlx4_core",
+            "is-target": true,
+            "rdma-port": 4420
+        }
+    ],
+    "database": {
+        "location": "/var/opt/psme/nvme"
+    },
+    "loggers" : [
+        {
+            "name" : "nvme-agent",
+            "level" : "INFO",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type" : "STDOUT"
+                }
+            ]
+        }
+    ]
+}

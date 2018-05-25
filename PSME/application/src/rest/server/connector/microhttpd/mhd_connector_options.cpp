@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,8 @@ extern "C" {
 #include "microhttpd.h"
 }
 #include "logger/logger_factory.hpp"
-
+#include "net/network_interface.hpp"
+#include "net/socket_address.hpp"
 #include <thread>
 
 using namespace psme::rest::server;
@@ -51,8 +52,11 @@ public:
 private:
     unsigned int m_flags{0};
     std::vector<MHD_OptionItem> m_option_array{};
+    net::SocketAddress m_socket_address{};
 
     void init_flags_and_options(const ConnectorOptions& options) {
+
+        init_socket_address(options);
 
         init_threading_mode(options);
 
@@ -76,7 +80,7 @@ private:
             if (0 == thread_pool_size) {
                 thread_pool_size = std::max(std::thread::hardware_concurrency(), 1u);
             }
-            log_debug(GET_LOGGER("rest"), "connector on port " << options.get_port()
+            log_debug("rest", "connector on port " << options.get_port()
                     << " thread_pool_size: " << thread_pool_size);
             m_option_array.emplace_back(MHD_OptionItem{
                 MHD_OPTION_THREAD_POOL_SIZE,
@@ -120,6 +124,18 @@ private:
             }
 #endif
         }
+    }
+
+    void init_socket_address(const ConnectorOptions& options) {
+        auto iface = net::NetworkInterface::for_name(options.get_network_interface_name());
+        const auto& ip_address = iface.get_first_address(net::AddressFamily::IPv4);
+        m_socket_address = net::SocketAddress(ip_address, options.get_port());
+        m_option_array.emplace_back(MHD_OptionItem{
+            MHD_OPTION_SOCK_ADDR, intptr_t(0),
+            static_cast<void*>(const_cast<struct sockaddr*>(m_socket_address.addr()))
+        });
+        log_info("rest", "Starting connector listening on " << m_socket_address
+                         << " (" << options.get_network_interface_name() << ")");
     }
 
     void init_debug_options(const ConnectorOptions& options){

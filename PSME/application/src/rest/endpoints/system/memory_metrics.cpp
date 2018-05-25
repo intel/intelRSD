@@ -2,7 +2,7 @@
  * @brief MemoryMetrics endpoint implementation
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,24 +39,24 @@ json::Value make_prototype() {
     r[Common::DESCRIPTION] = "Memory Metrics";
     r[MemoryMetrics::BLOCK_SIZE_BYTES] = json::Value::Type::NIL;
 
-    json::Value current_period;
+    json::Value current_period{};
     current_period[MemoryMetrics::BLOCKS_READ] = json::Value::Type::NIL;
     current_period[MemoryMetrics::BLOCKS_WRITTEN] = json::Value::Type::NIL;
     r[MemoryMetrics::CURRENT_PERIOD] = std::move(current_period);
 
-    json::Value life_time;
+    json::Value life_time{};
     life_time[MemoryMetrics::BLOCKS_READ] = json::Value::Type::NIL;
     life_time[MemoryMetrics::BLOCKS_WRITTEN] = json::Value::Type::NIL;
     r[MemoryMetrics::LIFE_TIME] = std::move(life_time);
 
-    json::Value alarm_trips;
+    json::Value alarm_trips{};
     alarm_trips[MemoryMetrics::TEMPERATURE] = json::Value::Type::NIL;
     alarm_trips[MemoryMetrics::SPARE_BLOCK] = json::Value::Type::NIL;
     alarm_trips[MemoryMetrics::UNCORRECTABLE_ECC_ERROR] = json::Value::Type::NIL;
     alarm_trips[MemoryMetrics::CORRECTABLE_ECC_ERROR] = json::Value::Type::NIL;
     alarm_trips[MemoryMetrics::ADDRESS_PARITY_ERROR] = json::Value::Type::NIL;
 
-    json::Value health_data;
+    json::Value health_data{};
     health_data[Common::ODATA_TYPE] = "#MemoryMetrics.v1_1_0.HealthData";
     health_data[MemoryMetrics::REMAINING_SPARE_BLOCK_PERCENTAGE] = json::Value::Type::NIL;
     health_data[MemoryMetrics::LAST_SHUTDOWN_SUCCESS] = json::Value::Type::NIL;
@@ -66,11 +66,11 @@ json::Value make_prototype() {
     health_data[MemoryMetrics::ALARM_TRIPS] = std::move(alarm_trips);
     r[MemoryMetrics::HEALTH_DATA] = std::move(health_data);
 
-    json::Value actions;
+    json::Value actions{};
     actions[Common::OEM] = json::Value::Type::OBJECT;
     r[Common::ACTIONS] = std::move(actions);
 
-    json::Value rackscale;
+    json::Value rackscale{};
     rackscale[Common::ODATA_TYPE] = "#Intel.Oem.MemoryMetrics";
     rackscale[MemoryMetrics::TEMPERATURE_CELSIUS] = json::Value::Type::NIL;
     rackscale[MemoryMetrics::THROTTLED_CYCLES_PERCENT] = json::Value::Type::NIL;
@@ -96,9 +96,11 @@ endpoint::MemoryMetrics::~MemoryMetrics() {}
 void endpoint::MemoryMetrics::get(const server::Request& req, server::Response& res) {
     using agent_framework::model::System;
     using agent_framework::model::Memory;
+
     auto memory_uuid = psme::rest::model::Find<Memory>(req.params[PathParam::MEMORY_ID])
-                                    .via<System>(req.params[PathParam::SYSTEM_ID]).get_uuid();
+        .via<System>(req.params[PathParam::SYSTEM_ID]).get_uuid();
     auto json = make_prototype();
+
     json[Common::ODATA_ID] = PathBuilder(req).build();
     json[Common::ID] = "Memory " + req.params[PathParam::MEMORY_ID] + " Metrics";
     utils::populate_metrics(json, memory_uuid);

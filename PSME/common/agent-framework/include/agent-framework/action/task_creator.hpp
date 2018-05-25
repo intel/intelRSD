@@ -2,7 +2,7 @@
  * @brief
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ class TaskCreator {
 public:
     using TaskResource = agent_framework::model::Task;
     using PromisedResponseType = std::function<json::Json(void)>;
-    using PromisedErrorThrowerType = std::function<agent_framework::exceptions::GamiException(void)>;
+    using PromisedErrorThrowerType = std::function<agent_framework::exceptions::GamiException(agent_framework::exceptions::GamiException)>;
 
 
     /*!
@@ -99,14 +99,23 @@ public:
 
 
     /*!
-     * Add callback to the task. This acts as a proxy for the created
+     * Add completion callback to the task. This acts as a proxy for the created
      * physical task, i.e. the same behavior can be obtained by calling an
      * appropriate function on the task object received with get_task method.
      *
-     * @param[in] callback_type Type of callback to be added to the constructed task
      * @param[in] callback Callback to be added to the constructed task
      * */
-    TaskCreator& add_callback(Task::CallbackType callback_type, const Task::CallbackFunctionType& callback);
+    TaskCreator& add_completion_callback(const Task::CallbackFunctionType& callback);
+
+
+    /*!
+     * Add exception callback to the task. This acts as a proxy for the created
+     * physical task, i.e. the same behavior can be obtained by calling an
+     * appropriate function on the task object received with get_task method.
+     *
+     * @param[in] callback Callback to be added to the constructed task
+     * */
+    TaskCreator& add_exception_callback(const Task::ExceptionCallbackFunctionType& callback);
 
 
     /*!

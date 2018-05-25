@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,8 +74,10 @@ public:
     /*!
      * @brief Constructor.
      * @param connector_config JSON Object with connector options.
+     * @param network_interface_name Network interface name on which connector is listening
+     *                               for incoming requests
      * */
-    explicit ConnectorOptions(const json::Value& connector_config);
+    explicit ConnectorOptions(const json::Value& connector_config, const std::string& network_interface_name);
 
     /*!
      * @brief Destructor.
@@ -149,6 +151,12 @@ public:
      */
     bool use_debug() const;
 
+    /*!
+     * Getter for network interface name on which connector listens incoming requests
+     * @return Network interface name
+     */
+    const std::string& get_network_interface_name() const;
+
 private:
     uint16_t m_port{443};
     uint16_t m_redirect_port{0};
@@ -159,6 +167,7 @@ private:
     unsigned int m_thread_pool_size{0};
     ThreadMode m_thread_mode{ThreadMode::SELECT};
     bool m_use_debug{false};
+    std::string m_network_interface_name{};
 };
 
 /*! Declaration of Vector with ConnectorOptions elements */

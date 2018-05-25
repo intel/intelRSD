@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ set(SOURCES
     trusted_module_builder.cpp
     power_zone_builder.cpp
     thermal_zone_builder.cpp
+    pcie_device_builder.cpp
+    pcie_function_builder.cpp
 
     platform_specific/grantley/grantley_chassis_builder.cpp
     platform_specific/grantley/grantley_memory_builder.cpp

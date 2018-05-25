@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,9 +75,9 @@ public class ChassisActionsInvoker {
 
         try (WebClient webClient = webClientBuilder.newInstance(serviceBaseUri).retryable().build()) {
             ChassisResource chassisResource = (ChassisResource) webClient.get(chassisUri);
-            RackScaleRackChassisOem rackAttributes = chassisResource.getRackChassisAttributes();
-            if (rackAttributes != null) {
-                LocationObject locationObject = rackAttributes.getLocation();
+            RackScaleRackChassisOem rackChassisAttributes = chassisResource.getRackChassisAttributes();
+            if (rackChassisAttributes != null) {
+                LocationObject locationObject = rackChassisAttributes.getLocation();
                 return locationObject != null && locationObject.getId().isAssigned();
             } else {
                 return chassisResource.getLocationId().isAssigned();

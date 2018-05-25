@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 package com.intel.podm.business.entities.redfish.embeddables;
 
 import com.intel.podm.common.types.rmm.RackUnitType;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Enumerated;
-import java.util.Objects;
 
 import static javax.persistence.EnumType.STRING;
 
@@ -73,23 +74,32 @@ public class RackLocation {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         RackLocation that = (RackLocation) o;
-        return Objects.equals(xLocation, that.xLocation)
-            && Objects.equals(uLocation, that.uLocation)
-            && Objects.equals(uHeight, that.uHeight)
-            && rackUnits == that.rackUnits;
+
+        return new EqualsBuilder()
+            .append(xLocation, that.xLocation)
+            .append(uLocation, that.uLocation)
+            .append(uHeight, that.uHeight)
+            .append(rackUnits, that.rackUnits)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(xLocation, uLocation, uHeight, rackUnits);
+        return new HashCodeBuilder()
+            .append(xLocation)
+            .append(uLocation)
+            .append(uHeight)
+            .append(rackUnits)
+            .toHashCode();
     }
 }

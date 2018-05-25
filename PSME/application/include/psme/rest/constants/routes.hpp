@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,6 +58,7 @@ public:
     static const std::string CHASSIS_RESET_PATH;
     static const std::string DRIVES_COLLECTION_PATH;
     static const std::string DRIVE_PATH;
+    static const std::string DRIVE_METRICS_PATH;
     static const std::string DRIVE_SECURE_ERASE_PATH;
     static const std::string PCIE_DEVICES_COLLECTION_PATH;
     static const std::string PCIE_DEVICE_PATH;
@@ -115,14 +116,17 @@ public:
     static const std::string VLAN_NETWORK_INTERFACE_COLLECTION_PATH;
     static const std::string VLAN_NETWORK_INTERFACE_PATH;
 
-    static const std::string STORAGE_SERVICE_COLLECTION_PATH;
+    static const std::string STORAGE_SERVICES_COLLECTION_PATH;
     static const std::string STORAGE_SERVICE_PATH;
-    static const std::string PHYSICAL_DRIVES_COLLECTION_PATH;
-    static const std::string PHYSICAL_DRIVE_PATH;
-    static const std::string LOGICAL_DRIVE_COLLECTION_PATH;
-    static const std::string LOGICAL_DRIVE_PATH;
-    static const std::string REMOTE_TARGET_COLLECTION_PATH;
-    static const std::string REMOTE_TARGET_PATH;
+    static const std::string STORAGE_POOL_COLLECTION_PATH;
+    static const std::string STORAGE_POOL_PATH;
+    static const std::string ALLOCATED_VOLUMES_COLLECTION_PATH;
+    static const std::string ALLOCATED_POOLS_COLLECTION_PATH;
+    static const std::string VOLUME_COLLECTION_PATH;
+    static const std::string VOLUME_PATH;
+    static const std::string VOLUME_INITIALIZE_PATH;
+    static const std::string VOLUME_METRICS_PATH;
+    static const std::string DRIVE_COLLECTION_PATH;
 
     static const std::string FABRICS_COLLECTION_PATH;
     static const std::string FABRIC_PATH;

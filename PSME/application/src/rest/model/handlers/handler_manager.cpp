@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,14 +20,14 @@
  * @file handler_manager.cpp
  * @brief HandlerManager class  implementation
  * */
+
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/model/handlers/handler_manager.hpp"
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
 #include "psme/rest/model/handlers/drive_handler.hpp"
+#include "psme/rest/model/handlers/volume_handler.hpp"
 #include "psme/rest/model/handlers/endpoint_handler.hpp"
-#include "psme/rest/model/handlers/logical_drive_handler.hpp"
-#include "psme/rest/model/handlers/physical_drive_handler.hpp"
 #include "psme/rest/model/handlers/ethernet_switch_port_handler.hpp"
 #include "psme/rest/model/handlers/storage_subsystem_handler.hpp"
 #include "psme/rest/model/handlers/zone_handler.hpp"
@@ -38,6 +38,7 @@
 #include "psme/rest/model/handlers/metric_definition_handler.hpp"
 #include "psme/rest/model/handlers/metric_handler.hpp"
 #include "psme/rest/model/handlers/acl_handler.hpp"
+#include "psme/rest/model/handlers/storage_service_handler.hpp"
 #include "agent-framework/module/requests/compute.hpp"
 #include "agent-framework/module/requests/storage.hpp"
 #include "agent-framework/module/requests/network.hpp"
@@ -116,12 +117,11 @@ using StaticMacHandler = GenericHandler
         IdPolicy<Component::StaticMac, NumberingZone::PARENT_SPACE>>;
 
 // aliases for storage handlers
-using StorageServiceHandler = GenericHandler
-    <requests::GetStorageServiceInfo, StorageService,
-        IdPolicy<Component::StorageService, NumberingZone::SHARED>>;
-using IscsiTargetHandler = GenericHandler
-    <requests::GetIscsiTargetInfo, IscsiTarget,
-        IdPolicy<Component::IscsiTarget, NumberingZone::PARENT_SPACE>>;
+using StoragePoolHandler = GenericHandler
+    <requests::GetStoragePoolInfo, StoragePool,
+        IdPolicy<Component::StoragePool, NumberingZone::PARENT_SPACE>>;
+// StorageServiceHandler is defined in storage_service_handler.hpp
+// VolumeHandler is defined in volume_handler.hpp
 
 // aliases for pnc handlers
 using FabricHandler = GenericHandler
@@ -202,12 +202,10 @@ HandlerManager::HandlerManager() :
             HandlerPtr(new RemoteSwitchHandler())},
         {enums::Component::StorageService,
             HandlerPtr(new StorageServiceHandler())},
-        {enums::Component::IscsiTarget,
-            HandlerPtr(new IscsiTargetHandler())},
-        {enums::Component::LogicalDrive,
-            HandlerPtr(new LogicalDriveHandler())},
-        {enums::Component::PhysicalDrive,
-            HandlerPtr(new PhysicalDriveHandler())},
+        {enums::Component::StoragePool,
+            HandlerPtr(new StoragePoolHandler())},
+        {enums::Component::Volume,
+            HandlerPtr(new VolumeHandler())},
         {enums::Component::Switch,
             HandlerPtr(new SwitchHandler())},
         {enums::Component::Zone,
@@ -298,15 +296,12 @@ HandlerManager::HandlerManager() :
         {enums::CollectionType::StorageServices,
             HandlerPtr(m_component_handlers
                            .find(enums::Component::StorageService)->second)},
-        {enums::CollectionType::LogicalDrives,
+        {enums::CollectionType::StoragePools,
             HandlerPtr(m_component_handlers
-                           .find(enums::Component::LogicalDrive)->second)},
-        {enums::CollectionType::PhysicalDrives,
+                           .find(enums::Component::StoragePool)->second)},
+        {enums::CollectionType::Volumes,
             HandlerPtr(m_component_handlers
-                           .find(enums::Component::PhysicalDrive)->second)},
-        {enums::CollectionType::iSCSITargets,
-            HandlerPtr(m_component_handlers
-                           .find(enums::Component::IscsiTarget)->second)},
+                           .find(enums::Component::Volume)->second)},
         {enums::CollectionType::Managers,
             HandlerPtr(m_component_handlers
                            .find(enums::Component::Manager)->second)},
@@ -383,7 +378,7 @@ HandlersWithCollectionName HandlerManager::get_handlers(Array<Collection> collec
     for (const auto& collection : collections) {
         auto handler = m_collection_handlers.find(collection.get_type());
         if (m_collection_handlers.end() == handler) {
-            log_error(GET_LOGGER("rest"),
+            log_error("rest",
                       "Handler for collection type: \"" +
                       std::string(collection.get_type().to_string()) +
                       "\" not defined, proceeding with get_handlers().");
@@ -407,7 +402,7 @@ Handlers HandlerManager::get_handlers() const {
 
 
 void HandlerManager::remove_agent_data(const std::string& in_gami_id) {
-    log_info(GET_LOGGER("rest"), "remove all resources for agent " << in_gami_id);
+    log_info("rest", "remove all resources for agent " << in_gami_id);
     HandlerInterface::Context ctx;
     ctx.mode = HandlerInterface::Context::Mode::AGENT_DISAPPEARED;
     Handlers handlers = get_handlers();

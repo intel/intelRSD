@@ -37,44 +37,48 @@
                     String="This resource shall be used to represent a task service for a Redfish implementation."/>
         <Property Name="CompletedTaskOverWritePolicy" Type="TaskService.v1_0_0.OverWritePolicy" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Overwrite policy of completed tasks"/>
+          <Annotation Term="OData.Description" String="Overwrite policy of completed tasks."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall indicate how completed tasks are handled should the task service need to track more tasks."/>
+                      String="The value of the property shall indicate how completed tasks are handled should the task service need to track more tasks."/>
         </Property>
         <Property Name="DateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"
                       String="The current DateTime (with offset) setting that the task service is using."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall represent the current DateTime value for the TaskService, with offset from UTC, in Redfish Timestamp format."/>
+                      String="The value of the property shall represent the current DateTime value for the TaskService, with offset from UTC, in Redfish Timestamp format."/>
         </Property>
         <Property Name="LifeCycleEventOnTaskStateChange" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Send an Event upon Task State Change."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property, if set to true, shall indicate that the service shall send a LifeCycle event to ListenerDestinations registered for such events upon change of task state."/>
+                      String="The value of the property, if set to true, shall indicate that the service shall send a LifeCycle event to ListenerDestinations registered for such events on change of task state."/>
         </Property>
         <Property Name="ServiceEnabled" Type="Edm.Boolean">
           <Annotation Term="OData.Description" String="This indicates whether this service is enabled."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall be a boolean indicating whether this service is enabled."/>
+                      String="The value of the property shall be a boolean indicating whether the service is enabled."/>
         </Property>
-        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+        <Property Name="Status" Type="Resource.Status" Nullable="false">
+          <Annotation Term="OData.Description" String="Resource status."/>
+            <Annotation Term="OData.LongDescription"
+                      String="Resource status."/>
+        </Property>
         <NavigationProperty Name="Tasks" Type="TaskCollection.TaskCollection" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="References to the Tasks collection."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall be a link to a resource of type TaskCollection."/>
+                      String="The value of the property shall be a link to a resource of type TaskCollection."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </EntityType>
 
       <EnumType Name="OverWritePolicy">
         <Member Name="Manual">
-          <Annotation Term="OData.Description" String="Completed tasks are not automatically overwritten"/>
+          <Annotation Term="OData.Description" String="Completed tasks are not automatically overwritten."/>
         </Member>
         <Member Name="Oldest">
-          <Annotation Term="OData.Description" String="Oldest completed tasks are overwritten"/>
+          <Annotation Term="OData.Description" String="Oldest completed tasks are overwritten."/>
         </Member>
       </EnumType>
 

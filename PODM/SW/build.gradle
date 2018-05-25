@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ ext {
     jacocoXmlReportDestination = project.hasProperty("jacocoXmlReportDestination") ? project.property("jacocoXmlReportDestination") : "jacocoReport.xml"
 }
 
-def readBuildVersion() {
+static def readBuildVersion() {
     def buildVersion = '0.99'
     File versionFile = new File('VERSION')
     if (versionFile.exists()) {
@@ -60,33 +60,34 @@ project.ext {
     jacocoToolVersion = "0.7.9"
 
     // library versions
-    checkstyleVer = '7.5'
+    checkstyleVer = '8.2'
     hamcrestVer = '1.3'
     mockitoVer = '1.10.19'
     testNgVer = '6.9.13.6'
     junitVer = '4.12'
-    guavaVer = '18.0'
+    guavaVer = '23.0'
     assertjVer = '3.8.0'
     cornCpsVer = '1.1.10'
     modeshapeCommonVer = '5.4.1.Final'
     javaParserCoreVer = '2.5.1'
-    wildflyVer = '10.0.0.Final'
+    wildflyVer = '12.0.0.Final'
     commonsValVer = '1.5.0'
-    commonsLangVer = '3.6'
-    commonsCollectionsVer = '3.2.2'
-    commonsIoVer = '2.4'
+    commonsLang3Ver = '3.6'
+    commonsIoVer = '2.5'
     commonsNetVer = '3.4'
+    commonsTextVer = '1.1'
+    commonsCollections4Ver = '4.1'
     metricsVer = '1.3.5'
     clingVer = '2.0.1'
     liquibaseVer = '3.5.2'
 
     postgresqlJdbcVer = '9.4.1208'
-    jpa21Ver = '1.0.0.Final'
-    hibernateVer = '5.0.7.Final'
+    jpa21Ver = '1.0.2.Final'
+    hibernateVer = '5.1.10.Final'
 
     JAVA_EE_API_DEPENDENCY = "javax:javaee-api:7.0"
 
-    JACKSON_VERSION = "2.6.3"
+    JACKSON_VERSION = "2.9.4"
     JACKSON_CORE_DEPENDENCY = "com.fasterxml.jackson.core:jackson-core:$JACKSON_VERSION"
     JACKSON_DATABIND_DEPENDENCY = "com.fasterxml.jackson.core:jackson-databind:$JACKSON_VERSION"
     JACKSON_ANNOTATIONS_DEPENDENCY = "com.fasterxml.jackson.core:jackson-annotations:$JACKSON_VERSION"
@@ -98,22 +99,23 @@ project.ext {
     ASSERTJ_DEPENDENCY = "org.assertj:assertj-core:$assertjVer"
 
     APACHE_COMMONS_VALIDATOR = "commons-validator:commons-validator:$commonsValVer"
-    APACHE_COMMONS_LANG = "org.apache.commons:commons-lang3:$commonsLangVer"
-    APACHE_COMMONS_COLLECTIONS = "commons-collections:commons-collections:$commonsCollectionsVer"
+    APACHE_COMMONS_LANG3 = "org.apache.commons:commons-lang3:$commonsLang3Ver"
     APACHE_COMMONS_IO = "commons-io:commons-io:$commonsIoVer"
     APACHE_COMMONS_NET = "commons-net:commons-net:$commonsNetVer"
+    APACHE_COMMONS_TEXT = "org.apache.commons:commons-text:$commonsTextVer"
+    APACHE_COMMONS_COLLECTIONS4 = "org.apache.commons:commons-collections4:$commonsCollections4Ver"
 
     CLING_CORE = "org.fourthline.cling:cling-core:$clingVer"
 
-    RESTEASY_VERSION = '3.0.14.Final'
+    RESTEASY_VERSION = '3.5.0.Final'
     RESTEASY_CLIENT_DEPENDENCY = "org.jboss.resteasy:resteasy-client:$RESTEASY_VERSION"
     RESTEASY_JACKSON2_PROVIDER = "org.jboss.resteasy:resteasy-jackson2-provider:$RESTEASY_VERSION"
     RESTEASY_JAXRS_DEPENDENCY = "org.jboss.resteasy:resteasy-jaxrs:$RESTEASY_VERSION"
 
-    SLF4J_DEPENDENCY = "org.slf4j:slf4j-api:1.7.10"
+    SLF4J_DEPENDENCY = "org.slf4j:slf4j-api:1.7.22"
     LOGBACK_DEPENDENCY = "ch.qos.logback:logback-classic:1.1.1"
 
-    MODEL_MAPPER_DEPENDENCY = 'org.modelmapper:modelmapper:0.7.6'
+    MODEL_MAPPER_DEPENDENCY = 'org.modelmapper:modelmapper:1.1.0'
 
     METRICS_CDI = "io.astefanutti.metrics.cdi:metrics-cdi:$metricsVer"
 
@@ -146,9 +148,6 @@ configure(subprojects - project(':pod-manager-common')) {
 
     repositories {
         mavenCentral()
-        maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
-        maven { url 'http://repository.jboss.org/nexus/content/repositories/deprecated' }
-        maven { url 'http://repo.jfrog.org/artifactory/repo' }
         maven { url "http://4thline.org/m2" }
     }
 
@@ -184,7 +183,7 @@ configure(subprojects - project(':pod-manager-common')) {
         testCompile "org.hamcrest:hamcrest-all:$hamcrestVer"
         testCompile "org.mockito:mockito-all:$mockitoVer"
         testRuntime "$JUNIT_DEPENDENCY" //needed in runtime by mockito...
-        testCompile SLF4J_DEPENDENCY
+        testCompile "$SLF4J_DEPENDENCY"
         testCompile "net.sf.corn:corn-cps:$cornCpsVer"
         testCompile(project(':classindex'))
         testCompile "org.modeshape:modeshape-common:$modeshapeCommonVer"

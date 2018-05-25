@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -118,7 +118,7 @@ public:
      *
      * This function provides the only interface for setting the end time
      * timestamp. If the start time timestamp is not set or end time timestamp
-     * is already set, and std::logic_erro is thrown.
+     * is already set, and std::logic_error is thrown.
      * */
     void stop();
 

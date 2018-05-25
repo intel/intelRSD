@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import java.util.List;
 
 import static com.google.common.cache.CacheBuilder.newBuilder;
 import static com.intel.podm.business.entities.interceptors.EventableAnnotationsUtils.isEventable;
+import static org.apache.commons.lang3.reflect.FieldUtils.getFieldsListWithAnnotation;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.reflect.FieldUtils.getFieldsListWithAnnotation;
 
 @ApplicationScoped
 public class EventSuppressions {
@@ -66,7 +66,8 @@ public class EventSuppressions {
     }
 
     private List<String> suppressedFields(Class<?> clazz) {
-        return getFieldsListWithAnnotation(clazz, SuppressEvents.class).stream()
+        return getFieldsListWithAnnotation(clazz, SuppressEvents.class)
+            .stream()
             .map(field -> format("%s.%s", clazz.getName(), field.getName()))
             .collect(toList());
     }

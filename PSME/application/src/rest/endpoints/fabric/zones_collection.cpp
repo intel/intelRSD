@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,10 @@
 #include "psme/rest/validators/schemas/zones_collection.hpp"
 #include "psme/rest/model/handlers/handler_manager.hpp"
 #include "psme/rest/utils/zone_utils.hpp"
-#include "psme/core/agent/agent_manager.hpp"
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
 #include "agent-framework/module/requests/pnc.hpp"
-#include "agent-framework/module/responses/pnc.hpp"
+#include "agent-framework/module/responses/common.hpp"
 
 
 
@@ -44,8 +43,8 @@ json::Value make_prototype() {
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#ZoneCollection.ZoneCollection";
     r[Common::ODATA_ID] = json::Value::Type::NIL;
     r[Common::ODATA_TYPE] = "#ZoneCollection.ZoneCollection";
-    r[Common::DESCRIPTION] = "PCIe Zone Collection";
-    r[Common::NAME] = "PCIe Zone Collection";
+    r[Common::DESCRIPTION] = "Zone Collection";
+    r[Common::NAME] = "Zone Collection";
     r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
     r[Collection::MEMBERS] = json::Value::Type::ARRAY;
 
@@ -63,21 +62,18 @@ ZonesCollection::~ZonesCollection() {}
 
 void ZonesCollection::get(const server::Request& req, server::Response& res) {
     auto json = ::make_prototype();
+    auto fabric_uuid = psme::rest::model::Find<agent_framework::model::Fabric>(req.params[PathParam::FABRIC_ID])
+        .get_uuid();
+
+    auto zone_ids = agent_framework::module::get_manager<agent_framework::model::Zone>().get_ids(fabric_uuid);
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
-
-    auto fabric_uuid = psme::rest::model::Find<agent_framework::model::Fabric>(
-        req.params[PathParam::FABRIC_ID]).get_uuid();
-
-    auto zone_ids = agent_framework::module::get_manager<agent_framework::model::Zone>().get_ids(
-        fabric_uuid);
-
     json[Collection::ODATA_COUNT] = static_cast<std::uint32_t>(zone_ids.size());
 
     for (const auto& zone_id : zone_ids) {
-        json::Value link_elem(json::Value::Type::OBJECT);
-        link_elem[Common::ODATA_ID] = PathBuilder(req).append(zone_id).build();
-        json[Collection::MEMBERS].push_back(std::move(link_elem));
+        json::Value link{};
+        link[Common::ODATA_ID] = PathBuilder(req).append(zone_id).build();
+        json[Collection::MEMBERS].push_back(std::move(link));
     }
     set_response(res, json);
 }
@@ -85,8 +81,7 @@ void ZonesCollection::get(const server::Request& req, server::Response& res) {
 void ZonesCollection::post(const server::Request& request, server::Response& response) {
     auto json = validators::JsonValidator::validate_request_body<rest::validators::schema::ZonesCollectionPostSchema>(request);
 
-    auto fabric = psme::rest::model::Find<agent_framework::model::Fabric>(
-        request.params[PathParam::FABRIC_ID]).get();
+    auto fabric = psme::rest::model::Find<agent_framework::model::Fabric>(request.params[PathParam::FABRIC_ID]).get();
     auto fabric_uuid = fabric.get_uuid();
 
     using AgentManager = psme::core::agent::AgentManager;
@@ -108,11 +103,11 @@ void ZonesCollection::post(const server::Request& request, server::Response& res
             get_handler(enums::Component::Zone)->
             load(gami_agent, fabric_uuid, enums::Component::Fabric, add_zone_response.get_zone(), true);
 
-        auto created_zone_id = agent_framework::module::PncComponents::get_instance()->
+        auto created_zone_id = agent_framework::module::CommonComponents::get_instance()->
             get_zone_manager().get_entry_reference(add_zone_response.get_zone())->get_id();
 
         ::psme::rest::endpoint::utils::set_location_header(
-            response, PathBuilder(request).append(created_zone_id).build());
+            request, response, PathBuilder(request).append(created_zone_id).build());
 
         response.set_status(server::status_2XX::CREATED);
     };

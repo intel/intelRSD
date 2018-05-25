@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,22 +71,19 @@ void process_system(const Collection& collection, const std::string& uuid,
 
     // Seven possible collection types of a system
     if (enums::CollectionType::Processors == collection.get_type()) {
-        response_add_subcomponents(get_manager<agent_framework::model::Processor>().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<Processor>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::Memory == collection.get_type()) {
-        response_add_subcomponents(ComputeComponents::get_instance()->
-            get_memory_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<Memory>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::StorageSubsystems == collection.get_type()) {
-        response_add_subcomponents(CommonComponents::get_instance()->
-            get_storage_subsystem_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<StorageSubsystem>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::NetworkInterfaces == collection.get_type()) {
         response_add_subcomponents(get_manager<NetworkInterface>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::NetworkDevices == collection.get_type()) {
-        response_add_subcomponents(ComputeComponents::get_instance()->
-            get_network_device_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<NetworkDevice>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::TrustedModules == collection.get_type()) {
         response_add_subcomponents(get_manager<TrustedModule>().get_keys(uuid), response);
@@ -103,12 +100,13 @@ void process_manager(const Collection& collection, const std::string& uuid,
 
     // Two possible collection types of a manager
     if (enums::CollectionType::Chassis == collection.get_type()) {
-        response_add_subcomponents(CommonComponents::get_instance()->
-            get_chassis_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<Chassis>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::Systems == collection.get_type()) {
-        response_add_subcomponents(CommonComponents::get_instance()->
-            get_system_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<System>().get_keys(uuid), response);
+    }
+    else if (enums::CollectionType::PCIeDevices == collection.get_type()) {
+        response_add_subcomponents(get_manager<PcieDevice>().get_keys(uuid), response);
     }
     else {
         THROW(agent_framework::exceptions::InvalidCollection, "compute-agent",
@@ -122,8 +120,7 @@ void process_chassis(const Collection& collection, const std::string& uuid,
 
     // Three possible collection type for a chassis
     if (enums::CollectionType::Drives == collection.get_type()) {
-        response_add_subcomponents(CommonComponents::get_instance()->
-            get_drive_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<Drive>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::PowerZones == collection.get_type()) {
         response_add_subcomponents(get_manager<PowerZone>().get_keys(uuid), response);
@@ -146,22 +143,17 @@ void process_storage_subsystem(const Collection& collection, const std::string& 
         // So, find the StorageSubsystem's parent System and grandparent Manager.
         // Then, find the chassis under the manager.
         // and find it's Drives.
-        auto system_uuid = CommonComponents::get_instance()->
-            get_storage_subsystem_manager().get_entry_reference(uuid)->get_parent_uuid();
-        auto manager_uuid = CommonComponents::get_instance()->
-            get_system_manager().get_entry_reference(system_uuid)->get_parent_uuid();
+        auto system_uuid = get_manager<StorageSubsystem>().get_entry_reference(uuid)->get_parent_uuid();
+        auto manager_uuid = get_manager<System>().get_entry_reference(system_uuid)->get_parent_uuid();
 
         // In ComputeLoader, one chassis is created under the manager - no extra checks are required:
-        auto chassis_uuid = CommonComponents::get_instance()->
-            get_chassis_manager().get_keys(manager_uuid).front();
+        auto chassis_uuid = get_manager<Chassis>().get_keys(manager_uuid).front();
 
-        response_add_subcomponents(CommonComponents::get_instance()->
-            get_drive_manager().get_keys(chassis_uuid), response);
+        response_add_subcomponents(get_manager<Drive>().get_keys(chassis_uuid), response);
     }
     else if (enums::CollectionType::StorageControllers ==
              collection.get_type()) {
-        response_add_subcomponents(ComputeComponents::get_instance()->
-            get_storage_controller_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<StorageController>().get_keys(uuid), response);
     }
     else {
         THROW(::agent_framework::exceptions::InvalidCollection,
@@ -188,8 +180,7 @@ void process_network_device(const Collection& collection, const std::string& uui
 
     // One possible collection type for a chassis
     if (enums::CollectionType::NetworkDeviceFunctions == collection.get_type()) {
-        response_add_subcomponents(ComputeComponents::get_instance()->
-            get_network_device_function_manager().get_keys(uuid), response);
+        response_add_subcomponents(get_manager<NetworkDeviceFunction>().get_keys(uuid), response);
     }
     else {
         THROW(agent_framework::exceptions::InvalidCollection,
@@ -211,38 +202,45 @@ void process_thermal_zone(const Collection& collection, const std::string& uuid,
 }
 
 
+void process_pcie_device(const Collection& collection, const std::string& uuid,
+                          GetCollection::Response& response, const std::string& name) {
+    // Only one possible collection
+    if (enums::CollectionType::PCIeFunctions == collection.get_type()) {
+        response_add_subcomponents(get_manager<PcieFunction>().get_keys(uuid), response);
+    }
+    else {
+        THROW(::agent_framework::exceptions::InvalidCollection,
+              "compute-agent", "Collection not found: \'" + name + "\'.");
+    }
+}
+
+
 void do_get_collection(const GetCollection::Request& request, GetCollection::Response& response) {
 
     auto uuid = request.get_uuid();
     auto name = request.get_name();
-    log_debug(GET_LOGGER("compute-agent"), "Getting collection of " + name + '.');
+    log_debug("compute-agent", "Getting collection of " + name + '.');
 
-    if (CommonComponents::get_instance()->
-        get_module_manager().entry_exists(uuid)) {
+    if (get_manager<Manager>().entry_exists(uuid)) {
 
-        const Manager& manager = CommonComponents::get_instance()->
-            get_module_manager().get_entry(uuid);
+        const Manager& manager = get_manager<Manager>().get_entry(uuid);
         const Collection& collection =
             find_collection(manager.get_collections(), name);
 
         process_manager(collection, uuid, response, name);
     }
-    else if (CommonComponents::get_instance()->
-        get_system_manager().entry_exists(uuid)) {
+    else if (get_manager<System>().entry_exists(uuid)) {
 
-        const System& sys = CommonComponents::get_instance()->
-            get_system_manager().get_entry(uuid);
+        const System& sys = get_manager<System>().get_entry(uuid);
         const Collection& collection =
             find_collection(sys.get_collections(), name);
 
         process_system(collection, uuid, response, name);
     }
-    else if (CommonComponents::get_instance()->
-        get_storage_subsystem_manager().entry_exists(uuid)) {
+    else if (get_manager<StorageSubsystem>().entry_exists(uuid)) {
 
         const StorageSubsystem& subsystem =
-            CommonComponents::get_instance()->
-                get_storage_subsystem_manager().get_entry(uuid);
+            get_manager<StorageSubsystem>().get_entry(uuid);
         const Collection& collection =
             find_collection(subsystem.get_collections(), name);
 
@@ -257,23 +255,19 @@ void do_get_collection(const GetCollection::Request& request, GetCollection::Res
 
         process_network_interface(collection, uuid, response, name);
     }
-    else if (CommonComponents::get_instance()->
-        get_chassis_manager().entry_exists(uuid)) {
+    else if (get_manager<Chassis>().entry_exists(uuid)) {
 
         const Chassis& chassis =
-            CommonComponents::get_instance()->
-                get_chassis_manager().get_entry(uuid);
+            get_manager<Chassis>().get_entry(uuid);
         const Collection& collection =
             find_collection(chassis.get_collections(), name);
 
         process_chassis(collection, uuid, response, name);
     }
-    else if (ComputeComponents::get_instance()->
-        get_network_device_manager().entry_exists(uuid)) {
+    else if (get_manager<NetworkDevice>().entry_exists(uuid)) {
 
         const NetworkDevice& device =
-            ComputeComponents::get_instance()->
-                get_network_device_manager().get_entry(uuid);
+            get_manager<NetworkDevice>().get_entry(uuid);
         const Collection& collection =
             find_collection(device.get_collections(), name);
 
@@ -286,12 +280,20 @@ void do_get_collection(const GetCollection::Request& request, GetCollection::Res
 
         process_thermal_zone(collection, uuid, response, name);
     }
-    else if (ComputeComponents::get_instance()->get_memory_manager().entry_exists(uuid)
+    else if (get_manager<PcieDevice>().entry_exists(uuid)) {
+
+        const PcieDevice device = get_manager<PcieDevice>().get_entry(uuid);
+        const Collection& collection = find_collection(device.get_collections(), name);
+
+        process_pcie_device(collection, uuid, response, name);
+    }
+    else if (get_manager<Memory>().entry_exists(uuid)
              || get_manager<Processor>().entry_exists(uuid)
-             || ComputeComponents::get_instance()->get_network_device_function_manager().entry_exists(uuid)
-             || CommonComponents::get_instance()->get_drive_manager().entry_exists(uuid)
+             || get_manager<NetworkDeviceFunction>().entry_exists(uuid)
+             || get_manager<Drive>().entry_exists(uuid)
              || get_manager<PowerZone>().entry_exists(uuid)
-             || get_manager<Fan>().entry_exists(uuid)) {
+             || get_manager<Fan>().entry_exists(uuid)
+             || get_manager<PcieFunction>().entry_exists(uuid)) {
 
         THROW(agent_framework::exceptions::InvalidUuid, "compute-agent",
               "This component type has no collections.");

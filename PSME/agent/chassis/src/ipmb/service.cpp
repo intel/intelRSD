@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +62,7 @@ net::SocketAddress Service::get_mux_address() {
         mux_socket_address = net::SocketAddress(mux_ip, mux_port);
     }
     catch(const std::exception& e) {
-        log_warning(GET_LOGGER("agent"), "Unable to read cyMux connection configuration: "
+        log_warning("agent", "Unable to read cyMux connection configuration: "
                 << e.what() << ". Using default address: " << mux_socket_address);
     }
     return mux_socket_address;

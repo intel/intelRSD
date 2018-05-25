@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.intel.podm.business.dto.EthernetSwitchAclRuleDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.entities.redfish.EthernetSwitchAcl;
 import com.intel.podm.business.entities.redfish.EthernetSwitchAclRule;
+import com.intel.podm.business.redfish.Contexts;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
@@ -29,9 +30,10 @@ import com.intel.podm.business.services.redfish.ReaderService;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_ACL_RULES;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_ACL_RULE;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -46,7 +48,8 @@ public class EthernetSwitchAclRuleServiceImpl implements ReaderService<EthernetS
     @Override
     public CollectionDto getCollection(Context context) throws ContextResolvingException {
         EthernetSwitchAcl acl = (EthernetSwitchAcl) traverser.traverse(context);
-        return new CollectionDto(ETHERNET_SWITCH_ACL_RULES, getAsIdSet(acl.getRules()));
+        List<Context> contexts = acl.getRules().stream().map(Contexts::toContext).sorted().collect(toList());
+        return new CollectionDto(ETHERNET_SWITCH_ACL_RULE, contexts);
     }
 
     @Transactional(REQUIRED)

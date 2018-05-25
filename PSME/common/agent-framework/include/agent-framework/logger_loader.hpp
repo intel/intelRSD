@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,19 +40,18 @@ public:
     LoggerLoader(const json::Value& config) : m_config_json{config} {}
 
     /*!
-     * @brief load Create loggers map from configuration data
-     * @return Map contains loggers, that can be accessed by logger name
+     * @brief load Create loggers in the logger factory from configuration data
+     * @param factory logger factory where the loggers are to be configured
      */
-    LoggerFactory::loggers_t load();
+    void load(LoggerFactory& factory);
 
 private:
     /*!
      * @brief add_logger Create logger object for given configuration
-     * @param[in] name    Logger name
      * @param[in] config Configuration data for logger
      * @return Logger Object
      */
-    LoggerSPtr get_logger(const std::string& name, const json::Value& config);
+    LoggerSPtr get_logger(const json::Value& config);
 
     /*!
      * @brief add_streams Create stream object for given configuration

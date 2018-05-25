@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +18,6 @@
  * limitations under the License.
  *
  * @file model_tool.cpp
- *
  * @brief ModelTool implementation
  * */
 
@@ -63,12 +60,12 @@ bool ModelTool::get_port_by_phys_id(Port& port, const std::uint32_t phy_port_id,
         return true;
     }
     if (is_temporary) {
-        log_error(GET_LOGGER("model-tool"), "PCIePort Twi access data for port " + std::to_string(phy_port_id)
+        log_error("model-tool", "PCIePort Twi access data for port " + std::to_string(phy_port_id)
             << " is not specified in configuration file.");
         return false;
     }
     else {
-        log_error(GET_LOGGER("model-tool"), "PCIePort with physical port Id " + std::to_string(phy_port_id)
+        log_error("model-tool", "PCIePort with physical port Id " + std::to_string(phy_port_id)
             << " not found");
         return false;
     }
@@ -85,8 +82,8 @@ bool ModelTool::get_zone_by_id(Zone& zone, const std::string& switch_uuid, const
         return true;
     }
     else {
-        log_error(GET_LOGGER("model-tool"), "Cannot find zone");
-        log_debug(GET_LOGGER("model-tool"), "Cannot find zone with id " << zone_id << " for switch " << switch_uuid);
+        log_error("model-tool", "Cannot find zone");
+        log_debug("model-tool", "Cannot find zone with id " << zone_id << " for switch " << switch_uuid);
         return false;
     }
 }
@@ -133,7 +130,7 @@ void ModelTool::send_event(const std::string& parent, const std::string& uuid,
     edat.set_type(component);
     edat.set_notification(type);
     EventsQueue::get_instance()->push_back(edat);
-    log_info(GET_LOGGER("agent"), "Sending an event for component "
+    log_info("agent", "Sending an event for component "
         << edat.get_component() << "," << "(" << edat.get_type() << ")"
         << ", notification type: " << edat.get_notification());
 }
@@ -142,6 +139,7 @@ void ModelTool::update_drive_status(const std::string& drive_uuid, const attribu
         const int media_life_left) const {
 
     auto drive = get_manager<Drive>().get_entry_reference(drive_uuid);
+    drive->set_last_smart_health(status.get_health());
     if (drive->get_is_being_erased() || drive->get_is_in_critical_discovery_state()) {
         // we should not overwrite this states
         return;
@@ -152,7 +150,7 @@ void ModelTool::update_drive_status(const std::string& drive_uuid, const attribu
     if (!drive->get_predicted_media_life_left().has_value()
         || media_life_left != drive->get_predicted_media_life_left()) {
 
-        log_debug(GET_LOGGER("agent"), "Drive (" << drive_uuid << ") status changed: " << "Life left: "
+        log_debug("agent", "Drive (" << drive_uuid << ") status changed: " << "Life left: "
             << media_life_left << "%");
         drive->set_predicted_media_life_left(media_life_left);
         drive->set_failure_predicted(media_life_left <= 0);
@@ -163,7 +161,7 @@ void ModelTool::update_drive_status(const std::string& drive_uuid, const attribu
     if (!drive->get_is_in_warning_state() && (prev_status.get_health() != status.get_health()
         || prev_status.get_state() != status.get_state())) {
 
-            log_debug(GET_LOGGER("agent"), "Drive (" << drive_uuid << ") status changed: "
+            log_debug("agent", "Drive (" << drive_uuid << ") status changed: "
                 << status.get_health() << ", " << status.get_state());
             drive->set_status(status);
             changed = true;
@@ -183,7 +181,7 @@ bool ModelTool::set_status(Resource& resource, ::agent_framework::model::attribu
     attribute::Status prev_status = resource.get_status();
     if ((prev_status.get_health() != status.get_health() || prev_status.get_state() != status.get_state())) {
 
-        log_debug(GET_LOGGER("agent"), "Resource (" << resource.get_id() << ") status has changed: "
+        log_debug("agent", "Resource (" << resource.get_id() << ") status has changed: "
                                                 << status.get_health() << ", " << status.get_state());
         resource.set_status(status);
         changed = true;
@@ -197,22 +195,22 @@ bool ModelTool::set_port_width_and_speed(Port& port,
 
     bool changed = false;
     if (!port.get_width().has_value() || width != port.get_width()) {
-        log_debug(GET_LOGGER("agent"), "Port (" << port.get_port_id() << ") width has changed: " << width);
+        log_debug("agent", "Port (" << port.get_port_id() << ") width has changed: " << width);
         port.set_width(width);
         changed = true;
     }
     if (!port.get_max_width().has_value() || max_width != port.get_max_width()) {
-        log_debug(GET_LOGGER("agent"), "Port (" << port.get_port_id() << ") max width has changed: " << max_width);
+        log_debug("agent", "Port (" << port.get_port_id() << ") max width has changed: " << max_width);
         port.set_max_width(max_width);
         changed = true;
     }
     if (!port.get_speed_gbps().has_value() || speed != port.get_speed_gbps()) {
-        log_debug(GET_LOGGER("agent"), "Port (" << port.get_port_id() << ") speed has changed: " << speed);
+        log_debug("agent", "Port (" << port.get_port_id() << ") speed has changed: " << speed);
         port.set_speed_gbps(speed);
         changed = true;
     }
     if (!port.get_max_speed_gbps().has_value() || max_speed != port.get_max_speed_gbps()) {
-        log_debug(GET_LOGGER("agent"), "Port (" << port.get_port_id() << ") max speed has changed: " << max_speed);
+        log_debug("agent", "Port (" << port.get_port_id() << ") max speed has changed: " << max_speed);
         port.set_max_speed_gbps(max_speed);
         changed = true;
     }
@@ -275,9 +273,7 @@ void ModelTool::regenerate_endpoint(const std::string& endpoint_uuid, const std:
 
     auto entities = endpoint->get_connected_entities();
     for (auto& entity : entities) {
-        if (!entity.get_entity().has_value()
-            && entity.get_entity_role().has_value() && entity.get_entity_role() == enums::EntityRole::Target
-            && entity.get_entity_type().has_value() && entity.get_entity_type() == enums::EntityType::Drive)
+        if (!entity.get_entity().has_value() && entity.get_entity_role() == enums::EntityRole::Target)
         entity.set_entity(drive_uuid);
     }
     endpoint->set_connected_entities(entities);
@@ -299,7 +295,7 @@ std::string ModelTool::get_switch_for_drive_uuid(const std::string& drive_uuid) 
     // currently we support only one switch
     auto ports = this->get_ports_by_drive_uuid(drive_uuid);
     if (ports.empty()) {
-        log_error(GET_LOGGER("pnc-gami"), "Drive does not have any pcie function connected to it");
+        log_error("pnc-gami", "Drive does not have any pcie function connected to it");
         throw std::runtime_error("No pcie functions for a drive");
     }
     return get_manager<Port>().get_entry(ports.front()).get_parent_uuid();

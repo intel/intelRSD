@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,13 +76,13 @@ void GetIdField::Response::add_data(IpmiMessage& msg) {
 }
 
 void  GetIdField::unpack(IpmiMessage& msg) {
-    log_debug(GET_LOGGER("ipmb"), "Unpacking Get ID Field message.");
+    log_debug("ipmb", "Unpacking Get ID Field message.");
 
     msg.set_to_request();
 
     // Validate request length
     if (CMD_REQUEST_DATA_LENGTH > (msg.get_len() - IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN)) {
-        log_error(GET_LOGGER("ipmb"), "Invalid request length.");
+        log_error("ipmb", "Invalid request length.");
         m_response.set_cc(CompletionCode::CC_REQ_DATA_LENGTH_INVALID);
         return;
     }
@@ -103,7 +103,7 @@ void GetIdField::pack(IpmiMessage& msg) {
 
     switch (InstanceField(m_request.get_instance())) {
     case InstanceField::RESERVED:
-        log_error(GET_LOGGER("ipmb"), "Can not read reserved value.");
+        log_error("ipmb", "Can not read reserved value.");
         m_response.set_cc(CompletionCode::CC_PARAMETER_OUT_OF_RANGE);
         break;
     case InstanceField::RACKPUID:
@@ -123,7 +123,7 @@ void GetIdField::pack(IpmiMessage& msg) {
         m_response.set_field(get_rack_location_id());
         break;
     default:
-        log_error(GET_LOGGER("ipmb"), "Unknown field instance.");
+        log_error("ipmb", "Unknown field instance.");
         m_response.set_cc(CompletionCode::CC_PARAMETER_OUT_OF_RANGE);
         break;
     }
@@ -134,7 +134,7 @@ void GetIdField::pack(IpmiMessage& msg) {
 std::vector<uint8_t> GetIdField::get_tray_ruid() const {
     const auto chassis = get_chassis();
     const auto location_offset = chassis.get_location_offset();
-    log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid()
+    log_debug("ipmb", "Drawer Chassis=" << chassis.get_uuid()
                         << " DrawerRUID=" << location_offset);
     return uint32_as_msb_array(location_offset);
 }
@@ -146,7 +146,7 @@ std::vector<uint8_t> GetIdField::get_rack_puid() const {
         parent_id = static_cast<std::uint32_t>(std::stoul(chassis.get_parent_id(), nullptr, 10));
     } catch (...) { /*not a number*/ }
 
-    log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid() << " RackPUID=" << parent_id);
+    log_debug("ipmb", "Drawer Chassis=" << chassis.get_uuid() << " RackPUID=" << parent_id);
     return uint32_as_msb_array(parent_id);
 }
 
@@ -155,7 +155,7 @@ std::vector<uint8_t> GetIdField::get_rack_location_id() const {
     const auto& parent_id = chassis.get_parent_id();
 
     if (parent_id.has_value()) {
-        log_debug(GET_LOGGER("ipmb"), "Drawer Chassis=" << chassis.get_uuid() << " Rack location id=" << parent_id.value());
+        log_debug("ipmb", "Drawer Chassis=" << chassis.get_uuid() << " Rack location id=" << parent_id.value());
         return { parent_id.value().begin(), parent_id.value().end() };
     }
     else {

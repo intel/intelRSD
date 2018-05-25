@@ -1,7 +1,7 @@
 /*!
  * @brief MetricDefinitionBuilder implementation
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,19 @@ using namespace agent_framework::model;
 
 MetricDefinitionBuilder::MetricDefinitionBuilder() : AbstractBuilder<MetricDefinition>() { }
 
+MetricDefinitionBuilder::~MetricDefinitionBuilder() { }
+
 MetricDefinitionBuilder& MetricDefinitionBuilder::prepare_port_health_definition() {
     // clear current definition
     m_obj = agent_framework::model::MetricDefinition();
     m_obj.set_metric_jsonptr("/Health");
     m_obj.set_name("Fabric Port Health metric");
     m_obj.set_implementation(enums::MetricImplementation::PhysicalSensor);
-    m_obj.set_calculable(enums::MetricCalculable::NonCalculatable);
+    m_obj.set_calculable(enums::MetricCalculable::NonCalculable);
     m_obj.set_data_type(enums::MetricDataType::String);
     m_obj.set_is_linear(false);
     m_obj.set_physical_context(enums::PhysicalContext::NetworkingDevice);
-    m_obj.set_sensing_interval("10s");
+    m_obj.set_sensing_interval("PT10S");
     m_obj.set_metric_type(enums::MetricType::Discrete);
     for(const auto& allowable_value : enums::Health::get_values()) {
         m_obj.add_discrete_value(allowable_value);

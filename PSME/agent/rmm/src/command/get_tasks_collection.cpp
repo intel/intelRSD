@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ using namespace agent_framework::model;
 
 REGISTER_COMMAND(GetTasksCollection,
     [] (const GetTasksCollection::Request&, GetTasksCollection::Response& rsp) {
-        log_debug(GET_LOGGER("rmm-agent"), "Getting collection of tasks");
+        log_debug("rmm-agent", "Getting collection of tasks");
         auto keys = get_manager<Task>().get_keys();
         for (const auto& key : keys) {
             rsp.add_entry(agent_framework::model::attribute::TaskEntry{key});

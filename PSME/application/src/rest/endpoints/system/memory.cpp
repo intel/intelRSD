@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +78,7 @@ json::Value make_prototype() {
 
     r[Common::METRICS] = json::Value::Type::NIL;
 
-    json::Value rs;
+    json::Value rs{};
     rs[Common::ODATA_TYPE] = "#Intel.Oem.Memory";
     rs[Memory::VOLTAGE_VOLT] = json::Value::Type::NIL;
     r[Common::OEM][Common::RACKSCALE] = std::move(rs);
@@ -96,16 +96,12 @@ void endpoint::Memory::get(const server::Request& req, server::Response& res) {
     r[Common::ODATA_ID] = PathBuilder(req).build();
     r[Common::ID] = req.params[PathParam::MEMORY_ID];
 
-    auto memory = psme::rest::model::Find
-        <agent_framework::model::Memory>
-        (req.params[PathParam::MEMORY_ID]).via
-        <agent_framework::model::System>
-        (req.params[PathParam::SYSTEM_ID]).get();
+    auto memory = psme::rest::model::Find<agent_framework::model::Memory>(req.params[PathParam::MEMORY_ID])
+        .via<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get();
 
     r[constants::Memory::MEMORY_TYPE] = memory.get_memory_type();
     r[constants::Memory::MEMORY_DEVICE_TYPE] = memory.get_device_type();
-    r[constants::Memory::BASE_MODULE_TYPE] =
-        memory.get_module_type();
+    r[constants::Memory::BASE_MODULE_TYPE] = memory.get_module_type();
     for (const auto& key : memory.get_memory_media()) {
         json::Value link_elem(json::Value::Type::STRING);
         link_elem = key.to_string();
@@ -135,8 +131,7 @@ void endpoint::Memory::get(const server::Request& req, server::Response& res) {
     for (const auto& function : memory.get_memory_classes()) {
         json::Value link_elem(json::Value::Type::STRING);
         link_elem = function.to_string();
-        r[constants::Memory::FUNCTION_CLASSES].
-            push_back(std::move(link_elem));
+        r[constants::Memory::FUNCTION_CLASSES].push_back(std::move(link_elem));
     }
 
     r[constants::Memory::VENDOR_ID] = memory.get_vendor_id();
@@ -147,8 +142,7 @@ void endpoint::Memory::get(const server::Request& req, server::Response& res) {
     auto location = memory.get_location();
     json::Value location_json(json::Value::Type::OBJECT);
     location_json[constants::Memory::SOCKET] = location.get_socket();
-    location_json[constants::Memory::MEMORY_CONTROLLER] =
-        location.get_controller();
+    location_json[constants::Memory::MEMORY_CONTROLLER] = location.get_controller();
     location_json[constants::Memory::CHANNEL] = location.get_channel();
     location_json[constants::Memory::SLOT] = location.get_slot();
     r[constants::Memory::MEMORY_LOCATION] = std::move(location_json);
@@ -156,8 +150,7 @@ void endpoint::Memory::get(const server::Request& req, server::Response& res) {
     r[constants::Memory::ERROR_CORRECTION] = memory.get_error_correction();
     endpoint::status_to_json(memory, r);
     r[Common::STATUS][Common::HEALTH_ROLLUP] = memory.get_status().get_health();
-    r[constants::Memory::OPERATING_SPEED_MHZ] =
-        memory.get_operating_speed_mhz();
+    r[constants::Memory::OPERATING_SPEED_MHZ] = memory.get_operating_speed_mhz();
 
     for (const auto& region : memory.get_regions()) {
         json::Value link_elem(json::Value::Type::OBJECT);
@@ -174,14 +167,11 @@ void endpoint::Memory::get(const server::Request& req, server::Response& res) {
     for (const auto& mode : memory.get_memory_modes()) {
         json::Value link_elem(json::Value::Type::STRING);
         link_elem = mode.to_string();
-        r[constants::Memory::OPERATING_MEMORY_MODES].
-            push_back(std::move(link_elem));
+        r[constants::Memory::OPERATING_MEMORY_MODES].push_back(std::move(link_elem));
     }
 
     r[constants::Common::METRICS][Common::ODATA_ID] = PathBuilder(req).append(constants::Common::METRICS).build();
-
-    r[Common::OEM][Common::RACKSCALE][constants::Memory::VOLTAGE_VOLT] =
-        memory.get_voltage_volt();
+    r[Common::OEM][Common::RACKSCALE][constants::Memory::VOLTAGE_VOLT] = memory.get_voltage_volt();
 
     set_response(res, r);
 }

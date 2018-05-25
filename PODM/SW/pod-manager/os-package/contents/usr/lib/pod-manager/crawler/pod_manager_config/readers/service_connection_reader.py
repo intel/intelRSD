@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,28 +34,28 @@ class ServiceConnectionReader:
                     ports = connection_security['SslPortsForLui']
                     protocol = Protocols.HTTPS
                 else:
-                    ports = connection_security['DefaultPortsForLui']
+                    ports = connection_security['HttpPortsForLui']
                     protocol = Protocols.HTTP
             elif service_type == 'psme':
                 if connection_security['SslEnabledForPsme']:
                     ports = connection_security['SslPortsForPsme']
                     protocol = Protocols.HTTPS
                 else:
-                    ports = connection_security['DefaultPortsForPsme']
+                    ports = connection_security['HttpPortsForPsme']
                     protocol = Protocols.HTTP
             elif service_type == 'rmm':
                 if connection_security['SslEnabledForRmm']:
                     ports = connection_security['SslPortsForRmm']
                     protocol = Protocols.HTTPS
                 else:
-                    ports = connection_security['DefaultPortsForRmm']
+                    ports = connection_security['HttpPortsForRmm']
                     protocol = Protocols.HTTP
             elif service_type == 'storage':
                 if connection_security['SslEnabledForRss']:
                     ports = connection_security['SslPortsForRss']
                     protocol = Protocols.HTTPS
                 else:
-                    ports = connection_security['DefaultPortsForRss']
+                    ports = connection_security['HttpDefaultPortsForRss']
                     protocol = Protocols.HTTP
             else:
                 ports = [PodManagerDefaults.port]

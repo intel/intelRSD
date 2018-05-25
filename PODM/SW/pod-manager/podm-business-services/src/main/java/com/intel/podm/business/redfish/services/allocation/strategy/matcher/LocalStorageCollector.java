@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.intel.podm.business.entities.redfish.Endpoint;
 import com.intel.podm.business.entities.redfish.Port;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
 import com.intel.podm.business.entities.redfish.Storage;
+import com.intel.podm.business.entities.redfish.base.ConnectedEntity;
 import com.intel.podm.business.entities.redfish.base.LocalStorage;
 
 import javax.enterprise.context.Dependent;
@@ -37,6 +38,7 @@ import java.util.Set;
 
 import static com.intel.podm.common.types.Protocol.NVME;
 import static com.intel.podm.common.utils.Converters.convertBytesToGib;
+import static com.intel.podm.common.utils.IterableHelper.optionalSingle;
 import static java.lang.Boolean.FALSE;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -118,7 +120,7 @@ public class LocalStorageCollector {
         pcieLocalStorage.setRpm(null);
         pcieLocalStorage.setProtocol(NVME);
         pcieLocalStorage.setDrive(drive);
-        pcieLocalStorage.setEndpoint(drive.getConnectedEntity() != null ? drive.getConnectedEntity().getEndpoint() : null);
+        pcieLocalStorage.setEndpoint(optionalSingle(drive.getEntityConnections()).map(ConnectedEntity::getEndpoint).orElse(null));
 
         Endpoint upstreamEndpointInUpstreamPort = upstreamPort.getEndpoints().stream()
             .filter(endpoint -> endpoint.getZone() != null)

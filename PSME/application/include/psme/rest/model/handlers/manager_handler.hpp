@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,7 @@ protected:
         try {
             if (Component::None ==  ctx.get_parent_component()) {
 
-                log_debug(GET_LOGGER("rest"), ctx.indent
+                log_debug("rest", ctx.indent
                     << "[" << static_cast<char>(ctx.mode) << "] "
                     <<  "Fetching list of all managers from agent "
                     << ctx.agent->get_gami_id());
@@ -71,7 +71,7 @@ protected:
             }
         }
         catch (const json_rpc::JsonRpcException& e) {
-            log_error(GET_LOGGER("rest"), ctx.indent
+            log_error("rest", ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Agent exception while fetching list of all components of "
                    "type [" << component_s() << "] for parent "

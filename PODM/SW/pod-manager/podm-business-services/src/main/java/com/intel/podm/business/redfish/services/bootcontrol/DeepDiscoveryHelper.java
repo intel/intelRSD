@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static com.intel.podm.common.types.DeepDiscoveryState.RUNNING;
 import static com.intel.podm.common.types.DeepDiscoveryState.SCHEDULED_MANUALLY;
 import static com.intel.podm.common.types.DeepDiscoveryState.WAITING_TO_START;
@@ -50,7 +51,7 @@ class DeepDiscoveryHelper {
         }
 
         ComputerSystem computerSystem = computerSystemDao.find(computerSystemId);
-        if (!computerSystem.isEnabledAndHealthy()) {
+        if (!statusOf(computerSystem).isEnabled().isHealthy().verify()) {
             throw new DeepDiscoveryException("ComputerSystem should be enabled and healthy in order to invoke actions on it.");
         } else if (computerSystem.getComposedNode() != null) {
             throw new DeepDiscoveryException("Deep discovery action cannot be triggered. ComputerSystem is used by a Node.");

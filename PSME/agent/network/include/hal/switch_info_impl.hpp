@@ -1,40 +1,42 @@
 /*!
- * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * @brief Switch Info Impl class declaration.
  *
- * @copyright
+ * @header{License}
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
+ * @header{Filesystem}
  * @file switch_info_impl.hpp
- *
- * @brief Switch parameters
- * */
+ */
 
 #pragma once
+
+#include "agent-framework/module/enum/network.hpp"
+#include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "hal/switch_info.hpp"
 
 namespace agent {
 namespace network {
 namespace hal {
 
+
 /*!
  * @brief Switch Info.
  */
 class SwitchInfoImpl : public SwitchInfo {
 public:
+
+    using ProtocolId = agent_framework::model::enums::TransportLayerProtocol;
+
     /*!
      * @brief Default constructor.
      * @param[in] mgmt_port Management port.
@@ -99,6 +101,111 @@ public:
      * @param[in] port Port interface to be deleted.
      */
     void delete_switch_port(const PortIdentifier& port);
+
+    /*!
+     * @brief Sets PFC enabled attribute.
+     * @param[in] enable PFC state.
+     * */
+    void set_switch_pfc_enabled(bool state);
+
+    /*!
+     * @brief Sets LLDP enabled attribute.
+     * @param[in] enable LLDP state.
+     * */
+    void set_switch_lldp_enabled(bool state);
+
+    /*!
+     * @brief Add QoS application protocol.
+     * */
+    void add_switch_qos_application_protocol(
+            ProtocolId protocol, std::uint32_t port, std::uint32_t priority);
+
+    /*!
+     * @brief Delete QoS application protocol.
+     * */
+    void delete_switch_qos_application_protocol(
+            ProtocolId protocol, std::uint32_t port, std::uint32_t priority);
+
+    /*!
+     * @brief Add QoS bandwidth allocation.
+     * */
+    void add_switch_qos_bandwidth_allocation(
+            std::uint32_t bandwidth_percent, std::uint32_t priority_group);
+
+    /*!
+     * @brief Delete QoS bandwidth allocation.
+     * */
+    void delete_switch_qos_bandwidth_allocation(
+            std::uint32_t bandwidth_percent, std::uint32_t priority_group);
+
+    /*!
+     * @brief Add QoS priority group mapping.
+     * */
+    void add_switch_qos_priority_group_mapping(
+            std::uint32_t priority, std::uint32_t priority_group);
+
+    /*!
+     * @brief Delete QoS priority group mapping.
+     * */
+    void delete_switch_qos_priority_group_mapping(
+            std::uint32_t priority, std::uint32_t priority_group);
+
+    /*!
+     * @brief Updates QoS PFC state on a switch.
+     * If current state matches new - switch pfc setting will be kept untouched.
+     * If current state differs from new - new pfc setting will be set (current will be overwritten).
+     * @param[in] current_pfc_state PFC configuration running on switch
+     * @param[in] new_pfc_state PFC configuration to be set
+     */
+    void update_switch_pfc_enabled(bool current_pfc_state, bool new_pfc_state);
+
+    /*!
+     * @brief Updates QoS LLDP state on a switch.
+     * If current state matches new - switch lldp setting will be kept untouched.
+     * If current state differs from new - new lldp setting will be set (current will be overwritten).
+     * @param[in] current_lldp_state PFC configuration running on switch
+     * @param[in] new_lldp_state PFC configuration to be set
+     */
+    void update_switch_lldp_enabled(bool current_lldp_state, bool new_lldp_state);
+
+    /*!
+     * @brief Updates QoS Application Protocol configuration on a switch.
+     * If current config matches new - switch parameters will be kept untouched.
+     * If current config differs from new - new parameters will be set, currently running will be deleted.
+     * @param[in] current_application_mappings Application Protocol configuration running on switch
+     * @param[in] new_application_mappings Application Protocol configuration to be set
+     */
+    void update_switch_qos_application_protocol(
+            const agent_framework::model::attribute::Array<
+                  agent_framework::model::attribute::QosApplicationProtocol>& current_application_mappings,
+            const agent_framework::model::attribute::Array<
+                  agent_framework::model::attribute::QosApplicationProtocol>& new_application_mappings);
+
+    /*!
+     * @brief Updates QoS Priority to Priority Group mapping on a switch.
+     * If current config matches new - switch parameters will be kept untouched.
+     * If current config differs from new - new parameters will be set, currently running will be deleted.
+     * @param[in] current_priority_mappings Priority mapping running on switch
+     * @param[in] new_priority_mappings Priority mapping to be set
+     */
+    void update_switch_qos_priority_group_mapping(
+            const agent_framework::model::attribute::Array<
+                  agent_framework::model::attribute::QosPriorityGroupMapping>& current_priority_mappings,
+            const agent_framework::model::attribute::Array<
+                  agent_framework::model::attribute::QosPriorityGroupMapping>& new_priority_mappings);
+
+    /*!
+     * @brief Updates QoS Bandwidth Allocation on a switch.
+     * If current config matches new - switch parameters will be kept untouched.
+     * If current config differs from new - new parameters will be set, currently running will be deleted.
+     * @param[in] current_bandwidth_allocations Bandwidth Allocation configuration running on switch
+     * @param[in] new_bandwidth_allocations Bandwidth Allocation configuration to be set
+     */
+    void update_switch_qos_bandwidth_allocation(
+            const agent_framework::model::attribute::Array<
+                  agent_framework::model::attribute::QosBandwidthAllocation>& current_bandwidth_allocations,
+            const agent_framework::model::attribute::Array<
+                  agent_framework::model::attribute::QosBandwidthAllocation>& new_bandwidth_allocations);
 };
 
 }

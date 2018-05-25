@@ -2,7 +2,7 @@
  * @brief General database interface
  *
  * @header{License}
- * @copyright Copyright (c) 2015-2017 Intel Corporation
+ * @copyright Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -36,17 +36,17 @@ const std::string Database::EMPTY{""};
 
 std::string Database::default_location = "/var/opt/psme";
 
-void Database::set_default(const std::string& location) {
+void Database::set_default_location(const std::string& location) {
     default_location = location;
 }
 
-Database::SPtr Database::create(const std::string& name, const std::string& location) {
+Database::SPtr Database::create(const std::string& name, bool with_policy, const std::string& location) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
     /* check if database is already created */
     for (auto& db : databases) {
         if (db->get_name() == name) {
-            log_error(GET_LOGGER("db"), "Database '" << name << "' already created");
+            log_error("db", "Database '" << name << "' already created");
             assert(FAIL("Database already created"));
             return db;
         }
@@ -54,7 +54,7 @@ Database::SPtr Database::create(const std::string& name, const std::string& loca
 
     /* proper database type is to be created here.. Currently only FileDatabase is handled */
     const std::string n = (name.substr(0, 1) == "*") ? "" : name;
-    SPtr added{new FileDatabase(n, location.empty() ? default_location : location)};
+    SPtr added{new FileDatabase(n, with_policy, location.empty() ? default_location : location)};
 
     databases.push_back(added);
     return added;
@@ -68,7 +68,9 @@ Database::~Database() { }
 
 Database::Database(const std::string& _name) : name(_name) { }
 
-const std::string& Database::get_name() const { return name; }
+const std::string& Database::get_name() const {
+    return name;
+}
 
 void Database::remove() {
     std::lock_guard<std::recursive_mutex> lock(mutex);
@@ -80,20 +82,22 @@ void Database::remove() {
             return;
         }
     }
-    log_error(GET_LOGGER("db"), "Database " << get_name() << " already removed");
+    log_error("db", "Database " << get_name() << " already removed");
 }
 
 unsigned Database::invalidate_all(std::chrono::seconds interval) {
-    SPtr db{Database::create("*retention")};
+    SPtr db{Database::create("*retention", true)};
     AlwaysMatchKey key{};
+    /* invalidate valid entries, remove outdated. Don't touch non related ones */
     auto ret = db->cleanup(key, interval);
     db->remove();
     return ret;
 }
 
 unsigned Database::remove_outdated(std::chrono::seconds interval) {
-    SPtr db{Database::create("*retention")};
+    SPtr db{Database::create("*retention", true)};
     AlwaysMatchKey key{};
+    /* remove outdated files, don't touch non related ones */
     unsigned ret = db->wipe_outdated(key, interval);
     db->remove();
     return ret;
@@ -103,6 +107,11 @@ unsigned Database::remove_outdated(std::chrono::seconds interval) {
 Serializable::Serializable() { }
 
 Serializable::~Serializable() { }
+
+std::ostream& database::operator<<(std::ostream& stream, const Serializable& val) {
+    stream << val.serialize();
+    return stream;
+}
 
 String::String() : m_str("") { }
 
@@ -118,6 +127,11 @@ String& String::operator=(const std::string& str) {
 String& String::operator=(std::string&& str) {
     m_str = std::move(str);
     return *this;
+}
+
+std::ostream& database::operator<<(std::ostream& stream, const String& str) {
+    stream << str.m_str;
+    return stream;
 }
 
 std::string String::serialize() const {

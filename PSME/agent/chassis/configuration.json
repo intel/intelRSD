@@ -1,4 +1,5 @@
 {
+    "service" : "chassis",
     "agent": {
         "vendor": "Intel Corporation",
         "capabilities" : ["Chassis"]
@@ -63,9 +64,12 @@
          ]
        }
     ],
-    "service-uuid-file" : "/var/opt/psme/chassis-service-uuid.json",
-    "logger" : {
-        "agent" : {
+    "database": {
+        "location": "/var/opt/psme/chassis"
+    },
+    "loggers" : [
+        {
+            "name" : "chassis-agent",
             "level" : "INFO",
             "timeformat" : "DATE_NS",
             "color" : true,
@@ -78,5 +82,5 @@
                 }
             ]
         }
-    }
+    ]
 }

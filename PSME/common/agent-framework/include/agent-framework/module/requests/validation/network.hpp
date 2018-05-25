@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,6 +38,13 @@ namespace validation {
 
     class NetworkValidator {
     public:
+        /*!
+         * @brief Validates SetComponentAttributes method for Switch resource.
+         * @param[in] attributes Attributes deserialized from JSON request.
+         * @throw Throws exception if parameter is invalid.
+         * */
+        static void validate_set_switch_attributes(
+            const agent_framework::model::attribute::Attributes& attributes);
 
         /*!
          * @brief Validates SetComponentAttributes method for Port resource.
@@ -78,6 +85,41 @@ namespace validation {
          * */
         static void validate_set_static_mac_attributes(
                 const agent_framework::model::attribute::Attributes& attributes);
+
+        /*!
+         * @brief Validates priorities list if it contains duplicated priorities to set.
+         * @param[in] priorities list of priorities.
+         * @throw Throws exception if parameter is invalid.
+         * */
+        static void validate_request_switch_port_priorities(
+                const agent_framework::model::attribute::Array<std::uint32_t>& priorities);
+
+        /*!
+         * @brief Validate QoS Application Protocol configuration on a switch.
+         * @param[in] application_mappings Application Protocol configuration to be set
+         * @throw Throws exception if parameter is invalid.
+         */
+        static void validate_request_switch_qos_application_protocol(
+                const agent_framework::model::attribute::Array<
+                        agent_framework::model::attribute::QosApplicationProtocol>& application_mappings);
+
+        /*!
+         * @brief Validate QoS Priority to Priority Group mapping on a switch.
+         * @param[in] priority_mappings Priority mapping to be set
+         * @throw Throws exception if parameter is invalid.
+         */
+        static void validate_request_switch_qos_priority_group_mapping(
+                const agent_framework::model::attribute::Array<
+                        agent_framework::model::attribute::QosPriorityGroupMapping>& priority_mappings);
+
+        /*!
+         * @brief Validate QoS Bandwidth Allocation on a switch.
+         * @param[in] bandwidth_allocations Bandwidth Allocation configuration to be set
+         * @throw Throws exception if parameter is invalid.
+         */
+        static void validate_request_switch_qos_bandwidth_allocation(
+                const agent_framework::model::attribute::Array<
+                        agent_framework::model::attribute::QosBandwidthAllocation>& bandwidth_allocations);
     };
 }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,7 @@ import java.util.Objects;
 
 import static com.intel.podm.common.utils.Contracts.requires;
 import static java.util.Collections.unmodifiableCollection;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 @Dependent
 public class ProcessorMatcher {
@@ -47,8 +46,6 @@ public class ProcessorMatcher {
             return false;
         }
 
-        return isNotEmpty(requestedProcessors)
-            ? areMatched(requestedProcessors, availableProcessors)
-            : true;
+        return isEmpty(requestedProcessors) || areMatched(requestedProcessors, availableProcessors);
     }
 }

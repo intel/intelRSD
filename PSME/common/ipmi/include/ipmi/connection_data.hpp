@@ -2,7 +2,7 @@
  * @brief ManagementController configuration interface.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,13 @@ public:
      * @return name of the interface
      */
     virtual const std::string& get_interface_type() const;
+
+
+    /*!
+     * @brief Get info about the connection
+     * @return string allowing connection identification (IP, device, etc)
+     */
+    virtual std::string get_info() const = 0;
 
 private:
     const std::string interface_type;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.services.context.SingletonContext;
 import com.intel.podm.common.types.Status;
 
-@JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "name", "description", "id", "status", "links", "networkDeviceFunctions", "oem"
-})
-@SuppressWarnings({"checkstyle:VisibilityModifier"})
+@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "name", "description", "id", "status", "networkDeviceFunctions", "links", "oem"})
 public final class NetworkInterfaceDto extends RedfishDto {
+    private final Links links = new Links();
     private Status status;
-    private Links links = new Links();
     private SingletonContext networkDeviceFunctions;
 
     public NetworkInterfaceDto() {
@@ -43,10 +40,6 @@ public final class NetworkInterfaceDto extends RedfishDto {
 
     public Links getLinks() {
         return links;
-    }
-
-    public void setLinks(Links links) {
-        this.links = links;
     }
 
     public SingletonContext getNetworkDeviceFunctions() {

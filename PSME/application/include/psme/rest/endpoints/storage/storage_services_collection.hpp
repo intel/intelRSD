@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,19 +32,19 @@ namespace endpoint {
 /*!
  * A class representing the rest api StorageServiceCollection endpoint
  */
-class StorageServiceCollection : public EndpointBase {
+class StorageServicesCollection : public EndpointBase {
 public:
 
 
     /*!
      * @brief The constructor for StorageServiceCollection class
      */
-    explicit StorageServiceCollection(const std::string& path);
+    explicit StorageServicesCollection(const std::string& path);
 
     /*!
      * @brief StorageServiceCollection class destructor
      */
-    virtual ~StorageServiceCollection();
+    virtual ~StorageServicesCollection();
 
     void get(const server::Request& request, server::Response& response) override;
 };

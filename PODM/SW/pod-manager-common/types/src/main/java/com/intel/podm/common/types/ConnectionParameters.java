@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,14 @@ package com.intel.podm.common.types;
 public class ConnectionParameters {
     private long serviceConnectionTimeout;
     private long serviceSocketTimeout;
+    private int connectionPoolSize;
+    private int maxPooledPerRoute;
 
-    public ConnectionParameters(long serviceConnectionTimeout, long serviceSocketTimeout) {
+    public ConnectionParameters(long serviceConnectionTimeout, long serviceSocketTimeout, int connectionPoolSize, int maxPooledPerRoute) {
         this.serviceConnectionTimeout = serviceConnectionTimeout;
         this.serviceSocketTimeout = serviceSocketTimeout;
+        this.connectionPoolSize = connectionPoolSize;
+        this.maxPooledPerRoute = maxPooledPerRoute;
     }
 
     public long getServiceConnectionTimeout() {
@@ -31,5 +35,13 @@ public class ConnectionParameters {
 
     public long getServiceSocketTimeout() {
         return serviceSocketTimeout;
+    }
+
+    public int getConnectionPoolSize() {
+        return connectionPoolSize;
+    }
+
+    public int getMaxPooledPerRoute() {
+        return maxPooledPerRoute;
     }
 }

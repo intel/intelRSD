@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -119,17 +119,17 @@ private:
 
         if (json["chassis"].is_object()) {
             auto chassis = make_chassis(manager, json["chassis"]);
-            log_debug(GET_LOGGER("discovery"),
+            log_debug("discovery",
                       "Adding chassis:" << chassis.get_uuid() << " to manager " << manager.get_uuid());
 
             get_manager<Chassis>().add_entry(chassis);
         }
 
-        log_debug(GET_LOGGER("discovery"), "Adding manager:" << manager.get_uuid());
+        log_debug("discovery", "Adding manager:" << manager.get_uuid());
         get_manager<Manager>().add_entry(manager);
 
         if (json["managers"].is_array()) {
-            log_debug(GET_LOGGER("discovery"), "Adding children managers to manager:" << manager.get_uuid());
+            log_debug("discovery", "Adding children managers to manager:" << manager.get_uuid());
             read_managers(manager.get_uuid(), json);
         }
     }
@@ -174,14 +174,14 @@ private:
             connection_data.set_port(json["port"].as_uint());
             connection_data.set_username(decrypt_value(json["username"].as_string()));
             connection_data.set_password(decrypt_value(json["password"].as_string()));
-            log_debug(GET_LOGGER("agent"), "Manager connection data loaded. IP="
+            log_debug("agent", "Manager connection data loaded. IP="
                 << connection_data.get_ip_address()
                 << ", port=" << connection_data.get_port());
             manager.set_connection_data(connection_data);
         }
         catch (std::runtime_error& e) {
-            log_warning(GET_LOGGER("agent"), "Cannot read connection data.");
-            log_debug(GET_LOGGER("agent"), "Cannot read connection data: " << e.what());
+            log_warning("agent", "Cannot read connection data.");
+            log_debug("agent", "Cannot read connection data: " << e.what());
         }
 
         manager.set_status({
@@ -267,7 +267,7 @@ bool ChassisLoader::load(const json::Value& json) {
         return true;
     }
     catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("discovery"), "Load agent configuration failed: " << e.what());
+        log_error("discovery", "Load agent configuration failed: " << e.what());
     }
     return false;
 }

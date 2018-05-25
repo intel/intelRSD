@@ -1,0 +1,86 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2017-2018 Intel Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="podm (generated)" id="1508925155372-1">
+        <createTable tableName="metric_definition_calculation_parameters">
+            <column name="metric_definition_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="result_metric" type="TEXT"/>
+            <column name="source_metric" type="TEXT"/>
+            <column name="calculation_parameters_values_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-2">
+        <createTable tableName="metric_definition_discrete_values">
+            <column name="metric_definition_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="discrete_values" type="TEXT"/>
+            <column name="discrete_values_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-3">
+        <createTable tableName="metric_definition_wildcard">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="metric_definition_wildcard_pkey"/>
+            </column>
+            <column name="event_source_context" type="TEXT"/>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="TEXT"/>
+            <column name="metric_definition_wildcard_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-4">
+        <createTable tableName="metric_definition_wildcard_value">
+            <column name="metric_definition_wildcard_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metric_definition_wildcard_value" type="TEXT"/>
+            <column name="metric_definition_wildcard_value_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-12">
+        <addPrimaryKey columnNames="metric_definition_id, calculation_parameters_values_order" constraintName="metric_definition_calculation_parameters_pkey" tableName="metric_definition_calculation_parameters"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-13">
+        <addPrimaryKey columnNames="metric_definition_id, discrete_values_order" constraintName="metric_definition_discrete_values_pkey" tableName="metric_definition_discrete_values"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-14">
+        <addPrimaryKey columnNames="metric_definition_wildcard_id, metric_definition_wildcard_value_order" constraintName="metric_definition_wildcard_value_pkey" tableName="metric_definition_wildcard_value"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-15">
+        <addForeignKeyConstraint baseColumnNames="metric_definition_id" baseTableName="metric_definition_calculation_parameters" constraintName="fk_6tp7jo3963l7o46bvp4ys93lp" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="metric_definition"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-16">
+        <addForeignKeyConstraint baseColumnNames="metric_definition_wildcard_id" baseTableName="metric_definition_wildcard" constraintName="fk_9vn4v8ogprlngb6t3imcn0uda" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="metric_definition"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-17">
+        <addForeignKeyConstraint baseColumnNames="metric_definition_wildcard_id" baseTableName="metric_definition_wildcard_value" constraintName="fk_dnoro2s63k6eaw2lb9tutvwlo" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="metric_definition_wildcard"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1508925155372-18">
+        <addForeignKeyConstraint baseColumnNames="metric_definition_id" baseTableName="metric_definition_discrete_values" constraintName="fk_rb7xw2f97tt1lj1s3n0eclsne" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="metric_definition"/>
+    </changeSet>
+</databaseChangeLog>

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 #include "app.hpp"
 #include "psme/core/agent/agent_manager.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
-#include "psme/rest/eventing/config/subscription_config.hpp"
+#include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/eventing/event_service.hpp"
 #include "psme/rest/registries/config/registry_configurator.hpp"
 #include "psme/rest/registries/config/base_configuration.hpp"
@@ -42,7 +42,7 @@
 namespace {
 const json::Value& load_configuration(int argc, const char** argv) {
     /* Initialize configuration */
-    log_info(GET_LOGGER("app"), agent_framework::generic::Version::build_info());
+    log_info("app", agent_framework::generic::Version::build_info());
     auto& basic_config = configuration::Configuration::get_instance();
     basic_config.set_default_configuration(psme::app::DEFAULT_CONFIGURATION);
     basic_config.set_default_file(psme::app::DEFAULT_FILE);
@@ -56,7 +56,7 @@ const json::Value& load_configuration(int argc, const char** argv) {
 
     json::Value json_schema;
     if (configuration::string_to_json(psme::app::DEFAULT_VALIDATOR_JSON, json_schema)) {
-        log_info(GET_LOGGER("app"), "JSON Schema load!");
+        log_info("app", "JSON Schema load!");
         configuration::SchemaErrors errors;
         configuration::SchemaValidator validator;
         configuration::SchemaReader reader;
@@ -88,20 +88,21 @@ App::App(int argc, const char* argv[])
 App::~App() { cleanup(); }
 
 void App::init_database() {
-    database::Database::set_default(m_configuration["database"]["location"].as_string());
+    if (m_configuration["database"].is_object() && m_configuration["database"]["location"].is_string()) {
+        database::Database::set_default_location(m_configuration["database"]["location"].as_string());
+    }
 }
 
 void App::init_logger() {
     logger_cpp::LoggerLoader loader(m_configuration);
-    logger_cpp::LoggerFactory::instance().set_loggers(loader.load());
-    logger_cpp::LoggerFactory::set_main_logger_name("app");
+    loader.load(logger_cpp::LoggerFactory::instance());
 }
 
 void App::init_network_change_notifier() {
     try {
         m_network_change_notifier = net::NetworkChangeNotifier::create();
     } catch (const std::exception&) {
-        log_error(GET_LOGGER("app"), "Failed to initialize NetworkChangeNotifier.");
+        log_error("app", "Failed to initialize NetworkChangeNotifier.");
     }
 }
 
@@ -134,13 +135,6 @@ void App::init_rest_event_service() {
     m_rest_event_service.reset(new EventService());
 }
 
-void App::init_subscription_config() {
-    using rest::eventing::config::SubscriptionConfig;
-    SubscriptionConfig::get_instance()->set_config_file(
-            m_configuration["subscription-config-file"].as_string());
-    SubscriptionConfig::get_instance()->load();
-}
-
 void App::init_registries() {
     using namespace rest::registries;
     const std::string& base_configuration{make_base_configuration()};
@@ -157,19 +151,19 @@ void App::init() {
         init_eventing_server();
         init_rest_event_service();
         init_registration_server();
-        init_subscription_config();
+        psme::rest::eventing::manager::SubscriptionManager::get_instance();
         init_registries();
         init_rest_server();
         m_model_watcher.reset(new rest::model::Watcher());
     }
     catch (std::exception& e) {
-        log_error(GET_LOGGER("app"),
+        log_error("app",
                 "Failed to initialize Application: " << e.what());
         cleanup();
         exit(-1);
     }
     catch (...) {
-        log_error(GET_LOGGER("app"),
+        log_error("app",
                 "Failed to initialize Application: Unknown exception.");
         cleanup();
         exit(-1);
@@ -192,10 +186,10 @@ void App::run() {
         log_info(LOGUSR, "Stopping PSME Application...");
     }
     catch (std::exception& e) {
-        log_error(GET_LOGGER("app"), e.what());
+        log_error("app", e.what());
     }
     catch (...) {
-        log_error(GET_LOGGER("app"), "Unknown exception.");
+        log_error("app", "Unknown exception.");
     }
 }
 
@@ -213,6 +207,7 @@ void App::wait_for_termination() {
 }
 
 void App::statics_cleanup() {
+    psme::rest::eventing::manager::SubscriptionManager::get_instance()->clean_up();
     configuration::Configuration::cleanup();
     logger_cpp::LoggerFactory::cleanup();
 }

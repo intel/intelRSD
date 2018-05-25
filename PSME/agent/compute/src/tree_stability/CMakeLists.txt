@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,11 +18,8 @@
 
 set(SOURCES
     helpers/update_relations.cpp
-
     compute_tree_stabilizer.cpp
-
     compute_key_generator.cpp
-    compute_dry_stabilizer.cpp
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)

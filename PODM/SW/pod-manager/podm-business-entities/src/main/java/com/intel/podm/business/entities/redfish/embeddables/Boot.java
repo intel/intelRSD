@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package com.intel.podm.business.entities.redfish.embeddables;
 import com.intel.podm.common.types.BootSourceMode;
 import com.intel.podm.common.types.BootSourceState;
 import com.intel.podm.common.types.BootSourceType;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -29,7 +31,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OrderColumn;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static javax.persistence.EnumType.STRING;
 
@@ -102,26 +103,34 @@ public class Boot {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         Boot boot = (Boot) o;
-        return bootSourceOverrideEnabled == boot.bootSourceOverrideEnabled
-            && bootSourceOverrideTarget == boot.bootSourceOverrideTarget
-            && bootSourceOverrideMode == boot.bootSourceOverrideMode
-            && Objects.equals(bootSourceOverrideSupported, boot.bootSourceOverrideSupported)
-            && Objects.equals(bootSourceOverrideModeSupported, boot.bootSourceOverrideModeSupported);
+
+        return new EqualsBuilder()
+            .append(bootSourceOverrideEnabled, boot.bootSourceOverrideEnabled)
+            .append(bootSourceOverrideTarget, boot.bootSourceOverrideTarget)
+            .append(bootSourceOverrideMode, boot.bootSourceOverrideMode)
+            .append(bootSourceOverrideSupported, boot.bootSourceOverrideSupported)
+            .append(bootSourceOverrideModeSupported, boot.bootSourceOverrideModeSupported)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bootSourceOverrideEnabled, bootSourceOverrideTarget,
-            bootSourceOverrideMode, bootSourceOverrideSupported,
-            bootSourceOverrideModeSupported);
+        return new HashCodeBuilder()
+            .append(bootSourceOverrideEnabled)
+            .append(bootSourceOverrideTarget)
+            .append(bootSourceOverrideMode)
+            .append(bootSourceOverrideSupported)
+            .append(bootSourceOverrideModeSupported)
+            .toHashCode();
     }
 }

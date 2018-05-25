@@ -2,7 +2,7 @@
  * @brief Provides implementation of task monitor endpoint
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,6 +74,6 @@ void endpoint::Monitor::get(const server::Request& request, server::Response& re
     else {
         response.set_status(server::status_2XX::ACCEPTED);
         response.set_body(psme::rest::endpoint::task_service_utils::call_task_get(monitored_task.get_uuid()).get_body());
-        psme::rest::endpoint::utils::set_location_header(response, request.get_url());
+        psme::rest::endpoint::utils::set_location_header(request, response, request.get_url());
     }
 }

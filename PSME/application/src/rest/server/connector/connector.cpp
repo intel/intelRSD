@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -100,7 +100,7 @@ void Connector::handle(const Request& request, Response& response) noexcept {
         response.set_body(error.as_string());
     }
     catch (const json::Value::Exception& ex) {
-        log_error("rest", "JSON-cxx library exception: " << ex.what() << " on url " << request.get_url());
+        log_error("rest", "JSON-cxx library exception on URL " << request.get_url() << ": " << ex.what());
         ServerError internal_server_error = ErrorFactory::create_internal_error();
         response.set_status(internal_server_error.get_http_status_code());
         response.set_body(internal_server_error.as_string());

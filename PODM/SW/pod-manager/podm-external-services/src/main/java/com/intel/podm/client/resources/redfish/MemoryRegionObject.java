@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,29 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.common.types.MemoryClassification;
 import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
 public class MemoryRegionObject {
-    @JsonProperty("RegionId")
+    @JsonSetter(value = "RegionId", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> regionId = unassigned();
 
-    @JsonProperty("MemoryClassification")
+    @JsonSetter(value = "MemoryClassification", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<MemoryClassification> memoryClassification = unassigned();
 
-    @JsonProperty("OffsetMiB")
+    @JsonSetter(value = "OffsetMiB", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> offsetMib = unassigned();
 
-    @JsonProperty("SizeMiB")
+    @JsonSetter(value = "SizeMiB", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> sizeMib = unassigned();
 

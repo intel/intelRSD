@@ -2,7 +2,7 @@
  * @brief Defines macro that might be used in assert to raise assertion with message
  *
  * @header{License}
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain

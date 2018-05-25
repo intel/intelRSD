@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Intel Corporation
+# Copyright (c) 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -81,7 +81,8 @@ class Bot:
 
                 for neighbour_path in neighbour_paths:
                     if neighbour_path is not None:
-                        paths_queued.insert(0, neighbour_path)
+                        neighbour_path_splited = neighbour_path.split('#')
+                        paths_queued.insert(0, neighbour_path_splited[0])
             except:
                 continue
 

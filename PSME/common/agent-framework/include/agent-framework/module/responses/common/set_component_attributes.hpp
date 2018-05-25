@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,7 +86,7 @@ public:
      *
      * @param[in] task Task UUID
      * */
-    void set_task(const std::string& task) {
+    void set_task(const Uuid& task) {
         m_task = task;
     }
 
@@ -110,7 +110,7 @@ public:
     static SetComponentAttributes from_json(const json::Json& json);
 
 private:
-    std::string m_task{};
+    Uuid m_task{};
     attribute::Oem m_oem{};
     Statuses m_statuses{};
 };

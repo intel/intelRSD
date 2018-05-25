@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,6 +64,40 @@ void check_nullable_string(const json::Json& value,
         THROW(agent_framework::exceptions::InvalidField,
               logger_name, "Attribute should be a string type or null.", parameter_name, value);
     }
+}
+
+
+void check_string_no_whitespace(const json::Json& value,
+                                const std::string& parameter_name,
+                                const char* logger_name) {
+    check_string(value, parameter_name, logger_name);
+    if (!validate_iscsi_name(value)) {
+        THROW(agent_framework::exceptions::InvalidValue,
+              logger_name, "Value '" + value.get<std::string>() + "' should not contain whitespace characters.");
+    }
+}
+
+
+void check_nullable_string_no_whitespace(const json::Json& value,
+                                         const std::string& parameter_name,
+                                         const char* logger_name) {
+    if (!value.is_null()) {
+        check_string(value, parameter_name, logger_name);
+        if (!validate_iscsi_name(value)) {
+            THROW(agent_framework::exceptions::InvalidValue,
+                  logger_name, "Value '" + value.get<std::string>() + "' should not contain whitespace characters.");
+        }
+    }
+}
+
+
+bool validate_iscsi_name(const std::string name) {
+    for (char c : name) {
+        if (isspace(c)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 }

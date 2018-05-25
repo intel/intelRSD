@@ -2,7 +2,7 @@
  * @brief Implementation of temperature readers for Grantley platform
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,23 +89,31 @@ bool GrantleyCpuTemperatureTelemetryReader::read(Context::Ptr context, ipmi::Ipm
     const auto tjmax = ctx.cpus_thermal_params.get_cpu_tjmax(cpu);
     const auto margin = ctx.cpus_dimms_temp.get_cpu_margin_to_throttle(cpu);
     const auto val = (NO_READING == tjmax) || (NO_READING == margin)
-               ? NO_READING
-               : static_cast<RawValue>(tjmax - margin);
-    return set_value(raw_value, val, NO_READING);
+               ? json::Json()
+               : json::Json(tjmax - margin);
+    return update_value(val);
 }
 
 
 bool GrantleyDimmTemperatureTelemetryReader::read(Context::Ptr context, ipmi::IpmiController&) {
     GrantleyContext& ctx = static_cast<GrantleyContext&>(*context);
     const auto cpu_dimm = get_cpu_and_dimm<NUM_CPUS, NUM_DIMMS, NUM_DIMMS_PER_CPU>();
-    return set_value(raw_value, ctx.cpus_dimms_temp.get_dimm_temperature(cpu_dimm.first, cpu_dimm.second), NO_READING);
+    const auto dimm_temp = ctx.cpus_dimms_temp.get_dimm_temperature(cpu_dimm.first, cpu_dimm.second);
+    const auto val = NO_READING == dimm_temp
+                     ? json::Json()
+                     : json::Json(dimm_temp);
+    return update_value(val);
 }
 
 
 bool GrantleyCpuMarginToThrottleTelemetryReader::read(Context::Ptr context, ipmi::IpmiController&) {
     GrantleyContext& ctx = static_cast<GrantleyContext&>(*context);
     const auto cpu = get_cpu_and_dimm<NUM_CPUS, NUM_DIMMS, NUM_DIMMS_PER_CPU>().first;
-    return set_value(raw_value, ctx.cpus_dimms_temp.get_cpu_margin_to_throttle(cpu), NO_READING);
+    const auto margin_to_throttle = ctx.cpus_dimms_temp.get_cpu_margin_to_throttle(cpu);
+    const auto val = NO_READING == margin_to_throttle
+                     ? json::Json()
+                     : json::Json(margin_to_throttle);
+    return update_value(val);
 }
 
 

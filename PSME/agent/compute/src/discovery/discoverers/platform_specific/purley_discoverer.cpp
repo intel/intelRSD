@@ -2,7 +2,7 @@
  * @brief Compute agent Purley platform discoverer.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ bool PurleyDiscoverer::discover_user_mode(agent_framework::model::System& system
         sdv::rsd::response::GetSystemMode get_system_mode_response{};
 
         try {
-            log_debug(GET_LOGGER("purley-discoverer"), "Sending " << get_system_mode_request.get_command_name());
+            log_debug("purley-discoverer", "Sending " << get_system_mode_request.get_command_name());
             get_management_controller().send(get_system_mode_request, get_system_mode_response);
             PurleySystemBuilder::update_system_mode(system, get_system_mode_response);
         }
@@ -79,7 +79,7 @@ bool PurleyDiscoverer::set_rackscale_mode(agent_framework::model::System& system
     set_system_mode_request.set_system_mode(system_mode);
     set_system_mode_request.set_rackscale_mode(true);
     try {
-        log_debug(GET_LOGGER("purley-discoverer"), "Sending " << set_system_mode_request.get_command_name());
+        log_debug("purley-discoverer", "Sending " << set_system_mode_request.get_command_name());
         get_management_controller().send(set_system_mode_request, set_system_mode_response);
     }
     catch (const ipmi::ResponseError& response_error) {
@@ -98,7 +98,7 @@ bool PurleyDiscoverer::discover_cable_id(System& system) {
     bool generic_discovery_successful = GenericDiscoverer::discover_cable_id(system);
 
     if (!generic_discovery_successful) {
-        log_debug(GET_LOGGER("purley-discoverer"), "Generic discovery of cable ID failed");
+        log_debug("purley-discoverer", "Generic discovery of cable ID failed");
         constexpr unsigned MAX_CHANNEL_NUMBER = 4;
         constexpr unsigned CABLE_ID_OFFSET = 0xC4;
         constexpr unsigned CABLE_ID_LENGTH = 16;
@@ -113,7 +113,7 @@ bool PurleyDiscoverer::discover_cable_id(System& system) {
             get_cable_data_request.set_reading_data_length(CABLE_ID_LENGTH);
 
             try {
-                log_debug(GET_LOGGER("purley-discoverer"), "Sending " << get_cable_data_request.get_command_name());
+                log_debug("purley-discoverer", "Sending " << get_cable_data_request.get_command_name());
                 get_management_controller().send(get_cable_data_request, get_cable_data_response);
                 PurleySystemBuilder::add_cable_id(system, get_cable_data_response);
             }
@@ -137,7 +137,7 @@ bool PurleyDiscoverer::discover_chassis(Chassis& chassis) {
     sdv::response::GetSlotId get_slot_id_response{};
 
     try {
-        log_debug(GET_LOGGER("purley-discoverer"), "Sending " << get_slot_id_request.get_command_name());
+        log_debug("purley-discoverer", "Sending " << get_slot_id_request.get_command_name());
         get_management_controller().send(get_slot_id_request, get_slot_id_response);
 
         PurleyChassisBuilder::update_slot_id(chassis, get_slot_id_response);

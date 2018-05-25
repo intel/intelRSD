@@ -40,7 +40,7 @@
         </Property>
         <Property Name="Devices" Type="Collection(SimpleStorage.v1_0_0.Device)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The storage devices associated with this resource"/>
+          <Annotation Term="OData.Description" String="The storage devices associated with this resource."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain a list of storage devices associated with this resource"/>
         </Property>
@@ -60,13 +60,13 @@
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
         <Property Name="Manufacturer" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The name of the manufacturer of this device"/>
+          <Annotation Term="OData.Description" String="The name of the manufacturer of this device."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall indicate the name of the manufacturer of this storage device."/>
         </Property>
         <Property Name="Model" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The product model number of this device"/>
+          <Annotation Term="OData.Description" String="The product model number of this device."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall indicate the model information as provided by the manufacturer of this storage device."/>
         </Property>

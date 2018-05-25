@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public:
     ~MockServerConnector() {}
 
     /* Not used, but required by the interface */
-    virtual bool start_listening() override { return true; };
+    virtual bool start_listening() override { return true; }
     virtual void stop_listening() override {}
     virtual void set_url_handler(const std::string&, AbstractRequestHandlerPtr) override { }
     virtual AbstractRequestHandlerPtr get_url_handler(const std::string&) const override { return nullptr; }

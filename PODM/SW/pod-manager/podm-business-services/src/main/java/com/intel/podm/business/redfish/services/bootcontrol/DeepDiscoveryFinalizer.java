@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.intel.podm.business.EntityOperationException;
 import com.intel.podm.business.entities.dao.ComputerSystemDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.redfish.services.actions.ResetActionInvoker;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
+import com.intel.podm.common.enterprise.utils.retry.RetryOnRollback;
 import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.Id;
@@ -69,7 +69,7 @@ class DeepDiscoveryFinalizer {
         }
     }
 
-    @NumberOfRetriesOnRollback(3)
+    @RetryOnRollback(3)
     @Transactional(REQUIRES_NEW)
     public void finalizeDeepDiscoveryOnTimeout(Id computerSystemId, UUID taskUuid) {
         Optional<ComputerSystem> optionalComputerSystem = computerSystemDao.tryFind(computerSystemId);

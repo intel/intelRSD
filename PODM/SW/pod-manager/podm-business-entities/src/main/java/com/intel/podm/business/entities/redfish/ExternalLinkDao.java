@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.net.URI;
 import java.util.List;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @ApplicationScoped
 public class ExternalLinkDao {
@@ -33,6 +35,7 @@ public class ExternalLinkDao {
     @Inject
     private GenericDao genericDao;
 
+    @Transactional(MANDATORY)
     public void removeAll(ExternalService externalService, Predicate<ExternalLink> predicate) {
         List<DiscoverableEntity> affectedEntities = externalService
             .getOwnedLinks().stream()

@@ -2,7 +2,7 @@
  * @brief General database interface
  *
  * @header{License}
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -47,7 +47,7 @@ namespace {
 static const std::string EXT = ".db";
 
 /*! @brief "Even" number for maximal (serialized) value size */
-constexpr static unsigned VALUE_LEN = 512;
+constexpr static unsigned VALUE_LEN = 8192;
 
 void fclose_conditional(FILE* file) {
     if (file) {
@@ -61,8 +61,8 @@ std::recursive_mutex FileDatabase::mutex{};
 
 FileDatabase::Locations FileDatabase::locations{};
 
-FileDatabase::FileDatabase(const std::string& _name, const std::string& location) :
-    Database(_name), path(check_directory(location)), iterating_state(IteratingState::NOT_STARTED) { }
+FileDatabase::FileDatabase(const std::string& _name, bool with_policy, const std::string& location) :
+    Database(_name), m_with_policy(with_policy), path(check_directory(location)), iterating_state(IteratingState::NOT_STARTED) { }
 
 FileDatabase::~FileDatabase() {
     if (iterating_state != IteratingState::NOT_STARTED) {
@@ -75,7 +75,7 @@ bool FileDatabase::start() {
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
     if (iterating_state != IteratingState::NOT_STARTED) {
-        log_error(GET_LOGGER("db"), "Iterating in progress");
+        log_error("db", "Iterating in progress");
         assert(FAIL("In progress"));
         return false;
     }
@@ -88,7 +88,7 @@ bool FileDatabase::next(Serializable& key, Serializable& value) {
 
     switch (iterating_state) {
         case IteratingState::NOT_STARTED:
-            log_error(GET_LOGGER("db"), "Iterating not started");
+            log_error("db", "Iterating not started");
             assert(FAIL("Not iterating"));
             return false;
         case IteratingState::STARTED:
@@ -119,10 +119,10 @@ bool FileDatabase::next(Serializable& key, Serializable& value) {
         /* parse value, if not valid, then log error and check next one */
         std::string data{};
         if (!read_file(full_name(stripped_name), data)) {
-            log_error(GET_LOGGER("db"), "Cannot read data for " << stripped_name);
+            log_error("db", "Cannot read data for " << stripped_name);
             continue;
         } else if (!value.unserialize(data)) {
-            log_error(GET_LOGGER("db"), "Incorrect data for " << stripped_name << ":: " << data);
+            log_error("db", "Incorrect data for " << stripped_name << ":: " << data);
             continue;
         }
 
@@ -130,6 +130,7 @@ bool FileDatabase::next(Serializable& key, Serializable& value) {
         return true;
     }
     /* no more data */
+    iterating_state = IteratingState::NO_MORE_DATA;
     return false;
 }
 
@@ -138,15 +139,15 @@ void FileDatabase::end() {
 
     switch (iterating_state) {
         case IteratingState::NOT_STARTED:
-            log_error(GET_LOGGER("db"), "Not iterating");
+            log_error("db", "Not iterating");
             assert(FAIL("Not iterating"));
             return;
         case IteratingState::STARTED:
-            log_error(GET_LOGGER("db"), "Iterating started but not proceeded");
+            log_error("db", "Iterating started but not proceeded");
             assert(FAIL("Not iterating"));
             break;
         case IteratingState::ITERATE:
-            log_warning(GET_LOGGER("db"), "Not all files were checked while iterating");
+            log_warning("db", "Not all files were checked while iterating");
             break;
         case IteratingState::NO_MORE_DATA:
             break;
@@ -169,7 +170,7 @@ bool FileDatabase::get(const Serializable& key, Serializable& value) {
 
 bool FileDatabase::put(const Serializable& key, const Serializable& value) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
-    return save_file(full_name(key.serialize()), value.serialize());
+    return save_file(full_name(key.serialize()), value.serialize(), m_with_policy);
 }
 
 bool FileDatabase::remove(const Serializable& key) {
@@ -184,19 +185,19 @@ bool FileDatabase::invalidate(const Serializable& key) {
 
 Database::EntityValidity FileDatabase::get_validity(const Serializable& key, std::chrono::seconds interval) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
-    return file_validity(full_name(key.serialize()), interval);
+    return file_validity(full_name(key.serialize()), interval, m_with_policy);
 }
 
 unsigned FileDatabase::cleanup(Serializable& key, std::chrono::seconds interval) {
     return foreach(key, [this, interval](const std::string& stripped_name) -> bool {
         std::string file_name = full_name(stripped_name);
-        switch (file_validity(file_name, interval)) {
+        switch (file_validity(file_name, interval, m_with_policy)) {
             case EntityValidity::ERROR:
+            case EntityValidity::NOENTRY:
+            case EntityValidity::INVALID:
                 return false;
             case EntityValidity::VALID:
                 return invalidate_file(file_name);
-            case EntityValidity::INVALID:
-                return false;
             case EntityValidity::OUTDATED:
                 return remove_file(file_name);
             default:
@@ -209,8 +210,9 @@ unsigned FileDatabase::cleanup(Serializable& key, std::chrono::seconds interval)
 unsigned FileDatabase::wipe_outdated(Serializable& key, std::chrono::seconds interval) {
     return foreach(key, [this, interval](const std::string& stripped_name) -> bool {
         std::string file_name = full_name(stripped_name);
-        switch (file_validity(file_name, interval)) {
+        switch (file_validity(file_name, interval, m_with_policy)) {
             case EntityValidity::ERROR:
+            case EntityValidity::NOENTRY:
             case EntityValidity::VALID:
             case EntityValidity::INVALID:
                 return false;
@@ -235,7 +237,7 @@ unsigned FileDatabase::foreach(Serializable& key, ForeachFunction function) {
 
     DIR* directory = opendir(path.c_str());
     if (nullptr == directory) {
-        log_error(GET_LOGGER("db"), "Cannot open directory " << path
+        log_error("db", "Cannot open directory " << path
                                     << " for reading:: " << strerror(errno));
         return 0;
     }
@@ -249,7 +251,7 @@ unsigned FileDatabase::foreach(Serializable& key, ForeachFunction function) {
         /* no more entries in the directory */
         if (nullptr == dir_entry) {
             if (errno) {
-                log_warning(GET_LOGGER("db"), "Reading directory " << path
+                log_warning("db", "Reading directory " << path
                                               << ":: " << strerror(errno));
             }
             closedir(directory);
@@ -289,9 +291,9 @@ std::string FileDatabase::full_name(const std::string& stripped_name) const {
     if (stripped_name.empty()) {
         return EMPTY;
     }
-    /* file name given as full path */
-    if (stripped_name.at(0) == '/') {
-        return stripped_name;
+    /* stripped name cannot contain any special characters: no '/' and ':' allowed */
+    if (stripped_name.find_first_of("/:") != std::string::npos) {
+        return EMPTY;
     }
     std::string ret = path + "/";
     if (!get_name().empty()) {
@@ -331,25 +333,25 @@ std::string FileDatabase::strip_name(const std::string& d_name) const {
 
 bool FileDatabase::read_file(const std::string& file_name, std::string& data) {
     if (file_name.empty()) {
-        log_error(GET_LOGGER("db"), "No file name given");
+        log_error("db", "No file name given");
         return false;
     }
 
     char buf[VALUE_LEN];
     std::shared_ptr<FILE> file{fopen(file_name.c_str(), "rb"), fclose_conditional};
     if (!file) {
-        log_debug(GET_LOGGER("db"), "Cannot read file " << file_name << ":: " << strerror(errno));
+        log_debug("db", "Cannot read file " << file_name << ":: " << strerror(errno));
         return false;
     }
 
     size_t bytes = fread(&buf, sizeof(char), sizeof(buf), file.get());
     bool ok;
     if (ferror(file.get())) {
-        log_error(GET_LOGGER("db"), "Cannot read file " << file_name << ":: " << strerror(errno));
+        log_error("db", "Cannot read file " << file_name << ":: " << strerror(errno));
         ok = false;
     }
     else if (!feof(file.get())) {
-        log_error(GET_LOGGER("db"), "File " << file_name << " is longer than allowed");
+        log_error("db", "File " << file_name << " is longer than allowed");
         ok = false;
     }
     else {
@@ -360,15 +362,15 @@ bool FileDatabase::read_file(const std::string& file_name, std::string& data) {
     return ok;
 }
 
-bool FileDatabase::save_file(const std::string& file_name, const std::string& data) {
+bool FileDatabase::save_file(const std::string& file_name, const std::string& data, bool with_policy) {
     if (file_name.empty()) {
-        log_error(GET_LOGGER("db"), "No file name given");
+        log_error("db", "No file name given");
         return false;
     }
 
     std::shared_ptr<FILE> file{fopen(file_name.c_str(), "wb"), fclose_conditional};
     if (!file) {
-        log_error(GET_LOGGER("db"), "Cannot write file " << file_name);
+        log_error("db", "Cannot write file " << file_name);
         return false;
     }
     int file_descriptor = fileno(file.get());
@@ -376,7 +378,7 @@ bool FileDatabase::save_file(const std::string& file_name, const std::string& da
     if (!data.empty()) {
         size_t bytes = fwrite(data.data(), sizeof(char), data.length(), file.get());
         if (data.length() != bytes) {
-            log_error(GET_LOGGER("db"), "Cannot write whole file " << file_name << ", only " << bytes << " written");
+            log_error("db", "Cannot write whole file " << file_name << ", only " << bytes << " written");
             return false;
         }
     }
@@ -384,21 +386,22 @@ bool FileDatabase::save_file(const std::string& file_name, const std::string& da
     /* check current mode of the file */
     struct stat stats;
     if (0 != fstat(file_descriptor, &stats)) {
-        log_error(GET_LOGGER("db"), "Cannot set mode for " << file_name << ":: " << strerror(errno));
+        log_error("db", "Cannot set mode for " << file_name << ":: " << strerror(errno));
         return false;
     }
-    /* already marked as valid */
-    if (S_ISVTX == (stats.st_mode & S_ISVTX)) {
+    /* check file mode flags: keep in mind W for group is "reserved" for retention policed entries! */
+    const mode_t flags = (S_ISVTX | (with_policy ? S_IWGRP : 0));
+    if ((stats.st_mode & (S_ISVTX | S_IWGRP)) == flags) {
         return true;
     }
 
     /* set sticky bit for the file, this alter stats.st_ctim as well */
-    return 0 == fchmod(file_descriptor, stats.st_mode | S_ISVTX);
+    return 0 == fchmod(file_descriptor, (stats.st_mode & (~(S_ISVTX | S_IWGRP))) | flags);
 }
 
 bool FileDatabase::remove_file(const std::string& file_name) {
     if (file_name.empty()) {
-        log_error(GET_LOGGER("db"), "No file name given");
+        log_error("db", "No file name given");
         return false;
     }
 
@@ -406,13 +409,21 @@ bool FileDatabase::remove_file(const std::string& file_name) {
     return (::remove(file_name.c_str()) == 0);
 }
 
-Database::EntityValidity FileDatabase::file_validity(const std::string& file_name, std::chrono::seconds interval) {
+Database::EntityValidity FileDatabase::file_validity(const std::string& file_name, std::chrono::seconds interval, bool with_policy) {
     struct stat stats;
     errno = 0;
     if (0 != stat(file_name.c_str(), &stats)) {
-        log_error(GET_LOGGER("db"), "Cannot check mode for " << file_name << ":: " << strerror(errno));
+        log_error("db", "Cannot check mode for " << file_name << ":: " << strerror(errno));
         return EntityValidity::ERROR;
     }
+
+    /* if file is "created" by the database without retention policy assigned,
+     * file is not considered as one to be touched by the database for retention policy.
+     */
+    if ((with_policy) && (S_IWGRP != (stats.st_mode & S_IWGRP))) {
+        return EntityValidity::NOENTRY;
+    }
+
     /* still marked as valid */
     if (S_ISVTX == (stats.st_mode & S_ISVTX)) {
         return EntityValidity::VALID;
@@ -422,6 +433,7 @@ Database::EntityValidity FileDatabase::file_validity(const std::string& file_nam
     if (stats.st_ctim.tv_sec + interval.count() <= time(nullptr)) {
         return EntityValidity::OUTDATED;
     }
+
     return EntityValidity::INVALID;
 }
 
@@ -432,7 +444,7 @@ bool FileDatabase::invalidate_file(const std::string& file_name) {
 
     std::shared_ptr<FILE> file{fopen(file_name.c_str(), "r+b"), fclose_conditional};
     if (!file) {
-        log_error(GET_LOGGER("db"), "Cannot read file" << file_name);
+        log_error("db", "Cannot read file" << file_name);
         return false;
     }
     int file_descriptor = fileno(file.get());
@@ -441,14 +453,16 @@ bool FileDatabase::invalidate_file(const std::string& file_name) {
     struct stat stats;
     errno = 0;
     if (0 != fstat(file_descriptor, &stats)) {
-        log_error(GET_LOGGER("db"), "Cannot check mode for " << file_name << ":: " << strerror(errno));
+        log_error("db", "Cannot check mode for " << file_name << ":: " << strerror(errno));
         return false;
     }
     /* already marked as invalid */
     if (S_ISVTX != (stats.st_mode & S_ISVTX)) {
         return false;
     }
-    /* remove sticky bit from the file, this alter stats.st_ctim as well */
+    /* Remove sticky bit from the file, this alter stats.st_ctim as well.
+     * All files are threated equally, retention policy does not change the behaviour.
+     */
     return 0 == fchmod(file_descriptor, stats.st_mode & (~S_ISVTX));
 }
 
@@ -474,11 +488,11 @@ std::string FileDatabase::check_directory(const std::string& dir) {
         fd = mkstemp(file_name);
     }
     if (fd < 0) {
-        log_warning(GET_LOGGER("db"), "Cannot check " << file_name << ":: " << strerror(errno));
+        log_warning("db", "Cannot check " << file_name << ":: " << strerror(errno));
         ::strcpy_s(file_name, sizeof(file_name), "/tmp/database_XXXXXX");
         fd = mkstemp(file_name);
         if (fd < 0) {
-            log_error(GET_LOGGER("db"), "Cannot get tmp directory name:: " << file_name << ", error " << strerror(errno));
+            log_error("db", "Cannot get tmp directory name:: " << file_name << ", error " << strerror(errno));
             assert(FAIL("Cannot get temporary directory name"));
             return "/tmp";
         }
@@ -486,7 +500,7 @@ std::string FileDatabase::check_directory(const std::string& dir) {
         close(fd);
         ::remove(file_name);
 
-        log_info(GET_LOGGER("db"), "Database in temporary " << file_name);
+        log_info("db", "Database in temporary " << file_name);
 
         mkdir(file_name, 01777);
         ::strcat_s(file_name, sizeof(file_name), "/check_XXXXXX");
@@ -494,7 +508,7 @@ std::string FileDatabase::check_directory(const std::string& dir) {
     }
 
     if (fd < 0) {
-        log_error(GET_LOGGER("db"), "Cannot check " << file_name << ":: " << strerror(errno));
+        log_error("db", "Cannot check " << file_name << ":: " << strerror(errno));
         assert(FAIL("Cannot create database files"));
         return "/tmp";
     }

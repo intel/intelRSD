@@ -2,7 +2,7 @@
  * @brief Bmc class declaration.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,16 @@ public:
         ReadOnlineStatusFn read_online_state = always_false);
 
     ~Bmc() override;
+
+    /*!
+     * @brief Starts bmc monitoring tasks
+     */
+    void start();
+
+    /*!
+     * @brief Stops bmc monitoring
+     */
+    void stop();
 
     const Bmc::Duration& get_update_interval() const {
         return m_state_update_interval;
@@ -96,7 +106,7 @@ public:
      */
     template <class Fun, class... Args>
     void periodic_task(const std::string& name, Duration initial_delay, Duration period, Fun fun, Args&&... args) {
-        m_worker.periodic_task(name, initial_delay, period, fun, std::forward<Args&&>(args)...);
+        m_worker.fixed_delay_task(name, initial_delay, period, fun, std::forward<Args&&>(args)...);
     }
 
     /*!
@@ -120,8 +130,8 @@ private:
 
     ConnectionData m_connection_data;
     Bmc::Duration m_state_update_interval;
-    ::generic::WorkerThread m_worker;
     std::string m_manager_uuid{};
+    ::generic::WorkerThread m_worker;
 };
 
 using BmcCollection = std::vector<Bmc::Ptr>;

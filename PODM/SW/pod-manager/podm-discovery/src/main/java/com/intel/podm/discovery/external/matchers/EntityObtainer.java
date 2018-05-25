@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,23 +24,33 @@ import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.client.WebClientRequestException;
 import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.client.resources.redfish.ComputerSystemResource;
+import com.intel.podm.common.logger.Logger;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class EntityObtainer {
+    @Inject
+    private Instance<EntityObtainerHelper<? extends ExternalServiceResource>> helpers;
+
+    private List<EntityObtainerHelper<? extends ExternalServiceResource>> cachedHelpers;
 
     @Inject
-    Instance<EntityObtainerHelper<? extends ExternalServiceResource>> helpers;
-
-    @Inject
-    ComputerSystemFinder computerSystemFinder;
+    private ComputerSystemFinder computerSystemFinder;
 
     @Inject
     private ExternalLinkDao externalLinkDao;
@@ -48,44 +58,52 @@ public class EntityObtainer {
     @Inject
     private DiscoverableEntityDao discoverableEntityDao;
 
+    @Inject
+    private Logger logger;
+
+    @SuppressWarnings({"unchecked"})
+    @Transactional(MANDATORY)
     public DiscoverableEntity obtain(ExternalService service, ExternalServiceResource resource) {
         EntityObtainerHelper entityObtainerHelper = getHelper(resource);
         if (entityObtainerHelper == null) {
             return null;
         }
 
-        ComputerSystemResource computerSystemResource = findComputerSystemResource(resource, entityObtainerHelper);
-        ComputerSystem computerSystem = computerSystemFinder.findByCorrelatedPsmeComputerSystem(computerSystemResource);
-        return getEntity(service, resource, entityObtainerHelper, computerSystem);
-    }
+        Optional<ComputerSystemResource> parentSystem = findParentComputerSystem(resource, entityObtainerHelper);
+        if (parentSystem.isPresent()) {
+            ComputerSystem computerSystem = computerSystemFinder.findByCorrelatedPsmeComputerSystem(parentSystem.get());
 
-    private DiscoverableEntity getEntity(ExternalService service, ExternalServiceResource resource,
-                                         EntityObtainerHelper entityObtainerHelper, ComputerSystem computerSystem) {
+            DiscoverableEntity entity = (DiscoverableEntity) entityObtainerHelper.findEntityFor(computerSystem, resource)
+                .orElseGet(() -> discoverableEntityDao.createEntity(
+                    service,
+                    resource.getGlobalId(service.getId()),
+                    entityObtainerHelper.getEntityClass())
+                );
 
-        DiscoverableEntity entity = (DiscoverableEntity) entityObtainerHelper
-            .findEntityFor(computerSystem, resource)
-            .orElseGet(() -> discoverableEntityDao.createEntity(
-                service,
-                resource.getGlobalId(service.getId(), resource.getUri()),
-                entityObtainerHelper.getEntityClass())
-            );
-
-        externalLinkDao.createIfNotExisting(resource.getUri(), service, entity);
-        return entity;
-    }
-
-    private ComputerSystemResource findComputerSystemResource(ExternalServiceResource resource, EntityObtainerHelper helper) {
-        ComputerSystemResource computerSystemResource;
-        try {
-            computerSystemResource = helper.findComputerSystemResourceFor(resource);
-        } catch (WebClientRequestException e) {
-            throw new IllegalStateException(format("Parent ComputerSystem resource has not been found for '%s'", resource.getUri()));
+            externalLinkDao.createIfNotExisting(resource.getUri(), service, entity);
+            return entity;
+        } else {
+            return null;
         }
-        return computerSystemResource;
+    }
+
+    @PostConstruct
+    private void init() {
+        cachedHelpers = stream(helpers.spliterator(), false).collect(toList());
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private Optional<ComputerSystemResource> findParentComputerSystem(ExternalServiceResource resource, EntityObtainerHelper helper) {
+        try {
+            return of(helper.findComputerSystemResourceFor(resource));
+        } catch (WebClientRequestException e) {
+            logger.e(format("Parent ComputerSystem resource has not been found for '%s'", resource.getUri()), e);
+            return empty();
+        }
     }
 
     private EntityObtainerHelper getHelper(ExternalServiceResource resource) {
-        return stream(helpers.spliterator(), false)
+        return cachedHelpers.stream()
             .filter(helper -> helper.getResourceClass().isInstance(resource))
             .findFirst().orElse(null);
     }

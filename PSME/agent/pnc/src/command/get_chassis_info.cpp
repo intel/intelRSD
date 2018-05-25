@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,6 @@ using namespace agent_framework::model;
 REGISTER_COMMAND(GetChassisInfo,
     [] (const GetChassisInfo::Request& req, GetChassisInfo::Response& rsp) {
         rsp = get_manager<Chassis>().get_entry(req.get_uuid());
-        log_debug(GET_LOGGER("pnc-gami"), "Getting ChassisInfo successful.");
+        log_debug("pnc-gami", "Getting ChassisInfo successful.");
     }
 );

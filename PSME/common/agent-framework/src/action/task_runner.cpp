@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ void TaskRunner::init() {
     try {
         g_task_runner = new TaskRunner;
     } catch (const std::exception& e) {
-        log_error(GET_LOGGER("threading"), e.what());
+        log_error("threading", e.what());
     }
 }
 

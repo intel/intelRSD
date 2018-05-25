@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
 
 #include "psme/rest/endpoints/event_subscription.hpp"
 #include "psme/rest/endpoints/utils.hpp"
-#include "psme/rest/eventing/config/subscription_config.hpp"
+#include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/constants/constants.hpp"
 #include "json/json.hpp"
 
@@ -30,7 +30,6 @@
 using namespace psme::rest;
 using namespace psme::rest::constants;
 using namespace psme::rest::server;
-using namespace psme::rest::eventing::config;
 using namespace psme::rest::eventing::manager;
 using namespace psme::rest::endpoint::utils;
 
@@ -76,6 +75,5 @@ void endpoint::Subscription::get(const server::Request& request, server::Respons
 void endpoint::Subscription::del(const server::Request& request, server::Response& response) {
     const auto& id = id_to_uint64(request.params[PathParam::SUBSCRIPTION_ID]);
     SubscriptionManager::get_instance()->del(id);
-    SubscriptionConfig::get_instance()->save();
     response.set_status(server::status_2XX::NO_CONTENT);
 }

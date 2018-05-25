@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,8 @@
  * limitations under the License.
  * */
 
+
+#include "agent-framework/module/model/model_network.hpp"
 #include "agent-framework/module/requests/validation/network.hpp"
 #include "agent-framework/module/requests/validation/json_check_type.hpp"
 #include "agent-framework/module/constants/network.hpp"
@@ -34,6 +36,24 @@ namespace model {
 namespace requests {
 namespace validation {
 
+using PrioritiesList = agent_framework::model::attribute::Array<std::uint32_t>;
+
+void NetworkValidator::validate_request_switch_port_priorities(const PrioritiesList& priorities) {
+
+    if (priorities.empty()) {
+        return;
+    }
+
+    std::vector<std::uint32_t> priorities_to_check;
+    std::copy(priorities.begin(), priorities.end(), std::back_inserter(priorities_to_check));
+
+    std::sort(priorities_to_check.begin(), priorities_to_check.end());
+    auto it = std::adjacent_find(priorities_to_check.begin(), priorities_to_check.end());
+    if (it != priorities_to_check.end()) {
+        THROW(exceptions::InvalidValue, "network-agent", "Duplicated parametres in QoS port priorities request");
+    }
+}
+
 void NetworkValidator::validate_set_port_attributes(const Attributes& attributes) {
     jsonrpc::ProcedureValidator validator(
         jsonrpc::PARAMS_BY_NAME,
@@ -45,6 +65,10 @@ void NetworkValidator::validate_set_port_attributes(const Attributes& attributes
         literals::EthernetSwitchPort::ADMINISTRATIVE_STATE, VALID_OPTIONAL(VALID_ENUM(enums::AdministrativeState)),
         literals::EthernetSwitchPort::MODE, VALID_OPTIONAL(VALID_ENUM(enums::PortMode)),
         literals::EthernetSwitchPort::OEM, VALID_OPTIONAL(VALID_JSON_OBJECT),
+        literals::EthernetSwitchPort::LLDP_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        literals::EthernetSwitchPort::PFC_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        literals::EthernetSwitchPort::PFC_ENABLED_PRIORITIES, VALID_OPTIONAL(VALID_ARRAY_SIZE_OF(VALID_NUMERIC_EQLT(UINT32, 7), 0, 8)),
+        literals::EthernetSwitchPort::DCBX_STATE, VALID_OPTIONAL(VALID_ENUM(enums::DcbxState)),
         nullptr
     );
     validator.validate(attributes.to_json());
@@ -58,7 +82,14 @@ void NetworkValidator::validate_set_port_attributes(const Attributes& attributes
         }
     }
 
-    log_debug(GET_LOGGER("network-agent"), "Request validation passed.");
+    // additional check: are any priorities duplicated?
+    if (attributes.to_json().count(literals::EthernetSwitchPort::PFC_ENABLED_PRIORITIES)) {
+        const auto& attribute_value = attributes.get_value(literals::EthernetSwitchPort::PFC_ENABLED_PRIORITIES);
+
+        validate_request_switch_port_priorities(PrioritiesList::from_json(attribute_value));
+    }
+
+    log_debug("network-agent", "setPortAttributes - Request validation passed.");
 }
 
 namespace {
@@ -102,6 +133,137 @@ public:
     }
 };
 
+class QosSchema {
+public:
+    static const jsonrpc::ProcedureValidator& get_procedure() {
+        static constexpr const uint32_t MAX_PRIORITY{7};
+        static constexpr const uint32_t MAX_PRIORITY_GROUP{15};
+        static constexpr const uint32_t MAX_PORT{65535};
+        static constexpr const uint32_t MAX_PERCENT{100};
+        static jsonrpc::ProcedureValidator procedure{
+            jsonrpc::PARAMS_BY_NAME,
+            literals::NetworkQosAttribute::PRIORITY, VALID_OPTIONAL(VALID_NUMERIC_EQLT(UINT32, MAX_PRIORITY)),
+            literals::NetworkQosAttribute::PRIORITY_GROUP, VALID_OPTIONAL(VALID_NUMERIC_EQLT(UINT32, MAX_PRIORITY_GROUP)),
+            literals::NetworkQosAttribute::BANDWIDTH_PERCENT, VALID_OPTIONAL(VALID_NUMERIC_EQLT(UINT32, MAX_PERCENT)),
+            literals::NetworkQosAttribute::PORT, VALID_OPTIONAL(VALID_NUMERIC_EQLT(UINT32, MAX_PORT)),
+            literals::NetworkQosAttribute::PROTOCOL, VALID_OPTIONAL(VALID_ENUM(enums::TransportLayerProtocol)),
+            nullptr
+        };
+        return procedure;
+    }
+};
+
+}
+
+using QosApplicationProtocolList = agent_framework::model::attribute::Array<attribute::QosApplicationProtocol>;
+
+void NetworkValidator::validate_request_switch_qos_application_protocol(
+        const QosApplicationProtocolList& application_mappings) {
+
+    if (application_mappings.empty()) {
+        return;
+    }
+
+    for (auto it = application_mappings.begin(); it != std::prev(application_mappings.end()); ++it) {
+        auto mappings = *it;
+        auto duplicated = std::any_of(std::next(it), application_mappings.end(),
+                                      [mappings](const attribute::QosApplicationProtocol& m) {
+                                          return mappings.get_protocol() == m.get_protocol() &&
+                                                 mappings.get_port() == m.get_port();
+                                      });
+        if (duplicated) {
+            THROW(InvalidValue, "network-agent", "Duplicated parametres in QoS application protocol mapping request");
+        }
+    }
+}
+
+using QosPriorityGroupMappingList = agent_framework::model::attribute::Array<attribute::QosPriorityGroupMapping>;
+
+void NetworkValidator::validate_request_switch_qos_priority_group_mapping(
+        const QosPriorityGroupMappingList& priority_mappings) {
+
+    if (priority_mappings.empty()) {
+        return;
+    }
+
+    for (auto it = priority_mappings.begin(); it != std::prev(priority_mappings.end()); ++it) {
+        auto mappings = *it;
+        bool duplicated = std::any_of(std::next(it), priority_mappings.end(),
+                                      [mappings](const attribute::QosPriorityGroupMapping& m) {
+                                          return mappings.get_priority() == m.get_priority();
+                                      });
+        if (duplicated) {
+            THROW(InvalidValue, "network-agent", "Duplicated parametres in QoS priority group mapping request");
+        }
+    }
+}
+
+constexpr int MAX_TOTAL_BANDWIDTH_ALLOCATION = 100;
+
+using QosBandwidthAllocationList = agent_framework::model::attribute::Array<attribute::QosBandwidthAllocation>;
+
+void NetworkValidator::validate_request_switch_qos_bandwidth_allocation(
+        const QosBandwidthAllocationList& bandwidth_allocations) {
+
+    if (bandwidth_allocations.empty()) {
+        return;
+    }
+
+    int total_bandwidth(0);
+    for (auto it = bandwidth_allocations.begin(); it != bandwidth_allocations.end(); ++it) {
+        auto allocations = *it;
+        bool duplicated = std::any_of(std::next(it), bandwidth_allocations.end(),
+                                      [allocations](const attribute::QosBandwidthAllocation& a) {
+                                          return allocations.get_priority_group() == a.get_priority_group();
+                                      });
+        if (duplicated) {
+            THROW(InvalidValue, "network-agent", "Duplicated parametres in QoS bandwidth allocation request");
+        }
+        total_bandwidth += allocations.get_bandwidth_percent();
+    }
+
+    if (total_bandwidth > MAX_TOTAL_BANDWIDTH_ALLOCATION) {
+        THROW(InvalidValue, "network-agent", "Total bandwidth exeeded " +
+                            std::to_string(MAX_TOTAL_BANDWIDTH_ALLOCATION) + "% in QoS bandwidth allocation request");
+    }
+}
+
+void NetworkValidator::validate_set_switch_attributes(const Attributes& attributes) {
+    jsonrpc::ProcedureValidator validator(
+        jsonrpc::PARAMS_BY_NAME,
+        literals::EthernetSwitch::LLDP_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        literals::EthernetSwitch::PFC_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        literals::EthernetSwitch::ETS_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        literals::EthernetSwitch::DCBX_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        literals::EthernetSwitch::QOS_APPLICATION_PROTOCOL, VALID_OPTIONAL(VALID_ARRAY_OF(VALID_ATTRIBUTE(QosSchema))),
+        literals::EthernetSwitch::QOS_PRIORITY_TO_PRIORITY_GROUP_MAPPING, VALID_OPTIONAL(VALID_ARRAY_OF(VALID_ATTRIBUTE(QosSchema))),
+        literals::EthernetSwitch::QOS_BANDWIDTH_ALLOCATION, VALID_OPTIONAL(VALID_ARRAY_OF(VALID_ATTRIBUTE(QosSchema))),
+        nullptr
+    );
+    validator.validate(attributes.to_json());
+
+    // additional check: are any application protocol duplicated?
+    if (attributes.to_json().count(literals::EthernetSwitch::QOS_APPLICATION_PROTOCOL)) {
+        const auto& attribute_value = attributes.get_value(literals::EthernetSwitch::QOS_APPLICATION_PROTOCOL);
+
+        validate_request_switch_qos_application_protocol(QosApplicationProtocolList::from_json(attribute_value));
+    }
+
+    // additional check: are any priority group mapping duplicated?
+    if (attributes.to_json().count(literals::EthernetSwitch::QOS_PRIORITY_TO_PRIORITY_GROUP_MAPPING)) {
+        const auto& attribute_value = attributes.get_value(literals::EthernetSwitch::QOS_PRIORITY_TO_PRIORITY_GROUP_MAPPING);
+
+        validate_request_switch_qos_priority_group_mapping(QosPriorityGroupMappingList::from_json(attribute_value));
+    }
+
+    // additional check: are any bandwidth allocation duplicated?
+    if (attributes.to_json().count(literals::EthernetSwitch::QOS_BANDWIDTH_ALLOCATION)) {
+        const auto& attribute_value = attributes.get_value(literals::EthernetSwitch::QOS_BANDWIDTH_ALLOCATION);
+
+        validate_request_switch_qos_bandwidth_allocation(QosBandwidthAllocationList::from_json(attribute_value));
+    }
+
+    log_debug("network-agent", "setSwitchAttributes - Request validation passed.");
 }
 
 void NetworkValidator::validate_set_acl_rule_attributes(const Attributes& attributes) {
@@ -122,7 +284,7 @@ void NetworkValidator::validate_set_acl_rule_attributes(const Attributes& attrib
     );
     validator.validate(attributes.to_json());
 
-    log_debug(GET_LOGGER("network-agent"), "Request validation passed.");
+    log_debug("network-agent", "setAclRuleAttributes - Request validation passed.");
 }
 
 void NetworkValidator::validate_set_vlan_attributes(const Attributes& attributes) {
@@ -144,7 +306,7 @@ void NetworkValidator::validate_set_vlan_attributes(const Attributes& attributes
             THROW(InvalidField, "network-agent", "Unrecognized attribute.", name, value);
         }
     }
-    log_debug(GET_LOGGER("network-agent"), "Request validation passed.");
+    log_debug("network-agent", "setVlanAttributes - Request validation passed.");
 }
 
 void NetworkValidator::validate_set_port_vlan_attributes(const Attributes& attributes) {
@@ -169,7 +331,7 @@ void NetworkValidator::validate_set_port_vlan_attributes(const Attributes& attri
             THROW(InvalidField, "network-agent", "Unrecognized attribute.", name, value);
         }
     }
-    log_debug(GET_LOGGER("network-agent"), "Request validation passed.");
+    log_debug("network-agent", "setPortVlanAttributes - Request validation passed.");
 }
 
 void NetworkValidator::validate_set_static_mac_attributes(const Attributes& attributes) {
@@ -188,7 +350,7 @@ void NetworkValidator::validate_set_static_mac_attributes(const Attributes& attr
             THROW(InvalidField, "network-agent", "Unrecognized attribute.", name, value);
         }
     }
-    log_debug(GET_LOGGER("network-agent"), "Request validation passed.");
+    log_debug("network-agent", "setStaticMacAttributes - Request validation passed.");
 }
 
 }

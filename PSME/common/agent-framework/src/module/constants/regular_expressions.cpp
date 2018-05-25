@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,7 @@ constexpr const char Common::SUBSYSTEM_ID[];
 constexpr const char Common::SUBSYSTEM_VENDOR_ID[];
 constexpr const char Common::DATE_TIME_LOCAL_OFFSET[];
 constexpr const char Common::NO_WHITESPACE_STRING[];
+constexpr const char Common::EMPTY_OR_NO_WHITESPACE_STRING[];
 
 constexpr const char PCIeFunction::CLASS_CODE[];
 constexpr const char PCIeFunction::REVISION_ID[];
@@ -55,6 +56,9 @@ constexpr const char IPAddresses::ADDRESS[];
 constexpr const char IPAddresses::GATEWAY[];
 constexpr const char IPAddresses::SUBNET_MASK[];
 
+constexpr const char IPv6Addresses::ADDRESS[];
+
+constexpr const char Chassis::LOCATION_ID[];
 }
 }
 }

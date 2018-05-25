@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ if (NOT GTEST_FOUND)
 endif()
 
 add_gtest(tree_stability psme-storage
-    storage_tree_stabilizer_test.cpp
+    storage_stabilizer_test.cpp
     test_runner.cpp
 )
 
@@ -35,8 +35,10 @@ target_link_libraries(${test_target}
     storage-loader-utils-ref
     storage-common-utils-ref
     ${NET_LIBRARIES}
+    ${DATABASE_LIBRARIES}
     ${AGENT_FRAMEWORK_LIBRARIES}
     ${UUID_LIBRARIES}
+    ${SYSFSREF_LIBRARIES}
     ${LOGGER_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     ${PCA95XX_LIBRARIES}

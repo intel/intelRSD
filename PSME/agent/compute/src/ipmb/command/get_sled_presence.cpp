@@ -2,7 +2,7 @@
  * @brief GetSledPresence IPMI command implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ using namespace agent::compute::ipmb::command;
 
 
 void GetSledPresence::unpack(IpmiMessage& msg) {
-    log_debug(LOGUSR, "Unpacking Get SLED Presence Command.");
-
     auto data = msg.get_data();
     m_invalid_value = true;
 
@@ -49,6 +47,11 @@ void GetSledPresence::unpack(IpmiMessage& msg) {
             presence = static_cast<uint8_t>(presence >> 1);
             presence &= 0x0f;
             m_sled_presence = presence;
+
+            log_debug(LOGUSR, "Received presence " << std::hex << static_cast<unsigned>(m_sled_presence));
+        }
+        else {
+            log_warning(LOGUSR, "SLED presence not received in the response.");
         }
     }
 

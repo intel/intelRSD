@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,7 @@ namespace {
         const auto& uuid = request.get_uuid();
         const auto& name = request.get_name();
 
-        log_debug(GET_LOGGER("chassis-agent"), "GetCollection with parameters: component "
+        log_debug("chassis-agent", "GetCollection with parameters: component "
             << request.get_uuid() << ", name " << request.get_name());
 
         if (CommonComponents::get_instance()->get_module_manager().entry_exists(uuid)) {

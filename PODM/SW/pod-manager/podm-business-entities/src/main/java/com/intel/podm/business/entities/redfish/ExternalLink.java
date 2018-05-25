@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import javax.persistence.Table;
 import java.net.URI;
 import java.util.Objects;
 
+import static java.lang.String.format;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.FetchType.EAGER;
@@ -122,5 +123,11 @@ public class ExternalLink extends Entity {
     @Override
     public boolean containedBy(Entity possibleParent) {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return format("EntityLink {sourceUri=%s, externalServiceUri=%s, discoverableEntity=%s}",
+            sourceUri, externalService.getBaseUri(), discoverableEntity.getGlobalId());
     }
 }

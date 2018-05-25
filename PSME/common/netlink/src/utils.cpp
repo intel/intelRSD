@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +16,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
  *
  * @file utils.cpp
  *
@@ -55,8 +51,7 @@ string netlink_base::utils::get_port_mac_address(const string& port_identifier) 
     struct rtnl_link* link{nullptr};
     string ret{};
 
-    if (rtnl_link_get_kernel(sock.get_sock(), 0, port_identifier.c_str(),
-                             &link) == 0) {
+    if (rtnl_link_get_kernel(sock.get_sock(), 0, port_identifier.c_str(), &link) == 0) {
         struct nl_addr* addr = rtnl_link_get_addr(link);
         if (addr) {
             static const size_t MAC_ADDRESS_LENGTH = 20;

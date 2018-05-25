@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,15 +40,14 @@ public:
 
     explicit Ipv4Address();
 
-    Ipv4Address(const std::string& address,
-                const std::string& subnet_mask,
-                const enums::Ipv4AddressOrigin& address_origin,
-                const std::string& gateway):
+    Ipv4Address(const OptionalField<std::string>& address,
+                const OptionalField<std::string>& subnet_mask = {},
+                const OptionalField<enums::Ipv4AddressOrigin>& address_origin = {},
+                const OptionalField<std::string>& gateway = {}):
         m_address(address),
         m_subnet_mask(subnet_mask),
         m_address_origin(address_origin),
-        m_gateway(gateway)
-    {}
+        m_gateway(gateway) {}
 
     ~Ipv4Address();
 

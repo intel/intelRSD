@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,14 @@
 
 #pragma once
 
+
+
 #include "agent-framework/module/enum/common.hpp"
 #include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
+
+
 
 namespace agent_framework {
 namespace model {
@@ -36,25 +40,34 @@ class Collection {
 public:
     explicit Collection();
 
+
     Collection(const std::string& name,
                const enums::CollectionType& type,
-               const std::string& slot_mask):
-               m_name{name}, m_type{type}, m_slot_mask{slot_mask}
-               {}
+               const std::string& slot_mask = {}) :
+        m_name{name}, m_type{type}, m_slot_mask{slot_mask} {}
+
 
     Collection(const enums::CollectionName& name,
                const enums::CollectionType& type,
-               const std::string& slot_mask):
-               m_name{name.to_string()}, m_type{type}, m_slot_mask{slot_mask}
-               {}
+               const std::string& slot_mask = {}) :
+        m_name{name.to_string()}, m_type{type}, m_slot_mask{slot_mask} {}
+
 
     ~Collection();
 
+
     /*! Enable copy */
     Collection(const Collection&) = default;
+
+
     Collection& operator=(const Collection&) = default;
+
+
     Collection(Collection&&) = default;
+
+
     Collection& operator=(Collection&&) = default;
+
 
     /*!
      * @brief Set collections array entry name
@@ -64,6 +77,7 @@ public:
         m_name = name;
     }
 
+
     /*!
      * @brief Get collections array entry name
      * @return Entry name
@@ -71,6 +85,7 @@ public:
     std::string get_name() const {
         return m_name;
     }
+
 
     /*!
      * @brief Set collections array entry type
@@ -80,6 +95,7 @@ public:
         m_type = type;
     }
 
+
     /*!
      * @brief Get collections array entry type
      * @return Entry type
@@ -87,6 +103,7 @@ public:
     enums::CollectionType get_type() const {
         return m_type;
     }
+
 
     /*!
      * @brief Set collections array entry slot mask
@@ -96,6 +113,7 @@ public:
         m_slot_mask = slot_mask;
     }
 
+
     /*!
      * @brief Get collections array entry slot mask
      * @return Entry slot mask
@@ -104,11 +122,13 @@ public:
         return m_slot_mask;
     }
 
+
     /*!
      * @brief Make Json from collections array entry
      * @return Json object
      */
     json::Json to_json() const;
+
 
     /*!
      * @brief make collections array entry from Json
@@ -116,6 +136,7 @@ public:
      * @return new collection entry
      */
     static Collection from_json(const json::Json& json);
+
 
 private:
 

@@ -4,7 +4,7 @@
  * It's a base class for Request and Response.
  *
  * @header{License}
- * @copyright Copyright (c) 2015-2017 Intel Corporation.
+ * @copyright Copyright (c) 2015-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

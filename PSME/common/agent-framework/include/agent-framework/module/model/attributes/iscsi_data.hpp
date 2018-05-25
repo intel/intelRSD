@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,9 +37,9 @@ public:
     explicit IscsiData();
 
     /*! Enable copy & assignment */
-    IscsiData(IscsiData&) = default;
+    IscsiData(IscsiData&&) = default;
     IscsiData(const IscsiData&) = default;
-    IscsiData& operator=(IscsiData&) = default;
+    IscsiData& operator=(IscsiData&&) = default;
     IscsiData& operator=(const IscsiData&) = default;
 
     /*!

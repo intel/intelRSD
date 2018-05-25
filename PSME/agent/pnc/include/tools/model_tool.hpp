@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -189,7 +189,7 @@ public:
     /*!
      * @brief Sets drive to be in 'being discovered' state
      * @param[in] drive_uuid Uuid of the drive
-     * @param[in] is_being_erased 'Being discovered' flag value
+     * @param[in] is_being_discovered 'Being discovered' flag value
      * */
     virtual void set_drive_is_being_discovered(const std::string& drive_uuid, bool is_being_discovered) const;
 

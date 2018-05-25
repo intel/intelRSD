@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +58,7 @@ void Threadpool::create_threads() {
             m_threads.emplace_back(std::thread(&Threadpool::run_loop, this));
         }
     } catch (const std::exception& e) {
-        log_error(GET_LOGGER("threading"), e.what());
+        log_error("threading", e.what());
         stop(true);
         throw;
     }
@@ -80,9 +80,18 @@ void Threadpool::run_loop() {
     while (1) {
         Task task;
         m_tasks.wait_and_pop(task);
+        auto in_queue = m_tasks.size();
+        if (in_queue != 0) {
+            log_warning("threading", "Number of tasks waiting in the queue is " << in_queue);
+        }
         if (task.is_stop()) {
+            log_info("threading", "Thread finish requested.");
             return;
         }
+
+        m_running_tasks++;
+        log_info("threading", "Number of running tasks is " << m_running_tasks);
         task();
+        m_running_tasks--;
     }
 }

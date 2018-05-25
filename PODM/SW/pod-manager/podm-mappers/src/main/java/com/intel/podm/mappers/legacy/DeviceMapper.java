@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,12 @@ import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.intel.podm.common.utils.Converters.convertGibToBytes;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 
 @Dependent
 public class DeviceMapper extends EntityMapper<DeviceResource, Drive> {
-    private static final long GIB_IN_BYTES = 1073741824;
     private static final String INFO_FORMAT = "BusInfo";
 
     @Inject
@@ -45,7 +46,7 @@ public class DeviceMapper extends EntityMapper<DeviceResource, Drive> {
     protected void performNotAutomatedMapping(DeviceResource source, Drive target) {
         super.performNotAutomatedMapping(source, target);
         target.setProtocol(source.getInterface());
-        target.setCapacityBytes(source.getCapacityGib().longValue() * GIB_IN_BYTES);
+        target.setCapacityBytes(ofNullable(convertGibToBytes(source.getCapacityGib())).map(BigDecimal::longValue).orElse(null));
         target.setMediaType(source.getType());
         target.setRotationSpeedRpm(new BigDecimal(source.getRpm()));
 

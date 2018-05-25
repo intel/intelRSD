@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -177,13 +177,13 @@ void NetworkChangeNotifierImpl::send_shutdown_msg() {
     if (m_shutdown_fd[1] != -1) {
         const uint8_t b[1] = {0};
         if (write(m_shutdown_fd[1], b, sizeof (b)) < 0) {
-            log_error(GET_LOGGER("net"), "Failed to notify NetworkChangeNotifier to close.");
+            log_error("net", "Failed to notify NetworkChangeNotifier to close.");
         }
     }
 }
 
 void NetworkChangeNotifierImpl::execute() {
-    log_info(GET_LOGGER("net"), "NetworkChangeNotifier started.");
+    log_info("net", "NetworkChangeNotifier started.");
     while (m_is_running) {
         fd_set read_set;
         FD_ZERO(&read_set);
@@ -195,7 +195,7 @@ void NetworkChangeNotifierImpl::execute() {
             }
         }
         else {
-            log_warning(GET_LOGGER("net"), "NetworkChangeNotifier - no NETLINK socket to monitor.");
+            log_warning("net", "NetworkChangeNotifier - no NETLINK socket to monitor.");
             m_is_running = false;
             close_descriptors();
             break;
@@ -213,25 +213,25 @@ void NetworkChangeNotifierImpl::execute() {
                     process_netlink_messages_and_notify();
                 }
                 catch(...) {
-                    log_error(GET_LOGGER("net"), "NetworkChangeNotifier - Unknown error");
+                    log_error("net", "NetworkChangeNotifier - Unknown error");
                 }
             }
             if (m_shutdown_fd[0] != -1 && FD_ISSET(m_shutdown_fd[0], &read_set)) {
                 uint8_t b[1];
                 auto ret = read(m_shutdown_fd[0], b, sizeof(b));
                 if (ret < 0) {
-                    log_error(GET_LOGGER("net"), "NetworkChangeNotifier - Failed to read notification.");
+                    log_error("net", "NetworkChangeNotifier - Failed to read notification.");
                 }
                 m_is_running = false;
                 break;
             }
         }
         else if (rc < 0 && EINTR != errno) {
-            log_debug(GET_LOGGER("net"),
+            log_debug("net",
                       "NetworkChangeNotifier - select error: " << strerror(errno));
         }
     }
-    log_debug(GET_LOGGER("net"), "NetworkChangeNotifier stopped.");
+    log_debug("net", "NetworkChangeNotifier stopped.");
 }
 
 void NetworkChangeNotifierImpl::init() {
@@ -299,12 +299,12 @@ NetworkChangeNotifierImpl::ChangeList NetworkChangeNotifierImpl::process_netlink
         } while (rc == -1 && EINTR == errno);
         first_iteration = false;
         if (0 == rc) {
-            log_error(GET_LOGGER("net"), "NETLINK socket has been shutdown.");
+            log_error("net", "NETLINK socket has been shutdown.");
             break;
         }
         if (rc < 0) {
             if ((errno != EAGAIN) && (errno != EWOULDBLOCK)) {
-                log_error(GET_LOGGER("net"), "Receive from NETLINK socket failed.");
+                log_error("net", "Receive from NETLINK socket failed.");
             }
             break;
         }
@@ -325,7 +325,7 @@ void NetworkChangeNotifierImpl::process_netlink_message(char* buffer, size_t len
         {
             const struct nlmsgerr* msg =
                     reinterpret_cast<struct nlmsgerr*>(NLMSG_DATA(header));
-            log_error(GET_LOGGER("net"), "Unexpected netlink error " << msg->error << ".");
+            log_error("net", "Unexpected netlink error " << msg->error << ".");
         }
             return;
         case RTM_NEWADDR:
@@ -373,7 +373,7 @@ void NetworkChangeNotifierImpl::process_netlink_message(char* buffer, size_t len
             const struct ifinfomsg* msg =
                     reinterpret_cast<struct ifinfomsg*>(NLMSG_DATA(header));
             if (ignore_wireless_change(header, msg)) {
-                log_debug(GET_LOGGER("net"), "Ignoring RTM_NEWLINK message");
+                log_debug("net", "Ignoring RTM_NEWLINK message");
                 break;
             }
             if (!(msg->ifi_flags & IFF_LOOPBACK) && (msg->ifi_flags & IFF_UP)
@@ -412,7 +412,7 @@ void NetworkChangeNotifierImpl::process_netlink_messages_and_notify() {
 
 void NetworkChangeNotifierImpl::close_descriptors() {
     if (m_netlink_fd >= 0 && close(m_netlink_fd) < 0) {
-        log_error(GET_LOGGER("net"), "Could not close NETLINK socket.");
+        log_error("net", "Could not close NETLINK socket.");
     }
     m_netlink_fd = -1;
     if (m_shutdown_fd[0] >= 0) {

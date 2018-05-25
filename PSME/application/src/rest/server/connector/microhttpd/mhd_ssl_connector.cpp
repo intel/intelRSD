@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,8 @@ extern "C" {
 }
 #include "logger/logger_factory.hpp"
 #include <sstream>
+#include <sys/socket.h>
+#include <netdb.h>
 
 namespace {
 
@@ -56,19 +58,46 @@ std::string certificate_verification_status_to_string(unsigned int status,
     return str.str();
 }
 
-int verify_certificate(gnutls_session_t tls_session, const std::string& hostname) {
-    unsigned int cert_status;
+std::string get_client(struct MHD_Connection* connection) {
+    auto* ci = MHD_get_connection_info(connection, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
+    auto* in_addr = ci->client_addr;
+    char host_buf[NI_MAXHOST];
+    char server_buf[NI_MAXSERV];
+    int ret = getnameinfo(in_addr, sizeof(struct sockaddr),
+        host_buf, sizeof(host_buf),
+        server_buf, sizeof(server_buf),
+        NI_NUMERICHOST | NI_NUMERICSERV);
+    if (ret != 0) {
+        return "<unknown>";
+    }
 
-    if (nullptr == tls_session) {
+    std::string address{host_buf};
+    if (!address.empty()) {
+        address += ":";
+        address += server_buf;
+    }
+    return address;
+}
+
+int verify_certificate(struct MHD_Connection* connection, const std::string& hostname) {
+    gnutls_session_t tls_session;
+
+    auto* ci = MHD_get_connection_info(connection, MHD_CONNECTION_INFO_GNUTLS_SESSION);
+    if ((nullptr != ci) && (nullptr != ci->tls_session)) {
+        tls_session = static_cast<gnutls_session_t>(ci->tls_session);
+    }
+    else {
+        log_error("rest", "Cannot obtain TLS session for connection " << get_client(connection));
         return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
+    unsigned int cert_status;
     auto ret = gnutls_certificate_verify_peers3(tls_session,
                                                 hostname.empty() ? nullptr : hostname.c_str(),
                                                 &cert_status);
     if (ret < 0) {
-        log_error(GET_LOGGER("rest"),
-                "Failed to verify certificate: " << gnutls_strerror(ret));
+        log_error("rest",
+                "Failed to verify certificate from " << get_client(connection) << ": " << gnutls_strerror(ret));
         return ret;
     }
 
@@ -76,8 +105,8 @@ int verify_certificate(gnutls_session_t tls_session, const std::string& hostname
         auto cert_type = gnutls_certificate_type_get(tls_session);
         auto status_as_string = certificate_verification_status_to_string(
                                                     cert_status, cert_type);
-        log_error(GET_LOGGER("rest"),
-                "Failed to verify certificate: " << status_as_string);
+        log_error("rest",
+                "Wrong certificate from " << get_client(connection) << ": " << status_as_string);
         return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -94,16 +123,7 @@ MHDSSLConnector::~MHDSSLConnector() { }
 
 bool MHDSSLConnector::is_access_allowed(struct MHD_Connection* connection) {
     if (get_options().is_client_cert_required()) {
-        auto* ci = MHD_get_connection_info(connection,
-                                           MHD_CONNECTION_INFO_GNUTLS_SESSION);
-        if (nullptr != ci) {
-            gnutls_session_t tls_session =
-                                static_cast<gnutls_session_t>(ci->tls_session);
-            return (0 == verify_certificate(tls_session, get_options().get_hostname()));
-        } else {
-            log_debug(GET_LOGGER("rest"), "Can't obtain ssl session handle.");
-            return false;
-        }
+        return (0 == verify_certificate(connection, get_options().get_hostname()));
     }
     return true;
 }

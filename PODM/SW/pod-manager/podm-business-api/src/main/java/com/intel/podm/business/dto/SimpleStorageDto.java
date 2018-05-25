@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "uefiDevicePath", "status", "devices"})
-@SuppressWarnings({"checkstyle:MethodCount"})
+@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "uefiDevicePath", "status", "devices", "oem"})
 public final class SimpleStorageDto extends RedfishDto {
     @JsonProperty("UEFIDevicePath")
     private String uefiDevicePath;

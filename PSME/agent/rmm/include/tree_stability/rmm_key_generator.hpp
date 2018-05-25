@@ -2,7 +2,7 @@
  * @brief RMMKeyGenerator class interface.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public:
      *
      * This method accepts a particular resource and generates the
      * unique key basing on this resource and data already present
-     * in the model. However, it is also posible to provide additional
+     * in the model. However, it is also possible to provide additional
      * data via variable arguments list. WARNING: if information
      * necessary for key generation is not present, this method throws
      * an exception of type KeyValueMissingError.
@@ -72,7 +72,7 @@ protected:
     /*!
      * @brief Generate unique key base.
      *
-     * The purspose of this method is to generate a consistent
+     * The purpose of this method is to generate a consistent
      * key base upon which the rest of the key is generated.
      *
      * @param resource Resource for which the key base should be generated.

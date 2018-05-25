@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,39 +35,37 @@ struct sysfs_device;
 namespace agent {
 namespace storage {
 
-static constexpr uint32_t SSD_RPM_VALUE = 1;
-
-using std::vector;
-using std::string;
-using std::uint32_t;
+static constexpr std::uint32_t SSD_RPM_VALUE = 1;
 
 /*!
  * @brief C++ wrapper for sysfs operations
  */
-class SysfsAPI {
+class SysfsApi {
 public:
 
     /*! Block device */
     class HardDrive {
-        string m_name{};
-        string m_sysfs_path{};
-        string m_device_path{};
-        string m_manufacturer{};
-        string m_model{};
-        string m_serial_number{};
+    private:
+        std::string m_name{};
+        std::string m_sysfs_path{};
+        std::string m_device_path{};
+        std::string m_manufacturer{};
+        std::string m_model{};
+        std::string m_serial_number{};
         double m_capacity_gb{};
-        uint32_t m_rpm{};
-        string m_type{};
-        string m_interface{};
+        std::uint32_t m_rpm{};
+        std::string m_type{};
+        std::string m_interface{};
+
     public:
 
         /*! Default constructor */
         HardDrive() {}
 
-        bool operator==(const agent::storage::SysfsAPI::HardDrive& a) {
-            return ((a.get_serial_number() == get_serial_number()) &&
-                        (a.get_model() == get_model()) &&
-                        (a.get_device_path() == get_device_path()));
+        bool operator==(const HardDrive& drive) {
+            return ((drive.get_serial_number() == get_serial_number()) &&
+                (drive.get_model() == get_model()) &&
+                (drive.get_device_path() == get_device_path()));
         }
 
         /*! Default copy constructor */
@@ -80,7 +78,7 @@ public:
          * @brief Get hard drive name
          * @return Hard drive name
          * */
-        const string& get_name() const {
+        const std::string& get_name() const {
             return m_name;
         }
 
@@ -88,7 +86,7 @@ public:
          * @brief Set hard drive name
          * @param[in] name Hard drive name
          * */
-        void set_name(const string& name) {
+        void set_name(const std::string& name) {
             m_name = name;
         }
 
@@ -96,7 +94,7 @@ public:
          * @brief Get device path (/dev/...)
          * @return Device path
          * */
-        const string& get_device_path() const {
+        const std::string& get_device_path() const {
             return m_device_path;
         }
 
@@ -104,7 +102,7 @@ public:
          * @brief Set hard drive device path (/dev/...)
          * @param[in] device_path Hard drive device path
          * */
-        void set_device_path(const string& device_path) {
+        void set_device_path(const std::string& device_path) {
             m_device_path = device_path;
         }
 
@@ -128,7 +126,7 @@ public:
          * @brief Get hard drive RPM
          * @return Hard drive RPM
          * */
-        uint32_t get_rpm() const {
+        std::uint32_t get_rpm() const {
             return m_rpm;
         }
 
@@ -136,7 +134,7 @@ public:
          * @brief Set hard drive RPM
          * @param[in] rpm Hard drive RPM
          * */
-        void set_rpm(uint32_t rpm) {
+        void set_rpm(std::uint32_t rpm) {
             m_rpm = rpm;
         }
 
@@ -144,7 +142,7 @@ public:
          * @brief Get hard drive manufacturer
          * @return Hard drive manufacturer
          * */
-        const string& get_manufacturer() const {
+        const std::string& get_manufacturer() const {
             return m_manufacturer;
         }
 
@@ -152,7 +150,7 @@ public:
          * @brief Set hard drive manufacturer
          * @param[in] manufacturer Hard drive manufacturer
          * */
-        void set_manufacturer(const string& manufacturer) {
+        void set_manufacturer(const std::string& manufacturer) {
             m_manufacturer = manufacturer;
         }
 
@@ -160,7 +158,7 @@ public:
          * @brief Get hard drive model
          * @return Hard drive model
          * */
-        const string& get_model() const {
+        const std::string& get_model() const {
             return m_model;
         }
 
@@ -168,7 +166,7 @@ public:
          * @brief Set hard drive model
          * @param[in] model Hard drive model
          * */
-        void set_model(const string& model) {
+        void set_model(const std::string& model) {
             m_model = model;
         }
 
@@ -176,7 +174,7 @@ public:
          * @brief Get drive serial number
          * @return Hard drive serial number
          * */
-        const string& get_serial_number() const {
+        const std::string& get_serial_number() const {
             return m_serial_number;
         }
 
@@ -184,7 +182,7 @@ public:
          * @brief Set hard drive serial number
          * @param[in] serial_number Hard drive serial number
          * */
-        void set_serial_number(const string& serial_number) {
+        void set_serial_number(const std::string& serial_number) {
             m_serial_number = serial_number;
         }
 
@@ -192,7 +190,7 @@ public:
          * @brief Get hard drive type
          * @return Hard drive type
          * */
-        const string& get_type() const {
+        const std::string& get_type() const {
             return m_type;
         }
 
@@ -200,7 +198,7 @@ public:
          * @brief Set hard drive type
          * @param[in] type Hard drive type
          * */
-        void set_type(const string& type) {
+        void set_type(const std::string& type) {
             m_type = type;
         }
 
@@ -208,7 +206,7 @@ public:
          * @brief Get hard drive interface
          * @return Hard drive interface
          * */
-        const string& get_interface() const {
+        const std::string& get_interface() const {
             return m_interface;
         }
 
@@ -216,7 +214,7 @@ public:
          * @brief Set hard drive interface
          * @param[in] interface Hard drive interface
          * */
-        void set_interface(const string& interface) {
+        void set_interface(const std::string& interface) {
             m_interface = interface;
         }
 
@@ -230,21 +228,21 @@ public:
      * @return  SysfsAPI instance. Create if not exist otherwise
      *          return existing instance.
      * */
-    static SysfsAPI* get_instance();
+    static SysfsApi* get_instance();
 
     /*!
      * @brief Get hard drives
      * @return drives Vector of discovered hard drives.
      * */
-    vector<HardDrive> get_hard_drives();
+    std::vector<HardDrive> get_hard_drives();
 
     /*!
      * @brief Default destructor.
      * */
-    virtual ~SysfsAPI();
+    virtual ~SysfsApi();
 
 private:
-    SysfsAPI(std::shared_ptr<sysfs::AbstractSysfsInterface> sysfs_interface);
+    SysfsApi(std::shared_ptr<sysfs::AbstractSysfsInterface> sysfs_interface);
 
     bool m_is_virtual_device(const sysfs::SysfsDir& device);
 
@@ -260,17 +258,19 @@ private:
 
     void m_perform_hdio_drive_cmd(const sysfs::SysfsDir& device, std::unique_ptr<uint16_t[]>& p_hdio_data);
 
-    void m_read_ata_string(string& value, size_t offset, size_t length, std::unique_ptr<uint16_t[]>& p_hdio_data);
+    void m_read_ata_string(std::string& value, size_t offset, size_t length, std::unique_ptr<uint16_t[]>& p_hdio_data);
 
     void m_read_rpm(uint32_t& rpm, std::unique_ptr<uint16_t[]>& p_hdio_data);
 
-    void m_read_serial_number(string& serial_number, std::unique_ptr<uint16_t[]>& p_hdio_data);
+    void m_read_serial_number(std::string& serial_number, std::unique_ptr<uint16_t[]>& p_hdio_data);
 
-    void m_read_manufacturer(string& manufacturer, std::unique_ptr<uint16_t[]>& p_hdio_data);
+    void m_read_model_number(std::string& serial_number, std::unique_ptr<uint16_t[]>& p_hdio_data);
+
+    void m_read_manufacturer(std::string& manufacturer, std::unique_ptr<uint16_t[]>& p_hdio_data);
 
     sysfs::Path m_get_devfs_path(const sysfs::SysfsDir& device);
 
-    void m_trim(string& input_string);
+    void m_trim(std::string& input_string);
 
     std::vector<sysfs::SysfsMount> m_mount_points{};
     std::shared_ptr<sysfs::AbstractSysfsInterface> m_sysfs{};
@@ -285,7 +285,7 @@ private:
     static constexpr const char DEVICE_TYPE[] = "device/type";
     static constexpr const char SYSFS_BLOCK_CLASS[] = "/sys/class/block";
 
-    static constexpr uint32_t ATA_DATA_SIZE = 512+4;
+    static constexpr std::uint32_t ATA_DATA_SIZE = 512+4;
 };
 
 }

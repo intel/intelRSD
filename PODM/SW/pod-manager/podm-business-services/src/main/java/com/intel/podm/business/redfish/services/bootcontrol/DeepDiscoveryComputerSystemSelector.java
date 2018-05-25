@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static com.intel.podm.common.types.DeepDiscoveryState.INITIAL;
 import static com.intel.podm.common.types.DeepDiscoveryState.SCHEDULED_MANUALLY;
 import static com.intel.podm.common.types.DeepDiscoveryState.WAITING_TO_START;
@@ -147,7 +148,7 @@ class DeepDiscoveryComputerSystemSelector {
     }
 
     private boolean isUsable(ComputerSystem computerSystem) {
-        return computerSystem.isEnabledAndHealthy()
+        return statusOf(computerSystem).isEnabled().isHealthy().verify()
             && computerSystem.getComposedNode() == null;
     }
 

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +51,7 @@ json::Json StorageController::to_json() const {
     result[literals::StorageController::SUPPORTED_CONTROLLER_PROTOCOLS] = get_supported_controller_protocols().to_json();
     result[literals::StorageController::SUPPORTED_DEVICE_PROTOCOLS] = get_supported_device_protocols().to_json();
     result[literals::StorageController::IDENTIFIERS] = get_identifiers().to_json();
-    result[literals::StorageController::COLLECTIONS] =
-        get_collections().to_json();
+    result[literals::StorageController::COLLECTIONS] = get_collections().to_json();
     result[literals::StorageController::OEM] = get_oem().to_json();
     return result;
 }
@@ -60,31 +59,21 @@ json::Json StorageController::to_json() const {
 StorageController StorageController::from_json(const json::Json& json) {
     StorageController controller;
 
-    controller.set_status(attribute::Status::from_json(
-        json[literals::StorageController::STATUS]));
-    controller.set_fru_info(attribute::FruInfo::from_json(
-        json[literals::StorageController::FRU_INFO]));
-    controller.set_collections(Collections::from_json(
-        json[literals::StorageController::COLLECTIONS]));
-    controller.set_physical_id(
-        json[literals::StorageController::PHYSICAL_ID]);
-    controller.set_asset_tag(
-        json[literals::StorageController::ASSET_TAG]);
-    controller.set_sku(
-        json[literals::StorageController::SKU]);
-    controller.set_firmware_version(
-        json[literals::StorageController::FIRMWARE_VERSION]);
-    controller.set_speed_gbps(
-        json[literals::StorageController::SPEED_GBPS]);
+    controller.set_status(attribute::Status::from_json(json[literals::StorageController::STATUS]));
+    controller.set_fru_info(attribute::FruInfo::from_json(json[literals::StorageController::FRU_INFO]));
+    controller.set_collections(Collections::from_json(json[literals::StorageController::COLLECTIONS]));
+    controller.set_physical_id(json[literals::StorageController::PHYSICAL_ID]);
+    controller.set_asset_tag(json[literals::StorageController::ASSET_TAG]);
+    controller.set_sku(json[literals::StorageController::SKU]);
+    controller.set_firmware_version(json[literals::StorageController::FIRMWARE_VERSION]);
+    controller.set_speed_gbps(json[literals::StorageController::SPEED_GBPS]);
+    controller.set_identifiers(Identifiers::from_json(json[literals::StorageController::IDENTIFIERS]));
     controller.set_supported_controller_protocols(StorageProtocols::from_json(
         json[literals::StorageController::SUPPORTED_CONTROLLER_PROTOCOLS]));
     controller.set_supported_device_protocols(StorageProtocols::from_json(
         json[literals::StorageController::SUPPORTED_DEVICE_PROTOCOLS]));
-    controller.set_identifiers(Identifiers::from_json(
-        json[literals::StorageController::IDENTIFIERS]));
 
     controller.set_oem(attribute::Oem::from_json(json[literals::StorageController::OEM]));
-    controller.set_resource_hash(json);
 
     return controller;
 }

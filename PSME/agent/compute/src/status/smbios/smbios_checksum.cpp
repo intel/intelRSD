@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,15 +70,15 @@ void set_ipmi_connection_data(ManagementControllerUnique& mc, ConnectionDataShar
 
 bool is_valid(sdv::response::GetMdrDataRegionStatus& response) {
     if (response.get_lock_status() != ipmi::command::sdv::LockStatus::UNLOCKED) {
-        log_warning(GET_LOGGER("smbios-discovery"), "MDR Region locked!");
+        log_warning("smbios-discovery", "MDR Region locked!");
         return false;
     }
     else if (response.get_data_validation() != ipmi::command::sdv::DataValidation::VALID) {
-        log_warning(GET_LOGGER("smbios-discovery"), "MDR Region not valid!");
+        log_warning("smbios-discovery", "MDR Region not valid!");
         return false;
     }
     else if (response.get_region_size_used() == 0) {
-        log_warning(GET_LOGGER("smbios-discovery"), "MDR Region is empty!");
+        log_warning("smbios-discovery", "MDR Region is empty!");
         return false;
     }
     return true;
@@ -105,8 +105,8 @@ uint8_t SmbiosChecksum::read_checksum() {
         }
     }
     catch (const ipmi::ResponseError& error) {
-        log_error(GET_LOGGER("smbios-discovery"), " GetMdrDataRegionStatus command error.");
-        log_error(GET_LOGGER("compute-discovery"),
+        log_error("smbios-discovery", " GetMdrDataRegionStatus command error.");
+        log_error("compute-discovery",
                   "GetMdrDataRegionStatus - bad IPMI completion code: " << uint32_t(error.get_completion_code()));
     }
 
@@ -119,7 +119,7 @@ bool SmbiosChecksum::is_updated() {
     try {
         m_checksum = read_checksum();
         if (m_checksum != checksum) {
-            log_info(GET_LOGGER("smbios-discovery"), "Checksum for manager: " << m_uuid << " updated"
+            log_info("smbios-discovery", "Checksum for manager: " << m_uuid << " updated"
                                                                               << " from: "
                                                                               << static_cast<uint16_t>(checksum)
                                                                               << " to: "
@@ -128,7 +128,7 @@ bool SmbiosChecksum::is_updated() {
         }
     }
     catch (const std::exception& ex) {
-        log_debug(GET_LOGGER("smbios-discovery"), "Unable to read checksum: " << ex.what());
+        log_debug("smbios-discovery", "Unable to read checksum: " << ex.what());
     }
     return false;
 }

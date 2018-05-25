@@ -4,7 +4,7 @@
  * Class directly uses ipmitool library by the means of its structs.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,12 +69,12 @@ BridgeReflector::BridgeReflector(ipmi_intf& _intf, const ipmi::BridgeInfo& info)
             transit_addr = intf.transit_addr;
             transit_channel = intf.transit_channel;
             info.get_transit(intf.transit_addr, intf.transit_channel);
-            /* nobreak */
+	    /* fallthrough */
         case ipmi::BridgeInfo::Level::SINGLE_BRIDGE:
             target_addr = intf.target_addr;
             target_channel = intf.target_channel;
             info.get_target(intf.target_addr, intf.target_channel);
-            /* nobreak */
+	    /* fallthrough */
         case ipmi::BridgeInfo::Level::DIRECT:
             /* nothing more */
             break;
@@ -90,11 +90,11 @@ BridgeReflector::~BridgeReflector() {
         case ipmi::BridgeInfo::Level::DUAL_BRIDGE:
             intf.transit_addr = transit_addr;
             intf.transit_channel = transit_channel;
-            /* nobreak */
+	    /* fallthrough */
         case ipmi::BridgeInfo::Level::SINGLE_BRIDGE:
             intf.target_addr = target_addr;
             intf.target_channel = target_channel;
-            /* nobreak */
+	    /* fallthrough */
         case ipmi::BridgeInfo::Level::DIRECT:
             /* nothing more */
             break;
@@ -178,7 +178,16 @@ IpmiIntfImpl::send(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterface::Cmd co
                    const ipmi::IpmiInterface::ByteBuffer& request, ipmi::IpmiInterface::ByteBuffer& response,
                    bool reconnect) {
 
-    std::unique_lock<std::mutex> lock(mutex);
+    std::unique_lock<IpmiIntfImpl> guard(*this);
+    send_unlocked(netfn, command, lun, bridge, request, response, reconnect);
+
+}
+
+void
+IpmiIntfImpl::send_unlocked(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterface::Cmd command, ipmi::IpmiInterface::Lun lun,
+                  const ipmi::BridgeInfo& bridge,
+                  const ipmi::IpmiInterface::ByteBuffer& request, ipmi::IpmiInterface::ByteBuffer& response,
+                  bool reconnect) {
 
     /* connection will be renew if session is (possibly) expired */
     if ((m_ipmi_intf.opened > 0) && (reconnect)) {
@@ -203,7 +212,7 @@ IpmiIntfImpl::send(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterface::Cmd co
     if (!rsp) {
         throw std::runtime_error("Received null response from IPMI.");
     }
-    /* our response always starts with complition code, always is followed
+    /* our response always starts with completion code, always is followed
      * by received bytes
      */
     response.clear();
@@ -211,4 +220,14 @@ IpmiIntfImpl::send(ipmi::IpmiInterface::NetFn netfn, ipmi::IpmiInterface::Cmd co
     for (int i = 0; i < rsp->data_len; i++) {
         response.push_back(rsp->data[i]);
     }
+}
+
+void
+IpmiIntfImpl::lock() {
+    mutex.lock();
+}
+
+void
+IpmiIntfImpl::unlock() {
+    mutex.unlock();
 }

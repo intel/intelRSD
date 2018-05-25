@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,28 +31,29 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import static com.intel.podm.business.Violations.createWithViolations;
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static java.util.Objects.isNull;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 @Dependent
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public class ComputerSystemMatcher {
     @Inject
-    protected ProcessorMatcher processorMatcher;
+    private ProcessorMatcher processorMatcher;
     @Inject
-    protected MemoryMatcher memoryMatcher;
+    private MemoryMatcher memoryMatcher;
     @Inject
-    protected LocalStorageMatcher localDriveMatcher;
+    private LocalStorageMatcher localDriveMatcher;
     @Inject
-    protected LocalStorageCollector localStorageCollector;
+    private LocalStorageCollector localStorageCollector;
     @Inject
-    protected EthernetInterfaceMatcher ethernetInterfaceMatcher;
+    private EthernetInterfaceMatcher ethernetInterfaceMatcher;
     @Inject
-    protected ComputerSystemAttributesMatcher computerSystemAttributesMatcher;
+    private ComputerSystemAttributesMatcher computerSystemAttributesMatcher;
     @Inject
-    protected ComputerSystemCollector computerSystemCollector;
+    private ComputerSystemCollector computerSystemCollector;
     @Inject
-    protected ComputerSystemSecurityAttributesMatcher computerSystemSecurityAttributesMatcher;
+    private ComputerSystemSecurityAttributesMatcher computerSystemSecurityAttributesMatcher;
     @Inject
     private Logger logger;
 
@@ -80,7 +81,7 @@ public class ComputerSystemMatcher {
     }
 
     private Predicate<ComputerSystem> byEnabledAndHealthy() {
-        return ComputerSystem::isEnabledAndHealthy;
+        return computerSystem -> statusOf(computerSystem).isEnabled().isHealthy().verify();
     }
 
     private Predicate<ComputerSystem> byComputerSystem(ComputerSystem requestedComputerSystem) {

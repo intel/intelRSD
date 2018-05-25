@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
  *
  * @file boot_options.hpp
  *
- * @brief constanst used by IPMI Get and Set Chassis Boot Options Commands.
+ * @brief Constants used by IPMI Get and Set Chassis Boot Options Commands.
  * */
 
 #pragma once

@@ -2,7 +2,7 @@
  * @brief Definition of NetworkDeviceFunction model class
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,9 +54,7 @@ NetworkDeviceFunction NetworkDeviceFunction::from_json(const json::Json& json) {
             json[literals::NetworkDeviceFunction::ETHERNET][literals::NetworkDeviceFunction::MAC_ADDRESS]);
     }
     function.set_iscsi_boot(attribute::IscsiBoot::from_json(json[literals::NetworkDeviceFunction::ISCSI_BOOT]));
-
     function.set_oem(attribute::Oem::from_json(json[literals::NetworkDeviceFunction::OEM]));
-    function.set_resource_hash(json);
 
     return function;
 }

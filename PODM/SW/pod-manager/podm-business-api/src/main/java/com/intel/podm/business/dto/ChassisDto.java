@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,13 +38,14 @@ import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "chassisType", "name",
-    "description", "manufacturer", "model", "sku", "serialNumber", "partNumber",
-    "assetTag", "indicatorLed", "powerState", "status", "power", "thermal",
-    "oem", "links", "actions"
+    "@odata.context", "@odata.id", "@odata.type", "id", "chassisType", "name", "description", "manufacturer", "model", "sku", "serialNumber", "partNumber",
+    "assetTag", "indicatorLed", "powerState", "status", "power", "thermal", "links", "actions", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class ChassisDto extends RedfishDto {
+    private final Oem oem = new Oem();
+    private final Links links = new Links();
+    private final Actions actions = new Actions();
     private ChassisType chassisType;
     private String manufacturer;
     private String model;
@@ -57,15 +58,10 @@ public final class ChassisDto extends RedfishDto {
     private IndicatorLed indicatorLed;
     private PowerState powerState;
     private Status status;
-
     @JsonInclude(NON_NULL)
     private SingletonContext thermal;
     @JsonInclude(NON_NULL)
     private SingletonContext power;
-
-    private Oem oem = new Oem();
-    private Links links = new Links();
-    private Actions actions = new Actions();
 
     public ChassisDto() {
         super("#Chassis.v1_3_0.Chassis");
@@ -171,24 +167,54 @@ public final class ChassisDto extends RedfishDto {
         return oem;
     }
 
-    public void setOem(Oem oem) {
-        this.oem = oem;
-    }
-
     public Links getLinks() {
         return links;
-    }
-
-    public void setLinks(Links links) {
-        this.links = links;
     }
 
     public Actions getActions() {
         return actions;
     }
 
-    public void setActions(Actions actions) {
-        this.actions = actions;
+    @JsonPropertyOrder({"rmmPresent", "rackSupportsDisaggregatedPowerCooling", "uuid", "geoTag"})
+    public static class RackChassisRackScaleOem {
+        @JsonProperty("RMMPresent")
+        private Boolean rmmPresent;
+        private Boolean rackSupportsDisaggregatedPowerCooling;
+        @JsonProperty("UUID")
+        private UUID uuid;
+        private String geoTag;
+
+        public Boolean getRmmPresent() {
+            return rmmPresent;
+        }
+
+        public void setRmmPresent(Boolean rmmPresent) {
+            this.rmmPresent = rmmPresent;
+        }
+
+        public Boolean getRackSupportsDisaggregatedPowerCooling() {
+            return rackSupportsDisaggregatedPowerCooling;
+        }
+
+        public void setRackSupportsDisaggregatedPowerCooling(Boolean rackSupportsDisaggregatedPowerCooling) {
+            this.rackSupportsDisaggregatedPowerCooling = rackSupportsDisaggregatedPowerCooling;
+        }
+
+        public UUID getUuid() {
+            return uuid;
+        }
+
+        public void setUuid(UUID uuid) {
+            this.uuid = uuid;
+        }
+
+        public String getGeoTag() {
+            return geoTag;
+        }
+
+        public void setGeoTag(String geoTag) {
+            this.geoTag = geoTag;
+        }
     }
 
     @OemType(TOP_LEVEL_OEM)
@@ -204,13 +230,11 @@ public final class ChassisDto extends RedfishDto {
         public class RackScaleOem {
             @JsonIgnore
             public static final String ODATA_TYPE_DEFAULT = "#Intel.Oem.Chassis";
-
             @JsonIgnore
             public static final String ODATA_TYPE_RACK = "#Intel.Oem.RackChassis";
 
             @JsonProperty("@odata.type")
             private String oDataType = ODATA_TYPE_DEFAULT;
-
             @JsonUnwrapped
             @JsonInclude(NON_NULL)
             private RackChassisRackScaleOem rackChassisOem;
@@ -265,55 +289,13 @@ public final class ChassisDto extends RedfishDto {
         }
     }
 
-    @JsonPropertyOrder({"rmmPresent", "rackSupportsDisaggregatedPowerCooling", "uuid", "geoTag"})
-    public static class RackChassisRackScaleOem {
-        @JsonProperty("RMMPresent")
-        private Boolean rmmPresent;
-        private Boolean rackSupportsDisaggregatedPowerCooling;
-        @JsonProperty("UUID")
-        private UUID uuid;
-        private String geoTag;
-
-        public Boolean getRmmPresent() {
-            return rmmPresent;
-        }
-
-        public void setRmmPresent(Boolean rmmPresent) {
-            this.rmmPresent = rmmPresent;
-        }
-
-        public Boolean getRackSupportsDisaggregatedPowerCooling() {
-            return rackSupportsDisaggregatedPowerCooling;
-        }
-
-        public void setRackSupportsDisaggregatedPowerCooling(Boolean rackSupportsDisaggregatedPowerCooling) {
-            this.rackSupportsDisaggregatedPowerCooling = rackSupportsDisaggregatedPowerCooling;
-        }
-
-        public UUID getUuid() {
-            return uuid;
-        }
-
-        public void setUuid(UUID uuid) {
-            this.uuid = uuid;
-        }
-
-        public String getGeoTag() {
-            return geoTag;
-        }
-
-        public void setGeoTag(String geoTag) {
-            this.geoTag = geoTag;
-        }
-    }
-
     @JsonPropertyOrder({
-        "@odata.type", "contains", "containedBy", "computerSystems", "switches", "managedBy", "managersInChassis", "storage",
-        "cooledBy", "poweredBy", "drives", "pcieSwitches", "oem"
+        "@odata.type", "contains", "containedBy", "computerSystems", "managedBy", "managersInChassis", "storage", "cooledBy", "poweredBy", "drives", "oem"
     })
     public final class Links extends RedfishLinksDto {
         @JsonProperty("@odata.type")
         private final String oDataType = "#Chassis.v1_2_0.Links";
+        private final Oem oem = new Oem();
         private Set<Context> contains = new HashSet<>();
         private Context containedBy;
         private Set<Context> computerSystems = new HashSet<>();
@@ -323,7 +305,6 @@ public final class ChassisDto extends RedfishDto {
         private Set<Context> storage = new HashSet<>();
         private Set<Context> poweredBy = new HashSet<>();
         private Set<Context> cooledBy = new HashSet<>();
-        private Oem oem = new Oem();
 
         public Set<Context> getContains() {
             return contains;
@@ -401,10 +382,6 @@ public final class ChassisDto extends RedfishDto {
             return oem;
         }
 
-        public void setOem(Oem oem) {
-            this.oem = oem;
-        }
-
         @OemType(OEM_IN_LINKS)
         public class Oem extends RedfishOemDto {
             @JsonProperty("Intel_RackScale")
@@ -414,9 +391,8 @@ public final class ChassisDto extends RedfishDto {
                 return rackScaleOem;
             }
 
-            @JsonPropertyOrder({"oDataType", "pcieSwitches", "switches"})
+            @JsonPropertyOrder({"@odata.type", "switches"})
             public class RackScaleOem {
-
                 @JsonProperty("@odata.type")
                 private final String oDataType = "#Intel.Oem.ChassisLinks";
                 private Set<Context> switches = new HashSet<>();
@@ -428,7 +404,6 @@ public final class ChassisDto extends RedfishDto {
                 public void setSwitches(Set<Context> switches) {
                     this.switches = switches;
                 }
-
             }
         }
     }

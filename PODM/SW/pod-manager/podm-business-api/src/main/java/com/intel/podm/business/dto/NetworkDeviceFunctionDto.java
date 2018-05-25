@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,14 @@ import com.intel.podm.common.types.redfish.IgnoreAutomaticOem;
 @JsonPropertyOrder({
     "@odata.context", "@odata.id", "@odata.type", "name", "description", "id", "status", "deviceEnabled", "ethernet", "iscsiBoot", "links", "oem"
 })
-@SuppressWarnings({"checkstyle:VisibilityModifier"})
 public final class NetworkDeviceFunctionDto extends RedfishDto {
+    @IgnoreAutomaticOem
+    private final Object links = new Object();
     private Status status;
     private Boolean deviceEnabled;
     private EthernetJson ethernet = new EthernetJson();
     @JsonProperty("iSCSIBoot")
     private IscsiBootJson iscsiBoot = new IscsiBootJson();
-    @IgnoreAutomaticOem
-    private Links links = new Links();
 
     public NetworkDeviceFunctionDto() {
         super("#NetworkDeviceFunction.v1_0_0.NetworkDeviceFunction");
@@ -73,20 +72,11 @@ public final class NetworkDeviceFunctionDto extends RedfishDto {
         this.iscsiBoot = iscsiBoot;
     }
 
-    public Links getLinks() {
+    public Object getLinks() {
         return links;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
-    }
-
-    public final class Links {
-    }
-
-    @JsonPropertyOrder({
-        "macAddress"
-    })
+    @JsonPropertyOrder({"macAddress"})
     public static class EthernetJson {
         @JsonProperty("MACAddress")
         private MacAddress macAddress;
@@ -101,11 +91,10 @@ public final class NetworkDeviceFunctionDto extends RedfishDto {
     }
 
     @JsonPropertyOrder({
-        "ipAddressType", "initiatorIpAddress", "initiatorName", "initiatorDefaultGateway", "initiatorNetmask", "targetInfoViaDhcp",
-        "primaryTargetName", "primaryTargetIpAddress", "primaryTargetTcpPort", "primaryLun", "primaryVlanEnable", "primaryVlanId",
-        "primaryDns", "secondaryTargetName", "secondaryTargetIpAddress", "secondaryTargetTcpPort", "secondaryLun", "secondaryVlanEnable",
-        "secondaryVlanId", "secondaryDns", "ipMaskDnsViaDhcp", "routerAdvertisementEnabled", "authenticationMethod", "chapUsername",
-        "chapSecret", "mutualChapUsername", "mutualChapSecret"
+        "ipAddressType", "initiatorIpAddress", "initiatorName", "initiatorDefaultGateway", "initiatorNetmask", "targetInfoViaDhcp", "primaryTargetName",
+        "primaryTargetIpAddress", "primaryTargetTcpPort", "primaryLun", "primaryVlanEnable", "primaryVlanId", "primaryDns", "secondaryTargetName",
+        "secondaryTargetIpAddress", "secondaryTargetTcpPort", "secondaryLun", "secondaryVlanEnable", "secondaryVlanId", "secondaryDns", "ipMaskDnsViaDhcp",
+        "routerAdvertisementEnabled", "authenticationMethod", "chapUsername", "chapSecret", "mutualChapUsername", "mutualChapSecret"
     })
     @SuppressWarnings({"checkstyle:MethodCount"})
     public static class IscsiBootJson {

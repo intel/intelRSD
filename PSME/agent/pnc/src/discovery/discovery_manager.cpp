@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +16,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
  *
  * @file pnc/src/discovery/discovery_manager.cpp
  *
@@ -47,7 +43,7 @@
 #include "tools/gas_tool.hpp"
 #include "i2c/i2c_access_interface_factory.hpp"
 #include "agent-framework/module/enum/chassis.hpp"
-#include "tree_stability/pnc_dry_stabilizer.hpp"
+#include "tree_stability/pnc_stabilizer.hpp"
 
 #include <iomanip>
 #include <chrono>
@@ -66,11 +62,12 @@ using namespace agent::pnc::gas::top;
 using namespace agent::pnc::gas::partition;
 using namespace agent::pnc::gas::csr;
 using namespace agent::pnc::nvme;
+using namespace agent::pnc::i2c;
+
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::module;
 using namespace agent_framework::eventing;
-using namespace agent::pnc::i2c;
 
 namespace {
 
@@ -139,8 +136,9 @@ DiscoveryManager DiscoveryManager::create(const tools::Toolset& t) {
 
 DiscoveryManager::~DiscoveryManager() {}
 
-void DiscoveryManager::discover_zones(const std::string& fabric_uuid, const std::string& switch_uuid,
-        GlobalAddressSpaceRegisters& gas) const {
+void DiscoveryManager::discover_zones(const std::string& fabric_uuid,
+                                      const std::string& switch_uuid,
+                                      GlobalAddressSpaceRegisters& gas) const {
     for (std::uint8_t zone_id = 0; zone_id < gas.top.output.fields.part_num; zone_id++) {
         // Skip management Partition
         if (gas.top.output.fields.current_partition_id != zone_id) {
@@ -191,49 +189,49 @@ void DiscoveryManager::discover_ports(const std::string& fabric_uuid, const std:
     }
 }
 
-void DiscoveryManager::discovery(const std::string&) {
+void DiscoveryManager::discovery() {
 
     log_info("pnc-discovery", "Starting discovery for the PNC agent.");
 
-        PncTreeStabilizer pts{};
-        auto definitions = m_discoverer->discover_metric_definitions();
-        for (auto& definition: definitions) {
-            log_and_add(definition);
-            const std::string new_definition_uuid = pts.stabilize_metric_definition(definition.get_uuid());
-        }
+    PncTreeStabilizer pts{};
+    auto definitions = m_discoverer->discover_metric_definitions();
+    for (auto& definition: definitions) {
+        log_and_add(definition);
+        const std::string new_definition_uuid = pts.stabilize_metric_definition(definition.get_uuid());
+    }
 
-        std::string manager_uuid = m_tools.model_tool->get_manager_uuid();
-        std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
+    std::string manager_uuid = m_tools.model_tool->get_manager_uuid();
+    std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
 
-        std::string fabric_uuid = log_and_add<Fabric>(m_discoverer->discover_fabric(manager_uuid));
-        std::string system_uuid = log_and_add<System>(m_discoverer->discover_system(manager_uuid, chassis_uuid));
-        log_and_add(m_discoverer->discover_storage_subsystem(system_uuid));
+    std::string fabric_uuid = log_and_add<Fabric>(m_discoverer->discover_fabric(manager_uuid));
+    std::string system_uuid = log_and_add<System>(m_discoverer->discover_system(manager_uuid, chassis_uuid));
+    log_and_add(m_discoverer->discover_storage_subsystem(system_uuid));
 
-        log_and_update<Chassis>(m_discoverer->discover_chassis(m_tools,
-                                                               get_manager<Chassis>().get_entry(chassis_uuid)));
+    log_and_update<Chassis>(m_discoverer->discover_chassis(m_tools, get_manager<Chassis>().get_entry(chassis_uuid)));
 
-        SysfsDecoder decoder = SysfsDecoder::make_instance(SysfsReader{});
-        auto sysfs_switches = decoder.get_switches();
-        if (sysfs_switches.size() > 0) {
-            SysfsSwitch sysfs_switch = sysfs_switches.front();
-            // get gas
-            GlobalAddressSpaceRegisters gas =
-                GlobalAddressSpaceRegisters::get_default(sysfs_switch.memory_resource);
-            // init gas i2c interface
-            I2cAccessInterfaceFactory::get_instance().init_gas_interface(sysfs_switch.memory_resource);
+    SysfsDecoder decoder = SysfsDecoder::make_instance(SysfsReader{});
+    auto sysfs_switches = decoder.get_switches();
+    if (sysfs_switches.size() > 0) {
+        SysfsSwitch sysfs_switch = sysfs_switches.front();
+        // get gas
+        GlobalAddressSpaceRegisters gas =
+            GlobalAddressSpaceRegisters::get_default(sysfs_switch.memory_resource);
+        // init gas i2c interface
+        I2cAccessInterfaceFactory::get_instance().init_gas_interface(sysfs_switch.memory_resource);
 
-            gas.read_top();
+        gas.read_top();
 
-            std::string switch_uuid =
-                log_and_add(m_discoverer->discover_switch(fabric_uuid, m_tools, chassis_uuid, sysfs_switch));
-            discover_zones(fabric_uuid, switch_uuid, gas);
-            discover_ports(fabric_uuid, switch_uuid, gas);
-        }
-        else {
-            throw PncDiscoveryExceptionSwitchNotFound{};
-        }
-        // Remove all temporary ports that were read from the configuration
-        m_tools.model_tool->remove_temporary_ports();
+        std::string switch_uuid =
+            log_and_add(m_discoverer->discover_switch(fabric_uuid, m_tools, chassis_uuid, sysfs_switch));
+        discover_zones(fabric_uuid, switch_uuid, gas);
+        discover_ports(fabric_uuid, switch_uuid, gas);
+    }
+    else {
+        throw PncDiscoveryExceptionSwitchNotFound{};
+    }
+
+    // Remove all temporary ports that were read from the configuration
+    m_tools.model_tool->remove_temporary_ports();
 
     log_info("pnc-discovery", "Finished discovery of the PNC agent.");
 }
@@ -295,9 +293,9 @@ std::string DiscoveryManager::add_and_stabilize_drive(const Drive& drive, const 
 }
 
 std::string DiscoveryManager::add_and_stabilize_endpoint(Endpoint& endpoint, const Port& port,
-        bool was_drive_found, const std::string& drive_uuid) const {
-    PncDryStabilizer pds{};
-    const std::string new_endpoint_uuid = pds.generate_persistent_uuid(endpoint, std::vector<Port>{port});
+                                                         bool was_drive_found, const std::string& drive_uuid) const {
+    PncStabilizer stabilizer{};
+    const std::string new_endpoint_uuid = stabilizer.dry_stabilize(endpoint, std::vector<Port>{port});
     bool already_exists = get_manager<Endpoint>().entry_exists(new_endpoint_uuid);
     std::string fabric_uuid = m_tools.model_tool->get_fabric_uuid();
 

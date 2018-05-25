@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ import static com.intel.podm.common.logger.LoggerFactory.getLogger;
 public class SensitiveParametersRequestFilter {
     private static final Logger LOGGER = getLogger(SensitiveParametersRequestFilter.class);
 
-    private static final List<String> SECURE_PARAMETERS = Arrays.asList("CHAPSecret", "MutualCHAPSecret", "Secret", "MutualSecret");
+    private static final List<String> SECURE_PARAMETERS
+        = Arrays.asList("CHAPSecret", "MutualCHAPSecret", "Secret", "MutualSecret", "Password");
 
     public String filterSecretPropertiesFromRequest(String request) {
         if (!hasSecretParameter(request)) {

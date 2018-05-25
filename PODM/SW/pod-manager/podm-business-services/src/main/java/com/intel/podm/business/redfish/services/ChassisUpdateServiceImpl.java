@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,28 @@ import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.ResourceStateMismatchException;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ExternalLink;
+import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.UpdateService;
 import com.intel.podm.common.synchronization.TaskCoordinator;
 import com.intel.podm.common.synchronization.ThrowingRunnable;
 import com.intel.podm.common.types.redfish.RedfishChassis;
+import com.intel.podm.config.base.Config;
+import com.intel.podm.config.base.Holder;
+import com.intel.podm.config.base.dto.ServiceConfig;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 import static com.intel.podm.common.types.ChassisType.POD;
 import static com.intel.podm.common.types.ChassisType.RACK;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toSet;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -50,6 +56,10 @@ public class ChassisUpdateServiceImpl implements UpdateService<RedfishChassis> {
     @Inject
     private EntityTreeTraverser traverser;
 
+    @Inject
+    @Config
+    private Holder<ServiceConfig> config;
+
     @Override
     @Transactional(REQUIRED)
     public void perform(Context target, RedfishChassis representation) throws TimeoutException, BusinessApiException {
@@ -63,23 +73,28 @@ public class ChassisUpdateServiceImpl implements UpdateService<RedfishChassis> {
             checkIfGeoTagCanBePatchedOnChassis(targetChassis);
         }
 
-        Set<ExternalLink> affectedLinks = targetChassis.getExternalLinks();
-        if (!affectedLinks.isEmpty()) {
-            performForExternalServices(representation, affectedLinks);
-        } else {
+        Set<UUID> affectedServices = targetChassis.getExternalLinks().stream()
+            .map(ExternalLink::getExternalService)
+            .map(ExternalService::getUuid)
+            .collect(toSet());
+
+        if (affectedServices.isEmpty()) {
             performForPodm(target, representation);
+        } else {
+            performForExternalServices(affectedServices, target, representation);
+        }
+    }
+
+    private void performForExternalServices(Set<UUID> externalServices, Context chassis, RedfishChassis representation)
+        throws TimeoutException, BusinessApiException {
+        for (UUID externalService : externalServices) {
+            taskCoordinator.run(externalService, () -> updateService.updateChassisOnSingleExternalService(externalService, chassis, representation));
         }
     }
 
     @SuppressWarnings("unchecked")
     private void performForPodm(Context target, RedfishChassis representation) throws TimeoutException {
-        taskCoordinator.run(target, (ThrowingRunnable) () -> updateService.updateLocalChassis(target, representation));
-    }
-
-    private void performForExternalServices(RedfishChassis representation, Set<ExternalLink> affectedLinks) throws TimeoutException, BusinessApiException {
-        for (ExternalLink externalLink : affectedLinks) {
-            taskCoordinator.run(externalLink.getExternalService().getUuid(), () -> updateService.updateChassis(externalLink, representation));
-        }
+        taskCoordinator.run(config.get().getUuid(), (ThrowingRunnable) () -> updateService.updateLocalChassis(target, representation));
     }
 
     private void checkIfLocationIdCanBePatchedOnChassis(Chassis targetChassis) throws BusinessApiException {

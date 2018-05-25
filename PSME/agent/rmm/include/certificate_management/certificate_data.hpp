@@ -2,7 +2,7 @@
  * @brief Rmm CertificateData class interface
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,10 @@
 
 #pragma once
 
-
-
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <mutex>
 
 
 
@@ -34,6 +33,8 @@ extern "C" {
 
 namespace agent {
 namespace rmm {
+
+class CertificateDataReference;
 
 /*!
  * @brief Container for all data connected to a certificate.
@@ -49,6 +50,9 @@ namespace rmm {
  * by higher layers.
  */
 class CertificateData {
+
+    friend class CertificateDataReference;
+
 public:
     using CertificateHashType = std::vector<std::uint8_t>;
     using CertificateDataType = std::vector<std::uint8_t>;
@@ -60,7 +64,6 @@ public:
         PODM,
         RMM
     };
-
 
     /*!
      * @brief Constructor.
@@ -164,13 +167,40 @@ public:
         return m_last_modification_time;
     }
 
-
 protected:
     const CertificateType m_certificate_type;
     std::string m_certificate_file_path{};
     CertificateHashType m_certificate_hash{};
     CertificateDataType m_certificate_data{};
     timespec m_last_modification_time{0, 0};
+
+    std::mutex m_mutex{};
+};
+
+
+/*!
+ * @brief Class implementing RAII object to lock certificate data
+ */
+class CertificateDataReference final {
+
+    friend class CertificateManager;
+
+public:
+    CertificateDataReference(CertificateData& certificate_data):
+        m_certificate_data(certificate_data) {
+        m_certificate_data.m_mutex.lock();
+    }
+
+    ~CertificateDataReference() {
+        m_certificate_data.m_mutex.unlock();
+    }
+
+    CertificateData& operator*() {
+        return m_certificate_data;
+    }
+
+private:
+    CertificateData& m_certificate_data;
 };
 
 }

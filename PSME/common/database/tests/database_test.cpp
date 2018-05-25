@@ -2,7 +2,7 @@
  * @brief General database interface test
  *
  * @header{License}
- * @copyright Copyright (c) 2015-2017 Intel Corporation
+ * @copyright Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -82,8 +82,8 @@ std::ostream& operator<<(std::ostream& stream, const StringValue& data) {
 /*! @brief "Public" database to give access to private methods */
 class DatabaseTester final {
 public:
-    DatabaseTester(const std::string& name) :
-        db{Database::create(name)} { fdb = static_cast<FileDatabase*>(db.get()); }
+    DatabaseTester(const std::string& name, bool with_policy = true) :
+        db{Database::create(name, with_policy)} { fdb = static_cast<FileDatabase*>(db.get()); }
 
     ~DatabaseTester() {
         db->remove();
@@ -95,43 +95,47 @@ public:
     }
 
     bool start() {
-        return db->start();
+        return fdb->start();
     }
 
     bool next(Serializable& key, Serializable& value) {
-        return db->next(key, value);
+        return fdb->next(key, value);
     }
 
     void end() {
-        db->end();
+        fdb->end();
     }
 
     bool get(const Serializable& key, Serializable& value) {
-        return db->get(key, value);
+        return fdb->get(key, value);
     }
 
     bool put(const Serializable& key, const Serializable& value) {
-        return db->put(key, value);
+        return fdb->put(key, value);
     }
 
     bool remove(const Serializable& key) {
-        return db->remove(key);
+        return fdb->remove(key);
     }
 
     bool invalidate(const Serializable& key) {
-        return db->invalidate(key);
+        return fdb->invalidate(key);
+    }
+
+    Database::EntityValidity get_validity(const Serializable& key, std::chrono::seconds interval) {
+        return fdb->get_validity(key, interval);
     }
 
     unsigned wipe_outdated(Serializable& key, std::chrono::seconds interval) {
-        return db->wipe_outdated(key, interval);
+        return fdb->wipe_outdated(key, interval);
     }
 
     unsigned cleanup(Serializable& key, std::chrono::seconds interval) {
-        return db->cleanup(key, interval);
+        return fdb->cleanup(key, interval);
     }
 
     unsigned drop(Serializable& key) {
-        return db->drop(key);
+        return fdb->drop(key);
     }
 
     std::string full_name(const std::string& key) const {
@@ -342,9 +346,12 @@ TEST_F(DatabaseTest, FileOperations) {
 
 TEST_F(DatabaseTest, StripName) {
     const std::string DB{"db"};
+    const std::string WRONG{"1234/5678"};
     const std::string KEY{"1234.5678-xxx.val"};
 
     DatabaseTester db{DB};
+
+    ASSERT_EQ("", db.full_name(WRONG)) << "Not allowed characters in the key";
 
     const std::string F_NAME = db.full_name(KEY);
     ASSERT_NE(std::string::npos, F_NAME.rfind('/'));
@@ -369,6 +376,47 @@ TEST_F(DatabaseTest, RemoveAllData) {
     AlwaysMatchKey key{};
     ASSERT_NO_THROW(db.wipe_outdated(key, std::chrono::seconds(0)));
     ASSERT_EQ(0, db.drop(key)) << "Any data left in the DB";
+}
+
+TEST_F(DatabaseTest, NonRetentionPolicy) {
+    DatabaseTester persistent("persistent", false);
+
+    database::String key{"KEY"};
+    database::String value{"test value"};
+    ASSERT_TRUE(persistent.put(key, value)) << "file not created";
+    ASSERT_EQ(Database::EntityValidity::VALID, persistent.get_validity(key, std::chrono::seconds(0))) << "is not valid";
+
+    ASSERT_TRUE(persistent.invalidate(key)) << "file not invalidated";
+    ASSERT_EQ(Database::EntityValidity::INVALID, persistent.get_validity(key, std::chrono::seconds(1))) << "is not invalid";
+    ASSERT_EQ(Database::EntityValidity::OUTDATED, persistent.get_validity(key, std::chrono::seconds(0))) << "is not outdated";
+
+    ASSERT_FALSE(persistent.invalidate(key)) << "file already invalid";
+    ASSERT_TRUE(persistent.get(key, value)) << "invalid file removed";
+
+
+    DatabaseTester retention("*retention");
+    database::AlwaysMatchKey all{};
+    ASSERT_EQ(0, retention.cleanup(all, std::chrono::seconds(0))) << "invalidated file cleaned up?";
+    ASSERT_EQ(0, retention.wipe_outdated(all, std::chrono::seconds(0))) << "any file wiped?";
+
+    ASSERT_TRUE(persistent.get(key, value)) << "non-policed file removed";
+    ASSERT_TRUE(persistent.drop(key)) << "file not removed";
+}
+
+TEST_F(DatabaseTest, RetentionPolicy) {
+    DatabaseTester persistent("persistent");
+
+    database::String key{"KEY"};
+    database::String value{"test value"};
+    ASSERT_TRUE(persistent.put(key, value)) << "file not created";
+
+    /* file is not ignored by retention policy.. It should be invalidated and wiped cause outdated */
+    DatabaseTester retention("*retention");
+    database::AlwaysMatchKey all{};
+    ASSERT_EQ(1, retention.cleanup(all, std::chrono::seconds(10))) << "invalidated file cleaned up?";
+    ASSERT_EQ(1, retention.wipe_outdated(all, std::chrono::seconds(0))) << "any file wiped?";
+
+    ASSERT_FALSE(persistent.get(key, value)) << "non-policed file removed";
 }
 
 } // @i{database}

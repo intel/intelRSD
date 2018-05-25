@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,7 +75,6 @@ Manager Manager::from_json(const json::Json& json) {
     manager.set_collections(Collections::from_json(json[literals::Manager::COLLECTIONS]));
     manager.set_allowed_reset_actions(attribute::Array<enums::ResetType>::from_json(json[literals::Manager::ALLOWED_ACTIONS]));
     manager.set_oem(attribute::Oem::from_json(json[literals::Manager::OEM]));
-    manager.set_resource_hash(json);
     manager.set_parent_uuid(json[literals::Manager::PARENT_ID]);
     manager.set_guid(json[literals::Manager::GUID]);
 

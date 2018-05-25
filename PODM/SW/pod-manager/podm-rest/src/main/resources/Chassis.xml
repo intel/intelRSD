@@ -6,6 +6,10 @@
   </edmx:Reference>
   <edmx:Reference Uri="RedfishExtensions.xml">
     <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource"/>
@@ -36,11 +40,8 @@
   <edmx:Reference Uri="Drive.xml">
     <edmx:Include Namespace="Drive"/>
   </edmx:Reference>
-  <edmx:Reference Uri="ThermalZoneCollection.xml">
-    <edmx:Include Namespace="ThermalZoneCollection"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="PowerZoneCollection.xml">
-    <edmx:Include Namespace="PowerZoneCollection"/>
+  <edmx:Reference Uri="PCIeDevice.xml">
+    <edmx:Include Namespace="PCIeDevice"/>
   </edmx:Reference>
   <edmx:DataServices>
 
@@ -131,24 +132,18 @@
           <Annotation Term="OData.LongDescription"
                       String="The Actions property shall contain the available actions for this resource."/>
         </Property>
-        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+        <Property Name="Status" Type="Resource.Status" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Resource status"/>
+          <Annotation Term="OData.LongDescription"
+                      String="Resource status."/>
+        </Property>
         <NavigationProperty Name="LogServices" Type="LogServiceCollection.LogServiceCollection" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="A reference to the logs for this chassis."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be a link to a collection of type LogServiceCollection."/>
           <Annotation Term="OData.AutoExpandReferences"/>
-        </NavigationProperty>
-        <NavigationProperty Name="ThermalZones" Type="ThermalZoneCollection.ThermalZoneCollection"
-                            ContainsTarget="true">
-          <Annotation Term="OData.AutoExpandReferences"/>
-          <Annotation Term="Redfish.Deprecated"
-                      String="Property will be removed in the future and functionality will be provided in a different way"/>
-        </NavigationProperty>
-        <NavigationProperty Name="PowerZones" Type="PowerZoneCollection.PowerZoneCollection" ContainsTarget="true">
-          <Annotation Term="OData.AutoExpandReferences"/>
-          <Annotation Term="Redfish.Deprecated"
-                      String="Property will be removed in the future and functionality will be provided in a different way"/>
         </NavigationProperty>
 
         <NavigationProperty Name="Thermal" Type="Thermal.Thermal" ContainsTarget="true" Nullable="false">
@@ -221,86 +216,116 @@
 
       <ComplexType Name="Actions">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-        <Property Name="Oem" Type="Chassis.v1_0_0.OemActions" Nullable="false"/>
+        <Annotation Term="OData.Description" String="The available actions for this resource."/>
+        <Annotation Term="OData.LongDescription" String="This type shall contain the available actions for this resource."/>
+        <Property Name="Oem" Type="Chassis.v1_0_0.OemActions" Nullable="false">
+          <Annotation Term="OData.Description" String="Representation of OEM extensions"/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent OEM extensions."/>
+        </Property>
       </ComplexType>
 
       <ComplexType Name="OemActions">
         <Annotation Term="OData.AdditionalProperties" Bool="true"/>
+        <Annotation Term="OData.Description" String="The available OEM specific actions for this resource."/>
+        <Annotation Term="OData.LongDescription" String="This type shall contain any additional OEM actions for this resource."/>
       </ComplexType>
 
       <EnumType Name="ChassisType">
-        <Member Name="Rack">
-          <Annotation Term="OData.Description" String="An equipment rack, typically a 19-inch wide freestanding unit"/>
-        </Member>
         <Member Name="Blade">
           <Annotation Term="OData.Description"
                       String="An enclosed or semi-enclosed, typically vertically-oriented, system chassis which must be plugged into a multi-system chassis to function normally"/>
-        </Member>
-        <Member Name="Enclosure">
-          <Annotation Term="OData.Description"
-                      String="A generic term for a chassis that does not fit any other description"/>
-        </Member>
-        <Member Name="StandAlone">
-          <Annotation Term="OData.Description"
-                      String="A single, free-standing system, commonly called a tower or desktop chassis"/>
-        </Member>
-        <Member Name="RackMount">
-          <Annotation Term="OData.Description"
-                      String="A single system chassis designed specifically for mounting in an equipment rack"/>
+          <Annotation Term="OData.LongDescription" String="An enclosed or semi-enclosed, typically vertically oriented, system chassis that must be plugged into a multi-system chassis to function normally."/>
         </Member>
         <Member Name="Card">
           <Annotation Term="OData.Description"
                       String="A loose device or circuit board intended to be installed in a system or other enclosure"/>
+          <Annotation Term="OData.LongDescription" String="A loose device or circuit board intended to be installed in a system or other enclosure."/>
         </Member>
         <Member Name="Cartridge">
           <Annotation Term="OData.Description"
                       String="A small self-contained system intended to be plugged into a multi-system chassis"/>
-        </Member>
-        <Member Name="Row">
-          <Annotation Term="OData.Description" String="A collection of equipment racks"/>
-        </Member>
-        <Member Name="Pod">
-          <Annotation Term="OData.Description"
-                      String="A collection of equipment racks in a large, likely transportable, container"/>
-        </Member>
-        <Member Name="Expansion">
-          <Annotation Term="OData.Description"
-                      String="A chassis which expands the capabilities or capacity of another chassis"/>
-        </Member>
-        <Member Name="Sidecar">
-          <Annotation Term="OData.Description"
-                      String="A chassis that mates mechanically with another chassis to expand its capabilities or capacity"/>
-        </Member>
-        <Member Name="Zone">
-          <Annotation Term="OData.Description"
-                      String="A logical division or portion of a physical chassis that contains multiple devices or systems that cannot be physically separated"/>
-        </Member>
-        <Member Name="Sled">
-          <Annotation Term="OData.Description"
-                      String="An enclosed or semi-enclosed, system chassis which must be plugged into a multi-system chassis to function normally similar to a blade type chassis."/>
-        </Member>
-        <Member Name="Shelf">
-          <Annotation Term="OData.Description"
-                      String="An enclosed or semi-enclosed, typically horizontally-oriented, system chassis which must be plugged into a multi-system chassis to function normally"/>
-        </Member>
-        <Member Name="Drawer">
-          <Annotation Term="OData.Description"
-                      String="An enclosed or semi-enclosed, typically horizontally-oriented, system chassis which may be slid into a multi-system chassis."/>
-        </Member>
-        <Member Name="Module">
-          <Annotation Term="OData.Description"
-                      String="A small, typically removable, chassis or card which contains devices for a particular subsystem or function"/>
+          <Annotation Term="OData.LongDescription" String="A small self-contained system intended to be plugged into a multi-system chassis."/>
         </Member>
         <Member Name="Component">
           <Annotation Term="OData.Description"
                       String="A small chassis, card, or device which contains devices for a particular subsystem or function"/>
+          <Annotation Term="OData.LongDescription" String="A small chassis, card, or device that contains devices for a particular subsystem or function."/>
+        </Member>
+        <Member Name="Drawer">
+          <Annotation Term="OData.Description"
+                      String="An enclosed or semi-enclosed, typically horizontally-oriented, system chassis which may be slid into a multi-system chassis."/>
+          <Annotation Term="OData.LongDescription" String="An enclosed or semi-enclosed, typically horizontally oriented, system chassis that may be slid into a multi-system chassis."/>
+        </Member>
+        <Member Name="Enclosure">
+          <Annotation Term="OData.Description"
+                      String="A generic term for a chassis that does not fit any other description"/>
+          <Annotation Term="OData.LongDescription" String="A generic term for a chassis that does not fit any other description."/>
+        </Member>
+        <Member Name="Expansion">
+          <Annotation Term="OData.Description"
+                      String="A chassis which expands the capabilities or capacity of another chassis"/>
+          <Annotation Term="OData.LongDescription" String="A chassis that expands the capabilities or capacity of another chassis."/>
         </Member>
         <Member Name="IPBasedDrive">
           <Annotation Term="OData.Description"
                       String="A chassis in a drive form factor with IP-based network connections."/>
+          <Annotation Term="OData.LongDescription" String="A chassis in a drive form factor IP-based network connections."/>
+        </Member>
+        <Member Name="Module">
+          <Annotation Term="OData.Description"
+                      String="A small, typically removable, chassis or card which contains devices for a particular subsystem or function"/>
+          <Annotation Term="OData.LongDescription" String="A small, typically removable, chassis or card that contains devices for a particular subsystem or function."/>
         </Member>
         <Member Name="Other">
-          <Annotation Term="OData.Description" String="A chassis that does not fit any of these definitions"/>
+          <Annotation Term="OData.Description" String="A chassis that does not fit any of these definitions."/>
+          <Annotation Term="OData.LongDescription" String="A chassis that does not fit any of the other definitions."/>
+        </Member>
+        <Member Name="Pod">
+          <Annotation Term="OData.Description"
+                      String="A collection of equipment racks in a large, likely transportable, container"/>
+          <Annotation Term="OData.LongDescription" String="A collection of equipment racks in a large, likely transportable, container."/>
+        </Member>
+        <Member Name="Rack">
+          <Annotation Term="OData.Description" String="An equipment rack, typically a 19-inch wide freestanding unit."/>
+          <Annotation Term="OData.LongDescription" String="An equipment rack, typically a 19-inch wide freestanding unit."/>
+        </Member>
+        <Member Name="RackGroup">
+          <Annotation Term="OData.Description" String="A group of racks which form a single entity or share infrastructure."/>
+          <Annotation Term="OData.LongDescription" String="A group of racks that form a single entity or share infrastructure."/>
+        </Member>
+        <Member Name="RackMount">
+          <Annotation Term="OData.Description"
+                      String="A single system chassis designed specifically for mounting in an equipment rack"/>
+          <Annotation Term="OData.LongDescription" String="A single system chassis designed specifically for mounting in an equipment rack."/>
+        </Member>
+        <Member Name="Row">
+          <Annotation Term="OData.Description" String="A collection of equipment racks."/>
+          <Annotation Term="OData.LongDescription" String="A collection of equipment racks."/>
+        </Member>
+        <Member Name="Shelf">
+          <Annotation Term="OData.Description"
+                      String="An enclosed or semi-enclosed, typically horizontally-oriented, system chassis which must be plugged into a multi-system chassis to function normally"/>
+          <Annotation Term="OData.LongDescription" String="An enclosed or semi-enclosed, typically horizontally oriented, system chassis that must be plugged into a multi-system chassis to function normally."/>
+        </Member>
+        <Member Name="Sidecar">
+          <Annotation Term="OData.Description"
+                      String="A chassis that mates mechanically with another chassis to expand its capabilities or capacity"/>
+          <Annotation Term="OData.LongDescription" String="A chassis that mates mechanically with another chassis to expand its capabilities or capacity."/>
+        </Member>
+        <Member Name="Sled">
+          <Annotation Term="OData.Description"
+                      String="An enclosed or semi-enclosed, system chassis which must be plugged into a multi-system chassis to function normally similar to a blade type chassis."/>
+          <Annotation Term="OData.LongDescription" String="An enclosed or semi-enclosed system chassis that must be plugged into a multi-system chassis to function normally similar to a blade type chassis."/>
+        </Member>
+        <Member Name="StandAlone">
+          <Annotation Term="OData.Description"
+                      String="A single, free-standing system, commonly called a tower or desktop chassis"/>
+          <Annotation Term="OData.LongDescription" String="A single freestanding system, commonly called a tower or desktop chassis."/>
+        </Member>
+        <Member Name="Zone">
+          <Annotation Term="OData.Description"
+                      String="A logical division or portion of a physical chassis that contains multiple devices or systems that cannot be physically separated"/>
+          <Annotation Term="OData.LongDescription" String="A logical division or portion of a physical chassis that contains multiple devices or systems that cannot be physically separated."/>
         </Member>
       </EnumType>
 
@@ -353,6 +378,8 @@
 
       <ComplexType Name="PhysicalSecurity">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="OData.Description" String="The state of the physical security sensor."/>
+        <Annotation Term="OData.LongDescription" String="This type shall describe the sensor state of the physical security."/>
         <Property Name="IntrusionSensorNumber" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"
@@ -407,11 +434,16 @@
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_2_0">
       <EntityType Name="Chassis" BaseType="Chassis.v1_1_2.Chassis">
-        <Property Name="Location" Type="Resource.v1_1_0.Location" Nullable="false"/>
+        <Property Name="Location" Type="Resource.v1_1_0.Location" Nullable="false">
+          <Annotation Term="OData.Description" String="Location of a resource"/>
+          <Annotation Term="OData.LongDescription"
+                      String="This type shall describe the location of a resource."/>
+
+        </Property>
       </EntityType>
 
       <ComplexType Name="Links" BaseType="Chassis.v1_0_0.Links">
-        <NavigationProperty Name="ManagersInChassis" Type="Collection(Manager.Manager)" Nullable="false">
+        <NavigationProperty Name="ManagersInChassis" Type="Collection(Manager.Manager)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"
                       String="An array of references to the managers located in this Chassis."/>
@@ -419,7 +451,7 @@
                       String="The value of this property shall reference one or more resources of type Manager that are in this Chassis."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
-        <NavigationProperty Name="Drives" Type="Collection(Drive.Drive)" Nullable="false">
+        <NavigationProperty Name="Drives" Type="Collection(Drive.Drive)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"
                       String="An array of references to the disk drives located in this Chassis."/>
@@ -427,7 +459,7 @@
                       String="The value of this property shall reference one or more resources of type Drive that are in this Chassis."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
-        <NavigationProperty Name="Storage" Type="Collection(Storage.Storage)" Nullable="false">
+        <NavigationProperty Name="Storage" Type="Collection(Storage.Storage)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"
                       String="An array of references to the storage subsystems connected to or inside this Chassis."/>
@@ -439,6 +471,58 @@
     </Schema>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_3_0">
       <EntityType Name="Chassis" BaseType="Chassis.v1_2_0.Chassis"/>
+    </Schema>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_3_1">
+      <Annotation Term="OData.Description" String="This version was created to add explicit Permissions annotations to all properties for clarity."/>
+      <EntityType Name="Chassis" BaseType="Chassis.v1_3_0.Chassis"/>
+    </Schema>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_3_2">
+      <Annotation Term="OData.Description" String="This version was created to remove the Nullable facet on NavigationProperties of type Collection and to use Redfish.Deprecated on certain enum values."/>
+      <EntityType Name="Chassis" BaseType="Chassis.v1_3_1.Chassis"/>
+    </Schema>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_3_3">
+      <Annotation Term="OData.Description" String="This version was created to show annotations in previous namespaces were updated."/>
+      <EntityType Name="Chassis" BaseType="Chassis.v1_3_2.Chassis"/>
+    </Schema>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Chassis.v1_4_0">
+      <EntityType Name="Chassis" BaseType="Chassis.v1_3_1.Chassis">
+        <Property Name="HeightMm" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The height of the chassis."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall represent the height of the chassis (in millimeters) as specified by the manufacturer."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Measures.Unit" String="mm"/>
+        </Property>
+        <Property Name="WidthMm" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The width of the chassis."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall represent the width of the chassis (in millimeters) as specified by the manufacturer."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Measures.Unit" String="mm"/>
+        </Property>
+        <Property Name="DepthMm" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The depth of the chassis."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall represent the depth (length) of the chassis (in millimeters) as specified by the manufacturer."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Measures.Unit" String="mm"/>
+        </Property>
+        <Property Name="WeightKg" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The weight of the chassis."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall represent the published mass (commonly referred to as weight) of the chassis (in kilograms)."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Measures.Unit" String="kg"/>
+        </Property>
+      </EntityType>
+      <ComplexType Name="Links" BaseType="Chassis.v1_2_0.Links">
+        <NavigationProperty Name="PCIeDevices" Type="Collection(PCIeDevice.PCIeDevice)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="An array of references to the PCIe Devices located in this Chassis."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall reference one or more resources of type PCIeDevices."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
     </Schema>
   </edmx:DataServices>
 </edmx:Edmx>

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,8 +46,7 @@ StorageSubsystem::~StorageSubsystem() { }
 json::Json StorageSubsystem::to_json() const {
     json::Json result;
     result[literals::StorageSubsystem::STATUS] = get_status().to_json();
-    result[literals::StorageSubsystem::COLLECTIONS] =
-        get_collections().to_json();
+    result[literals::StorageSubsystem::COLLECTIONS] = get_collections().to_json();
     result[literals::StorageSubsystem::OEM] = get_oem().to_json();
     return result;
 }
@@ -55,14 +54,9 @@ json::Json StorageSubsystem::to_json() const {
 
 StorageSubsystem StorageSubsystem::from_json(const json::Json& json) {
     StorageSubsystem storage;
-    storage.set_status(attribute::Status::from_json(
-        json[literals::StorageSubsystem::STATUS]));
-    storage.set_collections(Collections::from_json(
-        json[literals::StorageSubsystem::COLLECTIONS]));
+    storage.set_status(attribute::Status::from_json(json[literals::StorageSubsystem::STATUS]));
+    storage.set_collections(Collections::from_json(json[literals::StorageSubsystem::COLLECTIONS]));
     storage.set_oem(attribute::Oem::from_json(json[literals::StorageSubsystem::OEM]));
-    storage.set_resource_hash(json);
-
-    storage.set_resource_hash(json);
 
     return storage;
 }

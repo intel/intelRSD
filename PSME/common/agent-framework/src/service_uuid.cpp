@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,41 +45,25 @@ std::string get_temporary_uuid() {
 }
 
 ServiceUuid::ServiceUuid() {
-    try {
-        const json::Value& config = configuration::Configuration::get_instance().to_json();
-
+    const json::Value& config = configuration::Configuration::get_instance().to_json();
+    if (!config.is_member("service")) {
+        m_service_uuid = get_temporary_uuid();
+        log_info(LOGUSR, "No service defined in config, temporary UUID " << m_service_uuid << " assigned.");
+    }
+    else {
         database::Database::SPtr db = database::Database::create("service");
-        database::String service_file{config["service-uuid-file"].as_string()};
-        database::String value{};
-        if (db->get(service_file, value)) {
-            json::Value json{};
-            if (configuration::string_to_json(std::string(value), json)) {
-                m_service_uuid = json[agent_framework::model::literals::ServiceUuid::UUID].as_string();
-                log_info(LOGUSR, "Service UUID " << m_service_uuid << ".");
-            }
-            else {
-                m_service_uuid = get_temporary_uuid();
-                log_error(LOGUSR, "Cannot parse persistent service UUID file. Using temporary UUID " << m_service_uuid << ".");
-            }
+        database::String service{config["service"].as_string()};
+        database::String uuid{};
+        if (db->get(service, uuid)) {
+            m_service_uuid = uuid;
+            log_info(LOGUSR, "Service " << service << " UUID " << uuid << " read and assigned.");
         }
         else {
             m_service_uuid = get_temporary_uuid();
-            json::Value json{};
-            json[agent_framework::model::literals::ServiceUuid::UUID] = m_service_uuid;
-            value = configuration::json_value_to_string(json);
-            db->put(service_file, value);
-            log_info(LOGUSR, "Service UUID " << m_service_uuid << " assigned and stored.");
+            uuid = m_service_uuid;
+            db->put(service, uuid);
+            log_info(LOGUSR, "Service " << service << " UUID " << uuid << " assigned and stored.");
         }
-    }
-    catch (const std::exception& e) {
-        m_service_uuid = get_temporary_uuid();
-        log_error(LOGUSR, "Error occured while handling persistent service UUID file: " <<
-                          e.what() << ". Using temporary UUID " << m_service_uuid << ".");
-    }
-    catch (...) {
-        m_service_uuid = get_temporary_uuid();
-        log_error(LOGUSR, "Unknown error occurred while handling persistent service UUID file, using temporary UUID "
-                          << m_service_uuid << ".");
     }
 }
 

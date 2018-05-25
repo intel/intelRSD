@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,7 @@ void PortBindingInfo::write_input() {
     data[OFFSET_SUB_COMMAND] = std::uint8_t(sub_command);
     data[OFFSET_PHY_PORT_ID] = input.fields.phy_port_id;
 
-    log_debug(GET_LOGGER("pnc-ltmon"), "PortBindingInfo command input data:"
+    log_debug("pnc-ltmon", "PortBindingInfo command input data:"
         << " PhysicalPortId=" << std::uint32_t(input.fields.phy_port_id));
 
     m_iface->write(data, PORT_BINDING_INFO_INPUT_MEMORY_SIZE, MRPC_INPUT_DATA_REG_OFFSET);
@@ -71,14 +71,14 @@ void PortBindingInfo::read_output() {
         m_iface->read(reinterpret_cast<uint8_t*>(&output.fields.port_binding_info),
                       output.fields.info_count * PORT_BINDING_ENTRY_SIZE, MRPC_OUTPUT_DATA_REG_OFFSET + 4);
 
-        log_debug(GET_LOGGER("pnc-ltmon"), "PortBindingInfo command return code:"
+        log_debug("pnc-ltmon", "PortBindingInfo command return code:"
             << get_p2p_binding_command_result(static_cast<uint32_t>(output.fields.ret_value))
             << std::noshowbase
             << std::dec
             << " InfoCount=" << uint32_t(output.fields.info_count));
 
         for (size_t entry = 0; entry < output.fields.info_count; entry++) {
-            log_debug(GET_LOGGER("pnc-ltmon"), "\tPhysicalPort="
+            log_debug("pnc-ltmon", "\tPhysicalPort="
                 << std::uint32_t(output.fields.port_binding_info[entry].phy_port_id)
                 << " PartitionId=" << std::uint32_t(output.fields.port_binding_info[entry].partition_id)
                 << " LogicalBridgeID=" << std::uint32_t(output.fields.port_binding_info[entry].logical_bridge_id)

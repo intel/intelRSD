@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import static com.intel.podm.business.services.context.ContextType.COMPOSED_NODE
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM;
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM_METRICS;
 import static com.intel.podm.business.services.context.ContextType.DRIVE;
+import static com.intel.podm.business.services.context.ContextType.DRIVE_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ENDPOINT;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_INTERFACE;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH;
@@ -45,7 +46,6 @@ import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWIT
 import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SUBSCRIPTION;
 import static com.intel.podm.business.services.context.ContextType.FABRIC;
-import static com.intel.podm.business.services.context.ContextType.LOGICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.MANAGER;
 import static com.intel.podm.business.services.context.ContextType.MEMORY;
 import static com.intel.podm.business.services.context.ContextType.MEMORY_METRICS;
@@ -56,7 +56,6 @@ import static com.intel.podm.business.services.context.ContextType.NETWORK_INTER
 import static com.intel.podm.business.services.context.ContextType.NETWORK_PROTOCOL;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE_FUNCTION;
-import static com.intel.podm.business.services.context.ContextType.PHYSICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.PORT;
 import static com.intel.podm.business.services.context.ContextType.PORT_METRICS;
 import static com.intel.podm.business.services.context.ContextType.POWER;
@@ -66,15 +65,17 @@ import static com.intel.podm.business.services.context.ContextType.POWER_VOLTAGE
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR;
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR_METRICS;
 import static com.intel.podm.business.services.context.ContextType.REDUNDANCY;
-import static com.intel.podm.business.services.context.ContextType.REMOTE_TARGET;
 import static com.intel.podm.business.services.context.ContextType.SIMPLE_STORAGE;
 import static com.intel.podm.business.services.context.ContextType.STORAGE;
+import static com.intel.podm.business.services.context.ContextType.STORAGE_POOL;
 import static com.intel.podm.business.services.context.ContextType.STORAGE_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.SWITCH;
 import static com.intel.podm.business.services.context.ContextType.TELEMETRY_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.THERMAL;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_FAN;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_TEMPERATURE;
+import static com.intel.podm.business.services.context.ContextType.VOLUME;
+import static com.intel.podm.business.services.context.ContextType.VOLUME_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ZONE;
 import static com.intel.podm.business.services.context.UriToContextConverter.CONTEXT_TYPE_TO_PATTERN;
 import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUri;
@@ -150,7 +151,7 @@ public class UriToContextConverterTest {
                 contextOf(id("1-m-10"), MANAGER)
             },
             {
-                URI.create("/redfish/v1/Services/4-sv-1"),
+                URI.create("/redfish/v1/StorageServices/4-sv-1"),
                 contextOf(id("4-sv-1"), STORAGE_SERVICE)
             },
             {
@@ -158,16 +159,16 @@ public class UriToContextConverterTest {
                 contextOf(id("3"), COMPOSED_NODE)
             },
             {
-                URI.create("/redfish/v1/Services/4-sv-1/Drives/4-sv-1-d-1"),
-                contextOf(id("4-sv-1"), STORAGE_SERVICE).child(id("4-sv-1-d-1"), PHYSICAL_DRIVE)
+                URI.create("/redfish/v1/StorageServices/4-sv-1/Volumes/4-sv-1-vl-10"),
+                contextOf(id("4-sv-1"), STORAGE_SERVICE).child(id("4-sv-1-vl-10"), VOLUME)
             },
             {
-                URI.create("/redfish/v1/Services/4-sv-1/LogicalDrives/4-sv-1-ld-1"),
-                contextOf(id("4-sv-1"), STORAGE_SERVICE).child(id("4-sv-1-ld-1"), LOGICAL_DRIVE)
+                URI.create("/redfish/v1/StorageServices/4-sv-1/Volumes/4-sv-1-vl-10/Metrics"),
+                contextOf(id("4-sv-1"), STORAGE_SERVICE).child(id("4-sv-1-vl-10"), VOLUME).child(id(""), VOLUME_METRICS)
             },
             {
-                URI.create("/redfish/v1/Services/4-sv-1/Targets/4-sv-1-t-10"),
-                contextOf(id("4-sv-1"), STORAGE_SERVICE).child(id("4-sv-1-t-10"), REMOTE_TARGET)
+                URI.create("/redfish/v1/StorageServices/4-sv-1/StoragePools/4-sv-1-t-10"),
+                contextOf(id("4-sv-1"), STORAGE_SERVICE).child(id("4-sv-1-t-10"), STORAGE_POOL)
             },
             {
                 URI.create("/redfish/v1/Chassis/1-c-10"),
@@ -304,6 +305,10 @@ public class UriToContextConverterTest {
                 contextOf(id("1-c-10"), CHASSIS).child(id("1-c-10-d-1"), DRIVE)
             },
             {
+                URI.create("/redfish/v1/Chassis/1-c-10/Drives/1-c-10-d-1/Metrics"),
+                contextOf(id("1-c-10"), CHASSIS).child(id("1-c-10-d-1"), DRIVE).child(id(""), DRIVE_METRICS)
+            },
+            {
                 URI.create("/redfish/v1/Chassis/5-c-1/PCIeDevices/5-c-1-dv-1"),
                 contextOf(id("5-c-1"), CHASSIS).child(id("5-c-1-dv-1"), PCIE_DEVICE)
             },
@@ -428,14 +433,6 @@ public class UriToContextConverterTest {
             {
                 URI.create("/redfish/v1/Nodes/3"),
                 contextOf(id("3"), STORAGE_SERVICE)
-            },
-            {
-                URI.create("/redfish/v1/Services/4-sv-1/Drives/4-sv-1-d-1"),
-                contextOf(id("4-sv-1"), STORAGE_SERVICE).child(id("4-sv-1-d-1"), LOGICAL_DRIVE)
-            },
-            {
-                URI.create("/redfish/v1/Services/4-sv-1/LogicalDrives/4-sv-1-ld-1"),
-                contextOf(id("4-sv-1"), STORAGE_SERVICE).child(id("4-sv-1-ld-1"), REMOTE_TARGET)
             },
             {
                 URI.create("/redfish/v1/Chassis/3-c-drawer1/Thermal"),

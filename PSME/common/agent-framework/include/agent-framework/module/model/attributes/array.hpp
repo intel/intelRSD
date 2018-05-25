@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,8 @@
 #include <string>
 #include <type_traits>
 
+
+
 namespace agent_framework {
 namespace model {
 namespace attribute {
@@ -45,6 +47,8 @@ private:
 
 public:
     explicit Array();
+
+    using value_type = typename ArrayObject::value_type;
 
 
     /*!
@@ -98,6 +102,32 @@ public:
 
 
     /*!
+     * @brief Returns first item from array or throws if missing.
+     * @return First item from array.
+     * @throw Throws runtime error when array is empty.
+     */
+    const T& front() const {
+        if (m_array.empty()) {
+            throw std::runtime_error("Could not get front item from array, because array is empty.");
+        }
+        return m_array.front();
+    }
+
+
+    /*!
+     * @brief Returns first item from array or throws if missing.
+     * @return First item from array.
+     * @throw Throws runtime error when array is empty.
+     */
+    T& front() {
+        if (m_array.empty()) {
+            throw std::runtime_error("Could not get front item from array, because array is empty.");
+        }
+        return m_array.front();
+    }
+
+
+    /*!
      * @brief Adds entry to the array
      * @param entry Entry to be added
      */
@@ -122,13 +152,12 @@ public:
 
 
     /*!
-     * @brief Creates a subarray consisting to this array's
-     * elements between the indexes given
+     * @brief Creates a subarray consisting to this array's elements between the indexes given
      * @param[in] first first index to copy to subarray
      * @param[in] last last index to copy to subarray
      * @return Array subarray
      */
-    Array<T> subarray(uint first, uint last) const {
+    Array<T> subarray(std::uint32_t first, std::uint32_t last) const {
         return Array<T>(ArrayObject(&m_array[first], &m_array[last]));
     }
 

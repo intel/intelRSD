@@ -2,7 +2,7 @@
  * @brief Implementation of TelemetryRunner
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,22 +40,9 @@ void print_reader(std::ostream& ss, const TelemetryReader& reader, unsigned line
     if (!get_manager<Metric>().entry_exists(reader.get_metric_uuid())) {
         ss << "[not in db]";
     }
-    ss << " resource=" << reader.get_resource_uuid();
-    ss << " def=" << reader.get_metric_definition().get_name() << ":" << reader.get_metric_definition().get_uuid();
-
-    switch (reader.get_reader_state()) {
-        case TelemetryReader::State::NOT_VALID:
-            ss << " [invalid]";
-            break;
-        case TelemetryReader::State::VALUE_NOT_PRESENT:
-            ss << " [no value read]";
-            break;
-        case TelemetryReader::State::VALUE_READ:
-            ss << " = " << reader.get_value();
-            break;
-        default:
-            throw std::runtime_error("Undefined reader state (unreachable code)!");
-    }
+    ss << " resource=" << reader.get_resource_uuid()
+       << " def=" << reader.get_metric_definition().get_name() << ":" << reader.get_metric_definition().get_uuid()
+       << " = " << reader.get_value();
 }
 
 }
@@ -66,13 +53,13 @@ std::chrono::steady_clock::time_point::duration telemetry::TelemetryRunner::run(
 
     auto telemetry = bmc.telemetry();
     if (bmc.get_state() == agent::compute::Bmc::State::ONLINE && telemetry) {
-        const auto start = TelemetryReader::SampleTime::clock::now();
+        const auto start = TelemetryReader::TimePoint::clock::now();
 
         ++m_runs_counter;
         TelemetryReader::PtrVector changed = telemetry->process_all_metrics();
         if (!changed.empty()) {
             m_changes_counter++;
-            log_debug(GET_LOGGER("telemetry"), bmc.get_id() << " run #" << m_runs_counter << "/" << m_changes_counter
+            log_debug("telemetry", bmc.get_id() << " run #" << m_runs_counter << "/" << m_changes_counter
                                                            << ":: changed " << changed.size() << " metrics");
             unsigned line = 0;
             for (const auto& reader : telemetry->get_reader_ptrs()) {
@@ -89,12 +76,12 @@ std::chrono::steady_clock::time_point::duration telemetry::TelemetryRunner::run(
                 if (found) {
                     ss << "*";
                 }
-                log_debug(GET_LOGGER("telemetry"), ss.str());
+                log_debug("telemetry", ss.str());
             }
         }
-        std::chrono::time_point<std::chrono::steady_clock> time = telemetry->get_earliest_update_time();
-        std::chrono::milliseconds millis = std::chrono::duration_cast< std::chrono::milliseconds>(time - start);
-        log_debug(GET_LOGGER("telemetry"), "Next reading shall be done in " << millis.count() << "ms");
+        auto time = telemetry->get_earliest_update_time();
+        auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(time - start);
+        log_debug("telemetry", "Next reading shall be done in " << millis.count() << "ms");
 
         return std::chrono::duration_cast<std::chrono::steady_clock::time_point::duration>(time - start);
     }

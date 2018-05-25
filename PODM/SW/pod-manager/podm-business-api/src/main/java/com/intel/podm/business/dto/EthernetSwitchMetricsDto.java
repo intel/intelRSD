@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package com.intel.podm.business.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "health", "actions", "oem"})
+@JsonIgnoreProperties({"Oem"})
 public final class EthernetSwitchMetricsDto extends RedfishDto {
-    @JsonProperty("Health")
+    private final Actions actions = new Actions();
     private String health;
-
-    private Actions actions = new Actions();
 
     public EthernetSwitchMetricsDto() {
         super("#EthernetSwitchMetrics.v1_0_0.EthernetSwitchMetrics");
@@ -38,10 +39,6 @@ public final class EthernetSwitchMetricsDto extends RedfishDto {
 
     public Actions getActions() {
         return actions;
-    }
-
-    public void setActions(Actions actions) {
-        this.actions = actions;
     }
 
     public final class Actions extends RedfishActionsDto {

@@ -37,7 +37,7 @@
       <EntityType Name="EthernetSwitchPortMetrics" BaseType="EthernetSwitchPortMetrics.EthernetSwitchPortMetrics">
         <Property Name="Received" Type="EthernetSwitchPortMetrics.v1_0_0.Metrics">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Port Receive metrics"/>
+          <Annotation Term="OData.Description" String="Port Receive metrics."/>
           <Annotation Term="OData.LongDescription" String="This property shall represent port receive metrics."/>
           <Annotation Term="Measures.Unit" String="By"/>
         </Property>
@@ -50,7 +50,7 @@
         </Property>
         <Property Name="Collisions" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Collisions counter"/>
+          <Annotation Term="OData.Description" String="Collisions counter."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Port collisions counter."/>
         </Property>
@@ -61,42 +61,42 @@
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Packets" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Packets counter"/>
+          <Annotation Term="OData.Description" String="Packets counter."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be Port packets counter."/>
         </Property>
         <Property Name="DroppedPackets" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Dropped packets counter"/>
+          <Annotation Term="OData.Description" String="Dropped packets counter."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Port dropped packets counter."/>
         </Property>
         <Property Name="ErrorPackets" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Error packets counter"/>
+          <Annotation Term="OData.Description" String="Error packets counter."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Port error packets counter."/>
         </Property>
         <Property Name="BroadcastPackets" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Broadcast packets counter"/>
+          <Annotation Term="OData.Description" String="Broadcast packets counter."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Port broadcast packets counter."/>
         </Property>
         <Property Name="MulticastPackets" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Multicats packets counter"/>
+          <Annotation Term="OData.Description" String="Multicats packets counter."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Port multicast packets counter."/>
         </Property>
         <Property Name="Bytes" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Bytes counter"/>
+          <Annotation Term="OData.Description" String="Bytes counter."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be Port bytes counter."/>
           <Annotation Term="Measures.Unit" String="By"/>
         </Property>
         <Property Name="Errors" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Error counter"/>
+          <Annotation Term="OData.Description" String="Error counter."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be Port error counter."/>
         </Property>
       </ComplexType>

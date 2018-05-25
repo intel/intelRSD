@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,11 @@ import static java.lang.String.format;
 public final class ContextResolvingException extends BusinessApiException {
     private static final long serialVersionUID = -7472189531358360267L;
     private final Context context;
+
+    public ContextResolvingException(String message) {
+        super(message);
+        this.context = null;
+    }
 
     public ContextResolvingException(Context context) {
         super(format("Context cannot be resolved: %s", context));

@@ -44,7 +44,12 @@
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Zone.v1_0_0">
 
       <EntityType Name="Zone" BaseType="Zone.Zone">
-        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+        <Property Name="Status" Type="Resource.Status" Nullable="false">
+          <Annotation Term="OData.Description"
+                      String="Resource status."/>
+          <Annotation Term="OData.LongDescription"
+                      String="Resource status."/>
+        </Property>
         <Property Name="Links" Type="Zone.v1_0_0.Links" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"
@@ -60,7 +65,7 @@
           <Annotation Term="OData.Description"
                       String="An array of references to the endpoints that are contained in this zone."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall be a reference to the resources that this zone is associated with and shall reference a resource of type Endpoint."/>
+                      String="The value of the property shall be a reference to the resources that the zone is associated with and shall reference a resource of type Endpoint."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="InvolvedSwitches" Type="Collection(Switch.Switch)" Nullable="false">
@@ -68,7 +73,7 @@
           <Annotation Term="OData.Description"
                       String="An array of references to the switchs that are utilized in this zone."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall be a reference to the resources that this zone is associated with and shall reference a resource of type Switch."/>
+                      String="The value of the property shall be a reference to the resources that the zone is associated with and shall reference a resource of type Switch."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </ComplexType>

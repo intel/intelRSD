@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@
 #include <string>
 #include <list>
 #include <iosfwd>
+#include <stdexcept>
+#include <iterator>
 
 namespace sysfs {
 
@@ -68,24 +70,59 @@ public:
     Path& operator=(Path&&) = default;
 
     /*!
-     * @brief Returns the basename of the path
+     * @brief Returns the basename of the path (rightmost part of the path)
      * @return Basename of the path, "" for empty paths
      */
     std::string basename() const;
 
     /*!
-     * @brief Removes the top path element
+     * @brief Returns the dirname from the path (everything but the rightmost part of the part)
+     * @return Dirname of the path
+     */
+    Path dirname() const;
+
+    /*!
+     * @brief Removes the rightmost path element
      * @return Reference to the path
      */
     Path& pop_right();
 
     /*!
-     * @brief Adds relative path to another path
-     * @param path Relative path to be added
+     * @brief Removes the leftmost path element
+     * @return Reference to the path
+     */
+    Path& pop_left();
+
+    /*!
+     * @brief Appends relative path to another path
+     * @param path Relative path to be appended
      * @return Reference to the path
      * @throws std::logic_error if resulting path is invalid
      */
-    Path& push_right(const Path& path);
+    Path& append(const Path& path);
+
+    /*!
+     * @brief Prepends path to another path
+     * @param path Path to be prepended
+     * @return Reference to the path
+     * @throws std::logic_error if resulting path is invalid
+     */
+    Path& prepend(const Path& path);
+
+    /*!
+     * @brief Returns i-th element of the path (0 for the leftmost element)
+     * @param i Index of the element to be retrieved
+     * @return i-th element of the path
+     */
+    const std::string& at(std::size_t i) const;
+
+    /*!
+     * @brief Returns number of elements in the path
+     * Return Number of elements in the path
+     */
+    std::size_t size() const {
+        return m_list.size();
+    }
 
     /*!
      * @brief Checks if path is empty
@@ -111,9 +148,16 @@ public:
         return !m_is_absolute;
     }
 
+    /*!
+     * @brief Returns true if path starts with the path provided
+     * @param path Path to be checked for
+     * @return False if path does not start with the provided path or if is of different type (absolute/negative)
+     */
+    bool starts_with(const Path& path) const;
+
     /*! @brief Works the same way as push */
     Path& operator<<(const Path& path) {
-        return this->push_right(path);
+        return this->append(path);
     }
 
     /*! @brief Works the same way as to_string */
@@ -144,8 +188,6 @@ private:
     std::list<std::string> m_list{};
 
 };
-
-}
 
 /*!
  * @brief Used to merge path with another relative path
@@ -179,3 +221,5 @@ bool operator!=(const sysfs::Path& lhs, const sysfs::Path& rhs);
  * @return the stream object
  */
 std::ostream& operator<<(std::ostream& os, const sysfs::Path& path);
+
+}

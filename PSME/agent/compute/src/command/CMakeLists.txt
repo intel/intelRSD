@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ add_library(compute-command-sdv OBJECT
     get_system_info.cpp
     set_component_attributes.cpp
     set_network_device_function_attributes.cpp
+    set_trusted_module_attributes.cpp
     get_trusted_module_info.cpp
     delete_task.cpp
     get_metric_definition_info.cpp
@@ -43,6 +44,9 @@ add_library(compute-command-sdv OBJECT
     get_fan_info.cpp
     get_power_zone_info.cpp
     get_thermal_zone_info.cpp
+    get_pcie_device_info.cpp
+    handle_system_power_state.cpp
+    get_pcie_function_info.cpp
 )
 
 set_psme_command_target_properties(compute-command-sdv)

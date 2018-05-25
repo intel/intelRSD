@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,11 +23,17 @@ set (SOURCES
     version.cpp
     app.cpp
     main.cpp
-    )
+)
+
+generate_default_config_file(
+    app.cpp
+    psme
+    app
+    "CORE_CONFIGURATION_FILE"
+)
 
 include_directories(
     ${PSME_APPLICATION_DIR}/include
-    ${DATABASE_INCLUDE_DIRS}
 )
 
 add_subdirectory(rest)
@@ -43,7 +49,6 @@ endif()
 add_executable(psme-rest-server ${SOURCES})
 
 target_link_libraries(psme-rest-server
-    ${LOGGER_LIBRARIES}
     application-rest
     application-core
     -Wl,--whole-archive application-eventing -Wl,--no-whole-archive
@@ -66,6 +71,7 @@ target_link_libraries(psme-rest-server
     ${DATABASE_LIBRARIES}
     ${EXTRA_LIBS}
     ${SAFESTRING_LIBRARIES}
+    ${LOGGER_LIBRARIES}
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU|Clang)

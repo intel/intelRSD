@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import com.intel.podm.common.types.ComposedNodeState;
 import com.intel.podm.common.types.PowerState;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.redfish.IgnoreAutomaticOem;
-import com.intel.podm.common.types.redfish.OemType;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,26 +36,25 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.intel.podm.business.services.redfish.odataid.ODataIdFromSingletonContextHelper.asOdataId;
-import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "uuid", "powerState",
-    "status", "processors", "memory", "composedNodeState", "boot", "oem", "links", "actions"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "uuid", "powerState", "status", "composedNodeState",
+    "boot", "clearTpmOnDelete", "links", "actions", "oem"
 })
-@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ExecutableStatementCount"})
+@SuppressWarnings({"checkstyle:MethodCount"})
 public final class ComposedNodeDto extends RedfishDto {
+    @IgnoreAutomaticOem
+    private final Actions actions = new Actions();
+    private final Links links = new Links();
     @JsonProperty("UUID")
     private UUID uuid;
     private PowerState powerState;
     private Status status;
-    private ComputerSystemDto.ProcessorSummaryDto processors = new ComputerSystemDto.ProcessorSummaryDto();
-    private ComputerSystemDto.MemorySummaryDto memory = new ComputerSystemDto.MemorySummaryDto();
     private ComposedNodeState composedNodeState;
     private BootDto boot = new BootDto();
-    @IgnoreAutomaticOem
-    private Actions actions = new Actions();
-    private Links links = new Links();
+    @JsonProperty("ClearTPMOnDelete")
+    private boolean clearTpmOnDelete;
 
     public ComposedNodeDto() {
         super("#ComposedNode.v1_0_0.ComposedNode");
@@ -86,22 +84,6 @@ public final class ComposedNodeDto extends RedfishDto {
         this.status = status;
     }
 
-    public ComputerSystemDto.ProcessorSummaryDto getProcessors() {
-        return processors;
-    }
-
-    public void setProcessors(ComputerSystemDto.ProcessorSummaryDto processors) {
-        this.processors = processors;
-    }
-
-    public ComputerSystemDto.MemorySummaryDto getMemory() {
-        return memory;
-    }
-
-    public void setMemory(ComputerSystemDto.MemorySummaryDto memory) {
-        this.memory = memory;
-    }
-
     public ComposedNodeState getComposedNodeState() {
         return composedNodeState;
     }
@@ -118,106 +100,25 @@ public final class ComposedNodeDto extends RedfishDto {
         this.boot = boot;
     }
 
-    public Actions getActions() {
-        return actions;
+    public boolean getClearTpmOnDelete() {
+        return clearTpmOnDelete;
     }
 
-    public void setActions(Actions actions) {
-        this.actions = actions;
+    public void setClearTpmOnDelete(boolean clearTpmOnDelete) {
+        this.clearTpmOnDelete = clearTpmOnDelete;
+    }
+
+    public Actions getActions() {
+        return actions;
     }
 
     public Links getLinks() {
         return links;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
-    }
-
-    @JsonPropertyOrder({"computerSystem", "processors", "memory", "ethernetInterfaces", "localDrives", "remoteDrives", "managedBy", "oem"})
-    public final class Links extends RedfishLinksDto {
-        private Context computerSystem;
-        private Set<Context> processors = new HashSet<>();
-        private Set<Context> memory = new HashSet<>();
-        private Set<Context> ethernetInterfaces = new HashSet<>();
-        private Set<Context> localDrives = new HashSet<>();
-        private Set<Context> remoteDrives = new HashSet<>();
-        private Set<Context> managedBy = new HashSet<>();
-        private Oem oem = new Oem();
-
-        public Context getComputerSystem() {
-            return computerSystem;
-        }
-
-        public void setComputerSystem(Context computerSystem) {
-            this.computerSystem = computerSystem;
-        }
-
-        public Set<Context> getProcessors() {
-            return processors;
-        }
-
-        public void setProcessors(Set<Context> processors) {
-            this.processors = processors;
-        }
-
-        public Set<Context> getMemory() {
-            return memory;
-        }
-
-        public void setMemory(Set<Context> memory) {
-            this.memory = memory;
-        }
-
-        public Set<Context> getEthernetInterfaces() {
-            return ethernetInterfaces;
-        }
-
-        public void setEthernetInterfaces(Set<Context> ethernetInterfaces) {
-            this.ethernetInterfaces = ethernetInterfaces;
-        }
-
-        public Set<Context> getLocalDrives() {
-            return localDrives;
-        }
-
-        public void setLocalDrives(Set<Context> localDrives) {
-            this.localDrives = localDrives;
-        }
-
-        public Set<Context> getRemoteDrives() {
-            return remoteDrives;
-        }
-
-        public void setRemoteDrives(Set<Context> remoteDrives) {
-            this.remoteDrives = remoteDrives;
-        }
-
-        public Set<Context> getManagedBy() {
-            return managedBy;
-        }
-
-        public void setManagedBy(Set<Context> managedBy) {
-            this.managedBy = managedBy;
-        }
-
-        public Oem getOem() {
-            return oem;
-        }
-
-        public void setOem(Oem oem) {
-            this.oem = oem;
-        }
-
-        @OemType(OEM_IN_LINKS)
-        public class Oem extends RedfishOemDto {
-        }
-    }
-
     @JsonPropertyOrder({
-        "@odata.type", "bootSourceOverrideEnabled",
-        "bootSourceOverrideTarget", "bootSourceOverrideTargetAllowableValues",
-        "bootSourceOverrideMode", "bootSourceOverrideModeAllowableValues"
+        "bootSourceOverrideEnabled", "bootSourceOverrideTarget", "bootSourceOverrideTargetAllowableValues", "bootSourceOverrideMode",
+        "bootSourceOverrideModeAllowableValues"
     })
     public static final class BootDto {
         private BootSourceState bootSourceOverrideEnabled;
@@ -269,16 +170,74 @@ public final class ComposedNodeDto extends RedfishDto {
         }
     }
 
-    @JsonPropertyOrder({"resetAction", "assembleAction", "attachEndpointAction", "detachEndpointAction"})
+    @JsonPropertyOrder({"computerSystem", "processors", "memory", "ethernetInterfaces", "storage", "managedBy", "oem"})
+    public final class Links extends RedfishLinksDto {
+        private Context computerSystem;
+        private Set<Context> processors = new HashSet<>();
+        private Set<Context> memory = new HashSet<>();
+        private Set<Context> ethernetInterfaces = new HashSet<>();
+        private Set<Context> storage = new HashSet<>();
+        private Set<Context> managedBy = new HashSet<>();
+
+        public Context getComputerSystem() {
+            return computerSystem;
+        }
+
+        public void setComputerSystem(Context computerSystem) {
+            this.computerSystem = computerSystem;
+        }
+
+        public Set<Context> getProcessors() {
+            return processors;
+        }
+
+        public void setProcessors(Set<Context> processors) {
+            this.processors = processors;
+        }
+
+        public Set<Context> getMemory() {
+            return memory;
+        }
+
+        public void setMemory(Set<Context> memory) {
+            this.memory = memory;
+        }
+
+        public Set<Context> getEthernetInterfaces() {
+            return ethernetInterfaces;
+        }
+
+        public void setEthernetInterfaces(Set<Context> ethernetInterfaces) {
+            this.ethernetInterfaces = ethernetInterfaces;
+        }
+
+        public Set<Context> getManagedBy() {
+            return managedBy;
+        }
+
+        public void setManagedBy(Set<Context> managedBy) {
+            this.managedBy = managedBy;
+        }
+
+        public Set<Context> getStorage() {
+            return storage;
+        }
+
+        public void setStorage(Set<Context> storage) {
+            this.storage = storage;
+        }
+    }
+
+    @JsonPropertyOrder({"resetAction", "assembleAction", "attachResourceAction", "detachResourceAction"})
     public class Actions {
         @JsonProperty("#ComposedNode.Reset")
         private final ResetActionDto resetAction = new ResetActionDto();
         @JsonProperty("#ComposedNode.Assemble")
         private AssembleActionDto assembleAction = new AssembleActionDto();
-        @JsonProperty("#ComposedNode.AttachEndpoint")
-        private PcieDriveActionDto attachEndpointAction = new PcieDriveActionDto();
-        @JsonProperty("#ComposedNode.DetachEndpoint")
-        private PcieDriveActionDto detachEndpointAction = new PcieDriveActionDto();
+        @JsonProperty("#ComposedNode.AttachResource")
+        private ResourceActionDto attachResourceAction = new ResourceActionDto();
+        @JsonProperty("#ComposedNode.DetachResource")
+        private ResourceActionDto detachResourceAction = new ResourceActionDto();
 
         public ResetActionDto getResetAction() {
             return resetAction;
@@ -292,20 +251,20 @@ public final class ComposedNodeDto extends RedfishDto {
             this.assembleAction = assembleAction;
         }
 
-        public PcieDriveActionDto getAttachEndpointAction() {
-            return attachEndpointAction;
+        public ResourceActionDto getAttachResourceAction() {
+            return attachResourceAction;
         }
 
-        public void setAttachEndpointAction(PcieDriveActionDto attachEndpointAction) {
-            this.attachEndpointAction = attachEndpointAction;
+        public void setAttachResourceAction(ResourceActionDto attachResourceAction) {
+            this.attachResourceAction = attachResourceAction;
         }
 
-        public PcieDriveActionDto getDetachEndpointAction() {
-            return detachEndpointAction;
+        public ResourceActionDto getDetachResourceAction() {
+            return detachResourceAction;
         }
 
-        public void setDetachEndpointAction(PcieDriveActionDto detachEndpointAction) {
-            this.detachEndpointAction = detachEndpointAction;
+        public void setDetachResourceAction(ResourceActionDto detachResourceAction) {
+            this.detachResourceAction = detachResourceAction;
         }
 
         public final class AssembleActionDto {
@@ -322,12 +281,13 @@ public final class ComposedNodeDto extends RedfishDto {
             }
         }
 
-        @JsonPropertyOrder({"target", "allowableValues"})
-        public final class PcieDriveActionDto {
+        @JsonPropertyOrder({"target", "@Redfish.ActionInfo"})
+        public final class ResourceActionDto {
             @JsonProperty("target")
             private String target;
-            @JsonProperty("Resource@Redfish.AllowableValues")
-            private Set<ODataId> allowableValues = new HashSet<>();
+
+            @JsonProperty("@Redfish.ActionInfo")
+            private ODataId actionInfo;
 
             public String getTarget() {
                 return target;
@@ -338,12 +298,13 @@ public final class ComposedNodeDto extends RedfishDto {
                 this.target = asOdataId(target).toString();
             }
 
-            public Set<ODataId> getAllowableValues() {
-                return allowableValues;
+            public ODataId getActionInfo() {
+                return actionInfo;
             }
 
-            public void setAllowableValues(Set<ODataId> allowableValues) {
-                this.allowableValues = allowableValues;
+            public void setActionInfo(SingletonContext target) {
+                requiresNonNull(target, "actionInfo");
+                this.actionInfo = asOdataId(target);
             }
         }
     }

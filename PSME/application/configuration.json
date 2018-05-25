@@ -1,6 +1,7 @@
 {
+    "service" : "rest-server",
     "server": {
-        "network-interface-name" : "enp0s20f0.4094",
+        "network-interface-name" : ["enp0s20f0.4094"],
         "connectors" : [
             {
                 "use-ssl" : true,
@@ -32,9 +33,6 @@
         "port": 8383,
         "minDelay": 3
     },
-    "commands": {
-        "generic": "Registration"
-    },
     "eventing" : {
         "address": "localhost",
         "port" : 5567,
@@ -48,10 +46,9 @@
         "retention-interval-sec": 600,
         "retention-outdated-sec": 2419200
     },
-    "service-uuid-file" : "/var/opt/psme/rest-server-service-uuid.json",
-    "subscription-config-file" : "/var/opt/psme/subscriptions",
-    "logger" : {
-        "app" : {
+    "loggers" : [
+        {
+            "name" : "app",
             "level" : "INFO",
             "timeformat" : "DATE_NS",
             "color" : true,
@@ -64,5 +61,5 @@
                  }
             ]
         }
-    }
+    ]
 }

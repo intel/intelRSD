@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ public class ODataContextProviderTest {
             {"#TaskCollection.TaskCollection", "/redfish/v1/$metadata#TaskCollection.TaskCollection"},
             {"#ComputerSystem.v1_3_0.ComputerSystem", "/redfish/v1/$metadata#ComputerSystem.ComputerSystem"},
             {"#StorageService.v1_0_0.StorageService", "/redfish/v1/$metadata#StorageService.StorageService"},
-            {"#RemoteTarget.v1_1_0.RemoteTarget", "/redfish/v1/$metadata#RemoteTarget.RemoteTarget"},
             {"#ManagerCollection.ManagerCollection", "/redfish/v1/$metadata#ManagerCollection.ManagerCollection"},
             {"#EthernetInterface.v1_1_0.EthernetInterface", "/redfish/v1/$metadata#EthernetInterface.EthernetInterface"},
             {"#VLanNetworkInterface.v1_0_0.VLanNetworkInterface", "/redfish/v1/$metadata#VLanNetworkInterface.VLanNetworkInterface"},

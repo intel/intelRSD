@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,19 +74,22 @@ ModelType<RmmType::Psu> discover<RmmType::Psu>(const std::string& parent, const 
 
     if (agent_framework::model::utils::is_ascii_string(manufacturer.get_manufacturer())) {
         fru.set_manufacturer(manufacturer.get_manufacturer());
-    } else {
+    }
+    else {
         log_warning("rmm-discovery", "Psu manufacturer contains invalid characters: " << manufacturer.get_manufacturer());
     }
 
     if (agent_framework::model::utils::is_ascii_string(model.get_model())) {
         fru.set_model_number(model.get_model());
-    } else {
+    }
+    else {
         log_warning("rmm-discovery", "Psu model number contains invalid characters: " << model.get_model());
     }
 
     if (agent_framework::model::utils::is_ascii_string(serial.get_serial())) {
         fru.set_serial_number(serial.get_serial());
-    } else {
+    }
+    else {
         log_warning("rmm-discovery", "Psu serial number contains invalid characters: " << serial.get_serial());
     }
 
@@ -94,7 +97,8 @@ ModelType<RmmType::Psu> discover<RmmType::Psu>(const std::string& parent, const 
 
     if (agent_framework::model::utils::is_ascii_string(revision.get_revision())) {
         res.set_firmware_version(revision.get_revision());
-    } else {
+    }
+    else {
         log_warning("rmm-discovery", "Psu firmware version contains invalid characters: " << revision.get_revision());
     }
     res.set_power_capacity_watts(power_cap.get_power_capacity_value());

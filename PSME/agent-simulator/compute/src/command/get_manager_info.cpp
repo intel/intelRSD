@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +53,7 @@ namespace {
 
 REGISTER_COMMAND(GetManagerInfo,
     [] (const GetManagerInfo::Request& req, GetManagerInfo::Response& rsp) {
-        log_debug(GET_LOGGER("agent"), "Getting manager info.");
+        log_debug("agent", "Getting manager info.");
         rsp = CommonComponents::get_instance()->
             get_module_manager().get_entry(req.get_uuid());
         process_collections(rsp);

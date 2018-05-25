@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ public:
      *
      * @param parent_uuid Rest ID of indirect resource being on the path of requested resource
      * */
-    Find<M>& via(const std::string& parent_uuid) {
+    Find<M>& via(const Uuid& parent_uuid) {
         m_parent_uuid = parent_uuid;
         return *this;
     }
@@ -115,15 +115,15 @@ public:
      *
      * @return a the found M type object's uuid
      * */
-    std::string get_uuid() const {
+    Uuid get_uuid() const {
         const auto& manager = agent_framework::module::get_manager<M>();
         return manager.rest_id_to_uuid(m_id, m_parent_uuid);
     }
 
 
 protected:
-    std::uint64_t m_id;
-    std::string m_parent_uuid = {};
+    std::uint64_t m_id{};
+    Uuid m_parent_uuid{};
 };
 
 }

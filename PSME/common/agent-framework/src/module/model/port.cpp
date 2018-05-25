@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,7 @@ using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 
 const enums::Component Port::component = enums::Component::Port;
-const enums::CollectionName Port::collection_name =
-    enums::CollectionName::Ports;
+const enums::CollectionName Port::collection_name = enums::CollectionName::Ports;
 
 Port::Port(const std::string& parent_uuid, enums::Component parent_type) :
     Resource{parent_uuid, parent_type} {}
@@ -39,9 +38,7 @@ json::Json Port::to_json() const {
     json::Json result;
     result[literals::Port::PORT_ID] = get_port_id();
     result[literals::Port::PORT_TYPE] = get_port_type();
-    result[literals::Port::OPERATIONAL_STATE] = get_operational_state();
-    result[literals::Port::ADMINISTRATIVE_STATE] = get_administrative_state();
-    result[literals::Port::CABLE_ID] = get_cables_ids().to_json();
+    result[literals::Port::CABLE_IDS] = get_cables_ids().to_json();
     result[literals::Port::SPEED_GBPS] = get_speed_gbps();
     result[literals::Port::MAX_SPEED_GBPS] = get_max_speed_gbps();
     result[literals::Port::MAX_WIDTH] = get_max_width();
@@ -57,9 +54,7 @@ Port Port::from_json(const json::Json& json) {
     Port fabric_port;
     fabric_port.set_port_id(json[literals::Port::PORT_ID]);
     fabric_port.set_port_type(json[literals::Port::PORT_TYPE]);
-    fabric_port.set_operational_state(json[literals::Port::OPERATIONAL_STATE]);
-    fabric_port.set_administrative_state(json[literals::Port::ADMINISTRATIVE_STATE]);
-    fabric_port.set_cables_ids(CablesIds::from_json(json[literals::Port::CABLE_ID]));
+    fabric_port.set_cables_ids(CablesIds::from_json(json[literals::Port::CABLE_IDS]));
     fabric_port.set_speed_gbps(json[literals::Port::SPEED_GBPS]);
     fabric_port.set_max_speed_gbps(json[literals::Port::MAX_SPEED_GBPS]);
     fabric_port.set_max_width(json[literals::Port::MAX_WIDTH]);
@@ -68,7 +63,5 @@ Port Port::from_json(const json::Json& json) {
     fabric_port.set_oem(Oem::from_json(json[literals::Port::OEM]));
     fabric_port.set_allowed_actions(AllowedActions::from_json(json[literals::Port::ALLOWED_ACTIONS]));
     fabric_port.set_protocol(json[literals::Port::PROTOCOL]);
-
-    fabric_port.set_resource_hash(json);
     return fabric_port;
 }

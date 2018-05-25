@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,19 +67,18 @@ int main(int argc, const char *argv[]) {
 
     /* Initialize logger */
     LoggerLoader loader(configuration);
-    LoggerFactory::instance().set_loggers(loader.load());
-    LoggerFactory::set_main_logger_name("agent");
-    log_info(GET_LOGGER("compute-agent"), "Running Generic Agent...\n");
+    loader.load(LoggerFactory::instance());
+    log_info("compute-agent", "Running Generic Agent...\n");
 
     /*  Reading asset configuration from xml*/
     auto& asset = agent::AssetConfiguration::get_instance();
     try {
         asset.read_configuration(configuration);
     } catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("compute-agent"),
+        log_error("compute-agent",
                 "Cannot read asset configuration " << e.what());
     } catch (const xmlpp::exception& e) {
-        log_error(GET_LOGGER("compute-agent"),
+        log_error("compute-agent",
                 "Cannot read asset configuration " << e.what());
         agent::AssetConfiguration::cleanup();
         Configuration::cleanup();
@@ -96,7 +95,7 @@ int main(int argc, const char *argv[]) {
     try {
         server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
     } catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("compute-agent"),
+        log_error("compute-agent",
                 "Cannot read server port " << e.what());
     }
 
@@ -120,7 +119,7 @@ int main(int argc, const char *argv[]) {
     /* Stop the program and wait for interrupt */
     wait_for_interrupt();
 
-    log_info(GET_LOGGER("compute-agent"), "Stopping Generic Agent...\n");
+    log_info("compute-agent", "Stopping Generic Agent...\n");
 
     /* Cleanup */
     server.stop();
@@ -134,7 +133,7 @@ int main(int argc, const char *argv[]) {
 }
 
 const json::Value& init_configuration(int argc, const char** argv) {
-    log_info(GET_LOGGER("compute-agent"),
+    log_info("compute-agent",
         agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
@@ -152,7 +151,7 @@ const json::Value& init_configuration(int argc, const char** argv) {
 bool check_configuration(const json::Value& json) {
     json::Value json_schema;
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
-        log_info(GET_LOGGER("compute-agent"), "JSON Schema load!");
+        log_info("compute-agent", "JSON Schema load!");
 
         configuration::SchemaErrors errors;
         configuration::SchemaValidator validator;

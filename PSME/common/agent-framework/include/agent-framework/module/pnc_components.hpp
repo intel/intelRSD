@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,28 +43,15 @@ class PncComponents : public generic::Singleton<PncComponents> {
 public:
 
     using SwitchManager = GenericManager<model::Switch>;
-    using FabricManager = GenericManager<model::Fabric>;
     using EndpointManager = GenericManager<model::Endpoint>;
-    using ZoneManager = GenericManager<model::Zone>;
     using PortManager = GenericManager<model::Port>;
 
-    using PcieDeviceManager = GenericManager<model::PcieDevice>;
-    using PcieFunctionManager = GenericManager<model::PcieFunction>;
-
-    using ZoneEndpointManager = managers::ManyToManyManager;
     using EndpointPortManager = managers::ManyToManyManager;
     using DriveFunctionManager = managers::ManyToManyManager;
     using SystemPcieDeviceManager = managers::ManyToManyManager;
 
     virtual ~PncComponents();
 
-    /*!
-     * @brief Get manager for Fabrics
-     * @return manager for Fabrics
-     * */
-    FabricManager& get_fabric_manager() {
-        return m_fabric_manager;
-    }
 
     /*!
      * @brief Get manager for Switches
@@ -74,13 +61,6 @@ public:
         return m_switch_manager;
     }
 
-    /*!
-     * @brief Get manager for Zones
-     * @return manager for Zones
-     * */
-    ZoneManager& get_zone_manager() {
-        return m_zone_manager;
-    }
 
     /*!
      * Get PCIe port manager
@@ -88,38 +68,6 @@ public:
      * */
     PortManager& get_port_manager() {
         return m_port_manager;
-    }
-
-    /*!
-     * @brief Get manager for Endpoints
-     * @return manager for Endpoints
-     * */
-    EndpointManager& get_endpoint_manager() {
-        return m_endpoint_manager;
-    }
-
-    /*!
-     * @brief Get manager for PcieDevices
-     * @return manager for PcieDevices
-     * */
-    PcieDeviceManager& get_pcie_device_manager() {
-        return m_pcie_device_manager;
-    }
-
-    /*!
-     * @brief Get manager for PcieFunctions
-     * @return manager for PcieFunctions
-     * */
-    PcieFunctionManager& get_pcie_function_manager() {
-        return m_pcie_function_manager;
-    }
-
-    /*!
-     * @brief Get manager for Zone-Endpoint mappings
-     * @return manager for Zone-Endpoint mappings
-     * */
-    ZoneEndpointManager& get_zone_endpoint_manager() {
-        return m_zone_endpoint_manager;
     }
 
     /*!
@@ -139,17 +87,9 @@ public:
     }
 
 private:
-
-    FabricManager m_fabric_manager{};
     SwitchManager m_switch_manager{};
     PortManager m_port_manager{};
-    EndpointManager m_endpoint_manager{};
-    ZoneManager m_zone_manager{};
 
-    PcieDeviceManager m_pcie_device_manager{};
-    PcieFunctionManager m_pcie_function_manager{};
-
-    ZoneEndpointManager m_zone_endpoint_manager{};
     EndpointPortManager m_endpoint_port_manager{};
     DriveFunctionManager m_drive_function_manager{};
 };

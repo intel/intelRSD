@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,17 @@
 package com.intel.podm.business.redfish.services.allocation.strategy;
 
 import com.intel.podm.business.Violations;
-import com.intel.podm.business.entities.dao.RemoteTargetIscsiAddressDao;
 import com.intel.podm.business.entities.redfish.ComposedNode;
-import com.intel.podm.business.entities.redfish.RemoteTarget;
-import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
+import com.intel.podm.business.entities.redfish.ComputerSystem;
+import com.intel.podm.business.entities.redfish.Volume;
+import com.intel.podm.business.redfish.services.allocation.validation.ExistingRemoteDriveValidator;
+import com.intel.podm.business.redfish.services.assembly.IscsiAssemblyTasksProvider;
+import com.intel.podm.business.redfish.services.assembly.tasks.EndpointTaskFactory;
 import com.intel.podm.business.redfish.services.assembly.tasks.NodeTask;
-import com.intel.podm.business.redfish.services.assembly.tasks.PatchNetworkDeviceFunctionAssemblyTaskFactory;
-import com.intel.podm.business.services.redfish.requests.RequestedNode;
+import com.intel.podm.business.redfish.services.assembly.tasks.ZoneTaskFactory;
+import com.intel.podm.business.redfish.services.helpers.VolumeHelper;
+import com.intel.podm.business.services.redfish.requests.RequestedNode.RemoteDrive;
+import com.intel.podm.discovery.external.partial.EndpointObtainer;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -31,83 +35,75 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.intel.podm.business.redfish.Contexts.toContext;
+import static com.intel.podm.common.types.EntityRole.INITIATOR;
+import static com.intel.podm.common.types.Protocol.ISCSI;
+import static com.intel.podm.common.utils.IterableHelper.any;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 @Transactional(MANDATORY)
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class ExistingRemoteDriveAllocationStrategy implements RemoteDriveAllocationStrategy {
     @Inject
-    private RemoteTargetIscsiAddressDao remoteTargetIscsiAddressDao;
+    private EndpointTaskFactory endpointTaskFactory;
 
     @Inject
-    private ExistingRemoteDriveResourcesFinder finder;
+    private ZoneTaskFactory zoneTaskFactory;
 
     @Inject
-    private PatchNetworkDeviceFunctionAssemblyTaskFactory networkDeviceFunctionTaskFactory;
+    private EndpointObtainer endpointObtainer;
 
-    private RequestedNode.RemoteDrive drive;
-    private ExistingRemoteDriveResourcesFinder.ExistingRemoteDriveAllocationResources resources;
+    @Inject
+    private IscsiAssemblyTasksProvider iscsiAssemblyTasksProvider;
+
+    @Inject
+    private VolumeHelper volumeHelper;
+
+    @Inject
+    private ExistingRemoteDriveValidator existingRemoteDriveValidator;
+
+    private RemoteDrive drive;
+    private ResourceAllocationStrategy resourceAllocationStrategy;
     private List<NodeTask> tasks = new ArrayList<>();
 
-    public void setDrive(RequestedNode.RemoteDrive drive) {
+    public void setResourceAllocationStrategy(ResourceAllocationStrategy resourceAllocationStrategy) {
+        this.resourceAllocationStrategy = resourceAllocationStrategy;
+    }
+
+    public void setDrive(RemoteDrive drive) {
         this.drive = drive;
     }
 
     @Override
     public Violations validate() {
         Violations violations = new Violations();
-
-        if (drive.getIscsiAddress() == null) {
-            violations.addMissingPropertyViolation("iSCSIAddress");
-        }
-
-        RemoteTargetIscsiAddress target;
-        try {
-            target = remoteTargetIscsiAddressDao.getRemoteTargetIscsiAddressByTargetIqn(drive.getIscsiAddress());
-        } catch (IllegalStateException e) {
-            violations.addViolation("Specified remote target (" + drive.getIscsiAddress() + ") does not exist.");
-            return violations;
-        }
-
-        validateRemoteTarget(target, violations);
+        violations.addAll(resourceAllocationStrategy.validate());
+        violations.addAll(existingRemoteDriveValidator.validateProtocolFromExistingRequestedDrive(drive));
 
         return violations;
     }
 
-    private void validateRemoteTarget(RemoteTargetIscsiAddress target, Violations violations) {
-        RemoteTarget remoteTarget = target.getRemoteTarget();
-
-        boolean anyDriveIsNotBootable = remoteTarget.getLogicalDrives().stream().anyMatch(drive -> !drive.getBootable());
-        if (anyDriveIsNotBootable) {
-            violations.addViolation("All drives should be bootable.");
-        }
-
-        if (!remoteTarget.isEnabledAndHealthy()) {
-            violations.addViolation("Specified remote target should be enabled and healthy in order to invoke actions on it.");
-        }
-    }
-
     @Override
     public Violations findResources() {
-        resources = finder.find(drive);
-        return resources.getViolations();
+        Violations violations = new Violations();
+        violations.addAll(resourceAllocationStrategy.findResources());
+        return violations;
     }
 
     @Override
     public void allocate(ComposedNode composedNode) {
-        RemoteTarget remoteTarget = resources.getRemoteTarget();
-        composedNode.addRemoteTarget(remoteTarget);
-        composedNode.setAssociatedStorageServiceUuid(remoteTarget.getService().getUuid());
-        composedNode.setAssociatedRemoteTargetIqn(remoteTarget.getTargetIqn());
-        remoteTarget.getMetadata().setAllocated(true);
+        tasks.addAll(resourceAllocationStrategy.allocate(composedNode));
 
-        addPatchNetworkDeviceFunctionAssemblyTaskIfNeeded(composedNode);
-    }
-
-    private void addPatchNetworkDeviceFunctionAssemblyTaskIfNeeded(ComposedNode composedNode) {
-        if (networkDeviceFunctionPatchCanBePerformed(composedNode)) {
-            tasks.add(networkDeviceFunctionTaskFactory.create());
+        ComputerSystem computerSystem = composedNode.getComputerSystem();
+        Volume volume = any(composedNode.getVolumes());
+        if (endpointObtainer.getInitiatorEndpoint(computerSystem, volumeHelper.retrieveFabricFromVolume(volume)) == null) {
+            tasks.add(endpointTaskFactory.create(volume.getId(), INITIATOR, toContext(computerSystem)));
         }
+        if (computerSystem.hasNetworkInterfaceWithNetworkDeviceFunction() && ISCSI.equals(volumeHelper.retrieveProtocolFromVolume(volume))) {
+            tasks.addAll(iscsiAssemblyTasksProvider.createTasks());
+        }
+        tasks.add(zoneTaskFactory.create());
     }
 
     @Override

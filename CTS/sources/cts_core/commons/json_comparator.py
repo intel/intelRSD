@@ -22,6 +22,7 @@
  * @section DESCRIPTION
 """
 from collections import OrderedDict
+from json import loads, dumps
 
 from cts_core.commons.error import cts_error
 
@@ -160,3 +161,7 @@ class JsonComparator:
                 cts_error("Mismatch of values {var_a} and {var_b}", **locals())
 
         return var_a == var_b
+
+    @staticmethod
+    def odict_to_dict(ordered_dict):
+        return loads(dumps(ordered_dict))

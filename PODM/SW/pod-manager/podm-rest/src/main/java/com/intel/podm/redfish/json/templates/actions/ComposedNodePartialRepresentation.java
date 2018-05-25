@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,15 @@ public class ComposedNodePartialRepresentation implements RedfishComputerSystem 
     @JsonProperty("Boot")
     public Boot boot;
 
+    @JsonProperty("ClearTPMOnDelete")
+    public Boolean clearTpmOnDelete;
+
     public RedfishComputerSystem.Boot getBoot() {
         return boot;
+    }
+
+    public Boolean getClearTpmOnDelete() {
+        return clearTpmOnDelete;
     }
 
     public static class Boot implements RedfishComputerSystem.Boot {

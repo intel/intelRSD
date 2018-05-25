@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,16 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
+import static com.intel.podm.common.types.ServiceType.DISCOVERY_SERVICE;
+import static com.intel.podm.common.types.ServiceType.RSS;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Paths.get;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.concat;
-import static java.util.stream.Stream.empty;
 
 @Dependent
 public class CandidatesProvider {
@@ -52,33 +53,53 @@ public class CandidatesProvider {
     private ServiceListFileRecordsParser serviceListFileRecordsParser;
 
     Set<DhcpServiceCandidate> getEndpointCandidates() {
-        return concat(getTmpLeasesCandidates(), getServicesListCandidates()).collect(toSet());
+        Set<DhcpServiceCandidate> serviceCandidate = new HashSet<>();
+        serviceCandidate.addAll(getTmpLeasesCandidates());
+        serviceCandidate.addAll(getServicesListCandidates());
+        return serviceCandidate;
     }
 
-    private Stream<DhcpServiceCandidate> getTmpLeasesCandidates() {
+    private Set<DhcpServiceCandidate> getTmpLeasesCandidates() {
         Path tmpLeasesPath = get(TMP_LEASES_LOCATION);
         if (!exists(tmpLeasesPath)) {
-            return empty();
+            return emptySet();
         }
-
         List<String> fileRecords = new ServicesFileReader(tmpLeasesPath).readServicesFile();
         Collection<TmpLeasesRecord> records = tmpLeasesFileRecordsParser.toTmpLeasesRecordCollection(fileRecords);
-        return records.stream().flatMap(record ->
+        Collection<TmpLeasesRecord> optionalRecords = createOptionalDiscoveryServiceCandidate(records);
+
+        Set<DhcpServiceCandidate> candidates = records.stream().flatMap(record ->
             urlProvider.getEndpointUris(record).stream().map(uri ->
                 new DhcpServiceCandidate(record.getServiceType(), uri, record.getDate()))
-        );
+        ).collect(toSet());
+
+        Set<DhcpServiceCandidate> optionalCandidates = optionalRecords.stream().flatMap(record ->
+            urlProvider.getEndpointUris(record).stream().map(uri ->
+                new DhcpOptionalServiceCandidate(record.getServiceType(), uri, record.getDate()))
+        ).filter(optionalCandidate -> candidates.stream().noneMatch(candidate ->
+            candidate.getEndpointUri().equals(optionalCandidate.getEndpointUri()))
+        ).collect(toSet());
+
+        candidates.addAll(optionalCandidates);
+        return candidates;
     }
 
-    private Stream<DhcpServiceCandidate> getServicesListCandidates() {
+    private Collection<TmpLeasesRecord> createOptionalDiscoveryServiceCandidate(Collection<TmpLeasesRecord> records) {
+        return records.stream().
+            filter(tm -> RSS.equals(tm.getServiceType())).
+            map(tmpLeasesRecord -> new TmpLeasesRecord(DISCOVERY_SERVICE, tmpLeasesRecord.getIpAddress(), tmpLeasesRecord.getDate())).
+            collect(toSet());
+    }
+
+    private Set<DhcpServiceCandidate> getServicesListCandidates() {
         Path servicesListPath = get(SERVICES_LIST_LOCATION);
         if (!exists(servicesListPath)) {
-            return empty();
+            return emptySet();
         }
-
         List<String> fileRecords = new ServicesFileReader(servicesListPath).readServicesFile();
         Collection<ServiceListRecord> records = serviceListFileRecordsParser.toServiceListRecords(fileRecords);
         return records.stream().map(record ->
             new DhcpServiceCandidate(record.getServiceType(),
-                urlProvider.getEndpointUri(record.getUrl()), null));
+                urlProvider.getEndpointUri(record.getUrl()), null)).collect(toSet());
     }
 }

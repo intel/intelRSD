@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,8 +46,8 @@ namespace {
         auto auth_cert = agent.execute<agent_framework::model::AuthorizationCertificate>(request);
         const auto cert = base64::Base64::decode(auth_cert.get_certificate());
         std::string cert_string(cert.cbegin(), cert.cend());
-        log_info(GET_LOGGER("rest"), "CA certificate loaded.");
-        log_debug(GET_LOGGER("rest"), "CA certificate:\n" << cert_string);
+        log_info("rest", "CA certificate loaded.");
+        log_debug("rest", "CA certificate:\n" << cert_string);
         return cert_string;
     }
 }
@@ -56,7 +56,7 @@ std::string RMMCertLoader::load_ca_cert() {
     using core::agent::AgentManager;
     const std::chrono::seconds WAIT_TIME{2};
     while (true) {
-        log_info(GET_LOGGER("rest"), "Waiting for CA certificate...");
+        log_info("rest", "Waiting for CA certificate...");
         auto chassis_agents =
             AgentManager::get_instance()->get_agents_by_capability("Chassis");
 
@@ -64,10 +64,10 @@ std::string RMMCertLoader::load_ca_cert() {
             try {
                 return get_cert_from_agent(*chassis_agent);
             } catch (const std::exception& e) {
-                log_error(GET_LOGGER("rest"),
+                log_error("rest",
                         "Failed to retrieve certificate: " << e.what());
             } catch (...) {
-                log_error(GET_LOGGER("rest"),
+                log_error("rest",
                         "Failed to retrieve certificate: Unknown exception.");
             }
         }

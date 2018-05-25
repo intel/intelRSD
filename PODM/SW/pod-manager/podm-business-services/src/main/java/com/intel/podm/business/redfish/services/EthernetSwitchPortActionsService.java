@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import java.net.URI;
 import java.util.Set;
 
 import static com.intel.podm.business.Violations.createWithViolations;
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static com.intel.podm.business.redfish.Contexts.toContext;
 import static com.intel.podm.common.types.PortClass.LOGICAL;
 import static java.lang.String.format;
@@ -65,7 +66,7 @@ public class EthernetSwitchPortActionsService {
     public Context createSwitchPort(Context switchContext, RedfishEthernetSwitchPort requestedSwitchPortCreation) throws BusinessApiException {
         EthernetSwitch currentSwitch = (EthernetSwitch) traverser.traverse(switchContext);
 
-        if (!currentSwitch.isEnabledAndHealthy()) {
+        if (!statusOf(currentSwitch).isEnabled().isHealthy().verify()) {
             throw new ResourceStateMismatchException("EthernetSwitch should be enabled and healthy in order to invoke actions on it.");
         }
 
@@ -110,6 +111,9 @@ public class EthernetSwitchPortActionsService {
             .autosense(switchPortModification.getAutosense())
             .primaryVlan(primaryVlan != null ? primaryVlan.getSourceUri() : null)
             .uris(convertSwitchPortsToSourceUris(switchPorts))
+            .dcbxState(switchPortModification.getDcbxState())
+            .lldpEnabled(switchPortModification.getLldpEnabled())
+            .priorityFlowControl(switchPortModification.getPriorityFlowControl())
             .build();
     }
 

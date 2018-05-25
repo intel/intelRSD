@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ import com.intel.podm.business.entities.redfish.base.Entity;
 import com.intel.podm.business.entities.redfish.base.VlanPossessor;
 import com.intel.podm.business.entities.redfish.embeddables.IpV4Address;
 import com.intel.podm.business.entities.redfish.embeddables.IpV6Address;
+import com.intel.podm.business.entities.redfish.embeddables.PriorityFlowControl;
 import com.intel.podm.common.types.AdministrativeState;
+import com.intel.podm.common.types.DcbxState;
 import com.intel.podm.common.types.Id;
 import com.intel.podm.common.types.LinkType;
 import com.intel.podm.common.types.NeighborInfo;
@@ -38,6 +40,7 @@ import org.hibernate.annotations.NotFound;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -66,17 +69,14 @@ import static org.hibernate.annotations.NotFoundAction.IGNORE;
 
 @javax.persistence.Entity
 @NamedQueries({
-    @NamedQuery(name = EthernetSwitchPort.GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE,
-        query = "SELECT esp "
-            + "FROM EthernetSwitchPort esp "
-            + "WHERE esp.neighborMac = :neighborMac "
-            + "AND esp.portType = :portType")
+    @NamedQuery(name = EthernetSwitchPort.GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC,
+        query = "SELECT esp FROM EthernetSwitchPort esp WHERE esp.neighborMac = :neighborMac")
 })
 @Table(name = "ethernet_switch_port", indexes = @Index(name = "idx_ethernet_switch_port_entity_id", columnList = "entity_id", unique = true))
 @Eventable
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public class EthernetSwitchPort extends DiscoverableEntity implements VlanPossessor {
-    public static final String GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE = "GET_PORT_BY_NEIGHBOR_MAC_AND_PORT_TYPE";
+    public static final String GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC = "GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC";
 
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
     private Id entityId;
@@ -176,6 +176,16 @@ public class EthernetSwitchPort extends DiscoverableEntity implements VlanPosses
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "member_of_port_id")
     private EthernetSwitchPort memberOfPort;
+
+    @Column(name = "dcbx_state")
+    @Enumerated(STRING)
+    private DcbxState dcbxState;
+
+    @Column(name = "lldp_enabled")
+    private Boolean lldpEnabled;
+
+    @Embedded
+    private PriorityFlowControl priorityFlowControl;
 
     @Override
     public Id getId() {
@@ -536,6 +546,30 @@ public class EthernetSwitchPort extends DiscoverableEntity implements VlanPosses
                 memberOfPort.unlinkPortMember(this);
             }
         }
+    }
+
+    public DcbxState getDcbxState() {
+        return dcbxState;
+    }
+
+    public void setDcbxState(DcbxState dcbxState) {
+        this.dcbxState = dcbxState;
+    }
+
+    public Boolean getLldpEnabled() {
+        return lldpEnabled;
+    }
+
+    public void setLldpEnabled(Boolean lldpEnabled) {
+        this.lldpEnabled = lldpEnabled;
+    }
+
+    public PriorityFlowControl getPriorityFlowControl() {
+        return priorityFlowControl;
+    }
+
+    public void setPriorityFlowControl(PriorityFlowControl priorityFlowControl) {
+        this.priorityFlowControl = priorityFlowControl;
     }
 
     @Override

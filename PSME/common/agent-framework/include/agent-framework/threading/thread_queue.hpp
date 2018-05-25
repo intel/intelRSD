@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -117,7 +117,13 @@ public:
      *
      * @return True if queue is empty, false otherwise
      */
-    bool empty();
+    bool empty() const;
+
+    /*!
+     * @brief Get number of elements in the queue
+     * @return number of tasks
+     */
+    std::size_t size() const;
 
 private:
     mutable std::mutex m_mutex{};

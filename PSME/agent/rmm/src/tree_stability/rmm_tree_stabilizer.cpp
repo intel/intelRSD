@@ -2,7 +2,7 @@
  * @brief RmmTreeStabilizer class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ const std::string RmmTreeStabilizer::stabilize_chassis(const std::string& in_cha
 
     }
     catch (const std::exception& e) {
-        log_key_value_missing(chassis.get_component().to_string(), in_chassis_uuid, e);
+        agent_framework::log_key_value_missing(chassis.get_component().to_string(), in_chassis_uuid, e);
     }
 
     return chassis_uuid;
@@ -107,7 +107,7 @@ const std::string RmmTreeStabilizer::stabilize_network_interface(const std::stri
         }
     }
     catch (const std::exception& e) {
-        log_key_value_missing(network_interface.get_component().to_string(), in_network_interface_uuid, e);
+        agent_framework::log_key_value_missing(network_interface.get_component().to_string(), in_network_interface_uuid, e);
     }
 
     return network_interface_uuid;
@@ -141,7 +141,7 @@ const std::string RmmTreeStabilizer::stabilize_fan(const std::string& in_fan_uui
         fan_uuid = stabilize_single_resource(in_fan_uuid, fan_manager, fan_unique_key);
     }
     catch (const std::exception& e) {
-        log_key_value_missing(fan.get_component().to_string(), in_fan_uuid, e);
+        agent_framework::log_key_value_missing(fan.get_component().to_string(), in_fan_uuid, e);
     }
 
     return fan_uuid;
@@ -163,7 +163,7 @@ const std::string RmmTreeStabilizer::stabilize_port_vlan(const std::string& in_p
         port_vlan_uuid = stabilize_single_resource(in_port_vlan_uuid, port_vlan_manager, port_vlan_unique_key);
     }
     catch (const std::exception& e) {
-        log_key_value_missing(port_vlan.get_component().to_string(), in_port_vlan_uuid, e);
+        agent_framework::log_key_value_missing(port_vlan.get_component().to_string(), in_port_vlan_uuid, e);
     }
 
     return port_vlan_uuid;
@@ -201,7 +201,7 @@ const std::string RmmTreeStabilizer::stabilize_power_zone(const std::string& in_
         }
     }
     catch (const std::exception& e) {
-        log_key_value_missing(power_zone.get_component().to_string(), in_power_zone_uuid, e);
+        agent_framework::log_key_value_missing(power_zone.get_component().to_string(), in_power_zone_uuid, e);
     }
 
     return power_zone_uuid;
@@ -240,7 +240,7 @@ const std::string RmmTreeStabilizer::stabilize_thermal_zone(const std::string& i
         }
     }
     catch (const std::exception& e) {
-        log_key_value_missing(thermal_zone.get_component().to_string(), in_thermal_zone_uuid, e);
+        agent_framework::log_key_value_missing(thermal_zone.get_component().to_string(), in_thermal_zone_uuid, e);
     }
 
     return thermal_zone_uuid;
@@ -258,7 +258,7 @@ const std::string RmmTreeStabilizer::stabilize_psu(const std::string& in_psu_uui
         psu_uuid = stabilize_single_resource(in_psu_uuid, psu_manager, psu_unique_key);
     }
     catch (const std::exception& e) {
-        log_key_value_missing(psu.get_component().to_string(), in_psu_uuid, e);
+        agent_framework::log_key_value_missing(psu.get_component().to_string(), in_psu_uuid, e);
     }
 
     return psu_uuid;
@@ -293,7 +293,7 @@ const std::string RmmTreeStabilizer::stabilize(const std::string& in_manager_uui
         }
     }
     catch (const std::exception& e) {
-        log_key_value_missing(Manager::get_component().to_string(), in_manager_uuid, e);
+        agent_framework::log_key_value_missing(Manager::get_component().to_string(), in_manager_uuid, e);
     }
 
     return manager_uuid;

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ const jsonrpc::ProcedureValidator& SubscriptionCollectionPostSchema::get_procedu
         constants::EventSubscription::EVENT_TYPES, VALID_ARRAY_OF(VALID_ENUM(eventing::EventType)),
         constants::EventSubscription::CONTEXT, VALID_JSON_STRING,
         constants::EventSubscription::PROTOCOL, VALID_ENUM(psme::rest::eventing::model::SubscriptionProtocol),
-        constants::EventSubscription::ORIGIN_RESOURCES, VALID_OPTIONAL(VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema))),
+        constants::EventSubscription::ORIGIN_RESOURCES, VALID_OPTIONAL(VALID_NULLABLE(VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema)))),
         nullptr
     };
     return procedure;

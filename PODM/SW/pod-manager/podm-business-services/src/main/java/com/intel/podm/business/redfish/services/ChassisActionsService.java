@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.intel.podm.business.entities.redfish.embeddables.RackChassisAttribute
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.actions.ChassisActionsInvoker;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
+import com.intel.podm.common.enterprise.utils.retry.RetryOnRollback;
 import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
 import com.intel.podm.common.synchronization.TaskCoordinator;
 import com.intel.podm.common.types.actions.BaseChassisUpdateDefinition;
@@ -43,6 +43,9 @@ import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.stream.Collector;
@@ -50,6 +53,7 @@ import java.util.stream.Stream;
 
 import static com.intel.podm.business.Violations.createWithViolations;
 import static java.lang.Integer.parseInt;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
@@ -72,15 +76,31 @@ public class ChassisActionsService {
     private ServiceExplorer serviceExplorer;
 
     @Transactional(REQUIRES_NEW)
-    @NumberOfRetriesOnRollback(9)
+    @RetryOnRollback(9)
     public void updateLocalChassis(Context chassisContext, RedfishChassis representation) throws TimeoutException, ContextResolvingException {
         Chassis localChassis = (Chassis) traverser.traverse(chassisContext);
         updateLocalChassis(representation, localChassis);
     }
 
     @Transactional(REQUIRES_NEW)
-    @NumberOfRetriesOnRollback(9)
-    public void updateChassis(ExternalLink externalLink, RedfishChassis representation) throws BusinessApiException {
+    @RetryOnRollback(9)
+    public void updateChassisOnSingleExternalService(UUID serviceUuid, Context chassisContext, RedfishChassis representation) throws BusinessApiException {
+        Chassis chassis = (Chassis) traverser.traverse(chassisContext);
+
+        Optional<ExternalLink> externalLink = chassis.getExternalLinks()
+            .stream()
+            .filter(el -> Objects.equals(el.getExternalService().getUuid(), serviceUuid))
+            .findAny();
+
+        if (externalLink.isPresent()) {
+            updateChassisOnSingleExternalService(externalLink.get(), representation);
+        } else {
+            String msg = format("Chassis %s is not owned by External Service %s", chassisContext, serviceUuid);
+            throw new IllegalArgumentException(msg);
+        }
+    }
+
+    private void updateChassisOnSingleExternalService(ExternalLink externalLink, RedfishChassis representation) throws BusinessApiException {
         BaseChassisUpdateDefinition chassisUpdateDefinition = prepareChassisUpdateDefinition(representation, externalLink);
         invoker.updateChassis(externalLink, chassisUpdateDefinition);
 

@@ -4,6 +4,11 @@
     "name": "/",
     "type": "object",
     "properties": {
+        "service": {
+            "description": "Name of DB entry with service UUID.",
+            "name": "service",
+            "type": "string"
+        },
         "agent": {
             "description": "Container for agent specific information.",
             "name": "agent",
@@ -79,44 +84,176 @@
                     "switches": {
                         "description": "Configuration for Switches during discovery.",
                         "name": "switches",
-                        "type": "object",
-                        "properties": {
-                            "mgmt_port": {
-                                "description": "ID of switch management port.",
-                                "name": "mgmt_port",
-                                "type": "string"
-                            },
-                            "locationOffset": {
-                                "description": "Location identifier offset.",
-                                "name": "locationOffset",
-                                "type": "integer"
-                            },
-                            "parentId": {
-                                "description": "Parent Id.",
-                                "name": "parentId",
-                                "type": "integer"
-                            },
-                            "ports": {
-                                "description": "List of all ports.",
-                                "name": "ports",
-                                "type": "array",
-                                "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "mgmt_port": {
+                                    "description": "ID of switch management port.",
+                                    "name": "mgmt_port",
+                                    "type": "string"
+                                },
+                                "locationOffset": {
+                                    "description": "Location identifier offset.",
+                                    "name": "locationOffset",
+                                    "type": "integer"
+                                },
+                                "parentId": {
+                                    "description": "Parent Id.",
+                                    "name": "parentId",
+                                    "type": "string"
+                                },
+                                "qosConfiguration": {
+                                    "description": "Global configuration for Network QoS.",
+                                    "name": "qosConfiguration",
                                     "type": "object",
                                     "properties": {
-                                        "id": {
-                                            "description": "Port ID number.",
-                                            "name": "id",
-                                            "type": "integer"
+                                        "dcbxApplicationProtocol": {
+                                            "description": "Application to priority mapping.",
+                                            "name": "dcbxApplicationProtocol",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "priority": {
+                                                        "description": "Priority number (0-7).",
+                                                        "name": "priority",
+                                                        "type": "integer",
+                                                        "minimum": 0,
+                                                        "maximum": 7
+                                                    },
+                                                    "protocol": {
+                                                        "description": "Application Protocol (TCP, UDP or L2).",
+                                                        "name": "protocol",
+                                                        "type": "string",
+                                                        "enum" : [
+                                                            "TCP",
+                                                            "UDP",
+                                                            "L2"
+                                                        ]
+                                                    },
+                                                    "port": {
+                                                        "description": "Application Port (0-65535).",
+                                                        "name": "port",
+                                                        "type": "integer",
+                                                        "minimum": 0,
+                                                        "maximum": 65535
+                                                    }
+                                                }
+                                            }
                                         },
-                                        "portType": {
-                                            "description": "Type of port.",
-                                            "name": "portType",
-                                            "type": "string"
+                                        "dcbxPriorityToPriorityGroupMapping": {
+                                            "description": "Priority to Priority Group mapping.",
+                                            "name": "dcbxPriorityToPriorityGroupMapping",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "priority": {
+                                                        "description": "Priority number (0-7).",
+                                                        "name": "priority",
+                                                        "type": "integer",
+                                                        "minimum": 0,
+                                                        "maximum": 7
+                                                    },
+                                                    "priorityGroup": {
+                                                        "description": "Priority Group (0-15).",
+                                                        "name": "priorityGroup",
+                                                        "type": "integer",
+                                                        "minimum": 0,
+                                                        "maximum": 15
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "dcbxBandwidthAllocation": {
+                                            "description": "ETS Bandwidth allocation.",
+                                            "name": "dcbxBandwidthAllocation",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "priorityGroup": {
+                                                        "description": "Priority Group (0-15).",
+                                                        "name": "priorityGroup",
+                                                        "type": "integer",
+                                                        "minimum": 0,
+                                                        "maximum": 15
+                                                    },
+                                                    "bandwidthPercent": {
+                                                        "description": "Bandwidth percent.",
+                                                        "name": "bandwidthPercent",
+                                                        "type": "integer",
+                                                        "minimum": 0,
+                                                        "maximum": 100
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "lldpEnabled": {
+                                            "description": "LLDP Enabled on switch.",
+                                            "name": "lldpEnabled",
+                                            "type": "boolean"
+                                        },
+                                        "pfcEnabled": {
+                                            "description": "PFC Enabled on switch.",
+                                            "name": "pfcEnabled",
+                                            "type": "boolean"
                                         }
-                                    },
-                                    "required": [
-                                        "id"
-                                    ]
+                                    }
+                                },
+                                "ports": {
+                                    "description": "List of all ports.",
+                                    "name": "ports",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "description": "Port ID number. For 'Default' - configuration is propagated to all ports.",
+                                                "name": "id",
+                                                "type": "string"
+                                            },
+                                            "portType": {
+                                                "description": "Type of port.",
+                                                "name": "portType",
+                                                "type": "string"
+                                            },
+                                            "dcbxState": {
+                                                "description": "DCBX State (EnabledIEEE, EnabledCEE or Disabled).",
+                                                "name": "dcbxState",
+                                                "type": "string",
+                                                "enum" : [
+                                                    "EnabledIEEE",
+                                                    "EnabledCEE",
+                                                    "Disabled"
+                                                ]
+                                            },
+                                            "lldpEnabled": {
+                                                "description": "LLDP Enabled on port.",
+                                                "name": "lldpEnabled",
+                                                "type": "boolean"
+                                            },
+                                            "pfcEnabled": {
+                                                "description": "PFC Enabled on port.",
+                                                "name": "pfcEnabled",
+                                                "type": "boolean"
+                                            },
+                                            "pfcEnabledPriorities": {
+                                                "description": "PFC Enabled Priorities.",
+                                                "name": "pfcEnabledPriorities",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 7
+                                                }
+                                            }
+                                        },
+                                        "required": [
+                                            "id"
+                                        ]
+                                    }
                                 }
                             }
                         }
@@ -129,87 +266,85 @@
                 }
             }
         },
-        "service-uuid-file": {
-            "description": "Path to service uuid file.",
-            "name": "service-uuid-file",
-            "type": "string"
-        },
-        "logger": {
+        "loggers": {
             "description": "Logger configuration.",
-            "name": "logger",
-            "type": "object",
-            "properties": {
-                "agent": {
-                    "description": "Agent logging configuration.",
-                    "name": "agent",
-                    "type": "object",
-                    "properties": {
-                        "level": {
-                            "description": "Severity level compatible with syslog.",
-                            "name": "level",
-                            "type": "string"
-                        },
-                        "timeformat": {
-                            "description": "Timestamp format.",
-                            "name": "timeformat",
-                            "type": "string"
-                        },
-                        "color": {
-                            "description": "Enable / disable colors in log file.",
-                            "name": "color",
-                            "type": "boolean"
-                        },
-                        "output": {
-                            "description": "Enable / disable output.",
-                            "name": "output",
-                            "type": "boolean"
-                        },
-                        "tagging": {
-                            "description": "Enable / disable tagging.",
-                            "name": "tagging",
-                            "type": "boolean"
-                        },
-                        "moredebug": {
-                            "description": "Additional debug info in log file.",
-                            "name": "moredebug",
-                            "type": "boolean"
-                        },
-                        "streams": {
-                            "description": "Logger output streams configuration.",
-                            "name": "streams",
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "type": {
-                                        "description": "Stream type. FILE or STDOUT.",
-                                        "name": "type",
-                                        "type": "string"
-                                    },
-                                    "file": {
-                                        "description": "Path to the file, if stream type is set to FILE.",
-                                        "name": "file",
-                                        "type": "string"
-                                    }
+            "name": "loggers",
+            "type": "array",
+            "items": {
+                "description": "Settings of a specific logger.",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "description": "Set the name of the logger.",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    "default": {
+                        "description": "Set the logger as default. Only one can be default.",
+                        "name": "default",
+                        "type": "boolean"
+                    },
+                    "level": {
+                        "description": "Choose severity level compatible with syslog.",
+                        "name": "level",
+                        "type": "string"
+                    },
+                    "timeformat": {
+                        "description": "Define format used for timestamps in log file.",
+                        "name": "timeformat",
+                        "type": "string"
+                    },
+                    "color": {
+                        "description": "Enable or disable colors in log file.",
+                        "name": "color",
+                        "type": "boolean"
+                    },
+                    "output": {
+                        "description": "Turn on, off logging.",
+                        "name": "output",
+                        "type": "boolean"
+                    },
+                    "tagging": {
+                        "description": "Turn on/turn off tagging in application.",
+                        "name": "tagging",
+                        "type": "boolean"
+                    },
+                    "moredebug": {
+                        "description": "Enable/disable additional debug info in log file.",
+                        "name": "moredebug",
+                        "type": "boolean"
+                    },
+                    "streams": {
+                        "description": "Configuration of output methods for logger.",
+                        "name": "streams",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "description": "Choose one of the output methods. Like FILE of STDOUT.",
+                                    "name": "type",
+                                    "type": "string"
                                 },
-                                "required": [
-                                    "type"
-                                ]
-                            }
+                                "file": {
+                                    "description": "Path to the file, if stream type is set to FILE.",
+                                    "name": "file",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "type"
+                            ]
                         }
                     }
                 }
-            },
-            "required": [
-                "agent"
-            ]
+            }
         }
-    },
-    "required": [
+    },    "required": [
+        "service",
         "agent",
         "server",
         "registration",
-        "service-uuid-file",
-        "logger"
+        "loggers"
     ]
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,65 +24,57 @@ namespace rest {
 namespace constants {
 
 /*!
- * @brief Constant literals for LogicalDrive endpoint.
- */
-namespace LogicalDrive {
-extern const char TYPE[];
-extern const char MODE[];
-extern const char PROTECTED[];
-extern const char SNAPSHOT[];
-extern const char CAPACITY[];
-extern const char IMAGE[];
-extern const char BOOTABLE[];
-extern const char LOGICAL_DRIVES[];
-extern const char PHYSICAL_DRIVES[];
-extern const char MASTER_DRIVE[];
-extern const char TARGETS[];
-extern const char ACTIONS[];
-extern const char CLONE[];
-extern const char TARGET[];
-}
-
-/*!
- * @brief Constant literals for PhysicalDrive endpoint.
- */
-namespace PhysicalDrive {
-}
-
-/*!
  * @brief Constant literals for StorageService endpoint.
  */
 namespace StorageService {
-extern const char TARGETS[];
-extern const char REMOTE_TARGETS[];
-extern const char LOGICAL_DRIVES[];
 extern const char DRIVES[];
+extern const char STORAGE_POOLS[];
+extern const char VOLUMES[];
+extern const char ENDPOINTS[];
+extern const char HOSTING_SYSTEM[];
 }
 
 /*!
- * @brief Constant literals for RemoteTarget endpoint.
+ * @brief Constant literals for Swordfish objects.
  */
-namespace RemoteTarget {
-extern const char TYPE[];
-extern const char ADDRESSES[];
-extern const char ISCSI[];
-extern const char TARGET_LUN[];
-extern const char LUN[];
-extern const char LOGICAL_DRIVE[];
-extern const char TARGET_IQN[];
-extern const char TARGET_PORTAL_IP[];
-extern const char TARGET_PORTAL_PORT[];
-extern const char INITIATOR[];
-extern const char INITIATOR_IQN[];
-extern const char LOGICAL_DRIVES[];
-extern const char CHAP[];
-extern const char USERNAME[];
-extern const char SECRET[];
-extern const char MUTUAL_USERNAME[];
-extern const char MUTUAL_SECRET[];
+namespace Swordfish {
+extern const char PROVIDED_CAPACITY[];
+extern const char CAPACITY[];
+extern const char CAPACITY_SOURCES[];
+extern const char CAPACITY_BYTES[];
+extern const char PROVIDING_DRIVES[];
+extern const char PROVIDING_POOLS[];
+extern const char PROVIDING_VOLUMES[];
+extern const char ALLOCATED_VOLUMES[];
+extern const char ALLOCATED_POOLS[];
+extern const char ACCESS_CAPABILITIES[];
+extern const char REPLICA_INFOS[];
+extern const char BLOCK_SIZE_BYTES[];
+extern const char OPTIMUM_IO_SIZE_BYTES[];
+extern const char BOOTABLE[];
+extern const char ERASED[];
+extern const char ERASE_ON_DETACH[];
+extern const char VOLUME_INITIALIZE[];
+extern const char VOLUME_INITIALIZE_ENDPOINT[];
+extern const char INITIALIZE_TYPE[];
+extern const char CAPACITY_USED_BYTES[];
+extern const char IDENTIFIER[];
+}
+
+namespace Data {
+extern const char DATA[];
+extern const char ALLOCATED_BYTES[];
+extern const char CONSUMED_BYTES[];
+extern const char GUARANTEED_BYTES[];
+}
+
+namespace ReplicaInfo {
+extern const char REPLICA[];
+extern const char REPLICA_TYPE[];
+extern const char REPLICA_ROLE[];
+extern const char REPLICA_READ_ONLY_ACCESS[];
 }
 
 }
 }
 }
-

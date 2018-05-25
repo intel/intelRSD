@@ -2,7 +2,7 @@
  * @brief Registers GetTasksInfo command in pnc agent
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ using namespace agent_framework::model;
 
 REGISTER_COMMAND(GetTaskInfo,
      [] (const GetTaskInfo::Request& req, GetTaskInfo::Response& rsp) {
-         log_debug(GET_LOGGER("pnc-agent"), "Getting Task info");
+         log_debug("pnc-agent", "Getting Task info");
          rsp = get_manager<Task>().get_entry(req.get_uuid());
      }
 );

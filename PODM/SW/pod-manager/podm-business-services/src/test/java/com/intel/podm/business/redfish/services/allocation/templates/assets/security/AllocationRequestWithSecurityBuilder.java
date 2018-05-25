@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ public final class AllocationRequestWithSecurityBuilder {
     private Boolean tpmPresent;
     private Boolean txtEnabled;
     private InterfaceType interfaceType;
+    private Boolean clearTpmOnDelete;
 
     private AllocationRequestWithSecurityBuilder() {
     }
@@ -46,6 +47,11 @@ public final class AllocationRequestWithSecurityBuilder {
         return this;
     }
 
+    public AllocationRequestWithSecurityBuilder clearTpmOnDelete(Boolean clearTpmOnDelete) {
+        this.clearTpmOnDelete = clearTpmOnDelete;
+        return this;
+    }
+
     @SuppressWarnings({"checkstyle:AnonInnerLength"})
     public Security build() {
         return new Security() {
@@ -62,6 +68,11 @@ public final class AllocationRequestWithSecurityBuilder {
             @Override
             public Boolean getTxtEnabled() {
                 return txtEnabled;
+            }
+
+            @Override
+            public Boolean getClearTpmOnDelete() {
+                return clearTpmOnDelete;
             }
         };
     }

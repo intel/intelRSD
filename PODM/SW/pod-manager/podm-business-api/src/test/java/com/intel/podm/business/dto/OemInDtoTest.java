@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static com.intel.podm.common.utils.ClassGatherer.getAllClassesByPackageAndSuperTypeWithTheirInnerClasses;
+import static com.intel.podm.business.dto.DtoClassHelper.getDtoClassesUsedInJsons;
 import static com.intel.podm.common.utils.ClassGatherer.getAllClassesBySuperType;
-import static com.intel.podm.common.utils.ClassGatherer.getAllFieldsTypesDeeplyFromClassesDeclaredInPackage;
 import static com.intel.podm.common.utils.FailManager.failWithMessageIfAnyError;
 import static java.util.Arrays.stream;
 
@@ -40,10 +39,7 @@ public class OemInDtoTest {
     public void allOemFieldsMustHaveProperSuperClass() {
         List<String> errors = new ArrayList<>();
 
-        Set<Class<?>> classes = getAllClassesByPackageAndSuperTypeWithTheirInnerClasses(POD_MANAGER_DTO_PACKAGE, RedfishDto.class);
-        classes.addAll(getAllFieldsTypesDeeplyFromClassesDeclaredInPackage(classes, POD_MANAGER_DTO_PACKAGE));
-
-        classes.stream()
+        getDtoClassesUsedInJsons().stream()
             .map(this::checkIfAllOemFieldsHaveProperSuperClass)
             .forEach(errors::addAll);
 

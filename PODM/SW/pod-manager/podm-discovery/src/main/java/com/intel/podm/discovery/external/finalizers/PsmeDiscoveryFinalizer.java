@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@
 package com.intel.podm.discovery.external.finalizers;
 
 import com.intel.podm.business.entities.redfish.Chassis;
+import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.ExternalService;
+import com.intel.podm.business.entities.redfish.base.ComposableAsset;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
-import com.intel.podm.discovery.ComposedNodeUpdater;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -32,9 +33,11 @@ import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 public class PsmeDiscoveryFinalizer extends ServiceTypeSpecializedDiscoveryFinalizer {
+    @Inject
+    private ComposableAssetsDiscoveryListener composableAssetsDiscoveryListener;
 
     @Inject
-    private ComposedNodeUpdater composedNodeUpdater;
+    private EndpointLinker endpointLinker;
 
     @Inject
     private ChassisHierarchyMaintainer chassisHierarchyMaintainer;
@@ -47,6 +50,7 @@ public class PsmeDiscoveryFinalizer extends ServiceTypeSpecializedDiscoveryFinal
     @Transactional(MANDATORY)
     public void finalize(Set<DiscoverableEntity> discoveredEntities, ExternalService service) {
         chassisHierarchyMaintainer.maintain(filterByType(discoveredEntities, Chassis.class));
-        composedNodeUpdater.updateRelatedComposedNodes(discoveredEntities);
+        endpointLinker.linkSystemToRelatedEndpoint(filterByType(discoveredEntities, ComputerSystem.class));
+        composableAssetsDiscoveryListener.updateRelatedComposedNodes(filterByType(discoveredEntities, ComposableAsset.class));
     }
 }

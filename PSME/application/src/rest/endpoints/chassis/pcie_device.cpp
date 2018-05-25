@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ json::Value make_prototype() {
 
     r[Common::ASSET_TAG] = json::Value::Type::NIL;
     r[Common::DESCRIPTION] = "PCIe Device Description";
-    r[constants::PcieDevice::DEVICE_TYPE] = json::Value::Type::NIL;
+    // DeviceType is only filled when it's available, because it's non-nullable
     r[constants::Common::FIRMWARE_VERSION] = json::Value::Type::NIL;
     r[Common::ID] = json::Value::Type::NIL;
 
@@ -95,7 +95,7 @@ void fill_links(const agent_framework::model::PcieDevice& device, json::Value& j
             }
         }
         catch (agent_framework::exceptions::InvalidUuid) {
-            log_error(GET_LOGGER("rest"), "Device " + device.get_uuid() + " has chassis "
+            log_error("rest", "Device " + device.get_uuid() + " has chassis "
                                           + device.get_chassis().value() + " which does not exist as a resource");
         }
     }
@@ -128,7 +128,9 @@ void endpoint::PcieDevice::get(const server::Request& req, server::Response& res
         psme::rest::model::Find<agent_framework::model::PcieDevice>(req.params[PathParam::DEVICE_ID]).via(chassis_manager_uuid).get();
 
     json[Common::ASSET_TAG] = device.get_asset_tag();
-    json[constants::PcieDevice::DEVICE_TYPE] = device.get_device_class();
+    if (device.get_device_class().has_value()) {
+        json[constants::PcieDevice::DEVICE_TYPE] = device.get_device_class();
+    }
     json[constants::Common::FIRMWARE_VERSION] = device.get_firmware_version();
     json[Common::ID] = req.params[PathParam::DEVICE_ID];
     json[Common::SKU] = device.get_sku();
@@ -151,7 +153,13 @@ void endpoint::PcieDevice::get(const server::Request& req, server::Response& res
 
 
 void endpoint::PcieDevice::patch(const server::Request& request, server::Response& response) {
-    auto device = model::Find<agent_framework::model::PcieDevice>(request.params[PathParam::DEVICE_ID]).get();
+    // the devices are under the same manager as the chassis from the URL
+    auto chassis_manager_uuid = psme::rest::model::Find<agent_framework::model::Chassis>(
+        request.params[PathParam::CHASSIS_ID]).get_one()->get_parent_uuid();
+
+    const auto device =
+        psme::rest::model::Find<agent_framework::model::PcieDevice>(request.params[PathParam::DEVICE_ID])
+            .via(chassis_manager_uuid).get();
 
     const auto json = JsonValidator::validate_request_body<schema::PcieDevicePatchSchema>(request);
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,6 +83,10 @@ public:
     static constexpr const char NEIGHBOR_MAC[] = "neighborMac";
     static constexpr const char VLAN_ENABLE[] = "vlanEnable";
     static constexpr const char DEFAULT_VLAN[] = "defaultVlan";
+    static constexpr const char LLDP_ENABLED[] = "lldpEnabled";
+    static constexpr const char PFC_ENABLED[] ="pfcEnabled";
+    static constexpr const char PFC_ENABLED_PRIORITIES[] ="pfcEnabledPriorities";
+    static constexpr const char DCBX_STATE[] = "dcbxState";
     static constexpr const char COLLECTIONS[] = "collections";
     static constexpr const char OEM[] = "oem";
 };
@@ -134,6 +138,13 @@ public:
     static constexpr const char LOCATION[] = "location";
     static constexpr const char CHASSIS[] = "chassis";
     static constexpr const char MAX_ACL_NUMBER[] = "maxAclNumber";
+    static constexpr const char LLDP_ENABLED[] = "lldpEnabled";
+    static constexpr const char PFC_ENABLED[] = "pfcEnabled";
+    static constexpr const char ETS_ENABLED[] = "etsEnabled";
+    static constexpr const char DCBX_ENABLED[] = "dcbxEnabled";
+    static constexpr const char QOS_APPLICATION_PROTOCOL[] = "qosApplicationProtocol";
+    static constexpr const char QOS_PRIORITY_TO_PRIORITY_GROUP_MAPPING[] = "qosPriorityToPriorityGroupMapping";
+    static constexpr const char QOS_BANDWIDTH_ALLOCATION[] = "qosBandwidthAllocation";
     static constexpr const char COLLECTIONS[] = "collections";
     static constexpr const char OEM[] = "oem";
 };
@@ -215,7 +226,18 @@ public:
     static constexpr const char VLAN_ID[] = "vlanId";
 };
 
-}
-}
-}
+/*!
+ * @brief Class consisting of literals for Network QoS Configuration
+ * */
+class NetworkQosAttribute {
+public:
+    static constexpr const char PRIORITY_GROUP[] = "priorityGroup";
+    static constexpr const char PRIORITY[] = "priority";
+    static constexpr const char PROTOCOL[] = "protocol";
+    static constexpr const char PORT[] = "port";
+    static constexpr const char BANDWIDTH_PERCENT[] = "bandwidthPercent";
+};
 
+}
+}
+}

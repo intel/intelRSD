@@ -297,13 +297,13 @@ bool Deserializer::read_object_member(Value& value, size_t& count) {
     if (',' == *m_current) {
         ++m_current;
         if (!read_object_member(value, count)) { return false; }
-        if (is_duplicate(value, key, count)) {return set_error(Code::DUPLICATE_KEY);}
+        if (is_duplicate(value, key, count)) { return set_error(Code::DUPLICATE_KEY); }
         value.m_object[--count].first = std::move(key);
         value.m_object[count].second = std::move(tmp);
     }
     else if ('}' == *m_current) {
         ++m_current;
-        if (is_duplicate(value, key, count)) {return set_error(Code::DUPLICATE_KEY);}
+        if (is_duplicate(value, key, count)) { return set_error(Code::DUPLICATE_KEY); }
         value.m_object.resize(count);
         value.m_object[--count].first = std::move(key);
         value.m_object[count].second = std::move(tmp);
@@ -554,7 +554,6 @@ bool Deserializer::read_array(Value& value) {
     }
 
     size_t count = 0;
-
     return read_array_element(value, count);
 }
 

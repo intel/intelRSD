@@ -56,7 +56,7 @@
       <Action Name="SetEncryptionKey" IsBound="true">
         <Parameter Name="Storage" Type="Storage.v1_0_0.Actions"/>
         <Parameter Name="EncryptionKey" Type="Edm.String">
-          <Annotation Term="OData.Description" String="The encryption key to set on the storage subsytem"/>
+          <Annotation Term="OData.Description" String="The encryption key to set on the storage subsytem."/>
           <Annotation Term="OData.LongDescription" String="This defines the property name for the action."/>
         </Parameter>
         <Annotation Term="OData.Description"
@@ -114,7 +114,7 @@
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
         <NavigationProperty Name="Redundancy" Type="Collection(Redundancy.Redundancy)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Redundancy information for the storage subsystem"/>
+          <Annotation Term="OData.Description" String="Redundancy information for the storage subsystem."/>
           <Annotation Term="OData.AutoExpand"/>
         </NavigationProperty>
       </EntityType>
@@ -155,7 +155,7 @@
         </Property>
         <Property Name="FirmwareVersion" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The firmware version of this storage Controller"/>
+          <Annotation Term="OData.Description" String="The firmware version of this storage Controller."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the firwmare version as defined by the manufacturer for the associated storage controller."/>
         </Property>
@@ -210,102 +210,102 @@
         </Property>
         <Property Name="Identifiers" Type="Collection(Resource.v1_1_0.Identifier)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The Durable names for the storage controller"/>
+          <Annotation Term="OData.Description" String="The Durable names for the storage controller."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain a list of all known durable names for the associated storage controller."/>
         </Property>
       </EntityType>
 
       <EnumType Name="Protocol">
+        <Member Name="AHCI">
+          <Annotation Term="OData.Description" String="Advanced Host Controller Interface."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the Intel Advanced Host Controller Interface Specification."/>
+        </Member>
+        <Member Name="FC">
+          <Annotation Term="OData.Description" String="Fibre Channel."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the T11 Fibre Channel Physical and Signaling Interface Specification."/>
+        </Member>
+        <Member Name="FCoE">
+          <Annotation Term="OData.Description" String="Fibre Channel over Ethernet."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the T11 FC-BB-5 Specification."/>
+        </Member>
+        <Member Name="FTP">
+          <Annotation Term="OData.Description" String="File Transfer Protocol."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the File Transfer Protocol as defined by RFC 114."/>
+        </Member>
+        <Member Name="HTTP">
+          <Annotation Term="OData.Description" String="Hypertext Transport Protocol."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the Hypertext Transfer Protocol as defined by RFC 2068 or RFC 2616."/>
+        </Member>
+        <Member Name="HTTPS">
+          <Annotation Term="OData.Description" String="Secure Hypertext Transport Protocol."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the Hypertext Transfer Protocol as defined by RFC 2068 or RFC 2616 using Transport Layer Security as specified by RFC 5246 or RFC 6176."/>
+        </Member>
+        <Member Name="iSCSI">
+          <Annotation Term="OData.Description" String="Internet SCSI."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the IETF* Internet Small Computer Systems Interface (iSCSI) Specification."/>
+        </Member>
+        <Member Name="NFSv3">
+          <Annotation Term="OData.Description" String="Network File System version 3."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the Network File System protocol as defined by RFC 1813."/>
+        </Member>
+        <Member Name="NFSv4">
+          <Annotation Term="OData.Description" String="Network File System version 4."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the Network File System protocol as defined by RFC 3010 or RFC 5661."/>
+        </Member>
+        <Member Name="NVMe">
+          <Annotation Term="OData.Description" String="Non-Volatile Memory Express."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the Non-Volatile Memory Host Controller Interface Specification."/>
+        </Member>
+        <Member Name="NVMeOverFabrics">
+          <Annotation Term="OData.Description" String="NVMe over Fabrics."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This value shall mean that the device conforms to the NVM Express over Fabrics Specification."/>
+        </Member>
         <Member Name="PCIe">
           <Annotation Term="OData.Description" String="PCI Express (Vendor Proprietary)"/>
           <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the PCI-SIG PCI Express Base Specification only beyond that is uses some vendor proprietary mechanism to communicate."/>
-        </Member>
-        <Member Name="AHCI">
-          <Annotation Term="OData.Description" String="Advanced Host Controller Interface"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the Intel Advanced Host Controller Interface Specification."/>
-        </Member>
-        <Member Name="UHCI">
-          <Annotation Term="OData.Description" String="Universal Host Controller Interface"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the Intel Universal Host Controller Interface Specification, Enhanced Host Controller Interface Specification, or the Extensible Host Controller Interface specification."/>
+                      String="This value shall mean that the device conforms to the PCI-SIG PCI Express Base Specification only. Beyond that, it uses some vendor proprietary mechanism to communicate."/>
         </Member>
         <Member Name="SAS">
-          <Annotation Term="OData.Description" String="Serial Attached SCSI"/>
+          <Annotation Term="OData.Description" String="Serial Attached SCSI."/>
           <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the T10 SAS Protocol Layer Specification."/>
+                      String="This value shall mean that the device conforms to the T10 SAS Protocol Layer Specification."/>
         </Member>
         <Member Name="SATA">
-          <Annotation Term="OData.Description" String="Serial AT Attachment"/>
+          <Annotation Term="OData.Description" String="Serial AT Attachment."/>
           <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the Serial ATA International Organization Serial ATA Specification."/>
+                      String="This value shall mean that the device conforms to the Serial ATA International Organization Serial ATA Specification."/>
         </Member>
-        <Member Name="USB">
-          <Annotation Term="OData.Description" String="Universal Serial Bus"/>
+        <Member Name="SFTP">
+          <Annotation Term="OData.Description" String="Secure File Transfer Protocol."/>
           <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the USB Implementers Forum Universal Serial Bus Specification."/>
-        </Member>
-        <Member Name="NVMe">
-          <Annotation Term="OData.Description" String="Non-Volatile Memory Express"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the Non-Volatile Memory Host Controller Interface Specification Specification."/>
-        </Member>
-        <Member Name="FC">
-          <Annotation Term="OData.Description" String="Fibre Channel"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the T11 Fibre Channel Physical and Signaling Interface Specification."/>
-        </Member>
-        <Member Name="iSCSI">
-          <Annotation Term="OData.Description" String="Internet SCSI"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the IETF Internet Small Computer Systems Interface (iSCSI) Specification."/>
-        </Member>
-        <Member Name="FCoE">
-          <Annotation Term="OData.Description" String="Fibre Channel over Ethernet"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the T11 FC-BB-5 Specification."/>
-        </Member>
-        <Member Name="NVMeOverFabrics">
-          <Annotation Term="OData.Description" String="NVMe over Fabrics"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the NVM Express over Fabrics Specification."/>
+                      String="This value shall mean that the device conforms to the File Transfer Protocol as defined by RFC 114 using Transport Layer Security as specified by RFC 5246 or RFC 6176."/>
         </Member>
         <Member Name="SMB">
           <Annotation Term="OData.Description" String="Server Message Block (aka CIFS Common Internet File System)"/>
           <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the Microsoft Server Message Block Protocol."/>
+                      String="This value shall mean that the device conforms to the Microsoft* Server Message Block Protocol."/>
         </Member>
-        <Member Name="NFSv3">
-          <Annotation Term="OData.Description" String="Network File System version 3"/>
+        <Member Name="UHCI">
+          <Annotation Term="OData.Description" String="Universal Host Controller Interface."/>
           <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the Network File System protocol as defined by RFC 1813."/>
+                      String="This value shall mean that the device conforms to the Intel Universal Host Controller Interface Specification, Enhanced Host Controller Interface Specification, or the Extensible Host Controller Interface specification."/>
         </Member>
-        <Member Name="NFSv4">
-          <Annotation Term="OData.Description" String="Network File System version 4"/>
+        <Member Name="USB">
+          <Annotation Term="OData.Description" String="Universal Serial Bus."/>
           <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the Network File System protocol as defined by RFC 3010 or RFC 5661."/>
-        </Member>
-        <Member Name="HTTP">
-          <Annotation Term="OData.Description" String="Hypertext Transport Protocol"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the Hypertext Transfer protocol as defined by RFC 2068 or RFC 2616."/>
-        </Member>
-        <Member Name="HTTPS">
-          <Annotation Term="OData.Description" String="Secure Hypertext Transport Protocol"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the Hypertext Transfer protocol as defined by RFC 2068 or RFC 2616 utilizing Transport Layer Security as specified by RFC 5246 or RFC 6176."/>
-        </Member>
-        <Member Name="FTP">
-          <Annotation Term="OData.Description" String="File Transfer Protocol"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the File Transfer protocol as defined by RFC 114."/>
-        </Member>
-        <Member Name="SFTP">
-          <Annotation Term="OData.Description" String="Secure File Transfer Protocol"/>
-          <Annotation Term="OData.LongDescription"
-                      String="This value shall mean that this device conforms to the File Transfer protocol as defined by RFC 114 utilizing Transport Layer Security as specified by RFC 5246 or RFC 6176."/>
+                      String="This value shall mean that the device conforms to the USB Implementers Forum Universal Serial Bus Specification."/>
         </Member>
       </EnumType>
     </Schema>

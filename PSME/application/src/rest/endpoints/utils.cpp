@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,7 @@
 #include "psme/rest/endpoints/utils.hpp"
 #include "psme/rest/server/multiplexer.hpp"
 #include "psme/rest/model/finder.hpp"
+#include "psme/rest/server/utils.hpp"
 
 #include "agent-framework/module/model/model_chassis.hpp"
 #include "agent-framework/module/model/model_compute.hpp"
@@ -37,7 +38,6 @@
 #include <regex>
 #include <cmath>
 #include <iterator>
-
 
 
 using namespace psme::rest::constants::Common;
@@ -83,7 +83,7 @@ std::uint64_t id_to_uint64(const std::string& id_as_string) {
     if (!std::all_of(id_as_string.begin(), id_as_string.end(), ::isdigit)) {
         // A string containing non-digit characters is NOT supposed to reach this method,
         // because the rest server only allows ID strings of the form [0-9]+. So, we log an error.
-        log_error(GET_LOGGER("rest"), "String " + id_as_string +
+        log_error("rest", "String " + id_as_string +
                                       " which contains not-digit characters was received for conversion to REST ID!");
 
         THROW(agent_framework::exceptions::NotFound, "rest",
@@ -138,7 +138,7 @@ void build_array_member_path(endpoint::PathBuilder& path, const std::string& uui
         std::find(array_members.begin(), array_members.end(), uuid)
     );
     if (index >= array_members.size()) {
-        log_error(GET_LOGGER("rest"), "Could not build url for resource " + uuid + ".");
+        log_error("rest", "Could not build url for resource " + uuid + ".");
         THROW(agent_framework::exceptions::NotFound, "rest",
               std::string("Component of type ") + M::get_component().to_string() + " was removed before it's URL could be created.");
     }
@@ -159,7 +159,7 @@ size_t find_metric_index(const agent_framework::model::Metric& metric) {
         std::find(array_members.begin(), array_members.end(), metric.get_uuid())
     );
     if (index >= array_members.size()) {
-        log_error(GET_LOGGER("rest"), "Could not build url for resource " + metric.get_uuid() + ".");
+        log_error("rest", "Could not build url for resource " + metric.get_uuid() + ".");
         THROW(agent_framework::exceptions::NotFound, "rest",
               "Component of type Metric was removed before it's URL could be created.");
     }
@@ -234,22 +234,13 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
             build_child_path<agent_framework::model::StorageSubsystem>(path, uuid, constants::System::STORAGE);
             break;
         case Component::StorageService:
-            build_parent_path<agent_framework::model::StorageService>(path, uuid, constants::Root::SERVICES);
+            build_parent_path<agent_framework::model::StorageService>(path, uuid, constants::Root::STORAGE_SERVICES);
             break;
         case Component::EthernetSwitch:
             build_parent_path<agent_framework::model::EthernetSwitch>(path, uuid, constants::Root::ETHERNET_SWITCHES);
             break;
         case Component::Drive:
             build_child_path<agent_framework::model::Drive>(path, uuid, constants::Chassis::DRIVES);
-            break;
-        case Component::PhysicalDrive:
-            build_child_path<agent_framework::model::PhysicalDrive>(path, uuid, constants::StorageService::DRIVES);
-            break;
-        case Component::LogicalDrive:
-            build_child_path<agent_framework::model::LogicalDrive>(path, uuid, constants::StorageService::LOGICAL_DRIVES);
-            break;
-        case Component::IscsiTarget:
-            build_child_path<agent_framework::model::IscsiTarget>(path, uuid, constants::StorageService::TARGETS);
             break;
         case Component::Memory:
             build_child_path<agent_framework::model::Memory>(path, uuid, constants::System::MEMORY);
@@ -294,7 +285,7 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
             auto& chassis_manager = agent_framework::module::get_manager<agent_framework::model::Chassis>();
             const auto chassis_uuids = chassis_manager.get_keys(manager_uuid);
             if (chassis_uuids.size() != 1) {
-                log_error(GET_LOGGER("rest"),
+                log_error("rest",
                           "PNC Manager should have precisely one Chassis child!"
                               " Server is unable to build a path to PCIeDevice component.");
                 break;
@@ -363,6 +354,15 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
         case Component::TrustedModule:
             build_array_member_path<agent_framework::model::TrustedModule>(path, uuid, constants::System::TRUSTED_MODULES);
             break;
+        case Component::Volume:
+            build_child_path<agent_framework::model::Volume>(path, uuid, constants::StorageService::VOLUMES);
+            break;
+        case Component::StoragePool:
+            build_child_path<agent_framework::model::StoragePool>(path, uuid, constants::StorageService::STORAGE_POOLS);
+            break;
+        case Component::IscsiTarget:
+            // TODO: iSCSI target model to remove
+            break;
         case Component::AuthorizationCertificate:
         case Component::Vlan:
         case Component::NeighborSwitch:
@@ -386,8 +386,10 @@ std::string get_component_url(enums::Component type, const std::string& uuid) {
 }
 
 
-void set_location_header(server::Response& response, const std::string& path) {
-    response.set_header(LOCATION, path);
+void set_location_header(const server::Request& request, server::Response& response, const std::string& path) {
+    const bool& scheme_secure = request.is_secure();
+    const std::string& absolute_location_path = psme::rest::server::build_location_header(request, scheme_secure, path);
+    response.set_header(LOCATION, absolute_location_path);
 }
 
 
@@ -476,7 +478,7 @@ void populate_metrics(json::Value& component_json, const std::string& component_
                             agent_framework::model::utils::to_json_cxx(metric.get_value()));
         }
         catch(const std::exception& e) {
-            log_error(GET_LOGGER("rest"), "populate metric " << metric.get_name() << " failed: " << e.what());
+            log_error("rest", "Populate metric " << metric.get_name() << " failed: " << e.what());
         }
     }
 }
@@ -488,7 +490,7 @@ void populate_metrics(json::Value& component_json, const std::vector<agent_frame
                             agent_framework::model::utils::to_json_cxx(metric.get_value()));
         }
         catch(const std::exception& e) {
-            log_error(GET_LOGGER("rest"), "populate metric " << metric.get_name() << " failed: " << e.what());
+            log_error("rest", "Populate metric " << metric.get_name() << " failed: " << e.what());
         }
     }
 }

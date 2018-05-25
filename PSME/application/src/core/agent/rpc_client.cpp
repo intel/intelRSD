@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ json::Json RpcClient::CallMethod(const std::string& name, const json::Json& para
     }
     catch (const json_rpc::JsonRpcException& ex) {
         const auto error_code = static_cast<ErrorCode>(ex.get_code());
-        log_error(GET_LOGGER("rest"), "RPC connector threw exception: >>"
+        log_error("rest", "RPC connector threw exception: >>"
             << ex.what() << "<< for method " << name << ".");
 
         // JSON RPC InvalidParameter exception is similar to InvalidField exception

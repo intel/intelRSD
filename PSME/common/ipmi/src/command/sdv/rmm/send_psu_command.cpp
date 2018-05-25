@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@
 #include "ipmi/command/sdv/rmm/send_psu_command.hpp"
 #include "ipmi/command/sdv/enums.hpp"
 #include "ipmi/utils/sdv/linear_to_double.hpp"
+#include "ipmi/utils/byte_buffer.hpp"
 
 using namespace ipmi::command::sdv;
 using namespace ipmi::sdv;
@@ -50,6 +51,28 @@ void request::SendPsuCommand::pack_fields(IpmiInterface::ByteBuffer&) const {
 }
 
 
+/* SendPsuClearFaults */
+request::SendPsuClearFaults::SendPsuClearFaults()
+    : SendPsuCommand(OperationCode::WRITE_BYTE, Command::CLEAR_FAULTS) {}
+
+request::SendPsuClearFaults::~SendPsuClearFaults() {}
+
+constexpr const std::uint8_t request::SendPsuClearFaults::REQUEST_DATA_SIZE;
+
+void request::SendPsuClearFaults::pack_fields(IpmiInterface::ByteBuffer& data) const {
+    data.push_back(REQUEST_DATA_SIZE);
+}
+
+response::SendPsuClearFaults::SendPsuClearFaults()
+    : Response(INTEL + 1, SEND_PSU_COMMAND, RESP_SIZE) {}
+
+response::SendPsuClearFaults::~SendPsuClearFaults() {}
+
+void response::SendPsuClearFaults::unpack(const IpmiInterface::ByteBuffer&) {
+    /* no data in the response */
+}
+
+
 /* SendPsuReadStatusWord */
 
 request::SendPsuReadStatusWord::SendPsuReadStatusWord()
@@ -70,6 +93,50 @@ void response::SendPsuReadStatusWord::unpack(const IpmiInterface::ByteBuffer& da
 
 std::uint16_t response::SendPsuReadStatusWord::get_status_word() const {
     return m_status_word;
+}
+
+
+/* SendPsuReadMfrPsuSta */
+
+request::SendPsuReadMfrPsuSta::SendPsuReadMfrPsuSta()
+    : SendPsuCommand(OperationCode::READ_BLOCK, Command::MFR_PSU_STA) {}
+
+request::SendPsuReadMfrPsuSta::~SendPsuReadMfrPsuSta() {}
+
+response::SendPsuReadMfrPsuSta::SendPsuReadMfrPsuSta()
+    : Response(INTEL + 1, SEND_PSU_COMMAND, RESP_SIZE) {}
+
+response::SendPsuReadMfrPsuSta::~SendPsuReadMfrPsuSta() {}
+
+void response::SendPsuReadMfrPsuSta::unpack(const IpmiInterface::ByteBuffer& data) {
+    static constexpr const std::size_t ALM_STA_POSITION = OFFSET_DATA;
+    static constexpr const std::size_t AC_STATUS_POSITION = ALM_STA_POSITION + 4;
+
+    m_alm_sta = ipmi::ByteBuffer::get_uint32(data, ALM_STA_POSITION);
+    m_ac_status = ipmi::ByteBuffer::get_uint8(data, AC_STATUS_POSITION);
+}
+
+bool response::SendPsuReadMfrPsuSta::ac_has_failed() const {
+    static constexpr const std::uint8_t AC_FAILED = 0;
+    return m_ac_status == AC_FAILED;
+}
+
+bool response::SendPsuReadMfrPsuSta::errors_present() const {
+    /* both inputs have under/over voltage */
+    if (((m_alm_sta & VIN0_UV_FAULT) && (m_alm_sta & VIN1_UV_FAULT)) ||
+        ((m_alm_sta & VIN0_OV_FAULT) && (m_alm_sta & VIN1_OV_FAULT))) {
+        return true;
+    }
+    return (0 != (m_alm_sta & (
+        PSON_FAULT | SHORT_PIN_FAULT | IOUT_OC_FAULT |
+        STDBY_OV_FAULT | STDBY_UV_FAULT | VOUT_UV_FAULT | VOUT_OV_FAULT | HW_OV_FAULT |
+        OT_FAULT | DD_OT_FAULT | PFC_OT_FAULT | NTC_OT_FAULT | SR2_OT_FAULT | SR1_OT_FAULT)));
+}
+
+bool response::SendPsuReadMfrPsuSta::warnings_present() const {
+    return (0 != (m_alm_sta & (
+        FAN_WARN | FAN_FAULT | OT_WARN |
+        VIN1_OV_FAULT | VIN1_UV_FAULT | VIN0_OV_FAULT | VIN0_UV_FAULT)));
 }
 
 
@@ -230,9 +297,6 @@ request::SendPsuReadOperation::SendPsuReadOperation()
     : SendPsuCommand(OperationCode::READ_BYTE, Command::OPERATION) {}
 
 request::SendPsuReadOperation::~SendPsuReadOperation() {}
-
-void request::SendPsuReadOperation::pack_fields(IpmiInterface::ByteBuffer&) const {
-}
 
 response::SendPsuReadOperation::SendPsuReadOperation()
     : Response(INTEL + 1, SEND_PSU_COMMAND, RESPONSE_SIZE) {}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.ServiceDetectionConfig;
 import com.intel.podm.config.base.dto.ServiceDetectionConfig.Protocols.Dhcp;
-import com.intel.podm.discovery.external.ServiceEndpoint;
+import com.intel.podm.common.types.discovery.ServiceEndpoint;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 
 import static com.google.common.collect.Sets.difference;
+import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -137,7 +138,7 @@ class ServiceEndpointsProcessor {
             .forEach(service -> {
                 knownServiceEndpointsMap.remove(service.getEndpointUri());
                 failedServiceEndpointsMap.remove(service.getEndpointUri());
-                logger.i("Service {} scheduled for re-check", service);
+                logger.i("Service {} scheduled for re-check.", service);
             });
     }
 
@@ -149,11 +150,19 @@ class ServiceEndpointsProcessor {
      */
     public void failServiceEndpointCandidate(DhcpServiceCandidate candidate) {
         DhcpServiceCandidate addedCandidate = failedServiceEndpointsMap.putIfAbsent(candidate.getEndpointUri(), candidate);
+        String message;
         if (addedCandidate != null) {
             addedCandidate.increaseRetries();
-            logger.e("Valid service could not be detected at {}, retry no {}", addedCandidate, addedCandidate.getRetries());
+            message = format("Valid service could not be detected at %s, retry no %s.", addedCandidate, addedCandidate.getRetries());
         } else {
-            logger.e("Valid service could not be detected at {}", candidate);
+            message = format("Valid service could not be detected at %s.", candidate);
+        }
+        logIfCandidateIsNotOptional(candidate, message);
+    }
+
+    private void logIfCandidateIsNotOptional(DhcpServiceCandidate candidate, String message) {
+        if (!(candidate instanceof DhcpOptionalServiceCandidate)) {
+            logger.e(message);
         }
     }
 }

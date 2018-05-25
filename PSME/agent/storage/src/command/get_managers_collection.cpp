@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +26,12 @@ using namespace agent_framework::command;
 using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetManagersCollection,
-                 [](const GetManagersCollection::Request&, GetManagersCollection::Response& rsp) {
-        log_debug(GET_LOGGER("storage-agent"), "Getting collection of managers.");
-        auto keys = CommonComponents::get_instance()->get_module_manager().get_keys();
+                 [](const GetManagersCollection::Request&, GetManagersCollection::Response& response) {
+
+        log_debug("storage-agent", "Getting collection of managers.");
+        auto keys = get_manager<agent_framework::model::Manager>().get_keys();
         for (auto key : keys) {
-            rsp.add_entry(agent_framework::model::attribute::ManagerEntry{key});
+            response.add_entry(agent_framework::model::attribute::ManagerEntry{key});
         }
     }
 );

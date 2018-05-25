@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,15 +43,14 @@ import static java.util.stream.Collectors.toMap;
 
 public abstract class RedfishDto implements RedfishResource {
     private static final Logger LOGGER = getLogger(RedfishDto.class);
-
+    @JsonProperty("@odata.type")
+    private final String oDataType;
     @JsonProperty("Id")
     private String id;
     @JsonProperty("Name")
     private String name;
     @JsonProperty("Description")
     private String description;
-    @JsonProperty("@odata.type")
-    private final String oDataType;
     @JsonProperty("Oem")
     private DefaultTopLevelOemDto oem = new DefaultTopLevelOemDto();
     @JsonIgnore

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ Command::~Command() {}
 void Command::run() {
     uint8_t code = uint8_t(m_command);
     m_iface->write(&code, sizeof(uint8_t), MRPC_COMMAND_REG_OFFSET);
-    log_debug(GET_LOGGER("pnc-mrpc"), "Running command " << get_command_name(std::uint32_t(m_command)));
+    log_debug("pnc-mrpc", "Running command " << get_command_name(std::uint32_t(m_command)));
 }
 
 

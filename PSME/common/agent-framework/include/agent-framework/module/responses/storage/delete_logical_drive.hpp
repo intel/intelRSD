@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,6 @@
 
 #pragma once
 
-
-
-#include "agent-framework/module/utils/optional_field.hpp"
 #include "agent-framework/module/model/attributes/oem.hpp"
 #include "agent-framework/module/constants/command.hpp"
 #include "json-wrapper/json-wrapper.hpp"
@@ -45,31 +42,11 @@ public:
     /*!
      * @brief explicit DeleteLogicalDrive response constructor
      */
-    DeleteLogicalDrive(Oem oem = Oem{});
-
+    explicit DeleteLogicalDrive(Oem oem = Oem{});
 
     static std::string get_command() {
         return literals::Command::DELETE_LOGICAL_DRIVE;
     }
-
-
-    /*!
-     * @brief Get task UUID
-     * @return task UUID
-     * */
-    const OptionalField<std::string>& get_task() const {
-        return m_task;
-    }
-
-
-    /*!
-     * @brief Set task UUID
-     * @param[in] task the task UUID
-     * */
-    void set_task(const OptionalField<std::string>& task) {
-        m_task = task;
-    }
-
 
     /*!
      * @brief Transform request to Json
@@ -77,7 +54,6 @@ public:
      * @return created Json value
      */
     json::Json to_json() const;
-
 
     /*!
      * @brief create DeleteLogicalDrive from Json
@@ -89,7 +65,6 @@ public:
     static DeleteLogicalDrive from_json(const json::Json& json);
 
 private:
-    OptionalField<std::string> m_task{};
     Oem m_oem{};
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@ import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.synchronization.TaskCoordinator;
 import com.intel.podm.common.synchronization.ThrowingRunnable;
 import com.intel.podm.common.types.ComposedNodeState;
+import com.intel.podm.config.base.Config;
+import com.intel.podm.config.base.Holder;
+import com.intel.podm.config.base.dto.ServiceConfig;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -59,12 +62,17 @@ class ComposedNodeRemovalServiceImpl implements RemovalService<ComposedNodeDto> 
     @Inject
     private Logger logger;
 
+    @Inject
+    @Config
+    private Holder<ServiceConfig> config;
+
     @Override
     @Transactional(REQUIRES_NEW)
     @SuppressWarnings({"unchecked"})
     public void perform(Context target) throws BusinessApiException, TimeoutException {
-        taskCoordinator.run(target, (ThrowingRunnable) () -> {
-            ComposedNode composedNode = (ComposedNode) traverser.traverse(target);
+        ComposedNode composedNode = (ComposedNode) traverser.traverse(target);
+
+        taskCoordinator.run(composedNode.getAssociatedComputerSystemUuid(), (ThrowingRunnable) () -> {
             ComposedNodeState composedNodeState = composedNode.getComposedNodeState();
             Collection<NodeTask> tasks = nodeDisassembler.getDisassemblyTasks(composedNode.getId());
             for (NodeTask task : tasks) {

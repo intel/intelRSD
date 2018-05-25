@@ -1,4 +1,5 @@
 {
+    "service" : "network",
     "agent": {
         "vendor" : "Intel Corporation",
         "capabilities" : [ "Network" ]
@@ -20,17 +21,34 @@
                     "locationOffset": 10,
                     "parentId": "1",
                     "mgmt_port": "ma1",
+                    "qosConfiguration": {
+                        "lldpEnabled": true,
+                        "pfcEnabled": true,
+                        "qosApplicationProtocol": [
+                            {"protocol": "UDP", "port": 4791, "priority": 5}
+                        ],
+                        "qosPriorityToPriorityGroupMapping": [
+                            {"priority": 5, "priorityGroup": 1}
+                        ],
+                        "qosBandwidthAllocation": [
+                            {"priorityGroup": 1, "bandwidthPercent": 50}
+                        ]
+                    },
                     "ports" : [
-                        { "id": "Ethernet33", "portType": "Upstream" }
+                        {"id": "Default", "lldpEnabled": true, "dcbxState": "EnabledCEE", "pfcEnabled": true, "pfcEnabledPriorities": [5]},
+                        {"id": "Ethernet33", "portType": "Upstream"}
                     ]
                 }
             ]
         }
     ],
-    "service-uuid-file" : "/var/opt/psme/network-service-uuid.json",
-    "logger" : {
-        "agent" : {
-            "level" : "WARNING",
+    "database": {
+        "location": "/var/opt/psme/network"
+    },
+    "loggers" : [
+        {
+            "name" : "network-agent",
+            "level" : "INFO",
             "timeformat" : "DATE_NS",
             "color" : true,
             "output" : true,
@@ -42,5 +60,5 @@
                 }
             ]
         }
-    }
+    ]
 }

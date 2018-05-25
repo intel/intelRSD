@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public:
         }
 
         try {
-            log_debug(GET_LOGGER("rest"), ctx.indent
+            log_debug("rest", ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Fetching list of all metric definitions from agent "
                 << ctx.agent->get_gami_id());
@@ -73,7 +73,7 @@ public:
             return res;
         }
         catch (const json_rpc::JsonRpcException& e) {
-            log_error(GET_LOGGER("rest"), ctx.indent
+            log_error("rest", ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Agent exception while fetching list of all components of "
                     "type [" << component_s() << "] for parent "

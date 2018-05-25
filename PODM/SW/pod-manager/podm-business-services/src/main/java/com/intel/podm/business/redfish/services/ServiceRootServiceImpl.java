@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import static java.util.Collections.emptyList;
 @Stateless
 public class ServiceRootServiceImpl implements ServiceRootService {
     private static final String REDFISH_SERVICE_VERSION = "1.1.0";
-    private static final String RACKSCALE_API_VERSION = "2.2.0";
+    private static final String RACKSCALE_API_VERSION = "2.3.0";
 
     @Inject
     @Config
@@ -63,12 +63,12 @@ public class ServiceRootServiceImpl implements ServiceRootService {
         dto.setManagers(singletonContextOf(context, MANAGERS_RESOURCE_NAME));
         dto.setEventService(singletonContextOf(context, EVENT_SERVICE_RESOURCE_NAME));
         dto.setFabrics(singletonContextOf(context, FABRIC_RESOURCE_NAME));
+        dto.setStorageServices(singletonContextOf(context, STORAGE_SERVICES_RESOURCE_NAME));
         dto.setTelemetryService(singletonContextOf(context, TELEMETRY_SERVICE_RESOURCE_NAME));
 
         dto.setUnknownOems(emptyList());
         ServiceRootDto.Oem.RackScaleOem rackScaleOem = dto.getOem().getRackScaleOem();
         rackScaleOem.setComposedNodes(singletonContextOf(context, COMPOSED_NODES_RESOURCE_NAME));
-        rackScaleOem.setServices(singletonContextOf(context, STORAGE_SERVICES_RESOURCE_NAME));
         rackScaleOem.setEthernetSwitches(singletonContextOf(context, ETHERNET_SWITCHES_RESOURCE_NAME));
         rackScaleOem.setApiVersion(RACKSCALE_API_VERSION);
 

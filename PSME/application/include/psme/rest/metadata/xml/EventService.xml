@@ -86,14 +86,14 @@
         <Property Name="ServiceEnabled" Type="Edm.Boolean">
           <Annotation Term="OData.Description" String="This indicates whether this service is enabled."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall be a boolean indicating whether this service is enabled."/>
+                      String="The value of the property shall be a Boolean indicating whether the service is enabled."/>
         </Property>
         <Property Name="DeliveryRetryAttempts" Type="Edm.Int64" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"
                       String="This is the number of attempts an event posting is retried before the subscription is terminated."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall be the number of retrys attempted for any given event to the subscription destination before the subscription is terminated."/>
+                      String="The value of the property shall be the number of retries attempted for any given event to the subscription destination before the subscription is terminated."/>
         </Property>
         <Property Name="DeliveryRetryIntervalSeconds" Type="Edm.Int64" Nullable="false">
           <Annotation Term="Measures.Unit" String="s"/>
@@ -107,13 +107,13 @@
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="This is the types of Events that can be subscribed to."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall be the types of events that subscriptions can subscribe to.  The semantics associated with the enumerations values are defined in the Redfish specification."/>
+                      String="The value of the property shall be the types of events that subscriptions can subscribe to. The semantics associated with the enumerations values are defined in the Redfish specification."/>
         </Property>
         <Property Name="Actions" Type="EventService.v1_0_0.Actions" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The available actions for this resource."/>
           <Annotation Term="OData.LongDescription"
-                      String="The Actions property shall contain the available actions for this resource."/>
+                      String="The Actions property shall contain the available actions for the resource."/>
         </Property>
         <NavigationProperty Name="Subscriptions" Type="EventDestinationCollection.EventDestinationCollection"
                             ContainsTarget="true" Nullable="false">
@@ -121,10 +121,16 @@
           <Annotation Term="OData.Description"
                       String="This is a reference to a collection of Event Destination resources."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall contain the link to a collection of type EventDestinationCollection."/>
+                      String="The value of the property shall contain the link to a collection of type EventDestinationCollection."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
-        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+        <Property Name="Status" Type="Resource.Status" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="Resource status."/>
+          <Annotation Term="OData.LongDescription"
+                      String="Resource status."/>
+        </Property>
       </EntityType>
 
       <ComplexType Name="Actions">

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,6 +42,11 @@ if ("${CMAKE_TARGET_ARCH}" STREQUAL "32")
         set(BUILD_MICROHTTPD YES)
         set(BUILD_CURL YES)
         set(BUILD_EOS_SDK YES)
+        set(BUILD_EOS_EAPI YES)
+endif()
+
+if (NOT (CMAKE_CROSSCOMPILING OR "${CMAKE_TARGET_ARCH}" STREQUAL "32"))
+    set(BUILD_FABRIC YES)
 endif()
 
 # Path to folder with all cmake scripts
@@ -66,6 +71,9 @@ include(AddDocumentation)
 include(PsmeAgentFramework)
 include(InstallScriptsCommon)
 
+# Add function to generate header files with default or test configuration
+include(GenerateConfigHeader)
+
 option(ENABLE_HTTPS "Enable HTTPS support" ON)
 
 find_package(PkgConfig REQUIRED)
@@ -78,11 +86,9 @@ find_package(PackageHandleStandardArgs REQUIRED)
 # TODO cleanup with "local" pkgconfig -> store all files in lib/pkgconfig
 # TODO GoogleTest/Mock with silent handling
 # TODO Check what about google_tests (last "version" on github..)
-# TODO extract tar/zip to package-version directory (with stripped "master" directory)
 # TODO ac_cv_va_copy env should not be used (is there any option to replace it?)
-# TODO remove PCA95XX: it is not used!
 # TODO add ABI tags checker for all find scripts (link small file with the lib.. if fails library is not found)
-# TODO add warning to all "non-999" packages created by Install
+# TODO add warning to all "non-999" .so generating packages created by Install scripts
 
 ###############################################################################
 # Find packages provided by us or by system
@@ -112,6 +118,9 @@ else()
     find_package(Microhttpd REQUIRED)
 endif()
 
+install_third_party(NlohmannJson)
+install_third_party(JsonSchema)
+
 find_package(UDEV REQUIRED)
 install_third_party(Ipmitool)
 
@@ -120,6 +129,10 @@ find_package(NL3 REQUIRED)
 find_package(DevMapper REQUIRED)
 
 install_third_party(SafeString)
+
+if (BUILD_FABRIC)
+    install_third_party(Fabric)
+endif()
 
 # for agent-simulator
 find_package(Libxmlpp)
@@ -151,6 +164,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "tsanitize")
         return()
     endif()
 endif()
+
+find_package(Zlib)
 
 ###############################################################################
 message(STATUS "Building sources...")

@@ -1,0 +1,65 @@
+{
+    "service" : "discovery-server",
+    "server": {
+        "network-interface-name" : ["eth2"],
+        "connectors" : [
+            {
+                "use-ssl" : true,
+                "certs-directory" : "/etc/psme/certs",
+                "port": 8444,
+                "thread-mode" : "select",
+                "client-cert-required" : true
+            },
+            {
+                "use-ssl" : false,
+                "port": 8889,
+                "redirect-port" : 8444,
+                "thread-mode" : "select",
+                "thread-pool-size" : 1
+            }
+        ]
+    },
+    "event-service" : {
+        "delivery-retry-attempts" : 3,
+        "delivery-retry-interval-seconds" : 60
+    },
+    "ssdp-service" : {
+        "enabled" : true,
+        "announce-interval-seconds" : 0,
+        "ttl" : 2
+    },
+    "rmm-present" : false,
+    "registration": {
+        "port": 8384,
+        "minDelay": 3
+    },
+    "eventing" : {
+        "address": "localhost",
+        "port" : 5568,
+        "poll-interval-sec" : 20
+    },
+    "rest" : {
+        "service-root-name" : "NVMe Discovery Service Root"
+    },
+    "database": {
+        "location": "/var/opt/psme/discovery",
+        "retention-interval-sec": 600,
+        "retention-outdated-sec": 2419200
+    },
+    "loggers" : [
+        {
+            "name" : "app",
+            "level" : "INFO",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type" : "STDOUT"
+                }
+            ]
+        }
+    ]
+}

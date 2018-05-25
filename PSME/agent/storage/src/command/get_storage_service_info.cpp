@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +16,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
  * */
 
 #include "agent-framework/module/storage_components.hpp"
@@ -31,8 +27,8 @@ using namespace agent_framework::module;
 using namespace agent_framework::model;
 
 REGISTER_COMMAND(GetStorageServiceInfo,
-    [] (const GetStorageServiceInfo::Request& req, GetStorageServiceInfo::Response& rsp) {
-        log_debug(GET_LOGGER("storage-agent"), "Getting storage service info.");
-        rsp = get_manager<StorageService>().get_entry(req.get_uuid());
+    [] (const GetStorageServiceInfo::Request& request, GetStorageServiceInfo::Response& response) {
+        log_debug("storage-agent", "Getting storage service info.");
+        response = get_manager<StorageService>().get_entry(request.get_uuid());
     }
 );

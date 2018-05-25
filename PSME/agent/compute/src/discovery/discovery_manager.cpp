@@ -2,7 +2,7 @@
  * @brief Discovery manager for compute agent class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,8 @@
 #include "discovery/builders/storage_subsystem_builder.hpp"
 #include "discovery/builders/thermal_zone_builder.hpp"
 #include "discovery/builders/power_zone_builder.hpp"
-#include "tree_stability/compute_dry_stabilizer.hpp"
+#include "tree_stability/compute_stabilizer.hpp"
+#include "discovery/builders/pcie_function_builder.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
 #include "ipmi/command/generic/get_device_id.hpp"
 #include "logger/logger_factory.hpp"
@@ -53,40 +54,48 @@ DiscoveryManager::DiscoveryManager(Bmc& bmc, ipmi::sdv::MdrRegionAccessorFactory
 DiscoveryManager::~DiscoveryManager() {}
 
 
-std::string DiscoveryManager::discovery() {
-    log_info(GET_LOGGER("compute-discovery"), m_bmc.get_id() << " - Starting discovery");
+Uuid DiscoveryManager::discover() {
+    log_info("compute-discovery", m_bmc.get_id() << " - Starting discovery");
 
     m_discoverer->read_mdr();
 
     auto mgr = discover_manager();
-    m_dry_stabilizer.stabilize(mgr);
+    m_stabilizer.stabilize(mgr);
     auto chassis = discover_chassis(mgr.get_uuid());
-    m_dry_stabilizer.stabilize(chassis, mgr);
+    m_stabilizer.stabilize(chassis, mgr);
     auto thermal_zone = discover_thermal_zone(chassis.get_uuid());
-    m_dry_stabilizer.stabilize(thermal_zone, chassis);
+    m_stabilizer.stabilize(thermal_zone, chassis);
     auto power_zone = discover_power_zone(chassis.get_uuid());
-    m_dry_stabilizer.stabilize(power_zone, chassis);
+    m_stabilizer.stabilize(power_zone, chassis);
     auto system = discover_system(mgr.get_uuid(), chassis.get_uuid());
-    m_dry_stabilizer.stabilize(system);
+    m_stabilizer.stabilize(system);
     auto processors = discover_processors(system.get_uuid());
     auto memories = discover_memory(system.get_uuid());
     auto storage_subsystem = discover_storage_subsystem(system.get_uuid());
-    m_dry_stabilizer.stabilize(storage_subsystem, system);
+    m_stabilizer.stabilize(storage_subsystem, system);
     auto drives = discover_drives(chassis.get_uuid());
     auto network_interfaces = discover_network_interfaces(system.get_uuid());
     auto network_device = discover_network_device(system.get_uuid());
-    m_dry_stabilizer.stabilize(network_device, system);
+    m_stabilizer.stabilize(network_device, system);
     auto network_device_function = discover_network_device_function(network_device.get_uuid());
-    m_dry_stabilizer.stabilize(network_device_function, system);
+    m_stabilizer.stabilize(network_device_function, system);
     NetworkDeviceBuilder::update_from_function(network_device, network_device_function);
     auto trusted_modules = discover_trusted_modules(system.get_uuid());
 
+    auto devices = discover_pcie_devices(mgr.get_uuid(), chassis.get_uuid());
+
     agent_framework::eventing::EventDataVec events{};
+    auto stabilized_devices = update_collection(events, std::move(devices), chassis);
+    // function discovery requires stabilized devices
+    auto functions = discover_pcie_functions(stabilized_devices);
+    update_collection(events, std::move(functions));
+
     update_collection(events, std::move(processors), system);
     update_collection(events, std::move(memories), system);
     update_collection(events, std::move(drives));
     update_collection(events, std::move(network_interfaces));
     update_collection(events, std::move(trusted_modules), system);
+
     ManagerBuilder::update_chassis(mgr, chassis.get_uuid());
     add_or_update_with_removal(events, power_zone);
     add_or_update_with_removal(events, thermal_zone);
@@ -109,7 +118,7 @@ std::string DiscoveryManager::discovery() {
         telemetry_service->process_all_metrics();
     }
 
-    log_info(GET_LOGGER("compute-discovery"), m_bmc.get_id() << " - Discovery finished");
+    log_info("compute-discovery", m_bmc.get_id() << " - Discovery finished");
 
     return mgr.get_uuid();
 }
@@ -118,7 +127,7 @@ std::string DiscoveryManager::discovery() {
 agent_framework::model::Manager DiscoveryManager::discover_manager() {
     auto manager = ManagerBuilder::build_default();
 
-    log_debug(GET_LOGGER("compute-discovery"), "Starting discovery of a manger at " << connection_data_to_string());
+    log_debug("compute-discovery", "Starting discovery of a manger at " << connection_data_to_string());
 
     m_discoverer->discover_manager(manager);
 
@@ -126,7 +135,7 @@ agent_framework::model::Manager DiscoveryManager::discover_manager() {
     manager.set_connection_data(m_bmc.get_connection_data());
     manager.set_ipv4_address(m_bmc.get_connection_data().get_ip_address());
 
-    log_debug(GET_LOGGER("compute-discovery"), "Finished discovery of a manager at " << connection_data_to_string());
+    log_debug("compute-discovery", "Finished discovery of a manager at " << connection_data_to_string());
 
     return manager;
 }
@@ -184,7 +193,7 @@ agent_framework::model::System DiscoveryManager::discover_system(const std::stri
                                                                  const std::string& chassis_uuid) {
     auto system = SystemBuilder::build_default(parent_uuid, chassis_uuid);
 
-    log_debug(GET_LOGGER("compute-discovery"), "Starting discovery of a system at " << connection_data_to_string());
+    log_debug("compute-discovery", "Starting discovery of a system at " << connection_data_to_string());
 
     m_discoverer->discover_system(system);
     m_discoverer->discover_bios(system);
@@ -192,20 +201,48 @@ agent_framework::model::System DiscoveryManager::discover_system(const std::stri
     m_discoverer->discover_user_mode(system);
     m_discoverer->set_rackscale_mode(system);
 
-    log_debug(GET_LOGGER("compute-discovery"), "Finished discovery of a system at " << connection_data_to_string());
+    log_debug("compute-discovery", "Finished discovery of a system at " << connection_data_to_string());
 
     return system;
+}
+
+std::vector<PcieDevice> DiscoveryManager::discover_pcie_devices(const std::string& parent_uuid,
+                                                                const std::string& chassis_uuid) {
+
+    std::vector<PcieDevice> devices{};
+
+    log_debug("compute-discovery", "Starting discovery of PCIe devices at " << connection_data_to_string());
+
+    m_discoverer->discover_pcie_devices(devices, parent_uuid, chassis_uuid);
+
+    log_debug("compute-discovery", "Finished discovery of PCIe devices at " << connection_data_to_string());
+
+    return devices;
+}
+
+
+std::vector<PcieFunction> DiscoveryManager::discover_pcie_functions(const std::vector<PcieDevice>& devices) {
+
+    std::vector<PcieFunction> functions{};
+
+    log_debug("compute-discovery", "Starting discovery of PCIe functions at " << connection_data_to_string());
+
+    m_discoverer->discover_pcie_functions(functions, devices);
+
+    log_debug("compute-discovery", "Finished discovery of PCIe functions at " << connection_data_to_string());
+
+    return functions;
 }
 
 
 std::vector<agent_framework::model::Processor> DiscoveryManager::discover_processors(const std::string& parent_uuid) {
     std::vector<Processor> processors{};
 
-    log_debug(GET_LOGGER("compute-discovery"), "Starting discovery of processors at " << connection_data_to_string());
+    log_debug("compute-discovery", "Starting discovery of processors at " << connection_data_to_string());
 
     m_discoverer->discover_processors(processors, parent_uuid);
 
-    log_debug(GET_LOGGER("compute-discovery"), "Finished discovery of processors at " << connection_data_to_string());
+    log_debug("compute-discovery", "Finished discovery of processors at " << connection_data_to_string());
 
     return processors;
 }
@@ -214,11 +251,11 @@ std::vector<agent_framework::model::Processor> DiscoveryManager::discover_proces
 std::vector<agent_framework::model::Memory> DiscoveryManager::discover_memory(const std::string& parent_uuid) {
     std::vector<Memory> memories{};
 
-    log_debug(GET_LOGGER("compute-discovery"), "Starting discovery of memory at " << connection_data_to_string());
+    log_debug("compute-discovery", "Starting discovery of memory at " << connection_data_to_string());
 
     m_discoverer->discover_memory(memories, parent_uuid);
 
-    log_debug(GET_LOGGER("compute-discovery"), "Finished discovery of memory at " << connection_data_to_string());
+    log_debug("compute-discovery", "Finished discovery of memory at " << connection_data_to_string());
 
     return memories;
 }
@@ -227,12 +264,12 @@ std::vector<agent_framework::model::Memory> DiscoveryManager::discover_memory(co
 StorageSubsystem DiscoveryManager::discover_storage_subsystem(const std::string& parent_uuid) {
     auto storage = StorageSubsystemBuilder::build_default(parent_uuid);
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Starting discovery of a storage subsystem at " << connection_data_to_string());
 
     m_discoverer->discover_storage_subsystem(storage);
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Finished discovery of a storage subsystem at " << connection_data_to_string());
 
     return storage;
@@ -242,11 +279,11 @@ StorageSubsystem DiscoveryManager::discover_storage_subsystem(const std::string&
 std::vector<Drive> DiscoveryManager::discover_drives(const std::string& parent_uuid) {
     std::vector<Drive> drives{};
 
-    log_debug(GET_LOGGER("compute-discovery"), "Starting discovery of drives at " << connection_data_to_string());
+    log_debug("compute-discovery", "Starting discovery of drives at " << connection_data_to_string());
 
     m_discoverer->discover_drives(drives, parent_uuid);
 
-    log_debug(GET_LOGGER("compute-discovery"), "Finished discovery of drives at " << connection_data_to_string());
+    log_debug("compute-discovery", "Finished discovery of drives at " << connection_data_to_string());
 
     return drives;
 }
@@ -256,12 +293,12 @@ std::vector<agent_framework::model::NetworkInterface>
 DiscoveryManager::discover_network_interfaces(const std::string& parent_uuid) {
     std::vector<NetworkInterface> network_interfaces{};
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Starting discovery of network interfaces at " << connection_data_to_string());
 
     m_discoverer->discover_network_interfaces(network_interfaces, parent_uuid);
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Finished discovery of network interfaces at " << connection_data_to_string());
 
     return network_interfaces;
@@ -271,12 +308,12 @@ DiscoveryManager::discover_network_interfaces(const std::string& parent_uuid) {
 agent_framework::model::NetworkDevice DiscoveryManager::discover_network_device(const std::string& parent_uuid) {
     auto network_device = NetworkDeviceBuilder::build_default(parent_uuid);
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Starting discovery of a network device at " << connection_data_to_string());
 
     m_discoverer->discover_network_device(network_device);
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Finished discovery of a network device at " << connection_data_to_string());
 
     return network_device;
@@ -287,12 +324,12 @@ agent_framework::model::NetworkDeviceFunction
 DiscoveryManager::discover_network_device_function(const std::string& parent_uuid) {
     auto network_device_function = NetworkDeviceFunctionBuilder::build_default(parent_uuid);
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Starting discovery of a network device function at " << connection_data_to_string());
 
     m_discoverer->discover_network_device_function(network_device_function);
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Finished discovery of a network device function at " << connection_data_to_string());
 
     return network_device_function;
@@ -303,12 +340,12 @@ std::vector<agent_framework::model::TrustedModule>
 DiscoveryManager::discover_trusted_modules(const std::string& parent_uuid) {
     std::vector<TrustedModule> trusted_modules{};
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Starting discovery of trusted modules at " << connection_data_to_string());
 
     m_discoverer->discover_trusted_modules(trusted_modules, parent_uuid);
 
-    log_debug(GET_LOGGER("compute-discovery"),
+    log_debug("compute-discovery",
               "Finished discovery of trusted modules at " << connection_data_to_string());
 
     return trusted_modules;

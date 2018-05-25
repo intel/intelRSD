@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.common.enterprise.utils.logger.ServiceLifecycle;
 import com.intel.podm.common.logger.ServiceLifecycleLogger;
 import com.intel.podm.common.types.ServiceType;
+import com.intel.podm.common.types.discovery.ServiceEndpoint;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,13 +26,4 @@
 
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/requests/pnc/get_switch_info.hpp"
-#include "agent-framework/module/requests/pnc/get_fabric_info.hpp"
-#include "agent-framework/module/requests/pnc/get_pcie_device_info.hpp"
-#include "agent-framework/module/requests/pnc/get_pcie_function_info.hpp"
-#include "agent-framework/module/requests/pnc/get_endpoint_info.hpp"
 #include "agent-framework/module/requests/pnc/get_port_info.hpp"
-#include "agent-framework/module/requests/pnc/get_zone_info.hpp"
-#include "agent-framework/module/requests/pnc/add_zone.hpp"
-#include "agent-framework/module/requests/pnc/delete_zone.hpp"
-#include "agent-framework/module/requests/pnc/add_zone_endpoint.hpp"
-#include "agent-framework/module/requests/pnc/delete_zone_endpoint.hpp"

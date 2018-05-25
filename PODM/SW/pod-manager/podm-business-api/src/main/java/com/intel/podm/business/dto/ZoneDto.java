@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import java.util.Set;
 
 @JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "links", "oem"})
 public final class ZoneDto extends RedfishDto {
+    private final Links links = new Links();
     private Status status;
-    private Links links = new Links();
 
     public ZoneDto() {
         super("#Zone.v1_0_0.Zone");
@@ -45,12 +45,8 @@ public final class ZoneDto extends RedfishDto {
         return links;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
-    }
-
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonPropertyOrder({"endpoints", "involvedSwitches"})
+    @JsonPropertyOrder({"endpoints", "involvedSwitches", "oem"})
     public final class Links extends RedfishLinksDto {
         private Set<Context> endpoints = new HashSet<>();
         private Set<Context> involvedSwitches = new HashSet<>();

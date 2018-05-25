@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.intel.podm.business.dto.actions.ResetActionDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.entities.redfish.Fabric;
 import com.intel.podm.business.entities.redfish.Switch;
+import com.intel.podm.business.redfish.Contexts;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
@@ -30,11 +31,12 @@ import com.intel.podm.business.services.redfish.ReaderService;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRIC_SWITCHES;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRIC_SWITCH;
 import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
 import static com.intel.podm.common.types.redfish.ResourceNames.PORTS_RESOURCE_NAME;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -49,7 +51,8 @@ class SwitchServiceImpl implements ReaderService<SwitchDto> {
     @Override
     public CollectionDto getCollection(Context fabricContext) throws ContextResolvingException {
         Fabric fabric = (Fabric) traverser.traverse(fabricContext);
-        return new CollectionDto(FABRIC_SWITCHES, getAsIdSet(fabric.getSwitches()));
+        List<Context> contexts = fabric.getSwitches().stream().map(Contexts::toContext).sorted().collect(toList());
+        return new CollectionDto(FABRIC_SWITCH, contexts);
     }
 
     @Transactional(REQUIRED)

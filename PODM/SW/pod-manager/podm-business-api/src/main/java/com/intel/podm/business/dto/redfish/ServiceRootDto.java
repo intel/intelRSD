@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto.redfish;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.dto.RedfishDto;
@@ -30,31 +31,25 @@ import java.util.UUID;
 import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "redfishVersion", "uuid",
-    "chassis", "systems", "managers", "eventService", "fabrics", "telemetryService", "oem", "links"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "redfishVersion", "uuid", "chassis", "systems", "managers", "eventService",
+    "fabrics", "storageServices", "telemetryService", "links", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class ServiceRootDto extends RedfishDto {
+    private final Links links = new Links();
+    private final Oem oem = new Oem();
+    @JsonIgnore
     private List<UnknownOemDto> unknownOems = new ArrayList<>();
     private String redfishVersion;
     @JsonProperty("UUID")
     private UUID uuid;
-    @JsonProperty("Systems")
     private SingletonContext systems;
-    @JsonProperty("Chassis")
     private SingletonContext chassis;
-    @JsonProperty("Managers")
     private SingletonContext managers;
-    @JsonProperty("Fabrics")
     private SingletonContext fabrics;
-    @JsonProperty("EventService")
+    private SingletonContext storageServices;
     private SingletonContext eventService;
-    @JsonProperty("TelemetryService")
     private SingletonContext telemetryService;
-    @JsonProperty("Links")
-    private Links links = new Links();
-    @JsonProperty("Oem")
-    private Oem oem = new Oem();
 
     public ServiceRootDto() {
         super("#ServiceRoot.v1_1_1.ServiceRoot");
@@ -64,17 +59,12 @@ public final class ServiceRootDto extends RedfishDto {
         return redfishVersion;
     }
 
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    @Override
-    public void setUnknownOems(List<UnknownOemDto> unknownOems) {
-        this.unknownOems = unknownOems;
-    }
-
     public void setRedfishVersion(String redfishVersion) {
         this.redfishVersion = redfishVersion;
+    }
+
+    public UUID getUuid() {
+        return uuid;
     }
 
     public void setUuid(UUID uuid) {
@@ -121,6 +111,13 @@ public final class ServiceRootDto extends RedfishDto {
         this.eventService = eventService;
     }
 
+    public SingletonContext getStorageServices() {
+        return storageServices;
+    }
+
+    public void setStorageServices(SingletonContext storageServices) {
+        this.storageServices = storageServices;
+    }
 
     public SingletonContext getTelemetryService() {
         return telemetryService;
@@ -135,20 +132,17 @@ public final class ServiceRootDto extends RedfishDto {
         return unknownOems;
     }
 
+    @Override
+    public void setUnknownOems(List<UnknownOemDto> unknownOems) {
+        this.unknownOems = unknownOems;
+    }
+
     public Oem getOem() {
         return oem;
     }
 
-    public void setOem(Oem oem) {
-        this.oem = oem;
-    }
-
     public Links getLinks() {
         return links;
-    }
-
-    public void setLinks(Links links) {
-        this.links = links;
     }
 
     public final class Links extends RedfishLinksDto {
@@ -167,16 +161,13 @@ public final class ServiceRootDto extends RedfishDto {
             this.rackScaleOem = rackScaleOem;
         }
 
-        @JsonPropertyOrder({"oDataType", "apiVersion", "composedNodes", "services", "ethernetSwitches"})
+        @JsonPropertyOrder({"@odata.type", "apiVersion", "composedNodes", "ethernetSwitches"})
         public final class RackScaleOem {
             @JsonProperty("@odata.type")
             private final String oDataType = "#Intel.Oem.ServiceRoot";
             private String apiVersion;
             @JsonProperty("Nodes")
             private SingletonContext composedNodes;
-            @JsonProperty("Services")
-            private SingletonContext services;
-            @JsonProperty("EthernetSwitches")
             private SingletonContext ethernetSwitches;
 
             public String getoDataType() {
@@ -197,14 +188,6 @@ public final class ServiceRootDto extends RedfishDto {
 
             public void setComposedNodes(SingletonContext composedNodes) {
                 this.composedNodes = composedNodes;
-            }
-
-            public SingletonContext getServices() {
-                return services;
-            }
-
-            public void setServices(SingletonContext services) {
-                this.services = services;
             }
 
             public SingletonContext getEthernetSwitches() {

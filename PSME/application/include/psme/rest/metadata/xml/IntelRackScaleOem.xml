@@ -80,11 +80,27 @@
   <edmx:Reference Uri="ComposedNodeCollection.xml">
     <edmx:Include Namespace="ComposedNodeCollection"/>
   </edmx:Reference>
-  <edmx:Reference Uri="MetricDefinition.xml">
-    <edmx:Include Namespace="MetricDefinition"/>
+  <edmx:Reference Uri="StoragePool.xml">
+    <edmx:Include Namespace="StoragePool"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Endpoint.xml">
+    <edmx:Include Namespace="Endpoint"/>
+    <edmx:Include Namespace="Endpoint.v1_1_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="IntelRackScaleExtensions.xml">
     <edmx:Include Namespace="IntelRackScale.Extensions"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="DriveMetrics.xml">
+    <edmx:Include Namespace="DriveMetrics"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="MetricDefinition.xml">
+    <edmx:Include Namespace="MetricDefinition"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="VolumeMetrics.xml">
+    <edmx:Include Namespace="VolumeMetrics"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Protocol.xml">
+    <edmx:Include Namespace="Protocol"/>
   </edmx:Reference>
 
   <edmx:DataServices>
@@ -92,7 +108,13 @@
 
       <ComplexType Name="Chassis" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-        <Property Name="Location" Type="Intel.Oem.Location"/>
+        <Property Name="Location" Type="Intel.Oem.Location">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="Chassis location in relation to it’s parent."/>
+          <Annotation Term="OData.LongDescription"
+                      String="Chassis location in relation to it’s parent."/>
+        </Property>
       </ComplexType>
 
       <ComplexType Name="RackChassis" BaseType="Resource.OemObject">
@@ -131,16 +153,16 @@
       <ComplexType Name="Location">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Id" Type="Edm.String">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
           <Annotation Term="IntelRackScale.Extensions.Nontrivial"/>
-          <Annotation Term="OData.Description" String="String containing physical location ID of this chassis"/>
-          <Annotation Term="OData.LongDescription" String="String containing physical location ID of this chassis"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="String containing physical location ID of this chassis."/>
+          <Annotation Term="OData.LongDescription" String="String containing physical location ID of this chassis."/>
           <Annotation Term="Validation.Pattern" String="^(?!\s*$).+"/>
         </Property>
         <Property Name="ParentId" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="String containing  physical location ID of parent chassis"/>
-          <Annotation Term="OData.LongDescription" String="String containing  physical location ID of parent chassis"/>
+          <Annotation Term="OData.Description" String="String containing  physical location ID of parent chassis."/>
+          <Annotation Term="OData.LongDescription" String="String containing  physical location ID of parent chassis."/>
           <Annotation Term="Validation.Pattern" String="^(?!\s*$).+"/>
         </Property>
       </ComplexType>
@@ -165,38 +187,38 @@
                       String="This property shall contain an array of string identifying cable(s) connected to this port. This is crucial for topology discovery."/>
         </Property>
         <Property Name="PciDevices" Type="Collection(Intel.Oem.PciDevice)" Nullable="false">
-          <Annotation Term="OData.Description" String="This indicates array of PCI devices present in computer system"/>
+          <Annotation Term="OData.Description" String="This indicates array of PCI devices present in computer system."/>
           <Annotation Term="OData.LongDescription"
                       String="This indicates array of PCI devices present in computer system"/>
         </Property>
         <Property Name="DiscoveryState" Type="Intel.Oem.DiscoveryState">
-          <Annotation Term="OData.Description" String="This indicates computer system discovery state"/>
+          <Annotation Term="OData.Description" String="This indicates computer system discovery state."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall represent discovery state of this interface"/>
         </Property>
         <Property Name="ProcessorSockets" Type="Edm.Int64">
-          <Annotation Term="OData.Description" String="This indicates number of processor sockets available in system"/>
+          <Annotation Term="OData.Description" String="This indicates number of processor sockets available in system."/>
           <Annotation Term="OData.LongDescription"
                       String="This indicates number of memory sockets available in system"/>
         </Property>
         <Property Name="MemorySockets" Type="Edm.Int64">
-          <Annotation Term="OData.Description" String="This indicates number of memory sockets available in system"/>
+          <Annotation Term="OData.Description" String="This indicates number of memory sockets available in system."/>
           <Annotation Term="OData.LongDescription"
                       String="This indicates number of memory sockets available in system"/>
         </Property>
         <Property Name="UserModeEnabled" Type="Edm.Boolean">
-          <Annotation Term="OData.Description" String="This indicates if platform user mode is enabled"/>
+          <Annotation Term="OData.Description" String="This indicates if platform user mode is enabled."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall represent current platform mode. When enabled update of FW components should be blocked on in-band interfaces."/>
         </Property>
         <Property Name="TrustedExecutionTechnologyEnabled" Type="Edm.Boolean">
-          <Annotation Term="OData.Description" String="This indicates if TXT mode is enabled"/>
+          <Annotation Term="OData.Description" String="This indicates if TXT mode is enabled."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall represent current Trusted Execution Technology state."/>
         </Property>
         <NavigationProperty Name="Metrics" Type="ComputerSystemMetrics.ComputerSystemMetrics" ContainsTarget="true"
                             Nullable="false">
-          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this ComputerSystem"/>
+          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this ComputerSystem."/>
           <Annotation Term="OData.LongDescription"
                       String="A reference to the Metrics associated with this ComputerSystem."/>
           <Annotation Term="OData.AutoExpandReferences"/>
@@ -206,7 +228,7 @@
       <ComplexType Name="Memory" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="VoltageVolt" Type="Edm.Decimal">
-          <Annotation Term="OData.Description" String="This indicates current voltage of memory module"/>
+          <Annotation Term="OData.Description" String="This indicates current voltage of memory module."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall represent current voltage of memory module"/>
         </Property>
@@ -215,15 +237,14 @@
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="TemperatureCelsius" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Temperature of the Memory resource"/>
+          <Annotation Term="OData.Description" String="Temperature of the Memory resource."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be temperature of the Memory resource in Celsius."/>
           <Annotation Term="Measures.Unit" String="Cel"/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
         <Property Name="BandwidthPercent" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Memory Bandwidth in Percent"/>
+          <Annotation Term="OData.Description" String="Memory Bandwidth in Percent."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Memory Utilization on specific Memory module in Percent."/>
           <Annotation Term="Validation.Minimum" Int="0"/>
@@ -240,21 +261,21 @@
         </Property>
         <Property Name="ConsumedPowerWatt" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Power consumed by Memory domain resource"/>
+          <Annotation Term="OData.Description" String="Power consumed by Memory domain resource."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be global power for specific Memory module (e.g. DIMM) in Watts."/>
           <Annotation Term="Measures.Unit" String="W"/>
         </Property>
         <Property Name="ThermalMarginCelsius" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Memory Thermal Margin in degree Celsius"/>
+          <Annotation Term="OData.Description" String="Memory Thermal Margin in degree Celsius."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be a difference between current memory module temperature and optimal temperature for the module in degree Celsius."/>
           <Annotation Term="Measures.Unit" String="Cel"/>
         </Property>
         <Property Name="ECCErrorsCount" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Number of ECC Errors found on this Memory module"/>
+          <Annotation Term="OData.Description" String="Number of ECC Errors found on this Memory module."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be a number of ECC Errors found on this Memory module. It's up to implementer if only UnCorrectable or both Correctable and Uncorrectable errors are shown per Module resource."/>
         </Property>
@@ -263,7 +284,6 @@
           <Annotation Term="OData.Description" String="Memory module Health as a discrete sensor reading"/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Memory module Health as a discrete sensor reading."/>
-          <Annotation Term="Redfish.Required"/>
         </Property>
       </ComplexType>
 
@@ -294,7 +314,7 @@
           <Annotation Term="OData.LongDescription" String="This defines the TPM device state as a result of triggering this action." />
         </Parameter>
         <Parameter Name="InterfaceType" Type="ComputerSystem.v1_1_0.InterfaceType">
-          <Annotation Term="OData.Description" String="Required  interface type of the Trusted Module" />
+          <Annotation Term="OData.Description" String="Required  interface type of the Trusted Module." />
           <Annotation Term="OData.LongDescription" String="This defines the interface type of the installed Trusted Module device as a result of triggering this action." />
         </Parameter>
         <Parameter Name="ClearOwnership" Type="Edm.Boolean">
@@ -309,23 +329,34 @@
         <Parameter Name="Manager" Type="Manager.v1_0_0.OemActions"/>
       </Action>
 
+      <ComplexType Name="EthernetInterfaceLinks" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <NavigationProperty Name="NeighborPort" Type="EthernetSwitchPort.EthernetSwitchPort">
+          <Annotation Term="OData.Description"
+                      String="This indicates ethernet port which is connected to this interface"/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall represent the URI of ethernet port connected to this interface"/>
+        </NavigationProperty>
+      </ComplexType>
+
       <ComplexType Name="EthernetInterface" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-        <NavigationProperty Name="NeighborPort" Type="EthernetSwitchPort.EthernetSwitchPort"/>
-        <Annotation Term="OData.Description"
-                    String="This indicates ethernet port which is connected to this interface"/>
-        <Annotation Term="OData.LongDescription"
-                    String="This property shall represent the URI of ethernet port connected to this interface"/>
+        <Property Name="SupportedProtocols" Type="Collection(Protocol.Protocol)">
+          <Annotation Term="OData.Description"
+                      String="This indicates all supported protocol types."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall represent an array of supported protocol types by the Ethernet interface."/>
+       </Property>
       </ComplexType>
 
       <ComplexType Name="Processor" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Brand" Type="Intel.Oem.ProcessorBrand">
-          <Annotation Term="OData.Description" String="This indicates processor brand"/>
-          <Annotation Term="OData.LongDescription" String="This property shall represent the brand of processor"/>
+          <Annotation Term="OData.Description" String="This indicates processor brand."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent the brand of processor."/>
         </Property>
         <Property Name="Capabilities" Type="Collection(Edm.String)">
-          <Annotation Term="OData.Description" String="This indicates array of processor capabilities"/>
+          <Annotation Term="OData.Description" String="This indicates array of processor capabilities."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall represent array of processor capabilities (like reported in /proc/cpuinfo flags)"/>
         </Property>
@@ -349,13 +380,13 @@
         </Property>
         <NavigationProperty Name="Metrics" Type="ProcessorMetrics.ProcessorMetrics" ContainsTarget="true"
                             Nullable="false">
-          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this Processor"/>
+          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this Processor."/>
           <Annotation Term="OData.LongDescription" String="A reference to the Metrics associated with this Processor."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <Property Name="ExtendedIdentificationRegisters" Type="Intel.Oem.ExtendedIdentificationRegister">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
-          <Annotation Term="OData.Description" String="Extended contents of the Identification Registers (CPUID) for this processor" />
+          <Annotation Term="OData.Description" String="Extended contents of the Identification Registers (CPUID) for this processor." />
           <Annotation Term="OData.LongDescription" String="This property shall include the extended raw CPUID instruction output for  (that is for all possible combinations of input registers) as provided by the manufacturer of this processor." />
         </Property>
 
@@ -363,19 +394,42 @@
       </ComplexType>
 
       <EnumType Name="ProcessorBrand">
-        <Member Name="Unknown"/>
-        <Member Name="E3"/>
-        <Member Name="E5"/>
-        <Member Name="E7"/>
-        <Member Name="X3"/>
-        <Member Name="X5"/>
-        <Member Name="X7"/>
-        <Member Name="I3"/>
-        <Member Name="I5"/>
-        <Member Name="I7"/>
-        <Member Name="Silver"/>
-        <Member Name="Gold"/>
-        <Member Name="Platinum"/>
+        <Member Name="E3">
+          <Annotation Term="OData.Description" String="Xeon E3 CPU family."/>
+        </Member>
+        <Member Name="E5">
+          <Annotation Term="OData.Description" String="Xeon E5 CPU family."/>
+        </Member>
+        <Member Name="E7">
+          <Annotation Term="OData.Description" String="Xeon E7 CPU family."/>
+        </Member>
+        <Member Name="X3">
+          <Annotation Term="OData.Description" String="uServer X3 CPU family."/>
+        </Member>
+        <Member Name="X5">
+          <Annotation Term="OData.Description" String="uServer X5 CPU family."/>
+        </Member>
+        <Member Name="X7">
+          <Annotation Term="OData.Description" String="uServer X7 CPU family."/>
+        </Member>
+        <Member Name="I3">
+          <Annotation Term="OData.Description" String="Core i3 CPU family."/>
+        </Member>
+        <Member Name="I5">
+          <Annotation Term="OData.Description" String="Core i5 CPU family."/>
+        </Member>
+        <Member Name="I7">
+          <Annotation Term="OData.Description" String="Core i7 CPU family."/>
+        </Member>
+        <Member Name="Silver">
+          <Annotation Term="OData.Description" String="Xeon Silver CPU family."/>
+        </Member>
+        <Member Name="Gold">
+          <Annotation Term="OData.Description" String="Xeon Gold CPU family."/>
+        </Member>
+        <Member Name="Platinum">
+          <Annotation Term="OData.Description" String="Xeon Platinum CPU family."/>
+        </Member>
       </EnumType>
 
       <ComplexType Name="ProcessorMemory">
@@ -397,7 +451,7 @@
           <Annotation Term="OData.LongDescription" String="Memory speed."/>
           <Annotation Term="Measures.Unit" String="MHz"/>
         </Property>
-        <Annotation Term="OData.Description" String="On die processor memory"/>
+        <Annotation Term="OData.Description" String="On die processor memory."/>
       </ComplexType>
 
       <EnumType Name="ProcessorMemoryType">
@@ -442,7 +496,7 @@
           <Annotation Term="OData.Description" String="Number of supported reconfiguration slots."/>
           <Annotation Term="OData.LongDescription" String="Number of supported reconfiguration slots."/>
         </Property>
-        <Annotation Term="OData.Description" String="FPGA properties"/>
+        <Annotation Term="OData.Description" String="FPGA properties."/>
       </ComplexType>
 
       <EnumType Name="FPGAType">
@@ -498,25 +552,23 @@
             </Record>
           </Collection>
         </Annotation>
-        <Annotation Term="OData.Description" String="The contents of the Identification Registers (CPUID) for this processor for specific combination of input registers" />
+        <Annotation Term="OData.Description" String="The contents of the Identification Registers (CPUID) for this processor for specific combination of input registers." />
         <Annotation Term="OData.LongDescription" String="This property shall include the raw CPUID instruction output as provided by the manufacturer of this processor for specific combination of input registers." />
       </ComplexType>
 
       <ComplexType Name="ServiceRoot" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-        <Property Name="ApiVersion" Type="Edm.String" Nullable="false"/>
+        <Property Name="ApiVersion" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Version of Rack Scale Design API exposed by this service."/>
+          <Annotation Term="OData.LongDescription"
+                      String="Version of Intel® RSD API exposed by this service."/>
+        </Property>
         <NavigationProperty Name="EthernetSwitches" Type="EthernetSwitchCollection.EthernetSwitchCollection">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="This is a link to a collection Ethernet Switches."/>
           <Annotation Term="OData.LongDescription"
-                      String="The classes structure shall only contain a reference to a resource that complies to the Ethernet Switch schema."/>
-          <Annotation Term="OData.AutoExpandReferences"/>
-        </NavigationProperty>
-        <NavigationProperty Name="Services" Type="StorageServiceCollection.StorageServiceCollection">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="This is a link to a collection of Storage Services."/>
-          <Annotation Term="OData.LongDescription"
-                      String="The classes structure shall only contain a reference to a resource that complies to the StorageService schema"/>
+                      String="The classes' structure shall only contain a reference to a resource that complies to the EthernetSwitch schema."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="Nodes" Type="ComposedNodeCollection.ComposedNodeCollection">
@@ -543,7 +595,7 @@
         <Property Name="CableId" Type="Collection(Edm.String)"/>
         <NavigationProperty Name="NeighborPort" Type="Collection(Port.Port)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="This indicates neighbor port which is connected to this port"/>
+          <Annotation Term="OData.Description" String="This indicates neighbor port which is connected to this port."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall represent the URI of port connected to this port"/>
         </NavigationProperty>
@@ -585,6 +637,19 @@
           <Annotation Term="OData.LongDescription"
                       String="A reference to the PCIe function that provides this drive functionality."/>
         </NavigationProperty>
+        <NavigationProperty Name="UsedBy" Type="Collection(StoragePool.StoragePool)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="An array of references to the storage pools using the drive."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this drive is associated with and shall reference a resource of type storage pool."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Metrics" Type="DriveMetrics.DriveMetrics" ContainsTarget="true" Nullable="false">
+          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this Drive."/>
+          <Annotation Term="OData.LongDescription" String="A reference to the Metrics associated with this Drive."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
       </ComplexType>
 
       <ComplexType Name="ChassisLinks" BaseType="Resource.OemObject">
@@ -609,7 +674,7 @@
                       String="An array of references to the PCIe connection identifiers (e.g. cable ID)."/>
         </Property>
         <NavigationProperty Name="Metrics" Type="PortMetrics.PortMetrics" ContainsTarget="true" Nullable="false">
-          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this Port"/>
+          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this Port."/>
           <Annotation Term="OData.LongDescription" String="A reference to the Metrics associated with this Port."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
@@ -664,7 +729,7 @@
         <Annotation Term="OData.LongDescription" String="Extended Thermal resource."/>
         <Property Name="VolumetricAirflowCfm" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Volumetric Air Flow measured in Cubic Feet per Minute"/>
+          <Annotation Term="OData.Description" String="Volumetric Air Flow measured in Cubic Feet per Minute."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be Volumetric Air Flow measured in Cubic Feet per Minute. This metric requires Inlet and Outlet temperature sensor readings"/>
           <Annotation Term="Validation.Minimum" Int="0"/>
@@ -713,6 +778,105 @@
         <Parameter Name="Manager" Type="Manager.v1_0_0.OemActions"/>
       </Action>
 
+      <ComplexType Name="VolumeLinks" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <NavigationProperty Name="Endpoints" Type="Collection(Endpoint.Endpoint)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="An array of references to the endpoints that connect to this volume."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a reference to the resources that this volume is associated with and shall reference a resource of type Endpoint."/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="StorageServiceLinks" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <NavigationProperty Name="ManagedBy" Type="Collection(Manager.Manager)">
+          <Annotation Term="OData.Description"
+                      String="Collection of managers managing the service."/>
+          <Annotation Term="OData.LongDescription"
+                      String="Collection of managers managing the service."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="Endpoint" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Authentication" Type="Intel.Oem.EndpointAuthentication">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="Endpoint authentication."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property provides information about endpoint authentication required credentials."/>
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="EndpointAuthentication">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="OData.Description" String="Endpoint authentication credentials."/>
+        <Property Name="Username" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Endpoint username."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property provides an endpoint username that is used to authenticate it on other side of communication channel." />
+        </Property>
+        <Property Name="Password" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Write"/>
+          <Annotation Term="OData.Description" String="Endpoint password."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property is used to provide an endpoint password. It provides write only access. On read, it shall return null value." />
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="Volume" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Bootable" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="Determines if volume is bootable."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property provides information about the bootable capability of the volume."/>
+        </Property>
+        <Property Name="EraseOnDetach" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" Qualifier="PODM"/>
+          <Annotation Term="OData.Description"
+                      String="This indicates if volume should be erased when detached from initiator host."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall represent the state of policy for protecting data stored on a drive connected to an initiator host. If set to null, it is interpreted as true."/>
+        </Property>
+        <Property Name="Erased" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" Qualifier="PODM"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite" Qualifier="PSME"/>
+          <Annotation Term="OData.Description"
+                      String="This indicates whether volume was cleared after assignment to composed node."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall be set to true if the volume was erased."/>
+        </Property>
+        <NavigationProperty Name="Metrics" Type="VolumeMetrics.VolumeMetrics" ContainsTarget="true" Nullable="false">
+          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this Volume"/>
+          <Annotation Term="OData.LongDescription" String="A reference to the metrics associated with this volume."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="EndpointLinks" BaseType="Resource.OemObject">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <NavigationProperty Name="Zones" Type="Collection(Zone.Zone)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="An array of references to the Zone resources containing this endpoint."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of the property is a reference to the resources that the endpoint is associated with and references a resource of type Zone."/>
+        </NavigationProperty>
+        <NavigationProperty Name="Interfaces" Type="Collection(Resource.Resource)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="Specifies the interfaces on which this transport is available."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property is an array of references to resources representing interface where this endpoint is available."/>
+        </NavigationProperty>
+      </ComplexType>
     </Schema>
   </edmx:DataServices>
 </edmx:Edmx>

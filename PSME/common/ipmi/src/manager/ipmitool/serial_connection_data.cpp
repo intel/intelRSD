@@ -2,7 +2,7 @@
  * @brief "serial_oem" ManagementController configuration data.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,4 +82,8 @@ void SerialConnectionData::set_composite_device() {
      * @see additional comments in serial_ipmi_interface.cpp
      */
     composite = device;
+}
+
+std::string SerialConnectionData::get_info() const {
+    return device;
 }

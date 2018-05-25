@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ add_gtest(module agent-framework
     many_to_many_manager_test.cpp
     task_test.cpp
     enum_builder_test.cpp
+    to_hex_string_test.cpp
+    iso8601_time_interval_test.cpp
 )
 
 set_source_files_properties(

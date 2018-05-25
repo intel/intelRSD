@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,12 +22,15 @@
 
 #include "agent-framework/registration/amc_client.hpp"
 #include "agent-framework/registration/registration_request.hpp"
+#include "agent-framework/module/constants/psme.hpp"
+#include "agent-framework/module/constants/command.hpp"
 #include "agent-framework/service_uuid.hpp"
 
 #include "json-rpc/connectors/http_client_connector.hpp"
 #include "json-rpc/handlers/json_rpc_request_invoker.hpp"
 
 using namespace agent_framework::generic;
+using namespace agent_framework::model::literals;
 
 AmcClient::AmcClient(const std::string& url)
     : m_url{url},
@@ -37,13 +40,13 @@ AmcClient::AmcClient(const std::string& url)
 RegistrationResponse AmcClient::attach() const {
     RegistrationRequest request;
 
-    m_invoker->prepare_method("attach", request.to_json());
+    m_invoker->prepare_method(Command::ATTACH, request.to_json());
     m_invoker->call(m_connector);
     json::Json result = m_invoker->get_result();
 
     if (result.is_object()) {
         log_debug("registration", "Registration response: " << result);
-        RegistrationResponse response(result["ipv4address"], result["port"]);
+        RegistrationResponse response(result[Attach::IPV4_ADDRESS], result[Attach::PORT]);
         return response;
     }
     else {
@@ -52,16 +55,17 @@ RegistrationResponse AmcClient::attach() const {
 }
 
 HeartBeatResponse AmcClient::heart_beat() const {
-    json::Json request;
-    request["gamiId"] = ServiceUuid::get_instance()->get_service_uuid();
+    json::Json request {
+        {HeartBeat::GAMI_ID, ServiceUuid::get_instance()->get_service_uuid()}
+    };
 
-    m_invoker->prepare_method("heartBeat", request);
+    m_invoker->prepare_method(Command::HEART_BEAT, request);
     m_invoker->call(m_connector);
     json::Json result = m_invoker->get_result();
 
-    if (result.is_object() && result.count("timeStamp") && result.count("minDelay")) {
-        std::chrono::seconds delay(result["minDelay"]);
-        std::chrono::seconds timestamp(result["timeStamp"]);
+    if (result.is_object() && result.count(HeartBeat::TIME_STAMP) && result.count(HeartBeat::MIN_DELAY)) {
+        std::chrono::seconds delay(result[HeartBeat::MIN_DELAY]);
+        std::chrono::seconds timestamp(result[HeartBeat::TIME_STAMP]);
         return HeartBeatResponse(delay, timestamp);
     }
     else {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,7 +194,7 @@ public class PowerControlItem implements ExternalServiceResource, ReferenceableM
 
     public static class PowerLimitObject {
         @JsonProperty("LimitInWatts")
-        private BigDecimal limitInWatts;
+        private Integer limitInWatts;
 
         @JsonProperty("LimitException")
         private PowerLimitException limitException;
@@ -202,7 +202,7 @@ public class PowerControlItem implements ExternalServiceResource, ReferenceableM
         @JsonProperty("CorrectionInMs")
         private Integer correctionInMs;
 
-        public BigDecimal getLimitInWatts() {
+        public Integer getLimitInWatts() {
             return limitInWatts;
         }
 

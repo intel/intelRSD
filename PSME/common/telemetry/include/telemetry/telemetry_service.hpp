@@ -2,7 +2,7 @@
  * @brief TelemetryService declaration.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,6 +101,8 @@ private:
      * @param metric_definition MetricDefinition to be added/updated.
      */
     void add_or_update(const agent_framework::model::MetricDefinition& metric_definition);
+
+
 
     /*!
      * @brief Removes metric from model for given reader

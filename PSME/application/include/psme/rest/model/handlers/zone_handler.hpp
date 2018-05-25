@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@
 
 #pragma once
 #include "agent-framework/module/pnc_components.hpp"
-#include "agent-framework/module/requests/pnc/get_zone_info.hpp"
+#include "agent-framework/module/requests/common/get_zone_info.hpp"
 
 namespace psme {
 namespace rest {
@@ -61,7 +61,7 @@ protected:
     void remove_agent_data(Context& ctx, const std::string& gami_id) override {
         ZoneHandlerBase::remove_agent_data(ctx, gami_id);
 
-        agent_framework::module::PncComponents::get_instance()->
+        agent_framework::module::CommonComponents::get_instance()->
             get_zone_endpoint_manager().clean_resources_for_agent(gami_id);
     }
 
@@ -72,7 +72,7 @@ protected:
      * @param uuid component's uuid
      * */
     void do_remove(Context& ctx, const std::string &uuid) override {
-        agent_framework::module::PncComponents::get_instance()->
+        agent_framework::module::CommonComponents::get_instance()->
             get_zone_endpoint_manager().remove_parent(uuid);
 
         ZoneHandlerBase::do_remove(ctx, uuid);

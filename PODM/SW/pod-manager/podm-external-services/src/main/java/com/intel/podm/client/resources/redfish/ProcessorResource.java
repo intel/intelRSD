@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.reader.ResourceSupplier;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_EMPTY_COLLECTION;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
@@ -48,38 +50,49 @@ import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public class ProcessorResource extends ExternalServiceResourceImpl implements ExternalServiceResource {
-    @JsonProperty("Socket")
+    @JsonSetter(value = "Socket", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> socket = unassigned();
-    @JsonProperty("ProcessorType")
+
+    @JsonSetter(value = "ProcessorType", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<ProcessorType> processorType = unassigned();
-    @JsonProperty("ProcessorArchitecture")
+
+    @JsonSetter(value = "ProcessorArchitecture", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<ProcessorArchitecture> processorArchitecture = unassigned();
-    @JsonProperty("InstructionSet")
+
+    @JsonSetter(value = "InstructionSet", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<InstructionSet> instructionSet = unassigned();
-    @JsonProperty("Manufacturer")
+
+    @JsonSetter(value = "Manufacturer", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> manufacturer = unassigned();
-    @JsonProperty("Model")
+
+    @JsonSetter(value = "Model", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> model = unassigned();
-    @JsonProperty("MaxSpeedMHz")
+
+    @JsonSetter(value = "MaxSpeedMHz", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> maxSpeedMhz = unassigned();
-    @JsonProperty("TotalCores")
+
+    @JsonSetter(value = "TotalCores", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> totalCores = unassigned();
-    @JsonProperty("TotalThreads")
+
+    @JsonSetter(value = "TotalThreads", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> totalThreads = unassigned();
-    @JsonProperty("Status")
+
+    @JsonSetter(value = "Status", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Status> status = unassigned();
+
     @JsonProperty("ProcessorId")
     private ProcessorIdObject processorId;
+
     @JsonProperty("Oem")
     private Oem oem = new Oem();
 
@@ -174,34 +187,34 @@ public class ProcessorResource extends ExternalServiceResourceImpl implements Ex
         private RackScaleOem rackScaleOem = new RackScaleOem();
 
         public class RackScaleOem {
-            @JsonProperty("Capabilities")
+            @JsonSetter(value = "Capabilities", nulls = AS_EMPTY)
             @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
             private Ref<List<String>> capabilities = unassigned();
 
-            @JsonProperty("Brand")
+            @JsonSetter(value = "Brand", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<ProcessorBrand> brand = unassigned();
 
-            @JsonProperty("Endpoints")
+            @JsonSetter(value = "Endpoints", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<Set<EndpointResource>> endpoints = unassigned();
 
-            @JsonProperty("OnPackageMemory")
+            @JsonSetter(value = "OnPackageMemory", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<List<ProcessorMemoryObject>> onPackageMemory = unassigned();
 
-            @JsonProperty("ThermalDesignPowerWatt")
+            @JsonSetter(value = "ThermalDesignPowerWatt", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<BigDecimal> thermalDesignPowerWatt = unassigned();
 
-            @JsonProperty("FPGA")
+            @JsonSetter(value = "FPGA", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<FpgaObject> fpga = unassigned();
 
             @JsonProperty("Metrics")
             private ODataId processorMetrics;
 
-            @JsonProperty("ExtendedIdentificationRegisters")
+            @JsonSetter(value = "ExtendedIdentificationRegisters", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             private Ref<Map<String, String>> extendedIdentificationRegisters = unassigned();
         }

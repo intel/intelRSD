@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.intel.podm.services.detection.dhcp;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.discovery.external.ServiceDescriptor;
 import com.intel.podm.discovery.external.ServiceDetectionListener;
-import com.intel.podm.discovery.external.ServiceEndpoint;
+import com.intel.podm.common.types.discovery.ServiceEndpoint;
 import com.intel.podm.discovery.external.UnrecognizedServiceTypeException;
 
 import javax.ejb.AccessTimeout;
@@ -108,7 +108,7 @@ public class ServiceChecker {
 
     private void removeServiceEndpointIfItBecameUnavailable(ServiceEndpoint serviceEndpoint) {
         if (!isServiceAvailable(serviceEndpoint.getEndpointUri())) {
-            serviceDetectionListener.onServiceRemoved(serviceEndpoint.getServiceUuid());
+            serviceDetectionListener.onServiceRemoved(serviceEndpoint);
             serviceEndpointsProcessor.removeKnownService(serviceEndpoint.getEndpointUri());
         }
     }

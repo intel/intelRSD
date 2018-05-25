@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,14 +39,14 @@ import java.util.stream.Stream;
 
 import static com.google.common.cache.CacheBuilder.newBuilder;
 import static com.intel.podm.common.types.Pair.pairOf;
+import static org.apache.commons.lang3.reflect.FieldUtils.getFieldsListWithAnnotation;
+import static org.apache.commons.lang3.reflect.MethodUtils.getMethodsListWithAnnotation;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang3.reflect.FieldUtils.getFieldsListWithAnnotation;
-import static org.apache.commons.lang3.reflect.MethodUtils.getMethodsListWithAnnotation;
 
 @ApplicationScoped
 public class EventRedirections {
@@ -84,13 +84,15 @@ public class EventRedirections {
     }
 
     private Map<String, List<Field>> findSources(Class<?> clazz) {
-        return getFieldsListWithAnnotation(clazz, EventRedirectionSource.class).stream()
+        return getFieldsListWithAnnotation(clazz, EventRedirectionSource.class)
+            .stream()
             .map(redirectionSource -> pairOf(findRedirectionKey(redirectionSource), redirectionSource))
             .collect(groupingBy(pair -> pair.first(), mapping(Pair::second, toList())));
     }
 
     private Map<String, Method> findTargets(Class<?> clazz) {
-        return getMethodsListWithAnnotation(clazz, EventRedirectionTarget.class).stream()
+        return getMethodsListWithAnnotation(clazz, EventRedirectionTarget.class)
+            .stream()
             .map(redirectionTarget -> pairOf(findRedirectionKey(redirectionTarget), redirectionTarget))
             .collect(toMap(Pair::first, Pair::second));
     }

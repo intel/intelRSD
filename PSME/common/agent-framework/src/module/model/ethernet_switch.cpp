@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,6 +53,13 @@ json::Json EthernetSwitch::to_json() const {
     result[literals::EthernetSwitch::LOCATION] = get_location();
     result[literals::EthernetSwitch::CHASSIS] = get_chassis();
     result[literals::EthernetSwitch::MAX_ACL_NUMBER] = get_max_acl_number();
+    result[literals::EthernetSwitch::LLDP_ENABLED] = get_lldp_enabled();
+    result[literals::EthernetSwitch::PFC_ENABLED] = get_pfc_enabled();
+    result[literals::EthernetSwitch::ETS_ENABLED] = get_ets_enabled();
+    result[literals::EthernetSwitch::DCBX_ENABLED] = get_dcbx_enabled();
+    result[literals::EthernetSwitch::QOS_APPLICATION_PROTOCOL] = get_qos_application_protocol().to_json();
+    result[literals::EthernetSwitch::QOS_PRIORITY_TO_PRIORITY_GROUP_MAPPING] = get_qos_priority_group_mapping().to_json();
+    result[literals::EthernetSwitch::QOS_BANDWIDTH_ALLOCATION] = get_qos_bandwidth_allocation().to_json();
     result[literals::EthernetSwitch::COLLECTIONS] = get_collections().to_json();
     result[literals::EthernetSwitch::OEM] = get_oem().to_json();
     return result;
@@ -75,10 +82,19 @@ EthernetSwitch EthernetSwitch::from_json(const json::Json& json) {
     sw.set_location(json[literals::EthernetSwitch::LOCATION]);
     sw.set_chassis(json[literals::EthernetSwitch::CHASSIS]);
     sw.set_max_acl_number(json[literals::EthernetSwitch::MAX_ACL_NUMBER]);
+    sw.set_lldp_enabled(json[literals::EthernetSwitch::LLDP_ENABLED]);
+    sw.set_pfc_enabled(json[literals::EthernetSwitch::PFC_ENABLED]);
+    sw.set_ets_enabled(json[literals::EthernetSwitch::ETS_ENABLED]);
+    sw.set_dcbx_enabled(json[literals::EthernetSwitch::DCBX_ENABLED]);
+    sw.set_qos_application_protocol(attribute::Array<attribute::QosApplicationProtocol>::from_json(
+        json[literals::EthernetSwitch::QOS_APPLICATION_PROTOCOL]));
+    sw.set_qos_priority_group_mapping(attribute::Array<attribute::QosPriorityGroupMapping>::from_json(
+        json[literals::EthernetSwitch::QOS_PRIORITY_TO_PRIORITY_GROUP_MAPPING]));
+    sw.set_qos_bandwidth_allocation(attribute::Array<attribute::QosBandwidthAllocation>::from_json(
+        json[literals::EthernetSwitch::QOS_BANDWIDTH_ALLOCATION]));
     sw.set_collections(Collections::from_json(
         json[literals::EthernetSwitch::COLLECTIONS]));
     sw.set_oem(attribute::Oem::from_json(json[literals::EthernetSwitch::OEM]));
-    sw.set_resource_hash(json);
 
     return sw;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.intel.podm.business.dto.EthernetSwitchPortDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
+import com.intel.podm.business.redfish.Contexts;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
@@ -29,13 +30,14 @@ import com.intel.podm.business.services.redfish.ReaderService;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_PORTS;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_PORT;
 import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_PORT_METRICS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_PORT_VLANS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_STATIC_MACS_RESOURCE_NAME;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -50,7 +52,8 @@ class EthernetSwitchPortServiceImpl implements ReaderService<EthernetSwitchPortD
     @Override
     public CollectionDto getCollection(Context ethernetSwitch) throws ContextResolvingException {
         EthernetSwitch aSwitch = (EthernetSwitch) traverser.traverse(ethernetSwitch);
-        return new CollectionDto(ETHERNET_SWITCH_PORTS, getAsIdSet(aSwitch.getPorts()));
+        List<Context> contexts = aSwitch.getPorts().stream().map(Contexts::toContext).sorted().collect(toList());
+        return new CollectionDto(ETHERNET_SWITCH_PORT, contexts);
     }
 
     @Transactional(REQUIRED)

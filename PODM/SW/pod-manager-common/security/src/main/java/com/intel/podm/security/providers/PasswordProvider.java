@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,37 @@
 
 package com.intel.podm.security.providers;
 
-import com.intel.podm.common.logger.Logger;
+import com.intel.podm.config.base.dto.SecurityConfig.CertificateType;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import static com.intel.podm.common.logger.LoggerFactory.getLogger;
+import static java.lang.String.format;
 
 public enum PasswordProvider {
     INSTANCE;
 
-    private static Logger logger = getLogger(PasswordProvider.class);
-
-    public String getPassword() {
+    public String getPassword(CertificateType type) throws NamingException {
+        InitialContext ctx = null;
         try {
-            InitialContext ctx = new InitialContext();
-            String password = (String) ctx.lookup("java:global/password");
-            ctx.close();
-            return password;
-        } catch (NamingException e) {
-            logger.e("Context not found {}", e.getMessage());
-            throw new RuntimeException("Context not found. Keystore password could not be retrieved.", e);
+            ctx = new InitialContext();
+
+            return getPassword(type, ctx);
+        } finally {
+            if (ctx != null) {
+                ctx.close();
+            }
+        }
+    }
+
+    public String getPassword(CertificateType type, InitialContext ctx) throws NamingException {
+        switch (type) {
+            case CLIENT:
+                return (String) ctx.lookup("java:global/clientPassword");
+            case SERVER:
+                return (String) ctx.lookup("java:global/serverPassword");
+            default:
+                throw new UnsupportedOperationException(format("Password for certificate of type %s does not exist.", type));
         }
     }
 }

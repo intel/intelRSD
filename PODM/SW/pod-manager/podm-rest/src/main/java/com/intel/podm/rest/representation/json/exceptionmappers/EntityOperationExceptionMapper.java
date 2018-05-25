@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+
 import java.util.Optional;
 
 import static com.intel.podm.rest.error.ErrorResponseBuilder.newErrorResponseBuilder;
@@ -45,6 +46,7 @@ public class EntityOperationExceptionMapper implements ExceptionMapper<EntityOpe
 
     @Override
     public Response toResponse(EntityOperationException exception) {
+
         Optional<Response> errorResponse = externalServiceErrorResponseBuilder.getExternalServiceErrorResponse(exception);
         if (errorResponse.isPresent()) {
             return errorResponse.get();

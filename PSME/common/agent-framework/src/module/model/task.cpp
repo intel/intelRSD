@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,14 +53,10 @@ Task Task::from_json(const json::Json& json) {
     task.set_state(json[literals::Task::STATE]);
     task.set_start_time(json[literals::Task::START_TIME]);
     task.set_end_time(json[literals::Task::END_TIME]);
-    auto status = attribute::Status::from_json(json[literals::Task::STATUS]);
-    status.set_state(enums::State::Enabled);
-    task.set_status(status);
+    task.set_status(attribute::Status::from_json(json[literals::Task::STATUS]));
     task.set_messages(Messages::from_json(json[literals::Task::MESSAGES]));
     task.set_name(json[literals::Task::NAME]);
     task.set_oem(attribute::Oem::from_json(json.value(literals::Task::OEM, json::Json())));
-
-    task.set_resource_hash(json);
 
     return task;
 }

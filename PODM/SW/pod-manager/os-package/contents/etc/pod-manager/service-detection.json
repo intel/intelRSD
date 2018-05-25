@@ -8,11 +8,12 @@
     "RSS": "RSS Service Root",
     "LUI": "LUI Service Root",
     "RMM": "Root Service",
-    "INBAND": "In Band Service"
+    "INBAND": "In Band Service",
+    "DISCOVERY_SERVICE": "NVMe Discovery Service Root"
   },
   "Protocols": {
     "SSDP": {
-      "AnnouncementFrequencyInSeconds": 600,
+      "AnnouncementFrequencyInSeconds": 60,
       "MX": 5,
       "Subnets": [
         "0.0.0.0/0"

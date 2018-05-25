@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import static com.intel.podm.common.types.redfish.ResourceNames.SWITCHES_RESOURC
 import static com.intel.podm.common.types.redfish.ResourceNames.TELEMETRY_SERVICE_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.THERMAL_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.THERMAL_TEMPERATURE_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.VOLUMES_RESOURCE_NAME;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
@@ -79,6 +80,7 @@ public final class IdFromUriGenerator {
         map.put(METRIC_DEFINITION_RESOURCE_NAME, acronym -> "md");
         map.put(COMPUTER_SYSTEM_METRICS_RESOURCE_NAME, acronym -> "sm");
         map.put(PROCESSOR_METRICS_RESOURCE_NAME, acronym -> "pm");
+        map.put(VOLUMES_RESOURCE_NAME, acronym -> "vl");
 
         IRREGULAR_ACRONYMS = unmodifiableMap(map);
     }
@@ -112,15 +114,12 @@ public final class IdFromUriGenerator {
     }
 
     private String getEntryPointUri(URI uri) {
-        String target = "/redfish/v1/";
-        StringBuilder builder = new StringBuilder(target);
-        for (String topLevelSingleton : TOP_LEVEL_SINGLETON_NAMES) {
-            if (uri.getPath().matches(target + topLevelSingleton + "/.+")) {
-                builder.append(topLevelSingleton).append("/");
-                break;
-            }
-        }
-        return builder.toString();
+        final String target = "/redfish/v1/";
+        return TOP_LEVEL_SINGLETON_NAMES.stream()
+            .filter(singletonName -> uri.getPath().matches(target + singletonName + "/.+"))
+            .map(singletonName -> target + singletonName + "/")
+            .findFirst()
+            .orElse(target);
     }
 
     private String processUri(String uri, boolean withFragment) {

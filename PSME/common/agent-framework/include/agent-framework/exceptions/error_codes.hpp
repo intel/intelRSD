@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,8 +46,11 @@ namespace exceptions {
  * @var ErrorCode::NOT_IMPLEMENTED
  * Error code for not implemented method
  *
- * @var ErrorCode::NOT_ALLOWED
+ * @var ErrorCode::METHOD_NOT_ALLOWED
  * Error code for not allowed method
+ *
+ * @var ErrorCode::METHOD_CONFLICT
+ * Error code for when a method conflicts with an ongoing asynchronous action
  *
  * @var ErrorCode::UNSUPPORTED_VALUE
  * A value is not supported
@@ -102,6 +105,7 @@ enum class ErrorCode {
     NOT_FOUND = 10000,
     NOT_IMPLEMENTED = 11000,
     METHOD_NOT_ALLOWED = 12000,
+    METHOD_CONFLICT = 13000,
 
     INVALID_VALUE = 14000,
     UNSUPPORTED_VALUE = 14100,
@@ -126,6 +130,7 @@ enum class ErrorCode {
     STORAGE = 40000,
     ISCSI = 41000,
     LVM = 42000,
+    NVME = 43000,
 
     PCIE_FABRIC = 50000,
 

@@ -2,7 +2,7 @@
  * @brief Provides implementation of NetworkTreeStabilizer class
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +77,7 @@ const std::string NetworkTreeStabilizer::stabilize_chassis(const std::string& ch
         return chassis_persistent_uuid;
     }
     else {
-        log_key_value_missing(chassis.get_component().to_string(), chassis_uuid);
+        agent_framework::log_key_value_missing(chassis.get_component().to_string(), chassis_uuid);
         return chassis_uuid;
     }
 }
@@ -110,7 +110,7 @@ const std::string NetworkTreeStabilizer::stabilize_switch(const std::string& swi
         return switch_persistent_uuid;
     }
     else {
-        log_key_value_missing(ethernet_switch.get_component().to_string(), switch_uuid);
+        agent_framework::log_key_value_missing(ethernet_switch.get_component().to_string(), switch_uuid);
         return switch_uuid;
     }
 }
@@ -131,7 +131,7 @@ const std::string NetworkTreeStabilizer::stabilize_acl_rule(const std::string& a
         return acl_rule_persistent_uuid;
     }
     else {
-        log_key_value_missing(acl_rule.get_component().to_string(), acl_rule_uuid);
+        agent_framework::log_key_value_missing(acl_rule.get_component().to_string(), acl_rule_uuid);
         return acl_rule_uuid;
     }
 }
@@ -162,7 +162,7 @@ const std::string NetworkTreeStabilizer::stabilize_acl(const std::string& acl_uu
         return acl_persistent_uuid;
     }
     else {
-        log_key_value_missing(acl.get_component().to_string(), acl_uuid);
+        agent_framework::log_key_value_missing(acl.get_component().to_string(), acl_uuid);
         return acl_uuid;
     }
 }
@@ -187,7 +187,7 @@ const std::string NetworkTreeStabilizer::stabilize_port_vlan(const std::string& 
         return port_vlan_persistent_uuid;
     }
     else {
-        log_key_value_missing(port_vlan.get_component().to_string(), port_vlan_uuid);
+        agent_framework::log_key_value_missing(port_vlan.get_component().to_string(), port_vlan_uuid);
         return port_vlan_uuid;
     }
 }
@@ -213,7 +213,7 @@ const std::string NetworkTreeStabilizer::stabilize_static_mac(const std::string&
         return static_mac_persistent_uuid;
     }
     else {
-        log_key_value_missing(static_mac.get_component().to_string(), static_mac_uuid);
+        agent_framework::log_key_value_missing(static_mac.get_component().to_string(), static_mac_uuid);
         return static_mac_uuid;
     }
 }
@@ -250,7 +250,7 @@ const std::string NetworkTreeStabilizer::stabilize_port(const std::string& port_
         return port_persistent_uuid;
     }
     else {
-        log_key_value_missing(port.get_component().to_string(), port_uuid);
+        agent_framework::log_key_value_missing(port.get_component().to_string(), port_uuid);
         return port_uuid;
     }
 }
@@ -286,7 +286,7 @@ const std::string NetworkTreeStabilizer::stabilize(const std::string& module_uui
         return module_persistent_uuid;
     }
     else {
-        log_key_value_missing(module.get_component().to_string(), module_uuid);
+        agent_framework::log_key_value_missing(module.get_component().to_string(), module_uuid);
         return module_uuid;
     }
 }

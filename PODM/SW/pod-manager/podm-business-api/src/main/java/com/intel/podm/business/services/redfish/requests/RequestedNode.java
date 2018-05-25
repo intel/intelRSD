@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.intel.podm.common.types.MemoryDeviceType;
 import com.intel.podm.common.types.ProcessorBrand;
 import com.intel.podm.common.types.ProcessorType;
 import com.intel.podm.common.types.Protocol;
-import com.intel.podm.common.types.ReplicationMethod;
+import com.intel.podm.common.types.ReplicaType;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -89,11 +89,12 @@ public interface RequestedNode {
 
     interface RemoteDrive {
         BigDecimal getCapacityGib();
-        String getIscsiAddress();
         MasterDrive getMaster();
+        Context getResourceContext();
+        Protocol getProtocol();
 
         interface MasterDrive {
-            ReplicationMethod getType();
+            ReplicaType getType();
             Context getResourceContext();
         }
     }
@@ -102,5 +103,6 @@ public interface RequestedNode {
         Boolean getTpmPresent();
         InterfaceType getTpmInterfaceType();
         Boolean getTxtEnabled();
+        Boolean getClearTpmOnDelete();
     }
 }

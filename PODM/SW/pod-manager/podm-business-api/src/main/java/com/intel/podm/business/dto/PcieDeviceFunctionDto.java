@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.services.context.Context;
@@ -26,15 +27,19 @@ import com.intel.podm.common.types.Status;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "functionId", "deviceClass",
-    "functionType", "deviceId", "vendorId", "classCode", "revisionId", "subsystemId", "subsystemVendorId", "status",
-    "functionalDevice", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "functionId", "deviceClass", "functionType", "deviceId", "vendorId",
+    "classCode", "revisionId", "subsystemId", "subsystemVendorId", "status", "links", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class PcieDeviceFunctionDto extends RedfishDto {
+    private final Links links = new Links();
     private Integer functionId;
+    @JsonInclude(NON_NULL)
     private DeviceClass deviceClass;
+    @JsonInclude(NON_NULL)
     private FunctionType functionType;
     private String deviceId;
     private String vendorId;
@@ -43,7 +48,6 @@ public final class PcieDeviceFunctionDto extends RedfishDto {
     private String subsystemId;
     private String subsystemVendorId;
     private Status status;
-    private final Links links = new Links();
 
     public PcieDeviceFunctionDto() {
         super("#PCIeFunction.v1_0_0.PCIeFunction");
@@ -133,13 +137,13 @@ public final class PcieDeviceFunctionDto extends RedfishDto {
         return links;
     }
 
-    @JsonPropertyOrder({"drives", "pcieDevice", "storageControllers", "ethernetInterfaces"})
+    @JsonPropertyOrder({"drives", "pcieDevice", "storageControllers", "ethernetInterfaces", "oem"})
     public class Links extends RedfishLinksDto {
         private final Collection<Context> drives = new LinkedHashSet<>();
-        @JsonProperty("PCIeDevice")
-        private Context pcieDevice;
         private final Collection<StorageControllerDto> storageControllers = new LinkedHashSet<>();
         private final Collection<Context> ethernetInterfaces = new LinkedHashSet<>();
+        @JsonProperty("PCIeDevice")
+        private Context pcieDevice;
 
         public Collection<Context> getDrives() {
             return drives;

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,10 +37,9 @@ json::Value make_prototype() {
 
     r[constants::PcieFunction::CLASS_CODE] = json::Value::Type::NIL;
     r[Common::DESCRIPTION] = "PCIe Function description";
-    r[constants::PcieFunction::DEVICE_CLASS] = json::Value::Type::NIL;
     r[constants::PcieFunction::DEVICE_ID] = json::Value::Type::NIL;
     r[constants::PcieFunction::FUNCTION_ID] = json::Value::Type::NIL;
-    r[constants::PcieFunction::FUNCTION_TYPE] = json::Value::Type::NIL;
+    // FunctionType and DeviceClass are only filled when it's available, because they're non-nullable
     r[Common::ID] = json::Value::Type::NIL;
     r[Common::OEM] = json::Value::Type::OBJECT;
     r[constants::PcieFunction::REVISION_ID] = json::Value::Type::NIL;
@@ -64,6 +63,10 @@ json::Value make_prototype() {
 
 void fill_links(const agent_framework::model::PcieFunction& function,
                 const std::string& device_uuid, json::Value& json) {
+
+    json[Common::LINKS][constants::PcieFunction::PCIE_DEVICE][Common::ODATA_ID] =
+        endpoint::utils::get_component_url(agent_framework::model::enums::Component::PcieDevice, device_uuid);
+
     if (!function.get_functional_device().has_value()) {
         return;
     }
@@ -91,11 +94,9 @@ void fill_links(const agent_framework::model::PcieFunction& function,
             }
         }
 
-        json[Common::LINKS][constants::PcieFunction::PCIE_DEVICE][Common::ODATA_ID] =
-            endpoint::utils::get_component_url(agent_framework::model::enums::Component::PcieDevice, device_uuid);
     }
     catch (agent_framework::exceptions::InvalidUuid) {
-        log_error(GET_LOGGER("rest"), "Function " + function.get_uuid() + " has functional device "
+        log_error("rest", "Function " + function.get_uuid() + " has functional device "
                                       + function.get_functional_device().value() +
                                       " which does not exist as a resource");
     }
@@ -134,7 +135,6 @@ void endpoint::PcieFunction::get(const server::Request& req, server::Response& r
     fill_links(function, device_uuid, json);
 
     json[constants::PcieFunction::CLASS_CODE] = function.get_pci_class_code();
-    json[constants::PcieFunction::DEVICE_CLASS] = function.get_device_class();
     json[constants::PcieFunction::DEVICE_ID] = function.get_pci_device_id();
     try {
         if (function.get_function_id().has_value()) {
@@ -142,10 +142,15 @@ void endpoint::PcieFunction::get(const server::Request& req, server::Response& r
         }
     }
     catch (const std::exception& ex) {
-        log_warning(GET_LOGGER("rest"), "Invalid function id type:" << ex.what());
+        log_warning("rest", "Invalid function id type:" << ex.what());
     }
-    json[constants::PcieFunction::FUNCTION_TYPE] = function.get_function_type();
     json[constants::PcieFunction::REVISION_ID] = function.get_pci_revision_id();
+    if (function.get_device_class().has_value()) {
+        json[constants::PcieFunction::DEVICE_CLASS] = function.get_device_class();
+    }
+    if (function.get_function_type().has_value()) {
+        json[constants::PcieFunction::FUNCTION_TYPE] = function.get_function_type();
+    }
 
     endpoint::status_to_json(function, json);
     json[Common::STATUS][Common::HEALTH_ROLLUP] = function.get_status().get_health();

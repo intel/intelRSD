@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,7 +76,7 @@ void handle_attach(const Attach::Request& request, Attach::Response& response) {
         throw json_rpc::JsonRpcException(json_rpc::common::ERROR_RPC_INVALID_REQUEST, "Invalid data format");
     }
 
-    log_info(GET_LOGGER("rest"), "Registration: Request.IP = " << request.get_ipv4_address()
+    log_info("rest", "Registration: Request.IP = " << request.get_ipv4_address()
                                          << " gamiId = " << request.get_gami_id()
                                          << " port = " << request.get_port()
                                          << " capabilities = " << request.get_capabilities().to_json().dump());
@@ -94,14 +94,14 @@ void handle_attach(const Attach::Request& request, Attach::Response& response) {
             && are_vectors_same(request.get_capabilities().get_array(), agent_caps)) {
 
             // agent already registered - reconnection - ok
-            log_info(GET_LOGGER("rest"), "Reconnection detected");
+            log_info("rest", "Reconnection detected");
         }
         else {
             // conflict
             std::string message = "Registration conflict: another agent is already connected on " +
                 request.get_ipv4_address() + ":" + std::to_string(request.get_port());
 
-            log_warning(GET_LOGGER("rest"), message);
+            log_warning("rest", message);
             throw ServerException(ErrorFactory::create_conflict_error(message));
         }
     }
@@ -117,7 +117,7 @@ void handle_attach(const Attach::Request& request, Attach::Response& response) {
         );
 
         AgentManager::get_instance()->add_agent(agent);
-        log_info(GET_LOGGER("registration"), "Agent " << request.get_gami_id() << " registered.");
+        log_info("registration", "Agent " << request.get_gami_id() << " registered.");
     }
 
     // prepare response

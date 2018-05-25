@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description",
-    "destination", "eventTypes", "subscriptionContext", "protocol", "originResources"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "destination", "eventTypes", "subscriptionContext", "protocol",
+    "originResources", "oem"
 })
 public class EventSubscriptionDto extends RedfishDto {
     private List<EventType> eventTypes = new ArrayList<>();
@@ -48,24 +48,20 @@ public class EventSubscriptionDto extends RedfishDto {
         this.eventTypes = eventTypes;
     }
 
-    public void setSubscriptionContext(String subscriptionContext) {
-        this.subscriptionContext = subscriptionContext;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public void setOriginResources(List<ODataId> originResources) {
-        this.originResources = originResources;
-    }
-
     public String getSubscriptionContext() {
         return subscriptionContext;
     }
 
+    public void setSubscriptionContext(String subscriptionContext) {
+        this.subscriptionContext = subscriptionContext;
+    }
+
     public String getProtocol() {
         return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     public String getDestination() {
@@ -78,6 +74,10 @@ public class EventSubscriptionDto extends RedfishDto {
 
     public List<ODataId> getOriginResources() {
         return originResources;
+    }
+
+    public void setOriginResources(List<ODataId> originResources) {
+        this.originResources = originResources;
     }
 
 }

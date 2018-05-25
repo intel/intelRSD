@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +16,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @section DESCRIPTION
  * */
 
 #include "agent-framework/module/common_components.hpp"
@@ -30,8 +26,8 @@ using namespace agent_framework::command;
 using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetManagerInfo,
-    [] (const GetManagerInfo::Request& req, GetManagerInfo::Response& rsp) {
-        log_debug(GET_LOGGER("storage-agent"), "Getting manager info.");
-        rsp = CommonComponents::get_instance()->get_module_manager().get_entry(req.get_uuid());
+    [] (const GetManagerInfo::Request& request, GetManagerInfo::Response& response) {
+        log_debug("storage-agent", "Getting manager info.");
+        response = get_manager<agent_framework::model::Manager>().get_entry(request.get_uuid());
     }
 );

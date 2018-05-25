@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,7 +75,7 @@ public:
      */
     template <typename T>
     bool add_handler(typename T::HandlerFunc command_handler) {
-        log_info(GET_LOGGER("agent"), "Method " +
+        log_info("agent", "Method " +
                  T::Request::get_command() + " has been registered");
         m_commands.emplace_back(std::shared_ptr<CommandBase>(new T(command_handler)));
         return true;

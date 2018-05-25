@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@
  * */
 
 #include "discovery/discoverer.hpp"
+#include "fru_eeprom/fru_eeprom_parser.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::module;
@@ -37,6 +38,7 @@ using namespace agent::pnc::nvme;
 using namespace agent::pnc::gas;
 using namespace agent::pnc::gas::mrpc;
 using namespace agent::pnc;
+using namespace fru_eeprom::parser;
 
 namespace {
 
@@ -72,7 +74,7 @@ Switch Discoverer::discover_switch(const std::string& fabric_uuid, const Toolset
         builder->update_seeprom(seeprom);
     }
     else {
-        log_error(GET_LOGGER("pnc-discovery"), "Cannot read switch seeprom data");
+        log_error("pnc-discovery", "Cannot read switch seeprom data");
     }
     return builder->build();
 }
@@ -86,7 +88,7 @@ Zone Discoverer::discover_zone(const std::string& fabric_uuid, const tools::Tool
         builder->update_pc(gas.partition);
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("pnc-discovery"), "Cannot read Zone " << unsigned(zone_id) << " data. " << e.what());
+        log_error("pnc-discovery", "Cannot read Zone " << unsigned(zone_id) << " data. " << e.what());
     }
     return builder->build();
 }
@@ -114,7 +116,7 @@ bool Discoverer::update_port(Port& port, const GlobalAddressSpaceRegisters& gas,
             tools.map_tool->get_port_status_from_link_status(lsr));
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("pnc-discovery"), "Cannot update status on port " << port.get_uuid() <<
+        log_error("pnc-discovery", "Cannot update status on port " << port.get_uuid() <<
                                                                                ", exception: " << e.what());
         changed = tools.model_tool->set_status_offline(port);
     }
@@ -134,7 +136,7 @@ Port Discoverer::discover_port(const std::string& switch_uuid, const tools::Tool
         builder->update_twi_config(tmp_port.get_twi_port(), tmp_port.get_twi_channel());
     }
     else {
-        log_warning(GET_LOGGER("pnc-discovery"),
+        log_warning("pnc-discovery",
             "Port configuration data not found for physical port:" << unsigned(port_id));
         throw PncDiscoveryExceptionNoConfiguration{};
     }
@@ -146,7 +148,7 @@ Port Discoverer::discover_port(const std::string& switch_uuid, const tools::Tool
             builder->update_cable_id(cable_id);
         }
         else {
-            log_warning(GET_LOGGER("pnc-discovery"), "Reading CableId for Port " << unsigned(port_id) << " failed. ");
+            log_warning("pnc-discovery", "Reading CableId for Port " << unsigned(port_id) << " failed. ");
         }
     }
     return builder->build();
@@ -210,15 +212,25 @@ Drive Discoverer::discover_oob_drive(const std::string& chassis_uuid, const Tool
         builder->update_smart(tools, smart);
     }
     else {
-        log_warning(GET_LOGGER("pnc-discovery"), "Cannot read drive SMART data");
+        log_warning("pnc-discovery", "Cannot read drive SMART data");
         smart_failed = true;
     }
+
     VitalProductData vpd{m_platform};
     if (tools.i2c_tool->get_vpd(vpd, port)) {
-        builder->update_vpd(vpd);
+        // try parsing data as VPD IPMI FRU format
+        try {
+            FruEepromParser parser(vpd.raw_data, VitalProductData::NVME_VPD_FRU_IPMI_FORMAT_SIZE_BYTES);
+            parser.parse();
+            builder->update_vpd(parser);
+        }
+        catch (...) {
+            // if parsing failed - try with SFF FORMAT
+            builder->update_vpd(vpd);
+        }
     }
     else {
-        log_error(GET_LOGGER("pnc-discovery"), "Cannot read drive VPD data.");
+        log_error("pnc-discovery", "Cannot read drive VPD data.");
         vpd_failed = true;
     }
 
@@ -227,7 +239,7 @@ Drive Discoverer::discover_oob_drive(const std::string& chassis_uuid, const Tool
         builder->update_firmware_version(fw);
     }
     else {
-        log_error(GET_LOGGER("pnc-discovery"), "Cannot read drive Firmware version data");
+        log_error("pnc-discovery", "Cannot read drive Firmware version data");
         fw_failed = true;
     }
 

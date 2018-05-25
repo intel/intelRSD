@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.dto.actions.BindActionDto;
@@ -25,11 +26,12 @@ import com.intel.podm.business.services.context.SingletonContext;
 import java.util.HashSet;
 import java.util.Set;
 
-@JsonPropertyOrder({"@odata.type", "id", "name", "description", "oem", "rules", "links", "actions"})
+@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "rules", "links", "actions", "oem"})
+@JsonIgnoreProperties({"Oem"})
 public class EthernetSwitchAclDto extends RedfishDto {
-    private SingletonContext rules;
     private final Links links = new Links();
     private final Actions actions = new Actions();
+    private SingletonContext rules;
 
     public EthernetSwitchAclDto() {
         super("#EthernetSwitchACL.v1_0_0.EthernetSwitchACL");
@@ -51,6 +53,7 @@ public class EthernetSwitchAclDto extends RedfishDto {
         return actions;
     }
 
+    @JsonPropertyOrder({"boundPorts", "oem"})
     public final class Links extends RedfishLinksDto {
         private final Set<Context> boundPorts = new HashSet<>();
 

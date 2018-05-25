@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.intel.podm.business.dto.IpAddresses.IpV4AddressDto;
+import com.intel.podm.business.dto.IpAddresses.IpV6AddressDto;
+import com.intel.podm.business.dto.IpAddresses.IpV6AddressPolicyDto;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.context.SingletonContext;
 import com.intel.podm.common.types.LinkStatus;
+import com.intel.podm.common.types.Protocol;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.net.MacAddress;
 import com.intel.podm.common.types.redfish.OemType;
@@ -34,37 +38,33 @@ import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
+import static com.intel.podm.common.types.redfish.OemType.Type.TOP_LEVEL_OEM;
 import static com.intel.podm.common.utils.Collections.nullOrEmpty;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "linkStatus", "interfaceEnabled",
-    "permanentMacAddress", "macAddress", "speedMbps", "autoNeg", "fullDuplex", "mtuSize", "hostName", "fqdn",
-    "vlans", "ipV4Addresses", "ipV6AddressPolicyTable", "ipV6StaticAddresses", "maxIPv6StaticAddresses",
-    "ipV6DefaultGateway", "ipV6Addresses", "nameServers", "links", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "linkStatus", "interfaceEnabled", "permanentMacAddress",
+    "macAddress", "speedMbps", "autoNeg", "fullDuplex", "mtuSize", "hostName", "fqdn", "vlans", "ipV4Addresses", "ipV6AddressPolicyTable",
+    "ipV6StaticAddresses", "maxIPv6StaticAddresses", "ipV6DefaultGateway", "ipV6Addresses", "nameServers", "links", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class EthernetInterfaceDto extends RedfishDto {
+    private final Links links = new Links();
+
     private Status status;
     private LinkStatus linkStatus;
-    @JsonProperty("InterfaceEnabled")
     private Boolean interfaceEnabled;
     @JsonProperty("PermanentMACAddress")
     private MacAddress permanentMacAddress;
     @JsonProperty("MACAddress")
     private MacAddress macAddress;
-    @JsonProperty("SpeedMbps")
     private Integer speedMbps;
-    @JsonProperty("AutoNeg")
     private Boolean autoNeg;
-    @JsonProperty("FullDuplex")
     private Boolean fullDuplex;
     @JsonProperty("MTUSize")
     private Integer mtuSize;
     @JsonProperty("FQDN")
     private String fqdn;
-    @JsonProperty("HostName")
     private String hostName;
-    @JsonProperty("NameServers")
     private List<String> nameServers = new ArrayList<>();
     @JsonProperty("VLANs")
     private SingletonContext vlans;
@@ -73,18 +73,17 @@ public final class EthernetInterfaceDto extends RedfishDto {
     @JsonIgnore
     private Integer vlanId;
     @JsonProperty("IPv4Addresses")
-    private List<IpAddresses.IpV4AddressDto> ipV4Addresses = new ArrayList<>();
-    @JsonProperty("MaxIPv6StaticAddresses")
+    private List<IpV4AddressDto> ipV4Addresses = new ArrayList<>();
     private Integer maxIPv6StaticAddresses;
     @JsonProperty("IPv6DefaultGateway")
     private String ipV6DefaultGateway;
     @JsonProperty("IPv6Addresses")
-    private List<IpAddresses.IpV6AddressDto> ipV6Addresses = new ArrayList<>();
+    private List<IpV6AddressDto> ipV6Addresses = new ArrayList<>();
     @JsonProperty("IPv6StaticAddresses")
-    private List<IpAddresses.IpV6AddressDto> ipV6StaticAddresses = new ArrayList<>();
+    private List<IpV6AddressDto> ipV6StaticAddresses = new ArrayList<>();
     @JsonProperty("IPv6AddressPolicyTable")
-    private List<IpAddresses.IpV6AddressPolicyDto> ipV6AddressPolicyTable = new ArrayList<>();
-    private Links links = new Links();
+    private List<IpV6AddressPolicyDto> ipV6AddressPolicyTable = new ArrayList<>();
+    private final Oem oem = new Oem();
 
     public EthernetInterfaceDto() {
         super("#EthernetInterface.v1_1_0.EthernetInterface");
@@ -210,11 +209,11 @@ public final class EthernetInterfaceDto extends RedfishDto {
         this.vlanId = vlanId;
     }
 
-    public List<IpAddresses.IpV4AddressDto> getIpV4Addresses() {
+    public List<IpV4AddressDto> getIpV4Addresses() {
         return ipV4Addresses;
     }
 
-    public void setIpV4Addresses(List<IpAddresses.IpV4AddressDto> ipV4Addresses) {
+    public void setIpV4Addresses(List<IpV4AddressDto> ipV4Addresses) {
         this.ipV4Addresses = ipV4Addresses;
     }
 
@@ -234,27 +233,27 @@ public final class EthernetInterfaceDto extends RedfishDto {
         this.ipV6DefaultGateway = ipV6DefaultGateway;
     }
 
-    public List<IpAddresses.IpV6AddressDto> getIpV6Addresses() {
+    public List<IpV6AddressDto> getIpV6Addresses() {
         return ipV6Addresses;
     }
 
-    public void setIpV6Addresses(List<IpAddresses.IpV6AddressDto> ipV6Addresses) {
+    public void setIpV6Addresses(List<IpV6AddressDto> ipV6Addresses) {
         this.ipV6Addresses = ipV6Addresses;
     }
 
-    public List<IpAddresses.IpV6AddressDto> getIpV6StaticAddresses() {
+    public List<IpV6AddressDto> getIpV6StaticAddresses() {
         return ipV6StaticAddresses;
     }
 
-    public void setIpV6StaticAddresses(List<IpAddresses.IpV6AddressDto> ipV6StaticAddresses) {
+    public void setIpV6StaticAddresses(List<IpV6AddressDto> ipV6StaticAddresses) {
         this.ipV6StaticAddresses = ipV6StaticAddresses;
     }
 
-    public List<IpAddresses.IpV6AddressPolicyDto> getIpV6AddressPolicyTable() {
+    public List<IpV6AddressPolicyDto> getIpV6AddressPolicyTable() {
         return ipV6AddressPolicyTable;
     }
 
-    public void setIpV6AddressPolicyTable(List<IpAddresses.IpV6AddressPolicyDto> ipV6AddressPolicyTable) {
+    public void setIpV6AddressPolicyTable(List<IpV6AddressPolicyDto> ipV6AddressPolicyTable) {
         this.ipV6AddressPolicyTable = ipV6AddressPolicyTable;
     }
 
@@ -262,14 +261,34 @@ public final class EthernetInterfaceDto extends RedfishDto {
         return links;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
+    public Oem getOem() {
+        return oem;
+    }
+
+    @OemType(TOP_LEVEL_OEM)
+    public class Oem extends RedfishOemDto {
+        @JsonProperty("Intel_RackScale")
+        private final RackScaleOem rackScaleOem = new RackScaleOem();
+
+        public RackScaleOem getRackScaleOem() {
+            return rackScaleOem;
+        }
+
+        public class RackScaleOem {
+            private List<Protocol> supportedProtocols = new ArrayList<>();
+
+            public List<Protocol> getSupportedProtocols() {
+                return supportedProtocols;
+            }
+            public void setSupportedProtocols(List<Protocol> supportedProtocols) {
+                this.supportedProtocols = supportedProtocols;
+            }
+        }
     }
 
     @JsonInclude(NON_NULL)
     public final class Links extends RedfishLinksDto {
-        @JsonProperty("Oem")
-        private Oem oem = new Oem();
+        private final Oem oem = new Oem();
 
         public EthernetInterfaceDto.Links.Oem getOem() {
             return oem;
@@ -294,12 +313,10 @@ public final class EthernetInterfaceDto extends RedfishDto {
             }
 
             @JsonInclude(NON_NULL)
-            @JsonPropertyOrder({"odataType", "neighborPort", "neighborPortExtendedInfo"})
+            @JsonPropertyOrder({"@odata.type", "neighborPort", "neighborPortExtendedInfo"})
             public final class RackScaleOem {
                 @JsonProperty("@odata.type")
-                private final String odataType = "#Intel.Oem.EthernetInterface";
-
-                @JsonProperty("NeighborPort")
+                private final String odataType = "#Intel.Oem.EthernetInterfaceLinks";
                 private Context neighborPort;
 
                 @JsonProperty("NeighborPort@Message.ExtendedInfo")

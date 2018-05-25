@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015-2017 Intel Corporation
+  ~ Copyright (c) 2015-2018 Intel Corporation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,8 +17,13 @@
 <jboss-web>
     <context-root>/</context-root>
     <resource-env-ref>
-        <resource-env-ref-name>password</resource-env-ref-name>
+        <resource-env-ref-name>clientPassword</resource-env-ref-name>
         <resource-env-ref-type>java.lang.String</resource-env-ref-type>
-        <lookup-name>java:global/password</lookup-name>
+        <lookup-name>java:global/clientPassword</lookup-name>
+    </resource-env-ref>
+    <resource-env-ref>
+        <resource-env-ref-name>serverPassword</resource-env-ref-name>
+        <resource-env-ref-type>java.lang.String</resource-env-ref-type>
+        <lookup-name>java:global/serverPassword</lookup-name>
     </resource-env-ref>
 </jboss-web>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class NodeAssemblyTaskRunnerTest {
-
     private static final int ANY_NUMBER_OF_TASKS = 5;
 
     @InjectMocks
@@ -57,7 +56,7 @@ public class NodeAssemblyTaskRunnerTest {
         NodeAssemblyTaskChainBuilder.instance()
             .prepareTaskChain(tasks)
             .forComposedNode(id(1))
-            .executeWith(nodeAssemblyTaskChainElementWithNext -> nodeAssemblyTaskChainElementWithNext.run());
+            .executeWith(ChainElement::run);
 
         InOrder inOrder = Mockito.inOrder(tasks.toArray());
         tasks.forEach(t -> inOrder.verify(t, times(1)).run());
@@ -74,7 +73,7 @@ public class NodeAssemblyTaskRunnerTest {
             .useExceptionHandler(e -> {
                 throw new RuntimeException(e);
             })
-            .executeWith(next -> next.run());
+            .executeWith(ChainElement::run);
     }
 
     @Test
@@ -89,7 +88,7 @@ public class NodeAssemblyTaskRunnerTest {
             .prepareTaskChain(newArrayList(task1, task2, task3))
             .forComposedNode(id(1))
             .useExceptionHandler(exceptionHandler)
-            .executeWith(next -> next.run());
+            .executeWith(ChainElement::run);
 
         verify(exceptionHandler, times(1)).accept(any());
 

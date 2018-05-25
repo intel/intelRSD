@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,25 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
 public class ProcessorSummaryObject {
-    @JsonProperty("Count")
+    @JsonSetter(value = "Count", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> count = unassigned();
-    @JsonProperty("Model")
+
+    @JsonSetter(value = "Model", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> model = unassigned();
-    @JsonProperty("Status")
+
+    @JsonSetter(value = "Status", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Status> status = unassigned();
 

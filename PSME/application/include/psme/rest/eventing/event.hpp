@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -209,7 +209,6 @@ private:
     EventType m_type;
     std::string m_event_id{};
     std::chrono::steady_clock::time_point m_timestamp{std::chrono::steady_clock::now()};
-    // hardcoded for now, cannot be really fixed without much effort
     // @TODO: reimplement message handling
     std::string m_severity{"OK"};
     std::string m_message{"Successfully Completed Request"};

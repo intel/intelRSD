@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ TEST(PathTests, EmptyRelativePath) {
     check_flags(empty, false, true);
     EXPECT_EQ("", empty.to_string());
     EXPECT_EQ("", empty.basename());
+    EXPECT_EQ("", empty.dirname().to_string());
 }
 
 TEST(PathTests, EmptyAbsolutePath) {
@@ -44,6 +45,7 @@ TEST(PathTests, EmptyAbsolutePath) {
     check_flags(empty, true, true);
     EXPECT_EQ("/", empty.to_string());
     EXPECT_EQ("", empty.basename());
+    EXPECT_EQ("/", empty.dirname().to_string());
 }
 
 TEST(PathTests, RelativePathDeserialization) {
@@ -152,9 +154,9 @@ TEST(PathTests, ComplexPathsDeserialization) {
     check_flags(path, false, false);
 }
 
-TEST(PathTests, RelativePathPush) {
+TEST(PathTests, RelativePathAppend) {
     Path p1{};
-    p1.push_right("this").push_right("is").push_right("a").push_right("path");
+    p1.append("this").append("is").append("a").append("path");
     EXPECT_EQ(p1.to_string(), "this/is/a/path");
     check_flags(p1, false, false);
 
@@ -164,7 +166,7 @@ TEST(PathTests, RelativePathPush) {
     check_flags(p2, false, false);
 
     Path p3{};
-    p3.push_right("test").push_right(p1).push_right("end");
+    p3.append("test").append(p1).append("end");
     EXPECT_EQ(p3.to_string(), "test/this/is/a/path/end");
     check_flags(p3, false, false);
 
@@ -174,7 +176,7 @@ TEST(PathTests, RelativePathPush) {
     check_flags(p4, false, false);
 
     Path p5{};
-    p5.push_right(p4);
+    p5.append(p4);
     EXPECT_EQ(p5.to_string(), "test2/this/is/a/second/path/end2");
     check_flags(p5, false, false);
 
@@ -186,21 +188,21 @@ TEST(PathTests, RelativePathPush) {
     Path absolute = Path::root();
 
     Path p7{};
-    EXPECT_THROW(p7.push_right(absolute), std::logic_error);
+    EXPECT_THROW(p7.append(absolute), std::logic_error);
 
     Path p8{};
     EXPECT_THROW(p8 << absolute, std::logic_error);
 
     Path p9{};
-    EXPECT_THROW(p9.push_right("test").push_right(absolute), std::logic_error);
+    EXPECT_THROW(p9.append("test").append(absolute), std::logic_error);
 
     Path p10{};
     EXPECT_THROW(p10 << "test" << absolute, std::logic_error);
 }
 
-TEST(PathTests, AbsolutePathPush) {
+TEST(PathTests, AbsolutePathAppend) {
     Path p1 = Path::root();
-    p1.push_right("this").push_right("is").push_right("a").push_right("path");
+    p1.append("this").append("is").append("a").append("path");
     EXPECT_EQ(p1.to_string(), "/this/is/a/path");
     check_flags(p1, true, false);
 
@@ -210,13 +212,13 @@ TEST(PathTests, AbsolutePathPush) {
     check_flags(p2, true, false);
 
     Path p3 = Path::root();
-    EXPECT_THROW(p3.push_right("test").push_right(p1).push_right("end"), std::logic_error);
+    EXPECT_THROW(p3.append("test").append(p1).append("end"), std::logic_error);
 
     Path p4 = Path::root();
     EXPECT_THROW(p4 << "test2" << p2 << "end2", std::logic_error);
 
     Path p5 = Path::root();
-    EXPECT_THROW(p5.push_right(p2), std::logic_error);
+    EXPECT_THROW(p5.append(p2), std::logic_error);
 
     Path p6 = Path::root();
     EXPECT_THROW(p6 << p2, std::logic_error);
@@ -225,7 +227,7 @@ TEST(PathTests, AbsolutePathPush) {
     relative << "relative" << "path";
 
     Path p7 = Path::root();
-    p7.push_right(relative);
+    p7.append(relative);
     EXPECT_EQ(p7.to_string(), "/relative/path");
     check_flags(p7, true, false);
 
@@ -235,7 +237,7 @@ TEST(PathTests, AbsolutePathPush) {
     check_flags(p8, true, false);
 
     Path p9 = Path::root();
-    p9.push_right("test").push_right(relative).push_right("end");
+    p9.append("test").append(relative).append("end");
     EXPECT_EQ(p9.to_string(), "/test/relative/path/end");
     check_flags(p9, true, false);
 
@@ -245,48 +247,155 @@ TEST(PathTests, AbsolutePathPush) {
     check_flags(p10, true, false);
 }
 
-TEST(PathTests, AbsoluteTopAndPop) {
+TEST(PathTests, PathPrepends) {
+    Path p1{};
+    p1.prepend("last").prepend("middle").prepend("first");
+    EXPECT_EQ(p1.to_string(), "first/middle/last");
+    check_flags(p1, false, false);
+
+    Path p3{};
+    p3.prepend("start").prepend(p1).prepend("/end");
+    EXPECT_EQ(p3.to_string(), "/end/first/middle/last/start");
+    check_flags(p3, true, false);
+
+    Path p5{};
+    p5.prepend(p1);
+    EXPECT_EQ(p5.to_string(), "first/middle/last");
+    check_flags(p5, false, false);
+
+    Path absolute = Path::root();
+    Path p7{"test"};
+    p7.prepend(absolute);
+    EXPECT_EQ(p7.to_string(), "/test");
+    check_flags(p7, true, false);
+
+    absolute.append("first");
+    Path p8{"second"};
+    p8.prepend(absolute);
+    EXPECT_EQ(p8.to_string(), "/first/second");
+    check_flags(p8, true, false);
+
+    absolute = Path::root();
+    Path p9{};
+    EXPECT_EQ(p9.prepend("test").prepend(absolute).to_string(), "/test");
+
+    Path p10 = Path::root();
+    EXPECT_THROW(p10.prepend(absolute), std::logic_error);
+
+    Path p11 = Path::root();
+    EXPECT_THROW(p10.prepend(""), std::logic_error);
+}
+
+TEST(PathTests, AbsoluteTopAndPopRight) {
     Path path = Path::root();
     path << "this" << "is" << "a" << "test";
     EXPECT_EQ(path.to_string(), "/this/is/a/test");
     EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path("/this/is/a"));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "/this/is/a");
     EXPECT_EQ(path.basename(), "a");
+    EXPECT_TRUE(path.dirname() == Path("/this/is"));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "/this/is");
     EXPECT_EQ(path.basename(), "is");
+    EXPECT_TRUE(path.dirname() == Path("/this"));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "/this");
     EXPECT_EQ(path.basename(), "this");
+    EXPECT_TRUE(path.dirname() == Path("/"));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "/");
     EXPECT_EQ(path.basename(), "");
+    EXPECT_TRUE(path.dirname() == Path("/"));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "/");
     EXPECT_EQ(path.basename(), "");
+    EXPECT_TRUE(path.dirname() == Path("/"));
 }
 
-TEST(PathTests, RelativeTopAndPop) {
+TEST(PathTests, AbsoluteTopAndPopLeft) {
+    Path path = Path::root();
+    path << "this" << "is" << "a" << "test";
+    EXPECT_EQ(path.to_string(), "/this/is/a/test");
+    EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path("/this/is/a"));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "is/a/test");
+    EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path("is/a"));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "a/test");
+    EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path("a"));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "test");
+    EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path(""));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "");
+    EXPECT_EQ(path.basename(), "");
+    EXPECT_TRUE(path.dirname() == Path(""));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "");
+    EXPECT_EQ(path.basename(), "");
+    EXPECT_TRUE(path.dirname() == Path(""));
+}
+
+TEST(PathTests, RelativeTopAndPopRight) {
     Path path;
     path << "this" << "is" << "a" << "test";
     EXPECT_EQ(path.to_string(), "this/is/a/test");
     EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path("this/is/a"));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "this/is/a");
     EXPECT_EQ(path.basename(), "a");
+    EXPECT_TRUE(path.dirname() == Path("this/is"));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "this/is");
     EXPECT_EQ(path.basename(), "is");
+    EXPECT_TRUE(path.dirname() == Path("this"));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "this");
     EXPECT_EQ(path.basename(), "this");
+    EXPECT_TRUE(path.dirname() == Path(""));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "");
     EXPECT_EQ(path.basename(), "");
+    EXPECT_TRUE(path.dirname() == Path(""));
     path.pop_right();
     EXPECT_EQ(path.to_string(), "");
     EXPECT_EQ(path.basename(), "");
+    EXPECT_TRUE(path.dirname() == Path(""));
+}
+
+TEST(PathTests, RelativeTopAndPopLeft) {
+    Path path{};
+    path << "this" << "is" << "a" << "test";
+    EXPECT_EQ(path.to_string(), "this/is/a/test");
+    EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path("this/is/a"));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "is/a/test");
+    EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path("is/a"));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "a/test");
+    EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path("a"));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "test");
+    EXPECT_EQ(path.basename(), "test");
+    EXPECT_TRUE(path.dirname() == Path(""));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "");
+    EXPECT_EQ(path.basename(), "");
+    EXPECT_TRUE(path.dirname() == Path(""));
+    path.pop_left();
+    EXPECT_EQ(path.to_string(), "");
+    EXPECT_EQ(path.basename(), "");
+    EXPECT_TRUE(path.dirname() == Path(""));
 }
 
 TEST(PathTests, RelativePathNormalization) {
@@ -403,6 +512,93 @@ TEST(PathTests, PathCompares) {
     EXPECT_TRUE(Path("test/path") != "/test/a/../path/../path/");
     EXPECT_TRUE(Path("test/path") != "/test/../path");
     EXPECT_TRUE(Path("test/path") != "/teest/path");
+}
+
+TEST(PathTests, StartsWithTests) {
+    // incompatible types
+    EXPECT_TRUE(Path("/test/path").starts_with("/"));
+    EXPECT_FALSE(Path("/test/path").starts_with(""));
+    EXPECT_FALSE(Path("test/path").starts_with("/"));
+    EXPECT_TRUE(Path("test/path").starts_with(""));
+
+    // positive cases
+    EXPECT_TRUE(Path("/test/path/to/be/checked").starts_with("/"));
+    EXPECT_TRUE(Path("/test/path/to/be/checked").starts_with("/test"));
+    EXPECT_TRUE(Path("/test/path/to/be/checked").starts_with("/test/path"));
+    EXPECT_TRUE(Path("/test/path/to/be/checked").starts_with("/test/path/to"));
+    EXPECT_TRUE(Path("/test/path/to/be/checked").starts_with("/test/path/to/be"));
+    EXPECT_TRUE(Path("/test/path/to/be/checked").starts_with("/test/path/to/be/checked"));
+
+    EXPECT_TRUE(Path("test/path/to/be/checked").starts_with(""));
+    EXPECT_TRUE(Path("test/path/to/be/checked").starts_with("test"));
+    EXPECT_TRUE(Path("test/path/to/be/checked").starts_with("test/path"));
+    EXPECT_TRUE(Path("test/path/to/be/checked").starts_with("test/path/to"));
+    EXPECT_TRUE(Path("test/path/to/be/checked").starts_with("test/path/to/be"));
+    EXPECT_TRUE(Path("test/path/to/be/checked").starts_with("test/path/to/be/checked"));
+
+    EXPECT_TRUE(Path("../test/path/to/be/checked").starts_with("../"));
+    EXPECT_TRUE(Path("../test/path/to/be/checked").starts_with("../test"));
+    EXPECT_TRUE(Path("../../test/path/to/be/checked").starts_with("../../"));
+    EXPECT_TRUE(Path("../../test/path/to/be/checked").starts_with("../../test"));
+
+    // too long test path
+    EXPECT_FALSE(Path("short/path").starts_with("short/path/long"));
+    EXPECT_TRUE(Path("short/path").starts_with("short/path"));
+    EXPECT_FALSE(Path("/path").starts_with("/path/long"));
+    EXPECT_TRUE(Path("/path").starts_with("/path"));
+    EXPECT_FALSE(Path("/").starts_with("/path"));
+    EXPECT_FALSE(Path("").starts_with("path"));
+
+    // negative cases
+    EXPECT_FALSE(Path("/test/path/to/be/checked").starts_with("/2test"));
+    EXPECT_FALSE(Path("/test/path/to/be/checked").starts_with("/test/2path"));
+    EXPECT_FALSE(Path("/test/path/to/be/checked").starts_with("/test/path/2to"));
+    EXPECT_FALSE(Path("/test/path/to/be/checked").starts_with("/test/path/to/2be"));
+    EXPECT_FALSE(Path("/test/path/to/be/checked").starts_with("/test/path/to/be/2checked"));
+
+    EXPECT_FALSE(Path("test/path/to/be/checked").starts_with("2"));
+    EXPECT_FALSE(Path("test/path/to/be/checked").starts_with("2test"));
+    EXPECT_FALSE(Path("test/path/to/be/checked").starts_with("test/2path"));
+    EXPECT_FALSE(Path("test/path/to/be/checked").starts_with("test/path/2to"));
+    EXPECT_FALSE(Path("test/path/to/be/checked").starts_with("test/path/to/2be"));
+    EXPECT_FALSE(Path("test/path/to/be/checked").starts_with("test/path/to/be/2checked"));
+
+    EXPECT_FALSE(Path("../test/path/to/be/checked").starts_with("2"));
+    EXPECT_FALSE(Path("../test/path/to/be/checked").starts_with("../2test"));
+    EXPECT_FALSE(Path("../../test/path/to/be/checked").starts_with("../2/"));
+    EXPECT_FALSE(Path("../../test/path/to/be/checked").starts_with("2/../test"));
+    EXPECT_FALSE(Path("../../test/path/to/be/checked").starts_with("2/../2"));
+
+}
+
+TEST(PathTests, AtTests) {
+    // valid at calls
+    EXPECT_EQ(Path("/path/to/be/tested").at(0), "path");
+    EXPECT_EQ(Path("/path/to/be/tested").at(1), "to");
+    EXPECT_EQ(Path("/path/to/be/tested").at(2), "be");
+    EXPECT_EQ(Path("/path/to/be/tested").at(3), "tested");
+    EXPECT_EQ(Path("../to/be/tested").at(0), "..");
+    EXPECT_EQ(Path("../to/be/tested").at(1), "to");
+    EXPECT_EQ(Path("../to/be/tested").at(2), "be");
+    EXPECT_EQ(Path("../to/be/tested").at(3), "tested");
+
+    // invalid index
+    EXPECT_THROW(Path("").at(0), std::out_of_range);
+    EXPECT_THROW(Path("/").at(0), std::out_of_range);
+    EXPECT_THROW(Path("/path/to/be/tested").at(4), std::out_of_range);
+    EXPECT_THROW(Path("../to/be/tested").at(4), std::out_of_range);
+}
+
+TEST(PathTests, SizeTests) {
+    // valid at calls
+    EXPECT_EQ(Path("/").size(), 0);
+    EXPECT_EQ(Path("").size(), 0);
+    EXPECT_EQ(Path("/test").size(), 1);
+    EXPECT_EQ(Path("test").size(), 1);
+    EXPECT_EQ(Path("/rather/long/path").size(), 3);
+    EXPECT_EQ(Path("rather/long/path").size(), 3);
+    EXPECT_EQ(Path(".././test//").size(), 2);
+
 }
 
 }

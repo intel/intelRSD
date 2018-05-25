@@ -1,4 +1,5 @@
 {
+    "service" : "pnc",
     "agent": {
         "vendor" : "Intel Corporation",
         "capabilities" : [ "Pnc" ]
@@ -111,7 +112,9 @@
             ]
         }
     ],
-    "service-uuid-file" : "/var/opt/psme/pnc-service-uuid.json",
+    "database": {
+        "location": "/var/opt/psme/pnc"
+    },
     "logger" : {
         "agent" : {
             "level" : "DEBUG",

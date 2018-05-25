@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 # </license_header>
 
 # Add internal libraries & includes
-add_subdirectory(sysfs)
+
 add_subdirectory(include)
 add_subdirectory(mdr)
 add_subdirectory(md5)
@@ -39,3 +39,11 @@ add_subdirectory(fru_eeprom)
 add_subdirectory(net)
 add_subdirectory(ssdp)
 add_subdirectory(telemetry)
+add_subdirectory(nvme)
+add_subdirectory(nvmfpp)
+add_subdirectory(crc)
+add_subdirectory(utils)
+add_subdirectory(sysfs)
+add_subdirectory(nvme-target)
+add_subdirectory(partition)
+add_subdirectory(nvmf-discovery)

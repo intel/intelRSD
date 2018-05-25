@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,8 +50,15 @@ class VitalProductData {
     void log_vpd(gas::PM85X6TwiPort port, gas::PCA9548TwiExpanderChannel channel);
 public:
 
-    /*! Size of fields struct (in bytes) */
-    static constexpr uint8_t NVME_VPD_STRUCTURE_SIZE_BYTES = 77;
+    /*! Size of the VPD if stored in SFF format */
+    static constexpr uint8_t NVME_VPD_SFF_FORMAT_SIZE_BYTES = 77;
+    /*! Size of the VPD if stored in FRU IPMI format */
+    static constexpr uint8_t NVME_VPD_FRU_IPMI_FORMAT_SIZE_BYTES = 192;
+
+    /*! Size of fields struct (in bytes): larger of the above */
+    /* TODO reading too many bytes may be an issue on EDK platform - this is to be checked */
+    static constexpr uint8_t NVME_VPD_STRUCTURE_SIZE_BYTES = NVME_VPD_FRU_IPMI_FORMAT_SIZE_BYTES;
+
     /*! Size of the class_code field of the output (in bytes) */
     static constexpr uint8_t NVME_CLASS_CODE_SIZE_BYTES = 3;
     /*! Size of the serial_number field of the output (in bytes) */
@@ -70,19 +77,23 @@ public:
 
 #pragma pack(push, 1)
     /*! Vital Product Data */
-    struct {
-        uint8_t class_code[NVME_CLASS_CODE_SIZE_BYTES];
-        uint16_t vendor_id;
-        uint8_t serial_number[NVME_SERIAL_NUMBER_SIZE_BYTES];
-        uint8_t model_number[NVME_MODEL_NUMBER_SIZE_BYTES];
-        pcie_capabilities_t pcie_port0;
-        pcie_capabilities_t pcie_port1;
-        uint8_t init_power_reqs;
-        uint16_t reserved0;
-        uint8_t max_power_reqs;
-        uint16_t reserved1;
-        uint16_t caps_list_ptr;
-    } fields{};
+    union {
+        struct {
+            uint8_t class_code[NVME_CLASS_CODE_SIZE_BYTES];
+            uint16_t vendor_id;
+            uint8_t serial_number[NVME_SERIAL_NUMBER_SIZE_BYTES];
+            uint8_t model_number[NVME_MODEL_NUMBER_SIZE_BYTES];
+            pcie_capabilities_t pcie_port0;
+            pcie_capabilities_t pcie_port1;
+            uint8_t init_power_reqs;
+            uint16_t reserved0;
+            uint8_t max_power_reqs;
+            uint16_t reserved1;
+            uint16_t caps_list_ptr;
+        } fields{};
+
+        uint8_t raw_data[NVME_VPD_STRUCTURE_SIZE_BYTES];
+    };
 #pragma pack(pop)
 
     /*!

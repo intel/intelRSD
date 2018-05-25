@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,20 +43,20 @@ public class ResourceLinkExtractor {
             return emptySet();
         }
         Set<ResourceLink> result = new HashSet<>();
-        for (String name : links.getNames()) {
-            Iterable<ExternalServiceResource> linkedResources = getResources(links, name);
+        for (String linkName : links.getLinkNames()) {
+            Iterable<ExternalServiceResource> linkedResources = getResources(links, linkName);
 
             for (ExternalServiceResource linked : linkedResources) {
-                result.add(new ResourceLink(resource, linked, name));
+                result.add(new ResourceLink(resource, linked, linkName));
             }
         }
         return result;
     }
 
-    private Set<ExternalServiceResource> getResources(ResourceLinks links, String name) throws WebClientRequestException {
+    private Set<ExternalServiceResource> getResources(ResourceLinks links, String linkName) throws WebClientRequestException {
         Set<ExternalServiceResource> result = new HashSet<>();
 
-        for (ResourceSupplier supplier : getSuppliers(links, name)) {
+        for (ResourceSupplier supplier : getSuppliers(links, linkName)) {
             try {
                 result.add(supplier.get());
             } catch (WebClientRequestException e) {
@@ -67,9 +67,9 @@ public class ResourceLinkExtractor {
         return result;
     }
 
-    private Iterable<ResourceSupplier> getSuppliers(ResourceLinks links, String name) throws WebClientRequestException {
+    private Iterable<ResourceSupplier> getSuppliers(ResourceLinks links, String linkName) throws WebClientRequestException {
         try {
-            return links.get(name);
+            return links.get(linkName);
         } catch (WebClientRequestException e) {
             rethrowIfCausedByConnectionException(e);
             return emptyList();

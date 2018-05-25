@@ -1,3 +1,15 @@
+create table associated_endpoint_identifier (
+	associated_endpoint_identifier_id int8 not null,
+	durable_name text,
+	durable_name_format text
+);
+
+create table associated_volume_identifier (
+	associated_volume_identifier_id int8 not null,
+	durable_name text,
+	durable_name_format text
+);
+
 create table boot_boot_source_override_mode_supported (
 	boot_id int8 not null,
 	boot_source_override_mode_supported text,
@@ -10,6 +22,27 @@ create table boot_boot_source_override_supported (
 	boot_source_override_supported text,
 	boot_source_override_supported_order int4 not null,
 	primary key (boot_id,boot_source_override_supported_order)
+);
+
+create table capacity_source (
+	entity_id text,
+	data_allocated_bytes numeric,
+	data_consumed_bytes numeric,
+	data_guaranteed_bytes numeric,
+	data_provisioned_bytes numeric,
+	is_thin_provisioned boolean,
+	metadata_allocated_bytes numeric,
+	metadata_consumed_bytes numeric,
+	metadata_guaranteed_bytes numeric,
+	metadata_provisioned_bytes numeric,
+	snapshot_allocated_bytes numeric,
+	snapshot_consumed_bytes numeric,
+	snapshot_guaranteed_bytes numeric,
+	snapshot_provisioned_bytes numeric,
+	id int8 not null,
+	storage_pool_id int8,
+	volume_id int8,
+	primary key (id)
 );
 
 create table chassis (
@@ -82,8 +115,8 @@ create table composed_node (
 	version integer DEFAULT 0 not null,
 	associated_compute_service_uuid text,
 	associated_computer_system_uuid text,
-	associated_remote_target_iqn text,
 	associated_storage_service_uuid text,
+	clear_tpm_on_delete boolean,
 	composed_node_state text,
 	description text,
 	eligible_for_recovery boolean,
@@ -141,6 +174,13 @@ create table computer_system_allowable_reset_type (
 	allowable_reset_type text,
 	allowable_reset_type_order int4 not null,
 	primary key (computer_system_id,allowable_reset_type_order)
+);
+
+create table computer_system_hosting_role (
+	computer_system_id int8 not null,
+	hosting_role text,
+	hosting_role_order int4 not null,
+	primary key (computer_system_id,hosting_role_order)
 );
 
 create table computer_system_manager (
@@ -208,7 +248,6 @@ create table computer_system_trusted_module (
 create table connected_entity (
 	entity_id text,
 	entity_role text,
-	entity_type text,
 	pci_class_code text,
 	pci_function_number int4,
 	device_id text,
@@ -225,6 +264,40 @@ create table connected_entity_identifier (
 	connected_entity_id int8 not null,
 	durable_name text,
 	durable_name_format text
+);
+
+create table dcbx_shared_configuration (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	entity_id text,
+	ethernet_switch_id int8,
+	primary key (id)
+);
+
+create table dcbx_shared_configuration_application_protocol (
+	application_protocol_id int8 not null,
+	port int4,
+	priority int4,
+	protocol text,
+	application_protocol_order int4 not null,
+	primary key (application_protocol_id,application_protocol_order)
+);
+
+create table dcbx_shared_configuration_bandwidth_allocation (
+	bandwidth_allocation_id int8 not null,
+	bandwidth_percent int4,
+	priority_group int4,
+	bandwidth_allocation_order int4 not null,
+	primary key (bandwidth_allocation_id,bandwidth_allocation_order)
+);
+
+create table dcbx_shared_configuration_priority_to_priority_group_mapping (
+	priority_to_priority_group_mapping_id int8 not null,
+	priority int4,
+	priority_group int4,
+	priority_to_priority_group_mapping_order int4 not null,
+	primary key (priority_to_priority_group_mapping_id,priority_to_priority_group_mapping_order)
 );
 
 create table discoverable_entity (
@@ -271,9 +344,18 @@ create table drive (
 	chassis_id int8,
 	composed_node_id int8,
 	drive_metadata_id int8,
+	drive_metrics_id int8,
 	pcie_device_function_id int8,
 	storage_id int8,
+	storage_service_id int8,
+	volume_id int8,
 	primary key (id)
+);
+
+create table drive_capacity_sources (
+	drive_id int8 not null,
+	capacity_source_id int8 not null,
+	primary key (drive_id,capacity_source_id)
 );
 
 create table drive_identifier (
@@ -300,7 +382,29 @@ create table drive_metadata (
 	primary key (id)
 );
 
+create table drive_metrics (
+	entity_id text,
+	available_spare_percentage numeric,
+	media_errors numeric,
+	predicted_media_life_used_percent numeric,
+	unsafe_shutdowns numeric,
+	controller_busy_time_minutes numeric,
+	host_read_commands numeric,
+	host_write_commands numeric,
+	power_cycles numeric,
+	power_on_hours numeric,
+	unit_size_bytes int8,
+	units_read numeric,
+	units_written numeric,
+	temperature_kelvin numeric,
+	id int8 not null,
+	drive_id int8,
+	primary key (id)
+);
+
 create table endpoint (
+	endpoint_authentication_password text,
+	endpoint_authentication_username text,
 	entity_id text,
 	host_reservation_memory_bytes int4,
 	device_id text,
@@ -309,9 +413,12 @@ create table endpoint (
 	vendor_id text,
 	endpoint_protocol text,
 	id int8 not null,
+	composed_node_id int8,
 	computer_system_id int8,
 	fabric_id int8,
+	endpoint_metadata_id int8,
 	processor_id int8,
+	storage_service_id int8,
 	zone_id int8,
 	primary key (id)
 );
@@ -320,6 +427,14 @@ create table endpoint_identifier (
 	endpoint_id int8 not null,
 	durable_name text,
 	durable_name_format text
+);
+
+create table endpoint_metadata (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	allocated boolean,
+	primary key (id)
 );
 
 create table entity_related_item (
@@ -348,6 +463,12 @@ create table ethernet_interface (
 	id int8 not null,
 	computer_system_id int8,
 	primary key (id)
+);
+
+create table ethernet_interface_endpoint (
+	ethernet_interface_id int8 not null,
+	endpoint_id int8 not null,
+	primary key (ethernet_interface_id,endpoint_id)
 );
 
 create table ethernet_interface_ipv4_address (
@@ -411,14 +532,25 @@ create table ethernet_interface_pcie_function (
 	primary key (ethernet_interface_id,pcie_function_id)
 );
 
+create table ethernet_interface_supported_protocol (
+	ethernet_interface_id int8 not null,
+	supported_protocol text,
+	supported_protocol_order int4 not null,
+	primary key (ethernet_interface_id,supported_protocol_order)
+);
+
 create table ethernet_switch (
+	dcbx_enabled boolean,
 	entity_id text,
+	ets_enabled boolean,
 	firmware_name text,
 	firmware_version text,
+	lldp_enabled boolean,
 	manufacturer text,
 	manufacturing_date text,
 	model text,
 	part_number text,
+	pfc_enabled boolean,
 	role text,
 	serial_number text,
 	switch_id text,
@@ -496,11 +628,13 @@ create table ethernet_switch_metrics (
 create table ethernet_switch_port (
 	administrative_state text,
 	autosense boolean,
+	dcbx_state text,
 	entity_id text,
 	frame_size int4,
 	full_duplex boolean,
 	link_speed_gbps int4,
 	link_type text,
+	lldp_enabled boolean,
 	mac_address text,
 	neighbor_info text,
 	neighbor_mac text,
@@ -509,12 +643,20 @@ create table ethernet_switch_port (
 	port_id text,
 	port_mode text,
 	port_type text,
+	priority_flow_control_enabled boolean,
 	id int8 not null,
 	ethernet_switch_id int8,
 	member_of_port_id int8,
 	ethernet_switch_port_metrics_id int8,
 	primary_vlan_id int8,
 	primary key (id)
+);
+
+create table ethernet_switch_port_enabled_priorities (
+	ethernet_switch_port_id int8 not null,
+	enabled_priorities int4,
+	enabled_priorities_order int4 not null,
+	primary key (ethernet_switch_port_id,enabled_priorities_order)
 );
 
 create table ethernet_switch_port_ipv4_address (
@@ -648,31 +790,23 @@ create table graphical_console_connect_type_supported (
 	primary key (graphical_console_id,connect_type_supported_order)
 );
 
-create table logical_drive (
-	bootable boolean,
-	capacity_gib numeric,
+create table ip_transport_details (
 	entity_id text,
-	image text,
-	mode text,
-	snapshot boolean,
-	type text,
-	write_protected boolean,
+	ipv4_address text,
+	ipv4_address_origin text,
+	ipv4_gateway text,
+	ipv4_oem text,
+	ipv4_subnet_mask text,
+	ipv6_address text,
+	ipv6_address_origin text,
+	address_state text,
+	ipv6_oem text,
+	prefix_length int4,
+	port int4,
+	transport_protocol text,
 	id int8 not null,
-	master_drive_id int8,
-	storage_service_id int8,
+	endpoint_id int8,
 	primary key (id)
-);
-
-create table logical_drive_composed_node (
-	logical_drive_id int8 not null,
-	composed_node_id int8 not null,
-	primary key (logical_drive_id,composed_node_id)
-);
-
-create table logical_drive_logical_drive (
-	used_by_logical_drive_id int8 not null,
-	used_logical_drive_id int8 not null,
-	primary key (used_by_logical_drive_id,used_logical_drive_id)
 );
 
 create table manager (
@@ -893,7 +1027,6 @@ create table network_device_function (
 	entity_id text,
 	mac_address text,
 	authentication_method text,
-	chap_secret text,
 	chap_username text,
 	initiator_default_gateway text,
 	initiator_ip_address text,
@@ -901,7 +1034,6 @@ create table network_device_function (
 	initiator_netmask text,
 	ip_address_type text,
 	ip_mask_dns_via_dhcp boolean,
-	mutual_chap_secret text,
 	mutual_chap_username text,
 	primary_dns text,
 	primary_lun int4,
@@ -991,26 +1123,6 @@ create table pcie_device_function (
 	computer_system_id int8,
 	pcie_device_id int8,
 	primary key (id)
-);
-
-create table physical_drive (
-	capacity_gib numeric,
-	entity_id text,
-	manufacturer text,
-	model text,
-	rpm int4,
-	serial_number text,
-	storage_controller_interface text,
-	type text,
-	id int8 not null,
-	storage_service_id int8,
-	primary key (id)
-);
-
-create table physical_drive_logical_drive (
-	physical_drive_id int8 not null,
-	logical_drive_id int8 not null,
-	primary key (physical_drive_id,logical_drive_id)
 );
 
 create table port (
@@ -1219,50 +1331,13 @@ create table redundancy_member (
 	primary key (redundancy_id,member_id)
 );
 
-create table remote_target (
+create table replica_info (
 	entity_id text,
-	iscsi_initiator_iqn text,
-	type text,
+	replica_role text,
+	replica_type text,
 	id int8 not null,
-	composed_node_id int8,
-	remote_target_metadata_id int8,
-	storage_service_id int8,
-	primary key (id)
-);
-
-create table remote_target_iscsi_address (
-	id  bigserial not null,
-	event_source_context text,
-	version integer DEFAULT 0 not null,
-	mutual_username text,
-	type text,
-	username text,
-	entity_id bigserial not null,
-	target_iqn text,
-	target_portal_ip text,
-	target_portal_port int4,
-	remote_target_id int8,
-	primary key (id)
-);
-
-create table remote_target_iscsi_address_target_lun (
-	remote_target_iscsi_address_id int8 not null,
-	target_lun int4,
-	target_lun_order int4 not null,
-	primary key (remote_target_iscsi_address_id,target_lun_order)
-);
-
-create table remote_target_logical_drive (
-	remote_target_id int8 not null,
-	logical_drive_id int8 not null,
-	primary key (remote_target_id,logical_drive_id)
-);
-
-create table remote_target_metadata (
-	id  bigserial not null,
-	event_source_context text,
-	version integer DEFAULT 0 not null,
-	allocated boolean,
+	replica_id int8,
+	volume_id int8,
 	primary key (id)
 );
 
@@ -1352,9 +1427,46 @@ create table storage_controller_supported_device_protocol (
 	primary key (storage_controller_id,supported_device_protocol_order)
 );
 
+create table storage_pool (
+	block_size_bytes numeric,
+	data_allocated_bytes numeric,
+	data_consumed_bytes numeric,
+	data_guaranteed_bytes numeric,
+	data_provisioned_bytes numeric,
+	is_thin_provisioned boolean,
+	metadata_allocated_bytes numeric,
+	metadata_consumed_bytes numeric,
+	metadata_guaranteed_bytes numeric,
+	metadata_provisioned_bytes numeric,
+	snapshot_allocated_bytes numeric,
+	snapshot_consumed_bytes numeric,
+	snapshot_guaranteed_bytes numeric,
+	snapshot_provisioned_bytes numeric,
+	entity_id text,
+	durable_name text,
+	durable_name_format text,
+	id int8 not null,
+	storage_pool_id int8,
+	storage_service_id int8,
+	primary key (id)
+);
+
+create table storage_pool_composed_node (
+	storage_pool_id int8 not null,
+	composed_node_id int8 not null,
+	primary key (storage_pool_id,composed_node_id)
+);
+
+create table storage_providing_pool_capacity_source (
+	storage_pool_id int8 not null,
+	capacity_source_id int8 not null,
+	primary key (storage_pool_id,capacity_source_id)
+);
+
 create table storage_service (
 	entity_id text,
 	id int8 not null,
+	computer_system_id int8,
 	primary key (id)
 );
 
@@ -1457,12 +1569,95 @@ create table unknown_oem (
 	primary key (entity_id,unknown_oem_order)
 );
 
+create table volume (
+	block_size_bytes numeric,
+	bootable boolean,
+	data_allocated_bytes numeric,
+	data_consumed_bytes numeric,
+	data_guaranteed_bytes numeric,
+	data_provisioned_bytes numeric,
+	is_thin_provisioned boolean,
+	metadata_allocated_bytes numeric,
+	metadata_consumed_bytes numeric,
+	metadata_guaranteed_bytes numeric,
+	metadata_provisioned_bytes numeric,
+	snapshot_allocated_bytes numeric,
+	snapshot_consumed_bytes numeric,
+	snapshot_guaranteed_bytes numeric,
+	snapshot_provisioned_bytes numeric,
+	capacity_bytes numeric,
+	encrypted boolean,
+	encryption_types text,
+	entity_id text,
+	erase_on_detach boolean,
+	erased boolean,
+	initialize_action_supported boolean,
+	manufacturer text,
+	model text,
+	optimum_io_size_bytes numeric,
+	volume_type text,
+	id int8 not null,
+	composed_node_id int8,
+	volume_metadata_id int8,
+	volume_metrics_id int8,
+	storage_pool_id int8,
+	storage_service_id int8,
+	primary key (id)
+);
+
+create table volume_access_capability (
+	volume_id int8 not null,
+	access_capability text,
+	access_capability_order int4 not null,
+	primary key (volume_id,access_capability_order)
+);
+
+create table volume_allowable_initialize_type (
+	volume_id int8 not null,
+	allowable_initialize_type text,
+	allowable_initialize_type_order int4 not null,
+	primary key (volume_id,allowable_initialize_type_order)
+);
+
+create table volume_identifier (
+	volume_id int8 not null,
+	durable_name text,
+	durable_name_format text
+);
+
+create table volume_metadata (
+	id  bigserial not null,
+	event_source_context text,
+	version integer DEFAULT 0 not null,
+	allocated boolean,
+	primary key (id)
+);
+
+create table volume_metrics (
+	capacity_used_bytes int8,
+	entity_id text,
+	id int8 not null,
+	volume_id int8,
+	primary key (id)
+);
+
+create table volume_operation (
+	volume_id int8 not null,
+	operation_name text,
+	percentage_complete numeric,
+	operation_order int4 not null,
+	primary key (volume_id,operation_order)
+);
+
 create table zone (
 	entity_id text,
 	id int8 not null,
 	fabric_id int8,
 	primary key (id)
 );
+
+alter table capacity_source
+	add constraint idx_capacity_source_entity_id unique (entity_id);
 
 alter table chassis
 	add constraint idx_chassis_entity_id unique (entity_id);
@@ -1479,11 +1674,17 @@ alter table computer_system_metrics
 alter table connected_entity
 	add constraint idx_connected_entity_entity_id unique (entity_id);
 
+alter table dcbx_shared_configuration
+	add constraint idx_dcbx_shared_configuration_entity_id unique (entity_id);
+
 alter table discoverable_entity
 	add constraint idx_discoverable_entity_global_id unique (global_id);
 
 alter table drive
 	add constraint idx_drive_entity_id unique (entity_id);
+
+alter table drive_metrics
+	add constraint idx_drive_metrics_entity_id unique (entity_id);
 
 alter table endpoint
 	add constraint idx_endpoint_entity_id unique (entity_id);
@@ -1527,8 +1728,8 @@ alter table external_service
 alter table fabric
 	add constraint idx_fabric_entity_id unique (entity_id);
 
-alter table logical_drive
-	add constraint idx_logical_drive_entity_id unique (entity_id);
+alter table ip_transport_details
+	add constraint idx_transport_entity_id unique (entity_id);
 
 alter table manager
 	add constraint idx_manager_entity_id unique (entity_id);
@@ -1563,9 +1764,6 @@ alter table pcie_device
 alter table pcie_device_function
 	add constraint idx_pcie_device_function_entity_id unique (entity_id);
 
-alter table physical_drive
-	add constraint idx_physical_drive_entity_id unique (entity_id);
-
 alter table port
 	add constraint idx_port_entity_id unique (entity_id);
 
@@ -1593,11 +1791,8 @@ alter table processor_metrics
 alter table redundancy
 	add constraint idx_redundancy_entity_id unique (entity_id);
 
-alter table remote_target
-	add constraint idx_remote_target_entity_id unique (entity_id);
-
-alter table remote_target_iscsi_address
-	add constraint idx_remote_target_iscsi_address_entity_id unique (entity_id);
+alter table replica_info
+	add constraint idx_replica_info_entity_id unique (entity_id);
 
 alter table simple_storage
 	add constraint idx_simple_storage_entity_id unique (entity_id);
@@ -1610,6 +1805,9 @@ alter table storage
 
 alter table storage_controller
 	add constraint idx_storage_controller_entity_id unique (entity_id);
+
+alter table storage_pool
+	add constraint idx_storage_pool_entity_id unique (entity_id);
 
 alter table storage_service
 	add constraint idx_storage_service_entity_id unique (entity_id);
@@ -1626,14 +1824,35 @@ alter table thermal_fan
 alter table thermal_temperature
 	add constraint idx_thermal_temperature_entity_id unique (entity_id);
 
+alter table volume
+	add constraint idx_volume_entity_id unique (entity_id);
+
+alter table volume_metrics
+	add constraint idx_volume_metrics_entity_id unique (entity_id);
+
 alter table zone
 	add constraint idx_zone_entity_id unique (entity_id);
+
+alter table associated_endpoint_identifier
+	add constraint FK_abcs4hjgtqfod5lhl0ts5734l foreign key (associated_endpoint_identifier_id)references composed_node;
+
+alter table associated_volume_identifier
+	add constraint FK_qv26wu9iyl0e77bop68ujkn0s foreign key (associated_volume_identifier_id)references composed_node;
 
 alter table boot_boot_source_override_mode_supported
 	add constraint FK_5s5sope9k484hvv3ujcbbw108 foreign key (boot_id)references computer_system;
 
 alter table boot_boot_source_override_supported
 	add constraint FK_i8r660cenjyj95upx9kwp6in8 foreign key (boot_id)references computer_system;
+
+alter table capacity_source
+	add constraint FK_df9w9ff128xegljoat4bamr64 foreign key (storage_pool_id)references storage_pool;
+
+alter table capacity_source
+	add constraint FK_aid7k5fb4mit5x55r5y3imblg foreign key (volume_id)references volume;
+
+alter table capacity_source
+	add constraint FK_fybc548xnj1ugmfle7xceib3u foreign key (id)references discoverable_entity;
 
 alter table chassis
 	add constraint FK_fdaesv3uw07hhfk9rlmaynxbp foreign key (parent_chassis_id)references chassis;
@@ -1695,6 +1914,9 @@ alter table computer_system_allowable_interface_type
 alter table computer_system_allowable_reset_type
 	add constraint FK_q1iv5xwi4hqrxlwwy374amwth foreign key (computer_system_id)references computer_system;
 
+alter table computer_system_hosting_role
+	add constraint FK_bs4ncoynlxi642yu5d0aphuv3 foreign key (computer_system_id)references computer_system;
+
 alter table computer_system_manager
 	add constraint FK_5qjqbrmviflp7dgyh3imnvkaw foreign key (manager_id)references manager;
 
@@ -1731,6 +1953,18 @@ alter table connected_entity
 alter table connected_entity_identifier
 	add constraint FK_bqbj5ls5dmxlt4ka5q4unyjty foreign key (connected_entity_id)references connected_entity;
 
+alter table dcbx_shared_configuration
+	add constraint FK_i9mddhagkj3466wnd6vx6rasx foreign key (ethernet_switch_id)references ethernet_switch;
+
+alter table dcbx_shared_configuration_application_protocol
+	add constraint FK_tqbpo1hx5hqbpeswac5kfgld0 foreign key (application_protocol_id)references dcbx_shared_configuration;
+
+alter table dcbx_shared_configuration_bandwidth_allocation
+	add constraint FK_mcyx7yutfr27tl45epoa1edpa foreign key (bandwidth_allocation_id)references dcbx_shared_configuration;
+
+alter table dcbx_shared_configuration_priority_to_priority_group_mapping
+	add constraint FK_dqmkwstnia0edsw9h1e0qn24 foreign key (priority_to_priority_group_mapping_id)references dcbx_shared_configuration;
+
 alter table drive
 	add constraint FK_jnpr25lir5pn6sct8eu2sdhjf foreign key (chassis_id)references chassis;
 
@@ -1741,19 +1975,43 @@ alter table drive
 	add constraint FK_rnn8cx4x4xma4clftuqi3boy4 foreign key (drive_metadata_id)references drive_metadata;
 
 alter table drive
+	add constraint FK_cocim0qwrt1tttxfqilcfb4bb foreign key (drive_metrics_id)references drive_metrics;
+
+alter table drive
 	add constraint FK_stwmvhg01t9xvrifgeo7en331 foreign key (pcie_device_function_id)references pcie_device_function;
 
 alter table drive
 	add constraint FK_k0edqaee47me4mjoffv3poh77 foreign key (storage_id)references storage;
 
 alter table drive
+	add constraint FK_59a786omqyycd76jpp7ja4ca4 foreign key (storage_service_id)references storage_service;
+
+alter table drive
+	add constraint FK_o8ffpxxn9aqpniay6ji6rn3yx foreign key (volume_id)references volume;
+
+alter table drive
 	add constraint FK_k7uvdl7n7gcdpko42179klcvl foreign key (id)references discoverable_entity;
+
+alter table drive_capacity_sources
+	add constraint FK_e7yv3le6m73gwgmlgkspb7ebe foreign key (capacity_source_id)references capacity_source;
+
+alter table drive_capacity_sources
+	add constraint FK_bakj3sgb2gecwjkpsrqhce9kp foreign key (drive_id)references drive;
 
 alter table drive_identifier
 	add constraint FK_acbq14nesbx37ryswgjdodyim foreign key (drive_id)references drive;
 
 alter table drive_location
 	add constraint FK_dlrx37ioi7c79f0irlrgeokp7 foreign key (drive_id)references drive;
+
+alter table drive_metrics
+	add constraint FK_196fmgn7e6ce2s96cte14ne70 foreign key (drive_id)references drive;
+
+alter table drive_metrics
+	add constraint FK_7g05613h8akgva6mtclmewvn7 foreign key (id)references discoverable_entity;
+
+alter table endpoint
+	add constraint FK_gt4bk9ytuwb0lyt44d78jj0s7 foreign key (composed_node_id)references composed_node;
 
 alter table endpoint
 	add constraint FK_6p15jxa7qa2u2iylyig3n4sx4 foreign key (computer_system_id)references computer_system;
@@ -1762,7 +2020,13 @@ alter table endpoint
 	add constraint FK_ofmdqutkvp6sw3g905brjxuhv foreign key (fabric_id)references fabric;
 
 alter table endpoint
+	add constraint FK_p7teicxqruuhp6jj6e6mfuv17 foreign key (endpoint_metadata_id)references endpoint_metadata;
+
+alter table endpoint
 	add constraint FK_e75i55djxc9qmmb3lvokf67qv foreign key (processor_id)references processor;
+
+alter table endpoint
+	add constraint FK_abj470s1wq95lixg45iro1lyh foreign key (storage_service_id)references storage_service;
 
 alter table endpoint
 	add constraint FK_s3uwsvug4plk1dpprwdln4smr foreign key (zone_id)references zone;
@@ -1784,6 +2048,12 @@ alter table ethernet_interface
 
 alter table ethernet_interface
 	add constraint FK_36pt3bdrw0ew81twg7n0kltg7 foreign key (id)references discoverable_entity;
+
+alter table ethernet_interface_endpoint
+	add constraint FK_a79h1utxwn29r7oljhatav94s foreign key (endpoint_id)references endpoint;
+
+alter table ethernet_interface_endpoint
+	add constraint FK_wb9wkddiltnfev1phs8q44rj foreign key (ethernet_interface_id)references ethernet_interface;
 
 alter table ethernet_interface_ipv4_address
 	add constraint FK_ien8cwxqp5dfsgvhsvrefivow foreign key (ethernet_interface_id)references ethernet_interface;
@@ -1811,6 +2081,9 @@ alter table ethernet_interface_pcie_function
 
 alter table ethernet_interface_pcie_function
 	add constraint FK_mkv517r2miq436km475hrtohw foreign key (ethernet_interface_id)references ethernet_interface;
+
+alter table ethernet_interface_supported_protocol
+	add constraint FK_ce9it6x1r3qaxvdilh4x3e32q foreign key (ethernet_interface_id)references ethernet_interface;
 
 alter table ethernet_switch
 	add constraint FK_n5jyrct0lcdxo4irimihnymjv foreign key (chassis_id)references chassis;
@@ -1881,6 +2154,9 @@ alter table ethernet_switch_port
 alter table ethernet_switch_port
 	add constraint FK_gv0tspm65f7sfuc8pgipel0s8 foreign key (id)references discoverable_entity;
 
+alter table ethernet_switch_port_enabled_priorities
+	add constraint FK_he8biy9u6h7fpobtgm9rte0lj foreign key (ethernet_switch_port_id)references ethernet_switch_port;
+
 alter table ethernet_switch_port_ipv4_address
 	add constraint FK_ckb3epk3ljfj2g3l22gh51ogg foreign key (ethernet_switch_port_id)references ethernet_switch_port;
 
@@ -1926,26 +2202,11 @@ alter table fabric
 alter table graphical_console_connect_type_supported
 	add constraint FK_5v1h7ihd2032vxkk8m6j7c8y2 foreign key (graphical_console_id)references manager;
 
-alter table logical_drive
-	add constraint FK_bnj8wxrgpt62nypubnll5ex5l foreign key (master_drive_id)references logical_drive;
+alter table ip_transport_details
+	add constraint FK_qa9v1pip5eqpwwkkk497yvhi1 foreign key (endpoint_id)references endpoint;
 
-alter table logical_drive
-	add constraint FK_owbo3qa7a5syc1r4hgid5vcgn foreign key (storage_service_id)references storage_service;
-
-alter table logical_drive
-	add constraint FK_mss1x51uw62d1ef8py0n5g7hl foreign key (id)references discoverable_entity;
-
-alter table logical_drive_composed_node
-	add constraint FK_1m5hixp45bp0ai25ugfye97d1 foreign key (composed_node_id)references composed_node;
-
-alter table logical_drive_composed_node
-	add constraint FK_jgb7qvv9vkimmhxnqtb13tbsg foreign key (logical_drive_id)references logical_drive;
-
-alter table logical_drive_logical_drive
-	add constraint FK_5l40h92wemulbrbbmrej2uvfm foreign key (used_logical_drive_id)references logical_drive;
-
-alter table logical_drive_logical_drive
-	add constraint FK_s75x7febkac6ffypvvp39cnt8 foreign key (used_by_logical_drive_id)references logical_drive;
+alter table ip_transport_details
+	add constraint FK_lv4ye0wvy8v0aopppbd8ueb1o foreign key (id)references discoverable_entity;
 
 alter table manager
 	add constraint FK_bieak6xoeha76j3uwbpbwm62q foreign key (in_chassis_manager_id)references chassis;
@@ -2049,18 +2310,6 @@ alter table pcie_device_function
 alter table pcie_device_function
 	add constraint FK_ogvc8drh5vmc13gp8pwo2fab8 foreign key (id)references discoverable_entity;
 
-alter table physical_drive
-	add constraint FK_d5hw89brg12ft25cp6v5k6k5h foreign key (storage_service_id)references storage_service;
-
-alter table physical_drive
-	add constraint FK_k3nl7raayfpq6jy7tmpg4n1vt foreign key (id)references discoverable_entity;
-
-alter table physical_drive_logical_drive
-	add constraint FK_8q5kh22qj2x7leq2j08k813e1 foreign key (logical_drive_id)references logical_drive;
-
-alter table physical_drive_logical_drive
-	add constraint FK_1g0qhj42vc35x3rygmkm9oyoe foreign key (physical_drive_id)references physical_drive;
-
 alter table port
 	add constraint FK_il9vsjj7uakouf5c7driq2v9m foreign key (fabric_switch_id)references switch;
 
@@ -2145,29 +2394,14 @@ alter table redundancy_member
 alter table redundancy_member
 	add constraint FK_br8sw85ec61iippj8x61lmi5o foreign key (redundancy_id)references discoverable_entity;
 
-alter table remote_target
-	add constraint FK_13j3lmubat3y8i1tbd6hoyx2a foreign key (composed_node_id)references composed_node;
+alter table replica_info
+	add constraint FK_4fskd7byitrhe50112s92gyi9 foreign key (replica_id)references volume;
 
-alter table remote_target
-	add constraint FK_kjors7w0udpsd0sriv87oeyyh foreign key (remote_target_metadata_id)references remote_target_metadata;
+alter table replica_info
+	add constraint FK_3w7vxhbx0vckkyi5v4ki9l980 foreign key (volume_id)references volume;
 
-alter table remote_target
-	add constraint FK_mo625282dhb25rpmprd3ik8f4 foreign key (storage_service_id)references storage_service;
-
-alter table remote_target
-	add constraint FK_g9h49t4vt7ss6mv9ptigip0df foreign key (id)references discoverable_entity;
-
-alter table remote_target_iscsi_address
-	add constraint FK_fixy2uancxoloy9xkm839x8e9 foreign key (remote_target_id)references remote_target;
-
-alter table remote_target_iscsi_address_target_lun
-	add constraint FK_grywh0gpm1a978qthghs6i8by foreign key (remote_target_iscsi_address_id)references remote_target_iscsi_address;
-
-alter table remote_target_logical_drive
-	add constraint FK_jkvc746rnaiikp1inwpogavks foreign key (logical_drive_id)references logical_drive;
-
-alter table remote_target_logical_drive
-	add constraint FK_cqcvvhxamudutbh59389ygnw4 foreign key (remote_target_id)references remote_target;
+alter table replica_info
+	add constraint FK_h7p9dm60cfupvug5agc3xummw foreign key (id)references discoverable_entity;
 
 alter table serial_console_connect_type_supported
 	add constraint FK_l2dih1yqlnjj3m7ugbdv72ewm foreign key (serial_console_id)references manager;
@@ -2213,6 +2447,30 @@ alter table storage_controller_supported_controller_protocol
 
 alter table storage_controller_supported_device_protocol
 	add constraint FK_902q8gdwv8jpfvlrisvmg61vn foreign key (storage_controller_id)references storage_controller;
+
+alter table storage_pool
+	add constraint FK_lr31gfsnaejrj2l3s3mitfjb0 foreign key (storage_pool_id)references storage_pool;
+
+alter table storage_pool
+	add constraint FK_jlxmwreqatm6c9w4tapkacmkm foreign key (storage_service_id)references storage_service;
+
+alter table storage_pool
+	add constraint FK_qixnmckht3ylhe5q6brew0rvb foreign key (id)references discoverable_entity;
+
+alter table storage_pool_composed_node
+	add constraint FK_abqgvnb4vwa2l7aimajrca4ai foreign key (composed_node_id)references composed_node;
+
+alter table storage_pool_composed_node
+	add constraint FK_e9scdonhh1t1vof5wcc7bha3b foreign key (storage_pool_id)references storage_pool;
+
+alter table storage_providing_pool_capacity_source
+	add constraint FK_mh12abccrkpmwfl54g9v6g792 foreign key (capacity_source_id)references capacity_source;
+
+alter table storage_providing_pool_capacity_source
+	add constraint FK_h2wtq3r38qw3h9njxrcfg67rk foreign key (storage_pool_id)references storage_pool;
+
+alter table storage_service
+	add constraint FK_90sl33yp60n4dgpbjm9osntdi foreign key (computer_system_id)references computer_system;
 
 alter table storage_service
 	add constraint FK_jqmsra7bcla6voptd2dgvethj foreign key (id)references discoverable_entity;
@@ -2264,6 +2522,42 @@ alter table thermal_temperature
 
 alter table unknown_oem
 	add constraint FK_9meypuq1dtsy5ufl3qs5ywmdi foreign key (entity_id)references discoverable_entity;
+
+alter table volume
+	add constraint FK_exalqcebmxgj3iw837c144uoh foreign key (composed_node_id)references composed_node;
+
+alter table volume
+	add constraint FK_hrgd9v89f7rgxt94oefydf44p foreign key (volume_metadata_id)references volume_metadata;
+
+alter table volume
+	add constraint FK_2a4qbtt7xnk7jip0rv23lse52 foreign key (volume_metrics_id)references volume_metrics;
+
+alter table volume
+	add constraint FK_9uqlco3xv0w7i5o3nv22uigdh foreign key (storage_pool_id)references storage_pool;
+
+alter table volume
+	add constraint FK_oncgq0cahnas9itl0a19gqpt6 foreign key (storage_service_id)references storage_service;
+
+alter table volume
+	add constraint FK_f4fmido82kejr7g7ijcffs9js foreign key (id)references discoverable_entity;
+
+alter table volume_access_capability
+	add constraint FK_3w1d4dc804d4emtn7pmsdtcmi foreign key (volume_id)references volume;
+
+alter table volume_allowable_initialize_type
+	add constraint FK_2sf0fd6u6l9xcge0dnuwy4b1v foreign key (volume_id)references volume;
+
+alter table volume_identifier
+	add constraint FK_qq4xxk5acatfyti1m8xdpfw5i foreign key (volume_id)references volume;
+
+alter table volume_metrics
+	add constraint FK_4oa20ch9f9hru5cqw4qaorhw6 foreign key (volume_id)references volume;
+
+alter table volume_metrics
+	add constraint FK_15j33vvd2aq9r37chjyu8l5ep foreign key (id)references discoverable_entity;
+
+alter table volume_operation
+	add constraint FK_3tvkitl5axuxbddhf8latbina foreign key (volume_id)references volume;
 
 alter table zone
 	add constraint FK_1qx30aoet3jq3k8y2ffyoi5al foreign key (fabric_id)references fabric;

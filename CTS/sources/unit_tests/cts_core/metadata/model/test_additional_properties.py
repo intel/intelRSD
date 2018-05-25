@@ -28,7 +28,7 @@ class AdditionalPropertiesValidationTest(unittest.TestCase):
 
         metadata_manager = MetadataManager(["qualifier"])
         self.metadata_container = metadata_manager.\
-            read_metadata_from_strings(AdditionalPropertiesValidationTest.METADATA)
+            read_metadata_from_strings("Unknwon", AdditionalPropertiesValidationTest.METADATA)
 
     def test_should_raise_an_error_when_complex_type_additional_property_without_odatatype(self):
         """

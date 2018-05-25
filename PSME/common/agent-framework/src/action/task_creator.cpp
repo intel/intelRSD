@@ -1,8 +1,6 @@
 /*!
- * @brief
- *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file
  * */
 
 #include "agent-framework/action/task_creator.hpp"
@@ -46,29 +43,27 @@ TaskCreator& TaskCreator::prepare_task() {
         throw std::logic_error("Cannot prepare an already registered task");
     }
 
-    auto prerun_action_unbound = [](const std::string& task_uuid) {
+    auto prerun_action_unbound = [](const Uuid& task_uuid) {
         auto task = module::get_manager<TaskResource>().get_entry_reference(task_uuid);
         task->set_state(TaskState::Running);
         task->start();
     };
 
-    auto completion_callback_unbound = [](const std::string& task_uuid) {
+    auto completion_callback_unbound = [](const Uuid& task_uuid) {
         auto task = module::get_manager<TaskResource>().get_entry_reference(task_uuid);
         task->set_state(TaskState::Completed);
         task->stop();
     };
 
-    auto exception_callback_unbound = [](const std::string& task_uuid) {
+    auto exception_callback_unbound = [](const Uuid& task_uuid) {
         auto task = module::get_manager<TaskResource>().get_entry_reference(task_uuid);
         task->set_state(TaskState::Exception);
         task->stop();
     };
 
     m_task.add_prerun_action(std::bind(prerun_action_unbound, m_task_resource.get_uuid()));
-    m_task.add_callback(Task::CallbackType::Completion,
-                        std::bind(completion_callback_unbound, m_task_resource.get_uuid()));
-    m_task.add_callback(Task::CallbackType::Exception,
-                        std::bind(exception_callback_unbound, m_task_resource.get_uuid()));
+    m_task.add_completion_callback(std::bind(completion_callback_unbound, m_task_resource.get_uuid()));
+    m_task.add_exception_callback(std::bind(exception_callback_unbound, m_task_resource.get_uuid()));
     m_is_task_prepared = true;
 
     return *this;
@@ -83,20 +78,19 @@ void TaskCreator::register_task() {
         throw std::logic_error("Cannot register an already registered task");
     }
 
-    auto send_task_update_event = [](const std::string& uuid) {
-        agent_framework::eventing::EventData edat;
+    auto send_task_update_event = [](const Uuid& uuid) {
+        eventing::EventData edat{};
         edat.set_component(uuid);
-        edat.set_type(agent_framework::model::enums::Component::Task);
-        edat.set_notification(agent_framework::eventing::Notification::Update);
-        agent_framework::eventing::EventsQueue::get_instance()->push_back(edat);
+        edat.set_type(model::enums::Component::Task);
+        edat.set_notification(model::enums::Notification::Update);
+        eventing::EventsQueue::get_instance()->push_back(edat);
     };
 
-    auto handle_task_exception = [](const std::string& uuid, const exceptions::GamiException& e) {
+    auto handle_task_exception = [](const Uuid& uuid, const exceptions::GamiException& e) {
         TaskResultManager::get_instance()->set_exception(uuid, e);
     };
 
     m_task.add_postrun_action(std::bind(send_task_update_event, m_task_resource.get_uuid()));
-
     m_task.add_exception_handler(std::bind(handle_task_exception, m_task_resource.get_uuid(), std::placeholders::_1));
 
     m_task_resource.set_state(TaskState::Pending);
@@ -117,8 +111,14 @@ TaskCreator& TaskCreator::add_subtask(const Task::SubtaskType& subtask) {
 }
 
 
-TaskCreator& TaskCreator::add_callback(Task::CallbackType callback_type, const Task::CallbackFunctionType& callback) {
-    m_task.add_callback(callback_type, callback);
+TaskCreator& TaskCreator::add_completion_callback(const Task::CallbackFunctionType& callback) {
+    m_task.add_completion_callback(callback);
+    return *this;
+}
+
+
+TaskCreator& TaskCreator::add_exception_callback(const Task::ExceptionCallbackFunctionType& callback) {
+    m_task.add_exception_callback(callback);
     return *this;
 }
 
@@ -140,27 +140,26 @@ const TaskCreator::TaskResource& TaskCreator::get_task_resource() const {
 
 
 void TaskCreator::set_promised_response(PromisedResponseType promised_response) {
-    std::string task_uuid = m_task_resource.get_uuid();
+    Uuid task_uuid = m_task_resource.get_uuid();
 
     auto response_result_callback = [promised_response, task_uuid]() {
         json::Json response = promised_response();
         TaskResultManager::get_instance()->set_result(task_uuid, response);
     };
 
-    m_task.add_callback(Task::CallbackType::Completion, response_result_callback);
-
+    m_task.add_completion_callback(response_result_callback);
 }
 
 
 void TaskCreator::set_promised_error_thrower(PromisedErrorThrowerType promised_error_thrower) {
-    std::string task_uuid = m_task_resource.get_uuid();
+    Uuid task_uuid = m_task_resource.get_uuid();
 
-    auto exception_thrower_callback = [task_uuid, promised_error_thrower]() {
-        auto promised_error = promised_error_thrower();
+    auto exception_thrower_callback = [task_uuid, promised_error_thrower](const exceptions::GamiException& ex) {
+        auto promised_error = promised_error_thrower(ex);
         TaskResultManager::get_instance()->set_exception(task_uuid, promised_error);
     };
 
-    m_task.add_callback(Task::CallbackType::Exception, exception_thrower_callback);
+    m_task.add_exception_callback(exception_thrower_callback);
 }
 
 }

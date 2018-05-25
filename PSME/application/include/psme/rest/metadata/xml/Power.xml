@@ -134,7 +134,7 @@
         </Property>
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
         <NavigationProperty Name="RelatedItem" Type="Collection(Resource.Item)" Nullable="false">
-          <Annotation Term="OData.Description" String="The ID(s) of the resources associated with this Power Limit"/>
+          <Annotation Term="OData.Description" String="The ID(s) of the resources associated with this Power Limit."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be an array of IDs containing pointers consistent with JSON pointer syntax to the resource that is being limited."/>
           <Annotation Term="OData.AutoExpandReferences"/>
@@ -233,7 +233,7 @@
         </Property>
         <Property Name="SensorNumber" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="A numerical identifier to represent the voltage sensor"/>
+          <Annotation Term="OData.Description" String="A numerical identifier to represent the voltage sensor."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be a numerical identifier for this voltage sensor that is unique within this resource. "/>
         </Property>
@@ -247,7 +247,7 @@
         </Property>
         <Property Name="UpperThresholdNonCritical" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Above normal range"/>
+          <Annotation Term="OData.Description" String="Above normal range."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall indicate the CurrentReading is above the normal range but is not critical. Units shall use the same units as the related ReadingVolts propoerty."/>
           <Annotation Term="Measures.Unit" String="V"/>
@@ -261,14 +261,14 @@
         </Property>
         <Property Name="UpperThresholdFatal" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Above normal range and is fatal"/>
+          <Annotation Term="OData.Description" String="Above normal range and is fatal."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall indicate the CurrentReading is above the normal range and is fatal. Units shall use the same units as the related ReadingVolts propoerty."/>
           <Annotation Term="Measures.Unit" String="V"/>
         </Property>
         <Property Name="LowerThresholdNonCritical" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Below normal range"/>
+          <Annotation Term="OData.Description" String="Below normal range."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall indicate the CurrentReading is below the normal range but is not critical. Units shall use the same units as the related ReadingVolts propoerty."/>
           <Annotation Term="Measures.Unit" String="V"/>
@@ -282,21 +282,21 @@
         </Property>
         <Property Name="LowerThresholdFatal" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Below normal range and is fatal"/>
+          <Annotation Term="OData.Description" String="Below normal range and is fatal."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall indicate the CurrentReading is below the normal range and is fatal. Units shall use the same units as the related ReadingVolts propoerty."/>
           <Annotation Term="Measures.Unit" String="V"/>
         </Property>
         <Property Name="MinReadingRange" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Minimum value for CurrentReading"/>
+          <Annotation Term="OData.Description" String="Minimum value for CurrentReading."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall indicate the lowest possible value for CurrentReading. Units shall use the same units as the related ReadingVolts propoerty."/>
           <Annotation Term="Measures.Unit" String="V"/>
         </Property>
         <Property Name="MaxReadingRange" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Maximum value for CurrentReading"/>
+          <Annotation Term="OData.Description" String="Maximum value for CurrentReading."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall indicate the highest possible value for CurrentReading. Units shall use the same units as the related ReadingVolts propoerty."/>
           <Annotation Term="Measures.Unit" String="V"/>
@@ -323,7 +323,7 @@
                     String="Details of a power supplies associated with this system or device"/>
         <Property Name="Name" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The name of the Power Supply"/>
+          <Annotation Term="OData.Description" String="The name of the Power Supply."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain a descriptive name for the associated power supply."/>
         </Property>
@@ -342,14 +342,14 @@
         </Property>
         <Property Name="LineInputVoltage" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The line input voltage at which the Power Supply is operating"/>
+          <Annotation Term="OData.Description" String="The line input voltage at which the Power Supply is operating."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the value in Volts of the line input voltage (measured or configured for) that the power supply has been configured to operate with or is currently receiving."/>
           <Annotation Term="Measures.Unit" String="V"/>
         </Property>
         <Property Name="PowerCapacityWatts" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The maximum capacity of this Power Supply"/>
+          <Annotation Term="OData.Description" String="The maximum capacity of this Power Supply."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contiain the maximum amount of power, in Watts, that the associated power supply is rated to deliver."/>
           <Annotation Term="Measures.Unit" String="W"/>
@@ -357,7 +357,7 @@
         </Property>
         <Property Name="LastPowerOutputWatts" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The average power output of this Power Supply"/>
+          <Annotation Term="OData.Description" String="The average power output of this Power Supply."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the average power output, measured in Watts, of the associated power supply."/>
           <Annotation Term="Measures.Unit" String="W"/>
@@ -365,37 +365,37 @@
         </Property>
         <Property Name="Model" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The model number for this Power Supply"/>
+          <Annotation Term="OData.Description" String="The model number for this Power Supply."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the model information as defined by the manufacturer for the associated power supply."/>
         </Property>
         <Property Name="FirmwareVersion" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The firmware version for this Power Supply"/>
+          <Annotation Term="OData.Description" String="The firmware version for this Power Supply."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the firwmare version as defined by the manufacturer for the associated power supply."/>
         </Property>
         <Property Name="SerialNumber" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The serial number for this Power Supply"/>
+          <Annotation Term="OData.Description" String="The serial number for this Power Supply."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the serial number as defined by the manufacturer for the associated power supply."/>
         </Property>
         <Property Name="PartNumber" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The part number for this Power Supply"/>
+          <Annotation Term="OData.Description" String="The part number for this Power Supply."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the part number as defined by the manufacturer for the associated power supply."/>
         </Property>
         <Property Name="SparePartNumber" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="The spare part number for this Power Supply"/>
+          <Annotation Term="OData.Description" String="The spare part number for this Power Supply."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the spare or replacement part number as defined by the manufacturer for the associated power supply."/>
         </Property>
         <Property Name="Status" Type="Resource.Status" Nullable="false"/>
         <NavigationProperty Name="RelatedItem" Type="Collection(Resource.Item)" Nullable="false">
-          <Annotation Term="OData.Description" String="The ID(s) of the resources associated with this Power Limit"/>
+          <Annotation Term="OData.Description" String="The ID(s) of the resources associated with this Power Limit."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be an array of IDs containing pointers consistent with JSON pointer syntax to the resource that is being limited."/>
           <Annotation Term="OData.AutoExpandReferences"/>
@@ -412,55 +412,55 @@
 
       <EnumType Name="PowerSupplyType">
         <Member Name="Unknown">
-          <Annotation Term="OData.Description" String="The power supply type cannot be determined"/>
+          <Annotation Term="OData.Description" String="The power supply type cannot be determined."/>
         </Member>
         <Member Name="AC">
-          <Annotation Term="OData.Description" String="Alternating Current (AC) power supply"/>
+          <Annotation Term="OData.Description" String="Alternating Current (AC) power supply."/>
         </Member>
         <Member Name="DC">
-          <Annotation Term="OData.Description" String="Direct Current (DC) power supply"/>
+          <Annotation Term="OData.Description" String="Direct Current (DC) power supply."/>
         </Member>
         <Member Name="ACorDC">
-          <Annotation Term="OData.Description" String="Power Supply supports both DC or AC"/>
+          <Annotation Term="OData.Description" String="Power Supply supports both DC or AC."/>
         </Member>
       </EnumType>
 
       <EnumType Name="LineInputVoltageType">
         <Member Name="Unknown">
-          <Annotation Term="OData.Description" String="The power supply line input voltage type cannot be determined"/>
+          <Annotation Term="OData.Description" String="The power supply line input voltage type cannot be determined."/>
         </Member>
         <Member Name="ACLowLine">
-          <Annotation Term="OData.Description" String="100-127V AC input. Deprecated: Use AC120V"/>
+          <Annotation Term="OData.Description" String="100-127V AC input. Deprecated: Use AC120V."/>
         </Member>
         <Member Name="ACMidLine">
-          <Annotation Term="OData.Description" String="200-240V AC input. Deprecated: Use AC240V"/>
+          <Annotation Term="OData.Description" String="200-240V AC input. Deprecated: Use AC240V."/>
         </Member>
         <Member Name="ACHighLine">
-          <Annotation Term="OData.Description" String="277V AC input. Deprecated: Use AC277V"/>
+          <Annotation Term="OData.Description" String="277V AC input. Deprecated: Use AC277V."/>
         </Member>
         <Member Name="DCNeg48V">
-          <Annotation Term="OData.Description" String="-48V DC input"/>
+          <Annotation Term="OData.Description" String="-48V DC input."/>
         </Member>
         <Member Name="DC380V">
           <Annotation Term="OData.Description" String="High Voltage DC input (380V)"/>
         </Member>
         <Member Name="AC120V">
-          <Annotation Term="OData.Description" String="AC 120V nominal input"/>
+          <Annotation Term="OData.Description" String="AC 120V nominal input."/>
         </Member>
         <Member Name="AC240V">
-          <Annotation Term="OData.Description" String="AC 240V nominal input"/>
+          <Annotation Term="OData.Description" String="AC 240V nominal input."/>
         </Member>
         <Member Name="AC277V">
-          <Annotation Term="OData.Description" String="AC 277V nominal input"/>
+          <Annotation Term="OData.Description" String="AC 277V nominal input."/>
         </Member>
         <Member Name="ACandDCWideRange">
-          <Annotation Term="OData.Description" String="Wide range AC or DC input"/>
+          <Annotation Term="OData.Description" String="Wide range AC or DC input."/>
         </Member>
         <Member Name="ACWideRange">
-          <Annotation Term="OData.Description" String="Wide range AC input"/>
+          <Annotation Term="OData.Description" String="Wide range AC input."/>
         </Member>
         <Member Name="DC240V">
-          <Annotation Term="OData.Description" String="DC 240V nominal input"/>
+          <Annotation Term="OData.Description" String="DC 240V nominal input."/>
         </Member>
       </EnumType>
 
@@ -546,10 +546,10 @@
       </ComplexType>
       <EnumType Name="InputType">
         <Member Name="AC">
-          <Annotation Term="OData.Description" String="Alternating Current (AC) input range"/>
+          <Annotation Term="OData.Description" String="Alternating Current (AC) input range."/>
         </Member>
         <Member Name="DC">
-          <Annotation Term="OData.Description" String="Direct Current (DC) input range"/>
+          <Annotation Term="OData.Description" String="Direct Current (DC) input range."/>
         </Member>
       </EnumType>
     </Schema>

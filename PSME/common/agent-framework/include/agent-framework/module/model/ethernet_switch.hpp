@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,7 @@ public:
     EthernetSwitch(EthernetSwitch&&) = default;
     EthernetSwitch& operator=(EthernetSwitch&&) = default;
 
+
     /*!
      * @brief construct an object of class EthernetSwitch from JSON
      *
@@ -50,12 +51,14 @@ public:
      */
     static EthernetSwitch from_json(const json::Json& json);
 
+
     /*!
      * @brief transform the object to JSon
      *
      * @return the object serialized to json::Json
      */
     json::Json to_json() const;
+
 
     /*!
      * @brief Get collection name
@@ -65,6 +68,7 @@ public:
         return EthernetSwitch::collection_name;
     }
 
+
     /*!
      * @brief Get component name
      * @return component name
@@ -72,6 +76,7 @@ public:
     static const enums::Component& get_component() {
         return EthernetSwitch::component;
     }
+
 
     /*!
      * @brief Set switch identifier
@@ -81,6 +86,7 @@ public:
         m_switch_identifier = switch_identifier;
     }
 
+
     /*!
      * @brief Get switch identifier
      * @return switch identifier
@@ -88,6 +94,7 @@ public:
     const OptionalField<std::string>& get_switch_identifier() const {
         return m_switch_identifier;
     }
+
 
     /*!
      * @brief Set mac address
@@ -97,6 +104,7 @@ public:
         m_mac_address = mac_address;
     }
 
+
     /*!
      * @brief Get mac address
      * @return mac address string
@@ -104,6 +112,7 @@ public:
     const OptionalField<std::string>& get_mac_address() const {
         return m_mac_address;
     }
+
 
     /*!
      * @brief setter for technology attribute
@@ -114,6 +123,7 @@ public:
         m_technology = technology;
     }
 
+
     /*!
      * @brief Get switch technology
      * @return switch technology
@@ -121,6 +131,7 @@ public:
     const OptionalField<enums::SwitchTechnology>& get_technology() const {
         return m_technology;
     }
+
 
     /*!
      * @brief setter for fru_info attribute
@@ -131,6 +142,7 @@ public:
         m_fru_info = fru_info;
     }
 
+
     /*!
      * @brief Get switch FRU info
      * @return FRU info
@@ -138,6 +150,7 @@ public:
     const attribute::FruInfo& get_fru_info() const {
         return m_fru_info;
     }
+
 
     /*!
      * @brief setter for location attribute
@@ -148,6 +161,7 @@ public:
         m_location = location;
     }
 
+
     /*!
      * @brief return location of type std::uint32_t
      *
@@ -157,6 +171,7 @@ public:
         return m_location;
     }
 
+
     /*!
      * @brief setter for chassis attribute
      *
@@ -165,6 +180,7 @@ public:
     void set_chassis(const OptionalField<std::string>& chassis) {
         m_chassis = chassis;
     }
+
 
     /*!
      * @brief return an object chassis of class std::string
@@ -176,7 +192,6 @@ public:
     }
 
 
-
     /*!
      * @brief Setter for firmware name
      *
@@ -185,6 +200,8 @@ public:
     void set_firmware_name(const OptionalField<std::string>& firmware_name) {
         m_firmware_name = firmware_name;
     }
+
+
     /*!
      * @brief Getter for firmware name
      *
@@ -203,6 +220,8 @@ public:
     void set_firmware_version(const OptionalField<std::string>& firmware_version) {
         m_firmware_version = firmware_version;
     }
+
+
     /*!
      * @brief Getter for firmware version
      *
@@ -221,6 +240,8 @@ public:
     void set_role(const OptionalField<enums::SwitchRole>& role) {
         m_role = role;
     }
+
+
     /*!
      * @brief Get switch role
      * @return switch role
@@ -238,6 +259,8 @@ public:
     void set_manufacturing_date(const OptionalField<std::string>& manufacturing_date) {
         m_manufacturing_date = manufacturing_date;
     }
+
+
     /*!
      * @brief Getter for manufacturing date
      *
@@ -246,6 +269,7 @@ public:
     const OptionalField<std::string>& get_manufacturing_date() const {
         return m_manufacturing_date;
     }
+
 
     /*!
      * @brief Setter for max ACL number
@@ -256,6 +280,8 @@ public:
         max_acl_number) {
         m_max_acl_number = max_acl_number;
     }
+
+
     /*!
      * @brief Getter for max ACL number
      *
@@ -263,6 +289,146 @@ public:
      */
     const OptionalField<std::uint32_t> get_max_acl_number() const {
         return m_max_acl_number;
+    }
+
+
+    /*!
+     * @brief Setter for LLDP enabled (Link Layer Discovery Protocol)
+     *
+     * @param[in] lldp_enabled LLDP enable or disable
+     */
+    void set_lldp_enabled(const OptionalField<bool> lldp_enabled) {
+        m_lldp_enabled = lldp_enabled;
+    }
+
+
+    /*!
+     * @brief Getter for LLDP enabled (Link Layer Discovery Protocol)
+     *
+     * @return LLDP enabled or disabled
+     */
+    const OptionalField<bool> get_lldp_enabled() const {
+        return m_lldp_enabled;
+    }
+
+
+    /*!
+     * @brief Setter for PFC enabled (Priority-Based Flow Control)
+     *
+     * @param[in] pfc_enabled PFC enable or disable
+     */
+    void set_pfc_enabled(const OptionalField<bool> pfc_enabled) {
+        m_pfc_enabled = pfc_enabled;
+    }
+
+
+    /*!
+     * @brief Getter for PFC enabled (Priority-Based Flow Control)
+     *
+     * @return PFC enabled or disabled
+     */
+    const OptionalField<bool> get_pfc_enabled() const {
+        return m_pfc_enabled;
+    }
+
+
+    /*!
+     * @brief Setter for ETS enabled (Enhanced Transmission Selection)
+     *
+     * @param[in] ets_enabled ETS enable or disable
+     */
+    void set_ets_enabled(const OptionalField<bool> ets_enabled) {
+        m_ets_enabled = ets_enabled;
+    }
+
+
+    /*!
+     * @brief Getter for ETS enabled (Enhanced Transmission Selection)
+     *
+     * @return ETS enabled or disabled
+     */
+    const OptionalField<bool> get_ets_enabled() const {
+        return m_ets_enabled;
+    }
+
+
+    /*!
+     * @brief Setter for DCBX enabled (Data Center Bridging Capability Exchange)
+     *
+     * @param[in] dcbx_enabled DCBX enable or disable
+     */
+    void set_dcbx_enabled(const OptionalField<bool> dcbx_enabled) {
+        m_dcbx_enabled = dcbx_enabled;
+    }
+
+
+    /*!
+     * @brief Getter for DCBX enabled (Data Center Bridging Capability Exchange)
+     *
+     * @return DCBX enabled or disabled
+     */
+    const OptionalField<bool> get_dcbx_enabled() const {
+        return m_dcbx_enabled;
+    }
+
+
+    /*!
+     * @brief Setter for QoS application protocol
+     *
+     * @param[in] application_protocol QoS application protocol
+     */
+    void set_qos_application_protocol(const attribute::Array<attribute::QosApplicationProtocol>& application_protocol) {
+        m_qos_application_protocol = application_protocol;
+    }
+
+
+    /*!
+     * @brief Getter for QoS application protocol
+     *
+     * @return QoS application protocol
+     */
+    const attribute::Array<attribute::QosApplicationProtocol>& get_qos_application_protocol() const {
+        return m_qos_application_protocol;
+    }
+
+
+    /*!
+     * @brief Setter for QoS priority to priority group mapping for ETS
+     *
+     * @param[in] priority_mapping QoS priority to priority group mapping
+     */
+    void set_qos_priority_group_mapping(const attribute::Array<attribute::QosPriorityGroupMapping>& priority_mapping) {
+        m_qos_priority_group_mapping = priority_mapping;
+    }
+
+
+    /*!
+     * @brief Getter for QoS priority to priority group mapping for ETS
+     *
+     * @return QoS priority to priority group mapping
+     */
+    const attribute::Array<attribute::QosPriorityGroupMapping>& get_qos_priority_group_mapping() const {
+        return m_qos_priority_group_mapping;
+    }
+
+
+    /*!
+     * @brief Setter for QoS bandwidth allocation for ETS
+     *
+     * @param[in] bandwidth_allocation QoS bandwidth allocation object
+     */
+    void set_qos_bandwidth_allocation(const attribute::Array<attribute::QosBandwidthAllocation>& bandwidth_allocation) {
+        m_qos_bandwidth_allocation = bandwidth_allocation;
+    }
+
+
+    /*!
+     * @brief Getter for QoS bandwidth allocation for ETS
+     *
+     * @return QoS bandwidth allocation object
+     */
+    const attribute::Array<attribute::QosBandwidthAllocation>& get_qos_bandwidth_allocation() const {
+        return m_qos_bandwidth_allocation;
     }
 
 private:
@@ -277,6 +443,13 @@ private:
     OptionalField<std::uint32_t> m_location{};
     OptionalField<std::string> m_chassis{};
     OptionalField<std::uint32_t> m_max_acl_number{};
+    OptionalField<bool> m_lldp_enabled{};
+    OptionalField<bool> m_pfc_enabled{};
+    OptionalField<bool> m_ets_enabled{};
+    OptionalField<bool> m_dcbx_enabled{};
+    attribute::Array<attribute::QosApplicationProtocol> m_qos_application_protocol{};
+    attribute::Array<attribute::QosPriorityGroupMapping> m_qos_priority_group_mapping{};
+    attribute::Array<attribute::QosBandwidthAllocation> m_qos_bandwidth_allocation{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

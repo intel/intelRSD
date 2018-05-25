@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,6 +77,18 @@ ENUM(OperationalState, uint32_t, Up, Down, Unknown);
  *
  * */
 ENUM(AdministrativeState, uint32_t, Up, Down);
+
+/*!
+ * @brief ENUM TransportLayerProtocol for Dcbx Application Protocol member
+ *
+ * */
+ENUM(TransportLayerProtocol, uint32_t, TCP, UDP, L2);
+
+/*!
+ * @brief ENUM DcbxState for Switch Port class member
+ *
+ * */
+ENUM(DcbxState, uint32_t, Disabled, EnabledIEEE, EnabledCEE);
 
 /*!
  * @brief ENUM NetworkServiceName for Manager class Network Service subclass

@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
  */
 
 #pragma once
+
+#include "discovery/helpers/common.hpp"
 
 #include <condition_variable>
 #include <mutex>
@@ -39,7 +41,8 @@ public:
      * @brief Default constructor.
      * @param[in] interval Discoveryupdate interval in seconds
      * */
-    DiscoveryThread(std::size_t interval): m_interval(interval) {}
+    DiscoveryThread(discovery::helpers::DiscoveryContext& dc, std::size_t interval):
+        m_dc(dc), m_interval(interval) {}
 
     /*! Default destructor. */
     virtual ~DiscoveryThread();
@@ -60,14 +63,14 @@ public:
 private:
     void task();
 
-    std::size_t m_interval{};
+    discovery::helpers::DiscoveryContext& m_dc;
+    const std::size_t m_interval;
 
+    std::atomic<bool> m_is_running{false};
+    std::atomic<bool> m_is_discovery_finished{false};
     std::thread m_thread{};
     std::condition_variable m_condition{};
     std::mutex m_mutex{};
-    std::atomic<bool> m_is_running{false};
-    std::atomic<bool> m_is_discovery_finished{false};
-
 };
 
 }

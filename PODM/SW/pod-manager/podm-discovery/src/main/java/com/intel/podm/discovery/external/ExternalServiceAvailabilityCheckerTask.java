@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.intel.podm.discovery.external;
 import com.intel.podm.business.entities.dao.ChassisDao;
 import com.intel.podm.business.entities.redfish.Chassis;
 import com.intel.podm.business.entities.redfish.ExternalService;
+import com.intel.podm.business.entities.redfish.base.ComposableAsset;
 import com.intel.podm.business.entities.redfish.embeddables.RackChassisAttributes;
 import com.intel.podm.client.WebClientRequestException;
 import com.intel.podm.client.reader.ExternalServiceReader;
@@ -27,11 +28,12 @@ import com.intel.podm.client.resources.redfish.ServiceRootResource;
 import com.intel.podm.common.enterprise.utils.logger.ServiceLifecycle;
 import com.intel.podm.common.enterprise.utils.tasks.DefaultManagedTask;
 import com.intel.podm.common.logger.ServiceLifecycleLogger;
+import com.intel.podm.common.types.ServiceType;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.config.base.Config;
 import com.intel.podm.config.base.Holder;
 import com.intel.podm.config.base.dto.ExternalServiceConfig;
-import com.intel.podm.discovery.ComposedNodeUpdater;
+import com.intel.podm.discovery.external.finalizers.ComposableAssetsDiscoveryListener;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -44,7 +46,9 @@ import static com.intel.podm.common.types.ChassisType.RACK;
 import static com.intel.podm.common.types.ServiceType.LUI;
 import static com.intel.podm.common.types.ServiceType.RMM;
 import static com.intel.podm.common.types.State.ABSENT;
+import static com.intel.podm.common.utils.Collections.filterByType;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
+import static java.lang.String.format;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Dependent
@@ -65,7 +69,7 @@ class ExternalServiceAvailabilityCheckerTask extends DefaultManagedTask implemen
     private Holder<ExternalServiceConfig> configHolder;
 
     @Inject
-    private ComposedNodeUpdater composedNodeUpdater;
+    private ComposableAssetsDiscoveryListener composableAssetsDiscoveryListener;
 
     @Inject
     private ChassisDao chassisDao;
@@ -77,7 +81,12 @@ class ExternalServiceAvailabilityCheckerTask extends DefaultManagedTask implemen
     public void run() {
         requiresNonNull(serviceUuid, "serviceUuid");
         logger.d("Verifying service with UUID {}", serviceUuid);
-        ExternalService service = externalServiceRepository.find(serviceUuid);
+
+        ExternalService service = externalServiceRepository.findOrNull(serviceUuid);
+        if (service == null) {
+            logger.w("Requested service({}) is already removed", serviceUuid);
+            return;
+        }
 
         try (ExternalServiceReader reader = readerFactory.createExternalServiceReaderWithRetries(service.getBaseUri())) {
             ServiceRootResource serviceRoot = reader.getServiceRoot();
@@ -88,40 +97,45 @@ class ExternalServiceAvailabilityCheckerTask extends DefaultManagedTask implemen
             } else {
                 logger.d("Service {} still exists", service);
             }
-        } catch (IllegalStateException e) {
-            logger.t("Requested service({}) is already removed", serviceUuid);
         } catch (WebClientRequestException e) {
             markAsUnreachable(service);
         }
     }
 
     private void markAsUnreachable(ExternalService service) {
-        if (!Objects.equals(service.getServiceType(), LUI)) {
-            logger.lifecycleInfo(
-                "Service {} has been set to ABSENT state. Scheduling removal of service after {}",
-                service,
-                configHolder.get().getServiceRemovalDelay()
-            );
-            service.markAsNotReachable();
-            composedNodeUpdater.updateRelatedComposedNodes(service.getOwnedEntities());
+        if (!service.isReachable()) {
+            logger.lifecycleInfo("Service {} is already marked as unreachable", service);
+            return;
         }
 
-        if (Objects.equals(service.getServiceType(), RMM)) {
-            List<Chassis> rmmChassis = chassisDao.getChassis(RACK, service);
-            requiresNonNull(rmmChassis, "chassis list");
-            checkState(rmmChassis.isEmpty(), "There is no chassis under RMM service.");
-            if (rmmChassis.size() == 1) {
-                markRackAsUnreachable(rmmChassis.get(0));
-            } else {
-                throw new IllegalStateException("RMM should contain exactly one chassis");
-            }
+        ServiceType serviceType = service.getServiceType();
+        if (!Objects.equals(serviceType, LUI)) {
+            markExternalServiceUnreachable(service);
+        }
+
+        if (Objects.equals(serviceType, RMM)) {
+            markRmmServiceUnreachable(service);
         }
     }
 
-    private void checkState(boolean expression, String message) {
-        if (expression) {
-            logger.w(message);
+    private void markRmmServiceUnreachable(ExternalService service) {
+        List<Chassis> rmmChassis = chassisDao.getChassis(RACK, service);
+        requiresNonNull(rmmChassis, "chassis list");
+        if (rmmChassis.size() == 1) {
+            markRackAsUnreachable(rmmChassis.get(0));
+        } else {
+            throw new IllegalStateException(format("RMM should contain exactly one chassis, but found: %d", rmmChassis.size()));
         }
+    }
+
+    private void markExternalServiceUnreachable(ExternalService service) {
+        logger.lifecycleInfo(
+            "Service {} has been set to ABSENT state. Scheduling removal of service after {}",
+            service,
+            configHolder.get().getServiceRemovalDelay()
+        );
+        service.markAsNotReachable();
+        composableAssetsDiscoveryListener.updateRelatedComposedNodes(filterByType(service.getOwnedEntities(), ComposableAsset.class));
     }
 
     private void markRackAsUnreachable(Chassis chassis) {

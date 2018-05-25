@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import com.intel.podm.client.reader.ResourceSupplier;
 import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.client.resources.ODataId;
 import com.intel.podm.common.types.EntityRole;
-import com.intel.podm.common.types.EntityType;
 
 import java.net.URI;
 import java.util.Set;
@@ -34,15 +33,13 @@ import java.util.Set;
 @OdataTypes({
     "Endpoint\\.ConnectedEntity"
 })
+@SuppressWarnings("checkstyle:MethodCount")
 public class ConnectedEntityResource implements ExternalServiceResource {
     @JsonIgnore
     private WebClient webClient;
 
     @JsonIgnore
     private URI uri;
-
-    @JsonProperty("EntityType")
-    private EntityType entityType;
 
     @JsonProperty("EntityRole")
     private EntityRole entityRole;
@@ -62,7 +59,7 @@ public class ConnectedEntityResource implements ExternalServiceResource {
     @JsonProperty("Identifiers")
     private Set<IdentifierObject> identifiers;
 
-    @LinkName("drivesInConnectedEntity")
+    @LinkName("resourceInConnectedEntity")
     public ResourceSupplier getEntityLink() {
         if (entityLink == null) {
             return null;
@@ -74,9 +71,6 @@ public class ConnectedEntityResource implements ExternalServiceResource {
         return entityRole;
     }
 
-    public EntityType getEntityType() {
-        return entityType;
-    }
 
     public Integer getPciFunctionNumber() {
         return pciFunctionNumber;
@@ -93,7 +87,6 @@ public class ConnectedEntityResource implements ExternalServiceResource {
     public Set<IdentifierObject> getIdentifiers() {
         return identifiers;
     }
-
 
     @Override
     public URI getUri() {

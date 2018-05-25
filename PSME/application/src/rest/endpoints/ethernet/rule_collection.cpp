@@ -1,7 +1,7 @@
 
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -237,7 +237,7 @@ void endpoint::RuleCollection::post(const server::Request& request, server::Resp
             get_handler(enums::Component::AclRule)->
             load(gami_agent, parent_acl.get_uuid(), enums::Component::Acl, add_acl_rule_response.get_rule(), true);
 
-        endpoint::utils::set_location_header(response, PathBuilder(request).append(rule_id).build());
+        endpoint::utils::set_location_header(request, response, PathBuilder(request).append(rule_id).build());
         response.set_status(server::status_2XX::CREATED);
     };
     gami_agent->execute_in_transaction(add_rule);

@@ -2,7 +2,7 @@
  * @brief Processor builder class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,66 +30,6 @@ using namespace smbios::parser;
 using namespace agent_framework::model;
 
 namespace {
-
-OptionalField<enums::FpgaType> get_fpga_type(const SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA>& fpga) {
-    switch (fpga.data.fpga_type) {
-        case FpgaType::INTEGRATED:
-            return enums::FpgaType::Integrated;
-        case FpgaType::DISCRETE:
-            return enums::FpgaType::Discrete;
-        case FpgaType::DISCRETE_WITH_SOC:
-            return enums::FpgaType::DiscreteWithSoC;
-        default:
-            return  OptionalField<enums::FpgaType> {};
-    }
-}
-
-OptionalField<enums::OnPackageMemoryType>
-get_processor_memory_type(const SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA>& fpga) {
-    switch (fpga.data.memory_technology) {
-        case OnPackageMemoryTechnology::EDRAM:
-            return enums::OnPackageMemoryType::EDRAM;
-        case OnPackageMemoryTechnology::HBM:
-            return enums::OnPackageMemoryType::HBM;
-        case OnPackageMemoryTechnology::HBM2:
-            return enums::OnPackageMemoryType::HBM2;
-        case OnPackageMemoryTechnology::NONE:
-        default:
-            return OptionalField<enums::OnPackageMemoryType>{};
-
-    }
-}
-
-OptionalField<attribute::Status> get_fpga_status(const SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA>& fpga) {
-    switch (fpga.data.fpga_status) {
-        case FpgaStatus::ENABLED:
-            return attribute::Status{enums::State::Enabled, {}};
-        case FpgaStatus::DISABLED:
-        default:
-            return attribute::Status{enums::State::Disabled, {}};
-    }
-}
-
-OptionalField<enums::HssiConfiguration> build_hssi_configuration(const SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA>& fpga) {
-    std::stringstream ss;
-    if (FpgaHssiConfiguration::NETWORKING == fpga.data.fpga_hssi_configuration) {
-        ss << std::to_string(int(fpga.data.fpga_hssi_port_count));
-        ss << "x";
-        ss << std::to_string(int(fpga.data.fpga_hssi_port_speed));
-        ss << "G";
-        try {
-            return enums::HssiConfiguration::from_string(ss.str());
-        }
-        catch (const agent_framework::exceptions::InvalidValue&) {
-            return OptionalField<enums::HssiConfiguration>{};
-        }
-    }
-    else if (FpgaHssiConfiguration::PCIE == fpga.data.fpga_hssi_configuration) {
-        return enums::HssiConfiguration::PCIe;
-    }
-    return OptionalField<enums::HssiConfiguration>{};
-}
-
 void set_cpu_id(Processor& processor, const PROCESSOR_INFO_DATA& cpu) {
 
     // For explanation see '7.5.3.1 x86-class CPUs - System Management BIOS (SMBIOS) Reference Specification
@@ -185,8 +125,8 @@ bool is_cpu_present(const PROCESSOR_INFO_DATA& cpu) {
     const auto& status = cpu.status;
     const auto cpu_socket_populated_bit = status & CPU_SOCKET_POPULATED_MASK;
     const auto is_socket_populated = cpu_socket_populated_bit != 0;
-    log_debug(GET_LOGGER("smbios-discovery"), "Processor status: 0x" << std::hex << int(status));
-    log_debug(GET_LOGGER("smbios-discovery"), "Processor socket populated: "
+    log_debug("smbios-discovery", "Processor status: 0x" << std::hex << int(status));
+    log_debug("smbios-discovery", "Processor socket populated: "
         << (is_socket_populated ? "true." : "false."));
     return is_socket_populated;
 }
@@ -196,11 +136,12 @@ std::string cpu_id_to_string(const std::uint8_t data[REGISTER_WIDTH]) {
     std::stringstream ss{};
     ss << "0x";
     ss << std::uppercase << std::hex;
-    for(int i = 0; i < REGISTER_WIDTH; ++i) {
+    for (int i = 0; i < REGISTER_WIDTH; ++i) {
         ss << std::setfill('0') << std::setw(2) << int(data[i]);
     }
     return ss.str();
 }
+
 
 void read_socket_index_from_string(const std::string& socket, std::string& index) {
     static const constexpr char CPU_PREFIX[] = "CPU";
@@ -219,6 +160,7 @@ void read_socket_index_from_string(const std::string& socket, std::string& index
         index = {};
     }
 }
+
 
 /*!
  * @brief Check if processor socket designation match CPU ID socket designation
@@ -245,6 +187,119 @@ bool is_matching_processor(const std::string& processor_socket, const std::strin
     return (processor_socket_index == cpu_id_socket_index);
 }
 
+
+template<typename SmbiosFpgaData>
+OptionalField<enums::FpgaType> get_fpga_type(const SmbiosParser::StructEnhanced<SmbiosFpgaData>& fpga) {
+    switch (fpga.data.fpga_type) {
+        case FpgaType::INTEGRATED:
+            return enums::FpgaType::Integrated;
+        case FpgaType::DISCRETE:
+            return enums::FpgaType::Discrete;
+        case FpgaType::DISCRETE_WITH_SOC:
+            /* fallthrough */
+        default:
+            return OptionalField<enums::FpgaType> {};
+    }
+}
+
+
+template<typename SmbiosFpgaData>
+OptionalField<enums::OnPackageMemoryType>
+get_processor_memory_type(const SmbiosParser::StructEnhanced<SmbiosFpgaData>& fpga) {
+    switch (fpga.data.memory_technology) {
+        case OnPackageMemoryTechnology::EDRAM:
+            return enums::OnPackageMemoryType::EDRAM;
+        case OnPackageMemoryTechnology::HBM:
+            return enums::OnPackageMemoryType::HBM;
+        case OnPackageMemoryTechnology::HBM2:
+            return enums::OnPackageMemoryType::HBM2;
+        case OnPackageMemoryTechnology::NONE:
+        default:
+            return OptionalField<enums::OnPackageMemoryType>{};
+
+    }
+}
+
+
+template<typename SmbiosFpgaData>
+OptionalField<attribute::Status> get_fpga_status(const SmbiosParser::StructEnhanced<SmbiosFpgaData>& fpga) {
+    switch (fpga.data.fpga_status) {
+        case FpgaStatus::ENABLED:
+            return attribute::Status{enums::State::Enabled, {}};
+        case FpgaStatus::DISABLED:
+        default:
+            return attribute::Status{enums::State::Disabled, {}};
+    }
+}
+
+
+template<typename SmbiosFpgaData>
+OptionalField<enums::HssiConfiguration>
+build_hssi_configuration(const SmbiosParser::StructEnhanced<SmbiosFpgaData>& fpga) {
+    std::stringstream ss;
+    if (FpgaHssiConfiguration::NETWORKING == fpga.data.fpga_hssi_configuration) {
+        ss << std::to_string(int(fpga.data.fpga_hssi_port_count));
+        ss << "x";
+        ss << std::to_string(int(fpga.data.fpga_hssi_port_speed));
+        ss << "G";
+        try {
+            return enums::HssiConfiguration::from_string(ss.str());
+        }
+        catch (const agent_framework::exceptions::InvalidValue&) {
+            return OptionalField<enums::HssiConfiguration>{};
+        }
+    }
+    else if (FpgaHssiConfiguration::PCIE == fpga.data.fpga_hssi_configuration) {
+        return enums::HssiConfiguration::PCIe;
+    }
+    return OptionalField<enums::HssiConfiguration>{};
+}
+
+/*!
+* @tparam SmbiosFpgaData Type of structure containing SMBIOS FPGA data.
+* @brief Update processor object with SMBIOS FPGA data.
+* @param processor Processor object to be filled with discovered data.
+* @param smbios_data SMBIOS data.
+*/
+template<typename SmbiosFpgaData>
+static void generic_update_smbios_fpga_data(agent_framework::model::Processor& processor,
+                                    const smbios::parser::SmbiosParser::StructEnhanced<SmbiosFpgaData>& smbios_data) {
+    attribute::Fpga fpga{};
+    fpga.set_bit_stream_version(smbios_data.get_string(smbios_data.data.fpga_bit_stream_version));
+    fpga.set_type(get_fpga_type(smbios_data));
+    try {
+        fpga.set_hssi_sideband(enums::HssiSideband::from_string(
+            smbios_data.get_string(smbios_data.data.fpga_hssi_side_band_configuration)));
+    }
+    catch (const agent_framework::exceptions::InvalidValue&) {
+        fpga.set_hssi_sideband(OptionalField<enums::HssiSideband>{});
+    }
+    fpga.set_reconfiguration_slots(smbios_data.data.fpga_reconfiguration_slots);
+    fpga.set_hssi_configuration(build_hssi_configuration(smbios_data));
+
+    attribute::CpuId cpu_id{};
+    cpu_id.set_vendor_id(smbios_data.get_string(smbios_data.data.fpga_vendor));
+    cpu_id.set_family(smbios_data.get_string(smbios_data.data.fpga_family));
+
+    attribute::OnPackageMemory memory{};
+    memory.set_type(get_processor_memory_type(smbios_data));
+    memory.set_capacity_mb(smbios_data.data.on_package_memory_capacity);
+    memory.set_speed_mhz(smbios_data.data.on_package_memory_speed);
+
+    processor.set_total_cores(smbios_data.data.fpga_hps_core_count);
+    processor.set_model_name(smbios_data.get_string(smbios_data.data.fpga_model));
+    processor.set_tdp_watt(smbios_data.data.thermal_design_power);
+    processor.set_status(get_fpga_status(smbios_data));
+    processor.set_socket(std::to_string(int(smbios_data.data.socket_identifier)));
+    processor.set_processor_type(enums::ProcessorType::FPGA);
+    processor.set_processor_architecture(enums::ProcessorArchitecture::OEM);
+
+    processor.set_fpga(fpga);
+    processor.set_cpu_id(cpu_id);
+    processor.add_memory(memory);
+}
+
+
 }
 
 
@@ -270,7 +325,7 @@ void ProcessorBuilder::update_smbios_processor_data(agent_framework::model::Proc
     attribute::Status status{};
 
     processor.set_socket(cpu.get_string(cpu.data.socket_designation));
-    log_debug(GET_LOGGER("smbios-discovery"), "Discovering Processor (" << processor.get_socket() << ").");
+    log_debug("smbios-discovery", "Discovering Processor (" << processor.get_socket() << ").");
 
     if (is_cpu_present(cpu.data)) {
 
@@ -300,7 +355,7 @@ void ProcessorBuilder::update_smbios_processor_data(agent_framework::model::Proc
             processor.set_processor_type(processor_types.at(cpu.data.processor_type));
         }
         catch (const std::exception& ex) {
-            log_error(GET_LOGGER("smbios-discovery"), "Processor parsing exception: " << ex.what());
+            log_error("smbios-discovery", "Processor parsing exception: " << ex.what());
             // Set default if we could not parse processor type
             processor.set_processor_type(enums::ProcessorType::OEM);
         }
@@ -328,7 +383,7 @@ void ProcessorBuilder::update_smbios_processor_data(agent_framework::model::Proc
         set_capabilities(processor, cpu.data);
     }
     else {
-        log_warning(GET_LOGGER("smbios-discovery"), "Processor (" << processor.get_socket() << ") is not present.");
+        log_warning("smbios-discovery", "Processor (" << processor.get_socket() << ") is not present.");
         status.set_state(enums::State::Absent);
         status.set_health({}); // Set health to null
     }
@@ -408,38 +463,11 @@ void ProcessorBuilder::update_smbios_cpu_id_data(agent_framework::model::Process
 }
 
 void ProcessorBuilder::update_smbios_fpga_data(agent_framework::model::Processor& processor,
-                                               const smbios::parser::SmbiosParser::StructEnhanced<smbios::parser::SMBIOS_FPGA_DATA>& smbios_data) {
-    attribute::Fpga fpga{};
-    fpga.set_bit_stream_version(smbios_data.get_string(smbios_data.data.fpga_bit_stream_version));
-    fpga.set_type(get_fpga_type(smbios_data));
-    try {
-        fpga.set_hssi_sideband(enums::HssiSideband::from_string(
-            smbios_data.get_string(smbios_data.data.fpga_hssi_side_band_configuration)));
-    }
-    catch (const agent_framework::exceptions::InvalidValue&) {
-        fpga.set_hssi_sideband(OptionalField<enums::HssiSideband>{});
-    }
-    fpga.set_reconfiguration_slots(smbios_data.data.fpga_reconfiguration_slots);
-    fpga.set_hssi_configuration(build_hssi_configuration(smbios_data));
+                                               const smbios::parser::SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA>& smbios_data){
+    generic_update_smbios_fpga_data(processor, smbios_data);
+}
 
-    attribute::CpuId cpu_id{};
-    cpu_id.set_vendor_id(smbios_data.get_string(smbios_data.data.fpga_vendor));
-    cpu_id.set_family(smbios_data.get_string(smbios_data.data.fpga_family));
-
-    attribute::OnPackageMemory memory{};
-    memory.set_type(get_processor_memory_type(smbios_data));
-    memory.set_capacity_mb(smbios_data.data.on_package_memory_capacity);
-    memory.set_speed_mhz(smbios_data.data.on_package_memory_speed);
-
-    processor.set_total_cores(smbios_data.data.fpga_hps_core_count);
-    processor.set_model_name(smbios_data.get_string(smbios_data.data.fpga_model));
-    processor.set_tdp_watt(smbios_data.data.thermal_design_power);
-    processor.set_status(get_fpga_status(smbios_data));
-    processor.set_socket(std::to_string(int(smbios_data.data.socket_identifier)));
-    processor.set_processor_type(enums::ProcessorType::FPGA);
-    processor.set_processor_architecture(enums::ProcessorArchitecture::OEM);
-
-    processor.set_fpga(fpga);
-    processor.set_cpu_id(cpu_id);
-    processor.add_memory(memory);
+void ProcessorBuilder::update_smbios_fpga_data(agent_framework::model::Processor& processor,
+                                               const smbios::parser::SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA_OEM>& smbios_data){
+    generic_update_smbios_fpga_data(processor, smbios_data);
 }

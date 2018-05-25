@@ -58,10 +58,10 @@
 
       <ComplexType Name="PropertyPattern">
         <Property Name="Pattern" Type="Edm.String">
-          <Annotation Term="OData.Description" String="The pattern that the property name shall match"/>
+          <Annotation Term="OData.Description" String="The pattern that the property name shall match."/>
         </Property>
         <Property Name="Type" Type="Edm.String">
-          <Annotation Term="OData.Description" String="The type that the name shall have"/>
+          <Annotation Term="OData.Description" String="The type that the name shall have."/>
         </Property>
       </ComplexType>
 

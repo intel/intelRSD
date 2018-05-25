@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -969,7 +969,7 @@ TEST_F(ProcedureValidatorTest, SizedArrays) {
 class AttributeExample {
 public:
     static const ProcedureValidator& get_procedure() {
-        static ProcedureValidator proc{
+        static ProcedureValidator procedure{
             "example",
             PARAMS_BY_NAME,
             "int", VALID_NUMERIC,
@@ -977,7 +977,7 @@ public:
             "nullable_string", VALID_NULLABLE(VALID_JSON_STRING),
             nullptr
         };
-        return proc;
+        return procedure;
     }
 };
 
@@ -1026,6 +1026,7 @@ TEST_F(ProcedureValidatorTest, Attributes) {
 
 
 ENUM(TestEnum, uint32_t, Abc, BAc, CBA, abc);
+
 TEST_F(ProcedureValidatorTest, Enumerations) {
     VALIDATOR(ok,
         R"({
@@ -1071,7 +1072,7 @@ TEST_F(ProcedureValidatorTest, Enumerations) {
 class ObjValidator {
 public:
     static const ProcedureValidator& get_procedure() {
-        static ProcedureValidator proc{
+        static ProcedureValidator procedure{
             "obj_validator",
             PARAMS_BY_NAME,
             "str", VALID_JSON_STRING,
@@ -1079,7 +1080,7 @@ public:
             "optional", VALID_OPTIONAL(VALID_JSON_INTEGER),
             nullptr
         };
-        return proc;
+        return procedure;
     }
 };
 
@@ -1116,6 +1117,105 @@ TEST_F(ProcedureValidatorTest, Conversion) {
         nullptr
     );
     ASSERT_FALSE(converted2.valid());
+}
+
+
+TEST_F(ProcedureValidatorTest, ValidNever) {
+    VALIDATOR(empty_object,
+        R"({
+             "emptyObject": { },
+        })",
+        "emptyObject", VALID_NEVER,
+        nullptr
+    );
+    ASSERT_FALSE(empty_object.valid());
+
+    VALIDATOR(empty_array,
+        R"({
+             "emptyArray": [ ],
+        })",
+         "emptyArray", VALID_NEVER,
+         nullptr
+    );
+    ASSERT_FALSE(empty_array.valid());
+
+    VALIDATOR(object,
+        R"({
+             "object": { "property": "a something" },
+        })",
+        "object", VALID_NEVER,
+        nullptr
+    );
+    ASSERT_FALSE(object.valid());
+
+    VALIDATOR(array,
+        R"({
+             "array": [ "item1" ],
+        })",
+        "array", VALID_NEVER,
+        nullptr
+    );
+    ASSERT_FALSE(array.valid());
+
+    VALIDATOR(number,
+        R"({
+             "number": 123,
+        })",
+        "number", VALID_NEVER,
+        nullptr
+    );
+    ASSERT_FALSE(number.valid());
+
+    VALIDATOR(boolean,
+        R"({
+             "boolean": true,
+        })",
+        "boolean", VALID_NEVER,
+        nullptr
+    );
+    ASSERT_FALSE(boolean.valid());
+
+    VALIDATOR(null,
+        R"({
+             "null": null,
+        })",
+        "null", VALID_NEVER,
+        nullptr
+    );
+    ASSERT_FALSE(null.valid());
+
+    VALIDATOR(float_number,
+        R"({
+             "float": 123.321,
+        })",
+        "float", VALID_NEVER,
+        nullptr
+    );
+    ASSERT_FALSE(float_number.valid());
+
+    VALIDATOR(string,
+        R"({
+             "string": "qwerty"
+        })",
+        "string", VALID_NEVER,
+        nullptr
+    );
+    ASSERT_FALSE(string.valid());
+
+    // If exists should fail
+    VALIDATOR(null_or_fail,
+              R"({ "property": null })",
+              "property", VALID_NULLABLE(VALID_NEVER),
+              nullptr
+    );
+    ASSERT_TRUE(null_or_fail.valid());
+    VALIDATOR(nullable_fail,
+              R"({ "property": "notNull" })",
+              "property", VALID_NULLABLE(VALID_NEVER),
+              nullptr
+    );
+    ASSERT_FALSE(nullable_fail.valid());
+
 }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,22 @@ public abstract class BaseResource {
     @Context
     private UriInfo uriInfo;
 
+    /**
+     * Gets DTO based on closure implementation for HTTP GET method.
+     *
+     * @param closure Expression that provides DTO.
+     * @return DTO for GET HTTP call.
+     * @throws javax.ws.rs.WebApplicationException when specified entity was not found
+     * or RuntimeException when closure call fails.
+     */
+    public static <T> T getOrThrow(EntitySupplier<T> closure) {
+        try {
+            return closure.get();
+        } catch (ContextResolvingException e) {
+            throw notFound();
+        }
+    }
+
     @GET
     public abstract Object get();
 
@@ -82,22 +98,6 @@ public abstract class BaseResource {
         }
 
         return createOptionsResponse();
-    }
-
-    /**
-     * Gets DTO based on closure implementation for HTTP GET method.
-     *
-     * @param closure Expression that provides DTO.
-     * @return DTO for GET HTTP call.
-     * @throws javax.ws.rs.WebApplicationException when specified entity was not found
-     *         or RuntimeException when closure call fails.
-     */
-    public static <T> T getOrThrow(EntitySupplier<T> closure) {
-        try {
-            return closure.get();
-        } catch (ContextResolvingException e) {
-            throw notFound();
-        }
     }
 
     protected boolean exists() {
@@ -180,7 +180,7 @@ public abstract class BaseResource {
         }
     }
 
-    interface EntitySupplier<V> {
+    public interface EntitySupplier<V> {
         V get() throws ContextResolvingException;
     }
 }

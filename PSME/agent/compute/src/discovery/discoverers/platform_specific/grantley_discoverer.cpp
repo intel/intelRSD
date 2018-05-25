@@ -2,7 +2,7 @@
  * @brief Compute agent Grantley platform discoverer.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ std::string read_from_heap(ipmi::IpmiController& mc, int off, int len) {
         std::string message{
             "Unable to fetch Heap string from OOB Boot Options. Expected " + std::to_string(uint32_t(length))
             + " bytes but received " + std::to_string(heap_string.size()) + " bytes."};
-        log_error(GET_LOGGER("agent"), message);
+        log_error("agent", message);
         throw std::runtime_error{message};
     }
 
@@ -122,7 +122,7 @@ bool GrantleyDiscoverer::discover_chassis(Chassis& chassis) {
     sdv::response::GetSlotId get_slot_id_response{};
 
     try {
-        log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << get_slot_id_request.get_command_name());
+        log_debug("grantley-discoverer", "Sending " << get_slot_id_request.get_command_name());
         get_management_controller().send(get_slot_id_request, get_slot_id_response);
 
         GrantleyChassisBuilder::update_slot_id(chassis, get_slot_id_response);
@@ -142,9 +142,9 @@ bool GrantleyDiscoverer::discover_chassis(Chassis& chassis) {
 
 bool GrantleyDiscoverer::discover_processors(std::vector<Processor>& processors,
                                              const std::string& parent_uuid) {
-    bool generic_discovery_succesful = GenericDiscoverer::discover_processors(processors, parent_uuid);
+    bool generic_discovery_successful = GenericDiscoverer::discover_processors(processors, parent_uuid);
 
-    if (!generic_discovery_succesful) {
+    if (!generic_discovery_successful) {
         processors.clear();
 
         sdv::request::GetProcessorInfo get_processor_info_request{};
@@ -154,7 +154,7 @@ bool GrantleyDiscoverer::discover_processors(std::vector<Processor>& processors,
             auto processor = GrantleyProcessorBuilder::build_default(parent_uuid);
 
             try {
-                log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << get_processor_info_request.get_command_name());
+                log_debug("grantley-discoverer", "Sending " << get_processor_info_request.get_command_name());
                 get_management_controller().send(get_processor_info_request, get_processor_info_response);
 
                 GrantleyProcessorBuilder::update_processor_info(processor, get_processor_info_response);
@@ -191,7 +191,7 @@ bool GrantleyDiscoverer::discover_memory(std::vector<Memory>& memories,
             auto memory = GrantleyMemoryBuilder::build_default(parent_uuid);
 
             try {
-                log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << get_dimm_info_request.get_command_name());
+                log_debug("grantley-discoverer", "Sending " << get_dimm_info_request.get_command_name());
                 get_management_controller().send(get_dimm_info_request, get_dimm_info_response);
                 GrantleyMemoryBuilder::update_dimm_info(memory, get_dimm_info_response);
                 GrantleyMemoryBuilder::update_memory_index(memory, index);
@@ -230,7 +230,7 @@ bool GrantleyDiscoverer::discover_network_interfaces(
         // auto interface_from_netlink = GrantleyNetworkInterfaceBuilder::build_default(parent_uuid);
 
         try {
-            log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << get_mac_address_request.get_command_name());
+            log_debug("grantley-discoverer", "Sending " << get_mac_address_request.get_command_name());
             get_management_controller().send(get_mac_address_request, get_mac_address_response);
 
             GrantleyNetworkInterfaceBuilder::update_mac_address_info(interface_from_ipmi, get_mac_address_response);
@@ -272,13 +272,13 @@ bool GrantleyDiscoverer::discover_network_device_function(
         std::string mutual_chap_secret{};
 
         try {
-            log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << control_request.get_command_name());
+            log_debug("grantley-discoverer", "Sending " << control_request.get_command_name());
             get_management_controller().send(control_request, control_response);
-            log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << initiator_request.get_command_name());
+            log_debug("grantley-discoverer", "Sending " << initiator_request.get_command_name());
             get_management_controller().send(initiator_request, initiator_response);
-            log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << nic_request.get_command_name());
+            log_debug("grantley-discoverer", "Sending " << nic_request.get_command_name());
             get_management_controller().send(nic_request, nic_response);
-            log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << target_request.get_command_name());
+            log_debug("grantley-discoverer", "Sending " << target_request.get_command_name());
             get_management_controller().send(target_request, target_response);
 
             if (initiator_response.get_name_length() != 0) {
@@ -288,11 +288,11 @@ bool GrantleyDiscoverer::discover_network_device_function(
             }
         }
         catch (const ipmi::UpdateInProgressError&) {
-            log_info(GET_LOGGER("grantley-discoverer"),
+            log_info("grantley-discoverer",
                      "Parameter update in progress, iSCSI OOB attributes cannot be discovered.");
         }
         catch (const ipmi::ResponseError& response_error) {
-            log_error(GET_LOGGER("grantley-discoverer"), "Could not discover iSCSI OOB attributes for function "
+            log_error("grantley-discoverer", "Could not discover iSCSI OOB attributes for function "
                 << network_device_function.get_uuid() << ". Exception: " << response_error.what());
         }
 
@@ -358,7 +358,7 @@ bool GrantleyDiscoverer::discover_cable_id(System& system) {
             get_cable_id_request.set_channel(channel);
 
             try {
-                log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << get_cable_id_request.get_command_name());
+                log_debug("grantley-discoverer", "Sending " << get_cable_id_request.get_command_name());
                 get_management_controller().send(get_cable_id_request, get_cable_id_response);
                 GrantleySystemBuilder::add_cable_id(system, get_cable_id_response);
             }
@@ -383,7 +383,7 @@ bool GrantleyDiscoverer::discover_bios(System& system) {
         sdv::response::GetBiosVersion get_bios_version_response{};
 
         try {
-            log_debug(GET_LOGGER("grantley-discoverer"), "Sending " << get_bios_version_request.get_command_name());
+            log_debug("grantley-discoverer", "Sending " << get_bios_version_request.get_command_name());
             get_management_controller().send(get_bios_version_request, get_bios_version_response);
             GrantleySystemBuilder::update_bios_version(system, get_bios_version_response);
         }

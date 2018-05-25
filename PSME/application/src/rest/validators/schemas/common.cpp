@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,11 @@
 #include "psme/rest/validators/schemas/common.hpp"
 #include "psme/rest/constants/constants.hpp"
 
+#include "agent-framework/module/constants/regular_expressions.hpp"
+#include "agent-framework/module/enum/common.hpp"
 
 
+using namespace agent_framework::model;
 using namespace psme::rest;
 using namespace psme::rest::validators::schema;
 
@@ -36,6 +39,15 @@ const jsonrpc::ProcedureValidator& SimpleObjectSchema::get_procedure() {
     return procedure;
 }
 
+const jsonrpc::ProcedureValidator& IdentifierSchema::get_procedure() {
+    static jsonrpc::ProcedureValidator procedure{
+        jsonrpc::PARAMS_BY_NAME,
+        constants::Common::DURABLE_NAME_FORMAT, VALID_ENUM(enums::IdentifierType),
+        constants::Common::DURABLE_NAME, VALID_REGEX(literals::regex::Common::EMPTY_OR_NO_WHITESPACE_STRING),
+        nullptr
+    };
+    return procedure;
+}
 
 const jsonrpc::ProcedureValidator& EmptyObjectSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{

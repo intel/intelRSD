@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.intel.podm.business.dto.ProcessorDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Processor;
+import com.intel.podm.business.redfish.Contexts;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.aggregation.ComputerSystemSubResourcesFinder;
 import com.intel.podm.business.redfish.services.aggregation.MultiSourceEntityTreeTraverser;
@@ -31,11 +32,12 @@ import com.intel.podm.business.services.redfish.ReaderService;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PROCESSORS;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PROCESSOR;
 import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
 import static com.intel.podm.common.types.redfish.ResourceNames.PROCESSOR_METRICS_RESOURCE_NAME;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -62,7 +64,9 @@ class ProcessorServiceImpl implements ReaderService<ProcessorDto> {
             throw new ContextResolvingException("Specified resource is not a primary resource representation!", context, null);
         }
 
-        return new CollectionDto(PROCESSORS, getAsIdSet(computerSystemSubResourcesFinder.getUniqueSubResourcesOfClass(system, Processor.class)));
+        List<Context> contexts = computerSystemSubResourcesFinder.getUniqueSubResourcesOfClass(system, Processor.class).stream()
+            .map(Contexts::toContext).sorted().collect(toList());
+        return new CollectionDto(PROCESSOR, contexts);
     }
 
     @Transactional(REQUIRED)

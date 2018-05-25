@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,6 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <iostream>
 #include <cstring>
 
 
@@ -59,7 +58,7 @@ uint64_t PcieAccessInterface::get_file_size() {
     struct stat st;
 
     if (stat(memory_file_path.c_str(), &st) == -1) {
-        log_debug(GET_LOGGER("agent"), "File stat error: " << strerror(errno));
+        log_debug("agent", "File stat error: " << strerror(errno));
         throw std::runtime_error("Cannot stat device memory file.");
     }
     return uint64_t(st.st_size);
@@ -68,7 +67,7 @@ uint64_t PcieAccessInterface::get_file_size() {
 void PcieAccessInterface::init(const std::string& path) {
 
     if (is_initialized) {
-        log_debug(GET_LOGGER("agent"), "Pcie Access Interface is already initialized.");
+        log_debug("agent", "Pcie Access Interface is already initialized.");
         return;
     }
     if (path.empty()) {
@@ -82,7 +81,7 @@ void PcieAccessInterface::init(const std::string& path) {
     }
 
     is_initialized = true;
-    log_debug(GET_LOGGER("agent"), "PCIe device memory file opened.");
+    log_debug("agent", "PCIe device memory file opened.");
 }
 
 void PcieAccessInterface::deinit() {
@@ -106,7 +105,7 @@ void* PcieAccessInterface::write_base(std::uint32_t size, std::uint32_t offset, 
     auto mapped_memory =
             mmap(nullptr, size + offset - pa_offset, PROT_WRITE, MAP_SHARED , memory_file, pa_offset);
     if (MAP_FAILED == mapped_memory) {
-        log_debug(GET_LOGGER("agent"), "File mapping error: " << strerror(errno));
+        log_debug("agent", "File mapping error: " << strerror(errno));
         throw std::runtime_error("Cannot map PCIe Device memory file.");
     }
 
@@ -126,7 +125,7 @@ void* PcieAccessInterface::read_base(std::uint32_t size, std::uint32_t offset, o
     auto mapped_memory =
             mmap(nullptr, size + offset - pa_offset, PROT_READ, MAP_PRIVATE , memory_file, pa_offset);
     if (MAP_FAILED == mapped_memory) {
-        log_debug(GET_LOGGER("agent"), "File mapping error: " << strerror(errno));
+        log_debug("agent", "File mapping error: " << strerror(errno));
         throw std::runtime_error("Cannot map PCIe Device memory file.");
     }
 
@@ -136,7 +135,7 @@ void* PcieAccessInterface::read_base(std::uint32_t size, std::uint32_t offset, o
 void PcieAccessInterface::write(std::uint8_t* data, std::uint32_t size, std::uint32_t offset) {
 
     if (!data) {
-        log_debug(GET_LOGGER("agent"), "Write buffer is broken.");
+        log_debug("agent", "Write buffer is broken.");
         throw std::runtime_error("Cannot write memory.");
     }
 
@@ -148,7 +147,7 @@ void PcieAccessInterface::write(std::uint8_t* data, std::uint32_t size, std::uin
     memcpy_s(mapped_memory + offset - pa_offset, size, data, size);
 
     if (-1 == munmap(mapped_memory, size + offset - pa_offset)) {
-        log_debug(GET_LOGGER("agent"), "Memory unmapping error: " << strerror(errno));
+        log_debug("agent", "Memory unmapping error: " << strerror(errno));
         throw std::runtime_error("Cannot unmap PCIe Device memory file.");
     }
 }
@@ -156,7 +155,7 @@ void PcieAccessInterface::write(std::uint8_t* data, std::uint32_t size, std::uin
 void PcieAccessInterface::read(std::uint8_t* data, std::uint32_t size, std::uint32_t offset) {
 
     if (!data) {
-        log_debug(GET_LOGGER("agent"), "Raed buffer is broken.");
+        log_debug("agent", "Raed buffer is broken.");
         throw std::runtime_error("Cannot read memory.");
     }
 
@@ -168,7 +167,7 @@ void PcieAccessInterface::read(std::uint8_t* data, std::uint32_t size, std::uint
     memcpy_s(data, size, mapped_memory + offset - pa_offset, size);
 
     if (-1 == munmap(mapped_memory, size + offset - pa_offset)) {
-        log_debug(GET_LOGGER("agent"), "Memory unmapping error: " << strerror(errno));
+        log_debug("agent", "Memory unmapping error: " << strerror(errno));
         throw std::runtime_error("Cannot unmap PCIe Device memory file.");
     }
 }

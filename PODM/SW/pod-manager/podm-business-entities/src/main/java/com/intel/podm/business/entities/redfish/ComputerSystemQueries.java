@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,16 @@ public final class ComputerSystemQueries {
     public static final String GET_PRIMARY_COMPUTER_SYSTEM = "SELECT computerSystem "
         + "FROM ComputerSystem computerSystem "
         + "WHERE computerSystem.uuid = :uuid "
-        + "AND computerSystem.isComplementary = false";
+        + "AND computerSystem.isComplementary = false "
+        + "AND computerSystem.systemType != :systemTypeToBeExcluded";
 
     public static final String GET_COMPUTER_SYSTEM_MULTI_SOURCE = "SELECT computerSystem "
         + "FROM ComputerSystem computerSystem "
         + "WHERE computerSystem.isComplementary = :isComplementary "
         + "AND computerSystem.uuid = :uuid";
 
-    public static final String GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE = "SELECT computerSystem FROM ComputerSystem computerSystem "
+    public static final String GET_COMPUTER_SYSTEMS_AVAILABLE_TO_ALLOCATE = "SELECT computerSystem "
+        + "FROM ComputerSystem computerSystem "
         + "WHERE computerSystem.metadata.allocated = :allocated "
         + "AND computerSystem.isComplementary = :isComplementary "
         + "AND computerSystem.systemType = :systemType";
@@ -39,6 +41,11 @@ public final class ComputerSystemQueries {
     public static final String GET_COMPUTER_SYSTEMS_MATCHING_CONNECTION_ID = "SELECT computerSystem "
         + "FROM ComputerSystem computerSystem "
         + "WHERE :pcieConnectionId MEMBER computerSystem.pcieConnectionIds";
+
+    public static final String GET_PHYSICAL_COMPUTER_SYSTEM_BY_UUID = "SELECT computerSystem "
+        + "FROM ComputerSystem computerSystem "
+        + "WHERE computerSystem.uuid = :uuid "
+        + "AND computerSystem.systemType = :systemType";
 
     private ComputerSystemQueries() {
     }

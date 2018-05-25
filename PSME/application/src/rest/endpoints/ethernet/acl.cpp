@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,8 +78,8 @@ void add_bound_ports_links(json::Value& json, const std::string& acl_uuid) {
                 push_back(std::move(link));
         }
         catch (const agent_framework::exceptions::InvalidUuid&) {
-            log_error(GET_LOGGER("rest"), "Model Acl/BoundPorts link error");
-            log_error(GET_LOGGER("rest"), "Port " << bound_port <<
+            log_error("rest", "Model Acl/BoundPorts link error");
+            log_error("rest", "Port " << bound_port <<
                 " is present in the BoundPorts table but it does not exist"
                 " as a resource");
         }

@@ -4,6 +4,11 @@
     "name": "/",
     "type": "object",
     "properties": {
+        "service": {
+            "description": "Name of DB entry with service UUID.",
+            "name": "service",
+            "type": "string"
+        },
         "agent": {
             "description": "Container for agent specific information.",
             "name": "agent",
@@ -128,87 +133,86 @@
                 ]
             }
         },
-        "service-uuid-file": {
-            "description": "Path to service uuid file.",
-            "name": "service-uuid-file",
-            "type": "string"
-        },
-        "logger": {
+        "loggers": {
             "description": "Logger configuration.",
-            "name": "logger",
-            "type": "object",
-            "properties": {
-                "agent": {
-                    "description": "Agent logging configuration.",
-                    "name": "agent",
-                    "type": "object",
-                    "properties": {
-                        "level": {
-                            "description": "Severity level compatible with syslog.",
-                            "name": "level",
-                            "type": "string"
-                        },
-                        "timeformat": {
-                            "description": "Timestamp format.",
-                            "name": "timeformat",
-                            "type": "string"
-                        },
-                        "color": {
-                            "description": "Enable / disable colors in log file.",
-                            "name": "color",
-                            "type": "boolean"
-                        },
-                        "output": {
-                            "description": "Enable / disable output.",
-                            "name": "output",
-                            "type": "boolean"
-                        },
-                        "tagging": {
-                            "description": "Enable / disable tagging.",
-                            "name": "tagging",
-                            "type": "boolean"
-                        },
-                        "moredebug": {
-                            "description": "Additional debug info in log file.",
-                            "name": "moredebug",
-                            "type": "boolean"
-                        },
-                        "streams": {
-                            "description": "Logger output streams configuration.",
-                            "name": "streams",
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "type": {
-                                        "description": "Stream type. FILE or STDOUT.",
-                                        "name": "type",
-                                        "type": "string"
-                                    },
-                                    "file": {
-                                        "description": "Path to the file, if stream type is set to FILE.",
-                                        "name": "file",
-                                        "type": "string"
-                                    }
+            "name": "loggers",
+            "type": "array",
+            "items": {
+                "description": "Settings of a specific logger.",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "description": "Set the name of the logger.",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    "default": {
+                        "description": "Set the logger as default. Only one can be default.",
+                        "name": "default",
+                        "type": "boolean"
+                    },
+                    "level": {
+                        "description": "Choose severity level compatible with syslog.",
+                        "name": "level",
+                        "type": "string"
+                    },
+                    "timeformat": {
+                        "description": "Define format used for timestamps in log file.",
+                        "name": "timeformat",
+                        "type": "string"
+                    },
+                    "color": {
+                        "description": "Enable or disable colors in log file.",
+                        "name": "color",
+                        "type": "boolean"
+                    },
+                    "output": {
+                        "description": "Turn on, off logging.",
+                        "name": "output",
+                        "type": "boolean"
+                    },
+                    "tagging": {
+                        "description": "Turn on/turn off tagging in application.",
+                        "name": "tagging",
+                        "type": "boolean"
+                    },
+                    "moredebug": {
+                        "description": "Enable/disable additional debug info in log file.",
+                        "name": "moredebug",
+                        "type": "boolean"
+                    },
+                    "streams": {
+                        "description": "Configuration of output methods for logger.",
+                        "name": "streams",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "description": "Choose one of the output methods. Like FILE of STDOUT.",
+                                    "name": "type",
+                                    "type": "string"
                                 },
-                                "required": [
-                                    "type"
-                                ]
-                            }
+                                "file": {
+                                    "description": "Path to the file, if stream type is set to FILE.",
+                                    "name": "file",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "type"
+                            ]
                         }
                     }
                 }
-            },
-            "required": [
-                "agent"
-            ]
+            }
         }
     },
     "required": [
+        "service",
         "agent",
         "server",
         "registration",
-        "service-uuid-file",
-        "logger"
+        "loggers"
     ]
 }

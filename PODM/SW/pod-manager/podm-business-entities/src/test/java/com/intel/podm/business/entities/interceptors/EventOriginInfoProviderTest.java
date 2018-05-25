@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import com.intel.podm.business.entities.redfish.Power;
 import com.intel.podm.business.entities.redfish.PowerControl;
 import com.intel.podm.business.entities.redfish.PowerSupply;
 import com.intel.podm.business.entities.redfish.PowerVoltage;
-import com.intel.podm.business.entities.redfish.RemoteTarget;
-import com.intel.podm.business.entities.redfish.RemoteTargetIscsiAddress;
 import com.intel.podm.business.entities.redfish.Storage;
 import com.intel.podm.business.entities.redfish.StorageController;
 import com.intel.podm.business.entities.redfish.Thermal;
@@ -94,14 +92,6 @@ public class EventOriginInfoProviderTest {
         Storage storage = createEntity(Storage.class);
         storage.addStorageController(powerController);
         assertThat(configProvider.findEventOrigin(powerController), Matchers.equalTo(storage));
-    }
-
-    @Test
-    public void testFindEventSourceEntityForRemoteTargetIscsiAddress_RemoteTargetIsExpected() throws Exception {
-        RemoteTarget remoteTarget = createEntity(RemoteTarget.class);
-        RemoteTargetIscsiAddress remoteTargetIscsiAddress = createEntity(RemoteTargetIscsiAddress.class);
-        remoteTarget.addRemoteTargetIscsiAddress(remoteTargetIscsiAddress);
-        assertThat(configProvider.findEventOrigin(remoteTargetIscsiAddress), Matchers.equalTo(remoteTarget));
     }
 
     @Test

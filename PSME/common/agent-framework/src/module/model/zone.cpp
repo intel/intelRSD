@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,7 @@ using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 
 const enums::Component Zone::component = enums::Component::Zone;
-const enums::CollectionName Zone::collection_name =
-    enums::CollectionName::Zones;
+const enums::CollectionName Zone::collection_name = enums::CollectionName::Zones;
 
 Zone::Zone(const std::string& parent_uuid, enums::Component parent_type) :
     Resource{parent_uuid, parent_type} {}
@@ -45,10 +44,10 @@ json::Json Zone::to_json() const {
 
 Zone Zone::from_json(const json::Json& json) {
     Zone fabric_zone{};
+
     fabric_zone.set_collections(Collections::from_json(json[literals::Zone::COLLECTIONS]));
     fabric_zone.set_status(Status::from_json(json[literals::Zone::STATUS]));
     fabric_zone.set_oem(Oem::from_json(json[literals::Zone::OEM]));
 
-    fabric_zone.set_resource_hash(json);
     return fabric_zone;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,12 +43,14 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_LINKS;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "managerType", "description",
-    "serviceEntryPointUuid", "uuid", "model", "dateTime", "dateTimeLocalOffset", "powerState", "status", "graphicalConsole", "serialConsole",
-    "commandShell", "firmwareVersion", "networkProtocol", "ethernetInterfaces", "links", "actions", "oem"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "managerType", "description", "serviceEntryPointUuid", "uuid", "model", "dateTime",
+    "dateTimeLocalOffset", "powerState", "status", "graphicalConsole", "serialConsole", "commandShell", "firmwareVersion", "networkProtocol",
+    "ethernetInterfaces", "links", "actions", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class ManagerDto extends RedfishDto {
+    private final Links links = new Links();
+    private final Actions actions = new Actions();
     private ManagerType managerType;
     @JsonProperty("ServiceEntryPointUUID")
     @JsonInclude(NON_NULL)
@@ -70,8 +72,6 @@ public final class ManagerDto extends RedfishDto {
     @JsonInclude(NON_NULL)
     private SingletonContext networkProtocol;
     private SingletonContext ethernetInterfaces;
-    private final Links links = new Links();
-    private final Actions actions = new Actions();
 
     public ManagerDto() {
         super("#Manager.v1_2_0.Manager");
@@ -197,89 +197,6 @@ public final class ManagerDto extends RedfishDto {
         return actions;
     }
 
-    public class Actions extends RedfishActionsDto {
-    }
-
-    @JsonPropertyOrder({"@odata.type", "managedComputerSystems", "managedChassisCollection", "managerInChassis", "oem"})
-    public final class Links extends RedfishLinksDto {
-        @JsonProperty("@odata.type")
-        private final String oDataType = "#Manager.v1_1_0.Links";
-
-        @JsonProperty("ManagerForServers")
-        private final Set<Context> managedComputerSystems = new HashSet<>();
-
-        @JsonProperty("ManagerForChassis")
-        private final Set<Context> managedChassisCollection = new HashSet<>();
-
-        private Context managerInChassis;
-
-        @JsonProperty("Oem")
-        private Oem oem = new Oem();
-
-        public String getoDataType() {
-            return oDataType;
-        }
-
-        public Set<Context> getManagedComputerSystems() {
-            return managedComputerSystems;
-        }
-
-        public Set<Context> getManagedChassisCollection() {
-            return managedChassisCollection;
-        }
-
-        public Context getManagerInChassis() {
-            return managerInChassis;
-        }
-
-        public void setManagerInChassis(Context managerInChassis) {
-            this.managerInChassis = managerInChassis;
-        }
-
-        public Oem getOem() {
-            return oem;
-        }
-
-        public void setOem(Oem oem) {
-            this.oem = oem;
-        }
-
-        @OemType(OEM_IN_LINKS)
-        public final class Oem extends RedfishOemDto {
-            @JsonProperty("Intel_RackScale")
-            private final RackScaleOem rackScaleOem = new RackScaleOem();
-
-            public RackScaleOem getRackScaleOem() {
-                return rackScaleOem;
-            }
-
-            @JsonPropertyOrder({"@odata.type", "managerForServices", "managedEthernetSwitches", "managerForPcieSwitches", "managerForPcieDevices"})
-            @JsonIgnoreProperties(ignoreUnknown = true)
-            public final class RackScaleOem {
-                @JsonProperty("@odata.type")
-                private final String oDataType = "#Intel.Oem.ManagerLinks";
-
-                @JsonProperty("ManagerForServices")
-                private final Set<Context> managerForServices = new HashSet<>();
-
-                @JsonProperty("ManagerForSwitches")
-                private final Set<Context> managedEthernetSwitches = new HashSet<>();
-
-                public String getoDataType() {
-                    return oDataType;
-                }
-
-                public Set<Context> getManagerForServices() {
-                    return managerForServices;
-                }
-
-                public Set<Context> getManagedEthernetSwitches() {
-                    return managedEthernetSwitches;
-                }
-            }
-        }
-    }
-
     @JsonPropertyOrder({"serviceEnabled", "maxConcurrentSessions", "connectTypesSupported"})
     public static final class ConsoleDto {
         @JsonInclude(NON_NULL)
@@ -401,6 +318,77 @@ public final class ManagerDto extends RedfishDto {
                 .append(maxConcurrentSessions)
                 .append(connectTypesSupported)
                 .toHashCode();
+        }
+    }
+
+    public class Actions extends RedfishActionsDto {
+    }
+
+    @JsonPropertyOrder({"@odata.type", "managedComputerSystems", "managedChassisCollection", "managerInChassis", "oem"})
+    public final class Links extends RedfishLinksDto {
+        @JsonProperty("@odata.type")
+        private final String oDataType = "#Manager.v1_1_0.Links";
+        @JsonProperty("ManagerForServers")
+        private final Set<Context> managedComputerSystems = new HashSet<>();
+        @JsonProperty("ManagerForChassis")
+        private final Set<Context> managedChassisCollection = new HashSet<>();
+        private final Oem oem = new Oem();
+        private Context managerInChassis;
+
+        public String getoDataType() {
+            return oDataType;
+        }
+
+        public Set<Context> getManagedComputerSystems() {
+            return managedComputerSystems;
+        }
+
+        public Set<Context> getManagedChassisCollection() {
+            return managedChassisCollection;
+        }
+
+        public Context getManagerInChassis() {
+            return managerInChassis;
+        }
+
+        public void setManagerInChassis(Context managerInChassis) {
+            this.managerInChassis = managerInChassis;
+        }
+
+        public Oem getOem() {
+            return oem;
+        }
+
+        @OemType(OEM_IN_LINKS)
+        public final class Oem extends RedfishOemDto {
+            @JsonProperty("Intel_RackScale")
+            private final RackScaleOem rackScaleOem = new RackScaleOem();
+
+            public RackScaleOem getRackScaleOem() {
+                return rackScaleOem;
+            }
+
+            @JsonPropertyOrder({"@odata.type", "managerForServices", "managedEthernetSwitches"})
+            @JsonIgnoreProperties(ignoreUnknown = true)
+            public final class RackScaleOem {
+                @JsonProperty("@odata.type")
+                private final String oDataType = "#Intel.Oem.ManagerLinks";
+                private final Set<Context> managerForServices = new HashSet<>();
+                @JsonProperty("ManagerForSwitches")
+                private final Set<Context> managedEthernetSwitches = new HashSet<>();
+
+                public String getoDataType() {
+                    return oDataType;
+                }
+
+                public Set<Context> getManagerForServices() {
+                    return managerForServices;
+                }
+
+                public Set<Context> getManagedEthernetSwitches() {
+                    return managedEthernetSwitches;
+                }
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,7 @@
  * */
 
 #include "agent-framework/module/constants/pnc.hpp"
+#include "agent-framework/module/constants/common.hpp"
 
 using namespace agent_framework::model::literals;
 
@@ -50,9 +51,7 @@ constexpr const char Port::PORT[];
 constexpr const char Port::STATUS[];
 constexpr const char Port::PORT_ID[];
 constexpr const char Port::PORT_TYPE[];
-constexpr const char Port::CABLE_ID[];
-constexpr const char Port::OPERATIONAL_STATE[];
-constexpr const char Port::ADMINISTRATIVE_STATE[];
+constexpr const char Port::CABLE_IDS[];
 constexpr const char Port::SPEED_GBPS[];
 constexpr const char Port::WIDTH[];
 constexpr const char Port::MAX_SPEED_GBPS[];
@@ -91,18 +90,3 @@ constexpr const char PcieFunction::PCI_SUBSYSTEM_ID[];
 constexpr const char PcieFunction::PCI_SUBSYSTEM_VENDOR_ID[];
 constexpr const char PcieFunction::FUNCTIONAL_DEVICE[];
 constexpr const char PcieFunction::OEM[];
-
-constexpr const char Zone::ZONE[];
-constexpr const char Zone::STATUS[];
-constexpr const char Zone::COLLECTIONS[];
-constexpr const char Zone::OEM[];
-constexpr const char Zone::FABRIC[];
-constexpr const char Zone::ENDPOINTS[];
-
-constexpr const char Endpoint::ENDPOINT[];
-constexpr const char Endpoint::PROTOCOL[];
-constexpr const char Endpoint::IDENTIFIERS[];
-constexpr const char Endpoint::ENTITIES[];
-constexpr const char Endpoint::COLLECTIONS[];
-constexpr const char Endpoint::STATUS[];
-constexpr const char Endpoint::OEM[];

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,7 +85,7 @@ std::string Configuration::load_file(const std::string& file_name) const {
     configuration.assign((std::istreambuf_iterator<char>(file_stream)),
             std::istreambuf_iterator<char>());
 
-    log_info(GET_LOGGER("configuration"), "Loaded file " << file_name);
+    log_info("configuration", "Loaded file " << file_name);
 
     return configuration;
 }
@@ -138,28 +138,28 @@ Configuration::FileContentList Configuration::create_file_content_list() const {
      * */
     const char* env = std::getenv(m_default_env_file.c_str());
     if ((nullptr != env) && std::ifstream(env).good()) {
-        log_info(GET_LOGGER("configuration"), "Load file from environment");
+        log_info("configuration", "Load file from environment");
         file_content_list.emplace_back(env, load_file(env));
     }
     else if (std::ifstream(m_default_file).good()) {
-        log_info(GET_LOGGER("configuration"), "Load default file");
+        log_info("configuration", "Load default file");
         file_content_list.emplace_back(m_default_file, load_file(m_default_file));
     }
     else {
-        log_warning(GET_LOGGER("configuration"), "Cannot load default file");
+        log_warning("configuration", "Cannot load default file");
     }
 
     /* Load configuration from collection of files
      * */
     for (const auto& config_file : m_configuration_files) {
-        log_info(GET_LOGGER("configuration"), "Load file");
+        log_info("configuration", "Load file");
         file_content_list.emplace_back(config_file, load_file(config_file));
     }
 
     /* Load internal defaults
      * */
     file_content_list.emplace_back("default", m_default_configuration);
-    log_info(GET_LOGGER("configuration"), "Load internal defaults");
+    log_info("configuration", "Load internal defaults");
 
     return file_content_list;
 }
@@ -198,7 +198,7 @@ const json::Value& Configuration::to_json() {
             }
         }
     } catch (const std::exception& e) {
-        log_error(GET_LOGGER("configuration"), e.what());
+        log_error("configuration", e.what());
         std::exit(-1);
     }
 
@@ -246,7 +246,7 @@ void Configuration::update_json_with_defaults(json::Value& old_value,
             }
             else {
                 /* Add new JSON member to JSON object */
-                log_warning(GET_LOGGER("configuration"), "No configuration section " + in_path + " provided. Using internal defaults.");
+                log_warning("configuration", "No configuration section " + in_path + " provided. Using internal defaults.");
                 old_value[new_member.first] = new_member.second;
             }
             in_path.erase(in_path.rfind(std::string("::")), std::string::npos);
@@ -255,7 +255,7 @@ void Configuration::update_json_with_defaults(json::Value& old_value,
     else {
         /* Override JSON value with new */
         if ( old_value.is_object() || new_value.is_object() ) {
-            log_warning(GET_LOGGER("configuration"), "No configuration section " + in_path + " provided. Using internal defaults.");
+            log_warning("configuration", "No configuration section " + in_path + " provided. Using internal defaults.");
             old_value = new_value;
         }
     }
@@ -270,7 +270,7 @@ void Configuration::add_file(const std::string& file_name) {
     if (it == m_configuration_files.cend()) {
         m_configuration_files.emplace_back(file_name);
         m_new_content.set();
-        log_debug(GET_LOGGER("configuration"), "Added file " << file_name);
+        log_debug("configuration", "Added file " << file_name);
     }
 }
 
@@ -282,7 +282,7 @@ Configuration& Configuration::get_instance() {
 }
 
 void Configuration::cleanup() {
-    log_debug(GET_LOGGER("configuration"), "Cleanup");
+    log_debug("configuration", "Cleanup");
     delete g_configuration;
     g_configuration = nullptr;
 }

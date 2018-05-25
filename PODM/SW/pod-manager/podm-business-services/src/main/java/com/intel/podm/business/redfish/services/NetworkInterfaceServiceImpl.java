@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.intel.podm.business.dto.NetworkInterfaceDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.NetworkInterface;
+import com.intel.podm.business.redfish.Contexts;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
@@ -29,11 +30,12 @@ import com.intel.podm.business.services.redfish.ReaderService;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.NETWORK_INTERFACES;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.NETWORK_INTERFACE;
 import static com.intel.podm.business.services.context.SingletonContext.singletonContextOf;
 import static com.intel.podm.common.types.redfish.ResourceNames.NETWORK_DEVICE_FUNCTIONS_RESOURCE_NAME;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -48,7 +50,8 @@ public class NetworkInterfaceServiceImpl implements ReaderService<NetworkInterfa
     @Override
     public CollectionDto getCollection(Context context) throws ContextResolvingException {
         ComputerSystem system = (ComputerSystem) traverser.traverse(context);
-        return new CollectionDto(NETWORK_INTERFACES, getAsIdSet(system.getNetworkInterfaces()));
+        List<Context> contexts = system.getNetworkInterfaces().stream().map(Contexts::toContext).sorted().collect(toList());
+        return new CollectionDto(NETWORK_INTERFACE, contexts);
     }
 
     @Transactional(REQUIRED)

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,18 +50,18 @@ void SetAuthorizationCertificate::unpack(IpmiMessage& msg){
     // verify if the request is long enough
     if (CMD_REQUEST_HEADER_LENGTH + CMD_REQUEST_MIN_CHUNK_LENGTH >
                 (msg.get_len() - IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN)) {
-        log_error(GET_LOGGER("ipmb"), "Invalid request length.");
+        log_error("ipmb", "Invalid request length.");
         m_response.set_cc(CompletionCode::CC_REQ_DATA_LENGTH_INVALID);
         return;
     }
 
     auto data = msg.get_data();
     if (data) {
-        log_debug(GET_LOGGER("ipmb"), "Validating length.");
+        log_debug("ipmb", "Validating length.");
         // verify if request's length is compliant with declared
         if ((CMD_REQUEST_HEADER_LENGTH + data[OFFSET_CHUNK_LEN]) <
                 (msg.get_len() - IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN)) {
-            log_error(GET_LOGGER("ipmb"), "Request is too long: " <<
+            log_error("ipmb", "Request is too long: " <<
                     unsigned(msg.get_len()));
             m_response.set_cc(CompletionCode::CC_REQ_DATA_FIELD_LENGTH_EXC);
             return;
@@ -69,7 +69,7 @@ void SetAuthorizationCertificate::unpack(IpmiMessage& msg){
 
         if ((CMD_REQUEST_HEADER_LENGTH + data[OFFSET_CHUNK_LEN]) >
                 (msg.get_len() - IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN)) {
-            log_error(GET_LOGGER("ipmb"), "Request is too short: " <<
+            log_error("ipmb", "Request is too short: " <<
                     unsigned(msg.get_len()));
             m_response.set_cc(CompletionCode::CC_REQ_DATA_FIELD_LENGTH_EXC);
             return;

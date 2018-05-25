@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetMemoryInfo,
     [] (const GetMemoryInfo::Request& req, GetMemoryInfo::Response& rsp) {
-        log_debug(GET_LOGGER("agent"), "Getting memory info.");
+        log_debug("agent", "Getting memory info.");
         rsp = ComputeComponents::get_instance()->
             get_memory_manager().get_entry(req.get_uuid());
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,10 @@ class ChassisDtoMapper extends DtoMapper<Chassis, ChassisDto> {
         if (!source.isComplementary()) {
             ChassisDto.Links links = target.getLinks();
             links.setContains(asChassisContexts(source.getContainedChassis()));
-            links.setContainedBy(toContext(source.getContainedByChassis()));
+            Chassis containedByChassis = source.getContainedByChassis();
+            if (containedByChassis != null) {
+                links.setContainedBy(toContext(containedByChassis));
+            }
             links.setComputerSystems(asComputerSystemContexts(source.getComputerSystems()));
             links.setManagedBy(asManagerContexts(source.getManagers()));
             links.setManagersInChassis(asManagerContexts(source.getInChassisManagers()));

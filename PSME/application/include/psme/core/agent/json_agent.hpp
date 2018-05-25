@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +70,7 @@ public:
                     auto broken_seconds = std::chrono::duration_cast<std::chrono::seconds>(
                         now - m_connection_error_observed_at.value()).count();
 
-                    log_error(GET_LOGGER("rest"), "Agent " << get_gami_id() << " has not responded for "
+                    log_error("rest", "Agent " << get_gami_id() << " has not responded for "
                                                   << broken_seconds << " seconds.");
                     if (broken_seconds >= JsonAgent::REMOVE_AGENT_AFTER_SECONDS) {
                         clean_resource_for_agent();

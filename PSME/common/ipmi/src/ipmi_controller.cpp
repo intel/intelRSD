@@ -7,7 +7,7 @@
  * the code)
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,28 @@ void IpmiController::send(const Request& request, const BridgeInfo& via, Respons
     do_send(request, via, response);
 }
 
-void IpmiController::do_send(const Request& request, const BridgeInfo& via, Response& response) {
+void IpmiController::send_unlocked(const Request& request, Response& response) {
+    static const BridgeInfo default_bridge{};
+    send_unlocked(request, default_bridge, response);
+}
 
+void IpmiController::send_unlocked(const Request& request, const BridgeInfo& via, Response& response) {
+    /*
+     * A vanilla controller will not have an interface prior to a lock() call. No runtime interface check and refresh
+     * can be made, because the interface needs to be unlocked. Therefore the send_unlocked may fail indefinitely.
+     */
+    if (!interface) {
+        throw std::runtime_error("Trying to perform an unlocked send without calling lock() first");
+    }
+
+    IpmiInterface::ByteBuffer resp_buffer{};
+    const auto req_buffer = request.do_pack();
+    interface->send_unlocked(request.get_network_function(), request.get_command(), request.get_lun(),
+        via, req_buffer, resp_buffer);
+    response.do_unpack(resp_buffer);
+}
+
+void IpmiController::do_send(const Request& request, const BridgeInfo& via, Response& response) {
     /*
      * if exception is thrown, interface is rechecked on next request.
      * No validation if connection data is correct is done here. If dumb args are passed,
@@ -55,6 +75,32 @@ void IpmiController::do_send(const Request& request, const BridgeInfo& via, Resp
      * Appropriate exception should be thrown if (temporarily) connection cannot be made
      * and handling should be done
      */
+    check_interface_refresh();
+    try {
+        IpmiInterface::ByteBuffer resp_buffer{};
+        const auto req_buffer = request.do_pack();
+        interface->send(request.get_network_function(), request.get_command(), request.get_lun(),
+            via, req_buffer, resp_buffer);
+        response.do_unpack(resp_buffer);
+    }
+    catch (...) {
+        check_interface = true;
+        throw;
+    }
+}
+
+void IpmiController::lock() {
+    check_interface_refresh();
+    interface->lock();
+}
+
+void IpmiController::unlock() {
+    if (interface) {
+        interface->unlock();
+    }
+}
+
+void IpmiController::check_interface_refresh() {
     if (check_interface) {
         /* if "primary" data was changed, new interface is to be get */
         if (interface && (!interface->matches(data()))) {
@@ -73,17 +119,6 @@ void IpmiController::do_send(const Request& request, const BridgeInfo& via, Resp
             throw std::runtime_error("Interface " + data()->get_interface_type() + " with different config!");
         }
         check_interface = false;
-    }
-    try {
-        IpmiInterface::ByteBuffer resp_buffer{};
-        const auto req_buffer = request.do_pack();
-        interface->send(request.get_network_function(), request.get_command(), request.get_lun(),
-            via, req_buffer, resp_buffer);
-        response.do_unpack(resp_buffer);
-    }
-    catch (...) {
-        check_interface = true;
-        throw;
     }
 }
 

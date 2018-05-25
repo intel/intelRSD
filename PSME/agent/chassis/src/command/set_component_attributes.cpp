@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,7 @@ void process_chassis(const std::string& uuid, const attribute::Attributes& attri
     CommonValidator::validate_set_chassis_attributes(attributes);
     const auto attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
-        log_debug(GET_LOGGER("chassis-agent"), "setComponentAttributes: nothing has been changed (empty request).");
+        log_debug("chassis-agent", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
     for (const auto& name : attribute_names) {
@@ -65,7 +65,7 @@ void process_chassis(const std::string& uuid, const attribute::Attributes& attri
 
 void set_component_attributes(const SetComponentAttributes::Request& request,
                               SetComponentAttributes::Response& response) {
-    log_info(GET_LOGGER("chassis-agent"), "Executing setComponentAttributes.");
+    log_info("chassis-agent", "Executing setComponentAttributes.");
 
     const auto& uuid = request.get_component();
     const auto& attributes = request.get_attributes();
@@ -77,7 +77,7 @@ void set_component_attributes(const SetComponentAttributes::Request& request,
         THROW(InvalidUuid, "chassis-agent", "No component with UUID = '" + uuid + "'.");
     }
 
-    log_info(GET_LOGGER("chassis-agent"), "setComponentAttributes finished successfully.");
+    log_info("chassis-agent", "setComponentAttributes finished successfully.");
 }
 
 }

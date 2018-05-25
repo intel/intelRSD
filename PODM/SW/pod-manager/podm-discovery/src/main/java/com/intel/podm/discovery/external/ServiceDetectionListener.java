@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package com.intel.podm.discovery.external;
 
-import java.util.UUID;
+import com.intel.podm.common.types.discovery.ServiceEndpoint;
 
 /**
  * Default discovery interface for services of known type
  */
 public interface ServiceDetectionListener {
     void onServiceDetected(ServiceEndpoint serviceEndpoint);
-    void onServiceRemoved(UUID serviceUuid);
+    void onServiceRemoved(ServiceEndpoint serviceEndpoint);
 }

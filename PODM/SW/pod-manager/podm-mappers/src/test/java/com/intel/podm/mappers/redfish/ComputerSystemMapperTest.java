@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.intel.podm.client.resources.redfish.ProcessorSummaryObject;
 import com.intel.podm.common.types.BootSourceMode;
 import com.intel.podm.common.types.BootSourceState;
 import com.intel.podm.common.types.BootSourceType;
+import com.intel.podm.common.types.HostingRole;
 import com.intel.podm.common.types.IndicatorLed;
 import com.intel.podm.common.types.InterfaceType;
 import com.intel.podm.common.types.PowerState;
@@ -94,6 +95,7 @@ public class ComputerSystemMapperTest {
         when(source.getAllowableResetTypes()).thenReturn(Ref.unassigned());
         when(source.getAllowableInterfaceTypes()).thenReturn(Ref.unassigned());
         when(source.getTrustedModules()).thenReturn(Ref.unassigned());
+        when(source.getHostingRoles()).thenReturn(Ref.unassigned());
 
         ComputerSystem target = new ComputerSystem();
         target.setModel(modelValue);
@@ -232,6 +234,10 @@ public class ComputerSystemMapperTest {
         }
 
         public Ref<List<TrustedModule>> getTrustedModules() {
+            return Ref.of(emptyList());
+        }
+
+        public Ref<List<HostingRole>> getHostingRoles() {
             return Ref.of(emptyList());
         }
 

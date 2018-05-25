@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ public class DiscoverableEntityDao extends Dao<DiscoverableEntity> {
         TypedQuery<T> query = entityManager.createNamedQuery(GET_ENTITY_BY_SERVICE_AND_SOURCE_URI, clazz);
         query.setParameter("externalService", externalService);
         query.setParameter("sourceUri", sourceUri);
-        return query.getSingleResult();
+        return singleOrNull(query.getResultList());
     }
 
     interface FindOrCreateStrategy {
@@ -123,10 +123,15 @@ public class DiscoverableEntityDao extends Dao<DiscoverableEntity> {
         }
     }
 
+    @SuppressWarnings({"unchecked"})
     class RegularEntityCreator implements FindOrCreateStrategy {
         @Override
         public <T extends DiscoverableEntity> T findOrCreate(ExternalService externalService, Id globalId, URI uri, Class<T> clazz) {
-            T discoverableEntity = (T) externalService.getOwnedEntities().stream().filter(e -> e.getGlobalId().equals(globalId)).findFirst().orElse(null);
+            T discoverableEntity = (T) externalService.getOwnedEntities().stream()
+                .filter(e -> e.getGlobalId().equals(globalId))
+                .findFirst()
+                .orElse(null);
+
             if (discoverableEntity == null) {
                 discoverableEntity = createEntity(externalService, globalId, clazz);
                 externalLinkDao.create(uri, externalService, discoverableEntity);

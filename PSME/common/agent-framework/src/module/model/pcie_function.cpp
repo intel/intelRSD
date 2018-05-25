@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +66,5 @@ PcieFunction PcieFunction::from_json(const json::Json& json) {
     pcie_function.set_functional_device(json[literals::PcieFunction::FUNCTIONAL_DEVICE]);
     pcie_function.set_status(Status::from_json(json[literals::PcieFunction::STATUS]));
     pcie_function.set_oem(Oem::from_json(json[literals::PcieFunction::OEM]));
-
-    pcie_function.set_resource_hash(json);
     return pcie_function;
 }

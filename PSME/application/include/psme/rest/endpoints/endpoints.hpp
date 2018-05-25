@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,14 +73,17 @@
 #include "system/network_device_function.hpp"
 #include "system/network_device_functions_collection.hpp"
 
-#include "storage/physical_drive.hpp"
-#include "storage/physical_drives_collection.hpp"
-#include "storage/logical_drive_collection.hpp"
-#include "storage/logical_drive.hpp"
-#include "storage/storage_services.hpp"
+#include "storage/allocated_pools_collection.hpp"
+#include "storage/drive_collection.hpp"
+#include "storage/storage_service.hpp"
 #include "storage/storage_services_collection.hpp"
-#include "storage/remote_target.hpp"
-#include "storage/remote_target_collection.hpp"
+#include "storage/storage_pool.hpp"
+#include "storage/storage_pool_collection.hpp"
+#include "storage/volume.hpp"
+#include "storage/volume_metrics.hpp"
+#include "storage/volume_initialize.hpp"
+#include "storage/volume_collection.hpp"
+#include "psme/rest/endpoints/storage/allocated_volumes_collection.hpp"
 
 #include "ethernet/ethernet_switch.hpp"
 #include "ethernet/ethernet_switch_collection.hpp"
@@ -105,6 +108,7 @@
 #include "chassis/power.hpp"
 #include "chassis/power_supply_request_state_change.hpp"
 #include "chassis/drive.hpp"
+#include "chassis/drive_metrics.hpp"
 #include "chassis/drives_collection.hpp"
 #include "chassis/drive_secure_erase.hpp"
 #include "chassis/pcie_device.hpp"

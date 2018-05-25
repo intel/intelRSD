@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ public class ProcessorMetricsMapper extends EntityMapper<ProcessorMetricsResourc
     @Override
     protected void performNotAutomatedMapping(ProcessorMetricsResource source, ProcessorMetrics target) {
         super.performNotAutomatedMapping(source, target);
-
         simpleTypeMapper.map(source.getHealthList(), target.getHealthList(), target::addHealth);
     }
 }

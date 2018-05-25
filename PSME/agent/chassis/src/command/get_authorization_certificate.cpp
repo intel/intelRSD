@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +55,7 @@ namespace {
             certificate.set_certificate(base64::Base64::encodeUrl(cert.get_data()));
             certificate.set_certificate_hash(cert.get_hash());
             rsp = certificate;
-            log_debug(GET_LOGGER("agent"), req.get_certificate()
+            log_debug("agent", req.get_certificate()
                 << " certificate was successfully read.");
         }
         catch (const std::runtime_error& re) {

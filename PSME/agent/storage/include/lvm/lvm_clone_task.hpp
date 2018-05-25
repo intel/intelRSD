@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@
  * */
 
 #pragma once
-#include "lvm_create_data.hpp"
+#include "lvm/model/creation_data.hpp"
 
 namespace agent {
 namespace storage {
@@ -34,17 +34,18 @@ class LvmCloneTask {
 public:
     /*!
      * @brief Constructor
-     * @param[in] create_data Data to clone
+     * @param[in] creation_data Data to clone
      * */
-    explicit LvmCloneTask(const LvmCreateData& create_data);
+    explicit LvmCloneTask(const model::CreationData& creation_data);
 
     /*! @brief Starts cloning */
     void operator()();
+
 private:
-    LvmCreateData m_create_data{};
+    model::CreationData m_creation_data{};
 
     std::string get_source() const;
-    std::string get_dest() const;
+    std::string get_destination() const;
 };
 
 }

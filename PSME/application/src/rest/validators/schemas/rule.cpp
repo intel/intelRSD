@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ const jsonrpc::ProcedureValidator& RulePatchSchema::get_procedure() {
         constants::Rule::RULE_ID, VALID_OPTIONAL(VALID_NUMERIC_TYPED(UINT32)),
         constants::Rule::ACTION, VALID_OPTIONAL(VALID_ENUM(enums::AclAction)),
         constants::Rule::FORWARD_MIRROR_INTERFACE, VALID_OPTIONAL(VALID_ATTRIBUTE(SimpleObjectSchema)),
-        constants::Rule::MIRROR_PORT_REGION, VALID_OPTIONAL(VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema))),
+        constants::Rule::MIRROR_PORT_REGION, VALID_OPTIONAL(VALID_NULLABLE(VALID_ARRAY_OF(VALID_ATTRIBUTE(SimpleObjectSchema)))),
         constants::Rule::MIRROR_TYPE, VALID_OPTIONAL(VALID_ENUM(enums::AclMirrorType)),
         constants::Rule::CONDITION, VALID_OPTIONAL(VALID_ATTRIBUTE(ConditionSchema)),
         nullptr

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.intel.podm.business.redfish.services;
 import com.intel.podm.business.BusinessApiException;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
-import com.intel.podm.business.redfish.services.actions.ChangeTpmStateActionsInvoker;
+import com.intel.podm.business.redfish.services.allocation.strategy.ChangeTpmStateTaskFactory;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ActionService;
 import com.intel.podm.business.services.redfish.requests.ChangeTpmStateRequest;
@@ -33,23 +33,22 @@ import java.util.concurrent.TimeoutException;
 
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
-@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 @RequestScoped
 public class ChangeTpmStateActionServiceImpl implements ActionService<ChangeTpmStateRequest> {
     @Inject
-    private ChangeTpmStateActionsInvoker invoker;
-
+    private ChangeTpmStateTaskFactory changeTpmStateTaskFactory;
     @Inject
     private EntityTreeTraverser traverser;
-
     @Inject
     private TaskCoordinator taskCoordinator;
 
-    @Transactional(REQUIRES_NEW)
     @Override
+    @Transactional(REQUIRES_NEW)
     public void perform(Context context, ChangeTpmStateRequest request) throws BusinessApiException, TimeoutException {
         ComputerSystem computerSystem = (ComputerSystem) traverser.traverse(context);
-        taskCoordinator.run(computerSystem.getService().getUuid(), () -> invoker.changeTpmState(computerSystem, definitionFromRequest(request)));
+        // synchronization on computerSystem.getUuid() in case of long-term operation
+        taskCoordinator.run(computerSystem.getUuid(),
+            changeTpmStateTaskFactory.createChangeTpmStateTask(computerSystem, definitionFromRequest(request)));
     }
 
     private ChangeTpmStatusUpdateDefinition definitionFromRequest(ChangeTpmStateRequest request) {

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -121,7 +121,7 @@ public:
      * @brief Set boot override
      * @param[in] boot_override blade boot override
      * */
-    void set_boot_override(const enums::BootOverride& boot_override) {
+    void set_boot_override(const OptionalField<enums::BootOverride>& boot_override) {
         m_boot_override = boot_override;
     }
 
@@ -130,7 +130,7 @@ public:
      * @brief Get boot override
      * @return Boot override
      * */
-    const enums::BootOverride& get_boot_override() const {
+    const OptionalField<enums::BootOverride>& get_boot_override() const {
         return m_boot_override;
     }
 
@@ -139,7 +139,7 @@ public:
      * @brief Set boot override mode
      * @param[in] boot_override_mode blade boot override mode
      * */
-    void set_boot_override_mode(const enums::BootOverrideMode& boot_override_mode) {
+    void set_boot_override_mode(const OptionalField<enums::BootOverrideMode>& boot_override_mode) {
         m_boot_override_mode = boot_override_mode;
     }
 
@@ -148,7 +148,7 @@ public:
      * @brief Get boot override mode
      * @return Boot override mode
      * */
-    const enums::BootOverrideMode& get_boot_override_mode() const {
+    const OptionalField<enums::BootOverrideMode>& get_boot_override_mode() const {
         return m_boot_override_mode;
     }
 
@@ -157,7 +157,7 @@ public:
      * @brief Set boot override target
      * @param[in] boot_override_target blade boot override target
      * */
-    void set_boot_override_target(const enums::BootOverrideTarget& boot_override_target) {
+    void set_boot_override_target(const OptionalField<enums::BootOverrideTarget>& boot_override_target) {
         m_boot_override_target = boot_override_target;
     }
 
@@ -166,7 +166,7 @@ public:
      * @brief Get boot override target
      * @return Boot override target
      * */
-    const enums::BootOverrideTarget& get_boot_override_target() const {
+    const OptionalField<enums::BootOverrideTarget>& get_boot_override_target() const {
         return m_boot_override_target;
     }
 
@@ -530,13 +530,30 @@ public:
     }
 
 
+    /*!
+     * @brief Set power state "lock" to appropriate value.
+     * @param is_being_changed if power state command is being changed (task is running)
+     * @warning Not in the model, modified only in set_component_attributes in compute agent.
+     */
+    void set_power_state_being_changed(bool is_being_changed) {
+        power_state_is_being_changed = is_being_changed;
+    }
+
+    /*!
+     * @brief Check if power state command is running for this system
+     * @return true if power state command is running for this system
+     */
+    bool is_power_state_being_changed() const {
+        return power_state_is_being_changed;
+    }
+
 
 private:
     OptionalField<enums::SystemType> m_system_type{enums::SystemType::Physical};
     OptionalField<std::string> m_bios_version{};
-    enums::BootOverride m_boot_override{enums::BootOverride::Disabled};
-    enums::BootOverrideMode m_boot_override_mode{enums::BootOverrideMode::UEFI};
-    enums::BootOverrideTarget m_boot_override_target{enums::BootOverrideTarget::None};
+    OptionalField<enums::BootOverride> m_boot_override{};
+    OptionalField<enums::BootOverrideMode> m_boot_override_mode{};
+    OptionalField<enums::BootOverrideTarget> m_boot_override_target{};
     BootOverrideSupported m_boot_override_supported{};
     OptionalField<std::string> m_uefi_target{};
     OptionalField<enums::PowerState> m_power_state{};
@@ -557,9 +574,16 @@ private:
     // will be set to true after first "set system mode" command
     bool m_rackscale_mode_enabled{false};
 
+    /*!
+     * @brief Power state command is being running
+     *
+     * Internal flag only, this values is not exposed on REST API,
+     * but is necessary to block another tasks which modify power state of the system.
+     */
+    bool power_state_is_being_changed{false};
+
     static const enums::CollectionName collection_name;
     static const enums::Component component;
-
 };
 }
 }

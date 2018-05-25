@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.intel.podm.business.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.intel.podm.common.types.Protocol;
 import com.intel.podm.common.types.Status;
 
@@ -30,14 +29,12 @@ import java.util.List;
 import java.util.Objects;
 
 @JsonPropertyOrder({
-    "@odata.id", "@odata.type", "memberId", "status", "manufacturer", "model", "sku", "serialNumber", "partNumber", "assetTag", "speedGbps",
-    "firmwareVersion", "supportedControllerProtocols", "supportedDeviceProtocols", "identifiers"
+    "@odata.id", "@odata.type", "@odata.context", "id", "name", "description", "memberId", "status", "manufacturer", "model", "sku", "serialNumber",
+    "partNumber", "assetTag", "speedGbps", "firmwareVersion", "supportedControllerProtocols", "supportedDeviceProtocols", "identifiers", "oem"
 })
-@SuppressWarnings({"checkstyle:MethodCount"})
 @JsonIgnoreProperties({"Id", "Name", "Description"})
-//TODO: this dto should not extend RedfishDto, fields id, name, description should not be visible on api
+@SuppressWarnings({"checkstyle:MethodCount"})
 public final class StorageControllerDto extends RedfishDto implements Comparable<StorageControllerDto> {
-    @JsonUnwrapped
     @JsonProperty("@odata.id")
     private String oDataId;
     private String memberId;

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,6 +62,10 @@ inline std::string decrypt_value(const std::string& value) {
 
 
 void check_required_fields(const json::Value& config) {
+    if (!config["service"].is_string()) {
+        throw std::runtime_error("'service' field is required.");
+    }
+
     if (!config["agent"].is_object()) {
         throw std::runtime_error("'agent' field is required.");
     }
@@ -96,10 +100,6 @@ void check_required_fields(const json::Value& config) {
 
     if (!config["server"]["port"].is_number()) {
         throw std::runtime_error("'server:port' field is required.");
-    }
-
-    if (!config["service-uuid-file"].is_string()) {
-        throw std::runtime_error("'service-uuid-file' field is required.");
     }
 
     if (!config["managers"].is_array()) {
@@ -183,8 +183,8 @@ Chassis make_chassis(const std::string& parent, const json::Value& json) {
         chassis.set_platform(enums::PlatformType::from_string(json["platform"].as_string()));
     }
     catch (const std::runtime_error& e) {
-        log_error(GET_LOGGER("agent"), "Invalid chassis configuration.");
-        log_debug(GET_LOGGER("agent"), e.what());
+        log_error("agent", "Invalid chassis configuration.");
+        log_debug("agent", e.what());
     }
 
     if (json["networkInterface"].is_string()) {
@@ -201,8 +201,8 @@ Chassis make_chassis(const std::string& parent, const json::Value& json) {
         ""
     ));
 
-    log_info(GET_LOGGER("agent"), "Chassis found");
-    log_debug(GET_LOGGER("agent"), "\tChassis uuid: " + chassis.get_uuid());
+    log_info("agent", "Chassis found");
+    log_debug("agent", "\tChassis uuid: " + chassis.get_uuid());
     CommonComponents::get_instance()->
         get_chassis_manager().add_entry(chassis);
 
@@ -241,8 +241,8 @@ Manager make_manager() {
         ""
     ));
 
-    log_info(GET_LOGGER("agent"), "Manager found");
-    log_debug(GET_LOGGER("agent"), "\tManager uuid: " + manager.get_uuid());
+    log_info("agent", "Manager found");
+    log_debug("agent", "\tManager uuid: " + manager.get_uuid());
     CommonComponents::get_instance()->get_module_manager().add_entry(manager);
 
     return manager;
@@ -290,7 +290,7 @@ bool PncLoader::load(const json::Value& config) {
         build_pnc_agent(config);
     }
     catch (const std::runtime_error& error) {
-        log_error(GET_LOGGER("pnc-agent"), "Loading modules configuration failed: " << error.what());
+        log_error("pnc-agent", "Loading modules configuration failed: " << error.what());
         return false;
     }
 

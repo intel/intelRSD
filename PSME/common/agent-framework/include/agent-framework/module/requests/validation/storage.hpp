@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,12 @@
  * */
 
 #pragma once
+
 namespace agent_framework {
 namespace model {
 namespace attribute {
-    /* Forward declaration */
-    class Attributes;
+/* Forward declaration */
+class Attributes;
 }
 }
 }
@@ -36,29 +37,18 @@ namespace model {
 namespace requests {
 namespace validation {
 
-    class StorageValidator {
-    public:
+class StorageValidator {
+public:
 
-        /*!
-         * @brief Validates SetComponentAttributes method for
-         * iSCSI Target resource.
-         *
-         * @param[in] attributes Attributes deserialized from JSON request.
-         * @throw Throws exception if parameter is invalid.
-         * */
-        static void validate_set_iscsi_target_attributes(
-            const agent_framework::model::attribute::Attributes& attributes);
+    /*!
+     * @brief Validates SetComponentAttributes method for Volume resource.
+     *
+     * @param[in] attributes Attributes deserialized from JSON request.
+     * @throw Throws exception if parameter is invalid.
+     * */
+    static void validate_set_volume_attributes(const agent_framework::model::attribute::Attributes& attributes);
 
-        /*!
-         * @brief Validates SetComponentAttributes method for
-         * logical drive resource.
-         *
-         * @param[in] attributes Attributes deserialized from JSON request.
-         * @throw Throws exception if parameter is invalid.
-         * */
-        static void validate_set_logical_drive_attributes(
-            const agent_framework::model::attribute::Attributes& attributes);
-    };
+};
 }
 }
 }

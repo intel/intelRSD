@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@
 
 #include "logger/logger_factory.hpp"
 #include "agent-framework/logger_loader.hpp"
+#include "database/database.hpp"
 
 #include "loader/compute_loader.hpp"
 #include "configuration/configuration.hpp"
@@ -109,21 +110,24 @@ int main(int argc, const char* argv[]) {
 
     agent::compute::loader::ComputeLoader module_loader{};
     if (!module_loader.load(configuration)) {
-        std::cerr << "Invalid modules configuration" << std::endl;
+        log_error("compute-agent", "Invalid modules configuration");
         return -2;
     }
 
     /* Initialize logger */
     LoggerLoader loader(configuration);
-    LoggerFactory::instance().set_loggers(loader.load());
-    LoggerFactory::set_main_logger_name("agent");
-    log_info(GET_LOGGER("compute-agent"), "Running SDV PSME Compute Agent.\n");
+    loader.load(LoggerFactory::instance());
+    log_info("compute-agent", "Running SDV PSME Compute Agent.");
 
     try {
         server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
     }
     catch (const json::Value::Exception& e) {
         log_error("compute-agent", "Cannot read server port: " << e.what());
+    }
+
+    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
+        database::Database::set_default_location(configuration["database"]["location"].as_string());
     }
 
     RegistrationData registration_data{configuration};
@@ -151,13 +155,18 @@ int main(int argc, const char* argv[]) {
 
     try {
         auto bmcs = load_bmcs(configuration);
-
+        for (auto& bmc : bmcs) {
+            bmc->start();
+        }
         /* Stop the program and wait for interrupt */
         wait_for_interrupt();
-        log_info(GET_LOGGER("compute-agent"), "Stopping SDV PSME Compute Agent.\n");
+        log_info("compute-agent", "Stopping SDV PSME Compute Agent.");
+        for (auto& bmc: bmcs) {
+            bmc->stop();
+        }
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("compute-agent"), e.what());
+        log_error("compute-agent", e.what());
         return -10;
     }
 
@@ -173,7 +182,7 @@ int main(int argc, const char* argv[]) {
 
 
 const json::Value& init_configuration(int argc, const char** argv) {
-    log_info(GET_LOGGER("compute-agent"),
+    log_info("compute-agent",
              agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
@@ -192,7 +201,7 @@ const json::Value& init_configuration(int argc, const char** argv) {
 bool check_configuration(const json::Value& json) {
     json::Value json_schema;
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
-        log_info(GET_LOGGER("compute-agent"), "JSON Schema load!");
+        log_info("compute-agent", "JSON Schema load!");
 
         configuration::SchemaErrors errors;
         configuration::SchemaValidator validator;
@@ -216,7 +225,7 @@ BmcCollection load_bmcs(const json::Value& config) {
     for (const auto& manager : config["managers"]) {
         auto slot = manager["slot"].as_uint();
         auto read_presence_fn = [slot]() {
-            log_debug(GET_LOGGER("compute-agent"), "reading presence on slot: " << slot);
+            log_debug("compute-agent", "Getting sled presence on slot: " << slot);
             return GpioManager::get_instance()->is_present(uint8_t(slot));
         };
 
@@ -232,13 +241,13 @@ BmcCollection load_bmcs(const json::Value& config) {
 
         auto read_online_state_fn = [mc]() mutable {
             try {
-                log_debug(GET_LOGGER("compute-agent"), "reading online state...");
                 ipmi::command::generic::response::GetDeviceId device_rsp{};
                 mc.send(ipmi::command::generic::request::GetDeviceId{}, device_rsp);
+                log_debug("compute-agent", "BMC " << mc.get_info() << " is online...");
                 return true;
             }
             catch (std::exception& e) {
-                log_debug(GET_LOGGER("compute-agent"), "reading online state error: " << e.what());
+                log_debug("compute-agent", "BMC " << mc.get_info() << " reading state error: " << e.what());
             }
             return false;
         };

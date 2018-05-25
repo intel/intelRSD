@@ -2,7 +2,7 @@
  * @brief Implementation of Bmc class
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,13 +33,13 @@ namespace {
 
 OptionalField<std::uint16_t> read_platform_id(agent::chassis::Bmc& bmc) {
     try {
-        log_debug(GET_LOGGER("bmc"), bmc.get_id() << " reading platform id...");
+        log_debug("bmc", bmc.get_id() << " reading platform id...");
         ipmi::command::generic::response::GetDeviceId device_rsp{};
         bmc.ipmi().send(ipmi::command::generic::request::GetDeviceId{}, device_rsp);
         return static_cast<std::uint16_t>(device_rsp.get_product_id());
     }
     catch (std::exception& e) {
-        log_error(GET_LOGGER("bmc"), bmc.get_id() << " platform id read failed: " << e.what());
+        log_error("bmc", bmc.get_id() << " platform id read failed: " << e.what());
     }
     return {};
 }
@@ -54,7 +54,6 @@ Bmc::Bmc(const std::string& manager_uuid, const ConnectionData& conn, Bmc::Durat
     : agent_framework::Bmc(conn, state_update_interval, read_presence, read_online_state),
       m_ipmi{conn.get_ip_address(), conn.get_port(), conn.get_username(), conn.get_password()} {
     set_manager_uuid(manager_uuid);
-    reset_tasks();
 }
 
 bool Bmc::on_become_online(const Transition&) {

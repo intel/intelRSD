@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,8 +54,6 @@ Metric Metric::from_json(const json::Json& json) {
     metric.set_component_type(enums::Component::from_string(json[literals::Metric::COMPONENT_TYPE]));
     metric.set_metric_definition_uuid(json[literals::Metric::METRIC_DEFINITION]);
     metric.set_status(attribute::Status::from_json(json[literals::Metric::STATUS]));
-
-    metric.set_resource_hash(json);
 
     return metric;
 }

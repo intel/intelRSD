@@ -15,9 +15,27 @@
 
   <edmx:DataServices>
 
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IPAddresses">
+      <ComplexType Name="IPv4Address" Abstract="true">
+        <Annotation Term="OData.AdditionalProperties" Bool="false" />
+        <Annotation Term="OData.Description" String="This type describes an IPv4 Address." />
+        <Annotation Term="OData.LongDescription" String="This type shall describe an IPv4 address assigned to an interface." />
+      </ComplexType>
+      <ComplexType Name="IPv6Address" Abstract="true">
+        <Annotation Term="OData.AdditionalProperties" Bool="false" />
+        <Annotation Term="OData.Description" String="This type describes an IPv6 Address." />
+        <Annotation Term="OData.LongDescription" String="This type shall describe an IPv6 address assigned to an interface." />
+      </ComplexType>
+      <ComplexType Name="IPv6StaticAddress" Abstract="true">
+        <Annotation Term="OData.AdditionalProperties" Bool="false" />
+        <Annotation Term="OData.Description" String="This object represents a single IPv6 static address to be assigned on a network interface." />
+        <Annotation Term="OData.LongDescription" String="This type shall represent a single IPv6 static address to be assigned on a network interface." />
+      </ComplexType>
+    </Schema>
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IPAddresses.v1_0_0">
 
-      <ComplexType Name="IPv4Address">
+      <ComplexType Name="IPv4Address" BaseType="IPAddresses.IPv4Address">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Oem" Type="Resource.Oem" Nullable="false"/>
         <Property Name="Address" Type="Edm.String">
@@ -45,7 +63,7 @@
         </Property>
       </ComplexType>
 
-      <ComplexType Name="IPv6Address">
+      <ComplexType Name="IPv6Address" BaseType="IPAddresses.IPv6Address">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Oem" Type="Resource.Oem" Nullable="false"/>
         <Property Name="Address" Type="Edm.String">
@@ -77,13 +95,13 @@
       <!-- This indicates how the address was determined. -->
       <EnumType Name="IPv4AddressOrigin">
         <Member Name="Static">
-          <Annotation Term="OData.Description" String="A static address as configured by the user"/>
+          <Annotation Term="OData.Description" String="A static address as configured by the user."/>
         </Member>
         <Member Name="DHCP">
-          <Annotation Term="OData.Description" String="Address is provided by a DHCPv4 service"/>
+          <Annotation Term="OData.Description" String="Address is provided by a DHCPv4 service."/>
         </Member>
         <Member Name="BOOTP">
-          <Annotation Term="OData.Description" String="Address is provided by a BOOTP service"/>
+          <Annotation Term="OData.Description" String="Address is provided by a BOOTP service."/>
         </Member>
         <Member Name="IPv4LinkLocal">
           <Annotation Term="OData.Description" String="Address is valid only for this network segment (link)"/>
@@ -92,10 +110,10 @@
 
       <EnumType Name="IPv6AddressOrigin">
         <Member Name="Static">
-          <Annotation Term="OData.Description" String="A static address as configured by the user"/>
+          <Annotation Term="OData.Description" String="A static address as configured by the user."/>
         </Member>
         <Member Name="DHCPv6">
-          <Annotation Term="OData.Description" String="Address is provided by a DHCPv6 service"/>
+          <Annotation Term="OData.Description" String="Address is provided by a DHCPv6 service."/>
         </Member>
         <Member Name="LinkLocal">
           <Annotation Term="OData.Description" String="Address is valid only for this network segment (link)"/>
@@ -136,7 +154,7 @@
         </Member>
       </EnumType>
 
-      <ComplexType Name="IPv6StaticAddress">
+      <ComplexType Name="IPv6StaticAddress" BaseType="IPAddresses.IPv6StaticAddress">
         <Annotation Term="OData.Description"
                     String="This object represents a single IPv6 static address to be assigned on a network interface."/>
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>

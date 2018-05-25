@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +58,7 @@ std::string TimeUtils::get_time(const char* format,
     if(localtime_r(&t, &local_tm)) {
         std::strftime(time_buffer, TIME_BUFFER_SIZE, format, &local_tm);
     } else {
-        log_error(GET_LOGGER("rest"), " Cannot get local time: ");
+        log_error("rest", " Cannot get local time: ");
         throw std::runtime_error("Cannot get local time");
     }
     return time_buffer;

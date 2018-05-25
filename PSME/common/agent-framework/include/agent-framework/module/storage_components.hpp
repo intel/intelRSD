@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,8 @@
 
 #pragma once
 
+
+
 #include "agent-framework/generic/singleton.hpp"
 
 #include "agent-framework/module/managers/generic_manager.hpp"
@@ -42,12 +44,14 @@ namespace module {
  * */
 class StorageComponents final : public agent_framework::generic::Singleton<StorageComponents> {
 public:
+    using StoragePoolManager = GenericManager<model::StoragePool>;
+    using VolumeManager = GenericManager<model::Volume>;
     using StorageServiceManager = GenericManager<model::StorageService>;
-    using PhysicalDriveManager = GenericManager<model::PhysicalDrive>;
-    using LogicalDriveManager = GenericManager<model::LogicalDrive>;
+    using SystemStorageServicesManager = managers::ManyToManyManager;
+
+    // @TODO: Remove old containers
     using IscsiTargetManager = managers::IscsiTargetManager;
-    using LogicalDriveMembersManager = managers::ManyToManyManager;
-    using PhysicalDriveMembersManager = managers::ManyToManyManager;
+
 
     /*!
      * @brief Destructor
@@ -63,21 +67,24 @@ public:
         return m_storage_service_manager;
     }
 
-    /*!
-     * @brief Get logical drive manager
-     * @return Reference to a logical drive manager instance
-     * */
-    LogicalDriveManager& get_logical_drive_manager() {
-        return m_logical_drive_manager;
-    }
 
     /*!
-     * @brief Get physical drive manager
-     * @return Reference to a physical drive manager instance
+     * @brief Get storage pool manager
+     * @return Reference to a storage pool manager instance
      * */
-    PhysicalDriveManager& get_physical_drive_manager() {
-        return m_physical_drive_manager;
+    StoragePoolManager& get_storage_pool_manager() {
+        return m_storage_pool_manager;
     }
+
+
+    /*!
+     * @brief Get volume manager
+     * @return Reference to a volume manager instance
+     * */
+    VolumeManager& get_volume_manager() {
+        return m_volume_manager;
+    }
+
 
     /*!
      * @brief Get Iscsi target manager
@@ -87,29 +94,22 @@ public:
         return m_iscsi_target_manager;
     }
 
-    /*!
-     * @brief Get logical drive members (children of logical drives) manager
-     * @return Reference to the manager
-     * */
-    LogicalDriveMembersManager& get_logical_drive_members_manager() {
-        return m_logical_drive_members_manager;
-    }
 
     /*!
-     * @brief Get physical drive members (children of logical drives) manager
-     * @return Reference to the manager
+     * @brief Get ManyToMany manager of System and StorageServices
+     * @return Reference to System-StorageServices manager instance
      * */
-    PhysicalDriveMembersManager& get_physical_drive_members_manager() {
-        return m_physical_drive_members_manager;
+    SystemStorageServicesManager& get_system_storage_services_manager() {
+        return m_system_storage_services_manager;
     }
+
 
 private:
     StorageServiceManager m_storage_service_manager{};
-    LogicalDriveManager m_logical_drive_manager{};
-    PhysicalDriveManager m_physical_drive_manager{};
+    StoragePoolManager m_storage_pool_manager{};
+    VolumeManager m_volume_manager{};
     IscsiTargetManager m_iscsi_target_manager{};
-    LogicalDriveMembersManager m_logical_drive_members_manager{};
-    PhysicalDriveMembersManager m_physical_drive_members_manager{};
+    SystemStorageServicesManager m_system_storage_services_manager{};
 };
 
 }

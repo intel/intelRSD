@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +80,7 @@ protected:
             // ACL handler is an exception: ACLs can be found under a SwitchPort,
             // but they are the parents in ACLPortManager, so their parent becomes the child.
             // That's why this handler cannot use helper methods common with other handlers.
-            log_debug(GET_LOGGER("rest"), ctx.indent
+            log_debug("rest", ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Binding port " << parent_uuid << " to ACLs");
 
@@ -111,7 +111,7 @@ protected:
             to_remove.resize(static_cast<size_t>(it_rem - to_remove.begin()));
 
             for (const auto& uuid : to_add) {
-                log_debug(GET_LOGGER("rest"), ctx.indent
+                log_debug("rest", ctx.indent
                     << "[" << static_cast<char>(ctx.mode) << "] "
                     << "Binding port " << parent_uuid << " to ACL "
                     << uuid);
@@ -119,7 +119,7 @@ protected:
             }
 
             for (const auto& uuid : to_remove) {
-                log_debug(GET_LOGGER("rest"), ctx.indent
+                log_debug("rest", ctx.indent
                     << "[" << static_cast<char>(ctx.mode) << "] "
                     << "Unbinding port " << parent_uuid << " from ACL "
                     << uuid);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import static com.intel.podm.business.services.context.ContextType.COMPOSED_NODE
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM;
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM_METRICS;
 import static com.intel.podm.business.services.context.ContextType.DRIVE;
+import static com.intel.podm.business.services.context.ContextType.DRIVE_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ENDPOINT;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_INTERFACE;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH;
@@ -39,7 +40,6 @@ import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWIT
 import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SUBSCRIPTION;
 import static com.intel.podm.business.services.context.ContextType.FABRIC;
-import static com.intel.podm.business.services.context.ContextType.LOGICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.MANAGER;
 import static com.intel.podm.business.services.context.ContextType.MEMORY;
 import static com.intel.podm.business.services.context.ContextType.MEMORY_METRICS;
@@ -50,7 +50,6 @@ import static com.intel.podm.business.services.context.ContextType.NETWORK_INTER
 import static com.intel.podm.business.services.context.ContextType.NETWORK_PROTOCOL;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE;
 import static com.intel.podm.business.services.context.ContextType.PCIE_DEVICE_FUNCTION;
-import static com.intel.podm.business.services.context.ContextType.PHYSICAL_DRIVE;
 import static com.intel.podm.business.services.context.ContextType.PORT;
 import static com.intel.podm.business.services.context.ContextType.PORT_METRICS;
 import static com.intel.podm.business.services.context.ContextType.POWER;
@@ -60,21 +59,25 @@ import static com.intel.podm.business.services.context.ContextType.POWER_VOLTAGE
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR;
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR_METRICS;
 import static com.intel.podm.business.services.context.ContextType.REDUNDANCY;
-import static com.intel.podm.business.services.context.ContextType.REMOTE_TARGET;
 import static com.intel.podm.business.services.context.ContextType.SIMPLE_STORAGE;
 import static com.intel.podm.business.services.context.ContextType.STORAGE;
+import static com.intel.podm.business.services.context.ContextType.STORAGE_POOL;
 import static com.intel.podm.business.services.context.ContextType.STORAGE_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.SWITCH;
 import static com.intel.podm.business.services.context.ContextType.TELEMETRY_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.THERMAL;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_FAN;
 import static com.intel.podm.business.services.context.ContextType.THERMAL_TEMPERATURE;
+import static com.intel.podm.business.services.context.ContextType.VOLUME;
+import static com.intel.podm.business.services.context.ContextType.VOLUME_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ZONE;
 import static com.intel.podm.common.types.redfish.ResourceNames.ACLS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.CHASSIS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.COMPOSED_NODES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.COMPUTER_SYSTEM_METRICS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.COMPUTER_SYSTEM_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.DRIVES_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.DRIVE_METRICS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.ENDPOINTS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_INTERFACES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCHES_RESOURCE_NAME;
@@ -85,7 +88,6 @@ import static com.intel.podm.common.types.redfish.ResourceNames.ETHERNET_SWITCH_
 import static com.intel.podm.common.types.redfish.ResourceNames.EVENT_SERVICE_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.EVENT_SUBSCRIPTION_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.FABRIC_RESOURCE_NAME;
-import static com.intel.podm.common.types.redfish.ResourceNames.LOGICAL_DRIVES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.MANAGERS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.MEMORY_METRICS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.MEMORY_RESOURCE_NAME;
@@ -96,8 +98,6 @@ import static com.intel.podm.common.types.redfish.ResourceNames.NETWORK_INTERFAC
 import static com.intel.podm.common.types.redfish.ResourceNames.NETWORK_PROTOCOL_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.PCIE_DEVICES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.PCIE_DEVICE_FUNCTIONS_RESOURCE_NAME;
-import static com.intel.podm.common.types.redfish.ResourceNames.PCIE_DRIVES_RESOURCE_NAME;
-import static com.intel.podm.common.types.redfish.ResourceNames.PHYSICAL_DRIVES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.PORTS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.PORT_METRICS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.POWER_CONTROL_RESOURCE_NAME;
@@ -107,9 +107,9 @@ import static com.intel.podm.common.types.redfish.ResourceNames.POWER_VOLTAGE_RE
 import static com.intel.podm.common.types.redfish.ResourceNames.PROCESSORS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.PROCESSOR_METRICS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.REDUNDANCY_RESOURCE_NAME;
-import static com.intel.podm.common.types.redfish.ResourceNames.REMOTE_TARGETS_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.RULES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.SIMPLE_STORAGE_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.STORAGE_POOL_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.STORAGE_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.STORAGE_SERVICES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.SWITCHES_RESOURCE_NAME;
@@ -117,6 +117,8 @@ import static com.intel.podm.common.types.redfish.ResourceNames.TELEMETRY_SERVIC
 import static com.intel.podm.common.types.redfish.ResourceNames.THERMAL_FAN_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.THERMAL_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.THERMAL_TEMPERATURE_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.VOLUME_METRICS_RESOURCE_NAME;
+import static com.intel.podm.common.types.redfish.ResourceNames.VOLUMES_RESOURCE_NAME;
 import static com.intel.podm.common.types.redfish.ResourceNames.ZONES_RESOURCE_NAME;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.util.Collections.unmodifiableMap;
@@ -130,9 +132,11 @@ public class ContextTypeToResourceNameMapper {
         map.put(ETHERNET_INTERFACE, ETHERNET_INTERFACES_RESOURCE_NAME);
         map.put(MANAGER, MANAGERS_RESOURCE_NAME);
         map.put(STORAGE_SERVICE, STORAGE_SERVICES_RESOURCE_NAME);
-        map.put(PHYSICAL_DRIVE, PHYSICAL_DRIVES_RESOURCE_NAME);
-        map.put(LOGICAL_DRIVE, LOGICAL_DRIVES_RESOURCE_NAME);
-        map.put(REMOTE_TARGET, REMOTE_TARGETS_RESOURCE_NAME);
+        map.put(STORAGE_POOL, STORAGE_POOL_RESOURCE_NAME);
+
+        map.put(VOLUME, VOLUMES_RESOURCE_NAME);
+        map.put(VOLUME_METRICS, VOLUME_METRICS_RESOURCE_NAME);
+
         map.put(CHASSIS, CHASSIS_RESOURCE_NAME);
         map.put(COMPUTER_SYSTEM, COMPUTER_SYSTEM_RESOURCE_NAME);
         map.put(NETWORK_PROTOCOL, NETWORK_PROTOCOL_RESOURCE_NAME);
@@ -164,7 +168,8 @@ public class ContextTypeToResourceNameMapper {
         map.put(THERMAL_TEMPERATURE, THERMAL_TEMPERATURE_RESOURCE_NAME);
         map.put(REDUNDANCY, REDUNDANCY_RESOURCE_NAME);
 
-        map.put(DRIVE, PCIE_DRIVES_RESOURCE_NAME);
+        map.put(DRIVE, DRIVES_RESOURCE_NAME);
+        map.put(DRIVE_METRICS, DRIVE_METRICS_RESOURCE_NAME);
         map.put(PCIE_DEVICE, PCIE_DEVICES_RESOURCE_NAME);
         map.put(PCIE_DEVICE_FUNCTION, PCIE_DEVICE_FUNCTIONS_RESOURCE_NAME);
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,7 +81,7 @@ int main() {
             GlobalAddressSpaceRegisters::get_default(sysfs_switch.memory_resource);
         /* Read top level registers */
         gas.read_top();
-        log_info(GET_LOGGER("example"), "Binding all drives to mgmt partition");
+        log_info("example", "Binding all drives to mgmt partition");
         for (size_t i = 0; i < DSP_PORT_NUMBER; i++) {
             BindPort cmd{gas.get_interface()};
             /* Get number of current partition */

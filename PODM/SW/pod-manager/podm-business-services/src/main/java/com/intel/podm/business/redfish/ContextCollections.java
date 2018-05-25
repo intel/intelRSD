@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,26 +24,23 @@ import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitch;
 import com.intel.podm.business.entities.redfish.EthernetSwitchAcl;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
-import com.intel.podm.business.entities.redfish.LogicalDrive;
 import com.intel.podm.business.entities.redfish.Manager;
 import com.intel.podm.business.entities.redfish.Memory;
 import com.intel.podm.business.entities.redfish.PcieDevice;
 import com.intel.podm.business.entities.redfish.PcieDeviceFunction;
-import com.intel.podm.business.entities.redfish.PhysicalDrive;
 import com.intel.podm.business.entities.redfish.Port;
 import com.intel.podm.business.entities.redfish.Power;
 import com.intel.podm.business.entities.redfish.Processor;
-import com.intel.podm.business.entities.redfish.RemoteTarget;
 import com.intel.podm.business.entities.redfish.SimpleStorage;
 import com.intel.podm.business.entities.redfish.Storage;
+import com.intel.podm.business.entities.redfish.StoragePool;
 import com.intel.podm.business.entities.redfish.StorageService;
 import com.intel.podm.business.entities.redfish.Switch;
 import com.intel.podm.business.entities.redfish.Thermal;
-import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
+import com.intel.podm.business.entities.redfish.Volume;
+import com.intel.podm.business.entities.redfish.Zone;
 import com.intel.podm.business.services.context.Context;
-import com.intel.podm.common.types.Id;
 
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -57,28 +54,12 @@ public final class ContextCollections {
     private ContextCollections() {
     }
 
-    public static Set<Id> getAsIdSet(Collection<? extends DiscoverableEntity> discoverableEntities) {
-        return transform(discoverableEntities, DiscoverableEntity::getId);
-    }
-
-    public static Set<Context> asLogicalDriveContexts(Set<LogicalDrive> logicalDrives) {
-        return transform(logicalDrives, Contexts::toContext);
-    }
-
     public static Set<Context> asSimpleStorageContexts(Set<SimpleStorage> simpleStorages) {
         return transform(simpleStorages, Contexts::toContext);
     }
 
-    public static Set<Context> asPhysicalDriveContexts(Set<PhysicalDrive> physicalDrives) {
-        return transform(physicalDrives, Contexts::toContext);
-    }
-
     public static Set<Context> asStorageServicesContexts(Set<StorageService> storageServices) {
         return transform(storageServices, Contexts::toContext);
-    }
-
-    public static Set<Context> asRemoteTargetContexts(Set<RemoteTarget> remoteTargets) {
-        return transform(remoteTargets, Contexts::toContext);
     }
 
     public static Set<Context> asEthernetSwitchContexts(Set<EthernetSwitch> ethernetSwitches) {
@@ -141,6 +122,10 @@ public final class ContextCollections {
         return transform(ports, Contexts::toContext);
     }
 
+    public static Set<Context> asZoneContexts(Set<Zone> zones) {
+        return transform(zones, Contexts::toContext);
+    }
+
     public static Set<Context> asStorageContexts(Set<Storage> storages) {
         return transform(storages, Contexts::toContext);
     }
@@ -151,6 +136,14 @@ public final class ContextCollections {
 
     public static Set<Context> asPcieDeviceFunctionContexts(Set<PcieDeviceFunction> deviceFunctions) {
         return transform(deviceFunctions, Contexts::toContext);
+    }
+
+    public static Set<Context> asStoragePoolContexts(Set<StoragePool> storagePools) {
+        return transform(storagePools, Contexts::toContext);
+    }
+
+    public static Set<Context> asVolumeContexts(Set<Volume> volumes) {
+        return transform(volumes, Contexts::toContext);
     }
 
     private static <T, R> Set<R> transform(Iterable<T> items, Function<T, R> transformFunction) {

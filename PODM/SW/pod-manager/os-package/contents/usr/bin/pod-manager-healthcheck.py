@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2016-2017 Intel Corporation
+# Copyright (c) 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,6 +51,9 @@ FILES_TO_COPY = {
 
 COMMANDS_TO_EXECUTE = {
     'ifconfig -a': ('ifconfig-a.txt', 'both'),
+    'cat /proc/cpuinfo': ('cpuinfo.txt', 'both'),
+    'cat /proc/meminfo': ('meminfo.txt', 'both'),
+    'lshw': ('lshw.txt', 'both'),
     'top -n 1 -b': ('top.txt', 'both'),
     'dpkg-query -s pod-manager': ('dpkg-query-s-pod-manager.txt', 'full'),
     'dpkg-query -s pod-manager-networking': ('dpkg-query-s-pod-manager-networking.txt', 'full'),

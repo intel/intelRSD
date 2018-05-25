@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +52,7 @@ void CableId::select_channel(const i2c::I2cAccessInterfacePtr i2c, PM85X6TwiPort
                0,
                reinterpret_cast<uint8_t*>(&data),
                sizeof(data));
-    log_notice(GET_LOGGER("pnc-twi"), "Reading Cable Id of connector connected to TWI Port: "
+    log_notice("pnc-twi", "Reading Cable Id of connector connected to TWI Port: "
         << std::uint32_t(static_cast<uint8_t>(port))
         << " TWI Channel: " << std::uint32_t(data));
 }
@@ -70,7 +70,7 @@ void CableId::log_cable_eeprom(PM85X6TwiPort port, PCA9548TwiExpanderChannel cha
     std::string serial_number(reinterpret_cast<const char*>(fields.serial_number),
                               HOST_CABLE_EEPROM_SERIAL_NUMBER_SIZE_BYTES);
 
-    log_debug(GET_LOGGER("pnc-twi"), "Cable Id of connector connected to TWI Port: " << std::uint32_t(port)
+    log_debug("pnc-twi", "Cable Id of connector connected to TWI Port: " << std::uint32_t(port)
                                    << " TWI Channel: " << std::uint32_t(channel)
                                    << " Cable Id (serial number): " << serial_number);
 }

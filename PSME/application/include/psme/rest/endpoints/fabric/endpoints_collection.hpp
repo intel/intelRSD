@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ public:
      * @param request the client's request
      * @param response the POST response
      */
-    [[noreturn]] void post(const server::Request& request, server::Response& response) override;
+    void post(const server::Request& request, server::Response& response) override;
 };
 
 }

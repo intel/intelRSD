@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,10 +90,8 @@ public class OnDeleteExternalServiceHandlerImpl implements OnDeleteExternalServi
     }
 
     private boolean canDeleteAllOwnedEntities(Chassis rackChassis) {
-        return !rackChassis.getContainedChassis().stream()
-            .filter(chassis -> chassis.is(DRAWER))
-            .findAny()
-            .isPresent();
+        return rackChassis.getContainedChassis().stream()
+            .noneMatch(chassis -> chassis.is(DRAWER));
     }
 
     private void triggerExternalServicesCheck(Chassis rackChassis) {

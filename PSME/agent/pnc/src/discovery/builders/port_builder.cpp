@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@ PortBuilder::ReturnType PortBuilder::update_cable_id(const CableId& cable_id) {
         m_obj.add_cable_id(serial_number);
         return *this;
     }
-    log_error(GET_LOGGER("pnc-discovery"), "Tried adding cable Id for non host port");
+    log_error("pnc-discovery", "Tried adding cable Id for non host port");
     throw std::runtime_error("Adding cable Ids for non-host ports");
 }
 
@@ -77,8 +77,6 @@ PortBuilder::ReturnType PortBuilder::update_binding_info(const std::uint32_t ent
     /*! Host Port. Port is upstream. Compute hosts are connected to such ports.*/
     else if (0 == cmd.output.fields.port_binding_info[entry_id].logical_bridge_id) {
         m_obj.set_port_type(enums::PciePortType::UpstreamPort);
-        m_obj.set_operational_state(enums::PciePortOperationalState::Up);
-        m_obj.set_administrative_state(enums::PciePortAdministrativeState::Up);
     }
     /* Device Port. Port id downstream */
     else {

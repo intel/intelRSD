@@ -101,14 +101,14 @@
 
       <EnumType Name="OverWritePolicy">
         <Member Name="Unknown">
-          <Annotation Term="OData.Description" String="The overwrite policy is not known or is undefined"/>
+          <Annotation Term="OData.Description" String="The overwrite policy is not known or is undefined."/>
         </Member>
         <Member Name="WrapsWhenFull">
           <Annotation Term="OData.Description"
                       String="When full, new entries to the Log will overwrite previous entries"/>
         </Member>
         <Member Name="NeverOverWrites">
-          <Annotation Term="OData.Description" String="When full, new entries to the Log will be discarded"/>
+          <Annotation Term="OData.Description" String="When full, new entries to the Log will be discarded."/>
         </Member>
       </EnumType>
 

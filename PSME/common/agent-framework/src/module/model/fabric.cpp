@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,6 @@
 
 #include "agent-framework/module/model/fabric.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
-#include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
@@ -46,11 +45,11 @@ json::Json Fabric::to_json() const {
 
 Fabric Fabric::from_json(const json::Json& json) {
     Fabric pcie_fabric{};
+
     pcie_fabric.set_collections(Collections::from_json(json[literals::Switch::COLLECTIONS]));
     pcie_fabric.set_status(Status::from_json(json[literals::Switch::STATUS]));
     pcie_fabric.set_oem(Oem::from_json(json[literals::Switch::OEM]));
-
     pcie_fabric.set_protocol(json[literals::Switch::PROTOCOL]);
-    pcie_fabric.set_resource_hash(json);
+
     return pcie_fabric;
 }

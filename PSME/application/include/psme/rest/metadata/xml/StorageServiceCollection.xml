@@ -6,6 +6,7 @@
   </edmx:Reference>
   <edmx:Reference Uri="Resource.xml">
     <edmx:Include Namespace="Resource.v1_0_0"/>
+    <edmx:Include Namespace="Resource.v1_1_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="StorageService.xml">
     <edmx:Include Namespace="StorageService.v1_0_0"/>
@@ -19,6 +20,8 @@
         <NavigationProperty Name="Members" Type="Collection(StorageService.v1_0_0.StorageService)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Contains the members of this collection."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The referenced collection shall contain references to all StorageService instances."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </EntityType>

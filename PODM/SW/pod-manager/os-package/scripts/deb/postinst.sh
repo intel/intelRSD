@@ -1,5 +1,5 @@
 #!/bin/sh -e
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -104,7 +104,14 @@ case "$1" in
             ;;
         esac
 
-        invoke-rc.d pod-manager start
+        FILE_THAT_PREVENTS_PODM_TO_START_AFTER_INSTALLATION='/tmp/do-not-start-pod-manager-service'
+        if [ -e $FILE_THAT_PREVENTS_PODM_TO_START_AFTER_INSTALLATION ] ; then
+            echo $File FILE_THAT_PREVENTS_PODM_TO_START_AFTER_INSTALLATION exists - pod-manager service will not be started
+            rm -f $FILE_THAT_PREVENTS_PODM_TO_START_AFTER_INSTALLATION
+        else
+            invoke-rc.d pod-manager start
+        fi
+
 
         echo_log "postinst: done"
     ;;

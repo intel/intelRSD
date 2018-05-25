@@ -30,7 +30,7 @@ import requests
 import socket
 import OpenSSL
 from distutils.util import strtobool
-from os import getppid
+from os import getenv, getppid
 from traceback import format_exc
 from collections import OrderedDict
 from simplejson.scanner import JSONDecodeError
@@ -40,6 +40,7 @@ from cts_core.commons.replay_controller import ReplayController
 from cts_core.discovery.api_resource import ApiResource
 from cts_framework.commons.enums import RequestStatus, ReturnCodes, HttpMethods, LoggingLevel, HTTPServerErrors
 from cts_framework.configuration.configuration import ValueNotFound
+from cts_framework.helpers.vars.pickle_mock_consts import MockConstants
 from cts_framework.db.dao.http_request_dao import HttpRequestDAO
 from cts_framework.db.dao.script_dao import ScriptDAO
 
@@ -400,6 +401,10 @@ class ApiCaller:
             status, status_code, response_body, headers = self._wait_for_task(headers,
                                                                               discovery_container,
                                                                               acceptable_ret_codes=acceptable_return_codes)
+
+        # In UNPICKLE mode, CTS can't find a parent resource, so return mocked success
+        if getenv('CTS_UNPICKLE', None):
+            return MockConstants.delete_resource()
 
         if status == RequestStatus.SUCCESS:
             if discovery_container[link.link].parent_url:

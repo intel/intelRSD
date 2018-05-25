@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +77,7 @@ std::shared_ptr<T> ThreadQueue<T>::wait_and_pop() {
 }
 
 template <typename T>
-bool ThreadQueue<T>::wait_for_and_pop(T& ret, 
+bool ThreadQueue<T>::wait_for_and_pop(T& ret,
                                 const std::chrono::milliseconds& wait_time) {
     std::unique_lock<std::mutex> lock{m_mutex};
 
@@ -102,7 +102,13 @@ std::shared_ptr<T> ThreadQueue<T>::wait_for_and_pop(
 }
 
 template <typename T>
-bool ThreadQueue<T>::empty() {
+bool ThreadQueue<T>::empty() const {
     std::lock_guard<std::mutex> lock{m_mutex};
     return m_data.empty();
+}
+
+template <typename T>
+std::size_t ThreadQueue<T>::size() const {
+    std::lock_guard<std::mutex> lock{m_mutex};
+    return m_data.size();
 }

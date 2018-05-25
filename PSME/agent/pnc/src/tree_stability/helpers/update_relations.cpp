@@ -2,7 +2,7 @@
  * @brief Provides class for stabilizing compute agent resource tree
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License") {}
@@ -26,13 +26,12 @@
 
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/pnc_components.hpp"
+#include "agent-framework/module/managers/utils/manager_utils.hpp"
 
 
 
 using namespace agent_framework::model;
-
-using agent_framework::module::PncComponents;
-using agent_framework::module::CommonComponents;
+using namespace agent_framework::module;
 
 namespace agent {
 namespace pnc {
@@ -40,7 +39,7 @@ namespace helpers {
 
 void update_pcie_switch_in_relations(const std::string& pcie_switch_temporary_uuid,
                                      const std::string& pcie_switch_persistent_uuid) {
-    auto& zone_manager = PncComponents::get_instance()->get_zone_manager();
+    auto& zone_manager = get_manager<Zone>();
 
     auto zone_filer = [&pcie_switch_temporary_uuid](const Zone& zone) -> bool {
         return zone.get_switch_uuid() == pcie_switch_temporary_uuid;
@@ -56,12 +55,12 @@ void update_pcie_switch_in_relations(const std::string& pcie_switch_temporary_uu
 
 void update_pcie_endpoint_in_relations(const std::string& pcie_endpoint_temporary_uuid,
                                        const std::string& pcie_endpoint_persistent_uuid) {
-    PncComponents::get_instance()->get_zone_endpoint_manager().update_child(pcie_endpoint_temporary_uuid,
+    get_m2m_manager<Zone, Endpoint>().update_child(pcie_endpoint_temporary_uuid,
                                                                             pcie_endpoint_persistent_uuid);
-    PncComponents::get_instance()->get_endpoint_port_manager().update_parent(pcie_endpoint_temporary_uuid,
+    get_m2m_manager<Endpoint, Port>().update_parent(pcie_endpoint_temporary_uuid,
                                                                              pcie_endpoint_persistent_uuid);
 
-    auto& endpoint_manager = PncComponents::get_instance()->get_endpoint_manager();
+    auto& endpoint_manager = get_manager<Endpoint>();
     auto endpoint = endpoint_manager.get_entry(pcie_endpoint_persistent_uuid);
     auto identifiers = endpoint.get_identifiers();
     for (auto& identifier : identifiers) {
@@ -75,15 +74,15 @@ void update_pcie_endpoint_in_relations(const std::string& pcie_endpoint_temporar
 
 void update_pcie_zone_in_relations(const std::string& pcie_zone_temporary_uuid,
                                    const std::string& pcie_zone_persistent_uuid) {
-    PncComponents::get_instance()->get_zone_endpoint_manager().update_parent(pcie_zone_temporary_uuid,
+    get_m2m_manager<Zone, Endpoint>().update_parent(pcie_zone_temporary_uuid,
                                                                              pcie_zone_persistent_uuid);
 }
 
 
 void update_pcie_port_in_relations(const std::string& pcie_port_temporary_uuid,
                                    const std::string& pcie_port_persistent_uuid) {
-    auto& function_manager = PncComponents::get_instance()->get_pcie_function_manager();
-    auto& drive_manager = CommonComponents::get_instance()->get_drive_manager();
+    auto& function_manager = get_manager<PcieFunction>();
+    auto& drive_manager = get_manager<Drive>();
 
     auto function_filter = [&pcie_port_temporary_uuid](const PcieFunction& function) -> bool {
         return function.get_dsp_port_uuid() == pcie_port_temporary_uuid;
@@ -110,16 +109,16 @@ void update_pcie_port_in_relations(const std::string& pcie_port_temporary_uuid,
         drive->set_dsp_port_uuids(dsp_port_uuids);
     }
 
-    PncComponents::get_instance()->get_endpoint_port_manager().update_child(pcie_port_temporary_uuid,
+    get_m2m_manager<Endpoint, Port>().update_child(pcie_port_temporary_uuid,
                                                                             pcie_port_persistent_uuid);
 }
 
 
 void update_chassis_in_relations(const std::string& chassis_temporary_uuid,
                                  const std::string& chassis_persistent_uuid) {
-    auto& switch_manager = PncComponents::get_instance()->get_switch_manager();
-    auto& system_manager = CommonComponents::get_instance()->get_system_manager();
-    auto& pcie_device_manager = PncComponents::get_instance()->get_pcie_device_manager();
+    auto& switch_manager = get_manager<Switch>();
+    auto& system_manager = get_manager<System>();
+    auto& pcie_device_manager = get_manager<PcieDevice>();
 
     auto switch_filter = [&chassis_temporary_uuid](const Switch& pcie_switch) {
         return pcie_switch.get_chassis() == chassis_temporary_uuid;
@@ -153,7 +152,7 @@ void update_chassis_in_relations(const std::string& chassis_temporary_uuid,
 
 void update_pcie_drive_in_relations(const std::string& pcie_drive_temporary_uuid,
                                     const std::string& pcie_drive_persistent_uuid) {
-    auto& endpoint_manager = PncComponents::get_instance()->get_endpoint_manager();
+    auto& endpoint_manager = get_manager<Endpoint>();
     auto endpoint_filter = [&pcie_drive_temporary_uuid](const Endpoint& endpoint) {
         const auto& connected_entities = endpoint.get_connected_entities();
         for (const auto& connected_entity : connected_entities) {
@@ -177,7 +176,7 @@ void update_pcie_drive_in_relations(const std::string& pcie_drive_temporary_uuid
         endpoint->set_connected_entities(connected_entities);
     }
 
-    auto& function_manager = PncComponents::get_instance()->get_pcie_function_manager();
+    auto& function_manager = get_manager<PcieFunction>();
     auto function_filter = [&pcie_drive_temporary_uuid](const PcieFunction& function) {
         if (function.get_functional_device().has_value() &&
             function.get_functional_device().value() == pcie_drive_temporary_uuid) {
@@ -191,23 +190,21 @@ void update_pcie_drive_in_relations(const std::string& pcie_drive_temporary_uuid
         function_manager.get_entry_reference(function_key)->set_functional_device(pcie_drive_persistent_uuid);
     }
 
-    PncComponents::get_instance()->get_drive_function_manager().update_parent(pcie_drive_temporary_uuid,
-                                                                              pcie_drive_persistent_uuid);
-    CommonComponents::get_instance()->get_storage_subsystem_drives_manager().update_child(pcie_drive_temporary_uuid,
-                                                                                          pcie_drive_persistent_uuid);
+    get_m2m_manager<Drive, PcieFunction>().update_parent(pcie_drive_temporary_uuid, pcie_drive_persistent_uuid);
+    get_m2m_manager<StorageSubsystem, Drive>().update_child(pcie_drive_temporary_uuid, pcie_drive_persistent_uuid);
 }
 
 
 void update_storage_subsystem_in_relations(const std::string& storage_subsystem_temporary_uuid,
                                            const std::string& storage_subsystem_persistent_uuid) {
-    CommonComponents::get_instance()->get_storage_subsystem_drives_manager().update_parent(
+    get_m2m_manager<StorageSubsystem, Drive>().update_parent(
         storage_subsystem_temporary_uuid, storage_subsystem_persistent_uuid);
 }
 
 
 void update_pcie_function_in_relations(const std::string& pcie_function_temporary_uuid,
                                        const std::string& pcie_function_persistent_uuid) {
-    PncComponents::get_instance()->get_drive_function_manager().update_child(pcie_function_temporary_uuid,
+    get_m2m_manager<Drive, PcieFunction>().update_child(pcie_function_temporary_uuid,
                                                                              pcie_function_persistent_uuid);
 }
 

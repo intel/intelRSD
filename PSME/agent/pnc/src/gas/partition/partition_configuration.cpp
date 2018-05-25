@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,7 @@ void PartitionConfiguration::read(AccessInterface* iface) {
 
     memcpy_s(&output.fields, sizeof(output.fields), data, sizeof(output.fields));
 
-    log_debug(GET_LOGGER("pnc-mrpc"), "Partition: " << std::uint32_t(input.fields.partition_id)
+    log_debug("pnc-mrpc", "Partition: " << std::uint32_t(input.fields.partition_id)
                                    << " Status: " << std::uint32_t(output.fields.status)
                                    << " State: " << std::uint32_t(output.fields.state)
                                    << " Ports Number:" << std::uint32_t(output.fields.ports_number));

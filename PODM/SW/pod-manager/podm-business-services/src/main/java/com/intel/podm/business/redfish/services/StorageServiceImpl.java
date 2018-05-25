@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.intel.podm.business.dto.StorageDto;
 import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.Storage;
+import com.intel.podm.business.redfish.Contexts;
 import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.aggregation.ComputerSystemSubResourcesFinder;
 import com.intel.podm.business.redfish.services.aggregation.MultiSourceEntityTreeTraverser;
@@ -37,9 +38,9 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.STORAGE;
-import static com.intel.podm.business.redfish.ContextCollections.getAsIdSet;
 import static com.intel.podm.business.services.redfish.odataid.ODataIdFromContextHelper.asOdataId;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -70,7 +71,9 @@ class StorageServiceImpl implements ReaderService<StorageDto> {
             throw new ContextResolvingException("Specified resource is not a primary resource representation!", context, null);
         }
 
-        return new CollectionDto(STORAGE, getAsIdSet(computerSystemSubResourcesFinder.getUniqueSubResourcesOfClass(system, Storage.class)));
+        List<Context> contexts = computerSystemSubResourcesFinder.getUniqueSubResourcesOfClass(system, Storage.class).stream()
+            .map(Contexts::toContext).sorted().collect(toList());
+        return new CollectionDto(STORAGE, contexts);
     }
 
     @Transactional(REQUIRED)

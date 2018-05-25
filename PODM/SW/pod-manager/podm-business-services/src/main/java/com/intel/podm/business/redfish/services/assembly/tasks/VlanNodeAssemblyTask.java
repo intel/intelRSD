@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
+import com.intel.podm.business.entities.redfish.EthernetSwitchPortVlan;
 import com.intel.podm.business.redfish.services.assembly.VlanAllocator;
 import com.intel.podm.business.redfish.services.assembly.VlanRemoveStatus;
 import com.intel.podm.business.redfish.services.assembly.VlanSelector;
@@ -105,7 +106,8 @@ public class VlanNodeAssemblyTask extends NodeTask {
     @Override
     @Transactional(REQUIRES_NEW)
     public UUID getServiceUuid() {
-        return getAssociatedComputeServiceUuid(genericDao.find(ComposedNode.class, nodeId));
+        EthernetSwitchPort ethernetSwitchPort = retrieveEthernetSwitchPort();
+        return ethernetSwitchPort.getService().getUuid();
     }
 
     public void setAvailableInterfaceId(Id availableInterfaceId) {
@@ -156,13 +158,14 @@ public class VlanNodeAssemblyTask extends NodeTask {
     }
 
     private boolean isPrimaryVlanSetOnEthernetSwitchPort(EthernetSwitchPort associatedSwitchPort) {
-        return associatedSwitchPort.getPrimaryVlan() != null && associatedSwitchPort.getPrimaryVlan().getVlanId().equals(requestedInterface.getPrimaryVlan());
+        EthernetSwitchPortVlan primaryVlan = associatedSwitchPort.getPrimaryVlan();
+        return primaryVlan != null && Objects.equals(primaryVlan.getVlanId(), requestedInterface.getPrimaryVlan());
     }
 
     private void prepareUntaggedVlan(EthernetSwitchPort associatedSwitchPort, Vlan requestedUntaggedVlan, ComposedNode node) throws EntityOperationException {
         VlanRemoveStatus vlanRemoveStatus = vlanAllocator.tryRemoveUntaggedVlans(associatedSwitchPort, requestedUntaggedVlan);
         if (requestedUntaggedVlan != null && Objects.equals(vlanRemoveStatus, UNSUPPORTED)) {
-            vlanSelector.untaggedVlanToChange(associatedSwitchPort).ifPresent(vlanToChange -> {
+            vlanSelector.tryGetUntaggedVlanToChange(associatedSwitchPort).ifPresent(vlanToChange -> {
                 node.setPriorUntaggedVlanId(vlanToChange.getVlanId());
                 vlanAllocator.updateUntaggedVlan(vlanToChange, requestedUntaggedVlan.getVlanId());
             });

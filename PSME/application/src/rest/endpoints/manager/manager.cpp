@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +78,7 @@ json::Value make_prototype() {
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_SWITCHES] = json::Value::Type::ARRAY;
 
     r[Common::OEM] = json::Value::Type::OBJECT;
-    r[Common::ACTIONS][Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::ACTIONS] = json::Value::Type::OBJECT;
 
     return r;
 }
@@ -142,7 +142,7 @@ void fill_links(const agent_framework::model::Manager& manager, json::Value& r) 
     for (auto service_id : service_ids) {
         json::Value link{};
         link[Common::ODATA_ID] = psme::rest::endpoint::PathBuilder(constants::PathParam::BASE_URL)
-            .append(constants::Root::SERVICES)
+            .append(constants::Root::STORAGE_SERVICES)
             .append(service_id)
             .build();
         r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_SERVICES].push_back(std::move(link));
@@ -167,15 +167,17 @@ void fill_manager_actions(const server::Request& request,
     }
     r[Common::ACTIONS][Manager::HASH_MANAGER_RESET] = std::move(reset);
 
-    json::Value oem{};
-    oem[Manager::HASH_LOAD_FACTORY_DEFAULTS_ACTION][Common::TARGET] =
-        endpoint::PathBuilder(request)
-            .append(constants::Common::ACTIONS)
-            .append(constants::Common::OEM)
-            .append(constants::Manager::LOAD_FACTORY_DEFAULTS_ACTION)
-            .build();
+    if (manager.get_manager_type() == agent_framework::model::enums::ManagerInfoType::RackManager) {
+        json::Value oem{};
+        oem[Manager::HASH_LOAD_FACTORY_DEFAULTS_ACTION][Common::TARGET] =
+            endpoint::PathBuilder(request)
+                .append(constants::Common::ACTIONS)
+                .append(constants::Common::OEM)
+                .append(constants::Manager::LOAD_FACTORY_DEFAULTS_ACTION)
+                .build();
 
-    r[Common::ACTIONS][Common::OEM] = std::move(oem);
+        r[Common::ACTIONS][Common::OEM] = std::move(oem);
+    }
 }
 
 }

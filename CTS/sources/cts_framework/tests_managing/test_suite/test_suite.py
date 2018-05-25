@@ -29,9 +29,16 @@ class TestSuite:
         self.path = ""
         self.scripts = []
 
+    def _trim_path(self, path):
+        try:
+            return path.rsplit('/tests/', 1)[1]
+        except:
+            return path
+
     def filter(self, scripts=None, script_paths=None):
         if script_paths is not None:
-            self.scripts = [script for script in self.scripts if script.path in script_paths]
+            script_paths = [self._trim_path(path) for path in script_paths]
+            self.scripts = [script for script in self.scripts if self._trim_path(script.path) in script_paths]
             return
 
         self.scripts = [script for script in self.scripts if scripts is None or script.name in scripts]

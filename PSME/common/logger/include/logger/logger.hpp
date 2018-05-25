@@ -1,7 +1,7 @@
 /*!
  * @brief C++ logger interface
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "logger/logger_options.hpp"
+
 #include <sstream>
 #include <string>
 #include <iomanip>
@@ -34,9 +36,12 @@
 #ifndef LOGGER_CPP_OVER_LOGGER_C_MACROS
 #define LOGGER_CPP_OVER_LOGGER_C_MACROS
 #endif
-#include "logger/logger.h"
 
-#include "logger/logger_options.hpp"
+extern "C" {
+
+    struct logger;
+
+}
 
 namespace logger_cpp {
 
@@ -47,29 +52,33 @@ class Stream;
  * @brief Logger object get and send log message to #logger_cpp::Stream
  * */
 class Logger {
-private:
-    struct logger* m_impl = nullptr;
-
-    Logger(Logger&&) = delete;
-    Logger(const Logger&) = delete;
-    Logger& operator=(const Logger&) = delete;
-
-    std::list<std::shared_ptr<const Stream>> m_streams;
 
 public:
+    /*!
+     * @brief Get logger by name
+     * @param name of the logger to be taken
+     * @return shared pointer to the matching logger
+     */
+    static std::shared_ptr<Logger> get_logger(const char* name);
+
     /*!
      * @brief Create logger instance with tag string and override logger
      * options
      *
-     * @param[in]   tag     Tag string, if nullptr disable tagging
+     * @param[in]   name    Name of the logger to be created, this is assumed
+     *                      to be a "tag" of the logger.
      * @param[in]   options Logger options, if nullptr set default options
      * */
-    Logger(const char* tag = nullptr, const Options& options = Options());
+    Logger(const std::string& name = "", const Options& options = Options());
 
     /*!
      * @brief Destroy logger object instance
      * */
     virtual ~Logger();
+
+    const std::string& get_name() const {
+        return m_name;
+    }
 
     /*!
      * @brief Get "C" struct with logger instance
@@ -139,6 +148,15 @@ public:
             unsigned int line_number,
             const std::string& str);
 
+private:
+    const std::string m_name;
+    struct logger* m_impl{};
+
+    Logger(Logger&&) = delete;
+    Logger(const Logger&) = delete;
+    Logger& operator=(const Logger&) = delete;
+
+    std::list<std::shared_ptr<const Stream>> m_streams;
 };
 using LoggerSPtr = std::shared_ptr<Logger>;
 using loggerUPtr = std::unique_ptr<Logger>;
@@ -246,6 +264,17 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
 }
 
 /*!
+ * @brief Get system logger
+ *
+ * Always return the name for default system logger.
+ */
+#define LOGUSR "default"
+
+#if defined(LOGGER_DISABLED)
+#define log_write(inst, level, stream)
+#else
+
+/*!
  * @def LOGGER_FILE_NAME
  * Generate file name for log_* functions called in that file
  *
@@ -270,37 +299,6 @@ std::ostream& operator<<(std::ostream& os, const std::vector<unsigned char>& v) 
 #endif
 
 /*!
- * @brief Get name of the logger requested by name
- *
- * @param logger_name name of the logger to be returned
- * @return logger_name
- */
-const char* logger_get_logger_name(const char* logger_name);
-
-/*!
- * @brief Get name of the requested logger
- *
- * @param logger logger shared poiter
- * @return logger_name
- */
-const char* logger_get_logger_name(LoggerSPtr logger);
-
-/*!
- * @brief Get logger by name
- *
- * Loggers are always found by name. This allow to log the name from log_xxx()
- * instead of the name of the configured logger.
- */
-#define GET_LOGGER(name) name
-
-/*!
- * @brief Get system logger
- *
- * Always return the name for default system logger.
- */
-#define LOGUSR GET_LOGGER("default")
-
-/*!
  * @brief Logger output stream write
  *
  * @param[in]   inst    Logger buffer instance
@@ -309,12 +307,12 @@ const char* logger_get_logger_name(LoggerSPtr logger);
  * */
 #define log_write(inst, level, stream) \
     do {\
-        logger_cpp::LoggerSPtr __ptr = logger_cpp::LoggerFactory::instance().get_logger(inst);\
+        logger_cpp::LoggerSPtr __ptr = logger_cpp::Logger::get_logger(inst);\
         if (__ptr && __ptr->is_loggable(level)) {\
             std::stringstream __stream;\
             __stream << std::string("") << stream;\
             __ptr->write(\
-                logger_cpp::logger_get_logger_name(inst),\
+                inst,\
                 level,\
                 LOGGER_FILE_NAME,\
                 LOGGER_FUNCTION_NAME,\
@@ -323,6 +321,8 @@ const char* logger_get_logger_name(LoggerSPtr logger);
             );\
         }\
     } while (0)
+
+#endif // defined(LOGGER_DISABLED)
 
 /*!
  * @brief Emergency message, system is about to crash or is unstable

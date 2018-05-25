@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,9 +127,6 @@ const char INFO_FORMAT[] = "InfoFormat";
 const char ERASE_ON_DETACH[] = "EraseOnDetach";
 const char DRIVE_ERASED[] = "DriveErased";
 const char FIRMWARE_VERSION[] = "FirmwareVersion";
-const char IDENTIFIERS[] = "Identifiers";
-const char DURABLE_NAME[] = "DurableName";
-const char DURABLE_NAME_FORMAT[] = "DurableNameFormat";
 const char STATUS_INDICATOR[] = "StatusIndicator";
 const char REVISION[] = "Revision";
 const char FAILURE_PREDICTED[] = "FailurePredicted";
@@ -140,6 +137,7 @@ const char ROTATION_SPEED_RPM[] = "RotationSpeedRPM";
 const char BLOCK_SIZE_BYTES[] = "BlockSizeBytes";
 const char PREDICTED_MEDIA_LIFE_LEFT[] = "PredictedMediaLifeLeftPercent";
 const char PCIE_FUNCTION[] = "PCIeFunction";
+const char USED_BY[] = "UsedBy";
 }
 
 namespace PcieDevice {
@@ -158,6 +156,25 @@ const char REVISION_ID[] = "RevisionId";
 const char SUBSYSTEM_ID[] = "SubsystemId";
 const char SUBSYSTEM_VENDOR_ID[] = "SubsystemVendorId";
 const char PCIE_DEVICE[] = "PCIeDevice";
+}
+
+namespace DriveMetrics {
+const char TEMPERATURE_KELVIN[] = "TemperatureKelvin";
+const char LIFETIME[] = "LifeTime";
+const char HEALTH_DATA[] = "HealthData";
+
+const char UNIT_SIZE_BYTES[] = "UnitSizeBytes";
+const char UNITS_READ[] = "UnitsRead";
+const char UNITS_WRITTEN[] = "UnitsWritten";
+const char HOST_READ_COMMANDS[] = "HostReadCommands";
+const char HOST_WRITE_COMMANDS[] = "HostWriteCommands";
+const char POWER_CYCLES[] = "PowerCycles";
+const char POWER_ON_HOURS[] = "PowerOnHours";
+const char CONTROLLER_BUSY_TIME_MINUTES[] = "ControllerBusyTimeMinutes";
+const char AVAILABLE_SPARE_PERCENTAGE[] = "AvailableSparePercentage";
+const char PREDICTED_MEDIA_LIFE_USED_PERCENT[] = "PredictedMediaLifeUsedPercent";
+const char UNSAFE_SHUTDOWNS[] = "UnsafeShutdowns";
+const char MEDIA_ERRORS[] = "MediaErrors";
 }
 
 }

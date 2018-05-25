@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import com.intel.podm.business.entities.redfish.ExternalService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toSet;
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @ApplicationScoped
 public class ChassisHierarchyMaintainer {
@@ -35,7 +37,7 @@ public class ChassisHierarchyMaintainer {
         Chassis parentChassis = chassis.getContainedByChassis();
         List<ExternalService> parentChassisOrigin = parentChassis.getExternalServices();
         List<ExternalService> chassisOrigin = chassis.getExternalServices();
-        return chassisOrigin.stream().noneMatch(co -> parentChassisOrigin.contains(co));
+        return chassisOrigin.stream().noneMatch(parentChassisOrigin::contains);
     };
 
     @Inject
@@ -44,6 +46,7 @@ public class ChassisHierarchyMaintainer {
     @Inject
     private TopLevelChassisLocationGuard topLevelChassisLocationGuard;
 
+    @Transactional(MANDATORY)
     public void maintain(Collection<Chassis> discoveredChassis) {
         Collection<Chassis> topLevelChassis = getTopLevelChassis(discoveredChassis);
         chassisLinker.linkToModel(topLevelChassis);

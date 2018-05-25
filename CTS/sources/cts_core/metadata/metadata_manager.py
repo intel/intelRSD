@@ -22,6 +22,7 @@
  * @section DESCRIPTION
 """
 import os
+from lxml import etree
 from os import getenv
 from cts_core.commons.api_caller import ApiCaller
 from cts_core.commons.error import cts_warning, cts_error
@@ -44,6 +45,9 @@ TERM = "term"
 ROOT_XML_FILE = "$metadata.xml"
 REFERENCE = "edmx:reference"
 URI = "uri"
+
+class MetadataMalformed(BaseException):
+    pass
 
 class MetadataManager:
     METADATA_URL = "/redfish/v1/$metadata"
@@ -77,7 +81,14 @@ class MetadataManager:
         ServiceTypes.PODM_2_2: "2.2/PODM",
         ServiceTypes.PSME_2_2: "2.2/PSME",
         ServiceTypes.RMM_2_2: "2.2/RMM",
-        ServiceTypes.SS_2_2: "2.2/SS"
+        ServiceTypes.SS_2_2: "2.2/SS",
+
+        ServiceTypes.PODM_2_3: "2.3/PODM",
+        ServiceTypes.PSME_2_3: "2.3/PSME",
+        ServiceTypes.RMM_2_3: "2.3/RMM",
+        ServiceTypes.SS_2_3: "2.3/SS"
+
+
     }
 
     def __init__(self, qualifiers, ignore_types=None, map_types=None):
@@ -100,7 +111,7 @@ class MetadataManager:
             cts_error("Metadata located in {dir} is corrupted or has been tampered. Expected: {expected}, "
                       "Is: {current}",
                       dir=self._metadata_home(), expected=digest.official_digest, current=digest.digest)
-            print "MESSAGE::{count} xml files has been found in {dir}".format(count=len(digest),
+            print "MESSAGE::{count} xml files have been found in {dir}".format(count=len(digest),
                                                                               dir=self._metadata_home())
             digest.report_differences()
 
@@ -126,13 +137,22 @@ class MetadataManager:
             cts_error("Internal error. Metadata directory {metadata_dir} not found", metadata_dir=dir)
             return False
 
-    def read_metadata_from_strings(self, *metadata):
+    def _validate_xml_file(self, file_uri, metadata_text):
+        try:
+            doc = etree.fromstring(metadata_text.lstrip())
+        except etree.XMLSyntaxError as err:
+            cts_error('XML Syntax Error in file {file}', file=file_uri)
+            raise MetadataMalformed()
+
+    def read_metadata_from_strings(self, file_uri, *metadata):
         """
+        :type file_uri: string
         :type metadata: list[string]
         :rtype: cts_core.metadata.metadata_container.MetadataContainer
         """
-
         for metadata_text in metadata:
+            self._validate_xml_file(file_uri, metadata_text)
+
             metadata_soup = Commons.text_to_soup(metadata_text)
 
             for reference in metadata_soup.find_all(REFERENCE):
@@ -175,7 +195,7 @@ class MetadataManager:
         try:
             full_uri = os.path.join(self.metadata_dir, file_uri)
             with open(full_uri) as f:
-                self.read_metadata_from_strings(f.read())
+                self.read_metadata_from_strings(file_uri, f.read())
         except IOError:
             cts_error("Metadata file {file} not found", file=full_uri)
 
@@ -184,7 +204,7 @@ class MetadataManager:
         if not status:
             cts_error("Error while accessing metadata {uri}", uri=file_uri)
         else:
-            self.read_metadata_from_strings(response_body)
+            self.read_metadata_from_strings(file_uri, response_body)
 
     def _process_namespace(self, schema):
         """

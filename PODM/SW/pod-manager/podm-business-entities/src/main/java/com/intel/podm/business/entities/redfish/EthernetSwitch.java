@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Objects;
@@ -81,6 +82,21 @@ public class EthernetSwitch extends DiscoverableEntity {
 
     @Column(name = "role")
     private String role;
+
+    @Column(name = "lldp_enabled")
+    private Boolean lldpEnabled;
+
+    @Column(name = "ets_enabled")
+    private Boolean etsEnabled;
+
+    @Column(name = "dcbx_enabled")
+    private Boolean dcbxEnabled;
+
+    @Column(name = "pfc_enabled")
+    private Boolean pfcEnabled;
+
+    @OneToOne(mappedBy = "ethernetSwitch", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private DcbxConfig dcbxSharedConfiguration;
 
     @SuppressEvents
     @OneToMany(mappedBy = "ethernetSwitch", fetch = LAZY, cascade = {MERGE, PERSIST})
@@ -185,6 +201,38 @@ public class EthernetSwitch extends DiscoverableEntity {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public Boolean getLldpEnabled() {
+        return lldpEnabled;
+    }
+
+    public void setLldpEnabled(Boolean lldpEnabled) {
+        this.lldpEnabled = lldpEnabled;
+    }
+
+    public Boolean getEtsEnabled() {
+        return etsEnabled;
+    }
+
+    public void setEtsEnabled(Boolean etsEnabled) {
+        this.etsEnabled = etsEnabled;
+    }
+
+    public Boolean getDcbxEnabled() {
+        return dcbxEnabled;
+    }
+
+    public void setDcbxEnabled(Boolean dcbxEnabled) {
+        this.dcbxEnabled = dcbxEnabled;
+    }
+
+    public Boolean getPfcEnabled() {
+        return pfcEnabled;
+    }
+
+    public void setPfcEnabled(Boolean pfcEnabled) {
+        this.pfcEnabled = pfcEnabled;
     }
 
     public Set<EthernetSwitchPort> getPorts() {
@@ -299,6 +347,29 @@ public class EthernetSwitch extends DiscoverableEntity {
         }
     }
 
+    public DcbxConfig getDcbxSharedConfiguration() {
+        return dcbxSharedConfiguration;
+    }
+
+    public void setDcbxSharedConfiguration(DcbxConfig dcbxSharedConfiguration) {
+        if (!Objects.equals(this.dcbxSharedConfiguration, dcbxSharedConfiguration)) {
+            unlinkDcbxSharedConfiguration(this.dcbxSharedConfiguration);
+            this.dcbxSharedConfiguration = dcbxSharedConfiguration;
+            if (dcbxSharedConfiguration != null && !this.equals(dcbxSharedConfiguration.getEthernetSwitch())) {
+                dcbxSharedConfiguration.setEthernetSwitch(this);
+            }
+        }
+    }
+
+    public void unlinkDcbxSharedConfiguration(DcbxConfig dcbxSharedConfiguration) {
+        if (Objects.equals(this.dcbxSharedConfiguration, dcbxSharedConfiguration)) {
+            this.dcbxSharedConfiguration = null;
+            if (dcbxSharedConfiguration != null) {
+                dcbxSharedConfiguration.unlinkEthernetSwitch(this);
+            }
+        }
+    }
+
     @Override
     public void preRemove() {
         unlinkCollection(ports, this::unlinkPort);
@@ -306,6 +377,7 @@ public class EthernetSwitch extends DiscoverableEntity {
         unlinkCollection(managers, this::unlinkManager);
         unlinkChassis(chassis);
         unlinkEthernetSwitchMetrics(ethernetSwitchMetrics);
+        unlinkDcbxSharedConfiguration(dcbxSharedConfiguration);
     }
 
     @Override

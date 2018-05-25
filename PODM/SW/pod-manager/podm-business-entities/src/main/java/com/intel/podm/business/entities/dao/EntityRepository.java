@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ package com.intel.podm.business.entities.dao;
 
 import com.intel.podm.business.entities.EntityNotFoundException;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.Id;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -40,6 +42,9 @@ import static javax.transaction.Transactional.TxType.MANDATORY;
 class EntityRepository {
     @PersistenceContext
     protected EntityManager entityManager;
+
+    @Inject
+    private Logger logger;
 
     @Transactional(MANDATORY)
     public <T extends Entity> T create(Class<T> entityClass) {
@@ -81,7 +86,11 @@ class EntityRepository {
     @Transactional(MANDATORY)
     public <T extends Entity> void remove(T entity) {
         if (entity != null) {
-            entityManager.remove(entity);
+            if (entityManager.contains(entity)) {
+                entityManager.remove(entity);
+            } else {
+                logger.e("Found a detached entity: {}", entity);
+            }
         }
     }
 

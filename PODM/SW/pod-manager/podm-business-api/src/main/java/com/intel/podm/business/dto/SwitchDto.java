@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.business.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.dto.actions.ResetActionDto;
@@ -31,12 +30,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "switchType", "model",
-    "manufacturer", "serialNumber", "partNumber", "assetTag", "sku", "domainId", "IsManaged", "totalSwitchWidth",
-    "indicatorLed", "powerState", "ports", "Redundancy", "links", "actions", "oem", "logServices"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "switchType", "model", "manufacturer", "serialNumber", "partNumber",
+    "assetTag", "sku", "domainId", "isManaged", "totalSwitchWidth", "indicatorLed", "powerState", "ports", "redundancies", "links", "actions", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
 public final class SwitchDto extends RedfishDto {
+    private final Links links = new Links();
+    private final Actions actions = new Actions();
     private Status status;
     private Protocol switchType;
     private String model;
@@ -48,7 +48,6 @@ public final class SwitchDto extends RedfishDto {
     private String sku;
     @JsonProperty("DomainID")
     private Integer domainId;
-    @JsonProperty("IsManaged")
     private Boolean isManaged;
     private Integer totalSwitchWidth;
     @JsonProperty("IndicatorLED")
@@ -57,8 +56,6 @@ public final class SwitchDto extends RedfishDto {
     private SingletonContext ports;
     @JsonProperty("Redundancy")
     private Set<RedundancyDto> redundancies = new HashSet<>();
-    private Links links = new Links();
-    private Actions actions = new Actions();
 
     public SwitchDto() {
         super("#Switch.v1_0_0.Switch");
@@ -136,13 +133,12 @@ public final class SwitchDto extends RedfishDto {
         this.domainId = domainId;
     }
 
-    @JsonIgnore
-    public Boolean getManaged() {
+    public Boolean getIsManaged() {
         return isManaged;
     }
 
-    public void setManaged(Boolean managed) {
-        isManaged = managed;
+    public void setIsManaged(Boolean isManaged) {
+        this.isManaged = isManaged;
     }
 
     public Integer getTotalSwitchWidth() {
@@ -189,16 +185,8 @@ public final class SwitchDto extends RedfishDto {
         return links;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
-    }
-
     public Actions getActions() {
         return actions;
-    }
-
-    public void setActions(Actions actions) {
-        this.actions = actions;
     }
 
     @JsonPropertyOrder({"chassis", "managedBy", "oem"})

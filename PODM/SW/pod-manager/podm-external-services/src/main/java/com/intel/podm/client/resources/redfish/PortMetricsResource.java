@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.resources.ExternalServiceResource;
 import com.intel.podm.client.resources.ExternalServiceResourceImpl;
-import com.intel.podm.common.types.redfish.OemType;
 
 import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATTERN;
-import static com.intel.podm.common.types.redfish.OemType.Type.OEM_IN_ACTIONS;
 
 @OdataTypes({
     "#PortMetrics" + VERSION_PATTERN + "PortMetrics"
@@ -43,8 +41,5 @@ public class PortMetricsResource extends ExternalServiceResourceImpl implements 
     }
 
     public class Actions extends RedfishActions {
-        @OemType(OEM_IN_ACTIONS)
-        public class Oem {
-        }
     }
 }

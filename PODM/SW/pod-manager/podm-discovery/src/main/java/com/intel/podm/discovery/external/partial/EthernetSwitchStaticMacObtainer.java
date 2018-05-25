@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,15 +45,14 @@ public class EthernetSwitchStaticMacObtainer {
         try (WebClient webClient = webClientBuilder.newInstance(service.getBaseUri()).retryable().build()) {
             EthernetSwitchStaticMacResource resource = (EthernetSwitchStaticMacResource) webClient.get(uri);
 
-            return readResource(service, uri, resource);
+            return readResource(service, resource);
         }
     }
 
-    private EthernetSwitchStaticMac readResource(ExternalService service, URI uri, EthernetSwitchStaticMacResource resource) {
-        URI sourceUri = URI.create(uri.getPath());
-        Id entityId = resource.getGlobalId(service.getId(), sourceUri);
+    private EthernetSwitchStaticMac readResource(ExternalService service, EthernetSwitchStaticMacResource resource) {
+        Id entityId = resource.getGlobalId(service.getId());
 
-        EthernetSwitchStaticMac entity = discoverableEntityDao.findOrCreateEntity(service, entityId, sourceUri, EthernetSwitchStaticMac.class);
+        EthernetSwitchStaticMac entity = discoverableEntityDao.findOrCreateEntity(service, entityId, resource.getUri(), EthernetSwitchStaticMac.class);
 
         mapper.map(resource, entity);
 

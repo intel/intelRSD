@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.intel.podm.common.types.ServiceType;
 
 import java.util.Optional;
 
+import static com.intel.podm.common.types.ServiceType.DISCOVERY_SERVICE;
 import static com.intel.podm.common.types.ServiceType.INBAND;
 import static com.intel.podm.common.types.ServiceType.LUI;
 import static com.intel.podm.common.types.ServiceType.PSME;
@@ -32,6 +33,7 @@ public final class TypeIdServiceTypeDictionary {
     private TypeIdServiceTypeDictionary() {
     }
 
+    @SuppressWarnings({"checkstyle:CyclomaticComplexity", "checkstyle:MethodLength"})
     public static Optional<ServiceType> fromTypeId(String typeId) {
         ServiceType serviceType = null;
         switch (typeId) {
@@ -46,6 +48,9 @@ public final class TypeIdServiceTypeDictionary {
                 break;
             case "lui":
                 serviceType = LUI;
+                break;
+            case "discovery-service":
+                serviceType = DISCOVERY_SERVICE;
                 break;
             case "inband":
                 serviceType = INBAND;

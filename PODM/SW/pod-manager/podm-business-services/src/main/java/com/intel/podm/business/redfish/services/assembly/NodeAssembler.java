@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.intel.podm.business.entities.redfish.ComposedNode;
 import com.intel.podm.business.redfish.services.allocation.ComposedNodeStateChanger;
 import com.intel.podm.business.redfish.services.assembly.tasks.NodeTasksCoordinator;
 
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
@@ -31,7 +31,7 @@ import static com.intel.podm.common.types.ComposedNodeState.ASSEMBLING;
 import static java.lang.String.format;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
-@RequestScoped
+@Dependent
 public class NodeAssembler {
     @Inject
     private ComposedNodeStateChanger composedNodeStateChanger;

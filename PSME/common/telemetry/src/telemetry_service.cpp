@@ -2,7 +2,7 @@
  * @brief Telemetry service
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,9 @@
 #include "configuration/configuration.hpp"
 #include "configuration/configuration_validator.hpp"
 #include "agent-framework/module/utils/json_transformations.hpp"
+#include "agent-framework/module/utils/iso8601_time_interval.hpp"
 
+#include <limits>
 
 namespace {
 
@@ -39,17 +41,48 @@ using namespace agent_framework::module;
 
 using Component = agent_framework::model::enums::Component;
 
+std::string read_interval(const json::Value& telemetry_config,
+                          const std::string& interval_property_name,
+                          const std::string& default_value = "PT10S") {
+    using agent_framework::utils::Iso8601TimeInterval;
+    if (!telemetry_config.is_null() && telemetry_config.is_member(interval_property_name)) {
+        const auto& json_prop = telemetry_config[interval_property_name];
+        try {
+            Iso8601TimeInterval interval{};
+            if (json_prop.is_string()) {
+                interval = Iso8601TimeInterval::parse(json_prop.as_string());
+            }
+            else if (json_prop.is_number()) {
+                using namespace std::chrono;
+                interval = Iso8601TimeInterval(duration_cast<milliseconds>(duration<double>(json_prop.as_double())));
+            }
+            if (interval > Iso8601TimeInterval::zero()) {
+                return interval.to_string();
+            }
+            else {
+                log_warning("telemetry", "Incorrect zero interval '" << interval_property_name
+                        << "', using default value: " << default_value);
+            }
+        }
+        catch (const Iso8601TimeInterval::Exception&) {
+            log_warning("telemetry", "Incorrect interval '" << interval_property_name
+                    << "', using default value: " << default_value);
+        }
+    }
+    return default_value;
+}
+
 /*!
  * @brief Process health from the reader
  *
  * @tparam R type of the component
  *
  * @param reader to get value from
- * @param notifications collection of events to append health-changed event
+ * @param events collection of events to append health-changed event
  * @return true if reader is for requested resource
  */
 template<typename R>
-bool update_health(const TelemetryReader& reader, EventDataVec& notifications) {
+bool update_health(const TelemetryReader& reader, EventDataVec& events) {
     if (R::get_component() == reader.get_resource_key().get_component()) {
         if (get_manager<R>().entry_exists(reader.get_resource_uuid())) {
             auto entry = get_manager<R>().get_entry_reference(reader.get_resource_uuid());
@@ -57,11 +90,11 @@ bool update_health(const TelemetryReader& reader, EventDataVec& notifications) {
 
             OptionalField<agent_framework::model::enums::Health> health{};
             if (status.get_state() == agent_framework::model::enums::State::Absent) {
-                log_info(GET_LOGGER("telemetry"), "Resource " << reader.get_resource_key() << " is absent");
+                log_info("telemetry", "Resource " << reader.get_resource_key() << " is absent");
             }
             else {
                 health = reader.get_health();
-                log_info(GET_LOGGER("telemetry"), "Health for " << reader.get_resource_key()
+                log_info("telemetry", "Health for " << reader.get_resource_key()
                         << " uuid '" << reader.get_resource_uuid() << "'"
                         << " set to " << health->to_string() << "/" << reader.get_value());
             }
@@ -78,7 +111,7 @@ bool update_health(const TelemetryReader& reader, EventDataVec& notifications) {
             event.set_component(entry->get_uuid());
             event.set_type(entry->get_component());
             event.set_notification(agent_framework::eventing::Notification::Update);
-            notifications.push_back(std::move(event));
+            events.push_back(std::move(event));
             return true;
         }
     }
@@ -90,52 +123,29 @@ bool update_health(const TelemetryReader& reader, EventDataVec& notifications) {
 namespace telemetry {
 
 void TelemetryService::update_metrics_model(const TelemetryReader& reader) {
-    switch (reader.get_reader_state()) {
-        case TelemetryReader::State::VALUE_NOT_PRESENT:
-            if (get_manager<Metric>().entry_exists(reader.get_metric_uuid())) {
-                auto metric = get_manager<Metric>().get_entry_reference(reader.get_metric_uuid());
-                metric->set_value(nullptr);
-                agent_framework::eventing::EventData event{};
-                event.set_parent(metric->get_parent_uuid());
-                event.set_component(metric->get_uuid());
-                event.set_type(metric->get_component());
-                event.set_notification(agent_framework::eventing::Notification::Update);
-                m_notifications.push_back(std::move(event));
-            }
-            break;
-        case TelemetryReader::State::VALUE_READ:
-            if (get_manager<Metric>().entry_exists(reader.get_metric_uuid())) {
-                auto metric = get_manager<Metric>().get_entry_reference(reader.get_metric_uuid());
-                metric->set_value(reader.get_value());
-                agent_framework::eventing::EventData event{};
-                event.set_parent(metric->get_parent_uuid());
-                event.set_component(metric->get_uuid());
-                event.set_type(metric->get_component());
-                event.set_notification(agent_framework::eventing::Notification::Update);
-                m_notifications.push_back(std::move(event));
-            }
-            break;
-        case TelemetryReader::State::NOT_VALID:
-            throw std::runtime_error("Reader configured improperly (code not reachable)!");
-        default:
-            throw std::runtime_error("Undefined reader state (unreachable code)!");
+    if (get_manager<Metric>().entry_exists(reader.get_metric_uuid())) {
+        auto metric = get_manager<Metric>().get_entry_reference(reader.get_metric_uuid());
+        metric->set_value(reader.get_value());
+        agent_framework::eventing::EventData event{};
+        event.set_parent(metric->get_parent_uuid());
+        event.set_component(metric->get_uuid());
+        event.set_type(metric->get_component());
+        event.set_notification(agent_framework::eventing::Notification::Update);
+        m_notifications.push_back(std::move(event));
     }
 }
 
 void TelemetryService::update_resource_health(const TelemetryReader& reader) {
-    if (reader.get_reader_state() == TelemetryReader::State::VALUE_READ) {
-        if (!update_health<agent_framework::model::Processor>(reader, m_notifications) &&
-            !update_health<agent_framework::model::Memory>(reader, m_notifications) &&
-            !update_health<agent_framework::model::System>(reader, m_notifications)) {
-            log_warning(GET_LOGGER("telemetry"), "Health not handled for " << reader.get_resource_key());
-        }
+    if (!update_health<agent_framework::model::Processor>(reader, m_notifications) &&
+        !update_health<agent_framework::model::Memory>(reader, m_notifications) &&
+        !update_health<agent_framework::model::System>(reader, m_notifications)) {
+        log_warning("telemetry", "Health not handled for " << reader.get_resource_key());
     }
 }
 
 
 void TelemetryService::remove_metric(const TelemetryReader& reader) {
-    if (reader.get_reader_state() != TelemetryReader::State::NOT_VALID
-        && reader.fills_metric()) {
+    if (reader.fills_metric()) {
         agent_framework::eventing::EventData event{};
         agent_framework::module::get_manager<Metric>().remove_entry(reader.get_metric_uuid(),
                 [&event](const Metric & metric) {
@@ -145,7 +155,7 @@ void TelemetryService::remove_metric(const TelemetryReader& reader) {
                     event.set_notification(agent_framework::eventing::Notification::Remove);
                 });
         if (!event.get_component().empty()) {
-            log_info(GET_LOGGER("telemetry"), "Removed " << Metric::get_component().to_string()
+            log_info("telemetry", "Removed " << Metric::get_component().to_string()
                     << ", UUID " << event.get_component());
             m_notifications.push_back(event);
         }
@@ -183,7 +193,7 @@ TelemetryReader::PtrVector TelemetryService::process_all_metrics() {
 
     /* send all collected events */
     if (m_notifications.empty()) {
-        log_debug(GET_LOGGER("telemetry"), "No notifications collected from processing of metrics.");
+        log_debug("telemetry", "No notifications collected from processing of metrics.");
     }
     else {
         agent_framework::eventing::EventsQueue::get_instance()->push_back(m_notifications);
@@ -213,14 +223,14 @@ void TelemetryService::add_or_update(const Metric& metric) {
 
     if (agent_framework::module::TableInterface::UpdateStatus::Added == status) {
         edat.set_notification(agent_framework::eventing::Notification::Add);
-        log_info(GET_LOGGER("telemetry"), "Added " << Metric::get_component().to_string() << ", UUID " << metric.get_uuid()
+        log_info("telemetry", "Added " << Metric::get_component().to_string() << ", UUID " << metric.get_uuid()
                                                    << " for " << metric.get_component_type() << " (" << metric.get_component_uuid() << ")");
         m_notifications.push_back(std::move(edat));
     }
     else if (agent_framework::module::TableInterface::UpdateStatus::StatusChanged == status ||
              agent_framework::module::TableInterface::UpdateStatus::Updated == status) {
         edat.set_notification(agent_framework::eventing::Notification::Update);
-        log_info(GET_LOGGER("telemetry"), "Updated " << Metric::get_component().to_string() << ", UUID " << metric.get_uuid()
+        log_info("telemetry", "Updated " << Metric::get_component().to_string() << ", UUID " << metric.get_uuid()
                                                      << " for " << metric.get_component_type() << " (" << metric.get_component_uuid() << ")");
         m_notifications.push_back(std::move(edat));
     }
@@ -240,13 +250,13 @@ void TelemetryService::add_or_update(const agent_framework::model::MetricDefinit
 
     if (agent_framework::module::TableInterface::UpdateStatus::Added == status) {
         edat.set_notification(agent_framework::eventing::Notification::Add);
-        log_info(GET_LOGGER("telemetry"), "Added " << MetricDefinition::get_component().to_string() << ", UUID " << metric_def.get_uuid());
+        log_info("telemetry", "Added " << MetricDefinition::get_component().to_string() << ", UUID " << metric_def.get_uuid());
         m_notifications.push_back(std::move(edat));
     }
     else if (agent_framework::module::TableInterface::UpdateStatus::StatusChanged == status ||
              agent_framework::module::TableInterface::UpdateStatus::Updated == status) {
         edat.set_notification(agent_framework::eventing::Notification::Update);
-        log_info(GET_LOGGER("telemetry"), "Updated " << MetricDefinition::get_component().to_string() << ", UUID " << metric_def.get_uuid());
+        log_info("telemetry", "Updated " << MetricDefinition::get_component().to_string() << ", UUID " << metric_def.get_uuid());
         m_notifications.push_back(std::move(edat));
     }
     else {
@@ -256,46 +266,23 @@ void TelemetryService::add_or_update(const agent_framework::model::MetricDefinit
 
 
 TelemetryReader::PtrVector TelemetryService::configure(TelemetryReader::PtrVector&& readers) {
+    constexpr char DEFAULT_INTERVAL[] = "PT10S";
     const auto& config = configuration::Configuration::get_instance().to_json();
-
-    std::string sensing_interval = "10.0s";
-    double shoreup_period_double = 10.0; /* [s] */
-    std::string shoreup_period_str = "";
 
     if (!config.is_member("telemetry")) {
         for (auto& reader : readers) {
-            reader->set_sensing_interval(sensing_interval);
-            reader->set_shoreup_period(shoreup_period_double);
+            reader->set_sensing_interval(DEFAULT_INTERVAL);
+            reader->set_shoreup_period(DEFAULT_INTERVAL);
         }
     }
     else {
         const auto& telemetry = config["telemetry"];
-
-        if (telemetry["defaultInterval"].is_number()) {
-            std::stringstream str{};
-            str << telemetry["defaultInterval"].as_double() << "s";
-            sensing_interval = str.str();
-        }
-        else if (telemetry["defaultInterval"].is_string()) {
-            sensing_interval = telemetry["defaultInterval"].as_string();
-        }
-
-        if (telemetry["shoreupPeriod"].is_number()) {
-            shoreup_period_double = telemetry["shoreupPeriod"].as_double();
-            shoreup_period_str = "";
-        }
-        else if (telemetry["shoreupPeriod"].is_string()) {
-            shoreup_period_str = telemetry["shoreupPeriod"].as_string();
-        }
+        const auto sensing_interval = read_interval(telemetry, "defaultInterval", DEFAULT_INTERVAL);
+        const auto shoreup_period_str = read_interval(telemetry, "shoreupPeriod", DEFAULT_INTERVAL);
 
         for (auto& reader : readers) {
             reader->set_sensing_interval(sensing_interval);
-            if (shoreup_period_str.empty()) {
-                reader->set_shoreup_period(shoreup_period_double);
-            }
-            else {
-                reader->set_shoreup_period(shoreup_period_str);
-            }
+            reader->set_shoreup_period(shoreup_period_str);
 
             /* apply properties from the definition, by name
              * Some readers doesn't have metric definition (these are health only), so it is

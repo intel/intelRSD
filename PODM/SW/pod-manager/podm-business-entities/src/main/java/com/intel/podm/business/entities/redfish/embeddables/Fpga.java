@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@ package com.intel.podm.business.entities.redfish.embeddables;
 import com.intel.podm.common.types.FpgaType;
 import com.intel.podm.common.types.HssiConfig;
 import com.intel.podm.common.types.HssiSideband;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Enumerated;
-import java.util.Objects;
 
 import static javax.persistence.EnumType.STRING;
 
@@ -88,24 +89,34 @@ public class Fpga {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Fpga that = (Fpga) o;
-        return Objects.equals(type, that.type)
-            && Objects.equals(bitStreamVersion, that.bitStreamVersion)
-            && Objects.equals(hssiConfiguration, that.hssiConfiguration)
-            && Objects.equals(hssiSideband, that.hssiSideband)
-            && Objects.equals(reconfigurationSlots, that.reconfigurationSlots);
+
+        Fpga fpga = (Fpga) o;
+
+        return new EqualsBuilder()
+            .append(reconfigurationSlots, fpga.reconfigurationSlots)
+            .append(type, fpga.type)
+            .append(bitStreamVersion, fpga.bitStreamVersion)
+            .append(hssiConfiguration, fpga.hssiConfiguration)
+            .append(hssiSideband, fpga.hssiSideband)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, bitStreamVersion, hssiConfiguration, hssiSideband, reconfigurationSlots);
+        return new HashCodeBuilder()
+            .append(type)
+            .append(bitStreamVersion)
+            .append(hssiConfiguration)
+            .append(hssiSideband)
+            .append(reconfigurationSlots)
+            .toHashCode();
     }
 }

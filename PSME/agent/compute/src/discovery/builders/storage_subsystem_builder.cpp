@@ -2,7 +2,7 @@
  * @brief Storage subsystem builder class implementation.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,12 @@ agent_framework::model::StorageSubsystem StorageSubsystemBuilder::build_default(
     storage.set_status({enums::State::Enabled, {}});
 
     storage.add_collection({enums::CollectionName::StorageControllers,
-                            enums::CollectionType::StorageControllers,
-                            ""});
+                            enums::CollectionType::StorageControllers
+                           });
 
     storage.add_collection({enums::CollectionName::Drives,
-                            enums::CollectionType::Drives,
-                            ""});
+                            enums::CollectionType::Drives
+                           });
 
     return storage;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package com.intel.podm.common.types.actions;
 
 import com.intel.podm.common.types.AdministrativeState;
+import com.intel.podm.common.types.DcbxState;
+import com.intel.podm.common.types.redfish.RedfishEthernetSwitchPort.PriorityFlowControl;
 
 import java.net.URI;
 import java.util.Set;
@@ -28,6 +30,9 @@ public final class EthernetSwitchPortRedefinition {
     private final Boolean autosense;
     private final URI primaryVlan;
     private final Set<URI> uris;
+    private final DcbxState dcbxState;
+    private final Boolean lldpEnabled;
+    private final PriorityFlowControl priorityFlowControl;
 
     private EthernetSwitchPortRedefinition(Builder builder) {
         this.administrativeState = builder.administrativeState;
@@ -36,6 +41,9 @@ public final class EthernetSwitchPortRedefinition {
         this.autosense = builder.autosense;
         this.primaryVlan = builder.primaryVlan;
         this.uris = builder.uris;
+        this.dcbxState = builder.dcbxState;
+        this.lldpEnabled = builder.lldpEnabled;
+        this.priorityFlowControl = builder.priorityFlowControl;
     }
 
     public AdministrativeState getAdministrativeState() {
@@ -62,6 +70,18 @@ public final class EthernetSwitchPortRedefinition {
         return uris;
     }
 
+    public DcbxState getDcbxState() {
+        return dcbxState;
+    }
+
+    public Boolean getLldpEnabled() {
+        return lldpEnabled;
+    }
+
+    public PriorityFlowControl getPriorityFlowControl() {
+        return priorityFlowControl;
+    }
+
     public static Builder newBuilder() {
         return new Builder();
     }
@@ -73,6 +93,9 @@ public final class EthernetSwitchPortRedefinition {
         private Boolean autosense;
         private URI primaryVlan;
         private Set<URI> uris;
+        private DcbxState dcbxState;
+        private Boolean lldpEnabled;
+        private PriorityFlowControl priorityFlowControl;
 
         private Builder() {
         }
@@ -107,8 +130,24 @@ public final class EthernetSwitchPortRedefinition {
             return this;
         }
 
+        public Builder dcbxState(DcbxState dcbxState) {
+            this.dcbxState = dcbxState;
+            return this;
+        }
+
+        public Builder lldpEnabled(Boolean lldpEnabled) {
+            this.lldpEnabled = lldpEnabled;
+            return this;
+        }
+
+        public Builder priorityFlowControl(PriorityFlowControl priorityFlowControl) {
+            this.priorityFlowControl = priorityFlowControl;
+            return this;
+        }
+
         public EthernetSwitchPortRedefinition build() {
             return new EthernetSwitchPortRedefinition(this);
         }
     }
+
 }

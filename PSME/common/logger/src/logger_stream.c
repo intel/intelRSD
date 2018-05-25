@@ -1,7 +1,7 @@
 /*!
  * @brief Logger stream implementation
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,10 +51,13 @@
  * when color option is enabled, write color ASCI string to buffer
  * */
 #define buffer_write(_dst, _src)\
-    do{\
-        memcpy(_dst, _src, sizeof(_src) - 1);\
-        _dst += (sizeof(_src) - 1);\
-    }while(0)
+    do {\
+        size_t _str_size = strnlen_s(_src, RSIZE_MAX_STR);\
+        size_t _buffer_used = (size_t)(_dst - buffer);\
+        logger_assert(_buffer_used < LOGGER_BUFFER_SIZE);\
+        memcpy_s(_dst, (rsize_t)(LOGGER_BUFFER_SIZE - _buffer_used), _src, _str_size);\
+        _dst += _str_size;\
+    } while (0)
 
 #define buffer_color(_dst, _options, _color)\
     do{\
@@ -102,7 +105,7 @@ static bool message_compare(void *obj1, int id1, void *obj2, int id2) {
     return logger_time_compare(&msg1->log_time, &msg2->log_time) <= 0;
 }
 
-static inline bool logger_is_newline_found(const char *str);
+static inline bool logger_is_newline_terminated(const char *str);
 
 static inline void logger_stream_set_color(struct logger_stream *const inst,
         union logger_options *options,
@@ -288,17 +291,11 @@ int logger_stream_add_message(struct logger_stream *inst,
     return LOGGER_SUCCESS;
 }
 
-static inline bool logger_is_newline_found(const char *str) {
+static inline bool logger_is_newline_terminated(const char *str) {
     if (NULL == str) return false;
 
-    int found = false;
     size_t length = strnlen_s(str, RSIZE_MAX_STR);
-    if (length > 0) {
-        if ('\n' == str[length - 1]) {
-            found = true;
-        }
-    }
-    return found;
+    return (length > 0) && (str[length - 1] == '\n');
 }
 
 static inline void logger_stream_set_color(struct logger_stream *const inst,
@@ -315,11 +312,9 @@ static void logger_stream_write_message(struct logger_stream *inst,
     logger_assert(NULL != msg);
 
     struct tm *timeval;
-    const char *color;
     time_t time_seconds;
     long int time_nanoseconds;
-    size_t str_size;
-    int multiline;
+    int terminated;
 
     union logger_options options = {.raw = 0};
     options.raw = inst->options.raw & msg->options.raw;
@@ -328,53 +323,46 @@ static void logger_stream_write_message(struct logger_stream *inst,
     char buffer[LOGGER_BUFFER_SIZE];
     char *buffer_ptr = buffer;
 
-    /* Set color for time stamp */
-    buffer_color(buffer_ptr, options, COLOR_GREEN_NORMAL);
-
     logger_time_get(&msg->log_time, &time_seconds, &time_nanoseconds);
     timeval = localtime(&time_seconds);
-    if (NULL == timeval) return;
+    if (NULL != timeval) {
+        buffer_color(buffer_ptr, options, COLOR_GREEN_NORMAL);
 
-    buffer_ptr += strftime(buffer_ptr, LOGGER_TIME_SIZE, "%F %T",
-            timeval);
+        buffer_ptr += strftime(buffer_ptr, LOGGER_TIME_SIZE, "%F %T", timeval);
+        buffer_ptr += snprintf(buffer_ptr,
+            (size_t) (LOGGER_BUFFER_SIZE - (buffer_ptr - buffer)),
+            ".%09lu", time_nanoseconds);
 
-    buffer_ptr += snprintf(buffer_ptr,
-                           (size_t)(LOGGER_BUFFER_SIZE - (buffer_ptr - buffer)),
-                           ".%09lu", time_nanoseconds);
-
-    switch (inst->options.option.time_format) {
-    case LOG_TIME_DATE_SEC:
-        buffer_ptr -= 4;
-    case LOG_TIME_DATE_MS:
-        buffer_ptr -= 3;
-    case LOG_TIME_DATE_US:
-        buffer_ptr -= 3;
-    case LOG_TIME_DATE_NS:
-        buffer_color(buffer_ptr, options, COLOR_DEFAULT);
-        buffer_write(buffer_ptr, " - ");
-        break;
-    case LOG_TIME_NONE:
-        /* No time stamp message */
+        switch (inst->options.option.time_format) {
+            case LOG_TIME_DATE_SEC:
+                buffer_ptr -= 4; // fallthrough
+            case LOG_TIME_DATE_MS:
+                buffer_ptr -= 3; // fallthrough
+            case LOG_TIME_DATE_US:
+                buffer_ptr -= 3; // fallthrough
+            case LOG_TIME_DATE_NS:
+                buffer_color(buffer_ptr, options, COLOR_DEFAULT);
+                buffer_write(buffer_ptr, " - ");
+                break;
+            case LOG_TIME_NONE:
+                /* No time stamp message */
+                buffer_ptr = buffer;
+                break;
+            default:
+                buffer_ptr = buffer;
+                buffer_color(buffer_ptr, options, COLOR_DEFAULT);
+                buffer_write(buffer_ptr, "unsupported - ");
+                break;
+        }
+    } else {
         buffer_ptr = buffer;
-        break;
-    default:
-        buffer_ptr = buffer;
         buffer_color(buffer_ptr, options, COLOR_DEFAULT);
-        buffer_write(buffer_ptr, "time stamp unsupported - ");
-        break;
+        buffer_write(buffer_ptr, "no time - ");
     }
 
     /* Write log level tag to the stream */
-    if (options.option.color) {
-        color = logger_color_by_level(msg->options.option.level);
-        str_size = strnlen_s(color, RSIZE_MAX_STR);
-        memcpy_s(buffer_ptr, (rsize_t)(LOGGER_BUFFER_SIZE - (buffer_ptr - buffer)), color, str_size);
-        buffer_ptr += str_size;
-    }
-    const char *log_level = logger_level_get_string(msg->options.option.level);
-    str_size = strnlen_s(log_level, RSIZE_MAX_STR);
-    memcpy_s(buffer_ptr, (rsize_t)(LOGGER_BUFFER_SIZE - (buffer_ptr - buffer)), log_level, str_size);
-    buffer_ptr += str_size;
+    buffer_color(buffer_ptr, options, logger_color_by_level(msg->options.option.level));
+    buffer_write(buffer_ptr, logger_level_get_string(msg->options.option.level));
 
     buffer_color(buffer_ptr, options, COLOR_DEFAULT);
     buffer_write(buffer_ptr, " - ");
@@ -392,38 +380,29 @@ static void logger_stream_write_message(struct logger_stream *inst,
         }
     }
 
-    multiline = logger_is_newline_found(msg->message);
-    if (!multiline) {
+    terminated = logger_is_newline_terminated(msg->message);
+    if (!terminated) {
         logger_stream_write_string(inst, msg->message);
     }
 
     /* Write more debug information to the stream */
     if (options.option.more_debug) {
-        const char* sep = " ";
-        if (multiline) {
-            sep = "";
-        }
-
-        /* Color for debug information */
-        if (options.option.color) {
-            color = COLOR_YELLOW_NORMAL;
-        } else {
-            color = "";
-        }
-
         char *debug_buffer = NULL;
-        int size = snprintf(NULL, 0, "%s%s[%s:%s:%d] ",
-                sep,
-                color,
+        int size = snprintf(NULL, 0, "[%s:%s:%d]",
                 msg->file_name,
                 msg->function_name,
                 msg->line_number);
         if (size > 0) {
-            debug_buffer = logger_memory_alloc((size_t)size + 1);
+            if (!terminated) {
+                logger_stream_write_string(inst, " ");
+            }
+
+            logger_stream_set_color(inst, &options, COLOR_YELLOW_NORMAL);
+
+            size++;
+            debug_buffer = logger_memory_alloc((size_t)size);
             if (NULL != debug_buffer) {
-                snprintf(debug_buffer, (size_t)size, "%s%s[%s:%s:%d] ",
-                         sep,
-                         color,
+                snprintf(debug_buffer, (size_t)size, "[%s:%s:%d]",
                          msg->file_name,
                          msg->function_name,
                          msg->line_number);
@@ -433,11 +412,15 @@ static void logger_stream_write_message(struct logger_stream *inst,
         }
         logger_stream_set_color(inst, &options, COLOR_DEFAULT);
     }
-    logger_stream_write_string(inst, "\n");
 
-    /* Write multiline message to the stream: it has new line as very last character */
-    /* WARNING. It doesn't follow syslog pattern, journalctl will not show such messages properly! */
-    if (multiline) {
+    if (options.option.more_debug && terminated) {
+        logger_stream_write_string(inst, "\n");
+        logger_stream_write_string(inst, msg->message);
+    }
+    else if (!terminated) {
+        logger_stream_write_string(inst, "\n");
+    }
+    else {
         logger_stream_write_string(inst, msg->message);
     }
 }

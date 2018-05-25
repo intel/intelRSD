@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.util.Optional;
 
 import static com.intel.podm.business.entities.redfish.EthernetInterface.GET_ETHERNET_INTERFACE_BY_MAC_ADDRESS;
 import static com.intel.podm.business.entities.redfish.EthernetInterface.GET_ETHERNET_INTERFACE_MULTI_SOURCE;
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static com.intel.podm.common.utils.IterableHelper.singleOrNull;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
@@ -49,7 +50,7 @@ public class EthernetInterfaceDao extends Dao<EthernetInterface> {
 
         List<EthernetInterface> ethernetInterfaces = query.getResultList().stream()
             .map(this::findBaseEthernetInterface)
-            .filter(EthernetInterface::isEnabled)
+            .filter(ethernetInterface -> statusOf(ethernetInterface).isEnabled().verify())
             .distinct()
             .collect(toList());
 

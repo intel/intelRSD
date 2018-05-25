@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +56,6 @@ Vlan Vlan::from_json(const json::Json& json) {
     vlan.set_vlan_name(json[literals::Vlan::VLAN_NAME]);
     vlan.set_vlan_enable(json[literals::Vlan::VLAN_ENABLE]);
     vlan.set_oem(attribute::Oem::from_json(json[literals::Vlan::OEM]));
-    vlan.set_resource_hash(json);
 
     return vlan;
 }

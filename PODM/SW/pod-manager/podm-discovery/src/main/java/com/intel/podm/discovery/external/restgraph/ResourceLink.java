@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,16 @@ import static java.util.Objects.hash;
 public final class ResourceLink {
     private final ExternalServiceResource source;
     private final ExternalServiceResource target;
-    private final String name;
+    private final String linkName;
 
-    public ResourceLink(ExternalServiceResource source, ExternalServiceResource target, String name) {
+    public ResourceLink(ExternalServiceResource source, ExternalServiceResource target, String linkName) {
         this.source = source;
         this.target = target;
-        this.name = name;
+        this.linkName = linkName;
     }
 
-    public String getName() {
-        return name;
+    public String getLinkName() {
+        return linkName;
     }
 
     public ExternalServiceResource getSource() {
@@ -54,16 +54,16 @@ public final class ResourceLink {
         ResourceLink that = (ResourceLink) o;
         return Objects.equals(getSource(), that.getSource())
                 && Objects.equals(getTarget(), that.getTarget())
-                && Objects.equals(getName(), that.getName());
+                && Objects.equals(getLinkName(), that.getLinkName());
     }
 
     @Override
     public int hashCode() {
-        return hash(getSource(), getTarget(), getName());
+        return hash(getSource(), getTarget(), getLinkName());
     }
 
     @Override
     public String toString() {
-        return name + ": " + source.getClass().getSimpleName() + " -> " + target.getClass().getSimpleName();
+        return linkName + ": " + source.getClass().getSimpleName() + " -> " + target.getClass().getSimpleName();
     }
 }

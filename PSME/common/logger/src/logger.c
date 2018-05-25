@@ -1,7 +1,7 @@
 /*!
  * @brief C logger implementation
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@
 #include <safe-string/safe_lib.h>
 #include <stdio.h>
 #include <string.h>
-#include <logger/logger.h>
 
 
 
@@ -168,7 +167,10 @@ static void __log_write(
         msg->function_name = (NULL == function_name) ? "" : function_name;
     }
 
-    /* Set log level, tag, flags and time stamp format */
+    /* Set log level, tag, flags and time stamp format
+     * @warning Logger name cannot be passed as temporary/local variable: this is passed to
+     * logger_stream thread. Only static strings are allowed!
+     */
     msg->tag = logger_name;
     msg->options.raw = inst->options.raw;
     msg->options.option.level = LOG_LEVEL_MASK & level;
@@ -225,8 +227,9 @@ static void __vlog_write(
     if (message_length < 0) return;
 
     /* Create logger message object extended with message string */
+    message_length++;
     size_t size =  sizeof(struct logger_stream_message)
-        + (size_t)message_length + 1;
+        + (size_t)message_length;
     struct logger_stream_message *msg = logger_memory_alloc(size);
     if (NULL == msg) return;
 
@@ -275,7 +278,6 @@ void _log_vwrite(
         const char *fmt, va_list args) {
 
     logger_assert(NULL != inst);
-    logger_assert(NULL != logger_name);
     logger_assert(NULL != fmt);
 
     __vlog_write(inst, logger_name, level, file_name, function_name, line_number, fmt, args);

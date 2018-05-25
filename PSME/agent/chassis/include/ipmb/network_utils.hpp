@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,9 @@
  * */
 
 #pragma once
+
+#include "json-wrapper/json-wrapper.hpp"
+
 #include <string>
 #include <vector>
 
@@ -38,6 +41,7 @@ enum SourceOption : std::uint8_t {
     STATIC = 0x1,
     DHCP = 0x2
 };
+
 
 std::string get_ip(const std::string& interface);
 std::string get_mask(const std::string& interface);
@@ -59,6 +63,29 @@ using NetworkBytes = std::vector<std::uint8_t>;
  */
 NetworkBytes addr_to_bytes(const std::string& addr);
 std::string bytes_to_addr(const NetworkBytes& bytes);
+
+/*!
+ * @brief Parse file
+ * @param in_file input stream with configuration
+ * @return JSON representation of parsed file
+ */
+json::Json parse_ini(std::istream& in_file);
+
+/*!
+ * @brief Store given configuration in the stream
+ * @param out_file stream where config should be stored
+ * @param ini  config to be stored
+ * @warning "public" only on test purposes
+ */
+void save_sections(std::ostream& out_file, const json::Json& ini);
+
+
+/*!
+ * @brief Store given document as configuration file
+ * @param out_file file where config should be placed
+ * @param ini config to be stored
+ */
+void save_ini(std::ostream& out_file, const json::Json& ini);
 
 }
 }

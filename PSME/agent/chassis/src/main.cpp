@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@
 #include "agent-framework/command/command_server.hpp"
 
 #include "loader/chassis_loader.hpp"
+#include "database/database.hpp"
 
 #include "configuration/configuration.hpp"
 #include "configuration/configuration_validator.hpp"
@@ -82,28 +83,34 @@ int main(int argc, const char* argv[]) {
 
     /* Initialize logger */
     LoggerLoader loader(configuration);
-    LoggerFactory::instance().set_loggers(loader.load());
-    LoggerFactory::set_main_logger_name("agent");
-    log_info(GET_LOGGER("agent"), "Running PSME Chassis SDV...\n");
+    loader.load(LoggerFactory::instance());
+    log_info("chassis-agent", "Running PSME Chassis SDV...");
+
+    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
+        database::Database::set_default_location(configuration["database"]["location"].as_string());
+    }
 
     try {
         server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
-    } catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("compute-agent"),
-                  "Cannot read server port " << e.what());
+    }
+    catch (const json::Value::Exception& e) {
+        log_error("chassis-agent", "Cannot read server port " << e.what());
     }
 
     agent::chassis::loader::ChassisLoader module_loader{};
     if (!module_loader.load(configuration)) {
-        std::cerr << "Invalid modules configuration" << std::endl;
+        log_error("chassis-agent", "Invalid modules configuration");
         return -2;
     }
 
     BmcCollection bmcs{};
     try {
         bmcs = load_bmcs(configuration);
+        for (auto& bmc : bmcs) {
+            bmc->start();
+        }
     }
-    catch(const std::exception& e) {
+    catch (const std::exception& e) {
         log_error("chassis-agent", e.what());
         return -1;
     }
@@ -127,7 +134,7 @@ int main(int argc, const char* argv[]) {
 
     bool server_started = server.start();
     if (!server_started) {
-        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+        log_error("chassis-agent", "Could not start JSON-RPC command server on port "
             << server_port << " restricted to " << registration_data.get_ipv4_address()
             << ". " << "Quitting now...");
         amc_connection.stop();
@@ -137,9 +144,12 @@ int main(int argc, const char* argv[]) {
     }
 
     wait_for_interrupt();
-    log_info(GET_LOGGER("chassis-agent"), "Stopping SDV PSME Chassis Agent.\n");
+    log_info("chassis-agent", "Stopping SDV PSME Chassis Agent.");
 
     /* Cleanup */
+    for (auto& bmc: bmcs) {
+        bmc->stop();
+    }
     ipmb_service.stop();
     server.stop();
     amc_connection.stop();
@@ -151,7 +161,7 @@ int main(int argc, const char* argv[]) {
 }
 
 const json::Value& init_configuration(int argc, const char** argv) {
-    log_info(GET_LOGGER("agent"),
+    log_info("agent",
         agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
@@ -168,7 +178,7 @@ const json::Value& init_configuration(int argc, const char** argv) {
 bool check_configuration(const json::Value& json) {
     json::Value json_schema;
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
-        log_info(GET_LOGGER("agent"), "Loading configuration schema!");
+        log_info("agent", "Loading configuration schema!");
 
         configuration::SchemaErrors errors;
         configuration::SchemaValidator validator;
@@ -199,7 +209,7 @@ BmcCollection load_bmcs(const json::Value&) {
         const auto manager_uuid = agent::chassis::ChassisTreeStabilizer().stabilize(manager_key);
         auto slot = manager.get_slot();
         auto read_presence_fn = [slot]() {
-            log_debug(GET_LOGGER("bmc"), "reading presence on slot: " << slot);
+            log_debug("bmc", "reading presence on slot: " << slot);
             return agent::chassis::ipmb::Gpio::get_instance()->is_present(uint8_t(slot));
         };
 
@@ -208,13 +218,13 @@ BmcCollection load_bmcs(const json::Value&) {
             connection.get_username(), connection.get_password()};
         auto read_online_state_fn = [mc]() mutable {
             try {
-                log_debug(GET_LOGGER("bmc"), "reading online state...");
                 ipmi::command::generic::response::GetDeviceId device_rsp{};
                 mc.send(ipmi::command::generic::request::GetDeviceId{}, device_rsp);
+                log_debug("bmc", "BMC " << mc.get_info() << " is available...");
                 return true;
             }
             catch (std::exception& e) {
-                log_debug(GET_LOGGER("bmc"), "reading online state error: " << e.what());
+                log_debug("bmc", "BMC " << mc.get_info() << " reading state error: " << e.what());
             }
             return false;
         };

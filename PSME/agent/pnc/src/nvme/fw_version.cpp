@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,6 +73,6 @@ void FirmwareVersion::log_fw_version(PM85X6TwiPort port, PCA9548TwiExpanderChann
 
     std::string fw_version(reinterpret_cast<const char*>(fields.firmware_version), FW_VERSION_SIZE_BYTES);
 
-    log_debug(GET_LOGGER("pnc-vpd"), "NVMe firmware version for drive connected to TWI Port: "
+    log_debug("pnc-vpd", "NVMe firmware version for drive connected to TWI Port: "
         << std::uint32_t(port) << " TWI Channel: " << std::uint32_t(channel) << " - " << fw_version);
 }

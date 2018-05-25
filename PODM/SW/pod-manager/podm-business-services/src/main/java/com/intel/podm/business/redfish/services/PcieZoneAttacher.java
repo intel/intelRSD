@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.actions.PcieZoneActionsInvoker;
 import com.intel.podm.business.redfish.services.allocation.strategy.matcher.LocalStorageCollector;
 import com.intel.podm.business.redfish.services.allocation.strategy.matcher.PcieLocalStorage;
-import com.intel.podm.business.redfish.services.helpers.NodeActionsValidator;
 import com.intel.podm.business.services.context.Context;
 
 import javax.enterprise.context.Dependent;
@@ -49,13 +48,9 @@ public class PcieZoneAttacher {
     @Inject
     private PcieZoneActionsInvoker pcieZoneActionsInvoker;
 
-    @Inject
-    private NodeActionsValidator nodeActionHelper;
-
     @Transactional(REQUIRES_NEW)
     public void attachEndpointToZone(Context composedNodeContext, Context pcieDriveContext) throws BusinessApiException {
         ComposedNode composedNode = (ComposedNode) traverser.traverse(composedNodeContext);
-        nodeActionHelper.validateIfActionCanBePerformedOnNode(composedNode);
 
         Drive pcieDrive = (Drive) traverser.traverse(pcieDriveContext);
         Optional<PcieLocalStorage> pcieLocalStorage = findPcieLocalStorageByResource(composedNode.getComputerSystem(), pcieDrive);

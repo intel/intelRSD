@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,8 @@
 #include "agent-framework/module/model/remote_ethernet_switch.hpp"
 #include "agent-framework/module/constants/network.hpp"
 
+
+
 using namespace agent_framework::model;
 using namespace agent_framework::model::utils;
 
@@ -34,24 +36,26 @@ const enums::Component RemoteEthernetSwitch::component =
 const enums::CollectionName RemoteEthernetSwitch::collection_name =
     enums::CollectionName::RemoteEthernetSwitches;
 
+
 RemoteEthernetSwitch::RemoteEthernetSwitch(const std::string& parent_uuid, enums::Component parent_type) :
     Resource{parent_uuid, parent_type} {}
 
+
 RemoteEthernetSwitch::~RemoteEthernetSwitch() {}
+
 
 json::Json RemoteEthernetSwitch::to_json() const {
     json::Json result;
     result[literals::RemoteEthernetSwitch::STATUS] = get_status().to_json();
-    result[literals::RemoteEthernetSwitch::SWITCH_IDENTIFIER] =
-        get_switch_identifier();
+    result[literals::RemoteEthernetSwitch::SWITCH_IDENTIFIER] = get_switch_identifier();
     result[literals::RemoteEthernetSwitch::MAC_ADDRESS] = get_mac_address();
     result[literals::RemoteEthernetSwitch::NEXT_HOP] = get_next_hop().to_json();
     result[literals::RemoteEthernetSwitch::OEM] = get_oem().to_json();
     return result;
 }
 
-RemoteEthernetSwitch RemoteEthernetSwitch::from_json(const json::Json& json)
-{
+
+RemoteEthernetSwitch RemoteEthernetSwitch::from_json(const json::Json& json) {
     RemoteEthernetSwitch rs;
 
     rs.set_status(attribute::Status::from_json(json[literals::RemoteEthernetSwitch::STATUS]));
@@ -59,7 +63,6 @@ RemoteEthernetSwitch RemoteEthernetSwitch::from_json(const json::Json& json)
     rs.set_mac_address(json[literals::RemoteEthernetSwitch::MAC_ADDRESS]);
     rs.set_next_hop(attribute::Array<attribute::NextHop>::from_json(json[literals::RemoteEthernetSwitch::NEXT_HOP]));
     rs.set_oem(attribute::Oem::from_json(json[literals::RemoteEthernetSwitch::OEM]));
-    rs.set_resource_hash(json);
 
     return rs;
 }

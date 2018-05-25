@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +48,7 @@ public:
 
     void get(const server::Request& request, server::Response& response) override;
 
+    void patch(const server::Request& request, server::Response& response) override;
 };
 
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,19 @@ extern const char PORTS[];
 extern const char SWITCH_ID[];
 extern const char ACLS[];
 extern const char MAX_ACL_NUMBER[];
+extern const char PFC_ENABLED[];
+extern const char LLDP_ENABLED[];
+extern const char ETS_ENABLED[];
+extern const char DCBX_ENABLED[];
+extern const char DCBX_SHARED_CONFIGURATION[];
+extern const char APPLICATION_PROTOCOL[];
+extern const char PRIORITY_TO_PRIORITY_GROUP_MAPPING[];
+extern const char BANDWIDTH_ALLOCATION[];
+extern const char PRIORITY_GROUP[];
+extern const char PRIORITY[];
+extern const char PROTOCOL[];
+extern const char PORT[];
+extern const char BANDWIDTH_PERCENT[];
 }
 
 /*!
@@ -71,6 +84,11 @@ extern const char FULL_DUPLEX[];
 extern const char ACTIVE_ACLS[];
 extern const char NEIGHBOR_INTERFACE[];
 extern const char STATIC_MACS[];
+extern const char LLDP_ENABLED[];
+extern const char DCBX_STATE[];
+extern const char PRIORITY_FLOW_CONTROL[];
+extern const char ENABLED[];
+extern const char ENABLED_PRIORITIES[];
 }
 
 /*!

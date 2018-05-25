@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,8 @@
 #include "psme/rest/server/error/error_factory.hpp"
 
 #include "psme/rest/constants/constants.hpp"
+#include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/endpoints/event_subscriptions_collection.hpp"
-#include "psme/rest/eventing/config/subscription_config.hpp"
 
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/subscription_collection.hpp"
@@ -33,7 +33,6 @@
 using namespace psme::rest;
 using namespace psme::rest::constants;
 using namespace psme::rest::endpoint;
-using namespace psme::rest::eventing::config;
 using namespace psme::rest::eventing::manager;
 using namespace psme::rest::eventing::model;
 using namespace psme::rest::validators;
@@ -64,15 +63,15 @@ SubscriptionCollection::~SubscriptionCollection() {}
 
 void SubscriptionCollection::get(const server::Request& req, server::Response& res) {
     auto r = ::make_prototype();
+    uint32_t number = 0;
     r[Common::ODATA_ID] = PathBuilder(req).build();
-    r[Collection::ODATA_COUNT] = SubscriptionManager::get_instance()->size();
-
-    for (const auto& item : SubscriptionManager::get_instance()->get()) {
+    SubscriptionManager::get_instance()->for_each([&r, &req, &number](const Subscription& subscription) {
         json::Value link_elem(json::Value::Type::OBJECT);
-        const auto& subscription = item.second;
         link_elem[Common::ODATA_ID] = PathBuilder(req).append(subscription.get_id()).build();
         r[Collection::MEMBERS].push_back(std::move(link_elem));
-    }
+        number++;
+    });
+    r[Collection::ODATA_COUNT] = number;
     set_response(res, r);
 }
 
@@ -80,8 +79,7 @@ void SubscriptionCollection::get(const server::Request& req, server::Response& r
 void SubscriptionCollection::post(const server::Request& request, server::Response& response) {
     const auto& json = JsonValidator::validate_request_body<schema::SubscriptionCollectionPostSchema>(request);
     Subscription subscription = Subscription::from_json(json);
-    uint64_t id = SubscriptionManager::get_instance()->add(subscription);
-    SubscriptionConfig::get_instance()->save();
-    endpoint::utils::set_location_header(response, PathBuilder(request).append(id).build());
+    std::uint64_t id = SubscriptionManager::get_instance()->add(subscription);
+    endpoint::utils::set_location_header(request, response, PathBuilder(request).append(id).build());
     response.set_status(server::status_2XX::CREATED);
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -160,17 +160,16 @@ std::string invoke_update_on_targets(const std::vector<json::Value>& targets,
     task_resource.set_id(static_cast<std::uint64_t>(tasks_count + 1));
     task_manager.add_entry(task_resource);
 
-    task_creator.add_callback(agent_framework::action::Task::CallbackType::Exception,
-                              std::bind(add_task_exception_message, task_resource.get_uuid(), image_uri));
-    task_creator.add_callback(agent_framework::action::Task::CallbackType::Completion,
-                              std::bind(add_task_completion_message, task_resource.get_uuid()));
+    task_creator.add_exception_callback(std::bind(add_task_exception_message, task_resource.get_uuid(), image_uri));
+    task_creator.add_completion_callback(std::bind(add_task_completion_message, task_resource.get_uuid()));
 
     task_creator.set_promised_response([]() { return json::Json{}; });
-    task_creator.set_promised_error_thrower(
-        []() { return agent_framework::exceptions::InvalidValue("RackManager update failed."); });
+    task_creator.set_promised_error_thrower([](const agent_framework::exceptions::GamiException& exception) {
+        return agent_framework::exceptions::InvalidValue("RackManager update failed. " + exception.get_message());
+    });
 
-    psme::rest::endpoint::MonitorContentBuilder::get_instance()->add_builder(task_resource.get_uuid(),
-                                                                             response_renderer);
+    psme::rest::endpoint::MonitorContentBuilder::get_instance()->
+        add_builder(task_resource.get_uuid(), response_renderer);
 
     auto update_task = task_creator.get_task();
 
@@ -226,7 +225,6 @@ void endpoint::SimpleUpdate::post(const server::Request& request, server::Respon
     auto response_renderer = [](json::Json /*in_json*/) -> server::Response {
         Response r{};
         r.set_status(server::status_2XX::NO_CONTENT);
-
         return r;
     };
 
@@ -236,7 +234,7 @@ void endpoint::SimpleUpdate::post(const server::Request& request, server::Respon
         PathBuilder(utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid))
             .append(Monitor::MONITOR)
             .build();
-    psme::rest::endpoint::utils::set_location_header(response, task_monitor_url);
+    psme::rest::endpoint::utils::set_location_header(request, response, task_monitor_url);
     response.set_body(psme::rest::endpoint::task_service_utils::call_task_get(task_uuid).get_body());
     response.set_status(server::status_2XX::ACCEPTED);
 }

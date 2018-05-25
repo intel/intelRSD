@@ -20,17 +20,14 @@
   <edmx:Reference Uri="EthernetInterface.xml">
     <edmx:Include Namespace="EthernetInterface.v1_0_0"/>
   </edmx:Reference>
-  <edmx:Reference Uri="RemoteTarget.xml">
-    <edmx:Include Namespace="RemoteTarget.v1_0_0"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="LogicalDrive.xml">
-    <edmx:Include Namespace="LogicalDrive.v1_0_0"/>
-  </edmx:Reference>
   <edmx:Reference Uri="Chassis.xml">
     <edmx:Include Namespace="Chassis.v1_0_0"/>
   </edmx:Reference>
   <edmx:Reference Uri="ComputerSystem.xml">
     <edmx:Include Namespace="ComputerSystem.v1_1_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Storage.xml">
+    <edmx:Include Namespace="Storage.v1_0_0"/>
   </edmx:Reference>
 
   <edmx:DataServices>
@@ -140,49 +137,28 @@
       <ComplexType Name="RemoteDrive">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="CapacityGiB" Type="Edm.Decimal"/>
-        <Property Name="iSCSIAddress" Type="Edm.String"/>
+        <Property Name="Protocol" Type="Storage.v1_0_0.Protocol"/>
         <Property Name="Master" Type="AllocationComposedNodeRequest.Master"/>
-        <NavigationProperty Name="Resource" Type="LogicalDrive.v1_0_0.LogicalDrive">
+        <NavigationProperty Name="Resource" Type="Resource.Resource">
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </ComplexType>
 
-      <EnumType Name="BrandType">
-        <Member Name="E3">
-          <Annotation Term="OData.Description" String="Xeon E3 CPU family"/>
+      <EnumType Name="AuthType">
+        <Member Name="OneWay">
+          <Annotation Term="OData.Description" String="Only initiator is authenticated."/>
         </Member>
-        <Member Name="E5">
-          <Annotation Term="OData.Description" String="Xeon E5 CPU family"/>
-        </Member>
-        <Member Name="E7">
-          <Annotation Term="OData.Description" String="Xeon E7 CPU family"/>
-        </Member>
-        <Member Name="X3">
-          <Annotation Term="OData.Description" String="uServer X3 CPU family"/>
-        </Member>
-        <Member Name="X5">
-          <Annotation Term="OData.Description" String="uServer X5 CPU family"/>
-        </Member>
-        <Member Name="X7">
-          <Annotation Term="OData.Description" String="uServer X7 CPU family"/>
-        </Member>
-        <Member Name="I3">
-          <Annotation Term="OData.Description" String="Core i3 CPU family"/>
-        </Member>
-        <Member Name="I5">
-          <Annotation Term="OData.Description" String="Core i5 CPU family"/>
-        </Member>
-        <Member Name="I7">
-          <Annotation Term="OData.Description" String="Core i7 CPU family"/>
+        <Member Name="Mutual">
+          <Annotation Term="OData.Description" String="Both initiator and target needs to be authenticated."/>
         </Member>
       </EnumType>
 
       <EnumType Name="MasterType">
         <Member Name="Clone">
-          <Annotation Term="OData.Description" String="Volume should be cloned"/>
+          <Annotation Term="OData.Description" String="Volume should be cloned."/>
         </Member>
         <Member Name="Snapshot">
-          <Annotation Term="OData.Description" String="Copy on Write should be created from indicated volume"/>
+          <Annotation Term="OData.Description" String="Copy on Write should be created from indicated volume."/>
         </Member>
       </EnumType>
       <ComplexType Name="Security">
@@ -209,6 +185,13 @@
                       String="This is used to specify if composed node should have TXT mode enabled."/>
           <Annotation Term="OData.LongDescription"
                       String="This is used to specify if composed node should have TXT mode enabled."/>
+        </Property>
+        <Property Name="ClearTPMOnDelete" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This is used to specify if TPM module should be cleared on composed node DELETE request."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This is used to specify if TPM module should be cleared on composed node DELETE request."/>
         </Property>
       </ComplexType>
     </Schema>

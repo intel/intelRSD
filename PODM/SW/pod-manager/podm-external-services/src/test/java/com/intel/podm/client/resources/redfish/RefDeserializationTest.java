@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -32,8 +32,10 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.util.List;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.UPPER_CAMEL_CASE;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.intel.podm.client.resources.redfish.RefDeserializationTest.TestEnum.FIRST;
 import static com.intel.podm.client.resources.redfish.RefDeserializationTest.TestEnum.SECOND;
@@ -76,6 +78,7 @@ public class RefDeserializationTest {
         serializersModule.addDeserializer(TestEnum.class, new EnumeratedTypeDeserializer<>(TestEnum.class));
 
         mapper = new ObjectMapper()
+            .setPropertyNamingStrategy(UPPER_CAMEL_CASE)
             .registerModule(new JavaTimeModule())
             .registerModule(serializersModule)
             .disable(FAIL_ON_UNKNOWN_PROPERTIES)
@@ -176,56 +179,56 @@ public class RefDeserializationTest {
     }
 
     static class TestResource extends ExternalServiceResourceImpl {
-        @JsonProperty("SimpleTypeCollection")
+        @JsonSetter(value = "SimpleTypeCollection", nulls = AS_EMPTY)
         @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
         Ref<List<Integer>> simpleTypeCollection = unassigned();
 
-        @JsonProperty("EnumTypeCollection")
+        @JsonSetter(value = "EnumTypeCollection", nulls = AS_EMPTY)
         @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
         Ref<List<TestEnum>> enumTypeCollection = unassigned();
 
-        @JsonProperty("SomeEmptyCollection")
+        @JsonSetter(value = "SomeEmptyCollection", nulls = AS_EMPTY)
         @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
         Ref<List<String>> someEmptyCollection = unassigned();
 
-        @JsonProperty("SomeAbsentCollection")
+        @JsonSetter(value = "SomeAbsentCollection", nulls = AS_EMPTY)
         @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
         Ref<List<Object>> someAbsentCollection = unassigned();
 
-        @JsonProperty("SomeNullCollection")
+        @JsonSetter(value = "SomeNullCollection", nulls = AS_EMPTY)
         @AsUnassigned(WHEN_NULL)
         Ref<List<Integer>> someNullCollection = unassigned();
 
-        @JsonProperty("EnumType")
+        @JsonSetter(value = "EnumType", nulls = AS_EMPTY)
         @AsUnassigned(WHEN_NULL)
         Ref<TestEnum> enumType = unassigned();
 
-        @JsonProperty("Integer")
+        @JsonSetter(value = "Integer", nulls = AS_EMPTY)
         @AsUnassigned(WHEN_NULL)
         Ref<Integer> integer = unassigned();
 
-        @JsonProperty("String")
+        @JsonSetter(value = "String", nulls = AS_EMPTY)
         @AsUnassigned(WHEN_NULL)
         Ref<String> string = unassigned();
 
-        @JsonProperty("WillBeNull")
+        @JsonSetter(value = "WillBeNull", nulls = AS_EMPTY)
         @AsUnassigned(WHEN_NULL)
         Ref<String> willBeNull = unassigned();
 
-        @JsonProperty("SomeAbsentField")
+        @JsonSetter(value = "SomeAbsentField", nulls = AS_EMPTY)
         @AsUnassigned(WHEN_NULL)
         Ref<String> someAbsentField = unassigned();
 
-        @JsonProperty("CustomObject")
+        @JsonSetter(value = "CustomObject", nulls = AS_EMPTY)
         @AsUnassigned(WHEN_NULL)
         Ref<CustomObject> customObject = unassigned();
 
         static class CustomObject {
-            @JsonProperty("EnumType")
+            @JsonSetter(value = "EnumType", nulls = AS_EMPTY)
             @AsUnassigned(WHEN_NULL)
             Ref<TestEnum> enumType = unassigned();
 
-            @JsonProperty("AssignedToNull")
+            @JsonSetter(value = "AssignedToNull", nulls = AS_EMPTY)
             Ref<Integer> assignedToNull = unassigned();
         }
     }

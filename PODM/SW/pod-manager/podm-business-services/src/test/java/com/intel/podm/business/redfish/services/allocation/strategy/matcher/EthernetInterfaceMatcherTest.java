@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,25 @@
 
 package com.intel.podm.business.redfish.services.allocation.strategy.matcher;
 
+import com.intel.podm.business.ContextResolvingException;
 import com.intel.podm.business.entities.NonUniqueResultException;
 import com.intel.podm.business.entities.dao.EthernetSwitchPortDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.EthernetInterface;
 import com.intel.podm.business.entities.redfish.EthernetSwitchPort;
+import com.intel.podm.business.entities.redfish.Volume;
+import com.intel.podm.business.redfish.EntityTreeTraverser;
 import com.intel.podm.business.redfish.services.allocation.mappers.ethernetinterface.EthernetInterfacesAllocationMapper;
+import com.intel.podm.business.redfish.services.allocation.templates.requestednode.RequestedNodeBuilder;
 import com.intel.podm.business.redfish.services.allocation.templates.requestednode.RequestedNodeWithEthernetInterfaces;
+import com.intel.podm.business.redfish.services.helpers.VolumeHelper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.requests.RequestedNode;
+import com.intel.podm.business.services.redfish.requests.RequestedNode.RemoteDrive;
+import com.intel.podm.business.services.redfish.requests.RequestedNode.RemoteDrive.MasterDrive;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.Id;
+import com.intel.podm.common.types.Protocol;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -34,10 +42,15 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.HashSet;
+import java.util.List;
 
 import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_INTERFACE;
+import static com.intel.podm.business.services.context.ContextType.VOLUME;
 import static com.intel.podm.common.types.Id.id;
+import static com.intel.podm.common.types.Protocol.ISCSI;
+import static com.intel.podm.common.types.Protocol.NVME_OVER_FABRICS;
+import static com.intel.podm.common.types.Protocol.ROCE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
@@ -55,6 +68,12 @@ public class EthernetInterfaceMatcherTest {
 
     @Mock
     private EthernetSwitchPortDao ethernetSwitchPortDao;
+
+    @Mock
+    private VolumeHelper volumeHelper;
+
+    @Mock
+    private EntityTreeTraverser entityTreeTraverser;
 
     @Mock
     private Logger logger;
@@ -270,9 +289,120 @@ public class EthernetInterfaceMatcherTest {
         assertFalse(ethernetInterfaceMatcher.matches(requestedNode, computerSystem.getEthernetInterfaces()));
     }
 
+    @Test
+    public void whenEthernetInterfaceWithoutRdmaProtocolIsUsedWithNvmeDrive_shouldNotMatch() throws NonUniqueResultException, ContextResolvingException {
+        EthernetInterface ethernetInterfaceMock = createEthernetInterfaceWithSupportedProtocols(singletonList(ISCSI));
+
+        ComputerSystem computerSystem = createComputerSystemWithEthernetInterfaces(ethernetInterfaceMock);
+
+        RequestedNode requestedNode = RequestedNodeBuilder.newRequestedNode()
+            .addRemoteDrive(createRequestedRemoteDrive())
+            .build();
+
+        mockTraverserAndVolumeHelper();
+
+        EthernetInterfaceMatcher ethernetInterfaceMatcher = createEthernetInterfaceMatcher();
+        assertFalse(ethernetInterfaceMatcher.matches(requestedNode, computerSystem.getEthernetInterfaces()));
+    }
+
+    private void mockTraverserAndVolumeHelper() throws ContextResolvingException {
+        when(entityTreeTraverser.traverse((Context) null)).thenThrow(new ContextResolvingException("Context cannot be null"));
+        when(volumeHelper.retrieveProtocolFromVolume(any(Volume.class))).thenReturn(NVME_OVER_FABRICS);
+    }
+
+    @Test
+    public void whenEthernetInterfaceWithRdmaProtocolIsUsedWithNvmeDrive_shouldMatch() throws NonUniqueResultException, ContextResolvingException {
+        EthernetInterface ethernetInterfaceMock = createEthernetInterfaceWithSupportedProtocols(singletonList(ROCE));
+
+        ComputerSystem computerSystem = createComputerSystemWithEthernetInterfaces(ethernetInterfaceMock);
+
+        RequestedNode requestedNode = RequestedNodeBuilder.newRequestedNode()
+            .addRemoteDrive(createRequestedRemoteDrive())
+            .build();
+
+        mockTraverserAndVolumeHelper();
+
+        EthernetInterfaceMatcher ethernetInterfaceMatcher = createEthernetInterfaceMatcher();
+        assertTrue(ethernetInterfaceMatcher.matches(requestedNode, computerSystem.getEthernetInterfaces()));
+    }
+
+    @Test
+    public void whenEthernetInterfaceWithoutRdmaProtocolIsUsedWithNvmeMasterDrive_shouldNotMatch() throws Exception {
+        EthernetInterface ethernetInterfaceMock = createEthernetInterfaceWithSupportedProtocols(singletonList(ISCSI));
+
+        ComputerSystem computerSystem = createComputerSystemWithEthernetInterfaces(ethernetInterfaceMock);
+
+        RequestedNode requestedNode = RequestedNodeBuilder.newRequestedNode()
+            .addRemoteDrive(createRequestedRemoteDriveWithMaster())
+            .build();
+
+        mockTraverserAndVolumeHelper();
+
+        EthernetInterfaceMatcher ethernetInterfaceMatcher = createEthernetInterfaceMatcher();
+        assertFalse(ethernetInterfaceMatcher.matches(requestedNode, computerSystem.getEthernetInterfaces()));
+    }
+
+    @Test
+    public void whenEthernetInterfaceWithRdmaProtocolIsUsedWithNvmeMasterDrive_shouldMatch() throws Exception {
+        EthernetInterface ethernetInterfaceMock = createEthernetInterfaceWithSupportedProtocols(singletonList(ROCE));
+
+        ComputerSystem computerSystem = createComputerSystemWithEthernetInterfaces(ethernetInterfaceMock);
+
+        RequestedNode requestedNode = RequestedNodeBuilder.newRequestedNode()
+            .addRemoteDrive(createRequestedRemoteDriveWithMaster())
+            .build();
+
+        mockTraverserAndVolumeHelper();
+
+        EthernetInterfaceMatcher ethernetInterfaceMatcher = createEthernetInterfaceMatcher();
+        assertTrue(ethernetInterfaceMatcher.matches(requestedNode, computerSystem.getEthernetInterfaces()));
+    }
+
+    private EthernetInterface createEthernetInterfaceWithSupportedProtocols(List<Protocol> value) throws NonUniqueResultException {
+        EthernetInterface ethernetInterfaceMock = mock(EthernetInterface.class);
+
+        when(ethernetSwitchPortDao.getEnabledAndHealthyEthernetSwitchPortByNeighborMac(any())).thenReturn(null);
+        when(ethernetInterfaceMock.getSupportedProtocols()).thenReturn(value);
+
+        return ethernetInterfaceMock;
+    }
+
+    private RemoteDrive createRequestedRemoteDrive() throws ContextResolvingException {
+        RemoteDrive remoteDriveMock = mock(RemoteDrive.class);
+
+        when(remoteDriveMock.getMaster()).thenReturn(null);
+
+        Context context = contextOf(Id.fromString("remoteDrive"), VOLUME);
+        when(remoteDriveMock.getResourceContext()).thenReturn(context);
+
+        Volume volume = new Volume();
+        when(entityTreeTraverser.traverse(context)).thenReturn(volume);
+
+        return remoteDriveMock;
+    }
+
+    private RemoteDrive createRequestedRemoteDriveWithMaster() throws ContextResolvingException {
+        RemoteDrive remoteDriveMock = mock(RemoteDrive.class);
+        MasterDrive masterDriveMock = mock(MasterDrive.class);
+
+        when(remoteDriveMock.getMaster()).thenReturn(masterDriveMock);
+        when(remoteDriveMock.getResourceContext()).thenReturn(null);
+
+        Context context = contextOf(Id.fromString("masterDrive"), VOLUME);
+        when(remoteDriveMock.getMaster().getResourceContext()).thenReturn(context);
+
+        Volume volume = new Volume();
+        when(entityTreeTraverser.traverse(context)).thenReturn(volume);
+
+        return remoteDriveMock;
+    }
+
     private EthernetInterfaceMatcher createEthernetInterfaceMatcher() {
         EthernetInterfaceMatcher ethernetInterfaceMatcher = new EthernetInterfaceMatcher();
         ethernetInterfaceMatcher.ethernetInterfacesAllocationMapper = ethernetInterfacesAllocationMapper;
+        ethernetInterfaceMatcher.protocolHelper = new FabricProtocolHelper();
+        ethernetInterfaceMatcher.protocolHelper.volumeHelper = volumeHelper;
+        ethernetInterfaceMatcher.traverser = entityTreeTraverser;
         return ethernetInterfaceMatcher;
     }
 

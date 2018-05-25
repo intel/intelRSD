@@ -46,7 +46,7 @@ class AdditionalPropertiesPatchTest(unittest.TestCase):
         self.discovery_container = DiscoveryContainer()
 
         metadata_manager = MetadataManager(["qualifier"])
-        self.metadata_container = metadata_manager.read_metadata_from_strings(AdditionalPropertiesPatchTest.METADATA)
+        self.metadata_container = metadata_manager.read_metadata_from_strings("Unknown", AdditionalPropertiesPatchTest.METADATA)
         self.discovery_container = DiscoveryContainer()
 
 

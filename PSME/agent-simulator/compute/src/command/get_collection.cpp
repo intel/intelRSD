@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -180,7 +180,7 @@ namespace {
     void get_collection(const GetCollection::Request& req, GetCollection::Response& rsp) {
         auto uuid = req.get_uuid();
         auto name = req.get_name();
-        log_debug(GET_LOGGER("agent"), "Getting collection of " + name + '.');
+        log_debug("agent", "Getting collection of " + name + '.');
 
         if (CommonComponents::get_instance()->
                 get_module_manager().entry_exists(uuid)) {

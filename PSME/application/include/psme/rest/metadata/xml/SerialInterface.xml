@@ -165,13 +165,13 @@
 
       <EnumType Name="FlowControl">
         <Member Name="None">
-          <Annotation Term="OData.Description" String="No flow control imposed"/>
+          <Annotation Term="OData.Description" String="No flow control imposed."/>
         </Member>
         <Member Name="Software">
-          <Annotation Term="OData.Description" String="XON/XOFF in-band flow control imposed"/>
+          <Annotation Term="OData.Description" String="XON/XOFF in-band flow control imposed."/>
         </Member>
         <Member Name="Hardware">
-          <Annotation Term="OData.Description" String="Out of band flow control imposed"/>
+          <Annotation Term="OData.Description" String="Out of band flow control imposed."/>
         </Member>
       </EnumType>
 

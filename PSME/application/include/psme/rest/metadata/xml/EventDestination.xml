@@ -36,13 +36,15 @@
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The URI of the destination Event Service."/>
           <Annotation Term="OData.LongDescription"
-                      String="This property shall contain a URI to the destination where the events will be sent."/>
+                      String="This property shall contain a URI to the destination where the events are sent."/>
           <Annotation Term="OData.IsURL"/>
         </Property>
         <Property Name="EventTypes" Type="Collection(Event.v1_0_0.EventType)" Nullable="false">
           <Annotation Term="Redfish.RequiredOnCreate"/>
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description"
+                      String="Property containing the types of events that shall be sent to the destination."/>
+          <Annotation Term="OData.LongDescription"
                       String="This property shall contain the types of events that shall be sent to the destination."/>
         </Property>
         <Property Name="Context" Type="Edm.String" Nullable="false">
@@ -51,20 +53,20 @@
           <Annotation Term="OData.Description"
                       String="A client-supplied string that is stored with the event destination subscription."/>
           <Annotation Term="OData.LongDescription"
-                      String="This property shall contain a client supplied context that will remain with the connection through the connections lifetime."/>
+                      String="This property shall contain a client-supplied context that remains with the connection through the connection's lifetime."/>
         </Property>
         <Property Name="Protocol" Type="EventDestination.v1_0_0.EventDestinationProtocol" Nullable="false">
           <Annotation Term="Redfish.RequiredOnCreate"/>
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The protocol type of the event connection."/>
           <Annotation Term="OData.LongDescription"
-                      String="This property shall contain the protocol type that the event will use for sending the event to the destination.  A value of Redfish shall be used to indicate that the event type shall adhere to that defined in the Redfish specification."/>
+                      String="This property shall contain the protocol type that the event uses for sending the event to the destination.  A value of Redfish shall be used to indicate that the event type shall adhere to that defined in the Redfish specification."/>
         </Property>
         <Property Name="HttpHeaders" Type="Collection(EventDestination.v1_0_0.HttpHeaderProperty)" Nullable="false">
           <Annotation Term="OData.Description"
                       String="This is for setting HTTP headers, such as authorization information.  This object will be null on a GET."/>
           <Annotation Term="OData.LongDescription"
-                      String="This property shall contain an object consisting of the names and values of of HTTP header to be included with every event POST to the Event Destination.  This property shall be null on a GET."/>
+                      String="This property shall contain an object consisting of the names and values of the HTTP header to be included with every event POST to the Event Destination.  This property shall be null on a GET."/>
         </Property>
       </EntityType>
 
@@ -104,14 +106,14 @@
           <Annotation Term="OData.Description"
                       String="A list of resources for which the service will only send related events."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall specify an array of Referenceable Members that are the only allowable values for the OriginOfCondition property within an EventRecord sent to the subscriber.  Events originating from Referenceable Members not contained in this array shall not be sent to the subscriber."/>
+                      String="The value of the property shall specify an array of referenceable members that are the only allowable values for the OriginOfCondition property in an EventRecord sent to the subscriber. Events originating from referenceable members not contained in this array shall not be sent to the subscriber."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <Property Name="MessageIds" Type="Collection(Edm.String)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="A list of MessageIds that the service will only send."/>
           <Annotation Term="OData.LongDescription"
-                      String="The value of this property shall specify an array of MessageIds that are the only allowable values for the MessageId property within an EventRecord sent to the subscriber.  Events with MessageIds not contained in this array shall not be sent to the subscriber."/>
+                      String="The value of the property shall specify an array of MessageIds that are the only allowable values for the MessageIds property in an EventRecord sent to the subscriber. Events with MessageIds not contained in this array shall not be sent to the subscriber."/>
         </Property>
       </EntityType>
     </Schema>

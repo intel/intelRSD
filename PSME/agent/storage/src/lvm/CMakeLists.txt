@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@
 
 set(SOURCES
     lvm_api.cpp
-    logical_volume.cpp
     lvm_attribute.cpp
     lvm_clone_task.cpp
-    lvm_create_data.cpp
-    physical_volume.cpp
-    volume_group.cpp
     lvm_discovery.cpp
+
+    model/logical_volume.cpp
+    model/volume_group.cpp
+    model/physical_volume.cpp
+    model/creation_data.cpp
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES Clang)

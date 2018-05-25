@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -218,9 +218,8 @@ private:
     AssetConfiguration& operator=(AssetConfiguration&&) = delete;
     static void init();
     void read_filename(const json::Value& filename);
-    void process_input(const json::Value& asset_input);
-    void process_schema(const json::Value& asset_schema);
-    void process_output(const json::Value& asset_output);
+    void process_schema();
+    void process_output();
 
 };
 

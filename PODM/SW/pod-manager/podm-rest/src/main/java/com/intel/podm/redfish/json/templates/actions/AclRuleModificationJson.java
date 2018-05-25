@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package com.intel.podm.redfish.json.templates.actions;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.odataid.ODataId;
 import com.intel.podm.common.types.ActionType;
@@ -29,25 +30,28 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT;
 import static com.intel.podm.business.services.context.UriToContextConverter.getContextFromUri;
 import static com.intel.podm.common.types.Ref.unassigned;
 
 public final class AclRuleModificationJson implements RedfishEthernetSwitchAclRule {
-    @JsonProperty
+    @JsonSetter(value = "RuleId", nulls = AS_EMPTY)
     private Ref<Integer> ruleId = unassigned();
 
-    @JsonProperty("Action")
+    @JsonSetter(value = "Action", nulls = AS_EMPTY)
     private Ref<ActionType> actionType = unassigned();
 
+    @JsonIgnore
     private Ref<Context> forwardMirrorInterface = unassigned();
 
+    @JsonIgnore
     private Ref<Set<Context>> mirrorPortRegions = unassigned();
 
-    @JsonProperty
+    @JsonSetter(value = "MirrorType", nulls = AS_EMPTY)
     private Ref<MirrorType> mirrorType = unassigned();
 
-    @JsonProperty
+    @JsonSetter(value = "Condition", nulls = AS_EMPTY)
     private Ref<AclRuleConditionImpl> condition = unassigned();
 
     @Override
@@ -65,7 +69,7 @@ public final class AclRuleModificationJson implements RedfishEthernetSwitchAclRu
         return forwardMirrorInterface;
     }
 
-    @JsonProperty("ForwardMirrorInterface")
+    @JsonSetter(value = "ForwardMirrorInterface")
     public void setForwardMirrorInterface(ODataId mirrorInterface) {
         if (mirrorInterface == null) {
             return;
@@ -78,7 +82,7 @@ public final class AclRuleModificationJson implements RedfishEthernetSwitchAclRu
         return mirrorPortRegions;
     }
 
-    @JsonProperty("MirrorPortRegion")
+    @JsonSetter(value = "MirrorPortRegion", nulls = AS_EMPTY)
     public void setMirrorPortRegions(Set<ODataId> portRegions) {
         if (portRegions == null) {
             return;
@@ -129,28 +133,28 @@ public final class AclRuleModificationJson implements RedfishEthernetSwitchAclRu
     }
 
     public static class AclRuleConditionImpl implements AclRuleCondition {
-        @JsonProperty("IPSource")
+        @JsonSetter(value = "IPSource", nulls = AS_EMPTY)
         private Ref<AclRuleConditionIpImpl> ipSource = unassigned();
 
-        @JsonProperty("IPDestination")
+        @JsonSetter(value = "IPDestination", nulls = AS_EMPTY)
         private Ref<AclRuleConditionIpImpl> ipDestination = unassigned();
 
-        @JsonProperty("MACSource")
+        @JsonSetter(value = "MACSource", nulls = AS_EMPTY)
         private Ref<AclRuleConditionMacAddressImpl> macSource = unassigned();
 
-        @JsonProperty("MACDestination")
+        @JsonSetter(value = "MACDestination", nulls = AS_EMPTY)
         private Ref<AclRuleConditionMacAddressImpl> macDestination = unassigned();
 
-        @JsonProperty("VLANId")
+        @JsonSetter(value = "VLANId", nulls = AS_EMPTY)
         private Ref<AclRuleConditionIdImpl> vlanId = unassigned();
 
-        @JsonProperty("L4SourcePort")
+        @JsonSetter(value = "L4SourcePort", nulls = AS_EMPTY)
         private Ref<AclRuleConditionPortImpl> l4SourcePort = unassigned();
 
-        @JsonProperty("L4DestinationPort")
+        @JsonSetter(value = "L4DestinationPort", nulls = AS_EMPTY)
         private Ref<AclRuleConditionPortImpl> l4DestinationPort = unassigned();
 
-        @JsonProperty("L4Protocol")
+        @JsonSetter(value = "L4Protocol", nulls = AS_EMPTY)
         private Ref<Integer> l4Protocol = unassigned();
 
         @Override
@@ -222,10 +226,10 @@ public final class AclRuleModificationJson implements RedfishEthernetSwitchAclRu
     }
 
     public static class AclRuleConditionIpImpl implements AclRuleConditionIp {
-        @JsonProperty("IPv4Address")
+        @JsonSetter(value = "IPv4Address", nulls = AS_EMPTY)
         private Ref<String> ipv4Address = unassigned();
 
-        @JsonProperty
+        @JsonSetter(value = "Mask", nulls = AS_EMPTY)
         private Ref<String> mask = unassigned();
 
         @Override
@@ -261,10 +265,10 @@ public final class AclRuleModificationJson implements RedfishEthernetSwitchAclRu
     }
 
     public static class AclRuleConditionMacAddressImpl implements AclRuleConditionMacAddress {
-        @JsonProperty("MACAddress")
+        @JsonSetter(value = "MACAddress", nulls = AS_EMPTY)
         private Ref<String> macAddress = unassigned();
 
-        @JsonProperty
+        @JsonSetter(value = "Mask", nulls = AS_EMPTY)
         private Ref<String> mask = unassigned();
 
         public Ref<String> getMacAddress() {
@@ -298,10 +302,10 @@ public final class AclRuleModificationJson implements RedfishEthernetSwitchAclRu
     }
 
     public static class AclRuleConditionIdImpl implements AclRuleConditionId {
-        @JsonProperty
+        @JsonSetter(value = "Id", nulls = AS_EMPTY)
         private Ref<Long> id = unassigned();
 
-        @JsonProperty
+        @JsonSetter(value = "Mask", nulls = AS_EMPTY)
         private Ref<Long> mask = unassigned();
 
         @Override
@@ -336,10 +340,10 @@ public final class AclRuleModificationJson implements RedfishEthernetSwitchAclRu
     }
 
     public static class AclRuleConditionPortImpl implements AclRuleConditionPort {
-        @JsonProperty
+        @JsonSetter(value = "Port", nulls = AS_EMPTY)
         private Ref<Long> port = unassigned();
 
-        @JsonProperty
+        @JsonSetter(value = "Mask", nulls = AS_EMPTY)
         private Ref<Long> mask = unassigned();
 
         @Override

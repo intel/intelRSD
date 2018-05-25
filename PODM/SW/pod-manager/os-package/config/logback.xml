@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015-2017 Intel Corporation
+  ~ Copyright (c) 2015-2018 Intel Corporation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -63,6 +63,10 @@
 
     <logger name="com.intel.podm.discovery.external.ServiceDetectionListenerImpl" level="INFO" additivity="true">
         <appender-ref ref="pod-manager-services-detection"/>
+    </logger>
+
+    <logger name="com.intel.podm.common.synchronization.SerialExecutorImpl" level="DEBUG" additivity="true">
+        <appender-ref ref="pod-manager"/>
     </logger>
 
     <root level="INFO">

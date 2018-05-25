@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.intel.podm.discovery.external;
 
-import com.intel.podm.business.entities.dao.ComputerSystemDao;
 import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.common.enterprise.utils.logger.ServiceLifecycle;
@@ -76,10 +75,6 @@ public class ServiceRemovalTask implements Runnable {
         @Inject
         @Config(refreshable = true)
         private Holder<ExternalServiceConfig> config;
-
-        @Inject
-        private ComputerSystemDao computerSystemDao;
-
 
         @Transactional(REQUIRES_NEW)
         public void remove() {

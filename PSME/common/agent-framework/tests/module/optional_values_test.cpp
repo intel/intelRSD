@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -582,6 +582,32 @@ TEST_F(OptionalFieldTest, EnumComparison){
     ASSERT_TRUE(OptionalField<RushCollection>(RushCollection::TomSawyer) != OptionalField<RushCollection>(RushCollection::Limelight));
     ASSERT_TRUE(OptionalField<RushCollection>(RushCollection::TomSawyer) != RushCollection::Limelight);
     ASSERT_TRUE(RushCollection::TomSawyer != OptionalField<RushCollection>(RushCollection::Limelight));
+
+    /* operator!= for empty optional */
+    ASSERT_TRUE(OptionalField<RushCollection>() != RushCollection::TomSawyer);
+    ASSERT_TRUE(OptionalField<RushCollection>() != RushCollection::Limelight);
+    ASSERT_TRUE(OptionalField<RushCollection>() != RushCollection::Xanadu);
+    ASSERT_TRUE(RushCollection::TomSawyer != OptionalField<RushCollection>());
+    ASSERT_TRUE(RushCollection::Limelight != OptionalField<RushCollection>());
+    ASSERT_TRUE(RushCollection::Xanadu != OptionalField<RushCollection>());
+
+    /* operator== for empty optional */
+    ASSERT_TRUE(OptionalField<RushCollection>() == OptionalField<RushCollection>());
+    ASSERT_FALSE(OptionalField<RushCollection>() == RushCollection::TomSawyer);
+    ASSERT_FALSE(OptionalField<RushCollection>() == RushCollection::Limelight);
+    ASSERT_FALSE(OptionalField<RushCollection>() == RushCollection::Xanadu);
+    ASSERT_FALSE(RushCollection::TomSawyer == OptionalField<RushCollection>());
+    ASSERT_FALSE(RushCollection::Limelight == OptionalField<RushCollection>());
+    ASSERT_FALSE(RushCollection::Xanadu == OptionalField<RushCollection>());
+
+    /* comparison operators with an enum object - not the underlying value */
+    RushCollection xanadu(RushCollection::Xanadu);
+    ASSERT_TRUE(OptionalField<RushCollection>() != xanadu);
+    ASSERT_TRUE(OptionalField<RushCollection>(RushCollection::Limelight) != xanadu);
+    ASSERT_TRUE(OptionalField<RushCollection>(RushCollection::Xanadu) == xanadu);
+    ASSERT_TRUE(xanadu != OptionalField<RushCollection>());
+    ASSERT_TRUE(xanadu != OptionalField<RushCollection>(RushCollection::Limelight));
+    ASSERT_TRUE(xanadu == OptionalField<RushCollection>(RushCollection::Xanadu));
 }
 
 TEST_F(OptionalFieldTest, OperatorPlus) {

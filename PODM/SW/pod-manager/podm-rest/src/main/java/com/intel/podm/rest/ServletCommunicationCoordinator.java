@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,11 +76,13 @@ public class ServletCommunicationCoordinator {
 
     public void logServletResponse() throws IOException {
         if (!isSuccessfulGetResponse(httpServletRequest, httpServletResponse)) {
+            String response = httpServletResponse.toString();
+            response = hazardousParametersFilter.filterSecretPropertiesFromRequest(response);
             LOGGER.i("Response for {} request to '{}' (status {}): '{}'",
                 httpServletRequest.getMethod().toUpperCase(),
                 httpServletRequest.getRequestURI(),
                 httpServletResponse.getStatus(),
-                httpServletResponse.toString());
+                response);
         }
     }
 

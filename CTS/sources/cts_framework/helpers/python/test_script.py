@@ -29,6 +29,7 @@ from abc import abstractmethod
 from traceback import format_exc
 
 from cts_core.commons.error import cts_error
+from cts_core.metadata.metadata_manager import MetadataMalformed
 
 def exit(self, status=0, message=None):
     if message:
@@ -141,6 +142,9 @@ class TestScript(object):
         if execute_run:
             try:
                 self.run()
+            except MetadataMalformed as err:
+                cts_error("Test case execution blocked due to metadata containing malformed XML")
+                self.set_status_failed()
             except ValueNotFound as err:
                 self.set_status(ResultStatus.BLOCKED)
                 cts_error("Test case execution blocked due to: {err:exception}", err=err)

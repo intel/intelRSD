@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ using namespace agent_framework::module;
 
 REGISTER_COMMAND(GetTrustedModuleInfo,
     [] (const GetTrustedModuleInfo::Request& request, GetTrustedModuleInfo::Response& response) {
-        log_debug(GET_LOGGER("agent"), "Getting trusted module info.");
+        log_debug("agent", "Getting trusted module info.");
         response = get_manager<model::TrustedModule>().get_entry(request.get_uuid());
     }
 );

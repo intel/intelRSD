@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,6 @@ AclRule AclRule::from_json(const json::Json& json) {
     rule.set_destination_port(Port::from_json(json[literals::AclRule::DESTINATION_L4_PORT]));
     rule.set_protocol(json[literals::AclRule::PROTOCOL]);
     rule.set_oem(attribute::Oem::from_json(json[literals::AclRule::OEM]));
-    rule.set_resource_hash(json);
 
     return rule;
 }

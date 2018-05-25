@@ -201,7 +201,7 @@ class PropertyReadUnitTest(unittest.TestCase):
         discovery_container = DiscoveryContainer()
 
         metadata_manager = MetadataManager(["qualifier"])
-        metadata_container = metadata_manager.read_metadata_from_strings(METADATA)
+        metadata_container = metadata_manager.read_metadata_from_strings("Unknown", METADATA)
 
         EntityJson = {
             "@odata.type": "MyNamespace.v1_0_0.MyEntity",

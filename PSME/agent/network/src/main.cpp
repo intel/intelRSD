@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,7 @@
 #include "configuration/configuration_validator.hpp"
 #include "default_configuration.hpp"
 #include "discovery/discovery_manager.hpp"
+#include "database/database.hpp"
 
 #include "hal/switch_agent.hpp"
 
@@ -78,22 +79,25 @@ int main(int argc, const char* argv[]) {
 
     /* Initialize logger */
     LoggerLoader loader(configuration);
-    LoggerFactory::instance().set_loggers(loader.load());
-    LoggerFactory::set_main_logger_name("agent");
-    log_info(GET_LOGGER("network-agent"), "Running PSME Network Agent...\n");
+    loader.load(LoggerFactory::instance());
+    log_info("network-agent", "Running PSME Network Agent...");
 
     /* Load module configuration */
     ::agent::network::loader::NetworkLoader module_loader{};
     if (!module_loader.load(configuration)) {
-        std::cerr << "Invalid modules configuration" << std::endl;
+        log_error("network-agent", "Invalid modules configuration");
         return INVALID_MODULES_CONFIGURATION_ERROR_CODE;
     }
 
     try {
         server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
-    } catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("network-agent"),
-                "Cannot read server port " << e.what());
+    }
+    catch (const json::Value::Exception& e) {
+        log_error("network-agent", "Cannot read server port " << e.what());
+    }
+
+    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
+        database::Database::set_default_location(configuration["database"]["location"].as_string());
     }
 
     RegistrationData registration_data{configuration};
@@ -118,7 +122,7 @@ int main(int argc, const char* argv[]) {
         }
     }
     catch (const std::exception &e) {
-        log_error(GET_LOGGER("network-agent"), e.what());
+        log_error("network-agent", e.what());
     }
 
     /* Initialize command server */
@@ -128,7 +132,7 @@ int main(int argc, const char* argv[]) {
     server.add(command::Registry::get_instance()->get_commands());
     bool server_started = server.start();
     if (!server_started) {
-        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+        log_error("network-agent", "Could not start JSON-RPC command server on port "
             << server_port << " restricted to " << registration_data.get_ipv4_address()
             << ". " << "Quitting now...");
         amc_connection.stop();
@@ -139,7 +143,7 @@ int main(int argc, const char* argv[]) {
     /* Stop the program and wait for interrupt */
     wait_for_interrupt();
 
-    log_info(GET_LOGGER("network-agent"), "Stopping PSME Network Agent...\n");
+    log_info("network-agent", "Stopping PSME Network Agent...");
 
     /* Cleanup */
     server.stop();
@@ -154,7 +158,7 @@ int main(int argc, const char* argv[]) {
 }
 
 const json::Value& init_configuration(int argc, const char** argv) {
-    log_info(GET_LOGGER("network-agent"),
+    log_info("network-agent",
         agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
@@ -165,6 +169,8 @@ const json::Value& init_configuration(int argc, const char** argv) {
         basic_config.add_file(argv[argc - 1]);
         --argc;
     }
+    /* FIXME default configuration for network: command line args are not available in Arista! */
+    basic_config.add_file("/etc/psme/network-config.json");
     basic_config.load_key_file();
     return basic_config.to_json();
 }
@@ -172,7 +178,7 @@ const json::Value& init_configuration(int argc, const char** argv) {
 bool check_configuration(const json::Value& json) {
     json::Value json_schema;
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
-        log_info(GET_LOGGER("network-agent"), "JSON Schema load!");
+        log_info("network-agent", "JSON Schema load!");
 
         configuration::SchemaErrors errors;
         configuration::SchemaValidator validator;

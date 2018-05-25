@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,26 +37,17 @@ using namespace agent_framework::model;
 class TestObject {
 public:
 
-    struct Hash {
-        Hash(const std::string& _status, const std::string& _resource_without_status) :
-            status(_status), resource_without_status(_resource_without_status) {}
-        std::string status {};
-        std::string resource_without_status {};
-    };
-
     TestObject() {}
 
     TestObject(const std::string& agent_id,
                const std::string& parent_id,
                const std::string& uuid,
                const std::uint64_t id,
-               const Hash& hash,
                const std::uint64_t touched,
                const std::string& data):
                 m_uuid(uuid), m_temporary_uuid(uuid), m_persistent_uuid(uuid),
                 m_agent_id(agent_id), m_id(id),
-                m_parent_uuid(parent_id), m_touched_at(touched),
-                m_resource_hash(hash), m_data(data) { }
+                m_parent_uuid(parent_id), m_touched_at(touched), m_data(data) { }
 
     /*!
      * @brief Get collection name
@@ -88,14 +79,6 @@ public:
     const std::string& get_agent_id() const { return m_agent_id; }
     void set_agent_id(const std::string& agent_id) { m_agent_id = agent_id; }
 
-
-    /*!
-     * @brief Get resource hash value
-     *
-     * @return Resource hash
-     * */
-    const Hash& get_resource_hash() const { return m_resource_hash; }
-
     void touch(const std::uint64_t epoch) { m_touched_at = epoch; }
     bool was_touched_after(const std::uint64_t epoch) const { return (m_touched_at > epoch); }
 
@@ -103,15 +86,20 @@ public:
     void set_data(const std::string& data) { m_data = data; }
 
     bool operator==(const TestObject& rhs) const {
+        auto hash = model::utils::Hash::from_resource(*this);
+        auto rhs_hash = model::utils::Hash::from_resource(rhs);
         return (m_agent_id == rhs.m_agent_id && m_uuid == rhs.m_uuid &&
                 m_id == rhs.m_id && m_parent_uuid == rhs.m_parent_uuid &&
-                m_resource_hash.status == rhs.m_resource_hash.status &&
-                m_resource_hash.resource_without_status == rhs.m_resource_hash.resource_without_status &&
+                hash.resource_without_status == rhs_hash.resource_without_status &&
                 m_data == rhs.m_data);
     }
 
     bool operator!=(const TestObject& rhs) const {
         return !(*this == rhs);
+    }
+
+    json::Json to_json() const {
+        return m_data;
     }
 
 private:
@@ -122,7 +110,6 @@ private:
     std::uint64_t m_id{0};
     std::string m_parent_uuid{""};
     std::uint64_t m_touched_at{0};
-    Hash m_resource_hash {"",""};
 
     std::string m_data{""};
 };
@@ -130,19 +117,19 @@ private:
 namespace {
     constexpr static const unsigned num{13};
     const TestObject elems[num] = {
-                          {"A1", "0", "1", 1, {"", "T"}, 0, "T"},
-                          {"A1", "1", "1-1", 1, {"", "C1"}, 0, "C1"},
-                          {"A1", "1", "1-2", 2, {"", "C2"}, 0, "C2"},
-                          {"A1", "1", "1-3", 3, {"", "C3"}, 0, "C3"},
-                          {"A1", "1", "1-4", 4, {"", "C4"}, 0, "C4"},
-                          {"A1", "1-1", "1-1-1", 1, {"", "GC1"}, 0, "GC1"},
-                          {"A1", "1-1", "1-1-2", 2, {"", "GC2"}, 0, "GC2"},
-                          {"A1", "1-2", "1-2-1", 3, {"", "GC3"}, 0, "GC3"},
-                          {"A1", "1-2", "1-2-2", 4, {"", "GC4"}, 0, "GC4"},
-                          {"A2", "-0", "-1", 1, {"", "H1"}, 0, "H1"},
-                          {"A2", "-1", "-2", 1, {"", "H2"}, 0, "H2"},
-                          {"A2", "-2", "-3", 1, {"", "H3"}, 0, "H3"},
-                          {"A2", "-3", "-4", 1, {"", "H4"}, 0, "H4"} };
+        {"A1", "0", "1", 1, 0, "T"},
+        {"A1", "1", "1-1", 1, 0, "C1"},
+        {"A1", "1", "1-2", 2, 0, "C2"},
+        {"A1", "1", "1-3", 3, 0, "C3"},
+        {"A1", "1", "1-4", 4, 0, "C4"},
+        {"A1", "1-1", "1-1-1", 1, 0, "GC1"},
+        {"A1", "1-1", "1-1-2", 2, 0, "GC2"},
+        {"A1", "1-2", "1-2-1", 3, 0, "GC3"},
+        {"A1", "1-2", "1-2-2", 4, 0, "GC4"},
+        {"A2", "-0", "-1", 1, 0, "H1"},
+        {"A2", "-1", "-2", 1, 0, "H2"},
+        {"A2", "-2", "-3", 1, 0, "H3"},
+        {"A2", "-3", "-4", 1, 0, "H4"} };
 }
 
 class GenericManagerTest : public ::testing::Test {
@@ -262,8 +249,8 @@ TEST_F(GenericManagerTest, EntriesAreCorrectlyRemovedByParent) {
 }
 
 TEST_F(GenericManagerTest, EntriesAreCorrectlyAddedOrUpdated) {
-    TestObject entry1  = {"X", "test", "X1", 9, {"", "X"}, 0, "X"};
-    TestObject entry2  = {"X", "test", "X1", 9, {"", "Y"}, 0, "Y"};
+    TestObject entry1  = {"X", "test", "X1", 9, 0, "X"};
+    TestObject entry2  = {"X", "test", "X1", 9, 0, "Y"};
     EXPECT_THROW(gm.get_entry(entry1.get_uuid()), ::agent_framework::exceptions::InvalidUuid);
     // check if adding works
     EXPECT_EQ(gm.add_or_update_entry(entry1), GenericManager<TestObject>::UpdateStatus::Added);

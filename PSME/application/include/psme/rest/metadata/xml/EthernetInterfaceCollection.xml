@@ -17,7 +17,8 @@
       <EntityType Name="EthernetInterfaceCollection" BaseType="Resource.v1_0_0.ResourceCollection">
         <NavigationProperty Name="Members" Type="Collection(EthernetInterface.EthernetInterface)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Contains the members of this collection."/>
+          <Annotation Term="OData.Description" String="Collection of EthernetInterfaces."/>
+          <Annotation Term="OData.LongDescription" String="Collection of EthernetInterfaces."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </EntityType>

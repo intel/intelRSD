@@ -9,7 +9,7 @@ _cts()
         CTS_PARAMS="--help"
 
         CTS_NAME="cts"
-        CTS_MAIN_OPTION="execute tests version status metadata"
+        CTS_MAIN_OPTION="execute tests version sos status replay metadata"
 
         if [[ ${cur} == --* ]] ; then
                 COMPREPLY=( $(compgen -W "${CTS_PARAMS}" -- ${cur}))

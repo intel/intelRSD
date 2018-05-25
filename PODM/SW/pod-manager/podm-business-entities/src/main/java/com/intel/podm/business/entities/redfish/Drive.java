@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@ package com.intel.podm.business.entities.redfish;
 import com.intel.podm.business.entities.Eventable;
 import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
 import com.intel.podm.business.entities.listeners.DriveListener;
+import com.intel.podm.business.entities.redfish.base.ComposableAsset;
 import com.intel.podm.business.entities.redfish.base.DiscoverableEntity;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import com.intel.podm.business.entities.redfish.base.HasProtocol;
 import com.intel.podm.business.entities.redfish.base.MultiSourceResource;
 import com.intel.podm.business.entities.redfish.embeddables.Identifier;
 import com.intel.podm.business.entities.redfish.embeddables.RedfishLocation;
@@ -40,6 +42,8 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Enumerated;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -48,16 +52,17 @@ import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
-import static com.intel.podm.common.types.Health.OK;
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static com.intel.podm.common.types.Protocol.NVME;
-import static com.intel.podm.common.types.State.ENABLED;
-import static com.intel.podm.common.types.State.STANDBY_OFFLINE;
-import static java.util.stream.Stream.of;
+import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.FetchType.LAZY;
@@ -75,7 +80,7 @@ import static javax.persistence.FetchType.LAZY;
 })
 @Eventable
 @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
-public class Drive extends DiscoverableEntity implements MultiSourceResource {
+public class Drive extends DiscoverableEntity implements MultiSourceResource, HasProtocol, ComposableAsset {
     public static final String GET_PRIMARY_DRIVE = "GET_PRIMARY_DRIVE";
 
     @Column(name = "entity_id", columnDefinition = ENTITY_ID_STRING_COLUMN_DEFINITION)
@@ -174,9 +179,13 @@ public class Drive extends DiscoverableEntity implements MultiSourceResource {
     private List<Identifier> identifiers = new ArrayList<>();
 
     @IgnoreUnlinkingRelationship
-    @OneToOne(fetch = EAGER, cascade = {MERGE, PERSIST})
+    @OneToOne(fetch = EAGER, cascade = {MERGE, PERSIST, REMOVE})
     @JoinColumn(name = "drive_metadata_id")
     private DriveMetadata metadata = new DriveMetadata();
+
+    @OneToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "drive_metrics_id")
+    private DriveMetrics metrics;
 
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "chassis_id")
@@ -193,6 +202,44 @@ public class Drive extends DiscoverableEntity implements MultiSourceResource {
     @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinColumn(name = "pcie_device_function_id")
     private PcieDeviceFunction pcieDeviceFunction;
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "storage_service_id")
+    private StorageService storageService;
+
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "volume_id")
+    private Volume volume;
+
+    @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinTable(
+        name = "drive_capacity_sources",
+        joinColumns = {@JoinColumn(name = "drive_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "capacity_source_id", referencedColumnName = "id")})
+    private Set<CapacitySource> capacitySources = new HashSet<>();
+
+    public DriveMetrics getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(DriveMetrics metrics) {
+        if (!Objects.equals(this.metrics, metrics)) {
+            unlinkMetrics(this.metrics);
+            this.metrics = metrics;
+            if (metrics != null && !this.equals(metrics.getDrive())) {
+                metrics.setDrive(this);
+            }
+        }
+    }
+
+    public void unlinkMetrics(DriveMetrics metrics) {
+        if (Objects.equals(this.metrics, metrics)) {
+            this.metrics = null;
+            if (metrics != null) {
+                metrics.unlinkDrive(this);
+            }
+        }
+    }
 
     @Override
     public Id getId() {
@@ -252,6 +299,7 @@ public class Drive extends DiscoverableEntity implements MultiSourceResource {
         this.failurePredicted = failurePredicted;
     }
 
+    @Override
     public Protocol getProtocol() {
         return protocol;
     }
@@ -426,6 +474,28 @@ public class Drive extends DiscoverableEntity implements MultiSourceResource {
         return metadata;
     }
 
+    public Set<CapacitySource> getCapacitySource() {
+        return capacitySources;
+    }
+
+    public void addCapacitySource(CapacitySource capacitySource) {
+        requiresNonNull(capacitySource, "capacitySource");
+
+        capacitySources.add(capacitySource);
+        if (!capacitySource.getDrives().contains(this)) {
+            capacitySource.addDrive(this);
+        }
+    }
+
+    public void unlinkCapacitySource(CapacitySource capacitySource) {
+        if (capacitySources.contains(capacitySource)) {
+            capacitySources.remove(capacitySource);
+            if (capacitySource != null) {
+                capacitySource.unlinkDrive(this);
+            }
+        }
+    }
+
     public Chassis getChassis() {
         return chassis;
     }
@@ -518,23 +588,80 @@ public class Drive extends DiscoverableEntity implements MultiSourceResource {
         }
     }
 
-    @Override
-    public boolean canBeAllocated() {
-        if (getProtocol() == NVME) {
-            return !getMetadata().isAllocated()
-                && getStatus() != null
-                && Objects.equals(getStatus().getHealth(), OK)
-                && of(ENABLED, STANDBY_OFFLINE).anyMatch(state -> state == getStatus().getState());
+    public StorageService getStorageService() {
+        return storageService;
+    }
+
+    public void setStorageService(StorageService storageService) {
+        if (!Objects.equals(this.storageService, storageService)) {
+            unlinkStorageService(this.storageService);
+            this.storageService = storageService;
+            if (storageService != null && !storageService.getDrives().contains(this)) {
+                storageService.addDrive(this);
+            }
         }
-        return super.canBeAllocated();
+    }
+
+    public void unlinkStorageService(StorageService storageService) {
+        if (Objects.equals(this.storageService, storageService)) {
+            this.storageService = null;
+            if (storageService != null) {
+                storageService.unlinkDrive(this);
+            }
+        }
+    }
+
+    public Volume getVolume() {
+        return volume;
+    }
+
+    public void setVolume(Volume volume) {
+        this.volume = volume;
+    }
+
+    public void unlinkVolume(Volume volume) {
+        if (Objects.equals(this.volume, volume)) {
+            this.volume = null;
+            if (volume != null) {
+                volume.unlinkDrives(this);
+            }
+        }
+    }
+
+    @Override
+    public boolean isAvailable() {
+        if (isProtocolNvme()) {
+            return getStatus() != null
+                && statusOf(this).isHealthy().verify()
+                && (statusOf(this).isEnabled().verify() || statusOf(this).isStandbyOffline().verify());
+        }
+        return super.isAvailable();
+    }
+
+    @Override
+    public boolean isDegraded() {
+        if (isProtocolNvme()) {
+            return getStatus() == null
+                || (!statusOf(this).isEnabled().verify() && !statusOf(this).isStandbyOffline().verify())
+                || statusOf(this).isCritical().verify();
+        }
+        return super.isDegraded();
+    }
+
+    private boolean isProtocolNvme() {
+        return getProtocol() == NVME;
     }
 
     @Override
     public void preRemove() {
+        unlinkCollection(capacitySources, this::unlinkCapacitySource);
         unlinkChassis(chassis);
         unlinkComposedNode(composedNode);
         unlinkStorage(storage);
         unlinkPcieDeviceFunction(pcieDeviceFunction);
+        unlinkStorageService(storageService);
+        unlinkVolume(volume);
+        unlinkMetrics(metrics);
     }
 
     @Override

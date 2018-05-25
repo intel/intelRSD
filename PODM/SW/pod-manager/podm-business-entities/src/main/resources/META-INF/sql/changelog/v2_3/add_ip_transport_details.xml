@@ -1,0 +1,81 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2018 Intel Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="podm (generated)" id="1519145460827-1">
+        <createTable tableName="ip_transport_details">
+            <column name="entity_id" type="TEXT"/>
+            <column name="ipv4_address" type="TEXT"/>
+            <column name="ipv4_address_origin" type="TEXT"/>
+            <column name="ipv4_gateway" type="TEXT"/>
+            <column name="ipv4_oem" type="TEXT"/>
+            <column name="ipv4_subnet_mask" type="TEXT"/>
+            <column name="ipv6_address" type="TEXT"/>
+            <column name="ipv6_address_origin" type="TEXT"/>
+            <column name="address_state" type="TEXT"/>
+            <column name="ipv6_oem" type="TEXT"/>
+            <column name="prefix_length" type="INT"/>
+            <column name="port" type="INT"/>
+            <column name="transport_protocol" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endpoint_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-2">
+        <addPrimaryKey columnNames="id" constraintName="ip_transport_details_pkey" tableName="ip_transport_details"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-12">
+        <dropUniqueConstraint constraintName="idx_transport_entity_id" tableName="transport"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-3">
+        <addUniqueConstraint columnNames="entity_id" constraintName="idx_transport_entity_id" tableName="ip_transport_details"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-4">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="ip_transport_details" constraintName="fk_lv4ye0wvy8v0aopppbd8ueb1o" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-5">
+        <addForeignKeyConstraint baseColumnNames="endpoint_id" baseTableName="ip_transport_details" constraintName="fk_qa9v1pip5eqpwwkkk497yvhi1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="endpoint"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-6">
+        <dropForeignKeyConstraint baseTableName="transport_detail" constraintName="fk_2hg7j9edl515er4i2fbqyh8ol"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-7">
+        <dropForeignKeyConstraint baseTableName="transport_detail" constraintName="fk_4a22h4t2dk8if8nbm6p1gtw4h"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-8">
+        <dropForeignKeyConstraint baseTableName="transport" constraintName="fk_f5gv385hytxijqh3q4uas6ee1"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-9">
+        <dropForeignKeyConstraint baseTableName="transport_detail" constraintName="fk_i5j5x09ry5agf0897avx7k6ih"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-10">
+        <dropForeignKeyConstraint baseTableName="transport" constraintName="fk_iytioarccx77rxcd3i7p83bcu"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-11">
+        <dropUniqueConstraint constraintName="idx_transport_detail_entity_id" tableName="transport_detail"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-13">
+        <dropTable tableName="transport"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1519145460827-14">
+        <dropTable tableName="transport_detail"/>
+    </changeSet>
+</databaseChangeLog>
+
+

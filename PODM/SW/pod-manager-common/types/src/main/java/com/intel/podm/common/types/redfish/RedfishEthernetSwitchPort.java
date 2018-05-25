@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.intel.podm.common.types.redfish;
 
 import com.intel.podm.common.types.AdministrativeState;
+import com.intel.podm.common.types.DcbxState;
 import com.intel.podm.common.types.LinkType;
 import com.intel.podm.common.types.NeighborInfo;
 import com.intel.podm.common.types.OperationalState;
@@ -26,11 +27,12 @@ import com.intel.podm.common.types.PortType;
 import com.intel.podm.common.types.Status;
 import com.intel.podm.common.types.net.MacAddress;
 
+import java.util.List;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
 
-@SuppressWarnings({"checkstyle:MethodCount"})
+@SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
 public interface RedfishEthernetSwitchPort extends RedfishResource {
     @Override
     default String getName() {
@@ -97,8 +99,25 @@ public interface RedfishEthernetSwitchPort extends RedfishResource {
         return null;
     }
 
+    default DcbxState getDcbxState() {
+        return null;
+    }
+
+    default Boolean getLldpEnabled() {
+        return null;
+    }
+
+    default PriorityFlowControl getPriorityFlowControl() {
+        return null;
+    }
+
     default Links getLinks() {
         return null;
+    }
+
+    interface PriorityFlowControl {
+        Boolean getEnabled();
+        List<Integer> getEnabledPriorities();
     }
 
     interface Links {

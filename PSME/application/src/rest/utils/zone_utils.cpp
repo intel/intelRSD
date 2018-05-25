@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,9 +31,9 @@ using namespace psme::rest::utils;
 using namespace agent_framework::model;
 
 
-std::vector<std::string> ZoneUtils::validate_patch_links_and_get_endpoint_uuids(const json::Value& json) {
+std::vector<Uuid> ZoneUtils::validate_patch_links_and_get_endpoint_uuids(const json::Value& json) {
 
-    std::vector<std::string> endpoints;
+    std::vector<Uuid> endpoints;
     for (const auto& endpoint_link : json[constants::Fabric::ENDPOINTS].as_array()) {
         auto endpoint_path = endpoint_link[constants::Common::ODATA_ID].as_string();
         try {
@@ -45,43 +45,8 @@ std::vector<std::string> ZoneUtils::validate_patch_links_and_get_endpoint_uuids(
 
             endpoints.push_back(endpoint_uuid);
         }
-        catch (const agent_framework::exceptions::NotFound&) {
-            THROW(agent_framework::exceptions::InvalidValue, "rest",
-                  "Could not find endpoint: " + endpoint_path);
-        }
-    }
-    return endpoints;
-}
-
-std::vector<std::string> ZoneUtils::validate_post_links_and_get_endpoint_uuids(const json::Value& json) {
-    // validate links to Switches
-    for (const auto& switch_link : json[constants::Zone::INVOLVED_SWITCHES].as_array()) {
-        auto switch_path = switch_link[constants::Common::ODATA_ID].as_string();
-        try {
-            auto params = server::Multiplexer::get_instance()->get_params(switch_path, Routes::SWITCH_PATH);
-            // verify Switch's existence
-            psme::rest::model::Find<agent_framework::model::Switch>(params[PathParam::SWITCH_ID])
-                .via<agent_framework::model::Fabric>(params[PathParam::FABRIC_ID]).get_uuid();
-        }
-        catch (const agent_framework::exceptions::NotFound&) {
-            THROW(agent_framework::exceptions::InvalidValue, "rest",
-                  "Could not find Fabric Switch: " + switch_path);
-        }
-    }
-
-    std::vector<std::string> endpoints;
-    for (const auto& endpoint_link : json[constants::Fabric::ENDPOINTS].as_array()) {
-        auto endpoint_path = endpoint_link[constants::Common::ODATA_ID].as_string();
-        try {
-            auto params = server::Multiplexer::get_instance()->get_params(endpoint_path, Routes::ENDPOINT_PATH);
-            auto endpoint_uuid =
-                psme::rest::model::Find<agent_framework::model::Endpoint>(params[PathParam::ENDPOINT_ID])
-                    .via<agent_framework::model::Fabric>(params[PathParam::FABRIC_ID])
-                    .get_uuid();
-
-            endpoints.push_back(endpoint_uuid);
-        }
-        catch (const agent_framework::exceptions::NotFound&) {
+        catch (const agent_framework::exceptions::NotFound& e) {
+            log_error("rest", "Not found exception: " << e.what());
             THROW(agent_framework::exceptions::InvalidValue, "rest",
                   "Could not find endpoint: " + endpoint_path);
         }
@@ -90,12 +55,61 @@ std::vector<std::string> ZoneUtils::validate_post_links_and_get_endpoint_uuids(c
 }
 
 
-OptionalField<std::string> ZoneUtils::get_upstream_endpoint(const std::vector<std::string>& endpoint_uuids) {
-    auto is_upstream = [](const std::string& endpoint_uuid) {
-        const auto endpoint_entitites = agent_framework::module::get_manager<agent_framework::model::Endpoint>()
-            .get_entry(endpoint_uuid).get_connected_entities();
-        for (const auto& entity : endpoint_entitites) {
-            if (entity.get_entity_type() == enums::EntityType::RootComplex) {
+std::vector<Uuid> ZoneUtils::validate_post_links_and_get_endpoint_uuids(const json::Value& json) {
+    // validate links to Switches only for NVMe agent
+    if (!json[constants::Zone::INVOLVED_SWITCHES].is_null()) {
+        for (const auto& switch_link : json[constants::Zone::INVOLVED_SWITCHES].as_array()) {
+            auto switch_path = switch_link[constants::Common::ODATA_ID].as_string();
+            try {
+                auto params = server::Multiplexer::get_instance()->get_params(switch_path, Routes::SWITCH_PATH);
+                // verify Switch's existence
+                psme::rest::model::Find<agent_framework::model::Switch>(params[PathParam::SWITCH_ID])
+                    .via<agent_framework::model::Fabric>(params[PathParam::FABRIC_ID]).get_uuid();
+            }
+            catch (const agent_framework::exceptions::NotFound& e) {
+                log_error("rest", "Not found exception: " << e.what());
+                THROW(agent_framework::exceptions::InvalidValue, "rest",
+                      "Could not find Fabric Switch: " + switch_path);
+            }
+        }
+    }
+
+    std::vector<Uuid> endpoints;
+    if (!json[constants::Fabric::ENDPOINTS].is_null()) {
+        for (const auto& endpoint_link : json[constants::Fabric::ENDPOINTS].as_array()) {
+            auto endpoint_path = endpoint_link[constants::Common::ODATA_ID].as_string();
+            try {
+                auto params = server::Multiplexer::get_instance()->get_params(endpoint_path, Routes::ENDPOINT_PATH);
+                auto endpoint_uuid =
+                        psme::rest::model::Find<agent_framework::model::Endpoint>(params[PathParam::ENDPOINT_ID])
+                                .via<agent_framework::model::Fabric>(params[PathParam::FABRIC_ID])
+                                .get_uuid();
+
+                endpoints.push_back(endpoint_uuid);
+            }
+            catch (const agent_framework::exceptions::NotFound& e) {
+                log_error("rest", "Not found exception: " << e.what());
+                THROW(agent_framework::exceptions::InvalidValue, "rest",
+                      "Could not find endpoint: " + endpoint_path);
+            }
+        }
+    }
+    return endpoints;
+}
+
+
+OptionalField<Uuid> ZoneUtils::get_upstream_endpoint(const std::vector<std::string>& endpoint_uuids) {
+    auto is_upstream = [](const Uuid& endpoint_uuid) {
+        const auto& endpoint = agent_framework::module::get_manager<agent_framework::model::Endpoint>()
+            .get_entry(endpoint_uuid);
+        const auto& fabric = agent_framework::module::get_manager<agent_framework::model::Fabric>()
+            .get_entry(endpoint.get_parent_uuid());
+        // Upstream Endpoints exist only for PNC Agent which uses Fabric with NVMe protocol
+        if (fabric.get_protocol() != enums::StorageProtocol::NVMe) {
+            return false;
+        }
+        for (const auto& entity : endpoint.get_connected_entities()) {
+            if (entity.get_entity_role() == enums::EntityRole::Initiator) {
                 return true;
             }
         }
@@ -105,6 +119,6 @@ OptionalField<std::string> ZoneUtils::get_upstream_endpoint(const std::vector<st
     if (iterator != endpoint_uuids.end()) {
         return *iterator;
     }
-    return OptionalField<std::string>{};
+    return OptionalField<Uuid>{};
 }
 

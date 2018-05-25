@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,13 @@
  * */
 
 #pragma once
+
+
+
 #include "agent-framework/module/requests/common.hpp"
-#include "agent-framework/module/requests/storage/add_iscsi_target.hpp"
-#include "agent-framework/module/requests/storage/add_logical_drive.hpp"
-#include "agent-framework/module/requests/storage/delete_iscsi_target.hpp"
-#include "agent-framework/module/requests/storage/delete_logical_drive.hpp"
-#include "agent-framework/module/requests/storage/get_logical_drive_info.hpp"
-#include "agent-framework/module/requests/storage/get_physical_drive_info.hpp"
+#include "agent-framework/module/requests/storage/add_volume.hpp"
+#include "agent-framework/module/requests/storage/delete_volume.hpp"
 #include "agent-framework/module/requests/storage/get_storage_service_info.hpp"
-#include "agent-framework/module/requests/storage/get_iscsi_target_info.hpp"
+#include "agent-framework/module/requests/storage/get_storage_pool_info.hpp"
+#include "agent-framework/module/requests/storage/get_volume_info.hpp"
 

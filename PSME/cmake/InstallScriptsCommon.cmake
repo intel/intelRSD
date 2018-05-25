@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -96,15 +96,14 @@ macro(assure_package pkg ver link)
 
     # get extension, from the link
     set(extension "")
-    foreach(ext "zip" "tar\\..*" "tar")
+    foreach(ext "zip" "tar\\..*" "tar" "hpp")
         if ("${link}" MATCHES ".*\\.${ext}$")
             string(REGEX MATCH "${ext}$$" extension ${link})
             break()
         endif()
     endforeach()
 
-
-    if (NOT EXISTS ${source_dir})
+    if (NOT ${PKG}_VERSION)
         # download file to third_party directory
         set(downloaded_file ${CMAKE_CURRENT_LIST_DIR}/../third_party/${pkg}-${ver}.${extension})
         if (DEFINED DOWNLOAD_THIRDPARTY)
@@ -120,6 +119,10 @@ macro(assure_package pkg ver link)
             elseif (${link} MATCHES "^http://.*$")
                 if (NOT DEFINED ENV{HTTP_PROXY})
                     message(STATUS "No HTTP_PROXY environment variable defined")
+                endif()
+            elseif (${link} MATCHES "^ftp://.*$")
+                if (NOT DEFINED ENV{FTP_PROXY})
+                    message(STATUS "No FTP_PROXY environment variable defined")
                 endif()
             endif()
             message(STATUS "Downloading ${link}")
@@ -139,7 +142,7 @@ macro(assure_package pkg ver link)
                 )
                 string(REGEX MATCH "[0-9a-z]*" COMPUTED "${result}")
                 if (NOT ${COMPUTED} STREQUAL ${MD5})
-                    message(FATAL_ERROR "Incorrect md5 ${COMPUTED} of ${pkg}-${ver}.${extension}, expected ${MD5}")
+                    message(FATAL_ERROR "Incorrect md5 of ${pkg}-${ver}.${extension}, calculated ${COMPUTED}, expected ${MD5}")
                 endif()
             endif()
 
@@ -153,49 +156,58 @@ macro(assure_package pkg ver link)
             endif()
         endif()
 
-        # extract files from archive
+        file(REMOVE  ${source_dir})
         file(MAKE_DIRECTORY ${source_dir})
-        if ("${extension}" STREQUAL "zip")
-            check_executable("unzip")
-            execute_process(
-                COMMAND unzip ${downloaded_file}
-                WORKING_DIRECTORY ${source_dir}
-                ERROR_VARIABLE errors
-                RESULT_VARIABLE result
+        if ("${extension}" STREQUAL "hpp")
+            string(REGEX MATCH "[^/]*$" file_name "${link}")
+            configure_file(
+                ${CMAKE_CURRENT_LIST_DIR}/../third_party/${pkg}-${ver}.${extension} ${source_dir}/${file_name}
+                COPYONLY
             )
         else()
-            check_executable("tar")
-            execute_process(
-                COMMAND ${CMAKE_COMMAND} -E tar xvf ${downloaded_file}
-                WORKING_DIRECTORY ${source_dir}
-                ERROR_VARIABLE errors
-                RESULT_VARIABLE result
-            )
-        endif()
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Cannot extract ${pkg}-${ver}.${extension}, error: ${result}\n${errors}")
-        endif()
+            # extract files from archive and "reduce" to appropriate level
+            if ("${extension}" STREQUAL "zip")
+                check_executable("unzip")
+                execute_process(
+                    COMMAND unzip ${downloaded_file}
+                    WORKING_DIRECTORY ${source_dir}
+                    ERROR_VARIABLE errors
+                    RESULT_VARIABLE result
+                )
+            else()
+                check_executable("tar")
+                execute_process(
+                    COMMAND ${CMAKE_COMMAND} -E tar xvf ${downloaded_file}
+                    WORKING_DIRECTORY ${source_dir}
+                    ERROR_VARIABLE errors
+                    RESULT_VARIABLE result
+                )
+            endif()
+            if (NOT ${result} EQUAL 0)
+                message(FATAL_ERROR "Cannot extract ${pkg}-${ver}.${extension}, error: ${result}\n${errors}")
+            endif()
 
-        # "strip" one level from directories.. Unpacked
-        file(GLOB files_to_move
-            RELATIVE ${source_dir}
-            ${source_dir}/*
-        )
-        list(LENGTH files_to_move num)
-        if (num EQUAL 0)
-            message(FATAL_ERROR "Empty archive for {pkg}-${ver}")
-        elseif (NOT num EQUAL 1)
-            message(FATAL_ERROR "Wrong number of top-level files in ${pkg}-${ver} (${num}: ${files_to_move})")
+            # "strip" one level from directories.. Unpacked
+            file(GLOB files_to_move
+                RELATIVE ${source_dir}
+                ${source_dir}/*
+            )
+            list(LENGTH files_to_move num)
+            if (num EQUAL 0)
+                message(FATAL_ERROR "Empty archive for ${pkg}-${ver}")
+            elseif (NOT num EQUAL 1)
+                message(FATAL_ERROR "Wrong number of top-level files in ${pkg}-${ver} (${num}: ${files_to_move})")
+            endif()
+            list(GET files_to_move 0 top_level)
+            file(GLOB files_to_move
+                RELATIVE ${source_dir}/${top_level}
+                ${source_dir}/${top_level}/*
+            )
+            foreach(name ${files_to_move})
+                file(RENAME "${source_dir}/${top_level}/${name}" "${source_dir}/${name}")
+            endforeach()
+            file(REMOVE_RECURSE "${source_dir}/${top_level}")
         endif()
-        list(GET files_to_move 0 top_level)
-        file(GLOB files_to_move
-            RELATIVE ${source_dir}/${top_level}
-            ${source_dir}/${top_level}/*
-        )
-        foreach(name ${files_to_move})
-            file(RENAME "${source_dir}/${top_level}/${name}" "${source_dir}/${name}")
-        endforeach()
-        file(REMOVE_RECURSE "${source_dir}/${top_level}")
 
         # Patch the files..
         if (patch)
@@ -220,7 +232,7 @@ macro(assure_package pkg ver link)
     set(${PKG}_VERSION ${source_version} CACHE INTERNAL "${pkg} version")
 
     # output variables:
-    # - PKG_VERSION: version of the package. If patched, patch name is appended.
+    # - ${PKG}_VERSION: version of the package. If patched, patch name is appended.
     # - source_name: directory name with compiled package (with version).
     # - source_dir: path with compiled package
     # - binary_dir: path with compilation results
@@ -355,9 +367,6 @@ function(find_package_local PACKAGE MODULE)
         endif()
         return()
     endif()
-    if (NOT ${PACKAGE}__LIBRARIES)
-        message(WARNING "Package ${PACKAGE}/${UPPER} does not deliver any libraries")
-    endif()
 
     # find all necessary library files and create targets for them if not created
     set(added_libs ${ADDED_LIBRARIES})
@@ -411,12 +420,19 @@ function(find_package_local PACKAGE MODULE)
     endif()
 
     set(incldirs ${${PACKAGE}__INCLUDE_DIRS} ${${PACKAGE}__INCLUDEDIR})
-    find_package_handle_standard_args(${UPPER} DEFAULT_MSG
-        libraries libdirs incldirs
-    )
-
     message(STATUS "includes: ${incldirs}")
-    message(STATUS "libraries: ${libraries}")
+    if (NOT librarires)
+	message(STATUS "libraries: package doesn't deliver any libraries")
+        find_package_handle_standard_args(${UPPER} DEFAULT_MSG
+            incldirs
+        )
+    else()
+        message(STATUS "libraries: ${libraries}")
+        find_package_handle_standard_args(${UPPER} DEFAULT_MSG
+            libraries libdirs incldirs
+        )
+    endif()
+
 
     # set "output" cache entries
     if (${UPPER}_FOUND)

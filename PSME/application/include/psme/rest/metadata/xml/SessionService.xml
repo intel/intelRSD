@@ -59,7 +59,7 @@
         </Property>
         <NavigationProperty Name="Sessions" Type="SessionCollection.SessionCollection" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Link to a collection of Sessions"/>
+          <Annotation Term="OData.Description" String="Link to a collection of Sessions."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the link to a collection of Sessions."/>
           <Annotation Term="OData.AutoExpandReferences"/>

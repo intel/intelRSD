@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,39 +22,38 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.CHASSIS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.COMPOSED_NODES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.DRIVES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ENDPOINTS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_INTERFACES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCHES;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.COMPOSED_NODE;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.DRIVE;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ENDPOINT;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_INTERFACE;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH;
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_ACLS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_ACL_RULES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_PORTS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_PORT_VLANS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_STATIC_MACS;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_ACL_RULE;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_PORT;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_PORT_VLAN;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ETHERNET_SWITCH_STATIC_MAC;
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.EVENT_SUBSCRIPTION;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRICS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRIC_SWITCHES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRIC_SWITCH_PORTS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.LOGICAL_DRIVES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.MANAGERS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.MEMORY_MODULES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.METRICS_DEFINITION;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.METRICS_REPORT_DEFINITION;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.NETWORK_DEVICE_FUNTIONS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.NETWORK_INTERFACES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PCIE_DEVICES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PCIE_DEVICE_FUNCTIONS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PHYSICAL_DRIVES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.POWER_ZONES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PROCESSORS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.REMOTE_TARGETS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SERVICES;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRIC;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRIC_SWITCH;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.FABRIC_SWITCH_PORT;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.MANAGER;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.MEMORY_MODULE;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.METRIC_DEFINITION;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.METRIC_REPORT_DEFINITION;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.NETWORK_DEVICE_FUNCTION;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.NETWORK_INTERFACE;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PCIE_DEVICE;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PCIE_DEVICE_FUNCTION;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.POWER_ZONE;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.PROCESSOR;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SERVICE;
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SIMPLE_STORAGE;
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.STORAGE;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SYSTEMS;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.THERMAL_ZONES;
-import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ZONES;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.STORAGE_POOL;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.SYSTEM;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.THERMAL_ZONE;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.VOLUME;
+import static com.intel.podm.business.dto.redfish.CollectionDto.Type.ZONE;
 import static com.intel.podm.redfish.serializers.ODataForCollection.newOdataForCollectionBuilder;
 import static java.lang.String.format;
 import static java.util.Collections.unmodifiableMap;
@@ -70,37 +69,37 @@ final class CollectionTypeToCollectionODataMapping {
             .oDataType("#ChassisCollection.ChassisCollection")
             .build());
 
-        collection.put(MANAGERS, newOdataForCollectionBuilder()
+        collection.put(MANAGER, newOdataForCollectionBuilder()
             .name("Manager Collection")
             .oDataType("#ManagerCollection.ManagerCollection")
             .build());
 
-        collection.put(SYSTEMS, newOdataForCollectionBuilder()
+        collection.put(SYSTEM, newOdataForCollectionBuilder()
             .name("Computer System Collection")
             .oDataType("#ComputerSystemCollection.ComputerSystemCollection")
             .build());
 
-        collection.put(SERVICES, newOdataForCollectionBuilder()
-            .name("Storage Services Collection")
+        collection.put(SERVICE, newOdataForCollectionBuilder()
+            .name("Storage Service Collection")
             .oDataType("#StorageServiceCollection.StorageServiceCollection")
             .build());
 
-        collection.put(COMPOSED_NODES, newOdataForCollectionBuilder()
-            .name("Composed Nodes Collection")
+        collection.put(COMPOSED_NODE, newOdataForCollectionBuilder()
+            .name("Composed Node Collection")
             .oDataType("#ComposedNodeCollection.ComposedNodeCollection")
             .build());
 
         collection.put(EVENT_SUBSCRIPTION, newOdataForCollectionBuilder()
-            .name("Event Subscriptions Collection")
+            .name("Event Subscription Collection")
             .oDataType("#EventDestinationCollection.EventDestinationCollection")
             .build());
 
-        collection.put(PROCESSORS, newOdataForCollectionBuilder()
-            .name("Processors Collection")
+        collection.put(PROCESSOR, newOdataForCollectionBuilder()
+            .name("Processor Collection")
             .oDataType("#ProcessorCollection.ProcessorCollection")
             .build());
 
-        collection.put(ETHERNET_INTERFACES, newOdataForCollectionBuilder()
+        collection.put(ETHERNET_INTERFACE, newOdataForCollectionBuilder()
             .name("Ethernet Interface Collection")
             .oDataType("#EthernetInterfaceCollection.EthernetInterfaceCollection")
             .build());
@@ -115,13 +114,13 @@ final class CollectionTypeToCollectionODataMapping {
             .oDataType("#StorageCollection.StorageCollection")
             .build());
 
-        collection.put(MEMORY_MODULES, newOdataForCollectionBuilder()
+        collection.put(MEMORY_MODULE, newOdataForCollectionBuilder()
             .name("Memory Collection")
             .oDataType("#MemoryCollection.MemoryCollection")
             .build());
 
-        collection.put(ETHERNET_SWITCHES, newOdataForCollectionBuilder()
-            .name("Ethernet Switches Collection")
+        collection.put(ETHERNET_SWITCH, newOdataForCollectionBuilder()
+            .name("Ethernet Switch Collection")
             .oDataType("#EthernetSwitchCollection.EthernetSwitchCollection")
             .build());
 
@@ -130,108 +129,108 @@ final class CollectionTypeToCollectionODataMapping {
             .oDataType("#EthernetSwitchACLCollection.EthernetSwitchACLCollection")
             .build());
 
-        collection.put(ETHERNET_SWITCH_ACL_RULES, newOdataForCollectionBuilder()
-            .name("Ethernet Switch Access Control List Rules Collection")
+        collection.put(ETHERNET_SWITCH_ACL_RULE, newOdataForCollectionBuilder()
+            .name("Ethernet Switch Access Control List Rule Collection")
             .oDataType("#EthernetSwitchACLRuleCollection.EthernetSwitchACLRuleCollection")
             .build());
 
-        collection.put(ETHERNET_SWITCH_PORTS, newOdataForCollectionBuilder()
+        collection.put(ETHERNET_SWITCH_PORT, newOdataForCollectionBuilder()
             .name("Switch Port Collection")
             .oDataType("#EthernetSwitchPortCollection.EthernetSwitchPortCollection")
             .build());
 
-        collection.put(ETHERNET_SWITCH_PORT_VLANS, newOdataForCollectionBuilder()
+        collection.put(ETHERNET_SWITCH_PORT_VLAN, newOdataForCollectionBuilder()
             .name("VLAN Network Interface Collection")
             .oDataType("#VLanNetworkInterfaceCollection.VLanNetworkInterfaceCollection")
             .build());
 
-        collection.put(ETHERNET_SWITCH_STATIC_MACS, newOdataForCollectionBuilder()
+        collection.put(ETHERNET_SWITCH_STATIC_MAC, newOdataForCollectionBuilder()
             .name("Static MAC Collection")
             .oDataType("#EthernetSwitchStaticMACCollection.EthernetSwitchStaticMACCollection")
             .build());
 
-        collection.put(REMOTE_TARGETS, newOdataForCollectionBuilder()
-            .name("Remote Targets Collection")
-            .oDataType("#RemoteTargetCollection.RemoteTargetCollection")
+        collection.put(DRIVE, newOdataForCollectionBuilder()
+            .name("Drive Collection")
+            .oDataType("#DriveCollection.DriveCollection")
             .build());
 
-        collection.put(LOGICAL_DRIVES, newOdataForCollectionBuilder()
-            .name("Logical Drives Collection")
-            .oDataType("#LogicalDriveCollection.LogicalDriveCollection")
-            .build());
-
-        collection.put(PHYSICAL_DRIVES, newOdataForCollectionBuilder()
-            .name("Physical Drives Collection")
-            .oDataType("#PhysicalDriveCollection.PhysicalDriveCollection")
-            .build());
-
-        collection.put(THERMAL_ZONES, newOdataForCollectionBuilder()
-            .name("Thermal Zones Collection")
+        collection.put(THERMAL_ZONE, newOdataForCollectionBuilder()
+            .name("Thermal Zone Collection")
             .oDataType("#ThermalZoneCollection.ThermalZoneCollection")
             .build());
 
-        collection.put(POWER_ZONES, newOdataForCollectionBuilder()
-            .name("Power Zones Collection")
+        collection.put(POWER_ZONE, newOdataForCollectionBuilder()
+            .name("Power Zone Collection")
             .oDataType("#PowerZoneCollection.PowerZoneCollection")
             .build());
 
-        collection.put(DRIVES, newOdataForCollectionBuilder()
+        collection.put(DRIVE, newOdataForCollectionBuilder()
             .name("Drive Collection")
-            .oDataType("#StorageDriveCollection.StorageDriveCollection")
+            .oDataType("#DriveCollection.DriveCollection")
             .build());
 
-        collection.put(PCIE_DEVICES, newOdataForCollectionBuilder()
+        collection.put(STORAGE_POOL, newOdataForCollectionBuilder()
+            .name("Storage Pool Collection")
+            .oDataType("#StoragePoolCollection.StoragePoolCollection")
+            .build());
+
+        collection.put(VOLUME, newOdataForCollectionBuilder()
+            .name("Volume Collection")
+            .oDataType("#VolumeCollection.VolumeCollection")
+            .build());
+
+        collection.put(PCIE_DEVICE, newOdataForCollectionBuilder()
             .name("PCIe Device Collection")
             .oDataType("#PCIeDeviceCollection.PCIeDeviceCollection")
             .build());
 
-        collection.put(PCIE_DEVICE_FUNCTIONS, newOdataForCollectionBuilder()
+        collection.put(PCIE_DEVICE_FUNCTION, newOdataForCollectionBuilder()
             .name("PCIe Function Collection")
             .oDataType("#PCIeFunctionCollection.PCIeFunctionCollection")
             .build());
 
-        collection.put(NETWORK_INTERFACES, newOdataForCollectionBuilder()
-            .name("Network Interfaces Collection")
+        collection.put(NETWORK_INTERFACE, newOdataForCollectionBuilder()
+            .name("Network Interface Collection")
             .oDataType("#NetworkInterfaceCollection.NetworkInterfaceCollection")
             .build());
 
-        collection.put(NETWORK_DEVICE_FUNTIONS, newOdataForCollectionBuilder()
-            .name("Network Device Functions Collection")
+        collection.put(NETWORK_DEVICE_FUNCTION, newOdataForCollectionBuilder()
+            .name("Network Device Function Collection")
             .oDataType("#NetworkDeviceFunctionCollection.NetworkDeviceFunctionCollection")
             .build());
 
-        collection.put(FABRICS, newOdataForCollectionBuilder()
-            .name("Fabrics Collection")
+        collection.put(FABRIC, newOdataForCollectionBuilder()
+            .name("Fabric Collection")
             .oDataType("#FabricCollection.FabricCollection")
             .build());
 
-        collection.put(ZONES, newOdataForCollectionBuilder()
-            .name("Zones Collection")
+        collection.put(ZONE, newOdataForCollectionBuilder()
+            .name("Zone Collection")
             .oDataType("#ZoneCollection.ZoneCollection")
             .build());
 
-        collection.put(FABRIC_SWITCHES, newOdataForCollectionBuilder()
+        collection.put(FABRIC_SWITCH, newOdataForCollectionBuilder()
             .name("Switch Collection")
             .oDataType("#SwitchCollection.SwitchCollection")
             .build());
 
-        collection.put(FABRIC_SWITCH_PORTS, newOdataForCollectionBuilder()
-            .name("Ports Collection")
+        collection.put(FABRIC_SWITCH_PORT, newOdataForCollectionBuilder()
+            .name("Port Collection")
             .oDataType("#PortCollection.PortCollection")
             .build());
 
-        collection.put(ENDPOINTS, newOdataForCollectionBuilder()
-            .name("Endpoints Collection")
+        collection.put(ENDPOINT, newOdataForCollectionBuilder()
+            .name("Endpoint Collection")
             .oDataType("#EndpointCollection.EndpointCollection")
             .build());
 
-        collection.put(METRICS_DEFINITION, newOdataForCollectionBuilder()
-            .name("Metrics Definition Collection")
+        collection.put(METRIC_DEFINITION, newOdataForCollectionBuilder()
+            .name("Metric Definition Collection")
             .oDataType("#MetricDefinitionCollection.MetricDefinitionCollection")
             .build());
 
-        collection.put(METRICS_REPORT_DEFINITION, newOdataForCollectionBuilder()
-            .name("Metrics Report Definition Collection")
+        collection.put(METRIC_REPORT_DEFINITION, newOdataForCollectionBuilder()
+            .name("Metric Report Definition Collection")
             .oDataType("#MetricReportDefinitionCollection.MetricReportDefinitionCollection")
             .build());
 

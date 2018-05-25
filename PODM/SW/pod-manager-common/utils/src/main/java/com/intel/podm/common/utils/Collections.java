@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,13 @@ public final class Collections {
     private Collections() {
     }
 
-    public static <T, U extends T> Collection<U> filterByType(Collection<T> collection, Class<U> selectedClass) {
+    public static <T, U> Collection<U> filterByType(Collection<T> collection, Class<U> selectedClass) {
         requiresNonNull(collection, "collection");
         requiresNonNull(selectedClass, "selectedClass");
 
         return collection.stream()
             .filter(Objects::nonNull)
-            .filter(object -> selectedClass.isAssignableFrom(object.getClass()))
+            .filter(selectedClass::isInstance)
             .map(selectedClass::cast)
             .collect(toList());
     }

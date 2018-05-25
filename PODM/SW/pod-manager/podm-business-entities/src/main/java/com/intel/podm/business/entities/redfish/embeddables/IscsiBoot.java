@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,14 +104,8 @@ public class IscsiBoot {
     @Column(name = "chap_username")
     private String chapUsername;
 
-    @Column(name = "chap_secret")
-    private String chapSecret;
-
     @Column(name = "mutual_chap_username")
     private String mutualChapUsername;
-
-    @Column(name = "mutual_chap_secret")
-    private String mutualChapSecret;
 
     public IpAddressType getIpAddressType() {
         return ipAddressType;
@@ -305,28 +299,12 @@ public class IscsiBoot {
         this.chapUsername = chapUsername;
     }
 
-    public String getChapSecret() {
-        return chapSecret;
-    }
-
-    public void setChapSecret(String chapSecret) {
-        this.chapSecret = chapSecret;
-    }
-
     public String getMutualChapUsername() {
         return mutualChapUsername;
     }
 
     public void setMutualChapUsername(String mutualChapUsername) {
         this.mutualChapUsername = mutualChapUsername;
-    }
-
-    public String getMutualChapSecret() {
-        return mutualChapSecret;
-    }
-
-    public void setMutualChapSecret(String mutualChapSecret) {
-        this.mutualChapSecret = mutualChapSecret;
     }
 
     @Override
@@ -364,9 +342,7 @@ public class IscsiBoot {
             .append(routerAdvertisementEnabled, iscsiBoot.routerAdvertisementEnabled)
             .append(authenticationMethod, iscsiBoot.authenticationMethod)
             .append(chapUsername, iscsiBoot.chapUsername)
-            .append(chapSecret, iscsiBoot.chapSecret)
             .append(mutualChapUsername, iscsiBoot.mutualChapUsername)
-            .append(mutualChapSecret, iscsiBoot.mutualChapSecret)
             .isEquals();
     }
 
@@ -398,9 +374,7 @@ public class IscsiBoot {
             .append(routerAdvertisementEnabled)
             .append(authenticationMethod)
             .append(chapUsername)
-            .append(chapSecret)
             .append(mutualChapUsername)
-            .append(mutualChapSecret)
             .toHashCode();
     }
 }

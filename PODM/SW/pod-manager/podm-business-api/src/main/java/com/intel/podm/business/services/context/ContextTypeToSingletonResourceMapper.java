@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.intel.podm.business.services.context.ContextType.COMPUTER_SYSTEM_METRICS;
+import static com.intel.podm.business.services.context.ContextType.DRIVE_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_METRICS;
 import static com.intel.podm.business.services.context.ContextType.ETHERNET_SWITCH_PORT_METRICS;
 import static com.intel.podm.business.services.context.ContextType.EVENT_SERVICE;
@@ -30,6 +31,7 @@ import static com.intel.podm.business.services.context.ContextType.POWER;
 import static com.intel.podm.business.services.context.ContextType.PROCESSOR_METRICS;
 import static com.intel.podm.business.services.context.ContextType.TELEMETRY_SERVICE;
 import static com.intel.podm.business.services.context.ContextType.THERMAL;
+import static com.intel.podm.business.services.context.ContextType.VOLUME_METRICS;
 import static com.intel.podm.common.utils.Contracts.requiresNonNull;
 import static java.util.Collections.unmodifiableSet;
 
@@ -44,6 +46,8 @@ class ContextTypeToSingletonResourceMapper {
         set.add(EVENT_SERVICE);
         set.add(TELEMETRY_SERVICE);
         set.add(COMPUTER_SYSTEM_METRICS);
+        set.add(DRIVE_METRICS);
+        set.add(VOLUME_METRICS);
         set.add(PROCESSOR_METRICS);
         set.add(MEMORY_METRICS);
         set.add(PORT_METRICS);

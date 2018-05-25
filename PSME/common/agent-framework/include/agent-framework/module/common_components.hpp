@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,10 +51,17 @@ public:
     using TaskManager = GenericManager<model::Task>;
     using NetworkInterfaceManager = GenericManager<model::NetworkInterface>;
     using StorageDrivesManager = managers::ManyToManyManager;
+    using StoragePoolVolumesManager = managers::ManyToManyManager;
     using ProcessorManager = GenericManager<model::Processor>;
     using MetricManager = GenericManager<model::Metric>;
     using MetricDefinitionManager = GenericManager<model::MetricDefinition>;
-
+    using FabricManager = GenericManager<model::Fabric>;
+    using ZoneManager = GenericManager<model::Zone>;
+    using EndpointManager = GenericManager<model::Endpoint>;
+    using PcieDeviceManager = GenericManager<model::PcieDevice>;
+    using PcieFunctionManager = GenericManager<model::PcieFunction>;
+    using ZoneEndpointManager = managers::ManyToManyManager;
+    using StorageServiceDrivesManager = managers::ManyToManyManager;
 
     virtual ~CommonComponents();
 
@@ -133,6 +140,15 @@ public:
         return m_storage_subsystem_manager;
     }
 
+    /*!
+     * @brief Get StorageService Drives manager
+     * @return Reference to a storage service drives manager
+     * */
+    StorageServiceDrivesManager& get_storage_service_drives_manager() {
+        return m_storage_service_drives_manager;
+    }
+
+
 
     /*!
      * @brief Get system manager
@@ -153,11 +169,68 @@ public:
 
 
     /*!
+     * @brief Get manager for StoragePool - Volume mappings
+     * @return Manager for StoragePool - Volume mappings
+     * */
+    StoragePoolVolumesManager& get_storage_pool_volumes_manager() {
+        return m_storage_pool_volumes_manager;
+    }
+
+    /*!
      * @brief Get processor manager
      * @return Instance of processor manager
      * */
     ProcessorManager& get_processor_manager() {
         return m_processor_manager;
+    }
+
+    /*!
+     * Get fabric manager
+     *
+     * @return Reference to fabric manager
+     * */
+    FabricManager& get_fabric_manager() {
+        return m_fabric_manager;
+    }
+
+    /*!
+     * @brief Get manager for Zones
+     * @return manager for Zones
+     * */
+    ZoneManager& get_zone_manager() {
+        return m_zone_manager;
+    }
+
+    /*!
+     * @brief Get manager for Endpoints
+     * @return manager for Endpoints
+     * */
+    EndpointManager& get_endpoint_manager() {
+        return m_endpoint_manager;
+    }
+
+    /*!
+     * @brief Get manager for PcieDevices
+     * @return manager for PcieDevices
+     * */
+    PcieDeviceManager& get_pcie_device_manager() {
+        return m_pcie_device_manager;
+    }
+
+    /*!
+     * @brief Get manager for PcieFunctions
+     * @return manager for PcieFunctions
+     * */
+    PcieFunctionManager& get_pcie_function_manager() {
+        return m_pcie_function_manager;
+    }
+
+    /*!
+     * @brief Get manager for Zone-Endpoint mappings
+     * @return manager for Zone-Endpoint mappings
+     * */
+    ZoneEndpointManager& get_zone_endpoint_manager() {
+        return m_zone_endpoint_manager;
     }
 
 
@@ -169,10 +242,18 @@ private:
     NetworkInterfaceManager m_network_interface_manager{};
     SystemManager m_system_manager{};
     StorageSubsystemManager m_storage_subsystem_manager{};
+    StorageServiceDrivesManager m_storage_service_drives_manager{};
     StorageDrivesManager m_storage_subsystem_drives_manager{};
+    StoragePoolVolumesManager m_storage_pool_volumes_manager{};
     MetricManager m_metric_manager{};
     ProcessorManager m_processor_manager{};
     MetricDefinitionManager m_metric_definition_manager{};
+    FabricManager m_fabric_manager{};
+    ZoneManager m_zone_manager{};
+    EndpointManager m_endpoint_manager{};
+    PcieDeviceManager m_pcie_device_manager{};
+    PcieFunctionManager m_pcie_function_manager{};
+    ZoneEndpointManager m_zone_endpoint_manager{};
 };
 
 }

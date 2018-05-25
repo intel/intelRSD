@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 package com.intel.podm.business.entities.redfish.embeddables;
 
 import com.intel.podm.common.types.MemoryClassification;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Enumerated;
-import java.util.Objects;
 
 import static javax.persistence.EnumType.STRING;
 
@@ -73,23 +74,32 @@ public class Region {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
+
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         Region region = (Region) o;
-        return Objects.equals(regionId, region.regionId)
-            && memoryClassification == region.memoryClassification
-            && Objects.equals(offsetMib, region.offsetMib)
-            && Objects.equals(sizeMib, region.sizeMib);
+
+        return new EqualsBuilder()
+            .append(regionId, region.regionId)
+            .append(memoryClassification, region.memoryClassification)
+            .append(offsetMib, region.offsetMib)
+            .append(sizeMib, region.sizeMib)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(regionId, memoryClassification, offsetMib, sizeMib);
+        return new HashCodeBuilder()
+            .append(regionId)
+            .append(memoryClassification)
+            .append(offsetMib)
+            .append(sizeMib)
+            .toHashCode();
     }
 }

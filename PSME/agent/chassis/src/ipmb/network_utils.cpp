@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,10 @@
  * */
 
 #include "agent-framework/module/common_components.hpp"
-#include "ipmb/command/ini-parser/INI.h"
 #include "ipmb/network_utils.hpp"
+
+#include <fstream>
+#include <string>
 
 extern "C" {
 #include <unistd.h>
@@ -39,6 +41,22 @@ namespace ipmb {
 namespace network_utils {
 
 using agent_framework::module::CommonComponents;
+
+
+std::string get_network_interface() {
+    auto drawer_manager_keys = CommonComponents::get_instance()->get_module_manager().get_keys("");
+    if (!drawer_manager_keys.size()) {
+        throw std::runtime_error("Cannot get chassis network interface name.");
+    }
+
+    auto chassis_keys = CommonComponents::get_instance()->
+        get_chassis_manager().get_keys(drawer_manager_keys.front());
+
+    auto chassis = CommonComponents::get_instance()->
+        get_chassis_manager().get_entry_reference(chassis_keys.front());
+
+    return chassis->get_network_interface();
+}
 
 
 std::string get_ip(const std::string& interface) {
@@ -80,66 +98,6 @@ std::string get_ip(const std::string& interface) {
     return std::string{host};
 }
 
-std::string get_network_interface() {
-    auto drawer_manager_keys = CommonComponents::get_instance()->get_module_manager().get_keys("");
-    if (!drawer_manager_keys.size()) {
-        throw std::runtime_error("Cannot get chassis network interface name.");
-    }
-
-    auto chassis_keys = CommonComponents::get_instance()->
-            get_chassis_manager().get_keys(drawer_manager_keys.front());
-
-    auto chassis = CommonComponents::get_instance()->
-            get_chassis_manager().get_entry_reference(chassis_keys.front());
-
-    return chassis->get_network_interface();
-}
-
-namespace {
-constexpr const char* const NETWORK_FILE_PREFIX = "/etc/systemd/network/";
-constexpr const char* const NETWORK_FILE_SUFIX = ".network";
-
-std::string make_network_file(const std::string& file) {
-    return NETWORK_FILE_PREFIX + file + NETWORK_FILE_SUFIX;
-}
-
-bool  is_start_with(const std::string& str, const std::string& substring) {
-    return !str.compare(0, substring.size(), substring);
-}
-}
-
-SourceOption get_source(const std::string& interface) {
-    std::ifstream in_file{};
-    in_file.open(make_network_file(interface));
-
-    if (!in_file.is_open()) {
-        throw std::runtime_error{"Cannot open interface file " + interface};
-    }
-
-    std::string line{};
-    std::string DHCP_OPTION = "DHCP=";
-    std::string ADDRESS_OPTION = "Address=";
-
-    bool address_found = false;
-    bool dhcp_found = false;
-    while (getline(in_file, line)) {
-        if (is_start_with(line, DHCP_OPTION) &&
-                            line.compare(DHCP_OPTION.size(), 2, "no")) {
-           dhcp_found = true;
-        }
-
-        if (is_start_with(line, ADDRESS_OPTION)) {
-            address_found = true;
-            break;
-        }
-    }
-
-    in_file.close();
-
-    return address_found ? SourceOption::STATIC :
-           dhcp_found    ? SourceOption::DHCP :
-                           SourceOption::NONE;
-}
 
 std::string get_mask(const std::string& interface) {
     struct ifaddrs* ifaddr{nullptr};
@@ -154,12 +112,12 @@ std::string get_mask(const std::string& interface) {
         auto family = ifa->ifa_addr->sa_family;
         if (AF_INET == family || AF_INET6 == family) {
             if (0 != interface.compare(ifa->ifa_name)) {
-               continue;
+                continue;
             }
             auto rc = getnameinfo(ifa->ifa_netmask,
-                                    sizeof(struct sockaddr_in),
-                                    host, NI_MAXHOST,
-                                    nullptr, 0, NI_NUMERICHOST);
+                sizeof(struct sockaddr_in),
+                host, NI_MAXHOST,
+                nullptr, 0, NI_NUMERICHOST);
             if (0 != rc) {
                 throw std::runtime_error("Cannot get network address!");
             }
@@ -176,7 +134,108 @@ std::string get_mask(const std::string& interface) {
     return std::string{host};
 }
 
+
+json::Json parse_ini(std::istream& in_file) {
+    json::Json parsed{};
+    std::string section = "";
+    std::string line{};
+
+    while (getline(in_file, line)) {
+        auto first = line.find_first_not_of(" \t");
+        if (first == std::string::npos) {
+            continue;
+        }
+        else if (first > 0) {
+            line.erase(0, first);
+        }
+
+        /* parse section tag */
+        if (line.at(0) == '[') {
+            section = line.substr(1, line.length() - 2);
+            parsed[section] = {};
+            continue;
+        }
+        /* parse value tag */
+        auto index = line.find('=');
+        if (index == std::string::npos) {
+            throw std::runtime_error{"Not a key=value: " + line};
+        }
+        if (section.empty()) {
+            throw std::runtime_error{"Value not in any section: " + line};
+        }
+        parsed[section][line.substr(0, index)] = line.substr(index + 1);
+    }
+    return parsed;
+}
+
+
 namespace {
+
+void save_values(std::ostream& out_file, const json::Json& section) {
+    for (json::Json::const_iterator it = section.begin(); it != section.end(); it++) {
+        if (it->is_object()) {
+            throw std::runtime_error{"Subsection found: " + it.key()};
+        }
+        out_file << it.key() << "=" << it.value().get<std::string>() << std::endl;
+    }
+}
+
+}
+
+void save_ini(std::ostream& out_file, const json::Json& ini) {
+    /* then store all key-value pairs from sections */
+    bool add_empty_line = false;
+    for (json::Json::const_iterator it = ini.begin(); it != ini.end(); it++) {
+        if (!it->is_object()) {
+            throw std::runtime_error{"Not a section: " + it.key()};
+        }
+        if (!add_empty_line) {
+            add_empty_line = true;
+        }
+        else {
+            out_file << std::endl;
+        }
+        out_file << "[" << it.key() << "]" << std::endl;
+        save_values(out_file, it.value());
+    }
+}
+
+
+namespace {
+
+constexpr const char* const NETWORK_FILE_PREFIX = "/etc/systemd/network/";
+constexpr const char* const NETWORK_FILE_SUFIX = ".network";
+
+std::string make_network_file(const std::string& file) {
+    return NETWORK_FILE_PREFIX + file + NETWORK_FILE_SUFIX;
+}
+
+json::Json parse_network_ini(const std::string& interface) {
+    std::ifstream in_file{make_network_file(interface)};
+    if (!in_file.is_open()) {
+        throw std::runtime_error{"Cannot open interface " + interface + " file"};
+    }
+
+    json::Json parsed = parse_ini(in_file);
+    if ((parsed.count("Network") != 0) && (parsed["Network"].count("Address") != 0)) {
+        parsed["Address"]["Address"] = std::move(parsed["Network"]["Address"]);
+        parsed["Network"].erase("Address");
+    }
+    return parsed;
+}
+
+void save_network_ini(const std::string& interface, const json::Json& ini) {
+    /* check if given json is valid, will throw an exception if wrong */
+    std::stringstream out_str{};
+    save_ini(out_str, ini);
+
+    /* file is created only if valid json passed! */
+    std::ofstream out_file{make_network_file(interface)};
+    if (!out_file.is_open()) {
+        throw std::runtime_error{"Cannot open interface " + interface + " file"};
+    }
+    save_ini(out_file, ini);
+}
 
 int netmask_bits(const std::string& netmask) {
     struct in_addr addr;
@@ -198,52 +257,64 @@ std::string get_ip_part(const std::string& str) {
 std::string get_mask_part(const std::string& str) {
     return str.substr(str.find("/") + 1, str.size());
 }
+
 }
+
+
+SourceOption get_source(const std::string& interface) {
+    json::Json parsed = parse_network_ini(interface);
+    if ((parsed["Network"].count("DHCP") != 0) && (parsed["Network"]["DHCP"] == "yes")) {
+        return SourceOption::DHCP;
+    }
+    else if (parsed["Address"].count("Address") != 0) {
+        return SourceOption::STATIC;
+    }
+    else {
+        return SourceOption::NONE;
+    }
+}
+
 
 void set_ip(const std::string& interface, const std::string& ip) {
-    INIConfig ini(make_network_file(interface), true);
-
-    auto address = ini.get("Address", "");
-
-    if (address.empty()) {
-        ini["Address"]["Address"] = ip + "/24";
-    } else {
-        ini["Address"]["Address"] = ip + "/" + get_mask_part(address);
+    json::Json ini = parse_network_ini(interface);
+    std::string mask = "/24";
+    if (ini["Address"].count("Address") != 0) {
+        mask = get_mask_part(ini["Address"]["Address"]);
     }
-
-    ini.save();
-    ini.clear();
+    ini["Address"]["Address"] = ip + mask;
+    save_network_ini(ini, interface);
 }
+
 
 void set_mask(const std::string& interface, const std::string& mask) {
-    INIConfig ini(make_network_file(interface), true);
-    ini.select("Address");
-    auto address = ini.get("Address", "");
-
-    if (address.empty()) {
+    json::Json ini = parse_network_ini(interface);
+    if (ini["Address"].count("Address") == 0) {
         throw std::runtime_error{"Address field not set!"};
     }
-
-    ini["Address"]["Address"] = get_ip_part(address)
-                                + "/" + std::to_string(netmask_bits(mask));
-    ini.save();
-    ini.clear();
+    std::string ip = get_ip_part(ini["Address"]["Address"]);
+    ini["Address"]["Address"] = ip + "/" + std::to_string(netmask_bits(mask));
+    save_network_ini(ini, interface);
 }
+
 
 void set_source(const std::string& interface, const SourceOption option) {
-    INIConfig ini(make_network_file(interface), true);
-
-    if (SourceOption::STATIC == option) {
-        ini["Network"]["DHCP"] = "no";
+    json::Json ini = parse_network_ini(interface);
+    switch (option) {
+        case SourceOption::STATIC:
+            /* IP must be set before */
+            ini["Network"]["DHCP"] = "no";
+            break;
+        case SourceOption::DHCP:
+            ini["Network"]["DHCP"] = "yes";
+            break;
+        case SourceOption::NONE:
+            throw std::runtime_error{"Cannot disable source for " + interface};
+        default:
+            throw std::runtime_error{"Unhandled opiton for " + interface};
     }
-
-    if (SourceOption::DHCP == option) {
-        ini["Network"]["DHCP"] = "yes";
-    }
-
-    ini.save();
-    ini.clear();
+    save_network_ini(ini, interface);
 }
+
 
 NetworkBytes addr_to_bytes(const std::string& addr) {
 
@@ -261,6 +332,7 @@ NetworkBytes addr_to_bytes(const std::string& addr) {
 
     return bytes;
 }
+
 
 std::string bytes_to_addr(const NetworkBytes& bytes) {
     return std::to_string(static_cast<unsigned>(bytes[0])) + "." +

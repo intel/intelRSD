@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,28 @@ std::string Path::basename() const {
     return m_list.front();
 }
 
+Path Path::dirname() const {
+    return Path(*this).pop_right();
+}
+
+bool Path::starts_with(const Path& path) const {
+    // different types of paths
+    if (path.is_relative() != is_relative()) {
+        return false;
+    }
+    // test path is longer than tested path
+    if (path.m_list.size() > m_list.size()) {
+        return false;
+    }
+    // check field by field
+    for (auto it1 = m_list.crbegin(), it2 = path.m_list.crbegin(); it1 != m_list.crend() && it2 != path.m_list.crend(); ++it1, ++it2) {
+        if (*it1 != *it2) {
+            return false;
+        }
+    }
+    return true;
+}
+
 Path& Path::pop_right() {
     if (!m_list.empty()) {
         m_list.pop_front();
@@ -44,11 +66,19 @@ Path& Path::pop_right() {
     return *this;
 }
 
-Path& Path::push_right(const Path& path) {
+Path& Path::pop_left() {
+    if (!m_list.empty()) {
+        m_list.pop_back();
+        m_is_absolute = false;
+    }
+    return *this;
+}
 
-    if (path.m_is_absolute) {
+Path& Path::append(const Path& path) {
+
+    if (path.is_absolute()) {
         // cannot add absolute path
-        throw std::logic_error(std::string{"Trying to add absolute path: "} + path.to_string());
+        throw std::logic_error(std::string{"Absolute path cannot be appended to another path: "} + to_string() + " + " + path.to_string());
     }
 
     for (auto it = path.m_list.crbegin(); it != path.m_list.crend(); ++it) {
@@ -56,6 +86,20 @@ Path& Path::push_right(const Path& path) {
     }
 
     normalize();
+
+    return *this;
+}
+
+Path& Path::prepend(const Path& path) {
+
+    if (is_absolute()) {
+        // cannot prepend an absolute path
+        throw std::logic_error(std::string{"Absolute path cannot be prepended: "} + path.to_string() + " + " + to_string());
+    }
+
+    auto tmp = path;
+    tmp.append(*this);
+    *this = std::move(tmp);
 
     return *this;
 }
@@ -133,19 +177,28 @@ void Path::normalize() {
     m_list = canonical;
 }
 
-Path operator/(const Path& lhs, const Path& rhs) {
+const std::string& Path::at(std::size_t i) const {
+    if (i >= m_list.size()) {
+        throw std::out_of_range("Index points outside the path");
+    }
+    auto it = m_list.crbegin();
+    std::advance(it, i);
+    return *it;
+}
+
+Path sysfs::operator/(const Path& lhs, const Path& rhs) {
     Path path = lhs;
     return (path << rhs);
 }
 
-bool operator==(const sysfs::Path& lhs, const sysfs::Path& rhs) {
+bool sysfs::operator==(const sysfs::Path& lhs, const sysfs::Path& rhs) {
     return lhs.to_string() == rhs.to_string();
 }
 
-bool operator!=(const sysfs::Path& lhs, const sysfs::Path& rhs) {
+bool sysfs::operator!=(const sysfs::Path& lhs, const sysfs::Path& rhs) {
     return !(lhs == rhs);
 }
 
-std::ostream& operator<<(std::ostream& os, const sysfs::Path& path) {
+std::ostream& sysfs::operator<<(std::ostream& os, const sysfs::Path& path) {
     return os << path.to_string();
 }

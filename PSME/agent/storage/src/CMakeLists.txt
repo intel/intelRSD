@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,9 +22,7 @@ add_subdirectory(discovery)
 add_subdirectory(sysfs)
 add_subdirectory(iscsi)
 add_subdirectory(lvm)
-add_subdirectory(event)
-add_subdirectory(hotswap)
-add_subdirectory(ip)
+add_subdirectory(watcher)
 add_subdirectory(loader)
 add_subdirectory(common)
 add_subdirectory(tree_stability)
@@ -42,13 +40,18 @@ add_library(storage-discovery-status-utils-ref
     $<TARGET_OBJECTS:iscsi-tgt-config-ref>
     $<TARGET_OBJECTS:sysfs-api-ref>
     $<TARGET_OBJECTS:lvm-api-ref>
-    $<TARGET_OBJECTS:event-impl-storage>
     $<TARGET_OBJECTS:hotswap-impl-storage>
-    $<TARGET_OBJECTS:ip-impl-storage>
     $<TARGET_OBJECTS:storage-tree-stability>
 )
 
 add_executable(psme-storage main.cpp)
+
+generate_default_config_file(
+    main.cpp
+    agent
+    generic
+    "AGENT_STORAGE_CONFIGURATION_FILE"
+)
 
 target_link_libraries(psme-storage
     ${AGENT_STORAGE_LIBRARIES}
@@ -56,6 +59,7 @@ target_link_libraries(psme-storage
     storage-loader-utils-ref
     storage-common-utils-ref
     ${NET_LIBRARIES}
+    ${DATABASE_LIBRARIES}
     ${SYSFSREF_LIBRARIES}
     ${AGENT_FRAMEWORK_LIBRARIES}
     ${UUID_LIBRARIES}

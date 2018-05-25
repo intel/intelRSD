@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,7 @@
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/endpoints/utils.hpp"
 #include "psme/rest/endpoints/manager/manager_network_interface_collection.hpp"
+#include "configuration/configuration.hpp"
 
 
 
@@ -58,10 +59,9 @@ void ManagerNetworkInterfaceCollection::get(const server::Request& request, serv
 
     json[Common::ODATA_ID] = PathBuilder(request).build();
 
-    auto manager_uuid = psme::rest::model::Find<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID])
-        .get_uuid();
+    auto manager = psme::rest::model::Find<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID]).get();
     auto nic_ids = agent_framework::module::get_manager<agent_framework::model::NetworkInterface>()
-        .get_ids(manager_uuid);
+        .get_ids(manager.get_uuid());
 
     if (!nic_ids.empty()) {
         // Managers can have Ethernet Interfaces as a collection of ManagerNetworkInterface
@@ -74,11 +74,24 @@ void ManagerNetworkInterfaceCollection::get(const server::Request& request, serv
         }
     }
     else {
-        // If not - Manager has precisely one EthernetInterface
-        json[Collection::ODATA_COUNT] = 1;
-        json::Value link(json::Value::Type::OBJECT);
-        link[Common::ODATA_ID] = PathBuilder(request).append(1).build();
-        json[Collection::MEMBERS].push_back(std::move(link));
+        if (psme::rest::endpoint::utils::is_manager_for_drawer_or_enclosure(manager.get_uuid()) ||
+            manager.get_manager_type() == agent_framework::model::enums::ManagerInfoType::EnclosureManager) {
+            const json::Value config = configuration::Configuration::get_instance().to_json();
+            const auto& nic_names_size = config["server"]["network-interface-name"].size();
+            json[Collection::ODATA_COUNT] = nic_names_size;
+            for (auto i = 1u; i <= nic_names_size; ++i) {
+                json::Value link(json::Value::Type::OBJECT);
+                link[Common::ODATA_ID] = PathBuilder(request).append(i).build();
+                json[Collection::MEMBERS].push_back(std::move(link));
+            }
+        }
+        else {
+            // If not - Manager has precisely one EthernetInterface
+            json[Collection::ODATA_COUNT] = 1;
+            json::Value link(json::Value::Type::OBJECT);
+            link[Common::ODATA_ID] = PathBuilder(request).append(1).build();
+            json[Collection::MEMBERS].push_back(std::move(link));
+        }
     }
 
     set_response(response, json);

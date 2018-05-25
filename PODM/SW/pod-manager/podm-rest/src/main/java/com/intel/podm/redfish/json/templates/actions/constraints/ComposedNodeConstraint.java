@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,18 @@ import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.Objects;
+import java.util.function.Predicate;
 
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static java.util.Optional.ofNullable;
+import static java.util.Optional.of;
 
 @Constraint(validatedBy = ComposedNodeConstraint.ComposedNodeConstraintValidator.class)
 @Target(PARAMETER)
 @Retention(RUNTIME)
 public @interface ComposedNodeConstraint {
 
-    String message() default "Field boot cannot be empty or null.";
+    String message() default "Field boot cannot be empty.";
 
     Class<?>[] groups() default {};
 
@@ -48,12 +48,19 @@ public @interface ComposedNodeConstraint {
 
         @Override
         public boolean isValid(ComposedNodePartialRepresentation computerSystemPartialRepresentation, ConstraintValidatorContext context) {
-            return ofNullable(computerSystemPartialRepresentation)
+            if (computerSystemPartialRepresentation.boot == null && computerSystemPartialRepresentation.clearTpmOnDelete == null) {
+                return false;
+            }
+
+            return computerSystemPartialRepresentation.boot == null || of(computerSystemPartialRepresentation)
                 .map(json -> json.boot)
-                .filter(Objects::nonNull)
-                .filter(boot -> boot.getBootSourceOverrideTarget() != null || boot.getBootSourceOverrideEnabled() != null
-                    || boot.getBootSourceOverrideMode() != null)
+                .filter(notEmptyBoot())
                 .isPresent();
+        }
+
+        private Predicate<ComposedNodePartialRepresentation.Boot> notEmptyBoot() {
+            return boot -> boot.getBootSourceOverrideTarget() != null || boot.getBootSourceOverrideEnabled() != null
+                || boot.getBootSourceOverrideMode() != null;
         }
     }
 }

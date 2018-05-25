@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ using namespace agent_framework::model;
 namespace {
 
 void get_manager_collection(const GetManagersCollection::Request&, GetManagersCollection::Response& response) {
-    log_debug(GET_LOGGER("chassis-agent"), "GetManagersCollection");
+    log_debug("chassis-agent", "GetManagersCollection");
     // Return only top level manager
     auto keys = CommonComponents::get_instance()->get_module_manager().get_keys("");
 

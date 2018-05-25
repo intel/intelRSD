@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.intel.podm.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.business.services.context.Context;
@@ -26,18 +27,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 @JsonPropertyOrder({
-    "@odata.type", "id", "name", "description", "ruleId", "action", "forwardMirrorInterface", "mirrorPortRegion", "mirrorType",
-    "condition", "links"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "ruleId", "action", "forwardMirrorInterface", "mirrorPortRegion",
+    "mirrorType", "condition", "links", "oem"
 })
-@SuppressWarnings("checkstyle:MethodCount")
+@JsonIgnoreProperties({"Oem"})
 public final class EthernetSwitchAclRuleDto extends RedfishDto {
+    private final Set<Context> mirrorPortRegion = new HashSet<>();
+    private final ConditionDto condition = new ConditionDto();
+    private final Links links = new Links();
     private Long ruleId;
     private ActionType action;
     private Context forwardMirrorInterface;
-    private final Set<Context> mirrorPortRegion = new HashSet<>();
     private MirrorType mirrorType;
-    private final ConditionDto condition = new ConditionDto();
-    private final Links links = new Links();
 
     public EthernetSwitchAclRuleDto() {
         super("#EthernetSwitchACLRule.v1_0_0.EthernetSwitchACLRule");
@@ -87,12 +88,8 @@ public final class EthernetSwitchAclRuleDto extends RedfishDto {
         return condition;
     }
 
-    public final class Links extends RedfishLinksDto {
-    }
-
-    @JsonPropertyOrder({
-        "IPSource", "IPDestination", "MACSource", "MACDestination", "VLANId", "L4SourcePort", "L4DestinationPort", "L4Protocol"
-    })
+    @JsonPropertyOrder({"ipSource", "ipDestination", "macSource", "macDestination", "vlanId", "l4SourcePort", "l4DestinationPort", "l4Protocol"})
+    @SuppressWarnings("checkstyle:MethodCount")
     public static final class ConditionDto {
         @JsonProperty("IPSource")
         private IpConditionDto ipSource;
@@ -104,11 +101,8 @@ public final class EthernetSwitchAclRuleDto extends RedfishDto {
         private MacConditionDto macDestination;
         @JsonProperty("VLANId")
         private VlanIdConditionDto vlanId;
-        @JsonProperty("L4SourcePort")
         private PortConditionDto l4SourcePort;
-        @JsonProperty("L4DestinationPort")
         private PortConditionDto l4DestinationPort;
-        @JsonProperty("L4Protocol")
         private Long l4Protocol;
 
         public IpConditionDto getIpSource() {
@@ -175,11 +169,10 @@ public final class EthernetSwitchAclRuleDto extends RedfishDto {
             this.l4Protocol = l4Protocol;
         }
 
-        @JsonPropertyOrder({"IPv4Address", "Mask"})
+        @JsonPropertyOrder({"ipV4Address", "mask"})
         public static class IpConditionDto {
             @JsonProperty("IPv4Address")
             private String ipV4Address;
-            @JsonProperty("Mask")
             private String mask;
 
             public String getIpV4Address() {
@@ -199,11 +192,10 @@ public final class EthernetSwitchAclRuleDto extends RedfishDto {
             }
         }
 
-        @JsonPropertyOrder({"MACAddress", "Mask"})
+        @JsonPropertyOrder({"address", "mask"})
         public static class MacConditionDto {
             @JsonProperty("MACAddress")
             private String address;
-            @JsonProperty("Mask")
             private String mask;
 
             public String getAddress() {
@@ -223,11 +215,9 @@ public final class EthernetSwitchAclRuleDto extends RedfishDto {
             }
         }
 
-        @JsonPropertyOrder({"Id", "Mask"})
+        @JsonPropertyOrder({"id", "mask"})
         public static class VlanIdConditionDto {
-            @JsonProperty("Id")
             private Long id;
-            @JsonProperty("Mask")
             private Long mask;
 
             public Long getId() {
@@ -247,11 +237,9 @@ public final class EthernetSwitchAclRuleDto extends RedfishDto {
             }
         }
 
-        @JsonPropertyOrder({"Port", "Mask"})
+        @JsonPropertyOrder({"port", "mask"})
         public static class PortConditionDto {
-            @JsonProperty("Port")
             private Long port;
-            @JsonProperty("Mask")
             private Long mask;
 
             public Long getPort() {
@@ -270,5 +258,8 @@ public final class EthernetSwitchAclRuleDto extends RedfishDto {
                 this.mask = mask;
             }
         }
+    }
+
+    public final class Links extends RedfishLinksDto {
     }
 }

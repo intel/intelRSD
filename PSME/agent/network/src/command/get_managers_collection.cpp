@@ -3,7 +3,7 @@
  *
  * File contains all implementations of methods for GetManagersCollection command.
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ void get_managers_collection(const GetManagersCollection::Request&,
     for (const auto& uuid : manager.get_keys()) {
         response.add_entry(attribute::ManagerEntry(uuid));
     }
-    log_debug(GET_LOGGER("network-agent"), "Getting managers collection is successfully finished.");
+    log_debug("network-agent", "Getting managers collection is successfully finished.");
 }
 }
 

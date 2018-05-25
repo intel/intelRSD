@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.intel.podm.business.entities.IgnoreUnlinkingRelationship;
 import com.intel.podm.business.entities.redfish.base.Entity;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.PreRemove;
 import java.io.File;
@@ -468,27 +470,39 @@ class EntityDetail {
         }
 
         @Override
-        @SuppressWarnings("checkstyle:CyclomaticComplexity")
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
+
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
+
             EntityRelationshipDetail that = (EntityRelationshipDetail) o;
-            return Objects.equals(field, that.field)
-                && Objects.equals(typeOfRelatedEntity, that.typeOfRelatedEntity)
-                && relationshipType == that.relationshipType
-                && Objects.equals(unlinkerMethod, that.unlinkerMethod)
-                && Objects.equals(setterMethod, that.setterMethod)
-                && Objects.equals(adderMethod, that.adderMethod)
-                && Objects.equals(getterMethod, that.getterMethod);
+
+            return new EqualsBuilder()
+                .append(field, that.field)
+                .append(typeOfRelatedEntity, that.typeOfRelatedEntity)
+                .append(relationshipType, that.relationshipType)
+                .append(unlinkerMethod, that.unlinkerMethod)
+                .append(setterMethod, that.setterMethod)
+                .append(adderMethod, that.adderMethod)
+                .append(getterMethod, that.getterMethod)
+                .isEquals();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(field, typeOfRelatedEntity, relationshipType, unlinkerMethod, setterMethod, adderMethod, getterMethod);
+            return new HashCodeBuilder()
+                .append(field)
+                .append(typeOfRelatedEntity)
+                .append(relationshipType)
+                .append(unlinkerMethod)
+                .append(setterMethod)
+                .append(adderMethod)
+                .append(getterMethod)
+                .toHashCode();
         }
     }
 

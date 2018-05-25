@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,16 +33,16 @@ ConnectedEntity::~ConnectedEntity() { }
 
 json::Json ConnectedEntity::to_json() const {
     json::Json result{};
-    result[literals::ConnectedEntity::ENTITY_TYPE] = get_entity_type();
-    result[literals::ConnectedEntity::ENTITY_ROLE] = get_entity_role();
+    result[literals::ConnectedEntity::ROLE] = get_entity_role();
+    result[literals::ConnectedEntity::IDENTIFIERS] = get_identifiers().to_json();
     result[literals::ConnectedEntity::ENTITY] = get_entity();
     return result;
 }
 
 ConnectedEntity ConnectedEntity::from_json(const json::Json& json) {
     attribute::ConnectedEntity ce{};
-    ce.set_entity_type(json[literals::ConnectedEntity::ENTITY_TYPE]);
-    ce.set_entity_role(json[literals::ConnectedEntity::ENTITY_ROLE]);
+    ce.set_entity_role(json[literals::ConnectedEntity::ROLE]);
+    ce.set_identifiers(Identifiers::from_json(json[literals::ConnectedEntity::IDENTIFIERS]));
     ce.set_entity(json[literals::ConnectedEntity::ENTITY]);
     return ce;
 }

@@ -1,6 +1,6 @@
 /*!
  * @section LICENSE
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,36 +26,48 @@
 
 #include "agent-framework/generic/singleton.hpp"
 #include "psme/rest/eventing/model/subscription.hpp"
+#include "database/database.hpp"
 #include <mutex>
 #include <map>
 
 namespace psme {
 namespace rest {
 namespace eventing {
-namespace manager{
+namespace manager {
 
 using namespace psme::rest::eventing;
 using namespace psme::rest::eventing::model;
 
-using SubscriptionMap = std::map<std::uint64_t, Subscription>;
+
 /*!
  * SubscriptionManager implementation
  */
 class SubscriptionManager : public agent_framework::generic::Singleton<SubscriptionManager> {
 public:
     /*!
-     * @brief Add subscription
-     *
-     * @param subscription Subscription
+     * @brief Callback prototype for for_each()
      */
-    uint64_t add(Subscription subscription);
+    using SubscriptionCallback = std::function<void(const Subscription&)>;
 
     /*!
-    * @brief Set subscriptions
-    *
-    * @param subscriptions SubscriptionMap
-    */
-    void set_subscriptions(const SubscriptionMap& subscriptions);
+     * @brief Default constructor
+     *
+     * Subscription manager keeps tracking subscriptions: in start all subscriptions
+     * are read from the DB. Each add/del causes DB modifications as well.
+     */
+    SubscriptionManager();
+
+    /*!
+     * @brief Destructor
+     */
+    virtual ~SubscriptionManager();
+
+    /*!
+     * @brief Visit all subscriptions kept by the manager
+     * @param handle Callback to be called on each subscription
+     * @warning Not allowed to use any SubscriptionManager methods.
+     */
+    void for_each(const SubscriptionCallback& handle) const;
 
     /*!
      * @brief Get subscription by subscription id
@@ -66,11 +78,11 @@ public:
     Subscription get(uint64_t subscription_id);
 
     /*!
-     * @brief Get all subscriptions
+     * @brief Add subscription
      *
-     * @return Subscription collection
+     * @param subscription Subscription
      */
-    SubscriptionMap get();
+    uint64_t add(Subscription subscription);
 
     /*!
      * @brief Removes subscription by subscription id
@@ -78,13 +90,6 @@ public:
      * @param subscription_id Subscription id
      */
     void del(uint64_t subscription_id);
-
-    /*!
-     * @brief Get number of subscriptions
-     *
-     * @return Number of subscriptions
-     */
-    uint32_t size();
 
     /*!
      * @brief Notifies subscribers according to event
@@ -99,17 +104,24 @@ public:
      */
     void notify(const EventVec& events);
 
+
     /*!
-     * @brief Destructor
+     * @brief Do clean up of the Subscription Manager.
+     *
+     * @warning This function is required to be called before application exit,
+     * as Database is a static vector and causes core dumps
      */
-    virtual ~SubscriptionManager();
+    void clean_up();
 
 private:
-
+    using SubscriptionMap = std::map<std::uint64_t, Subscription>;
     SubscriptionMap m_subscriptions{};
-    std::mutex m_mutex{};
 
-    static std::uint64_t id;
+    mutable std::mutex m_mutex{};
+
+    /*! @brief Last assigned ID */
+    std::uint64_t m_id{};
+    database::Database::SPtr m_db{};
 };
 
 

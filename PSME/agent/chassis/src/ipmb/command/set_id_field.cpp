@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,14 +50,14 @@ void SetIdField::Response::add_data(IpmiMessage& msg) {
 }
 
 void  SetIdField::unpack(IpmiMessage& msg) {
-    log_debug(GET_LOGGER("ipmb"), "Unpacking Set ID Field message.");
+    log_debug("ipmb", "Unpacking Set ID Field message.");
 
     msg.set_to_request();
 
     // Validate request length
     auto data_len = (msg.get_len() - IPMB_FRAME_HDR_WITH_DATA_CHCKSUM_LEN);
     if (CMD_MIN_REQUEST_DATA_LENGTH > data_len) {
-        log_error(GET_LOGGER("ipmb"), "Invalid request length.");
+        log_error("ipmb", "Invalid request length.");
         m_response.set_cc(CompletionCode::CC_REQ_DATA_LENGTH_INVALID);
         return;
     }
@@ -69,7 +69,7 @@ void  SetIdField::unpack(IpmiMessage& msg) {
         m_request.set_field_size(data[offset++]);
         if (CMD_MAX_STRING_FIELD_SIZE < m_request.get_field_size()
             || data_len < m_request.get_field_size()) {
-            log_error(GET_LOGGER("ipmb"), "Wrong field size: " << static_cast<unsigned>(m_request.get_field_size())
+            log_error("ipmb", "Wrong field size: " << static_cast<unsigned>(m_request.get_field_size())
                                            << " req len: " << msg.get_len());
             m_response.set_cc(CompletionCode::CC_REQ_DATA_FIELD_LENGTH_EXC);
             return;
@@ -89,7 +89,7 @@ void SetIdField::pack(IpmiMessage& msg) {
 
     // Verify type
     if (CMD_TYPE_DEFAULT != m_request.get_type()) {
-        log_error(GET_LOGGER("ipmb"), "Unsupported type.");
+        log_error("ipmb", "Unsupported type.");
         m_response.set_cc(CompletionCode::CC_PARAMETER_OUT_OF_RANGE);
         populate(msg);
         return;
@@ -102,7 +102,7 @@ void SetIdField::pack(IpmiMessage& msg) {
          || instance_field == InstanceField::RACKPUID
          || instance_field == InstanceField::TRAYRUID)
          && CMD_MAX_NUMERIC_FIELD_SIZE != field_size)) {
-        log_error(GET_LOGGER("ipmb"), "Invalid field size: " << field_size);
+        log_error("ipmb", "Invalid field size: " << field_size);
         m_response.set_cc(CompletionCode::CC_PARAMETER_OUT_OF_RANGE);
         populate(msg);
         return;
@@ -111,7 +111,7 @@ void SetIdField::pack(IpmiMessage& msg) {
     // Write ID
     switch (instance_field) {
     case InstanceField::RESERVED:
-        log_error(GET_LOGGER("ipmb"), "Can not write to reserved field.");
+        log_error("ipmb", "Can not write to reserved field.");
         m_response.set_cc(CompletionCode::CC_PARAMETER_OUT_OF_RANGE);
         break;
     case InstanceField::RACKPUID:
@@ -120,7 +120,7 @@ void SetIdField::pack(IpmiMessage& msg) {
         m_response.set_cc(CompletionCode::CC_OK);
         break;
     case InstanceField::RACKBPID:
-        log_warning(GET_LOGGER("ipmb"), "Can not write Rack BPID read-only field.");
+        log_warning("ipmb", "Can not write Rack BPID read-only field.");
         m_response.set_cc(CompletionCode::CC_PARAMETER_READ_ONLY);
         break;
     case InstanceField::TRAYRUID:
@@ -134,7 +134,7 @@ void SetIdField::pack(IpmiMessage& msg) {
         m_response.set_cc(CompletionCode::CC_OK);
         break;
     default:
-        log_error(GET_LOGGER("ipmb"), "Unknown field instance.");
+        log_error("ipmb", "Unknown field instance.");
         m_response.set_cc(CompletionCode::CC_PARAMETER_OUT_OF_RANGE);
         break;
     }
@@ -163,7 +163,7 @@ void SetIdField::set_tray_ruid(const uint32_t ruid) {
     event_data.set_notification(agent_framework::eventing::Notification::Update);
     EventsQueue::get_instance()->push_back(event_data);
 
-    log_debug(GET_LOGGER("ipmb"), "Set TrayRUID=" << unsigned(ruid)
+    log_debug("ipmb", "Set TrayRUID=" << unsigned(ruid)
                                     << " for Drawer Chassis=" << chassis->get_uuid());
 }
 
@@ -189,7 +189,7 @@ void SetIdField::set_rack_puid(const uint32_t puid) {
     event_data.set_notification(agent_framework::eventing::Notification::Update);
     EventsQueue::get_instance()->push_back(event_data);
 
-    log_debug(GET_LOGGER("ipmb"), "Set RackPUID=" << unsigned(puid)
+    log_debug("ipmb", "Set RackPUID=" << unsigned(puid)
                                     << " for Rack Chassis=" << chassis->get_uuid());
 }
 
@@ -215,7 +215,7 @@ void SetIdField::set_location_id(const std::string& location_id) {
     event_data.set_notification(agent_framework::eventing::Notification::Update);
     EventsQueue::get_instance()->push_back(event_data);
 
-    log_debug(GET_LOGGER("ipmb"), "Set RackLocationId=" << location_id
+    log_debug("ipmb", "Set RackLocationId=" << location_id
                                     << " for Rack Chassis=" << chassis->get_uuid());
 }
 

@@ -2,7 +2,7 @@
  * @brief Implementation of temperature readers for Grantley platform
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@
 #include "ipmi/telemetry/cpus_bandwidth.hpp"
 #include "ipmi/telemetry/get_cups_data.hpp"
 
-#include <map>
 
 namespace telemetry {
 
@@ -64,19 +63,28 @@ TelemetryReader::Context::Ptr BandwidthTelemetryReader::create_context(ipmi::Ipm
 
 bool CpuBandwidthTelemetryReader::read(Context::Ptr context, ipmi::IpmiController&) {
     BandwidthContext& ctx = static_cast<BandwidthContext&>(*context);
-    return set_value(raw_value, ctx.cpus_bandwidth.get_bandwidth_percent(), ipmi::command::sdv::NO_READING);
+    const auto value = ctx.cpus_bandwidth.get_bandwidth_percent();
+    return update_value(value == ipmi::command::sdv::NO_READING
+                         ? json::Json()
+                         : json::Json(value));
 }
 
 
 bool MemoryBandwidthTelemetryReader::read(Context::Ptr context, ipmi::IpmiController&) {
     BandwidthContext& ctx = static_cast<BandwidthContext&>(*context);
-    return set_value(raw_value, ctx.cups_data.get_memory_bandwidth_percent(), ipmi::command::sdv::NO_READING);
+    const auto value = ctx.cups_data.get_memory_bandwidth_percent();
+    return update_value(value == ipmi::command::sdv::NO_READING
+                         ? json::Json()
+                         : json::Json(value));
 }
 
 
 bool IoBandwidthTelemetryReader::read(Context::Ptr context, ipmi::IpmiController&) {
     BandwidthContext& ctx = static_cast<BandwidthContext&>(*context);
-    return set_value(raw_value, ctx.cups_data.get_io_bandwidth_percent(), ipmi::command::sdv::NO_READING);
+    const auto value = ctx.cups_data.get_io_bandwidth_percent();
+    return update_value(value == ipmi::command::sdv::NO_READING
+                         ? json::Json()
+                         : json::Json(value));
 }
 
 }

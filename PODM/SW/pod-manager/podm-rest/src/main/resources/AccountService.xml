@@ -88,14 +88,14 @@
         </Property>
         <NavigationProperty Name="Accounts" Type="ManagerAccountCollection.ManagerAccountCollection">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Link to a collection of Manager Accounts"/>
+          <Annotation Term="OData.Description" String="Link to a collection of Manager Accounts."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the link to a collection of type ManagerAccountCollection."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
         <NavigationProperty Name="Roles" Type="RoleCollection.RoleCollection">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Link to a collection of Roles"/>
+          <Annotation Term="OData.Description" String="Link to a collection of Roles."/>
           <Annotation Term="OData.LongDescription"
                       String="This property shall contain the link to a collection of type RoleCollection."/>
           <Annotation Term="OData.AutoExpandReferences"/>

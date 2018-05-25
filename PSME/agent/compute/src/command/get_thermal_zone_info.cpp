@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ using namespace agent_framework::model;
 
 REGISTER_COMMAND(GetThermalZoneInfo,
     [] (const GetThermalZoneInfo::Request& request, GetThermalZoneInfo::Response& response) {
-        log_debug(GET_LOGGER("agent"), "Getting thermal zone info.");
+        log_debug("agent", "Getting thermal zone info.");
         response = get_manager<ThermalZone>().get_entry(request.get_uuid());
     }
 );

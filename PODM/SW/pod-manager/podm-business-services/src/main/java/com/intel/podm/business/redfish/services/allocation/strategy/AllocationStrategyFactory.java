@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,22 @@
 
 package com.intel.podm.business.redfish.services.allocation.strategy;
 
-import com.intel.podm.business.redfish.services.allocation.validation.RemoteDriveValidationException;
+import com.intel.podm.business.redfish.services.allocation.AllocationRequestProcessingException;
+import com.intel.podm.business.redfish.services.allocation.validation.RequestedNodeResourceContextsValidator;
 import com.intel.podm.business.services.redfish.requests.RequestedNode;
 import com.intel.podm.common.enterprise.utils.beans.BeanFactory;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
+
+import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Dependent
 public class AllocationStrategyFactory {
+    @Inject
+    private RequestedNodeResourceContextsValidator requestedNodeResourceContextsValidator;
+
     @Inject
     private ComputerSystemAllocationStrategyFactory computerSystemAllocationStrategyFactory;
 
@@ -34,7 +41,10 @@ public class AllocationStrategyFactory {
     @Inject
     private BeanFactory beanFactory;
 
-    public AllocationStrategy create(RequestedNode requestedNode) throws RemoteDriveValidationException {
+    @Transactional(MANDATORY)
+    public AllocationStrategy create(RequestedNode requestedNode) throws AllocationRequestProcessingException {
+        requestedNodeResourceContextsValidator.validateExistenceOfIncludedResources(requestedNode);
+
         ComputerSystemAllocationStrategy computerSystemAllocationStrategy = computerSystemAllocationStrategyFactory.create(requestedNode);
         RemoteDriveAllocationStrategy driveAllocationStrategy = remoteDriveStrategyFactory.create(requestedNode);
 

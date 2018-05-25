@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,7 @@ void get_collection(const GetCollection::Request& request, GetCollection::Respon
             "Component not found - invalid UUID: " + uuid);
     }
 
-    log_debug(GET_LOGGER("pnc-gami"), "Getting collection of " << request.get_name() << " successful.");
+    log_debug("pnc-gami", "Getting collection of " << request.get_name() << " successful.");
 }
 }
 

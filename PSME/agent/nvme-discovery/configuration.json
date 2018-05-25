@@ -1,0 +1,52 @@
+{
+    "service" : "nvme-discovery",
+    "agent": {
+        "vendor" : "Intel Corporation",
+        "capabilities" : [ "NVMeDiscovery" ]
+    },
+    "server": {
+        "port": 7783
+    },
+    "registration": {
+        "ipv4": "127.0.0.1",
+        "port": 8384,
+        "interval": 3
+    },
+    "managers": [
+        {
+            "ipv4": "127.0.0.1",
+            "locationOffset": 10,
+            "parentId": "1"
+        }
+    ],
+    "discovery-service" : {
+        "listener-interfaces": [
+            {
+                "ofi-provider" : "verbs",
+                "trtype" : "rdma",
+                "adrfam" : "ipv4",
+                "traddr": "127.0.0.1",
+                "trsvcid": "4420"
+            }
+        ]
+    },
+    "database": {
+        "location": "/var/opt/psme/discovery"
+    },
+    "loggers" : [
+        {
+            "name" : "nvme-discovery-agent",
+            "level" : "INFO",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type" : "STDOUT"
+                }
+            ]
+        }
+    ]
+}

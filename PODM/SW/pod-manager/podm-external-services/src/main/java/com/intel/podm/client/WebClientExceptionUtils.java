@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public final class WebClientExceptionUtils {
     private static Optional<RedfishClientException> getRedfishExceptionRootCause(Throwable e) {
         return getThrowableList(e).stream()
             .filter(throwable -> throwable instanceof RedfishClientException)
-            .map(redfishException -> (RedfishClientException) redfishException)
+            .map(throwable -> (RedfishClientException) throwable)
             .findFirst();
     }
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,19 +23,23 @@
 
 
 #include "psme/rest/server/response.hpp"
+#include "agent-framework/module/model/task.hpp"
 
 
-
-namespace json {
-class Value;
-}
 
 namespace psme {
 namespace rest {
 namespace endpoint {
 namespace task_service_utils {
 
-server::Response call_task_get(const std::string& task_uuid);
+server::Response call_task_get(const Uuid& task_uuid);
+
+
+agent_framework::model::Task::Messages build_created_message();
+
+
+agent_framework::model::Task::Messages build_success_message();
+
 
 }
 }

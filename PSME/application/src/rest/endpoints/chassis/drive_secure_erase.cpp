@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@ void endpoint::DriveSecureErase::post(const server::Request& request, server::Re
 
     // Check whether the drive can be erased (is it's endpoint assigned to a zone)
     auto& endpoint_manager = agent_framework::module::get_manager<agent_framework::model::Endpoint>();
-    auto& zone_endpoint_manager = agent_framework::module::PncComponents::get_instance()->get_zone_endpoint_manager();
+    auto& zone_endpoint_manager = agent_framework::module::CommonComponents::get_instance()->get_zone_endpoint_manager();
     for (const auto& endpoint_uuid : endpoint_manager.get_keys()) {
         const auto endpoint = endpoint_manager.get_entry(endpoint_uuid);
         if (endpoint.has_drive_entity(drive.get_uuid())) {
@@ -145,7 +145,7 @@ void endpoint::DriveSecureErase::post(const server::Request& request, server::Re
             std::string task_monitor_url =
                 PathBuilder(utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid))
                     .append(Monitor::MONITOR).build();
-            psme::rest::endpoint::utils::set_location_header(response, task_monitor_url);
+            psme::rest::endpoint::utils::set_location_header(request, response, task_monitor_url);
             response.set_body(psme::rest::endpoint::task_service_utils::call_task_get(task_uuid).get_body());
             response.set_status(server::status_2XX::ACCEPTED);
         }

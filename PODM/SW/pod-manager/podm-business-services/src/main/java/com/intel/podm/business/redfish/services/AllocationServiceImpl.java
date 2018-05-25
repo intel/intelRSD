@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,34 +22,25 @@ import com.intel.podm.business.redfish.services.allocation.AllocationRequestProc
 import com.intel.podm.business.redfish.services.allocation.ComposedNodeStateChanger;
 import com.intel.podm.business.redfish.services.allocation.CompositionException;
 import com.intel.podm.business.redfish.services.allocation.NodeAllocator;
-import com.intel.podm.business.redfish.services.allocation.validation.ComposedNodeRequestValidator;
 import com.intel.podm.business.redfish.services.assembly.tasks.NodeTasksCoordinator;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.AllocationService;
 import com.intel.podm.business.services.redfish.requests.RequestedNode;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
-import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
 import com.intel.podm.common.types.Id;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.transaction.Transactional;
 
 import static com.intel.podm.business.services.context.Context.contextOf;
 import static com.intel.podm.business.services.context.ContextType.COMPOSED_NODE;
 import static com.intel.podm.common.types.ComposedNodeState.ALLOCATED;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
+import static javax.transaction.Transactional.TxType.NEVER;
 
 @RequestScoped
-@Interceptors(RetryOnRollbackInterceptor.class)
-@SuppressWarnings({"checkstyle:IllegalCatch", "checkstyle:ClassFanOutComplexity"})
 class AllocationServiceImpl implements AllocationService {
     @Inject
     private NodeAllocator nodeAllocator;
-
-    @Inject
-    private ComposedNodeRequestValidator composedNodeRequestValidator;
 
     @Inject
     private NodeTasksCoordinator nodeTasksCoordinator;
@@ -58,13 +49,11 @@ class AllocationServiceImpl implements AllocationService {
     private ComposedNodeStateChanger composedNodeStateChanger;
 
     @Override
-    @NumberOfRetriesOnRollback(50)
-    @Transactional(REQUIRES_NEW)
+    @Transactional(NEVER)
     public Context allocate(RequestedNode requestedNode) throws EntityOperationException, RequestValidationException {
         String baseExceptionMessage = "Creation failed due to allocation failure: ";
         Id composedNodeId;
         try {
-            composedNodeRequestValidator.validateExistenceOfIncludedResources(requestedNode);
             composedNodeId = nodeAllocator.compose(requestedNode).getId();
         } catch (AllocationRequestProcessingException e) {
             throw new RequestValidationException(baseExceptionMessage + e.getMessage(), e.getViolations(), e);
@@ -75,8 +64,7 @@ class AllocationServiceImpl implements AllocationService {
         try {
             nodeTasksCoordinator.setTasksForNode(composedNodeId, nodeAllocator.getAssemblyTasks());
         } catch (IllegalStateException e) {
-            String msg = "Creation failed due to allocation failure: Composed Node [" + composedNodeId + "] has been already allocated.";
-            throw new EntityOperationException(msg, e);
+            throw new EntityOperationException(baseExceptionMessage + "Composed Node [" + composedNodeId + "] has been already allocated.", e);
         }
 
         composedNodeStateChanger.change(composedNodeId, ALLOCATED);

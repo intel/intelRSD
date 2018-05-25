@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,19 +24,19 @@
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
 #include "agent-framework/action/task_runner.hpp"
-
 #include "agent-framework/command/command_server.hpp"
-
 #include "agent-framework/module/common_components.hpp"
 
 #include "loader/storage_loader.hpp"
 #include "configuration/configuration.hpp"
 #include "configuration/configuration_validator.hpp"
 #include "default_configuration.hpp"
+#include "database/database.hpp"
 
 #include "discovery/discovery_manager.hpp"
-#include "hotswap/hotswap_watcher.hpp"
-#include "ip/ip_watcher.hpp"
+#include "discovery/lvm_discoverer.hpp"
+#include "watcher/hotswap_watcher.hpp"
+#include "watcher/ip_watcher.hpp"
 
 #include "json-rpc/connectors/http_server_connector.hpp"
 
@@ -47,6 +47,7 @@ using namespace logger_cpp;
 using namespace agent::storage;
 using namespace agent::storage::loader;
 using namespace agent::storage::discovery;
+using namespace agent::storage::watcher;
 
 using namespace agent_framework;
 using namespace agent_framework::action;
@@ -85,40 +86,46 @@ int main(int argc, const char* argv[]) {
 
     /* Initialize logger */
     LoggerLoader loader(configuration);
-    LoggerFactory::instance().set_loggers(loader.load());
-    LoggerFactory::set_main_logger_name("agent");
-    log_info(GET_LOGGER("agent"), "Running PSME Storage...\n");
+    loader.load(LoggerFactory::instance());
+    log_info("storage-agent", "Running PSME Storage...\n");
 
     /* Load module configuration */
     StorageLoader module_loader{};
     if (!module_loader.load(configuration)) {
-        std::cerr << "Invalid modules configuration" << std::endl;
+        log_error("storage-agent", "Invalid modules configuration");
         return AGENT_ERROR_MODEL_CONFIG;
     }
 
     try {
-        /* read server port */
         server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
-    } catch (const json::Value::Exception& e) {
-        log_error(GET_LOGGER("agent"), "Cannot read server port " << e.what());
+    }
+    catch (const json::Value::Exception& e) {
+        log_error("storage-agent", "Cannot read server port " << e.what());
+    }
+
+    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
+        database::Database::set_default_location(configuration["database"]["location"].as_string());
     }
 
     try {
-        /* read the agent type */
-        agent_type = configuration["agent"]["capabilities"].as_array().front().as_string();
-    } catch (const std::exception& e) {
-        log_error(GET_LOGGER("agent"), "failed to get agent type: " << e.what());
+        agent_type = configuration["agent"]["capabilities"].as_array().at(0).as_string();
+    }
+    catch (const std::out_of_range& e) {
+        log_error("storage-agent", "Agent should have at least one capability: " << e.what());
+        return AGENT_ERROR_AGENT_CONFIG;
+    }
+    catch (const std::exception& e) {
+        log_error("storage-agent", "Failed to get agent type: " << e.what());
         return AGENT_ERROR_AGENT_CONFIG;
     }
 
+    StorageDiscoverer::SPtr discoverer{std::make_shared<LvmDiscoverer>(LvmDiscoverer())};
     try {
-        DiscoveryManager discovery_manager{};
-        const auto manager_uuids = agent_framework::module::get_manager<agent_framework::model::Manager>().get_keys();
-        for (const auto& manager_uuid : manager_uuids) {
-            discovery_manager.discovery(manager_uuid);
-        }
-    } catch (const std::exception& e) {
-        log_error(GET_LOGGER("agent"), e.what());
+        DiscoveryManager discovery_manager{discoverer};
+        discovery_manager.discover();
+    }
+    catch (const std::exception& e) {
+        log_error("storage-agent", e.what());
     }
 
     RegistrationData registration_data{configuration};
@@ -138,7 +145,7 @@ int main(int argc, const char* argv[]) {
 
     bool server_started = server.start();
     if (!server_started) {
-        log_error("compute-agent", "Could not start JSON-RPC command server on port "
+        log_error("storage-agent", "Could not start JSON-RPC command server on port "
             << server_port << " restricted to " << registration_data.get_ipv4_address()
             << ". " << "Quitting now...");
         amc_connection.stop();
@@ -154,13 +161,13 @@ int main(int argc, const char* argv[]) {
     hotswap_watcher.start();
 
     /* Start IP watcher */
-    IpWatcher ip_watcher{};
+    IpWatcher ip_watcher{discoverer};
     ip_watcher.start();
 
     /* Stop the program and wait for interrupt */
     wait_for_interrupt();
 
-    log_info(GET_LOGGER("agent"), "Stopping PSME Storage...\n");
+    log_info("storage-agent", "Stopping PSME Storage...");
 
     /* Cleanup */
     ip_watcher.stop();
@@ -177,8 +184,7 @@ int main(int argc, const char* argv[]) {
 }
 
 const json::Value& init_configuration(int argc, const char** argv) {
-    log_info(GET_LOGGER("agent"),
-        agent_framework::generic::Version::build_info());
+    log_info("agent", agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
     basic_config.set_default_file(DEFAULT_FILE);
@@ -195,7 +201,7 @@ const json::Value& init_configuration(int argc, const char** argv) {
 bool check_configuration(const json::Value& json) {
     json::Value json_schema;
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
-        log_info(GET_LOGGER("agent"), "JSON Schema load!");
+        log_info("agent", "JSON Schema load!");
 
         configuration::SchemaErrors errors;
         configuration::SchemaValidator validator;
@@ -204,8 +210,7 @@ bool check_configuration(const json::Value& json) {
 
         validator.validate(json, errors);
         if (!errors.is_valid()) {
-            std::cerr << "Configuration invalid: " <<
-                         errors.to_string() << std::endl;
+            std::cerr << "Configuration invalid: " << errors.to_string() << std::endl;
             return false;
         }
     }

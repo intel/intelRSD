@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,6 +85,47 @@ struct FPGA_DEVICE {
     uint8_t fpga_model;
     uint8_t fpga_bit_stream_version;
     uint8_t fpga_hps_core_count;
+    uint8_t reserved;
+    uint8_t fpga_hps_isa;
+    FpgaHssiConfiguration fpga_hssi_configuration;
+    uint8_t fpga_hssi_port_count;
+    uint8_t fpga_hssi_port_speed;
+    uint8_t fpga_hssi_side_band_configuration;
+    uint8_t fpga_reconfiguration_slots;
+    uint16_t fpga_pcie_slot_number;
+    uint8_t fpga_pcie_bus_identifier;
+    uint8_t fpga_pcie_device_identifier;
+    uint8_t fpga_pcie_function_identifier;
+    uint32_t thermal_design_power;
+    OnPackageMemoryTechnology memory_technology;
+    uint32_t on_package_memory_capacity;
+    uint16_t on_package_memory_speed;
+
+};
+
+/*!
+ * @brief SMBIOS FPGA Device (Type 198)
+ */
+struct SMBIOS_FPGA_DATA {
+    static constexpr uint8_t ID = 198;
+    SMBIOS_OOB_HEADER header;
+    FPGA_DEVICE data;
+};
+
+/*!
+ * @brief FPGA Device, no reserved byte
+ *
+ */
+struct FPGA_DEVICE_OEM {
+    uint8_t fpga_index;
+    FpgaType fpga_type;
+    FpgaStatus fpga_status;
+    uint8_t socket_identifier;
+    uint8_t fpga_vendor;
+    uint8_t fpga_family;
+    uint8_t fpga_model;
+    uint8_t fpga_bit_stream_version;
+    uint8_t fpga_hps_core_count;
     uint8_t fpga_hps_isa;
     FpgaHssiConfiguration fpga_hssi_configuration;
     uint8_t fpga_hssi_port_count;
@@ -102,12 +143,12 @@ struct FPGA_DEVICE {
 };
 
 /*!
- * @brief SMBIOS FPGA Device (Type 198)
+ * @brief SMBIOS FPGA Device, without reserved byte (Type 198)
  */
-struct SMBIOS_FPGA_DATA {
+struct SMBIOS_FPGA_DATA_OEM {
     static constexpr uint8_t ID = 198;
     SMBIOS_OOB_HEADER header;
-    FPGA_DEVICE data;
+    FPGA_DEVICE_OEM data;
 };
 
 #pragma pack(pop)

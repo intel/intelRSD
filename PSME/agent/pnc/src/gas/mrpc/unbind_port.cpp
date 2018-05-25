@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ void UnbindPort::write_input() {
     data[OFFSET_LOGICAL_BRIDGE_ID] = input.fields.logical_bridge_id;
     data[OFFSET_OPTION] = std::uint8_t(input.fields.option);
 
-    log_debug(GET_LOGGER("pnc-mrpc"), "UnbindPort command input data:"
+    log_debug("pnc-mrpc", "UnbindPort command input data:"
         << " PartitionId=" << std::uint32_t(input.fields.partition_id)
         << " LogicalBridgeId=" << std::uint32_t(input.fields.logical_bridge_id)
         << " Option=" << get_unbind_option(std::uint32_t((input.fields.option))));
@@ -60,7 +60,7 @@ void UnbindPort::read_output() {
     output.fields.ret_value = PortPartitionP2PBindingReturnValue(
         ret_value[0] | (ret_value[1] << 8) | (ret_value[2] << 16) | (ret_value[3] << 24));
 
-    log_debug(GET_LOGGER("pnc-mrpc"), "UnbindPort command return code: "
+    log_debug("pnc-mrpc", "UnbindPort command return code: "
         << get_p2p_binding_command_result(static_cast<uint32_t>(output.fields.ret_value)));
 }
 

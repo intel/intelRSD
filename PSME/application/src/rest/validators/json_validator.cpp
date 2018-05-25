@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ using namespace psme::rest::error;
 json::Value JsonValidator::validate_request_body(const Request& request, const jsonrpc::ProcedureValidator& schema) {
     auto json = deserialize_json_from_request(request);
     schema.validate(json);
-    log_debug(GET_LOGGER("rest"), "Request validation passed.");
+    log_debug("rest", "Request validation passed.");
     return json;
 }
 
@@ -65,7 +65,7 @@ json::Value JsonValidator::deserialize_json_from_request(const Request& request)
             message << deserialization_error.line;
             message << " and column " << deserialization_error.column;
 
-            log_error(GET_LOGGER("rest"), "Duplicate key in JSON: " << request.get_body());
+            log_error("rest", "Duplicate key in JSON: " << request.get_body());
             throw ServerException(ErrorFactory::create_property_duplicated_error(deserialization_error.data, message.str()));
         } else {
             std::stringstream message{};
@@ -74,7 +74,7 @@ json::Value JsonValidator::deserialize_json_from_request(const Request& request)
             message << " and column " << deserialization_error.column;
             message << " recognized as: " << deserialization_error.decode();
 
-            log_error(GET_LOGGER("rest"), "Malformed JSON: " << request.get_body());
+            log_error("rest", "Malformed JSON: " << request.get_body());
             throw ServerException(ErrorFactory::create_malformed_json_error(message.str()));
         }
     }

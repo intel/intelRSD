@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,6 @@ Chassis Chassis::from_json(const json::Json& json) {
     chassis.set_collections(Collections::from_json(json[literals::Chassis::COLLECTIONS]));
     chassis.set_allowed_reset_actions(attribute::Array<enums::ResetType>::from_json(json[literals::Chassis::ALLOWED_ACTIONS]));
     chassis.set_oem(attribute::Oem::from_json(json[literals::Chassis::OEM]));
-    chassis.set_resource_hash(json);
 
     return chassis;
 }

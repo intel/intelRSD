@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,12 +20,12 @@
 
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/utils/status_helpers.hpp"
-#include "psme/rest/endpoints/storage/storage_services.hpp"
+#include "psme/rest/endpoints/storage/storage_service.hpp"
+
 
 using namespace psme::rest;
 using namespace psme::rest::constants;
-using namespace agent_framework::model;
-
+using namespace database;
 
 
 namespace {
@@ -41,44 +41,69 @@ json::Value make_prototype() {
     r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
     r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
-    r[Common::OEM] = json::Value::Type::OBJECT;
-    r[constants::StorageService::REMOTE_TARGETS] = json::Value::Type::NIL;
-    r[constants::StorageService::LOGICAL_DRIVES] = json::Value::Type::NIL;
+
+    r[constants::StorageService::ENDPOINTS] = json::Value::Type::NIL;
+    r[constants::StorageService::VOLUMES] = json::Value::Type::NIL;
     r[constants::StorageService::DRIVES] = json::Value::Type::NIL;
-    r[Common::LINKS][constants::Common::MANAGED_BY] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Common::OEM] = json::Value::Type::OBJECT;
+    r[constants::StorageService::STORAGE_POOLS] = json::Value::Type::NIL;
+
+    r[Common::LINKS][constants::StorageService::HOSTING_SYSTEM] = json::Value::Type::NIL;
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.StorageServiceLinks";
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Common::MANAGED_BY] = json::Value::Type::ARRAY;
+
+    r[Common::OEM] = json::Value::Type::OBJECT;
+
     return r;
 }
 }
 
 endpoint::StorageService::StorageService(const std::string& path) : EndpointBase(path) {}
+
 endpoint::StorageService::~StorageService() {}
 
-void endpoint::StorageService::get(const server::Request& req, server::Response& res) {
+void endpoint::StorageService::get(const server::Request& request, server::Response& response) {
     auto r = ::make_prototype();
+    auto storage_service =
+            model::Find<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID]).get();
 
-    r[constants::Common::ODATA_ID] = PathBuilder(req).build();
-    auto service =  psme::rest::model::Find<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get();
-    r[constants::Common::ID] = req.params[PathParam::SERVICE_ID];
+    r[constants::Common::ID] = request.params[PathParam::SERVICE_ID];
+    r[constants::Common::ODATA_ID] = PathBuilder(request).build();
 
-    endpoint::status_to_json(service, r);
-    r[Common::STATUS][Common::HEALTH_ROLLUP] =
-            endpoint::HealthRollup<agent_framework::model::StorageService>().get(service.get_uuid());
+    endpoint::status_to_json(storage_service, r);
 
-    r[constants::StorageService::REMOTE_TARGETS]
-     [constants::Common::ODATA_ID] = PathBuilder(req).append(constants::StorageService::TARGETS).build();
+    const Uuid& manager_uuid = storage_service.get_parent_uuid();
+    auto fabrics = agent_framework::module::get_manager<agent_framework::model::Fabric>().get_entries(manager_uuid);
+    if (!fabrics.empty()) {
+        r[constants::StorageService::ENDPOINTS][constants::Common::ODATA_ID] =
+                endpoint::PathBuilder(PathParam::BASE_URL)
+                        .append(Root::FABRICS)
+                        .append(fabrics.front().get_id())
+                        .append(constants::Fabric::ENDPOINTS)
+                        .build();
+    }
 
-    r[constants::StorageService::LOGICAL_DRIVES]
-     [constants::Common::ODATA_ID] = PathBuilder(req).append(constants::StorageService::LOGICAL_DRIVES).build();
-
-    r[constants::StorageService::DRIVES]
-     [constants::Common::ODATA_ID] = PathBuilder(req).append(constants::StorageService::DRIVES).build();
+    const auto systems_uuid = agent_framework::module::get_manager<agent_framework::model::System>().get_keys();
+    if (1 <= systems_uuid.size()) {
+        const auto& system_uuid = systems_uuid.front();
+        r[Common::LINKS][constants::StorageService::HOSTING_SYSTEM][constants::Common::ODATA_ID] =
+            PathBuilder(endpoint::utils::get_component_url(agent_framework::model::enums::Component::System,
+                                                           system_uuid)).build();
+    }
 
     json::Value manager;
     manager[Common::ODATA_ID] =
-        utils::get_component_url(agent_framework::model::enums::Component::Manager, service.get_parent_uuid());
+            utils::get_component_url(agent_framework::model::enums::Component::Manager,
+                                     storage_service.get_parent_uuid());
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Common::MANAGED_BY].push_back(std::move(manager));
 
-    r[Common::LINKS][Common::MANAGED_BY].push_back(std::move(manager));
+    r[constants::StorageService::DRIVES][constants::Common::ODATA_ID] =
+        PathBuilder(request).append(constants::Chassis::DRIVES).build();
 
-    set_response(res, r);
+    r[constants::StorageService::STORAGE_POOLS][constants::Common::ODATA_ID] =
+        PathBuilder(request).append(constants::StorageService::STORAGE_POOLS).build();
+
+    r[constants::StorageService::VOLUMES][constants::Common::ODATA_ID] =
+        PathBuilder(request).append(constants::StorageService::VOLUMES).build();
+
+    set_response(response, r);
 }

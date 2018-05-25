@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ private:
  * -> For SFINAE to work we need to have compile-error in the declaration of one
  *    of the specializations to remove possible ambiguity. This is done via
  *    return type evaluation and "auto func() -> decltype(expression)" syntax.
- * -> We use comma operator "," in the decltype so that the basename decltype
+ * -> We use comma operator "," in the decltype so that the rightmost decltype
  *    element will determine the deduced type (here it is bool basing on the
  *    'true' value in decltypes).
  * -> For type deduction to work we need these to be template functions.

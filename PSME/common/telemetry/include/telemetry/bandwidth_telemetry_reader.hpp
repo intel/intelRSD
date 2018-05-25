@@ -2,7 +2,7 @@
  * @brief Class to handle Node Manager sensors for bandwidth
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,6 @@ public:
 
 protected:
     Context::Ptr create_context(ipmi::IpmiController& ctrl, PtrVector& readers) override;
-    using RawValue = std::uint8_t;
-    RawValue raw_value{};
 };
 
 

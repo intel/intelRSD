@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,16 +32,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 @JsonPropertyOrder({
-    "@odata.id", "@odata.type", "memberId", "name", "status", "oem", "powerSupplyType",
-    "lineInputVoltageType", "lineInputVoltage", "powerCapacityWatts", "lastPowerOutputWatts",
-    "model", "manufacturer", "firmwareVersion", "serialNumber", "partNumber",
-    "sparePartNumber", "inputRanges", "redundancy", "relatedItem"
+    "@odata.id", "@odata.type", "memberId", "name", "status", "powerSupplyType", "lineInputVoltageType", "lineInputVoltage", "powerCapacityWatts",
+    "lastPowerOutputWatts", "model", "manufacturer", "firmwareVersion", "serialNumber", "partNumber", "sparePartNumber", "inputRanges", "redundancy",
+    "relatedItem", "oem"
 })
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class PowerSupplyDto implements Comparable<PowerSupplyDto> {
-    private ODataId oDataId;
     @JsonProperty("@odata.type")
     private final String oDataType = "#Power.v1_1_0.PowerSupply";
+    @JsonUnwrapped
+    @JsonProperty("@odata.id")
+    private ODataId oDataId;
     private String memberId;
     private String name;
     private Status status;
@@ -62,13 +63,11 @@ public final class PowerSupplyDto implements Comparable<PowerSupplyDto> {
     @IgnoreAutomaticOem
     private JsonNode oem;
 
-    @JsonUnwrapped
-    @JsonProperty("@odata.id")
-    public ODataId getOdataId() {
+    public ODataId getoDataId() {
         return oDataId;
     }
 
-    public void setOdataId(ODataId oDataId) {
+    public void setoDataId(ODataId oDataId) {
         this.oDataId = oDataId;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,15 +35,18 @@ import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATT
     "#EthernetSwitchPortCollection\\.EthernetSwitchPortCollection",
     "#EventDestinationCollection\\.EventDestinationCollection",
     "#StorageServiceCollection\\.StorageServiceCollection",
-    "#LogicalDriveCollection\\.LogicalDriveCollection",
-    "#PhysicalDriveCollection\\.PhysicalDriveCollection",
+    "#VolumeCollection\\.VolumeCollection",
+    "#DriveCollection\\.DriveCollection",
+    "#PowerZoneCollection" + VERSION_PATTERN + "PowerZoneCollection",
     "#PSUCollection" + VERSION_PATTERN + "PSUCollection",
+    "#ThermalZoneCollection" + VERSION_PATTERN + "ThermalZoneCollection",
     "#DrawerCollection" + VERSION_PATTERN + "DrawerCollection",
     "#MBPCollection" + VERSION_PATTERN + "MBPCollection",
     "#FanCollection" + VERSION_PATTERN + "FanCollection",
-    "#RemoteTargetCollection\\.RemoteTargetCollection",
     "#SimpleStorageCollection\\.SimpleStorageCollection",
     "#StorageCollection\\.StorageCollection",
+    "#ThermalZoneCollection\\.ThermalZoneCollection",
+    "#PowerZoneCollection\\.PowerZoneCollection",
     "#ManagerCollection" + VERSION_PATTERN + "ManagerCollection",
     "#Intel\\.Oem\\.RmmPowerZoneCollection",
     "#Intel\\.Oem\\.RmmThermalZoneCollection",
@@ -62,6 +65,7 @@ import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATT
     "#MetricDefinitionCollection\\.MetricDefinitionCollection",
     "#MetricReportDefinitionCollection\\.MetricReportDefinitionCollection",
     "#EthernetSwitchStaticMACCollection\\.EthernetSwitchStaticMACCollection",
+    "#StoragePoolCollection\\.StoragePoolCollection",
 
     // legacy collections
     "#AdapterCollection\\.AdapterCollection",

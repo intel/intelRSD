@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,12 +31,12 @@ TopLevelRegisters::~TopLevelRegisters(){}
 void TopLevelRegisters::read(AccessInterface* iface) {
     iface->read(&output.fields.stk_bif_valid, TOP_SETTING_REG_SIZE, TOP_SETTING_REG_OFFSET);
 
-    log_debug(GET_LOGGER("pnc-top"), "Partitions number: " << std::uint32_t(output.fields.part_num));
-    log_debug(GET_LOGGER("pnc-top"), "Current Partition ID: " << std::uint32_t(output.fields.current_partition_id));
-    log_debug(GET_LOGGER("pnc-top"), "PCIe Functions number: " << std::uint32_t(output.fields.pci_fn_num));
+    log_debug("pnc-top", "Partitions number: " << std::uint32_t(output.fields.part_num));
+    log_debug("pnc-top", "Current Partition ID: " << std::uint32_t(output.fields.current_partition_id));
+    log_debug("pnc-top", "PCIe Functions number: " << std::uint32_t(output.fields.pci_fn_num));
 
     //for(size_t fn = 0; fn < output.fields.pci_fn_num; fn++) {
-    //    log_debug(GET_LOGGER("pnc-top"), "PCIe Functions " << fn << " is assigned to Physical Port "
+    //    log_debug("pnc-top", "PCIe Functions " << fn << " is assigned to Physical Port "
     //            << std::uint32_t(output.fields.pcifn_switch_ports[fn]));
     //}
 }

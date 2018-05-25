@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ std::string generic_stabilizer(const enums::Component& component, const std::str
         return (stabilizer.*fn)(uuid);
     }
     catch (const std::exception& e) {
-        log_error(GET_LOGGER("rmm-discovery"), "Unable to stabilize " << component.to_string()
+        log_error("rmm-discovery", "Unable to stabilize " << component.to_string()
             << " " << uuid << " : " << e.what());
         return uuid;
     }

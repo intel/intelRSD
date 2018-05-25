@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.intel.podm.business.entities.redfish.ExternalService;
 import com.intel.podm.client.WebClientRequestException;
 import com.intel.podm.client.reader.ExternalServiceReader;
 import com.intel.podm.client.reader.ExternalServiceReaderFactory;
+import com.intel.podm.common.enterprise.utils.logger.TimeMeasured;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.synchronization.CancelableRunnable;
 import com.intel.podm.common.synchronization.TaskCanceledException;
@@ -30,6 +31,7 @@ import com.intel.podm.discovery.external.restgraph.RestGraph;
 import com.intel.podm.discovery.external.restgraph.RestGraphBuilderFactory;
 
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Objects;
@@ -72,8 +74,12 @@ public class DiscoveryRunner extends CancelableRunnable {
     @Inject
     private DiscoveryRunnerHooks discoveryRunnerHooks;
 
+    @Inject
+    private Event<DiscoveryFinishedEvent> discoveryFinishedEvent;
+
     @Override
     @Transactional(REQUIRES_NEW)
+    @TimeMeasured(tag = "[DiscoveryTask]")
     public void run() {
         try {
             requiresNonNull(serviceUuid, "Service UUID cannot be null, discovery action has not been configured correctly");
@@ -113,6 +119,8 @@ public class DiscoveryRunner extends CancelableRunnable {
         } catch (RuntimeException e) {
             logger.e("Error while polling data from " + service, e);
         }
+
+        discoveryFinishedEvent.fire(new DiscoveryFinishedEvent(serviceUuid));
     }
 
     private void triggerAvailabilityCheckOnConnectionException(ExternalService service, WebClientRequestException e) {

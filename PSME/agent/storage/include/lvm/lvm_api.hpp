@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,13 @@
  * */
 
 #pragma once
-#include "lvm_create_data.hpp"
-#include "volume_group.hpp"
-#include "physical_volume.hpp"
-#include "logical_volume.hpp"
+
+#include "model/creation_data.hpp"
+#include "model/volume_group.hpp"
+#include "model/physical_volume.hpp"
+#include "model/logical_volume.hpp"
+#include "model/discovery_type.hpp"
+
 #include <vector>
 #include <string>
 #include <memory>
@@ -39,32 +42,40 @@ namespace lvm {
 /*!
  * @brief C++ wrapper for liblvm2app
  */
-class LvmAPI {
+class LvmApi {
 public:
-    using VolumeGroupVec = std::vector<VolumeGroup>;
+    using VolumeGroups = std::vector<model::VolumeGroup>;
 
     /*! @brief Constructor */
-    explicit LvmAPI();
+    explicit LvmApi();
+
     /*! @brief Destructor */
-    ~LvmAPI();
+    ~LvmApi();
 
     /*!
      * @brief Discover volume groups with their physical and logical volumes
+     * @param[in] discovery_type Type of the discovery.
      * @return Vector of volume groups to be filled.
      * */
-    VolumeGroupVec discovery_volume_groups();
+    VolumeGroups discover_volume_groups(DiscoveryType discovery_type);
 
     /*!
      * @brief Create snapshot clone of given logical volume
      * @param[in] data Name of volume group of logical volume to be cloned
+     * @return Returns newly created snapshot volume.
      * */
-    void create_snapshot(const LvmCreateData& data);
+    model::LogicalVolume create_snapshot(const model::CreationData& data);
 
     /*!
-     * @brief Create full clone of given logical volume. It takes time, so better run it in separate thread.
-     * @param[in] data Name of volume group of logical volume to be cloned
+     * @brief Create empty volume.
+     *
+     * This method could be used to perform volume clone creation.
+     * It takes time, so better run it in separate thread.
+     *
+     * @param[in] data Name of volume group of logical volume to be cloned.
+     * @return Returns newly created volume.
      * */
-    void create_clone(const LvmCreateData& data);
+    model::LogicalVolume create_volume(const model::CreationData& data);
 
     /*!
      * @brief Remove given logical volume
@@ -81,7 +92,8 @@ public:
      * @param[in] tag Tag to be added
      * */
     void add_logical_volume_tag(const std::string& vg_name,
-                                const std::string& lv_name, const std::string& tag);
+                                const std::string& lv_name,
+                                const std::string& tag);
 
     /*!
      * @brief Remove tag from logical volume
@@ -90,11 +102,14 @@ public:
      * @param[in] tag Tag to be removed
      * */
     void remove_logical_volume_tag(const std::string& vg_name,
-                                const std::string& lv_name, const std::string& tag);
+                                   const std::string& lv_name,
+                                   const std::string& tag);
+
 
 private:
     class LvmImpl;
     std::shared_ptr<LvmImpl> m_impl{};
+
     static std::mutex g_lvm_mutex;
 };
 

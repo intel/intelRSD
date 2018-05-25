@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.intel.podm.business.dto.redfish.CollectionDto;
 import com.intel.podm.business.entities.EntityNotFoundException;
 import com.intel.podm.business.entities.dao.GenericDao;
 import com.intel.podm.business.entities.redfish.EventSubscription;
+import com.intel.podm.business.redfish.Contexts;
 import com.intel.podm.business.redfish.services.mappers.EntityToDtoMapper;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.business.services.redfish.ReaderService;
@@ -29,9 +30,10 @@ import com.intel.podm.business.services.redfish.ReaderService;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
 import static com.intel.podm.business.dto.redfish.CollectionDto.Type.EVENT_SUBSCRIPTION;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @RequestScoped
@@ -45,12 +47,8 @@ class EventSubscriptionServiceImpl implements ReaderService<EventSubscriptionDto
     @Transactional(REQUIRED)
     @Override
     public CollectionDto getCollection(Context eventServiceContext) throws ContextResolvingException {
-        return new CollectionDto(
-            EVENT_SUBSCRIPTION,
-            genericDao.findAll(EventSubscription.class).stream()
-                .map(EventSubscription::getId)
-                .collect(toSet())
-        );
+        List<Context> contexts = genericDao.findAll(EventSubscription.class).stream().map(Contexts::toContext).sorted().collect(toList());
+        return new CollectionDto(EVENT_SUBSCRIPTION, contexts);
     }
 
     @Transactional(REQUIRED)

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ namespace {
 
 REGISTER_COMMAND(GetStorageControllerInfo,
     [] (const GetStorageControllerInfo::Request& req, GetStorageControllerInfo::Response& rsp) {
-        log_debug(GET_LOGGER("agent"), "Getting storage controller info.");
+        log_debug("agent", "Getting storage controller info.");
         rsp = ComputeComponents::get_instance()->
             get_storage_controller_manager().get_entry(req.get_uuid());
         ::process_collections(rsp);

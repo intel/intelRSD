@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.intel.podm.business.services.redfish;
 
 import com.intel.podm.business.BusinessApiException;
+import com.intel.podm.business.dto.actions.actionInfo.ActionInfoDto;
 import com.intel.podm.business.services.context.Context;
 import com.intel.podm.common.types.redfish.RedfishAction;
 
@@ -24,4 +25,7 @@ import java.util.concurrent.TimeoutException;
 
 public interface ActionService<T extends RedfishAction> {
     void perform(Context target, T request) throws BusinessApiException, TimeoutException;
+    default ActionInfoDto getActionInfo(Context target) throws BusinessApiException {
+        throw new BusinessApiException("Operation not supported");
+    }
 }

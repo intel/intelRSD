@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,11 +32,23 @@
 #include "agent-framework/module/requests/common/get_drive_info.hpp"
 #include "agent-framework/module/requests/common/get_system_info.hpp"
 #include "agent-framework/module/requests/common/get_storage_subsystem_info.hpp"
+#include "agent-framework/module/requests/common/get_pcie_device_info.hpp"
+#include "agent-framework/module/requests/common/get_pcie_function_info.hpp"
 #include "agent-framework/module/requests/common/get_tasks_collection.hpp"
 #include "agent-framework/module/requests/common/get_task_info.hpp"
 #include "agent-framework/module/requests/common/get_task_result_info.hpp"
 #include "agent-framework/module/requests/common/delete_task.hpp"
 #include "agent-framework/module/requests/common/get_metric_definitions_collection.hpp"
 #include "agent-framework/module/requests/common/get_metrics.hpp"
-#include "agent-framework/module/utils/is_requested_metric.hpp"
 #include "agent-framework/module/requests/common/get_metric_definition_info.hpp"
+#include "agent-framework/module/requests/common/get_fabric_info.hpp"
+#include "agent-framework/module/requests/common/get_zone_info.hpp"
+#include "agent-framework/module/requests/common/add_zone.hpp"
+#include "agent-framework/module/requests/common/delete_zone.hpp"
+#include "agent-framework/module/requests/common/add_zone_endpoints.hpp"
+#include "agent-framework/module/requests/common/delete_zone_endpoints.hpp"
+#include "agent-framework/module/requests/common/get_endpoint_info.hpp"
+#include "agent-framework/module/requests/common/add_endpoint.hpp"
+#include "agent-framework/module/requests/common/delete_endpoint.hpp"
+#include "agent-framework/module/requests/common/get_network_interface_info.hpp"
+#include "agent-framework/module/utils/is_requested_metric.hpp"

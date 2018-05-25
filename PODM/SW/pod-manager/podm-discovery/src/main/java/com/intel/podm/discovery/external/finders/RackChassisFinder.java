@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import static javax.transaction.Transactional.TxType.MANDATORY;
 @Transactional(MANDATORY)
 @Dependent
 public class RackChassisFinder {
-    private static final String DEFAULT_RACK_NAME = "Rack created by PODM";
+    private static final String DEFAULT_RACK_NAME = "Chassis";  // the same name rmm would set
 
     @Inject
     private ChassisDao chassisDao;

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,47 +24,27 @@
 
 #pragma once
 
+
+
 #include "enum_builder.hpp"
+
+
 
 namespace agent_framework {
 namespace model {
 namespace enums {
 
 /*!
- * @brief ENUM LogicalDriveType for Logical Drive class member
- */
-ENUM(LogicalDriveType, uint32_t, LVM, CEPH, RSTe, MDRAID);
-
-/*!
- * @brief ENUM LogicalDriveMode for Logical Drive class member
- */
-ENUM(LogicalDriveMode, uint32_t, JBOD, BlockDevice, LogicalDrive, PV, LV, LVG,
-        OSD, Pool, RAID0Array, RAID1Array, RAID10Array, RAID5Array,
-        RAID6Array, RAID50Array, RAID60Array);
-
-/*!
- * @brief ENUM PhysicalDriveInterface for Physical Drive class member
- */
-ENUM(PhysicalDriveInterface, uint32_t, PCIe, SAS, SATA);
-
-/*!
-* @brief ENUM PhysicalDriveInterface for Physical Drive class member
-*/
-ENUM(PhysicalDriveType, uint32_t, HDD, SSD, NVMe);
-
-/*!
-* @brief ENUM PhysicalDriveMode for Physical Drive class member
- */
-ENUM(PhysicalDriveMode, uint32_t, JBOD, BlockDevice, LogicalDrive, PV, LV, LVG,
-        OSD, Pool, RAID0Array, RAID1Array, RAID10Array, RAID5Array,
-        RAID6Array, RAID50Array, RAID60Array);
-
-/*!
  * @brief ENUM TargetAuthenticationMethod for NetworkDeviceFunction class member
  */
 ENUM(TargetAuthenticationMethod, uint32_t, OneWay, Mutual);
 
-}
-}
-}
 
+/*!
+ * @brief ENUM VolumeInitializationType for Volume initialize action
+ */
+ENUM(VolumeInitializationType, uint32_t, Fast, Slow);
+
+}
+}
+}

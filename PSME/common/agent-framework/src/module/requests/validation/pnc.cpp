@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,7 @@ void PncValidator::validate_set_pcie_switch_attributes(const Attributes& attribu
             THROW(InvalidField, "pnc-agent", "Unrecognized attribute.", name, value);
         }
     }
-    log_debug(GET_LOGGER("pnc-agent"), "Request validation passed.");
+    log_debug("pnc-agent", "Request validation passed.");
 }
 
 
@@ -62,24 +62,6 @@ void PncValidator::validate_set_pcie_port_attributes(const Attributes& attribute
             check_enum<enums::ResetType>(value, name, "pnc-agent");
         }
         else if (literals::Port::OEM == name) {
-            Oem::from_json(value);
-        }
-        else {
-            THROW(InvalidField, "pnc-agent", "Unrecognized attribute.", name, value);
-        }
-    }
-}
-
-
-void PncValidator::validate_set_pcie_device_attributes(const Attributes& attributes) {
-    const auto& attribute_names = attributes.get_names();
-    for (const auto& name : attribute_names) {
-        const auto& value = attributes.get_value(name);
-
-        if (literals::PcieDevice::ASSET_TAG == name) {
-            check_nullable_string(value, name, "pnc-agent");
-        }
-        else if (literals::PcieDevice::OEM == name) {
             Oem::from_json(value);
         }
         else {

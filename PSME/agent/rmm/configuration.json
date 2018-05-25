@@ -1,4 +1,5 @@
 {
+    "service" : "rmm",
     "agent": {
         "vendor" : "Intel Corporation",
         "capabilities" : [ "Rmm" ]
@@ -12,8 +13,7 @@
         "interval": 3
     },
     "certificate-files": {
-        "podm" : "/etc/psme/certs/podm.cert",
-        "rmm" : "/etc/psme/certs/rmm.cert"
+        "podm" : "/etc/psme/certs/ca.crt"
     },
     "managers": [
         {
@@ -28,9 +28,9 @@
     "database": {
         "location": "/var/opt/psme/rmm"
     },
-    "service-uuid-file" : "/var/opt/psme/rmm-service-uuid.json",
-    "logger" : {
-        "agent" : {
+    "loggers" : [
+        {
+            "name" : "rmm-agent",
             "level" : "DEBUG",
             "timeformat" : "DATE_NS",
             "color" : true,
@@ -43,5 +43,5 @@
                 }
             ]
         }
-    }
+    ]
 }

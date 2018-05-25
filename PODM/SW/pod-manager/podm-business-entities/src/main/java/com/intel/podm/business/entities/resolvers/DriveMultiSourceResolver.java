@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ package com.intel.podm.business.entities.resolvers;
 
 import com.intel.podm.business.entities.dao.DriveDao;
 import com.intel.podm.business.entities.redfish.Drive;
+import com.intel.podm.business.entities.redfish.ExternalLink;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import java.util.Iterator;
 import java.util.Optional;
 
 @Dependent
@@ -40,6 +42,11 @@ public class DriveMultiSourceResolver extends MultiSourceEntityResolver<Drive> {
 
     @Override
     public String createMultiSourceDiscriminator(Drive drive) {
-        return drive.getExternalLinks().iterator().next().getSourceUri().getPath();
+        Iterator<ExternalLink> externalLinkIterator = drive.getExternalLinks().iterator();
+        if (externalLinkIterator.hasNext()) {
+            return externalLinkIterator.next().getSourceUri().getPath();
+        } else {
+            throw new RuntimeException("Drive should have at least one ExternalLink associated with it");
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,14 @@ import java.util.List;
 import java.util.Set;
 
 @JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description",
-    "status", "storageControllers", "drives", "actions"
+    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "status", "storageControllers", "drives", "volumes", "links", "oem"
 })
-@SuppressWarnings({"checkstyle:MethodCount"})
 public final class StorageDto extends RedfishDto {
+    private final Links links = new Links();
     private Status status;
     private List<StorageControllerDto> storageControllers;
     private Set<Context> drives;
-    private Links links = new Links();
+    private Set<Context> volumes;
 
     public StorageDto() {
         super("#Storage.v1_0_0.Storage");
@@ -63,15 +62,19 @@ public final class StorageDto extends RedfishDto {
         this.drives = drives;
     }
 
+    public Set<Context> getVolumes() {
+        return volumes;
+    }
+
+    public void setVolumes(Set<Context> volumes) {
+        this.volumes = volumes;
+    }
+
     public Links getLinks() {
         return links;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
-    }
-
-    @JsonPropertyOrder({"enclosures"})
+    @JsonPropertyOrder({"enclosures", "oem"})
     public final class Links extends RedfishLinksDto {
         private Collection<Context> enclosures;
 

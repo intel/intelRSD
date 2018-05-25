@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ void RmmValidator::validate_set_thermal_zone_attributes(const Attributes& attrib
     );
 
     validator.validate(attributes.to_json());
-    log_debug(GET_LOGGER("rmm-agent"), "Request validation passed.");
+    log_debug("rmm-agent", "Request validation passed.");
 }
 
 void RmmValidator::validate_set_psu_attributes(const Attributes& attributes) {
@@ -60,7 +60,7 @@ void RmmValidator::validate_set_psu_attributes(const Attributes& attributes) {
             THROW(InvalidField, "rmm-agent", "Unrecognized attribute.", name, value);
         }
     }
-    log_debug(GET_LOGGER("rmm-agent"), "Request validation passed.");
+    log_debug("rmm-agent", "Request validation passed.");
 }
 
 }

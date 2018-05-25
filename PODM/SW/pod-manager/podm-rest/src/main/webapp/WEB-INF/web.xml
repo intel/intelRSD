@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015-2017 Intel Corporation
+  ~ Copyright (c) 2015-2018 Intel Corporation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@
             <url-pattern>/redfish/v1/PCIeSwitches/*</url-pattern>
             <url-pattern>/redfish/v1/Devices/*</url-pattern>
             <url-pattern>/redfish/v1/Fabrics/*</url-pattern>
+            <url-pattern>/redfish/v1/StorageServices/*</url-pattern>
             <url-pattern>/redfish/v1/TelemetryService/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>

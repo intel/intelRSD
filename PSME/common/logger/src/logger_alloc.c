@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +32,6 @@
 #include "logger_memory.h"
 
 #include <safe-string/safe_lib.h>
-#include <stdio.h>
-#include <string.h>
 
 LOGGER_PRINTF_FORMAT(1, 0)
 char *logger_alloc_fmt_string(const char *fmt, va_list args) {

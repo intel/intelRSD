@@ -2,7 +2,7 @@
  * @brief Rmm certificate manager class interface
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,6 @@
 
 #include "certificate_manager_interface.hpp"
 
-#include <mutex>
-
-
 
 namespace agent {
 namespace rmm {
@@ -38,9 +35,8 @@ namespace rmm {
  */
 class CertificateManager : public CertificateManagerInterface {
 public:
-
-    CertificateManager() {}
-    virtual ~CertificateManager() {}
+    CertificateManager();
+    virtual ~CertificateManager();
 
     /*!
      * @brief Set certificate file path.
@@ -51,7 +47,7 @@ public:
      * @param cert_type Type of certificate.
      * @param file_path Certificate absolute file path.
      */
-    static void set_cert_file_path(CertificateType cert_type, const std::string& file_path);
+    void set_cert_file_path(CertificateType cert_type, const std::string& file_path) override;
 
 
     /*!
@@ -66,11 +62,20 @@ public:
      * @param controller IPMI controller to communicate with a client.
      * @param bridge_info Bridge information for clients that need bridged connection.
      */
-    virtual void update_certificate(CertificateType certificate_type, const ipmi::IpmiController::Ptr controller,
+    void update_certificate(CertificateType certificate_type,
+                            const ipmi::IpmiController::Ptr controller,
                             const ipmi::BridgeInfo& bridge_info = {}) override;
 
 
 protected:
+    /*!
+     * @brief Get reference to certificate data
+     *
+     * Certificate data is locked when the reference is valid.
+     * @return RAII reference to locked certificate data
+     */
+    CertificateDataReference get_certificate(CertificateType certificate_type) const;
+
     /*!
      * @brief Calculate certificate hash.
      *
@@ -105,8 +110,9 @@ protected:
      * @param bridge_info Bridge information for clients that need bridged connection.
      * @return Retrieved certificate hash.
      */
-    const CertificateData::CertificateHashType
-    get_certificate_hash_from_client(CertificateType certificate_type, const ipmi::IpmiController::Ptr controller,
+    CertificateData::CertificateHashType
+    get_certificate_hash_from_client(CertificateType certificate_type,
+                                     const ipmi::IpmiController::Ptr controller,
                                      const ipmi::BridgeInfo& bridge_info = {});
 
 
@@ -123,37 +129,15 @@ protected:
      * @param controller IPMI controller to communicate with a client.
      * @param bridge_info Bridge information for clients that need bridged connection.
      */
-    void send_certificate_to_client(CertificateType certificate_type, const ipmi::IpmiController::Ptr controller,
+    void send_certificate_to_client(CertificateType certificate_type,
+                                    const ipmi::IpmiController::Ptr controller,
                                     const ipmi::BridgeInfo& bridge_info = {});
 
 
-    /*!
-     * @brief Select certificate data object based on certificate type.
-     * @param certificate_type Type of certificate.
-     * @return Appropriate certificate data object.
-     */
-    static CertificateData& select_certificate_data(CertificateType certificate_type) {
-        return CertificateType::PODM == certificate_type ? podm_cert_data : rmm_cert_data;
-    }
-
-
 private:
-    /*!
-     * @brief Select data mutex based on certificate type.
-     * @param certificate_type Certificate type.
-     * @return Appropriate mutex object.
-     */
-    static std::mutex& select_mutex(CertificateType certificate_type) {
-        return CertificateType::PODM == certificate_type ? podm_cert_data_mutex : rmm_cert_data_mutex;
-    }
+    std::vector<std::shared_ptr<CertificateData>> certificates;
 
-
-    static CertificateData podm_cert_data;
-    static CertificateData rmm_cert_data;
-    static std::mutex podm_cert_data_mutex;
-    static std::mutex rmm_cert_data_mutex;
-
-    const std::size_t MAX_RETRIES{5};
+    mutable std::mutex m_mutex{};
 };
 
 }

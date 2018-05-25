@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,35 +36,43 @@ import static java.util.Optional.empty;
 
 @Dependent
 public class ExternalServiceErrorResponseBuilder {
+
     @Inject
     private Logger logger;
 
     public Optional<Response> getExternalServiceErrorResponse(BusinessApiException exception) {
+
         Optional<ExternalServiceError> externalServiceErrorResponse = tryGetExternalServiceErrorInExceptionStack(exception);
         if (!externalServiceErrorResponse.isPresent()) {
             return empty();
         }
+
         HttpStatusCode httpStatusCode = externalServiceErrorResponse.get().getResponse().getHttpStatusCode();
         return getErrorResponseByHttpStatusCode(httpStatusCode, exception);
     }
 
     private Optional<Response> getErrorResponseByHttpStatusCode(HttpStatusCode httpStatusCode, BusinessApiException exception) {
+
         if (httpStatusCode.isClientError()) {
             return Optional.of(buildErrorResponse(ErrorType.INVALID_PAYLOAD, exception));
         }
+
         if (httpStatusCode.equals(HttpStatusCode.NOT_IMPLEMENTED)) {
             return Optional.of(buildErrorResponse(ErrorType.NOT_IMPLEMENTED, exception));
         }
+
         return empty();
     }
 
     private Response buildErrorResponse(ErrorType errorType, BusinessApiException businessApiException) {
         LogMessageBuilder logMessageBuilder = newLogMessageBuilder(errorType.getErrorType()).withMessage(errorType.getMessage());
         ErrorResponseBuilder errorResponseBuilder = newErrorResponseBuilder(errorType).withDetails(singletonList(businessApiException.getMessage()));
+
         tryGetExternalServiceErrorInExceptionStack(businessApiException).ifPresent(externalServiceError -> {
             logMessageBuilder.withExternalServiceError(externalServiceError);
             errorResponseBuilder.withErrorResponse(newExternalServiceErrorMessageBuilder(externalServiceError).build());
         });
+
         logger.e(logMessageBuilder.build());
         return errorResponseBuilder.build();
     }

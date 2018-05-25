@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-  ~ Copyright (c) 2016-2017 Intel Corporation
+  ~ Copyright (c) 2016-2018 Intel Corporation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -132,13 +132,21 @@
     <include relativeToChangelogFile="true" file="v2_2/add_ethernet_switch_port_metrics.xml"/>
     <include relativeToChangelogFile="true" file="v2_2/add_ethernet_switch_static_macs.xml"/>
     <include relativeToChangelogFile="true" file="v2_2/add_column_extended_identification_registers_processor.xml"/>
-    <include relativeToChangelogFile="true" file="v2_2/modify_column_calibration_metric_definition.xml"/>
+    <include relativeToChangelogFile="true" file="v2_2/modify_power_data_type.xml"/>
+    <include relativeToChangelogFile="true" file="v2_2/add_prior_untagged_vlan_id_composed_node.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_hosting_roles_computer_system.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_volume.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_volume_allowable_initialize_type.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_column_drives_storage_service.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_endpoints_fabrics_storage_service.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_hosted_services_computer_system.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_storage_pool.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_used_by_to_drive.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_transport_endpoint.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/modify_drive_capacity_source.xml"/>
     <include relativeToChangelogFile="true" file="v2_2/add_column_firmware_version_2_computer_system.xml"/>
     <include relativeToChangelogFile="true" file="v2_2/add_column_interface_type_selection_computer_system.xml"/>
-    <include relativeToChangelogFile="true" file="v2_2/modify_power_data_type.xml"/>
-    <include relativeToChangelogFile="true" file="v2_2/modify_column_entity_id_storage_controller.xml"/>
-    <include relativeToChangelogFile="true" file="v2_2/add_column_multi_source_discriminator_storage_controller.xml"/>
-    <include relativeToChangelogFile="true" file="v2_2/add_prior_untagged_vlan_id_composed_node.xml"/>
+    <include relativeToChangelogFile="true" file="v2_2/modify_column_calibration_metric_definition.xml"/>
     <include relativeToChangelogFile="true" file="v2_2/add_metric_definition_oem.xml"/>
     <include relativeToChangelogFile="true" file="v2_2/drop_temperature_table.xml"/>
     <include relativeToChangelogFile="true" file="v2_2/drop_power_zone_power_supply.xml"/>
@@ -146,4 +154,33 @@
     <include relativeToChangelogFile="true" file="v2_2/drop_thermal_zone.xml"/>
     <include relativeToChangelogFile="true" file="v2_2/drop_power_zone.xml"/>
     <include relativeToChangelogFile="true" file="v2_2/add_health_computer_system_metrics.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/modify_composed_node_endpoints.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/modify_endpoint_endpoint_metadata.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_volume_metadata.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/modify_composed_node_volumes.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/modify_column_entity_id_storage_controller.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_column_multi_source_discriminator_storage_controller.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_column_volume_bootable.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_column_connected_if_of_entity.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_access_capabilites_manufacturer_model_to_volume.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_replica_info.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_storage_pool_composed_node.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_endpoint_authentication.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_providing_pools_to_capacity_source.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_entityAccessMode_connected_entity.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/drop_secrets_from_network_device_function.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_drive_metrics.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/cleanup_legacy_storage_service.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_composed_node_associated_volume_endpoint_identifiers.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_column_erased_volume.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_volume_metrics.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/modify_connected_entity_remove_attributes.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_ip_transport_details.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/move_transport_details_interface_to_endpoint.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_get_pfc_and_etc_ethernet_switch.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_get_pfc_ethernet_switch_port.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_clear_tpm_on_delete_composed_node.xml"/>
+    <include relativeToChangelogFile="true" file="v2_3/add_ethernet_interface_supported_protocols.xml"/>
+
+
 </databaseChangeLog>

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,6 +69,13 @@ set(SOURCES
     model/attributes/metric_definition_entry.cpp
     model/attributes/on_package_memory.cpp
     model/attributes/fpga.cpp
+    model/attributes/ip_transport_detail.cpp
+    model/attributes/capacity.cpp
+    model/attributes/capacity_source.cpp
+    model/attributes/replica_info.cpp
+    model/attributes/qos_application_protocol.cpp
+    model/attributes/qos_bandwidth_allocation.cpp
+    model/attributes/qos_priority_group_mapping.cpp
 
     model/acl.cpp
     model/acl_rule.cpp
@@ -83,9 +90,7 @@ set(SOURCES
     model/ethernet_switch.cpp
     model/fabric.cpp
     model/fan.cpp
-    model/physical_drive.cpp
     model/iscsi_target.cpp
-    model/logical_drive.cpp
     model/manager.cpp
     model/memory.cpp
     model/metric.cpp
@@ -103,6 +108,7 @@ set(SOURCES
     model/resource.cpp
     model/static_mac.cpp
     model/storage_controller.cpp
+    model/storage_pool.cpp
     model/storage_subsystem.cpp
     model/storage_service.cpp
     model/switch.cpp
@@ -111,6 +117,7 @@ set(SOURCES
     model/thermal_zone.cpp
     model/trusted_module.cpp
     model/vlan.cpp
+    model/volume.cpp
     model/zone.cpp
 
 
@@ -135,7 +142,7 @@ set(SOURCES
     pnc_components.cpp
     common_components.cpp
 
-    utils/compute_hash.cpp
+    utils/hash.cpp
     utils/json_converter.cpp
     utils/json_transformations.cpp
     utils/optional/extensions.cpp
@@ -143,6 +150,7 @@ set(SOURCES
     utils/time.cpp
     utils/is_requested_metric.cpp
     utils/is_ascii_string.cpp
+    utils/iso8601_time_interval.cpp
 
     requests/validation/json_check_type.cpp
     requests/validation/network.cpp
@@ -168,10 +176,21 @@ set(SOURCES
     requests/common/get_metric_definitions_collection.cpp
     requests/common/get_metric_definition_info.cpp
     requests/common/get_processor_info.cpp
+    requests/common/get_pcie_device_info.cpp
+    requests/common/get_pcie_function_info.cpp
+    requests/common/add_endpoint.cpp
+    requests/common/delete_endpoint.cpp
+    requests/common/add_zone.cpp
+    requests/common/get_fabric_info.cpp
+    requests/common/get_zone_info.cpp
+    requests/common/get_endpoint_info.cpp
+    requests/common/delete_zone.cpp
+    requests/common/add_zone_endpoints.cpp
+    requests/common/delete_zone_endpoints.cpp
+    requests/common/get_network_interface_info.cpp
 
     requests/compute/get_memory_info.cpp
     requests/compute/get_storage_controller_info.cpp
-    requests/compute/get_network_interface_info.cpp
     requests/compute/get_network_device_info.cpp
     requests/compute/get_network_device_function_info.cpp
     requests/compute/get_trusted_module_info.cpp
@@ -208,26 +227,14 @@ set(SOURCES
     requests/network/get_port_static_mac_info.cpp
     requests/network/delete_port_static_mac.cpp
 
-    requests/storage/add_iscsi_target.cpp
-    requests/storage/add_logical_drive.cpp
-    requests/storage/delete_iscsi_target.cpp
-    requests/storage/delete_logical_drive.cpp
-    requests/storage/get_logical_drive_info.cpp
-    requests/storage/get_physical_drive_info.cpp
+    requests/storage/get_volume_info.cpp
+    requests/storage/add_volume.cpp
+    requests/storage/delete_volume.cpp
     requests/storage/get_storage_service_info.cpp
-    requests/storage/get_iscsi_target_info.cpp
+    requests/storage/get_storage_pool_info.cpp
 
     requests/pnc/get_switch_info.cpp
-    requests/pnc/get_fabric_info.cpp
-    requests/pnc/get_zone_info.cpp
-    requests/pnc/get_pcie_device_info.cpp
-    requests/pnc/get_pcie_function_info.cpp
-    requests/pnc/get_endpoint_info.cpp
-    requests/pnc/add_zone.cpp
     requests/pnc/get_port_info.cpp
-    requests/pnc/delete_zone.cpp
-    requests/pnc/add_zone_endpoint.cpp
-    requests/pnc/delete_zone_endpoint.cpp
 
     requests/psme/attach.cpp
     requests/psme/component_notification.cpp
@@ -236,6 +243,12 @@ set(SOURCES
     responses/common/set_component_attributes.cpp
     responses/common/delete_task.cpp
     responses/common/get_task_result_info.cpp
+    responses/common/add_endpoint.cpp
+    responses/common/delete_endpoint.cpp
+    responses/common/add_zone.cpp
+    responses/common/delete_zone.cpp
+    responses/common/add_zone_endpoints.cpp
+    responses/common/delete_zone_endpoints.cpp
 
     responses/network/add_port_vlan.cpp
     responses/network/add_ethernet_switch_port.cpp
@@ -254,15 +267,8 @@ set(SOURCES
     responses/network/delete_port_static_mac.cpp
     responses/network/delete_vlan.cpp
 
-    responses/storage/add_iscsi_target.cpp
-    responses/storage/add_logical_drive.cpp
-    responses/storage/delete_iscsi_target.cpp
-    responses/storage/delete_logical_drive.cpp
-
-    responses/pnc/add_zone.cpp
-    responses/pnc/delete_zone.cpp
-    responses/pnc/add_zone_endpoint.cpp
-    responses/pnc/delete_zone_endpoint.cpp
+    responses/storage/add_volume.cpp
+    responses/storage/delete_volume.cpp
 
     responses/psme/attach.cpp
     responses/psme/heart_beat.cpp

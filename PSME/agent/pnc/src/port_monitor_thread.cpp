@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,13 +91,13 @@ std::tuple< StringVector, PsmVector> initialize_port_vectors(const DiscoveryMana
         switch (port.get_port_type().value()) {
         // for USP port we will be updating its status
         case enums::PciePortType::UpstreamPort:
-            log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread: initializing upstream port "
+            log_debug("port-monitor", "PortMonitorThread: initializing upstream port "
                 << port.get_port_id());
             usps_uuid.push_back(port_uuid);
             break;
         // for DSP port we will be have to monitor its state to control discovery of devices connected to it
         case enums::PciePortType::DownstreamPort:
-            log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread: initializing downstream port "
+            log_debug("port-monitor", "PortMonitorThread: initializing downstream port "
                 << port.get_port_id());
             {   // braces required to keep this variable in the scope of single 'case'
                 std::shared_ptr<PortStateWorker> psw{new PortStateWorker(dm, t)};
@@ -108,16 +108,16 @@ std::tuple< StringVector, PsmVector> initialize_port_vectors(const DiscoveryMana
             break;
         // we ignore Management ports
         case enums::PciePortType::ManagementPort:
-            log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread: ignoring management port "
+            log_debug("port-monitor", "PortMonitorThread: ignoring management port "
                 << port.get_port_id());
             break;
         case enums::PciePortType::InterswitchPort:
         case enums::PciePortType::BidirectionalPort:
         case enums::PciePortType::UnconfiguredPort:
         default:
-            log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread: ignoring unsupported port type "
+            log_debug("port-monitor", "PortMonitorThread: ignoring unsupported port type "
                 << port.get_port_id());
-            log_warning(GET_LOGGER("port-monitor"), "Port of unsupported type found");
+            log_warning("port-monitor", "Port of unsupported type found");
             break;
         }
     }
@@ -152,7 +152,7 @@ void update_downstream_ports(const PsmVector& psms, const DiscoveryManager& dm, 
     for (auto& psm : psms) {
 
         Port port = get_manager<Port>().get_entry(psm->get_port_uuid());
-        log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread: checking port " << port.get_port_id());
+        log_debug("port-monitor", "PortMonitorThread: checking port " << port.get_port_id());
 
         // gather states
         bool is_device_present = get_is_present(presence_bitmask, port.get_phys_port_id());
@@ -179,14 +179,15 @@ void update_downstream_ports(const PsmVector& psms, const DiscoveryManager& dm, 
                     dm.update_drive_status(psm->get_port_uuid(), psm->get_device_uuid());
                 }
                 else {
-                    // drive is present and unbound -> set StandbyOffline
+                    // drive is present and unbound -> set StandbyOffline and keep previous smart health
                     auto status = drive_ref->get_status();
                     status.set_state(enums::State::StandbyOffline);
+                    status.set_health(drive_ref->get_last_smart_health());
                     drive_ref->set_status(status);
                 }
             }
         }
-        log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread: finished checking port " << port.get_port_id());
+        log_debug("port-monitor", "PortMonitorThread: finished checking port " << port.get_port_id());
     }
 }
 
@@ -222,10 +223,10 @@ PortMonitorThread::~PortMonitorThread() {
 }
 
 void PortMonitorThread::task() {
-    log_info(GET_LOGGER("port-monitor"), "PortMonitorThread: starting");
+    log_info("port-monitor", "PortMonitorThread: starting");
 
     std::vector<std::string> port_uuids = get_manager<Port>().get_keys(m_switch_uuid);
-    log_info(GET_LOGGER("port-monitor"), "PortMonitorThread: found " << port_uuids.size() << " ports");
+    log_info("port-monitor", "PortMonitorThread: found " << port_uuids.size() << " ports");
 
     // init gas
     Switch pcie_switch = get_manager<Switch>().get_entry(m_switch_uuid);
@@ -251,26 +252,26 @@ void PortMonitorThread::task() {
             || m_condition.wait_for(lk, std::chrono::seconds(m_interval)) == std::cv_status::timeout) {
 
             try {
-                log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread: monitor loop started!");
+                log_debug("port-monitor", "PortMonitorThread: monitor loop started!");
                 // get data
                 gas.read_top();
                 presence_bitmask = get_presence(m_tools, gas, edk_mask);
                 pbi = m_tools.gas_tool->get_all_port_binding_info(gas);
-                log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread: Presence bitmask: "
+                log_debug("port-monitor", "PortMonitorThread: Presence bitmask: "
                     << std::hex << presence_bitmask << std::dec);
                 // update port data
                 update_downstream_ports(dsps, dm, gas, m_tools, presence_bitmask, pbi);
                 update_upstream_ports(usps, dm, gas, m_tools);
-                log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread: monitor loop finished!");
+                log_debug("port-monitor", "PortMonitorThread: monitor loop finished!");
             }
             catch (std::exception& e) {
-                log_error(GET_LOGGER("port-monitor"), "PortMonitorThread: loop FAILED: " << e.what());
+                log_error("port-monitor", "PortMonitorThread: loop FAILED: " << e.what());
             }
             m_is_discovery_finished = true;
         }
     }
 
-    log_debug(GET_LOGGER("port-monitor"), "PortMonitorThread stopped");
+    log_debug("port-monitor", "PortMonitorThread stopped");
 }
 
 void PortMonitorThread::start() {

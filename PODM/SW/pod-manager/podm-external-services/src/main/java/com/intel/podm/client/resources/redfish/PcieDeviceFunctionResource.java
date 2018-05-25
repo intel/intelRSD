@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.intel.podm.client.resources.redfish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.intel.podm.client.LinkName;
 import com.intel.podm.client.OdataTypes;
 import com.intel.podm.client.WebClientRequestException;
@@ -37,7 +36,6 @@ import static com.intel.podm.common.types.redfish.OdataTypeVersions.VERSION_PATT
 @OdataTypes({
     "#PCIeFunction" + VERSION_PATTERN + "PCIeFunction"
 })
-@SuppressWarnings({"checkstyle:MethodCount"})
 public class PcieDeviceFunctionResource extends ExternalServiceResourceImpl implements ExternalServiceResource {
     @JsonProperty("FunctionId")
     private Integer functionId;
@@ -102,14 +100,6 @@ public class PcieDeviceFunctionResource extends ExternalServiceResourceImpl impl
         return status;
     }
 
-    @LinkName("pcieDevice")
-    public ResourceSupplier getPcieDevice() {
-        if (links.pcieDevice == null) {
-            return null;
-        }
-        return toSupplier(links.pcieDevice);
-    }
-
     @LinkName("functionOfDrives")
     public Iterable<ResourceSupplier> getDrives() throws WebClientRequestException {
         if (links.drives == null) {
@@ -134,12 +124,9 @@ public class PcieDeviceFunctionResource extends ExternalServiceResourceImpl impl
         return toSuppliers(links.ethernetInterfaces);
     }
 
-    @JsonPropertyOrder({"drives", "pcieDevice", "storageControllers", "ethernetInterfaces", "oem"})
     public class Links extends RedfishLinks {
         @JsonProperty("Drives")
         private Set<ODataId> drives = new LinkedHashSet<>();
-        @JsonProperty("PCIeDevice")
-        private ODataId pcieDevice;
         @JsonProperty("StorageControllers")
         private Set<ODataId> storageControllers = new LinkedHashSet<>();
         @JsonProperty("EthernetInterfaces")

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,11 +113,13 @@ std::string get_component_url(agent_framework::model::enums::Component type, con
 /*!
  * @brief Sets component location in response header
  *
- * @param res Response
+ * @param req Request - is used to determine IP address, port and protocol
+ *
+ * @param res Response - location header is stored in this response
  *
  * @param path component's REST URL
  */
-void set_location_header(server::Response& res, const std::string& path);
+void set_location_header(const server::Request& req, server::Response& res, const std::string& path);
 
 
 /*!

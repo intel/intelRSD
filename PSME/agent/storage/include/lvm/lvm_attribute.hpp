@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,8 +28,10 @@
 namespace agent {
 namespace storage {
 namespace lvm {
+
 /*! Namespace contains all Lvm attributes */
 namespace attribute {
+
 /*! @brief Status of lvm */
 static constexpr const char* HEALTH_OK_STATUS = "OK";
 /*! @brief Status of lvm */
@@ -43,8 +45,6 @@ static constexpr const char* STATE_OFFLINE = "Offline";
 
 /*! @brief Default flag for lvm handle */
 static constexpr const std::uint32_t FLAGS = 0;
-/*! @brief Constant used in conversion from B to GB */
-static constexpr const double B_TO_GB = 1.0 / (1000 * 1000 * 1000);
 
 /*! @brief Lvm attribute property for LV */
 static constexpr const char* LV_ATTR_PROPERTY = "lv_attr";

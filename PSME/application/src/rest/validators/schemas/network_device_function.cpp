@@ -1,7 +1,7 @@
 /*!
  * @brief Definition of Network Device Function PATCH request validator
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,14 +52,14 @@ const jsonrpc::ProcedureValidator& NetworkDeviceFunctionPatchSchema::IscsiBootOb
         constants::NetworkDeviceFunction::PRIMARY_TARGET_NAME, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
         constants::NetworkDeviceFunction::PRIMARY_TARGET_IP_ADDRESS, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
         constants::NetworkDeviceFunction::PRIMARY_TARGET_TCP_PORT, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_TYPED(UINT32))),
-        constants::NetworkDeviceFunction::PRIMARY_LUN, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_TYPED(UINT32))),
+        constants::NetworkDeviceFunction::PRIMARY_LUN, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_EQGT(INT64,0))),
         constants::NetworkDeviceFunction::PRIMARY_VLAN_ENABLE, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_BOOLEAN)),
         constants::NetworkDeviceFunction::PRIMARY_VLAN_ID, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_TYPED(UINT32))),
         constants::NetworkDeviceFunction::PRIMARY_DNS, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
         constants::NetworkDeviceFunction::SECONDARY_TARGET_NAME, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
         constants::NetworkDeviceFunction::SECONDARY_TARGET_IP_ADDRESS, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),
         constants::NetworkDeviceFunction::SECONDARY_TARGET_TCP_PORT, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_TYPED(UINT32))),
-        constants::NetworkDeviceFunction::SECONDARY_LUN, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_TYPED(UINT32))),
+        constants::NetworkDeviceFunction::SECONDARY_LUN, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_EQGT(INT64,0))),
         constants::NetworkDeviceFunction::SECONDARY_VLAN_ENABLE, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_BOOLEAN)),
         constants::NetworkDeviceFunction::SECONDARY_VLAN_ID, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_TYPED(UINT32))),
         constants::NetworkDeviceFunction::SECONDARY_DNS, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_STRING)),

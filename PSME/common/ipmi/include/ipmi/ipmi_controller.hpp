@@ -7,7 +7,7 @@
  * the code)
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,14 @@ public:
      */
     void close();
 
+    /*!
+     * @brief Get description of used connectin data
+     * @return connection data identification
+     */
+    std::string get_info() const {
+        return connection_data->get_info();
+    }
+
 protected:
     /*!
      * @brief Access to controller connection data
@@ -110,6 +118,37 @@ protected:
         return connection_data;
     }
 
+    /*!
+     * @brief Lock the IPMI interface.
+     */
+    void lock();
+
+    /*!
+     * @brief Unlock the IPMI interface.
+     */
+    void unlock();
+
+    /*!
+     * @brief Send message using bridge info.
+     *
+     * Default implementation with bridging. Not thread-safe without a prior lock() call.
+     *
+     * @param request message to be sent
+     * @param via information about bridges
+     * @param response received response
+     */
+    void send_unlocked(const Request& request, const BridgeInfo& via, Response& response);
+
+    /*!
+     * @brief Send a message.
+     *
+     * Default implementation without bridging. Not thread-safe without a prior lock() call.
+     *
+     * @param request message to be sent.
+     * @param response message with output/result.
+     */
+    void send_unlocked(const Request& request, Response& response);
+
 private:
     ConnectionData::Ptr connection_data;
     bool check_interface{true};
@@ -127,6 +166,12 @@ private:
      * @param[out] response received response
      */
     void do_send(const Request& request, const BridgeInfo& via, Response& response);
+
+    /*!
+     * @brief Refresh the internally used interface if necessary.
+     */
+    void check_interface_refresh();
+
 };
 
 }

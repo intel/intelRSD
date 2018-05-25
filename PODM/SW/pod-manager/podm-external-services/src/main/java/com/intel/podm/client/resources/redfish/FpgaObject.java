@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,31 @@
 
 package com.intel.podm.client.resources.redfish;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.common.types.FpgaType;
 import com.intel.podm.common.types.HssiConfig;
 import com.intel.podm.common.types.HssiSideband;
 import com.intel.podm.common.types.Ref;
 import com.intel.podm.common.types.annotations.AsUnassigned;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 import static com.intel.podm.common.types.annotations.AsUnassigned.Strategy.WHEN_NULL;
 
 public class FpgaObject {
-    @JsonProperty("Type")
+    @JsonSetter(value = "Type", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<FpgaType> type = unassigned();
-    @JsonProperty("BitStreamVersion")
+    @JsonSetter(value = "BitStreamVersion", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<String> bitStreamVersion = unassigned();
-    @JsonProperty("HSSIConfiguration")
+    @JsonSetter(value = "HSSIConfiguration", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<HssiConfig> hssiConfiguration = unassigned();
-    @JsonProperty("HSSISideband")
+    @JsonSetter(value = "HSSISideband", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<HssiSideband> hssiSideband = unassigned();
-    @JsonProperty("ReconfigurationSlots")
+    @JsonSetter(value = "ReconfigurationSlots", nulls = AS_EMPTY)
     @AsUnassigned(WHEN_NULL)
     private Ref<Integer> reconfigurationSlots = unassigned();
 

@@ -5,7 +5,7 @@
  * Default one is used when requested (by name) doesn't exist. System one
  * exists always (is configuration agnostic).
  *
- * @copyright Copyright (c) 2016-2017 Intel Corporation
+ * @copyright Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ constexpr const char* GLOBAL_LOGGER_NAME = "usr";
 /*!
  * @brief The LoggerFactory class manage all loggers in application
  */
-class LoggerFactory {
+class LoggerFactory final {
 public:
     /*! logger map [name, logger object] */
     using loggers_t = std::unordered_map<std::string, LoggerSPtr>;
@@ -107,7 +107,7 @@ public:
     /*!
      * @brief cleanup Clean LoggerFactory objects
      */
-    static void cleanup();
+    static void cleanup() __attribute__((deprecated)) {}
 
     /*!
      * @brief Sets main logger name
@@ -125,16 +125,13 @@ public:
 
 private:
     LoggerFactory();
-    ~LoggerFactory() = default;
+    ~LoggerFactory();
     LoggerFactory(const LoggerFactory&) = delete;
     LoggerFactory(const LoggerFactory&&) = delete;
 
-    loggers_t m_loggers;
-
-    static LoggerFactory* g_logger_factory;
-    static LoggerSPtr g_global_logger;
-    static StreamSPtr g_global_stream;
-
+    loggers_t m_loggers{};
+    StreamSPtr m_global_stream{};
+    LoggerSPtr m_global_logger{};
     static const char* g_main_logger_name;
 };
 

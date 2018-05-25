@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Intel Corporation
+# Copyright (c) 2016-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ class MockHandler(http.server.BaseHTTPRequestHandler):
                 if key != 'Connection' and key != 'Transfer-Encoding':
                     self.send_header(key, resource.get_headers()[key])
 
-            self.send_header('_Date', resource.get_headers()['Date'])
+            if 'Date' in resource.get_headers():
+                self.send_header('_Date', resource.get_headers()['Date'])
 
             self.end_headers()
 

@@ -2,7 +2,7 @@
  * @brief Rmm certificate manager class implementation
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 #include "certificate_management/certificate_utilities.hpp"
 #include "ipmi/command/sdv/rmm/get_authorized_cert_hash.hpp"
 #include "ipmi/command/sdv/rmm/set_authorized_cert.hpp"
-#include "logger/logger_factory.hpp"
+#include "logger/logger.hpp"
 
 #include <algorithm>
 #include <exception>
@@ -44,11 +44,27 @@ using namespace agent::rmm::certificate_utilities;
 namespace {
 constexpr char MANAGER_LOGGER_NAME[] = "rmm-certificate-manager";
 
+std::string certificate_type_to_string(CertificateManager::CertificateType certificate_type) {
+    switch (certificate_type) {
+        case CertificateManager::CertificateType::PODM:
+            return "PODM";
+        case CertificateManager::CertificateType::RMM:
+            return "RMM";
+        default:
+            throw std::runtime_error("Unknown certificate type!");
 
-const std::string certificate_type_to_string(CertificateManager::CertificateType certificate_type) {
-    return std::string{CertificateManager::CertificateType::PODM == certificate_type ?
-                       "PODM" :
-                       "RMM"};
+    }
+}
+
+ipmi::command::sdv::CertificateType certificate_type_to_enum(CertificateManager::CertificateType certificate_type) {
+    switch (certificate_type) {
+        case CertificateManager::CertificateType::PODM:
+            return ipmi::command::sdv::CertificateType::PODM;
+        case CertificateManager::CertificateType::RMM:
+            return ipmi::command::sdv::CertificateType::RMM;
+        default:
+            throw std::runtime_error("Unknown certificate type!");
+    }
 }
 
 
@@ -90,37 +106,54 @@ const std::string bridge_info_to_string(const ipmi::BridgeInfo& bridge_info) {
 
     return bridge_info_serialized;
 }
+
 }
 
-CertificateData CertificateManager::podm_cert_data{CertificateManager::CertificateType::PODM};
-CertificateData CertificateManager::rmm_cert_data{CertificateManager::CertificateType::RMM};
-std::mutex CertificateManager::podm_cert_data_mutex{};
-std::mutex CertificateManager::rmm_cert_data_mutex{};
 
+CertificateManager::CertificateManager() : certificates{{
+    std::make_shared<CertificateData>(CertificateManager::CertificateType::PODM)
+    /* no RMM certificate defined, it is not handled in the app */
+}} { }
 
-void CertificateManager::update_certificate(CertificateType certificate_type,
+CertificateManager::~CertificateManager() { }
+
+CertificateDataReference CertificateManager::get_certificate(CertificateManager::CertificateType certificate_type) const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    for (auto cert : certificates) {
+        if (cert->get_certificate_type() == certificate_type) {
+            return *cert;
+        }
+    }
+    throw std::runtime_error("No certificate " + certificate_type_to_string(certificate_type) + " defined");
+}
+
+void CertificateManager::update_certificate(CertificateManager::CertificateType certificate_type,
                                             const ipmi::IpmiController::Ptr controller,
                                             const ipmi::BridgeInfo& bridge_info) {
     log_info(MANAGER_LOGGER_NAME,
              "Checking " << certificate_type_to_string(certificate_type) << " certificate for changes.");
 
-    std::lock_guard<std::mutex> lock{select_mutex(certificate_type)};
-    CertificateData& certificate_data = select_certificate_data(certificate_type);
+    CertificateData::CertificateHashType hash;
+    {
+        CertificateDataReference reference = get_certificate(certificate_type);
+        CertificateData& certificate_data = *reference;
 
-
-    if (read_cert_file_and_update(certificate_data)) {
-        log_info(MANAGER_LOGGER_NAME,
-                 certificate_type_to_string(certificate_type) << " changed. Updating.");
+        if (read_cert_file_and_update(certificate_data)) {
+            log_info(MANAGER_LOGGER_NAME,
+                certificate_type_to_string(certificate_type) << " changed. Updating.");
+        }
+        else {
+            log_info(MANAGER_LOGGER_NAME,
+                certificate_type_to_string(certificate_type) << " did not change since last check.");
+        }
+        hash = certificate_data.get_certificate_hash();
     }
-    else {
-        log_info(MANAGER_LOGGER_NAME,
-                 certificate_type_to_string(certificate_type) << " did not change since last check.");
-    }
 
-    const CertificateData::CertificateHashType& agent_certificate_hash = get_certificate_hash_from_client(
+    CertificateData::CertificateHashType agent_certificate_hash = get_certificate_hash_from_client(
         certificate_type, controller, bridge_info);
 
-    if (agent_certificate_hash != certificate_data.get_certificate_hash()) {
+    if (agent_certificate_hash != hash) {
         log_info(MANAGER_LOGGER_NAME,
                  "Updating outdated " << certificate_type_to_string(certificate_type) << " certificate for client.");
         log_info(MANAGER_LOGGER_NAME,
@@ -131,8 +164,8 @@ void CertificateManager::update_certificate(CertificateType certificate_type,
 }
 
 
-const CertificateData::CertificateHashType
-CertificateManager::get_certificate_hash_from_client(CertificateType certificate_type,
+CertificateData::CertificateHashType
+CertificateManager::get_certificate_hash_from_client(CertificateManager::CertificateType certificate_type,
                                                      const ipmi::IpmiController::Ptr controller,
                                                      const ipmi::BridgeInfo& bridge_info) {
     log_info(MANAGER_LOGGER_NAME,
@@ -140,14 +173,11 @@ CertificateManager::get_certificate_hash_from_client(CertificateType certificate
     log_debug(MANAGER_LOGGER_NAME,
               "Getting " << certificate_type_to_string(certificate_type) << " certificate hash from client with "
                          << bridge_info_to_string(bridge_info) << ".");
+
     ipmi::command::sdv::request::GetAuthorizedCertHash get_hash_request{};
     ipmi::command::sdv::response::GetAuthorizedCertHash get_hash_response{};
 
-    ipmi::command::sdv::CertificateType ipmi_cert_type =
-        CertificateType::PODM == certificate_type ? ipmi::command::sdv::CertificateType::PODM
-                                                  : ipmi::command::sdv::CertificateType::RMM;
-
-    get_hash_request.set_certificate_type(ipmi_cert_type);
+    get_hash_request.set_certificate_type(certificate_type_to_enum(certificate_type));
     controller->send(get_hash_request, bridge_info, get_hash_response);
 
     const auto& certificate_hash = get_hash_response.get_certificate_hash();
@@ -161,7 +191,7 @@ CertificateManager::get_certificate_hash_from_client(CertificateType certificate
 }
 
 
-void CertificateManager::send_certificate_to_client(CertificateType certificate_type,
+void CertificateManager::send_certificate_to_client(CertificateManager::CertificateType certificate_type,
                                                     const ipmi::IpmiController::Ptr controller,
                                                     const ipmi::BridgeInfo& bridge_info) {
     log_info(MANAGER_LOGGER_NAME,
@@ -171,10 +201,14 @@ void CertificateManager::send_certificate_to_client(CertificateType certificate_
                          << bridge_info_to_string(bridge_info) << ".");
 
     // send no more than 48 bytes at a time
-    constexpr size_t MAX_CHUNK_LENGTH = 48;
+    constexpr const size_t MAX_CHUNK_LENGTH = 48;
+    constexpr const std::size_t MAX_RETRIES = 5;
 
-    const CertificateData::CertificateDataType& certificate = select_certificate_data(
-        certificate_type).get_certificate_data();
+    CertificateData::CertificateDataType certificate{};
+    {
+        CertificateDataReference reference = get_certificate(certificate_type);
+        certificate = (*reference).get_certificate_data();
+    }
     const size_t certificate_length = certificate.size();
     size_t remaining_bytes_count = certificate_length;
     unsigned int current_chunk_number = 0;
@@ -183,8 +217,7 @@ void CertificateManager::send_certificate_to_client(CertificateType certificate_
     ipmi::command::sdv::response::SetAuthorizedCert response{};
     ipmi::command::sdv::request::SetAuthorizedCert::CertificateChunk certificate_chunk{};
 
-    request.set_certificate_type(CertificateType::PODM == certificate_type ? ipmi::command::sdv::CertificateType::PODM
-                                                                           : ipmi::command::sdv::CertificateType::RMM);
+    request.set_certificate_type(certificate_type_to_enum(certificate_type));
     request.set_certificate_length(static_cast<std::uint16_t>(certificate_length));
 
     while (remaining_bytes_count > 0) {
@@ -230,9 +263,9 @@ void CertificateManager::send_certificate_to_client(CertificateType certificate_
 }
 
 
-void CertificateManager::set_cert_file_path(CertificateType cert_type, const std::string& file_path) {
-    std::lock_guard<std::mutex> lock{select_mutex(cert_type)};
-    CertificateData& certificate_data = select_certificate_data(cert_type);
+void CertificateManager::set_cert_file_path(CertificateManager::CertificateType cert_type, const std::string& file_path) {
+    CertificateDataReference reference = get_certificate(cert_type);
+    CertificateData& certificate_data = *reference;
 
     // Setting certificate file path is allowed only once to limit security vulnerabilities
     if (!certificate_data.get_certificate_file_path().empty()) {

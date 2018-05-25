@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,21 @@
 
 #pragma once
 
+
+
 #include "agent-framework/eventing/events_queue.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
 
+
+
 namespace agent_framework {
 namespace eventing {
+
+void send_event(const Uuid& component_uuid,
+                const agent_framework::model::enums::Component& component,
+                const agent_framework::model::enums::Notification& notification,
+                const Uuid& parent_uuid);
+
 
 template<typename M>
 void send_add_notifications_for_each() {
@@ -36,6 +46,15 @@ void send_add_notifications_for_each() {
         notifications.push_back(edat);
     }
     agent_framework::eventing::EventsQueue::get_instance()->push_back(notifications);
+}
+
+
+template<typename M>
+void send_update(const M& model) {
+    send_event(model.get_uuid(),
+               M::get_component(),
+               agent_framework::model::enums::Notification::Update,
+               model.get_parent_uuid());
 }
 
 }

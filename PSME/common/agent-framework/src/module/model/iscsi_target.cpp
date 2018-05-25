@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,21 +59,18 @@ json::Json IscsiTarget::to_json() const {
 IscsiTarget IscsiTarget::from_json(const json::Json& json) {
     IscsiTarget target;
 
-    target.set_status(attribute::Status::from_json(
-        json[literals::IscsiTarget::STATUS]));
+    target.set_status(attribute::Status::from_json(json[literals::IscsiTarget::STATUS]));
     target.set_initiator_iqn(json[literals::IscsiTarget::INITIATOR_IQN]);
     target.set_target_address(json[literals::IscsiTarget::TARGET_ADDRESS]);
     target.set_target_port(json[literals::IscsiTarget::TARGET_PORT]);
     target.set_target_iqn(json[literals::IscsiTarget::TARGET_IQN]);
-    target.set_target_lun(TargetLuns::from_json(
-        json[literals::IscsiTarget::TARGET_LUNS]));
+    target.set_target_lun(TargetLuns::from_json(json[literals::IscsiTarget::TARGET_LUNS]));
     target.set_authentication_method(json[literals::IscsiTarget::AUTHENTICATION_METHOD]);
     target.set_chap_username(json[literals::IscsiTarget::CHAP_USERNAME]);
     target.set_chap_secret(json[literals::IscsiTarget::CHAP_SECRET]);
     target.set_mutual_chap_username(json[literals::IscsiTarget::MUTUAL_CHAP_USERNAME]);
     target.set_mutual_chap_secret(json[literals::IscsiTarget::MUTUAL_CHAP_SECRET]);
     target.set_oem(attribute::Oem::from_json(json[literals::IscsiTarget::OEM]));
-    target.set_resource_hash(json);
 
     return target;
 }

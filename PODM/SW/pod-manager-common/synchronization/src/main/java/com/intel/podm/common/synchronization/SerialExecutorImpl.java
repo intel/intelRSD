@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.intel.podm.common.logger.LoggerFactory.getLogger;
+import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -66,7 +67,7 @@ class SerialExecutorImpl implements SerialExecutor {
 
     @Override
     public void executeAsync(Runnable task) {
-        LOG.t("Registering new async task for {}", identity);
+        LOG.t("Registering new async task {} for {}", task, identity);
         synchronized (asyncExecutorSynchronizer) {
             inBox.add(task);
             if (running.isDone()) {
@@ -75,14 +76,21 @@ class SerialExecutorImpl implements SerialExecutor {
         }
     }
 
+    @SuppressWarnings({"checkstyle:IllegalCatch"})
     private <E extends Exception, R> R execute(Duration timeToWaitFor, Executable<E, R> task) throws TimeoutException, E {
         LOG.t("Synchronous task({}) execution has been requested, pausing asynchronous task queue for {}", task, identity);
         inBox.pause();
         try {
             cancelRunnableIfApplicable(running.getCurrentRunnable());
             waitForCurrentlyRunning(timeToWaitFor);
-            LOG.t("Running synchronous task({}) for {}", task, identity);
-            return task.execute();
+            LOG.d("Coordinated Task (sync) {}/{} - started", task, identity);
+            R execute = task.execute();
+            LOG.d("Coordinated Task (sync) {}/{} - ended", task, identity);
+            return execute;
+        } catch (Throwable throwable) {
+            LOG.e(format("Task(%s) run for %s finished with exception.", task, identity), throwable);
+            LOG.d("Task coordinator queue dump: {}", inBox.print());
+            throw throwable;
         } finally {
             inBox.resume();
             scheduleNext();
@@ -113,8 +121,7 @@ class SerialExecutorImpl implements SerialExecutor {
             if (running.isDone()) {
                 Runnable runnable = inBox.poll();
                 if (runnable != null) {
-                    LOG.t("Requesting execution of next ASYNC operation({}) for ({})", runnable, identity);
-                    running.runAsyncAndThenRunAsync(runnable, delegate, this::scheduleNext);
+                    running.runAsyncAndThenRunAsync(runnable, delegate, this::scheduleNext, identity);
                 }
             }
         }
@@ -132,10 +139,22 @@ class SerialExecutorImpl implements SerialExecutor {
             return running.get(timeout, unit);
         }
 
-        public synchronized void runAsyncAndThenRunAsync(Runnable runnable, Executor executor, Runnable action) {
+        public synchronized void runAsyncAndThenRunAsync(Runnable runnable, Executor executor, Runnable action, Object identity) {
             this.runnable = runnable;
-            this.running = runAsync(runnable, executor);
+            this.running = runAsync(logAndRun(runnable, identity), executor);
             this.running.thenRunAsync(action);
+            this.running.exceptionally(throwable -> {
+                LOG.e(format("Asynchronous operation (%s) execution finished with exception", runnable), throwable);
+                return null;
+            });
+        }
+
+        private Runnable logAndRun(Runnable runnable, Object identity) {
+            return () -> {
+                LOG.d("Coordinated Task (async) {}/{} - started", runnable, identity);
+                runnable.run();
+                LOG.d("Coordinated Task (async) {}/{} - ended", runnable, identity);
+            };
         }
 
         public synchronized Runnable getCurrentRunnable() {

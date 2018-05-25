@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,17 @@
 
 package com.intel.podm.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({
-    "@odata.context", "@odata.id", "@odata.type", "id", "name", "description",
-    "received", "transmitted", "collisions", "actions", "oem"
-})
+@JsonPropertyOrder({"@odata.context", "@odata.id", "@odata.type", "id", "name", "description", "received", "transmitted", "collisions", "actions", "oem"})
+@JsonIgnoreProperties({"Oem"})
 public final class EthernetSwitchPortMetricsDto extends RedfishDto {
-    @JsonProperty("Received")
+    private final Actions actions = new Actions();
     private Metrics received = new Metrics();
-    @JsonProperty("Transmitted")
     private Metrics transmitted = new Metrics();
-    @JsonProperty("Collisions")
     private Long collisions;
-    @JsonProperty("Actions")
-    private Actions actions = new Actions();
 
     public EthernetSwitchPortMetricsDto() {
         super("#EthernetSwitchPortMetrics.v1_0_0.EthernetSwitchPortMetrics");
@@ -65,28 +60,17 @@ public final class EthernetSwitchPortMetricsDto extends RedfishDto {
         return actions;
     }
 
-    public void setActions(Actions actions) {
-        this.actions = actions;
-    }
-
+    @JsonPropertyOrder({"@odata.type", "packets", "droppedPackets", "errorPackets", "broadcastPackets", "multicastPackets", "bytes", "errors"})
     @SuppressWarnings({"checkstyle:MethodCount"})
-    @JsonPropertyOrder({"oDataType", "packets", "droppedPackets", "errorPackets", "broadcastPackets", "multicastPackets", "bytes", "errors"})
     public static class Metrics {
         @JsonProperty("@odata.type")
         private final String oDataType = "#EthernetSwitchPortMetrics.v1_0_0.Metrics";
-        @JsonProperty("Packets")
         private Long packets;
-        @JsonProperty("DroppedPackets")
         private Long droppedPackets;
-        @JsonProperty("ErrorPackets")
         private Long errorPackets;
-        @JsonProperty("BroadcastPackets")
         private Long broadcastPackets;
-        @JsonProperty("MulticastPackets")
         private Long multicastPackets;
-        @JsonProperty("Bytes")
         private Long bytes;
-        @JsonProperty("Errors")
         private Long errors;
 
         public String getoDataType() {

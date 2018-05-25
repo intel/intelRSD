@@ -5,7 +5,7 @@
  * and opened on sending a (next) message
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,8 @@ protected:
      * @brief Sends request and wait for response
      *
      * Connection is active when object exist. Sending a message means just passing
-     * all information from the request to the channel.
+     * all information from the request to the channel. This send is multithread safe.
+     * Useful for running single ipmi commands.
      *
      * @param netfn network function
      * @param command command
@@ -77,6 +78,36 @@ protected:
         NetFn netfn, Cmd command, Lun lun,
         const BridgeInfo& bridge,
         const ByteBuffer& request, ByteBuffer& response) = 0;
+
+    /*!
+     * @brief Sends request and wait for response
+     *
+     * Connection is active when object exist. Sending a message means just passing
+     * all information from the request to the channel. This send is not multithread
+     * safe, it has to be encapsulated with a pair of lock/unlock commands. The use
+     * of RAII is highly encouraged. Useful for sending bundled IPMI commands.
+     *
+     * @param netfn network function
+     * @param command command
+     * @param lun logical unit number
+     * @param bridge bridging information
+     * @param request bytes to be sent
+     * @param[out] response received bytes
+     */
+    virtual void send_unlocked(
+            NetFn netfn, Cmd command, Lun lun,
+            const BridgeInfo& bridge,
+            const ByteBuffer& request, ByteBuffer& response) = 0;
+
+    /*!
+     * @brief Locks the IPMI interface instance.
+     */
+    virtual void lock() = 0;
+
+    /*!
+     * @brief Unlocks the IPMI interface instance.
+     */
+    virtual void unlock() = 0;
 
     /*!
      * @brief Check if IPMI interface matches given connection data

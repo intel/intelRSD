@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,15 @@
  * @brief Definition of Fabric port class
  * */
 #pragma once
+
+
+
 #include "agent-framework/module/model/resource.hpp"
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/enum/pnc.hpp"
+
+
 
 namespace agent_framework {
 namespace model {
@@ -37,14 +42,24 @@ public:
     using AllowedActions = attribute::Array<enums::ResetType>;
     using CablesIds = attribute::Array<std::string>;
 
+
     explicit Port(const std::string& parent_uuid = {}, enums::Component parent_type = enums::Component::Switch);
-    ~Port();
+
+
+    virtual ~Port();
+
 
     /*! Enable copy */
     Port(const Port&) = default;
+
+
     Port& operator=(const Port&) = default;
+
+
     /*! Enable move */
     Port(Port&&) = default;
+
+
     Port& operator=(Port&&) = default;
 
 
@@ -56,6 +71,7 @@ public:
         return Port::collection_name;
     }
 
+
     /*!
      * @brief Get component name
      * @return component name
@@ -64,11 +80,13 @@ public:
         return Port::component;
     }
 
+
     /*!
      * @brief Returns JSON representation of the object.
      * @return Json representation.
      * */
     json::Json to_json() const;
+
 
     /*!
      * @brief Constructs object from JSON
@@ -76,6 +94,7 @@ public:
      * @return the newly constructed object
      */
     static Port from_json(const json::Json& json);
+
 
     /*!
      * @brief Set PortId
@@ -85,6 +104,7 @@ public:
         m_port_id = port_id;
     }
 
+
     /*!
      * @brief Set Port Type structure
      * @param[in] port_type Port Type
@@ -92,6 +112,7 @@ public:
     void set_port_type(const OptionalField<enums::PciePortType>& port_type) {
         m_port_type = port_type;
     }
+
 
     /*!
      * @brief Set cables ids structure
@@ -101,21 +122,6 @@ public:
         m_cables_ids = cables_ids;
     }
 
-    /*!
-     * @brief Set Operational state
-     * @param[in] operational_state Operational state
-     * */
-    void set_operational_state(const OptionalField<enums::PciePortOperationalState>& operational_state) {
-        m_operational_state = operational_state;
-    }
-
-    /*!
-     * @brief Set Administrative state
-     * @param[in] administrative_state Administrative state
-     * */
-    void set_administrative_state(const OptionalField<enums::PciePortAdministrativeState>& administrative_state) {
-        m_administrative_state = administrative_state;
-    }
 
     /*!
      * @brief Set Link speed gbps
@@ -125,6 +131,7 @@ public:
         m_speed_gbps = speed_gbps;
     }
 
+
     /*!
      * @brief Set Link width
      * @param[in] width Link Width
@@ -132,6 +139,7 @@ public:
     void set_width(const OptionalField<std::uint32_t>& width) {
         m_width = width;
     }
+
 
     /*!
      * @brief Set Max Link Speed Gbps
@@ -141,6 +149,7 @@ public:
         m_max_speed_gbps = max_speed_gbps;
     }
 
+
     /*!
      * @brief Set Max Link Width
      * @param[in] max_width Max Link Width
@@ -148,6 +157,7 @@ public:
     void set_max_width(const OptionalField<std::uint32_t>& max_width) {
         m_max_width = max_width;
     }
+
 
     /*!
      * @brief Set TWI Port
@@ -157,6 +167,7 @@ public:
         m_twi_port = twi_port;
     }
 
+
     /*!
      * @brief Set TWI Channel
      * @param[in] twi_channel TWI Channel
@@ -164,6 +175,7 @@ public:
     void set_twi_channel(std::uint32_t twi_channel) {
         m_twi_channel = twi_channel;
     }
+
 
     /*!
      * @brief Get Port Id
@@ -173,6 +185,7 @@ public:
         return m_port_id;
     }
 
+
     /*!
      * @brief Set Physical PortId
      * @param[in] phys_port_id Physical PortId
@@ -180,6 +193,7 @@ public:
     void set_phys_port_id(const uint32_t phys_port_id) {
         m_phys_port_id = phys_port_id;
     }
+
 
     /*!
      * @brief Get phys_port_id
@@ -189,6 +203,7 @@ public:
         return m_phys_port_id;
     }
 
+
     /*!
      * @brief Get Port Type
      * @return Port Type
@@ -196,6 +211,7 @@ public:
     const OptionalField<enums::PciePortType>& get_port_type() const {
         return m_port_type;
     }
+
 
     /*!
      * @brief Get Cables Ids
@@ -205,21 +221,6 @@ public:
         return m_cables_ids;
     }
 
-    /*!
-     * @brief Get Operational state
-     * @return Operational state
-     * */
-    const OptionalField<enums::PciePortOperationalState>& get_operational_state() const {
-        return m_operational_state;
-    }
-
-    /*!
-     * @brief Get Administrative state
-     * @return Administrative state
-     * */
-    const OptionalField<enums::PciePortAdministrativeState>& get_administrative_state() const {
-        return m_administrative_state;
-    }
 
     /*!
      * @brief Get link speed gbps
@@ -229,6 +230,7 @@ public:
         return m_speed_gbps;
     }
 
+
     /*!
      * @brief Get link width
      * @return Link width
@@ -236,6 +238,7 @@ public:
     const OptionalField<std::uint32_t>& get_width() const {
         return m_width;
     }
+
 
     /*!
      * @brief Get max link speed gbps
@@ -245,6 +248,7 @@ public:
         return m_max_speed_gbps;
     }
 
+
     /*!
      * @brief Get max link width
      * @return Max link width
@@ -252,6 +256,7 @@ public:
     const OptionalField<std::uint32_t>& get_max_width() const {
         return m_max_width;
     }
+
 
     /*!
      * @brief Get TWI Port
@@ -261,6 +266,7 @@ public:
         return m_twi_port;
     }
 
+
     /*!
      * @brief Get TWI Channel
      * @return TWI Channel Number
@@ -268,6 +274,7 @@ public:
     std::uint32_t get_twi_channel() const {
         return m_twi_channel;
     }
+
 
     /*!
      * @brief Returns list of all allowed actions on the port
@@ -277,6 +284,7 @@ public:
         return m_allowed_actions;
     }
 
+
     /*!
      * @brief Sets list of all allowed actions on the port
      * @param allowed_actions List of allowed actions
@@ -284,6 +292,7 @@ public:
     void set_allowed_actions(const AllowedActions& allowed_actions) {
         m_allowed_actions = allowed_actions;
     }
+
 
     /*!
      * @brief Adds allowed action
@@ -293,6 +302,7 @@ public:
         m_allowed_actions.add_entry(allowed_action);
     }
 
+
     /*!
      * @brief Adds cable id
      * @param cable_id Cable id
@@ -300,6 +310,7 @@ public:
     void add_cable_id(const std::string& cable_id) {
         m_cables_ids.add_entry(cable_id);
     }
+
 
     /*!
      * @brief Get protocol
@@ -309,6 +320,7 @@ public:
         return m_protocol;
     }
 
+
     /*!
      * @brief Set protocol
      * @param[in] protocol protocol
@@ -317,11 +329,10 @@ public:
         m_protocol = protocol;
     }
 
+
 private:
     OptionalField<std::string> m_port_id{};
     OptionalField<enums::PciePortType> m_port_type{};
-    OptionalField<enums::PciePortOperationalState> m_operational_state{};
-    OptionalField<enums::PciePortAdministrativeState> m_administrative_state{};
     OptionalField<double> m_speed_gbps{};
     OptionalField<std::uint32_t> m_width{};
     OptionalField<double> m_max_speed_gbps{};

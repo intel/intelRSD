@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -106,7 +106,7 @@ void fill_links(const agent_framework::model::Switch& pcie_switch, const server:
             json[Common::LINKS][Common::CHASSIS].push_back(std::move(chassis_link));
         }
         catch (agent_framework::exceptions::InvalidUuid) {
-            log_error(GET_LOGGER("rest"), "Fabric Switch " + pcie_switch.get_uuid() + " has chassis "
+            log_error("rest", "Fabric Switch " + pcie_switch.get_uuid() + " has chassis "
                                           + pcie_switch.get_chassis().value() + " which does not exist as a resource");
         }
     }

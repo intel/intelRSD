@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static com.intel.podm.business.redfish.Contexts.toContext;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
@@ -44,7 +45,7 @@ public class EthernetSwitchStaticMacActionsService {
     public Context createStaticMac(Context context, RedfishEthernetSwitchStaticMac representation) throws BusinessApiException {
         EthernetSwitchPort currentPort = (EthernetSwitchPort) traverser.traverse(context);
 
-        if (!currentPort.isEnabledAndHealthy()) {
+        if (!statusOf(currentPort).isEnabled().isHealthy().verify()) {
             throw new ResourceStateMismatchException("EthernetSwitchPort should be enabled and healthy in order to invoke actions on it.");
         }
 

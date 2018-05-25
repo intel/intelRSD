@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,6 +144,11 @@ ENUM(FunctionAuthenticationMethod, uint32_t, None, CHAP, MutualCHAP);
  */
 ENUM(MemoryModuleType, uint32_t, RDIMM, UDIMM, SO_DIMM, LRDIMM, Mini_RDIMM, Mini_UDIMM, SO_RDIMM_72b, SO_UDIMM_72b,
      SO_DIMM_16b, SO_DIMM_32b);
+
+/*!
+ * @brief ENUM HostingRole Features that the hosting ComputerSystem supports.
+ */
+ENUM(HostingRole, uint32_t, ApplicationServer, StorageServer, Switch);
 
 }
 }

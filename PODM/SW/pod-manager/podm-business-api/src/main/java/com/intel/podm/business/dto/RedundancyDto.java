@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Intel Corporation
+ * Copyright (c) 2016-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,11 @@ import com.intel.podm.common.types.Status;
 import java.util.HashSet;
 import java.util.Set;
 
-@JsonPropertyOrder({
-    "@odata.id", "memberId", "name", "redundancyEnabled", "redundancySet", "mode",
-    "status", "minNumNeeded", "maxNumSupported"
-})
+@JsonPropertyOrder({"@odata.id", "memberId", "name", "redundancyEnabled", "redundancySet", "mode", "status", "minNumNeeded", "maxNumSupported"})
 @SuppressWarnings({"checkstyle:MethodCount"})
 public final class RedundancyDto implements Comparable<RedundancyDto> {
-
+    @JsonUnwrapped
+    @JsonProperty("@odata.id")
     private ODataId oDataId;
     private String memberId;
     private String name;
@@ -43,8 +41,6 @@ public final class RedundancyDto implements Comparable<RedundancyDto> {
     private Integer minNumNeeded;
     private Integer maxNumSupported;
 
-    @JsonProperty("@odata.id")
-    @JsonUnwrapped
     public ODataId getoDataId() {
         return oDataId;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.intel.podm.redfish.json.templates.actions;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.intel.podm.common.types.AuthenticationMethod;
 import com.intel.podm.common.types.IpAddressType;
 import com.intel.podm.common.types.Ref;
@@ -24,17 +24,17 @@ import com.intel.podm.common.types.redfish.RedfishNetworkDeviceFunction;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import static com.fasterxml.jackson.annotation.Nulls.AS_EMPTY;
 import static com.intel.podm.common.types.Ref.unassigned;
 
 public final class NetworkDeviceFunctionPartialRepresentation implements RedfishNetworkDeviceFunction {
-
-    @JsonProperty("DeviceEnabled")
+    @JsonSetter(value = "DeviceEnabled", nulls = AS_EMPTY)
     private Ref<Boolean> deviceEnabled = unassigned();
 
-    @JsonProperty("iSCSIBoot")
+    @JsonSetter(value = "iSCSIBoot", nulls = AS_EMPTY)
     private Ref<IscsiBoot> iscsiBoot = unassigned();
 
-    @JsonProperty("Ethernet")
+    @JsonSetter(value = "Ethernet", nulls = AS_EMPTY)
     private Ref<Ethernet> ethernet = unassigned();
 
     @Override
@@ -78,7 +78,7 @@ public final class NetworkDeviceFunctionPartialRepresentation implements Redfish
     }
 
     public static class Ethernet implements RedfishNetworkDeviceFunction.Ethernet {
-        @JsonProperty("MACAddress")
+        @JsonSetter(value = "MACAddress", nulls = AS_EMPTY)
         private Ref<String> macAddress = unassigned();
 
         @Override
@@ -89,85 +89,85 @@ public final class NetworkDeviceFunctionPartialRepresentation implements Redfish
 
     @SuppressWarnings({"checkstyle:MethodCount"})
     public static class IscsiBoot implements RedfishNetworkDeviceFunction.IscsiBoot {
-        @JsonProperty("IPAddressType")
+        @JsonSetter(value = "IPAddressType", nulls = AS_EMPTY)
         private Ref<IpAddressType> ipAddressType = unassigned();
 
-        @JsonProperty("InitiatorIPAddress")
+        @JsonSetter(value = "InitiatorIPAddress", nulls = AS_EMPTY)
         private Ref<String> initiatorIpAddress = unassigned();
 
-        @JsonProperty("InitiatorName")
+        @JsonSetter(value = "InitiatorName", nulls = AS_EMPTY)
         private Ref<String> initiatorName = unassigned();
 
-        @JsonProperty("InitiatorDefaultGateway")
+        @JsonSetter(value = "InitiatorDefaultGateway", nulls = AS_EMPTY)
         private Ref<String> initiatorDefaultGateway = unassigned();
 
-        @JsonProperty("InitiatorNetmask")
+        @JsonSetter(value = "InitiatorNetmask", nulls = AS_EMPTY)
         private Ref<String> initiatorNetmask = unassigned();
 
-        @JsonProperty("TargetInfoViaDHCP")
+        @JsonSetter(value = "TargetInfoViaDHCP", nulls = AS_EMPTY)
         private Ref<Boolean> targetInfoViaDhcp = unassigned();
 
-        @JsonProperty("PrimaryTargetName")
+        @JsonSetter(value = "PrimaryTargetName", nulls = AS_EMPTY)
         private Ref<String> primaryTargetName = unassigned();
 
-        @JsonProperty("PrimaryTargetIPAddress")
+        @JsonSetter(value = "PrimaryTargetIPAddress", nulls = AS_EMPTY)
         private Ref<String> primaryTargetIpAddress = unassigned();
 
-        @JsonProperty("PrimaryTargetTCPPort")
+        @JsonSetter(value = "PrimaryTargetTCPPort", nulls = AS_EMPTY)
         private Ref<Integer> primaryTargetTcpPort = unassigned();
 
-        @JsonProperty("PrimaryLUN")
+        @JsonSetter(value = "PrimaryLUN", nulls = AS_EMPTY)
         private Ref<Integer> primaryLun = unassigned();
 
-        @JsonProperty("PrimaryVLANEnable")
+        @JsonSetter(value = "PrimaryVLANEnable", nulls = AS_EMPTY)
         private Ref<Boolean> primaryVlanEnable = unassigned();
 
-        @JsonProperty("PrimaryVLANId")
+        @JsonSetter(value = "PrimaryVLANId", nulls = AS_EMPTY)
         private Ref<Integer> primaryVlanId = unassigned();
 
-        @JsonProperty("PrimaryDNS")
+        @JsonSetter(value = "PrimaryDNS", nulls = AS_EMPTY)
         private Ref<String> primaryDns = unassigned();
 
-        @JsonProperty("SecondaryTargetName")
+        @JsonSetter(value = "SecondaryTargetName", nulls = AS_EMPTY)
         private Ref<String> secondaryTargetName = unassigned();
 
-        @JsonProperty("SecondaryTargetIPAddress")
+        @JsonSetter(value = "SecondaryTargetIPAddress", nulls = AS_EMPTY)
         private Ref<String> secondaryTargetIpAddress = unassigned();
 
-        @JsonProperty("SecondaryTargetTCPPort")
+        @JsonSetter(value = "SecondaryTargetTCPPort", nulls = AS_EMPTY)
         private Ref<Integer> secondaryTargetTpcPort = unassigned();
 
-        @JsonProperty("SecondaryLUN")
+        @JsonSetter(value = "SecondaryLUN", nulls = AS_EMPTY)
         private Ref<Integer> secondaryLun = unassigned();
 
-        @JsonProperty("SecondaryVLANEnable")
+        @JsonSetter(value = "SecondaryVLANEnable", nulls = AS_EMPTY)
         private Ref<Boolean> secondaryVlanEnable = unassigned();
 
-        @JsonProperty("SecondaryVLANId")
+        @JsonSetter(value = "SecondaryVLANId", nulls = AS_EMPTY)
         private Ref<Integer> secondaryVlanId = unassigned();
 
-        @JsonProperty("SecondaryDNS")
+        @JsonSetter(value = "SecondaryDNS", nulls = AS_EMPTY)
         private Ref<String> secondaryDns = unassigned();
 
-        @JsonProperty("IPMaskDNSViaDHCP")
+        @JsonSetter(value = "IPMaskDNSViaDHCP", nulls = AS_EMPTY)
         private Ref<Boolean> ipMaskDnsViaDhcp = unassigned();
 
-        @JsonProperty("RouterAdvertisementEnabled")
+        @JsonSetter(value = "RouterAdvertisementEnabled", nulls = AS_EMPTY)
         private Ref<Boolean> routerAdvertisementEnabled = unassigned();
 
-        @JsonProperty("AuthenticationMethod")
+        @JsonSetter(value = "AuthenticationMethod", nulls = AS_EMPTY)
         private Ref<AuthenticationMethod> authenticationMethod = unassigned();
 
-        @JsonProperty("CHAPUsername")
+        @JsonSetter(value = "CHAPUsername", nulls = AS_EMPTY)
         private Ref<String> chapUsername = unassigned();
 
-        @JsonProperty("CHAPSecret")
+        @JsonSetter(value = "CHAPSecret", nulls = AS_EMPTY)
         private Ref<String> chapSecret = unassigned();
 
-        @JsonProperty("MutualCHAPUsername")
+        @JsonSetter(value = "MutualCHAPUsername", nulls = AS_EMPTY)
         private Ref<String> mutualChapUsername = unassigned();
 
-        @JsonProperty("MutualCHAPSecret")
+        @JsonSetter(value = "MutualCHAPSecret", nulls = AS_EMPTY)
         private Ref<String> mutualChapSecret = unassigned();
 
         @Override

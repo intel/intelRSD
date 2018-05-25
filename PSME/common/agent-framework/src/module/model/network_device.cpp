@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,23 +40,19 @@ NetworkDevice::NetworkDevice(const std::string& parent_uuid, enums::Component pa
 NetworkDevice::~NetworkDevice() {}
 
 json::Json NetworkDevice::to_json() const {
-    json::Json result;
+    json::Json result{};
     result[literals::NetworkDevice::STATUS] = get_status().to_json();
-    result[literals::NetworkDevice::COLLECTIONS] =
-        get_collections().to_json();
+    result[literals::NetworkDevice::COLLECTIONS] = get_collections().to_json();
     result[literals::NetworkDevice::OEM] = get_oem().to_json();
     return result;
 }
 
 NetworkDevice NetworkDevice::from_json(const json::Json& json) {
-    NetworkDevice device;
+    NetworkDevice device{};
 
-    device.set_status(attribute::Status::from_json(
-        json[literals::NetworkDevice::STATUS]));
-    device.set_collections(Collections::from_json(
-        json[literals::NetworkDevice::COLLECTIONS]));
+    device.set_status(attribute::Status::from_json(json[literals::NetworkDevice::STATUS]));
+    device.set_collections(Collections::from_json(json[literals::NetworkDevice::COLLECTIONS]));
     device.set_oem(attribute::Oem::from_json(json[literals::NetworkDevice::OEM]));
-    device.set_resource_hash(json);
 
     return device;
 }

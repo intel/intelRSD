@@ -2,7 +2,7 @@
  * @brief Testing ManagementController configuration data.
  *
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,10 @@ public:
      */
     virtual const std::string& get_descr() const {
         return descr;
+    }
+
+    std::string get_info() const override {
+        return INTF_TYPE;
     }
 
 private:

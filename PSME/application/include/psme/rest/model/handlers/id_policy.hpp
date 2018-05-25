@@ -2,7 +2,7 @@
  * @brief Policies to assign IDs for entities
  *
  * @header{License}
- * @copyright Copyright (c) 2015-2017 Intel Corporation
+ * @copyright Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -137,7 +137,7 @@ constexpr agent_framework::model::enums::Component IdPolicy<CT, NZ>::component;
 template <agent_framework::model::enums::Component::Component_enum CT, NumberingZone NZ>
 IdPolicy<CT, NZ>::IdPolicy() {
     if (!database) {
-        database = database::Database::create(component.to_string());
+        database = database::Database::create(component.to_string(), true);
     }
     if (!memoizer) {
         memoizer = IdMemoizer::create(component.to_string());
@@ -181,12 +181,12 @@ database::IdValue::IdType IdPolicy<CT, NZ>::IdPolicy::get_id(const UuidType& uui
         // conflict.. internal error
         auto next_candidate_id = ++next_free;
         if (id <= last_id.get()) {
-            log_error(GET_LOGGER("db"),
+            log_error("db",
                       "Internal Error : ID " << _id <<
                       " kept in database already allocated, replacing with next that is expected to be free: " << next_candidate_id);
         }
         else {
-            log_error(GET_LOGGER("db"),
+            log_error("db",
                       "Internal Error : ID " << _id <<
                       " already allocated, replacing with next that is expected to be free: " << next_candidate_id);
         }
@@ -211,7 +211,7 @@ database::IdValue::IdType IdPolicy<CT, NZ>::IdPolicy::get_id(const UuidType& uui
     entity_id.set(id);
     database->put(entity_key, entity_id);
 
-    log_debug(GET_LOGGER("db"), "Assigned id=" << id << " for " << database->get_name() << "." << parent << "." <<   uuid);
+    log_debug("db", "Assigned id=" << id << " for " << database->get_name() << "." << parent << "." <<   uuid);
     return id;
 }
 
@@ -229,7 +229,7 @@ void IdPolicy<CT, NZ>::purge(const UuidType& uuid, const UuidType& parent_uuid) 
     /* invalidate ID for subresources.. if any */
     unsigned num = invalidate_last(uuid);
     if (0 != num) {
-        log_info(GET_LOGGER("db"), "Invalidated " << num << " resources ID::LAST for " << uuid);
+        log_info("db", "Invalidated " << num << " resources ID::LAST for " << uuid);
     }
 
     /* mark entity as not valid, it will be wiped at some time.. */
@@ -255,7 +255,7 @@ template <agent_framework::model::enums::Component::Component_enum CT, Numbering
 unsigned IdPolicy<CT, NZ>::invalidate_last(const UuidType& parent_uuid) {
     const UuidType& parent = (NZ == NumberingZone::SHARED) ? "" : parent_uuid;
 
-    database::Database::SPtr db{database::Database::create("*parent")};
+    database::Database::SPtr db{database::Database::create("*parent", true)};
     database::ResourceLastKey key{parent};
     auto ret = db->cleanup(key);
     db->remove();

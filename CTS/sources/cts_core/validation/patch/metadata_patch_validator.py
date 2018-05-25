@@ -127,6 +127,11 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
         if self._metadata_container.to_be_ignored(api_resource.odata_type):
             return ValidationStatus.PASSED
 
+        # do not attempt patch Virtual systems
+        if "SystemType" in api_resource.body and api_resource.body["SystemType"] == "Virtual":
+            print "MESSAGE::Skipping patching of a virtual system {}".format(api_resource.odata_id)
+            return ValidationStatus.PASSED
+
         try:
             properties_list = self._metadata_container.entities[api_resource.odata_type].properties.values()
             try:

@@ -1,4 +1,5 @@
 {
+    "service" : "compute",
     "agent": {
         "vendor" : "Intel Corporation",
         "capabilities" : [
@@ -7,7 +8,7 @@
         ]
     },
     "server": {
-	"ipv4": "localhost",
+        "ipv4": "localhost",
         "port": 7777
     },
     "registration": {
@@ -19,9 +20,9 @@
         "input"  : "deep_discovery.xml",
         "schema" : "deep_discovery.xsd"
     },
-    "service-uuid-file" : "/var/opt/psme/compute-service-uuid.json",
-    "logger" : {
-        "agent" : {
+    "loggers" : [
+        {
+            "name" : "agent",
             "level" : "WARNING",
             "timeformat" : "DATE_NS",
             "color" : true,
@@ -34,5 +35,5 @@
                 }
             ]
         }
-    }
+    ]
 }

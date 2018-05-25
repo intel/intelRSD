@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2017 Intel Corporation
+# Copyright (c) 2015-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@
 
 add_library(compute-command-simulator OBJECT
     get_manager_info.cpp
+    get_metric_definition_info.cpp
+    get_metric_definitions_collection.cpp
+    get_metrics.cpp
     get_system_info.cpp
     get_chassis_info.cpp
     get_collection.cpp
@@ -28,6 +31,7 @@ add_library(compute-command-simulator OBJECT
     get_processor_info.cpp
     get_storage_controller_info.cpp
     get_storage_subsystem_info.cpp
+    get_tasks_collection.cpp
 )
 
 set_psme_command_target_properties(compute-command-simulator)

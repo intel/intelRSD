@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,6 +66,8 @@ json::Value make_prototype() {
     response[System::INDICATOR_LED] = json::Value::Type::NIL;
     response[System::POWER_STATE] = json::Value::Type::NIL;
     response[System::BIOS_VERSION] = json::Value::Type::NIL;
+    response[System::HOSTED_SERVICES][System::STORAGE_SERVICES] = json::Value::Type::ARRAY;
+    response[System::HOSTING_ROLES] = json::Value::Type::ARRAY;
 
     json::Value boot{};
     boot[Common::ODATA_TYPE] = "#ComputerSystem.v1_1_0.Boot";
@@ -111,19 +113,7 @@ json::Value make_prototype() {
     response[Common::LINKS][Common::MANAGED_BY] = json::Value::Type::ARRAY;
     response[Common::LINKS][Common::OEM] = json::Value::Type::OBJECT;
 
-    json::Value actions{};
-
-    json::Value allowable_reset_types = json::Value::Type::ARRAY;
-    for (const auto& reset_type : endpoint::System::get_allowed_reset_types()) {
-        allowable_reset_types.push_back(reset_type.to_string());
-    }
-    actions[System::HASH_COMPUTER_SYSTEM_RESET][Common::TARGET] = json::Value::Type::NIL;
-    actions[System::HASH_COMPUTER_SYSTEM_RESET][Common::ALLOWABLE_RESET_TYPES] = std::move(allowable_reset_types);
-
-    actions[Common::OEM][System::HASH_INTEL_OEM_CHANGE_TPM_STATE][Common::TARGET] = json::Value::Type::NIL;
-    actions[Common::OEM][System::HASH_INTEL_OEM_CHANGE_TPM_STATE][System::ALLOWABLE_INTERFACE_TYPE] = json::Value::Type::ARRAY;
-
-    response[Common::ACTIONS] = std::move(actions);
+    response[Common::ACTIONS] = json::Value::Type::OBJECT;
 
     json::Value rs{};
     rs[Common::ODATA_TYPE] = "#Intel.Oem.ComputerSystem";
@@ -138,6 +128,24 @@ json::Value make_prototype() {
     response[Common::OEM][Common::RACKSCALE] = std::move(rs);
 
     return response;
+}
+
+
+void add_reset_action(const server::Request& request, json::Value& response) {
+    json::Value reset{};
+
+    reset[Common::TARGET] = psme::rest::endpoint::PathBuilder(request)
+            .append(constants::Common::ACTIONS)
+            .append(constants::System::COMPUTER_SYSTEM_RESET)
+            .build();
+
+    json::Value allowable_reset_types = json::Value::Type::ARRAY;
+    for (const auto& reset_type : endpoint::System::get_allowed_reset_types()) {
+        allowable_reset_types.push_back(reset_type.to_string());
+    }
+    reset[Common::ALLOWABLE_RESET_TYPES] = std::move(allowable_reset_types);
+
+    response[Common::ACTIONS][System::HASH_COMPUTER_SYSTEM_RESET] = std::move(reset);
 }
 
 
@@ -239,6 +247,30 @@ void add_system_relations(const agent_framework::model::System& system, json::Va
     // Per the architect's decision, we do not fill the Endpoints array
 }
 
+void fill_storage_service_data(const agent_framework::model::System& system, json::Value& r) {
+    using namespace agent_framework::model::enums;
+    using agent_framework::model::System;
+    using agent_framework::model::StorageService;
+
+    const auto& storage_services = agent_framework::module::get_m2m_manager<System, StorageService>()
+        .get_children(system.get_uuid());
+
+    if (!storage_services.empty()) {
+        r[constants::System::HOSTING_ROLES].push_back(HostingRole(HostingRole::StorageServer).to_string());
+
+        for (const auto& storage_service : storage_services) {
+            try {
+                json::Value s{};
+                s[Common::ODATA_ID] = get_component_url(Component::StorageService, storage_service);
+                r[constants::System::HOSTED_SERVICES][constants::System::STORAGE_SERVICES].push_back(s);
+            }
+            catch (const agent_framework::exceptions::InvalidUuid&) {
+                log_warning("rest", "System points to nonexistent storage service (UUID=" << storage_service << ")");
+            }
+        }
+    }
+}
+
 void fill_tpm_data(const agent_framework::model::System& system, const server::Request& request, json::Value& r) {
     const auto& tpms =
         agent_framework::module::get_manager<agent_framework::model::TrustedModule>().get_entries(system.get_uuid());
@@ -261,21 +293,23 @@ void fill_tpm_data(const agent_framework::model::System& system, const server::R
         }
     }
 
-    json::Value change_tpm_state{};
-    change_tpm_state[constants::Common::TARGET] =
-        endpoint::PathBuilder(request)
-            .append(constants::Common::ACTIONS)
-            .append(constants::Common::OEM)
-            .append(constants::System::INTEL_OEM_CHANGE_TPM_STATE)
-            .build();
+    if (system.get_system_type() == agent_framework::model::enums::SystemType::Physical) {
+        json::Value change_tpm_state{};
+        change_tpm_state[constants::Common::TARGET] =
+            endpoint::PathBuilder(request)
+                .append(constants::Common::ACTIONS)
+                .append(constants::Common::OEM)
+                .append(constants::System::INTEL_OEM_CHANGE_TPM_STATE)
+                .build();
 
-    change_tpm_state[constants::System::ALLOWABLE_INTERFACE_TYPE] = json::Value::Type::ARRAY;
-    for (auto interface_type : available_interface_types) {
-        change_tpm_state[constants::System::ALLOWABLE_INTERFACE_TYPE].push_back(interface_type.to_string());
+        change_tpm_state[constants::System::ALLOWABLE_INTERFACE_TYPE] = json::Value::Type::ARRAY;
+        for (auto interface_type : available_interface_types) {
+            change_tpm_state[constants::System::ALLOWABLE_INTERFACE_TYPE].push_back(interface_type.to_string());
+        }
+
+        r[Common::ACTIONS][Common::OEM][constants::System::HASH_INTEL_OEM_CHANGE_TPM_STATE] =
+            std::move(change_tpm_state);
     }
-
-    r[Common::ACTIONS][Common::OEM][constants::System::HASH_INTEL_OEM_CHANGE_TPM_STATE] =
-        std::move(change_tpm_state);
 }
 
 
@@ -341,13 +375,13 @@ void reload_network_device_function(psme::core::agent::JsonAgentSPtr gami_agent,
     const auto network_device_uuids =
         agent_framework::module::get_manager<agent_framework::model::NetworkDevice>().get_keys(system_uuid);
     if (network_device_uuids.empty() || network_device_uuids.size() > 1) {
-        log_error(GET_LOGGER("rest"), "Invalid number of Network Devices for System: '" + system_uuid + "'!");
+        log_error("rest", "Invalid number of Network Devices for System: '" + system_uuid + "'!");
         return;
     }
     const auto network_function_uuids = agent_framework::module::get_manager<
         agent_framework::model::NetworkDeviceFunction>().get_keys(network_device_uuids.front());
     if (network_function_uuids.empty() || network_function_uuids.size() > 1) {
-        log_error(GET_LOGGER("rest"),
+        log_error("rest",
                   "Invalid number of Network Device Functions for Device: '" + network_device_uuids.front() + "'!");
         return;
     }
@@ -381,70 +415,69 @@ const endpoint::System::AllowableResetTypes& endpoint::System::get_allowed_reset
 }
 
 
-void endpoint::System::get(const server::Request& req, server::Response& res) {
-    auto response = make_prototype();
-    response[Common::ODATA_ID] = PathBuilder(req).build();
+void endpoint::System::get(const server::Request& request, server::Response& response) {
+    auto r = make_prototype();
+    r[Common::ODATA_ID] = PathBuilder(request).build();
 
-    auto system = psme::rest::model::Find<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).get();
-    make_parent_links(system, response);
+    auto system = psme::rest::model::Find<agent_framework::model::System>(request.params[PathParam::SYSTEM_ID]).get();
+    make_parent_links(system, r);
 
-    response[constants::Common::ODATA_ID] = PathBuilder(req).build();
-    response[constants::Common::ID] = req.params[PathParam::SYSTEM_ID];
-    response[constants::System::SYSTEM_TYPE] = system.get_system_type();
-    response[Common::MANUFACTURER] = system.get_fru_info().get_manufacturer();
-    response[Common::MODEL] = system.get_fru_info().get_model_number();
-    response[Common::SERIAL_NUMBER] = system.get_fru_info().get_serial_number();
-    response[Common::PART_NUMBER] = system.get_fru_info().get_part_number();
-    response[constants::Common::UUID] = system.get_guid();
+    r[constants::Common::ODATA_ID] = PathBuilder(request).build();
+    r[constants::Common::ID] = request.params[PathParam::SYSTEM_ID];
+    r[constants::System::SYSTEM_TYPE] = system.get_system_type();
+    r[Common::MANUFACTURER] = system.get_fru_info().get_manufacturer();
+    r[Common::MODEL] = system.get_fru_info().get_model_number();
+    r[Common::SERIAL_NUMBER] = system.get_fru_info().get_serial_number();
+    r[Common::PART_NUMBER] = system.get_fru_info().get_part_number();
+    r[constants::Common::UUID] = system.get_guid();
 
-    endpoint::status_to_json(system, response);
+    endpoint::status_to_json(system, r);
 
-    response[constants::System::POWER_STATE] = system.get_power_state();
-    response[constants::System::BIOS_VERSION] = system.get_bios_version();
-    response[constants::Common::SKU] = system.get_sku();
-    response[constants::Common::ASSET_TAG] = system.get_asset_tag();
-    response[constants::System::INDICATOR_LED] = system.get_indicator_led();
+    r[constants::System::POWER_STATE] = system.get_power_state();
+    r[constants::System::BIOS_VERSION] = system.get_bios_version();
+    r[constants::Common::SKU] = system.get_sku();
+    r[constants::Common::ASSET_TAG] = system.get_asset_tag();
+    r[constants::System::INDICATOR_LED] = system.get_indicator_led();
 
-    response[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_TARGET] =
-        system.get_boot_override_target().to_string();
+    r[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_TARGET] =
+        system.get_boot_override_target();
 
-    response[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_ENABLED] =
-        system.get_boot_override().to_string();
+    r[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_ENABLED] =
+        system.get_boot_override();
 
     for (const auto& allowable : system.get_boot_override_supported()) {
-        response[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_TARGET_ALLOWABLE_VALUES].
-            push_back(allowable.to_string());
+        r[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_TARGET_ALLOWABLE_VALUES]
+            .push_back(allowable.to_string());
     }
-    if (0 == response[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_TARGET_ALLOWABLE_VALUES].size()) {
+    if (system.get_boot_override_supported().empty()) {
         // if there are not allowed values for target - we show no allowed values for mode
-        response[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_MODE_ALLOWABLE_VALUES] =
+        r[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_MODE_ALLOWABLE_VALUES] =
             json::Value::Type::ARRAY;
     }
 
-    response[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_MODE] =
-        system.get_boot_override_mode().to_string();
-
-    response[constants::Common::ACTIONS][constants::System::HASH_COMPUTER_SYSTEM_RESET][constants::Common::TARGET] =
-        PathBuilder(req)
-            .append(constants::Common::ACTIONS)
-            .append(constants::System::COMPUTER_SYSTEM_RESET)
-            .build();
+    r[constants::System::BOOT][constants::System::BOOT_SOURCE_OVERRIDE_MODE] =
+        system.get_boot_override_mode();
 
     // do NOT remove, needed for PODM integration purposes
-    response[constants::Common::OEM][constants::Common::RACKSCALE][constants::System::DISCOVERY_STATE] =
+    r[constants::Common::OEM][constants::Common::RACKSCALE][constants::System::DISCOVERY_STATE] =
         constants::System::BASIC;
-    response[constants::Common::OEM][constants::Common::RACKSCALE]
+    r[constants::Common::OEM][constants::Common::RACKSCALE]
         [constants::System::TRUSTED_EXECUTION_TECHNOLOGY_ENABLED] = system.is_txt_enabled();
-    response[constants::Common::OEM][constants::Common::RACKSCALE]
+    r[constants::Common::OEM][constants::Common::RACKSCALE]
         [constants::System::USER_MODE_ENABLED] = system.is_user_mode_enabled();
 
-    add_processors_summary(system, response);
-    add_memory_summary(system, response);
-    add_system_relations(system, response);
-    make_children_links(req, response);
-    fill_tpm_data(system, req, response);
+    add_processors_summary(system, r);
+    add_memory_summary(system, r);
+    add_system_relations(system, r);
+    make_children_links(request, r);
+    fill_tpm_data(system, request, r);
+    fill_storage_service_data(system, r);
 
-    set_response(res, response);
+    if (system.get_system_type() == agent_framework::model::enums::SystemType::Physical) {
+        add_reset_action(request, r);
+    }
+
+    set_response(response, r);
 }
 
 

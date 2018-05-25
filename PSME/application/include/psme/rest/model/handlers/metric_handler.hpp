@@ -1,6 +1,6 @@
 /*!
  * @header{License}
- * @copyright Copyright (c) 2017 Intel Corporation.
+ * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public:
         }
 
         try {
-            log_debug(GET_LOGGER("rest"), ctx.indent
+            log_debug("rest", ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Fetching list of all metrics from agent "
                 << ctx.agent->get_gami_id());
@@ -75,7 +75,7 @@ public:
             return res;
         }
         catch (const json_rpc::JsonRpcException& e) {
-            log_error(GET_LOGGER("rest"), ctx.indent
+            log_error("rest", ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
                 << "Agent exception while fetching list of all components of "
                     "type [" << component_s() << "] for parent "
@@ -87,7 +87,7 @@ public:
     Metric fetch_entry(Context& ctx, const std::string& parent, const std::string& uuid) override {
         GetMetrics request{};
         request.set_metric(uuid);
-        log_debug(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+        log_debug("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                  << "Fetching [" << component_s() << " " << uuid << "]");
         try {
             auto metrics_array = ctx.agent->execute<MetricsArray>(request);
@@ -105,27 +105,27 @@ public:
             return element;
         }
         catch (const json_rpc::JsonRpcException& e) {
-            log_error(GET_LOGGER("rest"),
+            log_error("rest",
                       ctx.indent << "[" << char(ctx.mode) << "] "
                                  << "RPC Error while fetching [" << component_s() << " - "
                                  << uuid << "]: " << e.what());
             throw;
         }
         catch (const psme::core::agent::AgentUnreachable& e) {
-            log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+            log_error("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                      << "RPC Error (AgentUnreachable) while fetching ["
                                                      << component_s() << " " << uuid << "] " << e.what());
             throw;
         }
         catch (const psme::rest::error::ServerException& e) {
-            log_error(GET_LOGGER("rest"), ctx.indent << "[" << char(ctx.mode) << "] "
+            log_error("rest", ctx.indent << "[" << char(ctx.mode) << "] "
                                                      << "Server Error while fetching ["
                                                      << component_s() << " " << uuid << "] "
                                                      << e.get_error().as_string());
             throw;
         }
         catch (...) {
-            log_error(GET_LOGGER("rest"), "Other exception while fetching a " << component_s());
+            log_error("rest", "Other exception while fetching a " << component_s());
             throw;
         }
     }

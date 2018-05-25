@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Intel Corporation
+ * Copyright (c) 2015-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.intel.podm.business.entities.dao.ComputerSystemDao;
 import com.intel.podm.business.entities.dao.ExternalServiceDao;
 import com.intel.podm.business.entities.redfish.ComputerSystem;
 import com.intel.podm.business.entities.redfish.ExternalService;
-import com.intel.podm.common.enterprise.utils.retry.NumberOfRetriesOnRollback;
+import com.intel.podm.common.enterprise.utils.retry.RetryOnRollback;
 import com.intel.podm.common.enterprise.utils.retry.RetryOnRollbackInterceptor;
 import com.intel.podm.common.logger.Logger;
 import com.intel.podm.common.types.Id;
@@ -87,20 +87,32 @@ class DeepDiscoveryRunner {
 
         for (ComputerSystem computerSystem : getComputerSystemsWaitingToStart(externalService)) {
             ExternalService service = computerSystem.getService();
-            if (service == null) {
-                logger.w("There is no Service associated with ComputerSystem {}, skipping deep discovery launch", computerSystem.getId());
+            Id systemId = computerSystem.getId();
+            if (!isServiceAvailable(service, systemId)) {
                 continue;
             }
             try {
                 UUID taskUuid = launchDeepDiscovery(computerSystem);
                 logger.i("Deep discovery for ComputerSystem {} started, [ service: {}, path: {} ]",
-                    computerSystem.getId(), service.getBaseUri(), computerSystem.getSourceUri());
-                deepDiscoveryLaunchGuard.onDeepDiscoveryLaunchSuccess(computerSystem.getId(), taskUuid);
+                    systemId, service.getBaseUri(), computerSystem.getSourceUri());
+                deepDiscoveryLaunchGuard.onDeepDiscoveryLaunchSuccess(systemId, taskUuid);
             } catch (DeepDiscoveryException e) {
                 logger.e("Starting deep discovery failed: ", e);
-                deepDiscoveryLaunchGuard.onDeepDiscoveryLaunchFailure(computerSystem.getId());
+                deepDiscoveryLaunchGuard.onDeepDiscoveryLaunchFailure(systemId);
             }
         }
+    }
+
+    private boolean isServiceAvailable(ExternalService service, Id computerSystemId) {
+        if (service == null) {
+            logger.w("There is no Service associated with ComputerSystem {}, skipping deep discovery launch", computerSystemId);
+            return false;
+        }
+        if (!service.isReachable()) {
+            logger.w("The Service {} associated with ComputerSystem {} is unreachable, skipping deep discovery launch", service, computerSystemId);
+            return false;
+        }
+        return true;
     }
 
     private List<ComputerSystem> getComputerSystemsWaitingToStart(ExternalService externalService) {
@@ -129,7 +141,7 @@ class DeepDiscoveryRunner {
         DeepDiscoveryLaunchGuard() {
         }
 
-        @NumberOfRetriesOnRollback(3)
+        @RetryOnRollback(3)
         @Transactional(REQUIRES_NEW)
         public void onDeepDiscoveryLaunchSuccess(Id computerSystemId, UUID taskUuid) {
             Optional<ComputerSystem> possibleComputerSystem = computerSystemDao.tryFind(computerSystemId);
@@ -143,7 +155,7 @@ class DeepDiscoveryRunner {
             computerSystem.getMetadata().setDeepDiscoveryState(RUNNING);
         }
 
-        @NumberOfRetriesOnRollback(3)
+        @RetryOnRollback(3)
         @Transactional(REQUIRES_NEW)
         public void onDeepDiscoveryLaunchFailure(Id computerSystemId) {
             Optional<ComputerSystem> possibleComputerSystem = computerSystemDao.tryFind(computerSystemId);

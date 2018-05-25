@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2017-2018 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import static com.intel.podm.business.entities.redfish.base.StatusControl.statusOf;
 import static com.intel.podm.business.redfish.Contexts.toContext;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
@@ -43,7 +44,7 @@ public class EthernetSwitchAclActionService {
     public Context createAcl(Context switchContext) throws BusinessApiException {
         EthernetSwitch currentSwitch = (EthernetSwitch) traverser.traverse(switchContext);
 
-        if (!currentSwitch.isEnabledAndHealthy()) {
+        if (!statusOf(currentSwitch).isEnabled().isHealthy().verify()) {
             throw new ResourceStateMismatchException("EthernetSwitch should be enabled and healthy in order to invoke actions on it.");
         }
 
