@@ -10,7 +10,7 @@ This repository is a good starting point for developers who are interested in wo
 
 ## Documents
 
-Any documents referred to in this ReadMe document will be available at the official [Intel RSD site](http://intel.com/intelRSD).
+Any documents referred to in this ReadMe document can be found at the official [Intel RSD site](http://intel.com/intelRSD).
 
 ## Support
 For questions, concerns, or defects found in the in the current Intel RSD reference software, please create a new issue in this repository. If your questions are about a previous release, include the software version in your topic.
