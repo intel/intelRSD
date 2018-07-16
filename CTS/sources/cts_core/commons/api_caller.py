@@ -107,6 +107,9 @@ class ApiCaller:
         :type acceptable_return_codes: list
         :type payload: object
         """
+        if url is None:
+            return None, RequestStatus.FAILED, None, None, None
+
         if format is None:
             format = ApiCaller.FORMAT_JSON
 

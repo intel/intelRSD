@@ -72,6 +72,7 @@ class ServiceTypes:
     def list_s():
         return ", ".join(ServiceTypes.all())
 
+
 def RegisterService(*services):
     def inner(cls):
         cls.registered_services = services
