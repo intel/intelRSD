@@ -19,6 +19,14 @@ For questions, concerns, or defects found in the in the current Intel RSD refere
 
 ## News
 
+### [July 2018] Version 2.3.1 of the Intel RSD reference software has been released!
+
+Important change to the new software version:
+
+*	**Updated the Conformance Test Suite (CTS)**
+
+    A new set of CRUD tests designed to verify NVMe\* over Fabrics (NVMe-oF) operations has been added.
+
 ### [May 2018] Version 2.3 of the Intel RSD reference software has been released!
 
 Below is a list of the most important changes to the new software version:

@@ -33,7 +33,7 @@ for e in ['../utils/requirements.txt', '../utils/requirements-no-deps.txt']:
 
 setup(
     name='CTS',
-    version='2.3.0.95.0',
+    version='2.3.1.116.0',
     packages=['main',
               'cts_core',
               'cts_core.commons',

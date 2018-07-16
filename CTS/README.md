@@ -1,13 +1,13 @@
 # Conformance Test Suite
 ## Overview
 
-The Intel® Rack Scale Design (Intel® RSD) Conformance Test Suite (CTS) tool verifies the northbound API schema conformance of the Pooled System Management (PSME) / Rack Management Module (RMM) and Pod Manager through automated techniques. The tool can also test some hardware and software parameters.
+The Intel® Rack Scale Design (Intel® RSD) Conformance Test Suite (CTS) tool verifies the northbound API schema conformance of the Pooled System Management (PSME) / Rack Management Module (RMM) and Pod Manager (PODM) through automated techniques. The tool can also test some hardware and software parameters.
 
 ## Installation
 
-### Install Prerequisites
+### Prerequisites
 
- * Uninstall Validation Test Suite (VTS) before proceeding with the Conformance Test Suite (CTS) installation:
+ * Uninstall Validation Test Suite (VTS) before proceeding with the CTS installation:
    ```
    sudo pip uninstall Vts
 
@@ -32,7 +32,7 @@ The Intel® Rack Scale Design (Intel® RSD) Conformance Test Suite (CTS) tool ve
    sudo pip install "Flask-Bootstrap==3.3.7.1" --no-dependencies
    ```
 
-* pip (preffered installer program) requirements:
+* pip (preferred installer program) requirements:
 
     * Required: pip version v8.0.0
 
@@ -79,28 +79,28 @@ The program accepts these parameters:
 
 | Argument | Description |
 |--------------|--------------------|
-| `1 -f --full-install` | Install CTS & Tests (warning: this deletes all old files!)|
+| `1 -f --full-install` | Install CTS & Tests (**WARNING**: this deletes all old files!)|
 | `2 -p --pip-install` | Install all of pip's dependencies |
 | `3 -a --autocompletion` | Install autocompletion for bash (works only with Ubuntu\*)|
 | `6 -u --upgrade` | Upgrade CTS|
 | `8 -r --repair` | Repair ownership|
 | `U -U --Uninstall` | Uninstall CTS|
-| `W -W --WipeAllData` | WIPE ALL DATA and uninstall CTS |
+| `W -W --WipeAllData` | Wipe ALL data and uninstall CTS |
 | `-i --interactive` | Show advanced mode |
-| `--FactoryInstall` | WIPE ALL DATA and perform a CTS reinstallation |
-| `--FactoryUninstall` | WIPE ALL DATA and uninstall CTS (**Warning**: this option has no confirmation) |
+| `--FactoryInstall` | Wipe ALL data and perform a CTS reinstallation |
+| `--FactoryUninstall` | Wipe ALL data and uninstall CTS (**WARNING**: this option has no confirmation) |
 
 
 ### Data Structure of CTS
 
-| Description | Path |
+| Path |Description|
 |--|--|
-|CTS database|`HOME_FOLDER/.cts/db/`|
-|CTS general configuration|`HOME_DIR/.cts/configuration/`|
-|CTS internal tests|`HOME_FOLDER/.cts/tests/`|
-|Tests data|`HOME_FOLDER/.cts/tests_data/`
-|User tests|`/opt/cts/tests/`|
-|CTS log| `/var/log/cts/`|
+| `HOME_FOLDER/.cts/db/` | CTS database|
+| `HOME_DIR/.cts/configuration/` | CTS general configuration|
+| `HOME_FOLDER/.cts/tests/` | CTS internal tests|
+| `HOME_FOLDER/.cts/tests_data/` | Tests data|
+| `/opt/cts/tests/` | User tests|
+| `/var/log/cts/` | CTS log|
 
 * Test configuration:
 
@@ -110,7 +110,7 @@ The program accepts these parameters:
     * Create `config_file.ini` with the following keys:
 
         *  __ApiEndpoint__ - Endpoint to API in format ip:port
-        *  __UseSSL__ - Defines if CTS shall use http or https protocol to connect to the API (Yes/No)
+        *  __UseSSL__ - Defines if CTS uses http or https protocol to connect to the API (Yes/No)
         *  __CertificateCertFile__ and __CertificateKeyFile__ - Absolute paths to client side pem certificate and key files (if API requires client certificate authorization)
         *  __User__ and __Password__ - User and Password used by CTS to authorize (if API requires basic authorization)
 
@@ -130,10 +130,10 @@ The program accepts these parameters:
         `
         EventListenerAddr=10.0.1.2:8888
         `
-        CTS will use ComputerSystem.v1_0_0 schema do validate ComputerSystem.v2_0_0 entities
-        *  __ServiceTypeOverride__ - If the service implements more than one service type such as combined Pooled System Management Engine (PSME) and Rack Management Module (RMM), CTS must be informed that entities from both services may exist together on the REST. This prevents CTS from raising errors about unknown RMM types when the PSME test package is executed.
+        CTS will use `ComputerSystem.v1_0_0` schema to validate `ComputerSystem.v2_0_0` entities
+        *  __ServiceTypeOverride__ - If the service implements more than one service type such as combined PSME and RMM, CTS must be informed that entities from both services may exist together on the REST. This prevents CTS from raising errors about unknown RMM types when the PSME test package is executed.
 
-            Possible values are: PODM_2_3, PSME_2_3, RMM_2_3, SS_2_3
+            Possible values are: `PODM_2_3, PSME_2_3, RMM_2_3, SS_2_3`
 
             Example:
             `
@@ -149,6 +149,9 @@ The program accepts these parameters:
         *  __AreManagementAndProductionNetworksSeparated__ - (Yes/No)
         *  __AreComputeBladesServiceableIndependently__ - (Yes/No)
 
+    * Create `crud_operations_on_nvme.ini` with the configuration required by the `crud_operations_on_nvme` test script. Skip this file if checking CRUD operations on Storage Services with NVMe is not planned.
+        * __UniqueInitiatorName__ - Declare NVMe Qualified Name (NQN) for Initiator
+        * __UniqueTargetName__ - Declare NQN for Target
 
 ## Basic Usage
 ### Browsing Available Test Packages, Test Suites, and Test Cases
@@ -178,7 +181,7 @@ The program accepts these parameters:
 
 ### Execution
 
-* To simply execute all tests for Rack_Scale_2_3_POD_Manager validation:
+* To simply execute all tests for `Rack_Scale_2_3_POD_Manager` validation:
 
   ```
   cts execute tests Rack_Scale_2_3_POD_Manager --config_files config_file.ini
@@ -466,21 +469,15 @@ Using CTS in version 2.3.14.0, no scripts where selected to execution.
   [sudo] chown -R USER_NAME ~/.cts
   ```
 
-## New Features
-The Intel RSD v2.3. (CTS_2.3.0.95.0) release introduces the following features:
+## New Features to CTS_2.3.1.116.0
+The Intel RSD v2.3. (build version: CTS_2.3.1.116.0) release introduces the following features:
 
 1.	New CRUD test for Storage Service (crud_operations.py) has been introduced.
-2.	Stability improvenents
+2.	Stability improvements
 3.	Minor bug fixes
-
-The following list describes all the limitations for this release. Described limitations are targeted for future releases:
-
-* CTS package does not contain test and metadata packages for older version of  RSD.
-* CRUD for Storage Services does not support NVMe operations. The CRUD test case for Storage Services is based on a previous software version (see v2.1 of Intel RSD).
-
-## Limitations
-In v2.3 of Intel RSD we introduce support for Non-volatile Memory Express (NVMe)* technology but our CRUD test case for Storage Services does not support NVMe* operations. The
-CRUD test case for Storage Services is based on a previous software version (see v2.1 of Intel RSD).
+ 
+Since v2.3.1:
+1. New CRUD test for Storage Service (`crud_operations_on_nvme.py`) has been introduced (test is designed for Storage Service with NVMe's disk)
 
 ## Known Issues
 
