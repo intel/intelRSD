@@ -19,6 +19,14 @@ For questions, concerns, or defects found in the in the current Intel RSD refere
 
 ## News
 
+### [September 2018] Version 2.3.2 of the Intel RSD reference software has been released!
+
+Important change to the new software version:
+
+*	**Added the NVMe Initiator Wheel script (`nvme-wheel`)**
+
+    An initiator host polls the Discovery Service to ensure that its connections to remote volumes are up-to-date. And the NVMe Intiator Wheel script, `nvme-wheel`, is a tool that performs these actions.
+
 ### [July 2018] Version 2.3.1 of the Intel RSD reference software has been released!
 
 Important change to the new software version:
