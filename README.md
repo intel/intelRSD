@@ -27,7 +27,7 @@ Important change to the new software version:
 
     An initiator host polls the Discovery Service to ensure that its connections to remote volumes are up-to-date. And the NVMe Intiator Wheel script, `nvme-wheel`, is a tool that performs these actions.
 
-    [NVMe-Wheel is located under PSME directory](https://github.com/intel/intelRSD/PSME/nvme-wheel/dist) 
+    NVMe-Wheel is located [here](https://github.com/intel/intelRSD/tree/master/PSME/nvme-wheel/) 
 
 ### [July 2018] Version 2.3.1 of the Intel RSD reference software has been released!
 
