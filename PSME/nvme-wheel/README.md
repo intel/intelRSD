@@ -23,10 +23,11 @@ This ReadMe describes the operation of the NVMe Intiator Wheel, which is install
 
 ## Installation of the NVMe Initiator Wheel
 
-**Note**: Installation of `nvme-wheel` requires `nvme-cli`. Instructions for how to download and install `nvme-cli` are available at: https://github.com/linux-nvme/nvme-cli. For more information refer to http://nvmexpress.org. The package 'nvme-cli' is available as part of the source for 16.04 in the Ubuntu repository. As root:
+**Note**: Installation of `nvme-wheel` requires `nvme-cli`. Instructions for how to download and install `nvme-cli` are available at: https://github.com/linux-nvme/nvme-cli. For more information refer to http://nvmexpress.org. The package 'nvme-cli' is available as part of the source for 16.04 in the Ubuntu repository. To install nvme-cli using the Ubuntu repos:
 
-'apt-get install nvme-cli'
-
+```bash
+[sudo] apt-get install nvme-cli
+```
 
 ### Dependencies
 Installation of `nvme-wheel` requires a wheel module linked with Python2\*.
