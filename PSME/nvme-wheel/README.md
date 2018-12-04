@@ -23,7 +23,10 @@ This ReadMe describes the operation of the NVMe Intiator Wheel, which is install
 
 ## Installation of the NVMe Initiator Wheel
 
-**Note**: Installation of `nvme-wheel` requires `nvme-cli`. Instructions for how to download and install `nvme-cli` are available at: https://github.com/linux-nvme/nvme-cli. For more information refer to http://nvmexpress.org.
+**Note**: Installation of `nvme-wheel` requires `nvme-cli`. Instructions for how to download and install `nvme-cli` are available at: https://github.com/linux-nvme/nvme-cli. For more information refer to http://nvmexpress.org. The package 'nvme-cli' is available as part of the source for 16.04 in the Ubuntu repository. As root:
+
+'apt-get install nvme-cli'
+
 
 ### Dependencies
 Installation of `nvme-wheel` requires a wheel module linked with Python2\*.
@@ -103,7 +106,7 @@ nvme-wheel execute <<additional_args>> &
 ```
 
 ### Run `nvme-wheel` in cron table
-Run the script automatically after a reboot by adding this line below, into cron table (crontab):
+Run the script automatically after a reboot by adding this line below, into crontab (cron table):
 
 In terminal type `crontab -e` to open a crontab and type:
 
@@ -127,7 +130,7 @@ NVME_CRON=10
 ```
 
 ### Check the Status
-`nvme-wheel` has the ability to present status information for a specific endpoint: `localhost:8082/health`.
+`nvme-wheel` has the ability to present status information for a specific endpoint: `localhost:8082/health`
 
 Run the application using the `nvme-wheel execute` command and add an `-e/--endpoint` parameter at the end.
 
