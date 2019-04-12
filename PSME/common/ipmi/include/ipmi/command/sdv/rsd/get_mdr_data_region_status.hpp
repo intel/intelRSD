@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  *
  * @brief Get mdr data region status command declaration for 2.2 platform
  *
- * @header{Filesystem}
  * @file ipmi/command/sdv/rsd/get_mdr_data_region_status.hpp
  */
 

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2018 Intel Corporation
+# Copyright (c) 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 # </license_header>
-project(gas-examples C CXX)
+project(pnc-examples C CXX)
 
 include_directories(SYSTEM
     ${SAFESTRING_INCLUDE_DIRS}
@@ -25,7 +25,7 @@ add_executable(bind_all_to_mgmt main.cpp)
 
 target_link_libraries(bind_all_to_mgmt
     pnc-libs
-    ${SYSFSREF_LIBRARIES}
+    sysfsref
     ${LOGGER_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     )

@@ -1,8 +1,7 @@
 /*!
  * @brief Chassis Bmc implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file chassis/include/status/bmc.hpp
  */
 
@@ -22,9 +20,9 @@
 
 #include "agent-framework/state_machine/bmc.hpp"
 #include "ipmi/management_controller.hpp"
+#include "ipmi/command/generic/enums.hpp"
 #include "agent-framework/module/utils/optional_field.hpp"
 
-using agent_framework::model::attribute::ConnectionData;
 
 namespace agent {
 namespace chassis {
@@ -35,7 +33,7 @@ public:
     using State = agent_framework::state_machine::BmcState;
 
     Bmc(const std::string& manager_uuid,
-        const ConnectionData& conn,
+        const agent_framework::model::attribute::ConnectionData& conn,
         Bmc::Duration state_update_interval,
         ReadPresenceFn read_presence = always_false,
         ReadOnlineStatusFn read_online_state = always_false);
@@ -44,8 +42,12 @@ public:
         return m_ipmi;
     }
 
-    OptionalField<std::uint16_t> get_platform_id() const {
-        return m_platform_id;
+    OptionalField<std::uint16_t> get_platform_id() const override {
+        throw std::runtime_error("Not implemented");
+    }
+
+    OptionalField<ipmi::command::generic::BmcInterface> get_interface() const {
+        return m_interface;
     }
 
 protected:
@@ -59,7 +61,7 @@ protected:
 private:
 
     ipmi::ManagementController m_ipmi;
-    OptionalField<std::uint16_t> m_platform_id{};
+    OptionalField<ipmi::command::generic::BmcInterface> m_interface{};
 };
 
 }

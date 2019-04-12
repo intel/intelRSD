@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ NetworkService::NetworkService() { }
 NetworkService::~NetworkService() { }
 
 json::Json NetworkService::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::NetworkService::NAME] = get_name().to_string();
     result[literals::NetworkService::ENABLED] = get_enabled();
     result[literals::NetworkService::PORT] = get_port();

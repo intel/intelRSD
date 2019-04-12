@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,8 +70,12 @@ extern const char HASH_COMPUTER_SYSTEM_RESET[];
 extern const char COMPUTER_SYSTEM_RESET[];
 extern const char HASH_INTEL_OEM_CHANGE_TPM_STATE[];
 extern const char INTEL_OEM_CHANGE_TPM_STATE[];
-extern const char DISCOVERY_STATE[];
-extern const char BASIC[];
+extern const char HASH_INTEL_OEM_ERASE_OPTANE_DC_PERSISTENT_MEMORY[];
+extern const char INTEL_OEM_ERASE_OPTANE_DC_PERSISTENT_MEMORY[];
+extern const char ALLOWABLE_DCPMEM_RESET_CONFIGURATION_VALUES[];
+extern const char ALLOWABLE_DCPMEM_ERASE_CONFIGURATION_KEY_VALUES[];
+extern const char RESET_CONFIGURATION[];
+extern const char ERASE_CONFIGURATION_KEYS[];
 extern const char MEMORY_SOCKETS[];
 extern const char PCI_DEVICES[];
 extern const char PCIE_CONNECTION_ID[];
@@ -121,9 +125,6 @@ extern const char BUS_WIDTH_BITS[];
 extern const char ALLOWED_SPEEDS_MHZ[];
 extern const char FIRMWARE_REVISION[];
 extern const char FIRMWARE_API_VERSION[];
-extern const char FUNCTION_CLASSES[];
-extern const char SUBSYSTEM_VENDOR_ID[];
-extern const char SUBSYSTEM_DEVICE_ID[];
 extern const char RANK_COUNT[];
 extern const char DEVICE_LOCATOR[];
 extern const char MEMORY_LOCATION[];
@@ -139,10 +140,26 @@ extern const char MEMORY_CLASSIFICATION[];
 extern const char OFFSET_MIB[];
 extern const char SIZE_MIB[];
 extern const char OPERATING_MEMORY_MODES[];
-extern const char METRICS[];
 extern const char VOLTAGE_VOLT[];
-extern const char VENDOR_ID[];
-extern const char DEVICE_ID[];
+extern const char MODULE_MANUFACTURER_ID[];
+extern const char MODULE_PRODUCT_ID[];
+extern const char MEMORY_SUBSYSTEM_CONTROLLER_MANUFACTURER_ID[];
+extern const char MEMORY_SUBSYSTEM_CONTROLLER_PRODUCT_ID[];
+extern const char SECURITY_CAPABILITIES[];
+extern const char PASSPHRASE_CAPABLE[];
+extern const char MAX_PASSPHRASE_COUNT[];
+extern const char SECURITY_STATES[];
+extern const char SPARE_DEVICE_COUNT[];
+extern const char LOGICAL_SIZE_MIB[];
+extern const char VOLATILE_SIZE_MIB[];
+extern const char NON_VOLATILE_SIZE_MIB[];
+extern const char VOLATILE_REGION_SIZE_LIMIT_MIB[];
+extern const char PERSISTENT_REGION_SIZE_LIMIT_MIB[];
+extern const char POWER_MANAGEMENT_POLICY[];
+extern const char POLICY_ENABLED[];
+extern const char MAX_TDP_MILLIWATTS[];
+extern const char AVERAGE_POWER_BUDGET_MILLIWATTS[];
+extern const char PEAK_POWER_BUDGET_MILLIWATTS[];
 }
 
 /*!
@@ -167,12 +184,24 @@ extern const char UNCORRECTABLE_ECC_ERROR[];
 extern const char CORRECTABLE_ECC_ERROR[];
 extern const char ADDRESS_PARITY_ERROR[];
 extern const char TEMPERATURE_CELSIUS[];
+extern const char CONTROLLER_TEMPERATURE_CELSIUS[];
 extern const char BANDWIDTH_PERCENT[];
 extern const char THROTTLED_CYCLES_PERCENT[];
 extern const char CONSUMED_POWER_WATT[];
 extern const char THERMAL_MARGIN_CELSIUS[];
-extern const char ECC_ERRORS_COUNT[];
 extern const char HEALTH[];
+extern const char UPTIME_SECONDS[];
+extern const char HOST_READ_REQUESTS[];
+extern const char HOST_WRITE_REQUESTS[];
+extern const char ECC_CORRECTED_ERRORS[];
+extern const char UNSAFE_SHUTDOWN_COUNT[];
+extern const char POWER_CYCLES[];
+extern const char POWER_ON_TIME_SECONDS[];
+extern const char WRITE_COUNT_MAX[];
+extern const char WRITE_COUNT_AVG[];
+extern const char MEDIA_ECC_CORRECTED_ERRORS[];
+extern const char MEDIA_ECC_UNCORRECTABLE_ERRORS[];
+extern const char ECC_UNCORRECTABLE_ERRORS[];
 }
 
 /*!
@@ -197,17 +226,36 @@ extern const char MAX_SPEED[];
 extern const char TOTAL_CORES[];
 extern const char TOTAL_THREADS[];
 extern const char ENDPOINTS[];
-extern const char ON_PACKAGE_MEMORY[];
+extern const char INTEGRATED_MEMORY[];
 extern const char MEMORY_TYPE[];
 extern const char MEMORY_CAPACITY_MB[];
 extern const char SPEED_MHZ[];
-extern const char THERMAL_DESIGN_POWER[];
+extern const char EXTENDED_IDENTIFICATION_REGISTERS[];
+
+}
+
+/*!
+ * @brief Constant literals for Processor endpoint, OEM/FPGA property.
+ */
+namespace Fpga {
 extern const char FPGA_TYPE[];
 extern const char BIT_STREAM_VERSION[];
 extern const char HSSI_CONFIGURATION[];
 extern const char HSSI_SIDEBAND[];
+extern const char MODEL[];
+extern const char FW_ID[];
+extern const char FW_MANUFACTURER[];
+extern const char FW_VERSION[];
+extern const char HOST_INTERFACE[];
+extern const char EXTERNAL_INTERFACES[];
+extern const char SIDEBAND_INTERFACE[];
+extern const char PCIE_VIRTUAL_FUNCTIONS[];
+extern const char PROGRAMMABLE_FROM_HOST[];
 extern const char RECONFIGURATION_SLOTS[];
-extern const char EXTENDED_IDENTIFICATION_REGISTERS[];
+extern const char RECONFIGURATION_SLOTS_DETAILS[];
+extern const char ERASED[];
+extern const char SECURE_ERASE[];
+extern const char HASH_SECURE_ERASE[];
 
 }
 
@@ -287,18 +335,6 @@ extern const char ASSET_TAG[];
 }
 
 /*!
- * @brief Constant literals for Device and Drive endpoints.
- */
-namespace Drive {
-extern const char INTERFACE[];
-extern const char CAPACITY[];
-extern const char TYPE[];
-extern const char RPM[];
-extern const char BUS_INFO[];
-extern const char USED_BY[];
-}
-
-/*!
  * @brief Constant literals for NetworkInterface endpoint.
  */
 namespace NetworkInterface {
@@ -339,6 +375,22 @@ extern const char CHAP_USERNAME[];
 extern const char CHAP_SECRET[];
 extern const char MUTUAL_CHAP_USERNAME[];
 extern const char MUTUAL_CHAP_SECRET[];
+}
+
+/*!
+ * @brief Constant literals for System endpoint, PerformanceConfiguration property.
+ */
+namespace PerformanceConfiguration {
+extern const char CONFIGURATION_ID[];
+extern const char TYPE[];
+extern const char HIGH_PRIORITY_CORE_COUNT_PER_CPU[];
+extern const char HIGH_PRIORITY_BASE__CORE_FREQUENCY[];
+extern const char LOW_PRIORITY_CORE_COUNT_PER_CPU[];
+extern const char LOW_PRIORITY_BASE_CORE_FREQUENCY[];
+extern const char ACTIVE_CORES_PER_CPU[];
+extern const char BASE_CORE_FREQUENCY[];
+extern const char TDP_PER_CPU[];
+extern const char MAX_CPU_JUNCTION_TEMP[];
 }
 
 }

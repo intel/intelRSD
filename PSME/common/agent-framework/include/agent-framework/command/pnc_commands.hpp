@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file pnc_commands.cpp
+ * @file pnc_commands.hpp
  *
  * @brief Declarations of all pnc commands
  * */
@@ -58,6 +58,7 @@ using GetZoneInfo = Command<model::requests::GetZoneInfo, model::Zone>;
 using GetTaskInfo = Command<model::requests::GetTaskInfo, model::Task>;
 using GetTaskResultInfo = Command<model::requests::GetTaskResultInfo, model::responses::GetTaskResultInfo>;
 using GetMetricDefinitionInfo = Command<model::requests::GetMetricDefinitionInfo, model::MetricDefinition>;
+using GetProcessorInfo = Command<model::requests::GetProcessorInfo, model::Processor>;
 
 // declarations of all add methods
 using AddEndpoint = Command<model::requests::AddEndpoint, model::responses::AddEndpoint>;
@@ -66,6 +67,7 @@ using AddZoneEndpoints = Command<model::requests::AddZoneEndpoints, model::respo
 
 // declarations of all delete methods
 using DeleteEndpoint = Command<model::requests::DeleteEndpoint, model::responses::DeleteEndpoint>;
+using DeleteDrive = Command<model::requests::DeleteDrive, model::responses::DeleteDrive>;
 using DeleteZone = Command<model::requests::DeleteZone, model::responses::DeleteZone>;
 using DeleteZoneEndpoints = Command<model::requests::DeleteZoneEndpoints, model::responses::DeleteZoneEndpoints>;
 using DeleteTask = Command<model::requests::DeleteTask, model::responses::DeleteTask>;

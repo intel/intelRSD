@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
 add_gtest(discovery_discover psme-compute
-#       Intentional. They need to be rethought.
-#        discovery_discover_test.cpp
-#        mock_send_method_test.cpp
-#        smbios_discovery_test.cpp
+    #       Intentional. They need to be rethought.
+    #        discovery_discover_test.cpp
+    #        mock_send_method_test.cpp
+    #        smbios_discovery_test.cpp
     purley_discoverer_test.cpp
     discovery_manager_test.cpp
     test_runner.cpp
@@ -36,19 +36,20 @@ generate_config_file(discovery_discover_test.cpp.cpp
     "Declaration of full configuration"
 )
 
-set_property(SOURCE mdr_region_discovery_test.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mock/configuration_full.hpp)
-set_property(SOURCE mock_send_method_test.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mock/configuration_full.hpp)
-set_property(SOURCE smbios_discovery_test.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mock/configuration_full.hpp)
+set_property(SOURCE mdr_region_discovery_test.cpp
+    APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mock/configuration_full.hpp)
+set_property(SOURCE mock_send_method_test.cpp
+    APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mock/configuration_full.hpp)
+set_property(SOURCE smbios_discovery_test.cpp
+    APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mock/configuration_full.hpp)
 
 target_link_libraries(${test_target}
-    ${AGENT_COMPUTE_LIBRARIES}
     compute-utils
-    ${AGENT_FRAMEWORK_LIBRARIES}
+    ${AGENT_COMPUTE_LIBRARIES}
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
     ${PCA95XX_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    configuration
     ${ISCSI_MDR_LIBRARIES}
     ipmi
     ${IPMITOOL_LIBRARIES}
@@ -58,8 +59,9 @@ target_link_libraries(${test_target}
     md5
     netlink
     smbios
+    acpi
     ${SAFESTRING_LIBRARIES}
     ${NL3_LIBRARIES}
-    ${TELEMETRY_LIBRARIES}
+    telemetry
     ${IPMI_LIBRARIES}
 )

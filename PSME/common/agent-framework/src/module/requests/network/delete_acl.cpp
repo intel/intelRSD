@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ DeleteAcl::DeleteAcl(const std::string& acl,
     m_oem{} {}
 
 json::Json DeleteAcl::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Acl::ACL] = m_acl;
     value[Oem::OEM] = m_oem.to_json();
     return value;

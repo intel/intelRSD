@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,6 +43,8 @@ const constexpr char ServerError::PROPERTY_VALUE_TYPE_ERROR[];
 const constexpr char ServerError::PROPERTY_VALUE_NOT_IN_LIST[];
 const constexpr char ServerError::PROPERTY_VALUE_FORMAT_ERROR[];
 const constexpr char ServerError::PROPERTY_DUPLICATE[];
+const constexpr char ServerError::PROPERTY_NOT_MODIFIABLE[];
+const constexpr char ServerError::PROPERTY_VALUE_RESTRICTED[];
 
 
 ServerError::~ServerError() {}
@@ -50,11 +52,11 @@ ServerError::~ServerError() {}
 
 ServerError::ServerError(const std::uint32_t status_code) :
     m_http_status_code(status_code),
-    m_error(json::Value::Type::OBJECT) {
+    m_error(json::Json::value_t::object) {
 
-    m_error[ErrorMessage::ERROR][ErrorMessage::CODE] = json::Value::Type::NIL;
-    m_error[ErrorMessage::ERROR][ErrorMessage::MESSAGE] = json::Value::Type::NIL;
-    m_error[ErrorMessage::ERROR][ErrorMessage::EXTENDED_INFO] = json::Value::Type::ARRAY;
+    m_error[ErrorMessage::ERROR][ErrorMessage::CODE] = json::Json();
+    m_error[ErrorMessage::ERROR][ErrorMessage::MESSAGE] = json::Json();
+    m_error[ErrorMessage::ERROR][ErrorMessage::EXTENDED_INFO] = json::Json::array();
 }
 
 
@@ -68,8 +70,8 @@ void ServerError::set_code(const std::string& code) {
 }
 
 
-const std::string& ServerError::get_code() const {
-    return m_error[ErrorMessage::ERROR][ErrorMessage::CODE].as_string();
+std::string ServerError::get_code() const {
+    return m_error.value(ErrorMessage::ERROR, json::Json::object()).value(ErrorMessage::CODE, std::string{});
 }
 
 
@@ -78,8 +80,8 @@ void ServerError::set_message(const std::string& message) {
 }
 
 
-const std::string& ServerError::get_message() const {
-    return m_error[ErrorMessage::ERROR][ErrorMessage::MESSAGE].as_string();
+std::string ServerError::get_message() const {
+    return m_error.value(ErrorMessage::ERROR, json::Json::object()).value(ErrorMessage::MESSAGE, std::string{});
 }
 
 
@@ -105,10 +107,10 @@ bool ServerError::has_extended_messages() const {
 
 
 std::string ServerError::as_string() const {
-    return json::Serializer(m_error);
+    return m_error.dump();
 }
 
 
-json::Value ServerError::get_extended_messages() const {
+json::Json ServerError::get_extended_messages() const {
     return m_error[ErrorMessage::ERROR][ErrorMessage::EXTENDED_INFO];
 }

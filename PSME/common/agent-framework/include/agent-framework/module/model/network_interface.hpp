@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -275,24 +275,6 @@ public:
     }
 
     /*!
-     * @brief Get interface name
-     * @return interface name
-     * */
-    const std::string& get_name() const {
-        return m_name;
-    }
-
-
-    /*!
-     * @brief Set interface name
-     * @param[in] name the interface name
-     * */
-    void set_name(const std::string& name) {
-        m_name = name;
-    }
-
-
-    /*!
      * @brief Get supported transport protocols
      * @return array with supported transport protocols
      */
@@ -311,7 +293,6 @@ public:
 
 
 private:
-
     OptionalField<std::uint32_t> m_frame_size{};
     OptionalField<std::uint32_t> m_speed_mbps{};
     OptionalField<bool> m_autosense{};
@@ -324,9 +305,6 @@ private:
     OptionalField<std::uint32_t> m_max_ipv6_static_addresses{};
     OptionalField<std::uint32_t> m_default_vlan{};
     TransportProtocols m_supported_transport_protocols{};
-
-    /* agent-specific data used in psme-rmm and psme-storage */
-    std::string m_name{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

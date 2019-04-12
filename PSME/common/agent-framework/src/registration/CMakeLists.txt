@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,26 @@
 #
 # </license_header>
 
-set(SOURCES
+add_library(agent-framework-registration STATIC
     amc_client.cpp
     amc_connection_manager.cpp
     registration_request.cpp
     registration_data.cpp
 )
 
-add_library(registration OBJECT ${SOURCES})
+target_link_libraries(agent-framework-registration
+    PUBLIC
+    agent-framework-module
+    agent-framework-eventing
+    json
+    json-rpc
+
+    PRIVATE
+    configuration
+    logger
+)
+
+target_include_directories(agent-framework-registration
+    PUBLIC
+    ${AGENT_FRAMEWORK_DIR}/include
+)

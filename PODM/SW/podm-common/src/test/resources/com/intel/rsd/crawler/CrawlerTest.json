@@ -1,0 +1,198 @@
+{
+  "testCases": [
+    {
+      "resources": [
+        {
+          "@odata.id": "/redfish/v1",
+          "@odata.type": "#ServiceRoot.v1_1_1.ServiceRoot",
+          "Systems": {
+            "@odata.id": "/redfish/v1/Systems"
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems",
+          "@odata.type": "#ComputerSystemCollection.ComputerSystemCollection",
+          "Members": [
+            {
+              "@odata.id": "/redfish/v1/Systems/1"
+            }
+          ]
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/1",
+          "@odata.type": "#ComputerSystem.v1_3_0.ComputerSystem",
+          "UUID": "7ca5c465-85ff-4bb4-a650-77fc29724908",
+          "Processors": {
+            "@odata.id": "/redfish/v1/Systems/1/EthernetInterfaces"
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/1/EthernetInterfaces",
+          "@odata.type": "#EthernetInterfaceCollection.EthernetInterfaceCollection",
+          "Members": [
+            {
+              "@odata.id": "/redfish/v1/Systems/1/EthernetInterfaces/1"
+            }
+          ]
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/1/EthernetInterfaces/1",
+          "@odata.type": "#EthernetInterface.v1_1_0.EthernetInterface"
+        }
+      ]
+    },
+    {
+      "resources": [
+        {
+          "@odata.id": "/redfish/v1",
+          "@odata.type": "#ServiceRoot.v1_1_1.ServiceRoot",
+          "Systems": {
+            "@odata.id": "/redfish/v1/Systems"
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems",
+          "@odata.type": "#ComputerSystemCollection.ComputerSystemCollection",
+          "Members": [
+            {
+              "@odata.id": "/redfish/v1/Systems/1"
+            },
+            {
+              "@odata.id": "/redfish/v1/Systems/2"
+            },
+            {
+              "@odata.id": "/redfish/v1/Systems/3"
+            },
+            {
+              "@odata.id": "/redfish/v1/Systems/4"
+            }
+          ]
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/1",
+          "@odata.type": "#ComputerSystem.v1_3_0.ComputerSystem",
+          "Links": {
+            "Chassis": {
+              "@odata.id": "/redfish/v1/Chassis/Enclosure1"
+            }
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/2",
+          "@odata.type": "#ComputerSystem.v1_3_0.ComputerSystem",
+          "Links": {
+            "Chassis": {
+              "@odata.id": "/redfish/v1/Chassis/Enclosure1"
+            }
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/3",
+          "@odata.type": "#ComputerSystem.v1_3_0.ComputerSystem",
+          "Links": {
+            "Chassis": {
+              "@odata.id": "/redfish/v1/Chassis/Enclosure1"
+            }
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/4",
+          "@odata.type": "#ComputerSystem.v1_3_0.ComputerSystem",
+          "Links": {
+            "Chassis": {
+              "@odata.id": "/redfish/v1/Chassis/Enclosure1"
+            }
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Chassis/Enclosure1",
+          "@odata.type": "#Chassis.v1_3_0.Chassis",
+          "Links": {
+            "Contains": [
+              {
+                "@odata.id": "/redfish/v1/Chassis/Enclosure1"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "resources": [
+        {
+          "@odata.id": "/redfish/v1",
+          "@odata.type": "#ServiceRoot.v1_1_1.ServiceRoot",
+          "Fabrics": {
+            "@odata.id": "/redfish/v1/Fabrics"
+          },
+          "StorageServices": {
+            "@odata.id": "/redfish/v1/StorageServices"
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Fabrics",
+          "@odata.type": "#FabricCollection.FabricCollection",
+          "Members": [
+          ]
+        },
+        {
+          "@odata.id": "/redfish/v1/StorageServices",
+          "@odata.type": "#StorageServiceCollection.StorageServiceCollection",
+          "Members": [
+            {
+              "@odata.id": "/redfish/v1/StorageServices/1"
+            }
+          ]
+        },
+        {
+          "@odata.id": "/redfish/v1/StorageServices/1",
+          "@odata.type": "#StorageService.v1_0_0.StorageService",
+          "Drives": {
+            "@odata.id": "/redfish/v1/Chassis/Enclosure1/Drives"
+          },
+          "StoragePools": {
+            "@odata.id": "/redfish/v1/StorageServices/1/StoragePools"
+          },
+          "Links": {
+            "HostingSystem": {
+              "@odata.id": "/redfish/v1/Systems/1"
+            }
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Chassis/Enclosure1/Drives",
+          "@odata.type": "#StorageDriveCollection.StorageDriveCollection",
+          "Members": [
+            {
+              "@odata.id": "/redfish/v1/Chassis/Enclosure1/Drives/Drive1"
+            }
+          ]
+        },
+        {
+          "@odata.id": "/redfish/v1/Chassis/Enclosure1/Drives/Drive1",
+          "@odata.type": "#Drive.v1_2_0.Drive",
+          "Links": {
+            "Chassis": {
+              "@odata.id": "/redfish/v1/Chassis/Enclosure1"
+            }
+          }
+        },
+        {
+          "@odata.id": "/redfish/v1/Chassis/Enclosure1",
+          "@odata.type": "#Chassis.v1_3_0.Chassis",
+          "ChassisType": "Enclosure"
+        },
+        {
+          "@odata.id": "/redfish/v1/StorageServices/1/StoragePools",
+          "@odata.type": "#StoragePoolCollection.StoragePoolCollection",
+          "Members": [
+          ]
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/1",
+          "@odata.type": "#ComputerSystem.v1_3_0.ComputerSystem"
+        }
+      ]
+    }
+  ]
+}

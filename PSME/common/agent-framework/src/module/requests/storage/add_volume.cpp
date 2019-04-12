@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,8 @@
  * */
 
 #include "agent-framework/module/requests/storage/add_volume.hpp"
+#include "agent-framework/module/constants/common.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -30,6 +32,7 @@ using namespace agent_framework::model::requests;
 
 AddVolume::AddVolume(
     const OptionalField<enums::VolumeType>& volume_type,
+    const Identifiers& identifiers,
     std::int64_t capacity_bytes,
     const attribute::Array<attribute::CapacitySource>& capacity_sources,
     const attribute::Array<enums::AccessCapability>& access_capabilities,
@@ -37,6 +40,7 @@ AddVolume::AddVolume(
     const attribute::Array<attribute::ReplicaInfo>& replica_infos,
     const attribute::Oem& oem) :
     m_volume_type(volume_type),
+    m_identifiers(identifiers),
     m_capacity_bytes(capacity_bytes),
     m_capacity_sources(capacity_sources),
     m_access_capabilities(access_capabilities),
@@ -46,8 +50,9 @@ AddVolume::AddVolume(
 
 
 json::Json AddVolume::to_json() const {
-    json::Json json{};
+    json::Json json = json::Json();
     json[literals::Volume::VOLUME_TYPE] = get_volume_type();
+    json[literals::Volume::IDENTIFIERS] = get_identifiers().to_json();
     json[literals::Volume::CAPACITY_BYTES] = get_capacity_bytes();
     json[literals::Volume::CAPACITY_SOURCES] = get_capacity_sources().to_json();
     json[literals::Volume::ACCESS_CAPABILITIES] = get_access_capabilities().to_json();
@@ -61,6 +66,7 @@ json::Json AddVolume::to_json() const {
 AddVolume AddVolume::from_json(const json::Json& json) {
     return AddVolume{
         json[literals::Volume::VOLUME_TYPE],
+        Identifiers::from_json(json[literals::Volume::IDENTIFIERS]),
         json[literals::Volume::CAPACITY_BYTES],
         attribute::Array<attribute::CapacitySource>::from_json(json[literals::Volume::CAPACITY_SOURCES]),
         attribute::Array<enums::AccessCapability>::from_json(json[literals::Volume::ACCESS_CAPABILITIES]),

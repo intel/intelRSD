@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,15 +27,15 @@
  * */
 
 #include "configuration/validators/morethan.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace configuration;
 
-bool MoreThanValidator::is_valid(const json::Value& value) const {
+bool MoreThanValidator::is_valid(const json::Json& value) const {
     if (!value.is_number()) {
         return false;
     }
-    const auto val = value.as_double();
+    const auto val = value.get<double>();
     return val > m_min_value;
 }
 

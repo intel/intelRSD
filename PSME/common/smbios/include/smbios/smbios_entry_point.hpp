@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,6 +66,34 @@ public:
      * @return SmbiosEntryPoint pointer
      */
     static SmbiosEntryPoint::Ptr create(const std::uint8_t* buf, const size_t buf_size);
+
+    /*!
+     * @brief Not implemented, this method always throws.
+     * @return None.
+     */
+    [[ noreturn ]]
+    std::uint64_t get_table_data_offset(const std::string&) const override;
+
+    /*!
+     * @brief Not implemented, this method always throws.
+     * @return None.
+     */
+    [[ noreturn ]]
+    uint64_t get_table_data_end_offset(const std::string&) const override;
+
+    /*!
+     * @brief Not implemented, this method always throws.
+     * @return None.
+     */
+    [[ noreturn ]]
+    void set_struct_table_address(std::uint64_t) override;
+
+    /*!
+     * @brief Not implemented, this method always throws.
+     * @return None.
+     */
+    [[ noreturn ]]
+    void set_struct_table_end_address(uint64_t) override;
 
     /*! Destructor */
     virtual ~SmbiosEntryPoint();

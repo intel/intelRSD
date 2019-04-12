@@ -1,4 +1,3 @@
-
 class ServiceTypes:
     PODM_1_2 = "PODM_1_2"
     PSME_1_2 = "PSME_1_2"
@@ -35,6 +34,18 @@ class ServiceTypes:
     RMM_2_3  = "RMM_2_3"
     SS_2_3   = "SS_2_3"
 
+    PODM_2_4 = "PODM_2_4"
+    PSME_2_4 = "PSME_2_4"
+    RMM_2_4  = "RMM_2_4"
+    SS_2_4   = "SS_2_4"
+
+    SCENARIO_2_4 = "SCENARIO_2_4"
+    RACKSCALE_2_4 = "RACKSCALE_2_4"
+
+    REDFISH_2017_3 = "REDFISH_2017_3"
+    REDFISH_2018_1 = "REDFISH_2018_1"
+    REDFISH_2018_2 = "REDFISH_2018_2"
+    REDFISH_2018_3 = "REDFISH_2018_3"
 
     @staticmethod
     def all():
@@ -66,6 +77,15 @@ class ServiceTypes:
                 ServiceTypes.PSME_2_3,
                 ServiceTypes.RMM_2_3,
                 ServiceTypes.SS_2_3,
+                ServiceTypes.PODM_2_4,
+                ServiceTypes.PSME_2_4,
+                ServiceTypes.RMM_2_4,
+                ServiceTypes.SS_2_4,
+                ServiceTypes.SCENARIO_2_4,
+                ServiceTypes.REDFISH_2017_3,
+                ServiceTypes.REDFISH_2018_1,
+                ServiceTypes.REDFISH_2018_2,
+                ServiceTypes.REDFISH_2018_3
                 ]
 
     @staticmethod

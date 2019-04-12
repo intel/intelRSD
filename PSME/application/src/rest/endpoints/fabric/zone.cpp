@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/zone.hpp"
 #include "psme/rest/endpoints/task_service/monitor_content_builder.hpp"
+#include "psme/rest/endpoints/task_service/task_service_utils.hpp"
 
 
 
@@ -42,36 +43,36 @@ using namespace agent_framework::model;
 using HandlerManager = psme::rest::model::handler::HandlerManager;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Zone.Zone";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#Zone.v1_0_0.Zone";
     r[Common::NAME] = "Zone";
     r[Common::DESCRIPTION] = "Zone";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    json::Value links{};
-    links[constants::Fabric::ENDPOINTS] = json::Value::Type::ARRAY;
-    links[constants::Zone::INVOLVED_SWITCHES] = json::Value::Type::ARRAY;
-    links[Common::OEM] = json::Value::Type::OBJECT;
+    json::Json links = json::Json();
+    links[constants::Fabric::ENDPOINTS] = json::Json::value_t::array;
+    links[constants::Zone::INVOLVED_SWITCHES] = json::Json::value_t::array;
+    links[Common::OEM] = json::Json::value_t::object;
     r[Common::LINKS] = std::move(links);
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::OEM] = json::Json::value_t::object;
 
     return r;
 }
 
 
-void fill_links(const agent_framework::model::Zone& zone, json::Value& json) {
+void fill_links(const agent_framework::model::Zone& zone, json::Json& json) {
     // fill Endpoint links
     for (const auto& endpoint_uuid : agent_framework::module::CommonComponents::get_instance()->get_zone_endpoint_manager().get_children(
         zone.get_uuid())) {
-        json::Value endpoint_link;
+        json::Json endpoint_link = json::Json();
         endpoint_link[Common::ODATA_ID] = endpoint::PathBuilder(
             endpoint::utils::get_component_url(agent_framework::model::enums::Component::Endpoint,
                                                endpoint_uuid)).build();
@@ -83,7 +84,7 @@ void fill_links(const agent_framework::model::Zone& zone, json::Value& json) {
     const auto& fabric_uuid = zone.get_parent_uuid();
     for (const auto& switch_uuid : agent_framework::module::get_manager<agent_framework::model::Switch>().get_keys(
         fabric_uuid)) {
-        json::Value switch_link;
+        json::Json switch_link = json::Json();
         switch_link[Common::ODATA_ID] = endpoint::PathBuilder(
             endpoint::utils::get_component_url(agent_framework::model::enums::Component::Switch, switch_uuid)).build();
         json[Common::LINKS][constants::Zone::INVOLVED_SWITCHES].push_back(switch_link);
@@ -103,8 +104,8 @@ void endpoint::Zone::get(const server::Request& req, server::Response& res) {
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    const auto zone = psme::rest::model::Find<agent_framework::model::Zone>(req.params[PathParam::ZONE_ID])
-        .via<agent_framework::model::Fabric>(req.params[PathParam::FABRIC_ID]).get();
+    const auto zone = psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Zone>(
+        req.params).get();
 
     json[Common::ID] = req.params[PathParam::ZONE_ID];
 
@@ -119,12 +120,13 @@ void endpoint::Zone::get(const server::Request& req, server::Response& res) {
 
 
 void endpoint::Zone::patch(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PatchZone";
     auto json = JsonValidator::validate_request_body<schema::ZonePatchSchema>(request);
 
-    const auto zone = psme::rest::model::Find<agent_framework::model::Zone>(request.params[PathParam::ZONE_ID])
-        .via<agent_framework::model::Fabric>(request.params[PathParam::FABRIC_ID]).get();
+    const auto zone = psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Zone>(
+        request.params).get();
 
-    if (!json[Common::LINKS]) { // Schema validators ensure that Endpoints are inside Links
+    if (!json.count(Common::LINKS)) { // Schema validators ensure that Endpoints are inside Links
         get(request, response);
         return;
     }
@@ -235,7 +237,7 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
         else if (is_delete_task) {
             if (is_add_task) {
                 log_info("rest", "Zone PATCH: addZoneEndpoints returned a task,"
-                    " but it's ignored in favour of the second task returned by deleteZoneEndpoints");
+                                 " but it's ignored in favour of the second task returned by deleteZoneEndpoints");
             }
             log_info("rest", "Zone PATCH: deleteZoneEndpoints returned a task.");
             task_uuid = delete_endpoints_response.get_task();
@@ -245,8 +247,8 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
             task_uuid = add_endpoints_response.get_task();
         }
 
-        auto task_handler = psme::rest::model::handler::HandlerManager::get_instance()->get_handler(
-            agent_framework::model::enums::Component::Task);
+        auto task_handler = psme::rest::model::handler::HandlerManager::get_instance()->
+            get_handler(agent_framework::model::enums::Component::Task);
         task_handler->load(gami_agent,
                            "",
                            agent_framework::model::enums::Component::Task,
@@ -254,34 +256,32 @@ void endpoint::Zone::patch(const server::Request& request, server::Response& res
                            false);
 
         endpoint::MonitorContentBuilder::get_instance()->add_builder(task_uuid, response_renderer);
-        agent_framework::module::CommonComponents::get_instance()->get_task_manager()
-            .get_entry_reference(task_uuid)->add_completion_notifier(completion_notifier);
+        {
+            agent_framework::module::CommonComponents::get_instance()->get_task_manager()
+                .get_entry_reference(task_uuid)->add_completion_notifier(completion_notifier);
+        }
 
         std::string task_monitor_url = endpoint::PathBuilder(endpoint::utils::get_component_url(
             agent_framework::model::enums::Component::Task, task_uuid)).append(Monitor::MONITOR).build();
         psme::rest::endpoint::utils::set_location_header(request, response, task_monitor_url);
+        response.set_body(psme::rest::endpoint::task_service_utils::call_task_get(task_uuid).get_body());
         response.set_status(server::status_2XX::ACCEPTED);
 
     };
 
-    gami_agent->execute_in_transaction(patch_zone_endpoints);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, patch_zone_endpoints);
 }
 
 
 void endpoint::Zone::del(const server::Request& request, server::Response& response) {
     using AgentManager = psme::core::agent::AgentManager;
+    static const constexpr char TRANSACTION_NAME[] = "DeleteZone";
 
-    const auto zone_uuid = psme::rest::model::Find<agent_framework::model::Zone>(request.params[PathParam::ZONE_ID])
-        .via<agent_framework::model::Fabric>(request.params[PathParam::FABRIC_ID]).get_uuid();
+    const auto zone_uuid = psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Zone>(
+        request.params).get_uuid();
 
-    bool has_switches = true;
-    if (agent_framework::module::get_manager<agent_framework::model::Zone>().get_entry(
-        zone_uuid).get_switch_uuid().size() == 0) {
-        has_switches = false;
-    }
-
-    const auto fabric = psme::rest::model::Find<agent_framework::model::Fabric>(
-        request.params[PathParam::FABRIC_ID]).get();
+    const auto fabric = psme::rest::model::find<agent_framework::model::Fabric>(
+        request.params).get();
 
     auto gami_req = requests::DeleteZone(zone_uuid);
 
@@ -289,23 +289,51 @@ void endpoint::Zone::del(const server::Request& request, server::Response& respo
 
     auto delete_zone = [&, gami_agent] {
         // try removing the zone from agent's model
-        gami_agent->execute<responses::DeleteZone>(gami_req);
+        auto delete_zone_response = gami_agent->execute<responses::DeleteZone>(gami_req);
 
-        // remove the resource
-        HandlerManager::get_instance()->get_handler(enums::Component::Zone)->remove(zone_uuid);
+        if (delete_zone_response.get_task().empty()) {
 
-        // remove EthernetSwitchPort only for NVMe agent
-        if (has_switches) {
-            HandlerManager::get_instance()->get_handler(enums::Component::EthernetSwitchPort)->
-                load(gami_agent,
-                     fabric.get_parent_uuid(),
-                     enums::Component::Manager,
-                     fabric.get_uuid(),
-                     true);
+            // remove the resource by reload the tree
+            HandlerManager::get_instance()->get_handler(enums::Component::Fabric)->
+                load(gami_agent, fabric.get_parent_uuid(), enums::Component::Manager, fabric.get_uuid(), true);
+            response.set_status(server::status_2XX::NO_CONTENT);
         }
+        else {
+            const auto& task_uuid = delete_zone_response.get_task();
 
-        response.set_status(server::status_2XX::NO_CONTENT);
+            auto completion_notifier = [zone_uuid, fabric, gami_agent]() {
+                HandlerManager::get_instance()->get_handler(enums::Component::Fabric)->
+                    load(gami_agent,
+                         fabric.get_parent_uuid(),
+                         enums::Component::Manager,
+                         fabric.get_uuid(),
+                         true);
+            };
+
+            auto response_renderer = [this, request](json::Json /* in_json */) -> server::Response {
+                server::Response finished_task_response{};
+                finished_task_response.set_status(server::status_2XX::NO_CONTENT);
+                return finished_task_response;
+            };
+
+            auto task_handler = psme::rest::model::handler::HandlerManager::get_instance()->
+                get_handler(agent_framework::model::enums::Component::Task);
+            task_handler->load(gami_agent,
+                               "",
+                               agent_framework::model::enums::Component::Task,
+                               task_uuid,
+                               false);
+            endpoint::MonitorContentBuilder::get_instance()->add_builder(task_uuid, response_renderer);
+            agent_framework::module::CommonComponents::get_instance()->get_task_manager()
+                .get_entry_reference(task_uuid)->add_completion_notifier(completion_notifier);
+
+            std::string task_monitor_url = endpoint::PathBuilder(endpoint::utils::get_component_url(
+                agent_framework::model::enums::Component::Task, task_uuid)).append(Monitor::MONITOR).build();
+            psme::rest::endpoint::utils::set_location_header(request, response, task_monitor_url);
+            response.set_body(psme::rest::endpoint::task_service_utils::call_task_get(task_uuid).get_body());
+            response.set_status(server::status_2XX::ACCEPTED);
+        }
     };
 
-    gami_agent->execute_in_transaction(delete_zone);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, delete_zone);
 }

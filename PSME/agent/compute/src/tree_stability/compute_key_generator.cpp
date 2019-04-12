@@ -2,7 +2,7 @@
  * @brief Provides class for generating unique keys for resources under compute agent.
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,11 +24,12 @@
 
 
 #include "tree_stability/compute_key_generator.hpp"
+
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
 #include "agent-framework/module/model/model_compute.hpp"
 #include "agent-framework/module/model/model_common.hpp"
 #include "agent-framework/module/model/model_chassis.hpp"
-#include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 
 
 
@@ -50,6 +51,8 @@ const std::map<std::string, std::string> ComputeKeyGenerator::m_keys_base_map{
     map_value_type(System::get_component().to_string(), "_System_"),
     map_value_type(Processor::get_component().to_string(), "_Processor_"),
     map_value_type(Memory::get_component().to_string(), "_Memory_"),
+    map_value_type(MemoryDomain::get_component().to_string(), "_MemoryDomain_"),
+    map_value_type(MemoryChunks::get_component().to_string(), "_MemoryChunks_"),
     map_value_type(StorageSubsystem::get_component().to_string(), "_StorageSubsystem_"),
     map_value_type(StorageController::get_component().to_string(), "_StorageController_"),
     map_value_type(NetworkInterface::get_component().to_string(), "_NetworkInterface_"),
@@ -160,6 +163,21 @@ const std::string ComputeKeyGenerator::generate_key(const Memory& memory, const 
     }
 
     return generate_key_base(memory) + parent_system_key + device_locator.value();
+}
+
+
+template<>
+const std::string ComputeKeyGenerator::generate_key(const MemoryDomain& memory_domain, const System& parent_system) {
+    // TODO: Key must be extended with some unique property
+    const auto parent_system_key = generate_key(parent_system);
+    return generate_key_base(memory_domain) + parent_system_key;
+}
+
+
+template<>
+const std::string ComputeKeyGenerator::generate_key(const MemoryChunks& memory_chunks) {
+    // TODO: Key must be extended with some unique property
+    return generate_key_base(memory_chunks) + memory_chunks.get_parent_uuid();
 }
 
 

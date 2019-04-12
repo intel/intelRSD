@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,16 +31,16 @@ using namespace agent_framework::module;
 using namespace agent_framework::model::enums;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#TaskCollection.TaskCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#TaskCollection.TaskCollection";
     r[Common::NAME] = "Task Collection";
     r[Common::DESCRIPTION] = "Task Collection";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -64,7 +64,7 @@ void TaskCollection::get(const server::Request& req, server::Response& res) {
     json[Collection::ODATA_COUNT] = std::uint32_t(tasks_ids.size());
 
     for (const auto& id : tasks_ids) {
-        json::Value link;
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = PathBuilder(req).append(id).build();
         json[Collection::MEMBERS].push_back(std::move(link));
     }

@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,8 +42,6 @@ class RollupTest;
 
 namespace model {
 namespace handler {
-
-using agent_framework::eventing::EventData;
 
 /*!
  * @brief Class template that is instantiated for each Model (derived from Resource class).
@@ -315,7 +311,6 @@ bool GenericHandler<Request, Model, IdPolicy>::handle(JsonAgentSPtr agent, const
                                             << "parent uuid=" << event.get_parent() << ", agent_id="
                                             << agent->get_gami_id());
     try {
-        using agent_framework::eventing::Notification;
         switch (event.get_notification()) {
             case Notification::Add: {
                 try {
@@ -544,7 +539,7 @@ void GenericHandler<Request, Model, IdPolicy>
 template<typename Request, typename Model, typename IdPolicy>
 std::uint64_t GenericHandler<Request, Model, IdPolicy>
 ::add(Context& ctx, const std::string& parent, const std::string& uuid, bool recursively) {
-    UpdateStatus update_status;
+    UpdateStatus update_status{};
     const Model entry = fetch(ctx, parent, uuid, update_status);
     if (recursively) {
         auto indent = ctx.indent;
@@ -829,7 +824,7 @@ template<typename Request, typename Model, typename IdPolicy>
 void GenericHandler<Request, Model, IdPolicy>::remove_single(Context& ctx, const std::string& uuid) {
     ctx.add_event(get_component(), eventing::EventType::ResourceRemoved, uuid);
 
-    auto parent_uuid = agent_framework::module::get_manager<Model>().get_entry_reference(uuid)->get_parent_uuid();
+    auto parent_uuid = agent_framework::module::get_manager<Model>().get_entry(uuid).get_parent_uuid();
     log_info("rest", ctx.indent << "[" << static_cast<char>(ctx.mode) << "] "
                                             << "Removing [" << component_s() << " " << uuid
                                             << ", parent_uuid: " << parent_uuid

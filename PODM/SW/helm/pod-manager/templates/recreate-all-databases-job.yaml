@@ -1,0 +1,54 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
+    "helm.sh/hook-weight": "100"
+  name: {{ template "pod-manager.fullname" . }}-recreate-all-databases-job
+  namespace: default
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: {{ template "pod-manager.name" . }}-recreate-all-databases-job
+        release: {{ .Release.Name }}-recreate-all-databases-job
+      name: {{ template "pod-manager.fullname" . }}-recreate-all-databases-job
+    spec:
+      restartPolicy: OnFailure
+      {{- if ne .Values.global.registry_secret "" }}
+      imagePullSecrets:
+      - name: {{ .Values.global.registry_secret }}
+      {{ end }}
+      containers:
+      - name: {{ .Release.Name }}-recreate-all-databases-job
+        image: "{{ .Values.global.registry }}bitnami/postgresql:10.7.0"
+        imagePullPolicy: "IfNotPresent"
+        env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: PGHOST
+          value: podm-db-postgresql.default.svc.cluster.local.
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: podm-db-postgresql
+              key: postgresql-password
+        - name: PODM_POSTGRES_USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secretName }}
+              key: database-password
+        command: ["bash"]
+        args:
+        - -xe
+        - -c
+        - |
+{{ .Files.Get "scripts/recreate-all-databases-on-cluster.sh" | indent 10 }}
+{{ if .Release.IsInstall }}
+          "recreate_all_databases_and_user"
+{{ else }}
+          "recreate_user_and_grant_privileges"
+{{ end }}

@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ using namespace agent_framework::model::literals;
 GetVlanInfo::GetVlanInfo(const std::string& vlan): m_vlan(vlan){}
 
 json::Json GetVlanInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Vlan::VLAN] = m_vlan;
     return value;
 }

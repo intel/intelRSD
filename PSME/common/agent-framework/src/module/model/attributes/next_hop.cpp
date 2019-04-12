@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ NextHop::NextHop() { }
 NextHop::~NextHop() { }
 
 json::Json NextHop::to_json() const {
-    json::Json json;
+    json::Json json = json::Json();
     json[literals::NextHop::METRIC] = get_metric();
     json[literals::NextHop::PORT_IDENTIFIER] = get_port_identifier();
     json[literals::NextHop::IPV4_ADDRESS] = get_ipv4_address();

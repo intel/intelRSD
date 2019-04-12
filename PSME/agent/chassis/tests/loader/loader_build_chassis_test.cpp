@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,6 @@
 #include "loader/chassis_loader.hpp"
 #include "configuration_full.hpp"
 
-#include <json/value.hpp>
-#include <json/deserializer.hpp>
 #include <gtest/gtest.h>
 
 using namespace agent::chassis::loader;
@@ -42,8 +40,7 @@ const constexpr uint32_t CONFIG_BLADE_MANAGERS_COUNT = 4;
 class ChassisLoaderBuildChassisTest: public ::testing::Test {
 protected:
     ChassisLoader loader{};
-    json::Value config;
-    json::Deserializer deserializer{};
+    json::Json config = json::Json();
 
     // Just to prevent from second initialization.
     static bool is_initialized;
@@ -58,8 +55,7 @@ protected:
     Chassis blade_chassis{};
 
     void init_loader_with_config_file_or_throw_exception() {
-        deserializer << CHASSIS_FULL_CONFIGURATION;
-        deserializer >> config;
+        config = json::Json::parse(CHASSIS_FULL_CONFIGURATION);
         bool is_loaded = loader.load(config);
 
         if (!is_loaded) {

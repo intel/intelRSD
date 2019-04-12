@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,16 +26,16 @@ using namespace psme::rest::endpoint;
 using namespace psme::rest::constants;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#SwitchCollection.SwitchCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#SwitchCollection.SwitchCollection";
     r[Common::DESCRIPTION] = "Collection of Fabric Switches";
     r[Common::NAME] = "Switch Collection";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -53,15 +53,15 @@ void SwitchesCollection::get(const server::Request& req, server::Response& res) 
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    auto fabric_uuid = psme::rest::model::Find<agent_framework::model::Fabric>(
-        req.params[PathParam::FABRIC_ID]).get_uuid();
+    auto fabric_uuid = psme::rest::model::find<agent_framework::model::Fabric>(
+        req.params).get_uuid();
 
     auto switch_ids = agent_framework::module::get_manager<agent_framework::model::Switch>().get_ids(fabric_uuid);
 
     json[Collection::ODATA_COUNT] = std::uint32_t(switch_ids.size());
 
     for (const auto& id : switch_ids) {
-        json::Value link;
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = PathBuilder(req).append(id).build();
         json[Collection::MEMBERS].push_back(std::move(link));
     }

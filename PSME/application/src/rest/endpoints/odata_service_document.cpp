@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,13 +45,13 @@ static std::vector<std::pair<std::string, std::string>> RESOURCES{
 };
 
 
-json::Value make_prototype() {
-    json::Value r{};
+json::Json make_prototype() {
+    json::Json r = json::Json();
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata";
 
-    json::Value values = json::Value::Type::ARRAY;
+    json::Json values = json::Json::value_t::array;
     for (auto resource : ::RESOURCES) {
-        json::Value value;
+        json::Json value = json::Json();
         value[OdataServiceDocument::NAME] = resource.first;
         value[OdataServiceDocument::KIND] = "Singleton";
         value[OdataServiceDocument::URL] = resource.second;

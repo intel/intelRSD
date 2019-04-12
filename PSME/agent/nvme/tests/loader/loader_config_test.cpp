@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of configuration tests.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file loader_config_test.cpp
  */
 
@@ -57,11 +55,6 @@ TEST_F(NvmeConfigTest, LocationOffset) {
 TEST_F(NvmeConfigTest, ParentId) {
     config.set_parent_id("1");
     ASSERT_EQ(config.get_parent_id(), "1");
-}
-
-TEST_F(NvmeConfigTest, IsTarget) {
-    config.set_is_target(true);
-    ASSERT_EQ(config.get_is_target(), true);
 }
 
 TEST_F(NvmeConfigTest, RdmaPort) {

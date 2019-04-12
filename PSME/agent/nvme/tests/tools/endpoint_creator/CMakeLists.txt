@@ -18,26 +18,38 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
-add_gtest(tools_endpoint_creator_test psme-nvme
+add_gtest(tools_endpoint_creator_test psme-gpt-nvme
     ../../nvme_config_stub.cpp
     endpoint_creator_test.cpp
     test_runner.cpp
 )
 
+target_sources(${test_target} PRIVATE
+    ../../../src/tools/endpoint_creator.cpp
+    ../../../src/tools/tools.cpp
+    ../../../src/tools/drive_discovery/drive_reader.cpp
+    ../../../src/tools/drive_discovery/base_drive_reader.cpp
+)
+
 target_link_libraries(${test_target}
-    nvme-tools
-    nvme-tree-stability
-    nvme-utils
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${PCA95XX_LIBRARIES}
+    nvme
+    partition
+    nvme-target
+    agent-framework
+    uuid
+    logger
+    configuration
     ${SAFESTRING_LIBRARIES}
-    ${NVME_TARGET_LIBRARIES}
     ${NVMFPP_LIBRARIES}
-    ${SYSFSREF_LIBRARIES}
+)
+
+
+target_include_directories(${test_target}
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../mocks
+    ${AGENT_FRAMEWORK_INCLUDE_DIRS}
+    ${NVMFPP_INCLUDE_DIRS}
 )

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ project(Ipmi C CXX)
 set(IPMI_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE PATH "IPMI include dir path"
-)
+    )
 
 set(IPMI_LIBRARIES
     ipmi
     CACHE PATH "IPMI libraries"
-)
+    )
 
 include_directories(
     ${COMMON_INCLUDE_DIRS}
@@ -37,7 +37,7 @@ include_directories(
 
 include_directories(SYSTEM
     ${IPMITOOL_INCLUDE_DIRS}
-)
+    )
 
 add_subdirectory(src)
 
@@ -47,13 +47,14 @@ add_custom_target(ipmi-doc-all
     COMMAND ${CMAKE_COMMAND} -E remove_directory doc
     DEPENDS ipmi
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
+    )
 
 add_custom_target(ipmi-doc-clean
     COMMAND ${CMAKE_COMMAND} -E remove_directory doc/ipmi
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+    )
 
-install (DIRECTORY include/ipmi DESTINATION include)
+
+install(DIRECTORY include/ipmi DESTINATION include)
 
 add_subdirectory(tests)

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,19 +27,18 @@
 
 #include "loader/network_loader.hpp"
 #include "configuration_full.hpp"
-#include "json/value.hpp"
-#include "json/deserializer.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 
 using namespace agent::network::loader;
 
 class NetworkLoaderConfigFieldValidationTest: public ::testing::Test {
 protected:
     NetworkLoader loader{};
-    json::Value config;
-    json::Deserializer deserializer{};
+    json::Json config = json::Json();
 public:
     void SetUp() {
-        deserializer << NETWORK_FULL_CONFIGURATION;
+        config = json::Json::parse(NETWORK_FULL_CONFIGURATION);
     }
 
     virtual ~NetworkLoaderConfigFieldValidationTest();
@@ -50,7 +49,6 @@ NetworkLoaderConfigFieldValidationTest::~NetworkLoaderConfigFieldValidationTest(
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadFullConfiguration_LoadShouldBePositive) {
-    deserializer >> config;
 
     bool is_loaded = loader.load(config);
 
@@ -59,9 +57,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutAgent_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["agent"] = json::Value::Type::NIL;
+    config["agent"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -70,9 +66,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutAgentVendor_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["agent"]["vendor"] = json::Value::Type::NIL;
+    config["agent"]["vendor"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -81,9 +75,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutAgentCapabilities_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["agent"]["capabilities"] = json::Value::Type::NIL;
+    config["agent"]["capabilities"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -92,9 +84,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutServer_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["server"] = json::Value::Type::NIL;
+    config["server"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -103,9 +93,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutServerPort_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["server"]["port"] = json::Value::Type::NIL;
+    config["server"]["port"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -114,9 +102,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutRegistration_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["registration"]= json::Value::Type::NIL;
+    config["registration"]= json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -125,9 +111,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutRegistrationIpv4_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["registration"]["ipv4"] = json::Value::Type::NIL;
+    config["registration"]["ipv4"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -136,9 +120,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutRegistrationPort_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["registration"]["port"] = json::Value::Type::NIL;
+    config["registration"]["port"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -147,9 +129,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutRegistrationInterval_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["registration"]["interval"] = json::Value::Type::NIL;
+    config["registration"]["interval"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -158,9 +138,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithManagerWithoutSlot_LoadShouldBePositive) {
-    deserializer >> config;
-
-    config["logger"] = json::Value::Type::NIL;
+    config["logger"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -169,9 +147,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutManagers_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["managers"] = json::Value::Type::NIL;
+    config["managers"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -180,9 +156,7 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithZeroManagers_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["managers"] = json::Value::Type::ARRAY;
+    config["managers"] = json::Json::value_t::array;
 
     bool is_loaded = loader.load(config);
 
@@ -191,10 +165,8 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithManagerWithoutIpv4_LoadShouldBeNegative) {
-    deserializer >> config;
-
     // Remove ipv4 field from first manager.
-    config["managers"].as_array().front()["ipv4"] = json::Value::Type::NIL;
+    config["managers"].front()["ipv4"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -203,10 +175,8 @@ TEST_F(NetworkLoaderConfigFieldValidationTest,
 
 TEST_F(NetworkLoaderConfigFieldValidationTest,
        LoadConfigurationWithManagerWithoutSerialConsole_LoadShouldBeNegative) {
-    deserializer >> config;
-
     // Remove serialConsoleEnabled field from first manager.
-    config["managers"].as_array().front()["serialConsoleEnabled"] = json::Value::Type::NIL;
+    config["managers"].front()["serialConsoleEnabled"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 

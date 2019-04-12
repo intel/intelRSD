@@ -1,8 +1,7 @@
 /*!
  * @brief Drive builder class implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
- * @file drive_builder.hpp
+ * @file drive_builder.cpp
  */
 
 #include "discovery/builders/drive_builder.hpp"
@@ -40,22 +38,22 @@ std::string& rtrim(std::string& s) {
 }
 
 
-OptionalField<enums::StorageProtocol>
+OptionalField<enums::TransportProtocol>
 get_protocol(const SmbiosParser::StructEnhanced<SMBIOS_STORAGE_DEVICE_INFO_DATA>& storage) {
     switch (storage.data.connector_type) {
         case ConnectorType::SATA:
-            return enums::StorageProtocol::SATA;
+            return enums::TransportProtocol::SATA;
         case ConnectorType::SAS:
-            return enums::StorageProtocol::SAS;
+            return enums::TransportProtocol::SAS;
         case ConnectorType::PCIE:
-            return enums::StorageProtocol::PCIe;
+            return enums::TransportProtocol::PCIe;
         case ConnectorType::USB:
-            return enums::StorageProtocol::USB;
+            return enums::TransportProtocol::USB;
         case ConnectorType::M_2:
         case ConnectorType::U_2:
         case ConnectorType::UNKNOWN:
         default:
-            return OptionalField<enums::StorageProtocol>{};
+            return OptionalField<enums::TransportProtocol>{};
     }
 }
 
@@ -97,7 +95,7 @@ void DriveBuilder::update_smbios_data(agent_framework::model::Drive& drive,
 
     // In the Drive model, these fields have default values.
     // We reset them to null optionals.
-    drive.set_interface(OptionalField<enums::StorageProtocol>{});
+    drive.set_interface(OptionalField<enums::TransportProtocol>{});
     drive.set_type(OptionalField<enums::DriveType>{});
 
     log_debug("smbios-discovery", "Drive was discovered.");
@@ -122,7 +120,7 @@ void DriveBuilder::update_smbios_data(agent_framework::model::Drive& drive,
 
     // In the Drive model, these fields have default values.
     // We reset them to null optionals.
-    drive.set_interface(OptionalField<enums::StorageProtocol>{});
+    drive.set_interface(OptionalField<enums::TransportProtocol>{});
     drive.set_type(OptionalField<enums::DriveType>{});
 
     log_debug("smbios-discovery", "Drive V2 was discovered.");

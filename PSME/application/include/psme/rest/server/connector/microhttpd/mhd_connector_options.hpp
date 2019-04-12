@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,14 @@
  * */
 
 #pragma once
+
+
+
 #include "psme/rest/server/connector/connector_options.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 #include <memory>
+
+
 
 /*! forward declarations */
 struct MHD_OptionItem;
@@ -51,10 +56,19 @@ public:
      * MHDConnector and MHDSSLConnector.
      * */
     explicit MHDConnectorOptions(const ConnectorOptions& options);
+
+
     MHDConnectorOptions(const MHDConnectorOptions&) = default;
+
+
     MHDConnectorOptions& operator=(const MHDConnectorOptions&) = default;
+
+
     MHDConnectorOptions(MHDConnectorOptions&&) = default;
+
+
     MHDConnectorOptions& operator=(MHDConnectorOptions&&) = default;
+
 
     /*!
      * @return OR-ed combination of MHD_FLAG values for MHDConnector initialization.
@@ -63,12 +77,14 @@ public:
      */
     unsigned int get_flags() const;
 
+
     /*!
      * @return MHD_OptionItem array for MHDConnector initialization.
      * See <a href="https://www.gnu.org/software/libmicrohttpd">Libmicrohttpd</a>
      * for details.
      */
     MHD_OptionItem* get_options_array();
+
 
 private:
     std::shared_ptr<MHDConnectorOptionsImpl> m_options_impl;

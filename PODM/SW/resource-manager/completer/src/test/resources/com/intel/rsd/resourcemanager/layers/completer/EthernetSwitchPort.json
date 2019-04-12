@@ -1,0 +1,69 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#EthernetSwitches/Members/1/Ports/Members/1/$entity",
+  "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/1",
+  "@odata.type": "#EthernetSwitchPort.v1_1_0.EthernetSwitchPort",
+  "Id": 1,
+  "Name": "Switch Port",
+  "Description": "Ethernet Switch Port description",
+  "PortId": "Ethernet1/1",
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK"
+  },
+  "LinkType": "Ethernet",
+  "OperationalState": "Up",
+  "AdministrativeState": "Up",
+  "LinkSpeedMbps": 25000,
+  "NeighborInfo": {
+    "SwitchId": "switch-1",
+    "PortId": "port-1",
+    "CableId": "CustomerWritableThing"
+  },
+  "NeighborMAC": "87:5B:1B:11:28:F9",
+  "FrameSize": 1520,
+  "FullDuplex": true,
+  "MACAddress": "BC:0D:BD:10:E9:62",
+  "IPv4Addresses": [
+    {
+      "Address": "192.168.0.1",
+      "SubnetMask": "255.255.252.0",
+      "AddressOrigin": "Static",
+      "Gateway": "192.168.0.1"
+    }
+  ],
+  "IPv6Addresses": [
+    {
+      "Address": "fe80::1ec1:deff:fe6f:1e24",
+      "PrefixLength": 64,
+      "AddressOrigin": "Static",
+      "AddressState": "Preferred"
+    }
+  ],
+  "PortClass": "Physical",
+  "PortMode": "Unknown",
+  "PortType": "Upstream",
+  "Oem": {},
+  "VLANs": {
+    "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/1/VLANs"
+  },
+  "StaticMACs": {
+    "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/1/StaticMACs"
+  },
+  "Metrics": {
+    "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/1/Metrics"
+  },
+  "Links": {
+    "PrimaryVLAN": null,
+    "Switch": {
+      "@odata.id": "/redfish/v1/EthernetSwitches/1"
+    },
+    "MemberOfPort": null,
+    "PortMembers": [],
+    "ActiveACLs": [
+      {
+        "@odata.id": "/redfish/v1/EthernetSwitches/1/ACLs/1"
+      }
+    ],
+    "Oem": {}
+  }
+}

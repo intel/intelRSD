@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,16 +20,21 @@
  *
  * */
 #pragma once
+
+
+
+#include "json-wrapper/json-wrapper.hpp"
 #include "logger/logger_factory.hpp"
+
 #include <vector>
 #include <array>
 
-namespace json { class Value; }
+
 
 namespace logger_cpp {
 
 /*!
- * brief The LoggerLoader class for loading loggger configuration
+ * @brief The LoggerLoader class for loading logger configuration
  */
 class LoggerLoader {
 public:
@@ -37,7 +42,7 @@ public:
      * @brief LoggerLoader Create loader object for given configuration
      * @param[in] config Configuration JSON data
      */
-    LoggerLoader(const json::Value& config) : m_config_json{config} {}
+    LoggerLoader(const json::Json& config) : m_config_json{config} {}
 
     /*!
      * @brief load Create loggers in the logger factory from configuration data
@@ -51,49 +56,49 @@ private:
      * @param[in] config Configuration data for logger
      * @return Logger Object
      */
-    LoggerSPtr get_logger(const json::Value& config);
+    LoggerSPtr get_logger(const json::Json& config);
 
     /*!
      * @brief add_streams Create stream object for given configuration
      * @param[in] logger Logger object
      * @param[in] config Configuration data for stream
      */
-    void add_streams(LoggerSPtr logger, const json::Value& config);
+    void add_streams(LoggerSPtr logger, const json::Json& config);
 
     /*!
      * @brief add_options Add additional options to logger
      * @param logger Logger object
      * @param config Configuration data for options
      */
-    void add_options(LoggerSPtr logger, const json::Value& config);
+    void add_options(LoggerSPtr logger, const json::Json& config);
 
     /*!
      * @brief get_stream Create stream object for given configuration
      * @param[in] config Configuration data for stream
      * @return  Stream object
      */
-    StreamSPtr get_stream(const json::Value& config);
+    StreamSPtr get_stream(const json::Json& config);
 
     /*!
      * @brief get_options Create option object for given configuration
      * @param[in] config Configuration data for options
      * @return Option object
      */
-    Options get_options(const json::Value& config);
+    Options get_options(const json::Json& config);
 
     /*!
-     * @brief process_loggers Iterate throught loggers list
+     * @brief process_loggers Iterate through loggers list
      * @param[in] loggers JSON loggers object
      * @return Logger map object
      */
-    LoggerFactory::loggers_t process_loggers(const json::Value& loggers);
+    LoggerFactory::loggers_t process_loggers(const json::Json& loggers);
 
     /*!
-     * @brief process_streams Iterate throught streams list
+     * @brief process_streams Iterate through streams list
      * @param[in] logger object
      * @param[in] streams JSON stream list
      */
-    bool process_streams(LoggerSPtr logger, const json::Value& streams);
+    bool process_streams(LoggerSPtr logger, const json::Json& streams);
 
     /*!
      * @brief set_stream_output Sets stream output
@@ -101,7 +106,7 @@ private:
      * @param[in] stream stream object
      * @param[in] config config JSON object
      */
-    void set_stream_output(Stream::Type type, StreamSPtr stream, const json::Value& config);
+    void set_stream_output(Stream::Type type, StreamSPtr stream, const json::Json& config);
 
     /*!
      * @brief check_enums check if given JSON property in option is valid enum type
@@ -126,7 +131,7 @@ private:
     /*!
      * @brief Reference to configuration data
      */
-    const json::Value& m_config_json;
+    const json::Json& m_config_json;
 };
 }
 

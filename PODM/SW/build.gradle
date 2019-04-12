@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2018-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,323 +14,101 @@
  * limitations under the License.
  */
 
-apply plugin: "distribution"
+apply from: "buildscripts/wrapper.gradle"
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.9'
+def services = new ArrayList<>(gradle.includedBuilds)
+services.removeAll { !gradle.ext.serviceNames.contains(it.getName()) }
+
+task buildAll {
+    dependsOn gradle.includedBuilds*.task(':build'),
+            gradle.includedBuild('resource-manager').task(':buildAll')
 }
 
-repositories {
-    mavenCentral()
-}
-
-ext {
-    jacocoExecutionFile = project.hasProperty('jacocoExecutionFile') ? project.property('jacocoExecutionFile') : 'not-provided'
-    jacocoJarDestinationDir = project.hasProperty("jacocoJarDestinationDir") ? project.property("jacocoJarDestinationDir") : "jacocoAgent"
-    jacocoXmlReportDestination = project.hasProperty("jacocoXmlReportDestination") ? project.property("jacocoXmlReportDestination") : "jacocoReport.xml"
-}
-
-static def readBuildVersion() {
-    def buildVersion = '0.99'
-    File versionFile = new File('VERSION')
-    if (versionFile.exists()) {
-        buildVersion = versionFile.readLines().first()
+task cleanAll {
+    dependsOn gradle.includedBuilds*.task(':clean'),
+            gradle.includedBuild('resource-manager').task(':cleanAll')
+    doLast {
+        project.buildDir.deleteDir()
     }
-    buildVersion
 }
 
-def buildVersion = readBuildVersion()
-def reportsDir = new File(rootDir, 'reports')
-def checkstyleReportsDir = new File(reportsDir, 'checkstyle')
-
-allprojects {
-    apply plugin: 'idea'
-    version = buildVersion
+task test {
+    dependsOn gradle.includedBuilds*.task(':test'),
+            gradle.includedBuild('resource-manager').task(':testAll')
 }
 
-subprojects {
-    task allDeps(type: DependencyReportTask) {}
+task createDockerfile {
+    dependsOn services*.task(':createDockerfile')
 }
 
-println 'Build version: ' + version
-
-project.ext {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-
-    jacocoToolVersion = "0.7.9"
-
-    // library versions
-    checkstyleVer = '8.2'
-    hamcrestVer = '1.3'
-    mockitoVer = '1.10.19'
-    testNgVer = '6.9.13.6'
-    junitVer = '4.12'
-    guavaVer = '23.0'
-    assertjVer = '3.8.0'
-    cornCpsVer = '1.1.10'
-    modeshapeCommonVer = '5.4.1.Final'
-    javaParserCoreVer = '2.5.1'
-    wildflyVer = '12.0.0.Final'
-    commonsValVer = '1.5.0'
-    commonsLang3Ver = '3.6'
-    commonsIoVer = '2.5'
-    commonsNetVer = '3.4'
-    commonsTextVer = '1.1'
-    commonsCollections4Ver = '4.1'
-    metricsVer = '1.3.5'
-    clingVer = '2.0.1'
-    liquibaseVer = '3.5.2'
-
-    postgresqlJdbcVer = '9.4.1208'
-    jpa21Ver = '1.0.2.Final'
-    hibernateVer = '5.1.10.Final'
-
-    JAVA_EE_API_DEPENDENCY = "javax:javaee-api:7.0"
-
-    JACKSON_VERSION = "2.9.4"
-    JACKSON_CORE_DEPENDENCY = "com.fasterxml.jackson.core:jackson-core:$JACKSON_VERSION"
-    JACKSON_DATABIND_DEPENDENCY = "com.fasterxml.jackson.core:jackson-databind:$JACKSON_VERSION"
-    JACKSON_ANNOTATIONS_DEPENDENCY = "com.fasterxml.jackson.core:jackson-annotations:$JACKSON_VERSION"
-    JACKSON_PROVIDER_DEPENDENCY = "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:$JACKSON_VERSION"
-    JACKSON_JSR310_DEPENDENCY = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$JACKSON_VERSION"
-
-    GUAVA_DEPENDENCY = "com.google.guava:guava:$guavaVer"
-    JUNIT_DEPENDENCY = "junit:junit:$junitVer"
-    ASSERTJ_DEPENDENCY = "org.assertj:assertj-core:$assertjVer"
-
-    APACHE_COMMONS_VALIDATOR = "commons-validator:commons-validator:$commonsValVer"
-    APACHE_COMMONS_LANG3 = "org.apache.commons:commons-lang3:$commonsLang3Ver"
-    APACHE_COMMONS_IO = "commons-io:commons-io:$commonsIoVer"
-    APACHE_COMMONS_NET = "commons-net:commons-net:$commonsNetVer"
-    APACHE_COMMONS_TEXT = "org.apache.commons:commons-text:$commonsTextVer"
-    APACHE_COMMONS_COLLECTIONS4 = "org.apache.commons:commons-collections4:$commonsCollections4Ver"
-
-    CLING_CORE = "org.fourthline.cling:cling-core:$clingVer"
-
-    RESTEASY_VERSION = '3.5.0.Final'
-    RESTEASY_CLIENT_DEPENDENCY = "org.jboss.resteasy:resteasy-client:$RESTEASY_VERSION"
-    RESTEASY_JACKSON2_PROVIDER = "org.jboss.resteasy:resteasy-jackson2-provider:$RESTEASY_VERSION"
-    RESTEASY_JAXRS_DEPENDENCY = "org.jboss.resteasy:resteasy-jaxrs:$RESTEASY_VERSION"
-
-    SLF4J_DEPENDENCY = "org.slf4j:slf4j-api:1.7.22"
-    LOGBACK_DEPENDENCY = "ch.qos.logback:logback-classic:1.1.1"
-
-    MODEL_MAPPER_DEPENDENCY = 'org.modelmapper:modelmapper:1.1.0'
-
-    METRICS_CDI = "io.astefanutti.metrics.cdi:metrics-cdi:$metricsVer"
-
-    POSTGRESQL_JDBC = "org.postgresql:postgresql:$postgresqlJdbcVer"
-    HIBERNATE_JPA = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21Ver"
-    HIBERNATE_CORE = "org.hibernate:hibernate-core:$hibernateVer"
-    HIBERNATE_EM = "org.hibernate:hibernate-entitymanager:$hibernateVer"
-
-    LIQUIBASE_CORE = "org.liquibase:liquibase-core:$liquibaseVer"
-    LIQUIBASE_CDI = "org.liquibase:liquibase-cdi:$liquibaseVer"
+task buildDockerImage {
+    dependsOn services*.task(':buildDockerImage')
 }
 
-idea.project.languageLevel = JavaVersion.VERSION_1_8
+task pushDockerImage {
+    dependsOn services*.task(':pushDockerImage')
+}
 
+buildscript {
+    ext {
+        asciidoctorGradlePluginVersion = '1.5.3' //DO NOT UPDATE, newer versions have problems with diagram generation
+        asciidoctorJVersion = '1.5.6'
+        asciidoctorJDiagramVersion = '1.5.8'
+        jacocoVersion = '0.8.2'
+
+    }
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath("org.asciidoctor:asciidoctor-gradle-plugin:${asciidoctorGradlePluginVersion}")
+    }
+}
+
+apply plugin: 'org.asciidoctor.convert'
 apply plugin: 'jacoco'
 
+repositories {
+    jcenter()
+}
+
+dependencies {
+    asciidoctor "org.asciidoctor:asciidoctorj-diagram:${asciidoctorJDiagramVersion}"
+}
+
 jacoco {
-    toolVersion = jacocoToolVersion
+    toolVersion = "${jacocoVersion}"
 }
 
-configure(subprojects - project(':pod-manager-common')) {
+asciidoctor {
+    requires = ['asciidoctor-diagram']
+    backends = ['html5']
 
-    apply plugin: 'java'
-    apply plugin: 'checkstyle'
-    apply plugin: 'jacoco'
+    attributes 'doctype': 'book'
 
-    jacoco {
-        toolVersion = jacocoToolVersion
+    sources {
+        include 'index.adoc'
     }
 
-    repositories {
-        mavenCentral()
-        maven { url "http://4thline.org/m2" }
-    }
-
-    checkstyle {
-        configFile = new File(rootDir, 'config/checkstyle/checkstyle.xml')
-        configProperties.checkstyleConfigDir = configFile.parentFile
-    }
-
-    def subprojectName = name
-
-    tasks {
-        checkstyleMain {
-            reports {
-                xml {
-                    destination new File(checkstyleReportsDir, subprojectName + '-main.xml')
-                }
-            }
-        }
-
-        checkstyleTest {
-            reports {
-                xml {
-                    destination new File(checkstyleReportsDir, subprojectName + '-test.xml')
-                }
-            }
-        }
-    }
-
-    dependencies {
-        checkstyle "com.puppycrawl.tools:checkstyle:$checkstyleVer"
-
-        testCompile "org.testng:testng:$testNgVer"
-        testCompile "org.hamcrest:hamcrest-all:$hamcrestVer"
-        testCompile "org.mockito:mockito-all:$mockitoVer"
-        testRuntime "$JUNIT_DEPENDENCY" //needed in runtime by mockito...
-        testCompile "$SLF4J_DEPENDENCY"
-        testCompile "net.sf.corn:corn-cps:$cornCpsVer"
-        testCompile(project(':classindex'))
-        testCompile "org.modeshape:modeshape-common:$modeshapeCommonVer"
-        testCompile "com.github.javaparser:javaparser-core:$javaParserCoreVer"
-    }
-
-    jacocoTestReport {
-        reports {
-            xml.enabled true
-            xml.destination "${reportsDir}/jacoco/${subprojectName}.xml"
-            csv.enabled false
-        }
-    }
-
-    build.dependsOn jacocoTestReport
-
-    test {
-        useTestNG() {
-            excludeGroups "integration"
-        }
-
-        reports.junitXml.destination = "$reportsDir/allTests"
-
-        testLogging {
-            showStandardStreams = false
-            //event to log on gradle output
-            events = ["skipped", "passed", "failed"]
-            exceptionFormat = "full"
-            showExceptions = true
-            showCauses = true
-            showStackTraces = false
-        }
+    resources {
+        from('src/docs/examples')
+        into './examples'
     }
 }
 
-/**
- * podm-rest is configured at this point because all projects
- * have to be aware that this project produces war artifact
- */
-configure(project(':podm-rest')) {
-    apply plugin: 'war'
+asciidoctorj {
+    version = asciidoctorJVersion
 }
 
-task gatherSrc << {
-    def prefix = project.uri("").toString()
-    def buildDir = project.buildDir.toString()
+build.dependsOn buildAll
+clean.dependsOn cleanAll
 
-    project.subprojects.each { subproject ->
-        def srcPath = subproject.uri("").toString().replaceFirst(prefix, "")
-        def dstPath = buildDir + "/" + project.name + "/" + srcPath
-
-        copy {
-            from srcPath
-            into dstPath
-            exclude "*.iml", ".idea/", "**/build/**", "*.yml"
-        }
-    }
-
-    copy {
-        from(".")
-        into buildDir + "/" + project.name
-        include "*.gradle", "gradlew*", "README", "LICENSE"
-        // It intentionally omits gradle.properties from resulting tgz package
-    }
-
-    copy {
-        from("gradle")
-        into buildDir + "/" + project.name + "/gradle"
-    }
-
-    copy {
-        from("config")
-        into buildDir + "/" + project.name + "/config"
-    }
-
-    copy {
-        from("node_scripts")
-        into buildDir + "/" + project.name + "/node_scripts"
-    }
-
-    copy {
-        from("external")
-        into buildDir + "/" + project.name + "/external"
-    }
-
-    copy {
-        from("licences")
-        into buildDir + "/" + project.name + "/licences"
-    }
-
-    copy {
-        from(".")
-        include "pod-manager-install.py"
-        into buildDir + "/" + project.name
-    }
-}
-
-subprojects {
-    task listAllDependencies(type: DependencyReportTask) {
-        outputFile = file('module_dependencies.txt')
-    }
-}
-
-task createDependenciesFile() {
-    dependsOn subprojects.listAllDependencies
-}
-
-task createIpPlan(type: Exec, dependsOn: ':createDependenciesFile') {
-    workingDir 'ip_plan'
-    commandLine 'python3', "ip_plan_generator.py"
-    doLast {
-        delete fileTree(dir: '.', include: '**/module_dependencies.txt')
-    }
-}
-
-task srcTar(type: Tar, dependsOn: gatherSrc) {
-    baseName = "podm-sources"
-
-    from(project.buildDir.toString() + "/" + project.name)
-    into("podm-sources/" + project.name)
+task docsTar(type: Tar, dependsOn: asciidoctor) {
+    baseName = "podm-docs"
+    from("$project.buildDir/asciidoc/html5")
+    exclude(".asciidoctor")
+    into("podm-docs-$project.version")
 
     compression = Compression.GZIP
     extension = "tar.gz"
-
-    outputs.upToDateWhen { false }
-}
-
-task copyJacocoAgentJar(type: Copy) {
-    description """Copies jacocoAgent jar file to location specified by jacocoJarDestination property - default value: jacocoAgent.
-Usage: ./gradlew copyJacocoAgentJar -PjacocoJarDestinationDir=/home/podm/jacocoAgent"""
-    from(zipTree(configurations.jacocoAgent.singleFile)) {
-        include "jacocoagent.jar"
-    }
-    into project.jacocoJarDestinationDir
-}
-
-task createJaCoCoReport(type: JacocoReport) {
-    description """Creates JaCoCo reports from provided exec file. Xml report is generated to jacocoXmlReportDestination - default value: jacocoReport.xml
-Usage: ./gradlew createJaCoCoReport -P jacocoExecutionFile=/opt/pod-manager/wildfly/jacoco.exec -P jacocoXmlReportDestination=podmIntegrationTestsJaCoCoReport.xml"""
-    executionData = files([project.jacocoExecutionFile])
-    def projects = subprojects - project(':pod-manager-common')
-    sourceDirectories = files(projects.sourceSets.main.allSource.srcDirs)
-    classDirectories = files(projects.sourceSets.main.output)
-    reports {
-        html.enabled = true
-        html.destination = "build/reports/jacocoHtmlReport"
-        xml.enabled = true
-        xml.destination = "${project.jacocoXmlReportDestination}"
-    }
 }

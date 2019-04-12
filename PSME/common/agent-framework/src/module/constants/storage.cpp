@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,29 +28,14 @@ namespace agent_framework {
 namespace model {
 namespace literals {
 
-constexpr const char IscsiTarget::TARGET[];
-constexpr const char IscsiTarget::STATUS[];
-constexpr const char IscsiTarget::INITIATOR_IQN[];
-constexpr const char IscsiTarget::TARGET_ADDRESS[];
-constexpr const char IscsiTarget::TARGET_PORT[];
-constexpr const char IscsiTarget::TARGET_IQN[];
-constexpr const char IscsiTarget::TARGET_LUNS[];
-constexpr const char IscsiTarget::AUTHENTICATION_METHOD[];
-constexpr const char IscsiTarget::CHAP_USERNAME[];
-constexpr const char IscsiTarget::CHAP_SECRET[];
-constexpr const char IscsiTarget::MUTUAL_CHAP_USERNAME[];
-constexpr const char IscsiTarget::MUTUAL_CHAP_SECRET[];
-constexpr const char IscsiTarget::OEM[];
-
-constexpr const char TargetLun::LUN[];
-constexpr const char TargetLun::LOGICAL_DRIVE[];
-
 constexpr const char StorageService::SERVICE[];
 constexpr const char StorageService::STATUS[];
 constexpr const char StorageService::COLLECTIONS[];
 constexpr const char StorageService::OEM[];
 
 constexpr const char StoragePool::STORAGE_POOL[];
+constexpr const char StoragePool::NAME[];
+constexpr const char StoragePool::DESCRIPTION[];
 constexpr const char StoragePool::STATUS[];
 constexpr const char StoragePool::COLLECTIONS[];
 constexpr const char StoragePool::OEM[];
@@ -61,6 +46,8 @@ constexpr const char StoragePool::CAPACITY_SOURCES[];
 
 constexpr const char Volume::VOLUME[];
 constexpr const char Volume::STATUS[];
+constexpr const char Volume::NAME[];
+constexpr const char Volume::DESCRIPTION[];
 constexpr const char Volume::COLLECTIONS[];
 constexpr const char Volume::OEM[];
 constexpr const char Volume::BLOCK_SIZE_BYTES[];
@@ -74,8 +61,6 @@ constexpr const char Volume::IDENTIFIERS[];
 constexpr const char Volume::OPTIMUM_IO_SIZE_BYTES[];
 constexpr const char Volume::BOOTABLE[];
 constexpr const char Volume::INITIALIZATION[];
-constexpr const char Volume::ERASED[];
-constexpr const char Volume::ERASE_ON_DETACH[];
 constexpr const char Volume::REPLICA_INFOS[];
 constexpr const char Volume::ACCESS_CAPABILITIES[];
 
@@ -83,6 +68,7 @@ constexpr const char ReplicaInfo::REPLICA_READ_ONLY_ACCESS[];
 constexpr const char ReplicaInfo::REPLICA_TYPE[];
 constexpr const char ReplicaInfo::REPLICA_ROLE[];
 constexpr const char ReplicaInfo::REPLICA[];
+
 }
 }
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -214,14 +214,14 @@ public:
      *
      * @return JSON representation of subscription
      */
-    json::Value to_json() const;
+    json::Json to_json() const;
 
     /*!
      * @brief Fills json with representation of subscription
      *
      * @param json JSON to be filled with representation of subscription
      */
-    void fill_json(json::Value& json) const;
+    void fill_json(json::Json& json) const;
 
     /*!
      * @brief Creates model representation from subscription JSON
@@ -232,7 +232,7 @@ public:
      * because in the start-up sequence endpoints are registered in the Multiplexer AFTER the event service starts.
      * @return Model representation of subscription
      */
-    static Subscription from_json(const json::Value& json, bool validate_origin_resources = true);
+    static Subscription from_json(const json::Json& json, bool validate_origin_resources = true);
 
 private:
     uint64_t m_id{};

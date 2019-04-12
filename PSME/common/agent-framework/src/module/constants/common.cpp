@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,6 @@ constexpr const char FruInfo::PART[];
 constexpr const char Collections::COLLECTIONS[];
 constexpr const char Collections::NAME[];
 constexpr const char Collections::TYPE[];
-constexpr const char Collections::SLOT_MASK[];
 
 constexpr const char Collection::COMPONENT[];
 constexpr const char Collection::NAME[];
@@ -156,11 +155,14 @@ constexpr const char Ipv6Address::ADDRESS_STATE[];
 constexpr const char Intel::INTEL_CORP[];
 
 constexpr const char Drive::DRIVE[];
+constexpr const char Drive::NAME[];
+constexpr const char Drive::DESCRIPTION[];
 constexpr const char Drive::STATUS[];
 constexpr const char Drive::INTERFACE[];
 constexpr const char Drive::TYPE[];
 constexpr const char Drive::RPM[];
 constexpr const char Drive::FIRMWARE_VERSION[];
+constexpr const char Drive::LATENCY_TRACKING_ENABLED[];
 constexpr const char Drive::CAPACITY[];
 constexpr const char Drive::FRU_INFO[];
 constexpr const char Drive::INDICATOR_LED[];
@@ -206,23 +208,20 @@ constexpr const char Task::MESSAGES[];
 constexpr const char Task::NAME[];
 constexpr const char Task::OEM[];
 
-
 constexpr const char ConnectedEntity::ROLE[];
 constexpr const char ConnectedEntity::ENTITY[];
 constexpr const char ConnectedEntity::IDENTIFIERS[];
-
+constexpr const char ConnectedEntity::LUN[];
 
 constexpr const char Transport::PROTOCOL[];
 constexpr const char Transport::TYPE[];
 constexpr const char Transport::DETAILS[];
-
 
 constexpr const char IpTransportDetail::IPV4_ADDRESS[];
 constexpr const char IpTransportDetail::IPV6_ADDRESS[];
 constexpr const char IpTransportDetail::PORT[];
 constexpr const char IpTransportDetail::PROTOCOL[];
 constexpr const char IpTransportDetail::INTERFACE[];
-
 
 constexpr const char Metric::METRIC[];
 constexpr const char Metric::UUID[];
@@ -273,7 +272,10 @@ constexpr const char Zone::COLLECTIONS[];
 constexpr const char Zone::OEM[];
 constexpr const char Zone::FABRIC[];
 constexpr const char Zone::ENDPOINTS[];
+constexpr const char Zone::TASK[];
 
+constexpr const char Endpoint::NAME[];
+constexpr const char Endpoint::DESCRIPTION[];
 constexpr const char Endpoint::ENDPOINT[];
 constexpr const char Endpoint::FABRIC[];
 constexpr const char Endpoint::PROTOCOL[];
@@ -288,11 +290,14 @@ constexpr const char Endpoint::OEM[];
 constexpr const char Endpoint::NQN_FORMAT[];
 constexpr const char Endpoint::TARGET[];
 constexpr const char Endpoint::INITIATOR[];
+constexpr const char Endpoint::PORTS[];
+constexpr const char Endpoint::OEM_PROTOCOL[];
 
 constexpr const char Capacity::ALLOCATED_BYTES[];
 constexpr const char Capacity::CONSUMED_BYTES[];
 constexpr const char Capacity::GUARANTEED_BYTES[];
 constexpr const char Capacity::PROVISIONED_BYTES[];
+constexpr const char Capacity::IS_THIN_PROVISIONED[];
 
 constexpr const char CapacitySource::PROVIDING_DRIVES[];
 constexpr const char CapacitySource::PROVIDING_VOLUMES[];

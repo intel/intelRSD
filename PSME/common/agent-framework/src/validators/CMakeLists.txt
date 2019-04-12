@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 #
 # </license_header>
 
-set(SOURCES
+add_library(agent-framework-validators STATIC
     procedure_validator.cpp
 
     checkers/validity_checker.cpp
@@ -33,4 +33,15 @@ set(SOURCES
     checkers/regex_validity_checker.cpp
 )
 
-add_library(validators OBJECT ${SOURCES})
+target_link_libraries(agent-framework-validators
+    PUBLIC
+    agent-framework-exceptions
+
+    PRIVATE
+    common-include
+)
+
+target_include_directories(agent-framework-validators
+    PUBLIC
+    ${AGENT_FRAMEWORK_DIR}/include
+)

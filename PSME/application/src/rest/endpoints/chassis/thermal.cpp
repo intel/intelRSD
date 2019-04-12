@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,107 +35,107 @@ using namespace psme::rest::validators;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Thermal.Thermal";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#Thermal.v1_1_0.Thermal";
     r[Common::NAME] = "Thermal";
     r[Common::DESCRIPTION] = "Thermal";
     r[Common::ID] = "Thermal";
 
-    r[ThermalZone::TEMPERATURES] = json::Value::Type::ARRAY;
-    r[ThermalZone::FANS] = json::Value::Type::ARRAY;
-    r[Common::REDUNDANCY] = json::Value::Type::ARRAY;
+    r[ThermalZone::TEMPERATURES] = json::Json::value_t::array;
+    r[ThermalZone::FANS] = json::Json::value_t::array;
+    r[Common::REDUNDANCY] = json::Json::value_t::array;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    json::Value rs{};
+    json::Json rs = json::Json();
     rs[Common::ODATA_TYPE] = "#Intel.Oem.Thermal";
-    rs[ThermalZone::DESIRED_SPEED_PWM] = json::Value::Type::NIL;
-    rs[ThermalZone::VOLUMETRIC_AIRFLOW_CFM] = json::Value::Type::NIL;
+    rs[ThermalZone::DESIRED_SPEED_PWM] = json::Json::value_t::null;
+    rs[ThermalZone::VOLUMETRIC_AIRFLOW_CFM] = json::Json::value_t::null;
     r[Common::OEM][Common::RACKSCALE] = std::move(rs);
 
     return r;
 }
 
 
-json::Value make_fan_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_fan_prototype() {
+    json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#Thermal.v1_1_0.Fan";
-    r[Common::MEMBER_ID] = json::Value::Type::NIL;
-    r[Common::NAME] = json::Value::Type::NIL;
+    r[Common::MEMBER_ID] = json::Json::value_t::null;
+    r[Common::NAME] = json::Json::value_t::null;
 
-    r[ThermalZone::READING] = json::Value::Type::NIL;
-    r[ThermalZone::READING_UNITS] = json::Value::Type::NIL;
+    r[ThermalZone::READING] = json::Json::value_t::null;
+    r[ThermalZone::READING_UNITS] = json::Json::value_t::null;
 
-    r[ChassisSensor::UPPER_THRESHOLD_NON_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::UPPER_THRESHOLD_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::UPPER_THRESHOLD_FATAL] = json::Value::Type::NIL;
+    r[ChassisSensor::UPPER_THRESHOLD_NON_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::UPPER_THRESHOLD_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::UPPER_THRESHOLD_FATAL] = json::Json::value_t::null;
 
-    r[ChassisSensor::LOWER_THRESHOLD_NON_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::LOWER_THRESHOLD_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::LOWER_THRESHOLD_FATAL] = json::Value::Type::NIL;
+    r[ChassisSensor::LOWER_THRESHOLD_NON_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::LOWER_THRESHOLD_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::LOWER_THRESHOLD_FATAL] = json::Json::value_t::null;
 
-    r[ChassisSensor::MIN_READING_RANGE] = json::Value::Type::NIL;
-    r[ChassisSensor::MAX_READING_RANGE] = json::Value::Type::NIL;
-    r[ChassisSensor::PHYSICAL_CONTEXT] = json::Value::Type::NIL;
+    r[ChassisSensor::MIN_READING_RANGE] = json::Json::value_t::null;
+    r[ChassisSensor::MAX_READING_RANGE] = json::Json::value_t::null;
+    r[ChassisSensor::PHYSICAL_CONTEXT] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[Common::REDUNDANCY] = json::Value::Type::ARRAY;
-    r[Common::RELATED_ITEM] = json::Value::Type::ARRAY;
+    r[Common::REDUNDANCY] = json::Json::value_t::array;
+    r[Common::RELATED_ITEM] = json::Json::value_t::array;
     return r;
 }
 
 
-json::Value make_temperature_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_temperature_prototype() {
+    json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::MEMBER_ID] = json::Value::Type::NIL;
-    r[Common::NAME] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
+    r[Common::MEMBER_ID] = json::Json::value_t::null;
+    r[Common::NAME] = json::Json::value_t::null;
 
-    r[ChassisSensor::SENSOR_NUMBER] = json::Value::Type::NIL;
-    r[ChassisSensor::READING_CELSIUS] = json::Value::Type::NIL;
+    r[ChassisSensor::SENSOR_NUMBER] = json::Json::value_t::null;
+    r[ChassisSensor::READING_CELSIUS] = json::Json::value_t::null;
 
-    r[ChassisSensor::UPPER_THRESHOLD_NON_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::UPPER_THRESHOLD_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::UPPER_THRESHOLD_FATAL] = json::Value::Type::NIL;
+    r[ChassisSensor::UPPER_THRESHOLD_NON_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::UPPER_THRESHOLD_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::UPPER_THRESHOLD_FATAL] = json::Json::value_t::null;
 
-    r[ChassisSensor::LOWER_THRESHOLD_NON_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::LOWER_THRESHOLD_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::LOWER_THRESHOLD_FATAL] = json::Value::Type::NIL;
+    r[ChassisSensor::LOWER_THRESHOLD_NON_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::LOWER_THRESHOLD_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::LOWER_THRESHOLD_FATAL] = json::Json::value_t::null;
 
-    r[ChassisSensor::MIN_READING_RANGE_TEMP] = json::Value::Type::NIL;
-    r[ChassisSensor::MAX_READING_RANGE_TEMP] = json::Value::Type::NIL;
-    r[ChassisSensor::PHYSICAL_CONTEXT] = json::Value::Type::NIL;
+    r[ChassisSensor::MIN_READING_RANGE_TEMP] = json::Json::value_t::null;
+    r[ChassisSensor::MAX_READING_RANGE_TEMP] = json::Json::value_t::null;
+    r[ChassisSensor::PHYSICAL_CONTEXT] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[Common::RELATED_ITEM] = json::Value::Type::ARRAY;
+    r[Common::RELATED_ITEM] = json::Json::value_t::array;
 
     return r;
 }
 
 
-void fill_related_items(const agent_framework::model::ThermalZone& thermal_zone, json::Value& r) {
+void fill_related_items(const agent_framework::model::ThermalZone& thermal_zone, json::Json& r) {
     // Find all chassis related to the current thermal zone
     auto cooled_chassis = agent_framework::module::get_manager<agent_framework::model::Chassis>()
         .get_keys([thermal_zone](const agent_framework::model::Chassis& ch) {
             return ch.get_thermal_zone() == thermal_zone.get_uuid();
         });
     for (const auto& chassis_uuid : cooled_chassis) {
-        json::Value related_item{};
+        json::Json related_item = json::Json();
         related_item[Common::ODATA_ID] = endpoint::utils::get_component_url(
             agent_framework::model::enums::Component::Chassis, chassis_uuid);
         r[Common::RELATED_ITEM].push_back(related_item);
@@ -144,7 +144,7 @@ void fill_related_items(const agent_framework::model::ThermalZone& thermal_zone,
 
 
 void fill_fans(const agent_framework::model::ThermalZone& thermal_zone,
-               json::Value& json_response, const std::string& thermal_url) {
+               json::Json& json_response, const std::string& thermal_url) {
     auto fans = agent_framework::module::get_manager<agent_framework::model::Fan>()
         .get_keys(thermal_zone.get_uuid());
 
@@ -191,7 +191,7 @@ void fill_fans(const agent_framework::model::ThermalZone& thermal_zone,
 
 void fill_temperatures(const agent_framework::model::ThermalZone& thermal_zone,
                        const std::vector<agent_framework::model::Metric>& temperature_readings,
-                       json::Value& json_response, const std::string& thermal_url) {
+                       json::Json& json_response, const std::string& thermal_url) {
     for (std::size_t index = 0; index < temperature_readings.size(); index++) {
         const auto& temperature_reading = temperature_readings[index];
         const auto definition = agent_framework::module::get_manager<agent_framework::model::MetricDefinition>()
@@ -234,14 +234,15 @@ static const std::map<std::string, std::string> gami_to_rest_attributes = {
     }
 };
 
-void fill_patch_attributes(const json::Value& patch, agent_framework::model::attribute::Attributes& attributes) {
-    if (patch.is_member(constants::Common::OEM)) {
+void fill_patch_attributes(const json::Json& patch, agent_framework::model::attribute::Attributes& attributes) {
+    if (patch.count(constants::Common::OEM)) {
         const auto& oem = patch[constants::Common::OEM];
-        if (oem.is_member(constants::Common::RACKSCALE)) {
+        if (oem.count(constants::Common::RACKSCALE)) {
             const auto& rackscale = oem[constants::Common::RACKSCALE];
-            if (rackscale.is_member(constants::ThermalZone::DESIRED_SPEED_PWM)) {
-                auto pwm = rackscale[constants::ThermalZone::DESIRED_SPEED_PWM].as_uint();
-                attributes.set_value(agent_framework::model::literals::ThermalZone::DESIRED_SPEED_PWM, pwm);
+            if (rackscale.count(constants::ThermalZone::DESIRED_SPEED_PWM)) {
+                attributes.set_value(agent_framework::model::literals::ThermalZone::DESIRED_SPEED_PWM,
+                                     rackscale[constants::ThermalZone::DESIRED_SPEED_PWM]
+                );
             }
         }
     }
@@ -277,7 +278,7 @@ endpoint::Thermal::~Thermal() {}
 
 
 void endpoint::Thermal::get(const server::Request& request, server::Response& response) {
-    auto chassis = model::Find<agent_framework::model::Chassis>(request.params[PathParam::CHASSIS_ID]).get();
+    auto chassis = model::find<agent_framework::model::Chassis>(request.params).get();
     auto thermal_zones = agent_framework::module::get_manager<agent_framework::model::ThermalZone>()
         .get_keys(chassis.get_uuid());
 
@@ -310,8 +311,9 @@ void endpoint::Thermal::get(const server::Request& request, server::Response& re
 }
 
 void endpoint::Thermal::patch(const server::Request& request, server::Response& response) {
-    auto chassis_id = request.params[PathParam::CHASSIS_ID];
-    auto chassis = model::Find<agent_framework::model::Chassis>(chassis_id).get();
+    static const constexpr char TRANSACTION_NAME[] = "PatchThermal";
+
+    auto chassis = model::find<agent_framework::model::Chassis>(request.params).get();
 
     // Only RMM service has this action
     if (!utils::has_resource_capability(chassis, Capability::RMM)) {
@@ -343,7 +345,7 @@ void endpoint::Thermal::patch(const server::Request& request, server::Response& 
                 ::update_model_after_patch(gami_agent, thermal_zone);
             };
 
-            gami_agent->execute_in_transaction(set_thermal_zone_attributes);
+            gami_agent->execute_in_transaction(TRANSACTION_NAME, set_thermal_zone_attributes);
         }
     }
     else {

@@ -1,0 +1,67 @@
+# Default values for aaa-service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: aaa-service
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8080
+
+applicationProperties:
+  server:
+    port: 8080
+  spring:
+    datasource:
+      url: "jdbc:postgresql://podm-db-postgresql.default.svc.cluster.local.:5432/accessverifier"
+      password: ${PODM_POSTGRES_USER_PASSWORD}
+      hikari:
+        jdbcUrl: "jdbc:postgresql://podm-db-postgresql.default.svc.cluster.local.:5432/accessverifier"
+        password: ${PODM_POSTGRES_USER_PASSWORD}
+  auth-server-datasource:
+    url: "jdbc:postgresql://podm-db-postgresql.default.svc.cluster.local.:5432/accessverifier"
+    password: ${PODM_POSTGRES_USER_PASSWORD}
+  eureka:
+    client:
+      serviceUrl:
+        defaultZone: "http://{{ .Release.Name }}-service-registry/eureka/"
+    instance:
+      prefer-ip-address: true
+  aaa-config:
+    password-policy:
+      minLength: 4
+      maxLength: 30
+    session-timeout: 600
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 5
+  failureThreshold: 30
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 5
+
+secretName: "pod-manager-secret"
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

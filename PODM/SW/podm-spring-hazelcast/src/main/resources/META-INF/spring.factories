@@ -1,0 +1,8 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.intel.rsd.services.common.hazelcast.SharedCollectionFactory,\
+com.intel.rsd.services.common.hazelcast.HazelcastConfiguration,\
+com.intel.rsd.services.common.hazelcast.DiscoveryServiceProviderFactory,\
+com.intel.rsd.services.common.hazelcast.HazelcastFactories
+
+com.intel.rsd.services.common.AutoConfigureTestDiscoveryClient=\
+com.intel.rsd.services.common.TestDiscoveryClientAutoconfiguration

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
  *
  * @section DESCRIPTION
  *
- * @file schema_reader.hpp
+ * @file schema_reader.cpp
  *
  * @brief SchemaReader implementation
  * */
@@ -34,36 +34,39 @@
 
 using namespace configuration;
 
+
 class SchemaReader::Impl {
     JsonPath m_json_path{};
 public:
-    using ValidatorJsonSPtr = std::shared_ptr<Validator<json::Value>>;
+    using ValidatorJsonSPtr = std::shared_ptr<Validator<json::Json>>;
 
-    bool load_schema(const json::Value& schema, SchemaValidator& validator) {
-        for (auto it = schema.cbegin(); it != schema.cend(); it++) {
-            m_json_path.push_key(it.key());
+    bool load_schema(const json::Json& schema, SchemaValidator& validator) {
+        if (schema.is_object()) {
+            for (auto it = schema.cbegin(); it != schema.cend(); it++) {
+                m_json_path.push_key(it.key());
 
-            if (is_validator_object(*it)) {
-                bool mandatory = false;
-                if (it->is_member(SchemaProperty::MANDATORY)) {
-                    auto schema_item = *it;
-                    mandatory = schema_item[SchemaProperty::MANDATORY].as_bool();
+                if (is_validator_object(*it)) {
+                    bool mandatory = false;
+                    if (it->count(SchemaProperty::MANDATORY)) {
+                        auto schema_item = *it;
+                        mandatory = schema_item.value(SchemaProperty::MANDATORY, bool{});
+                    }
+                    process_json_property(m_json_path.get_path(),
+                                          *it, mandatory, validator);
+                    m_json_path.pop_key();
+                    continue;
                 }
-                process_json_property(m_json_path.get_path(),
-                                      *it, mandatory, validator);
+
+                load_schema(*it, validator);
+
                 m_json_path.pop_key();
-                continue;
             }
-
-            load_schema(*it, validator);
-
-            m_json_path.pop_key();
         }
         return true;
     }
 
     void process_json_property(const std::string& path,
-                               const json::Value& value,
+                               const json::Json& value,
                                bool mandatory,
                                SchemaValidator& validator) {
         if (is_validator_object(value)) {
@@ -79,7 +82,7 @@ public:
     }
 
     void make_validators(SchemaProperty& property,
-                         const json::Value& item) {
+                         const json::Json& item) {
         if (auto validator = create_max_validator(item)) {
             property.add_validator(validator);
         }
@@ -109,57 +112,57 @@ public:
         }
     }
 
-    ValidatorJsonSPtr create_max_validator(const json::Value& value) {
-        if (value[SchemaProperty::MAX].is_number()) {
+    ValidatorJsonSPtr create_max_validator(const json::Json& value) {
+        if (value.value(SchemaProperty::MAX, json::Json()).is_number()) {
             return std::make_shared<MaxValidator>(
-                    value[SchemaProperty::MAX].as_int());
+                value.value(SchemaProperty::MAX, int{}));
         }
         return nullptr;
     }
 
-    ValidatorJsonSPtr create_min_validator(const json::Value& value) {
-        if (value[SchemaProperty::MIN].is_number()) {
+    ValidatorJsonSPtr create_min_validator(const json::Json& value) {
+        if (value.value(SchemaProperty::MIN, json::Json()).is_number()) {
             return std::make_shared<MinValidator>(
-                    value[SchemaProperty::MIN].as_int());
+                value.value(SchemaProperty::MIN, int{}));
         }
         return nullptr;
     }
 
-    ValidatorJsonSPtr create_more_than_validator(const json::Value& value) {
-        if (value[SchemaProperty::MORE_THAN].is_number()) {
+    ValidatorJsonSPtr create_more_than_validator(const json::Json& value) {
+        if (value.value(SchemaProperty::MORE_THAN, json::Json()).is_number()) {
             return std::make_shared<MoreThanValidator>(
-                    value[SchemaProperty::MORE_THAN].as_double());
+                    value.value(SchemaProperty::MORE_THAN, double{}));
         }
         return nullptr;
     }
 
-    ValidatorJsonSPtr create_type_validator(const json::Value& value) {
-        if (value[SchemaProperty::TYPE].is_string()) {
+    ValidatorJsonSPtr create_type_validator(const json::Json& value) {
+        if (value.value(SchemaProperty::TYPE, json::Json()).is_string()) {
             return std::make_shared<TypeValidator>(
-                    value[SchemaProperty::TYPE].as_string());
+                value.value(SchemaProperty::TYPE, std::string{}));
         }
         return nullptr;
     }
 
-    ValidatorJsonSPtr create_address_validator(const json::Value& value) {
-        if (value[SchemaProperty::ADDRESS].is_string()) {
+    ValidatorJsonSPtr create_address_validator(const json::Json& value) {
+        if (value.value(SchemaProperty::ADDRESS, json::Json()).is_string()) {
             return std::make_shared<AddressValidator>(
-                    value[SchemaProperty::ADDRESS].as_string());
+                value.value(SchemaProperty::ADDRESS, std::string{}));
         }
         return nullptr;
     }
 
-    ValidatorJsonSPtr create_url_validator(const json::Value& value) {
-        if (value[SchemaProperty::URL].is_string()) {
+    ValidatorJsonSPtr create_url_validator(const json::Json& value) {
+        if (value.value(SchemaProperty::URL, json::Json()).is_string()) {
             return std::make_shared<UrlValidator>(
-                    value[SchemaProperty::URL].as_string());
+                value.value(SchemaProperty::URL, std::string{}));
         }
         return nullptr;
     }
 
-    ValidatorJsonSPtr create_anyof_validator(const json::Value& value) {
-        if (value[SchemaProperty::ANY_OF].is_array() && value.is_member(SchemaProperty::TYPE)) {
-            const auto type = value[SchemaProperty::TYPE].as_string();
+    ValidatorJsonSPtr create_anyof_validator(const json::Json& value) {
+        if (value.value(SchemaProperty::ANY_OF, json::Json()).is_array() && value.count(SchemaProperty::TYPE)) {
+            const auto type = value.value(SchemaProperty::TYPE, std::string{});
             if (SchemaProperty::STRING == type) {
                 return create_anyof_string(value);
             }
@@ -171,37 +174,37 @@ public:
         return nullptr;
     }
 
-    ValidatorJsonSPtr create_anyof_string(const json::Value& value) {
+    ValidatorJsonSPtr create_anyof_string(const json::Json& value) {
         auto validator = std::make_shared<AnyOfValidator<std::string>>();
         for (const auto& val : value[SchemaProperty::ANY_OF]) {
             if (val.is_string()) {
-                validator->add_constraint(val.as_string());
+                validator->add_constraint(val.get<std::string>());
             }
         }
         return validator;
     }
 
-    ValidatorJsonSPtr create_anyof_int(const json::Value& value) {
+    ValidatorJsonSPtr create_anyof_int(const json::Json& value) {
         auto validator = std::make_shared<AnyOfValidator<int>>();
         for (const auto& val : value[SchemaProperty::ANY_OF]) {
             if (val.is_number()) {
-                validator->add_constraint(val.as_int());
+                validator->add_constraint(val.get<int>());
             }
         }
         return validator;
     }
 
 
-    bool is_validator_object(const json::Value& value) {
-         return value.is_object() && value.is_member(SchemaProperty::VALIDATOR) &&
-             (value.is_member(SchemaProperty::MAX) ||
-              value.is_member(SchemaProperty::MIN) ||
-              value.is_member(SchemaProperty::MORE_THAN) ||
-              value.is_member(SchemaProperty::TYPE) ||
-              value.is_member(SchemaProperty::ADDR_V) ||
-              value.is_member(SchemaProperty::ADDRESS) ||
-              value.is_member(SchemaProperty::URL) ||
-              value.is_member(SchemaProperty::ANY_OF));
+    bool is_validator_object(const json::Json& value) {
+         return value.is_object() && value.count(SchemaProperty::VALIDATOR) &&
+             (value.count(SchemaProperty::MAX) ||
+                 value.count(SchemaProperty::MIN) ||
+                 value.count(SchemaProperty::MORE_THAN) ||
+                 value.count(SchemaProperty::TYPE) ||
+                 value.count(SchemaProperty::ADDR_V) ||
+                 value.count(SchemaProperty::ADDRESS) ||
+                 value.count(SchemaProperty::URL) ||
+                 value.count(SchemaProperty::ANY_OF));
     }
 };
 
@@ -210,7 +213,7 @@ SchemaReader::SchemaReader() :
 
 SchemaReader::~SchemaReader() {}
 
-bool SchemaReader::load_schema(const json::Value& schema,
+bool SchemaReader::load_schema(const json::Json& schema,
                                SchemaValidator& validator) {
     return m_impl->load_schema(schema, validator);
 }

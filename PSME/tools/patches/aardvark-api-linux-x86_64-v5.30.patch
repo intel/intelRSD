@@ -1,0 +1,35 @@
+diff -Naur --ignore-trailing-space aardvark-api-linux-x86-64-v5.30/c/aardvark.c aardvark-api-linux-x86-64-v5.30_patch/c/aardvark.c
+--- aardvark-api-linux-x86_64-v5.30/c/aardvark.c	2017-12-13 12:00:00.000000000 +0100
++++ aardvark-api-linux-x86_64-v5.30_patch/c/aardvark.c	2019-01-07 16:43:55.136899553 +0100
+@@ -77,7 +77,7 @@
+ /*=========================================================================
+ | DEFINES
+  ========================================================================*/
+-#define API_NAME                     "aardvark"
++#define API_NAME                     "libaardvark"
+ #define API_DEBUG                    AA_DEBUG
+ #define API_OK                       AA_OK
+ #define API_UNABLE_TO_LOAD_LIBRARY   AA_UNABLE_TO_LOAD_LIBRARY
+diff -Naur --ignore-trailing-space aardvark-api-linux-x86-64-v5.30/c/aardvark.h aardvark-api-linux-x86-64-v5.30_patch/c/aardvark.h
+--- aardvark-api-linux-x86_64-v5.30/c/aardvark.h	2017-12-13 12:00:00.000000000 +0100
++++ aardvark-api-linux-x86_64-v5.30_patch/c/aardvark.h	2019-01-07 16:41:14.296899893 +0100
+@@ -97,7 +97,7 @@
+ | DEBUG
+  ========================================================================*/
+ /* Set the following macro to '1' for debugging */
+-#define AA_DEBUG 0
++#define AA_DEBUG 1
+ 
+ 
+ /*=========================================================================
+diff -Naur --ignore-trailing-space aardvark-api-linux-x86_64-v5.30/c/Makefile aardvark-api-linux-x86_64-v5.30_patched/c/Makefile
+--- aardvark-api-linux-x86_64-v5.30/c/Makefile  2017-12-13 12:00:00.000000000 +0100
++++ aardvark-api-linux-x86_64-v5.30_patched/c/Makefile  2019-01-24 17:18:24.097483841 +0100
+@@ -35,7 +35,7 @@
+ # CONSTANTS
+ #==========================================================================
+ OUTDIR=_output
+-CC=gcc -m64
++CC=gcc -m64 -fPIC
+ CFLAGS=-Wall -Werror
+ LD=$(CC)

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,11 +101,11 @@ public:
      * @param[in] t tools::Toolset used to perform discovery
      * @param[in] switch_uuid Uuid of the switch
      * @param[in] gas Instance of the GAS registers used to perform discovery
-     * @param[in] zone_id Id of the zone
+     * @param[in] partition_id Id of the partition/zone on PCIe switch
      * @return Discovered entity
      * */
     virtual agent_framework::model::Zone discover_zone(const std::string& fabric_uuid, const tools::Toolset& t,
-        const std::string& switch_uuid, gas::GlobalAddressSpaceRegisters& gas, uint8_t zone_id) const;
+        const std::string& switch_uuid, gas::GlobalAddressSpaceRegisters& gas, uint8_t partition_id) const;
 
     /*!
      * @brief Full port discovery
@@ -135,69 +135,6 @@ public:
      * @return Discovered entity
      * */
     virtual agent_framework::model::Endpoint discover_host_endpoint(const std::string& fabric_uuid) const;
-
-    /*!
-     * @brief Full discovery of the drive endpoint_uuid
-     * @param[in] fabric_uuid Uuid of the parent fabric
-     * @param[in] drive_uuid Uuid of the drive
-     * @return Discovered entity
-     * */
-    virtual agent_framework::model::Endpoint discover_drive_endpoint(const std::string& fabric_uuid,
-        const std::string& drive_uuid) const;
-
-    /*!
-     * @brief Full discovery of the unknown target endpoint_uuid
-     * @param[in] fabric_uuid Uuid of the parent fabric
-     * @return Discovered entity
-     * */
-    virtual agent_framework::model::Endpoint discover_unknown_target_endpoint(const std::string& fabric_uuid) const;
-
-    /*!
-     * @brief Ib discovery of the pcie device
-     * @param[in] manager_uuid Uuid of the parent manager
-     * @param[in] chassis_uuid Uuid of the chassis containing the device
-     * @param[in] sysfs_device Sysfs data of the device
-     * @return Discovered entity
-     * */
-    virtual agent_framework::model::PcieDevice discover_pcie_device(const std::string& manager_uuid,
-        const std::string& chassis_uuid, const sysfs::SysfsDevice& sysfs_device) const;
-
-    /*!
-     * @brief Ib discovery of the pcie function
-     * @param[in] device_uuid Uuid of the parent device
-     * @param[in] dsp_port_uuid Uuid of the downstream port of function
-     * @param[in] sysfs_function Sysfs data of the function
-     * @return Discovered entity
-     * */
-    virtual agent_framework::model::PcieFunction discover_pcie_function(const std::string& device_uuid,
-        const std::string& dsp_port_uuid, const sysfs::SysfsFunction& sysfs_function) const;
-
-    /*!
-     * @brief Oob discovery of the drive
-     * @param[in] chassis_uuid Uuid of the chassis containing the drive
-     * @param[in] t Toolsed used in the discovery
-     * @param[in] port_uuid Uuid of the downstream port of the drive
-     * @return Discovered entity
-     * */
-    virtual agent_framework::model::Drive discover_oob_drive(const std::string& chassis_uuid, const tools::Toolset& t,
-        const std::string& port_uuid) const;
-
-    /*!
-     * @brief Ib discovery of the drive
-     * @param[in] drive Existing drive to be updated
-     * @param[in] sysfs_device Sysfs data of the device
-     * @param[in] sysfs_drive Sysfs data of the drive
-     * @return Discovered entity
-     * */
-    virtual agent_framework::model::Drive discover_ib_drive(const agent_framework::model::Drive& drive,
-        const sysfs::SysfsDevice& sysfs_device, const sysfs::SysfsDrive& sysfs_drive) const;
-
-    /*!
-     * @brief Ib discovery of the drive when no sysfs data are available
-     * @param[in] drive Existing drive to be updated
-     * @return Discovered entity
-     * */
-    virtual agent_framework::model::Drive discover_no_sysfs_ib_drive(const agent_framework::model::Drive& drive) const;
 
     /*!
      * Implementation of Chassis discovery

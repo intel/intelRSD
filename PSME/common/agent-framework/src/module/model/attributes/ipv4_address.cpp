@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ Ipv4Address::Ipv4Address() { }
 Ipv4Address::~Ipv4Address() { }
 
 json::Json Ipv4Address::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     if (get_address()) {
         result[literals::Ipv4Address::ADDRESS] = get_address();
         result[literals::Ipv4Address::SUBNET_MASK] = get_subnet_mask();

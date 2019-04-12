@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file eventing/utils.hpp
  */
 
@@ -31,18 +29,18 @@ namespace eventing {
 void send_event(const Uuid& component_uuid,
                 const agent_framework::model::enums::Component& component,
                 const agent_framework::model::enums::Notification& notification,
-                const Uuid& parent_uuid);
+                const Uuid& parent_uuid = "");
 
 
 template<typename M>
 void send_add_notifications_for_each() {
-    EventDataVec notifications{};
-    for (const auto& elem : agent_framework::module::get_manager<M>().get_entries()) {
-        EventData edat{};
-        edat.set_component(elem.get_uuid());
+    model::attribute::EventData::Vector notifications{};
+    for (const auto& entry : agent_framework::module::get_manager<M>().get_entries()) {
+        model::attribute::EventData edat{};
+        edat.set_component(entry.get_uuid());
         edat.set_type(M::get_component());
-        edat.set_parent(elem.get_parent_uuid());
-        edat.set_notification(agent_framework::eventing::Notification::Add);
+        edat.set_parent(entry.get_parent_uuid());
+        edat.set_notification(agent_framework::model::enums::Notification::Add);
         notifications.push_back(edat);
     }
     agent_framework::eventing::EventsQueue::get_instance()->push_back(notifications);

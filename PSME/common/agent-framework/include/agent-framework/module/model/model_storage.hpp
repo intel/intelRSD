@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +39,3 @@
 #include "task.hpp"
 #include "metric.hpp"
 #include "metric_definition.hpp"
-
-// @TODO: deprecated model only for tgt iSCSI Targets management (to remove)
-#include "iscsi_target.hpp"

@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file drive_handler_factory.cpp
  */
 
@@ -45,7 +43,6 @@ std::shared_ptr<BaseDriveHandler> DriveHandlerFactory::get_handler(const std::st
         }
 
         if (nvme_version != NvmeVersion::INVALID && nvme_version != NvmeVersion::UNKNOWN) {
-
             bool commands_supported = supports_namespace_management(controller_data);
 
             if (max_namespaces > 1 && commands_supported) {
@@ -55,7 +52,7 @@ std::shared_ptr<BaseDriveHandler> DriveHandlerFactory::get_handler(const std::st
                 // currently treat is as a non functional drive
                 return std::make_shared<NonFunctionalDriveHandler>(name, m_nvme_interface);
             }
-            else if (max_namespaces == 1 && !commands_supported) {
+            else if (max_namespaces == 1) {
                 log_debug("nvme-agent", "\tSingle-namespace drive detected!");
                 return std::make_shared<SingleNamespaceDriveHandler>(name, m_nvme_interface, m_drive_interface);
             }

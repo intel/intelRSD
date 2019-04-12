@@ -1,0 +1,8 @@
+{{- if .Values.dhcpd.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: podm-dhcp-config
+data:
+  dhcpd.config: {{ .Files.Get "dhcpd.conf" | quote }}
+{{ end }}

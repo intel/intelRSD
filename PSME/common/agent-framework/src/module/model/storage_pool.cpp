@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,8 +41,10 @@ StoragePool::~StoragePool() { }
 
 
 json::Json StoragePool::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::StoragePool::STATUS] = get_status().to_json();
+    result[literals::StoragePool::NAME] = get_name();
+    result[literals::StoragePool::DESCRIPTION] = get_description();
     result[literals::StoragePool::COLLECTIONS] = get_collections().to_json();
     result[literals::StoragePool::BLOCK_SIZE_BYTES] = get_block_size_bytes();
     result[literals::StoragePool::IDENTIFIERS] = get_identifiers().to_json();
@@ -57,6 +59,8 @@ StoragePool StoragePool::from_json(const json::Json& json) {
     StoragePool pool{};
 
     pool.set_status(attribute::Status::from_json(json[literals::StoragePool::STATUS]));
+    pool.set_name(json[literals::StoragePool::NAME]);
+    pool.set_description(json[literals::StoragePool::DESCRIPTION]);
     pool.set_collections(Collections::from_json(json[literals::StoragePool::COLLECTIONS]));
     pool.set_block_size_bytes(json[literals::StoragePool::BLOCK_SIZE_BYTES]);
     pool.set_capacity(attribute::Capacity::from_json(json[literals::StoragePool::CAPACITY]));
@@ -66,3 +70,11 @@ StoragePool StoragePool::from_json(const json::Json& json) {
 
     return pool;
 }
+
+bool StoragePool::can_allocate_bytes(const agent_framework::model::StoragePool& pool,
+                                     std::int64_t requested_capacity_bytes) {
+
+    auto free_bytes = pool.get_capacity().get_guaranteed_bytes().value_or(0);
+    return requested_capacity_bytes <= free_bytes;
+}
+

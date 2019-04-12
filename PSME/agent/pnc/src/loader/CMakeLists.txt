@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2018 Intel Corporation
+# Copyright (c) 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 set(SOURCES
     pnc_loader.cpp
+    pnc_configuration.cpp
 )
 
 add_library(pnc-loader OBJECT ${SOURCES})

@@ -1,0 +1,4 @@
+apiVersion: v1
+description: aaa-service
+name: aaa-service
+version: 0.1.0

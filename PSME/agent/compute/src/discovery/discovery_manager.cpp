@@ -1,8 +1,7 @@
 /*!
  * @brief Discovery manager for compute agent class implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file discovery_manager.cpp
  */
 
@@ -22,10 +20,10 @@
 #include "discovery/discovery_manager.hpp"
 #include "discovery/discoverers/generic_discoverer.hpp"
 #include "discovery/builders/manager_builder.hpp"
-#include "discovery/builders/platform_specific/grantley/grantley_chassis_builder.hpp"
-#include "discovery/builders/platform_specific/grantley/grantley_system_builder.hpp"
+#include "discovery/builders/chassis_builder.hpp"
+#include "discovery/builders/system_builder.hpp"
+#include "discovery/builders/network_device_function_builder.hpp"
 #include "discovery/builders/network_device_builder.hpp"
-#include "discovery/builders/platform_specific/grantley/grantley_network_device_function_builder.hpp"
 #include "discovery/builders/storage_subsystem_builder.hpp"
 #include "discovery/builders/thermal_zone_builder.hpp"
 #include "discovery/builders/power_zone_builder.hpp"
@@ -35,9 +33,12 @@
 #include "ipmi/command/generic/get_device_id.hpp"
 #include "logger/logger_factory.hpp"
 #include "ipmi/utils/sdv/purley_mdr_region_accessor.hpp"
+#include "ipmi/utils/sdv/platform_discovery.hpp"
 
 #include "status/bmc.hpp"
 #include <sstream>
+
+
 
 using namespace agent::compute::discovery;
 using namespace ipmi::command::generic;
@@ -48,7 +49,7 @@ using namespace agent::compute;
 
 DiscoveryManager::DiscoveryManager(Bmc& bmc, ipmi::sdv::MdrRegionAccessorFactory::Ptr mdr_accessor_factory,
                                    DiscovererFactory::Ptr discoverer_factory)
-    : m_bmc(bmc), m_discoverer{discoverer_factory->create(*bmc.get_platform_id(), bmc.ipmi(), mdr_accessor_factory)} {}
+    : m_bmc(bmc), m_discoverer{discoverer_factory->create(*bmc.get_interface(), bmc.ipmi(), mdr_accessor_factory)} {}
 
 
 DiscoveryManager::~DiscoveryManager() {}
@@ -71,6 +72,7 @@ Uuid DiscoveryManager::discover() {
     m_stabilizer.stabilize(system);
     auto processors = discover_processors(system.get_uuid());
     auto memories = discover_memory(system.get_uuid());
+    auto memory_domains = discover_memory_domains(system.get_uuid());
     auto storage_subsystem = discover_storage_subsystem(system.get_uuid());
     m_stabilizer.stabilize(storage_subsystem, system);
     auto drives = discover_drives(chassis.get_uuid());
@@ -84,11 +86,18 @@ Uuid DiscoveryManager::discover() {
 
     auto devices = discover_pcie_devices(mgr.get_uuid(), chassis.get_uuid());
 
-    agent_framework::eventing::EventDataVec events{};
+    agent_framework::model::attribute::EventData::Vector events{};
     auto stabilized_devices = update_collection(events, std::move(devices), chassis);
     // function discovery requires stabilized devices
     auto functions = discover_pcie_functions(stabilized_devices);
     update_collection(events, std::move(functions));
+
+    // MemoryChunks discovery requires stabilized MemoryDomains
+    auto stabilized_memory_domains = update_collection(events, std::move(memory_domains), system);
+    for (const auto& memory_domain : stabilized_memory_domains) {
+        auto memory_chunks = discover_memory_chunks(memory_domain.get_uuid());
+        update_collection(events, std::move(memory_chunks));
+    }
 
     update_collection(events, std::move(processors), system);
     update_collection(events, std::move(memories), system);
@@ -141,20 +150,28 @@ agent_framework::model::Manager DiscoveryManager::discover_manager() {
 }
 
 
-agent_framework::model::Chassis
-DiscoveryManager::discover_chassis(const std::string& parent_uuid) {
+agent_framework::model::Chassis DiscoveryManager::discover_chassis(const Uuid& parent_uuid) {
+    using BmcInterface = ipmi::command::generic::BmcInterface;
+
     auto chassis = ChassisBuilder::build_default(parent_uuid);
 
     log_debug("compute-discovery", "Starting discovery of a chassis at " << connection_data_to_string());
 
     m_discoverer->discover_chassis(chassis);
 
-    auto platform = m_bmc.get_platform_id();
-    if (platform == ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_PURLEY) {
+    ipmi::command::generic::response::GetDeviceId device_rsp{};
+    m_bmc.ipmi().send(ipmi::command::generic::request::GetDeviceId{}, device_rsp);
+    auto platform = ipmi::sdv::platform_discovery(device_rsp);
+
+    if (BmcInterface::RSA_1_2 == platform) {
+        chassis.set_platform(enums::PlatformType::GRANTLEY);
+        log_warning("compute-discovery", "Grantley discovered, this platform is no longer supported");
+    }
+    else if (BmcInterface::RSD_2_2 == platform || BmcInterface::RSD_2_4 == platform) {
         chassis.set_platform(enums::PlatformType::PURLEY);
     }
-    else if (platform == ipmi::command::generic::PRODUCT_ID_INTEL_XEON_BDC_R) {
-        chassis.set_platform(enums::PlatformType::GRANTLEY);
+    else {
+        chassis.set_platform(enums::PlatformType::UNKNOWN);
     }
 
     log_debug("compute-discovery", "Finished discovery of a chassis at " << connection_data_to_string());
@@ -163,7 +180,7 @@ DiscoveryManager::discover_chassis(const std::string& parent_uuid) {
 }
 
 
-agent_framework::model::ThermalZone DiscoveryManager::discover_thermal_zone(const std::string& parent_uuid) {
+agent_framework::model::ThermalZone DiscoveryManager::discover_thermal_zone(const Uuid& parent_uuid) {
     auto zone = ThermalZoneBuilder::build_default(parent_uuid);
 
     log_debug("compute-discovery", "Starting discovery of a thermal zone at " << connection_data_to_string());
@@ -176,7 +193,7 @@ agent_framework::model::ThermalZone DiscoveryManager::discover_thermal_zone(cons
 }
 
 
-agent_framework::model::PowerZone DiscoveryManager::discover_power_zone(const std::string& parent_uuid) {
+agent_framework::model::PowerZone DiscoveryManager::discover_power_zone(const Uuid& parent_uuid) {
     auto zone = PowerZoneBuilder::build_default(parent_uuid);
 
     log_debug("compute-discovery", "Starting discovery of a thermal zone at " << connection_data_to_string());
@@ -189,8 +206,7 @@ agent_framework::model::PowerZone DiscoveryManager::discover_power_zone(const st
 }
 
 
-agent_framework::model::System DiscoveryManager::discover_system(const std::string& parent_uuid,
-                                                                 const std::string& chassis_uuid) {
+agent_framework::model::System DiscoveryManager::discover_system(const Uuid& parent_uuid, const Uuid& chassis_uuid) {
     auto system = SystemBuilder::build_default(parent_uuid, chassis_uuid);
 
     log_debug("compute-discovery", "Starting discovery of a system at " << connection_data_to_string());
@@ -206,8 +222,8 @@ agent_framework::model::System DiscoveryManager::discover_system(const std::stri
     return system;
 }
 
-std::vector<PcieDevice> DiscoveryManager::discover_pcie_devices(const std::string& parent_uuid,
-                                                                const std::string& chassis_uuid) {
+
+std::vector<PcieDevice> DiscoveryManager::discover_pcie_devices(const Uuid& parent_uuid, const Uuid& chassis_uuid) {
 
     std::vector<PcieDevice> devices{};
 
@@ -235,7 +251,7 @@ std::vector<PcieFunction> DiscoveryManager::discover_pcie_functions(const std::v
 }
 
 
-std::vector<agent_framework::model::Processor> DiscoveryManager::discover_processors(const std::string& parent_uuid) {
+std::vector<agent_framework::model::Processor> DiscoveryManager::discover_processors(const Uuid& parent_uuid) {
     std::vector<Processor> processors{};
 
     log_debug("compute-discovery", "Starting discovery of processors at " << connection_data_to_string());
@@ -248,7 +264,7 @@ std::vector<agent_framework::model::Processor> DiscoveryManager::discover_proces
 }
 
 
-std::vector<agent_framework::model::Memory> DiscoveryManager::discover_memory(const std::string& parent_uuid) {
+std::vector<agent_framework::model::Memory> DiscoveryManager::discover_memory(const Uuid& parent_uuid) {
     std::vector<Memory> memories{};
 
     log_debug("compute-discovery", "Starting discovery of memory at " << connection_data_to_string());
@@ -261,7 +277,33 @@ std::vector<agent_framework::model::Memory> DiscoveryManager::discover_memory(co
 }
 
 
-StorageSubsystem DiscoveryManager::discover_storage_subsystem(const std::string& parent_uuid) {
+std::vector<agent_framework::model::MemoryDomain> DiscoveryManager::discover_memory_domains(const Uuid& parent_uuid) {
+    std::vector<MemoryDomain> memory_domains{};
+
+    log_debug("compute-discovery", "Starting discovery of Memory Domains at " << connection_data_to_string());
+
+    m_discoverer->discover_memory_domains(memory_domains, parent_uuid);
+
+    log_debug("compute-discovery", "Finished discovery of Memory Domains at " << connection_data_to_string());
+
+    return memory_domains;
+}
+
+
+std::vector<agent_framework::model::MemoryChunks> DiscoveryManager::discover_memory_chunks(const Uuid& parent_uuid) {
+    std::vector<MemoryChunks> memory_chunks{};
+
+    log_debug("compute-discovery", "Starting discovery of Memory Chunks at " << connection_data_to_string());
+
+    m_discoverer->discover_memory_chunks(memory_chunks, parent_uuid);
+
+    log_debug("compute-discovery", "Finished discovery of Memory Chunks at " << connection_data_to_string());
+
+    return memory_chunks;
+}
+
+
+StorageSubsystem DiscoveryManager::discover_storage_subsystem(const Uuid& parent_uuid) {
     auto storage = StorageSubsystemBuilder::build_default(parent_uuid);
 
     log_debug("compute-discovery",
@@ -276,7 +318,7 @@ StorageSubsystem DiscoveryManager::discover_storage_subsystem(const std::string&
 }
 
 
-std::vector<Drive> DiscoveryManager::discover_drives(const std::string& parent_uuid) {
+std::vector<Drive> DiscoveryManager::discover_drives(const Uuid& parent_uuid) {
     std::vector<Drive> drives{};
 
     log_debug("compute-discovery", "Starting discovery of drives at " << connection_data_to_string());
@@ -290,7 +332,7 @@ std::vector<Drive> DiscoveryManager::discover_drives(const std::string& parent_u
 
 
 std::vector<agent_framework::model::NetworkInterface>
-DiscoveryManager::discover_network_interfaces(const std::string& parent_uuid) {
+DiscoveryManager::discover_network_interfaces(const Uuid& parent_uuid) {
     std::vector<NetworkInterface> network_interfaces{};
 
     log_debug("compute-discovery",
@@ -305,7 +347,7 @@ DiscoveryManager::discover_network_interfaces(const std::string& parent_uuid) {
 }
 
 
-agent_framework::model::NetworkDevice DiscoveryManager::discover_network_device(const std::string& parent_uuid) {
+agent_framework::model::NetworkDevice DiscoveryManager::discover_network_device(const Uuid& parent_uuid) {
     auto network_device = NetworkDeviceBuilder::build_default(parent_uuid);
 
     log_debug("compute-discovery",
@@ -321,7 +363,7 @@ agent_framework::model::NetworkDevice DiscoveryManager::discover_network_device(
 
 
 agent_framework::model::NetworkDeviceFunction
-DiscoveryManager::discover_network_device_function(const std::string& parent_uuid) {
+DiscoveryManager::discover_network_device_function(const Uuid& parent_uuid) {
     auto network_device_function = NetworkDeviceFunctionBuilder::build_default(parent_uuid);
 
     log_debug("compute-discovery",
@@ -337,7 +379,7 @@ DiscoveryManager::discover_network_device_function(const std::string& parent_uui
 
 
 std::vector<agent_framework::model::TrustedModule>
-DiscoveryManager::discover_trusted_modules(const std::string& parent_uuid) {
+DiscoveryManager::discover_trusted_modules(const Uuid& parent_uuid) {
     std::vector<TrustedModule> trusted_modules{};
 
     log_debug("compute-discovery",

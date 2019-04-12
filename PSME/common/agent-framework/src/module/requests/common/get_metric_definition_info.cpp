@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file get_metric_definition_info.cpp
  */
 
@@ -31,7 +29,7 @@ GetMetricDefinitionInfo::GetMetricDefinitionInfo(const std::string& metric_defin
 
 
 json::Json GetMetricDefinitionInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[MetricDefinition::METRIC_DEFINITION] = m_metric_definition;
     return value;
 }

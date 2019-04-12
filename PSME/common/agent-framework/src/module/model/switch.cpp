@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ Switch::Switch(const std::string& parent_uuid, enums::Component parent_type) :
 Switch::~Switch() {}
 
 json::Json Switch::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::Switch::SWITCH_ID] = get_switch_id();
     result[literals::Switch::CHASSIS] = get_chassis();
     result[literals::Switch::ASSET_TAG] = get_asset_tag();

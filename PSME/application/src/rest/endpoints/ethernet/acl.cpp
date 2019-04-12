@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,8 @@
 #include "agent-framework/module/requests/network.hpp"
 #include "agent-framework/module/responses/network.hpp"
 
+
+
 using namespace psme::rest;
 using namespace psme::rest::model::handler;
 using namespace psme::core::agent;
@@ -36,42 +38,43 @@ using namespace agent_framework::model;
 using NetworkComponents = agent_framework::module::NetworkComponents;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchACL.EthernetSwitchACL";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchACL.v1_0_0.EthernetSwitchACL";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "ACL";
 
     r[Common::DESCRIPTION] = "Access Control List";
-    r[Common::OEM] = json::Value::Type::OBJECT;
-    r[constants::Acl::RULES] = json::Value::Type::OBJECT;
+    r[Common::OEM] = json::Json::value_t::object;
+    r[constants::Acl::RULES] = json::Json::value_t::object;
 
-    r[Common::LINKS][constants::Acl::BOUND_PORTS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::LINKS][constants::Acl::BOUND_PORTS] = json::Json::value_t::array;
+    r[Common::LINKS][Common::OEM] = json::Json::value_t::object;
 
-    json::Value actions;
+    json::Json actions = json::Json();
     std::string hash_bind_acl = constants::Common::HASH + std::string(constants::Acl::BIND_ACL);
-    actions[hash_bind_acl][constants::Common::TARGET] = json::Value::Type::NIL;
-    actions[hash_bind_acl][constants::Acl::PORT_ALLOWABLE_VALUES] = json::Value::Type::ARRAY;
+    actions[hash_bind_acl][constants::Common::TARGET] = json::Json::value_t::null;
+    actions[hash_bind_acl][constants::Acl::PORT_ALLOWABLE_VALUES] = json::Json::value_t::array;
 
     std::string hash_unbind_acl = constants::Common::HASH + std::string(constants::Acl::UNBIND_ACL);
-    actions[hash_unbind_acl][constants::Common::TARGET] = json::Value::Type::NIL;
-    actions[hash_unbind_acl][constants::Acl::PORT_ALLOWABLE_VALUES] = json::Value::Type::ARRAY;
+    actions[hash_unbind_acl][constants::Common::TARGET] = json::Json::value_t::null;
+    actions[hash_unbind_acl][constants::Acl::PORT_ALLOWABLE_VALUES] = json::Json::value_t::array;
     r[Common::ACTIONS] = std::move(actions);
 
     return r;
 }
 
-void add_bound_ports_links(json::Value& json, const std::string& acl_uuid) {
+
+void add_bound_ports_links(json::Json& json, const std::string& acl_uuid) {
     const auto bound_ports = NetworkComponents::get_instance()->
         get_acl_port_manager().get_children(acl_uuid);
 
     for (const auto& bound_port : bound_ports) {
         try {
-            json::Value link;
+            json::Json link = json::Json();
             link[Common::ODATA_ID] = endpoint::utils::get_component_url(
                 enums::Component::EthernetSwitchPort, bound_port);
             json[Common::LINKS][constants::Acl::BOUND_PORTS].
@@ -80,15 +83,19 @@ void add_bound_ports_links(json::Value& json, const std::string& acl_uuid) {
         catch (const agent_framework::exceptions::InvalidUuid&) {
             log_error("rest", "Model Acl/BoundPorts link error");
             log_error("rest", "Port " << bound_port <<
-                " is present in the BoundPorts table but it does not exist"
-                " as a resource");
+                                      " is present in the BoundPorts table but it does not exist"
+                                      " as a resource");
         }
     }
 }
 }
 
+
 endpoint::Acl::Acl(const std::string& path) : EndpointBase(path) {}
+
+
 endpoint::Acl::~Acl() {}
+
 
 void endpoint::Acl::get(const server::Request& req, server::Response& res) {
     auto r = ::make_prototype();
@@ -100,9 +107,8 @@ void endpoint::Acl::get(const server::Request& req, server::Response& res) {
     r[constants::Acl::RULES][Common::ODATA_ID] =
         PathBuilder(req).append(constants::Acl::RULES).build();
 
-    const auto acl = psme::rest::model::Find<agent_framework::model::Acl>(req.params[PathParam::ACL_ID])
-                .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-                .get();
+    const auto acl = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::Acl>(
+        req.params).get();
 
     ::add_bound_ports_links(r, acl.get_uuid());
 
@@ -115,7 +121,7 @@ void endpoint::Acl::get(const server::Request& req, server::Response& res) {
 
     // allowable values for binding are all the unbound ports
     auto is_not_bound_predicate =
-        [&acl] (const agent_framework::model::EthernetSwitchPort& port) {
+        [&acl](const agent_framework::model::EthernetSwitchPort& port) {
             return false == NetworkComponents::get_instance()->
                 get_acl_port_manager().entry_exists(acl.get_uuid(), port.get_uuid());
         };
@@ -124,7 +130,7 @@ void endpoint::Acl::get(const server::Request& req, server::Response& res) {
         .get_keys(acl.get_parent_uuid(), is_not_bound_predicate);
 
     for (const auto& unbound_port : unbound_ports) {
-        json::Value link{};
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = endpoint::utils::get_component_url(enums::Component::EthernetSwitchPort, unbound_port);
         r[constants::Common::ACTIONS][hash_bind_acl][constants::Acl::PORT_ALLOWABLE_VALUES].push_back(std::move(link));
     }
@@ -141,21 +147,28 @@ void endpoint::Acl::get(const server::Request& req, server::Response& res) {
     r[constants::Common::ACTIONS][hash_unbind_acl][constants::Acl::PORT_ALLOWABLE_VALUES] =
         r[Common::LINKS][constants::Acl::BOUND_PORTS];
 
-
     set_response(res, r);
 }
 
+
 void endpoint::Acl::del(const server::Request& req, server::Response& res) {
-    auto acl = psme::rest::model::Find<agent_framework::model::Acl>(req.params[PathParam::ACL_ID])
-        .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID]).get_one();
+    static const constexpr char TRANSACTION_NAME[] = "DeleteAcl";
 
-    auto delete_acl_request = requests::DeleteAcl(acl->get_uuid());
+    auto acl = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::Acl>(
+        req.params).get();
 
-    // try removing ACL from agent's model
-    AgentManager::get_instance()->call_method<responses::DeleteAcl>(acl->get_agent_id(), delete_acl_request);
+    auto delete_acl_request = requests::DeleteAcl(acl.get_uuid());
+    const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(acl.get_agent_id());
 
-    // remove the resource from application's model
-    HandlerManager::get_instance()->get_handler(enums::Component::Acl)->remove(acl->get_uuid());
+    auto delete_acl = [&, gami_agent] {
+        // try removing port from agent's model
+        gami_agent->execute<responses::DeleteAcl>(delete_acl_request);
 
-    res.set_status(server::status_2XX::NO_CONTENT);
+        // remove the resource from application's model
+        HandlerManager::get_instance()->get_handler(enums::Component::Acl)->remove(acl.get_uuid());
+
+        res.set_status(server::status_2XX::NO_CONTENT);
+    };
+
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, delete_acl);
 }

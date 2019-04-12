@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,9 +41,6 @@ class CtsTestScript(TestScript):
     """:type: int"""
     DESCRIPTION = "Not specified"
     """:type: str"""
-    CONFIGURATION_PARAMETERS = []
-    """:type: list[TestCase.ConfigurationParameter]"""
-
     CONFIGURATION_PARAMETERS = [
         TestScript.ConfigurationParameter(parameter_name="ApiEndpoint",
                                           parameter_description="Endpoint to api that will be tested",
@@ -86,10 +83,18 @@ class CtsTestScript(TestScript):
                                           parameter_type=str, is_required=False, parameter_default_value=""),
         TestScript.ConfigurationParameter(parameter_name="EventListenerAddr",
                                           parameter_description="IP (optionally with a port) of the CTS device.",
-                                          parameter_type=str, is_required=False, parameter_default_value="")
+                                          parameter_type=str, is_required=False, parameter_default_value=""),
+        # new since 2.4
+        TestScript.ConfigurationParameter(parameter_name="RedfishMetadata",
+                                          parameter_description="If present it will try to get Redfish's metadata (2018.1)",
+                                          parameter_type=float, is_required=False, parameter_default_value=""),
     ]
     """:type: list[TestCase.ConfigurationParameter]"""
 
+    def get_config(self, item):
+        for element in self.CONFIGURATION_PARAMETERS:
+            if element.name == item:
+                return element
 
     @classmethod
     def service_cli(cls):
@@ -97,7 +102,7 @@ class CtsTestScript(TestScript):
                      super(CtsTestScript, cls).CONFIGURATION_PARAMETERS + \
                      CtsTestScript.CONFIGURATION_PARAMETERS
 
-        #remove duplicates
+        #  remove duplicates
         seen = set()
         cls.CONFIGURATION_PARAMETERS = [param for param in all_params if not (param in seen or seen.add(param))]
 
@@ -169,12 +174,19 @@ class CtsTestScript(TestScript):
     def _load_metadata(self):
         qualifiers, services = self.get_services_and_qualifiers()
 
-        metadata_manager = MetadataManager(qualifiers, ignore_types=self.ignore_types,
+        metadata_manager = MetadataManager(qualifiers,
+                                           ignore_types=self.ignore_types,
                                            map_types=self.map_types)
         if self.configuration.MetadataDirectory:
             cts_warning("CTS is configured to use custom metadata from: {dir}",
                         dir=self.configuration.MetadataDirectory)
             metadata_container = self._load_custom_metadata(metadata_manager, self.configuration.MetadataDirectory)
+        elif self.configuration.RedfishMetadata:
+            cts_warning("CTS is configured to use Redfish metadata: {metadata_version}",
+                        metadata_version=self.configuration.RedfishMetadata)
+            metadata_container = \
+                self._load_custom_metadata(metadata_manager, '/'.join((Constants.METADATA_REDFISH_DIR,
+                                                                      str(self.configuration.RedfishMetadata))))
         else:
             metadata_container = self._load_built_in_metadata(metadata_manager, services)
 
@@ -182,12 +194,14 @@ class CtsTestScript(TestScript):
             metadata_container.print_types()
         return metadata_container
 
-    def _load_custom_metadata(self, metadata_manager, dir):
+    @staticmethod
+    def _load_custom_metadata(metadata_manager, dir):
         if not metadata_manager.read_metadata_from_dir(dir):
             return None
         return metadata_manager.metadata_container
 
-    def _load_built_in_metadata(self, metadata_manager, services):
+    @staticmethod
+    def _load_built_in_metadata(metadata_manager, services):
         if not metadata_manager.read_metadata_for_services(*services):
             return None
         return metadata_manager.metadata_container

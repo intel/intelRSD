@@ -1,0 +1,122 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "node-composer.fullname" . }}
+  labels:
+    app: {{ template "node-composer.name" . }}
+    chart: {{ template "node-composer.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "node-composer.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ template "node-composer.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if ne .Values.global.registry_secret "" }}
+      imagePullSecrets:
+        - name: {{ .Values.global.registry_secret }}
+      {{ end }}
+      volumes:
+        - name: node-composer-config
+          configMap:
+            name: node-composer-config
+            items:
+              - key: application.yml
+                path: application-prod.yml
+      {{- if .Values.global.southbound_security.enabled }}
+        - name: sb-security-config
+          secret:
+            secretName: sb-security-config
+            items:
+              - key: KEYSTORE_PATH
+                path: keystore
+              - key: TRUSTSTORE_PATH
+                path: truststore
+      {{ end }}
+      {{- include "shared.coverage.volume" . | indent 8}}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.global.registry }}{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.applicationProperties.server.port }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /redfish/v1/Nodes
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /redfish/v1/Nodes
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          env:
+          {{- if .Values.global.southbound_security.enabled }}
+            - name: DISCOVERY-SERVICE_BASICAUTHTOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: SOUTHBOUNDCONFIG_CREDENTIALS
+            - name: KEYSTORE_PATH
+              value: file:/var/run/secrets/sbconfig/keystore
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: KEYSTORE_PASSWORD
+            - name: KEYSTORE_ALIAS
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: KEYSTORE_ALIAS
+            - name: TRUSTSTORE_PATH
+              value: file:/var/run/secrets/sbconfig/truststore
+            - name: TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: TRUSTSTORE_PASSWORD
+          {{ end }}
+            - name: PODM_POSTGRES_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretName }}
+                  key: database-password
+          volumeMounts:
+            - name: node-composer-config
+              mountPath: /app/config
+              readOnly: true
+          {{- if .Values.global.southbound_security.enabled }}
+            - name: sb-security-config
+              readOnly: true
+              mountPath: /var/run/secrets/sbconfig
+          {{ end }}
+          {{- include "shared.coverage.mount" . | indent 12}}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

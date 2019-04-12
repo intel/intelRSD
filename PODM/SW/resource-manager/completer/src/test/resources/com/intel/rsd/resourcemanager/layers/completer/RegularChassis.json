@@ -1,0 +1,55 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Chassis/Members/$entity",
+  "@odata.id": "/redfish/v1/Chassis/Drawer1",
+  "@odata.type": "#Chassis.v1_3_0.Chassis",
+  "Id": "Drawer1",
+  "ChassisType": "Drawer",
+  "Name": "name-as-string",
+  "Description": "description-as-string",
+  "Manufacturer": "",
+  "Model": "",
+  "SKU": "sku-as-string",
+  "SerialNumber": "",
+  "PartNumber": "part-number-as-string",
+  "AssetTag": null,
+  "IndicatorLED": null,
+  "PowerState": "On",
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK"
+  },
+  "Oem": {
+    "Intel_RackScale": {
+      "@odata.type": "#Intel.Oem.Chassis",
+      "Location": {
+        "Id": "Drawer1",
+        "ParentId": null
+      }
+    }
+  },
+  "Thermal": {
+    "@odata.id": "/redfish/v1/Chassis/Drawer1/Thermal"
+  },
+  "Power": {
+    "@odata.id": "/redfish/v1/Chassis/Drawer1/Power"
+  },
+  "Links": {
+    "Contains": [],
+    "ContainedBy": null,
+    "ComputerSystems": [],
+    "ManagedBy": [
+      {
+        "@odata.id": "/redfish/v1/Managers/229eab40-f542-11e7-99c4-affc477e39ef"
+      }
+    ],
+    "ManagersInChassis": [],
+    "Storage": [],
+    "Drives": [],
+    "Oem": {
+      "Intel_RackScale": {
+        "@odata.type": "#Intel.Oem.ChassisLinks",
+        "Switches": []
+      }
+    }
+  }
+}

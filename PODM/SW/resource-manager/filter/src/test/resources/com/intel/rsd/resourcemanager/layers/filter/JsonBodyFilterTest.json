@@ -1,0 +1,84 @@
+{
+  "resources": [
+    {
+      "uri": "/redfish/v1",
+      "body": {
+        "Name": "Service Root",
+        "Property1": "value1",
+        "Property2": true,
+        "Property3": 3
+      }
+    },
+    {
+      "uri": "/redfish/v1/Systems/1",
+      "body": {
+        "Name": "System",
+        "Property1": "value1",
+        "Property2": true,
+        "Property3": 3
+      }
+    },
+    {
+      "uri": "/redfish/v1/Systems/1/NICs/1",
+      "body": {
+        "Name": "NIC",
+        "IPAddresses": [
+          { "Address": "10.0.0.1" },
+          { "Address": "10.0.0.2" }
+        ]
+      }
+    }
+  ],
+  "testCases": [
+    {
+      "filters": ["/redfish/v1/Systems/1#/Property1"],
+      "uri": "/redfish/v1/Systems/1",
+      "expected": {
+        "Name": "System",
+        "Property2": true,
+        "Property3": 3
+      }
+    },
+    {
+      "filters": ["/redfish/v1/Systems/1#/Property1"],
+      "uri": "/redfish/v1",
+      "expected": {
+        "Name": "Service Root",
+        "Property1": "value1",
+        "Property2": true,
+        "Property3": 3
+      }
+    },
+    {
+      "filters": ["/redfish/v1/Systems/1/NICs/1#/IPAddresses/0/Address"],
+      "uri": "/redfish/v1/Systems/1/NICs/1",
+      "expected": {
+        "Name": "NIC",
+        "IPAddresses": [
+          { },
+          { "Address": "10.0.0.2" }
+        ]
+      }
+    },
+    {
+      "filters": ["/redfish/v1/Systems/1/NICs/1#/IPAddresses/*/Address"],
+      "uri": "/redfish/v1/Systems/1/NICs/1",
+      "expected": {
+        "Name": "NIC",
+        "IPAddresses": [
+          { },
+          { }
+        ]
+      }
+    },
+    {
+      "filters": ["/redfish/v1/Systems/*#/Property1"],
+      "uri": "/redfish/v1/Systems/1",
+      "expected": {
+        "Name": "System",
+        "Property2": true,
+        "Property3": 3
+      }
+    }
+  ]
+}

@@ -1,8 +1,7 @@
 /*!
  * @brief General database interface
  *
- * @header{License}
- * @copyright Copyright (c) 2016-2018 Intel Corporation
+ * @copyright Copyright (c) 2016-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -14,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
- * @file database.hpp
+ * @file database.cpp
  */
 
 #include "database/file_database.hpp"
@@ -47,7 +45,7 @@ namespace {
 static const std::string EXT = ".db";
 
 /*! @brief "Even" number for maximal (serialized) value size */
-constexpr static unsigned VALUE_LEN = 8192;
+constexpr static unsigned VALUE_LENGTH = 65536;
 
 void fclose_conditional(FILE* file) {
     if (file) {
@@ -337,14 +335,14 @@ bool FileDatabase::read_file(const std::string& file_name, std::string& data) {
         return false;
     }
 
-    char buf[VALUE_LEN];
+    char buffer[VALUE_LENGTH];
     std::shared_ptr<FILE> file{fopen(file_name.c_str(), "rb"), fclose_conditional};
     if (!file) {
         log_debug("db", "Cannot read file " << file_name << ":: " << strerror(errno));
         return false;
     }
 
-    size_t bytes = fread(&buf, sizeof(char), sizeof(buf), file.get());
+    size_t bytes = fread(&buffer, sizeof(char), sizeof(buffer), file.get());
     bool ok;
     if (ferror(file.get())) {
         log_error("db", "Cannot read file " << file_name << ":: " << strerror(errno));
@@ -355,7 +353,7 @@ bool FileDatabase::read_file(const std::string& file_name, std::string& data) {
         ok = false;
     }
     else {
-        data = std::string(buf, bytes);
+        data = std::string(buffer, bytes);
         ok = true;
     }
 
@@ -384,7 +382,7 @@ bool FileDatabase::save_file(const std::string& file_name, const std::string& da
     }
 
     /* check current mode of the file */
-    struct stat stats;
+    struct stat stats{};
     if (0 != fstat(file_descriptor, &stats)) {
         log_error("db", "Cannot set mode for " << file_name << ":: " << strerror(errno));
         return false;

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,7 @@ GetEthernetSwitchPortInfo::GetEthernetSwitchPortInfo(const std::string& port):
     m_port(port){}
 
 json::Json GetEthernetSwitchPortInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[EthernetSwitchPort::PORT] = m_port;
     return value;
 }

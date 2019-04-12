@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,49 +20,54 @@
 
 #include "psme/rest/endpoints/chassis/pcie_function.hpp"
 #include "psme/rest/utils/status_helpers.hpp"
+#include "agent-framework/module/managers/utils/manager_utils.hpp"
 
 
 
 using namespace psme::rest;
 using namespace psme::rest::constants;
+using namespace agent_framework::module;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#PCIeFunction.PCIeFunction";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#PCIeFunction.v1_0_0.PCIeFunction";
     r[Common::NAME] = "PCIe Function";
 
-    r[constants::PcieFunction::CLASS_CODE] = json::Value::Type::NIL;
+    r[constants::PcieFunction::CLASS_CODE] = json::Json::value_t::null;
     r[Common::DESCRIPTION] = "PCIe Function description";
-    r[constants::PcieFunction::DEVICE_ID] = json::Value::Type::NIL;
-    r[constants::PcieFunction::FUNCTION_ID] = json::Value::Type::NIL;
+    r[constants::PcieFunction::DEVICE_ID] = json::Json::value_t::null;
+    r[constants::PcieFunction::FUNCTION_ID] = json::Json::value_t::null;
     // FunctionType and DeviceClass are only filled when it's available, because they're non-nullable
-    r[Common::ID] = json::Value::Type::NIL;
-    r[Common::OEM] = json::Value::Type::OBJECT;
-    r[constants::PcieFunction::REVISION_ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
+    r[Common::OEM] = json::Json::value_t::object;
+    r[constants::PcieFunction::REVISION_ID] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[constants::PcieFunction::SUBSYSTEM_ID] = json::Value::Type::NIL;
-    r[constants::PcieFunction::SUBSYSTEM_VENDOR_ID] = json::Value::Type::NIL;
-    r[constants::PcieFunction::VENDOR_ID] = json::Value::Type::NIL;
+    r[constants::PcieFunction::SUBSYSTEM_ID] = json::Json::value_t::null;
+    r[constants::PcieFunction::SUBSYSTEM_VENDOR_ID] = json::Json::value_t::null;
+    r[constants::PcieFunction::VENDOR_ID] = json::Json::value_t::null;
 
-    r[Common::LINKS][constants::Chassis::DRIVES] = json::Value::Type::ARRAY;
-    r[Common::LINKS][constants::PcieFunction::PCIE_DEVICE] = json::Value::Type::OBJECT;
-    r[Common::LINKS][constants::StorageSubsystem::STORAGE_CONTROLLERS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][constants::System::ETHERNET_INTERFACES] = json::Value::Type::ARRAY;
+    r[Common::LINKS][constants::Chassis::DRIVES] = json::Json::value_t::array;
+    r[Common::LINKS][constants::PcieFunction::PCIE_DEVICE] = json::Json::value_t::object;
+    r[Common::LINKS][constants::StorageSubsystem::STORAGE_CONTROLLERS] = json::Json::value_t::array;
+    r[Common::LINKS][constants::System::ETHERNET_INTERFACES] = json::Json::value_t::array;
+
+    r[Common::LINKS][constants::Common::OEM][Common::RACKSCALE][constants::System::PROCESSORS] = json::Json::value_t::array;
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.PCIeFunctionLinks";
 
     return r;
 }
 
 
 void fill_links(const agent_framework::model::PcieFunction& function,
-                const std::string& device_uuid, json::Value& json) {
+                const std::string& device_uuid, json::Json& json) {
 
     json[Common::LINKS][constants::PcieFunction::PCIE_DEVICE][Common::ODATA_ID] =
         endpoint::utils::get_component_url(agent_framework::model::enums::Component::PcieDevice, device_uuid);
@@ -71,35 +76,58 @@ void fill_links(const agent_framework::model::PcieFunction& function,
         return;
     }
 
-    try {
-        const auto drive_uuid = function.get_functional_device().value();
+    const auto functional_device_uuid = function.get_functional_device().value();
 
-        json::Value drive_link;
+    if (get_manager<agent_framework::model::Drive>().entry_exists(functional_device_uuid)) {
+        json::Json drive_link = json::Json();
         drive_link[Common::ODATA_ID] = endpoint::utils::get_component_url(
-            agent_framework::model::enums::Component::Drive, drive_uuid);
+            agent_framework::model::enums::Component::Drive, functional_device_uuid);
         json[Common::LINKS][constants::Chassis::DRIVES].push_back(std::move(drive_link));
 
         const auto storage_subsystems = agent_framework::module::CommonComponents::get_instance()
-            ->get_storage_subsystem_drives_manager().get_parents(drive_uuid);
+            ->get_storage_subsystem_drives_manager().get_parents(functional_device_uuid);
 
         auto& controller_manager = agent_framework::module::ComputeComponents::get_instance()->get_storage_controller_manager();
 
         for (const auto& storage_uuid : storage_subsystems) {
             const auto controllers = controller_manager.get_keys(storage_uuid);
             for (const auto& controller_uuid: controllers) {
-                json::Value controller_link;
+                json::Json controller_link = json::Json();
                 controller_link[Common::ODATA_ID] = endpoint::utils::get_component_url(
                     agent_framework::model::enums::Component::StorageController, controller_uuid);
-                json[Common::LINKS][constants::StorageSubsystem::STORAGE_CONTROLLERS].push_back(std::move(controller_link));
+                json[Common::LINKS][constants::StorageSubsystem::STORAGE_CONTROLLERS].push_back(
+                    std::move(controller_link));
             }
         }
-
     }
-    catch (agent_framework::exceptions::InvalidUuid) {
+    else if (get_manager<agent_framework::model::Processor>().entry_exists(functional_device_uuid)) {
+        json::Json processor_link = json::Json();
+        processor_link[Common::ODATA_ID] = endpoint::utils::get_component_url(
+            agent_framework::model::enums::Component::Processor, functional_device_uuid);
+        json[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::System::PROCESSORS].push_back(std::move(processor_link));
+    }
+    else {
         log_error("rest", "Function " + function.get_uuid() + " has functional device "
-                                      + function.get_functional_device().value() +
-                                      " which does not exist as a resource");
+                          + function.get_functional_device().value() +
+                          " which does not exist as a resource");
     }
+}
+
+
+agent_framework::model::PcieDevice find_pci_device(const server::Request& req) {
+
+    // the devices are under the same manager as the chassis from the URL
+    auto chassis_manager_uuid = psme::rest::model::find<agent_framework::model::Chassis>(
+        req.params).get_one()->get_parent_uuid();
+
+    auto chassis_manager_id = agent_framework::module::get_manager<agent_framework::model::Manager>().get_entry(
+        chassis_manager_uuid).get_id();
+
+    auto params_copy = req.params;
+    params_copy[constants::PathParam::MANAGER_ID] = std::to_string(chassis_manager_id);
+
+    return psme::rest::model::find<agent_framework::model::Manager, agent_framework::model::PcieDevice>(
+        params_copy).get();
 }
 
 }
@@ -116,23 +144,14 @@ void endpoint::PcieFunction::get(const server::Request& req, server::Response& r
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    // the devices are under the same manager as the chassis from the URL
-    auto chassis_manager_uuid = psme::rest::model::Find<agent_framework::model::Chassis>(
-        req.params[PathParam::CHASSIS_ID]).get_one()->get_parent_uuid();
+    const auto device = find_pci_device(req);
 
-    const auto device =
-        psme::rest::model::Find<agent_framework::model::PcieDevice>(req.params[PathParam::DEVICE_ID]).via(
-            chassis_manager_uuid).get();
-
-    const auto device_uuid = device.get_uuid();
-
-    const auto function = psme::rest::model::Find<agent_framework::model::PcieFunction>(
-        req.params[PathParam::FUNCTION_ID])
-        .via(device_uuid).get();
+    const auto function = psme::rest::model::find<agent_framework::model::PcieDevice, agent_framework::model::PcieFunction>(
+        req.params).get();
 
     json[Common::ID] = req.params[PathParam::FUNCTION_ID];
 
-    fill_links(function, device_uuid, json);
+    fill_links(function, device.get_uuid(), json);
 
     json[constants::PcieFunction::CLASS_CODE] = function.get_pci_class_code();
     json[constants::PcieFunction::DEVICE_ID] = function.get_pci_device_id();

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,7 +90,8 @@ public:
         if (m_manager_data.end() != it) {
             if (it->get_parent_uuid() != entry.get_parent_uuid()) {
                 THROW(exceptions::InvalidUuid, "model",
-                      "Parent UUID cannot be updated. Entry = '" + entry.get_uuid() + "', parent changed from "
+                      std::string("Parent UUID cannot be updated. ") + T::get_collection_name().to_string()
+                      + " with uuid " + entry.get_uuid() + "', parent changed from "
                       + it->get_parent_uuid() + " to " + entry.get_parent_uuid());
             }
             const auto& db_hash = model::utils::Hash::from_resource(*it);
@@ -349,7 +350,7 @@ private:
         }
 
         const auto& message = std::string("Could not find ") +
-                T::get_collection_name().to_string() + " with id: " + std::to_string(id) + ".";
+                T::get_collection_name().to_string() + " with ID: " + std::to_string(id) + ".";
 
         log_warning("model", message);
         throw exceptions::NotFound(message);
@@ -372,7 +373,7 @@ private:
         }
 
         const auto& message = std::string("Could not find ") +
-                T::get_collection_name().to_string() + " with id: " + std::to_string(id) + ".";
+                T::get_collection_name().to_string() + " with ID: " + std::to_string(id) + ".";
         log_warning("model", message + " Parent UUID = " + parent_uuid + ".");
         throw exceptions::NotFound(message);
 

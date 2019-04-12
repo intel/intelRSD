@@ -1,8 +1,7 @@
 /*!
  * @brief Bmc class declaration.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file agent-framework/state_machine/bmc.hpp
  */
 
 #pragma once
 
-#include "bmc_state_machine.hpp"
+#include "agent-framework/state_machine/bmc_state_machine.hpp"
 #include "agent-framework/module/model/attributes/connection_data.hpp"
-#include "generic/worker_thread.hpp"
 #include "agent-framework/module/utils/optional_field.hpp"
+
+#include "generic/worker_thread.hpp"
 
 
 namespace agent_framework {

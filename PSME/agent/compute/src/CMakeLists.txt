@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 # </license_header>
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(command)
@@ -55,25 +56,27 @@ generate_default_config_file(
     agent
     generic
     "AGENT_COMPUTE_CONFIGURATION_FILE"
+    ../include/default_configuration.hpp
+    ..
 )
 
 target_link_libraries(psme-compute
     ${AGENT_COMPUTE_LIBRARIES}
     compute-utils
     compute-ipmb
-    ${TELEMETRY_LIBRARIES}
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${UUID_LIBRARIES}
+    agent-framework
+    telemetry
+    uuid
     ${PCA95XX_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    configuration
     ${ISCSI_MDR_LIBRARIES}
     ipmi
     ${IPMITOOL_LIBRARIES}
     ${NET_LIBRARIES}
     md5
     smbios
-    ${LOGGER_LIBRARIES}
+    acpi
+    logger
     ${SAFESTRING_LIBRARIES}
     pthread
 )

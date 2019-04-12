@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,10 @@
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/server/multiplexer.hpp"
 #include "agent-framework/exceptions/invalid_value.hpp"
-#include <json/json.hpp>
+#include "json-wrapper/json-wrapper.hpp"
 #include <algorithm>
+
+
 
 using namespace psme::rest::constants;
 
@@ -48,38 +50,41 @@ bool Subscription::is_subscribed_for(const Event& event) const {
            != m_origin_resources.end();
 }
 
-json::Value Subscription::to_json() const {
-    json::Value j{};
+
+json::Json Subscription::to_json() const {
+    json::Json j = json::Json();
     fill_json(j);
     return j;
 }
 
-void Subscription::fill_json(json::Value& json) const {
+
+void Subscription::fill_json(json::Json& json) const {
     json[Common::NAME] = m_name;
     json[EventSubscription::DESTINATION] = m_destination;
     json[EventSubscription::CONTEXT] = m_context;
     json[EventSubscription::PROTOCOL] = m_protocol.to_string();
-    json::Value event_types_json(json::Value::Type::ARRAY);
-    for (const auto& event_type : m_event_types.get()){
+    json::Json event_types_json(json::Json::array());
+    for (const auto& event_type : m_event_types.get()) {
         event_types_json.push_back(event_type.to_string());
     }
     json[EventSubscription::EVENT_TYPES] = event_types_json;
-    json[EventSubscription::ORIGIN_RESOURCES] = json::Value::Type::ARRAY;
+    json[EventSubscription::ORIGIN_RESOURCES] = json::Json::array();
     for (const auto& origin_resource : m_origin_resources) {
-        json::Value link{};
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = origin_resource;
         json[EventSubscription::ORIGIN_RESOURCES].push_back(link);
     }
 }
 
-Subscription Subscription::from_json(const json::Value& json, bool validate_origin_resources) {
-    const auto& name = json[Common::NAME].as_string();
-    const auto& destination = json[EventSubscription::DESTINATION].as_string();
-    const auto& context = json[EventSubscription::CONTEXT].as_string();
-    const auto& protocol = json[EventSubscription::PROTOCOL].as_string();
+
+Subscription Subscription::from_json(const json::Json& json, bool validate_origin_resources) {
+    const auto& name = json[Common::NAME].get<std::string>();
+    const auto& destination = json[EventSubscription::DESTINATION].get<std::string>();
+    const auto& context = json[EventSubscription::CONTEXT].get<std::string>();
+    const auto& protocol = json[EventSubscription::PROTOCOL].get<std::string>();
     EventTypes event_types{};
-    for (const auto& event_type : json[EventSubscription::EVENT_TYPES]){
-        event_types.add(EventType::from_string(event_type.as_string()));
+    for (const auto& event_type : json[EventSubscription::EVENT_TYPES]) {
+        event_types.add(EventType::from_string(event_type.get<std::string>()));
     }
     Subscription subscription{};
     subscription.set_name(name);
@@ -88,11 +93,12 @@ Subscription Subscription::from_json(const json::Value& json, bool validate_orig
     subscription.set_protocol(SubscriptionProtocol::from_string(protocol));
     subscription.set_event_types(event_types);
 
-    if (json.is_member(EventSubscription::ORIGIN_RESOURCES) && !json[EventSubscription::ORIGIN_RESOURCES].is_null()) {
+    if (json.count(EventSubscription::ORIGIN_RESOURCES) &&
+        !json.value(EventSubscription::ORIGIN_RESOURCES, json::Json()).is_null()) {
         if (validate_origin_resources) {
             auto& mp = *(psme::rest::server::Multiplexer::get_instance());
             for (const auto& origin_resource : json[EventSubscription::ORIGIN_RESOURCES]) {
-                const auto& resource_url = origin_resource[Common::ODATA_ID].as_string();
+                const auto& resource_url = origin_resource[Common::ODATA_ID].get<std::string>();
                 if (mp.is_correct_endpoint_url(resource_url)) {
                     subscription.add_origin_resource(resource_url);
                 }
@@ -104,7 +110,7 @@ Subscription Subscription::from_json(const json::Value& json, bool validate_orig
         }
         else {
             for (const auto& origin_resource : json[EventSubscription::ORIGIN_RESOURCES]) {
-                const auto& resource_url = origin_resource[Common::ODATA_ID].as_string();
+                const auto& resource_url = origin_resource[Common::ODATA_ID].get<std::string>();
                 subscription.add_origin_resource(resource_url);
             }
         }
@@ -112,9 +118,11 @@ Subscription Subscription::from_json(const json::Value& json, bool validate_orig
     return subscription;
 }
 
+
 void EventTypes::add(EventType event_type) {
-   m_event_types.push_back(event_type);
+    m_event_types.push_back(event_type);
 }
+
 
 EventTypes::EventTypeVec EventTypes::get() const {
     return m_event_types;
@@ -129,7 +137,6 @@ bool equal_subscriptions(const Subscription& s1, const Subscription& s2) {
            && s1.get_name() == s2.get_name()
            && s1.get_protocol() == s2.get_protocol();
 }
-
 
 }
 }

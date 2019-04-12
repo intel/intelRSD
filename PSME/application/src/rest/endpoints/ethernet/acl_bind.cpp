@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,8 @@
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
 
+
+
 using namespace psme::core::agent;
 using namespace psme::rest;
 using namespace psme::rest::constants;
@@ -42,12 +44,11 @@ using NetworkComponents = agent_framework::module::NetworkComponents;
 
 namespace {
 
-std::pair<std::string, std::string> get_acl_and_port_uuid(const server::Request& request, const json::Value& json) {
-    const auto acl_uuid = psme::rest::model::Find<agent_framework::model::Acl>(request.params[PathParam::ACL_ID])
-        .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-        .get_uuid();
+std::pair<std::string, std::string> get_acl_and_port_uuid(const server::Request& request, const json::Json& json) {
+    const auto acl_uuid = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::Acl>(
+        request.params).get_uuid();
     const auto port_uuid =
-        endpoint::utils::get_port_uuid_from_url(json[constants::Acl::PORT][Common::ODATA_ID].as_string());
+        endpoint::utils::get_port_uuid_from_url(json[constants::Acl::PORT][Common::ODATA_ID].get<std::string>());
 
     return std::make_pair(acl_uuid, port_uuid);
 }
@@ -60,12 +61,16 @@ namespace endpoint {
 // Action Bind
 template<>
 void endpoint::AclBind<true>::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostAclBind";
+
     const auto json = JsonValidator::validate_request_body<schema::AclPostSchema>(request);
     const auto acl_port_pair = get_acl_and_port_uuid(request, json);
 
-    if (NetworkComponents::get_instance()->get_acl_port_manager().entry_exists(acl_port_pair.first, acl_port_pair.second)) {
+    if (NetworkComponents::get_instance()->get_acl_port_manager().entry_exists(acl_port_pair.first,
+                                                                               acl_port_pair.second)) {
         THROW(agent_framework::exceptions::InvalidValue, "rest",
-              "Port " + std::to_string(NetworkComponents::get_instance()->get_port_manager().uuid_to_rest_id(acl_port_pair.second))
+              "Port " + std::to_string(
+                  NetworkComponents::get_instance()->get_port_manager().uuid_to_rest_id(acl_port_pair.second))
               + " is already bound to ACL " + request.params[PathParam::ACL_ID]);
     }
 
@@ -75,25 +80,40 @@ void endpoint::AclBind<true>::post(const server::Request& request, server::Respo
         attribute::Oem()
     };
 
-    const auto agent_id = model::Find<agent_framework::model::EthernetSwitch>
-        (request.params[PathParam::ETHERNET_SWITCH_ID]).get().get_agent_id();
+    const auto parent_switch =
+        model::find<agent_framework::model::EthernetSwitch>(request.params).get();
+    const auto agent_id = parent_switch.get_agent_id();
+    const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(agent_id);
 
-    const auto add_acl_port_response = AgentManager::get_instance()
-        ->call_method<responses::AddAclPort>(agent_id, add_acl_port_request);
+    auto add_acl_port = [&, gami_agent] {
+        const auto add_acl_port_response = gami_agent->execute<responses::AddAclPort>(add_acl_port_request);
 
-    NetworkComponents::get_instance()->get_acl_port_manager().add_entry(acl_port_pair.first, acl_port_pair.second, agent_id);
-    response.set_status(server::status_2XX::NO_CONTENT);
+        model::handler::HandlerManager::get_instance()->
+            get_handler(enums::Component::Acl)->
+            load(gami_agent, parent_switch.get_uuid(),
+                 enums::Component::EthernetSwitch, acl_port_pair.first, true);
+
+        NetworkComponents::get_instance()->get_acl_port_manager().add_entry(acl_port_pair.first, acl_port_pair.second,
+                                                                            agent_id);
+        response.set_status(server::status_2XX::NO_CONTENT);
+    };
+
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, add_acl_port);
 }
+
 
 // Action UnBind
 template<>
 void endpoint::AclBind<false>::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostAclUnbind";
     const auto json = JsonValidator::validate_request_body<schema::AclPostSchema>(request);
     const auto acl_port_pair = get_acl_and_port_uuid(request, json);
 
-    if (!NetworkComponents::get_instance()->get_acl_port_manager().entry_exists(acl_port_pair.first, acl_port_pair.second)) {
+    if (!NetworkComponents::get_instance()->get_acl_port_manager().entry_exists(acl_port_pair.first,
+                                                                                acl_port_pair.second)) {
         THROW(agent_framework::exceptions::InvalidValue, "rest",
-              "Port " + std::to_string(NetworkComponents::get_instance()->get_port_manager().uuid_to_rest_id(acl_port_pair.second))
+              "Port " + std::to_string(
+                  NetworkComponents::get_instance()->get_port_manager().uuid_to_rest_id(acl_port_pair.second))
               + " is not bound to ACL " + request.params[PathParam::ACL_ID]);
     }
 
@@ -103,16 +123,23 @@ void endpoint::AclBind<false>::post(const server::Request& request, server::Resp
         attribute::Oem()
     };
 
-    const auto agent_id =
-        model::Find<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-            .get()
-            .get_agent_id();
+    const auto parent_switch =
+        model::find<agent_framework::model::EthernetSwitch>(request.params).get();
+    const auto agent_id = parent_switch.get_agent_id();
+    const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(agent_id);
 
-    const auto delete_acl_port_response = AgentManager::get_instance()->
-        call_method<responses::DeleteAclPort>(agent_id, delete_acl_port_request);
+    auto delete_acl_port = [&, gami_agent] {
+        const auto delete_acl_port_response = gami_agent->execute<responses::DeleteAclPort>(delete_acl_port_request);
 
-    NetworkComponents::get_instance()->get_acl_port_manager().remove_entry(acl_port_pair.first, acl_port_pair.second);
-    response.set_status(server::status_2XX::NO_CONTENT);
+        model::handler::HandlerManager::get_instance()->get_handler(enums::Component::Acl)->
+            load(gami_agent, parent_switch.get_uuid(), enums::Component::EthernetSwitch, acl_port_pair.first, true);
+
+        NetworkComponents::get_instance()->get_acl_port_manager().remove_entry(acl_port_pair.first,
+                                                                               acl_port_pair.second);
+        response.set_status(server::status_2XX::NO_CONTENT);
+    };
+
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, delete_acl_port);
 }
 
 }

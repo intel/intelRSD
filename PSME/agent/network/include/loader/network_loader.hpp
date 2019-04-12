@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,13 +44,13 @@ public:
      * @param[in] json JSON configuration file
      * @return true if success otherwise false
      */
-    bool load(const json::Value& json) override;
+    bool load(const json::Json& json) override;
 
     /*!
      * @brief Read FabricModule configuration file
      * @param[in] json JSON configuration file
      */
-    void read_fabric_modules(const json::Value& json);
+    void read_fabric_modules(const json::Json& json);
 };
 
 }

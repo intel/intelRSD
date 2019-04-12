@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ add_library(agent-mocks STATIC
     mock_logger_ext.cpp
 )
 
-target_include_directories(agent-mocks SYSTEM
-    PUBLIC ${GTEST_INCLUDE_DIRS}
+target_include_directories(agent-mocks
+    SYSTEM PUBLIC
+    ${GTEST_INCLUDE_DIRS}
 )
 
 target_link_libraries(agent-mocks
     ${LOGGER_LIBRARIES}
     ${GTEST_LIBRARIES}
-    ${AGENT_FRAMEWORK_LIB}
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)

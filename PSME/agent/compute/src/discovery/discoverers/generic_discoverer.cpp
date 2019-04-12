@@ -1,8 +1,7 @@
 /*!
  * @brief Compute agent generic discoverer implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License") override;
  * you may not use this file except in compliance with the License.
@@ -14,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file generic_discoverer.cpp
  */
 
 #include "discovery/discoverers/generic_discoverer.hpp"
-#include "discovery/discoverers/platform_specific/grantley_discoverer.hpp"
 #include "discovery/discoverers/platform_specific/purley_discoverer.hpp"
 #include "discovery/builders/processor_builder.hpp"
 #include "discovery/builders/memory_builder.hpp"
+#include "discovery/builders/memory_domain_builder.hpp"
+#include "discovery/builders/memory_chunks_builder.hpp"
 #include "discovery/builders/drive_builder.hpp"
 #include "discovery/builders/network_interface_builder.hpp"
 #include "discovery/builders/network_device_function_builder.hpp"
@@ -32,6 +31,7 @@
 #include "discovery/builders/manager_builder.hpp"
 #include "discovery/builders/pcie_device_builder.hpp"
 #include "discovery/builders/pcie_function_builder.hpp"
+#include "discovery/helpers/memory_helper.hpp"
 #include "smbios/utilities/conversions.hpp"
 #include "iscsi/structs/iscsi_mdr_initiator.hpp"
 #include "iscsi/structs/iscsi_mdr_target.hpp"
@@ -40,7 +40,6 @@
 
 #include "ipmi/command/generic/get_device_guid.hpp"
 #include "ipmi/command/generic/get_device_id.hpp"
-
 
 
 using namespace agent::compute::discovery;
@@ -53,22 +52,38 @@ GenericDiscoverer::~GenericDiscoverer() {}
 
 
 void GenericDiscoverer::read_mdr() {
+    log_debug("compute-discovery", "Trying to read MDR region");
     try {
-        log_debug("compute-discovery", "Trying to read MDR region");
         auto smbios_mdr_accessor = m_mdr_accessor_factory->create(get_platform_id(),
                                                                   m_management_controller,
                                                                   ipmi::command::sdv::DataRegionId::SMBIOS_TABLE);
+        set_up_smbios_data(smbios_mdr_accessor->get_mdr_region());
+        log_debug("compute-discovery", "SMBIOS parser initialized");
+    }
+    catch (const std::exception& e) {
+        log_warning("compute-discovery", "Unable to read MDR region: " << e.what() << "; SMBIOS parser not initialized!");
+    }
+
+    try {
         auto iscsi_mdr_accessor = m_mdr_accessor_factory->create(get_platform_id(),
                                                                  m_management_controller,
                                                                  ipmi::command::sdv::DataRegionId::ISCSI_BOOT_OPTIONS);
-        set_up_smbios_data(smbios_mdr_accessor->get_mdr_region());
-        log_debug("compute-discovery", "SMBIOS parser initialized");
         set_up_iscsi_data(iscsi_mdr_accessor->get_mdr_region());
         log_debug("compute-discovery", "iSCSI parser initialized");
     }
     catch (const std::exception& e) {
-        log_warning("compute-discovery",
-                    "Unable to read MDR region: " << e.what() << "; SMBIOS/iSCSI parser not initialized!");
+        log_warning("compute-discovery", "Unable to read MDR region: " << e.what() << "; iSCSI parser not initialized!");
+    }
+
+    try {
+        auto acpi_mdr_accessor = m_mdr_accessor_factory->create(get_platform_id(),
+                                                                m_management_controller,
+                                                                ipmi::command::sdv::DataRegionId::ACPI_TABLE);
+        set_up_acpi_data(acpi_mdr_accessor->get_mdr_region());
+        log_debug("compute-discovery", "ACPI parser initialized");
+    }
+    catch (const std::exception& e) {
+        log_warning("compute-discovery", "Unable to read MDR region: " << e.what() << "; ACPI parser not initialized!");
     }
 }
 
@@ -197,6 +212,8 @@ bool GenericDiscoverer::discover_system(agent_framework::model::System& system) 
             auto smbios_modules = get_smbios_parser()->get_all<SMBIOS_MODULE_INFO_DATA>();
             auto smbios_bioses = get_smbios_parser()->get_all<SMBIOS_BIOS_INFO_DATA>();
             auto smbios_txts = get_smbios_parser()->get_all<SMBIOS_TXT_INFO_DATA>();
+            auto smbios_processors = get_smbios_parser()->get_all<SMBIOS_PROCESSOR_INFO_DATA>();
+            auto smbios_performance_configurations = get_smbios_parser()->get_all<SMBIOS_SPEED_SELECT_INFO_DATA>();
 
             if (smbios_systems.size() > 1) {
                 log_warning("smbios-discovery",
@@ -208,6 +225,7 @@ bool GenericDiscoverer::discover_system(agent_framework::model::System& system) 
             }
             else {
                 SystemBuilder::update_smbios_system_info(system, smbios_systems[0]);
+                log_info("smbios-discovery", "Discovered system with GUID: " << system.get_guid());
             }
 
             if (smbios_modules.size() > 1) {
@@ -241,6 +259,21 @@ bool GenericDiscoverer::discover_system(agent_framework::model::System& system) 
             else {
                 auto txt = smbios_txts.front();
                 SystemBuilder::update_smbios_txt_info(system, txt);
+            }
+
+            if (!smbios_performance_configurations.empty()) {
+                if (smbios_performance_configurations.size() != smbios_processors.size()) {
+                    log_warning("smbios-discovery", "The number of Speed Select configurations not equal to CPU count.");
+                }
+                if (smbios_performance_configurations[0].configs.size() > 1) {
+                    log_info("smbios-discovery", "Detected Speed Select compatible system.");
+                    SystemBuilder::update_smbios_performance_configurations(system, smbios_performance_configurations[0]);
+                }
+                else {
+                    log_info("smbios-discovery", "Only 1 Speed Select configuration found - skipping.");
+                }
+            } else {
+                log_info("smbios-discovery", "System is not Speed Select compatible.");
             }
 
             SystemBuilder::update_smbios_pcie_info(system, get_smbios_parser()->get_all<SMBIOS_PCIE_INFO_DATA>());
@@ -277,8 +310,8 @@ bool GenericDiscoverer::discover_system(agent_framework::model::System& system) 
 }
 
 
-bool GenericDiscoverer::discover_pcie_devices(std::vector<PcieDevice>& devices, const std::string& parent_uuid,
-                                              const std::string& chassis_uuid) {
+bool GenericDiscoverer::discover_pcie_devices(std::vector<PcieDevice>& devices, const Uuid& parent_uuid,
+                                              const Uuid& chassis_uuid) {
     if (!get_smbios_parser()) {
         return false;
     }
@@ -313,7 +346,7 @@ bool GenericDiscoverer::discover_pcie_functions(std::vector<PcieFunction>& funct
 
 
 bool GenericDiscoverer::discover_processors(std::vector<agent_framework::model::Processor>& processors,
-                                            const std::string& parent_uuid) {
+                                            const Uuid& parent_uuid) {
     if (!get_smbios_parser()) {
         return false;
     }
@@ -356,7 +389,7 @@ bool GenericDiscoverer::discover_processors(std::vector<agent_framework::model::
 
 
 bool GenericDiscoverer::discover_memory(std::vector<agent_framework::model::Memory>& memories,
-                                        const std::string& parent_uuid) {
+                                        const Uuid& parent_uuid) {
     if (!get_smbios_parser()) {
         return false;
     }
@@ -381,13 +414,84 @@ bool GenericDiscoverer::discover_memory(std::vector<agent_framework::model::Memo
                 }
             }
 
+            if (helpers::is_non_volatile_memory(device.data)) {
+                log_debug("smbios-discovery", "Detected Non-Volatile Memory Device - Intel Optane DC Persistent Memory Module");
+                MemoryBuilder::update_general_dcpmem_data(memory);
+
+                auto acpi_parser = get_acpi_parser();
+                if (acpi_parser) {
+                    // ACPI Parser initialized with MDR data - check for supported tables
+                    if (acpi_parser->prepare_if_structure_supported(acpi::structs::NFIT)) {
+                        auto nfit_spa_range_structures =
+                            acpi_parser->get_all<acpi::structs::NFIT_SPA_RANGE_STRUCTURE>();
+                        auto nfit_nvdimm_region_mapping_structures =
+                            acpi_parser->get_all<acpi::structs::NFIT_NVDIMM_REGION_MAPPING_STRUCTURE>();
+                        auto nfit_nvdimm_control_region_structures =
+                            acpi_parser->get_all<acpi::structs::NFIT_NVDIMM_CONTROL_REGION_STRUCTURE>();
+                        auto nfit_block_data_window_region_structures =
+                            acpi_parser->get_all<acpi::structs::NFIT_NVDIMM_BLOCK_DATA_WINDOW_REGION_STRUCTURE>();
+                        auto nfit_platform_capabilities_structures =
+                            acpi_parser->get_all<acpi::structs::NFIT_PLATFORM_CAPABILITIES_STRUCTURE>();
+
+                        // Get Control Region for a given Memory
+                        const auto& nvdimm_control_region = helpers::get_nvdimm_control_region(memory,
+                                                                                               nfit_nvdimm_control_region_structures);
+
+                        // Get all Region Mappings for given Control Region
+                        const auto& nvdimm_region_mappings = helpers::get_nvdimm_region_mappings(nvdimm_control_region,
+                                                                                                 nfit_nvdimm_region_mapping_structures);
+
+                        MemoryBuilder::update_acpi_nfit_data(memory, nvdimm_control_region, nvdimm_region_mappings, nfit_spa_range_structures);
+                    }
+
+                    if (acpi_parser->prepare_if_structure_supported(acpi::structs::PCAT)) {
+                        auto pcat_platform_capability_information_structures =
+                            acpi_parser->get_all<acpi::structs::PCAT_PLATFORM_CAPABILITY_INFORMATION_STRUCTURE>();
+                        auto pcat_socket_sku_information_structures =
+                            acpi_parser->get_all<acpi::structs::PCAT_SOCKET_SKU_INFORMATION_STRUCTURE>();
+                    }
+                }
+            }
+
             memories.emplace_back(memory);
         }
 
         return true;
     }
     catch (const std::exception& e) {
-        log_error("smbios-discovery", "Memory SMBIOS discovery error: " << e.what());
+        log_error("smbios-discovery", "Memory discovery error: " << e.what());
+        return false;
+    }
+}
+
+
+bool GenericDiscoverer::discover_memory_domains(std::vector<agent_framework::model::MemoryDomain>& memory_domains,
+                                                const Uuid& parent_uuid) {
+    try {
+        auto memory_domain = MemoryDomainBuilder::build_default(parent_uuid);
+        // TODO: Update MemoryDomain objects with relevant data
+        memory_domains.emplace_back(std::move(memory_domain));
+
+        return true;
+    }
+    catch (const std::exception& e) {
+        log_error("acpi-discovery", "Memory Domains discovery error: " << e.what());
+        return false;
+    }
+}
+
+
+bool GenericDiscoverer::discover_memory_chunks(std::vector<agent_framework::model::MemoryChunks>& memory_chunks,
+                                                const Uuid& parent_uuid) {
+    try {
+        auto memory_chunk = MemoryChunksBuilder::build_default(parent_uuid);
+        // TODO: Update MemoryChunks objects with relevant data
+        memory_chunks.emplace_back(std::move(memory_chunk));
+
+        return true;
+    }
+    catch (const std::exception& e) {
+        log_error("acpi-discovery", "Memory Chunks discovery error: " << e.what());
         return false;
     }
 }
@@ -399,7 +503,7 @@ bool GenericDiscoverer::discover_storage_subsystem(agent_framework::model::Stora
 
 
 bool GenericDiscoverer::discover_drives(std::vector<agent_framework::model::Drive>& drives,
-                                        const std::string& parent_uuid) {
+                                        const Uuid& parent_uuid) {
     if (!get_smbios_parser()) {
         return false;
     }
@@ -430,7 +534,11 @@ bool GenericDiscoverer::discover_drives(std::vector<agent_framework::model::Driv
 
             DriveBuilder::update_smbios_data(drive, smbios_storage_device);
 
-            drives.emplace_back(std::move(drive));
+            if (!drive.get_fru_info().get_serial_number().has_value() ||
+                !drive.get_fru_info().get_serial_number()->empty()) {
+                // skip drive with empty serial number (happens for drives attached using a PCIe Switch)
+                drives.emplace_back(std::move(drive));
+            }
         }
 
         return true;
@@ -443,7 +551,7 @@ bool GenericDiscoverer::discover_drives(std::vector<agent_framework::model::Driv
 
 
 bool GenericDiscoverer::discover_network_interfaces(
-    std::vector<agent_framework::model::NetworkInterface>& network_interfaces, const std::string& parent_uuid) {
+    std::vector<agent_framework::model::NetworkInterface>& network_interfaces, const Uuid& parent_uuid) {
     if (!get_smbios_parser()) {
         return false;
     }
@@ -569,7 +677,7 @@ bool GenericDiscoverer::discover_cable_id(agent_framework::model::System& /*syst
 
 
 bool GenericDiscoverer::discover_trusted_modules(std::vector<agent_framework::model::TrustedModule>& trusted_modules,
-                                                 const std::string& parent_uuid) {
+                                                 const Uuid& parent_uuid) {
     if (!get_smbios_parser()) {
         return false;
     }
@@ -597,18 +705,21 @@ bool GenericDiscoverer::set_rackscale_mode(agent_framework::model::System& /*sys
 }
 
 
-GenericDiscoverer::Ptr DiscovererFactory::create(std::uint32_t platform_id,
+GenericDiscoverer::Ptr DiscovererFactory::create(ipmi::command::generic::BmcInterface bmc_interface,
                                                  ipmi::IpmiController& ipmi_controller,
                                                  ipmi::sdv::MdrRegionAccessorFactory::Ptr mdr_accessor_factory) const {
-    switch (platform_id) {
-        case ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_BDC_R:
-            return std::make_shared<GrantleyDiscoverer>(ipmi_controller, mdr_accessor_factory);
-        case ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_PURLEY:
+    switch (bmc_interface) {
+        case ipmi::command::generic::BmcInterface::RSA_1_2:
+            throw std::runtime_error("Unsupported platform");
+        case ipmi::command::generic::BmcInterface::RSD_2_2:
+            throw std::runtime_error("Unsupported platform");
+        case ipmi::command::generic::BmcInterface::RSD_2_4:
             return std::make_shared<PurleyDiscoverer>(ipmi_controller, mdr_accessor_factory);
+        case ipmi::command::generic::BmcInterface::UNKNOWN:
         default:
             break;
     }
-    throw std::runtime_error("Unknown platform type: " + std::to_string(unsigned(platform_id)));
+    throw std::runtime_error("Unknown platform type");
 }
 
 

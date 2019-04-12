@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,7 @@
 
 
 
-#include "agent-framework/module/model/resource.hpp"
-#include <string>
+#include "agent-framework/module/utils/uuid.hpp"
 
 
 
@@ -49,6 +48,7 @@ public:
 
     /*! @brief Enable copy */
     DiscoveryManager(const DiscoveryManager&) = default;
+
 
     /*! @brief Enable copy */
     DiscoveryManager& operator=(const DiscoveryManager&) = default;

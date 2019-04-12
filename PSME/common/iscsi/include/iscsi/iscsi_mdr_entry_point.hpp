@@ -1,7 +1,7 @@
 /*!
  * @brief ISCSI MDR entry point interface.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file iscsi_mdr_entry_point.hpp
  */
 
@@ -63,6 +62,34 @@ public:
      * @return SmbiosEntryPoint pointer
      */
     static IscsiMdrEntryPoint::Ptr create(const std::uint8_t* buf, const size_t buf_size);
+
+    /*!
+     * @brief Not implemented, this method always throws.
+     * @return None.
+     */
+    [[ noreturn ]]
+    std::uint64_t get_table_data_offset(const std::string&) const override;
+
+    /*!
+     * @brief Not implemented, this method always throws.
+     * @return None.
+     */
+    [[ noreturn ]]
+    uint64_t get_table_data_end_offset(const std::string&) const override;
+
+    /*!
+     * @brief Not implemented, this method always throws.
+     * @return None.
+     */
+    [[ noreturn ]]
+    void set_struct_table_address(std::uint64_t) override;
+
+    /*!
+     * @brief Not implemented, this method always throws.
+     * @return None.
+     */
+    [[ noreturn ]]
+    void set_struct_table_end_address(std::uint64_t) override;
 
     /*! Destructor */
     virtual ~IscsiMdrEntryPoint();

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,11 +52,11 @@ public:
     virtual ReturnType add_host_entity();
 
     /*!
-     * @brief Adds a drive connected entity
-     * @param[in] uuid Drive's uuid
+     * @brief Adds a PCIe device connected entity
+     * @param[in] device_uuid Processor's uuid
      * @return Pointer to the builder
      * */
-    virtual ReturnType add_drive_entity(const std::string& uuid);
+    virtual ReturnType add_device_entity(const Uuid& device_uuid);
 
     /*!
      * @brief Adds a unknown target connected entity

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,13 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
  * @file manager_utils.cpp
  * @brief Utilities used by managers.
  * */
 
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
-#include "agent-framework/module/managers/iscsi_target_manager.hpp"
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/network_components.hpp"
 #include "agent-framework/module/storage_components.hpp"
@@ -76,6 +74,7 @@ template<>
 GenericManager<model::StorageSubsystem>&
 get_manager<model::StorageSubsystem>() { return CommonComponents::get_instance()->get_storage_subsystem_manager(); }
 
+
 template<>
 GenericManager<model::NetworkInterface>&
 get_manager<model::NetworkInterface>() { return CommonComponents::get_instance()->get_network_interface_manager(); }
@@ -94,10 +93,12 @@ template<>
 GenericManager<model::Endpoint>&
 get_manager<model::Endpoint>() { return CommonComponents::get_instance()->get_endpoint_manager(); }
 
+
 template<>
 GenericManager<model::PcieDevice>& get_manager<model::PcieDevice>() {
     return CommonComponents::get_instance()->get_pcie_device_manager();
 }
+
 
 template<>
 GenericManager<model::PcieFunction>& get_manager<model::PcieFunction>() {
@@ -115,6 +116,14 @@ template<>
 GenericManager<model::Memory>&
 get_manager<model::Memory>() { return ComputeComponents::get_instance()->get_memory_manager(); }
 
+
+template<>
+GenericManager<model::MemoryDomain>&
+get_manager<model::MemoryDomain>() { return ComputeComponents::get_instance()->get_memory_domain_manager(); }
+
+template<>
+GenericManager<model::MemoryChunks>&
+get_manager<model::MemoryChunks>() { return ComputeComponents::get_instance()->get_memory_chunks_manager(); }
 
 template<>
 GenericManager<model::StorageController>&
@@ -191,16 +200,6 @@ template<>
 GenericManager<model::StoragePool>&
 get_manager<model::StoragePool>() { return StorageComponents::get_instance()->get_storage_pool_manager(); }
 
-// template specialization for tgt iSCSI Targets management
-
-template<>
-managers::IscsiTargetManager&
-get_manager<model::IscsiTarget, managers::IscsiTargetManager>() { return StorageComponents::get_instance()->get_iscsi_target_manager(); }
-
-
-template<>
-GenericManager<model::IscsiTarget>&
-get_manager<model::IscsiTarget>() { return StorageComponents::get_instance()->get_iscsi_target_manager(); }
 
 // template specializations for PNC components
 
@@ -253,6 +252,10 @@ template<>
 managers::ManyToManyManager&
 get_m2m_manager<model::Drive, model::PcieFunction>() { return PncComponents::get_instance()->get_drive_function_manager(); }
 
+template<>
+managers::ManyToManyManager&
+get_m2m_manager<model::Processor, model::PcieFunction>() { return PncComponents::get_instance()->get_processor_function_manager(); }
+
 
 template<>
 managers::ManyToManyManager&
@@ -267,6 +270,7 @@ get_m2m_manager<model::StoragePool, model::Volume>() { return CommonComponents::
 template<>
 managers::ManyToManyManager&
 get_m2m_manager<model::StorageService, model::Drive>() { return CommonComponents::get_instance()->get_storage_service_drives_manager(); }
+
 
 template<>
 managers::ManyToManyManager&

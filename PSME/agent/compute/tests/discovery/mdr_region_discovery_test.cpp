@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,6 @@
 #include "mock/mock_discovery_manager.hpp"
 
 #include <gtest/gtest.h>
-#include <json/value.hpp>
-#include <json/deserializer.hpp>
 
 using namespace ipmi;
 using namespace agent::compute::loader;
@@ -38,11 +36,8 @@ class MdrRegionTest: public ::testing::Test {
 private:
     void load_config_and_build_compute() {
         ComputeLoader loader{};
-        json::Value config;
-        json::Deserializer deserializer{};
-
-        deserializer << COMPUTE_FULL_CONFIGURATION;
-        deserializer >> config;
+        json::Json config = json::Json();
+        config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
         bool is_loaded = loader.load(config);
 
         if (!is_loaded) {

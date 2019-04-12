@@ -1,0 +1,136 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/Members/$entity",
+  "@odata.id": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31",
+  "@odata.type": "#ComputerSystem.v1_1_0.ComputerSystem",
+  "Id": "e36f8ea4-7ad2-11e8-a7c2-b3837769af31",
+  "Name": "QuantaSystem",
+  "SystemType": "Physical",
+  "AssetTag": null,
+  "Manufacturer": "Quanta",
+  "Model": "F20A_HSW",
+  "SKU": "To be filled by O.E.M.",
+  "SerialNumber": "QTFPNJpvAWzQg1\"",
+  "PartNumber": "To be filled by O.E.M.",
+  "Description": "Computer System description",
+  "HostName": "web-srv344",
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK",
+    "HealthRollup": "OK"
+  },
+  "IndicatorLED": "Off",
+  "PowerState": "On",
+  "Boot": {
+    "@odata.type": "#ComputerSystem.v1_2_0.Boot",
+    "BootSourceOverrideEnabled": "Once",
+    "BootSourceOverrideTarget": "Pxe",
+    "BootSourceOverrideTarget@Redfish.AllowableValues": [
+      "None",
+      "Pxe",
+      "Floppy",
+      "Cd",
+      "Usb",
+      "Hdd",
+      "BiosSetup",
+      "Utilities",
+      "Diags",
+      "UefiTarget"
+    ],
+    "BootSourceOverrideMode": "Legacy",
+    "BootSourceOverrideMode@Redfish.AllowableValues": [
+      "Legacy",
+      "UEFI"
+    ]
+  },
+  "BiosVersion": "P79 v1.00 (09/20/2013)",
+  "ProcessorSummary": {
+    "Count": 1,
+    "Model": "Intel(R) Xeon(R) CPU E5-2695 v3 @ 2.30GHz",
+    "Status": {
+      "State": "Enabled",
+      "Health": "OK",
+      "HealthRollup": "OK"
+    }
+  },
+  "MemorySummary": {
+    "TotalSystemMemoryGiB": 30.52,
+    "Status": {
+      "State": "Enabled",
+      "Health": "OK",
+      "HealthRollup": "OK"
+    }
+  },
+  "Processors": {
+    "@odata.id": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/Processors"
+  },
+  "EthernetInterfaces": {
+    "@odata.id": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/EthernetInterfaces"
+  },
+  "SimpleStorage": {
+    "@odata.id": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/SimpleStorage"
+  },
+  "Storage": {
+    "@odata.id": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/Storage"
+  },
+  "Memory": {
+    "@odata.id": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/Memory"
+  },
+  "PCIeDevices": [ ],
+  "PCIeFunctions": [ ],
+  "NetworkInterfaces": {
+    "@odata.id": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/NetworkInterfaces"
+  },
+  "TrustedModules": [ ],
+  "Links": {
+    "Chassis": {
+      "@odata.id": "/redfish/v1/Chassis/e36fb5b3-7ad2-11e8-a7c2-b3837769af31"
+    },
+    "ManagedBy": [
+      {
+        "@odata.id": "/redfish/v1/Managers/e3702ae0-7ad2-11e8-a7c2-b3837769af31"
+      }
+    ],
+    "Endpoints": [ ],
+    "Oem": { }
+  },
+  "Actions": {
+    "#ComputerSystem.Reset": {
+      "target": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/Actions/ComputerSystem.Reset",
+      "ResetType@Redfish.AllowableValues": [
+        "On",
+        "ForceOff",
+        "GracefulShutdown",
+        "ForceRestart",
+        "Nmi",
+        "GracefulRestart",
+        "ForceOn",
+        "PushPowerButton"
+      ]
+    },
+    "Oem": {
+      "#Intel.Oem.StartDeepDiscovery": {
+        "target": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/Actions/Oem/Intel.Oem.StartDeepDiscovery"
+      },
+      "#Intel.Oem.ChangeTPMState": {
+        "target": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/Actions/Oem/Intel.Oem.ChangeTPMState",
+        "InterfaceType@Redfish.AllowableValues": [ ]
+      }
+    }
+  },
+  "Oem": {
+    "Intel_RackScale": {
+      "@odata.type": "#Intel.Oem.ComputerSystem",
+      "PciDevices": [ ],
+      "DiscoveryState": "Basic",
+      "ProcessorSockets": 8,
+      "MemorySockets": 8,
+      "PCIeConnectionId": [
+        "crJOYMk"
+      ],
+      "UserModeEnabled": false,
+      "Metrics": {
+        "@odata.id": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/Metrics"
+      }
+    }
+  }
+}

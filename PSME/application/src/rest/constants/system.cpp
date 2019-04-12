@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,8 +70,12 @@ const char HASH_COMPUTER_SYSTEM_RESET[] = "#ComputerSystem.Reset";
 const char COMPUTER_SYSTEM_RESET[] = "ComputerSystem.Reset";
 const char HASH_INTEL_OEM_CHANGE_TPM_STATE[] = "#Intel.Oem.ChangeTPMState";
 const char INTEL_OEM_CHANGE_TPM_STATE[] = "Intel.Oem.ChangeTPMState";
-const char DISCOVERY_STATE[] = "DiscoveryState";
-const char BASIC[] = "Basic";
+const char HASH_INTEL_OEM_ERASE_OPTANE_DC_PERSISTENT_MEMORY[] = "#Intel.Oem.EraseOptaneDCPersistentMemory";
+const char INTEL_OEM_ERASE_OPTANE_DC_PERSISTENT_MEMORY[] = "Intel.Oem.EraseOptaneDCPersistentMemory";
+const char ALLOWABLE_DCPMEM_RESET_CONFIGURATION_VALUES[] = "ResetConfiguration@Redfish.AllowableValues";
+const char ALLOWABLE_DCPMEM_ERASE_CONFIGURATION_KEY_VALUES[] = "EraseConfigurationKeys@Redfish.AllowableValues";
+const char RESET_CONFIGURATION[] = "ResetConfiguration";
+const char ERASE_CONFIGURATION_KEYS[] = "EraseConfigurationKeys";
 const char MEMORY_SOCKETS[] = "MemorySockets";
 const char PCI_DEVICES[] = "PciDevices";
 const char PCIE_CONNECTION_ID[] = "PCIeConnectionId";
@@ -114,9 +118,6 @@ const char BUS_WIDTH_BITS[] = "BusWidthBits";
 const char ALLOWED_SPEEDS_MHZ[] = "AllowedSpeedsMHz";
 const char FIRMWARE_REVISION[] = "FirmwareRevision";
 const char FIRMWARE_API_VERSION[] = "FirmwareApiVersion";
-const char FUNCTION_CLASSES[] = "FunctionClasses";
-const char SUBSYSTEM_VENDOR_ID[] = "SubsystemVendorId";
-const char SUBSYSTEM_DEVICE_ID[] = "SubsystemDeviceId";
 const char RANK_COUNT[] = "RankCount";
 const char DEVICE_LOCATOR[] = "DeviceLocator";
 const char MEMORY_LOCATION[] = "MemoryLocation";
@@ -132,10 +133,26 @@ const char MEMORY_CLASSIFICATION[] = "MemoryClassification";
 const char OFFSET_MIB[] = "OffsetMiB";
 const char SIZE_MIB[] = "SizeMiB";
 const char OPERATING_MEMORY_MODES[] = "OperatingMemoryModes";
-const char METRICS[] = "Metrics";
 const char VOLTAGE_VOLT[] = "VoltageVolt";
-const char VENDOR_ID[] = "VendorID";
-const char DEVICE_ID[] = "DeviceID";
+const char MODULE_MANUFACTURER_ID[] = "ModuleManufacturerID";
+const char MODULE_PRODUCT_ID[] = "ModuleProductID";
+const char MEMORY_SUBSYSTEM_CONTROLLER_MANUFACTURER_ID[] = "MemorySubsystemControllerManufacturerID";
+const char MEMORY_SUBSYSTEM_CONTROLLER_PRODUCT_ID[] = "MemorySubsystemControllerProductID";
+const char SECURITY_CAPABILITIES[] = "SecurityCapabilities";
+const char PASSPHRASE_CAPABLE[] = "PassphraseCapable";
+const char MAX_PASSPHRASE_COUNT[] = "MaxPassphraseCount";
+const char SECURITY_STATES[] = "SecurityStates";
+const char SPARE_DEVICE_COUNT[] = "SpareDeviceCount";
+const char LOGICAL_SIZE_MIB[] = "LogicalSizeMiB";
+const char VOLATILE_SIZE_MIB[] = "VolatileSizeMiB";
+const char NON_VOLATILE_SIZE_MIB[] = "NonVolatileSizeMiB";
+const char VOLATILE_REGION_SIZE_LIMIT_MIB[] = "VolatileRegionSizeLimitMiB";
+const char PERSISTENT_REGION_SIZE_LIMIT_MIB[] = "PersistentRegionSizeLimitMiB";
+const char POWER_MANAGEMENT_POLICY[] = "PowerManagementPolicy";
+const char POLICY_ENABLED[] = "PolicyEnabled";
+const char MAX_TDP_MILLIWATTS[] = "MaxTDPMilliWatts";
+const char PEAK_POWER_BUDGET_MILLIWATTS[] = "PeakPowerBudgetMilliWatts";
+const char AVERAGE_POWER_BUDGET_MILLIWATTS[] = "AveragePowerBudgetMilliWatts";
 }
 
 namespace MemoryMetrics {
@@ -157,12 +174,24 @@ const char UNCORRECTABLE_ECC_ERROR[] = "UncorrectableECCError";
 const char CORRECTABLE_ECC_ERROR[] = "CorrectableECCError";
 const char ADDRESS_PARITY_ERROR[] = "AddressParityError";
 const char TEMPERATURE_CELSIUS[] = "TemperatureCelsius";
+const char CONTROLLER_TEMPERATURE_CELSIUS[] = "ControllerTemperatureCelsius";
 const char BANDWIDTH_PERCENT[] = "BandwidthPercent";
 const char THROTTLED_CYCLES_PERCENT[] = "ThrottledCyclesPercent";
 const char CONSUMED_POWER_WATT[] = "ConsumedPowerWatt";
 const char THERMAL_MARGIN_CELSIUS[] = "ThermalMarginCelsius";
-const char ECC_ERRORS_COUNT[] = "ECCErrorsCount";
 const char HEALTH[] = "Health";
+const char UPTIME_SECONDS[] = "UptimeSeconds";
+const char HOST_READ_REQUESTS[] = "HostReadRequests";
+const char HOST_WRITE_REQUESTS[] = "HostWriteRequests";
+const char ECC_CORRECTED_ERRORS[] = "ECCCorrectedErrors";
+const char UNSAFE_SHUTDOWN_COUNT[] = "UnsafeShutdownCount";
+const char POWER_CYCLES[] = "PowerCycles";
+const char POWER_ON_TIME_SECONDS[] = "PowerOnTimeSeconds";
+const char WRITE_COUNT_MAX[] = "WriteCountMax";
+const char WRITE_COUNT_AVG[] = "WriteCountAvg";
+const char MEDIA_ECC_CORRECTED_ERRORS[] = "MediaECCCorrectedErrors";
+const char MEDIA_ECC_UNCORRECTABLE_ERRORS[] = "MediaECCUncorrectableErrors";
+const char ECC_UNCORRECTABLE_ERRORS[] = "ECCUncorrectableErrors";
 }
 
 namespace Processor {
@@ -170,7 +199,7 @@ const char SOCKET[] = "Socket";
 const char PROCESSOR_TYPE[] = "ProcessorType";
 const char BRAND[] = "Brand";
 const char CAPABILITIES[] = "Capabilities";
-const char ON_PACKAGE_MEMORY[] = "OnPackageMemory";
+const char INTEGRATED_MEMORY[] = "IntegratedMemory";
 const char THERMAL_DESIGN_POWER_WATT[] = "ThermalDesignPowerWatt";
 const char FPGA[] = "FPGA";
 const char PROCESSOR_ARCHITECTURE[] = "ProcessorArchitecture";
@@ -188,12 +217,29 @@ const char ENDPOINTS[] = "Endpoints";
 const char MEMORY_TYPE[] = "Type";
 const char MEMORY_CAPACITY_MB[] = "CapacityMB";
 const char SPEED_MHZ[] = "SpeedMHz";
-const char FPGA_TYPE[] = "Type";
+const char EXTENDED_IDENTIFICATION_REGISTERS[] = "ExtendedIdentificationRegisters";
+
+}
+
+namespace Fpga {
 const char BIT_STREAM_VERSION[] = "BitStreamVersion";
 const char HSSI_CONFIGURATION[] = "HSSIConfiguration";
 const char HSSI_SIDEBAND[] = "HSSISideband";
+const char FPGA_TYPE[] = "Type";
+const char MODEL[] = "Model";
+const char FW_ID[] = "FwId";
+const char FW_MANUFACTURER[] = "FwManufacturer";
+const char FW_VERSION[] = "FwVersion";
+const char HOST_INTERFACE[] = "HostInterface";
+const char EXTERNAL_INTERFACES[] = "ExternalInterfaces";
+const char SIDEBAND_INTERFACE[] = "SidebandInterface";
+const char PCIE_VIRTUAL_FUNCTIONS[] = "PCIeVirtualFunctions";
+const char PROGRAMMABLE_FROM_HOST[] = "ProgrammableFromHost";
 const char RECONFIGURATION_SLOTS[] = "ReconfigurationSlots";
-const char EXTENDED_IDENTIFICATION_REGISTERS[] = "ExtendedIdentificationRegisters";
+const char RECONFIGURATION_SLOTS_DETAILS[] = "ReconfigurationSlotsDetails";
+const char ERASED[] = "Erased";
+const char SECURE_ERASE[] = "Intel.Oem.SecureErase";
+const char HASH_SECURE_ERASE[] = "#Intel.Oem.SecureErase";
 
 }
 
@@ -259,15 +305,6 @@ const char ENCLOSURES[] = "Enclosures";
 const char ASSET_TAG[] = "AssetTag";
 }
 
-namespace Drive {
-const char INTERFACE[] = "Interface";
-const char CAPACITY[] = "CapacityGiB";
-const char TYPE[] = "Type";
-const char RPM[] = "RPM";
-const char BUS_INFO[] = "BusInfo";
-const char USED_BY[] = "UsedBy";
-}
-
 namespace NetworkInterface {
 const char NETWORK_DEVICE_FUNCTIONS[] = "NetworkDeviceFunctions";
 }
@@ -303,6 +340,19 @@ const char CHAP_USERNAME[] = "CHAPUsername";
 const char CHAP_SECRET[] = "CHAPSecret";
 const char MUTUAL_CHAP_USERNAME[] = "MutualCHAPUsername";
 const char MUTUAL_CHAP_SECRET[] = "MutualCHAPSecret";
+}
+
+namespace PerformanceConfiguration {
+const char CONFIGURATION_ID[] = "ConfigurationId";
+const char TYPE[] = "Type";
+const char HIGH_PRIORITY_CORE_COUNT_PER_CPU[] = "HighPriorityCoreCountPerCpu";
+const char HIGH_PRIORITY_BASE__CORE_FREQUENCY[] = "HighPriorityBaseCoreFrequency";
+const char LOW_PRIORITY_CORE_COUNT_PER_CPU[] = "LowPriorityCoreCountPerCpu";
+const char LOW_PRIORITY_BASE_CORE_FREQUENCY[] = "LowPriorityBaseCoreFrequency";
+const char ACTIVE_CORES_PER_CPU[] = "ActiveCoresPerCpu";
+const char BASE_CORE_FREQUENCY[] = "BaseCoreFrequency";
+const char TDP_PER_CPU[] = "TDPPerCpu";
+const char MAX_CPU_JUNCTION_TEMP[] = "MaxCpuJunctionTemp";
 }
 
 }

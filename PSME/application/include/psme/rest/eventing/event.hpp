@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,19 +20,22 @@
  *
  * @file event.hpp
  * @brief Declaration of Event class for PSME eventing.
+ *
  * This class represents Event.EventRecord metadata EntityType
  * */
 
 #pragma once
+
+
+
 #include "agent-framework/module/enum/enum_builder.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 #include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace json {
-    class Value;
-}
 
 namespace psme {
 namespace rest {
@@ -46,8 +49,7 @@ ENUM(EventType, uint32_t,
      ResourceUpdated,
      ResourceAdded,
      ResourceRemoved,
-     Alert,
-     MetricReport
+     Alert
 );
 
 /*!
@@ -63,6 +65,7 @@ public:
      */
     Event(EventType type, const std::string& origin_of_condition);
 
+
     /*!
      * @brief Return event type
      *
@@ -71,6 +74,7 @@ public:
     EventType get_type() const {
         return m_type;
     }
+
 
     /*!
      * @brief Set event type
@@ -81,6 +85,7 @@ public:
         m_type = type;
     }
 
+
     /*!
      * @brief Get event id
      *
@@ -89,6 +94,7 @@ public:
     const std::string& get_event_id() const {
         return m_event_id;
     }
+
 
     /*!
      * @brief Set event id
@@ -99,6 +105,7 @@ public:
         m_event_id = event_id;
     }
 
+
     /*!
      * @brief Get timestamp
      *
@@ -107,6 +114,7 @@ public:
     const std::chrono::steady_clock::time_point& get_timestamp() const {
         return m_timestamp;
     }
+
 
     /*!
      * @brief Get severity
@@ -117,6 +125,7 @@ public:
         return m_severity;
     }
 
+
     /*!
      * @brief Set severity
      *
@@ -125,6 +134,7 @@ public:
     void set_severity(const std::string& severity) {
         m_severity = severity;
     }
+
 
     /*!
      * @brief Get message
@@ -135,6 +145,7 @@ public:
         return m_message;
     }
 
+
     /*!
      * @brief Set message
      *
@@ -143,6 +154,7 @@ public:
     void set_message(const std::string& message) {
         m_message = message;
     }
+
 
     /*!
      * @brief Get message id
@@ -153,6 +165,7 @@ public:
         return m_message_id;
     }
 
+
     /*!
      * @brief Set message id
      *
@@ -161,6 +174,7 @@ public:
     void set_message_id(const std::string& message_id) {
         m_message_id = message_id;
     }
+
 
     /*!
      * @brief Get origin of condition
@@ -171,6 +185,7 @@ public:
         return m_origin_of_condition;
     }
 
+
     /*!
      * @brief Set origin of condition
      *
@@ -179,6 +194,7 @@ public:
     void set_origin_of_condition(const std::string& origin_of_condition) {
         m_origin_of_condition = origin_of_condition;
     }
+
 
     /*!
      * @brief Get message args
@@ -189,6 +205,7 @@ public:
         return m_message_args;
     }
 
+
     /*!
      * @brief Add message arg
      *
@@ -198,12 +215,14 @@ public:
         m_message_args.emplace_back(message_arg);
     }
 
+
     /*!
      * @brief Convert Event to JSON representation
      *
      * @return JSON representation
      */
-    json::Value to_json() const;
+    json::Json to_json() const;
+
 
 private:
     EventType m_type;

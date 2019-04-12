@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,8 +37,8 @@
 #include "loader/network_loader.hpp"
 #include "configuration_full.hpp"
 
-#include "json/value.hpp"
-#include "json/deserializer.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 
 #include <string>
 
@@ -51,13 +51,12 @@ using namespace std;
 class LagTest: public ::testing::Test {
 protected:
     agent::network::loader::NetworkLoader loader{};
-    json::Value config;
-    json::Deserializer deserializer{};
+    json::Json config = json::Json();
 public:
     virtual ~LagTest();
 
     void SetUp() {
-        deserializer << NETWORK_FULL_CONFIGURATION;
+        config = json::Json::parse(NETWORK_FULL_CONFIGURATION);
     }
 
     string get_manager_uuid() {
@@ -72,7 +71,6 @@ public:
 LagTest::~LagTest() {}
 
 TEST_F(LagTest, add_logical_port) {
-    deserializer >> config;
     ASSERT_TRUE(loader.load(config));
     auto uuid = add_logical_port("team1", get_switch_uuid());
     NetworkComponents::get_instance()->get_port_manager().get_entry(uuid);

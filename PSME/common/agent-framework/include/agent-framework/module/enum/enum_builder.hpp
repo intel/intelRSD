@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@
 #pragma once
 
 #include "agent-framework/exceptions/exception.hpp"
+
 #include <string>
 #include <cstring>
 #include <stdexcept>

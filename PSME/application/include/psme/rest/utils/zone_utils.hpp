@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,14 +21,11 @@
 #pragma once
 
 
+#include "json-wrapper/json-wrapper.hpp"
+#include "agent-framework/module/utils/optional_field.hpp"
 
 #include <vector>
 #include <string>
-
-/* Forward declaration */
-namespace json {
-class Value;
-}
 
 namespace psme {
 namespace rest {
@@ -42,7 +39,7 @@ public:
      * returns a list of Endpoint UUIDs
      * @return List of Enpoints UUIDs
      * */
-    static std::vector<std::string> validate_patch_links_and_get_endpoint_uuids(const json::Value& json);
+    static std::vector<std::string> validate_patch_links_and_get_endpoint_uuids(const json::Json& json);
 
 
     /*!
@@ -50,7 +47,7 @@ public:
     * returns a list of Endpoint UUIDs
     * @return List of Enpoints UUIDs
     * */
-    static std::vector<std::string> validate_post_links_and_get_endpoint_uuids(const json::Value& json);
+    static std::vector<std::string> validate_post_links_and_get_endpoint_uuids(const json::Json& json);
 
 
     /*!

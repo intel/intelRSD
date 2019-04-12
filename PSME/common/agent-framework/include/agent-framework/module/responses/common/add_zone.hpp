@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,9 @@
 
 #pragma once
 
+
+
+#include "agent-framework/module/utils/uuid.hpp"
 #include "agent-framework/module/model/attributes/oem.hpp"
 #include "json-wrapper/json-wrapper.hpp"
 
@@ -39,14 +42,15 @@ public:
     /*!
      * @brief explicit AddZone response constructor
      */
-    explicit AddZone(const std::string& zone = std::string{},
-                         const attribute::Oem& oem = attribute::Oem{});
+    explicit AddZone(const Uuid& zone = Uuid{},
+                     const Uuid& task = Uuid{},
+                     const attribute::Oem& oem = attribute::Oem{});
 
     /*!
      * @brief Get PCIe zone from response
      * @return zone std::string
      * */
-    const std::string& get_zone() const {
+    const Uuid& get_zone() const {
         return m_zone;
     }
 
@@ -54,8 +58,25 @@ public:
      * @brief Set response PCIe zone
      * @param[in] zone std::string created zone uuid
      * */
-    void set_zone(const std::string& zone) {
+    void set_zone(const Uuid& zone) {
         m_zone = zone;
+    }
+
+    /*!
+     * @brief Set task UUID
+     * @param[in] task Task UUID
+     * */
+    void set_task(const Uuid& task_uuid) {
+        m_task = task_uuid;
+    }
+
+
+    /*!
+     * @brief Get task UUID
+     * @return Task UUID
+     * */
+    const Uuid& get_task() const {
+        return m_task;
     }
 
     /*!
@@ -72,7 +93,8 @@ public:
     static AddZone from_json(const json::Json& json);
 
 private:
-    std::string m_zone{};
+    Uuid m_zone{};
+    Uuid m_task{};
     attribute::Oem m_oem{};
 };
 

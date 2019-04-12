@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ Manager::Manager(const std::string& parent_uuid, enums::Component parent_type) :
 Manager::~Manager() {}
 
 json::Json Manager::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::Manager::STATUS] = get_status().to_json();
     result[literals::Manager::TYPE] = get_manager_type();
     result[literals::Manager::MODEL] = get_manager_model();

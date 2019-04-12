@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,21 +47,22 @@ generate_default_config_file(
     agent
     generic
     "AGENT_CHASSIS_CONFIGURATION_FILE"
+    ../include/default_configuration.hpp
+    ..
 )
 
 target_link_libraries(psme-chassis
     ${AGENT_CHASSIS_LIBRARIES}
     chassis-utils
     chassis-ipmb
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${LOGGER_LIBRARIES}
+    agent-framework
+    uuid
+    logger
     ${PCA95XX_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    configuration
     ipmi
-    ${BASE64_LIBRARIES}
+    base64
     ${IPMITOOL_LIBRARIES}
     pthread
     ${MICROHTTPD_LIBRARIES}

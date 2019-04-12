@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +54,7 @@ public:
      * @brief Gets replica UUID
      * @return replica UUID
      * */
-    const Uuid& get_replica() const {
+    const OptionalField<Uuid>& get_replica() const {
         return m_replica;
     }
 
@@ -62,7 +62,7 @@ public:
      * @brief Sets replica UUID
      * @param[in] replica UUID of type string
      */
-    void set_replica(const Uuid& replica) {
+    void set_replica(const OptionalField<Uuid>& replica) {
         m_replica = replica;
     }
 
@@ -131,7 +131,7 @@ private:
     OptionalField<enums::ReplicaReadOnlyAccess> m_replica_read_only_access{};
     OptionalField<enums::ReplicaType> m_replica_type{};
     OptionalField<enums::ReplicaRole> m_replica_role{};
-    Uuid m_replica{};
+    OptionalField<Uuid> m_replica{};
 };
 
 }

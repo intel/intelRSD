@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ GetFanInfo::GetFanInfo(const std::string& fan) : m_fan{fan} {}
 
 
 json::Json GetFanInfo::to_json() const {
-    json::Json value{};
+    json::Json value = json::Json();
     value[Fan::FAN] = m_fan;
     return value;
 }

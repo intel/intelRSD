@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  *
  * @brief
  *
- * @header{Filesystem}
  * @file purley_mdr_region_accesor.cpp
  */
 
@@ -59,6 +57,12 @@ std::uint8_t PurleyMdrRegionAccessor::get_mdr_region_checksum() {
     auto status = get_mdr_region_status<GetMdrDataRegionStatusReq, GetMdrDataRegionStatusRes>();
     check_mdr_region_unlocked_and_valid(status);
     return status.get_region_checksum();
+}
+
+std::uint8_t PurleyMdrRegionAccessor::get_mdr_region_update_count() {
+    auto status = get_mdr_region_status<GetMdrDataRegionStatusReq, GetMdrDataRegionStatusRes>();
+    check_mdr_region_unlocked_and_valid(status);
+    return status.get_data_update_count();
 }
 
 void PurleyMdrRegionAccessor::write_mdr_region(const IpmiInterface::ByteBuffer& buffer) {

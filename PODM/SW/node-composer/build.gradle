@@ -1,0 +1,305 @@
+/*
+ * Copyright (c) 2018-2019 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "../buildscripts/wrapper.gradle"
+
+buildscript {
+    ext {
+        springBootVersion = '2.0.0.RELEASE'
+        dependencyManagementPluginVersion = '1.0.4.RELEASE'
+        jpaSchemaGradlePluginVersion = '0.3.2'
+        liquibaseVersion = '3.5.5'
+        podmCommonVersion = '1.0-SNAPSHOT'
+        podmServiceDockerPluginVersion = '1.0-SNAPSHOT'
+        gradleVersionsPluginVersion = '0.17.0'
+
+        springPlatformBomVersion = 'Cairo-RC1'
+        springCloudVersion = 'Finchley.M8'
+
+        hibernateVersion = '5.2.12.Final'
+        podmSpringHazelcastVersion = '1.0-SNAPSHOT'
+        resteasyVersion = '3.5.0.Final'
+        guavaVersion = '24.1-jre'
+        commonsValidatorVersion = '1.6'
+        commonsCollectionsVersion = '4.1'
+        commonsTextVersion = '1.3'
+        modelMapperVersion = '1.1.2'
+
+        mockitoVersion = '2.0.2-beta'
+        cornCpsVersion = '1.1.10'
+        modeshapeCommonVer = '5.4.1.Final'
+        javaParserCoreVer = '2.5.1'
+        jacocoVersion = '0.8.2'
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("io.spring.gradle:dependency-management-plugin:${dependencyManagementPluginVersion}")
+        classpath("gradle.plugin.io.github.divinespear:jpa-schema-gradle-plugin:${jpaSchemaGradlePluginVersion}")
+        classpath("org.liquibase:liquibase-core:${liquibaseVersion}")
+        classpath("com.intel.rsd:podm-service-docker-plugin:${podmServiceDockerPluginVersion}")
+        classpath("com.github.ben-manes:gradle-versions-plugin:${gradleVersionsPluginVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'io.github.divinespear.jpa-schema-generate'
+apply plugin: 'com.intel.rsd.podm-service-docker'
+apply plugin: 'com.github.ben-manes.versions'
+apply plugin: 'jacoco'
+
+sourceCompatibility = 1.8
+
+configurations {
+    compile.exclude module: "spring-boot-starter-tomcat"
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/libs-milestone' }
+    maven { url 'http://repo.spring.io/milestone' }
+    maven { url 'http://sndyuk.github.com/maven' }
+}
+
+configurations {
+    aspectjweaver
+}
+
+jacoco {
+    toolVersion = "${jacocoVersion}"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+    }
+}
+
+build.dependsOn jacocoTestReport
+
+dependencyManagement {
+    imports {
+        mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
+    }
+}
+
+apply from: "../buildscripts/checkstyle.gradle"
+
+dependencies {
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    compile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-starter-undertow")
+    compile("org.springframework.boot:spring-boot-starter-aop")
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    compile("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+
+    //TODO: Hibernate in SB 2.0.0.RELEASE (5.2.14.Final) has critical error ( https://hibernate.atlassian.net/browse/HHH-12332 )
+    //Remove these exclusions in newer SB versions
+    compile("org.springframework.boot:spring-boot-starter-data-jpa") {
+        exclude(module: "hibernate-core")
+        exclude(module: "hibernate-entitymanager")
+    }
+    compile("org.hibernate:hibernate-core:${hibernateVersion}")
+    compile("org.hibernate:hibernate-entitymanager:${hibernateVersion}")
+
+    compile("org.liquibase:liquibase-core")
+    compile("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
+
+    compile("org.jboss.resteasy:resteasy-client:${resteasyVersion}")
+    compile("org.jboss.resteasy:resteasy-jackson2-provider:${resteasyVersion}")
+    compile("org.jboss.resteasy:resteasy-jaxrs:${resteasyVersion}")
+
+    compile("com.fasterxml.jackson.core:jackson-core")
+    compile("com.fasterxml.jackson.core:jackson-databind")
+    compile("com.fasterxml.jackson.core:jackson-annotations")
+    compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    compile("com.google.guava:guava:${guavaVersion}")
+    compile("org.apache.commons:commons-lang3")
+    compile("commons-validator:commons-validator:${commonsValidatorVersion}")
+    compile("commons-net:commons-net")
+    compile("org.apache.commons:commons-collections4:${commonsCollectionsVersion}")
+    compile("org.apache.commons:commons-text:${commonsTextVersion}")
+    compile("org.modelmapper:modelmapper:${modelMapperVersion}")
+
+    runtime("io.micrometer:micrometer-registry-prometheus")
+    runtime("org.springframework.boot:spring-boot-devtools")
+    runtime("org.postgresql:postgresql")
+
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("org.springframework.boot:spring-boot-starter-web")
+
+    testCompile("org.testng:testng")
+    testCompile("org.mockito:mockito-all:${mockitoVersion}")
+    testCompile("net.sf.corn:corn-cps:$cornCpsVersion")
+    testCompile("org.modeshape:modeshape-common:$modeshapeCommonVer")
+    testCompile("com.github.javaparser:javaparser-core:$javaParserCoreVer")
+
+    testRuntime("com.h2database:h2")
+}
+
+jar.dependsOn ":generateSchema"
+compileJava.finalizedBy('generateSchema')
+
+bootJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    launchScript()
+}
+
+generateSchema {
+    skip = false
+    format = true
+    scanTestClasses = false
+    persistenceUnitName = "NodeComposerDS"
+    databaseAction = "none"
+    scriptAction = "create"
+    outputDirectory = new File(projectDir.absolutePath + '/src/main/resources/META-INF', 'sql')
+    createOutputFileName = "create.sql"
+    createSourceMode = "metadata"
+    dropSourceMode = "metadata"
+    databaseProductName = "PostgreSQL"
+    databaseMajorVersion = 9
+    databaseMinorVersion = 5
+    properties = [
+            'hibernate.implicit_naming_strategy'       : 'com.intel.rsd.nodecomposer.persistence.configuration.CustomImplicitNamingStrategyJpaCompliantImpl',
+            'hibernate.dialect'                        : 'com.intel.rsd.nodecomposer.persistence.configuration.CustomPostgreSql9Dialect',
+            'hibernate.temp.use_jdbc_metadata_defaults': 'false'
+    ]
+    vendor = 'hibernate'
+    packageToScan = ['com.intel.rsd.nodecomposer']
+}
+
+task generateChangelog(group: 'db-schema', dependsOn: 'compileJava') {
+    doLast {
+        removeTemporaryDatabases()
+        initializeTemporaryDatabases()
+        loadExpectedSchema()
+        loadCurrentSchema()
+        println "Checking schema changes..."
+        runLiquibase('diffChangeLog')
+        removeTemporaryDatabases()
+    }
+}
+
+task generateInitialChangelog(group: 'db-schema', dependsOn: 'compileJava') {
+    doLast {
+        removeTemporaryDatabases()
+        initializeTemporaryDatabases()
+        loadExpectedSchema()
+        runLiquibase(
+                "--changeLogFile=./initial.xml",
+                '--url=jdbc:postgresql://localhost:5432/nodecomposer_expected',
+                'generateChangeLog'
+        )
+        removeTemporaryDatabases()
+    }
+}
+
+def removeTemporaryDatabases() {
+    exec { commandLine 'dropdb', '--if-exists', 'nodecomposer_expected' }
+    exec { commandLine 'dropdb', '--if-exists', 'nodecomposer_current' }
+}
+
+def initializeTemporaryDatabases() {
+    exec { commandLine 'createdb', 'nodecomposer_expected' }
+    exec { commandLine 'createdb', 'nodecomposer_current' }
+}
+
+def loadExpectedSchema() {
+    println "Updating expected nodecomposer schema"
+    exec {
+        commandLine 'psql', 'nodecomposer_expected', '--quiet', '-f', "${projectDir.absolutePath}/src/main/resources/META-INF/sql/create.sql"
+    }
+}
+
+def loadCurrentSchema() {
+    println "Updating current nodecomposer schema"
+    runLiquibase(
+            "--changeLogFile=${projectDir.absolutePath}/src/main/resources/db/liquibase-changelog.xml",
+            'update'
+    )
+}
+
+def runLiquibase(... commandArgs) {
+    def db_user = 'podm'
+    def db_password = 'podm'
+
+    def defArgs = [
+            "--url=jdbc:postgresql://localhost:5432/nodecomposer_current",
+            "--username=${db_user}",
+            "--password=${db_password}",
+            "--referenceUrl=jdbc:postgresql://localhost:5432/nodecomposer_expected",
+            "--referencePassword=${db_password}",
+            "--referenceUsername=${db_user}",
+            "--contexts=schema-generator",
+            "--classpath=${sourceSets.main.runtimeClasspath.collect { it.absolutePath }.join(':')}"
+    ]
+
+    javaexec {
+        workingDir = projectDir
+        main = 'liquibase.integration.commandline.Main'
+        classpath = buildscript.configurations.classpath.asFileTree
+        args = defArgs + commandArgs.toList()
+    }
+}
+
+podmService {
+    profiles = ['prod']
+    maxHeapSize = '512m'
+}
+
+test {
+    useTestNG() {
+        testLogging {
+            showStandardStreams = false
+            //event to log on gradle output
+            events = ["skipped", "passed", "failed"]
+            exceptionFormat = "full"
+            showExceptions = true
+            showCauses = true
+            showStackTraces = false
+        }
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                minimum = 0.2
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

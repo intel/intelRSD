@@ -1,8 +1,7 @@
 /*!
  * @brief OSSP UUID library C++ API implementation
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file uuid++.cc
  */
 
@@ -213,7 +211,7 @@ int uuid::compare(const uuid &obj)
     uuid_rc_t rc;
     int rv;
 
-    if ((rc = uuid_compare(ctx, obj.ctx, &rv)) != UUID_RC_OK)
+    if ((rc = uuid_cmp(ctx, obj.ctx, &rv)) != UUID_RC_OK)
         throw uuid_error_t(rc);
     return rv;
 }

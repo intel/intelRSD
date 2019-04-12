@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,12 @@
  * */
 
 #pragma once
+
+
+
 #include "psme/rest/server/connector/connector.hpp"
+
+
 
 /*! forward declarations */
 struct MHD_Daemon;
@@ -47,12 +52,16 @@ public:
      */
     MHDConnector(const ConnectorOptions& options);
 
+
     /*! @brief Destructor */
     ~MHDConnector();
 
+
     void start() override;
 
+
     void stop() override;
+
 
     /*! @brief Checks if access to requested resource is allowed.
      *
@@ -63,10 +72,15 @@ public:
      */
     virtual bool is_access_allowed(struct MHD_Connection* connection);
 
+
 private:
-    using MHDDaemonUPtr = std::unique_ptr<MHD_Daemon, void(*)(MHD_Daemon*)>;
+    using MHDDaemonUPtr = std::unique_ptr<MHD_Daemon, void (*)(MHD_Daemon*)>;
     MHDDaemonUPtr m_daemon;
+
+
     MHDConnector(const MHDConnector&) = delete;
+
+
     MHDConnector& operator=(const MHDConnector&) = delete;
 };
 

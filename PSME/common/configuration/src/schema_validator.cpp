@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@
 #include "configuration/schema_property.hpp"
 #include "configuration/json_path.hpp"
 #include "configuration/utils.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 #include <map>
 
 using namespace configuration;
@@ -64,13 +64,13 @@ public:
         }
     }
 
-    void validate(const json::Value& json, SchemaErrors& errors) {
+    void validate(const json::Json& json, SchemaErrors& errors) {
         build_json_map(json);
         validate_properties(errors);
     }
 
     void check_property(const SchemaProperty& property,
-                        const json::Value& value,
+                        const json::Json& value,
                         SchemaErrors& errors) {
 
         property.validate(value, errors);
@@ -78,23 +78,13 @@ public:
 
 private:
     using Properties = std::vector<SchemaProperty>;
-    using PropertyMap = std::map<std::string, json::Value>;
+    using PropertyMap = std::map<std::string, json::Json>;
     Properties m_properties{};
     PropertyMap m_json_map{};
     JsonPath m_json_path{};
 
-    void build_json_map(const json::Value& json) {
-        for (auto it = json.cbegin(); it != json.cend(); ++it) {
-            m_json_path.push_key(it.key());
-            const auto& json_value = *it;
-
-            m_json_map[m_json_path.get_path()] = json_value;
-
-            if (!json_value.is_array()) {
-                build_json_map(json_value);
-            }
-            m_json_path.pop_key();
-        }
+    void build_json_map(const json::Json& json) {
+        m_json_map = json.get<PropertyMap>();
     }
 };
 
@@ -107,6 +97,6 @@ void SchemaValidator::add_property(const SchemaProperty& property) {
     m_impl->add_property(property);
 }
 
-void SchemaValidator::validate(const json::Value& json, SchemaErrors& errors) {
+void SchemaValidator::validate(const json::Json& json, SchemaErrors& errors) {
     m_impl->validate(json, errors);
 }

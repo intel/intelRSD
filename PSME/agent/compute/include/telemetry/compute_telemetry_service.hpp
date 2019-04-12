@@ -1,8 +1,7 @@
 /*!
  * @brief TelemetryService declaration.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file compute/include/telemetry/telemetry_service.hpp
  */
 
 #pragma once
 
 #include "telemetry/telemetry_service.hpp"
+#include "ipmi/command/generic/enums.hpp"
 
 #include <memory>
 
@@ -40,7 +39,7 @@ public:
      * @param ipmi Reference ipmi controller
      * @param platform_id id of the platform to be queried
      */
-    ComputeTelemetryService(ipmi::IpmiController& ipmi, OptionalField<std::uint16_t> platform_id);
+    ComputeTelemetryService(ipmi::IpmiController& ipmi, OptionalField<ipmi::command::generic::BmcInterface> bmc_interface);
 };
 
 }

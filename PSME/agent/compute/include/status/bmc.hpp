@@ -1,8 +1,7 @@
 /*!
  * @brief Compute Bmc declaration.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file compute/include/status/bmc.hpp
  */
 
@@ -24,6 +22,7 @@
 #include "ipmi/manager/ipmitool/management_controller.hpp"
 #include "agent-framework/module/utils/optional_field.hpp"
 #include "telemetry/telemetry_service.hpp"
+#include "ipmi/command/generic/enums.hpp"
 
 using agent_framework::model::attribute::ConnectionData;
 
@@ -51,6 +50,10 @@ public:
         return m_platform_id;
     }
 
+    virtual OptionalField<ipmi::command::generic::BmcInterface> get_interface() const {
+        return m_interface;
+    }
+
 protected:
 
     bool on_become_online(const Transition&) override;
@@ -63,6 +66,7 @@ private:
 
     ipmi::manager::ipmitool::ManagementController m_ipmi;
     OptionalField<std::uint16_t> m_platform_id{};
+    OptionalField<ipmi::command::generic::BmcInterface> m_interface{};
     telemetry::TelemetryService::Ptr m_telemetry_service{};
 };
 

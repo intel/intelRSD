@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ TrustedModule::~TrustedModule() {}
 
 
 json::Json TrustedModule::to_json() const {
-    json::Json json{};
+    json::Json json = json::Json();
     json[literals::Status::STATUS] = get_status().to_json();
     json[literals::Oem::OEM] = get_oem().to_json();
     json[literals::TrustedModule::INTERFACE_TYPE] = get_interface_type();

@@ -1,0 +1,20 @@
+{
+  "@odata.context": "/redfish/v1/DetectionService/$metadata#DetectionService.DetectionService",
+  "@odata.id": "/redfish/v1/DetectionService",
+  "@odata.type": "#DetectionService.v1_0_0.DetectionService",
+  "Id": "DetectionService",
+  "Name": "Detection Service",
+  "SupportedDetectors": [
+    "RestEndpoint"
+  ],
+  "Services": [],
+  "DiscoveryServices": [],
+  "Actions": {
+    "#DetectionService.AddService": {
+      "target": "/redfish/v1/DetectionService/Actions/DetectionService.AddService"
+    },
+    "#DetectionService.RemoveService": {
+      "target": "/redfish/v1/DetectionService/Actions/DetectionService.RemoveService"
+    }
+  }
+}

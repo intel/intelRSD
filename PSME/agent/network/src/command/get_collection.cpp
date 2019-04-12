@@ -3,7 +3,7 @@
  *
  * File contains all implementations of methods for GetCollection command.
  *
- * @copyright Copyright (c) 2016-2018 Intel Corporation
+ * @copyright Copyright (c) 2016-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file get_collection.cpp
  */
 
@@ -25,7 +24,7 @@
 #include "agent-framework/module/enum/network.hpp"
 #include "agent-framework/command/registry.hpp"
 #include "agent-framework/command/network_commands.hpp"
-#include "agent-framework/logger_ext.hpp"
+#include "logger/logger.hpp"
 //#include "api/remote_switch_info.hpp"
 //#include "api/dcrp/remote_switch_info.hpp"
 #include "utils/lag.hpp"
@@ -233,9 +232,6 @@ void get_collection(const GetCollection::Request& request, GetCollection::Respon
 }
 
 REGISTER_COMMAND(GetCollection, ::get_collection);
-
-
-
 
 
 

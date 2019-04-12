@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of discovery target.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file discovery_target.cpp
  */
 
@@ -31,12 +29,12 @@
 #include "netlink/utils.hpp"
 
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/module/model/storage_service.hpp"
-#include "agent-framework/module/model/storage_pool.hpp"
-
-#include <stdexcept>
 
 #include <net/if.h>
+
+#include "sysfs/construct_dev_path.hpp"
+
+
 
 using namespace agent::nvme::discovery;
 using namespace agent::nvme::loader;
@@ -48,9 +46,7 @@ using namespace agent_framework::model::enums;
 
 namespace {
 
-static constexpr char PATH_DEV[] = "/dev/";
-
-void fill_drive_data(Drive& drive, const BaseDriveHandler::DriveData& dd) {
+void fill_drive_data(Drive& drive, const tools::BaseDriveHandler::DriveData& dd) {
 
     if (dd.block_size_bytes.has_value()) {
         drive.set_block_size_bytes(dd.block_size_bytes);
@@ -74,9 +70,16 @@ void fill_drive_data(Drive& drive, const BaseDriveHandler::DriveData& dd) {
     if (dd.firmware_revision.has_value()) {
         drive.set_firmware_version(dd.firmware_revision);
     }
+
+    if (dd.features.latency_tracking_enabled.has_value()) {
+        drive.set_latency_tracking_enabled(dd.features.latency_tracking_enabled);
+    }
+
 }
 
-void fill_volume_data(Volume& volume, const BaseDriveHandler::VolumeData& vd, const Uuid& pool_uuid, std::uint64_t pool_size) {
+
+void fill_volume_data(Volume& volume, const BaseDriveHandler::VolumeData& vd, const Uuid& pool_uuid,
+                      std::uint64_t pool_size) {
 
     if (vd.block_size_bytes.has_value()) {
         volume.set_block_size_bytes(vd.block_size_bytes);
@@ -94,6 +97,7 @@ void fill_volume_data(Volume& volume, const BaseDriveHandler::VolumeData& vd, co
     }
 }
 
+
 void print_drive_log(const Drive& drive) {
     log_debug("nvme-agent", "\tModel: " << drive.get_fru_info().get_model_number());
     log_debug("nvme-agent", "\tManufacturer: " << drive.get_fru_info().get_manufacturer());
@@ -103,6 +107,7 @@ void print_drive_log(const Drive& drive) {
     log_debug("nvme-agent", "\tBlock size (bytes): " << drive.get_block_size_bytes());
 }
 
+
 void print_volume_log(const Volume& volume) {
     log_debug("nvme-agent", "\tBlock size (bytes): " << volume.get_block_size_bytes());
     log_debug("nvme-agent", "\tVolume size (bytes): " << volume.get_capacity().get_allocated_bytes());
@@ -110,27 +115,31 @@ void print_volume_log(const Volume& volume) {
 
 }
 
+
 DiscoveryTarget::DiscoveryTarget(std::shared_ptr<NvmeAgentContext> context, BaseEndpointReader& endpoint_reader,
-    BaseEndpointCreator& endpoint_creator) :
+                                 BaseEndpointCreator& endpoint_creator) :
     m_endpoint_reader(endpoint_reader),
     m_endpoint_creator(endpoint_creator),
     m_context(context) {}
 
+
 DiscoveryTarget::~DiscoveryTarget() {}
+
 
 namespace {
 
 void update_manager(const Uuid& manager_uuid) {
     auto manager = get_manager<Manager>().get_entry_reference(manager_uuid);
     manager->add_collection({CollectionName::StorageServices,
-                            CollectionType::StorageServices});
+                             CollectionType::StorageServices});
 }
+
 
 void update_chassis(const Uuid& chassis_uuid) {
     auto chassis_ref = get_manager<Chassis>().get_entry_reference(chassis_uuid);
-    tools::ChassisDatabase db{chassis_uuid};
+    ChassisDatabase db{chassis_uuid};
     try {
-        std::string value = db.get(tools::NvmeDatabase::CHASSIS_ASSET_TAG);
+        std::string value = db.get(NvmeDatabase::CHASSIS_ASSET_TAG);
         log_debug("nvme-agent", "Loaded chassis asset tag: " << value);
         chassis_ref->set_asset_tag(value);
     }
@@ -139,35 +148,13 @@ void update_chassis(const Uuid& chassis_uuid) {
     }
 }
 
-void update_volume_from_db(Volume& volume) {
-    tools::VolumeDatabase db{volume.get_uuid()};
-    json::Json value{};
-    try {
-        value = json::Json::parse(db.get(tools::NvmeDatabase::VOLUME_ERASED));
-        log_debug("nvme-agent", "Loaded volume erased: " << value.dump());
-    }
-    catch (const std::exception&) {
-        log_debug("nvme-agent", "Erased attribute is not stored for volume");
-        return;
-    }
-
-    if (value.is_null()) {
-        volume.set_erased({});
-    }
-    else if (value.is_boolean()) {
-        volume.set_erased(value.get<bool>());
-    }
-    else {
-        log_error("nvme-agent", "Invalid 'erased' attribute value stored, ignoring");
-    }
-}
 
 void discover_network_interface(const std::string& interface, const Uuid& parent) {
     NvmeStabilizer ns{};
     auto ifindex = if_nametoindex(interface.c_str());
     if (0 != ifindex) {
         NetworkInterface ni{parent};
-        ni.set_status(attribute::Status(true));
+        ni.set_status(attribute::Status(State::Enabled, Health::OK));
         auto mac_address = netlink_base::utils::get_port_mac_address(interface);
         if (!mac_address.empty()) {
             ni.set_mac_address(mac_address);
@@ -191,6 +178,7 @@ void discover_network_interface(const std::string& interface, const Uuid& parent
     }
 }
 
+
 void discover_network_interfaces(const Uuid& parent) {
     UDev udev{};
     std::stringstream drivers{NvmeConfig::get_instance()->get_nic_drivers()};
@@ -207,24 +195,22 @@ void discover_network_interfaces(const Uuid& parent) {
     }
 }
 
+
 Uuid create_storage_pool(const Uuid& storage_service_uuid, const Drive& drive, uint64_t drive_size_bytes) {
     NvmeStabilizer ns{};
     StoragePool storage_pool{storage_service_uuid};
     attribute::CapacitySource capacity_source{};
     attribute::Capacity capacity{};
 
-    try {
-        attribute::Identifier path{};
-        path.set_durable_name(attribute::Identifier::get_system_path(drive));
-        path.set_durable_name_format(enums::IdentifierType::SystemPath);
-        storage_pool.add_identifier(path);
+    if (drive.get_name().has_value()) {
+        storage_pool.set_name(drive.get_name());
     }
-    catch (const std::logic_error&) {
-        log_error("nvme-agent", "No system path for drive '" + drive.get_uuid()
-                  + "'. Storage pool not created.");
+    else {
+        log_error("nvme-agent", "Drive '" + drive.get_uuid()
+                                + "' has no name. Storage pool was not created.");
         return {};
     }
-    storage_pool.set_status(true);
+    storage_pool.set_status({State::Enabled, Health::OK});
     if (drive.get_block_size_bytes().has_value()) {
         storage_pool.set_block_size_bytes(drive.get_block_size_bytes());
         capacity.set_allocated_bytes(drive_size_bytes);
@@ -250,19 +236,19 @@ Uuid create_storage_pool(const Uuid& storage_service_uuid, const Drive& drive, u
     return storage_pool.get_uuid();
 }
 
+
 void discover_volumes(std::shared_ptr<BaseDriveHandler> handler, const std::string& storage_service_uuid,
-        const std::string& storage_pool_uuid, uint64_t drive_size_bytes) {
+                      const std::string& storage_pool_uuid, uint64_t drive_size_bytes) {
 
     NvmeStabilizer ns{};
     log_debug("nvme-agent", "Discovering volumes... ");
 
     for (const auto& volume_name : handler->get_volumes()) {
-        const std::string volume_path = std::string{PATH_DEV} + volume_name;
         log_debug("nvme-agent", "Discovered volume " << volume_name);
 
         Volume volume{storage_service_uuid};
-        volume.set_status(attribute::Status(true));
-        volume.add_identifier({volume_path, enums::IdentifierType::SystemPath});
+        volume.set_status(attribute::Status(State::Enabled, Health::OK));
+        volume.set_name(volume_name);
 
         auto vd = handler->get_volume_data(volume_name);
         fill_volume_data(volume, vd, storage_pool_uuid, drive_size_bytes);
@@ -270,26 +256,26 @@ void discover_volumes(std::shared_ptr<BaseDriveHandler> handler, const std::stri
 
         ns.stabilize(volume);
         volume.add_identifier({volume.get_uuid(), enums::IdentifierType::UUID});
-        update_volume_from_db(volume);
 
         get_manager<Volume>().add_entry(volume);
         get_m2m_manager<StoragePool, Volume>().add_entry(storage_pool_uuid, volume.get_uuid());
     }
 }
 
-void discover_drives(std::shared_ptr<NvmeAgentContext> context, const Uuid& chassis_uuid, const Uuid& storage_service_uuid) {
+
+void
+discover_drives(std::shared_ptr<NvmeAgentContext> context, const Uuid& chassis_uuid, const Uuid& storage_service_uuid) {
     NvmeStabilizer ns{};
 
     try {
         for (const auto& drive_name : context->drive_reader->get_drives()) {
             log_debug("nvme-agent", "Discovered drive " << drive_name);
-            const std::string drive_path = std::string{PATH_DEV} + drive_name;
 
             Drive drive{chassis_uuid};
-            drive.set_status(attribute::Status(true));
-            drive.add_identifier({drive_path, enums::IdentifierType::SystemPath});
-            drive.set_type(enums::DriveType::SSD);
-            drive.set_interface(enums::StorageProtocol::NVMe);
+            drive.set_status(attribute::Status(State::Enabled, Health::OK));
+            drive.set_name(drive_name);
+            drive.set_type(DriveType::SSD);
+            drive.set_interface(TransportProtocol::NVMe);
 
             auto handler = context->drive_handler_factory->get_handler(drive_name);
             BaseDriveHandler::DriveData dd{};
@@ -325,7 +311,7 @@ void discover_drives(std::shared_ptr<NvmeAgentContext> context, const Uuid& chas
 
             if (handler) {
                 discover_volumes(handler, storage_service_uuid, storage_pool_uuid, available_size_bytes);
-                tools::update_storage_pool_consumed_capacity(storage_pool_uuid);
+                update_storage_pool_consumed_capacity(storage_pool_uuid);
             }
 
         }
@@ -335,21 +321,20 @@ void discover_drives(std::shared_ptr<NvmeAgentContext> context, const Uuid& chas
     }
 }
 
+
 Uuid create_storage_service(const Uuid& manager_uuid) {
     NvmeStabilizer ns{};
 
     StorageService storage_service{manager_uuid};
-    storage_service.set_status(true);
-    storage_service.add_collection({CollectionName::StoragePools,
-                                    CollectionType::StoragePools});
-    storage_service.add_collection({CollectionName::Volumes,
-                                    CollectionType::Volumes});
-    storage_service.add_collection({CollectionName::Drives,
-                                    CollectionType::Drives});
+    storage_service.set_status({State::Enabled, Health::OK});
+    storage_service.add_collection({CollectionName::StoragePools, CollectionType::StoragePools});
+    storage_service.add_collection({CollectionName::Volumes, CollectionType::Volumes});
+    storage_service.add_collection({CollectionName::Drives, CollectionType::Drives});
     ns.stabilize(storage_service);
     get_manager<StorageService>().add_entry(storage_service);
     return storage_service.get_uuid();
 }
+
 
 void add_endpoint_to_zone(const Uuid& zone, const Uuid& endpoint) {
     if (!get_manager<Endpoint>().entry_exists(endpoint)) {
@@ -359,58 +344,65 @@ void add_endpoint_to_zone(const Uuid& zone, const Uuid& endpoint) {
     get_m2m_manager<Zone, Endpoint>().add_entry(zone, endpoint);
 }
 
+
 void load_endpoints_from_zone_database(std::shared_ptr<NvmeAgentContext> context, const Uuid& zone) {
     ZoneDatabase zone_db(zone);
     auto endpoints{zone_db.get_multiple_values(NvmeDatabase::ENDPOINTS)};
-    std::for_each(endpoints.begin(), endpoints.end(), [&zone](const std::string& endpoint) {add_endpoint_to_zone(zone, endpoint);});
-    tools::set_initiator_filter(context, endpoints);
+    std::for_each(endpoints.begin(), endpoints.end(),
+                  [&zone](const std::string& endpoint) { add_endpoint_to_zone(zone, endpoint); });
+    set_initiator_filter(context, endpoints);
 }
+
 
 void add_zone(std::shared_ptr<NvmeAgentContext> context, const Uuid& fabric_uuid, const Uuid& zone_uuid) {
     Zone zone{fabric_uuid};
     zone.set_uuid(zone_uuid);
 
-    zone.set_status(attribute::Status(true));
-    zone.add_collection(attribute::Collection(enums::CollectionName::Endpoints,
-                                              enums::CollectionType::Endpoints));
+    zone.set_status(attribute::Status(State::Enabled, Health::OK));
+    zone.add_collection(attribute::Collection(CollectionName::Endpoints, CollectionType::Endpoints));
     get_manager<Zone>().add_entry(zone);
     load_endpoints_from_zone_database(context, zone_uuid);
 }
 
+
 void discover_zones(std::shared_ptr<NvmeAgentContext> context, const Uuid& fabric) {
     FabricDatabase fabric_db(fabric);
     auto zones{fabric_db.get_multiple_values(NvmeDatabase::ZONES)};
-    std::for_each(zones.begin(), zones.end(), [&](const std::string& zone) {::add_zone(context, fabric, zone);});
+    std::for_each(zones.begin(), zones.end(), [&](const std::string& zone) { ::add_zone(context, fabric, zone); });
 }
+
 
 void add_initiator(std::shared_ptr<NvmeAgentContext> context, const Uuid& fabric, const Uuid& uuid) {
     Endpoint endpoint{fabric};
     try {
         EndpointDatabase db{uuid};
-        endpoint.add_identifier({literals::Endpoint::NQN_FORMAT + db.get(EndpointReader::DATABASE_NQN), enums::IdentifierType::NQN});
+        endpoint.add_identifier(
+            {literals::Endpoint::NQN_FORMAT + db.get(EndpointReader::DATABASE_NQN), IdentifierType::NQN});
     }
     catch (const std::exception& e) {
         log_error("nvme-agent", "Unable to read initiator endpoint NQN from database: " << e.what());
         return;
     }
-    endpoint.add_identifier({uuid, enums::IdentifierType::UUID});
+    endpoint.add_identifier({uuid, IdentifierType::UUID});
     endpoint.set_uuid(uuid);
-    endpoint.set_status(attribute::Status(true));
+    endpoint.set_status(attribute::Status(State::Enabled, Health::OK));
     attribute::ConnectedEntity ce{};
-    ce.set_entity_role(enums::EntityRole::Initiator);
+    ce.set_entity_role(EntityRole::Initiator);
     endpoint.add_connected_entity(ce);
-    endpoint.set_protocol(enums::StorageProtocol::NVMeOverFabrics);
+    endpoint.set_protocol(TransportProtocol::NVMeOverFabrics);
     try {
         EndpointDatabase db{uuid};
         // add initiator nqn to hosts configuration
         context->nvme_target_handler->add_host(db.get(EndpointReader::DATABASE_NQN));
-    } catch (std::exception& e) {
+    }
+    catch (std::exception& e) {
         // this is not a critical error, the link may already exist if the target configuration exists
         log_warning("nvme-agent", "Unable to add initiator to allowed hosts: " << e.what());
     }
 
     get_manager<Endpoint>().add_entry(endpoint);
 }
+
 
 Endpoint read_target(const Uuid& fabric, const Uuid& endpoint_uuid) {
     Endpoint endpoint{fabric};
@@ -420,13 +412,13 @@ Endpoint read_target(const Uuid& fabric, const Uuid& endpoint_uuid) {
     try {
         EndpointDatabase db{endpoint_uuid};
         endpoint.add_identifier({literals::Endpoint::NQN_FORMAT + db.get(EndpointReader::DATABASE_NQN),
-            enums::IdentifierType::NQN});
+                                 IdentifierType::NQN});
         ip_transport_detail.set_ipv4_address({db.get(EndpointReader::DATABASE_IPV4)});
         ip_transport_detail.set_port(std::stoi(db.get(EndpointReader::DATABASE_RDMA_PORT)));
-        ip_transport_detail.set_transport_protocol(enums::TransportProtocol::RoCEv2);
+        ip_transport_detail.set_transport_protocol(TransportProtocol::RoCEv2);
         endpoint.add_ip_transport_detail(ip_transport_detail);
         attribute::ConnectedEntity ce{};
-        ce.set_entity_role(enums::EntityRole::Target);
+        ce.set_entity_role(EntityRole::Target);
         ce.set_entity(db.get(EndpointReader::DATABASE_NVME_DEVICE_UUID));
         endpoint.add_connected_entity(ce);
     }
@@ -435,12 +427,13 @@ Endpoint read_target(const Uuid& fabric, const Uuid& endpoint_uuid) {
         throw;
     }
 
-    endpoint.add_identifier({endpoint_uuid, enums::IdentifierType::UUID});
+    endpoint.add_identifier({endpoint_uuid, IdentifierType::UUID});
     endpoint.set_uuid(endpoint_uuid);
-    endpoint.set_protocol(enums::StorageProtocol::NVMeOverFabrics);
-    endpoint.set_status(attribute::Status(true));
+    endpoint.set_protocol(TransportProtocol::NVMeOverFabrics);
+    endpoint.set_status(attribute::Status(State::Enabled, Health::OK));
     return endpoint;
 }
+
 
 auto endpoint_discovery_less = [](const Endpoint& lhs, const Endpoint& rhs) -> bool {
     if ((lhs.get_ip_transport_details().size() != 1) || (rhs.get_ip_transport_details().size() != 1)) {
@@ -456,21 +449,23 @@ auto endpoint_discovery_less = [](const Endpoint& lhs, const Endpoint& rhs) -> b
     auto lhs_connected_entities = lhs.get_connected_entities().front();
     auto rhs_connected_entities = rhs.get_connected_entities().front();
 
-    auto is_ip_less = (lhs_ip_details.get_ipv4_address().get_address() < rhs_ip_details.get_ipv4_address().get_address())
+    auto is_ip_less =
+        (lhs_ip_details.get_ipv4_address().get_address() < rhs_ip_details.get_ipv4_address().get_address())
         || (lhs_ip_details.get_port() < rhs_ip_details.get_port())
         || (lhs_ip_details.get_transport_protocol() < rhs_ip_details.get_transport_protocol());
 
     auto is_ce_less = (lhs_connected_entities.get_entity_role() < rhs_connected_entities.get_entity_role())
-        || (lhs_connected_entities.get_entity() < rhs_connected_entities.get_entity());
+                      || (lhs_connected_entities.get_entity() < rhs_connected_entities.get_entity());
 
     auto is_endpoint_less = (lhs.get_uuid() < rhs.get_uuid()) || (lhs.get_protocol() < rhs.get_protocol())
-        || (attribute::Identifier::get_nqn(lhs) < attribute::Identifier::get_nqn(rhs));
+                            || (attribute::Identifier::get_nqn(lhs) < attribute::Identifier::get_nqn(rhs));
 
     return is_ip_less || is_ce_less || is_endpoint_less;
 };
 
+
 void recreate_endpoints(std::vector<Endpoint> database_targets, std::shared_ptr<NvmeAgentContext> context,
-    BaseEndpointReader& reader, BaseEndpointCreator& creator, const Uuid& fabric) {
+                        BaseEndpointReader& reader, BaseEndpointCreator& creator, const Uuid& fabric) {
     // export to a "rebuild_target_endpoints" function
     std::vector<Endpoint> to_be_created;
     auto hardware_targets = reader.read_endpoints(context, fabric);
@@ -481,19 +476,33 @@ void recreate_endpoints(std::vector<Endpoint> database_targets, std::shared_ptr<
 
     // extract all db targets which were not found on the hw
     std::set_difference(std::begin(database_targets), std::end(database_targets), std::begin(hardware_targets),
-        std::end(hardware_targets), std::back_inserter(to_be_created), endpoint_discovery_less);
+                        std::end(hardware_targets), std::back_inserter(to_be_created), endpoint_discovery_less);
 
     for (auto& target : to_be_created) {
         try {
             auto nqn = attribute::Identifier::get_nqn(target);
             const auto& transport_details = target.get_ip_transport_details().front();
-            tools::convert_to_subnqn(nqn);
+            convert_to_subnqn(nqn);
             // no need to check if target.get_connected_entities() is empty, the compare function used in sort does that
-            const auto& volume = get_manager<Volume>().get_entry(target.get_connected_entities().front().get_entity().value());
+            const auto& volume = get_manager<Volume>().get_entry(
+                target.get_connected_entities().front().get_entity().value());
+
+            std::string volume_path{};
+            if (volume.get_name().has_value()) {
+                volume_path = sysfs::construct_dev_path(volume.get_name());
+            }
+            else {
+                THROW(agent_framework::exceptions::NvmeError, "nvme-agent", "Volume's name must be known.");
+            }
+
             creator.create_target_endpoint(context, transport_details.get_ipv4_address().get_address(),
-                static_cast<uint16_t>(transport_details.get_port()), nqn, attribute::Identifier::get_system_path(volume));
+                                           static_cast<uint16_t>(transport_details.get_port()), nqn,
+                                           volume_path);
+
             get_manager<Endpoint>().add_entry(target);
-        } catch (const std::exception& e) {
+
+        }
+        catch (const std::exception& e) {
             log_error("nvme-agent", "Failed restoring endpoint " << target.get_uuid() << ": " << e.what());
         }
     }
@@ -507,8 +516,9 @@ void recreate_endpoints(std::vector<Endpoint> database_targets, std::shared_ptr<
     }
 }
 
+
 void discover_endpoints(std::shared_ptr<NvmeAgentContext> context, BaseEndpointReader& reader,
-    BaseEndpointCreator& creator, const Uuid& fabric) {
+                        BaseEndpointCreator& creator, const Uuid& fabric) {
     std::vector<Endpoint> database_targets;
 
     FabricDatabase fabric_db{fabric};
@@ -536,7 +546,8 @@ void discover_endpoints(std::shared_ptr<NvmeAgentContext> context, BaseEndpointR
 
     try {
         recreate_endpoints(database_targets, context, reader, creator, fabric);
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         log_error("nvme-agent", "Unable to recreate NVMe target endpoints."
             << " Make sure you have nvmet-rdma kernel module loaded. "
             << e.what());
@@ -544,6 +555,7 @@ void discover_endpoints(std::shared_ptr<NvmeAgentContext> context, BaseEndpointR
 }
 
 }
+
 
 void DiscoveryTarget::discover(const Uuid& manager_uuid, const Uuid& fabric_uuid) {
     update_manager(manager_uuid);

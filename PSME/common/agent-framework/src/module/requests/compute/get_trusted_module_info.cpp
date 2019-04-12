@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ using namespace agent_framework::model::literals;
 GetTrustedModuleInfo::GetTrustedModuleInfo(const std::string& trusted_module): m_trusted_module{trusted_module} {}
 
 json::Json GetTrustedModuleInfo::to_json() const {
-    json::Json value{};
+    json::Json value = json::Json();
     value[TrustedModule::TRUSTED_MODULE] = m_trusted_module;
     return value;
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,12 +26,12 @@ using namespace psme::rest::constants;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#UpdateService/$entity";
     r[Common::ODATA_TYPE] = "#UpdateService.v1_1_0.UpdateService";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
 
     r[Common::ID] = "EventService";
     r[Common::NAME] = "Update service";
@@ -43,13 +43,13 @@ json::Value make_prototype() {
 
     r[UpdateService::SERVICE_ENABLED] = true;
 
-    json::Value simple_update(json::Value::Type::OBJECT);
-    simple_update[Common::TARGET] = json::Value::Type::NIL;
-    simple_update[ActionInfo::REDFISH_ACTION_INFO] = json::Value::Type::NIL;
+    json::Json simple_update(json::Json::value_t::object);
+    simple_update[Common::TARGET] = json::Json::value_t::null;
+    simple_update[ActionInfo::REDFISH_ACTION_INFO] = json::Json::value_t::null;
     r[Common::ACTIONS][UpdateService::HASH_UPDATE_SERVICE_SIMPLE_UPDATE] = std::move(simple_update);
 
-    r[Common::ACTIONS][Common::OEM] = json::Value::Type::OBJECT;
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::ACTIONS][Common::OEM] = json::Json::value_t::object;
+    r[Common::OEM] = json::Json::value_t::object;
 
 
     return r;

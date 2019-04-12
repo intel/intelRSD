@@ -1,0 +1,18 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#TaskService.TaskService",
+  "@odata.id": "/redfish/v1/TaskService",
+  "@odata.type": "#TaskService.v1_0_0.TaskService",
+  "Id": "TaskService",
+  "Name": "Task Service",
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK"
+  },
+  "DateTime": "2018-02-12T15:27:09+01:00",
+  "CompletedTaskOverWritePolicy": "Manual",
+  "LifeCycleEventOnTaskStateChange": true,
+  "ServiceEnabled": true,
+  "Tasks": {
+    "@odata.id": "/redfish/v1/TaskService/Tasks"
+  }
+}

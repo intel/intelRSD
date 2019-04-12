@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ PowerZone::PowerZone(const std::string& parent_uuid, enums::Component parent_typ
 PowerZone::~PowerZone() {}
 
 json::Json PowerZone::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
 
     result[literals::PowerZone::STATUS] = get_status().to_json();
     result[literals::PowerZone::POWER_CONSUMED] = get_power_consumed_watts();

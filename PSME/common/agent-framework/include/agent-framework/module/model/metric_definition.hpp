@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file metric_definition.hpp
  */
 
@@ -515,24 +513,6 @@ public:
 
 
     /*!
-     * @brief Set metric definition name
-     * @param[in] name Metric definition name
-     * */
-    void set_name(const OptionalField<std::string>& name) {
-        m_name = name;
-    }
-
-
-    /*!
-     * @brief Get metric definition name
-     * @return metric definition name
-     * */
-    const OptionalField<std::string>& get_name() const {
-        return m_name;
-    }
-
-
-    /*!
      * @brief Get metric definition description
      * @return metric definition description
      * */
@@ -623,12 +603,11 @@ private:
     OptionalField<double> m_max_reading_range{};
     OptionalField<enums::MetricAlgorithm> m_calculation_algorithm{};
     OptionalField<std::string> m_calculation_time_interval{};
-    OptionalField<std::string> m_name{};
     OptionalField<std::string> m_description{};
     OptionalField<enums::DiscreteMetricType> m_discrete_metric_type{};
     OptionalField<double> m_calculation_precision{};
 
-    // not serializable
+    /* Not serializable */
     std::string m_metric_jsonptr{};
     agent_framework::utils::Iso8601TimeInterval m_calculation_period{};
     agent_framework::utils::Iso8601TimeInterval m_sensing_period{std::chrono::seconds(10)};

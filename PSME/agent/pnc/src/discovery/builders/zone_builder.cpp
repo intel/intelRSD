@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,8 +40,7 @@ void ZoneBuilder::build_default() {
 
     m_obj.add_collection(attribute::Collection(
         enums::CollectionName::Endpoints,
-        enums::CollectionType::Endpoints,
-        ""
+        enums::CollectionType::Endpoints
     ));
 }
 

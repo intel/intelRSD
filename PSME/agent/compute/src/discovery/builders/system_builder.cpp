@@ -1,8 +1,7 @@
 /*!
  * @brief System builder class implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
- * @file system_builder.hpp
+ * @file system_builder.cpp
  */
 
 #include "discovery/builders/system_builder.hpp"
@@ -30,29 +28,13 @@ using namespace agent_framework::model;
 System SystemBuilder::build_default(const std::string& parent_uuid, const std::string& chassis_uuid) {
     System system{parent_uuid};
 
-    system.add_collection({enums::CollectionName::Processors,
-                           enums::CollectionType::Processors,
-                           ""});
-
-    system.add_collection({enums::CollectionName::Memory,
-                           enums::CollectionType::Memory,
-                           ""});
-
-    system.add_collection({enums::CollectionName::StorageSubsystems,
-                           enums::CollectionType::StorageSubsystems,
-                           ""});
-
-    system.add_collection({enums::CollectionName::NetworkInterfaces,
-                           enums::CollectionType::NetworkInterfaces,
-                           ""});
-
-    system.add_collection({enums::CollectionName::TrustedModules,
-                           enums::CollectionType::TrustedModules,
-                           ""});
-
-    system.add_collection({enums::CollectionName::NetworkDevices,
-                           enums::CollectionType::NetworkDevices,
-                           ""});
+    system.add_collection({enums::CollectionName::Processors, enums::CollectionType::Processors});
+    system.add_collection({enums::CollectionName::Memory, enums::CollectionType::Memory});
+    system.add_collection({enums::CollectionName::StorageSubsystems, enums::CollectionType::StorageSubsystems});
+    system.add_collection({enums::CollectionName::NetworkInterfaces, enums::CollectionType::NetworkInterfaces});
+    system.add_collection({enums::CollectionName::TrustedModules, enums::CollectionType::TrustedModules});
+    system.add_collection({enums::CollectionName::NetworkDevices, enums::CollectionType::NetworkDevices});
+    system.add_collection({enums::CollectionName::MemoryDomains, enums::CollectionType::MemoryDomains});
 
     system.set_chassis(chassis_uuid);
 
@@ -136,3 +118,31 @@ void SystemBuilder::update_system_guid(agent_framework::model::System& system,
                                        const ipmi::command::generic::response::GetSystemGuid& get_system_guid_response) {
     system.set_guid(get_system_guid_response.get_guid());
 }
+
+void SystemBuilder::update_smbios_performance_configurations(agent_framework::model::System& system,
+                                                             const smbios::parser::SmbiosParser::StructEnhanced<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA>& smbios_data) {
+    system.set_current_performance_configuration(smbios_data.data.current_config);
+
+    for (const auto& config : smbios_data.configs) {
+        attribute::PerformanceConfiguration performance_configuration;
+        performance_configuration.set_configuration_id(config.configuration_number);
+        performance_configuration.set_tdp(config.max_tdp);
+        performance_configuration.set_max_junction_temp_celsius(config.max_junction_temperature);
+
+        if (config.low_priority_core_count == 0) {
+            performance_configuration.set_type(enums::PerformanceConfigurationType::StaticSpeedSelect);
+            performance_configuration.set_active_cores(config.high_priority_core_count);
+            performance_configuration.set_base_core_frequency(config.high_priority_base_frequency);
+        }
+        else {
+            performance_configuration.set_type(enums::PerformanceConfigurationType::PrioritizedBaseFrequency);
+            performance_configuration.set_high_priority_core_count(config.high_priority_core_count);
+            performance_configuration.set_high_priority_base_frequency(config.high_priority_base_frequency);
+            performance_configuration.set_low_priority_core_count(config.low_priority_core_count);
+            performance_configuration.set_low_priority_base_frequency(config.low_priority_base_frequency);
+        }
+
+        system.add_performance_configuration(performance_configuration);
+    }
+}
+

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,7 +130,7 @@ void PortStateManager::generate_events(bool is_present, bool is_bound, bool is_b
     log_debug("port-state-manager", "StateMachine: updating states: device present = " << is_present
         << ", is bound = " << is_bound << ", is being erased = " << is_being_erased);
 
-    // while drive being erased, port may be unbound -> we need to account for it
+    // while drive/FPGA is being erased, port may be unbound -> we need to account for it
     bool is_used = is_bound || is_being_erased;
     if (!is_used && m_prev_bound) {
         m_sm.send_event(PE::DeviceUnbound);
@@ -240,7 +240,7 @@ bool PortStateManager::action_full_unbind(const PortTransition&) {
         return false;
     }
     try {
-        m_device_uuid = m_worker->get_drive_by_dsp_port(m_port_uuid);
+        m_device_uuid = m_worker->get_device_uuid_by_dsp_port(m_port_uuid);
     }
     catch (std::exception e) {
         log_debug("port-state-manager",
@@ -280,7 +280,7 @@ bool PortStateManager::action_full_bind_unbind_recover(const PortTransition&) {
         return false;
     }
     try {
-        m_device_uuid = m_worker->get_drive_by_dsp_port(m_port_uuid);
+        m_device_uuid = m_worker->get_device_uuid_by_dsp_port(m_port_uuid);
     }
     catch (std::exception e) {
         log_debug("port-state-manager",

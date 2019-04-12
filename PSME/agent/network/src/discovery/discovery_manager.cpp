@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 #include "network_config.hpp"
 #include "agent-framework/module/network_components.hpp"
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/eventing/event_data.hpp"
+#include "agent-framework/module/model/attributes/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 
 #include <eos/sdk.h>
@@ -81,9 +81,9 @@ namespace {
         /* add collections */
         manager->set_serial_console(std::move(serial));
         manager->add_collection({CollectionName::Switches,
-                                CollectionType::EthernetSwitches, ""});
+                                CollectionType::EthernetSwitches});
         manager->add_collection({CollectionName::Chassis,
-                                CollectionType::Chassis, ""});
+                                CollectionType::Chassis});
     }
 
     string get_switch_uuid(const string& uuid) {
@@ -120,7 +120,7 @@ namespace {
         /* TODO how do we know the location ? */
         switch_module->set_location(SWITCH_DEFAULT_LOCATION);
         switch_module->add_collection({CollectionName::EthernetSwitchPorts,
-                                      CollectionType::EthernetSwitchPorts, ""});
+                                      CollectionType::EthernetSwitchPorts});
 
         EthernetSwitch switch_running_config = get_switch_qos_running_config();
         switch_module->set_qos_application_protocol(switch_running_config.get_qos_application_protocol());
@@ -219,7 +219,7 @@ namespace {
 
     void set_common_port_properties(EthernetSwitchPort& port_model) {
         // Update port static attributes
-        port_model.add_collection({CollectionName::Vlans, CollectionType::EthernetSwitchPortVlans, ""});
+        port_model.add_collection({CollectionName::Vlans, CollectionType::EthernetSwitchPortVlans});
         port_model.set_port_class(PortClass::Physical);
         port_model.set_port_mode(PortMode::Unknown);
         port_model.set_vlan_enable(true);
@@ -288,7 +288,6 @@ namespace {
 
     void discover_switch_ports(const string& switch_uuid) {
         /* discover physical & logical ports */
-        auto& port_manager = get_manager<EthernetSwitchPort>();
         auto& switch_manager = get_manager<EthernetSwitch>();
         try {
             auto switch_module = switch_manager.get_entry(switch_uuid);
@@ -363,8 +362,8 @@ namespace {
     }
 
 void send_event(const std::string& module, const std::string& parent, Component type,
-        agent_framework::eventing::Notification notification) {
-    agent_framework::eventing::EventData edat;
+        agent_framework::model::enums::Notification notification) {
+    agent_framework::model::attribute::EventData edat;
     edat.set_parent(parent);
     edat.set_component(module);
     edat.set_type(type);
@@ -392,5 +391,5 @@ void DiscoveryManager::discovery(const std::string& uuid) {
     ::show_network_modules();
 
     NetworkTreeStabilizer().stabilize(uuid);
-    send_event(uuid, {}, Component::Manager, agent_framework::eventing::Notification::Add);
+    send_event(uuid, {}, Component::Manager, agent_framework::model::enums::Notification::Add);
 }

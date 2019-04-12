@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 #include "psme/rest/endpoints/utils.hpp"
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/constants/constants.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include "psme/rest/server/error/error_factory.hpp"
 #include "psme/rest/server/error/server_exception.hpp"
@@ -36,20 +36,20 @@ using namespace psme::rest::endpoint::utils;
 
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EventDestination.EventDestination";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EventDestination.v1_1_1.EventDestination";
-    r[Common::ID] = json::Value::Type::NIL;
-    r[Common::NAME] = json::Value::Type::NIL;
-    r[Common::DESCRIPTION] = json::Value::Type::NIL;
-    r[EventSubscription::DESTINATION] = json::Value::Type::NIL;
-    r[EventSubscription::CONTEXT] = json::Value::Type::NIL;
-    r[EventSubscription::PROTOCOL] = json::Value::Type::NIL;
-    r[EventSubscription::EVENT_TYPES] = json::Value::Type::ARRAY;
-    r[EventSubscription::ORIGIN_RESOURCES] = json::Value::Type::ARRAY;
+    r[Common::ID] = json::Json::value_t::null;
+    r[Common::NAME] = json::Json::value_t::null;
+    r[Common::DESCRIPTION] = json::Json::value_t::null;
+    r[EventSubscription::DESTINATION] = json::Json::value_t::null;
+    r[EventSubscription::CONTEXT] = json::Json::value_t::null;
+    r[EventSubscription::PROTOCOL] = json::Json::value_t::null;
+    r[EventSubscription::EVENT_TYPES] = json::Json::value_t::array;
+    r[EventSubscription::ORIGIN_RESOURCES] = json::Json::value_t::array;
 
     return r;
 }

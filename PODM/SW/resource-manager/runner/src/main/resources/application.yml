@@ -1,0 +1,89 @@
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - configprops
+          - env
+          - loggers
+          - logfile
+          - httptrace
+          - threaddump
+          - prometheus
+          - hazelcast
+spring:
+  application:
+    name: RESOURCE-MANAGER:PSME
+eureka:
+  instance:
+    metadata-map:
+      requiredType: ${requiredType}
+      providedType: ${providedType}
+  client:
+    registryFetchIntervalSeconds: 5
+southbound-config:
+  acceptedHeaders:
+    - Location
+  tracing:
+    requests:
+      - PATCH
+      - POST
+      - DELETE
+    responses:
+      statusSeries:
+        - INFORMATIONAL
+        - REDIRECTION
+        - CLIENT_ERROR
+        - SERVER_ERROR
+      definitions:
+        - method: GET
+        - method: POST
+        - method: PATCH
+        - method: DELETE
+unification-task:
+  poolSize: 20
+events:
+  submitter:
+    endpoint: /redfish/v1/EventService/Events
+  receiver:
+    subscription-task:
+      task-delay: 5s
+      task-scheduler-delay: 5s
+    type: Fixed
+    endpoint: redfish/v1/events
+    fixed:
+      target-uri: http://localhost:8600
+    dynamic:
+      target-port: 30000
+      target-protocol: https
+      mapping:
+        - source-subnet: 10.3.0.0/24
+          target-ip-addresses:
+            - 10.3.0.1
+            - 10.3.0.2
+            - 10.3.0.3
+        - source-subnet: 10.2.0.0/24
+          target-ip-addresses:
+            - 10.2.0.1
+            - 10.2.0.2
+            - 10.2.0.3
+tagger-config:
+  tagDefinitions:
+    - resource: /redfish/v1/**
+      property: /Oem/Intel_RackScale/TaggedValues
+      type: OBJECT
+      defaultValue: '{}'
+    - resource: /redfish/v1/Chassis/pod
+      property: /AssetTag
+      type: STRING
+cacher:
+  entries-time-to-live: 1d
+  max-heap-size-mb: 30
+fallback.isolation.semaphore.maxConcurrentRequests: 200
+
+logging.com.intel.rsd.resourcemanager.runner.requiredlayer.RequiredLayer: DEBUG
+logging.com.com.intel.rsd.resourcemanager.runner.requiredlayer.SouthboundRequestLogger: TRACE

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,21 +35,18 @@ void FabricBuilder::build_default() {
     status.set_state(enums::State::Enabled);
     m_obj.set_status(std::move(status));
 
-    m_obj.set_protocol(enums::StorageProtocol::NVMe);
+    m_obj.set_protocol(enums::TransportProtocol::PCIe);
 
     m_obj.add_collection(attribute::Collection(
         enums::CollectionName::Switches,
-        enums::CollectionType::Switches,
-        ""
+        enums::CollectionType::Switches
     ));
     m_obj.add_collection(attribute::Collection(
         enums::CollectionName::Zones,
-        enums::CollectionType::Zones,
-        ""
+        enums::CollectionType::Zones
     ));
     m_obj.add_collection(attribute::Collection(
         enums::CollectionName::Endpoints,
-        enums::CollectionType::Endpoints,
-        ""
+        enums::CollectionType::Endpoints
     ));
 }

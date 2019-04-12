@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,7 @@ json::Json Capacity::to_json() const {
     result[literals::Capacity::CONSUMED_BYTES] = get_consumed_bytes();
     result[literals::Capacity::GUARANTEED_BYTES] = get_guaranteed_bytes();
     result[literals::Capacity::PROVISIONED_BYTES] = get_provisioned_bytes();
+    result[literals::Capacity::IS_THIN_PROVISIONED] = is_thin_provisioned();
     return result;
 }
 
@@ -41,5 +42,6 @@ Capacity Capacity::from_json(const json::Json& json) {
     data.set_consumed_bytes(json[literals::Capacity::CONSUMED_BYTES]);
     data.set_guaranteed_bytes(json[literals::Capacity::GUARANTEED_BYTES]);
     data.set_provisioned_bytes(json[literals::Capacity::PROVISIONED_BYTES]);
+    data.set_thin_provisioned(json[literals::Capacity::IS_THIN_PROVISIONED]);
     return data;
 }

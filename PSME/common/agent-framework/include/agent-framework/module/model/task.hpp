@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,26 +144,6 @@ public:
 
 
     /*!
-     * Get task name
-     *
-     * @return Task name
-     * */
-    const OptionalField<std::string>& get_name() const {
-        return m_name;
-    }
-
-
-    /*!
-     * Set task name
-     *
-     * @param[in] name Task name
-     * */
-    void set_name(const OptionalField<std::string>& name) {
-        m_name = name;
-    }
-
-
-    /*!
      * Get task state
      *
      * @return TaskState enum representing task state
@@ -265,7 +245,6 @@ protected:
 private:
     OptionalField<std::string> m_start_time{};
     OptionalField<std::string> m_end_time{};
-    OptionalField<std::string> m_name{};
     OptionalField<enums::TaskState> m_state{enums::TaskState::New};
     Messages m_messages{};
 

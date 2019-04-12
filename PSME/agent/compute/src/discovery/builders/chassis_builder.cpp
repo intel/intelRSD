@@ -1,8 +1,7 @@
 /*!
  * @brief Chassis builder class implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
- * @file chassis_builder.hpp
+ * @file chassis_builder.cpp
  */
 
 #include "discovery/builders/chassis_builder.hpp"
@@ -30,14 +28,16 @@ Chassis ChassisBuilder::build_default(const std::string& parent_uuid) {
     Chassis chassis{parent_uuid};
 
     chassis.add_collection({enums::CollectionName::Drives,
-                            enums::CollectionType::Drives,
-                            ""});
+                            enums::CollectionType::Drives
+    });
+
     chassis.add_collection({enums::CollectionName::ThermalZones,
-                            enums::CollectionType::ThermalZones,
-                            ""});
+                            enums::CollectionType::ThermalZones
+    });
+
     chassis.add_collection({enums::CollectionName::PowerZones,
-                            enums::CollectionType::PowerZones,
-                            ""});
+                            enums::CollectionType::PowerZones
+    });
     chassis.set_status({enums::State::Enabled, {}});
     return chassis;
 }

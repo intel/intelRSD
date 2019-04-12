@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,16 +22,26 @@
  * @section DESCRIPTION
  * */
 
+#include "hal/switch_info_impl.hpp"
+#include "hal/switch_port_vlan.hpp"
 #include "agent-framework/module/network_components.hpp"
 #include "agent-framework/command/registry.hpp"
 #include "agent-framework/command/network_commands.hpp"
-#include "hal/switch_vlan.hpp"
 #include "tree_stability/network_tree_stabilizer.hpp"
 
 using namespace agent_framework::model;
 using namespace agent_framework::command;
 using namespace agent::network::hal;
 using namespace agent::network;
+
+using namespace agent::network;
+using namespace agent::network::hal;
+
+using namespace agent_framework::module;
+using namespace agent_framework::model;
+using namespace agent_framework::model::enums;
+using namespace agent_framework::model::attribute;
+
 
 namespace {
 void add_port_vlan(const AddPortVlan::Request& request, AddPortVlan::Response& response) {
@@ -51,8 +61,15 @@ void add_port_vlan(const AddPortVlan::Request& request, AddPortVlan::Response& r
     }
 
     /* add new vlan on the switch port */
-    SwitchVlan vlan_info{SwitchVlan::VlanId(request.get_vlan_id())};
-    vlan_info.add_port(port.get_port_identifier(), request.get_tagged());
+    auto vlan_id = request.get_vlan_id();
+    auto vlan_tagged = request.get_tagged();
+    SwitchPortVlan port_vlan_info{SwitchPortVlan::VlanId(vlan_id)};
+    port_vlan_info.add_port(port.get_port_identifier(), vlan_tagged);
+
+    /* add new vlan on the switch */
+    auto switch_module =  NetworkComponents::get_instance()->get_switch_manager().get_entry(port.get_parent_uuid());
+    SwitchInfoImpl switch_info(switch_module.get_switch_identifier());
+    switch_info.add_switch_vlan(vlan_id);
 
     /* add port-vlan into network manager */
     EthernetSwitchPortVlan port_vlan{port.get_uuid()};

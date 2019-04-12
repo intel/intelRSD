@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file get_metrics_collection.cpp
  */
 
@@ -32,7 +30,7 @@ GetMetrics::GetMetrics(const std::string& metric_uuid) : m_metric{metric_uuid} {
 
 
 json::Json GetMetrics::to_json() const {
-    json::Json json;
+    json::Json json = json::Json();
     json[literals::Metric::METRIC] = m_metric;
     json[literals::Metric::COMPONENT] = m_component;
     json[literals::MetricDefinition::METRIC_DEFINITION] = m_metric_definition;

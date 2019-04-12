@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "podm-gateway.fullname" . }}
+  labels:
+    app: {{ template "podm-gateway.name" . }}
+    chart: {{ template "podm-gateway.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    {{- if .Values.northbound_security.enabled  }}
+    - port: {{ .Values.service.httpsPort }}
+    {{ else }}
+    - port: {{ .Values.service.port }}
+    {{ end }}
+      targetPort: http
+      {{ if eq .Values.service.type "NodePort" }}
+      nodePort: 30000
+      {{ end }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "podm-gateway.name" . }}
+    release: {{ .Release.Name }}

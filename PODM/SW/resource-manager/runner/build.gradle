@@ -1,0 +1,122 @@
+/*
+ * Copyright (c) 2018-2019 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("com.intel.rsd:podm-service-docker-plugin:${podmServiceDockerPluginVersion}")
+    }
+}
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'com.intel.rsd.podm-service-docker'
+
+bootJar {
+    launchScript()
+    manifest {
+        attributes 'Main-Class': 'org.springframework.boot.loader.PropertiesLauncher'
+    }
+}
+
+dependencies {
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    compile project(":layer")
+    compile project(":common")
+    //TODO: Remove this block after spring-boot version upgrade (>= 2.0.6.RELEASE) ------------------------------------------
+    //Because of https://github.com/spring-projects/spring-framework/issues/21819 newer version of spring-beans is required.
+    compile("org.springframework:spring-beans:5.0.10.RELEASE")
+    compile("org.springframework:spring-core:5.0.10.RELEASE")
+    //-----------------------------------------------------------------------------------------------------------------------
+    compile("org.springframework.boot:spring-boot-loader")
+    compile project(":layer"),
+            project(":common"),
+            project(":unifier"),
+            project(':cacher'),
+            project(':merger'),
+            project(':completer'),
+            project(':adapter'),
+            project(':filter'),
+            project(':tagger'),
+            project(':queryparameter'),
+            project(':request-enhancer')
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    compile("org.springframework.cloud:spring-cloud-starter-netflix-hystrix")
+
+    compile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    compile("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
+    compile("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    compile("com.google.guava:guava:${guavaVersion}")
+    compile("org.antlr:antlr4-runtime:${antlrVersion}")
+    compile("org.apache.commons:commons-lang3")
+    compile("commons-net:commons-net")
+
+    //TODO:
+    //dependencies of particular layer should be defined on layer level and accessible by runner in runtime.
+    //Unfortunately currently it doesn't work like that.
+    //
+    //tagger layers dependencies
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("org.hibernate:hibernate-core:${hibernateVersion}")
+    compile("org.hibernate:hibernate-entitymanager:${hibernateVersion}")
+
+    runtime("org.postgresql:postgresql")
+    //end of tagger layers dependencies
+
+    runtime("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
+    runtime("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+
+    runtime("io.micrometer:micrometer-registry-prometheus")
+
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+
+    testCompile("org.testng:testng")
+    testCompile("org.assertj:assertj-core:${assertjVersion}")
+    testCompile("org.mockito:mockito-all:${mockitoVersion}")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("org.springframework.boot:spring-boot-starter-web")
+    testRuntime("com.h2database:h2")
+
+    testCompile project(':tagger').sourceSets.test.output
+}
+
+podmService {
+    appName = "resource-manager"
+    includeFiles = ['runner/configs/resource-manager.yml': '/app/resource-manager.yml']
+    appArgs = ['--config=/app/resource-manager.yml']
+    maxHeapSize = '2g'
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = "${jacocoCounter}"
+                minimum = 0.8
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

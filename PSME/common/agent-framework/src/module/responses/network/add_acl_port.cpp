@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ AddAclPort::AddAclPort(Oem oem): m_oem{oem} {}
 
 
 json::Json AddAclPort::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Acl::OEM] = m_oem.to_json();
     return value;
 }

@@ -1,0 +1,142 @@
+/*
+ * Copyright (c) 2018-2019 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "../buildscripts/wrapper.gradle"
+
+buildscript {
+    ext {
+        springBootVersion = '2.0.0.RELEASE'
+        dependencyManagementPluginVersion = '1.0.4.RELEASE'
+        podmServiceDockerPluginVersion = '1.0-SNAPSHOT'
+        gradleVersionsPluginVersion = '0.17.0'
+        podmCommonVersion = '1.0-SNAPSHOT'
+        springPlatformBomVersion = 'Cairo-RC1'
+        springCloudVersion = 'Finchley.M8'
+
+        clingCoreVersion = '2.1.1'
+        commonsValidatorVersion = '1.6'
+        guavaVersion = '24.1-jre'
+        jacocoVersion = '0.8.2'
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("io.spring.gradle:dependency-management-plugin:${dependencyManagementPluginVersion}")
+        classpath("com.intel.rsd:podm-service-docker-plugin:${podmServiceDockerPluginVersion}")
+        classpath("com.github.ben-manes:gradle-versions-plugin:${gradleVersionsPluginVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'jacoco'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.intel.rsd.podm-service-docker'
+apply plugin: 'com.github.ben-manes.versions'
+
+repositories {
+    maven { url "http://4thline.org/m2" }
+    mavenCentral()
+    maven { url 'https://repo.spring.io/libs-milestone' }
+    maven { url 'http://repo.spring.io/milestone' }
+    maven { url 'http://sndyuk.github.com/maven' }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
+    }
+}
+
+apply from: "../buildscripts/checkstyle.gradle"
+
+dependencies {
+    runtime("org.postgresql:postgresql")
+    runtime("io.micrometer:micrometer-registry-prometheus")
+
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    compile("org.springframework.boot:spring-boot-starter")
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    compile("org.fourthline.cling:cling-core:${clingCoreVersion}")
+    compile("org.apache.commons:commons-lang3")
+    compile("commons-validator:commons-validator:${commonsValidatorVersion}")
+    compile("commons-net:commons-net")
+    compile("com.google.guava:guava:${guavaVersion}")
+
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    testRuntime("com.h2database:h2")
+
+    testCompile("org.testng:testng")
+
+    testCompile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("com.github.tomakehurst:wiremock-standalone:2.15.0")
+
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+}
+
+bootJar {
+    launchScript()
+}
+
+podmService {
+    remoteDebugEnabled = false
+    maxHeapSize = '256m'
+}
+
+test {
+    useTestNG() {
+        testLogging {
+            showStandardStreams = false
+            //event to log on gradle output
+            events = ["skipped", "passed", "failed"]
+            exceptionFormat = "full"
+            showExceptions = true
+            showCauses = true
+            showStackTraces = false
+        }
+
+        suites 'src/test/java/com/intel/rsd/service/detector/endpoint/testng.xml'
+    }
+}
+
+jacoco {
+    toolVersion = "$jacocoVersion"
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                minimum = 0.4
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

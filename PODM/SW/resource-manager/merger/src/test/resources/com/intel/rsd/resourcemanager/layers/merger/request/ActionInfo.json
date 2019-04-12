@@ -1,0 +1,134 @@
+[
+  {
+    "Path": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.StartDeepDiscovery",
+    "ResourcePath": "/redfish/v1/Systems/1",
+    "ActionName": "Intel.Oem.StartDeepDiscovery",
+    "ContainingFragment": {
+      "Actions": {
+        "Oem": {
+          "#Intel.Oem.StartDeepDiscovery": {
+            "target": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.StartDeepDiscovery"
+          }
+        }
+      }
+    }
+  },
+  {
+    "Path": "/redfish/v1/Systems/1/Actions/ComputerSystem.Reset",
+    "ResourcePath": "/redfish/v1/Systems/1",
+    "ActionName": "ComputerSystem.Reset",
+    "ContainingFragment": {
+      "Actions": {
+        "#ComputerSystem.Reset": {
+          "target": "/redfish/v1/Systems/1/Actions/ComputerSystem.Reset",
+          "ResetType@Redfish.AllowableValues": [
+            "On",
+            "ForceOff",
+            "GracefulShutdown",
+            "ForceRestart",
+            "Nmi",
+            "GracefulRestart",
+            "ForceOn",
+            "PushPowerButton"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Path": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.ChangeTPMState",
+    "ResourcePath": "/redfish/v1/Systems/1",
+    "ActionName": "Intel.Oem.ChangeTPMState",
+    "ContainingFragment": {
+      "Actions": {
+        "Oem": {
+          "#Intel.Oem.ChangeTPMState": {
+            "target": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.ChangeTPMState",
+            "InterfaceType@Redfish.AllowableValues": []
+          }
+        }
+      }
+    }
+  },
+  {
+    "Path": "/redfish/v1/Chassis/1/Actions/Chassis.Reset",
+    "ResourcePath": "/redfish/v1/Chassis/1",
+    "ActionName": "Chassis.Reset",
+    "ContainingFragment": {
+      "Actions": {
+        "#Chassis.Reset": {
+          "target": "/redfish/v1/Chassis/Drawer1/Actions/Chassis.Reset",
+          "ResetType@Redfish.AllowableValues": [
+            "ForceRestart",
+            "GracefulRestart"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Path": "/redfish/v1/EthernetSwitches/2/ACLs/1/Actions/EthernetSwitchACL.Bind",
+    "ResourcePath": "/redfish/v1/EthernetSwitches/2/ACLs/1",
+    "ActionName": "EthernetSwitchACL.Bind",
+    "ContainingFragment": {
+      "Actions": {
+        "#EthernetSwitchACL.Bind": {
+          "target": "/redfish/v1/EthernetSwitches/2/ACLs/1/Actions/EthernetSwitchACL.Bind",
+          "Port@Redfish.AllowableValues": [
+            {
+              "@odata.id": "/redfish/v1/EthernetSwitches/2/Ports/2"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Path": "/redfish/v1/EthernetSwitches/2/ACLs/1/Actions/EthernetSwitchACL.Unbind",
+    "ResourcePath": "/redfish/v1/EthernetSwitches/2/ACLs/1",
+    "ActionName": "EthernetSwitchACL.Unbind",
+    "ContainingFragment": {
+      "Actions": {
+        "#EthernetSwitchACL.Unbind": {
+          "target": "/redfish/v1/EthernetSwitches/2/ACLs/1/Actions/EthernetSwitchACL.Unbind",
+          "Port@Redfish.AllowableValues": [
+            {
+              "@odata.id": "/redfish/v1/EthernetSwitches/2/Ports/1"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Path": "/redfish/v1/Managers/123/Actions/Manager.Reset",
+    "ResourcePath": "/redfish/v1/Managers/123",
+    "ActionName": "Manager.Reset",
+    "ContainingFragment": {
+      "Actions": {
+        "#Manager.Reset": {
+          "target": "/redfish/v1/Managers/ZMC1/Actions/Manager.Reset"
+        },
+        "ResetType@Redfish.AllowableValues": [
+          "ForceRestart"
+        ]
+      }
+    }
+  },
+  {
+    "Path": "/redfish/v1/Managers/123/Actions/Manager.LoadFactoryDefaults",
+    "ResourcePath": "/redfish/v1/Managers/123",
+    "ActionName": "Manager.LoadFactoryDefaults",
+    "ContainingFragment": {
+      "Actions": {
+        "Oem": {
+          "Intel_RackScale": {
+            "#Manager.LoadFactoryDefaults": {
+              "target": "/redfish/v1/Managers/MC1/Actions/Manager.LoadFactoryDefaults"
+            }
+          }
+        }
+      }
+    }
+  }
+]

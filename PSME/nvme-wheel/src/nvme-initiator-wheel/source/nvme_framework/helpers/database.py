@@ -47,7 +47,7 @@ def update_local_path(func):
         # if a new target was connected, update database entry with nvme path
         try:
             update_node_id(args[1], dl.get_recently_added_nvme_node())
-        except KeyError:
+        except:
             Message.error('Target name was not specify')
         return func_return
     return updated_local_path

@@ -2,7 +2,7 @@
  * @brief Unit tests for generation of UUIDv5
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,7 @@
 #include "tree_stability/chassis_tree_stabilizer.hpp"
 #include "agent-framework/module/chassis_components.hpp"
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 
 #include "gtest/gtest.h"
 

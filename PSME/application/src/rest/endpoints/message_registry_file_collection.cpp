@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,17 +30,17 @@ using namespace psme::rest::registries;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[constants::Common::ODATA_CONTEXT] =
         "/redfish/v1/$metadata#MessageRegistryFileCollection.MessageRegistryFileCollection";
-    r[constants::Common::ODATA_ID] = json::Value::Type::NIL;
+    r[constants::Common::ODATA_ID] = json::Json::value_t::null;
     r[constants::Common::ODATA_TYPE] = "#MessageRegistryFileCollection.MessageRegistryFileCollection";
     r[constants::Common::NAME] = "MessageRegistryFile collection";
     r[constants::Common::DESCRIPTION] = "Collection of Message Registry Files";
-    r[constants::Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[constants::Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[constants::Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[constants::Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -61,7 +61,7 @@ void MessageRegistryFileCollection::get(const server::Request& request, server::
     json[constants::Collection::ODATA_COUNT] = MessageRegistryFileManager::get_instance()->get_count();
 
     for (const auto& file : MessageRegistryFileManager::get_instance()->get_files()) {
-        json::Value link_elem(json::Value::Type::OBJECT);
+        json::Json link_elem(json::Json::value_t::object);
         link_elem[constants::Common::ODATA_ID] = PathBuilder(request).append(file.get_id()).build();
         json[constants::Collection::MEMBERS].push_back(std::move(link_elem));
     }

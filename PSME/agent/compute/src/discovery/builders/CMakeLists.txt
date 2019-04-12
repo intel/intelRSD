@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ set(SOURCES
     drive_builder.cpp
     manager_builder.cpp
     memory_builder.cpp
+    memory_domain_builder.cpp
+    memory_chunks_builder.cpp
     network_device_builder.cpp
     network_device_function_builder.cpp
     network_interface_builder.cpp
@@ -28,13 +30,6 @@ set(SOURCES
     thermal_zone_builder.cpp
     pcie_device_builder.cpp
     pcie_function_builder.cpp
-
-    platform_specific/grantley/grantley_chassis_builder.cpp
-    platform_specific/grantley/grantley_memory_builder.cpp
-    platform_specific/grantley/grantley_network_device_function_builder.cpp
-    platform_specific/grantley/grantley_network_interface_builder.cpp
-    platform_specific/grantley/grantley_processor_builder.cpp
-    platform_specific/grantley/grantley_system_builder.cpp
 
     platform_specific/purley/purley_chassis_builder.cpp
     platform_specific/purley/purley_system_builder.cpp

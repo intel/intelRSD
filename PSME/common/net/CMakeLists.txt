@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,23 +22,69 @@ project(net CXX)
 set(NET_LIBRARIES
     net
     CACHE PATH "net libraries"
-)
+    )
 
 set(NET_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE PATH "net include directory"
-)
+    )
 
-include_directories(
-    include
-)
+if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    set_source_files_properties(
+        src/socket_address.cpp
+        PROPERTIES COMPILE_FLAGS "-Wstrict-aliasing=3"
+    )
+endif ()
 
-include_directories(SYSTEM
-    ${SAFESTRING_INCLUDE_DIRS}
-    ${LOGGER_INCLUDE_DIRS}
-)
+if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    set_source_files_properties(
+        src/socket.cpp
+        PROPERTIES COMPILE_FLAGS "-Wno-unsafe-loop-optimizations"
+    )
+endif ()
 
-set(SRC
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    set_source_files_properties(
+        src/network_change_notifier_impl.cpp
+        PROPERTIES COMPILE_FLAGS "-Wno-cast-align -Wno-old-style-cast -Wno-unreachable-code"
+    )
+    set_source_files_properties(
+        src/socket_impl.cpp
+        src/socket.cpp
+        PROPERTIES COMPILE_FLAGS "-Wno-old-style-cast -Wno-unreachable-code"
+    )
+endif ()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+    set_source_files_properties(
+        src/network_change_notifier_impl.cpp
+        PROPERTIES COMPILE_FLAGS "-Wno-cast-align -Wstrict-aliasing=3 -Wno-logical-op"
+    )
+endif ()
+
+if (CMAKE_CROSSCOMPILING)
+    if (CMAKE_CXX_COMPILER_ID MATCHES Clang|GNU)
+        set_source_files_properties(
+            src/ipaddress.cpp
+            src/network_interface.cpp
+            PROPERTIES COMPILE_FLAGS "-Wno-cast-align"
+        )
+    endif ()
+    if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+        set_source_files_properties(
+            src/socket_address.cpp
+            PROPERTIES COMPILE_FLAGS "-Wno-cast-align"
+        )
+    endif ()
+    if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
+        set_source_files_properties(
+            src/socket_address.cpp
+            PROPERTIES COMPILE_FLAGS "-Wno-cast-align -Wstrict-aliasing=3"
+        )
+    endif ()
+endif ()
+
+add_library(net STATIC
     src/network_interface.cpp
     src/ipaddress.cpp
     src/socket_address.cpp
@@ -53,73 +99,21 @@ set(SRC
     src/paired_socket.cpp
     src/net_exception.cpp
     src/network_change_notifier.cpp
-    src/network_change_notifier_impl.cpp
-)
+    src/network_change_notifier_impl.cpp)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-    set_source_files_properties(
-        src/socket_address.cpp
-        PROPERTIES COMPILE_FLAGS "-Wstrict-aliasing=3"
+target_include_directories(net
+    PRIVATE
+    ${SAFESTRING_INCLUDE_DIRS}
+
+    PUBLIC
+    include
     )
-endif()
 
-if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-    set_source_files_properties(
-        src/socket.cpp
-        PROPERTIES COMPILE_FLAGS "-Wno-unsafe-loop-optimizations"
+target_link_libraries(net
+    PRIVATE
+    logger
     )
-endif()
 
-if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
-    set_source_files_properties(
-        src/network_change_notifier_impl.cpp
-        PROPERTIES COMPILE_FLAGS "-Wno-cast-align -Wno-old-style-cast -Wno-unreachable-code"
-    )
-    set_source_files_properties(
-        src/socket_impl.cpp
-        src/socket.cpp
-        PROPERTIES COMPILE_FLAGS "-Wno-old-style-cast -Wno-unreachable-code"
-    )
-endif()
-
-if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-    set_source_files_properties(
-        src/network_change_notifier_impl.cpp
-        PROPERTIES COMPILE_FLAGS "-Wno-cast-align -Wstrict-aliasing=3 -Wno-logical-op"
-    )
-endif()
-
-if (CMAKE_CROSSCOMPILING)
-    if (CMAKE_CXX_COMPILER_ID MATCHES Clang|GNU)
-        set_source_files_properties(
-            src/ipaddress.cpp
-            src/network_interface.cpp
-            PROPERTIES COMPILE_FLAGS "-Wno-cast-align"
-        )
-    endif()
-    if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
-        set_source_files_properties(
-            src/socket_address.cpp
-            PROPERTIES COMPILE_FLAGS "-Wno-cast-align"
-        )
-    endif()
-    if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-        set_source_files_properties(
-            src/socket_address.cpp
-            PROPERTIES COMPILE_FLAGS "-Wno-cast-align -Wstrict-aliasing=3"
-        )
-    endif()
-endif()
-
-add_library(net STATIC ${SRC})
-
-install(TARGETS net
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-)
-
-install (DIRECTORY include/net DESTINATION include)
 
 #add_subdirectory(examples)
 add_subdirectory(tests)

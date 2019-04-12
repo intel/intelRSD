@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ set(SOURCES
     set_port_dcbx_state.cpp
     set_switch_pfc_enabled.cpp
     set_switch_lldp_enabled.cpp
+    add_switch_vlan.cpp
+    delete_switch_vlan.cpp
     add_switch_qos_application_protocol.cpp
     delete_switch_qos_application_protocol.cpp
     add_switch_qos_priority_group_mapping.cpp

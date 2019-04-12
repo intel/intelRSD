@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,6 +47,13 @@ bool is_valid_structure_length(const uint8_t length) {
     static constexpr uint8_t OEM_END = 0xff;
     return (T::ID >= OEM_START && T::ID <= OEM_END) ? length == sizeof(T) : length >= sizeof(T);
 }
+
+/*!
+ * @brief specialization for Speed Select structure, which has variable length, as it can contain
+ * zero or more configurations.
+ */
+template<>
+bool is_valid_structure_length<SMBIOS_SPEED_SELECT_INFO_DATA>(const uint8_t length);
 
 
 /*!
@@ -124,6 +131,40 @@ using SmbiosParser = mdr::GenericParser<SmbiosMdrTraits>;
 
 namespace mdr {
 
+/*!
+ * @brief specialization for Speed Select structure, with extra container to store Configurations.
+ */
+class SpeedSelectEnhanced : public BufferBasedStruct<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA> {
+public:
+    using Configs = std::vector<smbios::parser::SPEED_SELECT_CONFIGURATION>;
+
+    SpeedSelectEnhanced(const smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA& structure_with_header,
+                        Configs&& _configs,
+                        std::vector<std::string>&& _strings,
+                        std::shared_ptr<const uint8_t> _raw_buffer) :
+        BufferBasedStruct<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA>(structure_with_header, std::move(_strings), _raw_buffer),
+        configs(std::move(_configs)) { }
+
+    /*!
+     * @brief const Speed Select configurations read for a Speed Select Info structure
+     */
+    const Configs configs;
+};
+
+template<>
+struct StructEnhancedHelper<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA>{
+    using type = SpeedSelectEnhanced;
+};
+
+/*!
+ * @brief specialization for Speed Select structure, with extra code to handle reading
+ * variable number of Configurations.
+ */
+template<>
+StructEnhanced<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA> parse_struct<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA>(
+    std::shared_ptr<const uint8_t> bufp, const size_t buf_size, uint64_t& offset, bool has_auxiliary_string);
+
+
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_BIOS_INFO_DATA>& s);
 
 
@@ -180,5 +221,8 @@ operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_MEMORY_
 
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_PCIE_PORT_INFO_DATA>& data);
+
+
+std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA>& data);
 
 }  // namespace mdr

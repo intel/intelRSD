@@ -1,8 +1,7 @@
 /*!
  * @brief GetCpuAndMemoryTemperature IPMI command request and response implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file sdv/nm/get_cpu_and_memory_temperature.cpp
  */
 
@@ -66,8 +64,8 @@ void response::GetCpuAndMemoryTemperature::throw_error_on_completion_code(Comple
     switch (completion_code) {
     case InvalidCpuNumber::ERROR_CODE:
         throw InvalidCpuNumber(*this);
-    case InvalidPciInterfaceState::ERROR_CODE:
-        throw InvalidPciInterfaceState(*this);
+    case InvalidPeciInterfaceState::ERROR_CODE:
+        throw InvalidPeciInterfaceState(*this);
     case InvalidPlatformState::ERROR_CODE:
         throw InvalidPlatformState(*this);
     case InvalidResponseLength::ERROR_CODE:

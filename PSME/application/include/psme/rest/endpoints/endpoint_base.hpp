@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +19,14 @@
  * */
 
 #pragma once
+
+
+
 #include "psme/rest/server/request.hpp"
 #include "psme/rest/server/response.hpp"
 #include "psme/rest/server/methods_handler.hpp"
-#include "psme/rest/model/finder.hpp"
+#include "psme/rest/model/find.hpp"
+#include "psme/rest/model/try_find.hpp"
 #include "psme/rest/endpoints/utils.hpp"
 
 #include "agent-framework/module/chassis_components.hpp"
@@ -31,10 +35,12 @@
 #include "agent-framework/module/storage_components.hpp"
 #include "agent-framework/module/pnc_components.hpp"
 
-#include <json/json.hpp>
+#include "json-wrapper/json-wrapper.hpp"
 #include <cstring>
 #include <string>
 #include <memory>
+
+
 
 namespace psme {
 namespace rest {
@@ -56,20 +62,27 @@ public:
      * */
     explicit EndpointBase(const std::string& path);
 
+
     /*!
      * @brief Destructor
      */
     virtual ~EndpointBase();
 
+
     void get(const Request& request, Response& response) override;
+
 
     void del(const Request& request, Response& response) override;
 
+
     void post(const Request& request, Response& response) override;
+
 
     void patch(const Request& request, Response& response) override;
 
+
     void put(const Request& request, Response& response) override;
+
 
 protected:
 
@@ -77,6 +90,7 @@ protected:
      * @brief the method updates the time of modification
      */
     void update_modified_time();
+
 
     /*!
      * @brief the method return the time of modification
@@ -87,15 +101,17 @@ protected:
         return m_modified_time;
     }
 
+
     /*!
      * @brief the method fills a Response with json data
      *
      * @param response server::Response the Response to be filled with json content
-     * @param json json::Value the json content
+     * @param json json::Json the json content
      */
-    void set_response(server::Response& response, const json::Value& json) {
-        response << json::Serializer(json);
+    void set_response(server::Response& response, const json::Json& json) {
+        response << json.dump();
     }
+
 
 private:
     std::string m_modified_time{};

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ using namespace agent_framework::model::literals;
 GetProcessorInfo::GetProcessorInfo(const std::string& processor): m_processor{processor} {}
 
 json::Json GetProcessorInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Processor::PROCESSOR] = m_processor;
     return value;
 }

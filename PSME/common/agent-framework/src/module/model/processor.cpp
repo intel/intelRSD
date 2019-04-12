@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ Processor::~Processor() {}
 
 
 json::Json Processor::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
 
     result[literals::Processor::STATUS] = get_status().to_json();
     result[literals::Processor::SOCKET] = get_socket();
@@ -59,7 +59,6 @@ json::Json Processor::to_json() const {
     result[literals::Processor::ENABLED_THREADS] = get_enabled_threads();
     result[literals::Processor::THERMAL_DESIGN_POWER_WATT] = get_tdp_watt();
     result[literals::Processor::FPGA] = get_fpga().to_json();
-    result[literals::Processor::ON_PACKAGE_MEMORY] = get_on_package_memory().to_json();
     result[literals::Processor::OEM] = get_oem().to_json();
 
     return result;
@@ -85,7 +84,6 @@ Processor Processor::from_json(const json::Json& json) {
     processor.set_enabled_cores(json[literals::Processor::ENABLED_CORES]);
     processor.set_total_threads(json[literals::Processor::TOTAL_THREADS]);
     processor.set_enabled_threads(json[literals::Processor::ENABLED_THREADS]);
-    processor.set_on_package_memory(OnPackageMemoryArray::from_json(json[literals::Processor::ON_PACKAGE_MEMORY]));
     processor.set_tdp_watt(json[literals::Processor::THERMAL_DESIGN_POWER_WATT]);
     processor.set_fpga(attribute::Fpga::from_json(json[literals::Processor::FPGA]));
     processor.set_oem(attribute::Oem::from_json(json[literals::Processor::OEM]));

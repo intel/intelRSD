@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@
 #include "tools/model_tool.hpp"
 #include "tools/gas_tool.hpp"
 #include "tools/map_tool.hpp"
+#include "tools/fpga_oob/oob_fpga_tool.hpp"
 
 namespace agent {
 namespace pnc {
@@ -44,7 +45,7 @@ public:
     /*! Copy constructor */
     Toolset(const Toolset& rhs);
 
-    /*! Default desctructor */
+    /*! Default destructor */
     ~Toolset();
 
     /*!
@@ -57,6 +58,7 @@ public:
     I2cToolPtr i2c_tool{};
     GasToolPtr gas_tool{};
     MapToolPtr map_tool{};
+    OobFpgaToolPtr oob_fpga_tool{};
 };
 
 }

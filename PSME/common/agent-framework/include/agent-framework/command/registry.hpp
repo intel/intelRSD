@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file registry.cpp
+ * @file registry.hpp
  *
  * @brief Registry implementation
  * */
@@ -25,7 +25,6 @@
 #pragma once
 #include "agent-framework/generic/singleton.hpp"
 #include "agent-framework/command/command.hpp"
-#include "agent-framework/logger_ext.hpp"
 
 #include <vector>
 
@@ -58,7 +57,7 @@ namespace agent_framework {
 /*! Command */
 namespace command {
 
-/*
+/*!
  * @brief Registry of JSON RPC Commands
  * */
 class Registry : public agent_framework::generic::Singleton<Registry> {

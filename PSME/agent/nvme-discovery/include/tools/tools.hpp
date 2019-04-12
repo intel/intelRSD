@@ -1,8 +1,7 @@
 /*!
  * @brief Definition of Tools class.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file tools.hpp
  */
 
@@ -66,14 +64,6 @@ void disconnect_from_target(const agent_framework::model::Endpoint& target);
  * @param zone Zone's UUID.
  */
 void disconnect_all_targets(const Uuid& zone);
-
-/*!
- * @brief Get drive name (not full path!) associated with storage pool.
- *
- * @param pool Storage pool
- * @return drive name (i.e. nvme1)
- */
-std::string get_drive_name(const agent_framework::model::StoragePool& pool);
 
 /*!
  * @brief Get drive/volume name from system path.

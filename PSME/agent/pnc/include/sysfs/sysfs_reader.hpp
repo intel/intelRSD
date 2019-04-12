@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,6 +59,17 @@ public:
      */
     virtual std::vector<std::string> get_drives_for_device(
         const std::string& switch_bridge_path, uint8_t bus_num, uint8_t device_num) const;
+
+    /*!
+     * @brief Reads address of the FPGA device in sysfs
+     * @param switch_bridge_path Path to the parent switch bridge
+     * @param bus_num Switch bus number
+     * @param device_num Number of the PCIeDevice to check
+     * @return Pcie address of the processor
+     */
+    virtual PcieAddress get_pcie_address_for_fpga_device(
+        const std::string& switch_bridge_path, uint8_t bus_num, uint8_t device_num) const;
+
 
     /*!
      * @brief Unbinds nvme driver for a specific device

@@ -1,24 +1,25 @@
 /*!
- * @brief Watcher
+ * @copyright
+ * Copyright (c) 2016-2019 Intel Corporation
  *
- * Class handling events and executing periodic tasks.
+ * @copyright
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * @header{License}
- * @copyright Copyright (c) 2016-2018 Intel Corporation
+ * @copyright
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may
- * not use this file except in compliance with the License. You may obtain
- * a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
+ * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
+ * @brief Class handling events and executing periodic tasks.
  * @file watcher.hpp
- */
+ * */
 
 #pragma once
 
@@ -26,11 +27,9 @@
 #include <chrono>
 #include <vector>
 
-namespace agent_framework {
-namespace eventing {
-    class ComponentNotification;
-}
-}
+#include "agent-framework/module/requests/psme/component_notification.hpp"
+
+
 
 namespace psme {
 namespace rest {
@@ -58,6 +57,7 @@ public:
 
 private:
     using RunTime = std::chrono::time_point<std::chrono::steady_clock>;
+    using ComponentNotification = agent_framework::model::requests::ComponentNotification;
 
     /*! @brief Registration held by the watcher */
     struct Registration {
@@ -87,12 +87,13 @@ private:
     void watch();
 
     std::thread m_thread{};
+
     volatile bool m_running{false};
 
     /*!
      * @brief handle notification from agent
      */
-    void process_notification(const agent_framework::eventing::ComponentNotification& notification);
+    void process_notification(const ComponentNotification& notification);
 };
 
 /*!
@@ -112,7 +113,9 @@ public:
      *
      * Just for logging facility.
      */
-    const std::string& get_name() const { return name; }
+    const std::string& get_name() const {
+        return m_name;
+    }
 
     /*!
      * @brief Get interval for next execution
@@ -149,7 +152,7 @@ private:
     WatcherTask(const WatcherTask&) = delete;
     WatcherTask() = delete;
 
-    const std::string name;
+    const std::string m_name{};
 };
 
 }

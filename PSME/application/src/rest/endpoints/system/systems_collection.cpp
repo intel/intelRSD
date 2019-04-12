@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,16 +27,16 @@ using namespace psme::rest::constants;
 
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#ComputerSystemCollection.ComputerSystemCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#ComputerSystemCollection.ComputerSystemCollection";
     r[Common::NAME] = "Computer System Collection";
     r[Common::DESCRIPTION] = "Collection of Computer Systems";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -55,7 +55,7 @@ void SystemsCollection::get(const server::Request& req, server::Response& res) {
     json[Collection::ODATA_COUNT] = std::uint32_t(system_ids.size());
 
     for (const auto& id : system_ids ){
-        json::Value link;
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = PathBuilder(req).append(id).build();
         json[Collection::MEMBERS].push_back(std::move(link));
     }

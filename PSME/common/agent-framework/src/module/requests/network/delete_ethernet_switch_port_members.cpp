@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ DeleteEthernetSwitchPortMembers::DeleteEthernetSwitchPortMembers(const std::vect
                 m_oem{} {}
 
 json::Json DeleteEthernetSwitchPortMembers::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[EthernetSwitchPort::MEMBERS] = m_members;
     value[EthernetSwitchPort::PORT] = m_port;
     value[EthernetSwitchPort::OEM] = m_oem.to_json();

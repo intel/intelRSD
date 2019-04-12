@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +26,7 @@
 #pragma once
 
 #include "ssdp/ssdp_service_config.hpp"
-
-namespace json {
-    class Value;
-}
+#include "json-wrapper/json-wrapper.hpp"
 
 namespace ssdp {
 
@@ -39,6 +36,6 @@ namespace ssdp {
  * @param[in] uuid Service uuid.
  * @return Instance of SsdpServiceConfig.
  */
-SsdpServiceConfig load_ssdp_config(const json::Value& config, const std::string& uuid);
+SsdpServiceConfig load_ssdp_config(const json::Json& config, const std::string& uuid);
 
 }

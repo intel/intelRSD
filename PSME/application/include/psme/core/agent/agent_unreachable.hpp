@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,13 @@
  * */
 
 #pragma once
+
+
+
 #include <string>
 #include <exception>
+
+
 
 namespace psme {
 namespace core {
@@ -44,14 +49,18 @@ public:
      */
     explicit AgentUnreachable(const std::string& gami_id);
 
+
     /*! @brief Default copy constructor.  */
     AgentUnreachable(const AgentUnreachable&) = default;
+
 
     /*! @brief Assignment operator */
     AgentUnreachable& operator=(const AgentUnreachable&) = default;
 
+
     /*! @brief Destructor */
     virtual ~AgentUnreachable() noexcept;
+
 
     /*!
      * @brief Gets Agent's GAMI ID.
@@ -59,6 +68,7 @@ public:
      * @return GAMI ID of unreachable agent.
      * */
     const std::string& get_gami_id() const;
+
 
     /*!
      * @brief Returns a C-style character string describing the general cause of
@@ -68,8 +78,14 @@ public:
      * */
     virtual const char* what() const noexcept;
 
+
 private:
+    /* Prepares m_what field returned on what() method call */
+    void make_what();
+
+
     const std::string m_gami_id;
+    std::string m_what{};
 };
 
 }

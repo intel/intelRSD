@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,8 +64,8 @@ TEST(GetIscsiTargetInfoTest, PositiveExecute) {
     MyGetIscsiTargetInfo command{"TestIscsiTarget"};
     GetIscsiTargetInfo::Request request{""};
     GetIscsiTargetInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::IscsiTarget::TARGET] = "TestIscsiTarget";
 
@@ -90,8 +90,8 @@ TEST(GetIscsiTargetInfoTest, NegativeIscsiTargetNotFound) {
     MyGetIscsiTargetInfo command{"TestIscsiTarget"};
     GetIscsiTargetInfo::Request request{""};
     GetIscsiTargetInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::IscsiTarget::TARGET] = "OtherTestIscsiTarget";
 

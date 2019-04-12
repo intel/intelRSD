@@ -8,8 +8,7 @@
  * single entity operations. These schemas exclude themselves (iteration is
  * done only during initialization, while modification afterwards "on event").
  *
- * @header{License}
- * @copyright Copyright (c) 2016-2018 Intel Corporation
+ * @copyright Copyright (c) 2016-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -21,7 +20,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file database.hpp
  */
 
@@ -109,6 +107,7 @@ public:
      */
     virtual bool start() = 0;
 
+
     /*!
      * @brief get next entry from the database
      * @param[out] key next key from the database
@@ -116,6 +115,7 @@ public:
      * @return true if key/value pair was read successfully
      */
     virtual bool next(Serializable& key, Serializable& value) = 0;
+
 
     /*! @brief end database iteration. */
     virtual void end() = 0;

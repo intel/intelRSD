@@ -2,7 +2,7 @@
  * @brief Provides implementation of ChassisTreeStabilizer class
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,6 @@
 
 
 #include "tree_stability/chassis_tree_stabilizer.hpp"
-#include "agent-framework/logger_ext.hpp"
 #include "agent-framework/module/managers/generic_manager.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
@@ -116,11 +115,11 @@ void stabilize_drawer_and_manager() {
 
     // This event needs to be sent here for a moment to ensure that no false events are
     // passed to the REST server.
-    EventData edat{};
+    agent_framework::model::attribute::EventData edat{};
     edat.set_parent("");
     edat.set_component(module_persistent_uuid);
     edat.set_type(agent_framework::model::enums::Component::Manager);
-    edat.set_notification(Notification::Add);
+    edat.set_notification(agent_framework::model::enums::Notification::Add);
     EventsQueue::get_instance()->push_back(edat);
 
     log_debug("tree-stability",

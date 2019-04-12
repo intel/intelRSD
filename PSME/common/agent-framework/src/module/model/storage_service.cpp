@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ StorageService::~StorageService() {}
 
 
 json::Json StorageService::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::StorageService::STATUS] = get_status().to_json();
     result[literals::StorageService::COLLECTIONS] = get_collections().to_json();
     result[literals::StorageService::OEM] = get_oem().to_json();

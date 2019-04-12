@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,8 +42,7 @@ void PcieDeviceBuilder::build_default() {
 
     m_obj.add_collection(attribute::Collection(
         enums::CollectionName::PcieFunctions,
-        enums::CollectionType::PCIeFunctions,
-        ""
+        enums::CollectionType::PCIeFunctions
     ));
 }
 

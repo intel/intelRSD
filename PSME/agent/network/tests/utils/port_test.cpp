@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +32,8 @@
 #include "loader/network_loader.hpp"
 #include "configuration_full.hpp"
 
-#include "json/value.hpp"
-#include "json/deserializer.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 
 using namespace agent_framework::module;
 using namespace agent::network::utils;
@@ -41,13 +41,12 @@ using namespace agent::network::utils;
 class PortTest: public ::testing::Test {
 protected:
     agent::network::loader::NetworkLoader loader{};
-    json::Value config;
-    json::Deserializer deserializer{};
+    json::Json config = json::Json();
 public:
     virtual ~PortTest();
 
     void SetUp() {
-        deserializer << NETWORK_FULL_CONFIGURATION;
+        config = json::Json::parse(NETWORK_FULL_CONFIGURATION);
     }
 
     std::string get_manager_uuid() {
@@ -58,7 +57,6 @@ public:
 PortTest::~PortTest() {}
 
 TEST_F(PortTest, init_switch_vlan_port) {
-    deserializer >> config;
     ASSERT_TRUE(loader.load(config));
     init_switch_vlan_port("sw0p1");
 }

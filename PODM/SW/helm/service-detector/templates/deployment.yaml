@@ -1,0 +1,173 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "service-detector.fullname" . }}
+  labels:
+    app: {{ template "service-detector.name" . }}
+    chart: {{ template "service-detector.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ template "service-detector.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ template "service-detector.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        fsGroup: 1500
+      {{- if ne .Values.global.registry_secret "" }}
+      imagePullSecrets:
+        - name: {{ .Values.global.registry_secret }}
+      {{ end }}
+      volumes:
+        - name: service-detector-config
+          configMap:
+            name: service-detector-config
+            items:
+              - key: application.yml
+                path: application.yml
+      {{- include "shared.coverage.volume" . | indent 8}}
+      {{- if .Values.dhcpd.enabled }}
+        - name: dhcpd-config
+          configMap:
+            name: podm-dhcp-config
+            items:
+              - key: dhcpd.config
+                path: dhcpd.conf
+        - name: dhcpd-leases
+          emptyDir: {} #TODO: change to permanent storage
+      {{ end }}
+      {{- if .Values.global.southbound_security.enabled }}
+        - name: sb-security-config
+          secret:
+            secretName: sb-security-config
+            items:
+              - key: KEYSTORE_PATH
+                path: keystore
+              - key: TRUSTSTORE_PATH
+                path: truststore
+        {{- if .Values.global.southbound_security.manifest_verification.enabled }}
+        - name: {{ .Values.global.southbound_security.manifest_verification.trusted_certs_directory }}
+          flexVolume:
+            driver: ceph.rook.io/rook
+            fsType: ceph
+            options:
+              fsName: {{ .Values.global.southbound_security.manifest_verification.trusted_certs_directory }}
+              clusterNamespace: rook-ceph
+        {{ end }}
+      {{ end }}
+      containers:
+      {{- if .Values.dhcpd.enabled }}
+        - name: podm-dhcp
+          image: "{{ .Values.global.registry }}podm-dhcp:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: INTERFACES
+              value: {{ .Values.dhcpd.interfaces }}
+          volumeMounts:
+            - name: dhcpd-config
+              mountPath: /etc/dhcp
+            - name: dhcpd-leases
+              mountPath: /var/lib/dhcp
+      {{ end }}
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.global.registry }}{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.applicationProperties.server.port }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /redfish/v1/Managers
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /redfish/v1/Managers
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          env:
+          {{- if .Values.global.southbound_security.enabled }}
+            - name: KEYSTORE_PATH
+              value: file:/var/run/secrets/sbconfig/keystore
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: KEYSTORE_PASSWORD
+            - name: KEYSTORE_ALIAS
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: KEYSTORE_ALIAS
+            - name: TRUSTSTORE_PATH
+              value: file:/var/run/secrets/sbconfig/truststore
+            - name: TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: TRUSTSTORE_PASSWORD
+          {{- if .Values.global.southbound_security.manifest_verification.enabled }}
+            - name: TRUSTSTORE_TRUSTED_CERTS_DIRECTORY
+              value: /var/run/trusted-certs-directory
+          {{ end }}
+          {{ end }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: "{{ if .Values.spring.profiles.active }}{{ .Values.spring.profiles.active }}{{ else }}
+                {{- if .Values.global.southbound_security.enabled }}truststore-based-verification{{ else }}no-verification{{- end -}},https-only-service-registrar
+                {{- if .Values.ssdp.enabled -}},ssdp{{- end -}}
+                {{- if .Values.dhcpd.enabled -}},dhcp{{- end -}}
+                {{ end }}"
+            - name: PODM_POSTGRES_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretName }}
+                  key: database-password
+          volumeMounts:
+            - name: service-detector-config
+              mountPath: /app/config
+              readOnly: true
+          {{- if .Values.global.southbound_security.enabled }}
+            - name: sb-security-config
+              readOnly: true
+              mountPath: /var/run/secrets/sbconfig
+          {{- if .Values.global.southbound_security.manifest_verification.enabled }}
+            - name: {{ .Values.global.southbound_security.manifest_verification.trusted_certs_directory }}
+              mountPath: /var/run/trusted-certs-directory
+          {{ end }}
+          {{ end }}
+          {{- if .Values.dhcpd.enabled }}
+            - name: dhcpd-leases
+              mountPath: /var/lib/dhcp
+          {{ end }}
+          {{- include "shared.coverage.mount" . | indent 12}}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

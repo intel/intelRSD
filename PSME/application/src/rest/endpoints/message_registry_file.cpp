@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,21 +35,21 @@ using namespace psme::rest::endpoint::utils;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[constants::Common::ODATA_CONTEXT] =
         "/redfish/v1/$metadata#MessageRegistryFile.MessageRegistryFile";
-    r[constants::Common::ODATA_ID] = json::Value::Type::NIL;
-    r[constants::Common::ODATA_TYPE] = "#MessageRegistryFile.v1_0_0.MessageRegistryFile";
-    r[constants::Common::ID] = json::Value::Type::NIL;
-    r[constants::Common::NAME] = json::Value::Type::NIL;
-    r[constants::Common::DESCRIPTION] = json::Value::Type::NIL;
+    r[constants::Common::ODATA_ID] = json::Json::value_t::null;
+    r[constants::Common::ODATA_TYPE] = "#MessageRegistryFile.v1_1_0.MessageRegistryFile";
+    r[constants::Common::ID] = json::Json::value_t::null;
+    r[constants::Common::NAME] = json::Json::value_t::null;
+    r[constants::Common::DESCRIPTION] = json::Json::value_t::null;
 
-    r[constants::MessageRegistryFile::LANGUAGES] = json::Value::Type::ARRAY;
-    r[constants::MessageRegistryFile::REGISTRY] = json::Value::Type::NIL;
-    r[constants::MessageRegistryFile::LOCATION] = json::Value::Type::ARRAY;
-    r[constants::Common::OEM] = json::Value::Type::OBJECT;
+    r[constants::MessageRegistryFile::LANGUAGES] = json::Json::value_t::array;
+    r[constants::MessageRegistryFile::REGISTRY] = json::Json::value_t::null;
+    r[constants::MessageRegistryFile::LOCATION] = json::Json::value_t::array;
+    r[constants::Common::OEM] = json::Json::value_t::object;
 
     return r;
 }
@@ -74,19 +74,18 @@ void MessageRegistryFile::get(const server::Request& request, server::Response& 
     try {
         const auto& file = registries::MessageRegistryFileManager::get_instance()->get_file_by_id(file_id);
 
-        r[constants::Common::NAME] = file.get_name();
-        r[constants::Common::DESCRIPTION] = file.get_description();
+        fill_name_and_description(file, r);
 
-        json::Value languages = json::Value::Type::ARRAY;
+        json::Json languages = json::Json::value_t::array;
         for (const auto& language : file.get_languages()) {
             languages.push_back(language);
         }
         r[constants::MessageRegistryFile::LANGUAGES] = std::move(languages);
         r[constants::MessageRegistryFile::REGISTRY] = file.get_registry();
 
-        json::Value locations = json::Value::Type::ARRAY;
+        json::Json locations = json::Json::value_t::array;
         for (const auto& location : file.get_locations()) {
-            json::Value s = json::Value::Type::OBJECT;
+            json::Json s = json::Json::value_t::object;
 
             // All properties of file's location are not nullable in metadata, but they are not required, too.
             // Therefore, if they have no values, they will not be displayed.

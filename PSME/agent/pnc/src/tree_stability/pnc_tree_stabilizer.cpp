@@ -2,7 +2,7 @@
  * @brief Provides implementation of ComputeTreeStabilizer class
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,6 @@
 
 
 #include "tree_stability/pnc_tree_stabilizer.hpp"
-#include "tree_stability/pnc_key_generator.hpp"
-#include "tree_stability/helpers/update_relations.hpp"
 #include "agent-framework/module/managers/generic_manager.hpp"
 #include "agent-framework/module/pnc_components.hpp"
 #include "agent-framework/module/common_components.hpp"
@@ -38,17 +36,21 @@
 
 using namespace agent_framework::module;
 using namespace agent_framework;
-using namespace agent::pnc;
 
 using agent_framework::KeyValueMissingError;
 
 // Maintainers beware: due to hardware limitations this code is quirky and need significant
 // amount of work to work on other machines.
 
+
+
+namespace agent {
+namespace pnc {
+
 PncTreeStabilizer::~PncTreeStabilizer() {}
 
 
-const std::string PncTreeStabilizer::stabilize_storage_subsystem(const std::string& in_subsystem_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_storage_subsystem(const Uuid& in_subsystem_uuid) const {
     auto& storage_subsystem_manager = get_manager<model::StorageSubsystem>();
     auto subsystem = storage_subsystem_manager.get_entry(in_subsystem_uuid);
     std::string subsystem_uuid{in_subsystem_uuid};
@@ -70,7 +72,7 @@ const std::string PncTreeStabilizer::stabilize_storage_subsystem(const std::stri
 }
 
 
-const std::string PncTreeStabilizer::stabilize_system(const std::string& in_system_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_system(const Uuid& in_system_uuid) const {
     auto& system_manager = get_manager<model::System>();
     const auto& system = system_manager.get_entry(in_system_uuid);
     std::string system_uuid{in_system_uuid};
@@ -94,29 +96,7 @@ const std::string PncTreeStabilizer::stabilize_system(const std::string& in_syst
 }
 
 
-const std::string PncTreeStabilizer::stabilize_pcie_function(const std::string& in_function_uuid) const {
-    auto& function_manager = get_manager<model::PcieFunction>();
-    const auto& function = function_manager.get_entry(in_function_uuid);
-    const auto& parent_device = get_manager<model::PcieDevice>().get_entry(function.get_parent_uuid());
-    std::string function_uuid{in_function_uuid};
-
-    try {
-        const std::string& function_unique_key = PncKeyGenerator::generate_key(function, parent_device);
-
-        function_uuid = stabilize_single_resource(function_uuid, function_manager,
-                                                  function_unique_key);
-
-        helpers::update_pcie_function_in_relations(in_function_uuid, function_uuid);
-    }
-    catch (const KeyValueMissingError&) {
-        log_key_value_missing(agent_framework::model::PcieFunction::get_component().to_string(), in_function_uuid);
-    }
-
-    return function_uuid;
-}
-
-
-const std::string PncTreeStabilizer::stabilize_pcie_device(const std::string& in_device_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_pcie_device(const Uuid& in_device_uuid) const {
     auto& device_manager = get_manager<model::PcieDevice>();
     const auto& device = device_manager.get_entry(in_device_uuid);
     std::string device_uuid{in_device_uuid};
@@ -130,7 +110,21 @@ const std::string PncTreeStabilizer::stabilize_pcie_device(const std::string& in
 
         for (const auto& function_uuid : function_manager.get_keys(in_device_uuid)) {
             function_manager.get_entry_reference(function_uuid)->set_parent_uuid(device_uuid);
-            stabilize_pcie_function(function_uuid);
+
+            auto functional_device_uuid = function_manager.get_entry_reference(function_uuid)->get_functional_device();
+            if (!functional_device_uuid.has_value()) {
+                log_error("pnc-agent", "Cannot find functional device for PcieFunction [UUID = " + function_uuid + "]");
+                throw KeyValueMissingError("");
+            }
+
+            if (get_manager<model::Processor>().entry_exists(functional_device_uuid)) {
+                std::string unique_key = get_manager<model::Processor>().get_entry(
+                    functional_device_uuid).get_fru_info().get_serial_number();
+                stabilize_pcie_function<model::Processor>(function_uuid, unique_key);
+            }
+            else {
+                stabilize_pcie_function<model::Drive>(function_uuid);
+            }
         }
 
     }
@@ -142,7 +136,7 @@ const std::string PncTreeStabilizer::stabilize_pcie_device(const std::string& in
 }
 
 
-const std::string PncTreeStabilizer::stabilize_drive(const std::string& in_drive_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_drive(const Uuid& in_drive_uuid) const {
     auto& drive_manager = get_manager<model::Drive>();
     const auto& drive = drive_manager.get_entry(in_drive_uuid);
     std::string drive_uuid{in_drive_uuid};
@@ -163,7 +157,7 @@ const std::string PncTreeStabilizer::stabilize_drive(const std::string& in_drive
 }
 
 
-const std::string PncTreeStabilizer::stabilize_chassis(const std::string& in_chassis_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_chassis(const Uuid& in_chassis_uuid) const {
     auto& chassis_manager = get_manager<model::Chassis>();
     const auto& chassis = chassis_manager.get_entry(in_chassis_uuid);
     std::string chassis_uuid{in_chassis_uuid};
@@ -201,7 +195,7 @@ const std::string PncTreeStabilizer::stabilize_chassis(const std::string& in_cha
 }
 
 
-const std::string PncTreeStabilizer::stabilize_fabric(const std::string& in_fabric_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_fabric(const Uuid& in_fabric_uuid) const {
     auto& fabric_manager = get_manager<model::Fabric>();
     const auto& fabric = fabric_manager.get_entry(in_fabric_uuid);
     std::string fabric_uuid{in_fabric_uuid};
@@ -239,7 +233,7 @@ const std::string PncTreeStabilizer::stabilize_fabric(const std::string& in_fabr
 }
 
 
-const std::string PncTreeStabilizer::stabilize_pcie_switch(const std::string& in_switch_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_pcie_switch(const Uuid& in_switch_uuid) const {
     auto& switch_manager = get_manager<model::Switch>();
     const auto& pcie_switch = switch_manager.get_entry(in_switch_uuid);
     std::string switch_uuid{in_switch_uuid};
@@ -266,7 +260,7 @@ const std::string PncTreeStabilizer::stabilize_pcie_switch(const std::string& in
 }
 
 
-const std::string PncTreeStabilizer::stabilize_port(const std::string& in_port_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_port(const Uuid& in_port_uuid) const {
     auto& ports_manager = get_manager<model::Port>();
     const auto& port = ports_manager.get_entry(in_port_uuid);
     const auto& parent_switch = get_manager<model::Switch>().get_entry(port.get_parent_uuid());
@@ -290,7 +284,7 @@ const std::string PncTreeStabilizer::stabilize_port(const std::string& in_port_u
 }
 
 
-void PncTreeStabilizer::stabilize_port_metric(const std::string& in_port_uuid, const std::string& port_uuid) const {
+void PncTreeStabilizer::stabilize_port_metric(const Uuid& in_port_uuid, const Uuid& port_uuid) const {
     auto& metrics_manager = get_manager<model::Metric>();
 
     const auto keys = metrics_manager.get_keys([&in_port_uuid](const model::Metric& metric) {
@@ -309,7 +303,7 @@ void PncTreeStabilizer::stabilize_port_metric(const std::string& in_port_uuid, c
 }
 
 
-const std::string PncTreeStabilizer::stabilize_pcie_zone(const std::string& in_zone_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_pcie_zone(const Uuid& in_zone_uuid) const {
     auto& zones_manager = get_manager<model::Zone>();
     const auto& zone = zones_manager.get_entry(in_zone_uuid);
     const auto& parent_switch = get_manager<model::Switch>().get_entry(zone.get_switch_uuid());
@@ -330,7 +324,7 @@ const std::string PncTreeStabilizer::stabilize_pcie_zone(const std::string& in_z
 }
 
 
-const std::string PncTreeStabilizer::stabilize_pcie_endpoint(const std::string& in_endpoint_uuid) const {
+const Uuid PncTreeStabilizer::stabilize_pcie_endpoint(const Uuid& in_endpoint_uuid) const {
     auto& endpoints_manager = get_manager<model::Endpoint>();
     const auto& endpoint = endpoints_manager.get_entry(in_endpoint_uuid);
     std::string endpoint_uuid{in_endpoint_uuid};
@@ -357,7 +351,36 @@ const std::string PncTreeStabilizer::stabilize_pcie_endpoint(const std::string& 
 }
 
 
-const std::string PncTreeStabilizer::stabilize(const std::string& in_module_uuid) {
+const Uuid PncTreeStabilizer::try_stabilize_pcie_device_using_oob_model(const Uuid& in_device_uuid) {
+    auto pcie_functions = get_manager<agent_framework::model::PcieFunction>().get_entries(in_device_uuid);
+
+    std::vector<std::string> functional_device_uuids;
+    for (const auto& function : pcie_functions) {
+        functional_device_uuids.push_back(function.get_functional_device().value());
+    }
+    // functional_device_uuids cannot contain 2 different uuids
+    std::unique(std::begin(functional_device_uuids), std::end(functional_device_uuids));
+    if (functional_device_uuids.size() != 1) {
+        log_error("pnc-agent", "Invalid number of functional devices (" << functional_device_uuids.size()
+                                                                        << ") in PcieFunctions assigned to PcieDevice "
+                                                                        << in_device_uuid
+                                                                        << ".");
+        log_key_value_missing(agent_framework::model::PcieDevice::get_component().to_string(), in_device_uuid);
+        return in_device_uuid;
+    }
+    // Try stabilize based on device type: Processor
+    if (get_manager<agent_framework::model::Processor>().entry_exists(functional_device_uuids.front())) {
+        std::string unique_key = get_manager<agent_framework::model::Processor>().get_entry(
+            functional_device_uuids.front()).get_fru_info().get_serial_number();
+        return stabilize_pcie_device<agent_framework::model::Processor>(in_device_uuid, unique_key);
+    }
+    else {
+        return stabilize_pcie_device(in_device_uuid);
+    }
+}
+
+
+const Uuid PncTreeStabilizer::stabilize(const Uuid& in_module_uuid) {
     log_info("pnc-agent", "Generating persistent UUID for resources for Manager " << in_module_uuid);
 
     auto& module_manager = get_manager<model::Manager>();
@@ -397,10 +420,16 @@ const std::string PncTreeStabilizer::stabilize(const std::string& in_module_uuid
         }
 
         for (const auto& device_uuid : devices_manager.get_keys(in_module_uuid)) {
-            devices_manager.get_entry_reference(device_uuid)->set_parent_uuid(module_uuid);
-            stabilize_pcie_device(device_uuid);
+            auto pcie_device_reference = devices_manager.get_entry_reference(device_uuid);
+            pcie_device_reference->set_parent_uuid(module_uuid);
+            // Stabilize pcie devices with unique key from sysfs
+            if (pcie_device_reference->get_fru_info().get_serial_number().has_value()) {
+                stabilize_pcie_device(device_uuid);
+            }
+            else {// Stabilize pcie devices without key from sysfs, using unique key from device model obtained from OOB discovery
+                try_stabilize_pcie_device_using_oob_model(device_uuid);
+            }
         }
-
     }
     catch (const KeyValueMissingError&) {
         log_key_value_missing(agent_framework::model::Manager::get_component().to_string(), in_module_uuid);
@@ -409,7 +438,8 @@ const std::string PncTreeStabilizer::stabilize(const std::string& in_module_uuid
     return module_uuid;
 }
 
-const std::string PncTreeStabilizer::stabilize_metric_definition(const std::string& in_definition_uuid) const {
+
+const Uuid PncTreeStabilizer::stabilize_metric_definition(const Uuid& in_definition_uuid) const {
     auto& definition_manager = get_manager<model::MetricDefinition>();
     const auto& definition = definition_manager.get_entry(in_definition_uuid);
     std::string definition_uuid{in_definition_uuid};
@@ -423,4 +453,28 @@ const std::string PncTreeStabilizer::stabilize_metric_definition(const std::stri
     }
 
     return definition_uuid;
+}
+
+
+const Uuid PncTreeStabilizer::stabilize_processor(const Uuid& in_processor_uuid) const {
+    auto& processor_manager = get_manager<model::Processor>();
+    const auto& processor = processor_manager.get_entry(in_processor_uuid);
+    std::string processor_uuid{in_processor_uuid};
+
+    try {
+        const std::string& processor_unique_key = PncKeyGenerator::generate_key(processor);
+
+        processor_uuid = stabilize_single_resource(in_processor_uuid,
+                                                   processor_manager,
+                                                   processor_unique_key);
+        helpers::update_processor_in_relations(in_processor_uuid, processor_uuid);
+    }
+    catch (const KeyValueMissingError&) {
+        log_key_value_missing(model::Processor::get_component().to_string(), in_processor_uuid);
+    }
+
+    return processor_uuid;
+}
+
+}
 }

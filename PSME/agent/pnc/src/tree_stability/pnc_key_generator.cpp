@@ -2,7 +2,7 @@
  * @brief Provides class for stabilizing compute agent resource tree
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@
 
 #include "tree_stability/pnc_key_generator.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
-#include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 #include "agent-framework/module/model/model_pnc.hpp"
 #include "agent-framework/module/model/model_common.hpp"
 
@@ -51,7 +51,8 @@ const std::map<std::string, std::string> PncKeyGenerator::m_keys_base_map{
     map_value_type(Zone::get_component().to_string(), "_PCIeZone_"),
     map_value_type(Endpoint::get_component().to_string(), "_PCIeEndpoint_"),
     map_value_type(System::get_component().to_string(), "_PCIeSystem_"),
-    map_value_type(StorageSubsystem::get_component().to_string(), "PCIeStorageSubsystem_")
+    map_value_type(StorageSubsystem::get_component().to_string(), "PCIeStorageSubsystem_"),
+    map_value_type(Processor::get_component().to_string(), "_PCIeProcessor_")
 };
 
 std::string PncKeyGenerator::m_agent_id{};
@@ -82,6 +83,13 @@ const std::string PncKeyGenerator::generate_key(const PcieDevice& pcie_device) {
 
 
 template<>
+const std::string PncKeyGenerator::generate_key(const PcieDevice& pcie_device, const std::string& device_unique_key) {
+
+    return generate_key_base(pcie_device) + device_unique_key;
+}
+
+
+template<>
 const std::string PncKeyGenerator::generate_key(const PcieFunction& pcie_function, const PcieDevice& pcie_device) {
     auto& parent_device_serial_key = pcie_device.get_fru_info().get_serial_number();
 
@@ -90,6 +98,14 @@ const std::string PncKeyGenerator::generate_key(const PcieFunction& pcie_functio
     }
 
     return generate_key_base(pcie_function) + parent_device_serial_key.value();
+}
+
+
+template<>
+const std::string
+PncKeyGenerator::generate_key(const PcieFunction& pcie_function, const std::string& device_unique_key) {
+
+    return generate_key_base(pcie_function) + device_unique_key;
 }
 
 
@@ -255,6 +271,17 @@ const std::string PncKeyGenerator::generate_key(const MetricDefinition& metric_d
         key += metric_def.get_name();
     }
     return key;
+}
+
+
+template<>
+const std::string PncKeyGenerator::generate_key(const Processor& processor) {
+
+    if (!processor.get_fru_info().get_serial_number().has_value()) {
+        throw KeyValueMissingError("Processor serial number is missing.");
+    }
+
+    return generate_key_base(processor) + processor.get_fru_info().get_serial_number();
 }
 
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ AclPort::AclPort() { }
 AclPort::~AclPort() { }
 
 json::Json AclPort::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::AclRule::PORT] = get_port();
     result[literals::AclRule::MASK] = get_mask();
     return result;

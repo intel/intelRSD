@@ -1,1 +1,2 @@
 flask-bootstrap==3.3.7.1
+Flask-Bootstrap4==4.0.2

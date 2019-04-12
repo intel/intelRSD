@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file nvme/commands/get_log_page.hpp
  */
 
@@ -26,7 +24,7 @@ namespace commands {
 class GetLogPage final : public GenericNvmeCommand {
 public:
 
-    static constexpr uint16_t BUFFER_SIZE = 512;
+    static constexpr uint16_t BUFFER_SIZE = 1024;
 
     /*!
      * @brief Constructs a valid GetLogPage command
@@ -53,11 +51,29 @@ public:
         return m_log_firmware;
     }
 
+    /*!
+     * @brief Returns log interpreted as latency histogram
+     * @return Latency log
+     */
+    const LogPageLatencyStats& get_latency_log() const {
+        return m_log_latency;
+    }
+
+    /*!
+     * @brief Returns log interpreted as metrics of IO submission and completion queues.
+     * @return IOQs log
+     */
+    const LogPageIOQueues& get_io_queues_log() const {
+        return m_log_io_queues;
+    }
+
 private:
 
     union {
         LogPageSmart m_log_smart;
         LogPageFirmware m_log_firmware;
+        LogPageLatencyStats m_log_latency;
+        LogPageIOQueues m_log_io_queues;
         uint8_t m_raw_buffer[BUFFER_SIZE]{};
     };
 

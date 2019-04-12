@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -72,6 +72,8 @@ set(SOURCES
     nm/query_reading_package.cpp
     nm/get_telemetry_readings.cpp
     nm/get_cpu_and_memory_temperature.cpp
+    nm/get_dcpmem_readings.cpp
+    nm/trigger_dcpmem_proxy_access.cpp
 
     rsd/get_cpu_peci_package_config_data.cpp
     rsd/get_system_mode.cpp
@@ -84,7 +86,13 @@ set(SOURCES
     rsd/mdr_region_update_complete.cpp
     rsd/mdr_region_lock.cpp
     rsd/mdr_region_write.cpp
-)
+    rsd/get_acpi_table_names.cpp
+    rsd/set_acpi_table_names.cpp
+    rsd/get_dcpmem_configuration.cpp
+    rsd/set_dcpmem_configuration.cpp
+    rsd/get_speed_select_configuration.cpp
+    rsd/set_speed_select_configuration.cpp
+    )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     set_source_files_properties(rmm/get_aggregated_thermal_sensor.cpp

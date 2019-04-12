@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +70,7 @@ void download_package(const std::string source, const std::string destination) {
 
         if (CURLE_OK != res) {
             log_debug("update-service", "Data transfer from " << source << " failed;: curl returned "
-                                                         << static_cast<unsigned int>(res));
+                                                              << static_cast<unsigned int>(res));
             throw std::runtime_error("Data transfer from " + source + " failed.");
         }
     }
@@ -95,32 +95,32 @@ void install_package(const std::string package_path) {
 }
 
 
-void check_menagers_type(const std::vector<json::Value>& targets) {
+void check_menagers_type(const std::vector<json::Json>& targets) {
     for (const auto& target : targets) {
-        try {
-            const auto& target_url = target.as_string();
-            auto params = server::Multiplexer::get_instance()->get_params(target_url, constants::Routes::MANAGER_PATH);
-            auto manager_uuid = model::Find<agent_framework::model::Manager>(params[PathParam::MANAGER_ID]).get_uuid();
+        const auto& target_url = target.get<std::string>();
+        auto params = server::Multiplexer::get_instance()->get_params(target_url, constants::Routes::MANAGER_PATH);
+        auto manager_uuid = model::try_find<agent_framework::model::Manager>(params).get_uuid();
+        if (manager_uuid.has_value()) {
             auto manager = agent_framework::module::get_manager<agent_framework::model::Manager>().get_entry(
-                manager_uuid);
+                manager_uuid.value());
             if (agent_framework::model::enums::ManagerInfoType::RackManager != manager.get_manager_type()) {
                 throw agent_framework::exceptions::InvalidValue("Cannot update managers other than RackManager");
             }
         }
-        catch (const agent_framework::exceptions::NotFound& ex) {
-            throw agent_framework::exceptions::InvalidValue(ex.get_message());
+        else {
+            throw agent_framework::exceptions::InvalidValue("Cannot find resource: " + target_url);
         }
     }
 }
 
 
-std::string invoke_update_on_targets(const std::vector<json::Value>& targets,
+std::string invoke_update_on_targets(const std::vector<json::Json>& targets,
                                      const std::string& image_uri) {
     check_menagers_type(targets);
 
     auto add_task_exception_message = [](const std::string& task_uuid, const std::string&) {
-        auto task = agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(
-            task_uuid);
+        auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
+            .get_entry_reference(task_uuid);
         agent_framework::model::Task::Messages messages{
             agent_framework::model::attribute::Message{"Base.1.0.0.GeneralError", "RackManager update failed.",
                                                        agent_framework::model::enums::Health::OK,
@@ -131,8 +131,8 @@ std::string invoke_update_on_targets(const std::vector<json::Value>& targets,
     };
 
     auto add_task_completion_message = [](const std::string& task_uuid) {
-        auto task = agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(
-            task_uuid);
+        auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
+            .get_entry_reference(task_uuid);
         agent_framework::model::Task::Messages messages{
             agent_framework::model::attribute::Message{"Base.1.0.0.Success", "Successfully Completed Request",
                                                        agent_framework::model::enums::Health::OK,
@@ -201,11 +201,11 @@ const std::vector<agent_framework::model::enums::TransferProtocol>& endpoint::Si
 
 void endpoint::SimpleUpdate::post(const server::Request& request, server::Response& response) {
     const auto& json = JsonValidator::validate_request_body<schema::SimpleUpdatePostSchema>(request);
-    const auto& image_uri = json[constants::UpdateService::IMAGE_URI].as_string();
+    const auto& image_uri = json.value(constants::UpdateService::IMAGE_URI, std::string{});
     std::string task_uuid{};
 
-    if (json.is_member(constants::UpdateService::TRANSFER_PROTOCOL)) {
-        const auto& protocol = json[constants::UpdateService::TRANSFER_PROTOCOL].as_string();
+    if (json.count(constants::UpdateService::TRANSFER_PROTOCOL)) {
+        const auto& protocol = json.value(constants::UpdateService::TRANSFER_PROTOCOL, std::string{});
         const auto protocol_enum = agent_framework::model::enums::TransferProtocol::from_string(protocol);
         if (!JsonValidator::validate_allowable_values(SimpleUpdate::get_allowed_protocols(), protocol_enum)) {
             throw error::ServerException(
@@ -217,8 +217,8 @@ void endpoint::SimpleUpdate::post(const server::Request& request, server::Respon
         }
     }
 
-    if (json.is_member(constants::UpdateService::TARGETS)) {
-        const auto& targets = json[constants::UpdateService::TARGETS].as_array();
+    if (json.count(constants::UpdateService::TARGETS)) {
+        const auto& targets = json[constants::UpdateService::TARGETS];
         task_uuid = ::invoke_update_on_targets(targets, image_uri);
     }
 

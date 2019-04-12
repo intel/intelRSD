@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rmm/command/set_component_attributes.cpp
  */
 
@@ -69,7 +67,7 @@ void perform_rack_factory_defaults(Manager& rack) {
         log_debug("rmm-agent", "Clear attribute " << uuid_attribute.second << " in " << uuid_attribute.first);
 
         agent_framework::model::attribute::Attributes attributes{};
-        json::Json null_value{};
+        json::Json null_value = json::Json();
         attributes.set_value(uuid_attribute.second, null_value);
         try {
             SetComponentAttributes::Request request{uuid_attribute.first, attributes};
@@ -253,7 +251,7 @@ void set_rack_location_id(Chassis& rack, const json::Json& location_id) {
         event.set_component(uuid);
         event.set_parent(chassis->get_parent_uuid());
         event.set_type(enums::Component::Chassis);
-        event.set_notification(Notification::Update);
+        event.set_notification(agent_framework::model::enums::Notification::Update);
         EventsQueue::get_instance()->push_back(event);
     }
 }

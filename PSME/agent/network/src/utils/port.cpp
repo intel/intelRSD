@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@
 
 #include "agent-framework/module/network_components.hpp"
 #include "hal/switch_port_info_impl.hpp"
-#include "agent-framework/eventing/event_data.hpp"
+#include "agent-framework/module/model/attributes/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 
 #include "agent-framework/command/registry.hpp"
@@ -84,10 +84,10 @@ bool agent::network::utils::get_port_uuid_by_identifier(
 
 void agent::network::utils::send_update_event(const std::string& parent_uuid,
                                               const std::string& uuid) {
-    agent_framework::eventing::EventData edat;
+    agent_framework::model::attribute::EventData edat;
     edat.set_component(uuid);
     edat.set_type(::agent_framework::model::enums::Component::EthernetSwitchPort);
-    edat.set_notification(::agent_framework::eventing::Notification::Update);
+    edat.set_notification(::agent_framework::model::enums::Notification::Update);
     edat.set_parent(parent_uuid);
     agent_framework::eventing::EventsQueue::get_instance()->push_back(edat);
 }

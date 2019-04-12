@@ -1,0 +1,7 @@
+/redfish/v1
+/redfish/v1/StorageServices
+/redfish/v1/StorageServices/**
+/redfish/v1/Systems
+/redfish/v1/Systems/**
+/redfish/v1/Chassis/*/Drives
+/redfish/v1/Chassis/*/Drives/**

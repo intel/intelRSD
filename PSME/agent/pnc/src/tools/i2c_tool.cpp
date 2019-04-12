@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,8 @@
 #include "i2c/i2c_access_interface_factory.hpp"
 #include "gas/utils.hpp"
 
+
+
 using namespace agent_framework::model;
 using namespace agent_framework::module;
 using namespace agent::pnc::tools;
@@ -36,7 +38,9 @@ using namespace agent::pnc::nvme;
 using namespace agent::pnc::i2c;
 using namespace agent::pnc::gas;
 
+
 I2cTool::~I2cTool() {}
+
 
 bool I2cTool::get_seeprom(Seeprom& seeprom) const {
     try {
@@ -45,10 +49,11 @@ bool I2cTool::get_seeprom(Seeprom& seeprom) const {
     }
     catch (const std::exception& e) {
         log_debug("i2c-tool", "Cannot read Seeprom data for PCIe Switch: " << e.what());
-        log_error("i2c-tool", "Reading PCIe Switch Seeprom failed");
+        log_warning("i2c-tool", "Reading PCIe Switch Seeprom failed");
         return false;
     }
 }
+
 
 bool I2cTool::get_cable_id(CableId& cable_id, const Port& port) const {
     try {
@@ -59,54 +64,59 @@ bool I2cTool::get_cable_id(CableId& cable_id, const Port& port) const {
     }
     catch (const std::exception& e) {
         log_debug("i2c-tool", "Reading CableId on port " << port.get_port_id() << " failed: " << e.what());
-        log_error("i2c-tool", "Cannot read CableId on port");
+        log_warning("i2c-tool", "Cannot read CableId on port");
         return false;
     }
 }
 
+
 bool I2cTool::get_vpd(VitalProductData& vpd, const Port& port) const {
     try {
+
         vpd.read(I2cAccessInterfaceFactory::get_instance().get_interface(),
-            static_cast<PM85X6TwiPort>(port.get_twi_port()),
-            static_cast<PCA9548TwiExpanderChannel>(port.get_twi_channel()));
+                 static_cast<PM85X6TwiPort>(port.get_twi_port()),
+                 static_cast<PCA9548TwiExpanderChannel>(port.get_twi_channel()));
         return true;
     }
     catch (const std::exception& e) {
         log_debug("i2c-tool", "Reading VPD for drive on port " << port.get_port_id() << " failed: " << e.what());
-        log_error("i2c-tool", "Cannot read VPD for drive.");
+        log_warning("i2c-tool", "Cannot read VPD for drive.");
         return false;
     }
 }
+
 
 bool I2cTool::get_smart(Smart& smart, const Port& port) const {
     try {
         smart.read(I2cAccessInterfaceFactory::get_instance().get_interface(),
-            static_cast<PM85X6TwiPort>(port.get_twi_port()),
-            static_cast<PCA9548TwiExpanderChannel>(port.get_twi_channel()));
+                   static_cast<PM85X6TwiPort>(port.get_twi_port()),
+                   static_cast<PCA9548TwiExpanderChannel>(port.get_twi_channel()));
         return true;
     }
     catch (const std::exception& e) {
         log_debug("i2c-tool", "Reading Smart for drive on port " << port.get_port_id() <<
-            " failed: " << e.what());
-        log_error("i2c-tool", "Cannot read Smart for drive.");
+                                                                 " failed: " << e.what());
+        log_warning("i2c-tool", "Cannot read Smart for drive.");
         return false;
     }
 }
 
+
 bool I2cTool::get_firmware_version(FirmwareVersion& fw, const Port& port) const {
     try {
         fw.read(I2cAccessInterfaceFactory::get_instance().get_interface(),
-            static_cast<PM85X6TwiPort>(port.get_twi_port()),
-            static_cast<PCA9548TwiExpanderChannel>(port.get_twi_channel()));
+                static_cast<PM85X6TwiPort>(port.get_twi_port()),
+                static_cast<PCA9548TwiExpanderChannel>(port.get_twi_channel()));
         return true;
     }
     catch (const std::exception& e) {
         log_debug("i2c-tool", "Reading Firmware Version for drive on port " << port.get_port_id() <<
-            " failed: " << e.what());
-        log_error("i2c-tool", "Cannot read Firmware Version for drive.");
+                                                                            " failed: " << e.what());
+        log_warning("i2c-tool", "Cannot read Firmware Version for drive.");
         return false;
     }
 }
+
 
 bool I2cTool::get_fru_eeprom(FruEeprom& fru_eeprom) const {
     try {
@@ -114,7 +124,7 @@ bool I2cTool::get_fru_eeprom(FruEeprom& fru_eeprom) const {
         return true;
     }
     catch (const std::exception& e) {
-        log_error("i2c-tool", "Cannot read FRU EEPROM data: " << e.what());
+        log_warning("i2c-tool", "Cannot read FRU EEPROM data: " << e.what());
         return false;
     }
 }

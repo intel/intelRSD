@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,8 @@
 
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/requests/compute/get_memory_info.hpp"
+#include "agent-framework/module/requests/compute/get_memory_domain_info.hpp"
+#include "agent-framework/module/requests/compute/get_memory_chunks_info.hpp"
 #include "agent-framework/module/requests/compute/get_trusted_module_info.hpp"
 #include "agent-framework/module/requests/compute/get_network_device_info.hpp"
 #include "agent-framework/module/requests/compute/get_network_device_function_info.hpp"

@@ -2,7 +2,7 @@
  * @brief MonitorContentBuilder class definition
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@
 
 
 #include "psme/rest/server/response.hpp"
+#include "psme/rest/server/http_headers.hpp"
 
 #include "agent-framework/generic/singleton.hpp"
 #include "agent-framework/exceptions/not_found.hpp"
@@ -85,7 +86,10 @@ public:
         std::lock_guard<std::recursive_mutex> lock_guard{m_resource_mutex};
 
         ContentBuilderFunctionType content_builder = m_content_builders.at(task_uuid);
-        return content_builder(json);
+        auto response = content_builder(json);
+        response.set_header(psme::rest::server::http_headers::ContentType::CONTENT_TYPE,
+            psme::rest::server::http_headers::ContentType::JSON);
+        return response;
     }
 
 

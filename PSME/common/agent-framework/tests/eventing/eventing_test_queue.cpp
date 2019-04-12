@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,11 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
  * */
 
 #include "agent-framework/eventing/events_queue.hpp"
-#include "agent-framework/eventing/event_data.hpp"
+#include "agent-framework/module/model/attributes/event_data.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
@@ -37,11 +34,11 @@ TEST(EventsQueueTest, PositiveEmptyQueue) {
 }
 
 TEST(EventsQueueTest, PositiveQueuePushPop) {
-    EventData event_data{};
+    agent_framework::model::attribute::EventData event_data{};
     event_data.set_component("TestComponentUUID");
     event_data.set_parent("TestParentUUID");
     event_data.set_type(agent_framework::model::enums::Component::Chassis);
-    event_data.set_notification(agent_framework::eventing::Notification::Update);
+    event_data.set_notification(agent_framework::model::enums::Notification::Update);
 
     EventsQueue::get_instance()->push_back(event_data);
 

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@
 #include "agent-framework/module/pnc_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "discovery/discovery_manager.hpp"
-#include <logger/logger_factory.hpp>
+#include "logger/logger_factory.hpp"
 
 #include <chrono>
 
@@ -156,7 +156,8 @@ void update_downstream_ports(const PsmVector& psms, const DiscoveryManager& dm, 
 
         // gather states
         bool is_device_present = get_is_present(presence_bitmask, port.get_phys_port_id());
-        bool is_drive_present = (is_device_present ? psm->is_device_present() : false);
+        bool is_drive_present = (is_device_present ? psm->is_device_present() : false)
+                                && get_manager<Drive>().entry_exists(psm->get_device_uuid());
         bool is_bound{false};
         bool is_bound_to_host{false};
         std::tie(is_bound, is_bound_to_host) =  get_is_bound(gas, pbi, uint8_t(port.get_phys_port_id()));

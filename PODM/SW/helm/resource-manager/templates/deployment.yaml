@@ -1,0 +1,144 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "resource-manager.fullname" . }}
+  labels:
+    app: {{ template "resource-manager.name" . }}
+    chart: {{ template "resource-manager.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "resource-manager.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ template "resource-manager.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if ne .Values.global.registry_secret "" }}
+      imagePullSecrets:
+        - name: {{ .Values.global.registry_secret }}
+      {{ end }}
+      volumes:
+        - name: resource-manager-config
+          configMap:
+            name: resource-manager-config
+            items:
+              - key: application.yml
+                path: application.yml
+      {{- if .Values.global.southbound_security.enabled }}
+        - name: sb-security-config
+          secret:
+            secretName: sb-security-config
+            items:
+              - key: KEYSTORE_PATH
+                path: keystore
+              - key: TRUSTSTORE_PATH
+                path: truststore
+      {{- if .Values.global.southbound_security.manifest_verification.enabled }}
+        - name: {{ .Values.global.southbound_security.manifest_verification.trusted_certs_directory }}
+          flexVolume:
+            driver: ceph.rook.io/rook
+            fsType: ceph
+            options:
+              fsName: {{ .Values.global.southbound_security.manifest_verification.trusted_certs_directory }}
+              clusternamespace: rook-ceph
+      {{ end }}
+      {{ end }}
+      {{- include "shared.coverage.volume" . | indent 8}}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.global.registry }}{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.applicationProperties.server.port }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /redfish/v1/Chassis/pod
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /redfish/v1/Chassis/pod
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          env:
+          {{- if .Values.global.southbound_security.enabled }}
+            - name: SOUTHBOUND-CONFIG_BASICAUTHTOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: SOUTHBOUNDCONFIG_CREDENTIALS
+            - name: KEYSTORE_PATH
+              value: file:/var/run/secrets/sbconfig/keystore
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: KEYSTORE_PASSWORD
+            - name: KEYSTORE_ALIAS
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: KEYSTORE_ALIAS
+            - name: TRUSTSTORE_PATH
+              value: file:/var/run/secrets/sbconfig/truststore
+            - name: TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sb-security-config
+                  key: TRUSTSTORE_PASSWORD
+          {{- if .Values.global.southbound_security.manifest_verification.enabled }}
+            - name: TRUSTSTORE_TRUSTED_CERTS_DIRECTORY
+              value: /var/run/trusted-certs-directory
+          {{ end }}
+          {{ end }}
+            - name: RM_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: PODM_POSTGRES_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretName }}
+                  key: database-password
+          volumeMounts:
+            - name: resource-manager-config
+              mountPath: /app/config
+              readOnly: true
+          {{- if .Values.global.southbound_security.enabled }}
+            - name: sb-security-config
+              readOnly: true
+              mountPath: /var/run/secrets/sbconfig
+          {{- if .Values.global.southbound_security.manifest_verification.enabled }}
+            - name: {{ .Values.global.southbound_security.manifest_verification.trusted_certs_directory }}
+              readOnly: true
+              mountPath: /var/run/trusted-certs-directory
+          {{ end }}
+          {{ end }}
+          {{- include "shared.coverage.mount" . | indent 12}}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

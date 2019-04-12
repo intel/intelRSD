@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,28 +24,6 @@ if (CMAKE_CROSSCOMPILING OR "${CMAKE_TARGET_ARCH}" STREQUAL "32")
   return()
 endif()
 
-set(NVMF_DISCOVERY_LIBRARIES
-    nvmf-discovery
-    CACHE PATH "NVMF Discovery libraries"
-)
-
-set(NVMF_DISCOVERY_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    CACHE PATH "NVMF Discovery include directory"
-)
-
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${NVME_INCLUDE_DIRS}
-    ${LOGGER_INCLUDE_DIRS}
-    ${COMMON_INCLUDE_DIRS}
-    ${UTILS_INCLUDE_DIRS}
-)
-
-include_directories(SYSTEM
-    ${FABRIC_INCLUDE_DIRS}
-)
-
 add_library(nvmf-discovery STATIC
     src/fabric.cpp
     src/connection_listener.cpp
@@ -57,10 +35,14 @@ add_library(nvmf-discovery STATIC
     src/discovery_service.cpp
 )
 
-install(TARGETS nvmf-discovery
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+target_include_directories(nvmf-discovery
+    SYSTEM PUBLIC ${FABRIC_INCLUDE_DIRS}
+    PUBLIC include
+)
+
+target_link_libraries(nvmf-discovery
+    PRIVATE utils logger common-include
+    PUBLIC nvme ${FABRIC_LIBRARIES}
 )
 
 add_subdirectory(tests)

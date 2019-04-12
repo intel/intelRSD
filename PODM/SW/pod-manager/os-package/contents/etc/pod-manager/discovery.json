@@ -1,9 +1,0 @@
-{
-  "PodLocationId": "Pod1",
-  "PodName": "Pod Manager",
-  "MaxComputerSystemsCountPerDrawerBeingDeepDiscovered": 8,
-  "DeepDiscoveryEnabled": false,
-  "DiscoveryIntervalSeconds": 600,
-  "DeepDiscoveryExecutionTimeoutInSeconds": 600,
-  "DiscoveryCancelable": false
-}

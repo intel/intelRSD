@@ -81,7 +81,6 @@
             "items": {
                 "type": "object",
                 "properties": {
-
                     "ipv4": {
                         "description": "Internal IP address of the module.",
                         "name": "ipv4",
@@ -118,6 +117,11 @@
                                     "description": "Submodule port number. Not used in PSME Storage Agent.",
                                     "name": "port",
                                     "type": "integer"
+                                },
+                                "tgt-socket": {
+                                    "description": "Path to tgt socket file.",
+                                    "name": "tgt-socket",
+                                    "type": "string"
                                 },
                                 "iscsi": {
                                     "description": "iSCSI configuration container.",
@@ -297,11 +301,6 @@
                     "submodules"
                 ]
             }
-        },
-        "tgt-socket": {
-            "description": "Path to tgt socket file.",
-            "name": "tgt-socket",
-            "type": "string"
         },
         "loggers": {
             "description": "Logger configuration.",

@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file wildcard.hpp
  */
 #pragma once
@@ -68,7 +66,7 @@ public:
      * @brief Get wildcard name
      * @return wildcard name
      */
-    const std::string get_name() const {
+    const std::string& get_name() const {
         return m_name;
     }
 
@@ -95,7 +93,7 @@ public:
      * @brief Get wildcard values
      * @return wildcard values
      */
-    const Values get_values() const {
+    const Values& get_values() const {
         return m_values;
     }
 

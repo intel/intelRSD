@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,6 @@
 #include "agent-framework/module/managers/generic_manager.hpp"
 #include "agent-framework/module/managers/many_to_many_manager.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
-#include "agent-framework/module/managers/iscsi_target_manager.hpp"
 
 #include "agent-framework/module/model/model_storage.hpp"
 
@@ -48,9 +47,6 @@ public:
     using VolumeManager = GenericManager<model::Volume>;
     using StorageServiceManager = GenericManager<model::StorageService>;
     using SystemStorageServicesManager = managers::ManyToManyManager;
-
-    // @TODO: Remove old containers
-    using IscsiTargetManager = managers::IscsiTargetManager;
 
 
     /*!
@@ -87,15 +83,6 @@ public:
 
 
     /*!
-     * @brief Get Iscsi target manager
-     * @return Reference to an Iscsi target manager instance
-     * */
-    IscsiTargetManager& get_iscsi_target_manager() {
-        return m_iscsi_target_manager;
-    }
-
-
-    /*!
      * @brief Get ManyToMany manager of System and StorageServices
      * @return Reference to System-StorageServices manager instance
      * */
@@ -108,7 +95,6 @@ private:
     StorageServiceManager m_storage_service_manager{};
     StoragePoolManager m_storage_pool_manager{};
     VolumeManager m_volume_manager{};
-    IscsiTargetManager m_iscsi_target_manager{};
     SystemStorageServicesManager m_system_storage_services_manager{};
 };
 

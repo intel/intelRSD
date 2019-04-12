@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,10 @@
  * */
 
 #pragma once
-namespace json {
-    class Value;
-}
+
+
+
+#include "json-wrapper/json-wrapper.hpp"
 
 namespace agent_framework {
 namespace module {
@@ -46,7 +47,7 @@ public:
      * @param[in] configuration Agent's JSON configuration
      * @return true if configuration was loaded successfully, otherwise false.
      * */
-    virtual bool load(const json::Value& configuration) = 0;
+    virtual bool load(const json::Json& configuration) = 0;
 
 };
 

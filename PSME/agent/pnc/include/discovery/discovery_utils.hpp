@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,6 +108,15 @@ OptionalField<std::string> get_null_terminated_optional_string(const std::uint8_
  */
 agent_framework::model::enums::ChassisType fru_chassis_type_to_model_chassis_type(
             fru_eeprom::parser::SystemEnclosureOrChassisType fru_type);
+
+/*!
+ * @brief update endpoint-zone binding from db during port discovery
+ * @param[in] zones_uuids Uuids of the zones
+ * @param[in] endpoint_uuid Uuid of the discovered endpoint
+ */
+void update_endpoint_zone_binding_from_db(const std::vector<Uuid>& zones_uuids,
+                                          const Uuid& endpoint_uuid);
+
 }
 }
 }

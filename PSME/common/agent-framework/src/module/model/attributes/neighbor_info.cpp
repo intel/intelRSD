@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ NeighborInfo::NeighborInfo() { }
 NeighborInfo::~NeighborInfo() { }
 
 json::Json NeighborInfo::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::NeighborInfo::SWITCH_IDENTIFIER] = get_switch_identifier();
     result[literals::NeighborInfo::PORT_IDENTIFIER] = get_port_identifier();
     result[literals::NeighborInfo::CABLE_ID] = get_cable_id();

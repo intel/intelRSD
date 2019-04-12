@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,13 +18,8 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
-include_directories(
-    ${GTEST_INCLUDE_DIRS}
-    ${NET_INCLUDE_DIRS}
-    ${SSDP_INCLUDE_DIRS}
-)
 
 add_gtest(test ssdp
     test_runner.cpp
@@ -39,18 +34,16 @@ add_gtest(test ssdp
     message_test.cpp
     parser_common.cpp
     notification_test.cpp
-)
+    )
 
 target_link_libraries(${test_target}
-    ${SSDP_LIBRARIES}
-    ${NET_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-)
+    ssdp
+    )
 
 add_custom_target(unittest_ssdp
-                  make
-)
+    make
+    )
+
 add_custom_target(unittest_ssdp_run
-                  ctest --output-on-failure
-)
+    ctest --output-on-failure
+    )

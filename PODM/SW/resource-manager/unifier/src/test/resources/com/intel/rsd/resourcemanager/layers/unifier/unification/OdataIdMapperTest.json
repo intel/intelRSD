@@ -1,0 +1,51 @@
+{
+  "testCases": [
+    {
+      "assertions": [
+        {
+          "from": "/redfish/v1",
+          "to": "/redfish/v1",
+          "id": "v1"
+        },
+        {
+          "from": "/redfish/v1/Systems",
+          "to": "/redfish/v1/Systems",
+          "id": "Systems"
+        },
+        {
+          "from": "/redfish/v1/Systems/1",
+          "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908",
+          "id": "7ca5c465-85ff-4bb4-a650-77fc29724908"
+        },
+        {
+          "from": "/redfish/v1/Systems/1/Processors",
+          "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908/Processors",
+          "id": "Processors"
+        },
+        {
+          "from": "/redfish/v1/Systems/1/Processors/CPU1",
+          "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908/Processors/1",
+          "id": "1"
+        }
+      ]
+    },
+    {
+      "assertions": [
+        {
+          "from": "/redfish/v1/Systems/1/Processors/CPU1",
+          "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908/Processors/1",
+          "id": "1"
+        }
+      ]
+    },
+    {
+      "assertions": [
+        {
+          "from": "/redfish/v1/Systems/1/Processors/CPU1",
+          "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908/Processors/Socket+1",
+          "id": "Socket 1"
+        }
+      ]
+    }
+  ]
+}

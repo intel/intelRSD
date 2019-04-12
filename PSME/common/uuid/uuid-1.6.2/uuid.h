@@ -1,8 +1,7 @@
 /*!
  * @brief OSSP UUID library API definition
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file uuid.h
  */
 
@@ -124,7 +122,7 @@ extern uuid_rc_t     uuid_make     (      uuid_t  *_uuid, unsigned int _mode, ..
 
 /* UUID comparison */
 extern uuid_rc_t     uuid_isnil    (const uuid_t  *_uuid,                       int *_result);
-extern uuid_rc_t     uuid_compare  (const uuid_t  *_uuid, const uuid_t *_uuid2, int *_result);
+extern uuid_rc_t     uuid_cmp  (const uuid_t  *_uuid, const uuid_t *_uuid2, int *_result);
 
 /* UUID import/export */
 extern uuid_rc_t     uuid_import   (      uuid_t  *_uuid, uuid_fmt_t _fmt, const void  *_data_ptr, size_t  _data_len);
@@ -133,6 +131,7 @@ extern uuid_rc_t     uuid_export   (const uuid_t  *_uuid, uuid_fmt_t _fmt,      
 /* library utilities */
 extern const char   *uuid_error    (uuid_rc_t _rc);
 extern unsigned long uuid_version  (void);
+extern int uuid_isstr(const char *str, size_t str_len);
 
 DECLARATION_END
 

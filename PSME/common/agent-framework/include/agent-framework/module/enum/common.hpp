@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@
 #include "hssi_configuration.hpp"
 #include "hssi_sideband.hpp"
 #include "sensor_type.hpp"
+#include "oem_protocol.hpp"
 
 
 
@@ -75,10 +76,11 @@ ENUM(CollectionType, uint32_t,
      StorageServices, Processors, Memory, StorageControllers,
      NetworkInterfaces, NetworkDevices, Drives, EthernetSwitchPorts, Vlans, NeighborSwitches, EthernetSwitchPortVlans,
      NetworkDeviceFunctions, PortMembers, PowerZones, ThermalZones, PSUs, Fans,
-     iSCSITargets, Managers, Ports, PCIeDevices,
+     Managers, Ports, PCIeDevices,
      Zones, PCIeFunctions, Switches, Acls, Rules, StaticMacs,
      StorageSubsystems, Tasks, Fabrics, Endpoints, ChassisSensors, MetricDefinitions, Metrics, TrustedModules,
-     StoragePools, Volumes);
+     StoragePools, Volumes, ReconfigurationSlotsDetails, MemoryChunks, MemoryDomains
+);
 
 /*!
  * @brief ENUM CollectionName for attribute class Collection subclass
@@ -86,13 +88,15 @@ ENUM(CollectionType, uint32_t,
  */
 ENUM(CollectionName, uint32_t,
      None, AuthorizationCertificates, Processors,
-     Memory, iSCSITargets, NetworkInterfaces, NetworkDevices, Drives,
+     Memory, NetworkInterfaces, NetworkDevices, Drives,
      NetworkDeviceFunctions, PowerZones, Psus, RemoteEthernetSwitches, StorageControllers,
      StorageServices, EthernetSwitchPorts, Systems, ThermalZones, Vlans, Fans, Chassis,
      Managers, EthernetSwitches, Neighbors, Members, EthernetSwitchPortVlans, PortMembers,
      NeighborSwitches, Ports, PcieDevices, Zones, PcieFunctions, Switches, PortAcls,
      Acls, AclRules, AclPorts, StaticMacs, StorageSubsystems, Tasks, Fabrics,
-     Endpoints, ChassisSensors, MetricDefinitions, Metrics, TrustedModules, StoragePools, Volumes);
+     Endpoints, ChassisSensors, MetricDefinitions, Metrics, TrustedModules, StoragePools, Volumes,
+     ReconfigurationSlotsDetails, MemoryChunks, MemoryDomains
+);
 
 /*!
  * @brief ENUM State for attribute class Status State member
@@ -144,7 +148,7 @@ ENUM(CommandShellSupportedType, uint32_t,
  */
 ENUM(Component, uint32_t,
      None, Root, AuthorizationCertificate, Chassis, Drive,
-     Fan, IscsiTarget, Manager, Memory,
+     Fan, Manager, Memory, MemoryDomain, MemoryChunks,
      NetworkInterface, NetworkDevice, PowerZone, Processor, PSU, EthernetSwitch, RemoteEthernetSwitch,
      NetworkDeviceFunction, StorageController, StorageService, EthernetSwitchPort, System,
      ThermalZone, Vlan, EthernetSwitchPortVlan, PortMember, NeighborSwitch,
@@ -155,7 +159,7 @@ ENUM(Component, uint32_t,
 /*!
  * @brief ENUM IdentifierType for Identifier attribute durableNameFormat field
  */
-ENUM(IdentifierType, uint32_t, NAA, iQN, FC_WWN, UUID, EUI, NQN, SystemPath, LUN, NSID);
+ENUM(IdentifierType, uint32_t, NAA, iQN, FC_WWN, UUID, EUI, NQN, NSID);
 
 /*!
  * @brief ENUM IndicatorLed for Chassis and Drive and Computer System indicatorLed field
@@ -206,7 +210,7 @@ ENUM(ProcessorType, uint32_t, CPU, GPU, FPGA, DSP, Accelerator, OEM);
  * @brief ENUM ProcessorModel for Processor class member
  *
  */
-ENUM(ProcessorModel, uint32_t, E3, E5, E7, X3, X5, X7, I3, I5, I7, Silver, Gold, Platinum, Unknown);
+ENUM(ProcessorModel, uint32_t, E3, E5, E7, X3, X5, X7, I3, I5, I7, Silver, Gold, Platinum);
 
 /*!
  * @brief ENUM ProcessorArchitecture for Processor class member
@@ -215,9 +219,9 @@ ENUM(ProcessorArchitecture, uint32_t, x86, ARM, MIPS, OEM);
 
 
 /*!
- * @brief ENUM OnPackageMemoryType for OnPackageMemory class type member
+ * @brief ENUM IntegratedMemoryType for IntegratedMemory class type member
  */
-ENUM(OnPackageMemoryType, uint32_t,
+ENUM(IntegratedMemoryType, uint32_t,
      L1Cache, L2Cache, L3Cache, HBM2, Flash, DDR, DDR2, DDR3, DDR4, QDR2, QDR4, QDR2P, RL3, GDDR5, EDRAM, HBM);
 
 /*!
@@ -302,19 +306,11 @@ ENUM(AccessCapability, uint32_t, Read, Write, WriteOnce, Append, Streaming);
  */
 ENUM(EntityRole, uint32_t, Initiator, Target, Both);
 
-
-/*!
- * @brief ENUM StorageProtocol types as specified by Redfish "Storage.1.0.0.Protocol"
- */
-ENUM(StorageProtocol, uint32_t, PCIe, AHCI, UHCI, SAS, SATA, USB, NVMe, FC, iSCSI, FCoE, NVMeOverFabrics,
-     SMB, NFSv3, NFSv4, HTTP, HTTPS, FTP, SFTP);
-
 /*!
  * @brief ENUM TransportProtocol types as specified by Redfish "Protocol.Protocol"
  */
 ENUM(TransportProtocol, uint32_t, PCIe, AHCI, UHCI, SAS, SATA, USB, NVMe, FC, iSCSI, FCoE, FCP, FICON, NVMeOverFabrics,
-     SMB, NFSv3, NFSv4, HTTP, HTTPS, FTP, SFTP, iWARP, RoCE, RoCEv2);
-
+     SMB, NFSv3, NFSv4, HTTP, HTTPS, FTP, SFTP, iWARP, RoCE, RoCEv2, OEM);
 
 }
 }

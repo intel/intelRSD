@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +22,8 @@
 #include "agent-framework/validators/procedure_validator.hpp"
 #include "agent-framework/module/enum/enum_builder.hpp"
 #include "agent-framework/module/constants/regular_expressions.hpp"
-#include "agent-framework/module/utils/json_transformations.hpp"
 
-#include "json/value.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
@@ -72,7 +71,7 @@ ProcedureValidatorTest::~ProcedureValidatorTest() {}
 class ValidatorTester {
 public:
     ValidatorTester(const ProcedureValidator& _procedure, const char* _json);
-    ValidatorTester(const ProcedureValidator& _procedure, const json::Value& _json);
+    ValidatorTester(const ProcedureValidator& _procedure, const json::Json& _json);
 
     /* validation methods, reformat message thrown during validation */
     bool valid();
@@ -82,7 +81,7 @@ public:
 
 private:
     const ProcedureValidator* procedure;
-    json::Json value{};
+    json::Json value = json::Json();
     std::string json{};
     bool validated{false};
     std::string message{};
@@ -98,9 +97,9 @@ private:
     ValidatorTester name{p_##name, s}
 
 
-ValidatorTester::ValidatorTester(const ProcedureValidator& _procedure, const json::Value& _json):
+ValidatorTester::ValidatorTester(const ProcedureValidator& _procedure, const json::Json& _json):
     procedure(&_procedure),
-    value(agent_framework::model::utils::to_json_rpc(_json)) {
+    value(_json) {
 }
 
 ValidatorTester::ValidatorTester(const ProcedureValidator& _procedure, const char* _json):
@@ -448,10 +447,28 @@ TEST_F(ProcedureValidatorTest, TypedNumbers) {
         R"({
             "posBigInt": 9223372036854775808
         })",
-        "posBigInt", VALID_OPTIONAL(VALID_NUMERIC_TYPED(INT64)),
+        "posBigInt", VALID_NUMERIC_TYPED(INT64),
         nullptr
     );
     ASSERT_FALSE(int64_ranges8.valid()); */
+
+    VALIDATOR(int64_ranges3,
+        R"({
+            "veryNegativeBigInt": -10000000000000000000000
+        })",
+        "veryNegativeBigInt", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_ranges3.valid());
+
+    VALIDATOR(int64_ranges4,
+        R"({
+            "veryBigInt": 10000000000000000000000
+        })",
+        "veryBigInt", VALID_NUMERIC_TYPED(INT64),
+        nullptr
+    );
+    ASSERT_FALSE(int64_ranges4.valid());
 
     VALIDATOR(int64_types1,
         R"({
@@ -552,6 +569,15 @@ TEST_F(ProcedureValidatorTest, TypedNumbers) {
         nullptr
     );
     ASSERT_FALSE(uint64_ranges7.valid());*/
+
+    VALIDATOR(uint64_ranges8,
+        R"({
+            "veryBigUInt": 10000000000000000000000
+        })",
+        "veryBigUInt", VALID_NUMERIC_TYPED(UINT64),
+        nullptr
+    );
+    ASSERT_FALSE(uint64_ranges8.valid());
 
     VALIDATOR(uint64_types1,
         R"({
@@ -698,23 +724,95 @@ TEST_F(ProcedureValidatorTest, Optionals) {
 }
 
 TEST_F(ProcedureValidatorTest, Regex) {
-    VALIDATOR(valid_string,
+   VALIDATOR(valid_target,
+              R"({
+            "string":"iqn.2019-02.com.vmware.comp:name1"
+        })",
+              "string", VALID_REGEX(RemoteTarget::TARGET_IQN),
+              nullptr
+    );
+    ASSERT_TRUE(valid_target.valid());
+
+    VALIDATOR(invalid_target_marks_and_big_letter,
+              R"({
+            "string":"iqn.s+Da]/'}="
+        })",
+              "string", VALID_REGEX(RemoteTarget::TARGET_IQN),
+              nullptr
+    );
+    ASSERT_FALSE(invalid_target_marks_and_big_letter.valid());
+
+    VALIDATOR(invalid_target_empty_name,
+              R"({
+            "string":"iqn."
+        })",
+              "string", VALID_REGEX(RemoteTarget::TARGET_IQN),
+              nullptr
+    );
+    ASSERT_FALSE(invalid_target_empty_name.valid());
+
+    VALIDATOR(invalid_target_no_start_prefix,
         R"({
             "string":"asdasdasdasd"
         })",
         "string", VALID_REGEX(RemoteTarget::TARGET_IQN),
          nullptr
     );
-    ASSERT_TRUE(valid_string.valid());
+    ASSERT_FALSE(invalid_target_no_start_prefix.valid());
 
-    VALIDATOR(invalid,
+    VALIDATOR(invalid_target_space,
         R"({
             "string":"as dasd"
         })",
         "string", VALID_REGEX(RemoteTarget::TARGET_IQN),
         nullptr
     );
-    ASSERT_FALSE(invalid.valid());
+    ASSERT_FALSE(invalid_target_space.valid());
+
+    VALIDATOR(valid_initiator,
+              R"({
+            "string":"iqn.2019-02.com.vmware.comp:name1"
+        })",
+              "string", VALID_REGEX(RemoteTarget::INITIATOR_IQN),
+              nullptr
+    );
+    ASSERT_TRUE(valid_initiator.valid());
+
+    VALIDATOR(invalid_initiator_marks_and_big_letter,
+              R"({
+            "string":"iqn.s+Da]/'}="
+        })",
+              "string", VALID_REGEX(RemoteTarget::INITIATOR_IQN),
+              nullptr
+    );
+    ASSERT_FALSE(invalid_initiator_marks_and_big_letter.valid());
+
+    VALIDATOR(invalid_initiator_empty_name,
+              R"({
+            "string":"iqn."
+        })",
+              "string", VALID_REGEX(RemoteTarget::INITIATOR_IQN),
+              nullptr
+    );
+    ASSERT_FALSE(invalid_initiator_empty_name.valid());
+
+    VALIDATOR(invalid_initiator_no_start_prefix,
+              R"({
+            "string":"asdasdasdasd"
+        })",
+              "string", VALID_REGEX(RemoteTarget::INITIATOR_IQN),
+              nullptr
+    );
+    ASSERT_FALSE(invalid_initiator_no_start_prefix.valid());
+
+    VALIDATOR(invalid_initiator_space,
+              R"({
+            "string":"as dasd"
+        })",
+              "string", VALID_REGEX(RemoteTarget::INITIATOR_IQN),
+              nullptr
+    );
+    ASSERT_FALSE(invalid_initiator_space.valid());
 
     VALIDATOR(valid_ip,
         R"({
@@ -1085,7 +1183,7 @@ public:
 };
 
 TEST_F(ProcedureValidatorTest, Conversion) {
-    json::Value val;
+    json::Json val = json::Json();
     val["int"] = -10;
     val["uint"] = 10;
     val["float"] = 11.1;

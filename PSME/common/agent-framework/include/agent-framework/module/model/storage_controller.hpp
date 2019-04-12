@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ namespace model {
 class StorageController : public Resource {
 public:
     using Identifiers = attribute::Array<attribute::Identifier>;
-    using StorageProtocols = attribute::Array<enums::StorageProtocol>;
+    using StorageProtocols = attribute::Array<enums::TransportProtocol>;
 
     explicit StorageController(const std::string& parent_uuid = {},
                                enums::Component parent_type = enums::Component::System);
@@ -235,7 +235,7 @@ public:
      * @brief Add supported controller storage protocol
      * @param[in] supported_controller_protocol supported type of storage protocol
      */
-    void add_supported_controller_protocol(const enums::StorageProtocol& supported_controller_protocol) {
+    void add_supported_controller_protocol(const enums::TransportProtocol& supported_controller_protocol) {
         m_supported_controller_protocols.add_entry(supported_controller_protocol);
     }
 
@@ -262,7 +262,7 @@ public:
      * @brief Add supported device storage protocol
      * @param[in] supported_device_protocol supported type of storage protocol
      */
-    void add_supported_device_protocol(const enums::StorageProtocol& supported_device_protocol) {
+    void add_supported_device_protocol(const enums::TransportProtocol& supported_device_protocol) {
         m_supported_device_protocols.add_entry(supported_device_protocol);
     }
 

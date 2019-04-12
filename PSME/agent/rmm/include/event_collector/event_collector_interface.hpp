@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rmm/event_collector/event_collector_interface.hpp
  */
 
@@ -27,7 +25,6 @@ namespace agent {
 namespace rmm {
 namespace event_collector {
 
-namespace enums = agent_framework::model::enums;
 
 /*! @brief Class responsible for collecting events and sending them when required */
 class EventCollectorInterface {
@@ -48,7 +45,8 @@ public:
      * @param resource_uuid Uuid of the resource affected by the event
      * @param parent_uuid Uuid of the parent of the affected resource
      */
-    virtual void poll_add_event(const enums::Component component, const std::string& resource_uuid,
+    virtual void poll_add_event(const agent_framework::model::enums::Component component,
+        const std::string& resource_uuid,
         const std::string& parent_uuid) = 0;
 
     /*!
@@ -57,7 +55,8 @@ public:
      * @param resource_uuid Uuid of the resource affected by the event
      * @param parent_uuid Uuid of the parent of the affected resource
      */
-     virtual void poll_remove_event(const enums::Component component, const std::string& resource_uuid,
+     virtual void poll_remove_event(const agent_framework::model::enums::Component component,
+         const std::string& resource_uuid,
          const std::string& parent_uuid) = 0;
 
     /*!
@@ -66,7 +65,8 @@ public:
      * @param resource_uuid Uuid of the resource affected by the event
      * @param parent_uuid Uuid of the parent of the affected resource
      */
-    virtual void poll_update_event(const enums::Component component, const std::string& resource_uuid,
+    virtual void poll_update_event(const agent_framework::model::enums::Component component,
+        const std::string& resource_uuid,
         const std::string& parent_uuid) = 0;
 
     /*!

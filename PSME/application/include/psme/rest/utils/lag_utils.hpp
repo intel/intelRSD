@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,6 @@
 #include "psme/rest/endpoints/utils.hpp"
 
 
-/* Forward declaration */
-namespace json {
-    class Value;
-}
-
 namespace psme {
 namespace rest {
 namespace utils {
@@ -38,7 +33,7 @@ public:
      * @brief Returns list of port members UUIDs from json with members links
      * @return List of port members UUIDs
      * */
-    static std::vector<std::string> get_port_members(const json::Value& json);
+    static std::vector<std::string> get_port_members(const json::Json& json);
 
     /*!
      * @brief Validates if member Port Class is Physical

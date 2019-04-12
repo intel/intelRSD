@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +24,8 @@
 #include "psme/rest/endpoints/utils.hpp"
 
 #include "agent-framework/module/enum/common.hpp"
-#include "agent-framework/eventing/event_data.hpp"
 #include "agent-framework/module/model/resource.hpp"
+#include "agent-framework/module/model/attributes/event_data.hpp"
 
 #include <stack>
 
@@ -38,8 +36,6 @@ namespace handler {
 
 template<typename Request, typename Model, typename IdPolicy>
 class GenericHandler;
-
-using agent_framework::eventing::EventData;
 
 /*!
 * @brief Base class for all handlers.
@@ -54,6 +50,8 @@ public:
     using CollectionType = agent_framework::model::enums::CollectionType;
     using JsonAgent = psme::core::agent::JsonAgent;
     using JsonAgentSPtr = psme::core::agent::JsonAgentSPtr;
+    using EventData = agent_framework::model::attribute::EventData;
+    using Notification = agent_framework::model::enums::Notification;
     using Event = psme::rest::eventing::Event;
     using EventVec = psme::rest::eventing::EventVec;
     using EventType = psme::rest::eventing::EventType;

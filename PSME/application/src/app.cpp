@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,26 +21,30 @@
 
 #include "app.hpp"
 #include "psme/core/agent/agent_manager.hpp"
-#include "agent-framework/eventing/events_queue.hpp"
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/eventing/event_service.hpp"
+#include "psme/rest/security/session/session_service.hpp"
 #include "psme/rest/registries/config/registry_configurator.hpp"
 #include "psme/rest/registries/config/base_configuration.hpp"
+#include "psme/rest/registries/config/intel_rackscale_configuration.hpp"
 #include "psme/ssdp/ssdp_config_loader.hpp"
 #include "default_configuration.hpp"
 #include "configuration/configuration.hpp"
 #include "configuration/configuration_validator.hpp"
-#include "agent-framework/logger_ext.hpp"
 #include "agent-framework/version.hpp"
-#include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/service_uuid.hpp"
+#include "agent-framework/logger_loader.hpp"
+#include "agent-framework/eventing/events_queue.hpp"
 #include "ssdp/ssdp_service.hpp"
 #include "database/database.hpp"
 
 #include <csignal>
 #include <string>
 
+
+
 namespace {
-const json::Value& load_configuration(int argc, const char** argv) {
+const json::Json& load_configuration(int argc, const char** argv) {
     /* Initialize configuration */
     log_info("app", agent_framework::generic::Version::build_info());
     auto& basic_config = configuration::Configuration::get_instance();
@@ -52,9 +56,9 @@ const json::Value& load_configuration(int argc, const char** argv) {
         basic_config.add_file(argv[argc - 1]);
         --argc;
     }
-    const json::Value& configuration = basic_config.to_json();
+    const json::Json& configuration = basic_config.to_json();
 
-    json::Value json_schema;
+    json::Json json_schema = json::Json();
     if (configuration::string_to_json(psme::app::DEFAULT_VALIDATOR_JSON, json_schema)) {
         log_info("app", "JSON Schema load!");
         configuration::SchemaErrors errors;
@@ -88,8 +92,8 @@ App::App(int argc, const char* argv[])
 App::~App() { cleanup(); }
 
 void App::init_database() {
-    if (m_configuration["database"].is_object() && m_configuration["database"]["location"].is_string()) {
-        database::Database::set_default_location(m_configuration["database"]["location"].as_string());
+    if (m_configuration.value("database", json::Json::object()).value("location", json::Json()).is_string()) {
+        database::Database::set_default_location(m_configuration["database"]["location"].get<std::string>());
     }
 }
 
@@ -107,9 +111,8 @@ void App::init_network_change_notifier() {
 }
 
 void App::init_ssdp_service() {
-    const auto& service_uuid = agent_framework::generic::ServiceUuid::get_instance()->get_service_uuid();
-    m_ssdp_service.reset(
-        new ssdp::SsdpService{ssdp::load_ssdp_config(m_configuration, service_uuid)});
+    const auto& service_uuid = agent_framework::module::ServiceUuid::get_instance()->get_service_uuid();
+    m_ssdp_service.reset(new ssdp::SsdpService{ssdp::load_ssdp_config(m_configuration, service_uuid)});
     if (m_network_change_notifier) {
         m_network_change_notifier->add_listener(m_ssdp_service);
     }
@@ -135,21 +138,29 @@ void App::init_rest_event_service() {
     m_rest_event_service.reset(new EventService());
 }
 
+void App::init_rest_session_service() {
+    using psme::rest::security::session::SessionService;
+    m_rest_session_service.reset(new SessionService());
+}
+
 void App::init_registries() {
     using namespace rest::registries;
     const std::string& base_configuration{make_base_configuration()};
+    const std::string& intel_rack_scale_configuration{make_intel_rackscale_configuration()};
     RegistryConfigurator::get_instance()->load(base_configuration);
+    RegistryConfigurator::get_instance()->load(intel_rack_scale_configuration);
 }
 
 void App::init() {
     try {
         init_database();
         init_logger();
-        agent_framework::generic::ServiceUuid::get_instance();
+        agent_framework::module::ServiceUuid::get_instance();
         init_network_change_notifier();
         init_ssdp_service();
         init_eventing_server();
         init_rest_event_service();
+        init_rest_session_service();
         init_registration_server();
         psme::rest::eventing::manager::SubscriptionManager::get_instance();
         init_registries();
@@ -177,6 +188,7 @@ void App::run() {
         }
         m_eventing_server->start();
         m_rest_event_service->start();
+        m_rest_session_service->start();
         m_registration_server->start();
         m_rest_server->start();
         m_model_watcher->start();
@@ -224,6 +236,10 @@ void App::cleanup() {
     if (m_rest_event_service) {
         m_rest_event_service->stop();
         m_rest_event_service.reset();
+    }
+    if (m_rest_session_service) {
+        m_rest_session_service->stop();
+        m_rest_session_service.reset();
     }
     if (m_rest_server) {
         m_rest_server->stop();

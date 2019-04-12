@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,27 +18,27 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
-include_directories(
-    ${GTEST_INCLUDE_DIRS}
-    ${NVME_TARGET_INCLUDE_DIRS}
-)
 
 add_gtest(test nvme-target
     sysfs_nvme_target_handler.cpp
     test_runner.cpp
-)
+    )
+
+target_include_directories(${test_target}
+    PRIVATE
+    ${GTEST_INCLUDE_DIRS}
+    )
 
 target_link_libraries(${test_target}
-    ${NVME_TARGET_LIBRARIES}
-    ${SYSFSREF_LIBRARIES}
-)
+    nvme-target
+    )
 
 add_custom_target(unittest_nvme-target
     make
-)
+    )
 
 add_custom_target(unittest_nvme-target_run
     ctest --output-on-failure
-)
+    )

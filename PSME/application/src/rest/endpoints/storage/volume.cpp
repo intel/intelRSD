@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@
 
 #include "agent-framework/module/requests/storage.hpp"
 #include "agent-framework/module/responses/storage.hpp"
-#include "agent-framework/module/utils/json_transformations.hpp"
+
 
 
 using namespace psme::rest;
@@ -38,52 +38,50 @@ using namespace psme::rest::constants;
 using namespace psme::rest::validators;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Volume.Volume";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#Volume.v1_1_0.Volume";
     r[Common::NAME] = "Swordfish Volume";
     r[Common::DESCRIPTION] = "Volume description";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[Common::MODEL] = json::Value::Type::NIL;
-    r[Common::MANUFACTURER] = json::Value::Type::NIL;
-    r[Swordfish::BLOCK_SIZE_BYTES] = json::Value::Type::NIL;
-    r[Swordfish::OPTIMUM_IO_SIZE_BYTES] = json::Value::Type::NIL;
-    r[Swordfish::ACCESS_CAPABILITIES] = json::Value::Type::ARRAY;
-    r[Swordfish::CAPACITY_BYTES] = json::Value::Type::NIL;
-    r[Swordfish::CAPACITY] = json::Value::Type::NIL;
-    r[Swordfish::CAPACITY_SOURCES] = json::Value::Type::ARRAY;
-    r[Swordfish::REPLICA_INFOS] = json::Value::Type::ARRAY;
-    r[Common::IDENTIFIERS] = json::Value::Type::ARRAY;
+    r[Common::MODEL] = json::Json::value_t::null;
+    r[Common::MANUFACTURER] = json::Json::value_t::null;
+    r[Swordfish::BLOCK_SIZE_BYTES] = json::Json::value_t::null;
+    r[Swordfish::OPTIMUM_IO_SIZE_BYTES] = json::Json::value_t::null;
+    r[Swordfish::ACCESS_CAPABILITIES] = json::Json::value_t::array;
+    r[Swordfish::CAPACITY_BYTES] = json::Json::value_t::null;
+    r[Swordfish::REPLICA_INFOS] = json::Json::value_t::array;
+    r[Common::IDENTIFIERS] = json::Json::value_t::array;
 
-    r[Swordfish::CAPACITY][Data::DATA][Data::ALLOCATED_BYTES] = json::Value::Type::NIL;
-    r[Swordfish::CAPACITY_SOURCES] = json::Value::Type::ARRAY;
+    r[Swordfish::CAPACITY] = json::Json::value_t::null;
+    r[Swordfish::CAPACITY][Data::DATA][Data::ALLOCATED_BYTES] = json::Json::value_t::null;
+    r[Swordfish::CAPACITY][Swordfish::IS_THIN_PROVISIONED] = json::Json{};
+    r[Swordfish::CAPACITY_SOURCES] = json::Json::value_t::array;
 
-    r[Common::ACTIONS] = json::Value::Type::OBJECT;
+    r[Common::ACTIONS] = json::Json::value_t::object;
 
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.VolumeLinks";
-    r[Common::LINKS][StorageService::DRIVES] = json::Value::Type::ARRAY;
+    r[Common::LINKS][StorageService::DRIVES] = json::Json::value_t::array;
 
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::OEM] = json::Json::value_t::object;
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.Volume";
-    r[Common::OEM][Common::RACKSCALE][Swordfish::BOOTABLE] = json::Value::Type::NIL;
-    r[Common::OEM][Common::RACKSCALE][Swordfish::ERASED] = json::Value::Type::NIL;
-    r[Common::OEM][Common::RACKSCALE][Swordfish::ERASE_ON_DETACH] = json::Value::Type::NIL;
-    r[Common::OEM][Common::RACKSCALE][Common::METRICS] = json::Value::Type::OBJECT;
+    r[Common::OEM][Common::RACKSCALE][Swordfish::BOOTABLE] = json::Json::value_t::null;
+    r[Common::OEM][Common::RACKSCALE][Common::METRICS] = json::Json::value_t::object;
 
     return r;
 }
 
+
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
     {agent_framework::model::literals::Volume::BOOTABLE, constants::Swordfish::BOOTABLE},
-    {agent_framework::model::literals::Volume::ERASED, constants::Swordfish::ERASED},
 };
 
 }
@@ -99,8 +97,7 @@ void endpoint::Volume::get(const server::Request& req, server::Response& res) {
     auto r = ::make_prototype();
 
     auto volume =
-        psme::rest::model::Find<agent_framework::model::Volume>(req.params[PathParam::VOLUME_ID])
-            .via<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get();
+        model::find<agent_framework::model::StorageService, agent_framework::model::Volume>(req.params).get();
 
     r[Common::ODATA_ID] = PathBuilder(req).build();
     r[Common::ID] = req.params[PathParam::VOLUME_ID];
@@ -115,34 +112,20 @@ void endpoint::Volume::get(const server::Request& req, server::Response& res) {
     }
 
     endpoint::status_to_json(volume, r);
+    utils::fill_name_and_description(volume, r);
 
     r[Swordfish::CAPACITY_BYTES] = volume.get_capacity().get_allocated_bytes();
+    r[Swordfish::CAPACITY][Common::ODATA_TYPE] = "#Capacity.v1_0_0.Capacity";
     r[Swordfish::CAPACITY][Data::DATA][Data::ALLOCATED_BYTES] = volume.get_capacity().get_allocated_bytes();
+    r[Swordfish::CAPACITY][Swordfish::IS_THIN_PROVISIONED] = volume.get_capacity().is_thin_provisioned();
 
-    for (const auto& capacity_source : volume.get_capacity_sources()) {
-        json::Value cs{};
+    for (std::size_t i = 0; i < volume.get_capacity_sources().size(); i++) {
+        json::Json cs = json::Json();
 
-        cs[Swordfish::PROVIDED_CAPACITY][Data::DATA][Data::ALLOCATED_BYTES] = capacity_source.get_allocated_bytes();
-        cs[Swordfish::PROVIDED_CAPACITY][Data::DATA][Data::CONSUMED_BYTES] = capacity_source.get_consumed_bytes();
-
-        for (const auto& drive : capacity_source.get_providing_drives()) {
-            auto drive_url = utils::get_component_url(agent_framework::model::enums::Component::Drive, drive);
-            json::Value link{};
-            link[Common::ODATA_ID] = std::move(drive_url);
-            cs[Swordfish::PROVIDING_DRIVES].push_back(std::move(link));
-        }
-        for (const auto& pool : capacity_source.get_providing_pools()) {
-            auto pool_url = utils::get_component_url(agent_framework::model::enums::Component::StoragePool, pool);
-            json::Value link{};
-            link[Common::ODATA_ID] = std::move(pool_url);
-            cs[Swordfish::PROVIDING_POOLS].push_back(std::move(link));
-        }
-        for (const auto& v : capacity_source.get_providing_volumes()) {
-            auto volume_url = utils::get_component_url(agent_framework::model::enums::Component::Volume, v);
-            json::Value link{};
-            link[Common::ODATA_ID] = std::move(volume_url);
-            cs[Swordfish::PROVIDING_VOLUMES].push_back(std::move(link));
-        }
+        cs[Common::ODATA_ID] = endpoint::PathBuilder(req)
+            .append(constants::Swordfish::CAPACITY_SOURCES)
+            .append(i + 1)
+            .build();
 
         r[Swordfish::CAPACITY_SOURCES].push_back(std::move(cs));
     }
@@ -152,31 +135,44 @@ void endpoint::Volume::get(const server::Request& req, server::Response& res) {
     }
 
     for (const auto& identifier : volume.get_identifiers()) {
-        json::Value id{};
+        json::Json id = json::Json();
+        id[Common::ODATA_TYPE] = "#Resource.v1_1_0.Identifier";
         id[Common::DURABLE_NAME] = identifier.get_durable_name();
         id[Common::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format();
         r[Common::IDENTIFIERS].push_back(std::move(id));
     }
 
     for (const auto& replica_info : volume.get_replica_infos()) {
-        json::Value replica{};
-        replica[ReplicaInfo::REPLICA][Common::ODATA_ID] =
-            utils::get_component_url(agent_framework::model::enums::Component::Volume, replica_info.get_replica());
+        try {
+            json::Json replica{};
+            replica[ReplicaInfo::REPLICA] = json::Json{};
+            replica[Common::ODATA_TYPE] = "#StorageReplicaInfo.v1_0_0.ReplicaInfo";
+            if (replica_info.get_replica().has_value()) {
+                replica[ReplicaInfo::REPLICA][Common::ODATA_ID] =
+                    utils::get_component_url(agent_framework::model::enums::Component::Volume,
+                                             replica_info.get_replica());
+            }
 
-        replica[ReplicaInfo::REPLICA_TYPE] = replica_info.get_replica_type();
-        replica[ReplicaInfo::REPLICA_ROLE] = replica_info.get_replica_role();
-        replica[ReplicaInfo::REPLICA_READ_ONLY_ACCESS] = replica_info.get_replica_read_only_access();
-        r[Swordfish::REPLICA_INFOS].push_back(std::move(replica));
+            replica[ReplicaInfo::REPLICA_TYPE] = replica_info.get_replica_type();
+            replica[ReplicaInfo::REPLICA_ROLE] = replica_info.get_replica_role();
+            replica[ReplicaInfo::REPLICA_READ_ONLY_ACCESS] = replica_info.get_replica_read_only_access();
+            r[Swordfish::REPLICA_INFOS].push_back(std::move(replica));
+        }
+        catch (const agent_framework::exceptions::InvalidUuid& exception) {
+            log_warning("rest", "Could not read replica info: " << exception.get_message());
+        }
     }
 
     r[Common::OEM][Common::RACKSCALE][Swordfish::BOOTABLE] = volume.is_bootable();
-    r[Common::OEM][Common::RACKSCALE][Swordfish::ERASED] = volume.is_erased();
 
-    r[Common::LINKS][Common::OEM][Common::RACKSCALE][StorageService::ENDPOINTS] = json::Value::Type::ARRAY;
+    r[Common::OEM][Common::RACKSCALE][Swordfish::ASSIGNED] =
+        agent_framework::model::Volume::is_volume_shared_over_fabrics(volume.get_uuid());
+
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][StorageService::ENDPOINTS] = json::Json::value_t::array;
     for (const auto& endpoint : agent_framework::module::get_manager<agent_framework::model::Endpoint>().get_entries()) {
         for (const auto& entity : endpoint.get_connected_entities()) {
             if (volume.get_uuid() == entity.get_entity()) {
-                json::Value link{};
+                json::Json link = json::Json();
                 link[Common::ODATA_ID] = endpoint::PathBuilder(
                     endpoint::utils::get_component_url(agent_framework::model::enums::Component::Endpoint,
                                                        endpoint.get_uuid())).build();
@@ -190,28 +186,38 @@ void endpoint::Volume::get(const server::Request& req, server::Response& res) {
     set_response(res, r);
 }
 
-void Volume::patch(const server::Request& request, server::Response& response) {
 
-    auto volume = psme::rest::model::Find<agent_framework::model::Volume>(request.params[PathParam::VOLUME_ID])
-        .via<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID]).get();
+void Volume::patch(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PatchVolume";
+
+    auto volume = psme::rest::model::find<agent_framework::model::StorageService, agent_framework::model::Volume>(
+        request.params).get();
 
     const auto& json = JsonValidator::validate_request_body<schema::VolumePatchSchema>(request);
-    const auto& rackscale_json = json[constants::Common::OEM][constants::Common::RACKSCALE];
+
     agent_framework::model::attribute::Attributes attributes{};
 
-    if (rackscale_json.is_member(constants::Swordfish::BOOTABLE)) {
-        const auto value = agent_framework::model::utils::to_json_rpc(rackscale_json[constants::Swordfish::BOOTABLE]);
-        attributes.set_value(agent_framework::model::literals::Volume::BOOTABLE, value);
+    const auto& rackscale_json = json
+        .value(constants::Common::OEM, json::Json::object())
+        .value(constants::Common::RACKSCALE, json::Json::object());
+
+    if (rackscale_json.count(constants::Swordfish::BOOTABLE)) {
+        attributes.set_value(agent_framework::model::literals::Volume::BOOTABLE,
+                             rackscale_json[constants::Swordfish::BOOTABLE]);
     }
 
-    if (rackscale_json.is_member(constants::Swordfish::ERASED)) {
-        const auto value = agent_framework::model::utils::to_json_rpc(rackscale_json[constants::Swordfish::ERASED]);
-        attributes.set_value(agent_framework::model::literals::Volume::ERASED, value);
+    const auto& capacity_data = json
+        .value(constants::Swordfish::CAPACITY, json::Json::object())
+        .value(constants::Data::DATA, json::Json::object());
+
+    if (capacity_data.count(constants::Data::ALLOCATED_BYTES)) {
+        attributes.set_value(agent_framework::model::literals::Volume::CAPACITY_BYTES,
+                             capacity_data[constants::Data::ALLOCATED_BYTES].get<std::uint64_t>());
     }
 
     if (!attributes.empty()) {
         agent_framework::model::requests::SetComponentAttributes
-                set_component_attributes_request{volume.get_uuid(), attributes};
+            set_component_attributes_request{volume.get_uuid(), attributes};
 
         const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(volume.get_agent_id());
 
@@ -234,31 +240,31 @@ void Volume::patch(const server::Request& request, server::Response& response) {
                      volume.get_uuid(),
                      false);
         };
-        gami_agent->execute_in_transaction(set_volume_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_volume_attributes);
     }
     get(request, response);
 }
 
+
 void Volume::del(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "DeleteVolume";
 
-    auto storage_service =
-        psme::rest::model::Find<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID])
-            .get();
+    auto storage_service = psme::rest::model::find<agent_framework::model::StorageService>(request.params).get();
 
-    auto volume =
-        psme::rest::model::Find<agent_framework::model::Volume>(request.params[PathParam::VOLUME_ID])
-            .via<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID])
-            .get();
+    auto volume = psme::rest::model::find<agent_framework::model::StorageService, agent_framework::model::Volume>(
+        request.params).get();
 
     auto gami_request = agent_framework::model::requests::DeleteVolume(volume.get_uuid());
     const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(volume.get_agent_id());
 
     auto completion_notifier = [storage_service, gami_agent](const Uuid task_uuid) {
-        auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
-            .get_entry_reference(task_uuid);
+        {
+            auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
+                .get_entry_reference(task_uuid);
 
-        if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
-            task->set_messages(task_service_utils::build_success_message());
+            if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
+                task->set_messages(task_service_utils::build_success_message());
+            }
         }
 
         /* Reload knowledge about current Volume and Storage Pool */
@@ -295,14 +301,15 @@ void Volume::del(const server::Request& request, server::Response& response) {
 
             MonitorContentBuilder::get_instance()->
                 add_builder(task_uuid, [](json::Json /* gami_response */) -> server::Response {
-                    server::Response r{};
-                    r.set_status(server::status_2XX::NO_CONTENT);
-                    return r;
-                });
+                server::Response r{};
+                r.set_status(server::status_2XX::NO_CONTENT);
+                return r;
+            });
 
-            agent_framework::module::get_manager<agent_framework::model::Task>()
-                .get_entry_reference(task_uuid)->
-                add_completion_notifier(std::bind(completion_notifier, task_uuid));
+            {
+                agent_framework::module::get_manager<agent_framework::model::Task>()
+                    .get_entry_reference(task_uuid)->add_completion_notifier(std::bind(completion_notifier, task_uuid));
+            }
 
             std::string task_monitor_url =
                 PathBuilder(utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid))
@@ -314,5 +321,5 @@ void Volume::del(const server::Request& request, server::Response& response) {
         }
     };
 
-    gami_agent->execute_in_transaction(remove_drive);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, remove_drive);
 }

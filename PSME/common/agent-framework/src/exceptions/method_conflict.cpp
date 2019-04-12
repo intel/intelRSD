@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2018 Intel Corporation
+ * Copyright (c) 2018-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ using namespace agent_framework::exceptions;
 
 namespace {
     json::Json create_method_conflict_data(const std::string& task_uuid) {
-        json::Json json_data{};
+        json::Json json_data = json::Json();
         json_data[MethodConflict::TASK] = task_uuid;
         return json_data;
     }
@@ -42,7 +42,7 @@ MethodConflict::MethodConflict(const std::string& msg, const std::string& task_u
 
 
 std::string MethodConflict::get_task_uuid(const json::Json& data) {
-    return data[MethodConflict::TASK].get<std::string>();
+    return data.value(MethodConflict::TASK, std::string{});
 }
 
 MethodConflict::~MethodConflict() {}

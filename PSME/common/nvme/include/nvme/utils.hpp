@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file nvme/utils.hpp
  */
 
@@ -42,5 +40,13 @@ bool supports_namespace_management(const ControllerData& controller_data);
  * @return Formatted LBA data size, if not available, returns default (512)
  */
 uint64_t get_formatted_lba_data_size(const NamespaceData& namespace_data);
+
+/*!
+ * @brief Gets name of the first namespace from the list.
+ * @param ns_id_list List of namespace IDs.
+ * @return First namespace identifier.
+ * @throws NVMeException if first namespace could not be found.
+ */
+uint32_t find_first_namespace(const NamespaceIdList& ns_id_list);
 
 }

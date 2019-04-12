@@ -1,0 +1,26 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Endpoint.Endpoint",
+  "@odata.id": "/redfish/v1/Fabrics/e3583610-7ad2-11e8-b20c-fb5de0316502_1/Endpoints/nqn.2014-08.org.nvmexpress:e358ab40-7ad2-11e8-b20c-fb5de0316502",
+  "@odata.type": "#Endpoint.v1_0_0.Endpoint",
+  "Id": "nqn.2014-08.org.nvmexpress:e358ab40-7ad2-11e8-b20c-fb5de0316502",
+  "Name": "Upstream Endpoint",
+  "Description": "The PCIe Physical function of an 850GB NVMe drive",
+  "Identifiers": [
+    {
+      "DurableNameFormat": "NQN",
+      "DurableName": "nqn.2014-08.org.nvmexpress:e358ab40-7ad2-11e8-b20c-fb5de0316502"
+    }
+  ],
+  "ConnectedEntities": [
+    {
+      "EntityRole": "Initiator",
+      "EntityLink": null,
+      "EntityPciId": {
+        "DeviceId": null,
+        "VendorId": null,
+        "SubsystemId": null,
+        "SubsystemVendorId": null
+      }
+    }
+  ]
+}

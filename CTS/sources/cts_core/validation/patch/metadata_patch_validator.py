@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ from traceback import format_exc
 from bs4 import BeautifulSoup
 
 from cts_core.commons.api_caller import ApiCaller
-from cts_core.commons.error import cts_error, cts_warning
+from cts_core.commons.error import cts_error, cts_warning, cts_message
 from cts_core.commons.json_helpers import get_odata_type, create_data
 from cts_core.commons.preconditions import Preconditions
 from cts_core.metadata.model.metadata_types.metadata_type_categories import MetadataTypeCategories
@@ -57,7 +57,7 @@ class Context:
 
 
 class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
-    def __init__(self, metadata_container, configuration, strategy, requirements=None):
+    def __init__(self, metadata_container, configuration, strategy, requirements=None, skip_list=None):
         """
         :type metadata_container: cts_core.metadata.metadata_container.MetadataContainer
         :type configuration: cts_framework.configuration.configuration.Configurations
@@ -70,8 +70,15 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
         self._preconditions = Preconditions(metadata_container, requirements)
         self._fast_mode = getenv('CTS_PATCH_ONE_PER_TYPE')
         self._types_patched = set()
+        self._skip_list = skip_list
+
         if self._fast_mode:
             cts_warning("Test results may be UNRELIABLE - PATCHING ONLY ONE RESOURCE OF EACH TYPE!")
+
+        self._endpoints_and_keys_to_ignore = []
+        if self._skip_list:
+            cts_warning("Test results may be UNRELIABLE - Some elements presented on REST API will be IGNORED!")
+            self._endpoints_and_keys_to_ignore = self._load_ignore_list_file(skip_list)
 
     def validate(self, discovery_container):
         self.discovery_container = discovery_container
@@ -85,6 +92,28 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
 
         print "SCREEN::Overall status: %s" % status
         return status
+
+    @staticmethod
+    def _load_ignore_list_file(path_to_file=None):
+        if not path_to_file:
+            return []
+
+        endpoints_to_ignore = {}
+        with open(path_to_file, 'r') as f:
+            for line in f.readlines():
+                if '::' in line:
+                    pre_formatted_value = line.split('::')
+                else:
+                    cts_warning("{line} is not proper format, add ::[*] to ignore entire endpoint")
+                    continue
+                list_of_endpoints_key = MetadataPatchValidator.__parse_into_a_list(pre_formatted_value[1])
+                endpoints_to_ignore[pre_formatted_value[0]] = [value for value in list_of_endpoints_key.split(',')]
+            print(endpoints_to_ignore)
+        return endpoints_to_ignore
+
+    @staticmethod
+    def __parse_into_a_list(text):
+        return text.replace('\n', '').replace('[', '').replace(']', '')
 
     def _enumerate_resources(self, discovery_container):
         count = len(discovery_container)
@@ -105,7 +134,8 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
 
             yield api_resource
 
-    def _print_progress(self, api_resource, count, idx):
+    @staticmethod
+    def _print_progress(api_resource, count, idx):
         print "SCREEN::" + "-" * 120
         progress = "[%5d/%5d]" % (idx + 1, count)
         print "MESSAGE::%s - %s : %s" % \
@@ -127,21 +157,46 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
         if self._metadata_container.to_be_ignored(api_resource.odata_type):
             return ValidationStatus.PASSED
 
+        # Load Ignore Elements list and verify.
+        properties_to_skip = []
+        if api_resource.odata_id in self._endpoints_and_keys_to_ignore:
+            properties_to_skip = self._endpoints_and_keys_to_ignore[api_resource.odata_id]
+
+            if properties_to_skip[0] == '*':
+                print('MESSAGE::Skipping patching {}. This odata_id is present on list of endpoints to ignore'.
+                      format(api_resource.odata_id))
+                return ValidationStatus.PASSED_WITH_WARNINGS
+            else:
+                print('MESSAGE::This properties from {} will be skipped from patching.'.
+                      format(api_resource.odata_id))
+                print('MESSAGE::Elements are on list to ignore:')
+                for idp, property in enumerate(properties_to_skip, 1):
+                    print('MESSAGE::\t{idp}. {property}'.format(idp=idp,
+                                                                property=property))
+
         # do not attempt patch Virtual systems
         if "SystemType" in api_resource.body and api_resource.body["SystemType"] == "Virtual":
             print "MESSAGE::Skipping patching of a virtual system {}".format(api_resource.odata_id)
             return ValidationStatus.PASSED
 
         try:
-            properties_list = self._metadata_container.entities[api_resource.odata_type].properties.values()
+            properties_list = [property for property in
+                               self._metadata_container.entities[api_resource.odata_type].properties.values()
+                               if str(property) not in properties_to_skip]
+
             try:
+                if len(properties_to_skip):
+                    return self._validate_property_list(context,
+                                                        list(),
+                                                        properties_list,
+                                                        properties_to_skip[0].split('->'))
                 return self._validate_property_list(context,
                                                     list(),
                                                     properties_list)
             except SystemExit:
                 raise
             except:
-                cts_error("Unhandled exception {exception:stacktrace} " \
+                cts_error("Unhandled exception {exception:stacktrace} "
                           "while handling resource {odata_id:id}",
                           exception=format_exc(),
                           odata_id=api_resource.odata_id)
@@ -151,7 +206,7 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
                       odata_type=api_resource.odata_type)
             return ValidationStatus.FAILED
 
-    def _validate_property_list(self, context, variable_path, property_list):
+    def _validate_property_list(self, context, variable_path, property_list, ignore_list=[]):
         """
         :type context: Context
         :type variable_path: list [str or int]
@@ -164,10 +219,18 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
         # use local copy - api resource will be modified while test is executed
         local_property_list = list(property_list)
         for property_description in local_property_list:
-            status = ValidationStatus.join_statuses(self._validate_property(context,
-                                                                            variable_path,
-                                                                            property_description),
-                                                    status)
+            if not len(ignore_list):
+                status = ValidationStatus.join_statuses(self._validate_property(context,
+                                                                                variable_path,
+                                                                                property_description),
+                                                        status)
+                continue
+            if str(property_description) == ignore_list[0] and len(ignore_list) > 1:
+                status = ValidationStatus.join_statuses(self._validate_property(context,
+                                                                                variable_path,
+                                                                                property_description,
+                                                                                ignore_list=ignore_list[1:]),
+                                                        status)
 
         # validate additional properties
         try:
@@ -204,7 +267,7 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
         return status
 
     def _validate_property(self, context, variable_path, property_description,
-                           skip_collection=False):
+                           skip_collection=False, ignore_list=[]):
         """
         :type context: Context
         :type variable_path: list [str or int]
@@ -227,6 +290,13 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
 
         try:
             property_body = api_resource.get_value_from_path(variable_path)
+            if len(ignore_list) == 1 and ignore_list[0] in property_body:
+                path_s = "->".join([str(segment) for segment in variable_path])
+                cts_message("Patching %s->%s" % (api_resource.odata_id, path_s))
+                cts_message("This property {ignore_element} is marked in IgnoredElement list as element to skip".format(
+                    ignore_element=ignore_list[0]
+                ))
+                return ValidationStatus.PASSED_WITH_WARNINGS
         except KeyError as error:
             if property_description.is_required:
                 path_s = "->".join([str(segment) for segment in variable_path])
@@ -523,7 +593,8 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
 
         return int(post, 16) == int(req, 16)
 
-    def _mac_address_standarizer(self, mac_address):
+    @staticmethod
+    def _mac_address_standarizer(mac_address):
         replace_dict = {":": "", "-": ""}
         for i, j in replace_dict.iteritems():
             mac_address = mac_address.replace(i, j)

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +66,7 @@ public:
         Memory memory{};
         memory.set_memory_type(TEST_MEMORY_TYPE);
         memory.set_device_type(TEST_DEVICE_TYPE);
-        memory.set_capacity_mb(TEST_SIZE);
+        memory.set_capacity_mib(TEST_SIZE);
         memory.set_operating_speed_mhz(TEST_SPEED);
         memory.set_voltage_volt(TEST_VOLTAGE);
         memory.set_data_width_bits(TEST_DATA_WIDTH);
@@ -87,8 +87,8 @@ TEST(GetMemoryInfoTest, PositiveExecute) {
     MyGetMemoryInfo command{"TestMemoryId"};
     GetMemoryInfo::Request request{""};
     GetMemoryInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::Memory::MEMORY] = "TestMemoryId";
 
@@ -99,7 +99,7 @@ TEST(GetMemoryInfoTest, PositiveExecute) {
     ASSERT_TRUE(result.isObject());
     ASSERT_TRUE(result[literals::Memory::MEMORY_TYPE].isString());
     ASSERT_TRUE(result[literals::Memory::DEVICE_TYPE].isString());
-    ASSERT_TRUE(result[literals::Memory::CAPACITY_MB].isUInt());
+    ASSERT_TRUE(result[literals::Memory::CAPACITY_MIB].isUInt());
     ASSERT_TRUE(result[literals::Memory::OPERATING_SPEED_MHZ].isUInt());
     ASSERT_TRUE(result[literals::Memory::VOLTAGE].isNumeric());
     ASSERT_TRUE(result[literals::Memory::DATA_WIDTH_BITS].isUInt());
@@ -109,7 +109,7 @@ TEST(GetMemoryInfoTest, PositiveExecute) {
     ASSERT_TRUE(result[Status::STATUS].isObject());
     ASSERT_EQ(result[literals::Memory::MEMORY_TYPE].asString(), TEST_MEMORY_TYPE.to_string());
     ASSERT_EQ(result[literals::Memory::DEVICE_TYPE].asString(), TEST_DEVICE_TYPE.to_string());
-    ASSERT_EQ(result[literals::Memory::CAPACITY_MB].asUInt(), TEST_SIZE);
+    ASSERT_EQ(result[literals::Memory::CAPACITY_MIB].asUInt(), TEST_SIZE);
     ASSERT_EQ(result[literals::Memory::OPERATING_SPEED_MHZ].asUInt(), TEST_SPEED);
     ASSERT_EQ(result[literals::Memory::VOLTAGE].asDouble(), TEST_VOLTAGE);
     ASSERT_EQ(result[literals::Memory::DATA_WIDTH_BITS].asUInt(), TEST_DATA_WIDTH);
@@ -121,8 +121,8 @@ TEST(GetMemoryInfoTest, NegativeModuleNotFound) {
     MyGetMemoryInfo command{"TestMemoryId"};
     GetMemoryInfo::Request request{""};
     GetMemoryInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::Memory::MEMORY] = "OtherTestMemoryId";
 

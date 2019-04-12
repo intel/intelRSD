@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ EthernetSwitchPortVlan::EthernetSwitchPortVlan(const std::string& parent_uuid, e
 EthernetSwitchPortVlan::~EthernetSwitchPortVlan() {}
 
 json::Json EthernetSwitchPortVlan::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::EthernetSwitchPortVlan::STATUS] = get_status().to_json();
     result[literals::EthernetSwitchPortVlan::VLAN_ID] = get_vlan_id();
     result[literals::EthernetSwitchPortVlan::VLAN_NAME] = get_vlan_name();

@@ -1,7 +1,6 @@
 /*!
  * @brief Discovery manager for compute agent class interface.
  *
- * @header{License}
  * @copyright Copyright (c) 2017-2018 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file discovery_manager.hpp
  */
 
@@ -84,8 +82,7 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Discovered chassis object.
      */
-    agent_framework::model::Chassis
-    discover_chassis(const std::string& parent_uuid);
+    agent_framework::model::Chassis discover_chassis(const Uuid& parent_uuid);
 
 
     /*!
@@ -93,8 +90,7 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Discovered thermal zone object.
      */
-    agent_framework::model::ThermalZone
-    discover_thermal_zone(const std::string& parent_uuid);
+    agent_framework::model::ThermalZone discover_thermal_zone(const Uuid& parent_uuid);
 
 
     /*!
@@ -102,8 +98,7 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Discovered power zone object.
      */
-    agent_framework::model::PowerZone
-    discover_power_zone(const std::string& parent_uuid);
+    agent_framework::model::PowerZone discover_power_zone(const Uuid& parent_uuid);
 
 
     /*!
@@ -112,8 +107,7 @@ protected:
      * @param chassis_uuid System chassis UUID.
      * @return Discovered system object.
      */
-    agent_framework::model::System
-    discover_system(const std::string& parent_uuid, const std::string& chassis_uuid);
+    agent_framework::model::System discover_system(const Uuid& parent_uuid, const Uuid& chassis_uuid);
 
 
     /*!
@@ -123,7 +117,7 @@ protected:
      * @return Vector of discovered PcieDevice objects.
      */
     std::vector<agent_framework::model::PcieDevice>
-    discover_pcie_devices(const std::string& parent_uuid, const std::string& chassis_uuid);
+    discover_pcie_devices(const Uuid& parent_uuid, const Uuid& chassis_uuid);
 
 
     /*!
@@ -140,17 +134,31 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Vector of discovered processor objects.
      */
-    std::vector<agent_framework::model::Processor>
-    discover_processors(const std::string& parent_uuid);
+    std::vector<agent_framework::model::Processor> discover_processors(const Uuid& parent_uuid);
 
 
     /*!
-     * @brief Discover all system momory.
+     * @brief Discover all system memory.
      * @param parent_uuid Parent UUID.
      * @return Vector of discovered memory objects.
      */
-    std::vector<agent_framework::model::Memory>
-    discover_memory(const std::string& parent_uuid);
+    std::vector<agent_framework::model::Memory> discover_memory(const Uuid& parent_uuid);
+
+
+    /*!
+     * @brief Discover all system memory domains.
+     * @param parent_uuid Parent UUID.
+     * @return Vector of discovered memory domain objects.
+     */
+    std::vector<agent_framework::model::MemoryDomain> discover_memory_domains(const Uuid& parent_uuid);
+
+
+    /*!
+     * @brief Discover all system memory chunks.
+     * @param parent_uuid Parent UUID.
+     * @return Vector of discovered memory chunks objects.
+     */
+    std::vector<agent_framework::model::MemoryChunks> discover_memory_chunks(const Uuid& parent_uuid);
 
 
     /*!
@@ -158,8 +166,7 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Discovered storage subsystem object.
      */
-    agent_framework::model::StorageSubsystem
-    discover_storage_subsystem(const std::string& parent_uuid);
+    agent_framework::model::StorageSubsystem discover_storage_subsystem(const Uuid& parent_uuid);
 
 
     /*!
@@ -167,8 +174,7 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Vector of discovered system drives.
      */
-    std::vector<agent_framework::model::Drive>
-    discover_drives(const std::string& parent_uuid);
+    std::vector<agent_framework::model::Drive> discover_drives(const Uuid& parent_uuid);
 
 
     /*!
@@ -176,8 +182,7 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Vector of discovered system network interfaces.
      */
-    std::vector<agent_framework::model::NetworkInterface>
-    discover_network_interfaces(const std::string& parent_uuid);
+    std::vector<agent_framework::model::NetworkInterface> discover_network_interfaces(const Uuid& parent_uuid);
 
 
     /*!
@@ -185,8 +190,7 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Discovered network device object.
      */
-    agent_framework::model::NetworkDevice
-    discover_network_device(const std::string& parent_uuid);
+    agent_framework::model::NetworkDevice discover_network_device(const Uuid& parent_uuid);
 
 
     /*!
@@ -194,8 +198,7 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Discovered network device function object.
      */
-    agent_framework::model::NetworkDeviceFunction
-    discover_network_device_function(const std::string& parent_uuid);
+    agent_framework::model::NetworkDeviceFunction discover_network_device_function(const Uuid& parent_uuid);
 
 
     /*!
@@ -203,7 +206,7 @@ protected:
      * @param parent_uuid Parent UUID.
      * @return Vector of system trusted modules.
      */
-    std::vector<agent_framework::model::TrustedModule> discover_trusted_modules(const std::string& parent_uuid);
+    std::vector<agent_framework::model::TrustedModule> discover_trusted_modules(const Uuid& parent_uuid);
 
 
     std::string connection_data_to_string() {
@@ -212,7 +215,7 @@ protected:
 
 
     template<typename T, typename... Args>
-    T update_collection(agent_framework::eventing::EventDataVec& events,
+    T update_collection(agent_framework::model::attribute::EventData::Vector& events,
                            T&& collection, const Args&... args) {
         using Model = typename T::value_type;
         auto& table = agent_framework::module::get_manager<Model>();
@@ -226,7 +229,7 @@ protected:
     }
 
     template<typename T>
-    void add_or_update_with_removal(agent_framework::eventing::EventDataVec& events, T& resource) {
+    void add_or_update_with_removal(agent_framework::model::attribute::EventData::Vector& events, T& resource) {
         auto& table = agent_framework::module::get_manager<T>();
         const auto before_change_epoch = table.get_current_epoch();
         add_or_update(events, table, resource);
@@ -237,7 +240,7 @@ private:
 
     template<typename U>
     void remove_untouched(const std::uint64_t before_change_epoch,
-            agent_framework::eventing::EventDataVec& events, U& table) {
+            agent_framework::model::attribute::EventData::Vector& events, U& table) {
         using Model = typename U::value_type;
         const auto& bmc_id = m_bmc.get_id();
         auto not_touched = table.get_keys(
@@ -247,13 +250,13 @@ private:
             }
         );
         for (const auto& to_remove_uuid : not_touched) {
-            agent_framework::eventing::EventData event{};
+            agent_framework::model::attribute::EventData event{};
             table.remove_entry(to_remove_uuid,
                     [&event](const Model& elem) {
                         event.set_parent(elem.get_parent_uuid());
                         event.set_component(elem.get_uuid());
                         event.set_type(elem.get_component());
-                        event.set_notification(agent_framework::eventing::Notification::Remove);
+                        event.set_notification(agent_framework::model::enums::Notification::Remove);
                     });
             if (!event.get_component().empty()) {
                 events.push_back(std::move(event));
@@ -262,7 +265,7 @@ private:
     }
 
     template<typename U, typename T = typename U::value_type>
-    void add_or_update(agent_framework::eventing::EventDataVec& events,
+    void add_or_update(agent_framework::model::attribute::EventData::Vector& events,
                        U& table, T& resource) {
         resource.set_agent_id(m_bmc.get_id());
         const auto status = table.add_or_update_entry(resource);
@@ -272,8 +275,8 @@ private:
             telemetry_service->build_metrics_for_resource(m_stabilizer, resource);
         }
 
-        auto add_event = [&events](const T& res, agent_framework::eventing::Notification notification_type) {
-            agent_framework::eventing::EventData event{};
+        auto add_event = [&events](const T& res, agent_framework::model::enums::Notification notification_type) {
+            agent_framework::model::attribute::EventData event{};
             event.set_parent(res.get_parent_uuid());
             event.set_component(res.get_uuid());
             event.set_type(res.get_component());
@@ -284,13 +287,13 @@ private:
         if ((resource.get_component() == agent_framework::model::enums::Component::Manager ||
             resource.get_component() == agent_framework::model::enums::Component::System) &&
             (agent_framework::module::TableInterface::UpdateStatus::Added == status)) {
-            add_event(resource, agent_framework::eventing::Notification::Add);
+            add_event(resource, agent_framework::model::enums::Notification::Add);
             log_info("discovery-manager", "Added " << T::get_component().to_string());
             log_debug("discovery-manager", "Added " << T::get_component().to_string() << ", UUID " << resource.get_uuid());
         }
         else if (agent_framework::module::TableInterface::UpdateStatus::StatusChanged == status ||
                  agent_framework::module::TableInterface::UpdateStatus::Updated == status) {
-            add_event(resource, agent_framework::eventing::Notification::Update);
+            add_event(resource, agent_framework::model::enums::Notification::Update);
             log_info("discovery-manager", "Updated " << T::get_component().to_string());
             log_debug("discovery-manager", "Updated " << T::get_component().to_string() << ", UUID " << resource.get_uuid());
         }

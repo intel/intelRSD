@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Settings_v1.xml">
+    <edmx:Include Namespace="Settings"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IntelRackScale.Extensions">
+      <Term Name="Nontrivial" Type="Edm.String" AppliesTo="Property">
+        <Annotation Term="OData.Description"
+                    String="The term shall be applied to a property in order to specify nontrivial preconditions, postconditions, side-effects or invariants that need to be satisfied."/>
+      </Term>
+    </Schema>
+
+
+  </edmx:DataServices>
+</edmx:Edmx>

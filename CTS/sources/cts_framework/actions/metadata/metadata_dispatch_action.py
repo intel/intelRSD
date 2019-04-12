@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@
 
 from cts_framework.actions.action import Action
 from cts_framework.actions.metadata.metadata_diff_action import MetadataDiffAction
+from cts_framework.actions.metadata.metadata_report_action import MetadataReportAction
 from cts_framework.commons.logging_helper import LoggingHelper
 
 
@@ -32,16 +33,19 @@ class MetadataDispatchAction(Action):
     PARAM_NAME = "ACTION"
 
     def __init__(self, *params, **kwargs):
-        self.metadata_diff_action = None
+        self.metadata_diff_action, self.metadata_report_action = None, None
+
         self._logger = LoggingHelper(__name__)
         Action.__init__(self, *params, **kwargs)
 
     def fill_parser_arguments(self):
         parsers = self.parser.add_subparsers()
         self.metadata_diff_action = MetadataDiffAction(parsers)
+        self.metadata_report_action = MetadataReportAction(parsers)
 
     def process_action(self, configuration):
         self._logger.log_debug("Processing user request")
 
-        {MetadataDiffAction.ACTION: self.metadata_diff_action}[configuration.EXECUTE_TYPE]\
+        {MetadataDiffAction.ACTION: self.metadata_diff_action,
+         MetadataReportAction.ACTION: self.metadata_report_action}[configuration.EXECUTE_TYPE]\
             .process_action(configuration)

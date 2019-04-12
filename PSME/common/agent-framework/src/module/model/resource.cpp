@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,43 +20,17 @@
 
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/model/resource.hpp"
-#include "agent-framework/service_uuid.hpp"
-
-#include <uuid++.hh>
-
+#include "agent-framework/module/service_uuid.hpp"
+#include "uuid/uuid.hpp"
 
 
-using agent_framework::generic::ServiceUuid;
-
-namespace {
-
-std::string make_persistent_uuid(const std::string& namespace_uuid, const std::string& unique_name) {
-    uuid id{};
-    uuid ns_uuid(namespace_uuid.c_str());
-    id.make(UUID_MAKE_V5, &ns_uuid, unique_name.c_str());
-    char* uuid_char = id.string();
-    std::string persistent_id{uuid_char};
-    free(uuid_char);
-    return persistent_id;
-}
-
-}
 
 namespace agent_framework {
 namespace model {
 
-Uuid Resource::make_uuid() {
-    uuid id;
-    id.make(UUID_MAKE_V1);
-    char* uuid_char = id.string();
-    std::string uuid_str{uuid_char};
-    free(uuid_char);
-    return uuid_str;
-}
-
 
 Resource::Resource(const std::string& parent_uuid, enums::Component parent_type) :
-    m_temporary_uuid{make_uuid()},
+    m_temporary_uuid{make_v1_uuid()},
     m_parent_uuid{parent_uuid},
     m_parent_type{parent_type} {
 }
@@ -64,8 +38,8 @@ Resource::Resource(const std::string& parent_uuid, enums::Component parent_type)
 
 const Uuid& Resource::make_persistent_uuid() {
     if (m_unique_key.has_value()) {
-        std::string namespace_uuid = ServiceUuid::get_instance()->get_service_uuid();
-        m_persistent_uuid = ::make_persistent_uuid(namespace_uuid, m_unique_key);
+        std::string namespace_uuid = module::ServiceUuid::get_instance()->get_service_uuid();
+        m_persistent_uuid = make_v5_uuid(namespace_uuid, m_unique_key);
         m_is_uuid_persistent = true;
     }
     return m_persistent_uuid;
@@ -73,7 +47,7 @@ const Uuid& Resource::make_persistent_uuid() {
 
 
 const Uuid& Resource::make_random_uuid() {
-    m_temporary_uuid = make_uuid();
+    m_temporary_uuid = make_v1_uuid();
     m_is_uuid_persistent = false;
     return m_temporary_uuid;
 }

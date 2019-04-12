@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
-add_gtest(loader_test psme-nvme
+add_gtest(loader_test psme-gpt-nvme
     loader_validation_test.cpp
     loader_config_test.cpp
     test_runner.cpp
@@ -32,14 +32,23 @@ generate_config_file(loader_validation_test.cpp
     "Declaration of full configuration"
 )
 
-target_link_libraries(${test_target}
-    nvme-loader
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${PCA95XX_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-    dl
+target_sources(${test_target} PRIVATE
+    ../../src/loader/loader.cpp
+    ../../src/loader/config.cpp
 )
+
+target_link_libraries(${test_target}
+    nvme partition
+    nvme-target
+    agent-framework
+    uuid
+    logger
+    configuration
+    ${SAFESTRING_LIBRARIES}
+)
+
+target_include_directories(${test_target}
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+    ${AGENT_FRAMEWORK_INCLUDE_DIRS}
+)
+

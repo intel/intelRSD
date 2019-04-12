@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,8 +57,8 @@ net::SocketAddress Service::get_mux_address() {
     auto mux_socket_address = Service::MUX_SOCKET_ADDRESS;
     try {
         auto config = configuration::Configuration::get_instance().to_json();
-        std::uint16_t mux_port = static_cast<std::uint16_t>(config["cyMux"]["port"].as_uint());
-        auto mux_ip = net::IpAddress::from_string(config["cyMux"]["ipv4"].as_string());
+        std::uint16_t mux_port = config.at("cyMux").at("port").get<std::uint16_t>();
+        auto mux_ip = net::IpAddress::from_string(config["cyMux"].at("ipv4").get<std::string>());
         mux_socket_address = net::SocketAddress(mux_ip, mux_port);
     }
     catch(const std::exception& e) {

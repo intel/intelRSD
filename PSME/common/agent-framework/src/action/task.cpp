@@ -1,8 +1,6 @@
 /*!
- * @brief
- *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file
+ * @file task.cpp
+ * @brief Asynchronous task model class
  * */
 
 #include "agent-framework/action/task.hpp"

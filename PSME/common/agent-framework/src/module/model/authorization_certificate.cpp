@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ AuthorizationCertificate::AuthorizationCertificate(
 AuthorizationCertificate::~AuthorizationCertificate() {}
 
 json::Json AuthorizationCertificate::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::AuthorizationCertificate::CERTIFICATE] = get_certificate();
     result[literals::AuthorizationCertificate::ENCODING_METHOD] =
         get_encoding_method().to_string();

@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file nvme/commands/generic_nvme_command.hpp
  */
 
@@ -40,7 +38,7 @@ public:
      * @brief Returns the command data block representing the nvme commands
      * @return Reference to the command data struct
      */
-    CommandData& get_data_ref() {
+    CommandData& get_data() {
         return m_data;
     }
 

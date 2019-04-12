@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of GetCollection command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file get_collection.cpp
  */
 
@@ -43,6 +41,7 @@ void get_collection(GetCollection::ContextPtr, const GetCollection::Request& req
         >(uuid, name, response)) {}
     else if (process_resource_collections<System,
         Link<LinkType::Strong, CollectionType::NetworkInterfaces, NetworkInterface>,
+        Link<LinkType::Strong, CollectionType::Processors, Processor>,
         Link<LinkType::Weak, CollectionType::StorageServices, StorageService>
         >(uuid, name, response)) {}
     else if (process_resource_collections<Chassis,

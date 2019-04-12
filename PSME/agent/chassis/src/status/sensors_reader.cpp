@@ -2,7 +2,7 @@
  * @brief SensorsReader implementation
  *
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,38 +39,29 @@ using namespace agent_framework::module;
 using namespace agent::chassis;
 using namespace ipmi;
 using namespace ipmi::command;
+using ipmi::command::generic::BmcInterface;
 
-using agent_framework::module::ChassisComponents;
-using agent_framework::module::CommonComponents;
 
 namespace {
 
-constexpr const std::uint8_t SLED_TYPE_HSW = 0x00;
-constexpr const std::uint8_t SLED_TYPE_BDX_DE = 0x01;
 constexpr const std::uint8_t SLED_TYPE_PURLEY = 0x02;
 
-enum SENSOR_TYPE : std::uint8_t {
+enum SensorType : std::uint8_t {
     INLET_TEMP,
     HSC_INPUT_POWER
 };
 
-const std::unordered_map<std::uint8_t, std::unordered_map<std::uint8_t, std::uint8_t>> sensors_map = {
-    {SLED_TYPE_BDX_DE,
-        {
-            {INLET_TEMP, 0x07},
-            {HSC_INPUT_POWER, 0x29}
-        }
-    },
-    {SLED_TYPE_HSW,
-        {
-            {INLET_TEMP, 0x07},
-            {HSC_INPUT_POWER, 0x29}
-        }
-    },
-    {SLED_TYPE_PURLEY,
+const std::unordered_map<uint16_t, std::unordered_map<uint8_t, std::uint8_t>> sensors_map = {
+    {uint16_t(BmcInterface::RSD_2_2),
         {
             {INLET_TEMP, 0xA0},
             {HSC_INPUT_POWER, 0x29}
+        }
+    },
+    {uint16_t(BmcInterface::RSD_2_4),
+        {
+            {INLET_TEMP, 0x9c},
+            {HSC_INPUT_POWER, 0x32}
         }
     }
 };
@@ -94,21 +85,6 @@ double read_sensor_value(ipmi::IpmiController& ipmi, std::uint8_t sensor_no) {
             * std::pow(10, reading_factors.get_result_exponent());
 }
 
-uint8_t get_sled_type(std::uint16_t product_id) {
-    if (ipmi::command::generic::PRODUCT_ID_INTEL_XEON_BDC_R == product_id ||
-        ipmi::command::generic::PRODUCT_ID_INTEL_XEON_BDC_A == product_id) {
-        return SLED_TYPE_HSW;
-    }
-    else if (ipmi::command::generic::PRODUCT_ID_INTEL_BDX_DE_BDC_R == product_id) {
-        return SLED_TYPE_BDX_DE;
-    }
-    else if (ipmi::command::generic::PRODUCT_ID_INTEL_XEON_PURLEY == product_id) {
-        return SLED_TYPE_PURLEY;
-    }
-    else {
-        throw std::runtime_error("Unknown sled type");
-    }
-}
 
 uint8_t get_desired_pwm(ipmi::IpmiController& ipmi) {
     sdv::request::GetFanPwm ipmi_request;
@@ -122,12 +98,12 @@ uint8_t get_desired_pwm(ipmi::IpmiController& ipmi) {
 
 void SensorsReader::operator()() {
     auto manager = get_manager<Manager>().get_entry(manager_uuid);
-    auto platform_id = bmc.get_platform_id();
-    if (manager.get_presence() && platform_id.has_value()) {
-        auto type = get_sled_type(platform_id.value());
+    auto interface = bmc.get_interface();
+    if (manager.get_presence() && interface.has_value()) {
         auto pwm = get_desired_pwm(bmc.ipmi());
-        auto inlet_temperature = read_sensor_value(bmc.ipmi(), sensors_map.at(type).at(INLET_TEMP));
-        auto input_power = read_sensor_value(bmc.ipmi(), sensors_map.at(type).at(HSC_INPUT_POWER));
+        auto raw_interface = uint16_t(interface.value());
+        auto inlet_temperature = read_sensor_value(bmc.ipmi(), sensors_map.at(raw_interface).at(INLET_TEMP));
+        auto input_power = read_sensor_value(bmc.ipmi(), sensors_map.at(raw_interface).at(HSC_INPUT_POWER));
 
         auto chassis_keys = get_manager<Chassis>().get_keys(manager.get_uuid());
         auto power_zone_keys = get_manager<PowerZone>().get_keys(chassis_keys.front());
@@ -140,13 +116,13 @@ void SensorsReader::operator()() {
         auto temperature_sensor = get_manager<ChassisSensor>().get_entry_reference(temperature_sensor_keys.front());
         auto power_zone = get_manager<PowerZone>().get_entry_reference(power_zone_keys.front());
 
-        chassis->set_ipmb_type(type);
+        chassis->set_ipmb_type(SLED_TYPE_PURLEY); // only supported sled type
         thermal_zone->set_desired_speed_pwm(pwm);
         temperature_sensor->set_reading(inlet_temperature);
         power_zone->set_power_consumed_watts(input_power);
 
         log_debug("sensors-reader", bmc.get_id()
-                << " sled_type: " << static_cast<uint>(type)
+                << " sled_type: " << static_cast<uint>(SLED_TYPE_PURLEY)
                 << " desired_pwm: " << static_cast<uint>(pwm)
                 << " inlet_temp: " << inlet_temperature
                 << " power: " << input_power);

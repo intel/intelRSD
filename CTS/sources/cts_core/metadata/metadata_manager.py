@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +22,12 @@
  * @section DESCRIPTION
 """
 import os
-from lxml import etree
 from os import getenv
+
+from lxml import etree
+
 from cts_core.commons.api_caller import ApiCaller
-from cts_core.commons.error import cts_warning, cts_error
+from cts_core.commons.error import cts_warning, cts_error, cts_message
 from cts_core.commons.services import ServiceTypes
 from cts_core.metadata.metadata_container import MetadataContainer, EnumType
 from cts_core.metadata.model.entity import Entity
@@ -46,8 +48,10 @@ ROOT_XML_FILE = "$metadata.xml"
 REFERENCE = "edmx:reference"
 URI = "uri"
 
+
 class MetadataMalformed(BaseException):
     pass
+
 
 class MetadataManager:
     METADATA_URL = "/redfish/v1/$metadata"
@@ -86,8 +90,19 @@ class MetadataManager:
         ServiceTypes.PODM_2_3: "2.3/PODM",
         ServiceTypes.PSME_2_3: "2.3/PSME",
         ServiceTypes.RMM_2_3: "2.3/RMM",
-        ServiceTypes.SS_2_3: "2.3/SS"
+        ServiceTypes.SS_2_3: "2.3/SS",
 
+        ServiceTypes.PODM_2_4: "2.4/PODM",
+        ServiceTypes.PSME_2_4: "2.4/PSME",
+        ServiceTypes.RMM_2_4: "2.4/RMM",
+        ServiceTypes.SS_2_4: "2.4/SS",
+
+        ServiceTypes.SCENARIO_2_4: "2.4/SCENARIO",
+        ServiceTypes.RACKSCALE_2_4: "2.4/RACKSCALE",
+
+        ServiceTypes.REDFISH_2018_1: "redfish/2018.1",
+        ServiceTypes.REDFISH_2018_2: "redfish/2018.2",
+        ServiceTypes.REDFISH_2018_3: "redfish/2018.3"
 
     }
 
@@ -100,7 +115,6 @@ class MetadataManager:
         self.loaded_xmls = set()
         self.api_caller = None
 
-
     def read_metadata_for_services(self, *services):
         """
         :type services: list[string]
@@ -111,8 +125,8 @@ class MetadataManager:
             cts_error("Metadata located in {dir} is corrupted or has been tampered. Expected: {expected}, "
                       "Is: {current}",
                       dir=self._metadata_home(), expected=digest.official_digest, current=digest.digest)
-            print "MESSAGE::{count} xml files have been found in {dir}".format(count=len(digest),
-                                                                              dir=self._metadata_home())
+            cts_message("{count} xml files have been found in {dir}".format(count=len(digest),
+                                                                            dir=self._metadata_home()))
             digest.report_differences()
 
         for service in services:
@@ -168,7 +182,8 @@ class MetadataManager:
         self._process_schema_file(MetadataManager.METADATA_URL)
         return True
 
-    def _metadata_home(self):
+    @staticmethod
+    def _metadata_home():
         return Constants.METADATA_HOME_DIR
 
     def _process_reference(self, reference_soup):

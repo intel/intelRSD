@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,12 +41,11 @@ void SwitchBuilder::build_default() {
     m_obj.set_status(std::move(status));
 
     m_obj.set_power_state(agent_framework::model::enums::PcieSwitchPowerState::On);
-    m_obj.set_protocol(enums::StorageProtocol::PCIe);
+    m_obj.set_protocol(enums::TransportProtocol::PCIe);
 
     m_obj.add_collection(attribute::Collection(
         enums::CollectionName::Ports,
-        enums::CollectionType::Ports,
-        ""
+        enums::CollectionType::Ports
     ));
 }
 

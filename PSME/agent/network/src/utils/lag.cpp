@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,11 +46,11 @@ string agent::network::utils::add_logical_port(const string& lag_identifier,
     auto& port_manager = network_components->get_port_manager();
     EthernetSwitchPort port_model{switch_uuid};
     port_model.add_collection({CollectionName::Vlans,
-                              CollectionType::EthernetSwitchPortVlans, ""});
+                              CollectionType::EthernetSwitchPortVlans});
     port_model.add_collection({CollectionName::PortAcls,
-                              CollectionType::Acls, ""});
+                              CollectionType::Acls});
     port_model.add_collection({CollectionName::StaticMacs,
-                              CollectionType::StaticMacs, ""});
+                              CollectionType::StaticMacs});
     port_model.set_link_technology(LinkTechnology::Ethernet);
     port_model.set_port_class(PortClass::Logical);
     port_model.set_port_type(PortType::Upstream);

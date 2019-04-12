@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,21 +28,23 @@
 #include "configuration/validators/max.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using ::testing::Return;
 using ::testing::Throw;
 
 class SchemaPropertyTest : public ::testing::Test {
 protected:
-    static constexpr char TEST_NAME[] = "TestName";
-    static constexpr int VALID_TEST_VALUE = 5;
-    static constexpr int INVALID_TEST_VALUE = 15;
-    static constexpr int MAX_VALID_VALUE = 10;
+    static constexpr const char TEST_NAME[] = "TestName";
+    static constexpr const int VALID_TEST_VALUE = 5;
+    static constexpr const int INVALID_TEST_VALUE = 15;
+    static constexpr const int MAX_VALID_VALUE = 10;
     virtual ~SchemaPropertyTest();
 };
 
-constexpr char SchemaPropertyTest::TEST_NAME[];
+constexpr const char SchemaPropertyTest::TEST_NAME[];
+constexpr const int SchemaPropertyTest::VALID_TEST_VALUE;
+constexpr const int SchemaPropertyTest::INVALID_TEST_VALUE;
 
 SchemaPropertyTest::~SchemaPropertyTest() {}
 
@@ -50,7 +52,7 @@ SchemaPropertyTest::~SchemaPropertyTest() {}
 
 TEST_F(SchemaPropertyTest, PositiveValidValue) {
     std::unique_ptr<configuration::SchemaProperty> schema_property(new configuration::SchemaProperty(TEST_NAME, false));
-    json::Value json_val(VALID_TEST_VALUE);
+    json::Json json_val = VALID_TEST_VALUE;
     std::shared_ptr<configuration::MaxValidator> validator(new configuration::MaxValidator(MAX_VALID_VALUE));
     schema_property->add_validator(validator);
     configuration::SchemaErrors errors{};
@@ -62,7 +64,7 @@ TEST_F(SchemaPropertyTest, PositiveValidValue) {
 
 TEST_F(SchemaPropertyTest, NegativeSchemaErrors) {
     std::unique_ptr<configuration::SchemaProperty> schema_property(new configuration::SchemaProperty(TEST_NAME, false));
-    json::Value json_val(INVALID_TEST_VALUE);
+    json::Json json_val = INVALID_TEST_VALUE;
     std::shared_ptr<configuration::MaxValidator> validator(new configuration::MaxValidator(MAX_VALID_VALUE));
     schema_property->add_validator(validator);
     configuration::SchemaErrors errors{};

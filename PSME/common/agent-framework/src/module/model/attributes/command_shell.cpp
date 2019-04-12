@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
 
 json::Json CommandShell::to_json() const {
-    json::Json json;
+    json::Json json = json::Json();
     json[literals::CommandShell::ENABLED] = get_enabled();
     json[literals::CommandShell::MAX_SESSIONS] = get_max_sessions();
     json[literals::CommandShell::TYPES_SUPPORTED] = get_types_supported().to_json();

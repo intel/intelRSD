@@ -57,10 +57,17 @@ class Constants:
     NVME_CONNECT = 'nvme connect'
     NVME_DISCONNECT = 'nvme disconnect'
 
+    NVME_VERSION = 'nvme version'
+
+    # Actions on operating system
+    LSMOD_GREP_NVME = "lsmod | grep nvme"
+
     # Params for commands on NVMe cli
     NVME_JSON_OUTPUT_PARAM = '-o json'
     NVME_T_RMA_PARAM = '-t rdma'
     NVME_RDMA = 'rdma'
+
+    UUID_NQN_PREFIX = 'nqn.2014-08.org.nvmexpress:uuid:'
 
     # Database query
     COUNT_QUERY = "SELECT name FROM nvme GROUP BY name"
@@ -81,30 +88,3 @@ class Constants:
 
     # NVME ISSUE
     NVME_DISCOVERY_GENERIC_ERROR = 'Failed to write to /dev/nvme-fabrics: Connection reset by peer'
-
-    MOCK_DISCOVERY = \
-        """
-            Discovery Log Number of Records 1, Generation counter 1
-        =====Discovery Log Entry 0======
-        trtype:  rdma
-        adrfam:  ipv4
-        subtype: nvme subsystem
-        treq:    not specified
-        portid:  1
-        trsvcid: 4420
-
-        subnqn:  asd
-        traddr:  10.6.0.101
-
-        rdma_prtype: not specified
-        rdma_qptype: connected
-        rdma_cms:    rdma-cm
-        rdma_pkey: 0x0000
-        """
-
-    MOCK_DISCOVERY_2_4 = \
-        """
-        Discovery Log Number of Records 2, Generation counter 4 =====Discovery Log Entry 0====== trtype: rdma adrfam: ipv4 subtype: nvme subsystem treq: not specified portid: 1 trsvcid: 4420 subnqn: asd 
-traddr: 10.6.0.101 rdma_prtype: not specified rdma_qptype: connected rdma_cms: rdma-cm rdma_pkey: 0x0000 =====Discovery Log Entry 1====== trtype: rdma adrfam: ipv4 subtype: nvme subsystem treq: 
-not specified portid: 1 trsvcid: 4420 subnqn: qwe traddr: 10.6.0.101 rdma_prtype: not specified rdma_qptype: connected rdma_cms: rdma-cm rdma_pkey: 0x0000
-        """

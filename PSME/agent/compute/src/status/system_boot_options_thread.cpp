@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,17 +17,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section System Boot Options Thread
-*/
+ * @brief System Boot Options Thread
+ * @file system_boot_options_thread.cpp
+ * */
 
-#include "agent-framework/eventing/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/common_components.hpp"
+#include "agent-framework/module/model/attributes/event_data.hpp"
 #include "ipmi/command/generic/get_system_boot_options.hpp"
 #include "status/system_boot_options_thread.hpp"
 #include "command/set_network_device_function_attributes.hpp"
 #include "status/bmc.hpp"
+
+
 
 using namespace ipmi;
 using namespace ipmi::manager;
@@ -57,6 +58,8 @@ enums::BootOverrideTarget get_boot_override_target(BootOverrideTarget target) {
             return enums::BootOverrideTarget::Hdd;
         case BootOverrideTarget::Pxe:
             return enums::BootOverrideTarget::Pxe;
+        case BootOverrideTarget::RemoteDrive:
+            return enums::BootOverrideTarget::RemoteDrive;
         case BootOverrideTarget::None:
         case BootOverrideTarget::Other:
         default:
@@ -88,6 +91,7 @@ enums::BootOverrideMode get_boot_mode(BootMode mode) {
     }
 }
 
+
 BootOptions read_boot_options(ipmi::IpmiController& ipmi) {
     request::GetSystemBootOptions request{};
     response::GetSystemBootOptions response{};
@@ -106,7 +110,6 @@ void update_system(BootOptions& boot_options, System& system) {
     auto last_boot_target = system.get_boot_override_target();
     auto last_boot_mode = system.get_boot_override_mode();
 
-
     bool iscsi_enabled = agent::compute::get_iscsi_enabled(system);
 
     if (boot_options.BootOverrideTarget == enums::BootOverrideTarget::Hdd && iscsi_enabled) {
@@ -115,24 +118,24 @@ void update_system(BootOptions& boot_options, System& system) {
 
     if (last_boot_override != boot_options.BootOverride) {
         log_info("agent", "Boot Override for system " <<
-                                                                   system.get_uuid() << " changed from "
-                                                                   << last_boot_override <<
-                                                                   " to " << boot_options.BootOverride.to_string());
+                                                      system.get_uuid() << " changed from "
+                                                      << last_boot_override <<
+                                                      " to " << boot_options.BootOverride.to_string());
     }
 
     if (last_boot_target != boot_options.BootOverrideTarget) {
         log_info("agent", "Boot Override Target for system " <<
-                                                                          system.get_uuid() << " changed from "
-                                                                          << last_boot_target <<
-                                                                          " to "
-                                                                          << boot_options.BootOverrideTarget.to_string());
+                                                             system.get_uuid() << " changed from "
+                                                             << last_boot_target <<
+                                                             " to "
+                                                             << boot_options.BootOverrideTarget.to_string());
     }
 
     if (last_boot_mode != boot_options.BootMode) {
         log_info("agent", "Boot Mode for system " <<
-                                                               system.get_uuid() << " changed from "
-                                                               << last_boot_mode <<
-                                                               " to " << boot_options.BootMode.to_string());
+                                                  system.get_uuid() << " changed from "
+                                                  << last_boot_mode <<
+                                                  " to " << boot_options.BootMode.to_string());
     }
 
     system.set_boot_override(boot_options.BootOverride);

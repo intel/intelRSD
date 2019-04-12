@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ EthernetSwitch::EthernetSwitch(const std::string& parent_uuid, enums::Component 
 EthernetSwitch::~EthernetSwitch() {}
 
 json::Json EthernetSwitch::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::EthernetSwitch::STATUS] = get_status().to_json();
     result[literals::EthernetSwitch::SWITCH_IDENTIFIER] = get_switch_identifier();
     result[literals::EthernetSwitch::TECHNOLOGY] = get_technology();

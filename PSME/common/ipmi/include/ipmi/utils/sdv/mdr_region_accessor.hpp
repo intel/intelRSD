@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  *
  * @brief Class for accessing MDR regions
  *
- * @header{Filesystem}
  * @file ipmi/utils/mdr_region_accessor.hpp
  */
 
@@ -66,6 +64,11 @@ public:
      */
     virtual std::uint8_t get_mdr_region_checksum() = 0;
 
+    /*!
+     * Get MDR region data contents update count, used to determine number of region changes
+     * @return Update count of the MDR region
+     */
+    virtual std::uint8_t get_mdr_region_update_count() = 0;
 
 protected:
     virtual std::uint16_t get_mdr_region_size_to_read() = 0;

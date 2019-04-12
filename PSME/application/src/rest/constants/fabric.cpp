@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,6 +89,7 @@ const char INTERFACES[] = "Interfaces";
 const char AUTHENTICATION[] = "Authentication";
 const char USERNAME[] = "Username";
 const char PASSWORD[] = "Password";
+const char PORTS[] = "Ports";
 }
 
 

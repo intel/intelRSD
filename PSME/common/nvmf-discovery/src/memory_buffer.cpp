@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation.
+ * @copyright Copyright (c) 2018-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file memory_buffer.cpp
  */
 
@@ -47,9 +45,10 @@ void MemoryBuffer::unregister_memory() {
 void MemoryBuffer::allocate_and_register(fid_domain& domain, size_t size, size_t alignment) {
     void* new_buf;
     if (posix_memalign(&new_buf, alignment, size)) {
-	throw std::bad_alloc();
+	    throw std::bad_alloc();
     }
-    pointer buf{reinterpret_cast<char*>(new_buf), [](char* ptr) {free(ptr);}};
+    pointer buf{reinterpret_cast<char*>(new_buf), [](char* ptr) { free(ptr); }};
+
     mr = register_memory_buffer(domain, buf.get(), size, FI_RECV | FI_SEND |
 			FI_REMOTE_READ | FI_REMOTE_WRITE |
 			FI_READ | FI_WRITE);

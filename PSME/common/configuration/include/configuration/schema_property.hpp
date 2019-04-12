@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,13 +28,12 @@
 
 #pragma once
 
+
+
+#include "json-wrapper/json-wrapper.hpp"
 #include "schema_errors.hpp"
 #include <vector>
 #include <memory>
-
-namespace json {
-class Value;
-}
 
 namespace configuration {
 
@@ -57,7 +56,7 @@ public:
     static constexpr const char STRING[] = "string";
     static constexpr const char INT[] = "int";
 
-    using ValidatorJsonSPtr = std::shared_ptr<Validator<json::Value>>;
+    using ValidatorJsonSPtr = std::shared_ptr<Validator<json::Json>>;
 
     /*!
      * @brief Construct SchemaProperty object for given name
@@ -77,7 +76,7 @@ public:
      * @param[in] value JSON object
      * @param errors Collection of errors
      * */
-    void validate(const json::Value& value, SchemaErrors& errors) const;
+    void validate(const json::Json& value, SchemaErrors& errors) const;
 
     /*!
      * @brief Return number of validator assigned to property

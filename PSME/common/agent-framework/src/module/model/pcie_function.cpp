@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ PcieFunction::PcieFunction(const std::string& parent_uuid, enums::Component pare
 PcieFunction::~PcieFunction() {}
 
 json::Json PcieFunction::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::PcieFunction::FUNCTION_ID] = get_function_id();
     result[literals::PcieFunction::DEVICE_CLASS] = get_device_class();
     result[literals::PcieFunction::FUNCTION_TYPE] = get_function_type();

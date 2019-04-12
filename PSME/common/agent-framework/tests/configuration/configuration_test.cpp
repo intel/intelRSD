@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,23 +89,23 @@ TEST_F(ConfigurationTest, PositiveConfigurationCreateDefault) {
 
 TEST_F(ConfigurationTest, PositiveConfigurationStringValues) {
     Configuration::get_instance().set_default_configuration(DEFAULT_CONFIGURATION);
-    const json::Value& configuration = Configuration::get_instance().to_json();
-    ASSERT_EQ(configuration[STRING_VALUE].is_string(), true);
-    ASSERT_EQ(configuration[STRING_VALUE].as_string(), TEST_STRING_VALUE);
+    const json::Json& configuration = Configuration::get_instance().to_json();
+    ASSERT_EQ(configuration.value(STRING_VALUE, json::Json()).is_string(), true);
+    ASSERT_EQ(configuration.value(STRING_VALUE, std::string{}), TEST_STRING_VALUE);
 }
 
 TEST_F(ConfigurationTest, PositiveConfigurationIntegerValues) {
     Configuration::get_instance().set_default_configuration(DEFAULT_CONFIGURATION);
-    const json::Value& configuration = Configuration::get_instance().to_json();
-    ASSERT_EQ(configuration[INT_VALUE].is_uint(), true);
-    ASSERT_EQ(configuration[INT_VALUE].as_uint(), 2015);
+    const json::Json& configuration = Configuration::get_instance().to_json();
+    ASSERT_EQ(configuration.value(INT_VALUE, json::Json()).is_number_unsigned(), true);
+    ASSERT_EQ(configuration.value(INT_VALUE, std::uint16_t{}), 2015);
 }
 
 TEST_F(ConfigurationTest, PositiveConfigurationNegativeIntegerValues) {
     Configuration::get_instance().set_default_configuration(DEFAULT_CONFIGURATION);
-    const json::Value& configuration = Configuration::get_instance().to_json();
-    ASSERT_EQ(configuration[NEGATIVE_INT_VALUE].is_int(), true);
-    ASSERT_EQ(configuration[NEGATIVE_INT_VALUE].as_int(), -2025);
+    const json::Json& configuration = Configuration::get_instance().to_json();
+    ASSERT_EQ(configuration.value(NEGATIVE_INT_VALUE, json::Json()).is_number_integer(), true);
+    ASSERT_EQ(configuration.value(NEGATIVE_INT_VALUE, int{}), -2025);
 }
 
 

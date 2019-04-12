@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@
 #include "agent-framework/action/task_runner.hpp"
 #include "agent-framework/action/task_creator.hpp"
 #include "nvme/nvme_secure_erase.hpp"
-#include "nvme/nvme_secure_erase_task.hpp"
+#include "tools/secure_erase_task.hpp"
 #include "tools/toolset.hpp"
 #include "gas/global_address_space_registers.hpp"
 
@@ -53,8 +53,7 @@ namespace {
 static constexpr uint32_t DRIVE_DETECTION_DELAY_SEC = 10;
 
 
-
-template <typename RESOURCE>
+template<typename RESOURCE>
 void set_asset_tag(const std::string& uuid, const json::Json& asset_tag) {
     using RAW_TYPE = typename std::remove_reference<RESOURCE>::type;
     enums::Component component = RAW_TYPE::get_component();
@@ -67,33 +66,35 @@ void set_asset_tag(const std::string& uuid, const json::Json& asset_tag) {
     resource.set_asset_tag(agent_framework::module::utils::OptionalField<std::string>(asset_tag));
 }
 
-void throw_if_drive_not_ready_for_secure_erase(const std::string& uuid) {
-    auto drive = get_manager<Drive>().get_entry(uuid);
+template <typename T>
+void throw_if_not_ready_for_secure_erase(const std::string& uuid) {
+    auto drive = get_manager<T>().get_entry(uuid);
 
-    if (drive.get_is_in_critical_discovery_state()) {
-        THROW(exceptions::PncError, "pnc-gami", "Drive is in critical discovery state");
+    if (drive.get_status().get_health() == enums::Health::Critical) {
+        THROW(exceptions::PncError, "pnc-gami", "Device is in critical discovery state");
     }
     if (drive.get_is_being_discovered()) {
-        THROW(exceptions::PncError, "pnc-gami", "Drive is still being discovered");
+        THROW(exceptions::PncError, "pnc-gami", "Device is still being discovered");
     }
     if (drive.get_is_being_erased()) {
-        THROW(exceptions::PncError, "pnc-gami", "Drive is still being erased");
+        THROW(exceptions::PncError, "pnc-gami", "Device is still being erased");
     }
 }
 
-void securely_erase(const std::string& drive_uuid, SetComponentAttributes::Response& response) {
-    log_info("pnc-gami", "Executing erase drive securely command.");
+template<typename T>
+void securely_erase(const std::string& uuid, SetComponentAttributes::Response& response) {
+    log_info("pnc-gami", "Executing erase device securely command.");
 
-    throw_if_drive_not_ready_for_secure_erase(drive_uuid);
+    throw_if_not_ready_for_secure_erase<T>(uuid);
 
     Toolset tools = Toolset::get();
     GlobalAddressSpaceRegisters gas{};
     try {
-        Switch sw = get_manager<Switch>().get_entry(tools.model_tool->get_switch_for_drive_uuid(drive_uuid));
+        Switch sw = get_manager<Switch>().get_entry(tools.model_tool->get_switch_for_device_uuid(uuid));
         gas = GlobalAddressSpaceRegisters::get_default(sw.get_memory_path());
     }
     catch (const std::exception& e) {
-        THROW(exceptions::PncError, "pnc-gami", std::string("Secure drive erase failed: ") + e.what());
+        THROW(exceptions::PncError, "pnc-gami", std::string("Secure device erase failed: ") + e.what());
     }
 
     auto response_builder = []() {
@@ -104,31 +105,34 @@ void securely_erase(const std::string& drive_uuid, SetComponentAttributes::Respo
     action::TaskCreator task_creator{};
     task_creator.prepare_task();
 
-    task_creator.add_prerun_action(std::bind(std::mem_fn(&ModelTool::set_drive_is_being_erased), *tools.model_tool,
-                                             drive_uuid, true));
+    task_creator.add_prerun_action(std::bind(std::mem_fn(&ModelTool::set_device_being_erased<T>), *tools.model_tool,
+                                             uuid, true));
 
-    task_creator.add_subtask(std::bind(std::mem_fn(&GasTool::bind_drive_to_mgmt_partition), *tools.gas_tool,
-                                       tools.model_tool, gas, drive_uuid));
+    task_creator.add_subtask(std::bind(std::mem_fn(&GasTool::bind_device_to_mgmt_partition), *tools.gas_tool,
+                                       tools.model_tool, gas, uuid));
     task_creator.add_subtask([]() { std::this_thread::sleep_for(std::chrono::seconds(DRIVE_DETECTION_DELAY_SEC)); });
-    task_creator.add_subtask(NvmeSecureEraseTask{drive_uuid});
+    task_creator.add_subtask(SecureEraseTask<T>{uuid});
 
     task_creator.add_exception_callback(std::bind(
-        std::mem_fn(&GasTool::unbind_drive_from_mgmt_partition), *tools.gas_tool, tools.model_tool, gas, drive_uuid));
+        std::mem_fn(&GasTool::unbind_device_from_mgmt_partition), *tools.gas_tool, tools.model_tool, gas, uuid));
 
-    task_creator.add_exception_callback(std::bind(std::mem_fn(&ModelTool::set_drive_status),
-                                                  *tools.model_tool, drive_uuid,
+    task_creator.add_exception_callback(std::bind(std::mem_fn(&ModelTool::set_device_status<T>),
+                                                  *tools.model_tool, uuid,
                                                   attribute::Status{enums::State::StandbyOffline,
                                                                     enums::Health::Warning}));
     task_creator.add_exception_callback(std::bind(
-        std::mem_fn(&ModelTool::set_drive_is_in_warning_state), *tools.model_tool, drive_uuid, true));
+        std::mem_fn(&ModelTool::set_device_in_warning_state<T>), *tools.model_tool, uuid, true));
     task_creator.add_exception_callback(std::bind(
-        std::mem_fn(&ModelTool::set_drive_is_being_erased), *tools.model_tool, drive_uuid, false));
+        std::mem_fn(&ModelTool::set_device_being_erased<T>), *tools.model_tool, uuid, false));
+
+    task_creator.add_exception_callback(std::bind(
+        std::mem_fn(&ModelTool::set_device_being_erased<T>), *tools.model_tool, uuid, false));
 
     task_creator.set_promised_response(response_builder);
 
     task_creator.register_task();
-    auto erase_drive_securely_task = task_creator.get_task();
-    action::TaskRunner::get_instance().run(erase_drive_securely_task);
+    auto erase_securely_task = task_creator.get_task();
+    action::TaskRunner::get_instance().run(erase_securely_task);
 
     response.set_task(task_creator.get_task_resource().get_uuid());
 }
@@ -226,6 +230,7 @@ void process_drive(const std::string& uuid, const attribute::Attributes& attribu
         log_debug("pnc-gami", "setComponentAttributes: nothing has been changed (empty request).");
         return;
     }
+    Toolset tools = Toolset::get();
     for (const auto& name : attribute_names) {
         const auto& value = attributes.get_value(name);
 
@@ -234,12 +239,11 @@ void process_drive(const std::string& uuid, const attribute::Attributes& attribu
                 set_asset_tag<Drive>(uuid, value);
             }
             else if (literals::Drive::ERASED == name) {
-                auto drive = get_manager<Drive>().get_entry_reference(uuid);
-                drive->set_erased(value.get<bool>());
+                tools.model_tool->update_device_erased<Drive>(uuid, value.get<bool>());
                 log_debug("pnc-gami", "Set " + name + " attribute to " << std::boolalpha << value.get<bool>());
             }
             else if (literals::Drive::SECURELY_ERASE == name) {
-                securely_erase(uuid, response);
+                securely_erase<Drive>(uuid, response);
             }
             else if (literals::Drive::OEM == name) {
                 THROW(UnsupportedField, "pnc-gami", "Setting attribute is not supported.", name, value);
@@ -251,6 +255,36 @@ void process_drive(const std::string& uuid, const attribute::Attributes& attribu
     }
 }
 
+void process_processor(const std::string& uuid, const attribute::Attributes& attributes,
+                   SetComponentAttributes::Response& response) {
+
+    CommonValidator::validate_set_processor_attributes(attributes);
+    const auto& attribute_names = attributes.get_names();
+    if (attribute_names.empty()) {
+        log_debug("pnc-gami", "setComponentAttributes: nothing has been changed (empty request).");
+        return;
+    }
+    Toolset tools = Toolset::get();
+    for (const auto& name : attribute_names) {
+        const auto& value = attributes.get_value(name);
+
+        try {
+            if (literals::Fpga::SECURELY_ERASE == name) {
+                securely_erase<Processor>(uuid, response);
+            }
+            else if (literals::Fpga::ERASED == name) {
+                tools.model_tool->update_device_erased<Processor>(uuid, value.get<bool>());
+                log_debug("pnc-gami", "Set " + name + " attribute to " << std::boolalpha << value.get<bool>());
+            }
+            else if (literals::Processor::OEM == name) {
+                THROW(UnsupportedField, "pnc-gami", "Setting attribute is not supported.", name, value);
+            }
+        }
+        catch (const GamiException& ex) {
+            response.add_status({name, ex.get_error_code(), ex.get_message()});
+        }
+    }
+}
 
 void process_chassis(const std::string& uuid, const attribute::Attributes& attributes,
                      SetComponentAttributes::Response& response) {
@@ -278,8 +312,9 @@ void process_chassis(const std::string& uuid, const attribute::Attributes& attri
     }
 }
 
+
 void process_system(const std::string& uuid, const attribute::Attributes& attributes,
-                     SetComponentAttributes::Response& response) {
+                    SetComponentAttributes::Response& response) {
 
     CommonValidator::validate_set_system_attributes(attributes);
     const auto& attribute_names = attributes.get_names();
@@ -309,6 +344,7 @@ void process_system(const std::string& uuid, const attribute::Attributes& attrib
     }
 }
 
+
 void set_no_attributes(const attribute::Attributes& attributes, SetComponentAttributes::Response& response) {
     const auto attribute_names = attributes.get_names();
     if (attribute_names.empty()) {
@@ -328,10 +364,12 @@ void set_no_attributes(const attribute::Attributes& attributes, SetComponentAttr
     }
 }
 
+
 void set_endpoint_attributes(const attribute::Attributes& attributes, SetComponentAttributes::Response& response) {
     CommonValidator::validate_set_endpoint_attributes(attributes);
     set_no_attributes(attributes, response);
 }
+
 
 bool exists_in_pnc(const std::string& uuid) {
     return get_manager<Manager>().entry_exists(uuid) ||
@@ -355,6 +393,9 @@ void set_component_attributes(const SetComponentAttributes::Request& request,
     if (get_manager<Drive>().entry_exists(uuid)) {
         process_drive(uuid, attributes, response);
     }
+    else if (get_manager<Processor>().entry_exists(uuid)) {
+        process_processor(uuid, attributes, response);
+    }
     else if (get_manager<Chassis>().entry_exists(uuid)) {
         process_chassis(uuid, attributes, response);
     }
@@ -372,7 +413,7 @@ void set_component_attributes(const SetComponentAttributes::Request& request,
     }
     else if (get_manager<Endpoint>().entry_exists(uuid)) {
         log_debug("pnc-gami", "Setting Endpoint attributes isn't supported [ uuid=" << uuid << " ]");
-        set_endpoint_attributes(attributes,response);
+        set_endpoint_attributes(attributes, response);
     }
     else if (exists_in_pnc(uuid)) {
         THROW(InvalidValue, "pnc-gami", "Operation not available for this component.");

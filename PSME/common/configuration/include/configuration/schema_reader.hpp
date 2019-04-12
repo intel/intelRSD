@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,9 +27,11 @@
  * */
 
 #pragma once
+#include "json-wrapper/json-wrapper.hpp"
+
 #include <memory>
 
-namespace json { class Value; }
+
 
 namespace configuration {
 
@@ -49,11 +51,11 @@ public:
      *
      * @return On success true is returned, otherwise false
      */
-    bool load_schema(const json::Value& schema, SchemaValidator& validator);
+    bool load_schema(const json::Json& schema, SchemaValidator& validator);
 
 private:
     /*! pimpl idiom */
-    class Impl;
+    class [[deprecated("It was designed for JsonCXX, but PSME now uses Nlohmann::Json instead.")]] Impl;
     std::unique_ptr<Impl> m_impl;
 };
 

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ RemoteEthernetSwitch::~RemoteEthernetSwitch() {}
 
 
 json::Json RemoteEthernetSwitch::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::RemoteEthernetSwitch::STATUS] = get_status().to_json();
     result[literals::RemoteEthernetSwitch::SWITCH_IDENTIFIER] = get_switch_identifier();
     result[literals::RemoteEthernetSwitch::MAC_ADDRESS] = get_mac_address();

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,8 +64,8 @@ TEST(GetLogicalDriveInfoTest, PositiveExecute) {
     MyGetLogicalDriveInfo command{"TestDrive"};
     GetLogicalDriveInfo::Request request{""};
     GetLogicalDriveInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::LogicalDrive::DRIVE] = "TestDrive";
 
@@ -94,8 +94,8 @@ TEST(GetLogicalDriveInfoTest, NegativeDriveNotFound) {
     MyGetLogicalDriveInfo command{"TestDrive"};
     GetLogicalDriveInfo::Request request{""};
     GetLogicalDriveInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::LogicalDrive::DRIVE] = "OtherTestDrive";
 

@@ -42,8 +42,9 @@ class DiscoverLocal:
     def get_recently_added_nvme_node(self):
         try:
             self._last_found = self.__compare(self.get_local_nvme_nodes())[0]
-        except KeyError:
+        except:
             Message.warning('No new devices connected')
+            return None
         return self._last_found
 
     def __compare(self, actual_nvme_devices):
@@ -54,8 +55,3 @@ class DiscoverLocal:
         if len(actual_nvme_devices) != 1:
             Message.warning('More devices connected {connected}'.format(connected=actual_nvme_devices))
         return actual_nvme_devices
-
-
-if __name__ == "__main__":
-    dl = DiscoverLocal()
-    dl.get_recently_added_nvme_node()

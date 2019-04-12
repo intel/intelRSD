@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,16 +30,15 @@
 #include "configuration/schema_errors.hpp"
 #include "configuration/schema_reader.hpp"
 #include "configuration/schema_property.hpp"
-#include "agent-framework/logger_ext.hpp"
 
-#include <json/json.hpp>
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace configuration;
 using namespace psme::rest::validators;
 using namespace psme::rest::server;
 using namespace psme::rest::error;
 
-json::Value JsonValidator::validate_request_body(const Request& request, const jsonrpc::ProcedureValidator& schema) {
+json::Json JsonValidator::validate_request_body(const Request& request, const jsonrpc::ProcedureValidator& schema) {
     auto json = deserialize_json_from_request(request);
     schema.validate(json);
     log_debug("rest", "Request validation passed.");
@@ -54,32 +53,13 @@ void JsonValidator::validate_empty_request(const rest::server::Request& request)
 }
 
 
-json::Value JsonValidator::deserialize_json_from_request(const Request& request) {
-    json::Deserializer deserializer(request.get_body());
-    if (deserializer.is_invalid()) {
-        auto deserialization_error = deserializer.get_error();
-
-        if (deserialization_error.code == json::Deserializer::Error::Code::DUPLICATE_KEY) {
-            std::stringstream message{};
-            message << "Detected duplicate key in JSON at line ";
-            message << deserialization_error.line;
-            message << " and column " << deserialization_error.column;
-
-            log_error("rest", "Duplicate key in JSON: " << request.get_body());
-            throw ServerException(ErrorFactory::create_property_duplicated_error(deserialization_error.data, message.str()));
-        } else {
-            std::stringstream message{};
-            message << "Requested JSON is malformed at line ";
-            message << deserialization_error.line;
-            message << " and column " << deserialization_error.column;
-            message << " recognized as: " << deserialization_error.decode();
-
-            log_error("rest", "Malformed JSON: " << request.get_body());
-            throw ServerException(ErrorFactory::create_malformed_json_error(message.str()));
-        }
+json::Json JsonValidator::deserialize_json_from_request(const Request& request) {
+    json::Json json = json::Json();
+    try {
+        json = json::Json::parse(request.get_body());
     }
-
-    json::Value json;
-    deserializer >> json;
+    catch (const std::invalid_argument& e) {
+        throw ServerException(ErrorFactory::create_malformed_json_error(e.what()));
+    }
     return json;
 }

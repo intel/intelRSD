@@ -2,7 +2,7 @@
  * @brief Provides class for generating keys for compute agent resources
  *
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");

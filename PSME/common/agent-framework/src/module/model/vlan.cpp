@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ Vlan::Vlan(const std::string& parent_uuid, enums::Component parent_type) :
 Vlan::~Vlan() {}
 
 json::Json Vlan::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::Vlan::STATUS] = get_status().to_json();
     result[literals::Vlan::VLAN_ID] = get_vlan_id();
     result[literals::Vlan::VLAN_NAME] = get_vlan_name();

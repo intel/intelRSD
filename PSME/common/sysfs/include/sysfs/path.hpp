@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,17 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file sysfs/path.hpp
  */
 
 #pragma once
+
+
 
 #include <string>
 #include <list>
 #include <iosfwd>
 #include <stdexcept>
 #include <iterator>
+#include <type_traits>
+
+
 
 namespace sysfs {
 
@@ -41,17 +44,40 @@ public:
      */
     Path() {}
 
+
     /*!
      * @brief Constructs a path based on the provided string
      * @param str String representation of the path
      */
     Path(const std::string& str);
 
+
     /*!
      * @brief Constructs a path based on the provided string
      * @param str String representation of the path
      */
-    Path(const char* str): Path(std::string{str}) {}
+    Path(const char* str) : Path(std::string{str}) {}
+
+
+    /*!
+     * @brief Constructs a path based on the provided string
+     * @param str String representation of the path
+     */
+    Path(char* str) : Path(static_cast<const char*>(str)) {}
+
+
+    /*!
+     * @brief Constructs a path based on the provided segments convertible to string
+     * @param segment String representation of the path segment
+     */
+    template<typename Segment, typename... Segments>
+    Path(Segment segment, Segments... segments) : Path(segments...) {
+
+        static_assert(std::is_convertible<Segment, std::string>::value, "Path segment must be convertible to string");
+        prepend(std::string(segment));
+    }
+
+
 
     /*!
      * @brief Constructs the root absolute path object
@@ -59,15 +85,23 @@ public:
      */
     static Path root();
 
+
     ~Path();
+
 
     /*! Enable copy */
     Path(const Path&) = default;
+
+
     Path& operator=(const Path&) = default;
+
 
     /*! Enable move */
     Path(Path&&) = default;
+
+
     Path& operator=(Path&&) = default;
+
 
     /*!
      * @brief Returns the basename of the path (rightmost part of the path)
@@ -75,11 +109,13 @@ public:
      */
     std::string basename() const;
 
+
     /*!
      * @brief Returns the dirname from the path (everything but the rightmost part of the part)
      * @return Dirname of the path
      */
     Path dirname() const;
+
 
     /*!
      * @brief Removes the rightmost path element
@@ -87,11 +123,13 @@ public:
      */
     Path& pop_right();
 
+
     /*!
      * @brief Removes the leftmost path element
      * @return Reference to the path
      */
     Path& pop_left();
+
 
     /*!
      * @brief Appends relative path to another path
@@ -101,6 +139,7 @@ public:
      */
     Path& append(const Path& path);
 
+
     /*!
      * @brief Prepends path to another path
      * @param path Path to be prepended
@@ -109,12 +148,14 @@ public:
      */
     Path& prepend(const Path& path);
 
+
     /*!
      * @brief Returns i-th element of the path (0 for the leftmost element)
      * @param i Index of the element to be retrieved
      * @return i-th element of the path
      */
     const std::string& at(std::size_t i) const;
+
 
     /*!
      * @brief Returns number of elements in the path
@@ -124,6 +165,7 @@ public:
         return m_list.size();
     }
 
+
     /*!
      * @brief Checks if path is empty
      * @return True for empty paths
@@ -131,6 +173,7 @@ public:
     bool is_empty() const {
         return m_list.empty();
     }
+
 
     /*!
      * @brief Checks if path is an absolute path
@@ -140,6 +183,7 @@ public:
         return m_is_absolute;
     }
 
+
     /*!
      * @brief Checks if path is a relative path
      * @return True for relative paths
@@ -148,6 +192,7 @@ public:
         return !m_is_absolute;
     }
 
+
     /*!
      * @brief Returns true if path starts with the path provided
      * @param path Path to be checked for
@@ -155,21 +200,25 @@ public:
      */
     bool starts_with(const Path& path) const;
 
+
     /*! @brief Works the same way as push */
     Path& operator<<(const Path& path) {
         return this->append(path);
     }
+
 
     /*! @brief Works the same way as to_string */
     operator std::string() const {
         return to_string();
     }
 
+
     /*!
      * @brief Returns a string representation of the path
      * @return Path converted to a string
      */
     std::string to_string() const;
+
 
 private:
 
@@ -179,15 +228,18 @@ private:
      */
     void normalize();
 
+
     /*!
      * @brief Constructs path from a string
      */
     static Path from_string(const std::string& str);
 
+
     bool m_is_absolute{false};
     std::list<std::string> m_list{};
 
 };
+
 
 /*!
  * @brief Used to merge path with another relative path
@@ -198,6 +250,7 @@ private:
  */
 sysfs::Path operator/(const sysfs::Path& lhs, const sysfs::Path& rhs);
 
+
 /*!
  * @brief Compares to paths
  * @param lhs First path to compare
@@ -206,6 +259,7 @@ sysfs::Path operator/(const sysfs::Path& lhs, const sysfs::Path& rhs);
  */
 bool operator==(const sysfs::Path& lhs, const sysfs::Path& rhs);
 
+
 /*!
  * @brief Compares to paths
  * @param lhs First path to compare
@@ -213,6 +267,7 @@ bool operator==(const sysfs::Path& lhs, const sysfs::Path& rhs);
  * @return True if two paths are different
  */
 bool operator!=(const sysfs::Path& lhs, const sysfs::Path& rhs);
+
 
 /*!
  * @brief Put string representation of a Path in an std stream

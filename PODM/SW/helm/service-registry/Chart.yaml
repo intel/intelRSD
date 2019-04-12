@@ -1,0 +1,4 @@
+apiVersion: v1
+description: service-registry
+name: service-registry
+version: 0.1.0

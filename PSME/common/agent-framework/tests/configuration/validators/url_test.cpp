@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 #include "configuration/validators/url.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace configuration;
 using namespace json;
@@ -47,11 +47,12 @@ protected:
     virtual ~UrlValidatorTest();
 };
 
-constexpr char UrlValidatorTest::URL_VALUE[];
-constexpr char UrlValidatorTest::VALID_HTTP_VALUE[];
-constexpr char UrlValidatorTest::VALID_HTTPS_VALUE[];
-constexpr char UrlValidatorTest::VALID_FTP_VALUE[];
-constexpr char UrlValidatorTest::INVALID_URL_VALUE[];
+constexpr const char UrlValidatorTest::URL_VALUE[];
+constexpr const char UrlValidatorTest::VALID_HTTPS_VALUE[];
+constexpr const char UrlValidatorTest::VALID_HTTP_VALUE[];
+constexpr const char UrlValidatorTest::VALID_FTP_VALUE[];
+constexpr const char UrlValidatorTest::INVALID_URL_VALUE[];
+constexpr const int UrlValidatorTest::INVALID_TYPE_VALUE;
 
 UrlValidatorTest::~UrlValidatorTest() {}
 
@@ -59,19 +60,19 @@ UrlValidatorTest::~UrlValidatorTest() {}
 
 TEST_F(UrlValidatorTest, PositiveValidHttpsUrlTest) {
     std::unique_ptr<configuration::UrlValidator> url_validator(new configuration::UrlValidator(URL_VALUE));
-    json::Value json_val(VALID_HTTPS_VALUE);
+    json::Json json_val(VALID_HTTPS_VALUE);
     ASSERT_EQ(url_validator->is_valid(json_val), true);
 }
 
 TEST_F(UrlValidatorTest, PositiveValidHttpUrlTest) {
     std::unique_ptr<configuration::UrlValidator> url_validator(new configuration::UrlValidator(URL_VALUE));
-    json::Value json_val(VALID_HTTP_VALUE);
+    json::Json json_val(VALID_HTTP_VALUE);
     ASSERT_EQ(url_validator->is_valid(json_val), true);
 }
 
 TEST_F(UrlValidatorTest, PositiveValidFtpUrlTest) {
     std::unique_ptr<configuration::UrlValidator> url_validator(new configuration::UrlValidator(URL_VALUE));
-    json::Value json_val(VALID_FTP_VALUE);
+    json::Json json_val(VALID_FTP_VALUE);
     ASSERT_EQ(url_validator->is_valid(json_val), true);
 }
 
@@ -79,12 +80,12 @@ TEST_F(UrlValidatorTest, PositiveValidFtpUrlTest) {
 
 TEST_F(UrlValidatorTest, NegativeInvalidTypeTest) {
     std::unique_ptr<configuration::UrlValidator> url_validator(new configuration::UrlValidator(URL_VALUE));
-    json::Value json_val(INVALID_TYPE_VALUE);
+    json::Json json_val(INVALID_TYPE_VALUE);
     ASSERT_EQ(url_validator->is_valid(json_val), false);
 }
 
 TEST_F(UrlValidatorTest, NegativeInvalidUrlValueTest) {
     std::unique_ptr<configuration::UrlValidator> url_validator(new configuration::UrlValidator(URL_VALUE));
-    json::Value json_val(INVALID_URL_VALUE);
+    json::Json json_val(INVALID_URL_VALUE);
     ASSERT_EQ(url_validator->is_valid(json_val), false);
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,9 +73,10 @@ public:
      * */
     static void validate_set_trusted_module_attributes(
         const agent_framework::model::attribute::Attributes& attributes);
-};
-}
-}
-}
-}
 
+};
+
+}
+}
+}
+}

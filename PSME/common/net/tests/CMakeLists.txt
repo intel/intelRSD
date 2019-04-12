@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,28 +18,25 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
-include_directories(
-    ${GTEST_INCLUDE_DIRS}
-    ${NET_INCLUDE_DIRS}
-)
 
 add_gtest(test net
     test_runner.cpp
     ipaddress_test.cpp
     socketaddress_test.cpp
     multicast_socket_test.cpp
-)
+    )
 
 target_link_libraries(${test_target}
-    ${NET_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
-)
+    net
+    )
+
 
 add_custom_target(unittest_net
-                  make
-)
+    make
+    )
 add_custom_target(unittest_net_run
-                  ctest --output-on-failure
-)
+    ctest --output-on-failure
+    )

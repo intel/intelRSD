@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,67 +34,68 @@ using namespace psme::rest::validators;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Chassis.Chassis";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#Chassis.v1_3_0.Chassis";
-    r[Common::ID] = json::Value::Type::NIL;
-    r[Chassis::CHASSIS_TYPE] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
+    r[Common::ODATA_TYPE] = "#Chassis.v1_7_0.Chassis";
+    r[Common::ID] = json::Json::value_t::null;
+    r[Chassis::CHASSIS_TYPE] = json::Json::value_t::null;
     r[Common::NAME] = "Chassis";
     r[Common::DESCRIPTION] = "Chassis description";
 
-    r[Common::MANUFACTURER] = json::Value::Type::NIL;
-    r[Common::MODEL] = json::Value::Type::NIL;
-    r[Common::SKU] = json::Value::Type::NIL;
-    r[Common::SERIAL_NUMBER] = json::Value::Type::NIL;
-    r[Common::PART_NUMBER] = json::Value::Type::NIL;
-    r[Common::ASSET_TAG] = json::Value::Type::NIL;
-    r[Chassis::INDICATOR_LED] = json::Value::Type::NIL;
-    r[Chassis::POWER_STATE] = json::Value::Type::NIL;
+    r[Common::MANUFACTURER] = json::Json::value_t::null;
+    r[Common::MODEL] = json::Json::value_t::null;
+    r[Common::SKU] = json::Json::value_t::null;
+    r[Common::SERIAL_NUMBER] = json::Json::value_t::null;
+    r[Common::PART_NUMBER] = json::Json::value_t::null;
+    r[Common::ASSET_TAG] = json::Json::value_t::null;
+    r[Chassis::INDICATOR_LED] = json::Json::value_t::null;
+    r[Chassis::POWER_STATE] = json::Json::value_t::null;
 
     // Power and Thermal links are created only for Zone and Sled Chassis
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    json::Value rs{};
+    json::Json rs = json::Json();
     rs[Common::ODATA_TYPE] = "#Intel.Oem.Chassis";
-    rs[Common::LOCATION][Common::ID] = json::Value::Type::NIL;
-    rs[Common::LOCATION][Chassis::PARENT_ID] = json::Value::Type::NIL;
+    rs[Common::LOCATION][Common::ID] = json::Json::value_t::null;
+    rs[Common::LOCATION][Chassis::PARENT_ID] = json::Json::value_t::null;
     r[Common::OEM][Common::RACKSCALE] = std::move(rs);
 
-    r[Common::LINKS][Common::ODATA_TYPE] = "#Chassis.v1_2_0.Links";
-    r[Common::LINKS][Chassis::CONTAINS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Common::CONTAINED_BY] = json::Value::Type::NIL;
-    r[Common::LINKS][Chassis::COMPUTER_SYSTEMS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Common::MANAGED_BY] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Chassis::MANAGERS_IN_CHASSIS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Chassis::POWERED_BY] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Chassis::COOLED_BY] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Chassis::DRIVES] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Chassis::STORAGE] = json::Value::Type::ARRAY;
+    r[Common::LINKS][Common::ODATA_TYPE] = "#Chassis.v1_7_0.Links";
+    r[Common::LINKS][Chassis::CONTAINS] = json::Json::value_t::array;
+    r[Common::LINKS][Common::CONTAINED_BY] = json::Json::value_t::null;
+    r[Common::LINKS][Chassis::COMPUTER_SYSTEMS] = json::Json::value_t::array;
+    r[Common::LINKS][Common::MANAGED_BY] = json::Json::value_t::array;
+    r[Common::LINKS][Chassis::MANAGERS_IN_CHASSIS] = json::Json::value_t::array;
+    r[Common::LINKS][Chassis::POWERED_BY] = json::Json::value_t::array;
+    r[Common::LINKS][Chassis::COOLED_BY] = json::Json::value_t::array;
+    r[Common::LINKS][Chassis::DRIVES] = json::Json::value_t::array;
+    r[Common::LINKS][Chassis::PCIE_DEVICES] = json::Json::value_t::array;
+    r[Common::LINKS][Chassis::STORAGE] = json::Json::value_t::array;
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.ChassisLinks";
-    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Chassis::SWITCHES] = json::Value::Type::ARRAY;
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Chassis::ETHERNET_SWITCHES] = json::Json::value_t::array;
 
-    r[Common::ACTIONS] = json::Value::Type::OBJECT;
+    r[Common::ACTIONS] = json::Json::value_t::object;
 
     return r;
 }
 
 
-void fill_chassis_link(json::Value& r, const std::string& chassis_uuid) {
+void fill_chassis_link(json::Json& r, const std::string& chassis_uuid) {
     r[Common::ODATA_ID] = endpoint::utils::get_component_url(agent_framework::model::enums::Component::Chassis, chassis_uuid);
 }
 
-void fill_chassis_links(json::Value& r, const std::vector<std::string>& uuids,
+void fill_chassis_links(json::Json& r, const std::vector<std::string>& uuids,
         OptionalField<std::string> omit_uuid = {}) {
 
     for (const auto& uuid : uuids) {
         if (!omit_uuid.has_value() || uuid != omit_uuid.value()) {
-            json::Value link{};
+            json::Json link = json::Json();
             link[Common::ODATA_ID] =
                 endpoint::utils::get_component_url(agent_framework::model::enums::Component::Chassis, uuid);
             r.push_back(std::move(link));
@@ -114,7 +115,7 @@ std::string get_chassis_location_id(const agent_framework::model::Chassis& chass
     return std::to_string(chassis.get_location_offset());
 }
 
-void fill_containing_links(const agent_framework::model::Chassis& chassis, json::Value& r) {
+void fill_containing_links(const agent_framework::model::Chassis& chassis, json::Json& r) {
 
     auto is_rack = is_chassis_of_type<agent_framework::model::enums::ChassisType::Rack>;
     auto is_zone = is_chassis_of_type<agent_framework::model::enums::ChassisType::Zone>;
@@ -178,11 +179,11 @@ void fill_containing_links(const agent_framework::model::Chassis& chassis, json:
 
 }
 
-void fill_links(const agent_framework::model::Chassis& chassis, json::Value& r) {
+void fill_links(const agent_framework::model::Chassis& chassis, json::Json& r) {
     // find manager of this chassis
     try {
         if (chassis.get_is_managed()) {
-            json::Value managed_by{};
+            json::Json managed_by = json::Json();
             managed_by[Common::ODATA_ID] = psme::rest::endpoint::utils::get_component_url(
                 agent_framework::model::enums::Component::Manager, chassis.get_parent_uuid());
             r[Common::LINKS][Common::MANAGED_BY].push_back(managed_by);
@@ -197,7 +198,7 @@ void fill_links(const agent_framework::model::Chassis& chassis, json::Value& r) 
             return manager.get_location() == chassis.get_uuid();
         });
     for (const auto& manager_uuid : managers_in_chassis_uuids) {
-        json::Value link{};
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = psme::rest::endpoint::utils::get_component_url(
             agent_framework::model::enums::Component::Manager, manager_uuid);
         r[Common::LINKS][Chassis::MANAGERS_IN_CHASSIS].push_back(std::move(link));
@@ -211,14 +212,14 @@ void fill_links(const agent_framework::model::Chassis& chassis, json::Value& r) 
     for (const auto& system_uuid : system_uuids) {
         auto system = system_manager.get_entry(system_uuid);
         if (system.get_chassis() == chassis.get_uuid()) {
-            json::Value link{};
+            json::Json link = json::Json();
             link[Common::ODATA_ID] = endpoint::PathBuilder(PathParam::BASE_URL)
                 .append(constants::Root::SYSTEMS)
                 .append(system.get_id()).build();
             r[Common::LINKS][constants::Chassis::COMPUTER_SYSTEMS].push_back(std::move(link));
 
             for (const auto storage_id : storage_manager.get_ids(system.get_uuid())) {
-                json::Value storage_link{};
+                json::Json storage_link = json::Json();
                 storage_link[Common::ODATA_ID] = endpoint::PathBuilder(PathParam::BASE_URL)
                     .append(constants::Root::SYSTEMS)
                     .append(system.get_id())
@@ -234,13 +235,14 @@ void fill_links(const agent_framework::model::Chassis& chassis, json::Value& r) 
     auto& switch_manager = agent_framework::module::NetworkComponents::get_instance()->get_switch_manager();
     auto switch_uuids = switch_manager.get_keys();
     for (const auto& switch_uuid : switch_uuids) {
-        auto switch_ = switch_manager.get_entry_reference(switch_uuid);
-        if (switch_->get_chassis() == chassis.get_uuid()) {
-            json::Value link{};
+        auto s = switch_manager.get_entry(switch_uuid);
+        if (s.get_chassis() == chassis.get_uuid()) {
+            json::Json link = json::Json();
             link[Common::ODATA_ID] = endpoint::PathBuilder(PathParam::BASE_URL)
                 .append(constants::Root::ETHERNET_SWITCHES)
-                .append(switch_->get_id()).build();
-            r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Chassis::SWITCHES].push_back(std::move(link));
+                .append(s.get_id()).build();
+            r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Chassis::ETHERNET_SWITCHES]
+                .push_back(std::move(link));
         }
     }
 
@@ -248,7 +250,7 @@ void fill_links(const agent_framework::model::Chassis& chassis, json::Value& r) 
     // drives in chassis
     auto drive_ids = agent_framework::module::get_manager<agent_framework::model::Drive>().get_ids(chassis.get_uuid());
     for (const auto& drive_id : drive_ids) {
-        json::Value link{};
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = endpoint::PathBuilder(constants::PathParam::BASE_URL)
             .append(Common::CHASSIS)
             .append(chassis.get_id())
@@ -257,12 +259,26 @@ void fill_links(const agent_framework::model::Chassis& chassis, json::Value& r) 
         r[Common::LINKS][Chassis::DRIVES].push_back(std::move(link));
     }
 
+    // PCIe devices in chassis
+    // the devices are under the same manager as the chassis from the URL
+    auto chassis_manager_uuid = chassis.get_parent_uuid();
+    auto pcie_device_ids = agent_framework::module::get_manager<agent_framework::model::PcieDevice>().get_ids(chassis_manager_uuid);
+
+    for (const auto& pcie_device_id : pcie_device_ids) {
+        json::Json link = json::Json();
+        link[Common::ODATA_ID] = endpoint::PathBuilder(constants::PathParam::BASE_URL)
+            .append(Common::CHASSIS)
+            .append(chassis.get_id())
+            .append(constants::Chassis::PCIE_DEVICES)
+            .append(pcie_device_id).build();
+        r[Common::LINKS][Chassis::PCIE_DEVICES].push_back(std::move(link));
+    }
 
     // power of the chassis
     try {
         const auto& power_zone_uuid = chassis.get_power_zone();
         if (power_zone_uuid.has_value()) {
-            json::Value link_to_power{};
+            json::Json link_to_power = json::Json();
             link_to_power[Common::ODATA_ID] =
                 endpoint::utils::get_component_url(agent_framework::model::enums::Component::PowerZone,
                                                    power_zone_uuid);
@@ -276,7 +292,7 @@ void fill_links(const agent_framework::model::Chassis& chassis, json::Value& r) 
     try {
         const auto& thermal_zone_uuid = chassis.get_thermal_zone();
         if (thermal_zone_uuid.has_value()) {
-            json::Value link_to_thermal{};
+            json::Json link_to_thermal = json::Json();
             link_to_thermal[Common::ODATA_ID] =
                 endpoint::utils::get_component_url(agent_framework::model::enums::Component::ThermalZone,
                                                    thermal_zone_uuid);
@@ -287,7 +303,7 @@ void fill_links(const agent_framework::model::Chassis& chassis, json::Value& r) 
 }
 
 
-void fill_power_and_thermal_links(const agent_framework::model::Chassis& chassis, json::Value& r) {
+void fill_power_and_thermal_links(const agent_framework::model::Chassis& chassis, json::Json& r) {
 
     auto thermal_zones = agent_framework::module::get_manager<agent_framework::model::ThermalZone>()
         .get_keys(chassis.get_uuid());
@@ -333,8 +349,7 @@ endpoint::Chassis::~Chassis() {}
 
 
 void endpoint::Chassis::get(const server::Request& request, server::Response& response) {
-    auto chassis = psme::rest::model::Find<agent_framework::model::Chassis>(request.params[PathParam::CHASSIS_ID])
-        .get();
+    auto chassis = psme::rest::model::find<agent_framework::model::Chassis>(request.params).get();
 
     auto r = make_prototype();
 
@@ -347,21 +362,22 @@ void endpoint::Chassis::get(const server::Request& request, server::Response& re
     fill_power_and_thermal_links(chassis, r);
 
     if (agent_framework::model::enums::ChassisType::Rack == chassis.get_type()) {
+        r[Common::UUID] = chassis.get_uuid();
+
         r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.RackChassis";
-        r[Common::OEM][Common::RACKSCALE][Common::UUID] = chassis.get_uuid();
         r[Common::OEM][Common::RACKSCALE][constants::Chassis::GEO_TAG] = chassis.get_geo_tag();
         r[Common::OEM][Common::RACKSCALE][constants::Chassis::RACK_SUPPORTS_DISAGGREGATED_POWER_COOLING] =
             chassis.get_disaggregated_power_cooling_support();
     }
     else if (agent_framework::model::enums::ChassisType::Drawer == chassis.get_type()) {
-        json::Value reset{};
+        json::Json reset = json::Json();
         reset[Common::TARGET] =
             endpoint::PathBuilder(request)
                 .append(Common::ACTIONS)
                 .append(constants::Chassis::CHASSIS_RESET)
                 .build();
 
-        reset[Common::ALLOWABLE_RESET_TYPES] = json::Value::Type::ARRAY;
+        reset[Common::ALLOWABLE_RESET_TYPES] = json::Json::value_t::array;
         for (const auto& reset_type : chassis.get_allowed_reset_actions()) {
             reset[Common::ALLOWABLE_RESET_TYPES].push_back(reset_type.to_string());
         }
@@ -381,28 +397,29 @@ void endpoint::Chassis::get(const server::Request& request, server::Response& re
 }
 
 void endpoint::Chassis::patch(const server::Request& request, server::Response& response) {
-    auto chassis = model::Find<agent_framework::model::Chassis>(request.params[PathParam::CHASSIS_ID]).get();
+    static const constexpr char TRANSACTION_NAME[] = "PatchChassis";
+
+    auto chassis = model::find<agent_framework::model::Chassis>(request.params).get();
     const auto json = JsonValidator::validate_request_body<schema::ChassisPatchSchema>(request);
 
     agent_framework::model::attribute::Attributes attributes{};
-    if (json.is_member(constants::Common::ASSET_TAG)) {
-        const auto& asset_tag = json[constants::Common::ASSET_TAG].as_string();
-        attributes.set_value(agent_framework::model::literals::Chassis::ASSET_TAG, asset_tag);
+    if (json.count(constants::Common::ASSET_TAG)) {
+        attributes.set_value(agent_framework::model::literals::Chassis::ASSET_TAG, json[constants::Common::ASSET_TAG]);
     }
-    if (json.is_member(constants::Common::OEM)) {
+    if (json.count(constants::Common::OEM)) {
         const auto& oem = json[constants::Common::OEM];
-        if (oem.is_member(constants::Common::RACKSCALE)) {
+        if (oem.count(constants::Common::RACKSCALE)) {
             const auto& rackscale = oem[constants::Common::RACKSCALE];
-            if (rackscale.is_member(constants::Chassis::LOCATION)) {
+            if (rackscale.count(constants::Chassis::LOCATION)) {
                 const auto& location = rackscale[constants::Chassis::LOCATION];
-                if (location.is_member(constants::Common::ID)) {
-                    const auto& location_id = location[constants::Common::ID].as_string();
-                    attributes.set_value(agent_framework::model::literals::Chassis::LOCATION_ID, location_id);
+                if (location.count(constants::Common::ID)) {
+                    attributes.set_value(agent_framework::model::literals::Chassis::LOCATION_ID,
+                                         location[constants::Common::ID]);
                 }
             }
-            if (rackscale.is_member(constants::Chassis::GEO_TAG)) {
-                const auto& geo_tag = rackscale[constants::Chassis::GEO_TAG].as_string();
-                attributes.set_value(agent_framework::model::literals::Chassis::GEO_TAG, geo_tag);
+            if (rackscale.count(constants::Chassis::GEO_TAG)) {
+                attributes.set_value(agent_framework::model::literals::Chassis::GEO_TAG,
+                                     rackscale[constants::Chassis::GEO_TAG]);
             }
         }
     }
@@ -435,7 +452,7 @@ void endpoint::Chassis::patch(const server::Request& request, server::Response& 
                      false);
         };
 
-        gami_agent->execute_in_transaction(set_chassis_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_chassis_attributes);
     }
 
     get(request, response);

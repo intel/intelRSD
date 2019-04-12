@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ Message::Message() { }
 Message::~Message() { }
 
 json::Json Message::to_json() const {
-    json::Json json;
+    json::Json json = json::Json();
 
     json[literals::Message::MESSAGE_ID] = m_message_id;
     json[literals::Message::MESSAGE_CONTENT] = m_message_content;

@@ -1,7 +1,7 @@
 /*!
  * @brief Implementation of the iSCSI MDR entry point interface.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file iscsi_mdr_entry_point.cpp
  */
 
@@ -36,6 +35,22 @@ IscsiMdrEntryPoint::Ptr IscsiMdrEntryPoint::create(const std::uint8_t* buf, cons
     }
 
     return IscsiMdrEntryPoint::Ptr(new IscsiMdr10EntryPoint(buf, buf_size));
+}
+
+std::uint64_t IscsiMdrEntryPoint::get_table_data_offset(const std::string&) const {
+    throw Exception("Method not implemented: get_table_data_offset()");
+}
+
+uint64_t IscsiMdrEntryPoint::get_table_data_end_offset(const std::string&) const {
+    throw Exception("Method not implemented: get_table_data_end_offset()");
+}
+
+void IscsiMdrEntryPoint::set_struct_table_address(std::uint64_t) {
+    throw Exception("Method not implemented: set_struct_table_address()");
+}
+
+void IscsiMdrEntryPoint::set_struct_table_end_address(std::uint64_t) {
+    throw Exception("Method not implemented: set_struct_table_end_address()");
 }
 
 }  // namespace parser

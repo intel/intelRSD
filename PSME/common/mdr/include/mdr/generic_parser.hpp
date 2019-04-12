@@ -1,7 +1,7 @@
 /*!
  * @brief Generic SMBIOS style structure parser.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file generic_parser.hpp
  */
 
@@ -52,13 +51,15 @@ public:
     using StructVec = std::vector<StructEnhanced<T>>;
 
     /*!
-     * @brief Construct parser object
-     * @param _buf Buffer with Smbios blob
-     * @param _buf_size size of buffer to
-     */
-    GenericParser(const uint8_t* _buf, size_t _buf_size) :
+    * @brief Construct parser object
+    * @param _buf Buffer with Smbios blob
+    * @param _buf_size size of buffer to
+    * @param _aux_string indicates additional strings presence in a parsed buffer (like in SMBIOS)
+    */
+    GenericParser(const uint8_t* _buf, size_t _buf_size, bool _aux_string = true) :
         buf_size(_buf_size),
         buf(init_buffer(_buf, _buf_size)),
+        auxiliary_string_present(_aux_string),
         entry_point{Traits::EntryPoint::create(buf.get(), buf_size)} {}
 
     /*!
@@ -94,6 +95,14 @@ public:
     template<typename T>
     StructVec<T> get_all(const uint16_t* handle = nullptr) const;
 
+    /*!
+     * @brief Checks if table with a given signature is present in MDR region and can be parsed.
+     * If yes, structure start and end offset is set appropriately.
+     * @param[in] structure_signature to be checked
+     * @return true if structure parsing is supported, false otherwise
+     */
+    bool prepare_if_structure_supported(const std::string& structure_signature);
+
 protected:
     /*!
      * @brief Initialize the internal buffer.
@@ -108,11 +117,12 @@ protected:
      */
     template <typename T>
     StructEnhanced<T> read_struct(uint64_t& offset) const {
-        return mdr::parse_struct<T>(buf, buf_size, offset);
+        return mdr::parse_struct<T>(buf, buf_size, offset, auxiliary_string_present);
     }
 
     std::shared_ptr<const uint8_t> buf;
     const size_t buf_size;
+    const bool auxiliary_string_present{true};
     typename Traits::EntryPoint::Ptr entry_point{};
 
     template<typename T>
@@ -131,29 +141,49 @@ GenericParser<Traits>::StructVec<T> GenericParser<Traits>::get_all(const uint16_
     auto offset = entry_point->get_struct_table_address();
     while (offset + sizeof(HeaderType) < buf_size) {
         const HeaderType& header = *reinterpret_cast<const HeaderType*>(buf.get() + offset);
+
+        if (offset >= entry_point->get_struct_table_end_address()) {
+            // Break if offset exceeds parsed data blob
+            break;
+        }
+
         if (offset + Traits::template table_length(header) > buf_size) {
             throw Exception("Unexpectedly reached end of MDR blob");
         }
 
         if (header.length < sizeof(HeaderType)) {
-            throw GenericParser::Exception("Invalid entry length: "
-                    + std::to_string(int(header.length)) + ". Table is broken.");
+            throw Exception("Invalid entry length: " + std::to_string(int(header.length)) + ". Table is broken.");
         }
 
         if (Traits::template header_type_equal<T>(header, handle)) {
             collection.emplace_back(read_struct<T>(offset));
         } else {
             offset += Traits::template table_length(header);
-            /* Get past trailing string-list - double-null */
-            while (offset + 1 < buf_size
+
+            if (auxiliary_string_present) {
+                /* Get past trailing string-list - double-null */
+                while (offset + 1 < buf_size
                        && std::uint8_t(*(buf.get() + offset + 1) | *(buf.get() + offset)) != 0) {
                     offset++;
                 }
-            offset += 2; // jump to the next structure
+                offset += 2; // jump to the next structure
+            }
         }
     }
 
     return collection;
+}
+
+template<typename Traits>
+bool GenericParser<Traits>::prepare_if_structure_supported(const std::string& structure_signature) {
+    auto structure_data_offset_in_mdr = entry_point->get_table_data_offset(structure_signature);
+    auto structure_data_end_offset_in_mdr = entry_point->get_table_data_end_offset(structure_signature);
+    if (structure_data_offset_in_mdr != 0 && structure_data_end_offset_in_mdr != 0) {
+        entry_point->set_struct_table_address(structure_data_offset_in_mdr);
+        entry_point->set_struct_table_end_address(structure_data_end_offset_in_mdr);
+        return true;
+    }
+    return false;
 }
 
 template<typename T>

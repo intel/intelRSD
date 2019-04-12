@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of AddEndpoint command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file add_endpoint.cpp
  */
 
 #include "nvme_agent_commands.hpp"
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/module/enum/common.hpp"
 #include "loader/config.hpp"
 #include "tools/endpoint_reader.hpp"
 #include "tools/databases.hpp"
 #include "tools/tools.hpp"
 #include "tree_stability/nvme_stabilizer.hpp"
+#include "sysfs/construct_dev_path.hpp"
 
-#include <cstdint>
-#include <string>
-#include <stdexcept>
+
 
 using namespace agent_framework;
 using namespace agent_framework::model;
@@ -46,21 +42,23 @@ void throw_if_endpoint_exist(const std::string& endpoint_uuid) {
     }
 }
 
+
 void throw_if_wrong_transport_protocol(const attribute::IpTransportDetail& single_transport) {
     if (enums::TransportProtocol::RoCEv2 != single_transport.get_transport_protocol()) {
         THROW(exceptions::InvalidValue, "nvme-agent", "Transport protocol should be set on RoCEv2");
     }
 }
 
+
 // Valid NQN format
 // nqn.2014-08.org.nvmexpress:uuid:ffffffff-ffff-ffff-ffff-ffffffffffff
 void throw_if_durable_name_is_in_wrong_format(const attribute::Identifier& single_identifier) {
-    static const std::string nqn_prefix = "nqn.2014-08.org.nvmexpress:uuid:";
-    if (0 != single_identifier.get_durable_name().value().find(nqn_prefix)) {
+    if (0 != single_identifier.get_durable_name().value().find(literals::Endpoint::NQN_FORMAT)) {
         THROW(exceptions::InvalidValue, "nvme-agent",
               "Durable name is not in NQN format (nqn.2014-08.org.nvmexpress:uuid:ffffffff-ffff-ffff-ffff-ffffffffffff).");
     }
 }
+
 
 void throw_if_wrong_durable_format(const attribute::Identifier& single_identifier) {
     if (enums::IdentifierType::NQN != single_identifier.get_durable_name_format()) {
@@ -68,17 +66,20 @@ void throw_if_wrong_durable_format(const attribute::Identifier& single_identifie
     }
 }
 
+
 void throw_if_durable_name_empty(const attribute::Identifier& single_identifier) {
     if (!single_identifier.get_durable_name().has_value()) {
         THROW(exceptions::InvalidValue, "nvme-agent", "Durable name field is mandatory");
     }
 }
 
+
 void throw_if_connected_entity_empty(const AddEndpoint::Request& req) {
     if (req.get_connected_entities().empty()) {
         THROW(exceptions::InvalidValue, "nvme-agent", "Exactly one connected entity needs to be given");
     }
 }
+
 
 void throw_if_wrong_entity_role(const attribute::ConnectedEntity& single_connected_entity) {
     if (enums::EntityRole::Target != single_connected_entity.get_entity_role() &&
@@ -87,17 +88,20 @@ void throw_if_wrong_entity_role(const attribute::ConnectedEntity& single_connect
     }
 }
 
+
 void throw_if_identifier_not_empty(const attribute::ConnectedEntity& single_connected_entity) {
     if (!single_connected_entity.get_identifiers().empty()) {
         THROW(exceptions::InvalidValue, "nvme-agent", "Identifier in Connected Entity should be empty");
     }
 }
 
+
 void throw_if_identifiers_empty(const AddEndpoint::Request& req) {
     if (req.get_identifiers().empty()) {
         THROW(exceptions::InvalidValue, "nvme-agent", "Exactly one identifier needs to be given");
     }
 }
+
 
 void verify_identifiers(const AddEndpoint::Request& req) {
     throw_if_identifiers_empty(req);
@@ -107,6 +111,7 @@ void verify_identifiers(const AddEndpoint::Request& req) {
         throw_if_durable_name_is_in_wrong_format(single_identifier);
     }
 }
+
 
 std::string get_ip_address_from_ethernet_interface_uuid(const std::string& uuid) {
     const auto& network_interface = get_manager<NetworkInterface>().get_entry(uuid);
@@ -123,6 +128,7 @@ std::string get_ip_address_from_ethernet_interface_uuid(const std::string& uuid)
 
     return ip_address;
 }
+
 
 // Find first ethernet interface that has ip address
 attribute::Ipv4Address get_ip_address_from_ethernet_interfaces() {
@@ -148,6 +154,7 @@ attribute::Ipv4Address get_ip_address_from_ethernet_interfaces() {
     return ip_address;
 }
 
+
 // Find ethernet interface with selected IP address
 std::tuple<bool, Uuid> get_ethernet_interface_uuid_from_ip_address(const attribute::Ipv4Address& address_from_request) {
     auto interfaces = get_manager<NetworkInterface>()
@@ -165,13 +172,15 @@ std::tuple<bool, Uuid> get_ethernet_interface_uuid_from_ip_address(const attribu
            std::make_tuple(true, interfaces.front());
 }
 
-void verify_connected_entities(const AddEndpoint::Request &req) {
+
+void verify_connected_entities(const AddEndpoint::Request& req) {
     throw_if_connected_entity_empty(req);
     for (const auto& single_connected_entity : req.get_connected_entities()) {
         throw_if_wrong_entity_role(single_connected_entity);
         throw_if_identifier_not_empty(single_connected_entity);
     }
 }
+
 
 void set_ip_transport_detail_with_default(attribute::IpTransportDetail& ip_transport_detail) {
     attribute::Ipv4Address ipv4_address{};
@@ -185,11 +194,13 @@ void set_ip_transport_detail_with_default(attribute::IpTransportDetail& ip_trans
     ip_transport_detail.set_transport_protocol(enums::TransportProtocol::RoCEv2);
 }
 
+
 void throw_if_wrong_rdma_port(std::uint32_t rdma_port) {
     if (rdma_port <= 0 || rdma_port > UINT16_MAX) {
         THROW(exceptions::InvalidValue, "nvme-agent", "RDMA port is out of rage, should be in <1,65535>.");
     }
 }
+
 
 // Entity link field - throw if empty or invalid
 void throw_if_wrong_target_entity(const attribute::ConnectedEntity& single_connected_entity) {
@@ -200,13 +211,6 @@ void throw_if_wrong_target_entity(const attribute::ConnectedEntity& single_conne
     log_debug("nvme-agent", "Connected entity Volume " + single_connected_entity.get_entity().value());
 }
 
-void throw_if_wrong_initiator_entity(const attribute::ConnectedEntity& single_connected_entity) {
-    // If there is system uuid verify it, if not do nothing
-    if (single_connected_entity.get_entity().has_value()) {
-        get_manager<System>().get_entry(single_connected_entity.get_entity().value());
-        log_debug("nvme-agent", "Connected entity Volume " + single_connected_entity.get_entity().value());
-    }
-}
 
 void throw_if_entity_link_not_empty(const attribute::ConnectedEntity& single_connected_entity) {
     if (single_connected_entity.get_entity().has_value()) {
@@ -215,6 +219,7 @@ void throw_if_entity_link_not_empty(const attribute::ConnectedEntity& single_con
     }
 }
 
+
 void throw_if_ethernet_interface_not_empty(const attribute::IpTransportDetail& single_ip_transport_detail) {
     if (single_ip_transport_detail.get_interface().has_value()) {
         THROW(exceptions::InvalidValue, "nvme-agent",
@@ -222,17 +227,13 @@ void throw_if_ethernet_interface_not_empty(const attribute::IpTransportDetail& s
     }
 }
 
+
 std::string get_nqn(const AddEndpoint::Request& req) {
     std::string nqn{};
     nqn = req.get_identifiers().front().get_durable_name();
     return nqn;
 }
 
-void throw_if_ip_transport_details_empty(const AddEndpoint::Request& req) {
-    if (req.get_ip_transport_details().empty()) {
-        THROW(exceptions::InvalidValue, "nvme-agent", "Mandatory property for IP transport details is missing.");
-    }
-}
 
 void throw_if_ip_transport_details_more_than_one(const AddEndpoint::Request& requset) {
     if (requset.get_ip_transport_details().size() > 1) {
@@ -240,17 +241,6 @@ void throw_if_ip_transport_details_more_than_one(const AddEndpoint::Request& req
     }
 }
 
-void throw_if_ipv4_address_empty(const attribute::IpTransportDetail& single_ip_transport_detail) {
-    if (!single_ip_transport_detail.get_ipv4_address().get_address().has_value()) {
-        THROW(exceptions::InvalidValue, "nvme-agent", "Mandatory IPv4 address property is missing.");
-    }
-}
-
-void throw_if_rdma_port_empty(const attribute::IpTransportDetail& single_ip_transport_detail) {
-    if (!single_ip_transport_detail.get_port().has_value()) {
-        THROW(exceptions::InvalidValue, "nvme-agent", "Mandatory RDMA port is missing.");
-    }
-}
 
 void throw_if_volume_in_use(const Volume& volume) {
     if (tools::is_volume_in_endpoint(volume)) {
@@ -258,6 +248,7 @@ void throw_if_volume_in_use(const Volume& volume) {
         THROW(exceptions::InvalidValue, "nvme-agent", "Volume is already used by an endpoint.");
     }
 }
+
 
 void set_rdma_port(const attribute::IpTransportDetail& ip_transport_detail_req,
                    attribute::IpTransportDetail& ip_transport_detail) {
@@ -272,6 +263,7 @@ void set_rdma_port(const attribute::IpTransportDetail& ip_transport_detail_req,
     }
 }
 
+
 void set_ipv4_address(const attribute::IpTransportDetail& ip_transport_detail_req,
                       attribute::IpTransportDetail& ip_transport_detail) {
 
@@ -279,7 +271,8 @@ void set_ipv4_address(const attribute::IpTransportDetail& ip_transport_detail_re
     if (ip_transport_detail_req.get_interface().has_value()) {
         address = get_ip_address_from_ethernet_interface_uuid(ip_transport_detail_req.get_interface().value());
         log_debug("nvme-agent", "Setting IP address: " << address
-            << " from requested interface " << ip_transport_detail_req.get_interface());
+                                                       << " from requested interface "
+                                                       << ip_transport_detail_req.get_interface());
     }
     else if (ip_transport_detail_req.get_ipv4_address().get_address().has_value()) {
         address = ip_transport_detail_req.get_ipv4_address().get_address().value();
@@ -315,7 +308,8 @@ void set_interface(const attribute::IpTransportDetail& ip_transport_detail_req,
 
         if (result == true) {
             log_debug("nvme-agent", "Setting interface " << found_interface
-                << " based on IP address " << ip_transport_detail_req.get_ipv4_address().get_address().value());
+                                                         << " based on IP address "
+                                                         << ip_transport_detail_req.get_ipv4_address().get_address().value());
             ip_transport_detail.set_interface(found_interface);
             return;
         }
@@ -328,6 +322,7 @@ void set_interface(const attribute::IpTransportDetail& ip_transport_detail_req,
     }
 }
 
+
 void set_ipv4_address_and_interface_with_verification(const attribute::IpTransportDetail& ip_transport_detail_req,
                                                       attribute::IpTransportDetail& ip_transport_detail) {
 
@@ -339,7 +334,8 @@ void set_ipv4_address_and_interface_with_verification(const attribute::IpTranspo
         Uuid found_interface{};
         std::tie(result, found_interface) = get_ethernet_interface_uuid_from_ip_address(ipv4_address);
         if (result == false) {
-            THROW(exceptions::InvalidValue, "nvme-agent", "There is no ethernet interface with requested IPv4 address.");
+            THROW(exceptions::InvalidValue, "nvme-agent",
+                  "There is no ethernet interface with requested IPv4 address.");
         }
 
         if (interface_from_request.has_value() && interface_from_request.value() != found_interface) {
@@ -355,22 +351,31 @@ void set_ipv4_address_and_interface_with_verification(const attribute::IpTranspo
     set_interface(ip_transport_detail_req, ip_transport_detail);
 }
 
+
 void set_transport_protocol(const attribute::IpTransportDetail& ip_transport_detail_req,
                             attribute::IpTransportDetail& ip_transport_detail) {
     if (ip_transport_detail_req.get_transport_protocol().has_value()) {
         throw_if_wrong_transport_protocol(ip_transport_detail_req);
         ip_transport_detail.set_transport_protocol(ip_transport_detail_req.get_transport_protocol().value());
-    } else {
+    }
+    else {
         ip_transport_detail.set_transport_protocol(enums::TransportProtocol::RoCEv2);
     }
 }
+
 
 void add_target_endpoint(AddEndpoint::ContextPtr ctx, const std::string& ip_address, std::uint16_t port,
                          const std::string& nqn, const Uuid& endpoint, const Volume& volume) {
     auto& endpoint_creator = NvmeConfig::get_instance()->get_endpoint_creator();
     try {
-        auto nvme_port = endpoint_creator.create_target_endpoint(ctx, ip_address, port, nqn,
-                                                                 attribute::Identifier::get_system_path(volume));
+
+        std::string volume_path{};
+        if (!volume.get_name().has_value()) {
+            THROW(exceptions::NvmeError, "nvme-agent", "Cannot use Volume with unknown name.");
+        }
+        volume_path = sysfs::construct_dev_path(volume.get_name());
+
+        auto nvme_port = endpoint_creator.create_target_endpoint(ctx, ip_address, port, nqn, volume_path);
         NvmeConfig::get_instance()->set_endpoint_nvme_port(endpoint, nvme_port);
 
         // Adding to database
@@ -392,11 +397,11 @@ void add_target_endpoint(AddEndpoint::ContextPtr ctx, const std::string& ip_addr
     }
 }
 
+
 void add_endpoint(AddEndpoint::ContextPtr ctx, const AddEndpoint::Request& req, AddEndpoint::Response& rsp) {
+    log_info("nvme-agent", "Adding endpoint...");
     NvmeStabilizer ns{};
     const auto& fabric{req.get_fabric()};
-
-    log_debug("nvme-agent", "Adding endpoint");
 
     get_manager<Fabric>().get_entry(fabric);
     Endpoint endpoint{fabric};
@@ -412,92 +417,68 @@ void add_endpoint(AddEndpoint::ContextPtr ctx, const AddEndpoint::Request& req, 
     throw_if_endpoint_exist(uuid);
 
     endpoint.add_identifier({uuid, enums::IdentifierType::UUID});
-    endpoint.set_protocol(enums::StorageProtocol::NVMeOverFabrics);
+    endpoint.set_protocol(enums::TransportProtocol::NVMeOverFabrics);
     endpoint.set_connected_entities(req.get_connected_entities());
-    endpoint.set_status(true);
+    endpoint.set_status({enums::State::Enabled, enums::Health::OK});
     endpoint.set_oem(req.get_oem());
     tools::convert_to_subnqn(nqn);
 
-    if (NvmeConfig::get_instance()->get_is_target()) { // Target Host
-        if (enums::EntityRole::Target == req.get_connected_entities().front().get_entity_role()) { // Target role
 
-            throw_if_wrong_target_entity(req.get_connected_entities().front());
+    if (Endpoint::is_target(endpoint)) { // Target role
 
-            attribute::IpTransportDetail ip_transport_detail{};
+        throw_if_wrong_target_entity(req.get_connected_entities().front());
 
-            if (req.get_ip_transport_details().empty()) { // IP transport details is not provided
-                log_debug("nvme-agent", "No IP transport details provided - using default interface");
-                set_ip_transport_detail_with_default(ip_transport_detail);
-                endpoint.add_ip_transport_detail(ip_transport_detail);
-            }
-            else { // IP transport details is provided
+        attribute::IpTransportDetail ip_transport_detail{};
 
-                throw_if_ip_transport_details_more_than_one(req);
-                const auto ip_transport_detail_req = req.get_ip_transport_details().front();
-
-                set_rdma_port(ip_transport_detail_req, ip_transport_detail);
-                set_ipv4_address_and_interface_with_verification(ip_transport_detail_req, ip_transport_detail);
-                set_transport_protocol(ip_transport_detail_req, ip_transport_detail);
-
-                endpoint.add_ip_transport_detail(ip_transport_detail);
-            }
-
-            const Volume volume = get_manager<Volume>()
-                .get_entry(endpoint.get_connected_entities().front().get_entity().value());
-            throw_if_volume_in_use(volume);
-
-            add_target_endpoint(ctx,
-                                ip_transport_detail.get_ipv4_address().get_address(),
-                                uint16_t(ip_transport_detail.get_port()),
-                                nqn,
-                                endpoint.get_uuid(),
-                                volume);
-            FabricDatabase(fabric).append(NvmeDatabase::ENDPOINTS, uuid);
-        }
-        else { // EntityRole::Initiator Endpoint
-            throw_if_entity_link_not_empty(req.get_connected_entities().front());
-            if (!req.get_ip_transport_details().empty()) {
-                throw_if_ip_transport_details_more_than_one(req);
-                throw_if_ethernet_interface_not_empty(req.get_ip_transport_details().front());
-            }
-
-            // add initiator nqn to hosts configuration
-            ctx->nvme_target_handler->add_host(nqn);
-            FabricDatabase(fabric).append(NvmeDatabase::ENDPOINTS, uuid);
-            EndpointDatabase(uuid).put(EndpointReader::DATABASE_ROLE, model::literals::Endpoint::INITIATOR);
-            EndpointDatabase(uuid).put(EndpointReader::DATABASE_NQN, nqn);
-        }
-    }
-    else { // Initiator host
-        if (enums::EntityRole::Target == req.get_connected_entities().front().get_entity_role()) {
-            throw_if_entity_link_not_empty(req.get_connected_entities().front());
-
-            attribute::IpTransportDetail ip_transport_detail{};
-
-            throw_if_ip_transport_details_empty(req);
-            throw_if_ip_transport_details_more_than_one(req);
-
-            const auto ip_transport_detail_req = req.get_ip_transport_details().front();
-
-            throw_if_ipv4_address_empty(ip_transport_detail_req);
-            throw_if_rdma_port_empty(ip_transport_detail_req);
-
-            set_rdma_port(ip_transport_detail_req, ip_transport_detail);
-            set_transport_protocol(ip_transport_detail_req, ip_transport_detail);
-
-            throw_if_ethernet_interface_not_empty(ip_transport_detail_req);
-            // On the initiator host we do not have access to interfaces so there is no verification
-            set_ipv4_address(ip_transport_detail_req, ip_transport_detail);
+        if (req.get_ip_transport_details().empty()) { // IP transport details is not provided
+            log_debug("nvme-agent", "No IP transport details provided - using default interface");
+            set_ip_transport_detail_with_default(ip_transport_detail);
             endpoint.add_ip_transport_detail(ip_transport_detail);
         }
-        else { // EntityRole::Initiator Endpoint
-            throw_if_wrong_initiator_entity(req.get_connected_entities().front());
+        else { // IP transport details is provided
+
+            throw_if_ip_transport_details_more_than_one(req);
+            const auto ip_transport_detail_req = req.get_ip_transport_details().front();
+
+            set_rdma_port(ip_transport_detail_req, ip_transport_detail);
+            set_ipv4_address_and_interface_with_verification(ip_transport_detail_req, ip_transport_detail);
+            set_transport_protocol(ip_transport_detail_req, ip_transport_detail);
+
+            endpoint.add_ip_transport_detail(ip_transport_detail);
         }
+
+        if (endpoint.get_connected_entities().front().get_lun().has_value()) {
+            THROW(exceptions::InvalidValue, "nvme-agent", "Specifying Logical unit number is not supported for NVMeoF storage.");
+        }
+        const Volume volume = get_manager<Volume>()
+            .get_entry(endpoint.get_connected_entities().front().get_entity().value());
+        throw_if_volume_in_use(volume);
+
+        add_target_endpoint(ctx,
+                            ip_transport_detail.get_ipv4_address().get_address(),
+                            uint16_t(ip_transport_detail.get_port()),
+                            nqn,
+                            endpoint.get_uuid(),
+                            volume);
+        FabricDatabase(fabric).append(NvmeDatabase::ENDPOINTS, uuid);
+    }
+    else { // EntityRole::Initiator Endpoint
+        throw_if_entity_link_not_empty(req.get_connected_entities().front());
+        if (!req.get_ip_transport_details().empty()) {
+            throw_if_ip_transport_details_more_than_one(req);
+            throw_if_ethernet_interface_not_empty(req.get_ip_transport_details().front());
+        }
+
+        // add initiator nqn to hosts configuration
+        ctx->nvme_target_handler->add_host(nqn);
+        FabricDatabase(fabric).append(NvmeDatabase::ENDPOINTS, uuid);
+        EndpointDatabase(uuid).put(EndpointReader::DATABASE_ROLE, model::literals::Endpoint::INITIATOR);
+        EndpointDatabase(uuid).put(EndpointReader::DATABASE_NQN, nqn);
     }
 
     rsp.set_endpoint(uuid);
     get_manager<Endpoint>().add_entry(endpoint);
-    log_debug("nvme-agent", "Added endpoint with UUID '" + uuid + "'");
+    log_info("nvme-agent", "Added endpoint with UUID '" + uuid + "'");
 }
 }
 

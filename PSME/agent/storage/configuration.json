@@ -1,5 +1,5 @@
 {
-    "service" : "storage",
+    "service" : "lvm-iscsi",
     "agent" : {
         "vendor" : "Intel Corporation",
         "capabilities" : [ "Storage" ]
@@ -16,6 +16,7 @@
         {
             "storageServices" : [
                 {
+                    "tgt-socket": "/var/run/tgtd/socket.0",
                     "iscsi" : {
                         "config-path" : "/etc/tgt/conf.d",
                         "portal-interface" : "eth0",
@@ -28,14 +29,16 @@
             ]
         }
     ],
-    "tgt-socket": "/var/run/tgtd/socket.0",
     "database": {
-        "location": "/var/opt/psme/storage"
+        "location": "/var/opt/psme/lvm-iscsi",
+        "retries": 10,
+        "retry-interval-sec": 5,
+        "checking-interval-sec": 5
     },
     "loggers" : [
         {
             "name" : "storage-agent",
-            "level" : "WARNING",
+            "level" : "INFO",
             "timeformat" : "DATE_NS",
             "color" : true,
             "output" : true,

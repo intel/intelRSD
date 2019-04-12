@@ -15,6 +15,7 @@ Include: EosSdk_IntfMgrHelper.include
 Include: EosSdk_ip_intf.include
 Include: EosSdk_ip_route.include
 Include: EosSdk_lldp.include
+Include: EosSdk_macsec.include
 Include: EosSdk_mac_table.include
 Include: EosSdk_mlag.include
 Include: EosSdk_mpls_route.include
@@ -26,3 +27,10 @@ Include: EosSdk_system.include
 Include: EosSdk_vrf.include
 Include: EosSdk_GOpenFlow.include
 Include: EosSdk_bfd_session.include
+
+# for mlag/status, Mlag::Status, r
+Include: MlagStatus-include
+
+# for interface support with EosSdk_IntfMgrHelper.include
+Include: AgentPlugin-IntfCollections-*
+

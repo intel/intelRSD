@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,12 +25,14 @@
 #include "psme/rest/server/response.hpp"
 #include "psme/rest/server/multiplexer.hpp"
 #include "psme/rest/endpoints/utils.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include "agent-framework/module/common_components.hpp"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
+
+
 
 using namespace psme::rest;
 using namespace psme::rest::endpoint;
@@ -41,8 +43,9 @@ public:
     Chassis m_endpoint{constants::Routes::CHASSIS_PATH};
     std::string m_manager_uuid{};
 
+
     std::string add_chassis(uint64_t id, agent_framework::model::enums::ChassisType type, uint16_t location_offset,
-            const OptionalField<std::string>& location_id, const std::string& parent_id) {
+                            const OptionalField<std::string>& location_id, const std::string& parent_id) {
         agent_framework::model::Chassis chassis{m_manager_uuid};
         chassis.set_id(id);
         chassis.set_location_id(location_id);
@@ -53,6 +56,7 @@ public:
         return chassis.get_uuid();
     }
 
+
     std::string add_manager(uint64_t id) {
         agent_framework::model::Manager manager{};
         manager.set_id(id);
@@ -60,76 +64,95 @@ public:
         return manager.get_uuid();
     }
 
-    json::Value get_chassis_endpoint(uint64_t id) {
+
+    json::Json get_chassis_endpoint(uint64_t id) {
         server::Request req;
         req.set_destination(std::string{"/redfish/v1/Chassis/"} + std::to_string(id));
         req.params[constants::PathParam::CHASSIS_ID] = std::to_string(id);
         server::Response res;
         m_endpoint.get(req, res);
 
-        json::Value json;
-        json::Deserializer(res.get_body()) >> json;
-        return json;
+        return json::Json::parse(res.get_body());;
     }
 
-    std::string get_parent_id(const json::Value& r) {
-        return r[constants::Common::OEM][constants::Common::RACKSCALE]
-                [constants::Common::LOCATION][constants::Chassis::PARENT_ID].as_string();
+
+    std::string get_parent_id(const json::Json& r) {
+        return r.value(constants::Common::OEM, json::Json::object())
+            .value(constants::Common::RACKSCALE, json::Json::object())
+            .value(constants::Common::LOCATION, json::Json::object())
+            .value(constants::Chassis::PARENT_ID, std::string{});
     }
 
-    std::string get_location_id(const json::Value& r) {
-        return r[constants::Common::OEM][constants::Common::RACKSCALE]
-                [constants::Common::LOCATION][constants::Common::ID].as_string();
+
+    std::string get_location_id(const json::Json& r) {
+        return r.value(constants::Common::OEM, json::Json::object())
+            .value(constants::Common::RACKSCALE, json::Json::object())
+            .value(constants::Common::LOCATION, json::Json::object())
+            .value(constants::Common::ID, std::string{});
     }
 
-    bool has_contained_by_link(const json::Value& r) {
-        if (r[constants::Common::LINKS][constants::Common::CONTAINED_BY].is_object()) {
-            if (r[constants::Common::LINKS][constants::Common::CONTAINED_BY][constants::Common::ODATA_ID].is_string()) {
+
+    bool has_contained_by_link(const json::Json& r) {
+        const json::Json contained_by_json = r.value(constants::Common::LINKS, json::Json::object())
+            .value(constants::Common::CONTAINED_BY, json::Json());
+        if (contained_by_json.is_object()) {
+            if (contained_by_json
+                .value(constants::Common::ODATA_ID, json::Json())
+                .is_string()) {
                 return true;
             }
         }
         return false;
     }
 
-    uint64_t get_contained_by(const json::Value& r) {
+
+    uint64_t get_contained_by(const json::Json& r) {
         auto params = server::Multiplexer::get_instance()->get_params(
-            r[constants::Common::LINKS][constants::Common::CONTAINED_BY][constants::Common::ODATA_ID].as_string(),
+            r.value(constants::Common::LINKS, json::Json::object())
+                .value(constants::Common::CONTAINED_BY, json::Json::object())
+                .value(constants::Common::ODATA_ID, std::string{}
+                ),
             constants::Routes::CHASSIS_PATH);
         try {
             return endpoint::utils::id_to_uint64(params[constants::PathParam::CHASSIS_ID]);
         }
         catch (const std::exception& e) {
             log_error("test", "Exception while processing ContainedBy field: "
-                << r[constants::Common::LINKS][constants::Common::CONTAINED_BY]
+                << r.value(constants::Common::LINKS, json::Json::object()).value(constants::Common::CONTAINED_BY, json::Json::object())
                 << ": " << e.what());
             throw;
         }
     }
 
-    std::vector<uint64_t> get_contains(const json::Value& r) {
+
+    std::vector<uint64_t> get_contains(const json::Json& r) {
         std::vector<uint64_t> ids;
-        auto links = r[constants::Common::LINKS][constants::Chassis::CONTAINS].as_array();
-        for (const auto& link : links) {
-            auto params = server::Multiplexer::get_instance()->get_params(
-                link[constants::Common::ODATA_ID].as_string(),
-                constants::Routes::CHASSIS_PATH);
-            try {
-                ids.emplace_back(endpoint::utils::id_to_uint64(params[constants::PathParam::CHASSIS_ID]));
-            }
-            catch (const std::exception& e) {
-                log_error("test", "Exception while processing Contains field: " << link << ": " << e.what());
-                throw;
+        if (r.value(constants::Common::LINKS, json::Json::object()).count(constants::Chassis::CONTAINS)) {
+            auto links = r[constants::Common::LINKS][constants::Chassis::CONTAINS];
+            for (const auto& link : links) {
+                auto params = server::Multiplexer::get_instance()->get_params(
+                    link.value(constants::Common::ODATA_ID, std::string{}),
+                    constants::Routes::CHASSIS_PATH);
+                try {
+                    ids.emplace_back(endpoint::utils::id_to_uint64(params[constants::PathParam::CHASSIS_ID]));
+                }
+                catch (const std::exception& e) {
+                    log_error("test", "Exception while processing Contains field: " << link << ": " << e.what());
+                    throw;
+                }
             }
         }
         std::sort(ids.begin(), ids.end());
+
         return ids;
     }
 
+
     void test_chassis_endpoint(uint64_t id, const std::string& expected_loc_id, const std::string& expected_parent_id,
-        bool is_contained, uint64_t parent_chassis, const std::vector<uint64_t>& child_chassis) {
+                               bool is_contained, uint64_t parent_chassis, const std::vector<uint64_t>& child_chassis) {
 
         log_info("test", "Testing chassis endpoint with id: " << id);
-        json::Value chassis{};
+        json::Json chassis = json::Json();
         try {
             chassis = get_chassis_endpoint(id);
         }
@@ -146,24 +169,30 @@ public:
         EXPECT_EQ(child_chassis, get_contains(chassis));
     }
 
+
     static void SetUpTestCase() {
         server::Multiplexer::get_instance()->
             register_handler(Chassis::UPtr(new Chassis(constants::Routes::CHASSIS_PATH)));
     }
 
+
     void SetUp() {
         m_manager_uuid = add_manager(1);
     }
+
 
     void TearDown() {
         get_manager<agent_framework::model::Chassis>().clear_entries();
         get_manager<agent_framework::model::Manager>().clear_entries();
     }
 
+
     ~ChassisLocation();
 };
 
+
 ChassisLocation::~ChassisLocation() {}
+
 
 TEST_F(ChassisLocation, RmmHierarchy) {
     add_chassis(1, agent_framework::model::enums::ChassisType::Rack, 0, "Rack", "");
@@ -183,17 +212,20 @@ TEST_F(ChassisLocation, RmmHierarchy) {
     test_chassis_endpoint(7, "Drawer-4", "Rack", true, 1, {});
 }
 
+
 TEST_F(ChassisLocation, PncHierarchy) {
     add_chassis(1, agent_framework::model::enums::ChassisType::Enclosure, 0, {}, "");
 
     test_chassis_endpoint(1, "0", "", false, 0, {});
 }
 
+
 TEST_F(ChassisLocation, NetworkHierarchy) {
     add_chassis(1, agent_framework::model::enums::ChassisType::Module, 0, {}, "");
 
     test_chassis_endpoint(1, "0", "", false, 0, {});
 }
+
 
 TEST_F(ChassisLocation, ComputeHierarchy) {
     add_chassis(1, agent_framework::model::enums::ChassisType::Module, 0, {}, "");
@@ -207,11 +239,13 @@ TEST_F(ChassisLocation, ComputeHierarchy) {
     test_chassis_endpoint(4, "3", "", false, 0, {});
 }
 
+
 TEST_F(ChassisLocation, ChassisHierarchy) {
     add_chassis(1, agent_framework::model::enums::ChassisType::Drawer, 0, {}, "");
 
     test_chassis_endpoint(1, "0", "", false, 0, {});
 }
+
 
 TEST_F(ChassisLocation, FullPsmeHierarchy) {
     // chassis

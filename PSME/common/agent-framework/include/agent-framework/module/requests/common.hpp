@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@
 #include "agent-framework/module/requests/common/get_chassis_info.hpp"
 #include "agent-framework/module/requests/common/get_processor_info.hpp"
 #include "agent-framework/module/requests/common/get_drive_info.hpp"
+#include "agent-framework/module/requests/common/delete_drive.hpp"
 #include "agent-framework/module/requests/common/get_system_info.hpp"
 #include "agent-framework/module/requests/common/get_storage_subsystem_info.hpp"
 #include "agent-framework/module/requests/common/get_pcie_device_info.hpp"

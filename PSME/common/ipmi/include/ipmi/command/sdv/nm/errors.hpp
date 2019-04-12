@@ -1,8 +1,7 @@
 /*!
- * @brief Response Errors for TelemetryHub.
+ * @brief Response Errors for Intel Node Manager (NM).
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file ipmi/command/sdv/nm/errors.hpp
  */
 
@@ -29,6 +27,72 @@
 namespace ipmi {
 namespace command {
 namespace sdv {
+
+/*!
+ * @brief Exception type for Operation in progress
+ */
+class OperationInProgressError : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0x82;
+    static constexpr const char ERROR_STRING[] = "Operation in progress";
+
+
+    explicit OperationInProgressError(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    OperationInProgressError(const OperationInProgressError&) = default;
+
+
+    OperationInProgressError(OperationInProgressError&&) = default;
+
+
+    virtual ~OperationInProgressError();
+};
+
+/*!
+ * @brief Exception type for Trigger Proxy Access operation halt was forced.
+ */
+class TriggerProxyAccessHaltForced : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0x83;
+    static constexpr const char ERROR_STRING[] = "Trigger Proxy Access operation halt was forced";
+
+
+    explicit TriggerProxyAccessHaltForced(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    TriggerProxyAccessHaltForced(const TriggerProxyAccessHaltForced&) = default;
+
+
+    TriggerProxyAccessHaltForced(TriggerProxyAccessHaltForced&&) = default;
+
+
+    virtual ~TriggerProxyAccessHaltForced();
+};
+
+/*!
+ * @brief Exception type for DCPMEM Module internal error.
+ */
+class DcpmemModuleInternalError : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0x84;
+    static constexpr const char ERROR_STRING[] = "DCPMEM Module internal error";
+
+
+    explicit DcpmemModuleInternalError(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    DcpmemModuleInternalError(const DcpmemModuleInternalError&) = default;
+
+
+    DcpmemModuleInternalError(DcpmemModuleInternalError&&) = default;
+
+
+    virtual ~DcpmemModuleInternalError();
+};
 
 /*!
  * @brief Exception type for Invalid Package GUID.
@@ -207,25 +271,180 @@ public:
 };
 
 /*!
- * @brief Exception type for inband PCI interface is down.
+ * @brief Exception type for PECI Command response timeout.
  */
-class InvalidPciInterfaceState : public ResponseError {
+class PeciCommandResponseTimeout : public ResponseError {
 public:
-    static constexpr const CompletionCode ERROR_CODE = 0xA3;
-    static constexpr const char ERROR_STRING[] = "Inband PCI interface is down, response data invalid";
+    static constexpr const CompletionCode ERROR_CODE = 0xA2;
+    static constexpr const char ERROR_STRING[] = "PECI Command response timeout";
 
 
-    explicit InvalidPciInterfaceState(const Response& response)
+    explicit PeciCommandResponseTimeout(const Response& response)
         : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
 
 
-    InvalidPciInterfaceState(const InvalidPciInterfaceState&) = default;
+    PeciCommandResponseTimeout(const PeciCommandResponseTimeout&) = default;
 
 
-    InvalidPciInterfaceState(InvalidPciInterfaceState&&) = default;
+    PeciCommandResponseTimeout(PeciCommandResponseTimeout&&) = default;
 
 
-    virtual ~InvalidPciInterfaceState();
+    virtual ~PeciCommandResponseTimeout();
+};
+
+/*!
+ * @brief Exception type for inband PECI interface is down.
+ */
+class InvalidPeciInterfaceState : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0xA3;
+    static constexpr const char ERROR_STRING[] = "Inband PECI interface is down, response data invalid";
+
+
+    explicit InvalidPeciInterfaceState(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    InvalidPeciInterfaceState(const InvalidPeciInterfaceState&) = default;
+
+
+    InvalidPeciInterfaceState(InvalidPeciInterfaceState&&) = default;
+
+
+    virtual ~InvalidPeciInterfaceState();
+};
+
+/*!
+ * @brief Exception type for PECI bad read FSC in the response.
+ */
+class PeciBadReadFscInResponse : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0xA4;
+    static constexpr const char ERROR_STRING[] = "PECI bad read FSC in the response";
+
+
+    explicit PeciBadReadFscInResponse(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    PeciBadReadFscInResponse(const PeciBadReadFscInResponse&) = default;
+
+
+    PeciBadReadFscInResponse(PeciBadReadFscInResponse&&) = default;
+
+
+    virtual ~PeciBadReadFscInResponse();
+};
+
+/*!
+ * @brief Exception type for PECI bad write FSC in the response.
+ */
+class PeciBadWriteFscInResponse : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0xA5;
+    static constexpr const char ERROR_STRING[] = "PECI bad write FSC in the response";
+
+
+    explicit PeciBadWriteFscInResponse(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    PeciBadWriteFscInResponse(const PeciBadWriteFscInResponse&) = default;
+
+
+    PeciBadWriteFscInResponse(PeciBadWriteFscInResponse&&) = default;
+
+
+    virtual ~PeciBadWriteFscInResponse();
+};
+
+/*!
+ * @brief Exception type for SMBus error: SMBus timeout.
+ */
+class SmbusTimeoutError : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0xAA;
+    static constexpr const char ERROR_STRING[] = "SMBus error: SMBus timeout";
+
+
+    explicit SmbusTimeoutError(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    SmbusTimeoutError(const SmbusTimeoutError&) = default;
+
+
+    SmbusTimeoutError(SmbusTimeoutError&&) = default;
+
+
+    virtual ~SmbusTimeoutError();
+};
+
+/*!
+ * @brief Exception type for CPU not present.
+ */
+class CpuNotPresentError : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0xAC;
+    static constexpr const char ERROR_STRING[] = "CPU not present";
+
+
+    explicit CpuNotPresentError(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    CpuNotPresentError(const CpuNotPresentError&) = default;
+
+
+    CpuNotPresentError(CpuNotPresentError&&) = default;
+
+
+    virtual ~CpuNotPresentError();
+};
+
+/*!
+ * @brief Exception type for SMBus error: illegal SMBus address.
+ */
+class IllegalSmbusAddressError : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0xAD;
+    static constexpr const char ERROR_STRING[] = "SMBus error: illegal SMBus address";
+
+
+    explicit IllegalSmbusAddressError(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    IllegalSmbusAddressError(const IllegalSmbusAddressError&) = default;
+
+
+    IllegalSmbusAddressError(IllegalSmbusAddressError&&) = default;
+
+
+    virtual ~IllegalSmbusAddressError();
+};
+
+/*!
+ * @brief Exception type for unsupported length of response for underlying transport
+ */
+class InvalidResponseLength : public ResponseError {
+public:
+    static constexpr const CompletionCode ERROR_CODE = 0xAD;
+    static constexpr const char ERROR_STRING[] =
+        "Response cannot be delivered because its length is not supported for underlying transport";
+
+
+    explicit InvalidResponseLength(const Response& response)
+        : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
+
+
+    InvalidResponseLength(const InvalidResponseLength&) = default;
+
+
+    InvalidResponseLength(InvalidResponseLength&&) = default;
+
+
+    virtual ~InvalidResponseLength();
 };
 
 /*!
@@ -251,26 +470,26 @@ public:
 };
 
 /*!
- * @brief Exception type for unsupported length of response for underlying transport
+ * @brief Exception type for Smart & CLST event happened and the transaction has been aborted - retry needed.
  */
-class InvalidResponseLength : public ResponseError {
+class TransactionAbortedError : public ResponseError {
 public:
-    static constexpr const CompletionCode ERROR_CODE = 0xAD;
+    static constexpr const CompletionCode ERROR_CODE = 0xD7;
     static constexpr const char ERROR_STRING[] =
-        "Response cannot be delivered because its length is not supported for underlying transport";
+        "Smart & CLST event happened and the transaction has been aborted - retry needed";
 
 
-    explicit InvalidResponseLength(const Response& response)
+    explicit TransactionAbortedError(const Response& response)
         : ResponseError(response, ERROR_STRING, ERROR_CODE) {}
 
 
-    InvalidResponseLength(const InvalidResponseLength&) = default;
+    TransactionAbortedError(const TransactionAbortedError&) = default;
 
 
-    InvalidResponseLength(InvalidResponseLength&&) = default;
+    TransactionAbortedError(TransactionAbortedError&&) = default;
 
 
-    virtual ~InvalidResponseLength();
+    virtual ~TransactionAbortedError();
 };
 
 }

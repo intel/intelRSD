@@ -1,0 +1,93 @@
+{
+  "testCases": [
+    {
+      "knownResources": [
+        {
+          "@odata.id": "/redfish/v1/Systems/2",
+          "UUID": "7ca5c465-85ff-4bb4-a650-77fc29724907"
+        }
+      ],
+      "missingResources": [
+        {
+          "@odata.id": "/redfish/v1/Systems/2/Processors/CPU1",
+          "Socket": "Socket 2"
+        }
+      ],
+      "assertions": [
+        {
+          "from": "/redfish/v1/Systems/2/Processors/CPU1",
+          "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724907/Processors/Socket+2"
+        }
+      ]
+    },
+    {
+      "knownResources": [
+        {
+          "@odata.id": "/redfish/v1"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems"
+        }
+      ],
+      "missingResources": [
+        {
+          "@odata.id": "/redfish/v1/Systems/1/Processors/CPU1",
+          "Socket": 1
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/1/Processors"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/1",
+          "UUID": "7ca5c465-85ff-4bb4-a650-77fc29724908"
+        }
+      ],
+      "assertions": [
+        {
+          "from": "/redfish/v1",
+          "to": "/redfish/v1"
+        },
+        {
+          "from": "/redfish/v1/Systems",
+          "to": "/redfish/v1/Systems"
+        },
+        {
+          "from": "/redfish/v1/Systems/1",
+          "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908"
+        },
+        {
+          "from": "/redfish/v1/Systems/1/Processors",
+          "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908/Processors"
+        },
+        {
+          "from": "/redfish/v1/Systems/1/Processors/CPU1",
+          "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908/Processors/1"
+        }
+      ]
+    },
+    {
+      "knownResources": [
+        {
+          "@odata.id": "/redfish/v1",
+          "UUID": "d067ee2e-68b7-11e8-adc0-fa7ae01bbebc"
+        },
+        {
+          "@odata.id": "/redfish/v1/TaskService/Tasks/124",
+          "Id": "124"
+        }
+      ],
+      "missingResources": [
+        {
+          "@odata.id": "/redfish/v1/TaskService/Tasks/124/Monitor",
+          "Id": "124"
+        }
+      ],
+      "assertions": [
+        {
+          "from": "/redfish/v1/TaskService/Tasks/124/Monitor",
+          "to": "/redfish/v1/TaskService/Tasks/d067ee2e-68b7-11e8-adc0-fa7ae01bbebc_124/Monitor"
+        }
+      ]
+    }
+  ]
+}

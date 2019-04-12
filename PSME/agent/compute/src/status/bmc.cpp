@@ -2,7 +2,7 @@
  * @brief Implementation of Bmc class
  *
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,15 +35,40 @@
 #include "agent-framework/eventing/events_queue.hpp"
 #include "ipmi/command/generic/get_device_id.hpp"
 #include "ipmi/utils/sdv/mdr_region_accessor.hpp"
+#include "ipmi/utils/sdv/platform_discovery.hpp"
 
 using namespace agent::compute;
 using namespace agent_framework::module;
 
 using agent_framework::model::enums::Component;
-using agent_framework::eventing::Notification;
+using agent_framework::model::enums::Notification;
 using agent::compute::Bmc;
+using ipmi::command::generic::BmcInterface;
 
 namespace {
+
+OptionalField<BmcInterface> read_inteface(Bmc& bmc) {
+    try {
+        log_debug("bmc", bmc.get_id() << " reading sled interface");
+        ipmi::command::generic::response::GetDeviceId device_rsp{};
+        bmc.ipmi().send(ipmi::command::generic::request::GetDeviceId{}, device_rsp);
+        auto interface = ipmi::sdv::platform_discovery(device_rsp);
+        if (interface == BmcInterface::RSD_2_4) {
+            return interface;
+        }
+        else if (interface == BmcInterface::RSA_1_2 || interface == BmcInterface::RSD_2_2) {
+            log_error("bmc", "Unsupported legacy platform detected on " << bmc.get_id());
+        }
+        else {
+            log_error("bmc", "Unknown platform detected on " << bmc.get_id());
+        }
+        return {};
+    }
+    catch (std::exception& e) {
+        log_error("bmc", bmc.get_id() << " sled interface read failed: " << e.what());
+    }
+    return {};
+}
 
 OptionalField<std::uint16_t> read_platform_id(Bmc& bmc) {
     try {
@@ -60,24 +85,29 @@ OptionalField<std::uint16_t> read_platform_id(Bmc& bmc) {
 }
 
 
-OptionalField<std::uint16_t> read_smbios_checksum(Bmc& bmc) {
-    log_debug("bmc", bmc.get_id() << " reading smbios region status ");
+OptionalField<std::tuple<std::uint8_t, std::uint8_t>> read_mdr_update_indicators(Bmc& bmc, ipmi::command::sdv::DataRegionId region_id) {
+    const std::string& region_name = (region_id == ipmi::command::sdv::DataRegionId::SMBIOS_TABLE ? "SMBIOS" : "ACPI");
+
+    log_debug("bmc", bmc.get_id() << " reading " << region_name << " region status ");
     if (Bmc::State::ONLINE == bmc.get_state()) {
         try {
             auto mdr_accessor = ipmi::sdv::MdrRegionAccessorFactory()
-                .create(bmc.get_platform_id(), bmc.ipmi(), ipmi::command::sdv::DataRegionId::SMBIOS_TABLE);
-            return mdr_accessor->get_mdr_region_checksum();
+                .create(bmc.get_platform_id(), bmc.ipmi(), region_id);
+
+            auto update_count = mdr_accessor->get_mdr_region_update_count();
+            auto checksum = mdr_accessor->get_mdr_region_checksum();
+
+            return std::make_tuple(update_count, checksum);
         }
         catch (const std::exception& e) {
-            log_warning("bmc", bmc.get_id() << " smbios region status read failed: " << e.what());
+            log_warning("bmc", bmc.get_id() << " " << region_name << " region status read failed: " << e.what());
         }
     }
     return {};
 }
 
-
 void send_event(const std::string& module, const std::string& parent, Component type, Notification notification) {
-    agent_framework::eventing::EventData edat;
+    agent_framework::model::attribute::EventData edat;
     edat.set_parent(parent);
     edat.set_component(module);
     edat.set_type(type);
@@ -243,27 +273,28 @@ public:
 
     void operator()() {
         if (Bmc::State::ONLINE == m_bmc.get_state()) {
-            bool checksum_changed{false};
-            const auto checksum = read_smbios_checksum(m_bmc);
-            if (checksum.has_value()) {
-                if (checksum != m_smbios_checksum) {
-                    if (m_smbios_checksum.has_value()) {
-                        log_info("periodic_discovery", m_bmc.get_id() << " SMBIOS checksum changed 0x"
-                                << std::hex << uint(m_smbios_checksum) << " -> 0x" << uint(checksum));
-                    }
-                    else {
-                        log_info("periodic_discovery", m_bmc.get_id() << " SMBIOS checksum: "
-                                << std::hex << " 0x" << uint(checksum));
-                    }
-                    m_smbios_checksum = checksum;
-                    checksum_changed = true;
-                }
+            bool smbios_region_changed{false};
+            const auto smbios_update_indicator = read_mdr_update_indicators(m_bmc, ipmi::command::sdv::DataRegionId::SMBIOS_TABLE);
+
+            if (smbios_update_indicator.has_value()) {
+                smbios_region_changed = is_mdr_region_updated(smbios_update_indicator.value(), ipmi::command::sdv::DataRegionId::SMBIOS_TABLE);
+                m_smbios_update_count = std::get<0>(smbios_update_indicator.value());
+                m_smbios_checksum = std::get<1>(smbios_update_indicator.value());
             }
             else {
                 m_no_smbios_counter++;
             }
 
-            if (checksum_changed || requires_discovery_when_smbios_not_present()) {
+            bool acpi_region_changed{false};
+            const auto acpi_update_indicator = read_mdr_update_indicators(m_bmc, ipmi::command::sdv::DataRegionId::ACPI_TABLE);
+
+            if (acpi_update_indicator.has_value()) {
+                acpi_region_changed = is_mdr_region_updated(acpi_update_indicator.value(), ipmi::command::sdv::DataRegionId::ACPI_TABLE);
+                m_acpi_update_count = std::get<0>(acpi_update_indicator.value());
+                m_acpi_checksum = std::get<1>(acpi_update_indicator.value());
+            }
+
+            if (smbios_region_changed || acpi_region_changed || requires_discovery_when_smbios_not_present()) {
                 do_discovery();
             }
             // reschedule task
@@ -311,15 +342,53 @@ private:
     }
 
     bool is_discoverable_when_no_smbios() const {
-        using ipmi::command::generic::ProductId;
-        return m_bmc.get_platform_id().has_value()
-               && ProductId::PRODUCT_ID_INTEL_XEON_BDC_R == m_bmc.get_platform_id().value();
+        using ipmi::command::generic::BmcInterface ;
+        return m_bmc.get_interface().has_value()
+               && BmcInterface::RSA_1_2 == m_bmc.get_interface().value();
+    }
+
+    bool is_mdr_region_updated(std::tuple<std::uint8_t, std::uint8_t> mdr_update_indicators, ipmi::command::sdv::DataRegionId region_id) const {
+        const std::string& region_name = (region_id == ipmi::command::sdv::DataRegionId::SMBIOS_TABLE ? "SMBIOS" : "ACPI");
+        const auto update_count = std::get<0>(mdr_update_indicators);
+        const auto checksum = std::get<1>(mdr_update_indicators);
+        bool mdr_region_changed{false};
+
+        OptionalField<std::uint8_t> saved_checksum{};
+        OptionalField<std::uint8_t> saved_update_count{};
+
+        if (region_id == ipmi::command::sdv::DataRegionId::SMBIOS_TABLE) {
+            saved_update_count = m_smbios_update_count;
+            saved_checksum = m_smbios_checksum;
+        }
+        else {
+            saved_update_count = m_acpi_update_count;
+            saved_checksum = m_acpi_checksum;
+        }
+
+        if (update_count != saved_update_count || checksum != saved_checksum) {
+            if (saved_update_count.has_value() && saved_checksum.has_value()) {
+                log_info("periodic_discovery", m_bmc.get_id() << " " << region_name <<" update indicators changed!"
+                                                              << " Update Count: " << uint(saved_update_count) << " -> " << uint(update_count)
+                                                              << " / Checksum: 0x" << std::hex << uint(saved_checksum) << " -> 0x" << uint(checksum));
+            }
+            else {
+                log_info("periodic_discovery", m_bmc.get_id() << " " << region_name
+                                                              << " Update Count = " << uint(update_count)
+                                                              << " / Checksum = 0x" << std::hex << uint(checksum));
+            }
+
+            mdr_region_changed = true;
+        }
+        return mdr_region_changed;
     }
 
     Bmc& m_bmc;
     const Bmc::Duration m_period;
     const Bmc::Duration m_smbios_wait_time;
-    OptionalField<std::uint16_t> m_smbios_checksum{};
+    OptionalField<std::uint8_t> m_smbios_update_count{};
+    OptionalField<std::uint8_t> m_smbios_checksum{};
+    OptionalField<std::uint8_t> m_acpi_update_count{};
+    OptionalField<std::uint8_t> m_acpi_checksum{};
     uint m_no_smbios_counter{};
     uint m_discovery_counter{};
 };
@@ -338,22 +407,24 @@ Bmc::Bmc(const ConnectionData& conn, Bmc::Duration state_update_interval,
 
 bool Bmc::on_become_online(const Transition&) {
     m_platform_id = read_platform_id(*this);
-    if (m_platform_id.has_value()) {
-        m_telemetry_service = std::make_shared<ComputeTelemetryService>(ipmi(), m_platform_id);
+    m_interface = read_inteface(*this);
+    if (m_interface.has_value()) {
+        m_telemetry_service = std::make_shared<ComputeTelemetryService>(ipmi(), m_interface.value());
         if (m_telemetry_service->get_reader_ptrs().empty()) {
-            log_error("bmc", "No metrics defined for " << m_platform_id);
+            log_error("bmc", "No metrics defined for " << static_cast<std::uint16_t>(m_interface.value()));
         }
+        const auto rerun_delay = std::chrono::seconds(10);
+        const auto smbios_wait_time = std::chrono::minutes(3);
+        (*this)(std::bind(&PeriodicDiscovery::operator(),
+                          std::make_shared<PeriodicDiscovery>(*this, rerun_delay, smbios_wait_time)));
     }
-    const auto rerun_delay = std::chrono::seconds(10);
-    const auto smbios_wait_time = std::chrono::minutes(3);
-    (*this)(std::bind(&PeriodicDiscovery::operator(),
-            std::make_shared<PeriodicDiscovery>(*this, rerun_delay, smbios_wait_time)));
     return true;
 }
 
 bool Bmc::on_extraction(const Transition&) {
     remove_manager(get_manager_uuid());
     m_platform_id.reset();
+    m_interface.reset();
     m_telemetry_service.reset();
     return true;
 }

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -250,7 +250,7 @@ class Entity(MetadataModel, TypeCompareMixin):
                     property_value,
                     resource_path + '->' + property_name)
         else:
-            cts_error("Property {odata_id:id}->{property_name} is present, but not defined in metadata. " \
+            cts_error("Property {odata_id:id}->{property_name} is present, but not defined in metadata. "
                       "Entity {entity_name} does not allow additional properties",
                       odata_id=resource_path, property_name=property_name, entity_name=self.name)
             try_suggest_other_property_names(name=property_name, candidates=unused_properties)
@@ -318,7 +318,6 @@ class Entity(MetadataModel, TypeCompareMixin):
             self.compare_dynamic_property_patterns(other, level=1))
         cmp.separator()
         return cmp
-
 
     def compare_dynamic_property_patterns(self, other, level):
         """

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,12 +32,10 @@ add_library(compute-tree_stability-libs
 target_link_libraries(${test_target}
     ${AGENT_COMPUTE_LIBRARIES}
     compute-utils
-    ${AGENT_FRAMEWORK_LIBRARIES}
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
     ${PCA95XX_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    configuration
     ${ISCSI_MDR_LIBRARIES}
     ipmi
     ${IPMITOOL_LIBRARIES}

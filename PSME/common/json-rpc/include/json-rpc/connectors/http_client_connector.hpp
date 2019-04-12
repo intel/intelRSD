@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file connectors/http_client_connector.hpp
  */
 
@@ -28,11 +26,7 @@
 #pragma once
 
 #include "json-rpc/connectors/abstract_client_connector.hpp"
-
 #include <curl/curl.h>
-
-#include <map>
-#include <memory>
 
 namespace json_rpc {
 
@@ -42,7 +36,7 @@ namespace json_rpc {
 class HttpClientConnector : public AbstractClientConnector {
 public:
 
-    /*! Dedault timeout (ms) time used by the constructor */
+    /*! Default timeout (ms) time used by the constructor */
     static constexpr long DEFAULT_TIMEOUT_MS = 10000;
 
     /*!
@@ -57,13 +51,13 @@ public:
     /*!
      * @brief Sends client request
      * @param message Message to be send
-     * @return Obtained resposne
+     * @return Obtained response
      */
     virtual std::string send_request(const std::string& message) override;
 
     /*!
-     * @brief Sents utl
-     * @param url New url
+     * @brief Sets URL
+     * @param url New URL
      */
     void set_url(const std::string& url) {
         m_url = url;

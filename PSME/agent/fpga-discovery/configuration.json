@@ -1,0 +1,44 @@
+{
+    "service" : "fpga-discovery",
+    "agent": {
+        "vendor" : "Intel Corporation",
+        "capabilities" : [ "FPGADiscovery" ]
+    },
+    "server": {
+        "port": 7789
+    },
+    "registration": {
+        "ipv4": "127.0.0.1",
+        "port": 8384,
+        "interval": 3
+    },
+    "managers": [
+        {
+            "ipv4": "127.0.0.1",
+            "locationOffset": 10,
+            "parentId": "1"
+        }
+    ],
+    "discovery-service" : {
+         "port": 4424
+    },
+    "database": {
+        "location": "/var/opt/psme/discovery/fpga"
+    },
+    "loggers" : [
+        {
+            "name" : "fpga-discovery-agent",
+            "level" : "DEBUG",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type" : "STDOUT"
+                }
+            ]
+        }
+    ]
+}

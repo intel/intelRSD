@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,30 +19,20 @@
 cmake_minimum_required(VERSION 3.4)
 project("NVME Target" CXX)
 
-set(NVME_TARGET_LIBRARIES
-    nvme-target
-    CACHE PATH "NVME Target libraries"
-    )
-
-set(NVME_TARGET_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    CACHE PATH "NVME Target include directory"
-    )
-
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${SYSFSREF_INCLUDE_DIRS}
-)
 
 add_library(nvme-target STATIC
     src/base_nvme_target_handler.cpp
     src/sysfs_nvme_target_handler.cpp
-)
+    )
 
-install(TARGETS nvme-target
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+target_include_directories(nvme-target
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
+target_link_libraries(nvme-target
+    PUBLIC
+    sysfsref
+    )
 
 add_subdirectory(tests)

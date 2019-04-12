@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -136,7 +136,7 @@ std::string get_mask(const std::string& interface) {
 
 
 json::Json parse_ini(std::istream& in_file) {
-    json::Json parsed{};
+    json::Json parsed = json::Json();
     std::string section = "";
     std::string line{};
 

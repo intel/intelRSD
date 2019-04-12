@@ -1,0 +1,129 @@
+/*
+ * Copyright (c) 2018-2019 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "../buildscripts/wrapper.gradle"
+
+buildscript {
+    ext {
+        springBootVersion = '2.0.0.RELEASE'
+        dependencyManagementPluginVersion = '1.0.4.RELEASE'
+        gradleVersionsPluginVersion = '0.17.0'
+
+        springPlatformBomVersion = 'Cairo-RC1'
+
+        commonsIoVersion = '2.6'
+        guavaVersion = '24.1-jre'
+        jacocoVersion = '0.8.2'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("io.spring.gradle:dependency-management-plugin:${dependencyManagementPluginVersion}")
+        classpath("com.github.ben-manes:gradle-versions-plugin:${gradleVersionsPluginVersion}")
+    }
+}
+
+group "com.intel.rsd"
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.github.ben-manes.versions'
+apply plugin: 'checkstyle'
+apply plugin: 'jacoco'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/libs-milestone' }
+    maven { url 'http://repo.spring.io/milestone' }
+}
+
+jacoco {
+    toolVersion = "${jacocoVersion}"
+}
+
+checkstyle {
+    configFile = new File(rootDir.absolutePath + '/..', 'config/checkstyle/checkstyle.xml')
+    configProperties.checkstyleConfigDir = configFile.parentFile
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled true
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+    }
+}
+
+build.dependsOn jacocoTestReport
+
+dependencyManagement {
+    imports {
+        mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
+    }
+}
+
+dependencies {
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    compileOnly("org.apache.httpcomponents:httpclient")
+    compileOnly("org.springframework.boot:spring-boot-starter-web")
+    compile("javax.validation:validation-api")
+    compile("commons-io:commons-io:${commonsIoVersion}")
+    compile("com.google.guava:guava:${guavaVersion}")
+
+    testCompile("org.springframework.boot:spring-boot-starter-web")
+
+    testCompile("org.testng:testng")
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+}
+
+test {
+    useTestNG() {
+        testLogging {
+            showStandardStreams = false
+            //event to log on gradle output
+            events = ["skipped", "passed", "failed"]
+            exceptionFormat = "full"
+            showExceptions = true
+            showCauses = true
+            showStackTraces = false
+        }
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                minimum = 0.1
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

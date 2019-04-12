@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -87,8 +87,8 @@ TEST(AddPortVlanTest, PositiveExecute) {
     MyAddPortVlan command(TEST_UUID, TEST_VLAN_ID, TEST_VLAN_NAME, TEST_TAGGED);
     AddPortVlan::Request request{""};
     AddPortVlan::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::EthernetSwitchPortVlan::PORT] = TEST_UUID;
     params[literals::EthernetSwitchPortVlan::VLAN_NAME] = TEST_VLAN_NAME;
@@ -108,8 +108,8 @@ TEST(AddPortVlanTest, NegativeComponentNotFound) {
     MyAddPortVlan command(TEST_UUID, TEST_VLAN_ID, TEST_VLAN_NAME, TEST_TAGGED);
     AddPortVlan::Request request{""};
     AddPortVlan::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::EthernetSwitchPortVlan::PORT] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
     params[literals::EthernetSwitchPortVlan::VLAN_NAME] = TEST_VLAN_NAME;
@@ -125,8 +125,8 @@ TEST(AddPortVlanTest, NegativeInvalidUUIDFormat) {
     MyAddPortVlan command(TEST_UUID, TEST_VLAN_ID, TEST_VLAN_NAME, TEST_TAGGED);
     AddPortVlan::Request request{""};
     AddPortVlan::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::EthernetSwitchPortVlan::PORT] = "TestUUID";
     params[literals::EthernetSwitchPortVlan::VLAN_NAME] = TEST_VLAN_NAME;
@@ -142,8 +142,8 @@ TEST(AddPortVlanTest, NegativePortNotFound) {
     MyAddPortVlan command(TEST_UUID, TEST_VLAN_ID, TEST_VLAN_NAME, TEST_TAGGED);
     AddPortVlan::Request request{""};
     AddPortVlan::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::EthernetSwitchPortVlan::PORT] = TEST_UUID;
     params[literals::EthernetSwitchPortVlan::VLAN_NAME] = "OtherVlanId";
@@ -159,8 +159,8 @@ TEST(AddPortVlanTest, NegativeVlanNotFound) {
     MyAddPortVlan command(TEST_UUID, TEST_VLAN_ID, TEST_VLAN_NAME, TEST_TAGGED);
     AddPortVlan::Request request{""};
     AddPortVlan::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::EthernetSwitchPortVlan::PORT] = TEST_UUID;
     params[literals::EthernetSwitchPortVlan::VLAN_NAME] = TEST_VLAN_NAME;
@@ -176,8 +176,8 @@ TEST(AddPortVlanTest, NegativeTaggedNotFound) {
     MyAddPortVlan command(TEST_UUID, TEST_VLAN_ID, TEST_VLAN_NAME, TEST_TAGGED);
     AddPortVlan::Request request{""};
     AddPortVlan::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::EthernetSwitchPortVlan::PORT] = TEST_UUID;
     params[literals::EthernetSwitchPortVlan::VLAN_NAME] = TEST_VLAN_NAME;
@@ -193,8 +193,8 @@ TEST(AddPortVlanTest, NegativeVlanCommandError) {
     MyAddPortVlan command(TEST_UUID, TEST_VLAN_ID, TEST_VLAN_NAME, TEST_TAGGED);
     AddPortVlan::Request request{""};
     AddPortVlan::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::EthernetSwitchPortVlan::PORT] = TEST_UUID;
     params[literals::EthernetSwitchPortVlan::VLAN_NAME] = TEST_VLAN_NAME;

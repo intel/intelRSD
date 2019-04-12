@@ -1,8 +1,7 @@
 /*!
  * @brief Definition of NetworkDeviceFunction model class
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
- * @file network_device_function.hpp
+ * @file network_device_function.cpp
  */
 
 #include "agent-framework/module/model/network_device_function.hpp"
 #include "agent-framework/module/constants/compute.hpp"
+
+
 
 using namespace agent_framework::model;
 using namespace agent_framework::model::utils;
@@ -28,13 +28,16 @@ const enums::Component NetworkDeviceFunction::component = enums::Component::Netw
 const enums::CollectionName NetworkDeviceFunction::collection_name =
     enums::CollectionName::NetworkDeviceFunctions;
 
+
 NetworkDeviceFunction::NetworkDeviceFunction(const std::string& parent_uuid, enums::Component parent_type) :
     Resource{parent_uuid, parent_type} {}
 
+
 NetworkDeviceFunction::~NetworkDeviceFunction() {}
 
+
 json::Json NetworkDeviceFunction::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::NetworkDeviceFunction::STATUS] = get_status().to_json();
     result[literals::NetworkDeviceFunction::DEVICE_ENABLED] = m_device_enabled;
     result[literals::NetworkDeviceFunction::ETHERNET][literals::NetworkDeviceFunction::MAC_ADDRESS] = m_mac_address;
@@ -42,6 +45,7 @@ json::Json NetworkDeviceFunction::to_json() const {
     result[literals::NetworkDeviceFunction::OEM] = get_oem().to_json();
     return result;
 }
+
 
 NetworkDeviceFunction NetworkDeviceFunction::from_json(const json::Json& json) {
     NetworkDeviceFunction function;

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,6 +43,7 @@ public:
     using PciDevices = attribute::Array<attribute::PciDevice>;
     using UsbDevices = attribute::Array<attribute::UsbDevice>;
     using CableIds = attribute::Array<std::string>;
+    using PerformanceConfigurations = attribute::Array<attribute::PerformanceConfiguration>;
 
 
     explicit System(const std::string& parent_uuid = {}, enums::Component parent_type = enums::Component::None);
@@ -512,6 +513,55 @@ public:
         m_user_mode_enabled = user_mode_enabled;
     }
 
+
+    /*!
+     * @brief Get current performance configuration ID.
+     * @return Configuration ID.
+     */
+    const OptionalField<uint64_t>& get_current_performance_configuration() const {
+        return m_current_performance_configuration;
+    }
+
+
+    /*!
+     * @brief Set performance configuration ID.
+     * @param[in] current_performance_configuration Configuration ID.
+     */
+    void set_current_performance_configuration(const OptionalField<uint64_t>& current_performance_configuration) {
+        m_current_performance_configuration = current_performance_configuration;
+    }
+
+
+    /*!
+     * @brief return an object performance_configurations of class PerformanceConfigurations
+     *
+     * @return the performance_configuration value
+     */
+    const PerformanceConfigurations& get_performance_configurations() const {
+        return m_performance_configurations;
+    }
+
+
+    /*!
+     * @brief setter for performance_configurations attribute
+     *
+     * @param performance_configurations of type PerformanceConfigurations
+     */
+    void set_performance_configurations(const PerformanceConfigurations& performance_configurations) {
+        m_performance_configurations = performance_configurations;
+    }
+
+
+    /*!
+     * @brief adds performance_configuration
+     *
+     * @param performance_configuration of type PerformanceConfiguration
+     */
+    void add_performance_configuration(const attribute::PerformanceConfiguration& performance_configuration) {
+        m_performance_configurations.add_entry(performance_configuration);
+    }
+
+
     /*!
      * @brief Check if Rackscale mode is enabled.
      * @return True if is enabled, false if not.
@@ -547,6 +597,37 @@ public:
         return power_state_is_being_changed;
     }
 
+    /*!
+     * @brief Get DCPMEM Erase task
+     * @return Memory task
+     * */
+    const OptionalField<std::string>& get_dcpmem_erase_task() const {
+        return m_dcpmem_erase_task;
+    }
+
+    /*!
+     * @brief Set DCPMEM Erase task
+     * @param[in] task the Memory task
+     * */
+    void set_dcpmem_erase_task(const OptionalField<std::string>& dcpmem_erase_task) {
+        m_dcpmem_erase_task = dcpmem_erase_task;
+    }
+
+    /*!
+     * @brief Get performance configuration task
+     * @return Perfomance configuration task
+     * */
+    bool is_performance_configuration_task_running() const {
+        return m_is_performance_configuration_task_running;
+    }
+
+    /*!
+     * @brief Set performance configuration task
+     * @param[in] performance_configuration_task the configuration task
+     * */
+    void set_is_performance_configuration_task_running(bool performance_configuration_task_running) {
+        m_is_performance_configuration_task_running = performance_configuration_task_running;
+    }
 
 private:
     OptionalField<enums::SystemType> m_system_type{enums::SystemType::Physical};
@@ -569,6 +650,8 @@ private:
     CableIds m_cable_ids{};
     OptionalField<bool> m_txt_enabled{};
     OptionalField<bool> m_user_mode_enabled{};
+    OptionalField <uint64_t> m_current_performance_configuration{};
+    PerformanceConfigurations m_performance_configurations{};
     // internal flag only, this values is not exposed on REST API,
     // but is necessary in terms of communication with BMC;
     // will be set to true after first "set system mode" command
@@ -581,6 +664,22 @@ private:
      * but is necessary to block another tasks which modify power state of the system.
      */
     bool power_state_is_being_changed{false};
+
+    /*!
+     * @brief m_dcpmem_erase_task - internal flag.
+     * If it's not empty, it points to a running task
+     * whose purpose is to set the DCPMEM's state.
+     * Used to prevent duplicate tasks for the same DCPMEM module.
+     */
+    OptionalField<Uuid> m_dcpmem_erase_task{};
+
+    /*!
+     * @brief m_performance_configuration_task - internal flag.
+     * If it's not empty, it points to a running task
+     * whose purpose is to set the processor perfomance configuration.
+     * Used to prevent duplicate tasks for the same system.
+     */
+    bool m_is_performance_configuration_task_running{false};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

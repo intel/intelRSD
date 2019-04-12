@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,6 +89,8 @@ enum Cmd : std::uint8_t {
     GET_PS_DC_CURRENT = 0x21,
     GET_PS_INPUT_POWER = 0x25,
     GET_CPU_AND_MEMORY_TEMPERATURE = 0x4B,
+    TRIGGER_DCPMEM_PROXY_ACCESS = 0x49,
+    GET_DCPMEM_READINGS = 0x4A,
     UPDATE_READING_PACKAGE = 0x50,
     QUERY_READING_PACKAGE = 0x51,
     GET_TELEMETRY_READINGS = 0x52,
@@ -100,7 +102,13 @@ enum Cmd : std::uint8_t {
     READ_PCIE_CABLE_EEPROM_DATA = 0x37,
     MDR_REGION_UPDATE_COMPLETE = 0x21,
     MDR_REGION_LOCK = 0x24,
-    MDR_REGION_WRITE = 0x23
+    MDR_REGION_WRITE = 0x23,
+    GET_ACPI_TABLES_NAMES = 0x32,
+    SET_ACPI_TABLES_NAMES = 0x33,
+    GET_DCPMEM_CONFIGURATION = 0x34,
+    SET_DCPMEM_CONFIGURATION = 0x35,
+    GET_SPEED_SELECT_CONFIGURATION = 0x40,
+    SET_SPEED_SELECT_CONFIGURATION = 0x41
 };
 
 /*!
@@ -108,6 +116,7 @@ enum Cmd : std::uint8_t {
  */
 enum DataRegionId : std::uint8_t {
     SMBIOS_TABLE = 0x1,
+    ACPI_TABLE = 0x2,
     ISCSI_BOOT_OPTIONS = 0x4
 };
 
@@ -166,6 +175,23 @@ enum class TpmCommandStatus : std::uint8_t {
 enum class ClearTpmAction : std::uint8_t {
     PRESERVE_USER_TPM_OWNERSHIP = 0x00,
     CLEAR_USER_TPM_OWNERSHIP = 0x01
+};
+
+/*!
+ * @brief Intel Optane DC Persistent Memory Command Status
+ */
+enum class DcpmemConfigurationCommandStatus : std::uint8_t {
+    INVALID = 0x00,
+    VALID = 0x01
+};
+
+/*!
+ * @brief Intel Optane DC Persistent Memory Action Type
+ */
+enum class EraseDcpmemAction : std::uint8_t {
+    PRESERVE_EXISTING = 0x00,
+    SECURE_ERASE = 0x01,  // BIT0 set
+    OVERWRITE_PCD = 0x02, // BIT1 set
 };
 
 /*! @brief Indicates no reading available */

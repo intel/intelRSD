@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,8 +62,8 @@ static constexpr unsigned int DEFAULT_SERVER_PORT = 7779;
 static constexpr int CONFIGURATION_VALIDATION_ERROR_CODE = -1;
 static constexpr int INVALID_MODULES_CONFIGURATION_ERROR_CODE = -2;
 
-const json::Value& init_configuration(int argc, const char** argv);
-bool check_configuration(const json::Value& json);
+const json::Json& init_configuration(int argc, const char** argv);
+bool check_configuration(const json::Json& json);
 
 /*!
  * @brief PSME Network Agent main method.
@@ -72,7 +72,7 @@ int main(int argc, const char* argv[]) {
     std::uint16_t server_port = DEFAULT_SERVER_PORT;
 
     /* Initialize configuration */
-    const json::Value& configuration = ::init_configuration(argc, argv);
+    const json::Json& configuration = ::init_configuration(argc, argv);
     if (!::check_configuration(configuration)) {
         return CONFIGURATION_VALIDATION_ERROR_CODE;
     }
@@ -90,14 +90,14 @@ int main(int argc, const char* argv[]) {
     }
 
     try {
-        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
+        server_port = configuration["server"]["port"].get<std::uint16_t>();
     }
-    catch (const json::Value::Exception& e) {
+    catch (const std::exception& e) {
         log_error("network-agent", "Cannot read server port " << e.what());
     }
 
-    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
-        database::Database::set_default_location(configuration["database"]["location"].as_string());
+    if (configuration.value("database", json::Json::object()).value("location", json::Json()).is_string()) {
+        database::Database::set_default_location(configuration["database"]["location"].get<std::string>());
     }
 
     RegistrationData registration_data{configuration};
@@ -157,7 +157,7 @@ int main(int argc, const char* argv[]) {
     return 0;
 }
 
-const json::Value& init_configuration(int argc, const char** argv) {
+const json::Json& init_configuration(int argc, const char** argv) {
     log_info("network-agent",
         agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
@@ -175,8 +175,8 @@ const json::Value& init_configuration(int argc, const char** argv) {
     return basic_config.to_json();
 }
 
-bool check_configuration(const json::Value& json) {
-    json::Value json_schema;
+bool check_configuration(const json::Json& json) {
+    json::Json json_schema = json::Json();
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
         log_info("network-agent", "JSON Schema load!");
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,8 @@ namespace model {
 class Processor : public Resource {
 public:
     using Capabilities = attribute::Array<std::string>;
-    using OnPackageMemoryArray = attribute::Array<attribute::OnPackageMemory>;
+    using IntegratedMemoryArray = attribute::Array<attribute::IntegratedMemory>;
+
 
     explicit Processor(const std::string& parent_uuid = {}, enums::Component parent_type = enums::Component::System);
 
@@ -56,6 +57,7 @@ public:
 
 
     virtual ~Processor();
+
 
     /*!
      * @brief construct an object of class Processor from JSON
@@ -375,32 +377,34 @@ public:
         m_capabilities.add_entry(capability);
     }
 
+
     /*!
-     * @brief Adds single processor on package memory
+     * @brief Adds single processor integrated memory
      *
-     * @param memory on package processor memory
+     * @param memory integrated processor memory
      * */
-    void add_memory(const attribute::OnPackageMemory& memory) {
-        m_on_package_memory.add_entry(memory);
-    }
-
-    /*!
-     * @brief Get processor on package memory
-     *
-     * @return Processor on package memory
-     */
-    const OnPackageMemoryArray& get_on_package_memory() const {
-        return m_on_package_memory;
+    void add_memory(const attribute::IntegratedMemory& memory) {
+        m_integrated_memory.add_entry(memory);
     }
 
 
     /*!
-     * @brief Set processor on package memory
+     * @brief Get processor integrated memory
      *
-     * @param on_package_memory Processor on package memory
+     * @return Processor integrated memory
      */
-    void set_on_package_memory(const OnPackageMemoryArray& on_package_memory) {
-        m_on_package_memory = on_package_memory;
+    const IntegratedMemoryArray& get_integrated_memory() const {
+        return m_integrated_memory;
+    }
+
+
+    /*!
+     * @brief Set processor integrated memory
+     *
+     * @param integrated_memory Processor integrated memory
+     */
+    void set_integrated_memory(const IntegratedMemoryArray& integrated_memory) {
+        m_integrated_memory = integrated_memory;
     }
 
 
@@ -444,6 +448,122 @@ public:
     }
 
 
+    /*!
+     * @brief Get dsp port uuids
+     * @return Dsp port uuids
+     */
+    const std::vector<Uuid>& get_dsp_port_uuids() const {
+        return m_dsp_port_uuids;
+    }
+
+
+    /*!
+     * @brief Set dsp port uuids
+     * @param[in] dsp_port_uuids Dsp port uuids
+     */
+    void set_dsp_port_uuids(const std::vector<Uuid>& dsp_port_uuids) {
+        m_dsp_port_uuids = dsp_port_uuids;
+    }
+
+
+    /*!
+     * @brief Add dsp port uuid to the array
+     * @param[in] dsp_port_uuid Dsp port uuid
+     */
+    void add_dsp_port_uuid(const Uuid& dsp_port_uuid) {
+        m_dsp_port_uuids.push_back(dsp_port_uuid);
+    }
+
+
+    /*!
+     * @brief Sets is being discovered flag
+     * @param is_being_discovered New value of the is being discovered flag
+     * */
+    void set_is_being_discovered(bool is_being_discovered) {
+        m_is_being_discovered = is_being_discovered;
+    }
+
+
+    /*!
+     * @brief Gets is being discovered flag
+     * @return true if the drive is currently being discovered
+     * */
+    bool get_is_being_discovered() const {
+        return m_is_being_discovered;
+    }
+
+
+    /*!
+     * Gets FRU info
+     * @return FRU info reference
+     * */
+    const attribute::FruInfo& get_fru_info() const {
+        return m_fru_info;
+    }
+
+
+    /*!
+     * Sets FRU info
+     * @param[in] fru_info FRU info
+     * */
+    void set_fru_info(const attribute::FruInfo& fru_info) {
+        m_fru_info = fru_info;
+    }
+
+
+    /*!
+     * @brief Sets erase flag
+     * @param is_being_erased New value
+     * */
+    void set_is_being_erased(bool is_being_erased) {
+        m_is_being_erased = is_being_erased;
+    }
+
+
+    /*!
+     * @brief Gets erase flag
+     * @return true if the processor is currently being erased
+     * */
+    bool get_is_being_erased() const {
+        return m_is_being_erased;
+    }
+
+
+    /*!
+     * @brief Sets warning flag
+     * @param is_in_warning_state New value
+     * */
+    void set_is_in_warning_state(bool is_in_warning_state) {
+        m_is_in_warning_state = is_in_warning_state;
+    }
+
+
+    /*!
+     * @brief Gets warning flag
+     * @return true if the drive is in the warning state
+     * */
+    bool get_is_in_warning_state() const {
+        return m_is_in_warning_state;
+    }
+
+
+    /*!
+     * @brief Set whether the fpga in processor has been erased (useful for generic secure erase mechanisms)
+     * @param erased Processor's erasure status
+     */
+    void set_erased(bool erased) {
+        m_fpga.set_erased(erased);
+    }
+
+
+    /*!
+     * @brief Get erased
+     * @return true if the processor has been erased
+     */
+    bool get_erased() const {
+        return m_fpga.get_erased();
+    }
+
 private:
 
     OptionalField<std::string> m_socket{};
@@ -461,13 +581,23 @@ private:
     OptionalField<std::uint32_t> m_enabled_cores{};
     OptionalField<std::uint32_t> m_total_threads{};
     OptionalField<std::uint32_t> m_enabled_threads{};
-    OnPackageMemoryArray m_on_package_memory{};
+    IntegratedMemoryArray m_integrated_memory{};
     OptionalField<double> m_tdp_watt{};
     attribute::Fpga m_fpga{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;
 
+    // required to locate drive's port on a pnc agent in case of the oob discovery, may be more than one
+    std::vector<Uuid> m_dsp_port_uuids{};
+    // agent-specific status override for drives under in-band discovery
+    bool m_is_being_discovered{false};
+    bool m_is_in_warning_state{false};
+
+    // agent-specific data related to erase operation
+    bool m_is_being_erased{false};
+
+    attribute::FruInfo m_fru_info{};
 };
 
 }

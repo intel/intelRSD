@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@
 #
 # </license_header>
 
-set(SOURCES
-    tools.cpp
-    databases.cpp
-    default_transaction_handler.cpp
-    transaction_handler_factory.cpp
-    default_database_factory.cpp
-    discovery_entries_provider.cpp
+target_sources(psme-nvme-discovery PRIVATE
+    src/tools/tools.cpp
+    src/tools/databases.cpp
+    src/tools/default_transaction_handler.cpp
+    src/tools/transaction_handler_factory.cpp
+    src/tools/default_database_factory.cpp
+    src/tools/discovery_entries_provider.cpp
+    src/tools/nvme_database.cpp
+    src/tools/nvme_context.cpp
 )
-
-add_library(discovery-tools-objs OBJECT ${SOURCES})
-add_library(discovery-tools-db-objs OBJECT nvme_database.cpp)
-add_library(discovery-tools-context-objs OBJECT nvme_context.cpp)

@@ -1,0 +1,63 @@
+{
+  "@odata.context": "/redfish/v1/$metadata/#ServiceRoot",
+  "@odata.id": "/redfish/v1",
+  "@odata.type": "#ServiceRoot.v1_3_0.ServiceRoot",
+  "Id": "v1",
+  "Name": "Pod Manager Service Root",
+  "Description": "desc",
+  "RedfishVersion": "1.5.0",
+  "UUID": "34e60059-0d9a-44ee-9e57-09f9bcccf40e",
+  "Chassis": {
+    "@odata.id": "/redfish/v1/Chassis"
+  },
+  "Systems": {
+    "@odata.id": "/redfish/v1/Systems"
+  },
+  "Managers": {
+    "@odata.id": "/redfish/v1/Managers"
+  },
+  "Fabrics": {
+    "@odata.id": "/redfish/v1/Fabrics"
+  },
+  "StorageServices": {
+    "@odata.id": "/redfish/v1/StorageServices"
+  },
+  "EventService":{
+    "@odata.id": "/redfish/v1/EventService"
+  },
+  "AccountService":{
+    "@odata.id": "/redfish/v1/AccountService"
+  },
+  "SessionService":{
+    "@odata.id": "/redfish/v1/SessionService"
+  },
+  "ProtocolFeaturesSupported": {
+    "ExpandQuery": {
+      "Links": false,
+      "NoLinks": false,
+      "ExpandAll": false,
+      "Levels": false,
+      "MaxLevels": 0
+    },
+    "FilterQuery": true,
+    "SelectQuery": false
+  },
+  "Links": {
+    "Oem": {}
+  },
+  "Oem": {
+    "Intel_RackScale": {
+      "@odata.type": "#Intel.Oem.ServiceRoot",
+      "ApiVersion": "2.4.0",
+      "EthernetSwitches": {
+        "@odata.id": "/redfish/v1/EthernetSwitches"
+      },
+      "TelemetryService": {
+        "@odata.id": "/redfish/v1/Oem/Intel_RackScale/TelemetryService"
+      },
+      "Nodes": {
+        "@odata.id": "/redfish/v1/Nodes"
+      }
+    }
+  }
+}

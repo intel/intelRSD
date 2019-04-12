@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rmm/discovery/discovery_manager.cpp
  */
 
@@ -214,7 +212,7 @@ void DiscoveryManager::add_rack(const DiscoveryContext& dc) {
     }
 
     log_debug("rmm-discovery", "Stabilizing Rack and Rack Manager...");
-    // these resources depend on ethernet interfaces - so stabliziation was turned off before, we stabilize them now
+    // these resources depend on ethernet interfaces - so stablization was turned off before, we stabilize them now
     auto manager_uuid = stabilize<RmmType::RackManager>(manager.get_uuid());
     auto rack_uuid = stabilize<RmmType::Rack>(rack.get_uuid());
     manager = get_manager<Manager>().get_entry(manager_uuid);

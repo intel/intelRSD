@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ public:
     I2cTool(const I2cTool&){}
     I2cTool& operator=(const I2cTool&) {return *this;}
 
-    /*! Default desctructor */
+    /*! Default destructor */
     virtual ~I2cTool();
 
     /*!

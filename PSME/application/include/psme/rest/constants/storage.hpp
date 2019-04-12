@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,13 +52,13 @@ extern const char REPLICA_INFOS[];
 extern const char BLOCK_SIZE_BYTES[];
 extern const char OPTIMUM_IO_SIZE_BYTES[];
 extern const char BOOTABLE[];
-extern const char ERASED[];
-extern const char ERASE_ON_DETACH[];
+extern const char ASSIGNED[];
 extern const char VOLUME_INITIALIZE[];
 extern const char VOLUME_INITIALIZE_ENDPOINT[];
 extern const char INITIALIZE_TYPE[];
 extern const char CAPACITY_USED_BYTES[];
 extern const char IDENTIFIER[];
+extern const char IS_THIN_PROVISIONED[];
 }
 
 namespace Data {
@@ -66,6 +66,7 @@ extern const char DATA[];
 extern const char ALLOCATED_BYTES[];
 extern const char CONSUMED_BYTES[];
 extern const char GUARANTEED_BYTES[];
+extern const char PROVISIONED_BYTES[];
 }
 
 namespace ReplicaInfo {

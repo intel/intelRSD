@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,3 +36,4 @@
 #include "storage_subsystem.hpp"
 #include "metric.hpp"
 #include "metric_definition.hpp"
+#include "processor.hpp"

@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource_v1.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="ComposedNode_v1.xml">
+    <edmx:Include Namespace="ComposedNode.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Processor_v1.xml">
+    <edmx:Include Namespace="Processor.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Memory_v1.xml">
+    <edmx:Include Namespace="Memory.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetInterface_v1.xml">
+    <edmx:Include Namespace="EthernetInterface.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Chassis_v1.xml">
+    <edmx:Include Namespace="Chassis.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="ComputerSystem_v1.xml">
+    <edmx:Include Namespace="ComputerSystem.v1_1_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Protocol_v1.xml">
+    <edmx:Include Namespace="Protocol"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="IntelRackScaleOem_v1.xml">
+    <edmx:Include Namespace="Intel.Oem"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ComposedNodeCollection">
+      <EntityType Name="ComposedNodeCollection" BaseType="Resource.v1_0_0.ResourceCollection">
+        <NavigationProperty Name="Members" Type="Collection(ComposedNode.v1_0_0.ComposedNode)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Contains the members of this collection."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <Property Name="Actions" Type="ComposedNodeCollection.Actions" Nullable="false"/>
+      </EntityType>
+
+      <ComplexType Name="Actions">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+      </ComplexType>
+
+      <Action Name="Allocate" IsBound="true">
+        <Annotation Term="OData.Description" String="This action is used to allocate composed node."/>
+
+        <Parameter Name="ComposedNodeCollection" Type="ComposedNodeCollection.Actions"/>
+        <Parameter Name="Name" Type="Edm.String"/>
+        <Parameter Name="Description" Type="Edm.String"/>
+        <Parameter Name="Processors" Type="Collection(AllocationComposedNodeRequest.Processor)"/>
+        <Parameter Name="Memory" Type="Collection(AllocationComposedNodeRequest.Memory)"/>
+        <Parameter Name="RemoteDrives" Type="Collection(AllocationComposedNodeRequest.RemoteDrive)"/>
+        <Parameter Name="LocalDrives" Type="Collection(AllocationComposedNodeRequest.LocalDrive)"/>
+        <Parameter Name="NetworkInterfaces" Type="Collection(AllocationComposedNodeRequest.EthernetInterface)"/>
+        <Parameter Name="TotalMemoryCapacityMiB" Type="Edm.Int64"/>
+        <Parameter Name="TotalProcessorCoreCount" Type="Edm.Int64"/>
+        <Parameter Name="Security" Type="AllocationComposedNodeRequest.Security"/>
+      </Action>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="AllocationComposedNodeRequest">
+      <ComplexType Name="Processor">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Model" Type="Edm.String"/>
+        <Property Name="TotalCores" Type="Edm.Int32"/>
+        <Property Name="AchievableSpeedMHz" Type="Edm.Int32"/>
+        <Property Name="InstructionSet" Type="Edm.String"/>
+        <NavigationProperty Name="Resource" Type="Processor.v1_0_0.Processor">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Chassis" Type="Chassis.v1_0_0.Chassis">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="Memory">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="CapacityMiB" Type="Edm.Int32"/>
+        <Property Name="MemoryDeviceType" Type="Memory.v1_0_0.MemoryDeviceType"/>
+        <Property Name="SpeedMHz" Type="Edm.Int64"/>
+        <Property Name="Manufacturer" Type="Edm.String"/>
+        <Property Name="DataWidthBits" Type="Edm.Int32"/>
+        <NavigationProperty Name="Resource" Type="Memory.v1_0_0.Memory">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Chassis" Type="Chassis.v1_0_0.Chassis">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="EthernetInterface">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="SpeedMbps" Type="Edm.Int32"/>
+        <Property Name="PrimaryVLAN" Type="Edm.Int32"/>
+        <Property Name="VLANs" Type="Collection(AllocationComposedNodeRequest.VLAN)"/>
+
+        <NavigationProperty Name="Resource" Type="EthernetInterface.v1_0_0.EthernetInterface">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Chassis" Type="Chassis.v1_0_0.Chassis">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="VLAN">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="VLANId" Type="Edm.Int32"/>
+        <Property Name="Tagged" Type="Edm.Boolean"/>
+      </ComplexType>
+
+      <ComplexType Name="LocalDrive">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="CapacityGiB" Type="Edm.Decimal"/>
+        <Property Name="FabricSwitch" Type="Edm.Boolean"/>
+        <Property Name="Type" Type="Edm.String"/>
+        <Property Name="MinRPM" Type="Edm.Int32"/>
+        <Property Name="SerialNumber" Type="Edm.String"/>
+        <Property Name="Interface" Type="Edm.String"/>
+
+        <NavigationProperty Name="Resource" Type="Resource.Item">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="Chassis" Type="Chassis.v1_0_0.Chassis">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="Master">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Type" Type="AllocationComposedNodeRequest.MasterType"/>
+      </ComplexType>
+
+      <ComplexType Name="RemoteDrive">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="CapacityGiB" Type="Edm.Decimal"/>
+        <Property Name="Protocol" Type="Protocol.Protocol"/>
+        <Property Name="Master" Type="AllocationComposedNodeRequest.Master"/>
+        <NavigationProperty Name="Resource" Type="Resource.Resource">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <EnumType Name="MasterType">
+        <Member Name="Clone">
+          <Annotation Term="OData.Description" String="Volume should be cloned."/>
+        </Member>
+        <Member Name="Snapshot">
+          <Annotation Term="OData.Description" String="Copy on Write should be created from indicated volume."/>
+        </Member>
+      </EnumType>
+
+      <ComplexType Name="Security">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="OData.Description" String="Those are security requirements for composed node."/>
+        <Annotation Term="OData.LongDescription" String="Those are security requirements for composed node."/>
+        <Property Name="TpmPresent" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This is used to specify if composed node should have TPM module present."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This is used to specify if composed node should have TPM module present."/>
+        </Property>
+        <Property Name="TpmInterfaceType" Type="ComputerSystem.v1_1_0.InterfaceType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This is the used to specify requested TPM interface type. It overrides TpmPresent attribute."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This is the used to specify requested TPM interface type. It overrides TpmPresent attribute."/>
+        </Property>
+        <Property Name="TxtEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This is used to specify if composed node should have TXT mode enabled."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This is used to specify if composed node should have TXT mode enabled."/>
+        </Property>
+        <Property Name="ClearTPMOnDelete" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This is used to specify if TPM module should be cleared on composed node DELETE request."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This is used to specify if TPM module should be cleared on composed node DELETE request."/>
+        </Property>
+      </ComplexType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ComposedNodeCollection.v1_0_0"/>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="AllocationComposedNodeRequest.v1_0_0"/>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="AllocationComposedNodeRequest.v1_1_0">
+      <Annotation Term="OData.Description" String="This version was created to change references to AttachResource Protocol to use the unversioned definition and to add Connectivity, ProcessorType and Oem properties to Processor, MemoryType property to Memory, Resource property to Master and ClearOptaneDCPersistentMemoryOnDelete to Security."/>
+
+      <ComplexType Name="RemoteDrive" BaseType="AllocationComposedNodeRequest.RemoteDrive"/>
+
+      <EnumType Name="ProcessorConnectivity">
+        <Member Name="Local">
+          <Annotation Term="OData.Description" String="This value shall mean that the requested processor shall be connected locally to the computer system."/>
+        </Member>
+        <Member Name="Ethernet">
+          <Annotation Term="OData.Description" String="This value shall mean that the requested processor shall be connected to the computer system using the FPGA over Fabrics protocol."/>
+        </Member>
+        <Member Name="RemotePCIe">
+          <Annotation Term="OData.Description" String="This value shall mean that the requested processor shall be connected to the computer system through a PCIe switch."/>
+        </Member>
+      </EnumType>
+
+      <ComplexType Name="ProcessorExtensions">
+        <Property Name="Brand" Type="Intel.Oem.ProcessorBrand">
+          <Annotation Term="OData.Description" String="This indicates the requested Processor brand."/>
+          <Annotation Term="OData.LongDescription" String="This property shall represent the requested brand of a Processor."/>
+        </Property>
+        <Property Name="Capabilities" Type="Collection(Edm.String)">
+          <Annotation Term="OData.Description" String="This indicates array of requested Processor capabilities."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall represent array of requested Processor capabilities (like reported in /proc/cpuinfo flags)"/>
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="Processor" BaseType="AllocationComposedNodeRequest.Processor">
+        <Property Name="ProcessorType" Type="Processor.v1_0_0.ProcessorType">
+          <Annotation Term="OData.Description" String="The requested type of a Processor."/>
+          <Annotation Term="OData.LongDescription" String="This property shall contain the string which identifies the requested type of a Processor."/>
+        </Property>
+        <Property Name="Connectivity" Type="Collection(AllocationComposedNodeRequest.v1_1_0.ProcessorConnectivity)">
+          <Annotation Term="OData.Description" String="This property shall contain the list of allowed connection methods for a processor. If the collection contains multiple items, the following priorities shall be used for choosing the processor: 1.Local 2.RemotePCIe 3.Ethernet. If this property is not specified, the service shall use a conforming processor using the same priorities."/>
+        </Property>
+        <Property Name="Oem" Type="Resource.Oem" Nullable="false"/>
+      </ComplexType>
+
+      <ComplexType Name="Master" BaseType="AllocationComposedNodeRequest.Master">
+        <NavigationProperty Name="Resource" Type="Resource.Resource">
+          <Annotation Term="OData.AutoExpandReferences"/>
+          <Annotation Term="OData.Description" String="This is used to specify which resource should be used as the source for clone/snapshot operation performed as a part of allocation with remote volume."/>
+          <Annotation Term="OData.LongDescription" String="This is used to specify which resource should be used as the source for clone/snapshot operation performed as a part of allocation with remote volume."/>
+        </NavigationProperty>
+      </ComplexType>
+
+      <ComplexType Name="Memory" BaseType="AllocationComposedNodeRequest.Memory">
+        <Property Name="MemoryType" Type="Memory.v1_0_0.MemoryType">
+          <Annotation Term="OData.Description" String="The requested type of Memory."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the requested type of Memory resource."/>
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="Security" BaseType="AllocationComposedNodeRequest.Security">
+        <Property Name="ClearOptaneDCPersistentMemoryOnDelete" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This property is used to specify if Erase operation should be performed on Optane DC Persistent Memory in a composed node on DELETE request."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property is used to specify if Erase operation should be performed on Optane DC Persistent Memory in a composed node on DELETE request."/>
+        </Property>
+      </ComplexType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ComposedNodeCollection.v1_1_0">
+      <Annotation Term="OData.Description" String="This version was created to add a new version of the Allocate Action to ComposedNodeCollection."/>
+
+      <EntityType Name="ComposedNodeCollection" BaseType="ComposedNodeCollection.ComposedNodeCollection"/>
+
+      <ComplexType Name="Actions" BaseType="ComposedNodeCollection.Actions"/>
+
+      <Action Name="Allocate" IsBound="true">
+        <Annotation Term="OData.Description" String="This action is used to allocate composed node."/>
+
+        <Parameter Name="ComposedNodeCollection" Type="ComposedNodeCollection.v1_1_0.Actions"/>
+        <Parameter Name="Name" Type="Edm.String"/>
+        <Parameter Name="Description" Type="Edm.String"/>
+        <Parameter Name="Processors" Type="Collection(AllocationComposedNodeRequest.v1_1_0.Processor)"/>
+        <Parameter Name="Memory" Type="Collection(AllocationComposedNodeRequest.v1_1_0.Memory)"/>
+        <Parameter Name="RemoteDrives" Type="Collection(AllocationComposedNodeRequest.RemoteDrive)"/>
+        <Parameter Name="LocalDrives" Type="Collection(AllocationComposedNodeRequest.LocalDrive)"/>
+        <Parameter Name="NetworkInterfaces" Type="Collection(AllocationComposedNodeRequest.EthernetInterface)"/>
+        <Parameter Name="TotalSystemMemoryMiB" Type="Edm.Int64"/>
+        <Parameter Name="TotalSystemCoreCount" Type="Edm.Int64"/>
+        <Parameter Name="Security" Type="AllocationComposedNodeRequest.v1_1_0.Security"/>
+        <Parameter Name="SupportedPerformanceConfigurations" Type="Collection(Intel.Oem.SystemPerformanceConfigurationType)">
+          <Annotation Term="OData.Description" String="This property shall be used to specify which performance configurations should be available on the allocated node's computer system."/>
+        </Parameter>
+      </Action>
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,40 +16,20 @@
 #
 # </license_header>
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.4)
 project(ssdp CXX)
 
+# TODO: remove old-style flags when all usages are removed
 set(SSDP_LIBRARIES
     ssdp
     CACHE PATH "ssdp libraries"
-)
+    )
 
 set(SSDP_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE PATH "ssdp include directory"
-)
+    )
 
-include_directories(
-    include
-)
-
-include_directories(
-    ${LOGGER_INCLUDE_DIRS}
-    ${NET_INCLUDE_DIRS}
-)
-
-set(SRC
-    src/ssdp_packet.cpp
-    src/ssdp_packet_validator.cpp
-    src/ssdp_packet_factory.cpp
-    src/ssdp_packet_factory_impl.cpp
-    src/ssdp_packet_parser.cpp
-    src/ssdp_service.cpp
-    src/ssdp_service_impl.cpp
-    src/message_queue.cpp
-    src/uri.cpp
-    src/notification.cpp
-)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     set_source_files_properties(
@@ -60,15 +40,28 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
         src/message_queue.cpp
         PROPERTIES COMPILE_FLAGS "-Wno-logical-op"
     )
-endif()
+endif ()
 
-add_library(ssdp STATIC ${SRC})
+add_library(ssdp
+    STATIC
+    src/ssdp_packet.cpp
+    src/ssdp_packet_validator.cpp
+    src/ssdp_packet_factory.cpp
+    src/ssdp_packet_factory_impl.cpp
+    src/ssdp_packet_parser.cpp
+    src/ssdp_service.cpp
+    src/ssdp_service_impl.cpp
+    src/message_queue.cpp
+    src/uri.cpp
+    src/notification.cpp
+    )
 
-install(TARGETS ssdp
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-)
-
-#add_subdirectory(examples)
+target_include_directories(ssdp
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+target_link_libraries(ssdp
+    PRIVATE logger
+    PUBLIC net
+    )
 add_subdirectory(tests)

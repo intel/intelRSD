@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,8 @@
 
 #pragma once
 
+
+
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/enum/pnc.hpp"
 #include "agent-framework/module/utils/utils.hpp"
@@ -33,23 +35,34 @@
 
 #include <string>
 
+
+
 namespace agent_framework {
 namespace model {
 namespace attribute {
-
 
 /*! IpTransportDetail class */
 class IpTransportDetail {
 public:
 
     /*! Default constructor */
-    explicit IpTransportDetail(){}
+    explicit IpTransportDetail() {}
+
+
     IpTransportDetail(IpTransportDetail&&) = default;
+
+
     IpTransportDetail(const IpTransportDetail&) = default;
+
+
     IpTransportDetail& operator=(IpTransportDetail&&) = default;
+
+
     IpTransportDetail& operator=(const IpTransportDetail&) = default;
 
+
     ~IpTransportDetail();
+
 
     /*!
      * @brief Gets IPv4 address
@@ -59,6 +72,7 @@ public:
         return m_ipv4_address;
     }
 
+
     /*!
      * @brief Sets IPv4 address
      * @param[in] ipv4_address of type std::string
@@ -66,6 +80,7 @@ public:
     void set_ipv4_address(const Ipv4Address& ipv4_address) {
         m_ipv4_address = ipv4_address;
     }
+
 
     /*!
      * @brief Gets IPv6 address
@@ -75,6 +90,7 @@ public:
         return m_ipv6_address;
     }
 
+
     /*!
      * @brief Sets IPv6 address
      * @param[in] ipv6_address of type std::string
@@ -82,6 +98,7 @@ public:
     void set_ipv6_address(const Ipv6Address& ipv6_address) {
         m_ipv6_address = ipv6_address;
     }
+
 
     /*!
      * @brief Gets port
@@ -91,6 +108,7 @@ public:
         return m_port;
     }
 
+
     /*!
      * @brief Sets port
      * @param[in] port of type uint32_t
@@ -98,6 +116,7 @@ public:
     void set_port(const OptionalField<std::uint32_t>& port) {
         m_port = port;
     }
+
 
     /*!
      * @brief Gets interface
@@ -107,6 +126,7 @@ public:
         return m_interface;
     }
 
+
     /*!
      * @brief Sets interface
      * @param[in] interface which is used for transport
@@ -114,6 +134,7 @@ public:
     void set_interface(const OptionalField<Uuid>& interface) {
         m_interface = interface;
     }
+
 
     /*!
      * @brief Gets transport protocol
@@ -123,6 +144,7 @@ public:
         return m_transport_protocol;
     }
 
+
     /*!
      * @brief Sets transport protocol
      * @param[in] transport_protocol Transport_protocol
@@ -131,11 +153,13 @@ public:
         m_transport_protocol = transport_protocol;
     }
 
+
     /*!
      * @brief Converts this object to json representation
      * @return Json representation of this object
      * */
     json::Json to_json() const;
+
 
     /*!
      * @brief construct an object of class IpTransportDetail from JSON
@@ -143,6 +167,7 @@ public:
      * @return the newly constructed IpTransportDetail object
      */
     static IpTransportDetail from_json(const json::Json& json);
+
 
 private:
     Ipv4Address m_ipv4_address{};

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,17 +22,17 @@
 #include "configuration/configuration.hpp"
 #include "psme/rest/endpoints/task_service/task_service.hpp"
 #include "psme/rest/constants/constants.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace psme::rest;
 using namespace psme::rest::constants;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#TaskService.TaskService";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#TaskService.v1_0_0.TaskService";
     r[Common::ID] = "TaskService";
     r[Common::NAME] = "Task Service";
@@ -43,7 +43,7 @@ json::Value make_prototype() {
     r[TaskService::COMPLETED_TASK_OVERWRITE_POLICY] = "Manual";
     r[TaskService::LIFE_CYCLE_EVENT_ON_TASK_STATE_CHANGE] = true;
     r[TaskService::SERVICE_ENABLED] = true;
-    r[TaskService::TASKS] = json::Value::Type::OBJECT;
+    r[TaskService::TASKS] = json::Json::value_t::object;
     r[TaskService::TASKS][Common::ODATA_ID] = "/redfish/v1/TaskService/Tasks";
 
     return r;

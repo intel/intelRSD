@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -220,7 +220,7 @@ TEST_F(OptionalFieldTest, CopyConstruction) {
  * */
 TEST_F(OptionalFieldTest, RpcJsonValueConstruction) {
     /* Construct an empty json::Json object */
-    json::Json json{};
+    json::Json json = json::Json();
 
     /* Construct and assign OptionalField objects to json::Json */
     json[INT] = OptionalField<int>(int_value);
@@ -234,19 +234,19 @@ TEST_F(OptionalFieldTest, RpcJsonValueConstruction) {
     ASSERT_EQ(int_value, json[INT]);
     ASSERT_EQ(uint_value, json[UINT]);
     ASSERT_TRUE(compare_double(double_value, json[DOUBLE]));
-    ASSERT_EQ(string(cstring_value), json[CSTRING].get<string>().c_str());
-    ASSERT_EQ(string_value, json[STRING].get<std::string>());
+    ASSERT_EQ(string(cstring_value), json.value(CSTRING, string{}));
+    ASSERT_EQ(string_value, json.value(STRING, std::string{}));
     ASSERT_EQ(bool_value, json[BOOL]);
 }
 
 /*!
- * This test verifies that an OptionalField class constructed from a json::Value
+ * This test verifies that an OptionalField class constructed from a json::Json
  * object from JsonCxx library contains a value identical to that held by the
- * json::Value object
+ * json::Json object
  * */
 TEST_F(OptionalFieldTest, JsonCXXValueConstruction) {
     /* Construct an empty json::Json object */
-    json::Value json{};
+    json::Json json = json::Json();
 
     /* Construct and assign OptionalField objects to json::Json */
     json[INT] = OptionalField<int>(int_value);
@@ -258,13 +258,13 @@ TEST_F(OptionalFieldTest, JsonCXXValueConstruction) {
     json[NULL_VALUE] = OptionalField<int>();
 
     /* Verify that the json::Json object contains proper values */
-    ASSERT_EQ(int_value, json[INT].as_int());
-    ASSERT_EQ(uint_value, json[UINT].as_uint());
-    ASSERT_TRUE(compare_double(double_value, json[DOUBLE].as_double()));
-    ASSERT_EQ(string(cstring_value), string(json[CSTRING].as_char()));
-    ASSERT_EQ(string_value, json[STRING].as_string());
-    ASSERT_EQ(bool_value, json[BOOL].as_bool());
-    ASSERT_TRUE(json[NULL_VALUE].is_null());
+    ASSERT_EQ(int_value, json.value(INT, int{}));
+    ASSERT_EQ(uint_value, json.value(UINT, std::uint16_t{}));
+    ASSERT_TRUE(compare_double(double_value, json.value(DOUBLE, double{})));
+    ASSERT_EQ(string(cstring_value), string(json.value(CSTRING, std::string{})));
+    ASSERT_EQ(string_value, json.value(STRING, std::string{}));
+    ASSERT_EQ(bool_value, json.value(BOOL, bool{}));
+    ASSERT_TRUE(json.value(NULL_VALUE, json::Json()).is_null());
 }
 
 /*!
@@ -321,7 +321,7 @@ TEST_F(OptionalFieldTest, TemplateParameterValueAssignment) {
  * properly to json::Json object from rpc json library containing a null value.
  * */
 TEST_F(OptionalFieldTest, RpcJsonNullValueConversion) {
-    json::Json json{};
+    json::Json json = json::Json();
 
     OptionalField<int> int_opfield = json[INT];
     OptionalField<unsigned int> uint_opfield = json[UINT];
@@ -345,7 +345,7 @@ TEST_F(OptionalFieldTest, RpcJsonNullValueConversion) {
  * value.
  * */
 TEST_F(OptionalFieldTest, RpcJsonValueConversion) {
-    json::Json json{};
+    json::Json json = json::Json();
 
     OptionalField<int> int_opfield = (json[INT] = int_value);
     OptionalField<unsigned int> uint_opfield = (json[UINT] = uint_value);
@@ -372,11 +372,11 @@ TEST_F(OptionalFieldTest, RpcJsonValueConversion) {
 
 /*!
  * This test verifies that an uninitialized OptionalField object converts
- * properly to a json::Value object from JsonCXX library containing a null
+ * properly to a json::Json object from JsonCXX library containing a null
  * value.
  * */
 TEST_F(OptionalFieldTest, JsonCXXNullValueConversion) {
-    json::Value json = json::Value::Type::NIL;
+    json::Json json = json::Json::value_t::null;
 
     OptionalField<int> int_opfield = json[INT];
     OptionalField<unsigned int> uint_opfield = json[UINT];
@@ -396,11 +396,11 @@ TEST_F(OptionalFieldTest, JsonCXXNullValueConversion) {
 
 /*!
  * This test verifies that an initialized OptionalField objects converts
- * properly to a json::Value object from JsonCXX library containing a non-null
+ * properly to a json::Json object from JsonCXX library containing a non-null
  * value.
  * */
 TEST_F(OptionalFieldTest, JsonCXXValueConversion) {
-    json::Value json = json::Value::Type::NIL;
+    json::Json json = json::Json::value_t::null;
 
     OptionalField<int> int_opfield = (json[INT] = int_value );
     OptionalField<unsigned int> uint_opfield = (json[UINT] = uint_value);
@@ -431,8 +431,8 @@ TEST_F(OptionalFieldTest, JsonCXXValueConversion) {
  * form agent_framework component.
  * */
 TEST_F(OptionalFieldTest, FrameworkEnumsToJson) {
-    json::Json rpc_json{};
-    json::Value jsonCXX = json::Value::Type::NIL;
+    json::Json rpc_json = json::Json();
+    json::Json jsonCXX = json::Json::value_t::null;
 
     rpc_json["TomSawyer"] = OptionalField<RushCollection>(RushCollection::TomSawyer);
     rpc_json["Limelight"] = OptionalField<RushCollection>(RushCollection::Limelight);
@@ -447,12 +447,12 @@ TEST_F(OptionalFieldTest, FrameworkEnumsToJson) {
     ASSERT_EQ(rpc_json["TomSawyer"], string("TomSawyer"));
     ASSERT_EQ(rpc_json["Limelight"], string("Limelight"));
     ASSERT_EQ(rpc_json["Xanadu"], string("Xanadu"));
-    ASSERT_TRUE(rpc_json["null"].is_null());
+    ASSERT_TRUE(rpc_json.value("null", json::Json()).is_null());
 
     ASSERT_EQ(jsonCXX["TomSawyer"], string("TomSawyer"));
     ASSERT_EQ(jsonCXX["Limelight"], string("Limelight"));
     ASSERT_EQ(jsonCXX["Xanadu"], string("Xanadu"));
-    ASSERT_TRUE(json::Value::Type::NIL == jsonCXX["null"].get_type());
+    ASSERT_TRUE(json::Json::value_t::null == jsonCXX["null"].type());
 }
 
 /*!
@@ -460,8 +460,8 @@ TEST_F(OptionalFieldTest, FrameworkEnumsToJson) {
  * form agent_framework component.
  * */
 TEST_F(OptionalFieldTest, FrameworkEnumsFromJson) {
-    json::Json rpc_json{};
-    json::Value jsonCXX = json::Value::Type::NIL;
+    json::Json rpc_json = json::Json();
+    json::Json jsonCXX = json::Json::value_t::null;
 
     rpc_json["TomSawyer"] = "TomSawyer";
     rpc_json["Limelight"] = "Limelight";
@@ -471,7 +471,7 @@ TEST_F(OptionalFieldTest, FrameworkEnumsFromJson) {
     jsonCXX["TomSawyer"] = "TomSawyer";
     jsonCXX["Limelight"] = "Limelight";
     jsonCXX["Xanadu"] = "Xanadu";
-    jsonCXX["null"] = json::Value::Type::NIL;
+    jsonCXX["null"] = json::Json::value_t::null;
 
     ASSERT_EQ(OptionalField<RushCollection>(RushCollection::TomSawyer), OptionalField<RushCollection>(rpc_json["TomSawyer"]));
     ASSERT_EQ(OptionalField<RushCollection>(RushCollection::Limelight), OptionalField<RushCollection>(rpc_json["Limelight"]));

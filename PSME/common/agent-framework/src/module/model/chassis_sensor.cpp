@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ ChassisSensor::ChassisSensor(const std::string& parent_uuid, enums::Component pa
 ChassisSensor::~ChassisSensor() {}
 
 json::Json ChassisSensor::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::ChassisSensor::STATUS] = get_status().to_json();
     result[literals::ChassisSensor::READING] = get_reading();
     result[literals::ChassisSensor::READING_UNITS] = get_reading_units();

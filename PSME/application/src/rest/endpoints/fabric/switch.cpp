@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,60 +38,60 @@ using namespace psme::rest::validators;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Switch.Switch";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#Switch.v1_0_0.Switch";
     r[Common::NAME] = "PCIe Switch";
     r[Common::DESCRIPTION] = "PCIe Switch description";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[Common::MANUFACTURER] = json::Value::Type::NIL;
-    r[Common::MODEL] = json::Value::Type::NIL;
-    r[Common::SKU] = json::Value::Type::NIL;
-    r[Common::SERIAL_NUMBER] = json::Value::Type::NIL;
-    r[Common::PART_NUMBER] = json::Value::Type::NIL;
-    r[Common::ASSET_TAG] = json::Value::Type::NIL;
-    r[constants::Switch::SWITCH_TYPE] = json::Value::Type::NIL;
-    r[constants::Switch::DOMAIN_ID] = json::Value::Type::NIL;
-    r[constants::Switch::IS_MANAGED] = json::Value::Type::NIL;
-    r[constants::Switch::TOTAL_SWITCH_WIDTH] = json::Value::Type::NIL;
-    r[constants::Switch::INDICATOR_LED] = json::Value::Type::NIL;
-    r[constants::Switch::POWER_STATE] = json::Value::Type::NIL;
-    r[constants::Switch::PORTS] = json::Value::Type::NIL;
-    r[constants::Common::REDUNDANCY] = json::Value::Type::ARRAY;
+    r[Common::MANUFACTURER] = json::Json::value_t::null;
+    r[Common::MODEL] = json::Json::value_t::null;
+    r[Common::SKU] = json::Json::value_t::null;
+    r[Common::SERIAL_NUMBER] = json::Json::value_t::null;
+    r[Common::PART_NUMBER] = json::Json::value_t::null;
+    r[Common::ASSET_TAG] = json::Json::value_t::null;
+    r[constants::Switch::SWITCH_TYPE] = json::Json::value_t::null;
+    r[constants::Switch::DOMAIN_ID] = json::Json::value_t::null;
+    r[constants::Switch::IS_MANAGED] = json::Json::value_t::null;
+    r[constants::Switch::TOTAL_SWITCH_WIDTH] = json::Json::value_t::null;
+    r[constants::Switch::INDICATOR_LED] = json::Json::value_t::null;
+    r[constants::Switch::POWER_STATE] = json::Json::value_t::null;
+    r[constants::Switch::PORTS] = json::Json::value_t::null;
+    r[constants::Common::REDUNDANCY] = json::Json::value_t::array;
 
-    r[Common::LINKS][Common::CHASSIS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Common::MANAGED_BY] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::LINKS][Common::CHASSIS] = json::Json::value_t::array;
+    r[Common::LINKS][Common::MANAGED_BY] = json::Json::value_t::array;
+    r[Common::LINKS][Common::OEM] = json::Json::value_t::object;
 
-    json::Value actions;
-    actions[constants::Switch::SWITCH_RESET][Common::TARGET] = json::Value::Type::NIL;
-    actions[constants::Switch::SWITCH_RESET][Common::ALLOWABLE_RESET_TYPES] = json::Value::Type::ARRAY;
-    actions[Common::OEM] = json::Value::Type::OBJECT;
+    json::Json actions = json::Json();
+    actions[constants::Switch::SWITCH_RESET][Common::TARGET] = json::Json::value_t::null;
+    actions[constants::Switch::SWITCH_RESET][Common::ALLOWABLE_RESET_TYPES] = json::Json::value_t::array;
+    actions[Common::OEM] = json::Json::value_t::object;
     r[Common::ACTIONS] = std::move(actions);
 
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::OEM] = json::Json::value_t::object;
 
     return r;
 }
 
 
-void fill_links(const agent_framework::model::Switch& pcie_switch, const server::Request& req, json::Value& json) {
+void fill_links(const agent_framework::model::Switch& pcie_switch, const server::Request& req, json::Json& json) {
     // fill ManagedBy link
     // the Manager is the parent of the Fabric containing this Switch
-    auto pnc_manager_uuid = psme::rest::model::Find<agent_framework::model::Fabric>(
-        req.params[PathParam::FABRIC_ID]).get_one()->get_parent_uuid();
+    auto pnc_manager_uuid = psme::rest::model::find<agent_framework::model::Fabric>(
+        req.params).get_one()->get_parent_uuid();
 
     auto manager_id = agent_framework::module::get_manager<agent_framework::model::Manager>()
-        .get_entry_reference(pnc_manager_uuid)->get_id();
-    json::Value manager_link;
+        .get_entry(pnc_manager_uuid).get_id();
+    json::Json manager_link = json::Json();
     manager_link[Common::ODATA_ID] = endpoint::PathBuilder(PathParam::BASE_URL)
         .append(constants::Root::MANAGERS)
         .append(manager_id).build();
@@ -100,19 +100,19 @@ void fill_links(const agent_framework::model::Switch& pcie_switch, const server:
     // fill Chassis link
     if (pcie_switch.get_chassis().has_value()) {
         try {
-            json::Value chassis_link;
+            json::Json chassis_link = json::Json();
             chassis_link[Common::ODATA_ID] = endpoint::utils::get_component_url(
                 agent_framework::model::enums::Component::Chassis, pcie_switch.get_chassis().value());
             json[Common::LINKS][Common::CHASSIS].push_back(std::move(chassis_link));
         }
-        catch (agent_framework::exceptions::InvalidUuid) {
+        catch (const agent_framework::exceptions::InvalidUuid&) {
             log_error("rest", "Fabric Switch " + pcie_switch.get_uuid() + " has chassis "
-                                          + pcie_switch.get_chassis().value() + " which does not exist as a resource");
+                              + pcie_switch.get_chassis().value() + " which does not exist as a resource");
         }
     }
 
     // fill Ports field
-    json::Value ports_link;
+    json::Json ports_link = json::Json();
     ports_link[Common::ODATA_ID] = endpoint::PathBuilder(req)
         .append(constants::Switch::PORTS).build();
     json[constants::Switch::PORTS] = std::move(ports_link);
@@ -134,8 +134,7 @@ void endpoint::Switch::get(const server::Request& req, server::Response& res) {
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
     const auto pcie_switch =
-        psme::rest::model::Find<agent_framework::model::Switch>(req.params[PathParam::SWITCH_ID])
-            .via<agent_framework::model::Fabric>(req.params[PathParam::FABRIC_ID]).get();
+        psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Switch>(req.params).get();
 
     json[Common::ACTIONS][constants::Switch::SWITCH_RESET][Common::TARGET] = endpoint::PathBuilder(
         req).append(Common::ACTIONS).append(constants::Switch::SWITCH_RESET_ENDPOINT).build();
@@ -168,6 +167,7 @@ void endpoint::Switch::get(const server::Request& req, server::Response& res) {
     set_response(res, json);
 }
 
+
 namespace {
 
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
@@ -176,16 +176,18 @@ static const std::map<std::string, std::string> gami_to_rest_attributes = {
 
 }
 
-void endpoint::Switch::patch(const server::Request& request, server::Response& response) {
 
-    auto pnc_switch = model::Find<agent_framework::model::Switch>(request.params[PathParam::SWITCH_ID]).get();
+void endpoint::Switch::patch(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostSwitch";
+
+    auto pnc_switch = model::find<agent_framework::model::Switch>(request.params).get();
     agent_framework::model::attribute::Attributes attributes{};
 
     const auto& json = JsonValidator::validate_request_body<schema::SwitchPatchSchema>(request);
 
-    if (json[Common::ASSET_TAG].is_string()) {
+    if (json.value(Common::ASSET_TAG, json::Json()).is_string()) {
         attributes.set_value(agent_framework::model::literals::Switch::ASSET_TAG,
-                             json[Common::ASSET_TAG].as_string());
+                             json[Common::ASSET_TAG].get<std::string>());
     }
 
     if (!attributes.empty()) {
@@ -211,7 +213,7 @@ void endpoint::Switch::patch(const server::Request& request, server::Response& r
                      agent_framework::model::enums::Component::Chassis, pnc_switch.get_uuid(), false);
         };
 
-        gami_agent->execute_in_transaction(set_switch_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_switch_attributes);
     }
     get(request, response);
 }

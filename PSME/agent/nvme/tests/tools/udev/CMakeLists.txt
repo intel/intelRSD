@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,12 +26,17 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     )
 endif()
 
-add_gtest(tools_udev_test psme-nvme
+add_gtest(tools_udev_test psme-gpt-nvme
     udev_stub.cpp
     udev_test.cpp
     test_runner.cpp
 )
 
-target_link_libraries(${test_target}
-    nvme-tools
+target_sources(${test_target} PRIVATE
+    ../../../src/tools/udev.cpp
+)
+
+
+target_include_directories(${test_target}
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../include
 )

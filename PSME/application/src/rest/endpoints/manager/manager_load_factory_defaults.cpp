@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,8 @@ endpoint::ManagerLoadFactoryDefaults::~ManagerLoadFactoryDefaults() {}
 
 
 void endpoint::ManagerLoadFactoryDefaults::post(const server::Request& request, server::Response& response) {
-    auto manager = model::Find<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID]).get();
+    static const constexpr char TRANSACTION_NAME[] = "PostManagerLoadFactoryDefaults";
+    auto manager = model::find<agent_framework::model::Manager>(request.params).get();
 
     if (!utils::has_resource_capability(manager, Capability::RMM)) {
         throw agent_framework::exceptions::NotFound(
@@ -75,6 +76,6 @@ void endpoint::ManagerLoadFactoryDefaults::post(const server::Request& request, 
             load(gami_agent, {}, agent_framework::model::enums::Component::None, manager_uuid);
     };
 
-    gami_agent->execute_in_transaction(set_manager_attributes);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, set_manager_attributes);
     response.set_status(server::status_2XX::NO_CONTENT);
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ namespace mock {
     static constexpr const char MEMORY_TYPE[] = "DRAM";
     static constexpr const double MEMORY_VOLTAGE = 1.5;
     static constexpr const std::uint32_t MEMORY_SPEED_MHZ = 1600;
-    static constexpr const std::uint32_t MEMORY_SIZE_MB = 1024;
+    static constexpr const std::uint32_t MEMORY_SIZE_MIB = 1024;
 
     // GET_SYSTEM_MAC_ADDRESS_HASWELL
     static constexpr const char SYSTEM_MAC_ADDRESS_HASWELL[] = "75:d5:35:e5:d5:35";

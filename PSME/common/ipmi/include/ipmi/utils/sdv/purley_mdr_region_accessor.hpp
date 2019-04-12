@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  *
  * @brief Purley MDR region accessor declaration
  *
- * @header{Filesystem}
  * @file purley_mdr_region_accessor.hpp
  */
 
@@ -36,6 +34,8 @@ public:
     IpmiInterface::ByteBuffer get_mdr_region() override;
 
     std::uint8_t get_mdr_region_checksum() override;
+
+    std::uint8_t get_mdr_region_update_count() override;
 
     void write_mdr_region(const IpmiInterface::ByteBuffer& buffer) override;
 

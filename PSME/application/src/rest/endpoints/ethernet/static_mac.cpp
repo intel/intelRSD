@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,8 @@
 #include "agent-framework/module/requests/network.hpp"
 #include "agent-framework/module/responses/network.hpp"
 
+
+
 using namespace psme::rest;
 using namespace psme::rest::validators;
 using namespace psme::rest::endpoint;
@@ -43,34 +45,37 @@ using namespace agent_framework::model;
 using NetworkComponents = agent_framework::module::NetworkComponents;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchStaticMAC.EthernetSwitchStaticMAC";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchStaticMAC.v1_0_0.EthernetSwitchStaticMAC";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Static MAC";
     r[Common::DESCRIPTION] = "Static MAC address rule";
 
-    r[constants::Common::MAC_ADDRESS] = json::Value::Type::NIL;
-    r[constants::StaticMac::VLAN_ID] = json::Value::Type::NIL;
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[constants::Common::MAC_ADDRESS] = json::Json::value_t::null;
+    r[constants::StaticMac::VLAN_ID] = json::Json::value_t::null;
+    r[Common::OEM] = json::Json::value_t::object;
 
     return r;
 }
 
 
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
-    {agent_framework::model::literals::StaticMac::ADDRESS,      constants::Common::MAC_ADDRESS},
+    {agent_framework::model::literals::StaticMac::ADDRESS, constants::Common::MAC_ADDRESS},
     {agent_framework::model::literals::StaticMac::VLAN_ID, constants::StaticMac::VLAN_ID},
 };
 
-
 }
 
+
 endpoint::StaticMac::StaticMac(const std::string& path) : EndpointBase(path) {}
+
+
 endpoint::StaticMac::~StaticMac() {}
+
 
 void endpoint::StaticMac::get(const server::Request& req, server::Response& res) {
     auto json = ::make_prototype();
@@ -80,10 +85,8 @@ void endpoint::StaticMac::get(const server::Request& req, server::Response& res)
     json[Common::NAME] = constants::StaticMac::STATIC_MAC + req.params[PathParam::STATIC_MAC_ID];
 
     const auto static_mac =
-        psme::rest::model::Find<agent_framework::model::StaticMac>(req.params[PathParam::STATIC_MAC_ID])
-            .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-            .via<agent_framework::model::EthernetSwitchPort>(req.params[PathParam::SWITCH_PORT_ID])
-            .get();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort, agent_framework::model::StaticMac>(
+            req.params).get();
 
     json[constants::Common::MAC_ADDRESS] = static_mac.get_address();
     json[constants::StaticMac::VLAN_ID] = static_mac.get_vlan_id();
@@ -91,47 +94,49 @@ void endpoint::StaticMac::get(const server::Request& req, server::Response& res)
     set_response(res, json);
 }
 
+
 void endpoint::StaticMac::del(const server::Request& req, server::Response& res) {
-    auto static_mac = psme::rest::model::Find<agent_framework::model::StaticMac>(req.params[PathParam::STATIC_MAC_ID])
-        .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-        .via<agent_framework::model::EthernetSwitchPort>(req.params[PathParam::SWITCH_PORT_ID])
-        .get_one();
+    static const constexpr char TRANSACTION_NAME[] = "DeleteStaticMac";
 
-    auto delete_port_static_mac_request = requests::DeletePortStaticMac(static_mac->get_uuid());
+    auto static_mac = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort, agent_framework::model::StaticMac>(
+        req.params).get();
 
-    // try removing Static MAC from agent's model
-    AgentManager::get_instance()->call_method<responses::DeletePortStaticMac>(static_mac->get_agent_id(),
-                                                                              delete_port_static_mac_request);
+    auto delete_port_static_mac_request = requests::DeletePortStaticMac(static_mac.get_uuid());
 
-    // remove the resource from application's model
-    HandlerManager::get_instance()->get_handler(enums::Component::StaticMac)->remove(static_mac->get_uuid());
+    const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(static_mac.get_agent_id());
 
-    res.set_status(server::status_2XX::NO_CONTENT);
+    auto delete_port_static_mac = [&, gami_agent] {
+        // try removing port from agent's model
+        gami_agent->execute<responses::DeletePortStaticMac>(delete_port_static_mac_request);
+
+        // remove the resource from application's model
+        HandlerManager::get_instance()->get_handler(enums::Component::StaticMac)->remove(static_mac.get_uuid());
+
+        res.set_status(server::status_2XX::NO_CONTENT);
+    };
+
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, delete_port_static_mac);
+
 }
 
+
 void endpoint::StaticMac::patch(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PatchStaticMac";
 
     const auto json = JsonValidator::validate_request_body<schema::StaticMacPatchSchema>(request);
     const auto static_mac =
-        psme::rest::model::Find<agent_framework::model::StaticMac>(request.params[PathParam::STATIC_MAC_ID])
-            .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-            .via<agent_framework::model::EthernetSwitchPort>(request.params[PathParam::SWITCH_PORT_ID])
-            .get();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort, agent_framework::model::StaticMac>(
+            request.params).get();
 
     attribute::Attributes attributes{};
-    if (json.is_member(constants::Common::MAC_ADDRESS)) {
+    if (json.count(constants::Common::MAC_ADDRESS)) {
         // Workaround for GAMI - REST spec mismatch:
         THROW(agent_framework::exceptions::NotImplemented, "rest",
               "Setting 'MACAddress' is not implemented in the network agent.");
     }
 
-    if (json.is_member(constants::StaticMac::VLAN_ID)) {
-        if(json[constants::StaticMac::VLAN_ID].is_null()) {
-            attributes.set_value(literals::StaticMac::VLAN_ID, json::Json{});
-        }
-        else {
-            attributes.set_value(literals::StaticMac::VLAN_ID, json[constants::StaticMac::VLAN_ID].as_uint());
-        }
+    if (json.count(constants::StaticMac::VLAN_ID)) {
+        attributes.set_value(literals::StaticMac::VLAN_ID, json[constants::StaticMac::VLAN_ID]);
     }
 
     if (!attributes.empty()) {
@@ -157,7 +162,7 @@ void endpoint::StaticMac::patch(const server::Request& request, server::Response
                      static_mac.get_uuid(),
                      true);
         };
-        gami_agent->execute_in_transaction(set_static_mac_params);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_static_mac_params);
     }
 
     get(request, response);

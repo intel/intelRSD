@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
  * limitations under the License.
  * */
 
-#include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 #include "configuration/configuration.hpp"
 
 #include "psme/rest/constants/constants.hpp"
@@ -31,11 +31,10 @@
 using namespace psme::rest;
 using namespace psme::rest::constants;
 
-using agent_framework::generic::ServiceUuid;
-
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#ServiceRoot.ServiceRoot";
     r[Common::ODATA_ID] = "/redfish/v1";
@@ -46,6 +45,7 @@ json::Value make_prototype() {
     r[Root::REDFISH_VERSION] = "1.1.0";
     r[Common::UUID] = "00000000000-000000-0000000-00000000000000000";
     r[Root::EVENT_SERVICE][Common::ODATA_ID] = "/redfish/v1/EventService";
+    r[Root::SESSION_SERVICE][Common::ODATA_ID] = "/redfish/v1/SessionService";
     r[Root::UPDATE_SERVICE][Common::ODATA_ID] = "/redfish/v1/UpdateService";
     r[Root::TASKS][Common::ODATA_ID] = "/redfish/v1/TaskService";
     r[Root::REGISTRIES][Common::ODATA_ID] = "/redfish/v1/Registries";
@@ -53,12 +53,13 @@ json::Value make_prototype() {
     r[Root::SYSTEMS][Common::ODATA_ID] = "/redfish/v1/Systems";
     r[Root::MANAGERS][Common::ODATA_ID] = "/redfish/v1/Managers";
     r[Root::FABRICS][Common::ODATA_ID] = "/redfish/v1/Fabrics";
-    r[Root::TELEMETRY_SERVICE][Common::ODATA_ID] = "/redfish/v1/TelemetryService";
     r[Root::STORAGE_SERVICES][Common::ODATA_ID] = "/redfish/v1/StorageServices";
+    r[Root::ACCOUNT_SERVICE][Common::ODATA_ID] = "/redfish/v1/AccountService";
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.ServiceRoot";
     r[Common::OEM][Common::RACKSCALE][Common::API_VERSION] = psme::app::Version::to_string();
     r[Common::OEM][Common::RACKSCALE][Root::ETHERNET_SWITCHES][Common::ODATA_ID] = "/redfish/v1/EthernetSwitches";
-    r[Common::LINKS] = json::Value::Type::OBJECT;
+    r[Common::OEM][Common::RACKSCALE][Root::TELEMETRY_SERVICE][Common::ODATA_ID] = "/redfish/v1/Oem/Intel_RackScale/TelemetryService";
+    r[Common::LINKS][SessionService::SESSIONS][Common::ODATA_ID] = "/redfish/v1/SessionService/Sessions";
     return r;
 }
 }
@@ -66,7 +67,7 @@ json::Value make_prototype() {
 
 endpoint::Root::Root(const std::string& path) : EndpointBase(path) {
     const auto& config = configuration::Configuration::get_instance().to_json();
-    service_root_name = config["rest"]["service-root-name"].as_string();
+    m_service_root_name = config.value("rest", json::Json())["service-root-name"].get<std::string>();
 }
 
 
@@ -76,8 +77,8 @@ endpoint::Root::~Root() { }
 void endpoint::Root::get(const server::Request&, server::Response& response) {
     auto json = make_prototype();
 
-    json[Common::UUID] = ServiceUuid::get_instance()->get_service_uuid();
-    json[Common::NAME] = service_root_name;
+    json[Common::UUID] = agent_framework::module::ServiceUuid::get_instance()->get_service_uuid();
+    json[Common::NAME] = m_service_root_name;
 
     set_response(response, json);
 }

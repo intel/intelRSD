@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
 add_gtest(rest psme-rest-server
     test_runner.cpp
@@ -30,7 +30,7 @@ add_gtest(rest psme-rest-server
     # Because of linking problems, GenericHandlerTest is run by FabricHandlersTest
     #model/handler/generic_handler_test.cpp
     model/handler/fabric_handlers_test.cpp
-    model/finder_test.cpp
+    model/find_test.cpp
     server/mux/split_path_test.cpp
     server/multiplexer_test.cpp
     ssdp/ssdp_config_loader_test.cpp
@@ -43,18 +43,13 @@ target_link_libraries(${test_target}
     ssdp-config-loader
     application-rest
     application-core
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${JSONPTR_LIBRARIES}
+    agent-framework
     ${CURL_LIBRARIES}
     ${MICROHTTPD_LIBRARIES}
-    ${SSDP_LIBRARIES}
+    ssdp
     ${LOGGER_LIBRARIES}
-    ${DATABASE_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     ${UUID_LIBRARIES}
-    ${MD5_LIBRARIES}
 )
 
 set_source_files_properties(

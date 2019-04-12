@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ SubscriptionManager::SubscriptionManager() {
     m_db->start();
     while (m_db->next(id, json)) {
         try {
-            json::Value root{};
+            json::Json root = json::Json();
             if (configuration::string_to_json(json.get(), root)) {
                 /* don't check origin resources: endpoints might not be initialized yet */
                 Subscription subscription = Subscription::from_json(root, false);

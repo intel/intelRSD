@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 
 
 
-#include <json/value.hpp>
+#include "json-wrapper/json-wrapper.hpp"
 #include <string>
 
 
@@ -37,7 +37,7 @@ public:
      * @brief Constructor.
      * @param config Configuration JSON object.
      */
-    RegistrationData(const json::Value& config);
+    RegistrationData(const json::Json& config);
 
 
     /*! @brief Destructor. */

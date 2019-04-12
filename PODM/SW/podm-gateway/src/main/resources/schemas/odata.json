@@ -1,0 +1,70 @@
+{
+  "@odata.context": "/redfish/v1/$metadata",
+  "value": [
+    {
+      "name": "Service",
+      "kind": "Singleton",
+      "url": "/redfish/v1/"
+    },
+    {
+      "name": "Chassis",
+      "kind": "Singleton",
+      "url": "/redfish/v1/Chassis"
+    },
+    {
+      "name": "Systems",
+      "kind": "Singleton",
+      "url": "/redfish/v1/Systems"
+    },
+    {
+      "name": "Managers",
+      "kind": "Singleton",
+      "url": "/redfish/v1/Managers"
+    },
+    {
+      "name": "Fabrics",
+      "kind": "Singleton",
+      "url": "/redfish/v1/Fabrics"
+    },
+    {
+      "name": "StorageServices",
+      "kind": "Singleton",
+      "url": "/redfish/v1/StorageServices"
+    },
+    {
+      "name": "EventService",
+      "kind": "Singleton",
+      "url": "/redfish/v1/EventService"
+    },
+    {
+      "name": "AccountService",
+      "kind": "Singleton",
+      "url": "/redfish/v1/AccountService"
+    },
+    {
+      "name": "SessionService",
+      "kind": "Singleton",
+      "url": "/redfish/v1/SessionService"
+    },
+    {
+      "name": "TaskService",
+      "kind": "Singleton",
+      "url": "/redfish/v1/TaskService"
+    },
+    {
+      "name": "TelemetryService",
+      "kind": "Singleton",
+      "url": "/redfish/v1/Oem/Intel_RackScale/TelemetryService"
+    },
+    {
+      "name": "EthernetSwitches",
+      "kind": "Singleton",
+      "url": "/redfish/v1/EthernetSwitches"
+    },
+    {
+      "name": "Nodes",
+      "kind": "Singleton",
+      "url": "/redfish/v1/Nodes"
+    }
+  ]
+}

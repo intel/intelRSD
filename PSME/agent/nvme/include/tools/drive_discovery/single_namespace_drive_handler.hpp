@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file single_namespace_drive_handler.hpp
  */
 
@@ -58,7 +56,8 @@ public:
     virtual std::string create_volume(const uint64_t size_bytes) const override;
     virtual void remove_volume(const std::string& id) const override;
     virtual VolumeData get_volume_data(const std::string& id) const override;
-    virtual SmartData get_smart_info() const override;
+    virtual SmartData load_smart_info() const override;
+    virtual LatencyData load_latency_histogram() const override;
     virtual void initialize_drive() override;
     virtual void erase_volume(const std::string& id, bool fast_mode) override;
 
@@ -87,6 +86,9 @@ protected:
 
     /*! Primary drive namespace data */
     ::nvme::NamespaceData m_namespace_data{};
+
+    /*! Flag for Intel-OEM telemetry feature of Intel SSD */
+    OptionalField<bool> m_latency_tracking_feature_enabled{};
 
     /*! Loaded partition table of the drive */
     std::shared_ptr<::partition::AbstractPartitionTable> m_partition_table{};

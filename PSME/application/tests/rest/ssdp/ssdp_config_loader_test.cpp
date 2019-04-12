@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,17 +23,17 @@
 
 #include "default_configuration.hpp"
 #include "psme/ssdp/ssdp_config_loader.hpp"
-#include "json/value.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 #include "gtest/gtest.h"
-#include "json/deserializer.hpp"
+
 
 namespace {
 
 const std::string service_uuid = "a7f09664-2181-11e6-96be-0ba482e91a3c";
 
-json::Value get_default_config() {
-    json::Value default_config;
-    json::Deserializer(psme::app::DEFAULT_CONFIGURATION) >> default_config;
+json::Json get_default_config() {
+    json::Json default_config = json::Json();
+    default_config = json::Json::parse(psme::app::DEFAULT_CONFIGURATION);
     return default_config;
 }
 

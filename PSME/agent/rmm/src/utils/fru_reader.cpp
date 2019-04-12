@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rmm/utils/fru_reader.cpp
  */
 
@@ -20,8 +18,9 @@
 
 #include "ipmi/command/generic/get_fru_inventory_area_info.hpp"
 #include "ipmi/command/generic/read_fru_data.hpp"
-#include "agent-framework/logger_ext.hpp"
 #include "fru_eeprom/fru_eeprom_parser.hpp"
+
+#include "logger/logger.hpp"
 
 #include <exception>
 #include <thread>

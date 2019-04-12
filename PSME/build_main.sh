@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ FOUND="yes"
 BUILD_ALL="all"
 CLEAN=false
 UNIT_TEST_PREFIX="unittest"
-TARGET_SUBDIRECTORIES=("agent" "agent-simulator" "agent-stubs" "application" "encrypter" "common" "devtools")
+TARGET_SUBDIRECTORIES=("agent" "agent-stubs" "application" "encrypter" "common" "devtools")
 VERSION_REGEXP="^[0-9]+(\.[0-9]+){2,4}$"
 
 # POSSIBLE CONFIGURATIONS
@@ -76,7 +76,7 @@ for SUBDIRECTORY in ${TARGET_SUBDIRECTORIES[*]} ; do
 done
 
 # Additional hard-coded targets
-ADDITIONAL_TARGETS="doc-generate doc-dev-generate"
+ADDITIONAL_TARGETS="doc-generate doc-dev-generate fpgaof-initiator-pack"
 
 # We can build executables, libraries or simply all
 TARGETS="$(echo "$BUILD_ALL ${POSSIBLE_EXECUTABLES[*]}" "${POSSIBLE_LIBRARIES[*]}" "$ADDITIONAL_TARGETS" | sort -u)"
@@ -112,7 +112,7 @@ DEFAULT_STYLE_CHECK="no"
 DEFAULT_UNIT_TESTS="no"
 
 function usage() {
-    echo "Usage: $0 [OPTIONS], where parameters to flags are separated by commas. Example: $0 -a 32 -b debug,release -c gcc,clang -t psme-rest-server,psme-compute-simulator"
+    echo "Usage: $0 [OPTIONS], where parameters to flags are separated by commas. Example: $0 -a 32 -b debug,release -c gcc,clang -t psme-rest-server,psme-compute"
     echo "Options:"
     echo "   Build configuration:"
     echo "      -A | --all: Builds every possible combination. If other options are used after this one, they will override it. For instance, it's possible to specify 'all' and later choose only '32' bit architecture."

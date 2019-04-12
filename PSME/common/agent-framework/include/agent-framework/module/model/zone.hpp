@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,9 @@
 
 
 #include "agent-framework/module/model/resource.hpp"
+#include "agent-framework/module/model/endpoint.hpp"
+
+
 
 namespace agent_framework {
 namespace model {
@@ -103,6 +106,7 @@ public:
         m_zone_id = zone_id;
     }
 
+
     /*!
      * @brief Gets switch uuid
      * @return switch uuid
@@ -119,6 +123,39 @@ public:
     void set_switch_uuid(const std::string& switch_uuid) {
         m_switch_uuid = switch_uuid;
     }
+
+
+    /*!
+     * @brief Checks if given zone has initiator endpoint
+     * @param zone uuid of the zone to be inspected
+     * @return true if zone has initiator endpoint, false otherwise
+     */
+    static bool is_initiator_in_zone(const Uuid& zone);
+
+
+    /*!
+     * @brief Checks if given zone has target endpoint
+     * @param zone uuid of the zone to be inspected
+     * @return true if zone has target endpoint, false otherwise
+     */
+    static bool is_target_in_zone(const Uuid& zone);
+
+
+    /*!
+     * @brief Returns UUIDs of devices connected to given zone
+     * @param zone_uuid UUID of the zone
+     * @return vector of UUIDs of devices connected to given zone
+     */
+    static std::vector<Uuid> get_connected_devices(const Uuid& zone_uuid);
+
+
+    /*!
+     * @brief Returns initiator endpoint for given zone uuid
+     * @param zone_uuid UUID of the zone
+     * @return initiator endpoint
+     */
+    static OptionalField<Endpoint> get_initiator_endpoint(const Uuid& zone_uuid);
+
 
 private:
 

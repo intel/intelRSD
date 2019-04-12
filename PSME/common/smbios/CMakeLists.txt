@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ project(Smbios CXX)
 
 set(SMBIOS_LIBRARIES
 	generic_mdr
+	logger
         )
 
 set(SMBIOS_INCLUDE_DIRS
@@ -30,6 +31,7 @@ set(SMBIOS_INCLUDE_DIRS
 
 include_directories(
 	${GENERIC_MDR_INCLUDE_DIRS}
+	${LOGGER_INCLUDE_DIRS}
         include
         )
 
@@ -47,6 +49,7 @@ add_library(smbios STATIC
 
 target_link_libraries(smbios
 	${SMBIOS_LIBRARIES}
+	logger
 	)
 
 install(TARGETS smbios

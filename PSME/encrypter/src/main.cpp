@@ -1,258 +1,222 @@
 /*!
- * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * @brief BMC username and password encrypt utility (uses AES256 CBC).
  *
- * @copyright
+ * @copyright Copyright (c) 2015-2019 Intel Corporation.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
  *
- * @copyright
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * @copyright
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * */
+ *
+ * @file main.cpp
+ */
+
 #include <safe-string/safe_lib.hpp>
-#include <random>
 #include <iostream>
-#include <cstring>
-#include <cstdint>
-#include <vector>
 #include <iomanip>
 #include <fstream>
-#include <crypt.h>
-#include <stdexcept>
-#include <cstdlib>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <string>
+#include <string.h>
 
-
-
-using namespace std;
+#include "utils/crypt_utils.hpp"
+#include "utils/conversion.hpp"
 
 static constexpr const int STATUS_OK = 0;
-static constexpr const int STATUS_ERROR_ARG = 1;
-static constexpr const int STATUS_ERROR_PASS_LENGTH = 2;
 static constexpr const int STATUS_ERROR_IO = 3;
 
-static constexpr const size_t CFG_OCTET = 8;
-static constexpr const size_t CFG_KEY_LENGHT_MAX = CFG_OCTET + 1;
 static constexpr const int CFG_ARG_MIN = 2;
 static constexpr const size_t CFG_PASS_LENGHT_MAX = 256;
-static constexpr const size_t CFG_BITS_BUFFER_SIZE = 64;
 
 static constexpr const char CFG_KEY_FILE_PATH[] = "/etc/psme/psme-key";
 
+namespace encrypter {
+
+enum class EncryptOperation {
+    ENCRYPT_AES256 = 0,
+    DECRYPT_AES256 = 1,
+    PBKDF2_SHA512  = 2
+};
+
+struct Options {
+    std::string password{};
+    std::string keyfile{CFG_KEY_FILE_PATH};
+    EncryptOperation operation = EncryptOperation::ENCRYPT_AES256;
+};
 
 /*!
- * @brief Checks does file exist.
+ * @brief Prints tool's usage help and examples.
+ * @param program_name name equals argv[0].
+ */
+void print_usage(std::string program_name);
+
+/*!
+ * @brief Parses and validates arguments given in command line.
+ * @param argc argument count.
+ * @param argv argument vector.
+ * @return options structure initialized from command line parameters.
+ */
+Options parse_options(int argc, char** argv);
+
+/*!
+ * @brief Checks if file exist.
  * @param path string with path to file.
  * @return true if file exists, otherwise false.
  */
-bool file_exists(const string& path);
-
-
-/*!
- * @brief Loads key from key file.
- * @param path string with path to keyfile.
- * @param key buffer with key.
- */
-void load_key(const string& path, char* key);
-
+bool file_exists(const std::string& path);
 
 /*!
- * @brief Saves key to the file. File will be created.
- * @param path path to the file where key will be stored.
- * @param key pointer to buffer with key.
+ * @brief Performs encryption with AES256 algorithm.
+ * @param options structure containing password to cipher and optionally file name with encryption key.
  */
-void save_key(const string& path, const char* key);
-
+void encrypt_operation(encrypter::Options& options);
 
 /*!
- * @brief Generates random 8-byte length key with alphanumeric and special characters.
- * @param key pointer to buffer where key should be stored.
- * @param len length of the key buffer.
+ * @brief Performs decryption with AES256 algorithm.
+ * @param options structure containing ciphered password to decrypt and file name with encryption key.
  */
-void generate_key(char* key, size_t len);
-
+void decrypt_operation(encrypter::Options& options);
 
 /*!
- * @brief Encrypt password with key.
- * @param password pointer to the password.
- * @param key pointer to the key.
- * @param encrypted reference to the vector where encrypted password will be stored.
+ * @brief Performs hashing with PBKDF2 algorithm (SHA512 based with salt).
+ * @param options structure containing password to hash.
  */
-void encrypt_password(const char* password,
-                      const char* key,
-                      vector<uint8_t>& encrypted);
+void hash_operation(encrypter::Options& options);
 
-
-/*!
- * @brief Prints encrypted password in hex form.
- * @param password reference to vector with encrypted password bytes.
- */
-void print_password(const vector<uint8_t>& password);
-
-
-int main(int argc, char** argv) {
-    string keyfile = CFG_KEY_FILE_PATH;
-    vector<uint8_t> encrypted_password{};
-    // Buffers for unistd crypt API.
-    char key[CFG_KEY_LENGHT_MAX] = {0};
-    char password[CFG_PASS_LENGHT_MAX] = {0};
-
-    // Get password to encrypt.
-    if (argc < CFG_ARG_MIN) {
-        cerr << "error: Too few arguments." << endl;
-        cout << "usage: " << argv[0] << " <password> [key_file_path]" << endl;
-        return STATUS_ERROR_ARG;
-    }
-
-    auto cmd_password_length = strlen(argv[1]);
-    if (cmd_password_length > CFG_PASS_LENGHT_MAX - 1) {
-        cerr << "error: Password too long" << endl;
-        cout << "Password length: " << cmd_password_length
-             << "\nPassword max length: " << CFG_PASS_LENGHT_MAX - 1 << endl;
-        return STATUS_ERROR_PASS_LENGTH;
-    }
-    errno_t result = strncpy_s(password, CFG_PASS_LENGHT_MAX, argv[1], cmd_password_length);
-    if (EOK != result) {
-        cerr << "error: copy error: " << result << endl;
-        cout << "Unable to encrypt password." << endl;
-        return result;
-    }
-
-    password[CFG_PASS_LENGHT_MAX - 1] = 0;
-    // If path to keyfile is passed as an argument.
-    if (argc > CFG_ARG_MIN) {
-        keyfile = argv[2];
-    }
-
-    try {
-        if (file_exists(keyfile)) {
-            load_key(keyfile, key);
-        }
-        else {
-            cout << "Key file not found: " << keyfile << endl;
-            cout << "Creating key file: " << keyfile << endl;
-            generate_key(key, CFG_OCTET);
-            save_key(keyfile, key);
-        }
-    }
-    catch (const runtime_error& ex) {
-        cerr << "Error: " << ex.what() << endl;
-        return STATUS_ERROR_IO;
-    }
-
-    encrypt_password(password, key, encrypted_password);
-    print_password(encrypted_password);
-
-    return STATUS_OK;
+void print_usage(std::string program_name) {
+    std::cerr << "Encrypt - tool to encrypt/decrypt given password with AES-256 or hash with PBKDF2 (SHA-512 based with salt).\n"
+              << "Usage: " << program_name << " <password | encrypted_password> [[--hash] | [--encrypt | --decrypt] <key_file_path>] | [--help]]"
+              << "\nExample:\n"
+              << "\t1. Encrypt: encrypt TEXT_TO_ENCRYPT (creates default key file)\n"
+              << "\t2. Encrypt: encrypt TEXT_TO_ENCRYPT --encrypt KEY_FILE (creates/reads user key file)\n"
+              << "\t3. Decrypt: encrypt CIPHER_TO_DECRYPT --decrypt KEY_FILE (ciphertext in hex form)\n"
+              << "\t4. Hash   : encrypt TEXT_TO_HASH --hash\n";
 }
 
+Options parse_options(int argc, char** argv) {
+    Options options;
 
-bool file_exists(const string& path) {
-    ifstream ifile(path);
+    if (argc < CFG_ARG_MIN || (strcmp(argv[1], "--help") == 0)) {
+        print_usage(argv[0]);
+        throw std::invalid_argument("Too few arguments!");
+    }
+
+    // Get password to encrypt
+    auto cmd_password_length = strlen(argv[1]);
+    if (strlen(argv[1]) > CFG_PASS_LENGHT_MAX - 1) {
+        std::cout << "Password length: " << cmd_password_length
+                  << "\nPassword max length: " << CFG_PASS_LENGHT_MAX - 1 << std::endl;
+        throw std::invalid_argument("Password too long!");
+    }
+
+    char input_password[CFG_PASS_LENGHT_MAX] = {0};
+    errno_t result = strncpy_s(input_password, CFG_PASS_LENGHT_MAX, argv[1], cmd_password_length);
+    if (EOK != result) {
+        std::cout << "Unable to encrypt password." << std::endl;
+        throw std::invalid_argument("Password copy error!");
+    }
+    input_password[CFG_PASS_LENGHT_MAX - 1] = 0;
+    options.password = std::string(input_password);
+
+    // Set required operation (and key) if passed as an argument
+    if (argc > CFG_ARG_MIN) {
+        if (strcmp(argv[2], "--encrypt") == 0) {
+            options.operation = EncryptOperation::ENCRYPT_AES256;
+            options.keyfile = std::string(argv[3]);
+        }
+        else if (strcmp(argv[2], "--decrypt") == 0) {
+            options.operation = EncryptOperation::DECRYPT_AES256;
+            options.keyfile = std::string(argv[3]);
+        }
+        else if (strcmp(argv[2], "--hash") == 0) {
+            options.operation = EncryptOperation::PBKDF2_SHA512;
+        }
+        else {
+            // For backward compatibility: encrypt <password> [key_file_path]
+            options.keyfile = std::string(argv[2]);
+        }
+    }
+
+    return options;
+}
+
+bool file_exists(const std::string& path) {
+    std::ifstream ifile(path);
     return ifile.good();
 }
 
-void save_key(const string& path, const char* key) {
-    int fd = ::open(path.c_str(), O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR);
-    if (fd < 0) {
-        throw runtime_error("Error with opening keyfile for write.");
-    }
-    ssize_t written = ::write(fd, key, CFG_OCTET);
-    ::close(fd);
-    if (written != CFG_OCTET) {
-        throw runtime_error("Cannot write keyfile");
-    }
-}
+void encrypt_operation(encrypter::Options& options) {
+    std::string key;
+    std::string init_vector;
 
-
-void load_key(const string& path, char* key) {
-    ifstream ifile(path);
-    if (ifile.good()) {
-        ifile.getline(key, CFG_OCTET + 1);
-        ifile.close();
+    if (encrypter::file_exists(options.keyfile)) {
+        auto initializers = utils::load_crypt_initializers(options.keyfile);
+        key = initializers.first;
+        init_vector = initializers.second;
     }
     else {
-        throw runtime_error("Error with opening keyfile for read.");
+        std::cout << "Key file not found - creating: " << options.keyfile << std::endl;
+        key = utils::generate_key();
+        init_vector = utils::generate_init_vector();
+        utils::save_crypt_initializers(options.keyfile, key, init_vector);
     }
+
+    std::string encrypted_password = utils::encrypt(options.password, key, init_vector);
+    std::cout << utils::string_to_hex_string(encrypted_password) << std::endl;
 }
 
+void decrypt_operation(encrypter::Options& options) {
+    std::string key;
+    std::string init_vector;
 
-void generate_key(char* key, size_t len) {
-    const string chars =
-        "1234567890"
-            "!@#$%^&*()-=_+,./?<>;'\\][{}|:"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz";
+    std::string encrypted_value = utils::hex_string_to_string(options.password);
 
-    random_device rd;
-    mt19937 generator(rd());
-    uniform_int_distribution<int> distribution(0, int(chars.size() - 1));
-
-    for (uint32_t index = 0; index < len; index++) {
-        key[index] = chars[size_t((distribution(generator)))];
+    if (encrypter::file_exists(options.keyfile)) {
+        auto initializers = utils::load_crypt_initializers(options.keyfile);
+        key = initializers.first;
+        init_vector = initializers.second;
     }
+
+    std::cout << utils::decrypt(encrypted_value, key, init_vector) << std::endl;
 }
 
+void hash_operation(encrypter::Options& options) {
+    std::string salt = utils::generate_salt();
+    std::string hashed_password = utils::salted_hash(options.password, salt);
 
-void print_password(const vector<uint8_t>& password) {
-    for (const auto cc: password) {
-        cout << setfill('0')
-             << setw(2)
-             << uppercase
-             << hex
-             << unsigned(cc);
-
-    }
-    cout << endl;
+    // Hashed password as a hex string to be pasted to 'authentication' property in configuration file, in the form of:
+    // Concatenated salted hash string [80B] = salt [16B] + hash [64B]
+    std::cout << utils::string_to_hex_string(salt) + utils::string_to_hex_string(hashed_password) << std::endl;
 }
 
+} // namespace encrypter
 
-void encrypt_password(const char* password,
-                      const char* key,
-                      vector<uint8_t>& encrypted) {
-    char key_bits[CFG_BITS_BUFFER_SIZE] = {0};
+int main(int argc, char** argv) {
+    try {
+        auto options = encrypter::parse_options(argc, argv);
 
-    for (uint32_t i = 0; i < CFG_OCTET; i++) {
-        for (uint32_t j = 0; j < CFG_OCTET; j++) {
-            key_bits[i * CFG_OCTET + j] = key[i] >> j & 1;
+        switch (options.operation) {
+            case encrypter::EncryptOperation::ENCRYPT_AES256:
+                encrypter::encrypt_operation(options);
+                break;
+            case encrypter::EncryptOperation::DECRYPT_AES256:
+                encrypter::decrypt_operation(options);
+                break;
+            case encrypter::EncryptOperation::PBKDF2_SHA512:
+                encrypter::hash_operation(options);
+                break;
+            default:
+                encrypter::encrypt_operation(options);
         }
     }
-
-    setkey(key_bits);
-    auto password_length = strlen(password);
-    auto blocks_number = password_length / CFG_OCTET;
-
-    if (0 != (password_length % CFG_OCTET)) {
-        blocks_number++;
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return STATUS_ERROR_IO;
     }
 
-    char password_bits[CFG_BITS_BUFFER_SIZE] = {0};
-    for (uint32_t i = 0; i < blocks_number; i++) {
-        memset(password_bits, 0, sizeof(password_bits));
-        size_t cond = i * CFG_OCTET;
-        for (uint32_t j = 0; j < CFG_OCTET && cond + j < password_length; j++) {
-            for (uint32_t k = 0; k < CFG_OCTET; k++) {
-                password_bits[j * CFG_OCTET + k] = ((password[i * CFG_OCTET + j] >> k) & 1);
-            }
-        }
-
-        encrypt(password_bits, 0);
-        for (uint32_t j = 0; j < CFG_OCTET; j++) {
-            uint8_t c = 0;
-            for (uint32_t k = 0; k < CFG_OCTET; k++) {
-                c = uint8_t(c | (password_bits[j * CFG_OCTET + k] << k));
-            }
-            encrypted.push_back(c);
-        }
-    }
+    return STATUS_OK;
 }

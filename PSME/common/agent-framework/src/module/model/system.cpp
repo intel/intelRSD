@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ System::~System() {}
 
 
 json::Json System::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::System::STATUS] = get_status().to_json();
     result[literals::System::TYPE] = get_system_type();
     result[literals::System::BIOS_VERSION] = get_bios_version();
@@ -66,6 +66,8 @@ json::Json System::to_json() const {
     result[literals::System::CABLE_IDS] = get_cable_ids().to_json();
     result[literals::System::TXT_ENABLED] = is_txt_enabled();
     result[literals::System::USER_MODE_ENABLED] = is_user_mode_enabled();
+    result[literals::System::CURRENT_PERFORMANCE_CONFIGURATION] = get_current_performance_configuration();
+    result[literals::System::PERFORMANCE_CONFIGURATIONS] = get_performance_configurations().to_json();
     return result;
 }
 
@@ -95,6 +97,7 @@ System System::from_json(const json::Json& json) {
     sys.set_cable_ids(CableIds::from_json(json[literals::System::CABLE_IDS]));
     sys.set_txt_enabled(json[literals::System::TXT_ENABLED]);
     sys.set_user_mode_enabled(json[literals::System::USER_MODE_ENABLED]);
-
+    sys.set_current_performance_configuration(json[literals::System::CURRENT_PERFORMANCE_CONFIGURATION]);
+    sys.set_performance_configurations(PerformanceConfigurations::from_json(json[literals::System::PERFORMANCE_CONFIGURATIONS]));
     return sys;
 }

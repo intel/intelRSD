@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,9 @@
  * limitations under the License.
  *
  *
- * @file exception_base.hpp
+ * @file gami_exception.hpp
  *
- * @brief Declaration of Exception base class interface
+ * @brief Declaration of GAMI Exception base class interface
  * */
 
 #pragma once
@@ -29,8 +29,6 @@
 
 #include "agent-framework/exceptions/error_codes.hpp"
 #include "json-rpc/json_rpc_exception.hpp"
-
-
 
 
 namespace agent_framework {

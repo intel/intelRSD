@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---->
+<!--################################################################################       -->
+<!--# Redfish Schema:  AccelerationFunction  v1.0.0-->
+<!--#                                                                                      -->
+<!--# For a detailed change log, see the README file contained in the DSP8010 bundle,      -->
+<!--# available at http://www.dmtf.org/standards/redfish                                   -->
+<!--# Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF).                  -->
+<!--# For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright -->
+<!--################################################################################       -->
+<!---->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Capabilities.V1.xml">
+    <edmx:Include Namespace="Org.OData.Capabilities.V1" Alias="Capabilities"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions_v1.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource_v1.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="AccelerationFunction">
+
+      <EntityType Name="AccelerationFunction" BaseType="Resource.v1_0_0.Resource" Abstract="true">
+        <Annotation Term="OData.Description"
+                    String="The AccelerationFunction schema defines the accelerator implemented in a code programment into the FPGA devcie."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent the acceleration function (implemented in the FPGA) in a Redfish implementation."/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="Capabilities.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false"/>
+          </Record>
+        </Annotation>
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="AccelerationFunction.v1_0_0">
+
+      <EntityType Name="AccelerationFunction" BaseType="AccelerationFunction.AccelerationFunction">
+        <Property Name="Status" Type="Resource.Status"/>
+        <Property Name="UUID" Type="Resource.UUID">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The universal unique identifier (UUID) for this acceleration function."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be used to contain a universal unique identifier number for the acceleration function. RFC4122 describes methods that can be used to create the value. The value should be considered to be opaque. Client software should only treat the overall value as a universally unique identifier and should not interpret any sub-fields within the UUID."/>
+        </Property>
+        <Property Name="ReconfigurationSlots" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="An array of the reconfiguration slot identifiers."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be an array of the FPGA reconfiguration slots identifiers that that a code impelemting the acceelration function occupies."/>
+        </Property>
+        <Property Name="AccelerationFunctionType" Type="AccelerationFunction.v1_0_0.AccelerationFunctionType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The type of acceleration function."/>
+          <Annotation Term="OData.LongDescription" String="This property shall contain the string which identifies the type of acceleartion function."/>
+        </Property>
+        <Property Name="Manufacturer" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The acceleration function code manufacturer."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall contain a string decsribing the acceleration function code manufacturer."/>
+        </Property>
+        <Property Name="Version" Type="Edm.String" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The acceleration function code version."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall contain a string decsribing the acceleration function code version."/>
+        </Property>
+        <Property Name="PowerWatts" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The acceleration function power consumption."/>
+          <Annotation Term="OData.LongDescription" String="The total acceleration function power consumtion in watts."/>
+          <Annotation Term="Measures.Unit" String="W"/>
+        </Property>
+        <Property Name="Actions" Type="AccelerationFunction.v1_0_0.Actions" Nullable="false">
+          <Annotation Term="OData.Description" String="The available actions for this resource."/>
+          <Annotation Term="OData.LongDescription" String="The Actions property shall contain the available actions for this resource."/>
+        </Property>
+      </EntityType>
+
+      <ComplexType Name="Actions">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="OData.Description" String="The available actions for this resource."/>
+        <Annotation Term="OData.LongDescription" String="This type shall contain the available actions for this resource."/>
+        <Property Name="Oem" Type="AccelerationFunction.v1_0_0.OemActions" Nullable="false"/>
+      </ComplexType>
+
+      <ComplexType Name="OemActions">
+        <Annotation Term="OData.AdditionalProperties" Bool="true"/>
+        <Annotation Term="OData.Description" String="The available OEM specific actions for this resource."/>
+        <Annotation Term="OData.LongDescription" String="This type shall contain any additional OEM actions for this resource."/>
+      </ComplexType>
+
+      <TypeDefinition Name="AccelerationFunctionType" UnderlyingType="Edm.String">
+        <Annotation Term="Redfish.Enumeration">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Member" String="Encryption"/>
+              <Annotation Term="OData.Description" String="The Intel QuickPath Interconnect."/>
+            </Record>
+            <Record>
+              <PropertyValue Property="Member" String="Compression"/>
+              <Annotation Term="OData.Description" String="A compression function."/>
+            </Record>
+            <Record>
+              <PropertyValue Property="Member" String="PacketInspection"/>
+              <Annotation Term="OData.Description" String="A packet inspection function."/>
+            </Record>
+            <Record>
+              <PropertyValue Property="Member" String="PacketSwitch"/>
+              <Annotation Term="OData.Description" String="A packet switch function."/>
+            </Record>
+            <Record>
+              <PropertyValue Property="Member" String="Scheduler"/>
+              <Annotation Term="OData.Description" String="An scheduler function."/>
+            </Record>
+            <Record>
+              <PropertyValue Property="Member" String="AudioProcessing"/>
+              <Annotation Term="OData.Description" String="An audio processing function."/>
+            </Record>
+            <Record>
+              <PropertyValue Property="Member" String="VideoProcessing"/>
+              <Annotation Term="OData.Description" String="An video processing function."/>
+            </Record>
+            <Record>
+              <PropertyValue Property="Member" String="OEM"/>
+              <Annotation Term="OData.Description" String="An OEM-defined Processing Unit."/>
+            </Record>
+          </Collection>
+        </Annotation>
+      </TypeDefinition>
+
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

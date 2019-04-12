@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,6 +43,8 @@ class ComputeComponents : public generic::Singleton<ComputeComponents> {
 public:
 
     using MemoryManager = GenericManager<model::Memory>;
+    using MemoryDomainManager = GenericManager<model::MemoryDomain>;
+    using MemoryChunksManager = GenericManager<model::MemoryChunks>;
     using NetworkDeviceManager = GenericManager<model::NetworkDevice>;
     using NetworkDeviceFunctionsManager = GenericManager<model::NetworkDeviceFunction>;
     using StorageControllerManager = GenericManager<model::StorageController>;
@@ -58,6 +60,24 @@ public:
      * */
     MemoryManager& get_memory_manager() {
         return m_memory_manager;
+    }
+
+
+    /*!
+     * @brief Get memory domain manager
+     * @return Instance of memory domain manager
+     * */
+    MemoryDomainManager& get_memory_domain_manager() {
+        return m_memory_domain_manager;
+    }
+
+
+    /*!
+     * @brief Get memory chunks manager
+     * @return Instance of memory chunks manager
+     * */
+    MemoryChunksManager& get_memory_chunks_manager() {
+        return m_memory_chunks_manager;
     }
 
 
@@ -99,6 +119,8 @@ public:
 
 private:
     MemoryManager m_memory_manager{};
+    MemoryDomainManager m_memory_domain_manager{};
+    MemoryChunksManager m_memory_chunks_manager{};
     NetworkDeviceManager m_network_device_manager{};
     StorageControllerManager m_storage_controller_manager{};
     NetworkDeviceFunctionsManager m_network_device_functions_manager{};

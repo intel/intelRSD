@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,10 +25,7 @@ add_gtest(procedure_validator agent-framework
     procedure_validator_test.cpp
 )
 
-target_link_libraries(
-    ${test_target}
-    ${AGENT_FRAMEWORK_LIB}
-    ${SAFESTRING_LIBRARIES}
+target_link_libraries(${test_target}
+    agent-framework
     agent-mocks
-    ${JSONCXX_LIBRARIES}
 )

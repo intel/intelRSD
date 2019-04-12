@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 function(install_gnutls)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(gnutls 3.5.9 "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5/gnutls-3.5.9.tar.xz" "0ab25eb6a1509345dd085bc21a387951")
+    assure_package(gnutls 3.6.7 "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/gnutls-3.6.7.tar.xz" "c4ac669c500df939d4fbfea722367929")
 
     set(CONFIGURE_FLAGS)
 
@@ -37,8 +37,7 @@ function(install_gnutls)
 
     set(ENV{CFLAGS} "-m32")
     set(ENV{ABI} "32")
-    set(ENV{GMP_LIBS} "-L${CMAKE_BINARY_DIR}/lib -lgmp")
-    set(ENV{LDFLAGS} "-L${CMAKE_BINARY_DIR}/lib")
+    set(ENV{LDFLAGS} "-L${CMAKE_BINARY_DIR}/lib -Wl,-R/opt/psme/lib/ -lnettle -lgmp")
 
     set(ac_cv_va_copy_tmp $ENV{ac_cv_va_copy})
     set(ENV{ac_cv_va_copy} C99)
@@ -75,7 +74,6 @@ function(install_gnutls)
     file(INSTALL ${binary_dir}/lib/includes/gnutls/gnutls.h
         DESTINATION ${CMAKE_BINARY_DIR}/include/gnutls
     )
-
 endfunction()
 
 install_gnutls()

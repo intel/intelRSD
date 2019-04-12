@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,10 +36,10 @@ Collection::Collection() { }
 Collection::~Collection() { }
 
 json::Json Collection::to_json() const {
-    json::Json entry;
+    json::Json entry = json::Json();
     entry[literals::Collections::NAME] = get_name();
     entry[literals::Collections::TYPE] = get_type().to_string();
-    entry[literals::Collections::SLOT_MASK] = get_slot_mask();
+
     return entry;
 }
 
@@ -50,7 +50,6 @@ Collection Collection::from_json(const json::Json& json)
         json[literals::Collections::NAME]);
     entry.set_type(enums::CollectionType::from_string(
         json[literals::Collections::TYPE]));
-    entry.set_slot_mask(
-        json[literals::Collections::SLOT_MASK]);
+
     return entry;
 }

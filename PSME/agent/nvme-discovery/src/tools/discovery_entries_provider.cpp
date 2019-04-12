@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation
+ * @copyright Copyright (c) 2018-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file discovery_entries_provider.cpp
  */
 
@@ -27,7 +25,7 @@ using namespace ::agent_framework::module;
 
 namespace {
 
-Uuid get_initiator_uuid(const std::string host_subnqn) {
+Uuid get_initiator_uuid(const std::string& host_subnqn) {
     Uuid initiator_uuid{};
     const auto nqn = literals::Endpoint::NQN_FORMAT + host_subnqn;
     const auto initiator_endpoints = get_manager<Endpoint>().get_entries([&](const Endpoint & e) {

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ FruInfo::FruInfo() { }
 FruInfo::~FruInfo() { }
 
 json::Json FruInfo::to_json() const {
-    json::Json json;
+    json::Json json = json::Json();
     json[literals::FruInfo::MANUFACTURER] = get_manufacturer();
     json[literals::FruInfo::PART] = get_part_number();
     json[literals::FruInfo::SERIAL] = get_serial_number();

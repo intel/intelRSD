@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,15 +21,16 @@ project("PSME Compute" C CXX)
 
 
 set(AGENT_COMPUTE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(AGENT_COMPUTE_LIBRARIES
     -Wl,--whole-archive compute-commands -Wl,--no-whole-archive
+    agent-framework
+    utils
+    acpi
 )
 
 include_directories(
     ${COMMON_INCLUDE_DIRS}
-    ${JSON_INCLUDE_DIRS}
-    ${JSON_RPC_INCLUDE_DIRS}
-    ${JSONCXX_INCLUDE_DIRS}
     ${IPMI_INCLUDE_DIRS}
     ${CONFIGURATION_INCLUDE_DIRS}
     ${LOGGER_INCLUDE_DIRS}
@@ -38,6 +39,9 @@ include_directories(
     ${TELEMETRY_INCLUDE_DIRS}
     ${NETLINK_INCLUDE_DIRS}
     ${SMBIOS_INCLUDE_DIRS}
+    ${ACPI_INCLUDE_DIRS}
+    ${UTILS_INCLUDE_DIRS}
+    ${PMEM_INCLUDE_DIRS}
 
     ${NET_INCLUDE_DIRS}
     ${GENERIC_MDR_INCLUDE_DIRS}

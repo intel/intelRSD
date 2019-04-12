@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,9 +57,12 @@ public:
     static constexpr const char DELETE_TASK[] = "deleteTask";
     static constexpr const char ADD_ENDPOINT[] = "addEndpoint";
     static constexpr const char DELETE_ENDPOINT[] = "deleteEndpoint";
+    static constexpr const char DELETE_DRIVE[] = "deleteDrive";
 
     // compute commands
     static constexpr const char GET_MEMORY_INFO[] = "getMemoryInfo";
+    static constexpr const char GET_MEMORY_DOMAIN_INFO[] = "getMemoryDomainInfo";
+    static constexpr const char GET_MEMORY_CHUNKS_INFO[] = "getMemoryChunksInfo";
     static constexpr const char GET_NETWORK_INTERFACE_INFO[] = "getNetworkInterfaceInfo";
     static constexpr const char GET_NETWORK_DEVICE_INFO[] = "getNetworkDeviceInfo";
     static constexpr const char GET_NETWORK_DEVICE_FUNCTION_INFO[] = "getNetworkDeviceFunctionInfo";
@@ -80,9 +83,12 @@ public:
     // storage commands
     static constexpr const char GET_STORAGE_SERVICE_INFO[] = "getStorageServiceInfo";
     static constexpr const char GET_STORAGE_POOL_INFO[] = "getStoragePoolInfo";
+    static constexpr const char ADD_STORAGE_POOL[] = "addStoragePool";
+    static constexpr const char DELETE_STORAGE_POOL[] = "deleteStoragePool";
     static constexpr const char GET_VOLUME_INFO[] = "getVolumeInfo";
     static constexpr const char ADD_VOLUME[] = "addVolume";
     static constexpr const char DELETE_VOLUME[] = "deleteVolume";
+
 
     // network commands
     static constexpr const char GET_ETHERNET_SWITCH_INFO[] = "getEthernetSwitchInfo";

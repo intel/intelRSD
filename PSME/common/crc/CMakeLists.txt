@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,33 +19,17 @@
 cmake_minimum_required(VERSION 3.4)
 project("CRC" CXX)
 
-set(CRC_LIBRARIES
-    crc
-    ${ZLIB_LIBRARIES}
-    CACHE PATH "CRC libraries"
-    )
-
-set(CRC_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    CACHE PATH "CRC include directory"
-    )
-
-include_directories(SYSTEM
-    ${ZLIB_INCLUDE_DIRS}
-)
-
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
 add_library(crc STATIC
     src/crc32.cpp
 )
 
-install(TARGETS crc
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+target_include_directories(crc
+    SYSTEM PRIVATE ${ZLIB_INCLUDE_DIRS}
+    PUBLIC include
+)
+
+target_link_libraries(crc
+    PRIVATE ${ZLIB_LIBRARIES}
 )
 
 add_subdirectory(tests)

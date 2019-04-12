@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,22 +11,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file tests/path.cpp
  */
 
 #include "sysfs/path.hpp"
+#include "sysfs/construct_dev_path.hpp"
 
 #include "gtest/gtest.h"
+
+
 
 using namespace sysfs;
 
 namespace {
-    void check_flags(const Path& p, bool should_be_absolute, bool should_be_empty) {
-        EXPECT_EQ(should_be_absolute, p.is_absolute());
-        EXPECT_EQ(!should_be_absolute, p.is_relative());
-        EXPECT_EQ(should_be_empty, p.is_empty());
-    }
+void check_flags(const Path& p, bool should_be_absolute, bool should_be_empty) {
+    EXPECT_EQ(should_be_absolute, p.is_absolute());
+    EXPECT_EQ(!should_be_absolute, p.is_relative());
+    EXPECT_EQ(should_be_empty, p.is_empty());
+}
 }
 
 namespace testing {
@@ -40,6 +41,7 @@ TEST(PathTests, EmptyRelativePath) {
     EXPECT_EQ("", empty.dirname().to_string());
 }
 
+
 TEST(PathTests, EmptyAbsolutePath) {
     Path empty = Path::root();
     check_flags(empty, true, true);
@@ -47,6 +49,7 @@ TEST(PathTests, EmptyAbsolutePath) {
     EXPECT_EQ("", empty.basename());
     EXPECT_EQ("/", empty.dirname().to_string());
 }
+
 
 TEST(PathTests, RelativePathDeserialization) {
     Path path{};
@@ -88,6 +91,7 @@ TEST(PathTests, RelativePathDeserialization) {
     check_flags(path, false, false);
 }
 
+
 TEST(PathTests, AbsolutePathDeserialization) {
     Path path{};
 
@@ -128,6 +132,7 @@ TEST(PathTests, AbsolutePathDeserialization) {
     check_flags(path, true, false);
 }
 
+
 TEST(PathTests, ComplexPathsDeserialization) {
     Path path{};
 
@@ -153,6 +158,7 @@ TEST(PathTests, ComplexPathsDeserialization) {
     EXPECT_EQ(path.to_string(), "..");
     check_flags(path, false, false);
 }
+
 
 TEST(PathTests, RelativePathAppend) {
     Path p1{};
@@ -199,6 +205,7 @@ TEST(PathTests, RelativePathAppend) {
     Path p10{};
     EXPECT_THROW(p10 << "test" << absolute, std::logic_error);
 }
+
 
 TEST(PathTests, AbsolutePathAppend) {
     Path p1 = Path::root();
@@ -247,6 +254,7 @@ TEST(PathTests, AbsolutePathAppend) {
     check_flags(p10, true, false);
 }
 
+
 TEST(PathTests, PathPrepends) {
     Path p1{};
     p1.prepend("last").prepend("middle").prepend("first");
@@ -286,6 +294,7 @@ TEST(PathTests, PathPrepends) {
     EXPECT_THROW(p10.prepend(""), std::logic_error);
 }
 
+
 TEST(PathTests, AbsoluteTopAndPopRight) {
     Path path = Path::root();
     path << "this" << "is" << "a" << "test";
@@ -313,6 +322,7 @@ TEST(PathTests, AbsoluteTopAndPopRight) {
     EXPECT_EQ(path.basename(), "");
     EXPECT_TRUE(path.dirname() == Path("/"));
 }
+
 
 TEST(PathTests, AbsoluteTopAndPopLeft) {
     Path path = Path::root();
@@ -342,6 +352,7 @@ TEST(PathTests, AbsoluteTopAndPopLeft) {
     EXPECT_TRUE(path.dirname() == Path(""));
 }
 
+
 TEST(PathTests, RelativeTopAndPopRight) {
     Path path;
     path << "this" << "is" << "a" << "test";
@@ -369,6 +380,7 @@ TEST(PathTests, RelativeTopAndPopRight) {
     EXPECT_EQ(path.basename(), "");
     EXPECT_TRUE(path.dirname() == Path(""));
 }
+
 
 TEST(PathTests, RelativeTopAndPopLeft) {
     Path path{};
@@ -398,6 +410,7 @@ TEST(PathTests, RelativeTopAndPopLeft) {
     EXPECT_TRUE(path.dirname() == Path(""));
 }
 
+
 TEST(PathTests, RelativePathNormalization) {
     Path path;
     path << "test" << "path";
@@ -424,6 +437,7 @@ TEST(PathTests, RelativePathNormalization) {
     EXPECT_EQ(path.to_string(), "../..");
 }
 
+
 TEST(PathTests, PathSumsWithConstructors) {
     Path p{};
     p = Path("/test/path") / Path("some/more");
@@ -447,6 +461,7 @@ TEST(PathTests, PathSumsWithConstructors) {
     EXPECT_THROW(Path("test/path") / Path("/absolute"), std::logic_error);
     EXPECT_THROW(Path("/test/path") / Path("/absolute"), std::logic_error);
 }
+
 
 TEST(PathTests, PathSumsWithRightSideCasting) {
     Path p{};
@@ -472,6 +487,7 @@ TEST(PathTests, PathSumsWithRightSideCasting) {
     EXPECT_THROW(Path("/test/path") / "/absolute", std::logic_error);
 }
 
+
 TEST(PathTests, PathSumsWithLeftSideCasting) {
     Path p{};
     p = "/test/path" / Path("some/more");
@@ -496,6 +512,7 @@ TEST(PathTests, PathSumsWithLeftSideCasting) {
     EXPECT_THROW("/test/path" / Path("/absolute"), std::logic_error);
 }
 
+
 TEST(PathTests, PathCompares) {
     EXPECT_TRUE(Path("/test/path") == "/test/path");
     EXPECT_TRUE(Path("/test/path") == "/test/path/");
@@ -513,6 +530,7 @@ TEST(PathTests, PathCompares) {
     EXPECT_TRUE(Path("test/path") != "/test/../path");
     EXPECT_TRUE(Path("test/path") != "/teest/path");
 }
+
 
 TEST(PathTests, StartsWithTests) {
     // incompatible types
@@ -571,8 +589,9 @@ TEST(PathTests, StartsWithTests) {
 
 }
 
+
 TEST(PathTests, AtTests) {
-    // valid at calls
+    // valid "at" calls
     EXPECT_EQ(Path("/path/to/be/tested").at(0), "path");
     EXPECT_EQ(Path("/path/to/be/tested").at(1), "to");
     EXPECT_EQ(Path("/path/to/be/tested").at(2), "be");
@@ -589,8 +608,8 @@ TEST(PathTests, AtTests) {
     EXPECT_THROW(Path("../to/be/tested").at(4), std::out_of_range);
 }
 
+
 TEST(PathTests, SizeTests) {
-    // valid at calls
     EXPECT_EQ(Path("/").size(), 0);
     EXPECT_EQ(Path("").size(), 0);
     EXPECT_EQ(Path("/test").size(), 1);
@@ -599,6 +618,26 @@ TEST(PathTests, SizeTests) {
     EXPECT_EQ(Path("rather/long/path").size(), 3);
     EXPECT_EQ(Path(".././test//").size(), 2);
 
+}
+
+
+TEST(PathTests, PathVariadicConstructorTests) {
+    ASSERT_EQ(Path("/test", "path", "1234"), "/test/path/1234");
+    ASSERT_EQ(Path("/", "path", "1234"), "/path/1234");
+    ASSERT_EQ(Path("", "path", "1234"), "path/1234");
+    ASSERT_EQ(Path("/test", "path"), "/test/path");
+    ASSERT_EQ(Path("/test"), "/test");
+    ASSERT_EQ(Path("/test", "path1", "path2", "path3", "1234"), "/test/path1/path2/path3/1234");
+    ASSERT_EQ(Path("path", "1234"), "path/1234");
+    ASSERT_EQ(Path("/"), "/");
+    ASSERT_EQ(Path("/", ""), "/");
+    ASSERT_EQ(Path("/", "", "test"), "/test");
+}
+
+
+TEST(PathTests, ConstructDevPathTests) {
+    ASSERT_EQ(construct_dev_path("nvme1"), "/dev/nvme1");
+    ASSERT_EQ(construct_dev_path("vg1", "lv1"), "/dev/vg1/lv1");
 }
 
 }

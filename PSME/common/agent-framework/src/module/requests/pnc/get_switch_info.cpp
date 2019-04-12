@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ using namespace agent_framework::model::literals;
 GetSwitchInfo::GetSwitchInfo(const std::string& pcie_switch): m_switch{pcie_switch} {}
 
 json::Json GetSwitchInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Switch::SWITCH] = m_switch;
     return value;
 }

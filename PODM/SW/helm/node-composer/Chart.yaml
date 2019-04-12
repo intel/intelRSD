@@ -1,0 +1,4 @@
+apiVersion: v1
+description: node-composer
+name: node-composer
+version: 0.1.0

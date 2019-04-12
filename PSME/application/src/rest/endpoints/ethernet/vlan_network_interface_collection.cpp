@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,22 +39,22 @@ using namespace psme::rest::validators;
 using namespace psme::rest::endpoint;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#VLanNetworkInterfaceCollection.VLanNetworkInterfaceCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#VLanNetworkInterfaceCollection.VLanNetworkInterfaceCollection";
     r[Common::NAME] = "VLAN Network Interface Collection";
     r[Common::DESCRIPTION] = "Collection of VLAN Network Interfaces";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
 
 
-const json::Value validate_post_request(const server::Request& request) {
+const json::Json validate_post_request(const server::Request& request) {
     return JsonValidator::validate_request_body(request,
                                                 schema::VlanNetworkInterfaceCollectionPostSchema::get_procedure());
 }
@@ -74,15 +74,14 @@ void VlanNetworkInterfaceCollection::get(const server::Request& request, server:
     r[Common::ODATA_ID] = PathBuilder(request).build();
 
     auto port_uuid =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(request.params[PathParam::SWITCH_PORT_ID])
-            .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-            .get_uuid();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+            request.params).get_uuid();
 
     auto keys = agent_framework::module::NetworkComponents::get_instance()->get_port_vlan_manager().get_ids(port_uuid);
     r[Collection::ODATA_COUNT] = static_cast<std::uint32_t>(keys.size());
 
     for (const auto& key : keys) {
-        json::Value link_elem(json::Value::Type::OBJECT);
+        json::Json link_elem(json::Json::value_t::object);
         link_elem[Common::ODATA_ID] = PathBuilder(request).append(key).build();
         r[Collection::MEMBERS].push_back(std::move(link_elem));
     }
@@ -92,23 +91,24 @@ void VlanNetworkInterfaceCollection::get(const server::Request& request, server:
 
 
 void VlanNetworkInterfaceCollection::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostVlanNetworkInterfaceCollection";
+
     auto port =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(request.params[PathParam::SWITCH_PORT_ID])
-        .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-        .get();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+            request.params).get();
 
     std::string agent_id = port.get_agent_id();
     std::string port_id = port.get_uuid();
 
     const auto json = validate_post_request(request);
 
-    auto vlan_id = json[Vlan::VLAN_ID].as_uint();
-    bool tagged = json[Common::OEM][Common::RACKSCALE][Vlan::TAGGED].as_bool();
+    auto vlan_id = json[Vlan::VLAN_ID].get<std::uint32_t>();
+    bool tagged = json[Common::OEM][Common::RACKSCALE][Vlan::TAGGED].get<bool>();
     auto oem = agent_framework::model::attribute::Oem{};
 
     agent_framework::model::requests::AddPortVlan add_port_vlan_req{
         port.get_uuid(),
-        json.is_member(Common::NAME) ? json::Json(json[Common::NAME].as_string()) : json::Json{},
+        json.value(Common::NAME, OptionalField<std::string>()),
         vlan_id,
         tagged,
         oem
@@ -132,5 +132,5 @@ void VlanNetworkInterfaceCollection::post(const server::Request& request, server
 
         response.set_status(server::status_2XX::CREATED);
     };
-    gami_agent->execute_in_transaction(add_vlan);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, add_vlan);
 }

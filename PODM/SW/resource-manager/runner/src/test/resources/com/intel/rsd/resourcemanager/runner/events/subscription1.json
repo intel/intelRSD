@@ -1,0 +1,17 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#EventDestination.EventDestination",
+  "@odata.id": "/redfish/v1/EventService/Subscriptions/1",
+  "@odata.type": "#EventDestination.v1_0_0.EventDestination",
+  "Id": "1",
+  "Name": "",
+  "Destination": "",
+  "EventTypes": [
+    "StatusChange",
+    "ResourceUpdated",
+    "ResourceAdded",
+    "ResourceRemoved",
+    "Alert"
+  ],
+  "Context": "Podm Event Service",
+  "Protocol": "Redfish"
+}

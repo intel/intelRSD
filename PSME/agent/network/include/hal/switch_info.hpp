@@ -1,8 +1,7 @@
 /*!
  * @brief Switch Info class declaration.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file switch_info.hpp
  */
 
@@ -75,11 +73,6 @@ public:
      * @brief Reads information about switch from the HW.
      */
     virtual void read_switch_info() = 0;
-
-    /*!
-     * @brief Read switch port from the HW.
-     */
-    virtual void read_switch_port_list() = 0;
 
     /*!
      * @brief Formats MAC address in the form of XX:XX:XX:XX:XX:XX

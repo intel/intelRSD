@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,11 +48,14 @@ constexpr const char Command::GET_TASK_RESULT_INFO[];
 constexpr const char Command::GET_DRIVE_INFO[];
 constexpr const char Command::ADD_ENDPOINT[];
 constexpr const char Command::DELETE_ENDPOINT[];
+constexpr const char Command::DELETE_DRIVE[];
 
 constexpr const char Command::DELETE_TASK[];
 
 // compute commands
 constexpr const char Command::GET_MEMORY_INFO[];
+constexpr const char Command::GET_MEMORY_DOMAIN_INFO[];
+constexpr const char Command::GET_MEMORY_CHUNKS_INFO[];
 constexpr const char Command::GET_NETWORK_INTERFACE_INFO[];
 constexpr const char Command::GET_NETWORK_DEVICE_INFO[];
 constexpr const char Command::GET_NETWORK_DEVICE_FUNCTION_INFO[];
@@ -74,6 +77,8 @@ constexpr const char Command::GET_CHASSIS_SENSOR_INFO[];
 // storage commands
 constexpr const char Command::GET_STORAGE_SERVICE_INFO[];
 constexpr const char Command::GET_STORAGE_POOL_INFO[];
+constexpr const char Command::ADD_STORAGE_POOL[];
+constexpr const char Command::DELETE_STORAGE_POOL[];
 constexpr const char Command::GET_VOLUME_INFO[];
 constexpr const char Command::ADD_VOLUME[];
 constexpr const char Command::DELETE_VOLUME[];

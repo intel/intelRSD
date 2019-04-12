@@ -4,8 +4,7 @@
  * Database entries are stored in the form of files, file name is "transcoded"
  * from the key, value is stored in the content.
  *
- * @header{License}
- * @copyright Copyright (c) 2016-2018 Intel Corporation
+ * @copyright Copyright (c) 2016-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -17,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file file_database.hpp
  */
 

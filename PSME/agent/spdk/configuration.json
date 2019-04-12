@@ -1,0 +1,42 @@
+{
+    "service": "spdk-nvme",
+    "agent": {
+        "vendor": "Intel Corporation",
+        "capabilities": [ "NVMe" ]
+    },
+    "server": {
+        "port": 7784
+    },
+    "registration": {
+        "ipv4": "localhost",
+        "port": 8383,
+        "interval": 3
+    },
+    "managers": [
+        {
+            "nic-drivers": [ "e1000", "ixgbe", "i40e", "mlx5_core", "mlx4_core" ],
+            "spdk-socket": "/var/tmp/spdk.sock",
+            "spdk-polling-interval-sec": 300,
+            "service-port": 4420
+        }
+    ],
+    "database": {
+        "location": "/var/opt/psme/spdk-nvme"
+    },
+    "loggers": [
+        {
+            "name": "spdk-agent",
+            "level": "INFO",
+            "timeformat": "DATE_NS",
+            "color": true,
+            "output": true,
+            "tagging": true,
+            "moredebug": false,
+            "streams": [
+                {
+                    "type": "STDOUT"
+                }
+            ]
+        }
+    ]
+}

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ Ipv6Address::Ipv6Address() { }
 Ipv6Address::~Ipv6Address() { }
 
 json::Json Ipv6Address::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     if (get_address()) {
         result[literals::Ipv6Address::ADDRESS] = get_address();
         result[literals::Ipv6Address::PREFIX_LENGTH] = get_prefix_length();

@@ -1,0 +1,58 @@
+{
+    "service": "fpgaof",
+    "agent": {
+        "vendor": "Intel Corporation",
+        "capabilities": [ "FPGA-oF" ]
+    },
+    "server": {
+        "port": 7785
+    },
+    "registration": {
+        "ipv4": "localhost",
+        "port": 8383,
+        "interval": 3
+    },
+    "managers": [
+        {
+            "ipv4": "127.0.0.1",
+            "locationOffset": 10,
+            "parentId": "1",
+            "nic-drivers": ["ixgbe", "i40e", "mlx5_core", "mlx4_core"],
+            "rdma-port": 4420
+        }
+    ],
+    "database": {
+        "location": "/var/opt/psme/fpgaof"
+    },
+    "opae-proxy": {
+        "transports": [
+            {
+                "protocol": "TCP",
+                "ipv4": "127.0.0.1",
+                "port": 8447
+            },
+            {
+                "protocol": "RDMA",
+                "ipv4": "127.0.0.1",
+                "port": 8448
+            }
+        ],
+        "secureEraseGBS" : "/etc/opae/default_afu.gbs"
+    },
+    "loggers": [
+        {
+            "name": "fpgaof-agent",
+            "level": "INFO",
+            "timeformat": "DATE_NS",
+            "color": true,
+            "output": true,
+            "tagging": true,
+            "moredebug": false,
+            "streams": [
+                {
+                    "type": "STDOUT"
+                }
+            ]
+        }
+    ]
+}

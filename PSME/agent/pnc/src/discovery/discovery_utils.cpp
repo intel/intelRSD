@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +26,16 @@
  * */
 
 #include "discovery/discovery_utils.hpp"
+#include "agent-framework/module/model/endpoint.hpp"
+#include "agent-framework/module/model/zone.hpp"
+#include "tools/database_keys.hpp"
+#include "agent-framework/database/database_entities.hpp"
+#include "agent-framework/module/managers/utils/manager_utils.hpp"
 
 using namespace agent::pnc::gas;
-using namespace agent_framework::model;
 using namespace agent::pnc::nvme;
+using namespace agent_framework::model;
+using namespace agent_framework::module;
 
 namespace agent {
 namespace pnc {
@@ -190,6 +196,35 @@ enums::ChassisType fru_chassis_type_to_model_chassis_type(fru_eeprom::parser::Sy
             return enums::ChassisType::Other;
     }
 }
+
+void update_endpoint_zone_binding_from_db(const std::vector<Uuid>& zones_uuids,
+                                          const Uuid& endpoint_uuid) {
+
+    for (const auto& zone_uuid : zones_uuids) {
+
+        if (!get_manager<Zone>().entry_exists(zone_uuid)) {
+
+            log_error("pnc-discovery", "No zone found in manager with given UUID '" + zone_uuid + "'");
+            return;
+        }
+
+        agent_framework::database::ZoneEntity db{zone_uuid};
+
+        auto endpoints_uuids{db.get_multiple_values(agent::pnc::tools::db_keys::ENDPOINTS)};
+
+        auto it = std::find(endpoints_uuids.begin(), endpoints_uuids.end(), endpoint_uuid);
+
+        if (it != endpoints_uuids.end()) {
+
+            log_debug("pnc-discovery", "Added db endpoint: " + *it + " to zone: " + zone_uuid);
+
+            get_m2m_manager<Zone, Endpoint>().add_entry(zone_uuid, *it);
+
+            break;
+        }
+    }
+}
+
 }
 }
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,7 +38,10 @@ DIR_CTS_CONFIG="${DIR_CTS}configuration/"
 DIR_CTS_DB="${DIR_CTS}db/"
 DIR_CTS_TESTS="${DIR_CTS}tests/"
 DIR_CTS_TESTS_DATA="${DIR_CTS}tests_data/"
+DIR_CTS_PERFORMANCE_DATA="${DIR_CTS}performance_data/"
 DIR_CTS_METADATA="${DIR_CTS}metadata/"
+DIR_CTS_SCENARIO="${DIR_CTS}scenario/"
+
 
 CONFIG_INI="configuration.ini"
 MAN_DIR="/usr/share/man/man1"
@@ -53,13 +56,21 @@ DIR_OPT_CTS_TESTS="/opt/cts/tests/"
 # logs goes here
 DIR_VAR_LOG_CTS="/var/log/cts/"
 
-DIR_ARRAY=("$DIR_OPT_CTS_TESTS" "$DIR_VAR_LOG_CTS" "$DIR_CTS_CONFIG" "$DIR_CTS_DB" "$DIR_CTS_TESTS" "$DIR_CTS_TESTS_DATA" "$DIR_CTS_METADATA")
+DIR_ARRAY=("$DIR_OPT_CTS_TESTS" "$DIR_VAR_LOG_CTS" "$DIR_CTS_CONFIG" "$DIR_CTS_DB" "$DIR_CTS_TESTS" "$DIR_CTS_TESTS_DATA" "$DIR_CTS_METADATA" "$DIR_CTS_SCENARIO" "$DIR_CTS_PERFORMANCE_DATA")
 DIR_ARRAY_LEN=${#DIR_ARRAY[@]}
 
-DIR_ARRAY_WO_DB=("$DIR_CTS_TESTS" "$DIR_CTS_TESTS_DATA" "$DIR_CTS_METADATA")
+DIR_ARRAY_WO_DB=("$DIR_CTS_TESTS" "$DIR_CTS_METADATA")
 DIR_ARRAY_WO_DB_LEN=${#DIR_ARRAY_WO_DB}
 
+if pip -V | cut -d ' ' -f 4 | grep -q "/usr/lib/python2.7/dist-packages"; then
+    PIP_VERSION="pip"
+else
+    PIP_VERSION="pip2"
+fi
+
+
 STATUS=0
+PROXY=""
 
 function show_cts_logo {
     echo "             ____ _____ ____              "
@@ -73,7 +84,7 @@ function show_cts_logo {
     echo "    | || | | \__ \ || (_| | | |  __/ |    "
     echo "   |___|_| |_|___/\__\__,_|_|_|\___|_|    "
     echo ""
-    echo "    Rack Scale Design by Intel (R) 2017   "
+    echo "    Rack Scale Design by Intel (R) 2019   "
     echo ""
 }
 
@@ -107,6 +118,8 @@ function show_menu {
     echo " 4) Install CTS manpage"
     echo " 6) Upgrade CTS"
     echo " 8) Repair ownership"
+    echo " 9) Set proxy for current installation"
+    echo " 0) Install/Upgrade OS dependencies (Ubuntu only)"
     echo ""
     echo "TROUBLESHOOTING:"
     echo " U) Uninstall CTS"
@@ -126,6 +139,8 @@ function show_available_arguments {
     echo "   4|-m|--manpage)          Install CTS manpage"
     echo "   6|-u|--upgrade)          Upgrade CTS"
     echo "   8|-r|--repair)           Repair ownership"
+    echo "   9|-P|--proxy)            Set proxy for current installation"
+    echo "   0|-S|--system)           Install/Upgrade OS dependencies (Ubuntu only)"
     echo "   U|-U|--Uninstall)        Uninstall CTS"
     echo "   W|-W|--WipeAllData       WIPE ALL YOUR DATA and uninstall CTS"
     echo ""
@@ -135,30 +150,32 @@ function show_available_arguments {
     echo ""
 }
 
-function check_web_connection {
-    ADDR="http://google.com"
-    wget -q --spider -T 10 -t 3 $ADDR
-    if [ $? -eq 0 ] ; then
-        return 0
-    else
-        return 1
-    fi
-}
 
 function install_apt_get_updates {
-    check_web_connection
-    if [ $? -eq 0 ] ; then
-        apt-get -y update > /dev/null 2>&1
-        apt-get -y install $SYS_DEPENDENCIES > /dev/null 2>&1
+    apt-get -y update > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Problem with apt-get update, check your internet connection"
+        exiting
+    fi
+    apt-get -y install $SYS_DEPENDENCIES > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Problem with apt-get update, check your internet connection"
+        exiting
+    fi
+
+}
+
+function set_proxy {
+    read -p "    Please enter proxy to use: " proxy
+    echo ""
+    if [ ! -z "$proxy" ]; then
+         PROXY="--proxy ${proxy}"
     fi
 }
 
 function install_pip_dependencies {
-    check_web_connection
-    if [ $? -eq 0 ] ; then
-        sudo -H pip install --log "$PIP_LOGS" -r utils/requirements.txt > /dev/null 2>&1
-        sudo -H pip install --log "$PIP_LOGS" -r utils/requirements-no-deps.txt --no-deps > /dev/null 2>&1
-    fi
+    sudo -H ${PIP_VERSION} --default-timeout=5 --retries 0 install ${PROXY} --log "$PIP_LOGS" -r utils/requirements.txt > /dev/null
+    sudo -H ${PIP_VERSION} --default-timeout=5 --retries 0 install  ${PROXY} --log "$PIP_LOGS" -r utils/requirements-no-deps.txt --no-deps > /dev/null
 }
 
 function install_autocompletion_for_bash {
@@ -237,6 +254,8 @@ function change_ownership_for_sudo_user {
 function repair_ownership {
     read -p "    Please enter username for executing CTS: " username
     echo ""
+    create_needed_dirs
+    copy_tests
     chown -R ${username} ${DIR_CTS}*
     for (( i=0; i<${DIR_ARRAY_LEN}; i++ ));
     do
@@ -258,7 +277,18 @@ function cts_upgrade {
     fi
     cd ..
 
-    pip install --log "$PIP_LOGS" CTS* > /dev/null 2>&1
+    PREVIOUS_VERSION="$(${PIP_VERSION} freeze | grep CTS | sed 's/.*=//')"
+    NEW_VERSION="$(find . -name CTS* | cut -d "-" -f2)"
+
+
+    if [[ "$(printf "${PREVIOUS_VERSION}\n${NEW_VERSION}" | sort -V | head -n1)" == "${NEW_VERSION}" ]]; then
+        echo "Installed version is ${PREVIOUS_VERSION}, while version to install is ${NEW_VERSION}. Nothing to update, exiting..."
+        exit 1
+    elif [[ "${PREVIOUS_VERSION}" != "" ]]; then
+        echo "Installed version is ${PREVIOUS_VERSION}, while version to install is ${NEW_VERSION}. Begginging update."
+    fi
+
+    ${PIP_VERSION} install --log "$PIP_LOGS" CTS* > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
         STATUS=1
     fi
@@ -273,7 +303,7 @@ function cts_uninstall {
     echo "    CTS will be uninstalled"
     read -n 1 -p "    Are you sure? (y/n)" option
     if [ $option == "y" ] ; then
-        sudo -H pip uninstall --log "$PIP_LOGS" cts -y
+        sudo -H ${PIP_VERSION} uninstall --log "$PIP_LOGS" cts -y
         rm "$MAN_TARGET_FILE.gz" 2> /dev/null
     elif [ $option == "n" ] ; then
         echo "    Okay, CTS will not be uninstalled"
@@ -286,7 +316,7 @@ function cts_wipe_all {
     echo "    All data will be WIPED OUT"
     read -n 1 -p "    Are you sure? (y/n)" option
     if [ $option == "y" ] ; then
-        sudo -H pip uninstall --log "$PIP_LOGS" cts -y
+        sudo -H ${PIP_VERSION} uninstall --log "$PIP_LOGS" cts -y
         remove_ALL_folders
     elif [ $option == "n" ] ; then
         echo "    Okay, data will NOT wiped out"
@@ -297,7 +327,7 @@ function cts_wipe_all {
 
 function cts_wipe_all_wo_prompt {
     echo "    All data will be WIPED OUT"
-    sudo -H pip uninstall --log "$PIP_LOGS" cts -y
+    sudo -H ${PIP_VERSION} uninstall --log "$PIP_LOGS" cts -y
     remove_ALL_folders
 }
 
@@ -324,15 +354,10 @@ function cts_test_run {
 function clean_cts_install {
     status=0
     echo -ne "Working: __________ (0%)\r"
-    # install system update
-    install_apt_get_updates
-    if [ $? != 0 ] ; then
-        STATUS=1
-    fi
 
     # install all PIP dependencies
-    install_pip_dependencies
     echo -ne "Working: #_________ (12%)\r"
+    install_pip_dependencies
     if [ $? != 0 ] ; then
         STATUS=1
     fi
@@ -439,6 +464,16 @@ main_menu () {
         repair_ownership
         exit ;;
 
+    9|-P|--proxy)
+        set_proxy
+        show_menu
+        exit;;
+
+    0|-S|--system)
+        echo "  Install/Upgrade OS dependencies (Ubuntu only)"
+        install_apt_get_updates
+        exit;;
+
     U|-U|--Uninstall)
         echo "  Uninstall CTS"
         cts_uninstall
@@ -455,7 +490,7 @@ main_menu () {
 
     --FactoryUninstall)
         echo "**** Factory Uninstall CTS ****"
-        sudo -H pip uninstall --log "$PIP_LOGS" cts -y
+        sudo -H ${PIP_VERSION} uninstall --log "$PIP_LOGS" cts -y
         rm "$MAN_TARGET_FILE.gz" 2> /dev/null
         remove_ALL_folders
         exit;;

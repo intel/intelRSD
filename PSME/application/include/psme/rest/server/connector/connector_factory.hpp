@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,12 @@
  * @brief Declaration of connector factory interface for REST server.
  * */
 #pragma once
+
+
+
 #include "connector.hpp"
+
+
 
 namespace psme {
 namespace rest {
@@ -38,6 +43,7 @@ class ConnectorFactory {
 public:
     /*! @brief Destructor */
     virtual ~ConnectorFactory();
+
 
     /*!
      * @brief Creates new Connector instance.

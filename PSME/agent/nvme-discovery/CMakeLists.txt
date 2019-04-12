@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,33 +24,34 @@ if (CMAKE_CROSSCOMPILING OR "${CMAKE_TARGET_ARCH}" STREQUAL "32")
   return()
 endif()
 
+add_executable(psme-nvme-discovery "")
 
-include_directories(
-    ${LOGGER_INCLUDE_DIRS}
-    ${DATABASE_INCLUDE_DIRS}
-    ${NVMFPP_INCLUDE_DIRS}
+target_include_directories(psme-nvme-discovery
+    SYSTEM PRIVATE
+    ${NL3_INCLUDE_DIRS}
+
+    PRIVATE
     ${JSON_INCLUDE_DIRS}
     ${JSON_RPC_INCLUDE_DIRS}
-    ${JSONCXX_INCLUDE_DIRS}
     ${AGENT_FRAMEWORK_INCLUDE_DIRS}
     ${CONFIGURATION_INCLUDE_DIRS}
-    ${COMMON_INCLUDE_DIRS}
-    ${NETLINK_INCLUDE_DIRS}
-    ${NVME_INCLUDE_DIRS}
-    ${PARTITION_INCLUDE_DIRS}
-    ${SYSFSREF_INCLUDE_DIRS}
-    ${DATABASE_INCLUDE_DIRS}
-    ${NVME_TARGET_INCLUDE_DIRS}
-    ${NVMF_DISCOVERY_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-include_directories(SYSTEM
-    ${SAFESTRING_INCLUDE_DIRS}
-    ${UUID_INCLUDE_DIRS}
-    ${NL3_INCLUDE_DIRS}
-    ${FABRIC_INCLUDE_DIRS}
+add_subdirectory(src)
+
+target_link_libraries(psme-nvme-discovery
+    PRIVATE
+    nvmf-discovery
+    agent-framework
+    uuid
+    logger
+    configuration
+    ${SAFESTRING_LIBRARIES}
+    pthread
+    ${MICROHTTPD_LIBRARIES}
+    ${CURL_LIBRARIES}
+    md5
 )
 
-add_subdirectory(src)
 add_subdirectory(tests)

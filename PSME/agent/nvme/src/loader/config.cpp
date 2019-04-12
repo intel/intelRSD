@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of NvmeConfig class.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file config.cpp
  */
 
@@ -63,16 +61,6 @@ void NvmeConfig::set_parent_id(const string& parent_id) {
 string NvmeConfig::get_parent_id() {
     lock_guard<mutex> lock{m_mutex};
     return m_parent_id;
-}
-
-void NvmeConfig::set_is_target(bool is_target) {
-    lock_guard<mutex> lock{m_mutex};
-    m_is_target = is_target;
-}
-
-bool NvmeConfig::get_is_target() {
-    lock_guard<mutex> lock{m_mutex};
-    return m_is_target;
 }
 
 void NvmeConfig::set_rdma_port(uint32_t rdma_port) {

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +82,8 @@ ENUM(MemoryType, uint32_t,
      DRAM,
      NVDIMM_N,
      NVDIMM_F,
-     NVDIMM_P
+     NVDIMM_P,
+     IntelOptane
 );
 
 /*!
@@ -129,6 +130,27 @@ ENUM(MemoryMode, uint32_t,
 );
 
 /*!
+ * @brief ENUM AddressRangeType for MemoryChunks class member
+ */
+ENUM(AddressRangeType, uint32_t,
+     Volatile,
+     PMEM,
+     Block
+);
+
+/*!
+ * @brief ENUM SecurityStates for Memory/SecurityCapablities class member
+ */
+ENUM(SecurityStates, uint32_t,
+     Enabled,
+     Disabled,
+     Unlocked,
+     Locked,
+     Frozen,
+     Passphraselimit
+);
+
+/*!
  * @brief ENUM IPAddressType for NetworkDeviceFunction class member
  */
 ENUM(IPAddressType, uint32_t, IPv4, IPv6);
@@ -149,6 +171,11 @@ ENUM(MemoryModuleType, uint32_t, RDIMM, UDIMM, SO_DIMM, LRDIMM, Mini_RDIMM, Mini
  * @brief ENUM HostingRole Features that the hosting ComputerSystem supports.
  */
 ENUM(HostingRole, uint32_t, ApplicationServer, StorageServer, Switch);
+
+/*!
+ * @brief ENUM PerformanceConfiguration Type
+ */
+ENUM(PerformanceConfigurationType, uint32_t, StaticSpeedSelect, PrioritizedBaseFrequency);
 
 }
 }

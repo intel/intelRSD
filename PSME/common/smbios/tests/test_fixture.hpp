@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -321,9 +321,9 @@ static const uint8_t smbios[] = {
         0x55,                   // uint8_t fpga_pcie_device_identifier;
         0x21,                   // uint8_t fpga_pcie_function_identifier;
         0x02, 0x32, 0x61, 0x12, // uint32_t thermal_design_power;
-        0x02,                   // OnPackageMemoryTechnology memory_technology;
-        0x01, 0x55, 0x47, 0x38, // uint32_t on_package_memory_capacity;
-        0x42, 0x63,             // uint16_t on_package_memory_speed;
+        0x02,                   // IntegratedMemoryTechnology memory_technology;
+        0x01, 0x55, 0x47, 0x38, // uint32_t integrated_memory_capacity;
+        0x42, 0x63,             // uint16_t integrated_memory_speed;
         'A', 'B', 0x00,         // "AB"
         'C', 'D', 0x00,         // "CD"
         'E', 'F', 'F', 0x00,    // "EFF"
@@ -433,9 +433,9 @@ static const uint8_t smbios[] = {
         0x55,                   // uint8_t fpga_pcie_device_identifier;
         0x21,                   // uint8_t fpga_pcie_function_identifier;
         0x02, 0x32, 0x61, 0x12, // uint32_t thermal_design_power;
-        0x02,                   // OnPackageMemoryTechnology memory_technology;
-        0x01, 0x55, 0x47, 0x38, // uint32_t on_package_memory_capacity;
-        0x42, 0x63,             // uint16_t on_package_memory_speed;
+        0x02,                   // IntegratedMemoryTechnology memory_technology;
+        0x01, 0x55, 0x47, 0x38, // uint32_t integrated_memory_capacity;
+        0x42, 0x63,             // uint16_t integrated_memory_speed;
         'A', 'B', 0x00,         // "AB"
         'C', 'D', 0x00,         // "CD"
         'E', 'F', 'F', 0x00,    // "EFF"
@@ -492,6 +492,139 @@ static const uint8_t smbios3_0[] = {
     0x00, 0x00,
 
     0x00
+};
+
+static const uint8_t smbios_v3_with_zero_speed_select_configs[] = {
+    // 64 bit entry point
+    0x5f, 0x53, 0x4d, 0x33, 0x5f,   // anchor string "_SM3_"
+    0x2f,                           // checksum
+    0x18,                           // length
+    0x03,                           // major version
+    0x00,                           // minor version
+    0x00,                           // smbios docrev
+    0x01,                           // entry point revision
+    0x00,                           // reserved
+    0x0c, 0x00, 0x00, 0x00,         // structure table max size
+    0x18, 0x00, 0x00, 0x00,         // struct table address: start at 24
+    0x00, 0x00, 0x00, 0x00,
+
+    // SMBIOS_SPEED_SELECT_INFO_DATA @201
+    210, // ISS config
+    16, // length: 16 for config
+    1, 0, // handle
+    0, //uint8_t socket_number;
+    1, //uint8_t structure_version;
+    0, //uint8_t number_of_configs;
+    0, //uint8_t current_config;
+    0, 0, 0, 0, 0, 0, 0, 0 //uint8_t reserved[8];
+};
+
+
+static const uint8_t smbios_v3_with_one_speed_select_config[] = {
+    // 64 bit entry point
+    0x5f, 0x53, 0x4d, 0x33, 0x5f,   // anchor string "_SM3_"
+    0x2f,                           // checksum
+    0x18,                           // length
+    0x03,                           // major version
+    0x00,                           // minor version
+    0x00,                           // smbios docrev
+    0x01,                           // entry point revision
+    0x00,                           // reserved
+    0x0c, 0x00, 0x00, 0x00,         // structure table max size
+    0x18, 0x00, 0x00, 0x00,         // struct table address: start at 24
+    0x00, 0x00, 0x00, 0x00,
+
+    // SMBIOS_SPEED_SELECT_INFO_DATA @201
+    210, // ISS config
+    48, // length: 16 + 32 for config
+    1, 0, // handle
+    0, //uint8_t socket_number;
+    1, //uint8_t structure_version;
+    1, //uint8_t number_of_configs;
+    0, //uint8_t current_config;
+    0, 0, 0, 0, 0, 0, 0, 0, //uint8_t reserved[8];
+
+    // configuration #0
+    0, //uint8_t configuration_number;
+    0, 0, 0, //uint8_t reserved[3];
+    18, //uint8_t high_priority_core_count;
+    16, //uint8_t high_priority_base_frequency; 1600MHz
+    0, //uint8_t low_priority_core_count;
+    0, //uint8_t low_priority_base_frequency;
+    150, 0, //uint16_t max_tdp;
+    105, //uint8_t max_junction_temperature;
+    1, //uint8_t high_priority_code_apic_ids;
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //uint8_t reserved[20];
+    // string: APIC IDS
+    'T', 'B', 'D', 0x00,
+    0x00, 0x00 // two zeros mark end of strings
+};
+
+static const uint8_t smbios_v3_with_three_speed_select_configs[] = {
+    // 64 bit entry point
+    0x5f, 0x53, 0x4d, 0x33, 0x5f,   // anchor string "_SM3_"
+    0x2f,                           // checksum
+    0x18,                           // length
+    0x03,                           // major version
+    0x00,                           // minor version
+    0x00,                           // smbios docrev
+    0x01,                           // entry point revision
+    0x00,                           // reserved
+    0x0c, 0x00, 0x00, 0x00,         // structure table max size
+    0x18, 0x00, 0x00, 0x00,         // struct table address: start at 24
+    0x00, 0x00, 0x00, 0x00,
+
+    // SMBIOS_SPEED_SELECT_INFO_DATA @201
+    210, // ISS config
+    112, // length: 16 + 3x32 for config
+    1, 0, // handle
+    0, //uint8_t socket_number;
+    1, //uint8_t structure_version;
+    3, //uint8_t number_of_configs;
+    0, //uint8_t current_config;
+    0, 0, 0, 0, 0, 0, 0, 0, //uint8_t reserved[8];
+
+    // configuration #0
+    0, //uint8_t configuration_number;
+    0, 0, 0, //uint8_t reserved[3];
+    18, //uint8_t high_priority_core_count;
+    16, //uint8_t high_priority_base_frequency; 1600MHz
+    0, //uint8_t low_priority_core_count;
+    0, //uint8_t low_priority_base_frequency;
+    150, 0, //uint16_t max_tdp;
+    105, //uint8_t max_junction_temperature;
+    1, //uint8_t high_priority_code_apic_ids;
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //uint8_t reserved[20];
+
+    // configuration #1
+    1, //uint8_t configuration_number;
+    0, 0, 0, //uint8_t reserved[3];
+    14, //uint8_t high_priority_core_count;
+    28, //uint8_t high_priority_base_frequency; 2800MHz
+    0, //uint8_t low_priority_core_count;
+    0, //uint8_t low_priority_base_frequency;
+    150, 0, //uint16_t max_tdp;
+    105, //uint8_t max_junction_temperature;
+    2, //uint8_t high_priority_code_apic_ids;
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //uint8_t reserved[20];
+
+    // configuration #2
+    2, //uint8_t configuration_number;
+    0, 0, 0, //uint8_t reserved[3];
+    4, //uint8_t high_priority_core_count;
+    26, //uint8_t high_priority_base_frequency; 1600MHz
+    14, //uint8_t low_priority_core_count;
+    18, //uint8_t low_priority_base_frequency; 1800MHz
+    150, 0, //uint16_t max_tdp;
+    105, //uint8_t max_junction_temperature;
+    3, //uint8_t high_priority_code_apic_ids;
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //uint8_t reserved[20];
+
+    // strings: APIC IDS
+    'T', 'B', 'D', '0', 0x00,
+    'T', 'B', 'D', '1', 0x00,
+    'T', 'B', 'D', '2', 0x00,
+    0x00, 0x00 // two zeros mark end of strings
 };
 
 }

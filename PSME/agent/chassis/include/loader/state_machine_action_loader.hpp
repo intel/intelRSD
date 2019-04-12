@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ public:
         DEFAULT = OPENIPMI,
     };
 
-    virtual bool load(const json::Value&);
+    virtual bool load(const json::Json&);
 
     /*!
      * @brief Returns built StateMachineAction.
@@ -50,7 +50,7 @@ public:
      * Before use of this function you need to load configuration. Otherwise
      * this function will throw exception.
      *
-     * @see load(const json::Value&);
+     * @see load(const json::Json&);
      * @throw runtime_error if configuration has not been loaded.
      * @return unique pointer to StateMachineAction object with filled data.
      */

@@ -1,7 +1,7 @@
 /*!
  * @brief Generic SMBIOS style entry point interface.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file generic_entry_point.hpp
  */
 
@@ -31,12 +30,6 @@ public:
 
     /*! Destructor */
     virtual ~GenericEntryPoint();
-
-    /*!
-     * @brief Get struct table address
-     * @return return offset of start of struct table within the MDR region
-     */
-    virtual std::uint64_t get_struct_table_address() const = 0;
 
     /*!
      * @brief Get major version
@@ -61,6 +54,50 @@ public:
      * @return entry point structure revision
      */
     virtual std::uint8_t get_revision() const = 0;
+
+    /*!
+     * @brief Get structure length in MDR
+     * @return structure length in bytes
+     */
+    virtual std::uint32_t get_length() const = 0;
+
+    /*!
+     * @brief Return data structure offset for table with given signature
+     * @param signature string signature of a table for which data offset is returned
+     * @return start offset of data struct within the MDR region if table exists, 0 otherwise
+     */
+    virtual std::uint64_t get_table_data_offset(const std::string& signature) const = 0;
+
+    /*!
+     * @brief Return data structure end offset for table with given signature
+     * @param signature string signature of a table for which data offset is returned
+     * @return end offset of data struct within the MDR region if table exists, 0 otherwise
+     */
+    virtual std::uint64_t get_table_data_end_offset(const std::string& signature) const = 0;
+
+    /*!
+     * @brief Get data struct offset within table
+     * @return start offset of data struct within the MDR region
+     */
+    virtual std::uint64_t get_struct_table_address() const = 0;
+
+    /*!
+     * @brief Set data struct offset within table
+     * @param offset uint64_t start offset of data struct within the MDR region
+     */
+    virtual void set_struct_table_address(std::uint64_t offset) = 0;
+
+    /*!
+     * @brief Get data struct end offset within table
+     * @return end offset of data struct within the MDR region
+     */
+    virtual std::uint64_t get_struct_table_end_address() const = 0;
+
+    /*!
+     * @brief Set data struct end offset within table
+     * @param offset uint64_t end offset of data struct within the MDR region
+     */
+    virtual void set_struct_table_end_address(std::uint64_t offset) = 0;
 };
 
 }  // namespace mdr

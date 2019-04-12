@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,16 +32,16 @@ using namespace psme::rest::endpoint;
 using namespace psme::rest::constants;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetInterfaceCollection.EthernetInterfaceCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetInterfaceCollection.EthernetInterfaceCollection";
     r[Common::NAME] = "Ethernet Network Interface Collection";
     r[Common::DESCRIPTION] = "Collection of Manager Ethernet Interfaces";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -59,7 +59,7 @@ void ManagerNetworkInterfaceCollection::get(const server::Request& request, serv
 
     json[Common::ODATA_ID] = PathBuilder(request).build();
 
-    auto manager = psme::rest::model::Find<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID]).get();
+    auto manager = psme::rest::model::find<agent_framework::model::Manager>(request.params).get();
     auto nic_ids = agent_framework::module::get_manager<agent_framework::model::NetworkInterface>()
         .get_ids(manager.get_uuid());
 
@@ -68,7 +68,7 @@ void ManagerNetworkInterfaceCollection::get(const server::Request& request, serv
         json[Collection::ODATA_COUNT] = nic_ids.size();
 
         for (const auto& nic_id : nic_ids) {
-            json::Value link(json::Value::Type::OBJECT);
+            json::Json link(json::Json::value_t::object);
             link[Common::ODATA_ID] = PathBuilder(request).append(nic_id).build();
             json[Collection::MEMBERS].push_back(std::move(link));
         }
@@ -76,11 +76,13 @@ void ManagerNetworkInterfaceCollection::get(const server::Request& request, serv
     else {
         if (psme::rest::endpoint::utils::is_manager_for_drawer_or_enclosure(manager.get_uuid()) ||
             manager.get_manager_type() == agent_framework::model::enums::ManagerInfoType::EnclosureManager) {
-            const json::Value config = configuration::Configuration::get_instance().to_json();
-            const auto& nic_names_size = config["server"]["network-interface-name"].size();
+            const json::Json config = configuration::Configuration::get_instance().to_json();
+            const auto& nic_names_size = config.value("server", json::Json::object())
+                                               .value("network-interface-name", json::Json::array())
+                                               .size();
             json[Collection::ODATA_COUNT] = nic_names_size;
             for (auto i = 1u; i <= nic_names_size; ++i) {
-                json::Value link(json::Value::Type::OBJECT);
+                json::Json link(json::Json::value_t::object);
                 link[Common::ODATA_ID] = PathBuilder(request).append(i).build();
                 json[Collection::MEMBERS].push_back(std::move(link));
             }
@@ -88,7 +90,7 @@ void ManagerNetworkInterfaceCollection::get(const server::Request& request, serv
         else {
             // If not - Manager has precisely one EthernetInterface
             json[Collection::ODATA_COUNT] = 1;
-            json::Value link(json::Value::Type::OBJECT);
+            json::Json link(json::Json::value_t::object);
             link[Common::ODATA_ID] = PathBuilder(request).append(1).build();
             json[Collection::MEMBERS].push_back(std::move(link));
         }

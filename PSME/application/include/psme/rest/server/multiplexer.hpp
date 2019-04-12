@@ -21,7 +21,7 @@
  */
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,6 +40,9 @@
  * */
 
 #pragma once
+
+
+
 #include "agent-framework/generic/singleton.hpp"
 #include "psme/rest/server/methods.hpp"
 #include "psme/rest/server/request.hpp"
@@ -49,6 +52,8 @@
 
 #include <tuple>
 #include <vector>
+
+
 
 namespace psme {
 namespace rest {
@@ -66,18 +71,19 @@ namespace server {
  * The multiplexer must not be modified after running the HTTP server,
  * as its internal components will be accessible to all HTTP threads.
  * */
-class Multiplexer : public agent_framework::generic::Singleton<Multiplexer>  {
+class Multiplexer : public agent_framework::generic::Singleton<Multiplexer> {
 
     using PathHandlerCandidate = std::tuple<mux::SegmentsVec,
-                                            MethodsHandler::UPtr,
-                                            std::string,
-                                            AccessType>;
+        MethodsHandler::UPtr,
+        std::string,
+        AccessType>;
 
     using PathHandlerCandidates = std::vector<PathHandlerCandidate>;
     using PluginHandler = std::vector<RequestHandler>;
 
 public:
     virtual ~Multiplexer();
+
 
     /*!
      * @brief Register a plugin that should be called before each request.
@@ -90,6 +96,7 @@ public:
      * */
     void use_before(RequestHandler plugin);
 
+
     /*!
      * @brief Register a plugin that should be called after each request.
      *
@@ -101,6 +108,7 @@ public:
      * */
     void use_after(RequestHandler plugin);
 
+
     /*!
      * @brief Registers a handler for a specific HTTP endpoint.
      *
@@ -109,6 +117,7 @@ public:
      */
     void register_handler(MethodsHandler::UPtr handler,
                           AccessType access_type = AccessType::SSL_REQUIRED);
+
 
     /*!
      * @brief Forwards a response and request object to a registered handler.
@@ -121,15 +130,6 @@ public:
      */
     void forward_to_handler(Response& response, Request& request);
 
-    /*!
-     * @brief Constructs a full list of all endpoints registered.
-     *
-     * Registered endpoints contain a list of HTTP methods supported and an optional summary of the
-     * resource each endpoint represents.
-     *
-     * @return a list of all endpoints registered
-     */
-    EndpointList get_endpoint_list();
 
     /*!
      * @brief Check whether a given string is a correct endpoint URL from this REST API
@@ -137,6 +137,7 @@ public:
      * @param url the string to be checked
      */
     bool is_correct_endpoint_url(const std::string& url) const;
+
 
     /*!
      * @brief Verify resource path according to endpoint path template and return the path ids
@@ -148,11 +149,37 @@ public:
      */
     Parameters get_params(const std::string& path, const std::string& path_template) const;
 
+
+    /*!
+     * @brief Verifies whether given url and http method are allowed for all users to access with
+     *
+     * @param http_method provided with the request
+     * @param url provided with the request
+     * @param connection_secure connection security flag. True if connection is secure (https), false if not secure (http)
+     * @return true if resource is publicly available for given url, method and security flag, false otherwise
+     */
+    bool check_public_access(const std::string& http_method, const std::string& url, bool connection_secure) const;
+
+
+    /*!
+     * @brief Verify resource path according to endpoint path template and return the path ids
+     * in the form of Parameters - a map of pairs <id name, id as string>. No throw GAMI exception after path did not
+     * match path template but return empty Parameters instead.
+     *
+     * @param path the URL to be parsed
+     * @param path_template the template to match, must be one of our endpoint Route constants
+     * @return the map containing URL ids. Empty map after path did not match path_template
+     */
+    Parameters try_get_params(const std::string& path, const std::string& path_template) const;
+
+
 private:
     const PathHandlerCandidate& select_handler(const std::vector<std::string>& segments, const std::string& uri) const;
 
+
     bool is_access_allowed(Response& response, Request& request,
                            const PathHandlerCandidate& candidate) const;
+
 
     PathHandlerCandidates m_handler_candidates{};
 

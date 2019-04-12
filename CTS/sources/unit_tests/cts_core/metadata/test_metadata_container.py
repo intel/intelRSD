@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,7 +74,7 @@ class MetadataContainerUnitTest(unittest.TestCase):
         del self.metadata_container.entities["ServiceRoot.v1_1_0.ServiceRoot"]
         del self.other.entities['Resource.v1_0_0.Resource']
         cmp = self.metadata_container.compare(self.other)
-        diff = self.compress(cmp.getside_by_side())
+        diff = self.compress(cmp.get_side_by_side())
         expected = self.compress("""                                                            |                                                              
             Entity: Resource.v1_0_0.Resource                            |  ?                                                           
             ------------------------------------------------------------|  ------------------------------------------------------------
@@ -123,7 +123,7 @@ class MetadataContainerUnitTest(unittest.TestCase):
         del self.metadata_container.types['Org.OData.Core.V1.Tag']
         del self.other.types['Resource.v1_1_0.Identifier']
         cmp = self.metadata_container.compare(self.other)
-        diff = self.compress(cmp.getside_by_side())
+        diff = self.compress(cmp.get_side_by_side())
         expected = self.compress("""      
                                                                         |                                                              
             ?                                                           |  Type: Org.OData.Core.V1.Tag                                 
@@ -167,7 +167,7 @@ class MetadataContainerUnitTest(unittest.TestCase):
         self.metadata_container.types["Message.v1_0_0.Message"].properties['MessageArgs'].is_collection = False
 
         cmp = self.metadata_container.compare(self.other)
-        diff = self.compress(cmp.getside_by_side())
+        diff = self.compress(cmp.get_side_by_side())
         expected = self.compress("""                                                                                      |                                                              
             Type: Message.v1_0_0.Message                                |  Type: Message.v1_0_0.Message                                
               Property: MessageArgs                                     |    Property: MessageArgs                                     
@@ -231,7 +231,7 @@ class MetadataContainerUnitTest(unittest.TestCase):
             self.build_annotation('OData.Permissions', "EnumMember", "OData.Permission/ReadWrite")
 
         cmp = self.metadata_container.compare(self.other)
-        diff = self.compress(cmp.getside_by_side())
+        diff = self.compress(cmp.get_side_by_side())
         expected = self.compress("""                                                                    |                                                              
             Entity: ServiceRoot.v1_0_0.ServiceRoot                      |  Entity: ServiceRoot.v1_0_0.ServiceRoot                      
               Property: RedfishVersion                                  |    Property: RedfishVersion                                  

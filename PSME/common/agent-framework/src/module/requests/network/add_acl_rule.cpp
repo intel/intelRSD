@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,11 @@
 #include "agent-framework/module/constants/common.hpp"
 #include "json-wrapper/json-wrapper.hpp"
 
+
+
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
+
 
 AddAclRule::AddAclRule(const OptionalField<std::string>& acl,
                        const OptionalField<uint32_t> rule_id,
@@ -45,21 +48,22 @@ AddAclRule::AddAclRule(const OptionalField<std::string>& acl,
                        const Port& destination_port,
                        const OptionalField<uint32_t>& protocol,
                        const Oem& oem)
-                 : m_acl(acl), m_rule_id(rule_id), m_action(action),
-                 m_forward_mirror_port(forward_mirror_port),
-                 m_mirrored_ports(mirrored_ports), m_mirror_type(mirror_type),
-                 m_vlan_id(vlan_id),
-                 m_source_ip(source_ip),
-                 m_destination_ip(destination_ip),
-                 m_source_mac(source_mac),
-                 m_destination_mac(destination_mac),
-                 m_source_port(source_port),
-                 m_destination_port(destination_port),
-                 m_protocol(protocol),
-                 m_oem(oem) {}
+    : m_acl(acl), m_rule_id(rule_id), m_action(action),
+      m_forward_mirror_port(forward_mirror_port),
+      m_mirrored_ports(mirrored_ports), m_mirror_type(mirror_type),
+      m_vlan_id(vlan_id),
+      m_source_ip(source_ip),
+      m_destination_ip(destination_ip),
+      m_source_mac(source_mac),
+      m_destination_mac(destination_mac),
+      m_source_port(source_port),
+      m_destination_port(destination_port),
+      m_protocol(protocol),
+      m_oem(oem) {}
+
 
 json::Json AddAclRule::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Acl::ACL] = m_acl;
     value[AclRule::RULE_ID] = m_rule_id;
     value[AclRule::ACTION] = m_action;
@@ -78,21 +82,23 @@ json::Json AddAclRule::to_json() const {
     return value;
 }
 
+
 AddAclRule AddAclRule::from_json(const json::Json& json) {
     return AddAclRule{
-        json[Acl::ACL], json[AclRule::RULE_ID],
-            json[AclRule::ACTION],
-            json[AclRule::FORWARD_MIRROR_PORT],
-            MirroredPorts::from_json(json[AclRule::MIRRORED_PORTS]),
-            json[AclRule::MIRROR_TYPE],
-            VlanId::from_json(json[AclRule::VLAN_ID]),
-            Ip::from_json(json[AclRule::SOURCE_IP]),
-            Ip::from_json(json[AclRule::DESTINATION_IP]),
-            Mac::from_json(json[AclRule::SOURCE_MAC]),
-            Mac::from_json(json[AclRule::DESTINATION_MAC]),
-            Port::from_json(json[AclRule::SOURCE_L4_PORT]),
-            Port::from_json(json[AclRule::DESTINATION_L4_PORT]),
-            json[AclRule::PROTOCOL],
-            Oem::from_json(json[AclRule::OEM])
+        json[Acl::ACL],
+        json.value(AclRule::RULE_ID, 0),
+        json[AclRule::ACTION],
+        json.value(AclRule::FORWARD_MIRROR_PORT, OptionalField<std::string>()),
+        MirroredPorts::from_json(json.value(AclRule::MIRRORED_PORTS, json::Json::array())),
+        json.value(AclRule::MIRROR_TYPE, OptionalField<enums::AclMirrorType>()),
+        VlanId::from_json(json.value(AclRule::VLAN_ID, json::Json::object())),
+        Ip::from_json(json.value(AclRule::SOURCE_IP, json::Json::object())),
+        Ip::from_json(json.value(AclRule::DESTINATION_IP, json::Json::object())),
+        Mac::from_json(json.value(AclRule::SOURCE_MAC, json::Json::object())),
+        Mac::from_json(json.value(AclRule::DESTINATION_MAC, json::Json::object())),
+        Port::from_json(json.value(AclRule::SOURCE_L4_PORT, json::Json::object())),
+        Port::from_json(json.value(AclRule::DESTINATION_L4_PORT, json::Json::object())),
+        json.value(AclRule::PROTOCOL, OptionalField<uint32_t>()),
+        Oem::from_json(json.value(AclRule::OEM, json::Json::object()))
     };
 }

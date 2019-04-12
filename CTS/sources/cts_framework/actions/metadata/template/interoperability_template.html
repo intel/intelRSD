@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Interoperability Report</title>
+    <style>
+        :root {
+            /* Main color pallet */
+            --main-background-color: #EEE;
+            --main-blue-color: #1565C0;
+            --main-color-gray: #4e4e4e;
+            --main-color-white: #fff;
+            --main-color-success: #8BC34A;
+            --main-color-warning: #FDD835;
+            --main-color-failed: #FF5722;
+            --main-color-dark-failed: #DD2C00;
+            /*Colors for items*/
+            --item-danger: #F2DEDE;
+            --item-success: #DFF0D8;
+            --item-warning: #FCF8E3;
+            /*Nav colors*/
+            --header-background-blue: #0071c5;
+            --footer-background-gray: #E0E0E0;
+            /*Font colors*/
+            --body-font-gray: #424242;
+
+        }
+
+        .header {
+            background-color: var(--main-blue-color) !important;
+            color: white;
+            text-align: left;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            padding-left: 50px;
+        }
+
+        table, th, td {
+            margin-left: 10px;
+            margin-right: 10px;
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+
+        table#t01 tr:nth-child(even) {
+            background-color: #eee;
+        }
+
+        table#t01 tr:nth-child(odd) {
+            background-color: #fff;
+        }
+
+        table#t01 th {
+            background-color: black;
+            color: white;
+        }
+    </style>
+    <link rel="stylesheet" href="static/css/bootstrap.css"/>
+    <script src="static/jquery.min.js"></script>
+
+    <script>
+        // Color difference with color orange
+        $(function () {
+            $('#ReportTable tr').each(function () {
+                var row_elements = []
+                $(this).find('td').each(function () {
+                    row_elements.push($.trim($(this).text()));
+                });
+                if (String(row_elements[0]) !== String(row_elements[1])) {
+                    $(this).css('background-color', '#FFF3E0');
+                }
+            });
+        });
+
+        // Color headers for 'Entity' with grey color
+        $(function () {
+            $('#ReportTable tr:contains("Entity:")').css('background-color', '#eee').css('font-weight', 'bold');
+        });
+
+        // Color header for 'Type' with grey color
+        $(function () {
+            $('#ReportTable tr:contains("Type:")').css('background-color', '#eee').css('font-weight', 'bold');
+        });
+
+
+    </script>
+
+</head>
+<body>
+<nav class="navbar navbar-default header">
+    <div class="container-fluid header">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">
+                <img src="static/intel-logo-white.png" alt="Intel" width="50px"/>
+            </a>
+        </div>
+        <h2>Intel Rack Scale Design</h2> <h5>Conformance Test Suite v2.4</h5>
+    </div>
+</nav>
+
+
+<div class="jumbotron">
+    <div class="container">
+        <h1 class="display-4">Interoperability report</h1>
+        <p class="lead">This is report showing a differences between Rack Scale Metadata v Redfish Metadata (Swordfish
+            files 1.0.6 are also included here).</p>
+    </div>
+    <hr>
+    <div class="container">
+        <h3>Summary</h3>
+        <div class="row">
+            <div class="col">
+                Missing entities in Rack Scale <span class="badge badge-pill badge-info">{{ entity.missing_left.missing_entities|length }}</span>:
+                <ul>
+                    {% for left in entity.missing_left.missing_entities %}
+                    <li>{{ left }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col">
+                Missing entities in Redfish (and Swordfish) <span class="badge badge-pill badge-info">{{ entity.missing_right.missing_entities|length }}</span>:
+                <ul>
+                    {% for right in entity.missing_right.missing_entities %}
+                    <li>{{ right }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                {% if entity.missing_left.missing_types|length != 0 %}
+                Missing types in Rack Scale <span class="badge badge-pill badge-info">[{{ entity.missing_left.missing_types|length }}</span>:
+                <ul>
+                    {% for left in entity.missing_left.missing_types %}
+                    <li>{{ left }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+
+            </div>
+            <div class="col">
+                {% if entity.missing_right.missing_types|length != 0 %}
+                Missing types in Redfish (and Swordfish) <span class="badge badge-pill badge-info">{{ entity.missing_right.missing_types|length }}]</span>:
+                <ul>
+                    {% for right in entity.missing_right.missing_types %}
+                    <li>{{ right }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <h3>Detailed view</h3>
+    <blockquote style="background-color: #FFF3E0;">Fields that differ from each other have been marked with an orange
+        background color.
+    </blockquote>
+    <table id="ReportTable">
+        <tr>
+            <th scope="col">Rack Scale Metadata {{ left_metadata }}</th>
+            <th scope="col">Redfish Metadata {{ right_metadata }}</th>
+        </tr>
+        {% for e in range(entity.left|length) %}
+        <tr>
+            {% if entity.left[e] in '' %}
+            <td style="border: none;"></td>
+            {% else %}
+            <td>{{ entity.left[e] }}</td>
+            {% endif %}
+
+
+            {% if entity.right[e] in '' %}
+            <td style="border: none;"></td>
+            {% else %}
+            <td>{{ entity.right[e] }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="container-fluid">
+    <h3>Reports details</h3>
+    {% for key, value in entity.reports_details.items() %}
+    <table id="Re">
+        <tr>
+            <th scope="col">Test case id: {{ key }} (verification using Redfish and Swordfish)</th>
+            <th scope="col">Raw responses from service</th>
+        </tr>
+        {% for d in entity.reports_details[key][1] %}
+        <tr>
+            <td>{{ d.message|join('<br>'|safe) }}</td>
+            <td>
+                <pre><code>{{ d.response[0]|join(',<br>'|safe) }}</code></pre>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endfor %}
+</div>
+
+</body>
+</html>

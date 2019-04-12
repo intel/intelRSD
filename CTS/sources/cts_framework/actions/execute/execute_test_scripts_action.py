@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,6 +57,7 @@ class ExecuteTestScriptsAction(Action):
                                  help="Enables debugging mode which will stop tests execution after first failed test")
         self.parser.add_argument("-x", "--return_tests_status_as_exit_code", action="store_true", default=False,
                                  help="When flag set CTS framework will return calculate exit code basing on tests results.")
+        # self.parser.add_argument("-m", "--metadata", help="Choose metadata", choices=['RSD', 'redfish'], default='RSD')
 
     def process_action(self, configuration):
         print "Using CTS in version %s" % (ColorPrinter.format_text(BuildInformation.BUILD_VERSION, bold=True))

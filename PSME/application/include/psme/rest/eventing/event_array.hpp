@@ -6,8 +6,7 @@
  * When a new EventArray is prepared for POST-ing, make sure that it's been assigned a new
  * Redfish id by calling the assign_new_id() method.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +18,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rest/eventing/event_array.hpp
  * This class represents Event.Event metadata EntityType
  */
 
 #include "event.hpp"
 #include "agent-framework/module/utils/optional_field.hpp"
-
-
-namespace json {
-class Value;
-}
-
 
 namespace psme {
 namespace rest {
@@ -148,7 +140,7 @@ public:
      *
      * @return JSON representation
      */
-    json::Value to_json() const;
+    json::Json to_json() const;
 
 private:
     OptionalField<uint64_t> m_subscriber_id{};

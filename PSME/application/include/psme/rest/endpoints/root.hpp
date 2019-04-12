@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ public:
     void get(const server::Request& request, server::Response& response) override;
 
 private:
-    std::string service_root_name{};
+    std::string m_service_root_name{};
 };
 
 }

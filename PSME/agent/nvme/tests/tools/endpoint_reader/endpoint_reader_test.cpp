@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of EndpointReader tests.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file endpoint_reader_test.cpp
  */
 
@@ -94,16 +92,16 @@ public:
         Drive d1{}, d2{};
         Volume v1{};
         // define systemPath identifier for only one drive
-        d2.add_identifier({DRIVE_PATH, enums::IdentifierType::SystemPath});
+        d2.set_name(DRIVE_PATH);
         get_manager<Drive>().add_entry(d1);
         get_manager<Drive>().add_entry(d2);
-        v1.add_identifier({VOLUME_PATH, enums::IdentifierType::SystemPath});
+        v1.set_name(VOLUME_PATH);
         get_manager<Volume>().add_entry(v1);
 
         // add NetworkInterface
         static auto called_once = []() {
             NetworkInterface ni{};
-            ni.set_status(attribute::Status(true));
+            ni.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
             attribute::Ipv4Address ipv4_address{};
             ipv4_address.set_address(IPV4_ADDRESS);
             ni.add_ipv4_address(ipv4_address);
@@ -238,7 +236,7 @@ TEST_F(EndpointReaderTest, TestEndpointTransportDetailPort) {
 TEST_F(EndpointReaderTest, TestEndpointProtocol) {
     add_endpoint();
     auto endpoint = er.read_endpoints(ctx, fabric.get_uuid()).front();
-    ASSERT_EQ(endpoint.get_protocol(), enums::StorageProtocol::NVMeOverFabrics);
+    ASSERT_EQ(endpoint.get_protocol(), enums::TransportProtocol::NVMeOverFabrics);
 }
 
 TEST_F(EndpointReaderTest, TestEndpointIdentifiers) {

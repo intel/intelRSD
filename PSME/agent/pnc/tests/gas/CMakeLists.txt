@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,11 +33,9 @@ add_library(pnc_objects_test
 target_link_libraries(${test_target}
     pnc_objects_test
     agent-framework
-    json-cxx
     ${LOGGER_LIBRARIES}
     ${UUID_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    configuration
     md5
 )

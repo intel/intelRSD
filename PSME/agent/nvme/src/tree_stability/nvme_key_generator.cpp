@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of NvmeKeyGenerator class.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file nvme_key_generator.cpp
  */
 
@@ -30,42 +28,29 @@ using namespace agent_framework::model;
 using namespace agent_framework;
 using namespace std;
 
-namespace {
-
-template<typename T>
-string get_system_path_identifier(const T& resource) {
-    try {
-        return attribute::Identifier::get_system_path(resource);
-    }
-    catch (const logic_error&) {
-        return "";
-    }
-}
-
-}
-
 namespace agent {
 namespace nvme {
 
+constexpr const char PARTITION_AFFIX = 'p';
+
 const map<string, string> NvmeKeyGenerator::m_keys_base_map{
-    {Manager::get_component().to_string(), "_NvmeManager_"},
-    {Chassis::get_component().to_string(), "_NvmeChassis_"},
-    {Drive::get_component().to_string(), "_NvmeDrive_"},
-    {Volume::get_component().to_string(), "_NvmeVolume_"},
-    {Fabric::get_component().to_string(), "_NvmeFabric_"},
-    {Endpoint::get_component().to_string(), "_NvmeEndpoint_"},
-    {System::get_component().to_string(), "_NvmeSystem_"},
+    {Manager::get_component().to_string(),          "_NvmeManager_"},
+    {Chassis::get_component().to_string(),          "_NvmeChassis_"},
+    {Drive::get_component().to_string(),            "_NvmeDrive_"},
+    {Volume::get_component().to_string(),           "_NvmeVolume_"},
+    {Fabric::get_component().to_string(),           "_NvmeFabric_"},
+    {Endpoint::get_component().to_string(),         "_NvmeEndpoint_"},
+    {System::get_component().to_string(),           "_NvmeSystem_"},
     {NetworkInterface::get_component().to_string(), "_NvmeNetworkInterface_"},
-    {StorageService::get_component().to_string(), "_NvmeStorageService_"},
-    {StoragePool::get_component().to_string(), "_NvmeStoragePool_"}
+    {StorageService::get_component().to_string(),   "_NvmeStorageService_"},
+    {StoragePool::get_component().to_string(),      "_NvmeStoragePool_"}
 };
 
 string NvmeKeyGenerator::m_agent_id{};
 
 
 string NvmeKeyGenerator::get_unique_key(const Manager& manager) {
-    return manager.get_ipv4_address() +
-           (NvmeConfig::get_instance()->get_is_target() ? "_target" : "_initiator");
+    return manager.get_ipv4_address();
 }
 
 
@@ -94,23 +79,82 @@ string NvmeKeyGenerator::get_unique_key(const NetworkInterface& interface) {
     if (mac.has_value()) {
         return mac.value();
     }
-    return "";
+    else {
+        throw KeyValueMissingError("Mac has no value.");
+    }
 }
 
 
 string NvmeKeyGenerator::get_unique_key(const Drive& drive) {
-    return get_system_path_identifier(drive);
+    string model{};
+    string serial{};
+
+    if (drive.get_fru_info().get_model_number().has_value()) {
+        model = drive.get_fru_info().get_model_number();
+    }
+    else {
+        throw KeyValueMissingError("Drive '" + drive.get_uuid() + "' has no model number.");
+    }
+
+    if (drive.get_fru_info().get_serial_number().has_value()) {
+        serial = drive.get_fru_info().get_serial_number();
+    }
+    else {
+        throw KeyValueMissingError("Drive '" + drive.get_uuid() + "' has no serial number.");
+    }
+    return model + serial;
 }
 
 
 string NvmeKeyGenerator::get_unique_key(const Volume& volume) {
-    return get_system_path_identifier(volume);
+    string uuid{};
+    string volume_name{};
+
+    if (!volume.get_name().has_value()) {
+        throw KeyValueMissingError("Volume '" + volume.get_uuid() + "' has no name.");
+    }
+
+    const auto& capacity_sources = volume.get_capacity_sources();
+    if (capacity_sources.empty()) {
+        throw KeyValueMissingError("Volume '" + volume.get_uuid() + "' has no underlying capacity sources.");
+    }
+
+    const auto& providing_pools = capacity_sources.front().get_providing_pools();
+    if (providing_pools.empty()) {
+        throw KeyValueMissingError("Volume '" + volume.get_uuid() +
+				   "' has no underlying storage pools in the capacity sources.");
+    }
+
+    uuid = providing_pools.front();
+
+    volume_name = volume.get_name();
+    size_t pos = volume_name.find(PARTITION_AFFIX);
+
+    if (pos == string::npos) {
+        throw KeyValueMissingError("Volume '" + volume.get_uuid() + "' has no partition indicator in name.");
+    }
+    return uuid + volume_name.substr(pos+1);
 }
 
 
 string NvmeKeyGenerator::get_unique_key(const StoragePool& storage_pool) {
-    return get_system_path_identifier(storage_pool);
+
+    if (storage_pool.get_capacity_sources().empty()) {
+        throw KeyValueMissingError("StoragePool '" + storage_pool.get_uuid() +
+				   "' has no underlying capacity sources.");
+    }
+
+    const auto& providing_drives = storage_pool.get_capacity_sources().front().get_providing_drives();
+    if (providing_drives.empty()) {
+        throw KeyValueMissingError("StoragePool '" + storage_pool.get_uuid() +
+				   "' has no underlying drives in the capacity sources.");
+    }
+
+    string uuid = providing_drives.front();
+
+    return uuid;
 }
+
 
 string NvmeKeyGenerator::get_unique_key(const Endpoint& endpoint) {
     string ret{};
@@ -128,12 +172,14 @@ string NvmeKeyGenerator::get_unique_key(const Endpoint& endpoint) {
     return ret;
 }
 
+
 template<>
 std::string NvmeKeyGenerator::generate_key(const Metric& metric, const Resource& resource) {
     const auto& resource_key = resource.get_unique_key();
 
     return resource_key + metric.get_component().to_string() + metric.get_metric_definition_uuid() + metric.get_name();
 }
+
 
 template<>
 std::string NvmeKeyGenerator::generate_key(const MetricDefinition& metric_def) {

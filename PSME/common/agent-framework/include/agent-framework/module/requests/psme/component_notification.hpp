@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 #include "agent-framework/module/constants/psme.hpp"
 #include "agent-framework/module/constants/command.hpp"
 #include "agent-framework/validators/procedure_validator.hpp"
-#include "agent-framework/eventing/event_data.hpp"
+#include "agent-framework/module/model/attributes/event_data.hpp"
 
 namespace agent_framework {
 namespace model {
@@ -52,7 +52,7 @@ public:
     * @brief Gets notifications (vector of EventData)
     * @return Notifications
     */
-    const agent_framework::eventing::EventDataVec& get_notifications() const {
+    const attribute::EventData::Vector& get_notifications() const {
         return m_notifications;
     }
 
@@ -61,7 +61,7 @@ public:
      * @brief Set notifications
      * @@param notifications (vector of EventData) to send in this request
      */
-    void set_notifications(const agent_framework::eventing::EventDataVec& notifications) {
+    void set_notifications(const attribute::EventData::Vector& notifications) {
         m_notifications = notifications;
     }
 
@@ -132,7 +132,7 @@ private:
     };
 
     std::string m_gami_id{};
-    agent_framework::eventing::EventDataVec m_notifications{};
+    attribute::EventData::Vector m_notifications{};
 };
 
 }

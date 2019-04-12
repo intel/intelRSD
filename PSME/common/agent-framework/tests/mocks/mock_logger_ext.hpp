@@ -1,7 +1,7 @@
 /*!
  * @brief Logging mock
  *
- * @copyright Copyright (c) 2016-2018 Intel Corporation
+ * @copyright Copyright (c) 2016-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file mock_logger_ext.hpp
  */
 
 #pragma once
+
+
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "logger/logger.hpp"
+
+
 
 namespace agent_framework {
 namespace testing {
@@ -28,12 +32,14 @@ namespace testing {
 class MockLogger : public logger_cpp::Logger {
 public:
     MOCK_METHOD6(write, void(
-            const char* logger_name,
-            enum logger_cpp::Level level,
-            const char* file_name,
-            const char* function_name,
-            unsigned int line_number,
-            const std::string& str));
+        const char* logger_name,
+        enum logger_cpp::Level level,
+        const char* file_name,
+        const char* function_name,
+        unsigned int line_number,
+        const std::string& str));
+
+
     ~MockLogger();
 };
 

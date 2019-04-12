@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,7 @@
 #include "agent-framework/action/task_creator.hpp"
 #include "agent-framework/action/task_result_manager.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
-#include "agent-framework/eventing/event_data.hpp"
-#include "agent-framework/eventing/events_queue.hpp"
+#include "agent-framework/eventing/utils.hpp"
 
 #include <exception>
 #include <utility>
@@ -31,6 +30,17 @@
 
 
 using TaskState = agent_framework::model::enums::TaskState;
+
+namespace {
+
+auto send_task_update_event = [](const Uuid& uuid) {
+    agent_framework::eventing::send_event(uuid,
+        agent_framework::model::enums::Component::Task,
+        agent_framework::model::enums::Notification::Update,
+        {});
+};
+
+}
 
 namespace agent_framework {
 namespace action {
@@ -63,7 +73,9 @@ TaskCreator& TaskCreator::prepare_task() {
 
     m_task.add_prerun_action(std::bind(prerun_action_unbound, m_task_resource.get_uuid()));
     m_task.add_completion_callback(std::bind(completion_callback_unbound, m_task_resource.get_uuid()));
+    m_task.add_completion_callback(std::bind(::send_task_update_event, m_task_resource.get_uuid()));
     m_task.add_exception_callback(std::bind(exception_callback_unbound, m_task_resource.get_uuid()));
+    m_task.add_exception_callback(std::bind(::send_task_update_event, m_task_resource.get_uuid()));
     m_is_task_prepared = true;
 
     return *this;
@@ -78,19 +90,11 @@ void TaskCreator::register_task() {
         throw std::logic_error("Cannot register an already registered task");
     }
 
-    auto send_task_update_event = [](const Uuid& uuid) {
-        eventing::EventData edat{};
-        edat.set_component(uuid);
-        edat.set_type(model::enums::Component::Task);
-        edat.set_notification(model::enums::Notification::Update);
-        eventing::EventsQueue::get_instance()->push_back(edat);
-    };
-
     auto handle_task_exception = [](const Uuid& uuid, const exceptions::GamiException& e) {
         TaskResultManager::get_instance()->set_exception(uuid, e);
     };
 
-    m_task.add_postrun_action(std::bind(send_task_update_event, m_task_resource.get_uuid()));
+    m_task.add_postrun_action(std::bind(::send_task_update_event, m_task_resource.get_uuid()));
     m_task.add_exception_handler(std::bind(handle_task_exception, m_task_resource.get_uuid(), std::placeholders::_1));
 
     m_task_resource.set_state(TaskState::Pending);

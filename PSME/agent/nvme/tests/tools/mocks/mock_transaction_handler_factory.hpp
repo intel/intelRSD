@@ -1,7 +1,7 @@
 /*!
  * @brief Mock for the NVME transaction handler factory.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file mock_transaction_handler_factory.hpp
  */
 
 #pragma once
 
-#include "gmock/gmock.h"
-#include "tools/base_transaction_handler_factory.hpp"
 
-class MockTransactionHandlerFactory : public agent::nvme::tools::BaseTransactionHandlerFactory {
+
+#include "gmock/gmock.h"
+#include "utils/transaction/base_transaction_handler_factory.hpp"
+
+
+
+class MockTransactionHandlerFactory : public ::utils::transaction::BaseTransactionHandlerFactory {
 public:
 
-    MOCK_CONST_METHOD0(get_handler, std::shared_ptr<agent::nvme::tools::BaseTransactionHandler>());
+    MOCK_CONST_METHOD0(get_handler, std::shared_ptr<::utils::transaction::BaseTransactionHandler>());
 };

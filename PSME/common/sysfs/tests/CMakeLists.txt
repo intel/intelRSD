@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,10 +20,7 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
-include_directories(
-    ${GTEST_INCLUDE_DIRS}
-    ${SYSFSREF_INCLUDE_DIRS}
-)
+
 
 add_gtest(test sysfsref
     path.cpp
@@ -32,7 +29,7 @@ add_gtest(test sysfsref
 )
 
 target_link_libraries(${test_target}
-    ${SYSFSREF_LIBRARIES}
+    sysfsref
 )
 
 add_custom_target(unittest_sysfsref

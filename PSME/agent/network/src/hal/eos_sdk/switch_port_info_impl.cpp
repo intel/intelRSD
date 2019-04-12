@@ -1,8 +1,7 @@
 /*!
  * @brief Switch Port Info class implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file agent/network/src/hal/eos_sdk/switch_port_info_impl.cpp
  */
 
 #include "hal/switch_port_info_impl.hpp"
-#include "network_config.hpp"
-#include "loader/network_config.hpp"
-#include "logger/logger_factory.hpp"
-#include "agent-framework/exceptions/exception.hpp"
-#include "agent-framework/module/network_components.hpp"
-#include "agent-framework/module/constants/network.hpp"
-#include "discovery/discovery_manager.hpp"
 #include "hal/eos_sdk/eos_agent.hpp"
 
-#include <sstream>
-#include <net/if.h>
 
-using namespace agent::network;
 using namespace agent::network::hal;
-using namespace agent::network::loader;
-using namespace agent::network::discovery;
-using namespace agent_framework::model;
-
 
 void SwitchPortInfoImpl::get_switch_port_link_state() {
     bool admin_up =

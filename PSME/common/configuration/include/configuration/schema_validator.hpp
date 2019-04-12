@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,10 +28,12 @@
 
 #pragma once
 
+#include "json-wrapper/json-wrapper.hpp"
+
 #include <vector>
 #include <memory>
 
-namespace json { class Value; }
+
 
 namespace configuration {
 
@@ -55,7 +57,7 @@ public:
      * @param json JSON object to validate
      * @param errors JSON object errors
      */
-    void validate(const json::Value& json, SchemaErrors& errors);
+    void validate(const json::Json& json, SchemaErrors& errors);
 
 private:
     /*! pimpl idiom */

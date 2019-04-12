@@ -21,7 +21,7 @@
  */
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,6 +103,12 @@ public:
      * @return The value of the parameter, or an empty string if the key is not matched.
      * */
     std::string get(const std::string& key) const;
+
+    /*!
+     * @brief Returns size of parameter list
+     * @return Size of parameter list
+     */
+    unsigned long size() const;
 
     ParameterList::iterator begin() {
         return m_list.begin();

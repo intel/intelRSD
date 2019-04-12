@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,8 @@
  *
  * @section DESCRIPTION
 """
+import collections
+
 from cts_core.commons.error import cts_error, cts_warning
 from cts_core.commons.preconditions import Preconditions
 from cts_core.validation.validation_status import ValidationStatus
@@ -49,7 +51,8 @@ class MetadataGetValidator:
         count = len(discovery_container)
         for idx, api_resource in enumerate(resources):
             print "TEST_CASE::%s" % api_resource.odata_id
-            print "MESSAGE::[%5d/%5d] Checking %s : %s" % (idx+1, count, api_resource.odata_id, api_resource.odata_type)
+            print "MESSAGE::[%5d/%5d] Checking %s : %s" % (
+            idx + 1, count, api_resource.odata_id, api_resource.odata_type)
 
             api_resource_status = self.validate_single_entity(api_resource)
             print "STATUS::%s" % api_resource_status
@@ -57,6 +60,22 @@ class MetadataGetValidator:
 
         print "SCREEN::Overall status: %s" % status
         return status
+
+    def get_validated_information(self, discovery_container):
+        resources = discovery_container.itervalues()
+
+        ValidatedEntity = collections.namedtuple('ValidatedEntity', 'test_case count checking message status')
+        list_of_validated_elements = []
+
+        for idx, api_resource in enumerate(resources):
+            api_resource_status = self.validate_single_entity(api_resource)
+
+            list_of_validated_elements.append(ValidatedEntity(test_case=api_resource.odata_id,
+                                                              count=idx + 1,
+                                                              checking=api_resource.odata_id,
+                                                              message=api_resource.odata_type,
+                                                              status=api_resource_status))
+        return list_of_validated_elements
 
     def validate_single_entity(self, api_resource):
         """

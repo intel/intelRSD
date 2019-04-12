@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,35 +28,6 @@ namespace model {
 namespace literals {
 
 /*!
- * @brief Class consisting of literals for IscsiTarget model objects
- */
-class IscsiTarget {
-public:
-    static constexpr const char TARGET[] = "target";
-    static constexpr const char STATUS[] = "status";
-    static constexpr const char INITIATOR_IQN[] = "initiatorIQN";
-    static constexpr const char TARGET_ADDRESS[] = "targetAddress";
-    static constexpr const char TARGET_PORT[] = "targetPort";
-    static constexpr const char TARGET_IQN[] = "targetIQN";
-    static constexpr const char TARGET_LUNS[] = "targetLUNs";
-    static constexpr const char AUTHENTICATION_METHOD[] = "authenticationMethod";
-    static constexpr const char CHAP_USERNAME[] = "chapUsername";
-    static constexpr const char CHAP_SECRET[] = "chapSecret";
-    static constexpr const char MUTUAL_CHAP_USERNAME[] = "mutualChapUsername";
-    static constexpr const char MUTUAL_CHAP_SECRET[] = "mutualChapSecret";
-    static constexpr const char OEM[] = "oem";
-};
-
-/*!
- * @brief Class consisting of literals for TargetLun model objects
- */
-class TargetLun {
-public:
-    static constexpr const char LUN[] = "LUN";
-    static constexpr const char LOGICAL_DRIVE[] = "logicalDrive";
-};
-
-/*!
  * @brief Class consisting of literals for StorageServices model objects
  */
 class StorageService {
@@ -73,6 +44,8 @@ public:
 class StoragePool {
 public:
     static constexpr const char STORAGE_POOL[] = "storagePool";
+    static constexpr const char DESCRIPTION[] = "description";
+    static constexpr const char NAME[] = "name";
     static constexpr const char STATUS[] = "status";
     static constexpr const char COLLECTIONS[] = "collections";
     static constexpr const char OEM[] = "oem";
@@ -102,10 +75,10 @@ public:
     static constexpr const char CAPACITY_SOURCES[] = "capacitySources";
     static constexpr const char BOOTABLE[] = "bootable";
     static constexpr const char INITIALIZATION[] = "initialization";
-    static constexpr const char ERASED[] = "erased";
-    static constexpr const char ERASE_ON_DETACH[] = "eraseOnDetach";
     static constexpr const char REPLICA_INFOS[] = "replicaInfos";
     static constexpr const char ACCESS_CAPABILITIES[] = "accessCapabilities";
+    static constexpr const char DESCRIPTION[] = "description";
+    static constexpr const char NAME[] = "name";
 };
 
 /*!

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,19 +27,19 @@
  * */
 
 #include "configuration/validators/url.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace configuration;
 
 UrlValidator::UrlValidator(const std::string& url) :
     m_url_regex{make_regex(url)} {}
 
-bool UrlValidator::is_valid(const json::Value& value) const {
+bool UrlValidator::is_valid(const json::Json& value) const {
     if (!value.is_string()) {
         return false;
     }
 
-    const auto& val = value.as_string();
+    const auto& val = value.get<std::string>();
     return std::regex_match(val, m_url_regex);
 }
 

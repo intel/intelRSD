@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -316,7 +316,7 @@ public:
      * @brief Get protocol
      * @return protocol
      * */
-    const OptionalField<enums::StorageProtocol>& get_protocol() const {
+    const OptionalField<enums::TransportProtocol>& get_protocol() const {
         return m_protocol;
     }
 
@@ -325,7 +325,7 @@ public:
      * @brief Set protocol
      * @param[in] protocol protocol
      * */
-    void set_protocol(const OptionalField<enums::StorageProtocol>& protocol) {
+    void set_protocol(const OptionalField<enums::TransportProtocol>& protocol) {
         m_protocol = protocol;
     }
 
@@ -339,7 +339,7 @@ private:
     OptionalField<std::uint32_t> m_max_width{};
     AllowedActions m_allowed_actions{};
     CablesIds m_cables_ids{};
-    OptionalField<enums::StorageProtocol> m_protocol{};
+    OptionalField<enums::TransportProtocol> m_protocol{};
 
     // connection data used in the agent
     std::uint32_t m_twi_port{};

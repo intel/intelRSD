@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ PcieDevice::PcieDevice(const std::string& parent_uuid, enums::Component parent_t
 PcieDevice::~PcieDevice() { }
 
 json::Json PcieDevice::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::PcieDevice::DEVICE_ID] = get_device_id();
     result[literals::PcieDevice::DEVICE_CLASS] = get_device_class();
     result[literals::PcieDevice::SPEED_GBPS] = get_speed_gbps();

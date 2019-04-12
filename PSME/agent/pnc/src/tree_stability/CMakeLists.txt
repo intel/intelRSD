@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,4 +29,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
             COMPILE_FLAGS "-Wno-missing-field-initializers")
 endif()
 
-add_library(pnc-tree-stability OBJECT ${SOURCES})
+add_library(pnc-tree-stability STATIC ${SOURCES})
+
+target_link_libraries(pnc-tree-stability
+    PUBLIC
+    agent-framework-tree-stability)

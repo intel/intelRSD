@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,17 +18,8 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
-include_directories(SYSTEM
-    ${TELEMETRY_INCLUDE_DIRS}
-    ${IPMITOOL_INCLUDE_DIRS}
-    ${IPMI_INCLUDE_DIRS}
-    ${COMMON_INCLUDE_DIRS}
-    ${LOGGER_INCLUDE_DIRS}
-    ${JSON_INCLUDE_DIRS}
-    ${JSON_RPC_INCLUDE_DIRS}
-)
 
 add_gtest(telemetry telemetry
     test_runner.cpp
@@ -37,22 +28,15 @@ add_gtest(telemetry telemetry
     metrics_processor_test.cpp
     samples_processor_test.cpp
     value_rounder_test.cpp
-)
+    )
 
 target_link_libraries(${test_target}
-    ${TELEMETRY_LIBRARIES}
-    ${IPMI_LIBRARIES}
-    ${IPMITOOL_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-)
+    telemetry
+    )
 
 add_custom_target(unittest_telemetry
-                  make
-)
+    make
+    )
 add_custom_target(unittest_telemetry_run
-                  ctest --output-on-failure
-)
+    ctest --output-on-failure
+    )

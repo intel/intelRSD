@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ static constexpr std::uint8_t MASK_DEVICE = 0x3C;
 static constexpr std::uint8_t DEVICE_NONE = 0x00;
 static constexpr std::uint8_t DEVICE_PXE = 0x04;
 static constexpr std::uint8_t DEVICE_HDD = 0x08;
+static constexpr std::uint8_t DEVICE_REMOTE_HDD = 0x2C;
 
 }
 }

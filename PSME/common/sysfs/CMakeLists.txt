@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 cmake_minimum_required(VERSION 3.4)
 project("SYSFSREF" CXX)
 
+# TODO: remove old-style flags when all usages are removed
 set(SYSFSREF_LIBRARIES
     sysfsref
     CACHE PATH "Utility libraries"
@@ -29,20 +30,18 @@ set(SYSFSREF_INCLUDE_DIRS
     CACHE PATH "SYSFS include directory"
     )
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
 
 add_library(sysfsref STATIC
     src/path.cpp
     src/abstract_sysfs_interface.cpp
     src/sysfs_interface.cpp
-)
+    )
 
-install(TARGETS sysfsref
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+target_include_directories(sysfsref
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
 
 add_subdirectory(tests)
+

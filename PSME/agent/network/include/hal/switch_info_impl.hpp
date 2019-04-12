@@ -1,8 +1,7 @@
 /*!
  * @brief Switch Info Impl class declaration.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file switch_info_impl.hpp
  */
 
@@ -35,6 +33,7 @@ namespace hal {
 class SwitchInfoImpl : public SwitchInfo {
 public:
 
+    using VlanId = std::uint32_t;
     using ProtocolId = agent_framework::model::enums::TransportLayerProtocol;
 
     /*!
@@ -66,11 +65,6 @@ public:
     void read_switch_info();
 
     /*!
-     * @brief Read switch port from the HW.
-     */
-    void read_switch_port_list();
-
-    /*!
      * @enum PortMode
      * @brief Port interface mode.
      *
@@ -90,19 +84,6 @@ public:
     static const constexpr char* STR_LINK_PORT_TYPE_LINK_AGGREGATION = "LinkAggregation";
 
     /*!
-     * @brief Add switch port interface.
-     * @param[in] port Port interface to be created.
-     * @param[in] mode Mode of the port interface.
-     */
-    void add_switch_port(const PortIdentifier& port, PortMode mode);
-
-    /*!
-     * @brief Delete switch port interface.
-     * @param[in] port Port interface to be deleted.
-     */
-    void delete_switch_port(const PortIdentifier& port);
-
-    /*!
      * @brief Sets PFC enabled attribute.
      * @param[in] enable PFC state.
      * */
@@ -113,6 +94,24 @@ public:
      * @param[in] enable LLDP state.
      * */
     void set_switch_lldp_enabled(bool state);
+
+    /*!
+     * @brief Adds switch vlan.
+     * @param[in] vlan_id Vlan index.
+     * */
+    void add_switch_vlan(VlanId vlan_id);
+
+    /*!
+     * @brief Deletes switch vlan.
+     * @param[in] vlan_id Vlan index.
+     * */
+    void delete_switch_vlan(VlanId vlan_id);
+
+    /*!
+     * @brief Check if the VLAN id exists on any port.
+     * @param[in] vlan_id Vlan index.
+     * */
+    bool switch_vlan_exists(VlanId vlan_id);
 
     /*!
      * @brief Add QoS application protocol.

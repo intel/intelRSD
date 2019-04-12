@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +26,11 @@
 
 #include "discovery/builders/endpoint_builder.hpp"
 
+
+
 using namespace agent::pnc::discovery::builders;
 using namespace agent_framework::model;
+
 
 void EndpointBuilder::build_default() {
 
@@ -36,19 +39,14 @@ void EndpointBuilder::build_default() {
     status.set_state(enums::State::Enabled);
     m_obj.set_status(std::move(status));
 
-    m_obj.set_protocol(enums::StorageProtocol::NVMe);
+    m_obj.set_protocol(enums::TransportProtocol::PCIe);
 
     m_obj.add_collection(attribute::Collection(
         enums::CollectionName::Ports,
-        enums::CollectionType::Ports,
-        ""
+        enums::CollectionType::Ports
     ));
-
-    attribute::Identifier id{};
-    id.set_durable_name_format(enums::IdentifierType::UUID);
-    id.set_durable_name(m_obj.get_uuid());
-    m_obj.add_identifier(std::move(id));
 }
+
 
 EndpointBuilder::ReturnType EndpointBuilder::add_host_entity() {
 
@@ -59,15 +57,17 @@ EndpointBuilder::ReturnType EndpointBuilder::add_host_entity() {
     return *this;
 }
 
-EndpointBuilder::ReturnType EndpointBuilder::add_drive_entity(const std::string& uuid) {
 
+EndpointBuilder::ReturnType EndpointBuilder::add_device_entity(const Uuid& device_uuid) {
     attribute::ConnectedEntity entity{};
     entity.set_entity_role(enums::EntityRole::Target);
-    entity.set_entity(uuid);
+    entity.set_entity(device_uuid);
     m_obj.add_connected_entity(std::move(entity));
+    m_obj.set_protocol(enums::TransportProtocol::PCIe);
 
     return *this;
 }
+
 
 EndpointBuilder::ReturnType EndpointBuilder::add_unknown_target_entity() {
 

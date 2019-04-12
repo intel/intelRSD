@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,8 +74,8 @@ TEST(GetPhysicalDriveInfoTest, PositiveExecute) {
     MyGetPhysicalDriveInfo command{TEST_DRIVE};
     GetPhysicalDriveInfo::Request request{""};
     GetPhysicalDriveInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::PhysicalDrive::DRIVE] = TEST_DRIVE;
 
@@ -107,8 +107,8 @@ TEST(GetPhysicalDriveInfoTest, NegativeDriveNotFound) {
     MyGetPhysicalDriveInfo command{TEST_DRIVE};
     GetPhysicalDriveInfo::Request request{""};
     GetPhysicalDriveInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::PhysicalDrive::DRIVE] = "OtherTestDrive";
 

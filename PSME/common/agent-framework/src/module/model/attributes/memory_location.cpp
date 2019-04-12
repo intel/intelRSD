@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ MemoryLocation::MemoryLocation() { }
 MemoryLocation::~MemoryLocation() { }
 
 json::Json MemoryLocation::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::MemoryLocation::SOCKET] = get_socket();
     result[literals::MemoryLocation::CONTROLLER] = get_controller();
     result[literals::MemoryLocation::CHANNEL] = get_channel();

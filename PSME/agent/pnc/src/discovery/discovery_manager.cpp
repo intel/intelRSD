@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@
  *
  * */
 
+#include "agent-framework/eventing/utils.hpp"
 #include "agent-framework/module/pnc_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "sysfs/sysfs_reader.hpp"
@@ -37,6 +38,7 @@
 #include "seeprom.hpp"
 #include "cable_id.hpp"
 #include "configuration/configuration.hpp"
+#include "loader/pnc_configuration.hpp"
 #include "tree_stability/pnc_tree_stabilizer.hpp"
 #include "tools/model_tool.hpp"
 #include "tools/i2c_tool.hpp"
@@ -44,13 +46,19 @@
 #include "i2c/i2c_access_interface_factory.hpp"
 #include "agent-framework/module/enum/chassis.hpp"
 #include "tree_stability/pnc_stabilizer.hpp"
+#include "tools/database_keys.hpp"
+#include "agent-framework/database/database_entities.hpp"
 
 #include <iomanip>
 #include <chrono>
 #include <thread>
 #include <set>
+#include "agent-framework/discovery/builders/identifier_builder.hpp"
+
+
 
 using namespace agent::pnc::discovery::builders;
+using namespace agent::pnc::discovery::device_discoverers;
 using namespace agent::pnc::tools;
 using namespace agent::pnc;
 using namespace agent::pnc::discovery;
@@ -65,65 +73,37 @@ using namespace agent::pnc::nvme;
 using namespace agent::pnc::i2c;
 
 using namespace agent_framework::model;
-using namespace agent_framework::model::attribute;
 using namespace agent_framework::module;
 using namespace agent_framework::eventing;
+using namespace agent_framework::database;
+using namespace agent_framework::model::attribute;
 
-namespace {
 
-/*!
- * This is a helper function that adds the resource to the model and logs it, Returns resource uuid
- * */
-template <typename RESOURCE>
-std::string log_and_remove(const std::string& uuid) {
-    using RAW_TYPE = typename std::remove_reference<RESOURCE>::type;
-    enums::Component component = RAW_TYPE::get_component();
-    log_info("pnc-discovery", component.to_string() << " removed");
-    log_debug("pnc-discovery", "Removed " << component.to_string() << " uuid: " << uuid);
-    get_manager<RAW_TYPE>().remove_entry(uuid);
-    return uuid;
+DiscoveryManager::DiscoveryManager(DiscovererPtr discoverer,
+                                   const tools::Toolset& toolset,
+                                   const builders::BuilderFactoryPtr builderFactory) : m_tools(toolset),
+                                                                                       m_discoverer(discoverer) {
+    m_pcie_device_discoverers = {
+        // Declare discoverers for all PCIe device types here
+        std::make_shared<device_discoverers::DriveDiscoverer>(toolset, builderFactory),
+        std::make_shared<device_discoverers::ProcessorDiscoverer>(toolset, builderFactory),
+        std::make_shared<device_discoverers::UnknownDeviceDiscoverer>(toolset, builderFactory) // Should be last
+    };
 }
 
-/*!
- * This is a helper function that adds the resource to the model and logs it, Returns resource uuid
- * */
-template <typename RESOURCE>
-std::string log_and_add(const RESOURCE& resource) {
-    using RAW_TYPE = typename std::remove_reference<RESOURCE>::type;
-    std::string uuid = resource.get_uuid();
-    enums::Component component = RAW_TYPE::get_component();
-    log_info("pnc-discovery", component.to_string() << " found");
-    log_debug("pnc-discovery", component.to_string() << " uuid: " << uuid);
-    get_manager<RAW_TYPE>().add_entry(resource);
-    return uuid;
-}
-
-/*!
- * This is a helper function that updates the resource in the model and logs it. Returns resource uuid
- * */
-template <typename RESOURCE>
-std::string log_and_update(const RESOURCE& resource) {
-    using RAW_TYPE = typename std::remove_reference<RESOURCE>::type;
-    std::string uuid = resource.get_uuid();
-    enums::Component component = RAW_TYPE::get_component();
-    log_debug("pnc-discovery", component.to_string() << " with uuid: " + uuid << " has been updated");
-    get_manager<RAW_TYPE>().get_entry_reference(resource.get_uuid()).get_raw_ref() = resource;
-    return uuid;
-}
-
-}
 
 DiscoveryManager DiscoveryManager::create(const tools::Toolset& t) {
     std::string chassis_uuid = t.model_tool->get_chassis_uuid();
     Chassis chassis = get_manager<Chassis>().get_entry(chassis_uuid);
     DiscovererPtr discoverer{};
+    BuilderFactoryPtr factory{};
 
     if (chassis.get_platform() == enums::PlatformType::EDK) {
-        BuilderFactoryPtr factory = std::make_shared<BuilderFactory>();
+        factory = std::make_shared<BuilderFactory>();
         discoverer = std::make_shared<Discoverer>(Discoverer(chassis.get_platform(), factory));
     }
     else if (chassis.get_platform() == enums::PlatformType::MF3) {
-        BuilderFactoryPtr factory = std::make_shared<BuilderFactoryMf3>();
+        factory = std::make_shared<BuilderFactoryMf3>();
         discoverer = std::make_shared<DiscovererMf3>(factory);
     }
     else {
@@ -131,24 +111,45 @@ DiscoveryManager DiscoveryManager::create(const tools::Toolset& t) {
         throw std::runtime_error("Not supported platform");
     }
 
-    return DiscoveryManager(discoverer, t);
+    return DiscoveryManager(discoverer, t, factory);
 }
 
-DiscoveryManager::~DiscoveryManager() {}
+
+DiscoveryManager::~DiscoveryManager() = default;
+
 
 void DiscoveryManager::discover_zones(const std::string& fabric_uuid,
                                       const std::string& switch_uuid,
                                       GlobalAddressSpaceRegisters& gas) const {
-    for (std::uint8_t zone_id = 0; zone_id < gas.top.output.fields.part_num; zone_id++) {
-        // Skip management Partition
-        if (gas.top.output.fields.current_partition_id != zone_id) {
-            log_and_add(m_discoverer->discover_zone(fabric_uuid, m_tools, switch_uuid, gas, zone_id));
+
+    const auto& discovery_mode = loader::PncConfiguration::get_instance()->get_fabric_discovery_mode();
+
+    if (discovery_mode == loader::FabricDiscoveryMode::AUTOMATIC) {
+
+        for (std::uint8_t partition_id = 0; partition_id < gas.top.output.fields.part_num; partition_id++) {
+
+            // Skip management Partition
+            if (gas.top.output.fields.current_partition_id != partition_id) {
+                log_and_add(m_discoverer->discover_zone(fabric_uuid, m_tools, switch_uuid, gas, partition_id));
+            }
         }
+    }
+    else {
+
+        agent_framework::database::FabricEntity fabric_db{fabric_uuid};
+
+        auto zones_uuids{fabric_db.get_multiple_values(db_keys::ZONES)};
+
+        std::for_each(zones_uuids.begin(), zones_uuids.end(), [&](const Uuid& zone_uuid) {
+            recreate_zone_from_db(fabric_uuid, switch_uuid, zone_uuid);
+        });
     }
 }
 
+
 void DiscoveryManager::discover_ports(const std::string& fabric_uuid, const std::string& switch_uuid,
-        GlobalAddressSpaceRegisters& gas) const {
+                                      GlobalAddressSpaceRegisters& gas) const {
+
     // List all enabled PCIe Ports
     PortBindingInfo cmd{gas.get_interface()};
     try {
@@ -159,27 +160,47 @@ void DiscoveryManager::discover_ports(const std::string& fabric_uuid, const std:
         log_error("pnc-discovery", "Ports discovery failed");
         return;
     }
+
     for (uint8_t entry_id = 0; entry_id < cmd.output.fields.info_count; entry_id++) {
+
         try {
+
             Port port = m_discoverer->discover_port(switch_uuid, m_tools, gas, cmd, entry_id);
             m_discoverer->update_port(port, gas, m_tools);
             Metric metric = m_discoverer->discover_port_health_metric(port, m_tools);
             log_and_add(std::move(metric));
 
             if (enums::PciePortType::UpstreamPort == port.get_port_type()) {
-                std::string endpoint_uuid = log_and_add<Endpoint>(m_discoverer->discover_host_endpoint(fabric_uuid));
-                get_m2m_manager<Endpoint, Port>().add_entry(endpoint_uuid, port.get_uuid());
 
-                Zone zone{};
-                auto zone_id = cmd.output.fields.port_binding_info[entry_id].partition_id;
-                if (m_tools.model_tool->get_zone_by_id(zone, switch_uuid, zone_id)) {
-                    get_m2m_manager<Zone, Endpoint>().add_entry(zone.get_uuid(), endpoint_uuid);
+                const auto& endpoint_discovery_mode = loader::PncConfiguration::get_instance()->get_fabric_discovery_mode();
+
+                if (endpoint_discovery_mode == loader::FabricDiscoveryMode::AUTOMATIC) {
+
+                    std::string endpoint_uuid = log_and_add<Endpoint>(
+                        m_discoverer->discover_host_endpoint(fabric_uuid));
+
+                    get_m2m_manager<Endpoint, Port>().add_entry(endpoint_uuid, port.get_uuid());
+
+                    Zone zone{};
+
+                    auto zone_id = cmd.output.fields.port_binding_info[entry_id].partition_id;
+
+                    if (m_tools.model_tool->get_zone_by_id(zone, switch_uuid, zone_id)) {
+
+                        get_m2m_manager<Zone, Endpoint>().add_entry(zone.get_uuid(), endpoint_uuid);
+                    }
+                    else {
+
+                        log_debug("pnc-discovery", "Zone with id = " << zone_id << " does not exist!");
+                        log_error("pnc-discovery", "Cannot link endpoint to a not existing zone");
+                    }
                 }
                 else {
-                    log_debug("pnc-discovery", "Zone with id = " << zone_id << " does not exist!");
-                    log_error("pnc-discovery", "Cannot link endpoint to a not existing zone");
+
+                    recreate_host_endpoint_from_db(fabric_uuid, switch_uuid, port);
                 }
             }
+
             log_debug("pnc-discovery", "Discovered port with physical id =  " << port.get_port_id());
             log_and_add(std::move(port));
         }
@@ -188,6 +209,7 @@ void DiscoveryManager::discover_ports(const std::string& fabric_uuid, const std:
         }
     }
 }
+
 
 void DiscoveryManager::discovery() {
 
@@ -203,27 +225,36 @@ void DiscoveryManager::discovery() {
     std::string manager_uuid = m_tools.model_tool->get_manager_uuid();
     std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
 
-    std::string fabric_uuid = log_and_add<Fabric>(m_discoverer->discover_fabric(manager_uuid));
     std::string system_uuid = log_and_add<System>(m_discoverer->discover_system(manager_uuid, chassis_uuid));
     log_and_add(m_discoverer->discover_storage_subsystem(system_uuid));
+
+    PncStabilizer stabilizer{};
+    Fabric fabric = m_discoverer->discover_fabric(manager_uuid);
+    std::string fabric_uuid = stabilizer.stabilize(fabric);
+    fabric_uuid = log_and_add<Fabric>(fabric);
 
     log_and_update<Chassis>(m_discoverer->discover_chassis(m_tools, get_manager<Chassis>().get_entry(chassis_uuid)));
 
     SysfsDecoder decoder = SysfsDecoder::make_instance(SysfsReader{});
+
     auto sysfs_switches = decoder.get_switches();
+
     if (sysfs_switches.size() > 0) {
+
         SysfsSwitch sysfs_switch = sysfs_switches.front();
+
         // get gas
-        GlobalAddressSpaceRegisters gas =
-            GlobalAddressSpaceRegisters::get_default(sysfs_switch.memory_resource);
+        GlobalAddressSpaceRegisters gas = GlobalAddressSpaceRegisters::get_default(sysfs_switch.memory_resource);
+
         // init gas i2c interface
         I2cAccessInterfaceFactory::get_instance().init_gas_interface(sysfs_switch.memory_resource);
 
         gas.read_top();
 
-        std::string switch_uuid =
-            log_and_add(m_discoverer->discover_switch(fabric_uuid, m_tools, chassis_uuid, sysfs_switch));
+        Uuid switch_uuid = log_and_add(m_discoverer->discover_switch(fabric_uuid, m_tools, chassis_uuid, sysfs_switch));
+
         discover_zones(fabric_uuid, switch_uuid, gas);
+
         discover_ports(fabric_uuid, switch_uuid, gas);
     }
     else {
@@ -236,220 +267,62 @@ void DiscoveryManager::discovery() {
     log_info("pnc-discovery", "Finished discovery of the PNC agent.");
 }
 
-bool DiscoveryManager::oob_port_device_discovery(const GlobalAddressSpaceRegisters& gas, const std::string&,
-        const std::string& dsp_port_uuid) const {
+
+bool DiscoveryManager::oob_port_device_discovery(const GlobalAddressSpaceRegisters& gas,
+                                                 const std::string& dsp_port_uuid) const {
+
     try {
-        log_debug("pnc-discovery", "Discovery: getting switch data...");
 
-        std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
-        std::string fabric_uuid = m_tools.model_tool->get_fabric_uuid();
-        auto dsp_port = get_manager<Port>().get_entry(dsp_port_uuid);
+        for (auto& discoverer: m_pcie_device_discoverers) {
 
-        log_debug("pnc-discovery", "Discovery: drive discovery...");
-        Drive drive{};
-        bool drive_found = false;
-        try {
-            drive = m_discoverer->discover_oob_drive(chassis_uuid, m_tools, dsp_port_uuid);
-            drive_found = true;
-        }
-        catch (PncDiscoveryExceptionDriveNotFound&) {
-            log_debug("pnc-discovery", "No drive detected on physical port " << dsp_port.get_port_id());
+            log_debug("pnc-discovery", "Out-of-band port device discovery for: " << discoverer->get_device_type_name());
+
+            bool device_found = discoverer->oob_port_device_discovery(gas, dsp_port_uuid);
+
+            if (device_found) {
+
+                return true;
+            }
         }
 
-        std::string endpoint_uuid{};
-        if (drive_found) {
-            auto drive_uuid = add_and_stabilize_drive(drive, dsp_port);
-            auto endpoint = m_discoverer->discover_drive_endpoint(fabric_uuid, drive_uuid);
-            endpoint_uuid = add_and_stabilize_endpoint(endpoint, dsp_port, true, drive_uuid);
-        }
-        else {
-            auto endpoint = m_discoverer->discover_unknown_target_endpoint(fabric_uuid);
-            endpoint_uuid = add_and_stabilize_endpoint(endpoint, dsp_port, false, std::string{});
-        }
-
-        update_endpoint_zone_binding(gas, endpoint_uuid, dsp_port);
-
-        return true;
+        return false;
     }
     catch (const std::exception& e) {
+
         log_error("pnc-discovery", "Discovery FAILED: " << e.what());
+
         return false;
     }
 }
 
-std::string DiscoveryManager::add_and_stabilize_drive(const Drive& drive, const Port& port) const {
-    std::string system_uuid = m_tools.model_tool->get_system_uuid();
-    std::string storage_uuid = m_tools.model_tool->get_storage_uuid();
-    std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
-
-    log_debug("pnc-discovery", "Drive has been found on a physical port " << port.get_port_id());
-    get_m2m_manager<StorageSubsystem, Drive>().add_entry(storage_uuid, drive.get_uuid());
-    log_and_add(drive);
-    std::string uuid = ::agent::pnc::PncTreeStabilizer().stabilize_drive(drive.get_uuid());
-    m_tools.model_tool->send_event(system_uuid, storage_uuid, enums::Component::StorageSubsystem,
-                                   Notification::Update);
-    m_tools.model_tool->send_event(chassis_uuid, uuid, enums::Component::Drive, Notification::Add);
-    return uuid;
-}
-
-std::string DiscoveryManager::add_and_stabilize_endpoint(Endpoint& endpoint, const Port& port,
-                                                         bool was_drive_found, const std::string& drive_uuid) const {
-    PncStabilizer stabilizer{};
-    const std::string new_endpoint_uuid = stabilizer.dry_stabilize(endpoint, std::vector<Port>{port});
-    bool already_exists = get_manager<Endpoint>().entry_exists(new_endpoint_uuid);
-    std::string fabric_uuid = m_tools.model_tool->get_fabric_uuid();
-
-    if (already_exists) {
-        if (was_drive_found) {
-            log_info("pnc-discovery", "Regenerating existing endpoint");
-            log_debug("pnc-discovery", "Regenerating endpoint on a physical port " << port.get_port_id());
-            m_tools.model_tool->regenerate_endpoint(new_endpoint_uuid, drive_uuid);
-        }
-        else {
-            log_debug("pnc-discovery", "Endpoint already exists");
-        }
-
-    }
-    else {
-        log_debug("pnc-discovery", "New endpoint has been found on a physical port " << port.get_port_id());
-        get_m2m_manager<Endpoint, Port>().add_entry(endpoint.get_uuid(), port.get_uuid());
-        log_and_add(endpoint);
-        m_tools.model_tool->send_event(fabric_uuid,
-            ::agent::pnc::PncTreeStabilizer().stabilize_pcie_endpoint(endpoint.get_uuid()),
-            enums::Component::Endpoint, Notification::Add);
-    }
-    return new_endpoint_uuid;
-}
-
-void DiscoveryManager::update_endpoint_zone_binding(const GlobalAddressSpaceRegisters& gas,
-        const std::string& endpoint_uuid, const Port& port) const {
-    std::string fabric_uuid = m_tools.model_tool->get_fabric_uuid();
-    PortBindingInfo pbi = m_tools.gas_tool->get_port_binding_info(gas, uint8_t(port.get_phys_port_id()));
-    for (unsigned i = 0; i < pbi.output.fields.info_count; ++i) {
-        if (pbi.output.fields.port_binding_info[0].partition_id != gas.top.output.fields.current_partition_id) {
-            Zone zone{};
-            m_tools.model_tool->get_zone_by_id(zone, port.get_parent_uuid(),
-                pbi.output.fields.port_binding_info[0].partition_id);
-            get_m2m_manager<Zone, Endpoint>().add_entry(zone.get_uuid(), endpoint_uuid);
-            m_tools.model_tool->send_event(fabric_uuid, zone.get_uuid(), enums::Component::Zone,
-                Notification::Update);
-        }
-    }
-}
 
 bool DiscoveryManager::ib_port_device_discovery(const std::string& switch_uuid, const std::string& dsp_port_uuid,
-        uint8_t bridge_id, const std::string& drive_uuid) const {
+                                                uint8_t bridge_id, const std::string& device_uuid) const {
     try {
-        // sysfs numbering is different than in pnc, in pnc bridge_id = 0 is reserved for upstream ports
-        if (0 == bridge_id) {
-            THROW(agent_framework::exceptions::PncError, "pnc-discovery", "Invalid bridge id = 0");
-        }
-        bridge_id = uint8_t(bridge_id - 1);
-        SysfsDecoder decoder = SysfsDecoder::make_instance(SysfsReader{});
-        Switch pcie_switch = get_manager<Switch>().get_entry(switch_uuid);
-        SysfsBridge sysfs_bridge = decoder.get_bridge_by_switch_path(pcie_switch.get_bridge_path(), bridge_id);
 
-        log_debug("pnc-discovery", "Discovery: bridge discovery...");
-        std::vector<SysfsDevice> devices = decoder.get_devices(sysfs_bridge);
-        if (devices.empty()) {
-            if (drive_uuid.empty()) {
-                // no oob drive + no ib devices -> nothing new detected
-                log_debug("pnc-discovery", "Device not present!");
-            }
-            else {
-                // drive was found via OOB discovery and devices are empty -> this should never happen
-                // setting drive in permanent critical state
-                critical_state_drive_discovery(drive_uuid);
-            }
-        }
-        else if (devices.size() > 1) {
-            // more than one device - should never happen
-            log_debug("pnc-discovery", "Found too many (" << devices.size() << ") devices on port uuid = "
-                << dsp_port_uuid);
-            log_error("pnc-discovery", "Too many pcie devices found on port!");
-            throw std::runtime_error("Too many devices on port");
-        }
-        else {
-            sysfs_device_discovery(dsp_port_uuid, drive_uuid, decoder, devices.front());
-            if (drive_uuid.empty()) {
-                // no drives detected but sysfs device found
-                log_warning("pnc-discovery", "Non drive device found!");
-            }
-            else {
-                // normal situation
-                sysfs_drive_discovery(drive_uuid, decoder, devices.front());
+        for (auto& discoverer: m_pcie_device_discoverers) {
+
+            log_debug("pnc-discovery", "In-band port device discovery for: " << discoverer->get_device_type_name());
+
+            bool device_found = discoverer->ib_port_device_discovery(switch_uuid, dsp_port_uuid,
+                                                                     bridge_id, device_uuid);
+
+            if (device_found) {
+
+                return true;
             }
         }
-        return true;
+
+        return false;
     }
     catch (const std::exception& e) {
+
         log_error("pnc-discovery", "Discovery FAILED: " << e.what());
+
         return false;
     }
 }
 
-void DiscoveryManager::sysfs_device_discovery(const std::string& dsp_port_uuid, const std::string drive_uuid,
-        const SysfsDecoder& decoder, const SysfsDevice& sysfs_device) const {
-
-    std::string manager_uuid = m_tools.model_tool->get_manager_uuid();
-    std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
-    // discover pcie device and functions
-    PcieDevice device = m_discoverer->discover_pcie_device(manager_uuid, chassis_uuid, sysfs_device);
-    std::vector<SysfsFunction> sysfs_functions = decoder.get_functions(sysfs_device);
-
-    log_and_add(device);
-    for (const auto& sysfs_function : sysfs_functions) {
-        PcieFunction function = m_discoverer->discover_pcie_function(device.get_uuid(), dsp_port_uuid, sysfs_function);
-        if (!drive_uuid.empty()) {
-            get_m2m_manager<Drive, PcieFunction>().add_entry(drive_uuid, function.get_uuid());
-            function.set_functional_device(drive_uuid);
-        }
-        log_and_add(function);
-    }
-
-    m_tools.model_tool->send_event(manager_uuid,
-        ::agent::pnc::PncTreeStabilizer().stabilize_pcie_device(device.get_uuid()),
-        enums::Component::PcieDevice, Notification::Add);
-}
-
-void DiscoveryManager::sysfs_drive_discovery(const std::string drive_uuid,
-        const SysfsDecoder& decoder, const SysfsDevice& sysfs_device) const {
-    // get all drives
-    std::vector<SysfsDrive> sysfs_drives{};
-    std::vector<SysfsFunction> sysfs_functions = decoder.get_functions(sysfs_device);
-    for (const auto& sysfs_function : sysfs_functions) {
-        for (const auto& drive : sysfs_function.drives) {
-            sysfs_drives.push_back(drive);
-        }
-    }
-
-    if (sysfs_drives.empty()) {
-        log_error("pnc-discovery", "Drive was detected but no sysfs drives were discovered");
-    }
-    else {
-        if (sysfs_drives.size() > 1) {
-            log_warning("pnc-discovery", "More than one sysfs drive found! Taking the first one.");
-        }
-        Drive drive = get_manager<Drive>().get_entry(drive_uuid);
-        drive = m_discoverer->discover_ib_drive(drive, sysfs_device, sysfs_drives.front());
-        log_and_update(drive);
-
-        // send update event for drive
-        m_tools.model_tool->send_event(drive.get_parent_uuid(), drive_uuid, enums::Component::Drive,
-            Notification::Update);
-    }
-}
-
-void DiscoveryManager::critical_state_drive_discovery(const std::string& drive_uuid) const {
-    log_debug("pnc-discovery", "Drive is visible via VPD/Smart but not in the sysfs = " << drive_uuid);
-    log_error("pnc-discovery", "Drive was detected but no pcie devices are present!");
-    Drive drive = get_manager<Drive>().get_entry(drive_uuid);
-    drive = m_discoverer->discover_no_sysfs_ib_drive(drive);
-    log_and_update(drive);
-    // send update event for drive
-    m_tools.model_tool->send_event(drive.get_parent_uuid(), drive_uuid,
-        enums::Component::Drive, Notification::Update);
-}
 
 bool DiscoveryManager::update_drive_status(const std::string& port_uuid, const std::string& drive_uuid) const {
     Port port{};
@@ -460,8 +333,10 @@ bool DiscoveryManager::update_drive_status(const std::string& port_uuid, const s
         Chassis chassis = get_manager<Chassis>().get_entry(chassis_uuid);
 
         log_debug("pnc-discovery", "Reading drive status (phys port = " << port.get_port_id()
-            << "), twi_port = " << unsigned(port.get_twi_port())
-            << ", twi_channel = " << unsigned(port.get_twi_channel()));
+                                                                        << "), twi_port = "
+                                                                        << unsigned(port.get_twi_port())
+                                                                        << ", twi_channel = "
+                                                                        << unsigned(port.get_twi_channel()));
 
         Smart smart{chassis.get_platform()};
         if (m_tools.i2c_tool->get_smart(smart, port)) {
@@ -482,6 +357,7 @@ bool DiscoveryManager::update_drive_status(const std::string& port_uuid, const s
     }
 }
 
+
 bool DiscoveryManager::update_port_health_metric(const agent_framework::model::Port& port) const {
     const auto metrics = get_manager<Metric>().get_keys(
         [&port](const Metric& metric) {
@@ -491,7 +367,7 @@ bool DiscoveryManager::update_port_health_metric(const agent_framework::model::P
 
     if (metrics.size() != 1) {
         log_error("pnc-discovery",
-                  "Invalid number of Metrics (" << metrics.size() << ") for port with uuid " + port.get_uuid() );
+                  "Invalid number of Metrics (" << metrics.size() << ") for port with uuid " + port.get_uuid());
         return false;
     }
     auto metric = get_manager<Metric>().get_entry_reference(metrics.front());
@@ -508,11 +384,14 @@ bool DiscoveryManager::update_port_health_metric(const agent_framework::model::P
     }
     if (update) {
         metric->set_value(health);
-        m_tools.model_tool->send_event(metric->get_parent_uuid(), metric->get_uuid(),
-                                       enums::Component::Metric, Notification::Update);
+        agent_framework::eventing::send_event(metric->get_uuid(),
+                                              enums::Component::Metric,
+                                              enums::Notification::Update,
+                                              metric->get_parent_uuid());
     }
     return true;
 }
+
 
 bool DiscoveryManager::update_port_status(const GlobalAddressSpaceRegisters& gas, const std::string& port_uuid) const {
 
@@ -522,31 +401,35 @@ bool DiscoveryManager::update_port_status(const GlobalAddressSpaceRegisters& gas
         log_debug("pnc-discovery", "Updating status of port id = " << port.get_port_id());
 
         if (m_discoverer->update_port(port, gas, m_tools)) {
-            m_tools.model_tool->send_event(port.get_parent_uuid(), port.get_uuid(),
-                                           enums::Component::Port, Notification::Update);
+            agent_framework::eventing::send_event(port.get_uuid(),
+                                                  enums::Component::Port,
+                                                  enums::Notification::Update,
+                                                  port.get_parent_uuid());
             return update_port_health_metric(port);
         }
         return true;
     }
     catch (const ::agent_framework::exceptions::InvalidUuid& iue) {
         log_error("pnc-discovery", "Cannot update status on nonexisting port " << port_uuid <<
-                                                                                           ", exception: " << iue.what());
+                                                                               ", exception: " << iue.what());
         return false;
     }
 }
 
-bool DiscoveryManager::remove_devices_on_port(const GlobalAddressSpaceRegisters& gas, const std::string& port_uuid) const {
+
+bool DiscoveryManager::remove_devices_on_port(const GlobalAddressSpaceRegisters& gas, const Uuid& port_uuid) const {
 
     try {
         /* here we are assuming the following:
-         * -> if there is a function it is the only function of the drive, and the only function of the pcie device
+         * -> if there is a function it is the only function of the device, and the only function of the pcie device
          * -> if there is a drive, it is a single-function, single-port drive
+         * -> if there is a processor, it is a single-function, single-port processor
          * */
-        std::vector<std::string> drive_uuids = m_tools.model_tool->get_drives_by_dsp_port_uuid(port_uuid);
-        std::vector<std::string> function_uuids = m_tools.model_tool->get_functions_by_dsp_port_uuid(port_uuid);
-        degenerate_endpoints_by_drive_uuids(gas, drive_uuids);
+        std::vector<Uuid> device_uuids = m_tools.model_tool->get_devices_by_dsp_port_uuid<Drive, Processor>(port_uuid);
+        std::vector<Uuid> function_uuids = m_tools.model_tool->get_functions_by_dsp_port_uuid(port_uuid);
+        degenerate_endpoints_by_device_uuids(gas, device_uuids);
         remove_pcie_devices_by_function_uuids(function_uuids);
-        remove_drives_by_uuids(drive_uuids);
+        remove_devices_by_uuids(device_uuids);
 
     }
     catch (const std::exception& e) {
@@ -557,40 +440,62 @@ bool DiscoveryManager::remove_devices_on_port(const GlobalAddressSpaceRegisters&
     return true;
 }
 
-void DiscoveryManager::remove_pcie_devices_by_function_uuids(const std::vector<std::string>& function_uuids) const {
 
-    std::string manager_uuid = m_tools.model_tool->get_manager_uuid();
+void DiscoveryManager::remove_pcie_devices_by_function_uuids(const std::vector<Uuid>& function_uuids) const {
+
+    Uuid manager_uuid = m_tools.model_tool->get_manager_uuid();
     for (const auto& function_uuid : function_uuids) {
         auto device_uuid = get_manager<PcieFunction>().get_entry(function_uuid).get_parent_uuid();
         log_and_remove<PcieFunction>(function_uuid);
         log_and_remove<PcieDevice>(device_uuid);
         get_m2m_manager<Drive, PcieFunction>().remove_child(function_uuid);
-        m_tools.model_tool->send_event(manager_uuid, device_uuid, enums::Component::PcieDevice, Notification::Remove);
+        agent_framework::eventing::send_event(device_uuid, enums::Component::PcieDevice,
+                                              enums::Notification::Remove, manager_uuid);
     }
 }
 
-void DiscoveryManager::remove_drives_by_uuids(const std::vector<std::string>& drive_uuids) const {
+
+void DiscoveryManager::remove_devices_by_uuids(const std::vector<Uuid>& device_uuids) const {
 
     std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
     std::string system_uuid = m_tools.model_tool->get_system_uuid();
     std::string storage_uuid = m_tools.model_tool->get_storage_uuid();
-    for (const auto& drive_uuid : drive_uuids) {
-        log_and_remove<Drive>(drive_uuid);
-        get_m2m_manager<Drive, PcieFunction>().remove_parent(drive_uuid);
-        get_m2m_manager<StorageSubsystem, Drive>().remove_child(drive_uuid);
-        m_tools.model_tool->send_event(chassis_uuid, drive_uuid, enums::Component::Drive, Notification::Remove);
+
+    for (const auto& drive_uuid : device_uuids) {
+        if (get_manager<Drive>().entry_exists(drive_uuid)) {
+            log_and_remove<Drive>(drive_uuid);
+            get_m2m_manager<Drive, PcieFunction>().remove_parent(drive_uuid);
+            get_m2m_manager<StorageSubsystem, Drive>().remove_child(drive_uuid);
+            m_tools.model_tool->remove_device_from_db<Drive, Chassis>(drive_uuid,
+                                                                      m_tools.model_tool->get_dry_stabilized_chassis_uuid());
+            agent_framework::eventing::send_event(drive_uuid, enums::Component::Drive,
+                                                  enums::Notification::Remove, chassis_uuid);
+        }
     }
-    m_tools.model_tool->send_event(system_uuid, storage_uuid, enums::Component::StorageSubsystem, Notification::Update);
+    agent_framework::eventing::send_event(storage_uuid, enums::Component::StorageSubsystem,
+                                          enums::Notification::Update, system_uuid);
+
+    for (const auto& processor_uuid : device_uuids) {
+        if (get_manager<Processor>().entry_exists(processor_uuid)) {
+            log_and_remove<Processor>(processor_uuid);
+            get_m2m_manager<Processor, PcieFunction>().remove_parent(processor_uuid);
+            m_tools.model_tool->remove_device_from_db<Processor, System>(processor_uuid,
+                                                                         m_tools.model_tool->get_dry_stabilized_system_uuid());
+            agent_framework::eventing::send_event(processor_uuid, enums::Component::Processor,
+                                                  enums::Notification::Remove, system_uuid);
+        }
+    }
 }
 
-void DiscoveryManager::degenerate_endpoints_by_drive_uuids(const GlobalAddressSpaceRegisters& gas,
-        const std::vector<std::string>& drive_uuids) const {
 
-    std::string fabric_uuid = m_tools.model_tool->get_fabric_uuid();
-    // get list of all endpoints on the drives, we use set to exlude duplicates
-    std::set<std::string> endpoint_uuids{};
-    for (const auto& drive_uuid : drive_uuids) {
-        auto uuids = m_tools.model_tool->get_endpoints_by_drive_uuid(drive_uuid);
+void DiscoveryManager::degenerate_endpoints_by_device_uuids(const GlobalAddressSpaceRegisters& gas,
+                                                            const std::vector<Uuid>& device_uuids) const {
+
+    Uuid fabric_uuid = m_tools.model_tool->get_fabric_uuid();
+    // get list of all endpoints on the drives, we use set to exclude duplicates
+    std::set<Uuid> endpoint_uuids{};
+    for (const auto& drive_uuid : device_uuids) {
+        auto uuids = m_tools.model_tool->get_endpoints_by_device_uuid(drive_uuid);
         endpoint_uuids.insert(uuids.begin(), uuids.end());
     }
     // degenerate all endpoints on the list
@@ -600,9 +505,81 @@ void DiscoveryManager::degenerate_endpoints_by_drive_uuids(const GlobalAddressSp
         for (const auto& zone_uuid : zone_uuids) {
             m_tools.gas_tool->unbind_endpoint_from_zone(gas, zone_uuid, endpoint_uuid);
             get_m2m_manager<Zone, Endpoint>().remove_entry(zone_uuid, endpoint_uuid);
-            m_tools.model_tool->send_event(fabric_uuid, zone_uuid, enums::Component::Zone, Notification::Update);
+            agent_framework::eventing::send_event(zone_uuid, enums::Component::Zone,
+                                                  enums::Notification::Update, fabric_uuid);
         }
         // update endpoint to be 'degenerated' in the critical state, this also sends events
-        m_tools.model_tool->degenerate_endpoint(endpoint_uuid, drive_uuids);
+        m_tools.model_tool->degenerate_endpoint(endpoint_uuid, device_uuids);
     }
+}
+
+
+void DiscoveryManager::recreate_host_endpoint_from_db(const Uuid& fabric_uuid,
+                                                      const Uuid& switch_uuid,
+                                                      const Port& port) const {
+
+    log_debug("pnc-discovery", "Recreate host endpoint from db");
+
+    PncStabilizer stabilizer{};
+    Switch pcie_switch = get_manager<Switch>().get_entry(switch_uuid);
+
+    FabricEntity fabric_db{fabric_uuid};
+
+    auto endpoints_uuids = fabric_db.get_multiple_values(db_keys::ENDPOINTS);
+    auto zones_uuids = fabric_db.get_multiple_values(db_keys::ZONES);
+
+    for (const auto& endpoint_uuid : endpoints_uuids) {
+
+        EndpointEntity endpoint_db{endpoint_uuid};
+
+        auto role_db = endpoint_db.get(db_keys::ENDPOINT_ROLE);
+
+        if (literals::Endpoint::INITIATOR == role_db) {
+
+            log_debug("pnc-discovery", "Found host endpoint in fabric db, endpoint uuid: " << endpoint_uuid);
+
+            auto port_uuid_db = endpoint_db.get(db_keys::PORT);
+
+            const Uuid predicted_port_uuid = stabilizer.dry_stabilize(port, pcie_switch);
+
+            if (predicted_port_uuid == port_uuid_db) {
+
+                EndpointBuilder endpoint_builder;
+                endpoint_builder.init(fabric_uuid);
+
+                Endpoint endpoint = endpoint_builder.add_host_entity().build();
+                endpoint.set_uuid(endpoint_uuid);
+                endpoint.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
+
+                agent_framework::discovery::IdentifierBuilder::set_uuid(endpoint, endpoint_uuid);
+
+                log_and_add<Endpoint>(endpoint);
+
+                get_m2m_manager<Endpoint, Port>().add_entry(endpoint_uuid, port.get_uuid());
+
+                log_debug("pnc-discovery", "Created host endpoint from fabric db, endpoint uuid: " << endpoint_uuid);
+
+                agent::pnc::discovery::utils::update_endpoint_zone_binding_from_db(zones_uuids, endpoint_uuid);
+
+                break;
+            }
+        }
+    }
+}
+
+
+void DiscoveryManager::recreate_zone_from_db(const Uuid& fabric_uuid,
+                                             const Uuid& switch_uuid,
+                                             const Uuid& zone_uuid) const {
+
+    ZoneBuilder zone_builder;
+    zone_builder.init(fabric_uuid);
+    zone_builder.update_links(switch_uuid);
+
+    Zone zone = zone_builder.build();
+    zone.set_uuid(zone_uuid);
+
+    log_and_add<Zone>(zone);
+
+    log_debug("pnc-discovery", "Created zone from fabric db, zone uuid: " << zone_uuid);
 }

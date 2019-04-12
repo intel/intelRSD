@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,15 +28,15 @@ using namespace psme::rest::constants;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#ActionInfo.ActionInfo";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#ActionInfo.v1_0_0.ActionInfo";
 
-    r[ActionInfo::PARAMETERS] = json::Value::Type::ARRAY;
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[ActionInfo::PARAMETERS] = json::Json::value_t::array;
+    r[Common::OEM] = json::Json::value_t::object;
 
     return r;
 }
@@ -55,21 +55,21 @@ void endpoint::SimpleUpdateActionInfo::get(const server::Request& request, serve
 
     r[Common::ODATA_ID] = PathBuilder(request).build();
 
-    json::Value image_uri{};
+    json::Json image_uri = json::Json();
     image_uri[Common::NAME] = constants::UpdateService::IMAGE_URI;
     image_uri[ActionInfo::REQUIRED] = true;
     image_uri[ActionInfo::DATA_TYPE] = "String";
 
-    json::Value transfer_protocol{};
+    json::Json transfer_protocol = json::Json();
     transfer_protocol[Common::NAME] = constants::UpdateService::TRANSFER_PROTOCOL;
     transfer_protocol[ActionInfo::REQUIRED] = false;
     transfer_protocol[ActionInfo::DATA_TYPE] = "String";
-    transfer_protocol[ActionInfo::ALLOWABLE_VALUES] = json::Value::Type::ARRAY;
+    transfer_protocol[ActionInfo::ALLOWABLE_VALUES] = json::Json::value_t::array;
     for (const auto& protocol : SimpleUpdate::get_allowed_protocols()) {
         transfer_protocol[ActionInfo::ALLOWABLE_VALUES].push_back(protocol.to_string());
     }
 
-    json::Value targets{};
+    json::Json targets = json::Json();
     targets[Common::NAME] = constants::UpdateService::TARGETS;
     targets[ActionInfo::REQUIRED] = true;
     targets[ActionInfo::DATA_TYPE] = "Array";

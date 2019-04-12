@@ -1,7 +1,7 @@
 
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,13 +48,13 @@ const char REPLICA_INFOS[] = "ReplicaInfos";
 const char BLOCK_SIZE_BYTES[] = "BlockSizeBytes";
 const char OPTIMUM_IO_SIZE_BYTES[] = "OptimumIOSizeBytes";
 const char BOOTABLE[] = "Bootable";
-const char ERASED[] = "Erased";
-const char ERASE_ON_DETACH[] = "EraseOnDetach";
+const char ASSIGNED[] = "Assigned";
 const char VOLUME_INITIALIZE[] = "#Volume.Initialize";
 const char VOLUME_INITIALIZE_ENDPOINT[] = "Volume.Initialize";
 const char INITIALIZE_TYPE[] = "InitializeType";
 const char CAPACITY_USED_BYTES[] = "CapacityUsedBytes";
 const char IDENTIFIER[] = "Identifier";
+const char IS_THIN_PROVISIONED[] = "IsThinProvisioned";
 }
 
 namespace Data {
@@ -62,6 +62,7 @@ const char DATA[] = "Data";
 const char ALLOCATED_BYTES[] = "AllocatedBytes";
 const char CONSUMED_BYTES[] = "ConsumedBytes";
 const char GUARANTEED_BYTES[] = "GuaranteedBytes";
+const char PROVISIONED_BYTES[] = "ProvisionedBytes";
 }
 
 namespace ReplicaInfo {

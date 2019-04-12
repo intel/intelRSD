@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 #
 # </license_header>
 
-set(SOURCES
+add_library(agent-framework-exceptions STATIC
     error_codes.cpp
     gami_exception.cpp
     not_found.cpp
@@ -37,6 +37,18 @@ set(SOURCES
     pcie_fabric_error.cpp
     network_error.cpp
     nvme_error.cpp
+    spdk_error.cpp
+    fpgaof_error.cpp
 )
 
-add_library(exceptions OBJECT ${SOURCES})
+target_link_libraries(agent-framework-exceptions
+    PUBLIC
+    json
+    json-rpc
+    logger
+)
+
+target_include_directories(agent-framework-exceptions
+    PUBLIC
+    ${AGENT_FRAMEWORK_DIR}/include
+)

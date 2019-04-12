@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<entity-mappings
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://java.sun.com/xml/ns/persistence/orm"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd"
+        version="2.0">
+    <entity class="com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode" name="ComposedNode">
+        <table name="composed_node"/>
+        <attributes>
+
+            <basic name="composedNodeId">
+                <column name="composed_node_id" column-definition="bigint auto_increment" insertable="false" nullable="false"/>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>

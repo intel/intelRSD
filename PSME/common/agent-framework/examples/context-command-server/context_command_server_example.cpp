@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ struct TestMethodResponse {
     std::string text{};
 
     json::Json to_json() const {
-        json::Json j{};
+        json::Json j = json::Json();
         j["jsonrpc_response"] = text;
         return j;
     }

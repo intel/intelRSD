@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,13 @@
  * @brief Definition of Fabric class
  * */
 #pragma once
+
+
+
 #include "agent-framework/module/model/resource.hpp"
 #include "agent-framework/module/enum/pnc.hpp"
+
+
 
 namespace agent_framework {
 namespace model {
@@ -32,16 +37,25 @@ namespace model {
 class Fabric : public Resource {
 public:
 
-
     explicit Fabric(const std::string& parent_uuid = {}, enums::Component parent_type = enums::Component::Manager);
+
+
     ~Fabric();
+
 
     /*! Enable copy */
     Fabric(const Fabric&) = default;
+
+
     Fabric& operator=(const Fabric&) = default;
+
+
     /*! Enable move */
     Fabric(Fabric&&) = default;
+
+
     Fabric& operator=(Fabric&&) = default;
+
 
     /*!
      * @brief Get collection name
@@ -51,6 +65,7 @@ public:
         return Fabric::collection_name;
     }
 
+
     /*!
      * @brief Get component name
      * @return component name
@@ -59,11 +74,13 @@ public:
         return Fabric::component;
     }
 
+
     /*!
      * @brief Returns JSON representation of the object.
      * @return Json representation.
      * */
     json::Json to_json() const;
+
 
     /*!
      * @brief Constructs object from JSON
@@ -72,25 +89,47 @@ public:
      */
     static Fabric from_json(const json::Json& json);
 
+
     /*!
      * @brief Get protocol
      * @return protocol
      * */
-    const OptionalField<enums::StorageProtocol>& get_protocol() const {
+    const OptionalField<enums::TransportProtocol>& get_protocol() const {
         return m_protocol;
     }
+
 
     /*!
      * @brief Set protocol
      * @param[in] protocol protocol
      * */
-    void set_protocol(const OptionalField<enums::StorageProtocol>& protocol) {
+    void set_protocol(const OptionalField<enums::TransportProtocol>& protocol) {
         m_protocol = protocol;
     }
 
+
+    /*!
+     * @brief Gets OEM protocol
+     * @return OEM protocol type
+     */
+    const OptionalField<enums::OemProtocol>& get_oem_protocol() const {
+        return m_oem_protocol;
+    }
+
+
+    /*!
+     * @brief Sets OEM protocol
+     * @param[in] protocol OEM protocol
+     */
+    void set_oem_protocol(const OptionalField<enums::OemProtocol>& protocol) {
+        m_oem_protocol = protocol;
+    }
+
+
 private:
 
-    OptionalField<enums::StorageProtocol> m_protocol{};
+    OptionalField<enums::TransportProtocol> m_protocol{};
+    OptionalField<enums::OemProtocol> m_oem_protocol{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;

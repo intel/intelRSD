@@ -1,0 +1,426 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#EthernetSwitches/Members/1/ACLs/Members/$entity",
+  "@odata.id": "/redfish/v1/EthernetSwitches/1/ACLs/1",
+  "@odata.type": "#EthernetSwitchACL.v1_0_0.EthernetSwitchACL",
+  "Id": 1,
+  "Name": "FirstSwitchACL",
+  "Description": "Switch ACL #1",
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK"
+  },
+  "Oem": {},
+  "Rules": {
+    "@odata.id": "/redfish/v1/EthernetSwitches/1/ACLs/1/Rules"
+  },
+  "Links": {
+    "BoundPorts": [
+      {
+        "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/1"
+      }
+    ],
+    "Oem": {}
+  },
+  "Actions": {
+    "#EthernetSwitchACL.Bind": {
+      "target": "/redfish/v1/EthernetSwitches/1/ACLs/1/Actions/EthernetSwitchACL.Bind",
+      "Port@Redfish.AllowableValues": [
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/2"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/3"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/4"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/5"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/6"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/7"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/8"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/9"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/10"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/11"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/12"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/13"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/14"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/15"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/16"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/17"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/18"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/19"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/20"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/21"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/22"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/23"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/24"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/25"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/26"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/27"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/28"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/29"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/30"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/31"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/32"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/33"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/34"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/35"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/36"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/37"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/38"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/39"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/40"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/41"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/42"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/43"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/44"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/45"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/46"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/47"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/48"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/49"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/50"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/51"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/52"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/53"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/54"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/55"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/56"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/57"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/58"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/59"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/60"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/61"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/62"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/63"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/64"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/65"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/66"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/67"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/68"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/69"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/70"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/71"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/72"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/73"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/74"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/75"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/76"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/77"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/78"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/79"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/80"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/81"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/82"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/83"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/84"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/85"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/86"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/87"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/88"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/89"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/90"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/91"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/92"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/93"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/94"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/95"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/96"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/97"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/98"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/99"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/100"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/101"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/102"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/103"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/104"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/105"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/106"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/107"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/108"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/109"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/110"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/111"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/112"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/113"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/114"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/115"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/116"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/117"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/118"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/119"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/120"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/121"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/122"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/123"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/124"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/125"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/126"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/127"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/128"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/129"
+        },
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/130"
+        }
+      ]
+    },
+    "#EthernetSwitchACL.Unbind": {
+      "target": "/redfish/v1/EthernetSwitches/1/ACLs/1/Actions/EthernetSwitchACL.Unbind",
+      "Port@Redfish.AllowableValues": [
+        {
+          "@odata.id": "/redfish/v1/EthernetSwitches/1/Ports/1"
+        }
+      ]
+    }
+  }
+}

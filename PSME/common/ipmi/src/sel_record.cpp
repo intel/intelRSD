@@ -1,8 +1,7 @@
 /*!
  * @brief Base class of SEL record (event)
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file ipmi/sel_record.cpp
  */
 
@@ -329,4 +327,12 @@ std::string ipmi::SelRecordThreshold::get_info() const {
 
 std::string ipmi::SelRecordSensor::get_info() const {
     return "SENSOR";
+}
+
+
+std::string ipmi::SelRecordUnspecified::to_string() const{
+    std::stringstream str{};
+    str << "#" << std::hex << static_cast<unsigned>(get_id()) << ":: ";
+    str << "UNSPECIFIED sel record";
+    return str.str();
 }

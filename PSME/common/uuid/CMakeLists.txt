@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 #
 # </license_header>
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.4)
 project(UUID C CXX)
 
+# TODO: remove old-style flags when all usages are removed
 set(UUID_LIBRARIES
     uuid
     ${SAFESTRING_LIBRARIES}
@@ -26,13 +27,8 @@ set(UUID_LIBRARIES
 )
 
 set(UUID_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/uuid-1.6.2
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE PATH "UUID include directory"
-)
-
-include_directories(SYSTEM
-    ${SAFESTRING_INCLUDE_DIRS}
-    uuid-1.6.2
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
@@ -97,10 +93,21 @@ add_library(uuid STATIC
     uuid-1.6.2/uuid_time.c
     uuid-1.6.2/uuid_ui128.c
     uuid-1.6.2/uuid_ui64.c
+    src/uuid.cpp
 )
 
-install(TARGETS uuid
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
+target_include_directories(uuid
+    SYSTEM PRIVATE
+    ${SAFESTRING_INCLUDE_DIRS}
+
+    PRIVATE
+    uuid-1.6.2
+
+    PUBLIC
+    include
+)
+
+target_link_libraries(uuid
+    PRIVATE
+    ${SAFESTRING_LIBRARIES}
 )

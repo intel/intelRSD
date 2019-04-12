@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
  * limitations under the License.
  *
  *
- * @file requests/common/set_component_attributes.hpp
+ * @file requests/common/set_component_attributes.cpp
  * @brief Implementation of SetComponentAttributes request
  * */
 
@@ -35,7 +35,7 @@ SetComponentAttributes::SetComponentAttributes(const std::string& component,
         m_attributes{attributes} {}
 
 json::Json SetComponentAttributes::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Component::COMPONENT] = m_component;
     value[Component::ATTRIBUTES] = m_attributes.to_json();
     return value;

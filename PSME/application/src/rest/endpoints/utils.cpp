@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/endpoints/utils.hpp"
 #include "psme/rest/server/multiplexer.hpp"
-#include "psme/rest/model/finder.hpp"
+#include "psme/rest/model/find.hpp"
 #include "psme/rest/server/utils.hpp"
 
 #include "agent-framework/module/model/model_chassis.hpp"
@@ -31,13 +31,10 @@
 #include "agent-framework/module/model/model_storage.hpp"
 #include "agent-framework/module/model/model_pnc.hpp"
 
-#include "agent-framework/module/utils/json_transformations.hpp"
-
-#include "jsonptr/jsonptr.hpp"
-
 #include <regex>
 #include <cmath>
 #include <iterator>
+
 
 
 using namespace psme::rest::constants::Common;
@@ -68,10 +65,8 @@ std::string get_port_uuid_from_url(const std::string& port_url) {
     try {
         auto params = psme::rest::server::Multiplexer::get_instance()->
             get_params(port_url, constants::Routes::ETHERNET_SWITCH_PORT_PATH);
-        return psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(
-            params[constants::PathParam::SWITCH_PORT_ID])
-            .via<agent_framework::model::EthernetSwitch>(params[constants::PathParam::ETHERNET_SWITCH_ID])
-            .get_uuid();
+        return psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+            params).get_uuid();
     }
     catch (agent_framework::exceptions::NotFound&) {
         THROW(agent_framework::exceptions::InvalidValue, "rest", "Could not find port with URI: '" + port_url + "'.");
@@ -84,24 +79,24 @@ std::uint64_t id_to_uint64(const std::string& id_as_string) {
         // A string containing non-digit characters is NOT supposed to reach this method,
         // because the rest server only allows ID strings of the form [0-9]+. So, we log an error.
         log_error("rest", "String " + id_as_string +
-                                      " which contains not-digit characters was received for conversion to REST ID!");
+                          " which contains not-digit characters was received for conversion to REST ID!");
 
-        THROW(agent_framework::exceptions::NotFound, "rest",
-              id_as_string + " could not be converted to REST ID, because it's not a number string.");
+        throw agent_framework::exceptions::NotFound(
+            "ID '" + id_as_string + "' could not be converted to REST ID, because it's not a number.");
     }
 
-    std::uint64_t id;
+    std::uint64_t id{};
     try {
         id = std::stoull(id_as_string, NULL);
     }
     catch (const std::out_of_range&) {
-        THROW(agent_framework::exceptions::NotFound, "rest",
-              id_as_string + " could not be converted to REST ID, because it's too big.");
+        throw agent_framework::exceptions::NotFound(
+            "ID '" + id_as_string + "' could not be converted to REST ID, because it's too big.");
     }
     catch (const std::invalid_argument&) {
-        // This is NOT supposed to happen, because the input check at the beginning of this method.
-        THROW(agent_framework::exceptions::NotFound, "rest",
-              id_as_string + " could not be converted to REST ID, because it's not a proper ID.");
+        // Occures when ID is empty string
+        throw agent_framework::exceptions::NotFound(
+            "ID '" + id_as_string + "' could not be converted to REST ID, because it's not a proper ID.");
     }
     return id;
 }
@@ -119,12 +114,14 @@ void build_parent_path(endpoint::PathBuilder& path, const std::string& uuid, con
     path.append(collection_literal).append(agent_framework::module::get_manager<M>().uuid_to_rest_id(uuid));
 }
 
+
 template<typename M>
 void build_child_path(endpoint::PathBuilder& path, const std::string& uuid, const std::string& collection_literal) {
     const auto& resource = agent_framework::module::get_manager<M>().get_entry(uuid);
     get_component_url_recursive(path, resource.get_parent_type(), resource.get_parent_uuid());
     path.append(collection_literal).append(resource.get_id());
 }
+
 
 template<typename M>
 void build_array_member_path(endpoint::PathBuilder& path, const std::string& uuid, const std::string& array_name) {
@@ -140,15 +137,17 @@ void build_array_member_path(endpoint::PathBuilder& path, const std::string& uui
     if (index >= array_members.size()) {
         log_error("rest", "Could not build url for resource " + uuid + ".");
         THROW(agent_framework::exceptions::NotFound, "rest",
-              std::string("Component of type ") + M::get_component().to_string() + " was removed before it's URL could be created.");
+              std::string("Component of type ") + M::get_component().to_string() +
+              " was removed before it's URL could be created.");
     }
     path.append_jsonptr(constants::PathParam::PATH_SEP + array_name).append(index);
 }
 
+
 size_t find_metric_index(const agent_framework::model::Metric& metric) {
     // find metric's index among other metrics for the same component and with the same name
     const auto array_members = agent_framework::module::get_manager<agent_framework::model::Metric>().get_keys(
-        [&] (const agent_framework::model::Metric& m) -> bool {
+        [&](const agent_framework::model::Metric& m) -> bool {
             return m.get_component_type() == metric.get_component_type()
                    && m.get_component_uuid() == metric.get_component_uuid()
                    && m.get_name() == metric.get_name();
@@ -165,6 +164,7 @@ size_t find_metric_index(const agent_framework::model::Metric& metric) {
     }
     return index;
 }
+
 
 void build_metric_path(endpoint::PathBuilder& path, const std::string& uuid) {
     using namespace psme::rest;
@@ -205,11 +205,15 @@ void build_metric_path(endpoint::PathBuilder& path, const std::string& uuid) {
             .append(index)
             .append(constants::ChassisSensor::READING_CELSIUS);
     }
+    else if (metric.get_component_type() == Component::Processor) {
+        path.append(constants::PathParam::OEM_INTEL_RACKSCALE).append(constants::Common::METRICS).append_jsonptr(metric.get_name());
+    }
     else {
         path.append(constants::Common::METRICS).append_jsonptr(metric.get_name());
     }
 }
 }
+
 
 void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component type, const std::string& uuid) {
     using Component = enums::Component;
@@ -251,10 +255,12 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
         case Component::NetworkInterface: {
             const auto& nic = module::get_manager<agent_framework::model::NetworkInterface>().get_entry(uuid);
             if (nic.get_parent_type() == Component::Manager) {
-                build_child_path<agent_framework::model::NetworkInterface>(path, uuid, constants::Manager::ETHERNET_INTERFACES);
+                build_child_path<agent_framework::model::NetworkInterface>(path, uuid,
+                                                                           constants::Manager::ETHERNET_INTERFACES);
             }
             else if (nic.get_parent_type() == Component::System) {
-                build_child_path<agent_framework::model::NetworkInterface>(path, uuid, constants::System::ETHERNET_INTERFACES);
+                build_child_path<agent_framework::model::NetworkInterface>(path, uuid,
+                                                                           constants::System::ETHERNET_INTERFACES);
             }
             else {
                 THROW(agent_framework::exceptions::NotFound, "rest", "Could not get URL for Network Interface!");
@@ -262,13 +268,15 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
             break;
         }
         case Component::StorageController:
-            build_array_member_path<agent_framework::model::StorageController>(path, uuid, constants::StorageSubsystem::STORAGE_CONTROLLERS);
+            build_array_member_path<agent_framework::model::StorageController>(path, uuid,
+                                                                               constants::StorageSubsystem::STORAGE_CONTROLLERS);
             break;
         case Component::EthernetSwitchPort:
             build_child_path<agent_framework::model::EthernetSwitchPort>(path, uuid, constants::EthernetSwitch::PORTS);
             break;
         case Component::EthernetSwitchPortVlan:
-            build_child_path<agent_framework::model::EthernetSwitchPortVlan>(path, uuid, constants::EthernetSwitchPort::VLANS);
+            build_child_path<agent_framework::model::EthernetSwitchPortVlan>(path, uuid,
+                                                                             constants::EthernetSwitchPort::VLANS);
             break;
         case Component::Zone:
             build_child_path<agent_framework::model::Zone>(path, uuid, constants::Fabric::ZONES);
@@ -287,7 +295,7 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
             if (chassis_uuids.size() != 1) {
                 log_error("rest",
                           "PNC Manager should have precisely one Chassis child!"
-                              " Server is unable to build a path to PCIeDevice component.");
+                          " Server is unable to build a path to PCIeDevice component.");
                 break;
             }
             get_component_url_recursive(path, enums::Component::Chassis, chassis_uuids.front());
@@ -331,7 +339,8 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
             build_child_path<agent_framework::model::NetworkDevice>(path, uuid, constants::System::NETWORK_INTERFACES);
             break;
         case Component::NetworkDeviceFunction:
-            build_child_path<agent_framework::model::NetworkDeviceFunction>(path, uuid, constants::NetworkInterface::NETWORK_DEVICE_FUNCTIONS);
+            build_child_path<agent_framework::model::NetworkDeviceFunction>(path, uuid,
+                                                                            constants::NetworkInterface::NETWORK_DEVICE_FUNCTIONS);
             break;
         case Component::PSU: {
             /* PSU is an array item in Power property */
@@ -352,7 +361,8 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
             break;
         }
         case Component::TrustedModule:
-            build_array_member_path<agent_framework::model::TrustedModule>(path, uuid, constants::System::TRUSTED_MODULES);
+            build_array_member_path<agent_framework::model::TrustedModule>(path, uuid,
+                                                                           constants::System::TRUSTED_MODULES);
             break;
         case Component::Volume:
             build_child_path<agent_framework::model::Volume>(path, uuid, constants::StorageService::VOLUMES);
@@ -360,15 +370,14 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
         case Component::StoragePool:
             build_child_path<agent_framework::model::StoragePool>(path, uuid, constants::StorageService::STORAGE_POOLS);
             break;
-        case Component::IscsiTarget:
-            // TODO: iSCSI target model to remove
-            break;
         case Component::AuthorizationCertificate:
         case Component::Vlan:
         case Component::NeighborSwitch:
         case Component::PortMember:
         case Component::RemoteEthernetSwitch:
         case Component::ChassisSensor:
+        case Component::MemoryDomain:
+        case Component::MemoryChunks:
         case Component::None:
         case Component::Root:
         default:
@@ -432,8 +441,9 @@ std::uint32_t mb_to_mib(std::uint32_t number) {
 }
 
 
-std::uint64_t gb_to_b(double number) {
-    return std::uint64_t(number * gb_to_b_factor);
+std::int64_t gb_to_b(double number) {
+    // Casting to int will round the value to max of int if value exceeds max int
+    return std::int64_t(number * gb_to_b_factor);
 }
 
 
@@ -457,44 +467,36 @@ void children_to_add_to_remove(agent_framework::module::managers::ManyToManyMana
     }
 }
 
-void string_array_to_json(json::Value& json, const agent_framework::model::attribute::Array<std::string>& array) {
+
+void string_array_to_json(json::Json& json, const agent_framework::model::attribute::Array<std::string>& array) {
     if (!json.is_array()) {
-        json = json::Value::Type::ARRAY;
+        json = json::Json::value_t::array;
     }
-    for(const auto& str : array) {
+    for (const auto& str : array) {
         json.push_back(str);
     }
 }
 
-void populate_metrics(json::Value& component_json, const std::string& component_uuid) {
-    auto metrics = agent_framework::module::get_manager<Metric>().get_entries(
-        [&component_uuid](const Metric& m) {
-            return m.get_component_uuid() == component_uuid;
+
+void populate_metrics(json::Json& component_json, const std::string& component_uuid) {
+    auto metrics = agent_framework::module::get_manager<Metric>().get_entries([&component_uuid](const Metric& m) {
+        return m.get_component_uuid() == component_uuid;
     });
+    populate_metrics(component_json, metrics);
+}
 
+
+void populate_metrics(json::Json& component_json, const std::vector<agent_framework::model::Metric>& metrics) {
     for (const auto& metric: metrics) {
         try {
-            jsonptr::set_at(component_json, metric.get_name(),
-                            agent_framework::model::utils::to_json_cxx(metric.get_value()));
+            auto ptr = json::Json::json_pointer(metric.get_name());
+            component_json[ptr] = metric.get_value();
         }
-        catch(const std::exception& e) {
+        catch (const std::exception& e) {
             log_error("rest", "Populate metric " << metric.get_name() << " failed: " << e.what());
         }
     }
 }
-
-void populate_metrics(json::Value& component_json, const std::vector<agent_framework::model::Metric>& metrics) {
-    for (const auto& metric: metrics) {
-        try {
-            jsonptr::set_at(component_json, metric.get_name(),
-                            agent_framework::model::utils::to_json_cxx(metric.get_value()));
-        }
-        catch(const std::exception& e) {
-            log_error("rest", "Populate metric " << metric.get_name() << " failed: " << e.what());
-        }
-    }
-}
-
 
 }
 }

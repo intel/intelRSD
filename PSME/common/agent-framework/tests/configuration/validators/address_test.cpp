@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 #include "configuration/validators/address.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace configuration;
 using namespace json;
@@ -40,16 +40,15 @@ protected:
     static constexpr const char ADDRESS_VALUE[] = "TestAddressValue";
     static constexpr const char VALID_STRING_VALUE[] = "localhost";
     static constexpr const char VALID_ADDRESS_VALUE[] = "127.0.0.1";
-    static constexpr const char INVALID_ADDRESS_VALUE[] = "InvalidTestValue";
     static constexpr const int INVALID_TYPE_VALUE = 5;
 
     virtual ~AddressValidatorTest();
 };
 
-constexpr char AddressValidatorTest::ADDRESS_VALUE[];
-constexpr char AddressValidatorTest::VALID_STRING_VALUE[];
-constexpr char AddressValidatorTest::VALID_ADDRESS_VALUE[];
-constexpr char AddressValidatorTest::INVALID_ADDRESS_VALUE[];
+constexpr const char AddressValidatorTest::ADDRESS_VALUE[];
+constexpr const char AddressValidatorTest::VALID_STRING_VALUE[];
+constexpr const char AddressValidatorTest::VALID_ADDRESS_VALUE[];
+constexpr const int AddressValidatorTest::INVALID_TYPE_VALUE;
 
 AddressValidatorTest::~AddressValidatorTest() {}
 
@@ -57,13 +56,13 @@ AddressValidatorTest::~AddressValidatorTest() {}
 
 TEST_F(AddressValidatorTest, PositiveValidStringValueTest) {
     std::unique_ptr<configuration::AddressValidator> address_validator(new configuration::AddressValidator(ADDRESS_VALUE));
-    json::Value json_val(VALID_STRING_VALUE);
+    json::Json json_val = VALID_STRING_VALUE;
     ASSERT_EQ(address_validator->is_valid(json_val), true);
 }
 
 TEST_F(AddressValidatorTest, PositiveValidAddressTest) {
     std::unique_ptr<configuration::AddressValidator> address_validator(new configuration::AddressValidator(ADDRESS_VALUE));
-    json::Value json_val(VALID_ADDRESS_VALUE);
+    json::Json json_val = VALID_ADDRESS_VALUE;
     ASSERT_EQ(address_validator->is_valid(json_val), true);
 }
 
@@ -71,13 +70,13 @@ TEST_F(AddressValidatorTest, PositiveValidAddressTest) {
 
 TEST_F(AddressValidatorTest, NegativeInvalidTypeTest) {
     std::unique_ptr<configuration::AddressValidator> address_validator(new configuration::AddressValidator(ADDRESS_VALUE));
-    json::Value json_val(INVALID_TYPE_VALUE);
+    json::Json json_val = INVALID_TYPE_VALUE;
     ASSERT_EQ(address_validator->is_valid(json_val), false);
 }
 
 TEST_F(AddressValidatorTest, NegativeInvalidAddressTest) {
     std::unique_ptr<configuration::AddressValidator> address_validator(new configuration::AddressValidator(ADDRESS_VALUE));
-    json::Value json_val(INVALID_TYPE_VALUE);
+    json::Json json_val = INVALID_TYPE_VALUE;
     ASSERT_EQ(address_validator->is_valid(json_val), false);
 }
 

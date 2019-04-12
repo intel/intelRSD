@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 function(install_gmp)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(gmp 5.0.5 "https://gmplib.org/download/gmp/gmp-5.0.5.tar.xz" "8aef50959acec2a1ad41d144ffe0f3b5")
+    assure_package(gmp 6.1.2 "https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz" "f58fa8001d60c4c77595fbbb62b63c1d")
 
     set(CONFIGURE_FLAGS)
 

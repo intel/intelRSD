@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +35,6 @@
 #include "mock/smbios_mock.hpp"
 
 #include <gtest/gtest.h>
-#include <json/value.hpp>
-#include <json/deserializer.hpp>
 
 
 
@@ -199,10 +197,10 @@ TEST_F(SmbiosDiscoveryTest, DiscoverFPGA) {
     EXPECT_EQ(fpga.get_fpga().get_hssi_sideband(), enums::HssiSideband::I2C);
     EXPECT_EQ(fpga.get_fpga().get_hssi_configuration(), enums::HssiConfiguration::_4x10G);
     EXPECT_EQ(fpga.get_fpga().get_reconfiguration_slots(), 54);
-    ASSERT_EQ(fpga.get_on_package_memory().size(), 1);
-    EXPECT_EQ(fpga.get_on_package_memory()[0].get_type(), enums::OnPackageMemoryType::HBM);
-    EXPECT_EQ(fpga.get_on_package_memory()[0].get_capacity_mb(), 944198913);
-    EXPECT_EQ(fpga.get_on_package_memory()[0].get_speed_mhz(), 25410);
+    ASSERT_EQ(fpga.get_integrated_memory().size(), 1);
+    EXPECT_EQ(fpga.get_integrated_memory()[0].get_type(), enums::IntegratedMemoryType::HBM);
+    EXPECT_EQ(fpga.get_integrated_memory()[0].get_capacity_mb(), 944198913);
+    EXPECT_EQ(fpga.get_integrated_memory()[0].get_speed_mhz(), 25410);
 }
 
 
@@ -215,7 +213,7 @@ TEST_F(SmbiosDiscoveryTest, DiscoverStorage) {
     ASSERT_EQ(uuid_vector.size(), 1);
     auto drive = manager.get_entry(uuid_vector.front());
     EXPECT_EQ(255, drive.get_capacity_gb());
-    EXPECT_EQ(enums::StorageProtocol::SATA, drive.get_interface());
+    EXPECT_EQ(enums::TransportProtocol::SATA, drive.get_interface());
     EXPECT_EQ(enums::DriveType::HDD, drive.get_type());
     EXPECT_STREQ("ABC789", drive.get_firmware_version().value().c_str());
     EXPECT_STREQ("321Model", drive.get_fru_info().get_model_number().value().c_str());

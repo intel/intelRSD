@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,8 @@ void EndpointBuilder::build_endpoints() {
     mp.register_handler(Root::UPtr(new Root(constants::Routes::ROOT_PATH)), AccessType::ALL);
 
     // "/redfish/v1/odata"
-    mp.register_handler(Root::UPtr(new OdataServiceDocument(constants::Routes::ODATA_SERVICE_DOCUMENT)), AccessType::ALL);
+    mp.register_handler(Root::UPtr(new OdataServiceDocument(constants::Routes::ODATA_SERVICE_DOCUMENT)),
+                        AccessType::ALL);
 
     // "/redfish/v1/$metadata"
     mp.register_handler(MetadataRoot::UPtr(new MetadataRoot(constants::Routes::METADATA_ROOT_PATH)), AccessType::ALL);
@@ -58,7 +59,8 @@ void EndpointBuilder::build_endpoints() {
     mp.register_handler(UpdateService::UPtr(new UpdateService(constants::Routes::UPDATE_SERVICE_PATH)));
 
     // "/redfish/v1/UpdateService/SimpleUpdateActionInfo"
-    mp.register_handler(SimpleUpdateActionInfo::UPtr(new SimpleUpdateActionInfo(constants::Routes::SIMPLE_UPDATE_ACTION_INFO_PATH)));
+    mp.register_handler(
+        SimpleUpdateActionInfo::UPtr(new SimpleUpdateActionInfo(constants::Routes::SIMPLE_UPDATE_ACTION_INFO_PATH)));
 
     // "/redfish/v1/UpdateService/Actions/SimpleUpdate"
     mp.register_handler(SimpleUpdate::UPtr(new SimpleUpdate(constants::Routes::SIMPLE_UPDATE_PATH)));
@@ -72,6 +74,15 @@ void EndpointBuilder::build_endpoints() {
 
     // "/redfish/v1/EventService/Subscriptions/{subscriptionId:[0-9]+}"
     mp.register_handler(Subscription::UPtr(new Subscription(constants::Routes::SUBSCRIPTION_PATH)));
+
+    // "/redfish/v1/SessionService"
+    mp.register_handler(SessionService::UPtr(new SessionService(constants::Routes::SESSION_SERVICE_PATH)));
+
+    // "/redfish/v1/SessionService/Sessions"
+    mp.register_handler(SessionCollection::UPtr(new SessionCollection(constants::Routes::SESSION_COLLECTION_PATH)));
+
+    // "/redfish/v1/SessionService/Sessions/{sessionId:[0-9]+}"
+    mp.register_handler(Session::UPtr(new Session(constants::Routes::SESSION_PATH)));
 
     // "/redfish/v1/Registries"
     mp.register_handler(MessageRegistryFileCollection::UPtr(
@@ -154,7 +165,8 @@ void EndpointBuilder::build_endpoints() {
     mp.register_handler(ManagerReset::UPtr(new ManagerReset(constants::Routes::MANAGER_RESET_PATH)));
 
     // "/redfish/v1/Managers/{managerId:[0-9]+}/Actions/Manager.LoadFactoryDefaults"
-    mp.register_handler(ManagerLoadFactoryDefaults::UPtr(new ManagerLoadFactoryDefaults(constants::Routes::MANAGER_LOAD_FACTORY_DEFAULTS_PATH)));
+    mp.register_handler(ManagerLoadFactoryDefaults::UPtr(
+        new ManagerLoadFactoryDefaults(constants::Routes::MANAGER_LOAD_FACTORY_DEFAULTS_PATH)));
 
     // "/redfish/v1/Managers/{managerId:[0-9]+}/EthernetInterfaces"
     mp.register_handler(ManagerNetworkInterfaceCollection::UPtr(
@@ -214,6 +226,10 @@ void EndpointBuilder::build_endpoints() {
     // "/redfish/v1/Systems/{systemId:[0-9]+}/Memory/{memoryId:[0-9]+}/Metrics"
     mp.register_handler(MemoryMetrics::UPtr(new MemoryMetrics(constants::Routes::MEMORY_METRICS_PATH)));
 
+    // "/redfish/v1/Systems/{systemId:[0-9]+}/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory"
+    mp.register_handler(
+        SystemDcpmemSecureErase::UPtr(new SystemDcpmemSecureErase(constants::Routes::MEMORY_ERASE_DCPMEM_PATH)));
+
     //  "/redfish/v1/Systems/{systemId:[0-9]+}/Processors"
     mp.register_handler(
         ProcessorsCollection::UPtr(new ProcessorsCollection(constants::Routes::PROCESSORS_COLLECTION_PATH)));
@@ -221,13 +237,16 @@ void EndpointBuilder::build_endpoints() {
     // "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}"
     mp.register_handler(Processor::UPtr(new Processor(constants::Routes::PROCESSOR_PATH)));
 
+    // "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Actions/Oem/Intel.Oem.SecureErase"
+    mp.register_handler(ProcessorSecureErase::UPtr(new ProcessorSecureErase(constants::Routes::PROCESSORS_SECURE_ERASE_PATH)));
+
     // "/redfish/v1/Systems/{systemId:[0-9]+}/NetworkInterfaces"
     mp.register_handler(NetworkInterfacesCollection::UPtr(new NetworkInterfacesCollection(
-            constants::Routes::NETWORK_INTERFACES_COLLECTION_PATH)));
+        constants::Routes::NETWORK_INTERFACES_COLLECTION_PATH)));
 
     // "/redfish/v1/Systems/{systemId:[0-9]+}/NetworkInterfaces/{networkInterfaceId:[0-9]+}"
     mp.register_handler(NetworkInterface::UPtr(new NetworkInterface(
-            constants::Routes::NETWORK_INTERFACE_PATH)));
+        constants::Routes::NETWORK_INTERFACE_PATH)));
 
     // "/redfish/v1/Systems/{systemId:[0-9]+}/NetworkInterfaces/{networkInterfaceId:[0-9]+}/NetworkDeviceFunctions"
     mp.register_handler(NetworkDeviceFunctionsCollection::UPtr(new NetworkDeviceFunctionsCollection(
@@ -236,11 +255,16 @@ void EndpointBuilder::build_endpoints() {
     // "/redfish/v1/Systems/{systemId:[0-9]+}/NetworkInterfaces/{networkInterfaceId:[0-9]+}/NetworkDeviceFunctions/{networkDeviceFunctionId:[0-9]+}"
     mp.register_handler(NetworkDeviceFunction::UPtr(new NetworkDeviceFunction(
         constants::Routes::NETWORK_DEVICE_FUNCTION_PATH)));
-    // "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Metrics"
+
+    // "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Oem/Intel_RackScale/Metrics"
     mp.register_handler(ProcessorMetrics::UPtr(new ProcessorMetrics(constants::Routes::PROCESSORS_METRICS_PATH)));
 
     // "/redfish/v1/Systems/{systemId:[0-9]+}/Metrics"
     mp.register_handler(SystemMetrics::UPtr(new SystemMetrics(constants::Routes::SYSTEM_METRICS_PATH)));
+
+    // "/redfish/v1/Systems/{systemId:[0-9]+}/StorageServices"
+    mp.register_handler(
+        HostedStorageServices::UPtr(new HostedStorageServices(constants::Routes::SYSTEM_STORAGE_SERVICES_PATH)));
 
     // "/redfish/v1/EthernetSwitches"
     mp.register_handler(EthernetSwitchCollection::UPtr(
@@ -304,14 +328,45 @@ void EndpointBuilder::build_endpoints() {
     mp.register_handler(StoragePool::UPtr(new StoragePool(constants::Routes::STORAGE_POOL_PATH)));
 
     // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/AllocatedVolumes"
-    mp.register_handler(AllocatedVolumesCollection::UPtr(new AllocatedVolumesCollection(constants::Routes::ALLOCATED_VOLUMES_COLLECTION_PATH)));
+    mp.register_handler(AllocatedVolumesCollection::UPtr(
+        new AllocatedVolumesCollection(constants::Routes::ALLOCATED_VOLUMES_COLLECTION_PATH)));
 
     // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/AllocatedPools"
-    mp.register_handler(AllocatedPoolsCollection::UPtr(new AllocatedPoolsCollection(constants::Routes::ALLOCATED_POOLS_COLLECTION_PATH)));
+    mp.register_handler(AllocatedPoolsCollection::UPtr(
+        new AllocatedPoolsCollection(constants::Routes::ALLOCATED_POOLS_COLLECTION_PATH)));
+
+    // "redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+}"
+    mp.register_handler(CapacitySource::UPtr(new CapacitySource(constants::Routes::STORAGE_POOL_CAPACITY_SOURCE)));
+
+    // "redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+}"
+    mp.register_handler(CapacitySource::UPtr(new CapacitySource(constants::Routes::VOLUME_CAPACITY_SOURCE)));
+
+    // "redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingDrives}"
+    mp.register_handler(ProvidingDrivesCollection::UPtr(
+        new ProvidingDrivesCollection(constants::Routes::STORAGE_POOL_PROVIDING_DRIVES_COLLECTION)));
+
+    // "redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingPools}"
+    mp.register_handler(ProvidingPoolsCollection::UPtr(
+        new ProvidingPoolsCollection(constants::Routes::STORAGE_POOL_PROVIDING_POOLS_COLLECTION)));
+
+    // "redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingVolumes}"
+    mp.register_handler(ProvidingVolumesCollection::UPtr(
+        new ProvidingVolumesCollection(constants::Routes::STORAGE_POOL_PROVIDING_VOLUMES_COLLECTION)));
+
+    // "redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingPools}"
+    mp.register_handler(ProvidingPoolsCollection::UPtr(
+        new ProvidingPoolsCollection(constants::Routes::VOLUME_PROVIDING_POOLS_COLLECTION)));
+
+    // "redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingDrives}"
+    mp.register_handler(ProvidingDrivesCollection::UPtr(
+        new ProvidingDrivesCollection(constants::Routes::VOLUME_PROVIDING_DRIVES_COLLECTION)));
+
+    // "redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingVolumes}"
+    mp.register_handler(ProvidingVolumesCollection::UPtr(
+        new ProvidingVolumesCollection(constants::Routes::VOLUME_PROVIDING_VOLUMES_COLLECTION)));
 
     // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes"
-    mp.register_handler(
-        VolumeCollection::UPtr(new VolumeCollection(constants::Routes::VOLUME_COLLECTION_PATH)));
+    mp.register_handler(VolumeCollection::UPtr(new VolumeCollection(constants::Routes::VOLUME_COLLECTION_PATH)));
 
     // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}"
     mp.register_handler(Volume::UPtr(new Volume(constants::Routes::VOLUME_PATH)));
@@ -372,13 +427,33 @@ void EndpointBuilder::build_endpoints() {
     // "/redfish/v1/Fabrics/{fabricId}/Switches/{switchId}/Ports/{portId:[0-9]+}/Actions/Port.Reset"
     mp.register_handler(PortReset::UPtr(new PortReset(constants::Routes::PORT_RESET_PATH)));
 
-    // "/redfish/v1/TelemetryService"
+    // "/redfish/v1/Oem/Intel_RackScale/TelemetryService"
     mp.register_handler(TelemetryService::UPtr(new TelemetryService(constants::Routes::TELEMETRY_SERVICE_PATH)));
 
-    // "/redfish/v1/TelemetryService/MetricDefinitions"
+    // "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions"
     mp.register_handler(MetricDefinitionsCollection::UPtr(
         new MetricDefinitionsCollection(constants::Routes::METRIC_DEFINITIONS_COLLECTION_PATH)));
 
-    // "/redfish/v1/TelemetryService/MetricDefinitions/{metricDefinitionId}"
+    // "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions/{metricDefinitionId}"
     mp.register_handler(MetricDefinition::UPtr(new MetricDefinition(constants::Routes::METRIC_DEFINITION_PATH)));
+
+    // "/redfish/v1/AccountService"
+    mp.register_handler(AccountService::UPtr(new AccountService(constants::Routes::ACCOUNT_SERVICE_PATH)));
+
+    // "/redfish/v1/AccountService/Accounts"
+    mp.register_handler(AccountCollection::UPtr(new AccountCollection(constants::Routes::ACCOUNTS_COLLECTION_PATH)));
+
+    // "/redfish/v1/AccountService/Accounts/{accountId}"
+    mp.register_handler(Account::UPtr(new Account(constants::Routes::ACCOUNT_PATH)));
+
+    // "/redfish/v1/AccountService/Roles"
+    mp.register_handler(RoleCollection::UPtr(new RoleCollection(constants::Routes::ROLES_COLLECTION_PATH)));
+
+    // "/redfish/v1/AccountService/Roles/{rolesId}"
+    mp.register_handler(Role::UPtr(new Role(constants::Routes::ROLE_PATH)));
+
+    // "/registries/Intel_RackScale.1.0.0.json"
+    mp.register_handler(IntelRegistry::UPtr(new IntelRegistry(constants::Routes::INTEL_RACKSCALE_REGISTRY_PATH)),
+                        AccessType::ALL);
+
 }

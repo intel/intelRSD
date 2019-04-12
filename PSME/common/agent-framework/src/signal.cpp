@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,10 +27,9 @@
  * */
 
 #include "agent-framework/signal.hpp"
-#include "agent-framework/logger_ext.hpp"
+#include "logger/logger.hpp"
 
 #include <csignal>
-
 #include <mutex>
 #include <condition_variable>
 

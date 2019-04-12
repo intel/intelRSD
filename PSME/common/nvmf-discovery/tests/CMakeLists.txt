@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,23 +20,13 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
-include_directories(
-    ${GTEST_INCLUDE_DIRS}
-    ${NVME_INCLUDE_DIRS}
-    ${NVMF_DISCOVERY_INCLUDE_DIRS}
-)
-
 add_gtest(test nvmf-discovery
     fabric_test.cpp
     connection_listener_test.cpp
     test_runner.cpp
 )
 
-target_link_libraries(${test_target}
-    ${NVMF_DISCOVERY_LIBRARIES}
-    ${FABRIC_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-)
+target_link_libraries(${test_target} nvmf-discovery)
 
 add_custom_target(unittest_nvmf-discovery
     make

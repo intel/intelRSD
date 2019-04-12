@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,20 +20,29 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
-add_gtest(tree_stability_test psme-nvme
+add_gtest(tree_stability_test psme-gpt-nvme
     ../nvme_config_stub.cpp
     nvme_key_generator_test.cpp
     test_runner.cpp
 )
 
+target_sources(${test_target} PRIVATE
+    ../../src/tree_stability/nvme_key_generator.cpp
+)
+
 target_link_libraries(${test_target}
-    nvme-tree-stability
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${PCA95XX_LIBRARIES}
+    nvme
+    partition
+    nvme-target
+    agent-framework
+    uuid
+    logger
+    configuration
     ${SAFESTRING_LIBRARIES}
-    dl
+)
+
+target_include_directories(${test_target}
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+    ${AGENT_FRAMEWORK_INCLUDE_DIRS}
 )

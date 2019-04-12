@@ -1,8 +1,7 @@
 /*!
  * @brief Class to handle System Event Log entries
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file ipmi/sel.cpp
  */
 
@@ -238,7 +236,7 @@ ipmi::SelRecord::Ptr ipmi::Sel::build(const ipmi::IpmiInterface::ByteBuffer& rec
          * Event/Reading Type unspecified.
          */
         case 0x00:
-            return nullptr;
+            return std::make_shared<ipmi::SelRecordUnspecified>(record);
 
         /*
          * Threshold 01h threshold

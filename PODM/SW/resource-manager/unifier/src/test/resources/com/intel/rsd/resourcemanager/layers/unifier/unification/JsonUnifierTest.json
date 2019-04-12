@@ -1,0 +1,166 @@
+{
+  "mappings": [
+    {
+      "from": "/redfish/v1/Systems/1",
+      "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908"
+    },
+    {
+      "from": "/redfish/v1/Systems/1/Processors",
+      "to": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908/Processors"
+    },
+    {
+      "from": "/redfish/v1/Managers/1",
+      "to": "/redfish/v1/Managers/s1-1"
+    },
+    {
+      "from": "/redfish/v1/Managers/2",
+      "to": "/redfish/v1/Managers/s1-2"
+    },
+    {
+      "from": "/redfish/v1/Nodes",
+      "to": "/redfish/v1/Nodes"
+    },
+    {
+      "from": "/redfish/v1/Nodes/Actions/Allocate",
+      "to": "/redfish/v1/Nodes/Actions/Allocate"
+    }
+  ],
+  "testCases": [
+    {
+      "input": {
+        "Name": "name",
+        "Description": "description",
+        "Number": 12
+      },
+      "output": {
+        "Name": "name",
+        "Description": "description",
+        "Number": 12
+      }
+    },
+    {
+      "input": {
+        "Name": null,
+        "Description": null,
+        "Number": 12,
+        "Links": {
+          "ManagedBy": [
+            {
+              "@odata.id": "/redfish/v1/Managers/1"
+            },
+            {
+              "@odata.id": "/redfish/v1/Managers/2"
+            }
+          ]
+        }
+      },
+      "output": {
+        "Name": null,
+        "Description": null,
+        "Number": 12,
+        "Links": {
+          "ManagedBy": [
+            {
+              "@odata.id": "/redfish/v1/Managers/s1-1"
+            },
+            {
+              "@odata.id": "/redfish/v1/Managers/s1-2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "input": {
+        "error": "Internal Server Error",
+        "message": "error during PATCH on /redfish/v1/Systems/1 Service is still operational."
+      },
+      "output": {
+        "error": "Internal Server Error",
+        "message": "error during PATCH on /redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908 Service is still operational."
+      }
+    },
+    {
+      "input": {
+        "error": "Internal Server Error",
+        "message": "error during PATCH on '/redfish/v1/Systems/1'. Service is still operational."
+      },
+      "output": {
+        "error": "Internal Server Error",
+        "message": "error during PATCH on '/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908'. Service is still operational."
+      }
+    },
+    {
+      "input": {
+        "@odata.context": "/redfish/v1$metadata#Nodes",
+        "@odata.id": "/redfish/v1/Nodes",
+        "@odata.type": "#ComposedNodeCollection.ComposedNodeCollection",
+        "Name": "Composed Nodes Collection",
+        "Members@odata.count": 0,
+        "Members": [],
+        "Actions": {
+          "#ComposedNodesCollection.Allocate": {
+            "target": "/redfish/v1/Nodes/Actions/Allocate"
+          }
+        }
+      },
+      "output": {
+        "@odata.context": "/redfish/v1$metadata#Nodes",
+        "@odata.id": "/redfish/v1/Nodes",
+        "@odata.type": "#ComposedNodeCollection.ComposedNodeCollection",
+        "Name": "Composed Nodes Collection",
+        "Members@odata.count": 0,
+        "Members": [],
+        "Actions": {
+          "#ComposedNodesCollection.Allocate": {
+            "target": "/redfish/v1/Nodes/Actions/Allocate"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "@odata.id": "/redfish/v1/Systems/1",
+        "Name": "name",
+        "Id": "1",
+        "Description": "description",
+        "Number": 12
+      },
+      "output": {
+        "@odata.id": "/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908",
+        "Name": "name",
+        "Id": "7ca5c465-85ff-4bb4-a650-77fc29724908",
+        "Description": "description",
+        "Number": 12
+      }
+    },
+    {
+      "input": {
+        "MetricProperties": ["/redfish/v1/Systems/1","/redfish/v1/Managers/1"],
+        "Name": "name",
+        "Description": "desc"
+      },
+      "output": {
+        "MetricProperties": ["/redfish/v1/Systems/7ca5c465-85ff-4bb4-a650-77fc29724908","/redfish/v1/Managers/s1-1"],
+        "Name": "name",
+        "Description": "desc"
+      }
+    },
+    {
+      "input": {
+        "arrayOfObj": [ {"MetricProperties": "/redfish/v1/Systems/1"}, {"SystemUUID": "/redfish/v1/Systems/1"}  ]
+      },
+      "output": {
+        "arrayOfObj": [ {"MetricProperties": "/redfish/v1/Systems/1"}, {"SystemUUID": "/redfish/v1/Systems/1"}  ]
+      }
+    },
+    {
+      "input": {
+        "MetricProperties": [ ]
+      },
+      "output": {
+        "MetricProperties": [ ]
+      }
+    }
+  ]
+}

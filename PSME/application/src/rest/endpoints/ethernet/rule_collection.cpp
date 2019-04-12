@@ -1,7 +1,7 @@
 
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,23 +41,23 @@ using namespace psme::rest::constants;
 using namespace agent_framework::model;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchACLRuleCollection.EthernetSwitchACLRuleCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchACLRuleCollection.EthernetSwitchACLRuleCollection";
     r[Common::NAME] = "Ethernet Switch Access Control List Rules Collection";
     r[Common::DESCRIPTION] = "Rules for switch Access Control List."
-        " Each rule defines single action and at least one condition.";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+                             " Each rule defines single action and at least one condition.";
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
 
 
-void get_rule_condition(const json::Value& json, AclRule& rule) {
+void get_rule_condition(const json::Json& json, AclRule& rule) {
     bool any_condition_found = false;
     std::vector<std::string> valid_conditions{
         Rule::IP_SOURCE,
@@ -71,7 +71,7 @@ void get_rule_condition(const json::Value& json, AclRule& rule) {
     };
 
     for (const auto& field : valid_conditions) {
-        if (json.is_member(field)) {
+        if (json.count(field)) {
             // Value null is acceptable, but at least one of the fields must not be null
             if (json[field].is_null()) {
                 continue;
@@ -129,17 +129,17 @@ void get_rule_condition(const json::Value& json, AclRule& rule) {
 }
 
 
-AclRule get_rule_model_from_post(const json::Value& posted_json) {
+AclRule get_rule_model_from_post(const json::Json& posted_json) {
     AclRule rule{};
 
     rule.set_action(posted_json[Rule::ACTION]);
     rule.set_rule_id(posted_json[Rule::RULE_ID]);
     rule.set_mirror_type(posted_json[Rule::MIRROR_TYPE]);
 
-    if (posted_json.is_member(Rule::FORWARD_MIRROR_INTERFACE)
+    if (posted_json.count(Rule::FORWARD_MIRROR_INTERFACE)
         && !posted_json[Rule::FORWARD_MIRROR_INTERFACE].is_null()) {
 
-        const auto& port_url = posted_json[Rule::FORWARD_MIRROR_INTERFACE][Common::ODATA_ID].as_string();
+        const auto& port_url = posted_json[Rule::FORWARD_MIRROR_INTERFACE][Common::ODATA_ID].get<std::string>();
         rule.set_forward_mirror_port(endpoint::utils::get_port_uuid_from_url(port_url));
     }
     else if (enums::AclAction::Mirror == rule.get_action() || enums::AclAction::Forward == rule.get_action()) {
@@ -150,9 +150,10 @@ AclRule get_rule_model_from_post(const json::Value& posted_json) {
         ));
     }
 
-    if (posted_json.is_member(Rule::MIRROR_PORT_REGION) && !posted_json[Rule::MIRROR_PORT_REGION].is_null()) {
-        for (const auto& port : posted_json[Rule::MIRROR_PORT_REGION].as_array()) {
-            const auto& port_url = port[Common::ODATA_ID].as_string();
+    if (posted_json.count(Rule::MIRROR_PORT_REGION) &&
+        !posted_json.value(Rule::MIRROR_PORT_REGION, json::Json()).is_null()) {
+        for (const auto& port : posted_json[Rule::MIRROR_PORT_REGION]) {
+            const auto& port_url = port[Common::ODATA_ID].get<std::string>();
             rule.add_mirrored_port(endpoint::utils::get_port_uuid_from_url(port_url));
         }
     }
@@ -183,16 +184,15 @@ void endpoint::RuleCollection::get(const server::Request& request, server::Respo
     r[Common::ODATA_ID] = PathBuilder(request).build();
 
     auto acl_uuid =
-        psme::rest::model::Find<agent_framework::model::Acl>(request.params[PathParam::ACL_ID])
-            .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-            .get_uuid();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::Acl>(
+            request.params).get_uuid();
 
     const auto ids = agent_framework::module::get_manager<agent_framework::model::AclRule>().get_ids(acl_uuid);
 
     r[Collection::ODATA_COUNT] = static_cast<std::uint32_t>(ids.size());
 
     for (const auto& id : ids) {
-        json::Value link{};
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = PathBuilder(request).append(id).build();
         r[Collection::MEMBERS].push_back(std::move(link));
     }
@@ -202,9 +202,10 @@ void endpoint::RuleCollection::get(const server::Request& request, server::Respo
 
 
 void endpoint::RuleCollection::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostRuleCollection";
 
-    auto parent_acl = model::Find<agent_framework::model::Acl>(request.params[PathParam::ACL_ID])
-        .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID]).get();
+    auto parent_acl = model::find<agent_framework::model::EthernetSwitch, agent_framework::model::Acl>(
+        request.params).get();
 
     const auto& json = JsonValidator::validate_request_body<schema::RulePostSchema>(request);
     const auto rule = get_rule_model_from_post(json);
@@ -240,5 +241,5 @@ void endpoint::RuleCollection::post(const server::Request& request, server::Resp
         endpoint::utils::set_location_header(request, response, PathBuilder(request).append(rule_id).build());
         response.set_status(server::status_2XX::CREATED);
     };
-    gami_agent->execute_in_transaction(add_rule);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, add_rule);
 }

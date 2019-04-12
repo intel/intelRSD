@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ using namespace agent_framework::model::requests;
 ComponentNotification::ComponentNotification() {}
 
 json::Json ComponentNotification::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[literals::ComponentNotification::GAMI_ID] = m_gami_id;
     value[literals::ComponentNotification::NOTIFICATIONS] = json::Json::array();
     for (const auto& notification : m_notifications) {
@@ -42,13 +42,13 @@ json::Json ComponentNotification::to_json() const {
 
 ComponentNotification ComponentNotification::from_json(const json::Json& value) {
     ComponentNotification component_notification{};
+    component_notification.set_gami_id(value[literals::ComponentNotification::GAMI_ID]);
 
-    agent_framework::eventing::EventDataVec notifications;
+    attribute::EventData::Vector notifications;
     for (auto& notification_json : value.at(literals::ComponentNotification::NOTIFICATIONS)) {
-        notifications.emplace_back(agent_framework::eventing::EventData::from_json(notification_json));
+        notifications.emplace_back(attribute::EventData::from_json(notification_json));
     }
     component_notification.set_notifications(notifications);
 
-    component_notification.set_gami_id(value[literals::ComponentNotification::GAMI_ID]);
     return component_notification;
 }

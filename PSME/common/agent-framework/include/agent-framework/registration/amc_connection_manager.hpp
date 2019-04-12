@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,6 @@
 #include "agent-framework/registration/registration_data.hpp"
 #include "agent-framework/eventing/event_dispatcher.hpp"
 #include "agent-framework/threading/thread.hpp"
-#include "agent-framework/logger_ext.hpp"
 
 #include <chrono>
 

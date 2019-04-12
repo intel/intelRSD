@@ -4,7 +4,6 @@ import re
 from mock import mock
 
 from cts_core.commons.links_factory import Link
-from cts_core.commons.preconditions import Requirement
 from cts_core.discovery.api_explorer import ApiExplorer
 from cts_core.discovery.api_resource import ApiResource
 from cts_core.discovery.discovery_container import DiscoveryContainer
@@ -295,6 +294,20 @@ class GetValidateTest(unittest.TestCase):
 
         self.assertEqual(ValidationStatus.PASSED, validator.validate(self.discovery_container))
 
+    def test_should_pass_if_entity_type_declared_on_ignore_list_with_asterix(self):
+        metadata_manager = MetadataManager(['qualifier'], ignore_types=["N.*"])
+        self.metadata_container = metadata_manager.read_metadata_from_strings('Unknown', METADATA)
+        self.discovery_container = DiscoveryContainer()
+
+        self.discovery_container.add_resource(ApiResource('/redfish/resource1',
+                                                          'netloc',
+                                                          RESOURCE_WITH_INVALID_PROPERTY_VALUE,
+                                                          '#N.R'))
+
+        requirements = []
+        validator = MetadataGetValidator(self.metadata_container, requirements)
+
+        self.assertEqual(ValidationStatus.PASSED, validator.validate(self.discovery_container))
 
     def test_should_fail_if_non_nullable_property_is_null(self):
         metadata_manager = MetadataManager(["qualifier"])

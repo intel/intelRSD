@@ -2,8 +2,7 @@
  * @brief Definition of Network QoS Application Protocol class.
  *        Used as DCBX Shared Configuration.
  *
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation.
+ * @copyright Copyright (c) 2018-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file qos_application_protocol.cpp
  */
 
@@ -29,7 +27,7 @@ QosApplicationProtocol::QosApplicationProtocol() {}
 QosApplicationProtocol::~QosApplicationProtocol() {}
 
 json::Json QosApplicationProtocol::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::NetworkQosAttribute::PROTOCOL] = QosApplicationProtocol::get_protocol();
     result[literals::NetworkQosAttribute::PORT] = QosApplicationProtocol::get_port();
     result[literals::NetworkQosAttribute::PRIORITY] = QosApplicationProtocol::get_priority();

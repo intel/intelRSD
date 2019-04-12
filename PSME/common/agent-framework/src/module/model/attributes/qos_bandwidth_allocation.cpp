@@ -2,8 +2,7 @@
  * @brief Definition of Network QoS Bandwidth for Priority Group Allocation class.
  *        Used as DCBX Shared Configuration for ETS (Enhanced Transmission Selection).
  *
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation.
+ * @copyright Copyright (c) 2018-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file qos_bandwidth_allocation.cpp
  */
 
@@ -29,7 +27,7 @@ QosBandwidthAllocation::QosBandwidthAllocation() {}
 QosBandwidthAllocation::~QosBandwidthAllocation() {}
 
 json::Json QosBandwidthAllocation::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::NetworkQosAttribute::PRIORITY_GROUP] = QosBandwidthAllocation::get_priority_group();
     result[literals::NetworkQosAttribute::BANDWIDTH_PERCENT] = QosBandwidthAllocation::get_bandwidth_percent();
     return result;

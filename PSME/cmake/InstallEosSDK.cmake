@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 function(install_eos_sdk)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(EosSdk-stubs 1.13.0 "https://github.com/aristanetworks/EosSdk/archive/v1.13.0.tar.gz" "486d389801b5c007111ee08875749028")
+    assure_package(EosSdk 2.3.1 "https://github.com/aristanetworks/EosSdk/archive/v2.3.1.tar.gz" "6ee8678b173878e5138a6bf2756e2135")
 
     execute_process(
         COMMAND ${source_dir}/build.sh

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@
 #include "agent-framework/module/responses/common/delete_task.hpp"
 #include "agent-framework/module/responses/common/add_endpoint.hpp"
 #include "agent-framework/module/responses/common/delete_endpoint.hpp"
+#include "agent-framework/module/responses/common/delete_drive.hpp"
 #include "agent-framework/module/responses/common/add_zone_endpoints.hpp"
 #include "agent-framework/module/responses/common/delete_zone_endpoints.hpp"
 #include "agent-framework/module/responses/common/add_zone.hpp"

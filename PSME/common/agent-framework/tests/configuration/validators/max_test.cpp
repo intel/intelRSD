@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 #include "configuration/validators/max.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace configuration;
 using namespace json;
@@ -45,17 +45,21 @@ protected:
 
 MaxValidatorTest::~MaxValidatorTest() {}
 
+constexpr const int MaxValidatorTest::MAX_VALUE;
+constexpr const int MaxValidatorTest::ABOVE_LIMIT_VALUE;
+constexpr const int MaxValidatorTest::BELOW_LIMIT_VALUE;
+
 /* Positive. */
 
 TEST_F(MaxValidatorTest, PositiveBelowLimit) {
     std::unique_ptr<configuration::MaxValidator> max_validator(new configuration::MaxValidator(MAX_VALUE));
-    json::Value json_int(BELOW_LIMIT_VALUE);
+    json::Json json_int = BELOW_LIMIT_VALUE;
     ASSERT_EQ(max_validator->is_valid(json_int), true);
 }
 
 TEST_F(MaxValidatorTest, PositiveMarginalValue) {
     std::unique_ptr<configuration::MaxValidator> max_validator(new configuration::MaxValidator(MAX_VALUE));
-    json::Value json_int(MAX_VALUE);
+    json::Json json_int = MAX_VALUE;
     ASSERT_EQ(max_validator->is_valid(json_int), true);
 }
 
@@ -63,12 +67,12 @@ TEST_F(MaxValidatorTest, PositiveMarginalValue) {
 
 TEST_F(MaxValidatorTest, NegativeInvalidType) {
     std::unique_ptr<configuration::MaxValidator> max_validator(new configuration::MaxValidator(MAX_VALUE));
-    json::Value json_int;
+    json::Json json_int = json::Json();
     ASSERT_EQ(max_validator->is_valid(json_int), false);
 }
 
 TEST_F(MaxValidatorTest, NegativeAboveLimit) {
     std::unique_ptr<configuration::MaxValidator> max_validator(new configuration::MaxValidator(MAX_VALUE));
-    json::Value json_int(ABOVE_LIMIT_VALUE);
+    json::Json json_int = ABOVE_LIMIT_VALUE;
     ASSERT_EQ(max_validator->is_valid(json_int), false);
 }

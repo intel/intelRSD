@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2018 Intel Corporation
+# Copyright (c) 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,6 @@ if (NOT GTEST_FOUND)
     return()
 endif()
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include
-)
-
 add_gtest(test database
     test_runner.cpp
     database_test.cpp
@@ -33,8 +28,6 @@ add_gtest(test database
 
 target_link_libraries(${test_target}
     database
-    ${LOGGER_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
 )
 
 add_custom_target(unittest_database

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,42 +43,42 @@ using namespace agent_framework::module;
 using namespace agent_framework::model;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchACLRule.EthernetSwitchACLRule";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchACLRule.v1_0_0.EthernetSwitchACLRule";
 
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "ACL Rule";
     r[Common::DESCRIPTION] = "Access Control List Rule";
 
-    r[Rule::RULE_ID] = json::Value::Type::NIL;
-    r[Rule::ACTION] = json::Value::Type::NIL;
-    r[Rule::FORWARD_MIRROR_INTERFACE] = json::Value::Type::NIL;
-    r[Rule::MIRROR_PORT_REGION] = json::Value::Type::ARRAY;
-    r[Rule::MIRROR_TYPE] = json::Value::Type::NIL;
+    r[Rule::RULE_ID] = json::Json::value_t::null;
+    r[Rule::ACTION] = json::Json::value_t::null;
+    r[Rule::FORWARD_MIRROR_INTERFACE] = json::Json::value_t::null;
+    r[Rule::MIRROR_PORT_REGION] = json::Json::value_t::array;
+    r[Rule::MIRROR_TYPE] = json::Json::value_t::null;
 
-    json::Value condition;
-    condition[Rule::IP_SOURCE] = json::Value::Type::NIL;
-    condition[Rule::IP_DESTINATION] = json::Value::Type::NIL;
-    condition[Rule::MAC_SOURCE] = json::Value::Type::NIL;
-    condition[Rule::MAC_DESTINATION] = json::Value::Type::NIL;
-    condition[Rule::VLAN_ID] = json::Value::Type::NIL;
-    condition[Rule::L4_SOURCE_PORT] = json::Value::Type::NIL;
-    condition[Rule::L4_DESTINATION_PORT] = json::Value::Type::NIL;
-    condition[Rule::L4_PROTOCOL] = json::Value::Type::NIL;
+    json::Json condition = json::Json();
+    condition[Rule::IP_SOURCE] = json::Json::value_t::null;
+    condition[Rule::IP_DESTINATION] = json::Json::value_t::null;
+    condition[Rule::MAC_SOURCE] = json::Json::value_t::null;
+    condition[Rule::MAC_DESTINATION] = json::Json::value_t::null;
+    condition[Rule::VLAN_ID] = json::Json::value_t::null;
+    condition[Rule::L4_SOURCE_PORT] = json::Json::value_t::null;
+    condition[Rule::L4_DESTINATION_PORT] = json::Json::value_t::null;
+    condition[Rule::L4_PROTOCOL] = json::Json::value_t::null;
     r[Rule::CONDITION] = std::move(condition);
 
-    r[Common::OEM] = json::Value::Type::OBJECT;
-    r[Common::LINKS] = json::Value::Type::OBJECT;
+    r[Common::OEM] = json::Json::value_t::object;
+    r[Common::LINKS] = json::Json::value_t::object;
 
     return r;
 }
 
 
-void set_condition(const AclRule& rule, json::Value& r) {
+void set_condition(const AclRule& rule, json::Json& r) {
     if (rule.get_source_ip().get_address().has_value()) {
         r[Rule::CONDITION][constants::Rule::IP_SOURCE][constants::Rule::IP_ADDRESS] =
             rule.get_source_ip().get_address();
@@ -126,17 +126,17 @@ void set_condition(const AclRule& rule, json::Value& r) {
 }
 
 
-void set_region(const AclRule& rule, json::Value& r) {
+void set_region(const AclRule& rule, json::Json& r) {
     const auto& ports = rule.get_mirrored_ports();
     for (const auto& port : ports) {
-        json::Value port_link{};
+        json::Json port_link = json::Json();
         port_link[Common::ODATA_ID] = endpoint::utils::get_component_url(enums::Component::EthernetSwitchPort, port);
         r[Rule::MIRROR_PORT_REGION].push_back(std::move(port_link));
     }
 }
 
 
-void fill_condition(const json::Value& json, attribute::Attributes& attributes) {
+void fill_condition(const json::Json& json, attribute::Attributes& attributes) {
 
     std::vector<std::string> valid_conditions{
         Rule::IP_SOURCE,
@@ -150,7 +150,7 @@ void fill_condition(const json::Value& json, attribute::Attributes& attributes) 
     };
 
     for (const auto& field : valid_conditions) {
-        if (json.is_member(field)) {
+        if (json.count(field)) {
             if (Rule::IP_SOURCE == field) {
                 attributes.set_value(literals::AclRule::SOURCE_IP, attribute::AclAddress(
                     json[field][Rule::IP_ADDRESS],
@@ -194,47 +194,47 @@ void fill_condition(const json::Value& json, attribute::Attributes& attributes) 
 }
 
 
-attribute::Attributes fill_attributes(const json::Value& parsed_json, const AclRule& rule) {
+attribute::Attributes fill_attributes(const json::Json& parsed_json, const AclRule& rule) {
     using AclAction = agent_framework::model::enums::AclAction;
 
     attribute::Attributes attributes;
     auto action = rule.get_action();
 
-    if (parsed_json.is_member(Rule::ACTION)) {
+    if (parsed_json.count(Rule::ACTION)) {
         action = OptionalField<AclAction>(parsed_json[Rule::ACTION]);
-        attributes.set_value(literals::AclRule::ACTION, parsed_json[Rule::ACTION].as_string());
+        attributes.set_value(literals::AclRule::ACTION, parsed_json[Rule::ACTION].get<std::string>());
     }
-    if (parsed_json.is_member(Rule::RULE_ID)) {
+    if (parsed_json.count(Rule::RULE_ID)) {
         // Workaround for GAMI - REST spec mismatch:
         THROW(agent_framework::exceptions::NotImplemented, "rest",
               "Setting 'RuleId' is not implemented in the network agent.");
     }
-    if (parsed_json.is_member(Rule::MIRROR_TYPE)) {
-        attributes.set_value(literals::AclRule::MIRROR_TYPE, parsed_json[Rule::MIRROR_TYPE].as_string());
+    if (parsed_json.count(Rule::MIRROR_TYPE)) {
+        attributes.set_value(literals::AclRule::MIRROR_TYPE, parsed_json[Rule::MIRROR_TYPE].get<std::string>());
     }
-    if (parsed_json.is_member(Rule::FORWARD_MIRROR_INTERFACE)) {
-        const auto port_url = parsed_json[Rule::FORWARD_MIRROR_INTERFACE][Common::ODATA_ID].as_string();
+    if (parsed_json.count(Rule::FORWARD_MIRROR_INTERFACE)) {
+        const auto port_url = parsed_json[Rule::FORWARD_MIRROR_INTERFACE][Common::ODATA_ID].get<std::string>();
         attributes.set_value(literals::AclRule::FORWARD_MIRROR_PORT, endpoint::utils::get_port_uuid_from_url(port_url));
     }
-    if (parsed_json.is_member(Rule::MIRROR_PORT_REGION)) {
+    if (parsed_json.count(Rule::MIRROR_PORT_REGION)) {
         attribute::Array<std::string> port_array{};
         if (!parsed_json[Rule::MIRROR_PORT_REGION].is_null()) {
-            for (const auto& port : parsed_json[Rule::MIRROR_PORT_REGION].as_array()) {
-                const auto& port_url = port[Common::ODATA_ID].as_string();
+            for (const auto& port : parsed_json[Rule::MIRROR_PORT_REGION]) {
+                const auto& port_url = port[Common::ODATA_ID].get<std::string>();
                 port_array.add_entry(endpoint::utils::get_port_uuid_from_url(port_url));
             }
         }
         attributes.set_value(literals::AclRule::MIRRORED_PORTS, port_array.to_json());
     }
-    if (parsed_json.is_member(Rule::CONDITION)) {
+    if (parsed_json.count(Rule::CONDITION)) {
         fill_condition(parsed_json[Rule::CONDITION], attributes);
     }
 
     if (AclAction::Mirror == action || AclAction::Forward == action) {
         // If ForwardMirrorInterface is (not present in json or model) or is (present in json and set to null)
-        if ((!parsed_json.is_member(Rule::FORWARD_MIRROR_INTERFACE) &&
+        if ((!parsed_json.count(Rule::FORWARD_MIRROR_INTERFACE) &&
              !rule.get_forward_mirror_port().has_value()) ||
-            (parsed_json.is_member(Rule::FORWARD_MIRROR_INTERFACE) &&
+            (parsed_json.count(Rule::FORWARD_MIRROR_INTERFACE) &&
              parsed_json[Rule::FORWARD_MIRROR_INTERFACE].is_null())) {
             throw ServerException(ErrorFactory::create_property_missing_error(
                 constants::Rule::FORWARD_MIRROR_INTERFACE,
@@ -244,9 +244,9 @@ attribute::Attributes fill_attributes(const json::Value& parsed_json, const AclR
     }
     if (agent_framework::model::enums::AclAction::Mirror == action) {
         // If MirrorType is (not present in json or model) or is (present in json and set to null)
-        if ((!parsed_json.is_member(Rule::MIRROR_TYPE) &&
+        if ((!parsed_json.count(Rule::MIRROR_TYPE) &&
              !rule.get_forward_mirror_port().has_value()) ||
-            (parsed_json.is_member(Rule::MIRROR_TYPE) &&
+            (parsed_json.count(Rule::MIRROR_TYPE) &&
              parsed_json[Rule::MIRROR_TYPE].is_null())) {
             throw ServerException(ErrorFactory::create_property_missing_error(
                 constants::Rule::MIRROR_TYPE,
@@ -260,26 +260,30 @@ attribute::Attributes fill_attributes(const json::Value& parsed_json, const AclR
 
 
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
-    {agent_framework::model::literals::AclRule::ACTION, constants::Rule::ACTION},
+    {agent_framework::model::literals::AclRule::ACTION,              constants::Rule::ACTION},
     {agent_framework::model::literals::AclRule::FORWARD_MIRROR_PORT, constants::Rule::FORWARD_MIRROR_INTERFACE},
-    {agent_framework::model::literals::AclRule::MIRRORED_PORTS, constants::Rule::MIRROR_PORT_REGION},
-    {agent_framework::model::literals::AclRule::MIRROR_TYPE, constants::Rule::MIRROR_TYPE},
-    {agent_framework::model::literals::AclRule::SOURCE_IP, endpoint::PathBuilder(constants::Rule::CONDITION)
-                                                               .append(constants::Rule::IP_SOURCE).build()},
-    {agent_framework::model::literals::AclRule::DESTINATION_IP, endpoint::PathBuilder(constants::Rule::CONDITION)
-                                                               .append(constants::Rule::IP_DESTINATION).build()},
-    {agent_framework::model::literals::AclRule::SOURCE_MAC, endpoint::PathBuilder(constants::Rule::CONDITION)
-                                                               .append(constants::Rule::MAC_SOURCE).build()},
-    {agent_framework::model::literals::AclRule::DESTINATION_MAC, endpoint::PathBuilder(constants::Rule::CONDITION)
-                                                               .append(constants::Rule::MAC_DESTINATION).build()},
-    {agent_framework::model::literals::AclRule::VLAN_ID, endpoint::PathBuilder(constants::Rule::CONDITION)
-                                                               .append(constants::Rule::VLAN_ID).build()},
-    {agent_framework::model::literals::AclRule::SOURCE_L4_PORT, endpoint::PathBuilder(constants::Rule::CONDITION)
-                                                               .append(constants::Rule::L4_SOURCE_PORT).build()},
+    {agent_framework::model::literals::AclRule::MIRRORED_PORTS,      constants::Rule::MIRROR_PORT_REGION},
+    {agent_framework::model::literals::AclRule::MIRROR_TYPE,         constants::Rule::MIRROR_TYPE},
+    {agent_framework::model::literals::AclRule::SOURCE_IP,           endpoint::PathBuilder(constants::Rule::CONDITION)
+                                                                         .append(constants::Rule::IP_SOURCE).build()},
+    {agent_framework::model::literals::AclRule::DESTINATION_IP,      endpoint::PathBuilder(constants::Rule::CONDITION)
+                                                                         .append(
+                                                                             constants::Rule::IP_DESTINATION).build()},
+    {agent_framework::model::literals::AclRule::SOURCE_MAC,          endpoint::PathBuilder(constants::Rule::CONDITION)
+                                                                         .append(constants::Rule::MAC_SOURCE).build()},
+    {agent_framework::model::literals::AclRule::DESTINATION_MAC,     endpoint::PathBuilder(constants::Rule::CONDITION)
+                                                                         .append(
+                                                                             constants::Rule::MAC_DESTINATION).build()},
+    {agent_framework::model::literals::AclRule::VLAN_ID,             endpoint::PathBuilder(constants::Rule::CONDITION)
+                                                                         .append(constants::Rule::VLAN_ID).build()},
+    {agent_framework::model::literals::AclRule::SOURCE_L4_PORT,      endpoint::PathBuilder(constants::Rule::CONDITION)
+                                                                         .append(
+                                                                             constants::Rule::L4_SOURCE_PORT).build()},
     {agent_framework::model::literals::AclRule::DESTINATION_L4_PORT, endpoint::PathBuilder(constants::Rule::CONDITION)
-                                                               .append(constants::Rule::L4_DESTINATION_PORT).build()},
-    {agent_framework::model::literals::AclRule::PROTOCOL, endpoint::PathBuilder(constants::Rule::CONDITION)
-                                                               .append(constants::Rule::L4_PROTOCOL).build()},
+                                                                         .append(
+                                                                             constants::Rule::L4_DESTINATION_PORT).build()},
+    {agent_framework::model::literals::AclRule::PROTOCOL,            endpoint::PathBuilder(constants::Rule::CONDITION)
+                                                                         .append(constants::Rule::L4_PROTOCOL).build()},
 };
 }
 
@@ -298,10 +302,8 @@ void endpoint::Rule::get(const server::Request& req, server::Response& res) {
     r[Common::NAME] = constants::Rule::RULE + req.params[PathParam::RULE_ID];
 
     const auto rule =
-        psme::rest::model::Find<agent_framework::model::AclRule>(req.params[PathParam::RULE_ID])
-            .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-            .via<agent_framework::model::Acl>(req.params[PathParam::ACL_ID])
-            .get();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::Acl, agent_framework::model::AclRule>(
+            req.params).get();
 
     r[constants::Rule::RULE_ID] = rule.get_rule_id();
     r[constants::Rule::ACTION] = rule.get_action();
@@ -319,34 +321,34 @@ void endpoint::Rule::get(const server::Request& req, server::Response& res) {
 
 
 void endpoint::Rule::del(const server::Request& req, server::Response& res) {
-    auto rule = psme::rest::model::Find<agent_framework::model::AclRule>(req.params[PathParam::RULE_ID])
-        .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-        .via<agent_framework::model::Acl>(req.params[PathParam::ACL_ID])
-        .get();
+    static const constexpr char TRANSACTION_NAME[] = "DeleteRule";
+
+    auto rule = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::Acl, agent_framework::model::AclRule>(
+        req.params).get();
 
     auto delete_acl_rule_request = requests::DeleteAclRule(rule.get_uuid());
 
-    const auto& agent = psme::core::agent::AgentManager::get_instance()->get_agent(rule.get_agent_id());
+    const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(rule.get_agent_id());
 
-    auto delete_rule = [&, agent] {
+    auto delete_rule = [&, gami_agent] {
         // try removing ACL from agent's model
-        agent->execute<responses::DeleteAclRule>(delete_acl_rule_request);
+        gami_agent->execute<responses::DeleteAclRule>(delete_acl_rule_request);
 
         // remove the resource from application's model
         HandlerManager::get_instance()->get_handler(enums::Component::AclRule)->remove(rule.get_uuid());
 
         res.set_status(server::status_2XX::NO_CONTENT);
     };
-    agent->execute_in_transaction(delete_rule);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, delete_rule);
 }
 
 
 void endpoint::Rule::patch(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PatchRule";
+
     const auto rule =
-        psme::rest::model::Find<agent_framework::model::AclRule>(request.params[PathParam::RULE_ID])
-            .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-            .via<agent_framework::model::Acl>(request.params[PathParam::ACL_ID])
-            .get();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::Acl, agent_framework::model::AclRule>(
+            request.params).get();
 
     const auto json = JsonValidator::validate_request_body<schema::RulePatchSchema>(request);
     const auto attributes = fill_attributes(json, rule);
@@ -370,7 +372,7 @@ void endpoint::Rule::patch(const server::Request& request, server::Response& res
             HandlerManager::get_instance()->get_handler(enums::Component::AclRule)->
                 load(gami_agent, rule.get_parent_uuid(), enums::Component::Acl, rule.get_uuid(), true);
         };
-        gami_agent->execute_in_transaction(set_rule_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_rule_attributes);
     }
 
     get(request, response);

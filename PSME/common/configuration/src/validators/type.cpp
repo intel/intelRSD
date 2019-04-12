@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
  * */
 
 #include "configuration/validators/type.hpp"
-#include <json/json.hpp>
+#include "json-wrapper/json-wrapper.hpp"
 #include <map>
 
 using namespace configuration;
@@ -48,17 +48,17 @@ static std::map<std::string, std::string> g_types = {
 
 }
 
-bool TypeValidator::is_valid(const json::Value& value) const {
+bool TypeValidator::is_valid(const json::Json& value) const {
     if ("string" == m_type) {
         return value.is_string();
     }
 
     if ("int" == m_type) {
-        return value.is_int();
+        return value.is_number_integer();
     }
 
     if ("uint" == m_type) {
-        return value.is_uint();
+        return value.is_number_unsigned();
     }
 
     if ("bool" == m_type) {
@@ -78,7 +78,7 @@ bool TypeValidator::is_valid(const json::Value& value) const {
     }
 
     if ("double" == m_type) {
-        return value.is_double();
+        return value.is_number_float();
     }
 
     if ("number" == m_type) {

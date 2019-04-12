@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,29 +29,29 @@ using namespace database;
 
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#StorageService.StorageService";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#StorageService.v1_0_0.StorageService";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Storage Service";
     r[Common::DESCRIPTION] = "Storage Service description";
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[constants::StorageService::ENDPOINTS] = json::Value::Type::NIL;
-    r[constants::StorageService::VOLUMES] = json::Value::Type::NIL;
-    r[constants::StorageService::DRIVES] = json::Value::Type::NIL;
-    r[constants::StorageService::STORAGE_POOLS] = json::Value::Type::NIL;
+    r[constants::StorageService::ENDPOINTS] = json::Json::value_t::null;
+    r[constants::StorageService::VOLUMES] = json::Json::value_t::null;
+    r[constants::StorageService::DRIVES] = json::Json::value_t::null;
+    r[constants::StorageService::STORAGE_POOLS] = json::Json::value_t::null;
 
-    r[Common::LINKS][constants::StorageService::HOSTING_SYSTEM] = json::Value::Type::NIL;
+    r[Common::LINKS][constants::StorageService::HOSTING_SYSTEM] = json::Json::value_t::null;
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.StorageServiceLinks";
-    r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Common::MANAGED_BY] = json::Value::Type::ARRAY;
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Common::MANAGED_BY] = json::Json::value_t::array;
 
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::OEM] = json::Json::value_t::object;
 
     return r;
 }
@@ -64,7 +64,7 @@ endpoint::StorageService::~StorageService() {}
 void endpoint::StorageService::get(const server::Request& request, server::Response& response) {
     auto r = ::make_prototype();
     auto storage_service =
-            model::Find<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID]).get();
+            model::find<agent_framework::model::StorageService>(request.params).get();
 
     r[constants::Common::ID] = request.params[PathParam::SERVICE_ID];
     r[constants::Common::ODATA_ID] = PathBuilder(request).build();
@@ -90,7 +90,7 @@ void endpoint::StorageService::get(const server::Request& request, server::Respo
                                                            system_uuid)).build();
     }
 
-    json::Value manager;
+    json::Json manager = json::Json();
     manager[Common::ODATA_ID] =
             utils::get_component_url(agent_framework::model::enums::Component::Manager,
                                      storage_service.get_parent_uuid());

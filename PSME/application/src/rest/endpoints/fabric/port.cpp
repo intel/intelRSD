@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,66 +21,65 @@
 #include "psme/rest/endpoints/fabric/port.hpp"
 #include "psme/rest/utils/status_helpers.hpp"
 
+
+
 using namespace psme::rest;
 using namespace psme::rest::constants;
 
-
-
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Port.Port";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#Port.v1_0_0.Port";
     r[Common::NAME] = "PCIe Port";
 
-    json::Value actions;
-    actions[constants::Port::PORT_RESET][Common::TARGET] = json::Value::Type::NIL;
-    actions[constants::Port::PORT_RESET][Common::ALLOWABLE_RESET_TYPES] = json::Value::Type::ARRAY;
-    actions[Common::OEM] = json::Value::Type::OBJECT;
+    json::Json actions = json::Json();
+    actions[constants::Port::PORT_RESET][Common::TARGET] = json::Json::value_t::null;
+    actions[constants::Port::PORT_RESET][Common::ALLOWABLE_RESET_TYPES] = json::Json::value_t::array;
+    actions[Common::OEM] = json::Json::value_t::object;
     r[Common::ACTIONS] = std::move(actions);
 
     r[Common::DESCRIPTION] = "PCIe Port description";
-    r[Common::ID] = json::Value::Type::NIL;
-    r[constants::Port::MAX_SPEED] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
+    r[constants::Port::MAX_SPEED] = json::Json::value_t::null;
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.Port";
-    r[Common::OEM][Common::RACKSCALE][constants::Port::PCIE_CONNECTION_ID] = json::Value::Type::ARRAY;
-    r[Common::OEM][Common::RACKSCALE][constants::Common::METRICS] = json::Value::Type::NIL;
-    r[constants::Port::PORT_ID] = json::Value::Type::NIL;
-    r[constants::Port::PORT_PROTOCOL] = json::Value::Type::NIL;
-    r[constants::Port::PORT_TYPE] = json::Value::Type::NIL;
-    r[constants::Port::CURRENT_SPEED] = json::Value::Type::NIL;
+    r[Common::OEM][Common::RACKSCALE][constants::Port::PCIE_CONNECTION_ID] = json::Json::value_t::array;
+    r[Common::OEM][Common::RACKSCALE][constants::Common::METRICS] = json::Json::value_t::null;
+    r[constants::Port::PORT_ID] = json::Json::value_t::null;
+    r[constants::Port::PORT_PROTOCOL] = json::Json::value_t::null;
+    r[constants::Port::PORT_TYPE] = json::Json::value_t::null;
+    r[constants::Port::CURRENT_SPEED] = json::Json::value_t::null;
 
-    r[Common::LINKS][constants::Port::ASSOCIATED_ENDPOINTS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][constants::Port::CONNECTED_SWITCHES] = json::Value::Type::ARRAY;
-    r[Common::LINKS][constants::Port::CONNECTED_SWITCH_PORTS] = json::Value::Type::ARRAY;
+    r[Common::LINKS][constants::Port::ASSOCIATED_ENDPOINTS] = json::Json::value_t::array;
+    r[Common::LINKS][constants::Port::CONNECTED_SWITCHES] = json::Json::value_t::array;
+    r[Common::LINKS][constants::Port::CONNECTED_SWITCH_PORTS] = json::Json::value_t::array;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[constants::Port::WIDTH] = json::Value::Type::NIL;
-
-
+    r[constants::Port::WIDTH] = json::Json::value_t::null;
 
     return r;
 }
 }
 
+
 endpoint::Port::Port(const std::string& path) : EndpointBase(path) {}
 
+
 endpoint::Port::~Port() {}
+
 
 void endpoint::Port::get(const server::Request& req, server::Response& res) {
     auto json = ::make_prototype();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-
-    const auto port = psme::rest::model::Find<agent_framework::model::Port>(req.params[PathParam::PORT_ID])
-        .via<agent_framework::model::Fabric>(req.params[PathParam::FABRIC_ID])
-        .via<agent_framework::model::Switch>(req.params[PathParam::SWITCH_ID]).get();
+    const auto port = psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Switch, agent_framework::model::Port>(
+        req.params).get();
 
     json[Common::ID] = req.params[PathParam::PORT_ID];
 
@@ -89,8 +88,9 @@ void endpoint::Port::get(const server::Request& req, server::Response& res) {
         .append(constants::Port::PORT_RESET_ENDPOINT)
         .build();
 
-    for(const auto& allowed_reset_type : port.get_allowed_actions()) {
-        json[Common::ACTIONS][constants::Port::PORT_RESET][Common::ALLOWABLE_RESET_TYPES].push_back(allowed_reset_type.to_string());
+    for (const auto& allowed_reset_type : port.get_allowed_actions()) {
+        json[Common::ACTIONS][constants::Port::PORT_RESET][Common::ALLOWABLE_RESET_TYPES].push_back(
+            allowed_reset_type.to_string());
     }
 
     endpoint::utils::string_array_to_json(
@@ -111,13 +111,13 @@ void endpoint::Port::get(const server::Request& req, server::Response& res) {
         json[constants::Port::MAX_SPEED] = uint64_t(port.get_max_speed_gbps());
     }
 
-    for (const auto& endpoint_uuid : agent_framework::module::PncComponents::get_instance()->get_endpoint_port_manager().get_parents(port.get_uuid())) {
-        json::Value endpoint_link;
+    for (const auto& endpoint_uuid : agent_framework::module::PncComponents::get_instance()->get_endpoint_port_manager().get_parents(
+        port.get_uuid())) {
+        json::Json endpoint_link = json::Json();
         endpoint_link[Common::ODATA_ID] = endpoint::utils::get_component_url(
             agent_framework::model::enums::Component::Endpoint, endpoint_uuid);
         json[Common::LINKS][constants::Port::ASSOCIATED_ENDPOINTS].push_back(std::move(endpoint_link));
     }
-
 
     endpoint::status_to_json(port, json);
     json[Common::STATUS][Common::HEALTH_ROLLUP] = port.get_status().get_health();

@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright 2014-2015 Distributed Management Task Force, Inc. (DMTF). All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions_v1.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource_v1.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Manager_v1.xml">
+    <edmx:Include Namespace="Manager.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Chassis_v1.xml">
+    <edmx:Include Namespace="Chassis.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitchPortCollection_v1.xml">
+    <edmx:Include Namespace="EthernetSwitchPortCollection"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitchACLCollection_v1.xml">
+    <edmx:Include Namespace="EthernetSwitchACLCollection"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="EthernetSwitchMetrics_v1.xml">
+    <edmx:Include Namespace="EthernetSwitchMetrics"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="IntelRackScaleExtensions_v1.xml">
+    <edmx:Include Namespace="IntelRackScale.Extensions"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitch.v1_0_0">
+
+      <EntityType Name="EthernetSwitch" BaseType="Resource.v1_0_0.Resource">
+        <Property Name="SwitchId" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="Unique switch Id (within drawer) used to identify in switch hierarchy discovery."/>
+          <Annotation Term="OData.LongDescription"
+                      String="Unique switch Id (within drawer) used to identify in switch hierarchy discovery."/>
+        </Property>
+        <Property Name="Manufacturer" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch manufacturer name."/>
+          <Annotation Term="OData.LongDescription" String="Switch manufacturer name."/>
+        </Property>
+        <Property Name="Model" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch model."/>
+          <Annotation Term="OData.LongDescription" String="Switch model."/>
+        </Property>
+        <Property Name="ManufacturingDate" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Manufacturing date."/>
+          <Annotation Term="OData.LongDescription" String="Manufacturing date."/>
+        </Property>
+        <Property Name="SerialNumber" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Switch serial numberSS."/>
+          <Annotation Term="OData.LongDescription" String="Switch serial number."/>
+        </Property>
+        <Property Name="PartNumber" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch part number."/>
+          <Annotation Term="OData.LongDescription" String="Switch part number."/>
+        </Property>
+        <Property Name="FirmwareName" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch firmware name."/>
+          <Annotation Term="OData.LongDescription" String="Switch firmware name."/>
+        </Property>
+        <Property Name="FirmwareVersion" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Switch firmware version."/>
+          <Annotation Term="OData.LongDescription" String="Switch firmware version."/>
+        </Property>
+        <Property Name="Role" Type="Edm.String">
+          <Annotation Term="OData.Description" String="Role of switch."/>
+          <Annotation Term="OData.LongDescription" String="Role of switch."/>
+        </Property>
+        <Property Name="MaxACLNumber" Type="Edm.Int32">
+          <Annotation Term="OData.Description" String="Maximum quantity of ACL's."/>
+          <Annotation Term="OData.LongDescription" String="Maximum quantity of Access Control Lists."/>
+        </Property>
+        <Property Name="Status" Type="Resource.Status"/>
+
+        <NavigationProperty Name="Ports" Type="EthernetSwitchPortCollection.EthernetSwitchPortCollection"
+                            ContainsTarget="true">
+          <Annotation Term="OData.Description" String="Collection of switch ports."/>
+          <Annotation Term="OData.LongDescription" String="Collection of switch ports."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="ACLs" Type="EthernetSwitchACLCollection.EthernetSwitchACLCollection"
+                            ContainsTarget="true">
+          <Annotation Term="OData.Description" String="Collection of switch access control list."/>
+          <Annotation Term="OData.LongDescription" String="Collection of switch access control list."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <Property Name="Links" Type="EthernetSwitch.v1_0_0.Links" Nullable="false"/>
+      </EntityType>
+
+      <ComplexType Name="Links" BaseType="Resource.Links">
+        <NavigationProperty Name="Chassis" Type="Chassis.v1_0_0.Chassis">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <NavigationProperty Name="ManagedBy" Type="Collection(Manager.v1_0_0.Manager)">
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EthernetSwitch.v1_1_0">
+      <EntityType Name="EthernetSwitch" BaseType="EthernetSwitch.v1_0_0.EthernetSwitch">
+        <NavigationProperty Name="Metrics" Type="EthernetSwitchMetrics.EthernetSwitchMetrics" ContainsTarget="true"
+                            Nullable="false">
+          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this EthernetSwitch."/>
+          <Annotation Term="OData.LongDescription"
+                      String="A reference to the Metrics associated with this EthernetSwitch."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+        <Property Name="LLDPEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This indicates whether LLDP protocol is enabled on this switch."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a boolean indicating whether Link Layer Discovery Protocol (LLDP) IEEE 802.1AB is enabled on this switch."/>
+        </Property>
+        <Property Name="ETSEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This indicates whether ETS feature is enabled on this switch."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a boolean indicating whether Enhanced Transmission Selection (ETS) defined in IEEE 802.1Qaz is enabled on this switch."/>
+        </Property>
+        <Property Name="DCBXEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This indicates whether DCBX is enabled on this switch."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a boolean indicating whether Data Center Bridging Extensions is enabled on this switch."/>
+        </Property>
+        <Property Name="PFCEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This indicates whether PFC feature is enabled on this switch."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a boolean indicating whether Priority Flow Control (PFC) defined in IEEE 802.1Qbb is enabled on this switch."/>
+        </Property>
+        <Property Name="DCBXSharedConfiguration" Type="EthernetSwitch.v1_1_0.DCBXConfig">
+          <Annotation Term="IntelRackScale.Extensions.Nontrivial"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This provide configuration of DCBX that will be provided to endpoints via LLDP by this switch."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This object shall contain Data Center Bridging Extensions capabilities and configuration conveyed between neighbors to ensure consistent configuration across the network. This protocol leverages functionality provided by IEEE 802.1AB (LLDP)."/>
+        </Property>
+      </EntityType>
+
+      <ComplexType Name="DCBXConfig">
+        <!--        <Annotation Term="OData.AdditionalProperties" Bool="false"/> -->
+        <Annotation Term="OData.Description" String="This provide configuration of DCBX that will be provided to endpoints via LLDP by this switch."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This object shall contain Data Center Bridging Extensions capabilities and configuration conveyed between neighbors to ensure consistent configuration across the network. This protocol leverages functionality provided by IEEE 802.1AB (LLDP)."/>
+        <Property Name="ApplicationProtocol" Type="Collection(EthernetSwitch.v1_1_0.ApplicationProtocolType)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This is used to associate upper layer protocols to priority group."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This object allows DCB node to announce upper layer protocols and associated priority map
+over DCB link."/>
+        </Property>
+
+        <Property Name="PriorityToPriorityGroupMapping" Type="Collection(EthernetSwitch.v1_1_0.PriorityClassMapping)">
+          <Annotation Term="IntelRackScale.Extensions.Nontrivial"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This provide configuration of priority to priority group mapping."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall provide configuration of priority to priority group mapping for this switch."/>
+        </Property>
+
+        <Property Name="BandwidthAllocation" Type="Collection(EthernetSwitch.v1_1_0.BandwidthMapping)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This provide configuration of bandwidth allocation  on converged links in end stations and switches in a DCB (Data Center
+Bridging) environment."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall provide configuration of bandwidth allocation  on converged links in end stations and switches in a DCB (Data Center
+Bridging) environment."/>
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="ApplicationProtocolType">
+        <!--        <Annotation Term="OData.AdditionalProperties" Bool="false"/> -->
+        <Annotation Term="OData.Description" String="Application protocol configuration."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This object contains properties which specify configuration of application protocol of DCB node."/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Priority" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="PFC priority."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall indicate priority for PFC."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="7"/>
+        </Property>
+        <Property Name="Protocol" Type="EthernetSwitch.v1_1_0.ProtocolType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="Protocol supported by DCB node."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall indicate DCB node supported protocol."/>
+        </Property>
+        <Property Name="Port" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="Port number/ EtherType."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a socket number for Protocol set to UDP and TCP or EtherType for Protocol set to L2."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="65535"/>
+        </Property>
+      </ComplexType>
+
+      <EnumType Name="ProtocolType">
+        <Member Name="TCP">
+          <Annotation Term="OData.Description" String="TCP."/>
+        </Member>
+        <Member Name="UDP">
+          <Annotation Term="OData.Description" String="UDP."/>
+        </Member>
+        <Member Name="L2">
+          <Annotation Term="OData.Description" String="L2 EtherType."/>
+        </Member>
+      </EnumType>
+
+      <ComplexType Name="PriorityClassMapping">
+        <!--        <Annotation Term="OData.AdditionalProperties" Bool="false"/> -->
+        <Annotation Term="OData.Description" String="Priority vs Priority Group mapping details."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This object contains properties of PFC priority vs. Priority Group mapping for ethernet switch."/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="PriorityGroup" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="Priority Group ID."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a Priority Group ID."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="7"/>
+        </Property>
+        <Property Name="Priority" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This indicates PFC priority ID."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a numeric value of PFC priority ID."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="7"/>
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="BandwidthMapping">
+        <!--        <Annotation Term="OData.AdditionalProperties" Bool="false"/> -->
+        <Annotation Term="OData.Description" String="Priority Group to minimal bandwidth mapping details."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This object contains properties of mapping Priority Group to guaranteed minial bandwidth."/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="PriorityGroup" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="Priority Group ID."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a Priority Group ID."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="15"/>
+        </Property>
+        <Property Name="BandwidthPercent" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="This indicates minimal bandwidth."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be a percentage of guaranteed bandwidth."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="100"/>
+        </Property>
+      </ComplexType>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

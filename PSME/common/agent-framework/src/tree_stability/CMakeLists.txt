@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,10 +16,19 @@
 #
 # </license_header>
 
-set(SOURCES
+add_library(agent-framework-tree-stability STATIC
     key_value_missing_error.cpp
     tree_stabilizer.cpp
     log_helpers.cpp
+    key_generator.cpp
+    )
+
+target_link_libraries(agent-framework-tree-stability
+    PUBLIC
+    agent-framework-module
 )
 
-add_library(tree-stability OBJECT ${SOURCES})
+target_include_directories(agent-framework-tree-stability
+    PUBLIC
+    ${AGENT_FRAMEWORK_DIR}/include
+    )

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,6 +51,8 @@ generate_default_config_file(
     agent
     generic
     "AGENT_RMM_CONFIGURATION_FILE"
+    ../include/default_configuration.hpp
+    ..
 )
 
 target_link_libraries(psme-rmm
@@ -58,20 +60,18 @@ target_link_libraries(psme-rmm
     ${NET_LIBRARIES}
     rmm-libs
     fru_eeprom
-    ${TELEMETRY_LIBRARIES}
-    ${AGENT_FRAMEWORK_LIBRARIES}
+    telemetry
+    agent-framework
     ${UUID_LIBRARIES}
-    ${LOGGER_LIBRARIES}
+    logger
     ${PCA95XX_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${DATABASE_LIBRARIES}
+    configuration
     pthread
     ${CURL_LIBRARIES}
     ${MICROHTTPD_LIBRARIES}
     ${IPMI_LIBRARIES}
     ${IPMITOOL_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
-    ${SYSFSREF_LIBRARIES}
+    sysfsref
     md5
 )

@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2016-2018 Intel Corporation.
+ * @copyright Copyright (c) 2016-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file add_zone.cpp
  */
 
@@ -29,7 +27,7 @@ AddZone::AddZone(const std::string& pcie_fabric, const StringArray& endpoints,
                          : m_fabric(pcie_fabric), m_endpoints(endpoints), m_oem(oem) {}
 
 json::Json AddZone::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Zone::FABRIC] = m_fabric;
     value[Zone::ENDPOINTS] = m_endpoints.to_json();
     value[Zone::OEM] = m_oem.to_json();

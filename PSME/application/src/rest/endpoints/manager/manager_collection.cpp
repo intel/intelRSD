@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,16 +29,16 @@ using namespace psme::rest::constants;
 
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#ManagerCollection.ManagerCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#ManagerCollection.ManagerCollection";
     r[Common::NAME] = "Manager Collection";
     r[Common::DESCRIPTION] = "Collection of Managers";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -59,7 +59,7 @@ void ManagerCollection::get(const server::Request& request, server::Response& re
     json[Collection::ODATA_COUNT] = std::uint32_t(manager_ids.size());
 
     for (const auto& id : manager_ids) {
-        json::Value link{};
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = PathBuilder(request).append(id).build();
         json[Collection::MEMBERS].push_back(std::move(link));
     }

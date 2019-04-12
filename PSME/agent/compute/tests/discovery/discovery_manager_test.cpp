@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,8 +83,8 @@ public:
         return m_ipmi;
     }
 
-    OptionalField<std::uint16_t> get_platform_id() const override {
-        return static_cast<std::uint16_t>(ipmi::command::generic::ProductId::PRODUCT_ID_INTEL_XEON_PURLEY);
+    OptionalField<ipmi::command::generic::BmcInterface> get_interface() const override {
+        return ipmi::command::generic::BmcInterface::RSD_2_4;
     }
 
 private:
@@ -138,13 +138,13 @@ public:
 class MockDiscovererFactory : public DiscovererFactory {
 public:
 
-    GenericDiscoverer::Ptr create(std::uint32_t platform_id,
+    GenericDiscoverer::Ptr create(ipmi::command::generic::BmcInterface bmc_interface,
                                   ipmi::IpmiController& ipmi_controller,
                                   ipmi::sdv::MdrRegionAccessorFactory::Ptr mdr_accessor_factory) const override {
-        return GenericDiscoverer::Ptr(create_proxy(platform_id, ipmi_controller, mdr_accessor_factory));
+        return GenericDiscoverer::Ptr(create_proxy(bmc_interface, ipmi_controller, mdr_accessor_factory));
     }
 
-    MOCK_CONST_METHOD3(create_proxy, GenericDiscoverer*(std::uint32_t platform_id,
+    MOCK_CONST_METHOD3(create_proxy, GenericDiscoverer*(ipmi::command::generic::BmcInterface bmc_interface,
                                                         ipmi::IpmiController& ipmi_controller,
                                                         ipmi::sdv::MdrRegionAccessorFactory::Ptr mdr_accessor_factory));
 };
@@ -181,7 +181,7 @@ TEST_F(DiscoveryManagerTest, DiscoverDrivesTwice) {
     drives.emplace_back("dummy_parent2");
 
     auto discoverer_factory = std::make_shared<MockDiscovererFactory>();
-    ON_CALL(*discoverer_factory, create_proxy(_, _, _)).WillByDefault(Invoke([drives, drives2](std::uint32_t,
+    ON_CALL(*discoverer_factory, create_proxy(_, _, _)).WillByDefault(Invoke([drives, drives2](ipmi::command::generic::BmcInterface,
             ipmi::IpmiController& ctrl, ipmi::sdv::MdrRegionAccessorFactory::Ptr mdr_accessor_factory) {
         auto* discoverer = new MockDiscoverer(ctrl, mdr_accessor_factory);
         EXPECT_CALL(*discoverer, discover_drives(_, _))

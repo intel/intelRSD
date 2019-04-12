@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ AddVlan::AddVlan() {}
 
 
 json::Json AddVlan::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Vlan::VLAN] = m_vlan;
     value[Vlan::OEM] = m_oem.to_json();
     return value;

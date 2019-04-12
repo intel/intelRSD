@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ namespace agent {
 namespace pnc {
 namespace state_machine {
 
-/*! Class handling the drive discovery process */
+/*! Class handling the PCIe device discovery process */
 class PortStateWorker {
 public:
 
@@ -107,22 +107,23 @@ public:
     virtual void remove(const std::string& switch_uuid, const std::string& port_uuid) const;
 
     /*!
-     * @brief Finds drive by its dsp port uuid
+     * @brief Finds device by its dsp port uuid
      * @param[in] port_uuid Uuid of the dsp port
+     * @return UUID of device connected to dsp port specified by port_uuid
      * */
-    virtual std::string get_drive_by_dsp_port(const std::string& port_uuid) const;
+    virtual Uuid get_device_uuid_by_dsp_port(const Uuid& port_uuid) const;
 
     /*!
      * @brief Locks all entities on the port so they will not be changed by GAMI commands
      * @param[in] port_uuid Uuid of the dsp port
      * */
-    virtual void lock_port(const std::string& port_uuid) const;
+    virtual void lock_port(const Uuid& port_uuid) const;
 
     /*!
      * @brief Unlocks all entities on the port
      * @param[in] port_uuid Uuid of the dsp port
      * */
-    virtual void unlock_port(const std::string& port_uuid) const;
+    virtual void unlock_port(const Uuid& port_uuid) const;
 
     using ZoneEndpointPair = std::tuple<std::string, std::string>;
     using ZoneEndpointVector = std::vector<ZoneEndpointPair>;

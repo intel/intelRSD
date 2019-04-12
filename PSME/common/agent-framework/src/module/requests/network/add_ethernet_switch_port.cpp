@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ AddEthernetSwitchPort::AddEthernetSwitchPort(const std::string& switch_v,
                 m_oem{} {}
 
 json::Json AddEthernetSwitchPort::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[EthernetSwitch::SWITCH] = m_switch;
     value[EthernetSwitchPort::PORT_IDENTIFIER] = m_port_identifier;
     value[EthernetSwitchPort::MODE] = m_mode.to_string();

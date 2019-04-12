@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@
  * @brief Implementation of the PortStateWorker
  * */
 
+#include "agent-framework/eventing/utils.hpp"
 #include "state_machine/port_state_worker.hpp"
 #include "discovery/discovery_manager.hpp"
 #include "gas/global_address_space_registers.hpp"
@@ -68,10 +69,10 @@ uint8_t PortStateWorker::get_bridge_id(const std::string& switch_uuid, const std
 }
 
 void PortStateWorker::ib_discovery(const std::string& switch_uuid, const std::string& port_uuid, uint8_t bridge_id,
-    const std::string& drive_uuid) const {
+    const std::string& device_uuid) const {
 
     log_debug("port-state-worker", "\tAction: discovering (ib)...");
-    if (!m_dm.ib_port_device_discovery(switch_uuid, port_uuid, bridge_id, drive_uuid)) {
+    if (!m_dm.ib_port_device_discovery(switch_uuid, port_uuid, bridge_id, device_uuid)) {
         throw std::runtime_error{"In-band discovery procedure failed"};
     }
     log_debug("port-state-worker", "\tAction: In-band discovery successful");
@@ -117,8 +118,8 @@ void PortStateWorker::full_discovery(const std::string& switch_uuid, const std::
 
     log_debug("port-state-worker", "\tAction: Action: Full (Oob + Ib) discovery...");
     try {
-        std::string drive_uuid = oob_discovery(switch_uuid, port_uuid);
-        ib_discovery(switch_uuid, port_uuid, bridge_id, drive_uuid);
+        std::string device_uuid = oob_discovery(switch_uuid, port_uuid);
+        ib_discovery(switch_uuid, port_uuid, bridge_id, device_uuid);
     }
     catch (...) {
         log_debug("port-state-worker", "Full discovery procedure failed!");
@@ -135,22 +136,22 @@ std::string PortStateWorker::oob_discovery(const std::string& switch_uuid, const
 
     // perform discovery
     log_debug("port-state-worker", "\tAction: discovering (oob)...");
-    if (!m_dm.oob_port_device_discovery(gas, switch_uuid, port_uuid)) {
+    if (!m_dm.oob_port_device_discovery(gas, port_uuid)) {
         throw std::runtime_error{"Out-of-band discovery procedure failed"};
     }
 
-    // get function and drive uuids
+    // get function and supported devices uuids
     log_debug("port-state-worker", "\tAction: retrieving uuids...");
-    std::string drive_uuid{};
+    Uuid device_uuid{};
     try {
-        drive_uuid = get_drive_by_dsp_port(port_uuid);
+        device_uuid = get_device_uuid_by_dsp_port(port_uuid);
     }
     catch (const std::invalid_argument&) {
-        log_info("port-state-worker", "\tNon drive device found!");
+        log_info("port-state-worker", "\tUnsupported device found!");
     }
     log_debug("port-state-worker", "\tAction: oob discovery successful");
 
-    return drive_uuid;
+    return device_uuid;
 }
 
 void PortStateWorker::remove(const std::string& switch_uuid, const std::string& port_uuid) const {
@@ -164,33 +165,42 @@ void PortStateWorker::remove(const std::string& switch_uuid, const std::string& 
     log_debug("port-state-worker", "Action: removal completed");
 }
 
-std::string PortStateWorker::get_drive_by_dsp_port(const std::string& port_uuid) const {
+Uuid PortStateWorker::get_device_uuid_by_dsp_port(const Uuid& port_uuid) const {
 
-    auto drives = m_tools.model_tool->get_drives_by_dsp_port_uuid(port_uuid);
+    auto devices = m_tools.model_tool->get_devices_by_dsp_port_uuid(port_uuid);
 
-    // we expect only one drive to be found
-    if (1 != drives.size()) {
+    // we expect only one device to be found
+    if (1 != devices.size()) {
         log_debug("agent",
-            "Invalid number of drives using specified dsp port, expected 1, found " << drives.size());
-        throw std::invalid_argument("Invalid number of drives using specified dsp port");
+            "Invalid number of devices using specified dsp port, expected 1, found " << devices.size());
+        throw std::invalid_argument("Invalid number of devices using specified dsp port");
     }
 
-    return drives.front();
+    return devices.front();
 }
 
-void PortStateWorker::lock_port(const std::string& port_uuid) const {
+void PortStateWorker::lock_port(const Uuid& port_uuid) const {
 
-    // change drive status
+    // change device status
     try {
-        auto drive_uuid = this->get_drive_by_dsp_port(port_uuid);
-        m_tools.model_tool->set_drive_is_being_discovered(drive_uuid, true);
-        m_tools.model_tool->set_drive_status(drive_uuid,
-                                             attribute::Status{enums::State::Starting, enums::Health::OK});
-        m_tools.model_tool->send_event(m_tools.model_tool->get_chassis_uuid(), drive_uuid,
-                enums::Component::Drive, Notification::Update);
+        auto device_uuid = this->get_device_uuid_by_dsp_port(port_uuid);
+        m_tools.model_tool->set_device_is_being_discovered(device_uuid, true);
+        if (get_manager<Drive>().entry_exists(device_uuid)) {
+            //TODO: Add set_processor_status() or set_status<Processor>() after implementing telemetry
+            try {
+                m_tools.model_tool->set_drive_status(device_uuid,
+                                                     attribute::Status{enums::State::Starting, enums::Health::OK});
+
+                send_event(device_uuid, enums::Component::Drive,
+                    enums::Notification::Update, m_tools.model_tool->get_chassis_uuid());
+            }
+            catch (std::exception&) {
+                log_debug("port-state-worker", "\tCannot change drive status");
+            }
+        }
     }
     catch (std::exception&) {
-        log_debug("port-state-worker", "\tCannot change drive status");
+        log_debug("port-state-worker", "\tCannot change device status");
     }
 
     // change endpoints status
@@ -200,19 +210,19 @@ void PortStateWorker::lock_port(const std::string& port_uuid) const {
         get_manager<Endpoint>().get_entry_reference(endpoint_uuid)->set_status(
             attribute::Status{enums::State::Starting, enums::Health::OK}
         );
-        m_tools.model_tool->send_event(fabric_uuid, endpoint_uuid, enums::Component::Endpoint, Notification::Update);
+        send_event(endpoint_uuid, enums::Component::Endpoint, enums::Notification::Update, fabric_uuid);
     }
 }
 
-void PortStateWorker::unlock_port(const std::string& port_uuid) const {
+void PortStateWorker::unlock_port(const Uuid& port_uuid) const {
 
     // change endpoints status
     try {
-        auto drive_uuid = this->get_drive_by_dsp_port(port_uuid);
-        m_tools.model_tool->set_drive_is_being_discovered(drive_uuid, false);
+        auto device_uuid = this->get_device_uuid_by_dsp_port(port_uuid);
+        m_tools.model_tool->set_device_is_being_discovered(device_uuid, false);
     }
     catch (std::exception&) {
-        log_debug("port-state-worker", "\tCannot change drive status");
+        log_debug("port-state-worker", "\tCannot change device status");
     }
 
     // change endpoints status
@@ -222,7 +232,7 @@ void PortStateWorker::unlock_port(const std::string& port_uuid) const {
         get_manager<Endpoint>().get_entry_reference(endpoint_uuid)->set_status(
             attribute::Status{enums::State::Enabled, enums::Health::OK}
         );
-        m_tools.model_tool->send_event(fabric_uuid, endpoint_uuid, enums::Component::Endpoint, Notification::Update);
+        send_event(endpoint_uuid, enums::Component::Endpoint, enums::Notification::Update, fabric_uuid);
     }
 }
 
@@ -260,6 +270,5 @@ void PortStateWorker::attach_endpoint_to_zone(const std::string& switch_uuid, co
     auto gas = get_gas(switch_uuid);
     m_tools.gas_tool->bind_endpoint_to_zone(gas, zone_uuid, endpoint_uuid);
     get_m2m_manager<Zone, Endpoint>().add_entry(zone_uuid, endpoint_uuid);
-    m_tools.model_tool->send_event(m_tools.model_tool->get_fabric_uuid(), zone_uuid,
-        enums::Component::Zone, Notification::Update);
+    send_event(zone_uuid, enums::Component::Zone, enums::Notification::Update, m_tools.model_tool->get_fabric_uuid());
 }

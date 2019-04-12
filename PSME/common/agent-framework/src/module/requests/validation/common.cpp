@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,6 +61,23 @@ void CommonValidator::validate_set_drive_attributes(const Attributes& attributes
 }
 
 
+void CommonValidator::validate_set_processor_attributes(const Attributes& attributes) {
+    for (const auto& name : attributes.get_names()) {
+        const auto& value = attributes.get_value(name);
+        if (literals::Fpga::ERASED == name) {
+            check_boolean(value, name, "agent-framework");
+        }
+        else if (literals::Fpga::SECURELY_ERASE == name) {
+            // value does not matter
+        }
+        else {
+            THROW(InvalidField, "agent-framework", "Unrecognized attribute.", name, value);
+        }
+    }
+    log_debug("agent-framework", "Request validation passed.");
+}
+
+
 void CommonValidator::validate_set_chassis_attributes(const Attributes& attributes) {
     for (const auto& name : attributes.get_names()) {
         const auto& value = attributes.get_value(name);
@@ -99,7 +116,7 @@ void CommonValidator::validate_set_system_attributes(const Attributes& attribute
         else if (literals::System::BOOT_OVERRIDE_TARGET == name) {
             check_enum<enums::BootOverrideTarget>(value, name, "agent-framework");
         }
-        else if (literals::System::POWER_STATE == name) {
+        else if (literals::System::RESET == name) {
             check_enum<enums::ResetType>(value, name, "agent-framework");
         }
         else if (literals::System::ASSET_TAG == name) {
@@ -108,8 +125,17 @@ void CommonValidator::validate_set_system_attributes(const Attributes& attribute
         else if (literals::System::USER_MODE_ENABLED == name) {
             check_boolean(value, name, "agent-framework");
         }
+        else if (literals::System::RESET_CONFIGURATION == name) {
+            check_boolean(value, name, "agent-framework");
+        }
+        else if (literals::System::ERASE_CONFIGURATION_KEYS == name) {
+            check_boolean(value, name, "agent-framework");
+        }
         else if (literals::System::OEM == name) {
             Oem::from_json(value);
+        }
+        else if (literals::System::CURRENT_PERFORMANCE_CONFIGURATION == name) {
+            check_number(value, name, "agent-framework");
         }
         else {
             THROW(InvalidField, "agent-framework", "Unrecognized attribute.", name, value);

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,14 +22,12 @@
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
 #include "agent-framework/module/common_components.hpp"
-
-#include "agent-framework/eventing/event_data.hpp"
+#include "agent-framework/module/model/attributes/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
-
+#include "agent-framework/logger_loader.hpp"
 #include "agent-framework/command/command_server.hpp"
 
 #include "logger/logger_factory.hpp"
-#include "agent-framework/logger_loader.hpp"
 #include "database/database.hpp"
 
 #include "loader/compute_loader.hpp"
@@ -39,13 +37,12 @@
 
 #include "json-rpc/connectors/http_server_connector.hpp"
 
-#include <csignal>
-
 #include "status/bmc.hpp"
 #include "status/gpio/gpio_manager.hpp"
 #include "ipmi/manager/ipmitool/management_controller.hpp"
 #include "ipmi/command/generic/get_device_id.hpp"
 
+#include <csignal>
 
 
 using namespace agent::compute::status;
@@ -54,7 +51,7 @@ using namespace agent_framework::generic;
 using namespace logger_cpp;
 using namespace configuration;
 
-using eventing::EventData;
+using model::attribute::EventData;
 using eventing::EventsQueue;
 
 using agent::generic::DEFAULT_CONFIGURATION;
@@ -87,13 +84,13 @@ inline std::string decrypt_value(const std::string& value) {
 static constexpr unsigned int DEFAULT_SERVER_PORT = 7777;
 
 
-const json::Value& init_configuration(int argc, const char** argv);
+const json::Json& init_configuration(int argc, const char** argv);
 
 
-bool check_configuration(const json::Value& json);
+bool check_configuration(const json::Json& json);
 
 
-BmcCollection load_bmcs(const json::Value& configuration);
+BmcCollection load_bmcs(const json::Json& configuration);
 
 
 /*!
@@ -103,7 +100,7 @@ int main(int argc, const char* argv[]) {
     std::uint16_t server_port = DEFAULT_SERVER_PORT;
 
     /* Initialize configuration */
-    const json::Value& configuration = ::init_configuration(argc, argv);
+    const json::Json& configuration = ::init_configuration(argc, argv);
     if (!::check_configuration(configuration)) {
         return -1;
     }
@@ -120,14 +117,14 @@ int main(int argc, const char* argv[]) {
     log_info("compute-agent", "Running SDV PSME Compute Agent.");
 
     try {
-        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
+        server_port = configuration.value("server", json::Json::object()).value("port", std::uint16_t{});
     }
-    catch (const json::Value::Exception& e) {
+    catch (const std::exception& e) {
         log_error("compute-agent", "Cannot read server port: " << e.what());
     }
 
-    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
-        database::Database::set_default_location(configuration["database"]["location"].as_string());
+    if (configuration.value("database", json::Json()).is_object() && configuration.value("database", json::Json::object()).value("location", json::Json()).is_string()) {
+        database::Database::set_default_location(configuration["database"]["location"].get<std::string>());
     }
 
     RegistrationData registration_data{configuration};
@@ -181,7 +178,7 @@ int main(int argc, const char* argv[]) {
 }
 
 
-const json::Value& init_configuration(int argc, const char** argv) {
+const json::Json& init_configuration(int argc, const char** argv) {
     log_info("compute-agent",
              agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
@@ -198,8 +195,8 @@ const json::Value& init_configuration(int argc, const char** argv) {
 }
 
 
-bool check_configuration(const json::Value& json) {
-    json::Value json_schema;
+bool check_configuration(const json::Json& json) {
+    json::Json json_schema = json::Json();
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
         log_info("compute-agent", "JSON Schema load!");
 
@@ -219,21 +216,21 @@ bool check_configuration(const json::Value& json) {
 }
 
 
-BmcCollection load_bmcs(const json::Value& config) {
+BmcCollection load_bmcs(const json::Json& config) {
     BmcCollection bmcs{};
     Bmc::Duration state_update_interval = GpioManager::get_instance()->get_minimal_update_interval();
     for (const auto& manager : config["managers"]) {
-        auto slot = manager["slot"].as_uint();
+        auto slot = manager.value("slot", std::uint16_t{});
         auto read_presence_fn = [slot]() {
             log_debug("compute-agent", "Getting sled presence on slot: " << slot);
             return GpioManager::get_instance()->is_present(uint8_t(slot));
         };
 
         ConnectionData connection{};
-        connection.set_ip_address(manager["ipv4"].as_string());
-        connection.set_username(decrypt_value(manager["username"].as_string()));
-        connection.set_password(decrypt_value(manager["password"].as_string()));
-        connection.set_port(manager["port"].as_uint());
+        connection.set_ip_address(manager["ipv4"].get<std::string>());
+        connection.set_username(decrypt_value(manager["username"].get<std::string>()));
+        connection.set_password(decrypt_value(manager["password"].get<std::string>()));
+        connection.set_port(manager["port"].get<std::uint16_t>());
         ipmi::manager::ipmitool::ManagementController mc{
             connection.get_ip_address(), connection.get_port(),
             connection.get_username(), connection.get_password()

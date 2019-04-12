@@ -1,8 +1,7 @@
 /*!
  * @brief Switch Port Info Impl class declaration.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file agent/network/include/hal/switch_port_info_impl.hpp
  */
 
@@ -87,21 +85,6 @@ public:
     const PortIdentifier& get_port_identifier() const {
         return m_port_identifier;
     }
-
-    /*!
-     * @brief Add member to the interface.
-     *
-     * @param[in] port Logical Port interface to be added to.
-     * @param[in] member port interface to add.
-     * */
-    static void add_member(const PortIdentifier& port, const PortIdentifier& member);
-
-    /*!
-     * @brief Remove member from the interface.
-     *
-     * @param[in] member port interface to remove from.
-     * */
-    static void remove_member(const PortIdentifier& member);
 
     /*!
      * @brief Get master port identifier.
@@ -209,38 +192,6 @@ private:
     get_priorities_to_set_to_remove(const PrioritiesList& requested,
                                     const PrioritiesList& existing);
 
-    using SwAttr = uint32_t;
-    using SwAttrValue = uint32_t;
-
-    /*!
-     * @brief Sets port attribute on a switch thu Netlink.
-     *
-     * @param[in] swattr Port attribute to set.
-     * @param[in] value Value to set.
-     * */
-    void set_switch_port_attr(SwAttr swattr, SwAttrValue value);
-
-    /*!
-     * @brief Get switch port max frame size attribute.
-     *
-     * @return Port mac frame size.
-     * */
-    uint32_t get_switch_port_max_frame_size();
-
-    /*!
-     * @brief Get switch port autoneg attribute.
-     *
-     * @return Port autoneg (true/false).
-     * */
-    bool get_switch_port_autoneg();
-
-    /*!
-     * @brief Set switch port autoneg attribute.
-     *
-     * @param[in] enable Port auto-negotiation.
-     * */
-    void set_switch_port_autoneg(bool enable);
-
     /*!
      * @brief Get vlan list on the port.
      * */
@@ -267,13 +218,6 @@ private:
      * @return Port speed.
      * */
     uint32_t get_switch_port_speed();
-
-    /*!
-     * @brief Sets port speed on the switch.
-     *
-     * @param[in] speed Port speed.
-     * */
-    void set_switch_port_speed(uint32_t speed);
 
     /*!
      * @brief Gets PFC enabled state.

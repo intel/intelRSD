@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,7 @@ Location::~Location() { }
 
 
 json::Json Location::to_json() const {
-    json::Json json;
+    json::Json json = json::Json();
     json[literals::Location::INFO] = get_info();
     json[literals::Location::INFO_FORMAT] = get_info_format();
     return json;

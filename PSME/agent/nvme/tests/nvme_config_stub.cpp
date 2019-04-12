@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of Nvme config stub tests.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file nvme_config_stub.cpp
  */
 
@@ -26,10 +24,6 @@ using namespace std;
 NvmeConfig::~NvmeConfig() { }
 
 static string parent_id{"1"};
-
-bool NvmeConfig::get_is_target() {
-    return true;
-}
 
 void NvmeConfig::set_parent_id(const string& str) {
     parent_id = str;

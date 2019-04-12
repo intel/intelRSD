@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,18 +46,12 @@ void DriveBuilder::build_default() {
     m_obj.set_status(std::move(status));
 
     m_obj.set_type(enums::DriveType::SSD);
-    m_obj.set_interface(enums::StorageProtocol::NVMe);
+    m_obj.set_interface(enums::TransportProtocol::NVMe);
 
     m_obj.add_collection(attribute::Collection(
         enums::CollectionName::PcieFunctions,
-        enums::CollectionType::PCIeFunctions,
-        ""
+        enums::CollectionType::PCIeFunctions
     ));
-
-    attribute::Identifier id{};
-    id.set_durable_name_format(enums::IdentifierType::UUID);
-    id.set_durable_name(m_obj.get_uuid());
-    m_obj.add_identifier(std::move(id));
 }
 
 DriveBuilder::ReturnType DriveBuilder::update_sysfs_drive_data(const SysfsDrive& sysfs_drive) {

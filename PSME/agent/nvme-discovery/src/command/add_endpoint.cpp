@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of AddEndpoint command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file add_endpoint.cpp
  */
 
@@ -188,14 +186,14 @@ void add_endpoint(AddEndpoint::ContextPtr /* ctx */, const AddEndpoint::Request&
     std::string nqn = get_nqn(req);
 
     endpoint.add_identifier({nqn, enums::IdentifierType::NQN});
-    const auto endpoint_uuid= ns.stabilize(endpoint);
+    const auto endpoint_uuid = ns.stabilize(endpoint);
 
     throw_if_endpoint_exist(endpoint_uuid);
 
     endpoint.add_identifier({endpoint_uuid, enums::IdentifierType::UUID});
-    endpoint.set_protocol(enums::StorageProtocol::NVMeOverFabrics);
+    endpoint.set_protocol(enums::TransportProtocol::NVMeOverFabrics);
     endpoint.set_connected_entities(req.get_connected_entities());
-    endpoint.set_status(true);
+    endpoint.set_status({enums::State::Enabled, enums::Health::OK});
     endpoint.set_oem(req.get_oem());
 
     attribute::IpTransportDetail ip_transport_detail{};

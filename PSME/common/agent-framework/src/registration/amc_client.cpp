@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,10 +24,12 @@
 #include "agent-framework/registration/registration_request.hpp"
 #include "agent-framework/module/constants/psme.hpp"
 #include "agent-framework/module/constants/command.hpp"
-#include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 
 #include "json-rpc/connectors/http_client_connector.hpp"
 #include "json-rpc/handlers/json_rpc_request_invoker.hpp"
+
+#include "logger/logger.hpp"
 
 using namespace agent_framework::generic;
 using namespace agent_framework::model::literals;
@@ -56,7 +58,7 @@ RegistrationResponse AmcClient::attach() const {
 
 HeartBeatResponse AmcClient::heart_beat() const {
     json::Json request {
-        {HeartBeat::GAMI_ID, ServiceUuid::get_instance()->get_service_uuid()}
+        {HeartBeat::GAMI_ID, module::ServiceUuid::get_instance()->get_service_uuid()}
     };
 
     m_invoker->prepare_method(Command::HEART_BEAT, request);

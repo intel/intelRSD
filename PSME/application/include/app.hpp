@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,14 +29,11 @@
 #include "psme/rest/rest_server.hpp"
 #include "psme/rest/model/watcher.hpp"
 #include "psme/rest/eventing/event_service.hpp"
+#include "psme/rest/security/session/session_service.hpp"
 #include "net/network_change_notifier.hpp"
 
 #include <memory>
 
-/*! Forward declarations */
-namespace json {
-    class Value;
-}
 
 namespace jsonrpc {
     class HttpServer;
@@ -92,17 +89,19 @@ private:
     void init_registration_server();
     void init_eventing_server();
     void init_rest_event_service();
+    void init_rest_session_service();
     void init_rest_server();
     void init_registries();
     void cleanup();
     void statics_cleanup();
     void wait_for_termination();
 
-    const json::Value& m_configuration;
+    const json::Json& m_configuration;
     std::unique_ptr<psme::app::eventing::EventingServer> m_eventing_server{};
     std::unique_ptr<psme::app::registration::RegistrationServer> m_registration_server{};
     std::unique_ptr<psme::rest::server::RestServer> m_rest_server{};
     std::unique_ptr<psme::rest::eventing::EventService> m_rest_event_service{};
+    std::unique_ptr<psme::rest::security::session::SessionService> m_rest_session_service{};
     std::unique_ptr<net::NetworkChangeNotifier> m_network_change_notifier{};
     std::shared_ptr<ssdp::SsdpService> m_ssdp_service{};
     std::unique_ptr<rest::model::Watcher> m_model_watcher{};

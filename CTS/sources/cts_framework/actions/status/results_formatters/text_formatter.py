@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -97,11 +97,14 @@ class TextFormatter(Formatter):
         script_executions_results = (self.format_script_results(script_execution_id) for script_execution_id in
                                      ScriptDAO.get_scripts_execution_ids_for_run(run_id))
 
+        lines = []
         for script_results in script_executions_results:
             for line in script_results:
                 sys.stdout.write(line)
-
+                lines.append(line)
             print VERTICAL_SEPARATOR
+            lines.append(VERTICAL_SEPARATOR)
+        return lines
 
     def format_script_results(self, script_execution_id):
         script_execution = ScriptDAO.get_script_execution_details(script_execution_id)

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,10 @@
 #include "agent-framework/registration/amc_connection_manager.hpp"
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
+#include "agent-framework/logger_loader.hpp"
 
 #include "agent-framework/eventing/events_queue.hpp"
+#include "agent-framework/eventing/utils.hpp"
 #include "agent-framework/command/command_server.hpp"
 
 #include "discovery/discovery_manager.hpp"
@@ -35,10 +37,13 @@
 #include "default_configuration.hpp"
 #include "port_monitor_thread.hpp"
 #include "database/database.hpp"
+#include "logger/logger_factory.hpp"
 
 #include "json-rpc/connectors/http_server_connector.hpp"
 
 #include <csignal>
+
+
 
 using namespace std;
 using namespace agent_framework;
@@ -59,8 +64,12 @@ static constexpr unsigned int DEFAULT_SERVER_PORT = 7781;
 static constexpr unsigned int PORT_MONITOR_THREAD_INTERVAL_SECONDS = 10;
 static constexpr unsigned int DISCOVERY_SLEEP_TIME_SECONDS = 1;
 
-const json::Value& init_configuration(int argc, const char** argv);
-bool check_configuration(const json::Value& json);
+
+const json::Json& init_configuration(int argc, const char** argv);
+
+
+bool check_configuration(const json::Json& json);
+
 
 /*!
  * @brief Generic Agent main method.
@@ -72,7 +81,7 @@ int main(int argc, const char* argv[]) {
     log_info("pnc-agent", agent_framework::generic::Version::build_info());
 
     /* Initialize configuration */
-    const json::Value& configuration = ::init_configuration(argc, argv);
+    const json::Json& configuration = ::init_configuration(argc, argv);
     if (!::check_configuration(configuration)) {
         Configuration::cleanup();
         LoggerFactory::cleanup();
@@ -93,14 +102,15 @@ int main(int argc, const char* argv[]) {
     log_info("pnc-agent", "Running PSME Pnc...");
 
     try {
-        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
+        server_port = configuration.value("server", json::Json::object()).value("port", std::uint16_t{});
     }
-    catch (const json::Value::Exception& e) {
+    catch (const std::exception& e) {
         log_error("pnc-agent", "Cannot read server port " << e.what());
     }
 
-    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
-        database::Database::set_default_location(configuration["database"]["location"].as_string());
+    if (configuration.value("database", json::Json::object()).value("location", json::Json()).is_string()) {
+        ::database::Database::set_default_location(
+            configuration["database"]["location"].get<std::string>());
     }
 
     RegistrationData registration_data{configuration};
@@ -142,6 +152,9 @@ int main(int argc, const char* argv[]) {
         std::this_thread::sleep_for(std::chrono::seconds(::DISCOVERY_SLEEP_TIME_SECONDS));
     }
 
+    /* Remove undiscovered devices from previous agent run */
+    tools.model_tool->remove_undiscovered_devices_from_db();
+
     /* Create command server */
     auto http_server_connector = new json_rpc::HttpServerConnector(server_port, registration_data.get_ipv4_address());
     json_rpc::AbstractServerConnectorPtr http_server(http_server_connector);
@@ -164,9 +177,9 @@ int main(int argc, const char* argv[]) {
     /* Send add event */
     for (const auto& elem : agent_framework::module::get_manager<agent_framework::model::Manager>().get_keys()) {
         const std::string module_persistent_uuid = agent::pnc::PncTreeStabilizer().stabilize(elem);
-        tools.model_tool->send_event("", module_persistent_uuid,
-            agent_framework::model::enums::Component::Manager,
-            agent_framework::eventing::Notification::Add);
+        agent_framework::eventing::send_event(module_persistent_uuid,
+                                              agent_framework::model::enums::Component::Manager,
+                                              agent_framework::model::enums::Notification::Add);
     }
 
     /* Stop the program and wait for interrupt */
@@ -184,7 +197,8 @@ int main(int argc, const char* argv[]) {
     return 0;
 }
 
-const json::Value& init_configuration(int argc, const char** argv) {
+
+const json::Json& init_configuration(int argc, const char** argv) {
     log_info("pnc-agent",
              agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
@@ -200,8 +214,9 @@ const json::Value& init_configuration(int argc, const char** argv) {
     return basic_config.to_json();
 }
 
-bool check_configuration(const json::Value& json) {
-    json::Value json_schema;
+
+bool check_configuration(const json::Json& json) {
+    json::Json json_schema = json::Json();
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
         log_info("pnc-agent", "JSON Schema load!");
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,8 @@ endpoint::ManagerReset::~ManagerReset() {}
 
 
 void endpoint::ManagerReset::post(const server::Request& request, server::Response& response) {
-    auto manager = model::Find<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID]).get();
+    static const constexpr char TRANSACTION_NAME[] = "PostManagerReset";
+    auto manager = model::find<agent_framework::model::Manager>(request.params).get();
 
     if(!utils::has_resource_capability(manager, Capability::RMM) ||
        (agent_framework::model::enums::ManagerInfoType::RackManager != manager.get_manager_type() &&
@@ -60,8 +61,8 @@ void endpoint::ManagerReset::post(const server::Request& request, server::Respon
     const auto& json = JsonValidator::validate_request_body<schema::ResetPostSchema>(request);
     agent_framework::model::attribute::Attributes attributes{};
 
-    if (json.is_member(constants::Common::RESET_TYPE)) {
-        const auto& reset_type = json[constants::Common::RESET_TYPE].as_string();
+    if (json.count(constants::Common::RESET_TYPE)) {
+        const auto& reset_type = json[constants::Common::RESET_TYPE].get<std::string>();
         const auto reset_type_enum = agent_framework::model::enums::ResetType::from_string(reset_type);
         if (!JsonValidator::validate_allowable_values(manager.get_allowed_reset_actions().get_array(), reset_type_enum)) {
             throw error::ServerException(
@@ -101,7 +102,7 @@ void endpoint::ManagerReset::post(const server::Request& request, server::Respon
                 get_handler(agent_framework::model::enums::Component::Manager)->
                 load(gami_agent, {}, agent_framework::model::enums::Component::None, manager_uuid);
         };
-        gami_agent->execute_in_transaction(set_manager_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_manager_attributes);
     }
 
     response.set_status(server::status_2XX::NO_CONTENT);
